@@ -1,0 +1,554 @@
+################################################################################
+# nxTools - Common Functions Library                                           #
+################################################################################
+# Author  : neoxed                                                             #
+# Date    : 01-01-2005                                                         #
+# Version : 0.9.6 (rev 181)                                                    #
+################################################################################
+
+# General Procedures
+######################################################################
+
+interp alias {} IsTrue {} string is true -strict
+interp alias {} IsFalse {} string is false -strict
+
+## Safe argument handling
+proc ArgList {ArgV} {
+	split [string trim [regsub -all {\s+} $ArgV { }]]
+}
+proc ArgIndex {ArgV Index} {
+	lindex [ArgList $ArgV] $Index
+}
+proc ArgLength {ArgV} {
+	llength [ArgList $ArgV]
+}
+proc ArgRange {ArgV Start End} {
+	join [lrange [ArgList $ArgV] $Start $End]
+}
+
+proc GetOptions {ArgList ResultsVar StringVar} {
+	upvar $ResultsVar MaxResults $StringVar String
+	set Switch [string tolower [lindex $ArgList 0]]
+	if {[string index $Switch 0] == "-"} {
+		set Switch [string range $Switch 1 end]
+		switch -exact -- $Switch {
+			"m" - "max" {
+				set MaxResults [lindex $ArgList 1]
+				set String [join [lrange $ArgList 2 end]]
+				if {![string is digit -strict $MaxResults] || $MaxResults < 1} {set MaxResults 10}
+			}
+			"h" - "help" -
+			default {return 0}
+		}
+	} else {
+		set MaxResults 10
+		set String [join $ArgList]
+	}
+	return 1
+}
+
+proc ErrorReturn {ErrorMsg} {
+	LinePuts $ErrorMsg
+	iputs "'------------------------------------------------------------------------'"
+	return -code return
+}
+
+proc LinePuts {String} {iputs [format "| %-70s |" $String]}
+
+proc StripChars {String} {
+	regsub -all {[\s\.\+\@\#\$\%\^\&\=\*\?\:\;\|\"\/\\]+} $String {.} String
+	regsub -all {[\(\<]+} $String {(} String
+	regsub -all {[\)\>]+} $String {)} String
+	return $String
+}
+
+proc Sleep {MilliSeconds} {
+	set UniqueKey [UniqueKey]
+	set ::Sleep_$UniqueKey 0
+	after $MilliSeconds [list set ::Sleep_$UniqueKey 1]
+	vwait ::Sleep_$UniqueKey
+	unset ::Sleep_$UniqueKey
+}
+
+proc UniqueKey {} {
+	set Key [expr {pow(2,31) + [clock clicks]}]
+	set Key [string range $Key end-8 end-3]
+	return "[clock seconds]$Key"
+}
+
+# DataBase Procedures
+######################################################################
+
+proc DBConnect {} {
+	global mysql
+	if {[lsearch -exact [package names] "mysqltcl"] == -1 && [catch {load "mysqltcl.dll"} ErrorMsg]} {
+		ErrorLog DBConnect $ErrorMsg
+	} elseif {[catch {set mysql(ConnHandle) [mysqlconnect -host $mysql(Host) -user $mysql(Username) -password $mysql(Password) -port $mysql(Port) -db $mysql(DataBase)]} ErrorMsg]} {
+		ErrorLog DBConnect $ErrorMsg
+	} elseif {[lsearch -exact [mysqlinfo $mysql(ConnHandle) tables] $mysql(TableName)] != -1} {
+		return 1
+	} else {
+		ErrorLog DBConnect "The table \"$mysql(TableName)\" does not exist in the \"$mysql(DataBase)\" database."
+		DBClose
+	}
+	set mysql(ConnHandle) -1
+	return 0
+}
+
+proc DBClose {} {
+	global mysql
+	if {$mysql(ConnHandle) != -1} {
+		catch {mysqlclose $mysql(ConnHandle)}
+		set mysql(ConnHandle) -1
+	}
+	return
+}
+
+# File and Directory Procedures
+######################################################################
+
+proc ArchiveFile {FilePath {FormatStyle "%Y-%m-%d"}} {
+	global log
+	## Create the archive directory if it doesn't exist
+	if {![file isdirectory $log(ArchivePath)]} {
+		if {[catch {file mkdir $log(ArchivePath)} ErrorMsg]} {
+			ErrorLog ArchiveMkDir $ErrorMsg; return 0
+		}
+	}
+	## Copy the specified file to the archive directory
+	set DatePrefix [clock format [clock seconds] -format $FormatStyle -gmt 0]
+	set ArchiveFile [file join $log(ArchivePath) "$DatePrefix.[file tail $FilePath]"]
+	if {[catch {file copy -- $FilePath $ArchiveFile} ErrorMsg]} {
+		ErrorLog ArchiveFile $ErrorMsg; return 0
+	}
+	return 1
+}
+
+proc DirList {FillArray RealPath {IgnoreList ""}} {
+	upvar $FillArray dlist
+	if {![llength [array names dlist]]} {
+		array set dlist [list Dirs "" Files ""]
+	}
+	if {[file isdirectory $RealPath]} {
+		lappend dlist(Dirs) $RealPath
+		set Listing [glob -nocomplain -directory $RealPath "*"]
+	} elseif {[file isfile $RealPath]} {
+		set Listing [list $RealPath]
+	} else {return}
+	foreach ListItem $Listing {
+		if {[file readable $ListItem] && ![ListMatch $IgnoreList [file tail $ListItem] True]} {
+			if {[file isdirectory $ListItem]} {
+				DirList dlist $ListItem $IgnoreList
+			} else {
+				lappend dlist(Files) $ListItem
+			}
+		}
+	}
+	return
+}
+
+proc DirStats {FillArray RealPath {IgnoreList ""}} {
+	upvar $FillArray stats
+	if {![llength [array names stats]]} {
+		array set stats [list Dirs 0 Files 0 Size 0]
+	}
+	if {[file isdirectory $RealPath]} {
+		incr stats(Dirs)
+		set Listing [glob -nocomplain -directory $RealPath "*"]
+	} elseif {[file isfile $RealPath]} {
+		set Listing [list $RealPath]
+	} else {return}
+	foreach ListItem $Listing {
+		if {[file readable $ListItem] && ![ListMatch $IgnoreList [file tail $ListItem] True]} {
+			if {[file isdirectory $ListItem]} {
+				DirStats stats $ListItem $IgnoreList
+			} else {
+				incr stats(Files)
+				set FileSize [file size $ListItem]
+				set stats(Size) [expr wide($stats(Size)) + wide($FileSize)]
+			}
+		}
+	}
+	return
+}
+
+proc GetPath {PWD Path} {
+	if {[string index $Path 0] == "/"} {set VirtualPath $Path} else {set VirtualPath "$PWD$Path"}
+	regsub -all {[\\/]+} $VirtualPath {/} VirtualPath
+	## A few 'security checks', in case $Path is "." or ".."
+	if {[file tail $VirtualPath] == "." || [file tail $VirtualPath] == ".."} {
+		set VirtualPath [file dirname $VirtualPath]
+	} elseif {![string equal "/" $VirtualPath]} {
+		set VirtualPath [string trimright $VirtualPath "/"]
+	}
+	return $VirtualPath
+}
+
+proc GetSectionList {} {
+	set IsSections 0; set SectionList ""
+	if {![catch {set Handle [open "ioFTPD.ini" r]} ErrorMsg]} {
+		while {![eof $Handle]} {
+			set ConfLine [string trim [gets $Handle]]
+			if {[string index $ConfLine 0] == ";" || [string index $ConfLine 0] == "#"} {continue}
+			if {[string equal {[Sections]} $ConfLine]} {
+				set IsSections 1
+			} elseif {$IsSections} {
+				if {[string match {\[*\]} $ConfLine]} {
+					set IsSections 0
+				} elseif {[set Items [llength $ConfLine]]} {
+					## Check if the user was to lazy to define the stats section
+					foreach {SectionName EQ CreditSection Param1 Param2} $ConfLine {break}
+					switch -exact -- $Items {
+						5 {lappend SectionList $SectionName $CreditSection $Param1 $Param2}
+						4 {lappend SectionList $SectionName $CreditSection 0 $Param1}
+						default {ErrorLog GetSectionList "Invalid ioFTPD.ini \[Sections\] line: \"$ConfLine\""}
+					}
+				}
+			}
+		}
+		close $Handle
+	} else {ErrorLog GetSectionList $ErrorMsg}
+	return $SectionList
+}
+
+proc GetSectionPath {FindSection {SectionList ""}} {
+	if {$SectionList == ""} {set SectionList [GetSectionList]}
+	foreach {SectionName CreditSection StatSection MatchPath} $SectionList {
+		if {[string equal -nocase $FindSection $SectionName]} {
+			return [list $SectionName $MatchPath]
+		}
+	}
+	return [list "DEFAULT" "*"]
+}
+
+proc GetCreditsAndStats {VirtualPath {SectionList ""}} {
+	if {$SectionList == ""} {set SectionList [GetSectionList]}
+	foreach {SectionName CreditSection StatSection MatchPath} $SectionList {
+		if {[string match -nocase $MatchPath $VirtualPath]} {
+			return [list $CreditSection $StatSection]
+		}
+	}
+	return [list 0 0]
+}
+
+proc IsMultiDisk {DiskPath} {
+	set DiskPath [string tolower [file tail $DiskPath]]
+	return [regexp {^(cd[0-9]|dis[ck][0-9]|dvd[0-9])$} $DiskPath]
+}
+
+proc KickUsers {KickPath {RealPaths "False"}} {
+	if {[IsTrue $RealPaths]} {
+		catch {client kill realpath $KickPath}
+	} else {
+		catch {client kill virtualpath $KickPath}
+	}
+	set KickPath [string map {\[ \\\[ \] \\\]} $KickPath]
+	Sleep 100
+
+	## Repeat the kicking process 20 times to ensure users were disconnected
+	for {set Count 0} {$Count < 20} {incr Count} {
+		if {[client who init "CID" "STATUS" "VIRTUALPATH" "VIRTUALDATAPATH"] == 0} {
+			set UsersOnline 0
+			while {[set WhoData [client who fetch]] != ""} {
+				foreach {ClientID Status VfsPath DataPath} $WhoData {break}
+
+				## Resolve virtual paths if needed
+				if {[IsTrue $RealPaths]} {
+					set VfsPath [resolve pwd $VfsPath]
+					set DataPath [resolve pwd $DataPath]
+				}
+				## Directly after a transfer, the DataPath will be the last file
+				## transfered by that user; however, their 'Status' will be IDLE - bug?
+				if {$Status == 1 || $Status == 2} {
+					set MatchPath $DataPath
+				} else {
+					if {[string index $VfsPath end] != "/"} {append VfsPath "/"}
+					set MatchPath $VfsPath
+				}
+				## Attempt to kick the client ID
+				if {[string match -nocase $KickPath $MatchPath]} {
+					incr UsersOnline
+					catch {client kill clientid $ClientID}
+				}
+			}
+			## If there are no longer any users in that dir, we can return
+			if {!$UsersOnline} {return}
+		}
+		Sleep 100
+	}
+}
+
+# List Procedures
+######################################################################
+
+proc ListAssign {ValueList args} {
+	while {[llength $ValueList] < [llength $args]} {
+		lappend ValueList {}
+	}
+	uplevel [list foreach $args $ValueList break]
+}
+
+proc ListMatch {PatternList String {NoCase "False"}} {
+	foreach ListItem $PatternList {
+		if {[IsTrue $NoCase]} {
+			if {[string match -nocase $ListItem $String]} {return 1}
+		} else {
+			if {[string match $ListItem $String]} {return 1}
+		}
+	}
+	return 0
+}
+
+# Logging Procedures
+######################################################################
+
+set misc(LogPath) [config read "Locations" "Log_Files"]
+
+proc DebugLog {LogType LogMsg} {
+	global misc args flags group groups path pwd user
+	set LogFile [file join $misc(LogPath) "nxDebug.log"]
+
+	if {![catch {set Handle [open $LogFile a]} ErrorMsg]} {
+		set TimeNow [clock format [clock seconds] -format "%m-%d-%Y %H:%M:%S"]
+		if {[string equal "-state" $LogType]} {
+			puts $Handle "$TimeNow -------------------------------------------------------------------"
+			puts $Handle "$TimeNow - [format %-12s Script] : $LogMsg"
+			foreach EnvVar {args user group groups flags path pwd} {
+				set LogMsg [expr {[info exists $EnvVar] ? [set $EnvVar] : ""}]
+				puts $Handle "$TimeNow - [format %-12s $EnvVar] : $LogMsg"
+			}
+		} else {
+			puts $Handle "$TimeNow - [format %-12s $LogType] : $LogMsg"
+		}
+		close $Handle
+	} else {iputs $ErrorMsg}
+}
+
+proc ErrorLog {LogType LogMsg} {
+	global misc
+	set LogFile [file join $misc(LogPath) "nxError.log"]
+
+	if {![catch {set Handle [open $LogFile a]} ErrorMsg]} {
+		set TimeNow [clock format [clock seconds] -format "%m-%d-%Y %H:%M:%S"]
+		puts $Handle "$TimeNow - [format %-12s $LogType] : $LogMsg"
+		close $Handle
+	} else {iputs $ErrorMsg}
+}
+
+# Formatting Procedures
+######################################################################
+
+proc FormatDuration {Seconds} {
+	set Duration ""
+	foreach Div {31536000 604800 86400 3600 60 1} Mod {0 52 7 24 60 60} Unit {y w d h m s} {
+		set Num [expr {$Seconds / $Div}]
+		if {$Mod > 0} {set Num [expr {$Num % $Mod}]}
+		if {$Num > 0} {lappend Duration "$Num$Unit"}
+	}
+	if {[llength $Duration]} {return [join $Duration]} else {return "0s"}
+}
+
+proc FormatDurationLong {Seconds} {
+	set Duration ""
+	foreach Div {31536000 604800 86400 3600 60 1} Mod {0 52 7 24 60 60} Unit {year week day hour min sec} {
+		set Num [expr {$Seconds / $Div}]
+		if {$Mod > 0} {set Num [expr {$Num % $Mod}]}
+		if {$Num > 1} {lappend Duration "$Num ${Unit}s"} elseif {$Num == 1} {lappend Duration "$Num $Unit"}
+	}
+	if {[llength $Duration]} {return [join $Duration {, }]} else {return "0 secs"}
+}
+
+proc FormatSize {KBytes} {
+	if {abs($KBytes) >= 1073741824} {
+		return [format "%.2f TB" [expr {double($KBytes) / 1073741824.0}]]
+	} elseif {abs($KBytes) >= 1048576} {
+		return [format "%.2f GB" [expr {double($KBytes) / 1048576.0}]]
+	} elseif {abs($KBytes) >= 1024} {
+		return [format "%.1f MB" [expr {double($KBytes) / 1024.0}]]
+	} else {
+		return [format "%.0f KB" [expr {double($KBytes)}]]
+	}
+}
+
+proc FormatSpeed {Speed {Seconds "0"}} {
+	if {$Seconds > 0} {set Speed [expr {double($Speed) / $Seconds}]}
+	if {abs($Speed) >= 1048576} {
+		return [format "%.2f GB/s" [expr {double($Speed) / 1048576.0}]]
+	} elseif {abs($Speed) >= 1024} {
+		return [format "%.2f MB/s" [expr {double($Speed) / 1024.0}]]
+	} else {
+		return [format "%.0f KB/s" [expr {double($Speed)}]]
+	}
+}
+
+# User and Group Procedures
+######################################################################
+
+proc GetUserList {} {
+	set UserList ""
+	foreach UserID [user list] {lappend UserList [resolve uid $UserID]}
+	return [lsort -ascii $UserList]
+}
+
+proc GetGroupList {} {
+	set GroupList ""
+	foreach GroupID [group list] {lappend GroupList [resolve gid $GroupID]}
+	return [lsort -ascii $GroupList]
+}
+
+proc GetGroupName {GroupID} {
+	if {[set GroupName [resolve gid $GroupID]] != ""} {
+		return $GroupName
+	}
+	return "NoGroup"
+}
+
+proc GetGroupUsers {GroupID} {
+	set UserList ""
+	foreach UserName [GetUserList] {
+		if {[userfile open $UserName] != 0} {continue}
+		set UserFile [userfile bin2ascii]
+		if {[regexp -nocase {groups ([\s\d]+)} $UserFile Result GIDList]} {
+			if {[lsearch -exact $GIDList $GroupID] != -1} {lappend UserList $UserName}
+		}
+	}
+	return $UserList
+}
+
+# Cookie Parsing Procedures
+######################################################################
+
+proc OutputData {OutputData} {
+	foreach OutLine [split $OutputData "\r\n"] {
+		if {$OutLine != ""} {iputs $OutLine}
+	}
+}
+
+proc ReadFile {FilePath} {
+	set FileData ""
+	if {![catch {set Handle [open $FilePath r]} ErrorMsg]} {
+		set FileData [read $Handle]
+		close $Handle
+	} else {ErrorLog ReadFile $ErrorMsg}
+	return $FileData
+}
+
+proc ParseCookies {InputStr ValueList CookieList} {
+	set InputLen [string length $InputStr]
+	set OutputStr ""
+
+	for {set InputIdx 0} {$InputIdx < $InputLen} {incr InputIdx} {
+		if {[string index $InputStr $InputIdx] == "%"} {
+			## Save this index for invalid cookies
+			set StartIdx $InputIdx
+
+			## Find position field
+			set BeforeIdx [incr InputIdx]
+			if {[string index $InputStr $InputIdx] == "-"} {
+				## Ignore the negative sign if a does not number follow, for example: %-(cookie)
+				if {[string is digit -strict [string index $InputStr [incr InputIdx]]]} {incr InputIdx} else {incr BeforeIdx}
+			}
+			while {[string is digit -strict [string index $InputStr $InputIdx]]} {incr InputIdx}
+			if {$BeforeIdx != $InputIdx} {
+				set RightPos [string range $InputStr $BeforeIdx [expr {$InputIdx - 1}]]
+			} else {
+				set RightPos 0
+			}
+
+			## Find minimum/precision field
+			if {[string index $InputStr $InputIdx] == "."} {
+				set BeforeIdx [incr InputIdx]
+				## Ignore the negative sign, for example: %.-(cookie)
+				if {[string index $InputStr $InputIdx] == "-"} {incr BeforeIdx; incr InputIdx}
+				while {[string is digit -strict [string index $InputStr $InputIdx]]} {incr InputIdx}
+				if {$BeforeIdx != $InputIdx} {
+					set LeftPos [string range $InputStr $BeforeIdx [expr {$InputIdx - 1}]]
+				} else {
+					set LeftPos 0
+				}
+			} else {
+				## TCL's [format ...] function doesn't accept -1 for the minimum field
+				## like printf() does, so a reasonably large number will suffice.
+				set LeftPos 999999
+			}
+
+			## Find cookie name
+			if {[string index $InputStr $InputIdx] == "("} {
+				set BeforeIdx [incr InputIdx]
+				while {[string index $InputStr $InputIdx] != ")" && [string index $InputStr $InputIdx] != ""} {incr InputIdx}
+				set CookieName [string range $InputStr $BeforeIdx [expr {$InputIdx - 1}]]
+			} else {
+				## Invalid cookie format, an open parenthesis is expected
+				append OutputStr [string range $InputStr $StartIdx $InputIdx]
+				continue
+			}
+
+			if {[set CookiePos [lsearch -exact $CookieList $CookieName]] != -1} {
+				set Value [lindex $ValueList $CookiePos]
+				## Type of cookie substitution to perform
+				if {[string is integer -strict $Value]} {
+					append OutputStr [format "%${RightPos}i" $Value]
+				} elseif {[regexp {^-?[0-9]+\.[0-9]+$} $Value]} {
+					append OutputStr [format "%${RightPos}.${LeftPos}f" $Value]
+				} else {
+					append OutputStr [format "%${RightPos}.${LeftPos}s" $Value]
+				}
+			} else {
+				## Append the starting point of the cookie to the current index in hope that
+				## the user will notice that he or she has made an error in the template line.
+				append OutputStr [string range $InputStr $StartIdx $InputIdx]
+			}
+		} else {
+			append OutputStr [string index $InputStr $InputIdx]
+		}
+	}
+	return $OutputStr
+}
+
+# Timezone Conversion
+######################################################################
+
+proc IsDST {TimeStamp} {
+	set StartDate $TimeStamp; set EndDate $TimeStamp
+	## Find the first sunday of April (start of daylight savings)
+	set MonthEnd [clock scan "04/30" -base $TimeStamp]
+	for {set i [clock scan "04/01" -base $TimeStamp]} {$i < $MonthEnd} {incr i 86400} {
+		foreach {Day WeekDay} [clock format $i -format "%d %w"] {break}
+		if {$WeekDay == 0} {set StartDate [clock scan "04/$Day" -base $TimeStamp]; break}
+	}
+
+	## Find the last sunday of October (start of daylight savings)
+	set MonthEnd [clock scan "10/01" -base $TimeStamp]
+	for {set i [clock scan "10/31" -base $TimeStamp]} {$i > $MonthEnd} {incr i -86400} {
+		foreach {Day WeekDay} [clock format $i -format "%d %w"] {break}
+		if {$WeekDay == 0} {set EndDate [clock scan "10/$Day" -base $TimeStamp]; break}
+	}
+
+	## True if the 'TimeStamp' is between the first sunday of April at 2:00AM and the last sunday of
+	## October at 1:30AM (to minimize the error margin from 2 hours to 1 hour).
+	return [expr {$TimeStamp >= ($StartDate + 7200) && $TimeStamp <= ($EndDate + 5400)}]
+}
+
+proc ToUTC {TimeStamp TimeZone} {
+	global misc
+	set TimeStamp [expr {$TimeStamp - ($TimeZone * 3600)}]
+	if {[IsTrue $misc(DST_Correct)] && [IsDST [clock seconds]]} {set TimeStamp [expr {$TimeStamp - 3600}]}
+	return $TimeStamp
+}
+
+proc FromUTC {TimeStamp TimeZone} {
+	global misc
+	set TimeStamp [expr {$TimeStamp + ($TimeZone * 3600)}]
+	if {[IsTrue $misc(DST_Correct)] && [IsDST [clock seconds]]} {set TimeStamp [expr {$TimeStamp + 3600}]}
+	return $TimeStamp
+}
+
+# Reload Configuration
+######################################################################
+
+if {[IsTrue $misc(ReloadConfig)]} {
+	if {[catch {source "../scripts/init.itcl"} ErrorMsg]} {
+		ErrorLog ConfigError $ErrorMsg
+		return -code error "Unable to load script configuration, contact a siteop."
+	}
+}
