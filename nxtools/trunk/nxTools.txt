@@ -892,7 +892,7 @@ Text Templates:
                  pretime(CheckPaths).
                - Renamed config options: misc(UTC_Time) to misc(UtcTime) and
                  pre(ChownUID) to pre(ChownUserId).
-               - Update commands and permissions in your ioFTPD.ini.
+               - Repeat steps 1 to 3 in the installation section.
 
 0.9.7 -> 0.9.8 - Replace all .itcl files located in /scripts/nxTools/.
                - Download an updated nxTools-Libraries package.
