@@ -1,0 +1,94 @@
+# nxIoFileCheck v1.0.1 (by neoxed)
+###############################################################
+
+# Information:
+###############################################################
+
+  Since darkone is busy working on the next version (which is not due untill
+sometime in January 2005). This 4KB .ioFTPD file bug will be a nuisance
+in the Beta-5.x versions for a while. Rather then using del.exe /S to remove
+all .ioFTPD files, this script will only remove the .ioFTPD files which are
+larger then 4KB (4096 bytes).
+
+For more information on the 4KB .ioFTPD file bug, visit:
+http://www.ioftpd.com/board/showthread.php?s=&threadid=3369
+
+
+# Installation:
+###############################################################
+
+1. Copy the contents of this package to "x:\ioFTPD\scripts\".
+
+2. Add the following to your ioFTPD.ini:
+
+[FTP_Custom_Commands]
+iofilecheck = EXEC ..\scripts\nxIoFileCheck.exe
+
+[FTP_SITE_Permissions]
+iofilecheck = M1
+
+3. Rehash or restart ioFTPD.
+
+4. Check that the following environment variables exist in your
+   ioFTPD\etc\ioftpd.env file:
+
+   USER=%[$user]
+   GROUP=%[$group]
+   SYSTEMPATH=%[$path]
+
+   Note: If you had to add or modify any variable(s), you will
+         have to restart ioFTPD for the changes to take effect.
+
+5. Now ease your headaches and frustration with this script. :P
+
+
+# Usage:
+###############################################################
+
+   Note: All paths must be fully qualified physical paths!
+Example: nxIoFileCheck.exe C:\ioFTPD\site D:\Other E:\Stuff
+
+As a SITE command:
+SITE IOFILECHECK <path> [<path> <path> ...]
+
+After each upload:
+OnUploadComplete = EXEC ..\scripts\nxIoFileCheck.exe -upload
+
+From command line:
+nxIoFileCheck.exe <path> [<path> <path> ...]
+
+From ioFTPD's scheduler (run hourly):
+nxIoFileCheck = 0 * * * EXEC ..\scripts\nxIoFileCheck.exe -detach <path> [<path> <path> ...]
+
+# Parameters:
+###############################################################
+
+Detach from ioFTPD (-detach):
+  - nxIoFileCheck will detach itself from ioFTPD, so ioFTPD won't wait for the process to exit
+  - This parameter defaults to silent mode.
+
+Silent Mode (-silent):
+  - Any output will be supressed.
+
+Check the ioFTPD path (-upload):
+  - Check the path in the SYSTEMPATH environment variable.
+  - This parameter defaults to silent mode.
+
+
+# Changelog:
+###############################################################
+
+nxIoFileCheck v1.0.2 (24/10/2004):
+  - Added a "-upload" parameter, to check the SYSTEMPATH environment variable (for the OnUploadComplete event).
+  - Renamed the "-scheduler" parameter to "-detach".
+  - Fixed the OnUploadComplete event, now uses the SYSTEMPATH environment variable.
+
+nxIoFileCheck v1.0.1 (22/10/2004):
+  - A few readme updates (typos and an OnUploadComplete example).
+  - Added a "-scheduler" parameter, for nxIoFileCheck to detach itself (ioFTPD won't wait for the process to exit).
+  - Added a "-silent" parameter, to hide all output (for the OnUploadComplete event).
+  - Reparse points (aka NTFS junctions) are ignored to prevent possible infinite loops.
+  - The output buffer is disabled (!buffer off) to prevent timeouts when scanning large directories.
+
+nxIoFileCheck v1.0.0 (22/10/2004):
+  - Initial release.
