@@ -423,16 +423,16 @@ proc SiteApprove {Action Release} {
             if {![regexp "\[$approve(Flags)\]" $flags]} {
                 LinePuts "Only siteops may approve releases."
             } elseif {[ApproveDb eval {SELECT count(*) FROM Approves WHERE StrEq(Release,$Release)}]} {
-                LinePuts "This release is already in the approve list."
+                LinePuts "This release is already approved."
             } else {
                 ## If the release already exists in the dupe database, we'll approve that one.
                 set Approved 0
                 set DbFile [file join $misc(DataPath) "DupeDirs.db"]
                 if {![catch {sqlite3 DirDb $DbFile} ErrorMsg]} {
                     DirDb function StrEq {string equal -nocase}
-                    DirDb eval {SELECT * FROM DupeDirs WHERE StrEq(DirName,$Release) ORDER BY TimeStamp DESC LIMIT 1} values {
+                    DirDb eval {SELECT DirName,DirPath FROM DupeDirs WHERE StrEq(DirName,$Release) ORDER BY TimeStamp DESC LIMIT 1} values {
                         set VirtualPath [file join $values(DirPath) $values(DirName)]
-                        set Approved [ApproveRelease $VirtualPath $values(UserName) $values(GroupName)]
+                        set Approved [ApproveRelease $VirtualPath $user $group]
                     }
                     DirDb close
                 } else {ErrorLog SiteApprove $ErrorMsg}
@@ -458,7 +458,7 @@ proc SiteApprove {Action Release} {
                 if {$Exists} {
                     ApproveDb eval {DELETE FROM Approves WHERE rowid=$values(rowid)}
                     putlog "APPROVEDEL: \"$user\" \"$group\" \"$values(Release)\""
-                    LinePuts "Removed \"$values(Release)\" by $values(UserName)/$values(GroupName)."
+                    LinePuts "Removed \"$values(Release)\" from the approve list."
                 } else {
                     LinePuts "Invalid release, use \"SITE APPROVE LIST\" to view approved releases."
                 }
