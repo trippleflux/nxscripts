@@ -1,0 +1,6 @@
+# nxHelper v2 TODO
+############################################################
+
+- Fix UTC and local time for ::nx::time local/utc (src/Times.c)
+- Fix user time conversion for ::nx::touch (src/Touch.c)
+- Write an ID3 tag and MP3 header parser, based on CMP3Info.
