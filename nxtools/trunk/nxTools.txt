@@ -103,8 +103,8 @@ frequently, so be sure you are always using the latest version.
 # 4. Installation                                                              #
 ################################################################################
 
- 1. UnRAR and copy all files and directories maintaining the original directory
-    structure to x:\ioFTPD\scripts\. The files must be placed as follows:
+ 1. UnRAR and copy all files and directories, maintaining the original directory
+    structure, to ioFTPD\scripts\. The files must be placed as follows:
 
     ioFTPD\scripts\init.itcl
     ioFTPD\scripts\nxTools.cfg
@@ -128,12 +128,13 @@ frequently, so be sure you are always using the latest version.
     ioFTPD\scripts\nxTools\nxUtilities.tcl
     ioFTPD\scripts\nxTools\nxWeekly.cfg
 
- 2. Configure the nxTools.cfg file to your liking.
+ 2. Modify the configuration files to your liking.
 
-    If you are using the pre script, you may want to look at the nxPre.cfg file
-    located in the scripts\nxTools\ directory. Alternatively, you may use the
-    editpre function to setup areas, groups, etc. for help on this type
-    "SITE EDITPRE HELP" in your FTP client.
+    nxTools.cfg  - Main nxTools configuration.
+    nxInvite.cfg - Invite areas, managed by "SITE EDITINV".
+    nxPre.cfg    - Pre areas and groups, managed by "SITE EDITPRE".
+    nxRules.cfg  - Rules to by displayed by "SITE RULES".
+    nxWeekly.cfg - Weekly user and group credits, managed by "SITE WEEKLY".
 
  3. Add the following to your ioFTPD.ini
 
@@ -261,9 +262,9 @@ wipe        = M1V
     Invalid:
     Default= 0 0 /*     (There should be a space before the equal sign: "Default = 0 0 /*")
 
- 5. You must download and install nxHelper and the interfaces for SQLite v3.2 and
-    MySQLTcl v3.01. All of them must be installed in the ioFTPD\system\ directory.
-    These libraries are available at: http://www.ioftpd.com/scripts/script.php?id=167
+ 5. You must download nxHelper and the TclSQLite v3.2 and MySQLTcl v3.01 extensions.
+    All of them must be installed to the ioFTPD\system\ directory. These libraries
+    are available at: http://www.ioftpd.com/scripts/script.php?id=167
 
  6. There are several optional scheduled events; these events must be added
     under the [Scheduler] section in the ioFTPD.ini file. Carefully read the
