@@ -1,5 +1,5 @@
 ################################################################################
-# nxScripts - Script Loader                                                    #
+# nxScripts - Script and Extension Loader                                      #
 ################################################################################
 # Author  : $-66(AUTHOR) #
 # Date    : $-66(TIMESTAMP) #
@@ -21,8 +21,6 @@ set LibFiles {
 }
 
 ## End of settings.
-
-set misc(fuck) 1
 
 proc nxLoadError {LogType LogMsg} {
     if {![catch {set Handle [open "../logs/nxError.log" a]}]} {
