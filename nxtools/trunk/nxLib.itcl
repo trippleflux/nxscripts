@@ -501,7 +501,7 @@ proc ParseCookies {InputStr ValueList CookieList} {
                     set LeftPos 0
                 }
             } else {
-                ## TCL's [format ...] function doesn't accept -1 for the minimum field
+                ## Tcl's [format ...] function doesn't accept -1 for the minimum field
                 ## like printf() does, so a reasonably large number will suffice.
                 set LeftPos 999999
             }

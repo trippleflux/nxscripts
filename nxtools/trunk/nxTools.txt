@@ -27,7 +27,7 @@ Topics:
 
    nxTools is a fully-featured ioFTPD script. Such features include: a dupe
 checker, nuker, pre script, request script, sitebot, and various other tools
-and stats commands. Written in TCL, which offers fast processing speed and
+and stats commands. Written in Tcl, which offers fast processing speed and
 easily customizable output. Here is a summary of some of the many features
 included in nxTools.
 
@@ -265,7 +265,7 @@ nxWeekly = 0 0 * 6 TCL ..\scripts\nxTools\nxTools.itcl weeklyset
 
  6. Now restart ioFTPD for the changes to take effect.
 
- 7. You must download the TCL interface for SQLite v3.1 and MySqlTcl v3.01. Install these
+ 7. You must download the Tcl interface for SQLite v3.1 and MySqlTcl v3.01. Install these
     libraries to your ioFTPD's "system" directory (ioFTPD\system\). These libraries can be
     found at: http://www.ioftpd.com/scripts/script.php?id=167
 
@@ -1006,7 +1006,7 @@ nxTools v0.9.0 (09-02-2004):
   CHG: Rewrote dupe logging and SITE UNDUPE, they now use a temporary file when removing items from the dupe log.
   CHG: Rewrote the cookie parsing procedure for SITE RULES.
   CHG: SITE NEW now uses the dupe logs rather than the ioFTPD.log file.
-  CHG: The common library is now loaded from the same directory as the calling TCL script.
+  CHG: The common library is now loaded from the same directory as the calling Tcl script.
   FIX: Small logistic error when checking a user's secondary groups and pre paths.
   FIX: Some users reported problems displaying pre stats with large totals.
   FIX: Text alignment issue in SITE WHO, when the download or upload speed were 4+ digits.
@@ -1033,7 +1033,7 @@ nxTools v0.8.0 (07-25-2004):
   CHG: Invite uses a config where you define channels and rights for invite targets.
   CHG: Minor improvements to the pre configuration writer.
   CHG: Removed [SECTIONS] from the nxPre.cfg, sections are read from the ioFTPD.ini.
-  CHG: Removed all pre times checking, it will be re-added once there is a stable MySQL TCL package for Windows.
+  CHG: Removed all pre times checking, it will be re-added once there is a stable MySQL Tcl package for Windows.
   CHG: Renamed a few procedures in the common library to more logical names.
   CHG: Reworded several errors and reply messages in editpre.
   CHG: Simplified the rules configuration format, a fair bit less configuring now.
@@ -1077,7 +1077,7 @@ nxTools v0.7.0 (06-01-2004):
   NEW: Empty nuke support, used when total directory size is less then 5KB.
   NEW: SITE RULES [section] to display rules, with extensive text formatting features.
   NEW: SITE SIZE <directory> to retrieve stats on a directory.
-  CHG: Changed TCL [format ...] usage to follow the C printf() syntax.
+  CHG: Changed Tcl [format ...] usage to follow the C printf() syntax.
   CHG: Improved dupe checking code, quicker and more reliable.
   CHG: Improved ownership globing for nuke and pre, no longer resolves UIDs twice.
   CHG: Improved the pre configuration reader, much quicker now.
@@ -1092,7 +1092,7 @@ nxTools v0.7.0 (06-01-2004):
   CHG: Sitebot specific output now uses the "|" character as a delimiter.
   CHG: The nuke reason is now stripped of reserved characters.
   FIX: Alignment for larger transfer speeds was displayed incorrectly in SITE WHO.
-  FIX: Argument handling issues with TCL reserved characters.
+  FIX: Argument handling issues with Tcl's reserved characters.
   FIX: Dupe and undupe procedures weren't ignoring invalid or empty lines.
   FIX: Extended help for editpre was not being displayed.
   FIX: Force exempt path matching was not ignoring file case.
