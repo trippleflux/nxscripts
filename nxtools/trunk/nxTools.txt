@@ -833,6 +833,11 @@ Text Templates:
 # 8. Upgrading                                                               #
 ##############################################################################
 
+0.9.7 -> 0.9.8 - Replace all .itcl files located in /scripts/nxTools/.
+               - Download an updated nxTools-Libraries package.
+               - Removed config options: misc(DST_Correct), misc(TimeZone),
+                 and pre(HelperBin).
+
 0.9.6 -> 0.9.7 - Replace all .itcl files located in /scripts/nxTools/.
                - Add the new site commands to your ioFTPD.ini, check install step #3.
                - Install the two required Tcl libraries, check install step #7.
@@ -885,7 +890,7 @@ Text Templates:
 # 9. Change Log                                                              #
 ##############################################################################
 
-nxTools v0.9.8 (XX-XX-2005):
+nxTools v0.9.8 (03-23-2005):
   NEW: SITE DRIVES to view fixed and network drives.
   NEW: SITE EDITPRE HIDEPATH [group] to re-hide pre paths for groups, in case the
   chattr +h value is accidentally removed from the directories.
