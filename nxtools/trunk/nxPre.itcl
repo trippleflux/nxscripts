@@ -460,8 +460,9 @@ proc PreMain {ArgV} {
             }
 
             if {[IsTrue $pretime(AddOnPre)] && [DbConnect]} {
-                set PreArea [mysqlescape $PreArea]; set Release [mysqlescape $Release]
-                if {[catch {mysqlexec $mysql(ConnHandle) "INSERT INTO $mysql(TableName) (pretime,section,release,files,kbytes,disks) VALUES('$PreTime','$PreArea','$Release','$Files','$TotalSize','$DiskCount')"} ErrorMsg]} {
+                set PreArea [::mysql::escape $PreArea]
+                set Release [::mysql::escape $Release]
+                if {[catch {::mysql::exec $mysql(ConnHandle) "INSERT INTO $mysql(TableName) (pretime,section,release,files,kbytes,disks) VALUES('$PreTime','$PreArea','$Release','$Files','$TotalSize','$DiskCount')"} ErrorMsg]} {
                     if {[string first "Duplicate entry" $ErrorMsg] == -1} {ErrorLog PreAddToDb $ErrorMsg}
                 }
                 DbClose

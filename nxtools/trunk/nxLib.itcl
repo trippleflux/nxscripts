@@ -80,14 +80,14 @@ proc UniqueKey {} {
 
 proc DbConnect {} {
     global mysql
-    if {[lsearch -exact [package names] "mysqltcl"] == -1 && [catch {load "mysqltcl.dll" Mysqltcl} ErrorMsg]} {
+    if {[catch {load "mysqltcl.dll" Mysqltcl} ErrorMsg]} {
         ErrorLog DbConnect $ErrorMsg
-    } elseif {[catch {set mysql(ConnHandle) [mysqlconnect -host $mysql(Host) -user $mysql(Username) -password $mysql(Password) -port $mysql(Port) -db $mysql(DataBase)]} ErrorMsg]} {
+    } elseif {[catch {set mysql(ConnHandle) [::mysql::connect -host $mysql(Host) -user $mysql(Username) -password $mysql(Password) -port $mysql(Port) -db $mysql(DataBase)]} ErrorMsg]} {
         ErrorLog DbConnect $ErrorMsg
-    } elseif {[lsearch -exact [mysqlinfo $mysql(ConnHandle) tables] $mysql(TableName)] != -1} {
+    } elseif {[lsearch -exact [::mysql::info $mysql(ConnHandle) tables] $mysql(TableName)] != -1} {
         return 1
     } else {
-        ErrorLog DbConnect "The table \"$mysql(TableName)\" does not exist in the \"$mysql(DataBase)\" database."
+        ErrorLog DbConnect "The table \"$mysql(TableName)\" does not exist in the database \"$mysql(DataBase)\"."
         DbClose
     }
     set mysql(ConnHandle) -1
@@ -97,7 +97,7 @@ proc DbConnect {} {
 proc DbClose {} {
     global mysql
     if {$mysql(ConnHandle) != -1} {
-        catch {mysqlclose $mysql(ConnHandle)}
+        catch {::mysql::close $mysql(ConnHandle)}
         set mysql(ConnHandle) -1
     }
     return
