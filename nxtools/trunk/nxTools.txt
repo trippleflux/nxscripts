@@ -435,6 +435,12 @@ Legend:
      - SITE OPTIMIZE
      - SITE OPTIMIZE OneLines
 
+- SITE DRIVES
+    Description:
+     - Displays all fixed and network drives; including the volume name, free, and total space.
+    Examples:
+     - SITE DRIVES
+
 - SITE DUPE [-max <limit>] <release>
     Description:
      - Search the directory dupe log for a specific release.
@@ -888,8 +894,11 @@ nxTools v0.9.8 (XX-XX-2005):
   CHG: All dates and times are shown in UTC when misc(UTC_Time) is enabled (SITE DUPE/FDUPE/ONEL etc.).
   CHG: Improved the rules file reader; multiple delimiters are no longer an issue.
   CHG: UTC conversions are now done properly, using the -gmt switch.
+  CHG: Users can pre anywhere in their group's directory (instead of only root).
+  FIX: Approved releases were tagged with the wrong user.
   FIX: Directory database cleaning failed.
   FIX: The approve check failed on MKD.
+  FIX: User hiding (chowning) on SITE PRE.
 
 nxTools v0.9.7 (02-17-2005):
   NEW: Added text templates for SITE FDUPE, text/FileDupe.* files.
