@@ -191,8 +191,7 @@ proc NukeMain {ArgV} {
             if {[string first $nuke(GroupFlag) $flags] != -1} {
                 ## Find the group suffix in the release name (Something-GRP)
                 if {[set GroupPos [string last "-" [file tail $VirtualPath]]] == -1} {
-                    LinePuts "Unable to verify the release's group suffix."
-                    ErrorReturn "Does the directory contain \"-<groupname>\" at the end?"
+                    ErrorReturn "Unable to verify the release's group, is it suffixed with \"-<group>\"?"
                 }
                 set AllowNuke 0; set NukeType 1
                 set RlsSuffix [string range [file tail $VirtualPath] [incr GroupPos] end]
@@ -286,17 +285,18 @@ proc NukeMain {ArgV} {
                 set NukeTag [file join $RealPath [string map $ReMap $nuke(InfoTag)]]
                 CreateTag $NukeTag $uid $gid 555
                 RemoveParentLinks $RealPath $VirtualPath
-
+                set DirChmod 555
                 set LogPrefix "NUKE"
-                set DirChmod 555; set NukeStatus 0
+                set NukeStatus 0
                 set NewName "$nuke(Prefix)[file tail $VirtualPath]"
+
             } else {
                 foreach ListItem [NukeFindTags $RealPath $nuke(InfoTag)] {
                     RemoveTag $ListItem
                 }
-
+                set DirChmod 777
                 set LogPrefix "UNNUKE"
-                set DirChmod 777; set NukeStatus 1
+                set NukeStatus 1
                 set VirtualPath [NukeTrim $VirtualPath]
                 set NewName [file tail $VirtualPath]
             }
@@ -340,6 +340,7 @@ proc NukeMain {ArgV} {
             }
 
             if {![catch {DbOpenFile NukeDb "Nukes.db"} ErrorMsg]} {
+                ## In order to pass a NULL value to TclSQLite, the variable must be unset.
                 if {![string is digit -strict $NukeId]} {unset NukeId}
                 NukeDb eval {INSERT OR REPLACE INTO Nukes (NukeId,TimeStamp,UserName,GroupName,Status,Release,Reason,Multi,Files,Size) VALUES($NukeId,$NukeTime,$user,$group,$NukeStatus,$Release,$Reason,$Multi,$Files,$TotalSize)}
                 set NukeId [NukeDb last_insert_rowid]

@@ -18,10 +18,10 @@ if {[catch {load tclsqlite3.dll Tclsqlite3} ErrorMsg]} {
 
 # Table Formats
 ######################################################################
-unset -nocomplain dbschema dbsyntax
+unset -nocomplain dbschema dbtables
 
 set dbschema(Approves) 0
-set dbsyntax(Approves) {
+set dbtables(Approves) {
 Approves {CREATE TABLE Approves(
 TimeStamp INTEGER default 0,
 UserName  TEXT default '',
@@ -30,7 +30,7 @@ Release   TEXT default '')}
 }
 
 set dbschema(DupeDirs) 0
-set dbsyntax(DupeDirs) {
+set dbtables(DupeDirs) {
 DupeDirs {CREATE TABLE DupeDirs(
 TimeStamp INTEGER default 0,
 UserName  TEXT default '',
@@ -40,7 +40,7 @@ DirName   TEXT default '')}
 }
 
 set dbschema(DupeFiles) 0
-set dbsyntax(DupeFiles) {
+set dbtables(DupeFiles) {
 DupeFiles {CREATE TABLE DupeFiles(
 TimeStamp INTEGER default 0,
 UserName  TEXT default '',
@@ -49,7 +49,7 @@ FileName  TEXT default '')}
 }
 
 set dbschema(Links) 0
-set dbsyntax(Links) {
+set dbtables(Links) {
 Links {CREATE TABLE Links(
 TimeStamp INTEGER default 0,
 LinkType  INTEGER default 0,
@@ -57,7 +57,7 @@ DirName   TEXT default '')}
 }
 
 set dbschema(Nukes) 1
-set dbsyntax(Nukes) {
+set dbtables(Nukes) {
 Nukes {CREATE TABLE Nukes(
 NukeId    INTEGER PRIMARY KEY AUTOINCREMENT,
 TimeStamp INTEGER default 0,
@@ -80,7 +80,7 @@ UNIQUE    (NukeId,UserName))}
 }
 
 set dbschema(OneLines) 0
-set dbsyntax(OneLines) {
+set dbtables(OneLines) {
 OneLines {CREATE TABLE OneLines(
 TimeStamp INTEGER default 0,
 UserName  TEXT default '',
@@ -89,7 +89,7 @@ Message   TEXT default '')}
 }
 
 set dbschema(Pres) 0
-set dbsyntax(Pres) {
+set dbtables(Pres) {
 Pres {CREATE TABLE Pres(
 TimeStamp INTEGER default 0,
 UserName  TEXT default '',
@@ -101,7 +101,7 @@ Size      INTEGER default 0)}
 }
 
 set dbschema(Requests) 1
-set dbsyntax(Requests) {
+set dbtables(Requests) {
 Requests {CREATE TABLE Requests(
 TimeStamp INTEGER default 0,
 UserName  TEXT default '',
@@ -115,7 +115,7 @@ Request   TEXT default '')}
 ######################################################################
 
 proc DbCreate {DbList} {
-    global dbschema dbsyntax misc
+    global dbschema dbtables misc
     if {![file exists $misc(DataPath)]} {
         catch {file mkdir $misc(DataPath)}
     }
@@ -151,7 +151,7 @@ proc DbCreate {DbList} {
         }
 
         SqliteDb eval "PRAGMA user_version=$dbschema($DbName)"
-        foreach {TableName TableFormat} $dbsyntax($DbName) {
+        foreach {TableName TableFormat} $dbtables($DbName) {
             if {[SqliteDb eval "SELECT count(*) FROM sqlite_master WHERE name='$TableName' AND type='table'"]} {
                 LinePuts "- Table $TableName: exists."
             } else {
