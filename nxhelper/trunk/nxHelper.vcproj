@@ -205,6 +205,13 @@
 				RelativePath=".\source\Resource.h">
 			</File>
 		</Filter>
+		<Filter
+			Name="Text Files"
+			Filter="">
+			<File
+				RelativePath=".\Todo.txt">
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\VTune\nxHelper.vpj">
 		</File>

@@ -10,5 +10,7 @@ INT TclMp3Cmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST obj
     }
     pszFile = Tcl_GetString(objv[1]);
 
+    Tcl_SetIntObj(Tcl_GetObjResult(interp), 0);
+
     return TCL_OK;
 }

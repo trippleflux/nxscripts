@@ -1,5 +1,18 @@
 #include <nxHelper.h>
 
+ULONG FileTimeToPosixEpoch(const LPFILETIME pFileTime)
+{
+    ULONGLONG ullTime = ((ULONGLONG)pFileTime->dwHighDateTime << 32) + pFileTime->dwLowDateTime;
+    return (ULONG)((ullTime - 116444736000000000) / 10000000);
+}
+
+VOID PosixEpochToFileTime(ULONG ulEpochTime, LPFILETIME pFileTime)
+{
+    ULONGLONG ullTime = UInt32x32To64(ulEpochTime, 10000000) + 116444736000000000;
+    pFileTime->dwLowDateTime = (DWORD)ullTime;
+    pFileTime->dwHighDateTime = (DWORD)(ullTime >> 32);
+}
+
 BOOL GetTimeZoneBias(LPLONG plBias)
 {
     TIME_ZONE_INFORMATION tzi;
@@ -13,26 +26,11 @@ BOOL GetTimeZoneBias(LPLONG plBias)
     return FALSE;
 }
 
-ULONG FileTimeToPosixEpoch(const LPFILETIME pFileTime)
-{
-    ULONGLONG ullTime = ((ULONGLONG) pFileTime->dwHighDateTime << 32) + pFileTime->dwLowDateTime;
-    // MSDN: 116444736000000000 (why the random hour?)
-    // Mine: 116444700000000000
-    return (ULONG)((ullTime - 116444700000000000) / 10000000);
-}
-
-VOID PosixEpochToFileTime(ULONG ulEpochTime, LPFILETIME pFileTime)
-{
-    ULONGLONG ullTime = UInt32x32To64(ulEpochTime, 10000000) + 116444700000000000;
-    pFileTime->dwLowDateTime = (DWORD)ullTime;
-    pFileTime->dwHighDateTime = (DWORD)(ullTime >> 32);
-}
-
 INT TclTimeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST objv[])
 {
     INT nIndex;
-    const static CHAR *szOptions[] = {"dst", "local", "utc", "zone", NULL};
-    enum eOptions {OPTION_DST, OPTION_LOCAL, OPTION_UTC, OPTION_ZONE};
+    const static CHAR *szOptions[] = {"dst", /*"local", "utc",*/ "zone", NULL};
+    enum eOptions {OPTION_DST, /*OPTION_LOCAL, OPTION_UTC,*/ OPTION_ZONE};
 
     if (objc < 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "option ?args?");
@@ -51,19 +49,21 @@ INT TclTimeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST ob
 
             return TCL_OK;
         }
+#if 0
         case OPTION_LOCAL: {
-            FILETIME ftUTC, ftLocal;
-            GetSystemTimeAsFileTime(&ftUTC);
-            FileTimeToLocalFileTime(&ftUTC, &ftLocal);
+            FILETIME ftLocal;
+            GetSystemTimeAsFileTime(&ftLocal);
             Tcl_SetLongObj(Tcl_GetObjResult(interp), (LONG)FileTimeToPosixEpoch(&ftLocal));
             return TCL_OK;
         }
         case OPTION_UTC: {
-            FILETIME ftUTC;
-            GetSystemTimeAsFileTime(&ftUTC);
+            FILETIME ftLocal, ftUTC;
+            GetSystemTimeAsFileTime(&ftLocal);
+            LocalFileTimeToFileTime(&ftLocal, &ftUTC);
             Tcl_SetLongObj(Tcl_GetObjResult(interp), (LONG)FileTimeToPosixEpoch(&ftUTC));
             return TCL_OK;
         }
+#endif
         case OPTION_ZONE: {
             LONG lBias;
 

@@ -66,25 +66,10 @@ static BOOL RecursiveTouch(LPCTSTR pszCurentPath, LPFILETIME pftTouchTime, WORD 
     return TRUE;
 }
 
-VOID ShowFileTime(LPCTSTR pszHeader, const LPFILETIME pft)
-{
-    SYSTEMTIME st;
-    FileTimeToSystemTime(&(*pft), &st);
-
-    _tprintf(
-        TEXT("%s Fmt: %04d/%02d/%02d %02d:%02d:%02d Unix: %lu\n"),
-        pszHeader,
-        st.wYear, st.wMonth, st.wDay,
-        st.wHour, st.wMinute, st.wSecond,
-        FileTimeToPosixEpoch(&(*pft))
-    );
-}
-
 INT TclTouchCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST objv[])
 {
     FILETIME ftTouch;
     BOOL bRetVal;
-    BOOL bUtcTime = FALSE;
     CHAR *szPath;
     DWORD dwAttribs;
     INT i;
@@ -92,11 +77,10 @@ INT TclTouchCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST o
     WORD wOptions = 0;
 
     const static CHAR *szSwitches[] = {
-        "-atime", "-ctime", "-mtime", "-recurse", "-utc", "--", NULL
+        "-atime", "-ctime", "-mtime", "-recurse", "--", NULL
     };
     enum eSwitches {
-        OPTION_ATIME, OPTION_CTIME, OPTION_MTIME,
-        OPTION_RECURSE, OPTION_UTC, OPTION_LAST
+        OPTION_ATIME, OPTION_CTIME, OPTION_MTIME, OPTION_RECURSE, OPTION_LAST
     };
 
     if (objc < 2) {
@@ -133,10 +117,6 @@ INT TclTouchCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST o
                 wOptions |= TOUCH_FLAG_RECURSE;
                 break;
             }
-            case OPTION_UTC: {
-                bUtcTime = TRUE;
-                break;
-            }
             case OPTION_LAST: {
                 i++;
                 goto endOfForLoop;
@@ -164,26 +144,12 @@ INT TclTouchCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST o
     }
 
     if (objc == 2) {
-        FILETIME ftUser;
-        printf("TclTouchCmd - User specified a custom time\n");
         if (Tcl_GetLongFromObj(interp, objv[i+1], (ULONG*)&ulClockVal) != TCL_OK) {
             return TCL_ERROR;
         }
-
-        SecureZeroMemory(&ftUser, sizeof(FILETIME));
-        printf("User time: %lu\n", ulClockVal);
-        PosixEpochToFileTime((ULONG)ulClockVal, &ftUser);
-        ShowFileTime("TclTouchCmd - User time:", &ftUser);
-
-        if (!bUtcTime) {
-            printf("TclTouchCmd - Custom time not UTC, converting\n");
-            LocalFileTimeToFileTime(&ftUser, &ftTouch);
-            ShowFileTime("TclTouchCmd - Conv. UTC:", &ftTouch);
-        }
+        PosixEpochToFileTime((ULONG)ulClockVal, &ftTouch);
     } else {
-        printf("TclTouchCmd - Using current UTC time\n");
         GetSystemTimeAsFileTime(&ftTouch);
-        ShowFileTime("TclTouchCmd - UTC time:", &ftTouch);
     }
 
     // If no file times are specified, then all times are implied.

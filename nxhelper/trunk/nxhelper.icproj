@@ -152,6 +152,13 @@
 				Name="Release|Win32"/>
 		</File>
 		<File 
+			RelativePath=".\Todo.txt">
+			<FileConfiguration 
+				Name="Debug|Win32"/>
+			<FileConfiguration 
+				Name="Release|Win32"/>
+		</File>
+		<File 
 			RelativePath=".\VTune\nxHelper.vpj">
 			<FileConfiguration 
 				Name="Debug|Win32"/>

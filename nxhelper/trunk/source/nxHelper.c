@@ -47,7 +47,6 @@ INT Nxhelper_Init(Tcl_Interp *interp)
      *    -ctime   = Set file creation time.
      *    -mtime   = Set file modification time.
      *    -recurse = Recursively touch all files and directories.
-     *    -utc     = Use UTC time (or convert clockVal to UTC).
      *    --       = End of arguments.
      *  - If no time attributes are specified, all attributes are set.
      *  - If "clockVal" is not specified, the current time is used.
@@ -55,10 +54,10 @@ INT Nxhelper_Init(Tcl_Interp *interp)
      * ::nx::time dst
      *  - Returns 1 if daylight savings time is currently in affect, and 0 if not.
      *
-     * ::nx::time local
+     * ::nx::time local (not implemented)
      *  - Returns the current local time.
      *
-     * ::nx::time utc
+     * ::nx::time utc   (not implemented)
      *  - Returns the current time, expressed in UTC (coordinated universal time).
      *
      * ::nx::time zone
