@@ -150,6 +150,8 @@ nxAutoNuke v1.1.3 (01-24-2005):
   NEW: Added the nuke multiplier for warnings (%multi).
   NEW: Added an option to ban keywords in release names. Similar to the "banned"
        feature, but more accurate and efficient.
+  CHG: Updated the nxTools-compatible nuker to reflect the changes made to nxNuke.
+  FIX: IMDB year checking was broken.
 
 nxAutoNuke v1.1.2 (01-20-2005):
   FIX: Warnings were broken, small typo on my part.
@@ -164,7 +166,7 @@ nxAutoNuke v1.1.0 (01-19-2005):
   CHG: Most configuration options have changed in some way.
   CHG: The BadExt and MissingExt options are matched against the full file name.
   CHG: The IMDB and MP3 tags are now matched using regular expressions (a lot easier).
-  CHG: Updated the internal nuker to reflect the recent changes made to nxNuke.
+  CHG: Updated the internal nuker to reflect the changes made to nxNuke.
 
 nxAutoNuke v1.0.7 (11-20-2004):
   CHG: Minor changes to disk specific auto-nuke checks.

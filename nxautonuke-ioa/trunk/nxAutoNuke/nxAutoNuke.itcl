@@ -3,7 +3,7 @@
 ################################################################################
 # Author  : neoxed                                                             #
 # Date    : 01-31-2005                                                         #
-# Version : 1.1.3 (rev 039)                                                    #
+# Version : 1.1.3 (rev 041)                                                    #
 ################################################################################
 
 #### AutoNuke Settings #####################################
@@ -183,19 +183,22 @@ set anuke(Sections) {
 
 #### End of Settings #######################################
 
-# Source the Common Library
+# Load Libraries
 ######################################################################
 
 if {[catch {source [file join [file dirname [info script]] "nxLib.itcl"]} ErrorMsg]} {
-    iputs "Error Loading nxLib: $ErrorMsg"; return 1
+    iputs "Error loading nxLib: $ErrorMsg"; return 1
+}
+if {[catch {load "tclsqlite3.dll" Tclsqlite3} ErrorMsg]} {
+    iputs "Error loading SQLite: $ErrorMsg"; return 1
 }
 
 # Nuke Procedures
 ######################################################################
 
-proc ANukeCredits {UserName Multiplier Size Files Stats CreditSection StatsSection} {
+proc ANukeCredits {UserName Multi Size Files Stats CreditSection StatsSection} {
     set CreditSection [expr {$CreditSection + 1}]
-    set StatsSection [expr {($StatsSection * 3) + 1}]
+    set StatsSection [expr {$StatsSection * 3 + 1}]
     set GroupName "NoGroup"
     set NewUserFile ""
 
@@ -215,7 +218,7 @@ proc ANukeCredits {UserName Multiplier Size Files Stats CreditSection StatsSecti
 
         ## Change credits if the user is not leech
         if {$Ratio != 0} {
-            set DiffCredits [expr {(wide($Size) * $Ratio) + (wide($Size) * ($Multiplier - 1))}]
+            set DiffCredits [expr {(wide($Size) * $Ratio) + (wide($Size) * ($Multi - 1))}]
             set NewCredits [expr {wide($OldCredits) - wide($DiffCredits)}]
         } else {
             set DiffCredits 0
@@ -225,7 +228,7 @@ proc ANukeCredits {UserName Multiplier Size Files Stats CreditSection StatsSecti
             set LineType [string tolower [lindex $UserLine 0]]
             if {[lsearch -exact "allup dayup monthup wkup" $LineType] != -1} {
                 set NewFiles [expr {wide([lindex $UserLine $StatsSection]) - $Files}]
-                set NewStats [expr {wide([lindex $UserLine [expr {$StatsSection + 1}]]) - wide($Size)}]
+                set NewStats [expr {wide([lindex $UserLine [expr {$StatsSection + 1}]]) - wide($Stats)}]
                 set UserLine [lreplace $UserLine $StatsSection [expr {$StatsSection + 1}] $NewFiles $NewStats]
             } elseif {[string equal "credits" $LineType]} {
                 set UserLine [lreplace $UserLine $CreditSection $CreditSection $NewCredits]
@@ -247,12 +250,14 @@ proc ANukeName {VirtualPath} {
     return $Release
 }
 
-proc ANukeInternal {RealPath VirtualPath NukerUser NukerGroup Multiplier Reason} {
-    global log misc nuke
+proc ANukeInternal {RealPath VirtualPath NukerUser NukerGroup Multi Reason} {
+    global misc nuke
     if {![file isdirectory $RealPath]} {
-        ErrorLog ANuker "Unable to nuke \"$VirtualPath\": directory does not exist."; return 0
-    } elseif {![string is digit -strict $Multiplier]} {
-        ErrorLog ANuker "Unable to nuke \"$VirtualPath\": invalid multiplier value."; return 0
+        ErrorLog ANuker "Unable to nuke \"$VirtualPath\": directory does not exist."
+        return 0
+    } elseif {![string is digit -strict $Multi]} {
+        ErrorLog ANuker "Unable to nuke \"$VirtualPath\": invalid multiplier value ($Multi)."
+        return 0
     }
 
     set DiskCount 0; set Files 0; set TotalSize 0
@@ -267,8 +272,8 @@ proc ANukeInternal {RealPath VirtualPath NukerUser NukerGroup Multiplier Reason}
     }
 
     ## Count files and total size
-    DirList dlist $RealPath ".ioFTPD*"
-    foreach ListItem $dlist(Files) {
+    GetDirList $RealPath dirlist ".ioFTPD*"
+    foreach ListItem $dirlist(FileList) {
         incr Files; set FileSize [file size $ListItem]
         set TotalSize [expr {wide($TotalSize) + wide($FileSize)}]
         catch {lindex [vfs read $ListItem] 0} UserID
@@ -287,7 +292,7 @@ proc ANukeInternal {RealPath VirtualPath NukerUser NukerGroup Multiplier Reason}
     set TotalSize [expr {wide($TotalSize) / 1024}]
 
     ## Check if Release is an empty nuke (less then 5KB)
-    if {$TotalSize < 5 || [array names nukesize] == ""} {
+    if {$TotalSize < 5 || ![array exists nukesize]} {
         unset -nocomplain nukefiles nukesize
         set EmptyNuke 1
         catch {lindex [vfs read $RealPath] 0} UserID
@@ -295,7 +300,8 @@ proc ANukeInternal {RealPath VirtualPath NukerUser NukerGroup Multiplier Reason}
             set nukefiles($NukeeUser) 0
             set nukesize($NukeeUser) [expr {wide($nuke(EmptyNuke)) * 1024 * 1024}]
         } else {
-            ErrorLog ANuker "Unable to nuke \"$VirtualPath\": could not find directory owner."; return 0
+            ErrorLog ANuker "Unable to nuke \"$VirtualPath\": could not find directory owner."
+            return 0
         }
     } else {set EmptyNuke 0}
 
@@ -304,7 +310,7 @@ proc ANukeInternal {RealPath VirtualPath NukerUser NukerGroup Multiplier Reason}
     foreach NukeeUser [lsort -ascii [array names nukesize]] {
         set NukeCredits [expr {wide($nukesize($NukeeUser)) / 1024}]
         set NukeStats [expr {$EmptyNuke ? 0 : $NukeCredits}]
-        set Result [ANukeCredits $NukeeUser $Multiplier $NukeCredits $nukefiles($NukeeUser) $NukeStats $CreditSection $StatsSection]
+        set Result [ANukeCredits $NukeeUser $Multi $NukeCredits $nukefiles($NukeeUser) $NukeStats $CreditSection $StatsSection]
         foreach {NukeeGroup Ratio OldCredits NewCredits DiffCredits} $Result {break}
         lappend NukeeLog [list $NukeeUser $NukeeGroup $NukeStats]
     }
@@ -312,15 +318,16 @@ proc ANukeInternal {RealPath VirtualPath NukerUser NukerGroup Multiplier Reason}
     set NukeeLog [join [join [lsort -decreasing -integer -index 2 $NukeeLog]]]
 
     ## Create nuke tag
-    set ReMap [list %user% $NukerUser %group% $NukerGroup %multi% $Multiplier %reason% $Reason]
+    set ReMap [list %(user) $NukerUser %(group) $NukerGroup %(multi) $Multi %(reason) $Reason]
     set NukeTag [file join $RealPath [string map $ReMap $nuke(InfoTag)]]
     if {[catch {file mkdir $NukeTag} ErrorMsg]} {ErrorLog ANukeCreateTag $ErrorMsg}
+    RemoveParentLinks $RealPath $VirtualPath
 
     ## Record nuke info
     set NukeRecord [file join $RealPath ".ioFTPD.nxNuke"]
     catch {file attributes $NukeRecord -hidden 0}
     if {![catch {set Handle [open $NukeRecord w]} ErrorMsg]} {
-        puts $Handle "NUKE|$NukerUser|$NukerGroup|$Multiplier|$Reason"
+        puts $Handle "NUKE|$NukerUser|$NukerGroup|$Multi|$Reason"
         close $Handle
     } else {ErrorLog ANukeRecord $ErrorMsg}
     catch {file attributes $NukeRecord -hidden 1}
@@ -343,9 +350,8 @@ proc ANukeInternal {RealPath VirtualPath NukerUser NukerGroup Multiplier Reason}
     }
 
     ## Chmod directories
-    unset -nocomplain dlist
-    DirList dlist $NewPath ".ioFTPD*"
-    foreach ListItem $dlist(Dirs) {
+    GetDirList $NewPath dirlist ".ioFTPD*"
+    foreach ListItem $dirlist(DirList) {
         catch {vfs read $ListItem} VfsOwner
         ListAssign $VfsOwner UserID GroupID
         if {![string is digit -strict $UserID]} {set UserID [lindex $misc(DirOwner) 0]}
@@ -353,21 +359,19 @@ proc ANukeInternal {RealPath VirtualPath NukerUser NukerGroup Multiplier Reason}
         catch {vfs write $ListItem $UserID $GroupID 555}
     }
     catch {vfs flush $ParentPath}
-
-    ## Write to nukelog and ioFTPD.log
-    if {![catch {set Handle [open $log(Nukes) a]} ErrorMsg]} {
-        puts $Handle "$TimeStamp|0|$Release|$NukerUser|$NukerGroup|$Multiplier|$Reason|$Files|$TotalSize|$DiskCount|$NukeeLog"
-        close $Handle
-    } else {ErrorLog ANukeLog $ErrorMsg}
-
     if {[IsTrue $misc(dZSbotLogging)]} {
         foreach {NukeeUser NukeeGroup Amount} $NukeeLog {
             set Amount [format "%.2f" [expr {double($Amount) / 1024.0}]]
-            putlog "NUKE: \"$VirtualPath\" \"$NukerUser@$NukerGroup\" \"$NukeeUser@$NukeeGroup\" \"$Multiplier $Amount\" \"$Reason\""
+            putlog "NUKE: \"$VirtualPath\" \"$NukerUser@$NukerGroup\" \"$NukeeUser@$NukeeGroup\" \"$Multi $Amount\" \"$Reason\""
         }
     } else {
-        putlog "NUKE: \"$VirtualPath\" \"$NukerUser\" \"$NukerGroup\" \"$Multiplier\" \"$Reason\" \"$Files\" \"$TotalSize\" \"$DiskCount\" \"$NukeeLog\""
+        putlog "NUKE: \"$VirtualPath\" \"$NukerUser\" \"$NukerGroup\" \"$Multi\" \"$Reason\" \"$Files\" \"$TotalSize\" \"$DiskCount\" \"$NukeeLog\""
     }
+    set DbFile [file join $misc(DataPath) "Nukes.db"]
+    if {![catch {sqlite3 NukeDb $DbFile} ErrorMsg]} {
+        NukeDb eval {INSERT INTO Nukes (TimeStamp,UserName,GroupName,Status,Release,Reason,Multi,Files,Size,Nukees) VALUES($TimeStamp,$user,$group,$NukeStatus,$Release,$Reason,$Multi,$Files,$TotalSize,$NukeeLog)}
+        NukeDb close
+    } else {ErrorLog ANukeDb $ErrorMsg}
     return 1
 }
 
@@ -398,7 +402,7 @@ proc ANukeBanned {Patterns ReleaseName TargetValue} {
 
 proc ANukeEmpty {RealPath} {
     foreach FileName [glob -nocomplain -types f -directory $RealPath "*"] {
-        if {![string match -nocase ".ioFTPD*" [file tail $FileName]]} {return 0}
+        if {![string equal -nocase -length 7 ".ioFTPD" [file tail $FileName]]} {return 0}
     }
     return 1
 }
@@ -526,7 +530,7 @@ proc ANukeCheck {RealPath VirtualPath} {
         }
 
         LinePuts "Nuking: [ANukeName $VirtualPath] - $check(Reason)"
-        if {![ANukeInternal $RealPath $VirtualPath $anuke(UserName) $anuke(GroupName) $check(Multiplier) $check(Reason)]} {
+        if {![ANukeInternal $RealPath $VirtualPath $anuke(UserName) $anuke(GroupName) $check(Multi) $check(Reason)]} {
             LinePuts "Encounted an error nuking the release, check nxError.log for details."
         }
         lappend NukedList $RealPathLow
@@ -543,7 +547,7 @@ proc ANukeCheck {RealPath VirtualPath} {
         set check(Reason) [StripChars [string map $check(CookieMap) $check(Reason)]]
 
         LinePuts "Warning: [ANukeName $VirtualPath] - $check(Reason)"
-        putlog "$check(WarningLog) \"$check(DirAge)\" \"[expr {$NukeSecs - $check(DirAge)}]\" \"$NukeSecs\" \"$check(Multiplier)\" \"$UserList\""
+        putlog "$check(WarningLog) \"$check(DirAge)\" \"[expr {$NukeSecs - $check(DirAge)}]\" \"$NukeSecs\" \"$check(Multi)\" \"$UserList\""
         lappend WarnedList $RealPathLow
     }
     return
@@ -556,8 +560,8 @@ proc ANukeFindTag {RealPath {TagTemplate "*"}} {
 
 proc ANukeUsers {RealPath} {
     global anuke
-    DirList dlist $RealPath ".ioFTPD*"
-    foreach ListItem $dlist(Files) {
+    GetDirList $RealPath dirlist ".ioFTPD*"
+    foreach ListItem $dirlist(FileList) {
         if {[file size $ListItem] < 1} {continue}
         catch {vfs read $ListItem} VfsOwner
         ListAssign $VfsOwner UserID GroupID
@@ -621,7 +625,7 @@ proc ANukeMain {} {
             if {[llength [set NukeCheck [split $ConfigLine "|"]]] != 5} {
                 ErrorLog ANukeConfig "Wrong number of parameters in line: \"$ConfigLine\""; continue
             }
-            foreach {CheckType CheckSettings check(Multiplier) check(WarnMins) check(NukeMins)} $NukeCheck {break}
+            foreach {CheckType CheckSettings check(Multi) check(WarnMins) check(NukeMins)} $NukeCheck {break}
             set TagType ""; set TagTemplate ""
 
             ## Validate auto-nuke type
