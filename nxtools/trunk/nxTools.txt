@@ -228,6 +228,7 @@ rebuildlogs = M1
 reqdel      = !A *
 reqfill     = !A *
 request     = !A *
+requests    = !A *
 reqwipe     = M1
 resetstats  = M1
 resetuser   = M1
@@ -635,13 +636,18 @@ Legend:
     Examples:
      - SITE REQFILL 005
 
-- SITE REQUEST [request]
+- SITE REQUEST <request>
     Description:
      - Add the specified item to the request list.
      - If no request is specified the current requests are shown.
     Examples:
-     - SITE REQUEST
      - SITE REQUEST Something.Cool-NX
+
+- SITE REQUESTS
+    Description:
+     - Displays current requests.
+    Examples:
+     - SITE REQUESTS
 
 - SITE REQWIPE
     Description:
@@ -883,6 +889,7 @@ Text Templates:
                  and recreate them using the "SITE DB CREATE" command.
                - Changed config option: dupe(RebuildPaths), newdate(Default), and
                  pretime(CheckPaths).
+               - Update commands and permissions in your ioFTPD.ini.
 
 0.9.7 -> 0.9.8 - Replace all .itcl files located in /scripts/nxTools/.
                - Download an updated nxTools-Libraries package.
@@ -944,6 +951,7 @@ Text Templates:
 nxTools v0.9.9 (XX-XX-2005):
   NEW: SITE BOT BW to view current bandwidth and users.
   NEW: SITE NUKETOP [-max <limit>] [group] to view the top-nuked users.
+  NEW: SITE REQUESTS to view requests, split from SITE REQUEST.
   NEW: The SITE DB CREATE command checks database schema versions.
   CHG: All extensions, libraries, and configuration files are loaded by init.itcl
        when the interpreter is initialized.
@@ -1209,9 +1217,11 @@ nxTools v0.6.1 (05-15-2004):
 # 10. Todo List                                                                #
 ################################################################################
 
+- Rewrite the request script and add support for nxSitebot.
+
 - Make SITE GINFO/WHO customizable (not a high priority).
 
-- Finish nxBot (the nxTools sitebot).
+- Finish nxSitebot (the nxTools sitebot).
 
 - I've written a version of this in C, with an XML based configuration. The
   rewrite is mostly finished with the exception of the SHmem stuff. I do not

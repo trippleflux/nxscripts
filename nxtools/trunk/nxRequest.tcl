@@ -42,6 +42,9 @@ proc ::nxTools::Req::UpdateDir {Action Request {UserId 0} {GroupId 0}} {
         set ReMap [list %(request) $Request]
         set ReqPath [file join $req(RequestPath) [string map $ReMap $req(RequestTag)]]
         switch -- $Action {
+            {add} {
+                CreateTag $ReqPath $UserId $GroupId 777
+            }
             {del} {
                 if {[file isdirectory $ReqPath]} {
                     ## Kick users in the directory
@@ -60,9 +63,6 @@ proc ::nxTools::Req::UpdateDir {Action Request {UserId 0} {GroupId 0}} {
                         ErrorLog ReqFill $ErrorMsg
                     }
                 }
-            }
-            {req} {
-                CreateTag $ReqPath $UserId $GroupId 777
             }
             default {
                 ErrorLog ReqUpdateDir "Unknown event \"$Action\"."
@@ -85,25 +85,26 @@ proc ::nxTools::Req::Main {ArgV} {
     ## Safe argument handling
     set ArgList [ArgList $ArgV]
     set Action [string tolower [lindex $ArgList 0]]
-
     set Request [join [lrange $ArgList 1 end]]
 
     if {[string equal "view" $Action]} {
-        set Action "view"; set ShowText 0
+        set ShowText 0
     } else {
         iputs ".-\[Request\]--------------------------------------------------------------."
         set ShowText 1
     }
-
     if {[catch {DbOpenFile ReqDb "Requests.db"} ErrorMsg]} {
         ErrorLog RequestDb $ErrorMsg
-        if {$ShowText && !$IsSiteBot} {ErrorReturn "Unable to open requests database."}
+        if {!$IsSiteBot} {ErrorReturn "Unable to open requests database."}
         return 1
     }
     ReqDb function StrEq {string equal -nocase}
 
     switch -- $Action {
         {add} {
+            if {[string equal "" $Request]} {
+                ErrorReturn "Syntax: SITE REQUEST <request>"
+            }
             set Request [StripChars $Request]
             if {[ReqDb eval {SELECT count(*) FROM Requests WHERE Status=0 AND StrEq(Request,$Request)}]} {
                 LinePuts "This item is already requested."
@@ -126,10 +127,10 @@ proc ::nxTools::Req::Main {ArgV} {
         }
         {del} - {fill} {
             set Exists 0
-            ReqDb eval {SELECT rowid,* FROM Requests WHERE Status=0 AND (RequestId=$RequestId OR StrEq(Request,$Request)) LIMIT 1} values {set Exists 1}
+            ReqDb eval {SELECT rowid,* FROM Requests WHERE Status=0 AND (RequestId=$Request OR StrEq(Request,$Request)) LIMIT 1} values {set Exists 1}
             if {!$Exists} {
                 ReqDb close
-                ErrorReturn "Invalid request, use \"SITE REQUEST\" to view current requests."
+                ErrorReturn "Invalid request, use \"SITE REQUESTS\" to view current requests."
             }
             if {[string equal "fill" $Action]} {
                 ReqDb eval {UPDATE Requests SET Status=1 WHERE rowid=$values(rowid)}
@@ -219,4 +220,4 @@ proc ::nxTools::Req::Main {ArgV} {
     return 0
 }
 
-ReqMain [expr {[info exists args] ? $args : ""}]
+::nxTools::Req::Main [expr {[info exists args] ? $args : ""}]
