@@ -159,6 +159,7 @@ reqfill     = TCL ..\scripts\nxTools\nxRequest.itcl fill
 reqwipe     = TCL ..\scripts\nxTools\nxRequest.itcl wipe
 rules       = TCL ..\scripts\nxTools\nxRules.itcl
 bot         = TCL ..\scripts\nxTools\nxTools.itcl bot
+drives      = TCL ..\scripts\nxTools\nxTools.itcl drives
 errlog      = TCL ..\scripts\nxTools\nxTools.itcl errlog
 ginfo       = TCL ..\scripts\nxTools\nxTools.itcl ginfo
 give        = TCL ..\scripts\nxTools\nxTools.itcl give
@@ -181,6 +182,7 @@ bot         = M -sitebot
 cleanlogs   = M1
 close       = M1
 db          = M
+drives      = M1V
 dupe        = !A *
 editinv     = M1
 editpre     = M1
@@ -879,6 +881,7 @@ Text Templates:
 ##############################################################################
 
 nxTools v0.9.8 (XX-XX-2005):
+  NEW: SITE DRIVES to view fixed and network drives.
   NEW: SITE EDITPRE HIDEPATH [group] to re-hide pre paths for groups, in case the
   chattr +h value is accidentally removed from the directories.
   NEW: Rewrote nxHelper, now a loadable Tcl extension instead of an external executable.

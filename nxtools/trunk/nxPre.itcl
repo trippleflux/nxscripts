@@ -13,7 +13,7 @@ if {[catch {source [file join [file dirname [info script]] "nxLib.itcl"]} ErrorM
     iputs "Error loading nxLib: $ErrorMsg"; return
 }
 if {[catch {load "tclsqlite3.dll" Tclsqlite3} ErrorMsg]} {
-    iputs "Error loading SQLite: $ErrorMsg"; return
+    iputs "Error loading TclSQLite: $ErrorMsg"; return
 }
 if {[catch {load "nxHelper.dll" Nxhelper} ErrorMsg]} {
     iputs "Error loading nxHelper: $ErrorMsg"; return
@@ -350,7 +350,7 @@ proc PreMain {ArgV} {
             set DestDrive [lindex [file split $DestRealPath] 0]
 
             if {![string equal -nocase $SourceDrive $DestDrive]} {
-                if {![::nx::volume $DestDrive volume]} {
+                if {![::nx::volume info $DestDrive volume]} {
                     ErrorLog PreCheckSpace "unable to retrieve volume information for \"$DestDrive\""
                     ErrorReturn "Unable to check available space on target drive, contact a siteop."
                 }
@@ -358,7 +358,7 @@ proc PreMain {ArgV} {
                 set volume(free) [expr {wide($volume(free)) / 1024}]
 
                 if {$CheckSize > $volume(free)} {
-                    ErrorLog PreLowSpace "unable to pre \"$RealPath\": insufficient disk space on \"$DestDrive\" ([FormatSize $drive(free)] free, needed [FormatSize $CheckSize])"
+                    ErrorLog PreLowSpace "unable to pre \"$RealPath\": insufficient disk space on \"$DestDrive\" ([FormatSize $volume(free)] free, needed [FormatSize $CheckSize])"
                     ErrorReturn "Insufficient disk space on target drive, contact a siteop."
                 }
             }
@@ -374,23 +374,21 @@ proc PreMain {ArgV} {
             }
 
             set IsMP3 0
-            set MP3Path [expr {$DiskCount > 0 ? "*/*.mp3" : "*.mp3"}]
+            set FilePath [expr {!$DiskCount ? "*.mp3" : "*/*.mp3"}]
             set MP3Files [glob -nocomplain -types f -directory $DestRealPath $MP3Path]
             ## Attempt to parse every MP3 file until successful
-            while {[llength $MP3Files]} {
-                set FilePath [lindex $MP3Files 0]
+            foreach FilePath $MP3Files {
                 ## TODO: types - Artist Album Title Genre Year BitRate Codec Layer SampleRate ChannelMode
                 if {[::nx::mp3 $FilePath mp3]} {
                     iputs "|------------------------------------------------------------------------|"
-                    LinePuts "Artist  : $mp3(Artist)"
-                    LinePuts "Album   : $mp3(Album)"
-                    LinePuts "Genre   : [format %-16s $mp3(Genre)] Year: [format %-15s $mp3(Year)] BitRate: $mp3(BitRate)"
+                    LinePuts "Artist  : $mp3(artist)"
+                    LinePuts "Album   : $mp3(album)"
+                    LinePuts "Genre   : [format %-16s $mp3(genre)] Year: [format %-15s $mp3(year)] BitRate: $mp3(bitrate)"
                     LinePuts "Channel : [format %-15s $mp3(ChannelMode)] Codec: $mp3(Codec) $mp3(Layer)"
                     set IsMP3 1; break
                 } else {
                     ErrorLog PreMP3 "unable to read ID3/MP3 headers from \"$FilePath\": invalid MP3 file"
                 }
-                set MP3Files [lreplace $MP3Files 0 0]
             }
 
             ## Hide the user's name

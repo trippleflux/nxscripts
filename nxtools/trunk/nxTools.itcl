@@ -10,10 +10,13 @@
 ######################################################################
 
 if {[catch {source [file join [file dirname [info script]] "nxLib.itcl"]} ErrorMsg]} {
-    iputs "Error loading nxLib: $ErrorMsg"; return 1
+    iputs "Error loading nxLib: $ErrorMsg"; return
 }
 if {[catch {load tclsqlite3.dll Tclsqlite3} ErrorMsg]} {
-    iputs "Error loading SQLite: $ErrorMsg"; return 1
+    iputs "Error loading TclSQLite: $ErrorMsg"; return
+}
+if {[catch {load "nxHelper.dll" Nxhelper} ErrorMsg]} {
+    iputs "Error loading nxHelper: $ErrorMsg"; return
 }
 
 # User Procedures
@@ -523,6 +526,31 @@ proc SiteCredits {Type Target Amount Section} {
     return 0
 }
 
+proc SiteDrives {} {
+    iputs ".-\[Drives\]---------------------------------------------------------------."
+    iputs "|  Volume Type  | File System |  Volume Name  | Free Space | Total Space |"
+    iputs "|------------------------------------------------------------------------|"
+    foreach VolName [file volumes] {
+        set VolName [string map {/ \\} $VolName]
+
+        ## We're only interested in fixed volumes and network volumes.
+        switch -- [::nx::volume type $VolName] {
+            3 {set TypeName "Fixed"}
+            4 {set TypeName "Network"}
+            default {continue}
+        }
+        if {[::nx::volume info $VolName volume]} {
+            set volume(free) [FormatSize [expr {$volume(free) / 1024}]]
+            set volume(total) [FormatSize [expr {$volume(total) / 1024}]]
+            iputs [format "| %-3s %9s | %-11s | %-13s | %10s | %11s |" $VolName $TypeName $volume(system) $volume(name) $volume(free) $volume(total)]
+        } else {
+            LinePuts "$VolName Unable to retrieve volume information."
+        }
+    }
+    iputs "'------------------------------------------------------------------------'"
+    return 0
+}
+
 proc SiteGroupInfo {GroupName Section} {
     global misc flags user
     iputs ".-\[GroupInfo\]------------------------------------------------------------."
@@ -820,6 +848,9 @@ proc ToolsMain {ArgV} {
             if {![IsTrue $misc(dZSbotLogging)]} {
                 putlog "DAYSTATS: \"Launch Daystats\""
             }
+        }
+        {drives} {
+            set Result [SiteDrives]
         }
         {errlog} {
             if {$ArgLength > 1 && [GetOptions [lrange $ArgList 1 end] MaxResults Pattern]} {

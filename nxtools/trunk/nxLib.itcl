@@ -398,7 +398,7 @@ proc FormatSize {KBytes} {
             set KBytes [expr {double($KBytes) / 1024.0}]
         } else {break}
     }
-    return [format "%.*f %s" $Dec $KBytes $Unit]
+    return [format "%.*f%s" $Dec $KBytes $Unit]
 }
 
 proc FormatSpeed {Speed {Seconds 0}} {
@@ -408,7 +408,7 @@ proc FormatSpeed {Speed {Seconds 0}} {
             set Speed [expr {double($Speed) / 1024.0}]
         } else {break}
     }
-    return [format "%.*f %s" $Dec $Speed $Unit]
+    return [format "%.*f%s" $Dec $Speed $Unit]
 }
 
 # User and Group Procedures
