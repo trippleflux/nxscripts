@@ -1,10 +1,10 @@
-##############################################################################
-#                                                                            #
-#             nxTools - Dupe Checker, Nuker, Pre, Request & Tools            #
-#                                                                            #
-##############################################################################
-# Author: neoxed                                                             #
-##############################################################################
+################################################################################
+#                                                                              #
+#              nxTools - Dupe Checker, Nuker, Pre, Request & Tools             #
+#                                                                              #
+################################################################################
+# Author: neoxed                                                              #
+################################################################################
 
 Topics:
   1. Introduction
@@ -21,9 +21,9 @@ Topics:
  12. License
 
 
-##############################################################################
-# 1. Introduction                                                            #
-##############################################################################
+################################################################################
+# 1. Introduction                                                              #
+################################################################################
 
    nxTools is a fully-featured ioFTPD script. Such features include: a dupe
 checker, nuker, pre script, request script, sitebot, and various other tools
@@ -76,9 +76,9 @@ Other Features:
  - View online users and their activities.
 
 
-##############################################################################
-# 2. Thank You's                                                             #
-##############################################################################
+################################################################################
+# 2. Thank You's                                                               #
+################################################################################
 
 - Thanks to dark0n3 for such a great FTPD.
 - Thanks to GOD-EMPEROR for SiteStat and its supporting scripts. They were
@@ -89,9 +89,9 @@ Other Features:
   you to their authors. :)
 
 
-##############################################################################
-# 3. Requirements                                                            #
-##############################################################################
+################################################################################
+# 3. Requirements                                                              #
+################################################################################
 
    nxTools should only be installed on Windows NT/2000/XP/2003 any other
 operating system is unsupported. This script was tested on v5.8.5r so I cannot
@@ -99,18 +99,41 @@ guarantee it will work on any other versions of ioFTPD. nxTools is updated
 frequently, so be sure you are always using the latest version.
 
 
-##############################################################################
-# 4. Installation                                                            #
-##############################################################################
+################################################################################
+# 4. Installation                                                              #
+################################################################################
 
- 1. Copy the "nxTools" directory and "init.itcl" file to ioFTPD\scripts\.
+ 1. UnRAR and copy all files and directories maintaining the original directory
+    structure to x:\ioFTPD\scripts\. The files must be placed as follows:
 
- 2. Configure the "init.itcl" file to your liking. The explanations for each
-    option are commented within the "init.itcl" file.
+    ioFTPD\scripts\init.itcl
+    ioFTPD\scripts\nxTools.cfg
+    ioFTPD\scripts\nxLib.tcl
+    ioFTPD\scripts\nxTools\data\*
+    ioFTPD\scripts\nxTools\text\*
+    ioFTPD\scripts\nxTools\nxBot.tcl
+    ioFTPD\scripts\nxTools\nxClose.tcl
+    ioFTPD\scripts\nxTools\nxDB.tcl
+    ioFTPD\scripts\nxTools\nxDupe.tcl
+    ioFTPD\scripts\nxTools\nxInvite.cfg
+    ioFTPD\scripts\nxTools\nxInvite.tcl
+    ioFTPD\scripts\nxTools\nxNuke.tcl
+    ioFTPD\scripts\nxTools\nxPre.cfg
+    ioFTPD\scripts\nxTools\nxPre.tcl
+    ioFTPD\scripts\nxTools\nxRequest.tcl
+    ioFTPD\scripts\nxTools\nxRules.cfg
+    ioFTPD\scripts\nxTools\nxRules.tcl
+    ioFTPD\scripts\nxTools\nxTools.cfg
+    ioFTPD\scripts\nxTools\nxTools.txt
+    ioFTPD\scripts\nxTools\nxUtilities.tcl
+    ioFTPD\scripts\nxTools\nxWeekly.cfg
 
-    If you are using the pre script, you may want to look at the 'nxPre.cfg' file
-    located in the 'nxTools' directory. Alternatively, you may use the editpre
-    function to setup areas, groups, etc. for help on this try SITE EDITPRE HELP.
+ 2. Configure the nxTools.cfg file to your liking.
+
+    If you are using the pre script, you may want to look at the nxPre.cfg file
+    located in the scripts\nxTools\ directory. Alternatively, you may use the
+    editpre function to setup areas, groups, etc. for help on this type
+    "SITE EDITPRE HELP" in your FTP client.
 
  3. Add the following to your ioFTPD.ini
 
@@ -223,9 +246,9 @@ who         = !A *
 wipe        = M1V
 
  4. Your [Sections] configuration in the ioFTPD.ini must be a must certain format
-    in order for SITE NEW, NUKE, and PRE to function properly. You must at least
-    define the credit section; however, the stats section is optional. All values
-    must be separated by space(s) and/or tab(s). Here are are a few examples of the
+    in order for SITE NEW, NUKE, and PRE to function properly. You must define
+    the credit section; however, the stat section is optional. All values must
+    be separated by space(s) and/or tab(s). Here are a few examples of the
     required sections format.
 
     Valid:
@@ -235,56 +258,61 @@ wipe        = M1V
     Default = 0 0 /*
 
     Invalid:
-    Default= 0 0 /*     (There should be a space before the equal sign: "Default = ...")
+    Default= 0 0 /*     (There should be a space before the equal sign: "Default = 0 0 /*")
 
- 5. There are several optional scheduled events; these events should be added under
-    the [Scheduler] section in the ioFTPD.ini file. Carefully read the explanation of
-    each scheduler event, or you may regret using it!
+ 5. You must download and install nxHelper and the interfaces for SQLite v3.2 and
+    MySQLTcl v3.01. All of them must be installed in the ioFTPD\system\ directory.
+    These libraries are available at: http://www.ioftpd.com/scripts/script.php?id=167
 
-    This event triggers the sitebot's daily stats announce, only necessary if you are
-    currently using an nxTools compatible sitebot.
+ 6. There are several optional scheduled events; these events must be added
+    under the [Scheduler] section in the ioFTPD.ini file. Carefully read the
+    explanation of each scheduler event, or you may regret using it!
+
+    This event triggers the sitebot's daily stats announce, only necessary if
+    you are currently using an nxTools compatible sitebot.
 nxDayStats = 59 23 * * TCL ..\scripts\nxTools\nxUtilities.tcl daystats
 
-    The rotate logs even does just that, it rotates the defined log files once they
-    meet or exceed the required size. Be sure to properly configure this option in the
-    init.tcl file.
+    The rotate logs even does just that, it rotates the defined log files once
+    they meet or exceed the required size. Be sure to properly configure this
+    option in the nxTools.cfg file.
 nxRotateLogs = 59 23 * * TCL ..\scripts\nxTools\nxUtilities.tcl rotate
 
-    The newdate even creates dated directories and/or today symlinks. You can also specify
-    the date area with a parameter, if you want to trigger a specific area. Refer to the
-    configuration file (init.tcl) for more details on this.
+    The newdate even creates dated directories and/or today symlinks. You can
+    also specify the date area with a parameter, if you want to trigger a specific
+    area. Refer to the configuration file (nxTools.cfg) for more details on this.
 nxNewDate = 0 0 * * TCL ..\scripts\nxTools\nxUtilities.tcl newdate
 
-    This event cleans your file and directory dupe logs. It removes both invalid directories
-    and old files, also sorting the log entries from oldest to newest.
+    This event cleans your file and directory dupe logs. It removes both invalid
+    directories and old files, also sorting the log entries from oldest to newest.
 nxCleanLogs = 0 0 * * TCL ..\scripts\nxTools\nxDupe.tcl clean
 
-    The request wipe event wipes filled requests once they meet or exceed the defined max age,
-    which is defined in the configuration. It helps to keep your request directory tidy.
+    The request wipe event wipes filled requests once they meet or exceed the
+    defined max age, which is defined in the configuration. It helps to keep your
+    request directory clean.
 nxReqWipe = 0 * * * TCL ..\scripts\nxTools\nxRequest.tcl wipe
 
-    If you would like to use weekly credit allotments, this event should be scheduled to run
-    weekly. However, if you would like another time based credit allotments (i.e. daily or
-    bi-monthly) schedule it accordingly.
+    If you would like to use weekly credit allotments, this event should be
+    scheduled to run weekly. However, if you would like another time based credit
+    allotments (i.e. daily or bi-monthly) schedule it accordingly.
 nxWeekly = 0 0 * 6 TCL ..\scripts\nxTools\nxUtilities.tcl weeklyset
 
- 6. Now restart ioFTPD for the changes to take effect.
+ 7. Restart ioFTPD for the changes to take effect, rehash will NOT work.
 
- 7. You must download the Tcl interface for SQLite v3.1 and MySqlTcl v3.01. Install these
-    libraries to your ioFTPD's "system" directory (ioFTPD\system\). These libraries can be
-    found at: http://www.ioftpd.com/scripts/script.php?id=167
+ 8. Connect to your ioFTPD server and type "SITE DB CREATE" to create the SQLite
+    databases used by nxTools.
 
- 8. You can customize the display of several messages by editing the text templates in
-    the directory ioFTPD\scripts\nxTools\text\. The available cookies are explained
-    in section 7 of this manual, technical notes.
+ 9. You can customize the display of several commands by editing the text
+    templates in the scripts\nxTools\text\ directory. The available cookies are
+    explained in section 7 of this manual, "Technical Notes".
 
- 9. Several scripts can be executed from message files using ioFTPD's %[execute] cookie.
-    You may add these cookies to any .ioFTPD.message or ioFTPD\text\ files you please.
+10. Several scripts can be executed from message files using ioFTPD's %[execute]
+    cookie. You may add these cookies to any .ioFTPD.message or ioFTPD\text\
+    files you please.
 
     Display all current requests:
     %[execute(TCL ..\scripts\nxTools\nxRequest.tcl)(view)]
 
-    Display latest onelines:
+    Display latest one-lines:
     %[execute(TCL ..\scripts\nxTools\nxUtilities.tcl)(onelines)]
 
     Display all rules:
@@ -305,7 +333,8 @@ nxWeekly = 0 0 * 6 TCL ..\scripts\nxTools\nxUtilities.tcl weeklyset
     Display 5 latest APPS releases:
     %[execute(TCL ..\scripts\nxTools\nxDupe.tcl)(new -max 5 APPS)]
 
-10. If you use dZSbot, you must enable the misc(dZSbotLogging) option in the config file.
+11. If you use dZSbot, you must enable the misc(dZSbotLogging) option in the
+    nxTools configuration file.
 
     In your dZSbot.tcl file, make sure the following entries exist:
 
@@ -374,12 +403,12 @@ set announce(DENYPRE)       "-%sitename- \[%section\] + %path/%bold%release%bold
 set announce(WARNPRE)       "-%sitename- \[%section\] + %path/%bold%release%bold is older than the %bold%rulemins%boldmin limit (pre'd %bold%preage%bold ago), possible nuke!"
 set announce(WIPE)          "-%sitename- \[%section\] + %bold%user%bold@%group wiped %path/%bold%release%bold %bold%mbytes%boldMB (%bold%files%bold files, %bold%dirs%bold dirs)"
 
-11. Finished, for now at least. Be sure to keep your nxTools version up-to-date!
+12. Finished, for now at least. Be sure to keep your nxTools version up-to-date!
 
 
-##############################################################################
-# 5. Commands                                                                #
-##############################################################################
+################################################################################
+# 5. Commands                                                                  #
+################################################################################
 
 Legend:
  <parameter> = Required
@@ -439,7 +468,8 @@ Legend:
 
 - SITE DRIVES
     Description:
-     - Displays all fixed and network drives; including the volume name, free, and total space.
+     - Displays all fixed and network drives; including the volume name, free,
+       and total space.
     Examples:
      - SITE DRIVES
 
@@ -447,7 +477,7 @@ Legend:
     Description:
      - Search the directory dupe log for a specific release.
      - The default number of results is 10, unless -max parameter is specified.
-     - The -max parameter can be specified to increase or decrease results if needed.
+     - The -max parameter can be specified to increase or decrease results.
     Examples:
      - SITE DUPE *Something*Cool*
      - SITE DUPE -max 30 *Something*Cool*
@@ -470,7 +500,7 @@ Legend:
     Description:
      - Search the files dupe log for a specific file.
      - The default number of results is 10, unless -max parameter is specified.
-     - The -max parameter can be specified to increase or decrease results if needed.
+     - The -max parameter can be specified to increase or decrease results.
     Examples:
      - SITE FDUPE some*.zip
      - SITE FDUPE -max 30 some*cool.rar
@@ -498,7 +528,8 @@ Legend:
 - SITE INVITE <irc nick> [target]
     Description:
      - Invite the specified IRC nickname to the default site channel.
-     - The target parameter can be specified to invite yourself to a specific set of channels.
+     - The target parameter can be specified to invite yourself to a specific
+       set of channels.
     Examples:
      - SITE INVITE mynick
      - SITE INVITE mynick home
@@ -508,7 +539,7 @@ Legend:
      - Display the latest directories, along with their age and owner's.
      - The sections are read from the [Sections] array in the ioFTPD.ini.
      - The default number of results is 10, unless -max parameter is specified.
-     - The -max parameter can be specified to increase or decrease results if needed.
+     - The -max parameter can be specified to increase or decrease results.
     Examples:
      - SITE NEW
      - SITE NEW -max 30
@@ -537,7 +568,7 @@ Legend:
     Description:
      - Displays the latest nuked directories, along with their age and nuker.
      - The default number of results is 10, unless the -max parameter is specified.
-     - The -max parameter can be specified to increase or decrease results if needed.
+     - The -max parameter can be specified to increase or decrease results.
     Examples:
      - SITE NUKES
      - SITE NUKES -max 15
@@ -548,7 +579,7 @@ Legend:
     Description:
      - Displays all users who receive the most nukes, or users in the specified group.
      - The default number of results is 10, unless the -max parameter is specified.
-     - The -max parameter can be specified to increase or decrease results if needed.
+     - The -max parameter can be specified to increase or decrease results.
     Examples:
      - SITE NUKETOP
      - SITE NUKETOP -max 15
@@ -698,7 +729,7 @@ Legend:
     Description:
      - Display the latest unnuked directories, along with their age and unnuker.
      - The default number of results is 10, unless the -max parameter is specified.
-     - The -max parameter can be specified to increase or decrease results if needed.
+     - The -max parameter can be specified to increase or decrease results.
     Examples:
      - SITE UNNUKES -max 15
      - SITE UNNUKES *something*
@@ -738,9 +769,9 @@ Legend:
      - SITE WIPE Something.Very.Old-NX
 
 
-##############################################################################
-# 6. Troubleshooting                                                         #
-##############################################################################
+################################################################################
+# 6. Troubleshooting                                                           #
+################################################################################
 
 Q: Just started using ioFTPD?
 A: Don't use this script.
@@ -750,9 +781,9 @@ A: Check the file /logs/nxError.log for details. If there is any errors in the
    file /logs/SystemError.log, please report them to me.
 
 
-##############################################################################
-# 7. Technical Notes                                                         #
-##############################################################################
+################################################################################
+# 7. Technical Notes                                                           #
+################################################################################
 
 MySQL Pre Times Table:
 
@@ -843,9 +874,9 @@ Text Templates:
       Rules.Footer     : %(sections)
 
 
-##############################################################################
-# 8. Upgrading                                                               #
-##############################################################################
+################################################################################
+# 8. Upgrading                                                                 #
+################################################################################
 
 0.9.8 -> 0.9.9 - Replace all files located in /scripts/nxTools/.
                - Remove your nukes and requests database from /scripts/nxTools/data/
@@ -904,9 +935,9 @@ Text Templates:
 0.6.1 -> 0.7.0 - Replace and reconfigure everything, far too many changes to list.
 
 
-##############################################################################
-# 9. Change Log                                                              #
-##############################################################################
+################################################################################
+# 9. Change Log                                                                #
+################################################################################
 
 nxTools v0.9.9 (XX-XX-2005):
   NEW: SITE NUKETOP [-max <limit>] [group] to view the top-nuked users.
@@ -997,15 +1028,18 @@ nxTools v0.9.3 (10-11-2004):
   CHG: The time touching function of nxHelper now ignore reparse points (NTFS junctions).
   FIX: Results were not displayed properly with the section parameter in SITE NEW.
   FIX: SITE INVITE HELP was not working, case matching issue.
-  FIX: Small 'security' flaw in the GetPath function, if a user specified a path ending in "." or "..".
+  FIX: Small 'security' flaw in the GetPath function, if a user specified a path
+       ending in "." or "..".
   FIX: The word wrapping procedure in SITE RULES was not trimming white space.
   FIX: Unnuke was not updating the nuke record file (Tcl can't open hidden files).
 
 nxTools v0.9.2 (09-21-2004):
   NEW: Pre now checks for available space on the target drive.
-  NEW: The "-scheduler" parameter for cleanlogs is no longer needed, it's now automatically detected.
+  NEW: The "-scheduler" parameter for cleanlogs is no longer needed, it's now
+       automatically detected.
   CHG: An error is now thrown if there is a problem loading the configuration or library.
-  CHG: Changed the order of the DupeRebuild settings, to make the configuration more consistent.
+  CHG: Changed the order of the DupeRebuild settings, to make the configuration
+       more consistent.
   CHG: Cleaned up pattern matching by adding a simple list matching procedure.
   CHG: Improved the randomness for the temporary file used by the dupe procedures.
   CHG: Moved the disk sub-directory matching procedure to the common library.
@@ -1018,10 +1052,12 @@ nxTools v0.9.2 (09-21-2004):
 nxTools v0.9.1 (09-09-2004):
   !!!: This version is the result of alturismo's ideas and reports, thanks. ;)
   NEW: A configuration option to define how many undupe character ranges to allow.
-  NEW: Added support for [Sections] in the ioFTPD.ini which do not have the stats section defined.
+  NEW: Added support for [Sections] in the ioFTPD.ini which do not have the stats
+       section defined.
   NEW: Group nuke support, to allow release groups to nuke their own releases.
   NEW: Newdate now has an optional parameter, to specify the date area to use.
-  NEW: User time-based request limits, to allow a certain number of requests within a specified duration.
+  NEW: User time-based request limits, to allow a certain number of requests
+       within a specified duration.
   CHG: Newdate configuration format has changed, much like ioA's now (option-wise as well).
   CHG: Renamed the parameters "cleanlogs" to "clean" and "rebuildlogs" to "rebuild" for nxDupe.itcl.
   CHG: The request log format has changed to accommodate the newly added features.
@@ -1030,13 +1066,15 @@ nxTools v0.9.1 (09-09-2004):
   FIX: Fixed a few grammatical errors in request and pre outputs.
   FIX: SITE PRE failed when user chowning was disabled.
   FIX: SITE WHO failed when a user had no tagline set.
-  FIX: Users were not disconnected immediately when using SITE NUKE, UNNUKE, and PRE. This problem is mainly
-       an issue with ioFTPD, since "client kill <type>" returns before the applicable user(s) are disconnected.
+  FIX: Users were not disconnected immediately when using SITE NUKE, UNNUKE, and
+       PRE. This problem is mainly an issue with ioFTPD, since "client kill <type>"
+       returns before the applicable user(s) are disconnected.
 
 nxTools v0.9.0 (09-02-2004):
   NEW: Add to directory dupe log on pre, with user and group hiding.
   NEW: Helper executable, for pre and file and directory time touching support.
-  NEW: ID3 tag and MP3 support for pre, this functionality is provided by the new helper executable.
+  NEW: ID3 tag and MP3 support for pre, this functionality is provided by the new
+       helper executable.
   NEW: NewDate and RotateLogs now output when run from a SITE command.
   NEW: Option to reload the configuration file every event.
   NEW: Rebuild directory and file dupe logs from defined directories.
@@ -1044,13 +1082,16 @@ nxTools v0.9.0 (09-02-2004):
   NEW: Separate exempt settings for dupe logging and dupe checking.
   NEW: The clean logs function now sorts the logs, oldest to newest, for SITE DUPE/NEW.
   CHG: Cleaned up a lot of the functions in the common library.
-  CHG: Dupe logs for both files and directories have changed; they now include the user and group of the creator.
+  CHG: Dupe logs for both files and directories have changed; they now include
+       the user and group of the creator.
   CHG: Huge speed improvements to SITE DUPE/FDUPE/NEW for large dupe logs (2000+ lines).
   CHG: Combined the file archive procedure from DupeClean and RotateLogs.
   CHG: Optimized expressions by enclosing them in {} to avoid double-evaluation.
-  CHG: Removed lindex's and concat's from directory listing and stats procedures, improved SITE NUKE/PRE/SIZE/WIPE times.
-  CHG: Removed the previous touch executable, the helper's touch function is much quicker.
-  CHG: Rewrote dupe logging and SITE UNDUPE, they now use a temporary file when removing items from the dupe log.
+  CHG: Removed lindex's and concat's from directory listing and stats procedures,
+       improved SITE NUKE/PRE/SIZE/WIPE times.
+  CHG: Removed the previous touch executable, now using the helper's touch function.
+  CHG: Rewrote dupe logging and SITE UNDUPE, they now use a temporary file when
+       removing items from the dupe log.
   CHG: Rewrote the cookie parsing procedure for SITE RULES.
   CHG: SITE NEW now uses the dupe logs rather than the ioFTPD.log file.
   CHG: The common library is now loaded from the same directory as the calling Tcl script.
@@ -1061,7 +1102,8 @@ nxTools v0.9.0 (09-02-2004):
 nxTools v0.8.1 (07-25-2004):
   CHG: CD/Disk/DVD pattern matching procedures now recognize both DISK and DISC.
   FIX: Cleanlogs failed when running from the scheduler with debug disabled.
-  FIX: Forgot to check if the nuke multiplier was negative, in which case nukees would gain credits.
+  FIX: Forgot to check if the nuke multiplier was negative, in which case nukees
+       would gain credits.
 
 nxTools v0.8.0 (07-25-2004):
   NEW: File support for SITE SIZE and SITE WIPE, you are now able to size and wipe files.
@@ -1080,11 +1122,13 @@ nxTools v0.8.0 (07-25-2004):
   CHG: Invite uses a config where you define channels and rights for invite targets.
   CHG: Minor improvements to the pre configuration writer.
   CHG: Removed [SECTIONS] from the nxPre.cfg, sections are read from the ioFTPD.ini.
-  CHG: Removed all pre times checking, it will be re-added once there is a stable MySQL Tcl package for Windows.
+  CHG: Removed all pre times checking, it will be re-added once there is a stable
+       MySQL Tcl package for Windows.
   CHG: Renamed a few procedures in the common library to more logical names.
   CHG: Reworded several errors and reply messages in editpre.
   CHG: Simplified the rules configuration format, a fair bit less configuring now.
-  CHG: The admingrp pre option was renamed to privpath and added more customization for hidden dir settings.
+  CHG: The admingrp pre option was renamed to privpath and added more customization
+       for hidden dir settings.
   CHG: The config reader for pre and rules only matches arrays that begin with "[" and end with "]".
   CHG: Updated the todo and features section of the readme.
   FIX: A few typos in the configuration comments.
@@ -1110,8 +1154,10 @@ nxTools v0.7.3 (06-13-2004):
 nxTools v0.7.2 (06-08-2004):
   CHG: Cleaned up the user file reading for ginfo and traffic.
   CHG: Improved user file parsing for nuke and pre, minor speed ups.
-  CHG: Improved the editpre function, removed an unnecessary loop when rewriting the pre config.
-  FIX: The pre time stamp was incorrect, since it was taken at the end instead of at the start.
+  CHG: Improved the editpre function, removed an unnecessary loop when rewriting
+       the pre config.
+  FIX: The pre time stamp was incorrect, since it was taken at the end instead
+       of at the start.
 
 nxTools v0.7.1 (06-03-2004):
   CHG: Moved a lot of code around, cleaned things up.
@@ -1132,7 +1178,8 @@ nxTools v0.7.0 (06-01-2004):
   CHG: Modified the FTP reply codes shown for blocked uploads and directories.
   CHG: Modified the output of ginfo, easier to look at now.
   CHG: Moved several procedures to the common library.
-  CHG: Pre configuration data is now made available to the proc by upvar instead of global.
+  CHG: Pre configuration data is now made available to the local scope by using
+       upvar instead of global.
   CHG: Removed debug logging on the post PASS event, for security reasons.
   CHG: Removed unnecessary postdele specific code.
   CHG: Renamed the configuration options to a more logical format.
@@ -1151,28 +1198,28 @@ nxTools v0.6.1 (05-15-2004):
   CHG: Internal release, for selected beta testers.
 
 
-##############################################################################
-# 10. Todo List                                                              #
-##############################################################################
+################################################################################
+# 10. Todo List                                                                #
+################################################################################
 
 - Make SITE GINFO/WHO customizable (not a high priority).
 
 - Finish nxBot (the nxTools sitebot).
 
-- I've written a version of this in C, with an XML based configuration. The rewrite
-  is mostly finished with the exception of the SHmem stuff. I do not plan on fully
-  implementing it, since the IPC interfaces *may* require some drastic changes with
-  the upcoming release of ioFTPD Beta 6. However, due to my limited amount of free
-  time, the rewrite won't be finished anytime soon, if at all. Most of my time goes
-  into other projects...
+- I've written a version of this in C, with an XML based configuration. The
+  rewrite is mostly finished with the exception of the SHmem stuff. I do not
+  plan on fully implementing it, since the IPC interfaces *may* require some
+  drastic changes with the upcoming release of ioFTPD Beta 6. However, due to my
+  limited amount of free time, the rewrite won't be finished anytime soon, if at
+  all. Most of my time goes into other projects...
 
-- Convert this manual to a cleanly formatted HTML file (like WarC and Harm have done
-  with ioA and ioBanana). This manual is over a 1000 lines. :|
+- Convert this manual to a cleanly formatted HTML file (like WarC and Harm have
+  done with ioA and ioBanana). This manual is over a 1000 lines. :|
 
 
-##############################################################################
-# 11. Bugs & Comments                                                        #
-##############################################################################
+################################################################################
+# 11. Bugs & Comments                                                          #
+################################################################################
 
    If you have any problems with this script; or you found a bug, spelling
 mistake or grammar error, please report it to me. If it's a technical issue,
@@ -1182,9 +1229,9 @@ IRC  : neoxed <#ioFTPD at EFnet>
 Email: neoxed@gmail.com
 
 
-##############################################################################
-# 12. License                                                                #
-##############################################################################
+################################################################################
+# 12. License                                                                  #
+################################################################################
 
    This application and/or script is licensed under the Creative Commons
 Attribution-NonCommercial-ShareAlike License 2.0. In short - I, the author,
