@@ -10,10 +10,13 @@
 ######################################################################
 
 if {[catch {source [file join [file dirname [info script]] "nxLib.itcl"]} ErrorMsg]} {
-    iputs "Error loading nxLib: $ErrorMsg"; return 1
+    iputs "Error loading nxLib: $ErrorMsg"; return
 }
 if {[catch {load "tclsqlite3.dll" Tclsqlite3} ErrorMsg]} {
-    iputs "Error loading SQLite: $ErrorMsg"; return 1
+    iputs "Error loading SQLite: $ErrorMsg"; return
+}
+if {[catch {load "nxHelper.dll" Nxhelper} ErrorMsg]} {
+    iputs "Error loading nxHelper: $ErrorMsg"; return
 }
 
 # Pre Procedures
@@ -109,24 +112,6 @@ proc PreCredits {UserName Files Size CreditSection StatsSection} {
     return [list $GroupName $Ratio $OldCredits $NewCredits $DiffCredits]
 }
 
-proc PreDriveSpace {RealPath TargetArray} {
-    global pre
-    upvar $TargetArray space
-    if {![catch {set DriveSpace [exec -- $pre(HelperBin) "space" $RealPath]} ErrorMsg]} {
-        set FieldList {Free Total}
-        set DriveSpace [split [string trim $DriveSpace] "|"]
-        if {[llength $FieldList] == [llength $DriveSpace]} {
-            set Index 0
-            foreach Field $FieldList {
-                set space($Field) [lindex $DriveSpace $Index]
-                incr Index
-            }
-            return 1
-        }
-    } else {ErrorLog PreDriveSpace $ErrorMsg}
-    return 0
-}
-
 proc PreLinks {VirtualPath} {
     global latest misc
     if {[ListMatch $latest(Exempts) $VirtualPath]} {
@@ -159,24 +144,6 @@ proc PreLinks {VirtualPath} {
         }
     }
     LinkDb close
-    return 0
-}
-
-proc PreMP3Info {FilePath TargetArray} {
-    global pre
-    upvar $TargetArray mp3
-    if {![catch {set MP3Info [exec -- $pre(HelperBin) "mp3info" $FilePath]} ErrorMsg]} {
-        set FieldList "Artist Album Title Genre Year BitRate Codec Layer SampleRate ChannelMode"
-        set MP3Info [split [string trim $MP3Info] "|"]
-        if {[llength $FieldList] == [llength $MP3Info]} {
-            set Index 0
-            foreach Field $FieldList {
-                set mp3($Field) [lindex $MP3Info $Index]
-                incr Index
-            }
-            return 1
-        }
-    } else {ErrorLog PreMP3Info $ErrorMsg}
     return 0
 }
 
@@ -331,11 +298,6 @@ proc PreMain {ArgV} {
             if {[string equal "" $Target] || ![file isdirectory $RealPath]} {
                 ErrorReturn "The specified directory does not exist."
             }
-            ## Check if the helper executable is present
-            if {![file isfile $pre(HelperBin)]} {
-                ErrorLog PreHelper "The helper executable \"$pre(HelperBin)\" does not exist."
-                ErrorReturn "The helper executable does not exist, contact a siteop."
-            }
             set DiskCount 0; set Files 0; set TotalSize 0
             set Release [file tail $VirtualPath]
 
@@ -383,28 +345,26 @@ proc PreMain {ArgV} {
             }
             set TotalSize [expr {wide($TotalSize) / 1024}]
 
-            ## Check if the destination path is on a different drive; if so,
-            ## ensure there is adequate space for the pre.
+            ## If the pre destination is a different drive, ensure that there
+            ## is adequate space for the release (and a 10MB safety buffer).
             set SourceDrive [lindex [file split $RealPath] 0]
             set DestDrive [lindex [file split $DestRealPath] 0]
 
             if {![string equal -nocase $SourceDrive $DestDrive]} {
-                if {![PreDriveSpace $DestRealPath space]} {
+                if {![::nx::free $DestRealPath drive]} {
                     ErrorReturn "Unable to check destination path for available space, contact a siteop."
-                ## Make sure is enough free space, and an additional 5MB
-                } elseif {($TotalSize + (5 * 1024)) > $space(Free)} {
-                    ErrorLog PreLowSpace "Not enough free space on $DestDrive ([FormatSize $space(Free)]), needed [FormatSize $TotalSize]."
-                    ErrorReturn "Not enough free space on target drive, contact a siteop."
+                } elseif {($TotalSize + (10 * 1024)) > $drive(free)} {
+                    set TotalSize [expr {wide($TotalSize) + (10 * 1024)}]
+                    ErrorLog PreLowSpace "unable to pre \"$RealPath\": insufficient disk space on $DestDrive ([FormatSize $drive(free)] free), needed [FormatSize $TotalSize]."
+                    ErrorReturn "Insufficient disk space on the target drive, contact a siteop."
                 }
             }
             LinePuts "Area    : $PreArea"
             LinePuts "Release : $Release"
             LinePuts "Files   : [format %-16s ${Files}F] Size: [format %-16s [FormatSize $TotalSize]] CDs: $DiskCount"
 
-            ## Kick users in the pre source directory
-            KickUsers [file join $VirtualPath "*"]
-
             ## Move release to the destination path
+            KickUsers [file join $VirtualPath "*"]
             if {[catch {file rename -force -- $RealPath $DestRealPath} ErrorMsg]} {
                 ErrorLog PreMove $ErrorMsg
                 ErrorReturn "Error   : Unable to move directory, aborting."
@@ -412,19 +372,22 @@ proc PreMain {ArgV} {
 
             set IsMP3 0
             set MP3Path [expr {$DiskCount > 0 ? "*/*.mp3" : "*.mp3"}]
-            set MP3List [glob -nocomplain -types f -directory $DestRealPath $MP3Path]
-            if {[llength $MP3List]} {
-                set MP3File [lindex $MP3List 0]
-                if {[PreMP3Info $MP3File mp3]} {
+            set MP3Files [glob -nocomplain -types f -directory $DestRealPath $MP3Path]
+            ## Attempt to parse every MP3 file until successful
+            while {[llength $MP3Files]} {
+                set FilePath [lindex $MP3Files 0]
+                ## TODO: types - Artist Album Title Genre Year BitRate Codec Layer SampleRate ChannelMode
+                if {[::nx::mp3 $FilePath mp3]} {
                     iputs "|------------------------------------------------------------------------|"
                     LinePuts "Artist  : $mp3(Artist)"
                     LinePuts "Album   : $mp3(Album)"
                     LinePuts "Genre   : [format %-16s $mp3(Genre)] Year: [format %-15s $mp3(Year)] BitRate: $mp3(BitRate)"
                     LinePuts "Channel : [format %-15s $mp3(ChannelMode)] Codec: $mp3(Codec) $mp3(Layer)"
-                    set IsMP3 1
+                    set IsMP3 1; break
                 } else {
-                    LinePuts "Unable to read ID3 headers from \"[file tail $MP3File]\"."
+                    ErrorLog PreMP3 "unable to read ID3/MP3 headers from \"$FilePath\": invalid MP3 file"
                 }
+                set MP3Files [lreplace $MP3Files 0 0]
             }
 
             ## Hide the user's name
@@ -449,8 +412,8 @@ proc PreMain {ArgV} {
             }
             ## Touch file and directory times
             if {[IsTrue $pre(TouchTimes)]} {
-                if {[catch {exec -- $pre(HelperBin) "touch" $PreTime [string map {/ \\} $DestRealPath]} ErrorMsg]} {
-                    ErrorLog PreTouch "\n$ErrorMsg"
+                if {![::nx::touch -recurse -utc [string map {/ \\} $DestRealPath] $PreTime]} {
+                    ErrorLog PreTouch "unable to touch file times for \"$DestRealPath\""
                 }
             }
             catch {vfs flush [file dirname $RealPath]}
