@@ -124,7 +124,7 @@ set anuke(ReasonType)    "banned.type.%(banned)"
 #
 # - Here you define the paths and type of auto-nuke checks to perform.
 #   <virtual path> <day offset> {
-#       "<check type>|<check settings>|<nuke multiplier>|<warn time>|<nuke time>"
+#       {<check type>|<check settings>|<nuke multiplier>|<warn time>|<nuke time>}
 #       ...
 #   }
 # - The 'virtual path' is the path to check, which may contain date cookies.
@@ -149,7 +149,7 @@ set anuke(ReasonType)    "banned.type.%(banned)"
 #     - Nuke banned genres, low ratings, or unaccepted years.
 #     - Check settings: genre:<banned genre> rating:<minimum rating> year:<allowed year>
 #   incomplete:
-#     - Nuke incomplete releases or sub-directories if a ".missing" file was found.
+#     - Nuke incomplete releases or sub-directories (checks for ".bad" or ".missing" files).
 #     - Check settings: not used for incomplete checks.
 #   mp3:
 #     - Nuke banned genres or unaccepted years.
@@ -161,45 +161,45 @@ set anuke(ReasonType)    "banned.type.%(banned)"
 #
 set anuke(Sections) {
     "/0DAY/%m%d" 0 {
-        "banned|*-A51 *-HS *-TiC *-YAG|10|0|0"
-        "empty|Not-Used|3|20|40"
+        {banned|*-A51 *-HS *-TiC *-YAG|10|0|0}
+        {empty|Not-Used|3|20|40}
     }
     "/APPS" 0 {
-        "disks|4|3|5|20"
-        "empty|Not-Used|3|20|40"
-        "incomplete|Not-Used|3|20|40"
+        {disks|4|3|5|20}
+        {empty|Not-Used|3|20|40}
+        {incomplete|Not-Used|3|20|40}
     }
     "/GAMES" 0 {
-        "empty|Not-Used|3|20|40"
-        "incomplete|Not-Used|3|20|40"
+        {empty|Not-Used|3|20|40}
+        {incomplete|Not-Used|3|20|40}
     }
     "/MP3/%m%d" 0 {
-        "incomplete|Not-Used|3|20|40"
-        "empty|Not-Used|3|20|40"
-        "mp3|genre:*rap* genre:*punk* year:200[0-6]|5|20|40"
-        "type|cable dab demo dvb mixtape radio sample sat tape|3|20|40"
+        {incomplete|Not-Used|3|20|40}
+        {empty|Not-Used|3|20|40}
+        {mp3|genre:*rap* genre:*punk* year:200[0-6]|5|20|40}
+        {type|cable dab demo dvb mixtape radio sample sat tape|3|20|40}
     }
     "/MP3/%m%d" -1 {
-        "incomplete|Not-Used|3|20|40"
-        "empty|Not-Used|3|20|40"
-        "mp3|genre:*rap* genre:*punk* year:200[0-6]|5|20|40"
-        "type|cable dab demo dvb mixtape radio sample sat tape|3|20|40"
+        {incomplete|Not-Used|3|20|40}
+        {empty|Not-Used|3|20|40}
+        {mp3|genre:*rap* genre:*punk* year:200[0-6]|5|20|40}
+        {type|cable dab demo dvb mixtape radio sample sat tape|3|20|40}
     }
     "/SVCD" 0 {
-        "disks|4|3|5|20"
-        "empty|Not-Used|3|20|40"
-        "imdb|genre:*documentary* genre:*romance* rating:5 year:200[2-6]|3|5|20"
-        "incomplete|Not-Used|3|20|40"
+        {disks|4|3|5|20}
+        {empty|Not-Used|3|20|40}
+        {imdb|genre:*documentary* genre:*romance* rating:5 year:200[2-6]|3|5|20}
+        {incomplete|Not-Used|3|20|40}
     }
     "/VCD" 0 {
-        "disks|3|3|5|20"
-        "empty|Not-Used|3|20|40"
-        "imdb|genre:*documentary* genre:*romance* rating:4 year:200[2-6]|3|5|20"
+        {disks|3|3|5|20}
+        {empty|Not-Used|3|20|40}
+        {imdb|genre:*documentary* genre:*romance* rating:4 year:200[2-6]|3|5|20}
     }
     "/XXX" 0 {
-        "allowed|LonelyWankers JackOffs MasterDebators|3|5|20"
-        "disks|3|3|5|20"
-        "empty|Not-Used|3|20|40"
+        {allowed|LonelyWankers JackOffs MasterDebators|3|5|20}
+        {disks|3|3|5|20}
+        {empty|Not-Used|3|20|40}
     }
 }
 
@@ -226,7 +226,7 @@ proc ANukeIoA {RealPath VirtualPath Multi Reason} {
         ErrorLog ANukeIoA "ioA Output:\n$Output"; return 0
     }
     foreach OutLine [split $OutputMsg "\r\n"] {
-        if {[string first "NUKE:" $OutLine] == 0} {putlog $OutLine}
+        if {![string first "NUKE:" $OutLine]} {putlog $OutLine}
     }
     return 1
 }
@@ -235,7 +235,7 @@ proc ANukeName {VirtualPath} {
     set Release [file tail $VirtualPath]
     if {[IsMultiDisk $Release]} {
         set ParentPath [file tail [file dirname $VirtualPath]]
-        if {$ParentPath != ""} {set Release "$ParentPath ($Release)"}
+        if {![string equal "" $ParentPath]} {set Release "$ParentPath ($Release)"}
     }
     return $Release
 }
@@ -296,9 +296,9 @@ proc ANukeIMDB {TagList CheckList TargetType TargetValue} {
 
     set FoundMatch 0; set genre ""; set rating ""; set year ""
     foreach TagName $TagList {
-        set TagName [file tail $TagName]
-        if {[set Result [regexp -inline -nocase -- $anuke(ImdbMatch) $TagName]] != ""} {
-            foreach "Result $anuke(ImdbOrder)" $Result {break}
+        set ReMatch [regexp -inline -nocase -- $anuke(ImdbMatch) [file tail $TagName]]
+        if {[llength $ReMatch]} {
+            foreach $anuke(ImdbOrder) [lrange $ReMatch 1 end] {break}
             set FoundMatch 1; break
         }
     }
@@ -332,9 +332,9 @@ proc ANukeMP3 {TagList CheckList TargetType TargetValue} {
 
     set FoundMatch 0; set genre ""; set year ""
     foreach TagName $TagList {
-        set TagName [file tail $TagName]
-        if {[set Result [regexp -inline -nocase -- $anuke(MP3Match) $TagName]] != ""} {
-            foreach "Result $anuke(MP3Order)" $Result {break}
+        set ReMatch [regexp -inline -nocase -- $anuke(MP3Match) [file tail $TagName]]
+        if {[llength $ReMatch]} {
+            foreach $anuke(MP3Order) [lrange $ReMatch 1 end] {break}
             set FoundMatch 1; break
         }
     }
