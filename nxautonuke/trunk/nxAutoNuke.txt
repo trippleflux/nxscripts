@@ -251,11 +251,15 @@ set announce(ANUKEMP3)     "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] th
 # Changelog:
 ###############################################################
 
-nxAutoNuke v2.0.1 (01-28-2005):
+nxAutoNuke v2.0.2 (04-03-2005):
+  FIX: An incorrect cookie was used for the ANUKEKEYWORD bot skin.
+  FIX: Nuke times were shown in seconds instead of minutes for nxTools/dZSbot announces.
+
+nxAutoNuke v2.0.1 (03-28-2005):
   FIX: Fixed a few typos.
   FIX: Forgot to remove some debug code (again).
 
-nxAutoNuke v2.0.0 (01-27-2005):
+nxAutoNuke v2.0.0 (03-27-2005):
   NEW: Installation instructions for nxTools and dZSbot.
   CHG: Nearly configuration options have changed.
   CHG: Redesigned nxAutoNuke, much more efficient now.

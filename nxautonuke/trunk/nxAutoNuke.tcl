@@ -487,7 +487,7 @@ proc ::nxAutoNuke::NukeCheck {RealPath VirtualPath DirAge} {
         LinePuts "- Warning: [GetName $VirtualPath] - $check(Reason)"
         if {[IsTrue $misc(dZSbotLogging)]} {
             set DirAge [expr {$DirAge / 60}]
-            putlog "$check(WarnType): \"$VirtualPath\" $check(WarnData)\"$DirAge\" \"[expr {$NukeSecs - $DirAge}]\" \"$NukeSecs\" \"$check(Multi)\" \"$UserList\""
+            putlog "$check(WarnType): \"$VirtualPath\" $check(WarnData)\"$DirAge\" \"[expr {$check(NukeMins) - $DirAge}]\" \"$check(NukeMins)\" \"$check(Multi)\" \"$UserList\""
         } else {
             putlog "$check(WarnType): \"$VirtualPath\" $check(WarnData)\"$DirAge\" \"[expr {$NukeSecs - $DirAge}]\" \"$NukeSecs\" \"$check(Multi)\" \"$UserList\""
         }
