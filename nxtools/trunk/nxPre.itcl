@@ -345,17 +345,21 @@ proc PreMain {ArgV} {
             set TotalSize [expr {wide($TotalSize) / 1024}]
 
             ## If the pre destination is a different drive, ensure that there
-            ## is adequate space for the release (and a 10MB safety buffer).
+            ## is adequate space for the release (and a 10MB "safety" buffer).
             set SourceDrive [lindex [file split $RealPath] 0]
             set DestDrive [lindex [file split $DestRealPath] 0]
 
             if {![string equal -nocase $SourceDrive $DestDrive]} {
-                if {![::nx::free $DestRealPath drive]} {
-                    ErrorReturn "Unable to check destination path for available space, contact a siteop."
-                } elseif {($TotalSize + (10 * 1024)) > $drive(free)} {
-                    set TotalSize [expr {wide($TotalSize) + (10 * 1024)}]
-                    ErrorLog PreLowSpace "unable to pre \"$RealPath\": insufficient disk space on $DestDrive ([FormatSize $drive(free)] free), needed [FormatSize $TotalSize]."
-                    ErrorReturn "Insufficient disk space on the target drive, contact a siteop."
+                if {![::nx::volume $DestDrive volume]} {
+                    ErrorLog PreCheckSpace "unable to retrieve volume information for \"$DestDrive\""
+                    ErrorReturn "Unable to check available space on target drive, contact a siteop."
+                }
+                set CheckSize [expr {wide($TotalSize) + (10*1024)}]
+                set volume(free) [expr {wide($volume(free)) / 1024}]
+
+                if {$CheckSize > $volume(free)} {
+                    ErrorLog PreLowSpace "unable to pre \"$RealPath\": insufficient disk space on \"$DestDrive\" ([FormatSize $drive(free)] free, needed [FormatSize $CheckSize])"
+                    ErrorReturn "Insufficient disk space on target drive, contact a siteop."
                 }
             }
             LinePuts "Area    : $PreArea"
@@ -411,7 +415,7 @@ proc PreMain {ArgV} {
             }
             ## Touch file and directory times
             if {[IsTrue $pre(TouchTimes)]} {
-                if {![::nx::touch -recurse -utc [string map {/ \\} $DestRealPath] $PreTime]} {
+                if {![::nx::touch -recurse [string map {/ \\} $DestRealPath] $PreTime]} {
                     ErrorLog PreTouch "unable to touch file times for \"$DestRealPath\""
                 }
             }

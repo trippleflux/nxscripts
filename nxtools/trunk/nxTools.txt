@@ -1,3 +1,4 @@
+
 ##############################################################################
 #                                                                            #
 #             nxTools - Dupe Checker, Nuker, Pre, Request & Tools            #
@@ -883,7 +884,7 @@ nxTools v0.9.8 (XX-XX-2005):
   NEW: Rewrote nxHelper, now a loadable Tcl extension instead of an external executable.
   CHG: All dates and times are shown in UTC when misc(UTC_Time) is enabled (SITE DUPE/FDUPE/ONEL etc.).
   CHG: Improved the rules file reader; multiple delimiters are no longer an issue.
-  CHG: UTC conversions are now done properly with the -gmt switch.
+  CHG: UTC conversions are now done properly, using the -gmt switch.
   FIX: Directory database cleaning failed.
   FIX: The approve check failed on MKD.
 
