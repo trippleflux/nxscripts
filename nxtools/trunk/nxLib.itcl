@@ -136,14 +136,11 @@ proc CreateTag {RealPath UserID GroupID Chmod} {
     catch {vfs write $RealPath $UserID $GroupID $Chmod}
 }
 
-proc GetDirList {RealPath TargetArray {IgnoreList ""}} {
-    upvar $TargetArray list
-    array set list [list DirList "" FileList ""]
-    DirListRecurse $RealPath $IgnoreList
-}
-
-proc DirListRecurse {RealPath IgnoreList} {
-    upvar list list
+proc GetDirList {RealPath VarName {IgnoreList ""} {FirstCall 1}} {
+    upvar $VarName list
+    if {$FirstCall} {
+        array set list [list DirList "" FileList ""]
+    }
     if {[file isdirectory $RealPath]} {
         lappend list(DirList) $RealPath
         set Listing [glob -nocomplain -directory $RealPath "*"]
@@ -153,7 +150,7 @@ proc DirListRecurse {RealPath IgnoreList} {
     foreach ListItem $Listing {
         if {[file readable $ListItem] && ![ListMatchI $IgnoreList [file tail $ListItem]]} {
             if {[file isdirectory $ListItem]} {
-                DirListRecurse $ListItem $IgnoreList
+                GetDirList $ListItem list $IgnoreList 0
             } else {
                 lappend list(FileList) $ListItem
             }
@@ -162,14 +159,11 @@ proc DirListRecurse {RealPath IgnoreList} {
     return
 }
 
-proc GetDirStats {RealPath TargetArray {IgnoreList ""}} {
-    upvar $TargetArray stats
-    array set stats [list DirCount 0 FileCount 0 TotalSize 0]
-    DirStatsRecurse $RealPath $IgnoreList
-}
-
-proc DirStatsRecurse {RealPath IgnoreList} {
-    upvar stats stats
+proc GetDirStats {RealPath VarName {IgnoreList ""} {FirstCall 1}} {
+    upvar $VarName stats
+    if {$FirstCall} {
+        array set stats [list DirCount 0 FileCount 0 TotalSize 0]
+    }
     if {[file isdirectory $RealPath]} {
         incr stats(DirCount)
         set Listing [glob -nocomplain -directory $RealPath "*"]
@@ -179,7 +173,7 @@ proc DirStatsRecurse {RealPath IgnoreList} {
     foreach ListItem $Listing {
         if {[file readable $ListItem] && ![ListMatchI $IgnoreList [file tail $ListItem]]} {
             if {[file isdirectory $ListItem]} {
-                DirStatsRecurse $ListItem $IgnoreList
+                GetDirStats $ListItem stats $IgnoreList 0
             } else {
                 incr stats(FileCount)
                 set stats(TotalSize) [expr wide($stats(TotalSize)) + wide([file size $ListItem])]
