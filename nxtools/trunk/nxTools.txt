@@ -889,6 +889,8 @@ Text Templates:
                  and recreate them using the "SITE DB CREATE" command.
                - Changed config option: dupe(RebuildPaths), newdate(Default), and
                  pretime(CheckPaths).
+               - Renamed config options: misc(UTC_Time) to misc(UtcTime) and
+                 pre(ChownUID) to pre(ChownUserId).
                - Update commands and permissions in your ioFTPD.ini.
 
 0.9.7 -> 0.9.8 - Replace all .itcl files located in /scripts/nxTools/.
@@ -910,7 +912,7 @@ Text Templates:
 0.9.5 -> 0.9.6 - Replace all .itcl files located in /scripts/nxTools/.
                - New config option: misc(dZSbotLogging).
 
-0.9.1 -> 0.9.5 - These versions weren't released, internal testing.
+0.9.1 -> 0.9.5 - These versions were not released, internal testing.
 
 0.8.1 -> 0.9.1 - Replace all .exe and .itcl files located in /scripts/nxTools/.
                - New config options: nuke(GroupFlag), pre(ChownUID), and req(TimeLimit).

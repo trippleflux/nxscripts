@@ -6,11 +6,9 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
-if {[IsTrue $misc(ReloadConfig)]} {
-    if {[catch {source "../scripts/init.itcl"} ErrorMsg]} {
-        iputs "Unable to load script configuration, contact a siteop."
-        return -code error $ErrorMsg
-    }
+if {[IsTrue $misc(ReloadConfig)] && [catch {source "../scripts/init.itcl"} ErrorMsg]} {
+    iputs "Unable to load script configuration, contact a siteop."
+    return -code error $ErrorMsg
 }
 
 namespace eval ::nxTools::Dupe {
@@ -502,7 +500,7 @@ proc ::nxTools::Dupe::SiteDupe {MaxResults Pattern} {
         if {$IsSiteBot} {
             iputs "DUPE|$Count|$values(TimeStamp)|$values(UserName)|$values(GroupName)|$values(DirPath)|$values(DirName)"
         } else {
-            set ValueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt [IsTrue $misc(UTC_Time)]]
+            set ValueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt [IsTrue $misc(UtcTime)]]
             lappend ValueList $Count $values(UserName) $values(GroupName) $values(DirName) [file join $values(DirPath) $values(DirName)]
             OutputData [ParseCookies $template(Body) $ValueList {sec min hour day month year2 year4 num user group release path}]
         }
@@ -539,7 +537,7 @@ proc ::nxTools::Dupe::SiteFileDupe {MaxResults Pattern} {
         if {$IsSiteBot} {
             iputs "DUPE|$Count|$values(TimeStamp)|$values(UserName)|$values(GroupName)|$values(FileName)"
         } else {
-            set ValueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt [IsTrue $misc(UTC_Time)]]
+            set ValueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt [IsTrue $misc(UtcTime)]]
             lappend ValueList $Count $values(UserName) $values(GroupName) $values(FileName)
             OutputData [ParseCookies $template(Body) $ValueList {sec min hour day month year2 year4 num user group file}]
         }

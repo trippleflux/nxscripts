@@ -6,11 +6,9 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
-if {[IsTrue $misc(ReloadConfig)]} {
-    if {[catch {source "../scripts/init.itcl"} ErrorMsg]} {
-        iputs "Unable to load script configuration, contact a siteop."
-        return -code error $ErrorMsg
-    }
+if {[IsTrue $misc(ReloadConfig)] && [catch {source "../scripts/init.itcl"} ErrorMsg]} {
+    iputs "Unable to load script configuration, contact a siteop."
+    return -code error $ErrorMsg
 }
 
 namespace eval ::nxTools::Utils {
@@ -103,8 +101,8 @@ proc ::nxTools::Utils::NewDate {FindArea} {
 
         ## Format cookies and directory paths
         set AreaTime [expr {$TimeNow + ($DayOffset * 86400)}]
-        set VirtualPath [clock format $AreaTime -format $VirtualPath -gmt [IsTrue $misc(UTC_Time)]]
-        set RealPath [clock format $AreaTime -format $RealPath -gmt [IsTrue $misc(UTC_Time)]]
+        set VirtualPath [clock format $AreaTime -format $VirtualPath -gmt [IsTrue $misc(UtcTime)]]
+        set RealPath [clock format $AreaTime -format $RealPath -gmt [IsTrue $misc(UtcTime)]]
 
         ## Create date directory if it doesn't exist
         if {[file isdirectory $RealPath] || ![catch {file mkdir $RealPath} ErrorMsg]} {
@@ -146,7 +144,7 @@ proc ::nxTools::Utils::OneLines {Message} {
         set Count 0
         OneDb eval {SELECT * FROM OneLines ORDER BY TimeStamp DESC LIMIT $misc(OneLines)} values {
             incr Count
-            set ValueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt [IsTrue $misc(UTC_Time)]]
+            set ValueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt [IsTrue $misc(UtcTime)]]
             lappend ValueList $values(UserName) $values(GroupName) $values(Message)
             OutputData [ParseCookies $template(Body) $ValueList {sec min hour day month year2 year4 user group message}]
         }

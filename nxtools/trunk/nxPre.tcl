@@ -6,11 +6,9 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
-if {[IsTrue $misc(ReloadConfig)]} {
-    if {[catch {source "../scripts/init.itcl"} ErrorMsg]} {
-        iputs "Unable to load script configuration, contact a siteop."
-        return -code error $ErrorMsg
-    }
+if {[IsTrue $misc(ReloadConfig)] && [catch {source "../scripts/init.itcl"} ErrorMsg]} {
+    iputs "Unable to load script configuration, contact a siteop."
+    return -code error $ErrorMsg
 }
 
 namespace eval ::nxTools::Pre {
@@ -301,7 +299,7 @@ proc ::nxTools::Pre::Main {ArgV} {
             ## Find the destination path
             set DestRealPath $prearea($PreArea)
             set PreTime [clock seconds]
-            set DestRealPath [clock format $PreTime -format $DestRealPath -gmt [IsTrue $misc(UTC_Time)]]
+            set DestRealPath [clock format $PreTime -format $DestRealPath -gmt [IsTrue $misc(UtcTime)]]
             if {![file isdirectory $DestRealPath]} {
                 LinePuts "The pre destination path for the \"$PreArea\" area does not exist."
                 ErrorReturn "Note: If the area uses dated dirs, check that today's date dir exists."
@@ -390,7 +388,7 @@ proc ::nxTools::Pre::Main {ArgV} {
             }
 
             ## Hide the user's name
-            if {[string is digit -strict $pre(ChownUID)]} {
+            if {[string is digit -strict $pre(ChownUserId)]} {
                 GetDirList $DestRealPath dirlist ".ioFTPD*"
                 foreach ListItem $dirlist(DirList) {
                     catch {vfs read $ListItem} VfsOwner
@@ -398,7 +396,7 @@ proc ::nxTools::Pre::Main {ArgV} {
                     ## Verify the group and chmod the directory.
                     if {![string is digit -strict $GroupId]} {set GroupId [lindex $misc(DirOwner) 1]}
                     if {![string is digit -strict $Chmod]} {set Chmod $misc(DirChmod)}
-                    catch {vfs write $ListItem $pre(ChownUID) $GroupId $Chmod}
+                    catch {vfs write $ListItem $pre(ChownUserId) $GroupId $Chmod}
                 }
                 foreach ListItem $dirlist(FileList) {
                     catch {vfs read $ListItem} VfsOwner
@@ -406,7 +404,7 @@ proc ::nxTools::Pre::Main {ArgV} {
                     ## Verify the group and chmod the file.
                     if {![string is digit -strict $GroupId]} {set GroupId [lindex $misc(FileOwner) 1]}
                     if {![string is digit -strict $Chmod]} {set Chmod $misc(FileChmod)}
-                    catch {vfs write $ListItem $pre(ChownUID) $GroupId $Chmod}
+                    catch {vfs write $ListItem $pre(ChownUserId) $GroupId $Chmod}
                 }
             }
             ## Touch file and directory times
@@ -450,7 +448,7 @@ proc ::nxTools::Pre::Main {ArgV} {
 
             if {[IsTrue $dupe(AddOnPre)]} {
                 if {![catch {DbOpenFile DirDb "DupeDirs.db"} ErrorMsg]} {
-                    set LogUser [expr {$pre(ChownUID) != "" ? [resolve uid $pre(ChownUID)] : $user}]
+                    set LogUser [expr {$pre(ChownUserId) != "" ? [resolve uid $pre(ChownUserId)] : $user}]
                     set LogPath [string range $DestVirtualPath 0 [string last "/" $DestVirtualPath]]
                     DirDb eval {INSERT INTO DupeDirs (TimeStamp,UserName,GroupName,DirPath,DirName) VALUES($PreTime,$LogUser,$PreGroup,$LogPath,$Release)}
                     DirDb close

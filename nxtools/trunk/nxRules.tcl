@@ -6,11 +6,9 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
-if {[IsTrue $misc(ReloadConfig)]} {
-    if {[catch {source "../scripts/init.itcl"} ErrorMsg]} {
-        iputs "Unable to load script configuration, contact a siteop."
-        return -code error $ErrorMsg
-    }
+if {[IsTrue $misc(ReloadConfig)] && [catch {source "../scripts/init.itcl"} ErrorMsg]} {
+    iputs "Unable to load script configuration, contact a siteop."
+    return -code error $ErrorMsg
 }
 
 namespace eval ::nxTools::Rules {
