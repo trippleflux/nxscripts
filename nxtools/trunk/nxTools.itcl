@@ -54,14 +54,14 @@ proc CheckHidden {UserName GroupName VirtualPath} {
     return 0
 }
 
-proc IsGroupAdmin {UserName Flags GroupID} {
+proc IsGroupAdmin {UserName Flags GroupId} {
     global misc
     if {![regexp "\[$misc(GAdminFlags)\]" $Flags]} {
         return 1
     } elseif {[userfile open $UserName] == 0} {
         set UserFile [userfile bin2ascii]
         if {[regexp -nocase {admingroups ([\s\d]+)} $UserFile Result GIDList]} {
-            if {[lsearch -exact $GIDList $GroupID] != -1} {return 1}
+            if {[lsearch -exact $GIDList $GroupId] != -1} {return 1}
         }
     }
     return 0
@@ -109,7 +109,7 @@ proc NewDate {FindArea} {
         if {[llength [set NewArea [split $ConfigLine  "|"]]] != 10} {
             ErrorLog NewDate "Wrong number of parameters in line: \"$ConfigLine\""; continue
         }
-        foreach {AreaName Description VirtualPath RealPath SymLink DoLog DayOffset UserID GroupID Chmod} $NewArea {break}
+        foreach {AreaName Description VirtualPath RealPath SymLink DoLog DayOffset UserId GroupId Chmod} $NewArea {break}
         LinePuts ""; LinePuts "$AreaName ($Description):"
 
         ## Format cookies and directory paths
@@ -120,7 +120,7 @@ proc NewDate {FindArea} {
         ## Create date directory if it doesn't exist
         if {[file isdirectory $RealPath] || ![catch {file mkdir $RealPath} ErrorMsg]} {
             LinePuts "Created directory: $RealPath"
-            catch {vfs write $RealPath $UserID $GroupID $Chmod}
+            catch {vfs write $RealPath $UserId $GroupId $Chmod}
 
             if {![string equal "" $SymLink]} {
                 ## Create symlink directory if it doesn't exist
@@ -330,10 +330,10 @@ proc WeeklySet {} {
             foreach {Target Section Credits} $ListItem {break}
             if {[string index $Target 0] == "="} {
                 set Target [string range $Target 1 end]
-                if {[set GroupID [resolve group $Target]] == -1} {
+                if {[set GroupId [resolve group $Target]] == -1} {
                     LinePuts "Skipping invalid group \"$Target\"."; continue
                 }
-                set UserList [GetGroupUsers $GroupID]
+                set UserList [GetGroupUsers $GroupId]
                 set UserCount [llength $UserList]
                 ## Split the credits amongst the users in the group
                 if {$UserCount > 1 && [IsTrue $weekly(SplitGroup)]} {
@@ -459,8 +459,8 @@ proc BotUserInfo {UserName Section} {
 proc BotWho {} {
     if {[client who init "CID" "UID" "IDENT" "IP" "STATUS" "ACTION" "TIMEIDLE" "TRANSFERSPEED" "VIRTUALPATH" "VIRTUALDATAPATH"] == 0} {
         while {[set WhoData [client who fetch]] != ""} {
-            foreach {ClientID UserID Ident IP Status Action IdleTime Speed VirtualPath DataPath} $WhoData {break}
-            set UserName [resolve uid $UserID]
+            foreach {ClientId UserId Ident IP Status Action IdleTime Speed VirtualPath DataPath} $WhoData {break}
+            set UserName [resolve uid $UserId]
             set GroupName "NoGroup"
             if {[string equal -nocase "pass" [lindex $Action 0]]} {set Action "[lindex $Action 0] *****"}
             set FileName [file tail $DataPath]
@@ -481,7 +481,7 @@ proc BotWho {} {
                 2 {set Status "UPLD"}
                 default {continue}
             }
-            iputs "WHO|$ClientID|$UserName|$GroupName|$Ident|$IP|$Status|$Action|$VirtualPath|$FileName|$IdleTime|$Speed"
+            iputs "WHO|$ClientId|$UserName|$GroupName|$Ident|$IP|$Status|$Action|$VirtualPath|$FileName|$IdleTime|$Speed"
         }
     }
     return 0
@@ -554,10 +554,10 @@ proc SiteDrives {} {
 proc SiteGroupInfo {GroupName Section} {
     global misc flags user
     iputs ".-\[GroupInfo\]------------------------------------------------------------."
-    if {[set GroupID [resolve group $GroupName]] == -1} {
+    if {[set GroupId [resolve group $GroupName]] == -1} {
         ErrorReturn "The specified group does not exist."
         return 1
-    } elseif {![IsGroupAdmin $user $flags $GroupID]} {
+    } elseif {![IsGroupAdmin $user $flags $GroupId]} {
         ErrorReturn "You do not have admin rights for this group."
     }
     iputs "|  Username          |   All Up   |   All Dn   |   Ratio    |   Flags    |"
@@ -566,7 +566,7 @@ proc SiteGroupInfo {GroupName Section} {
     ## Validate section number
     if {![string is digit -strict $Section] || $Section > 9} {set Section 1} else {incr Section}
     set LeechCount 0
-    set UserList [GetGroupUsers $GroupID]
+    set UserList [GetGroupUsers $GroupId]
 
     ## Group stats totals
     set file(alldn) 0; set size(alldn) 0; set time(alldn) 0
@@ -599,7 +599,7 @@ proc SiteGroupInfo {GroupName Section} {
         ## Siteop/group admin prefix
         if {[regexp "\[$misc(SiteopFlags)\]" $uinfo(Flags)]} {
             set uinfo(Prefix) "*"
-        } elseif {[lsearch -exact $uinfo(AdminGroups) $GroupID] != -1} {
+        } elseif {[lsearch -exact $uinfo(AdminGroups) $GroupId] != -1} {
             set uinfo(Prefix) "+"
         }
         iputs [format "| %-18s | %10s | %10s | %-10s | %-10s |" $uinfo(Prefix)$UserName [FormatSize $uinfo(allup)] [FormatSize $uinfo(alldn)] $uinfo(Ratio) $uinfo(Flags)]
@@ -745,9 +745,9 @@ proc SiteWho {} {
     iputs "|------------------------------------------------------------------------|"
     if {[client who init "CID" "UID" "STATUS" "TIMEIDLE" "TRANSFERSPEED" "VIRTUALPATH" "VIRTUALDATAPATH"] == 0} {
         while {[set WhoData [client who fetch]] != ""} {
-            foreach {ClientID UserID Status IdleTime Speed VirtualPath DataPath} $WhoData {break}
-            set IsMe [expr {$cid == $ClientID ? "*" : ""}]
-            set UserName [resolve uid $UserID]
+            foreach {ClientId UserId Status IdleTime Speed VirtualPath DataPath} $WhoData {break}
+            set IsMe [expr {$cid == $ClientId ? "*" : ""}]
+            set UserName [resolve uid $UserId]
             set GroupName "NoGroup"; set TagLine "No Tagline Set"
             set FileName [file tail $DataPath]
 
@@ -765,7 +765,7 @@ proc SiteWho {} {
             }
 
             ## Show hidden users to either admins or the user
-            if {$IsAdmin || $cid == $ClientID || ![CheckHidden $UserName $GroupName $VirtualPath]} {
+            if {$IsAdmin || $cid == $ClientId || ![CheckHidden $UserName $GroupName $VirtualPath]} {
                 switch -exact -- $Status {
                     0 - 3 {
                         set Action "IDLE: [FormatDuration $IdleTime]"

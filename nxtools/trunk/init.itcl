@@ -168,7 +168,7 @@ set nuke(NoPaths) {
 set pre(ConfigFile)     "../scripts/nxTools/nxPre.cfg"
 set pre(PrivatePath)    "=%(group) =STAFF M1"
 #
-# - The User-ID to chown all files too, to hide an affil's identity (to disable, set to "").
+# - The user ID to chown all files too, to hide an affil's identity (to disable, set to "").
 # - Set the time of all pre'd files and directories to the pre time.
 #
 set pre(ChownUID)       "0"

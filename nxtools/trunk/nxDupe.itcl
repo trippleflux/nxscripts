@@ -649,7 +649,7 @@ proc SitePreTime {MaxResults Pattern} {
 
         foreach QueryLine $QueryResults {
             incr Count
-            foreach {ID PreTime Section Release Files KBytes Disks IsNuked NukeTime NukeReason} $QueryLine {break}
+            foreach {PreId PreTime Section Release Files KBytes Disks IsNuked NukeTime NukeReason} $QueryLine {break}
             set ReleaseAge [expr {$TimeNow - $PreTime}]
             if {$IsSiteBot} {
                 iputs "PRETIME|$Count|$ReleaseAge|$PreTime|$Section|$Release|$Files|$KBytes|$Disks|$IsNuked|$NukeTime|$NukeReason"

@@ -591,7 +591,7 @@ Legend:
 - SITE REQDEL <request id>
     Description:
      - Delete the specified request.
-     - To view current requests and their IDs, type 'SITE REQUEST'.
+     - To view current requests, type 'SITE REQUEST'.
      - Only the original requester or siteops may delete requests.
     Examples:
      - SITE REQDEL 003
@@ -599,13 +599,13 @@ Legend:
 - SITE REQFILL <request id>
     Description:
      - Fill the specified request.
-     - To view current requests and their IDs, type 'SITE REQUEST'.
+     - To view current requests, type 'SITE REQUEST'.
     Examples:
      - SITE REQFILL 005
 
 - SITE REQUEST [request]
     Description:
-     - Add the specified request; try to remember your request ID.
+     - Add the specified item to the request list.
      - If no request is specified the current requests are shown.
     Examples:
      - SITE REQUEST
@@ -847,7 +847,8 @@ Text Templates:
 ##############################################################################
 
 0.9.8 -> 0.9.9 - Replace all .itcl files located in /scripts/nxTools/.
-               - Delete your nukes database (nxTools/data/Nukes.db) and recreate it.
+               - Remove your nukes and requests database from /scripts/nxTools/data/
+                 and recreate them using the "SITE DB CREATE" command.
 
 0.9.7 -> 0.9.8 - Replace all .itcl files located in /scripts/nxTools/.
                - Download an updated nxTools-Libraries package.

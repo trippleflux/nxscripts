@@ -329,8 +329,8 @@ proc PreMain {ArgV} {
                 set FileSize [file size $ListItem]
                 set TotalSize [expr {wide($TotalSize) + wide($FileSize)}]
                 if {[IsTrue $pre(Uploaders)]} {
-                    catch {lindex [vfs read $ListItem] 0} UserID
-                    if {$FileSize > 0 && [set UserName [resolve uid $UserID]] != ""} {
+                    catch {lindex [vfs read $ListItem] 0} UserId
+                    if {$FileSize > 0 && [set UserName [resolve uid $UserId]] != ""} {
                         ## Increase file Count
                         if {[info exists prefiles($UserName)]} {
                             incr prefiles($UserName)
@@ -398,19 +398,19 @@ proc PreMain {ArgV} {
                 GetDirList $DestRealPath dirlist ".ioFTPD*"
                 foreach ListItem $dirlist(DirList) {
                     catch {vfs read $ListItem} VfsOwner
-                    ListAssign $VfsOwner UserID GroupID Chmod
-                    ## Verify the GID and chmod
-                    if {![string is digit -strict $GroupID]} {set GroupID [lindex $misc(DirOwner) 1]}
+                    ListAssign $VfsOwner UserId GroupId Chmod
+                    ## Verify the group and chmod the directory.
+                    if {![string is digit -strict $GroupId]} {set GroupId [lindex $misc(DirOwner) 1]}
                     if {![string is digit -strict $Chmod]} {set Chmod $misc(DirChmod)}
-                    catch {vfs write $ListItem $pre(ChownUID) $GroupID $Chmod}
+                    catch {vfs write $ListItem $pre(ChownUID) $GroupId $Chmod}
                 }
                 foreach ListItem $dirlist(FileList) {
                     catch {vfs read $ListItem} VfsOwner
-                    ListAssign $VfsOwner UserID GroupID Chmod
-                    ## Verify the GID and chmod
-                    if {![string is digit -strict $GroupID]} {set GroupID [lindex $misc(FileOwner) 1]}
+                    ListAssign $VfsOwner UserId GroupId Chmod
+                    ## Verify the group and chmod the file.
+                    if {![string is digit -strict $GroupId]} {set GroupId [lindex $misc(FileOwner) 1]}
                     if {![string is digit -strict $Chmod]} {set Chmod $misc(FileChmod)}
-                    catch {vfs write $ListItem $pre(ChownUID) $GroupID $Chmod}
+                    catch {vfs write $ListItem $pre(ChownUID) $GroupId $Chmod}
                 }
             }
             ## Touch file and directory times

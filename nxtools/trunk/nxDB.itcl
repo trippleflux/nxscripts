@@ -53,7 +53,7 @@ DirName   TEXT default '')
 
 set dbtable(Nukes) {
 CREATE TABLE Nukes(
-NukeID    INTEGER PRIMARY KEY AUTOINCREMENT,
+NukeId    INTEGER PRIMARY KEY AUTOINCREMENT,
 TimeStamp INTEGER default 0,
 UserName  TEXT default '',
 GroupName TEXT default '',
@@ -65,12 +65,12 @@ Files     INTEGER default 0,
 Size      INTEGER default 0);
 
 CREATE TABLE Users(
-NukeID    INTEGER default 0,
+NukeId    INTEGER default 0,
 Status    INTEGER default 0,
 UserName  TEXT default '',
 GroupName TEXT default '',
 Amount    INTEGER default 0,
-UNIQUE    (NukeID,UserName));
+UNIQUE    (NukeId,UserName));
 }
 
 set dbtable(OneLines) {
@@ -98,7 +98,7 @@ TimeStamp INTEGER default 0,
 UserName  TEXT default '',
 GroupName TEXT default '',
 Status    INTEGER default 0,
-RequestID INTEGER default 0,
+RequestId INTEGER default 0,
 Request   TEXT default '')
 }
 

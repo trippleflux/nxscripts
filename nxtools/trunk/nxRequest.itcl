@@ -40,7 +40,7 @@ proc ReqCheckLimit {DbProc UserName} {
     return 1
 }
 
-proc ReqUpdateDir {Action Request {UserID 0} {GroupID 0}} {
+proc ReqUpdateDir {Action Request {UserId 0} {GroupId 0}} {
     global req
     if {[string equal "" $req(RequestPath)]} {
         return
@@ -68,7 +68,7 @@ proc ReqUpdateDir {Action Request {UserID 0} {GroupID 0}} {
                 }
             }
             {req} {
-                CreateTag $ReqPath $UserID $GroupID 777
+                CreateTag $ReqPath $UserId $GroupId 777
             }
             default {
                 ErrorLog ReqUpdateDir "Unknown event \"$Action\"."
@@ -109,8 +109,8 @@ proc ReqMain {ArgV} {
 
     switch -exact -- $Action {
         {del} - {fill} {
-            set Exists 0; set RequestID [SqlEscape $Request]
-            ReqDb eval {SELECT rowid,* FROM Requests WHERE Status=0 AND (RequestID=$RequestID OR StrEq(Request,$Request)) LIMIT 1} values {set Exists 1}
+            set Exists 0; set RequestId [SqlEscape $Request]
+            ReqDb eval {SELECT rowid,* FROM Requests WHERE Status=0 AND (RequestId=$RequestId OR StrEq(Request,$Request)) LIMIT 1} values {set Exists 1}
             if {!$Exists} {
                 ReqDb close
                 ErrorReturn "Invalid request, use \"SITE REQUEST\" to view current requests."
@@ -131,11 +131,11 @@ proc ReqMain {ArgV} {
             }
 
             set RequestAge [expr {[clock seconds] - $values(TimeStamp)}]
-            set RequestID [format "%03s" $values(RequestID)]
+            set RequestId [format "%03s" $values(RequestId)]
             if {[IsTrue $misc(dZSbotLogging)]} {
                 set RequestAge [FormatDuration $RequestAge]
             }
-            putlog "${LogPrefix}: \"$user\" \"$group\" \"$values(Request)\" \"$values(UserName)\" \"$values(GroupName)\" \"$RequestID\" \"$RequestAge\""
+            putlog "${LogPrefix}: \"$user\" \"$group\" \"$values(Request)\" \"$values(UserName)\" \"$values(GroupName)\" \"$RequestId\" \"$RequestAge\""
             ReqUpdateDir $Action $values(Request)
         }
         {view} {
@@ -146,15 +146,15 @@ proc ReqMain {ArgV} {
                 OutputData $template(Header)
                 set Count 0
             }
-            ReqDb eval {SELECT * FROM Requests WHERE Status=0 ORDER BY RequestID DESC} values {
+            ReqDb eval {SELECT * FROM Requests WHERE Status=0 ORDER BY RequestId DESC} values {
                 set RequestAge [expr {[clock seconds] - $values(TimeStamp)}]
-                set RequestID [format "%03s" $values(RequestID)]
+                set RequestId [format "%03s" $values(RequestId)]
                 if {$IsSiteBot} {
-                    iputs "REQS|$values(TimeStamp)|$RequestAge|$RequestID|$values(UserName)|$values(GroupName)|$values(Request)"
+                    iputs "REQS|$values(TimeStamp)|$RequestAge|$RequestId|$values(UserName)|$values(GroupName)|$values(Request)"
                 } else {
                     incr Count
                     set RequestAge [lrange [FormatDuration $RequestAge] 0 1]
-                    set ValueList [list $RequestAge $RequestID $values(UserName) $values(GroupName) $values(Request)]
+                    set ValueList [list $RequestAge $RequestId $values(UserName) $values(GroupName) $values(Request)]
                     OutputData [ParseCookies $template(Body) $ValueList {age id user group request}]
                 }
             }
@@ -168,19 +168,19 @@ proc ReqMain {ArgV} {
             if {[ReqDb eval {SELECT count(*) FROM Requests WHERE Status=0 AND StrEq(Request,$Request)}]} {
                 LinePuts "This item is already requested."
             } elseif {[ReqCheckLimit ReqDb $user]} {
-                set RequestID 1
-                ReqDb eval {SELECT (max(RequestID)+1) AS MaxID FROM Requests WHERE Status=0} values {
+                set RequestId 1
+                ReqDb eval {SELECT (max(RequestId)+1) AS MaxId FROM Requests WHERE Status=0} values {
                     ## The max() function returns NULL if are no matching records.
-                    if {[llength $values(MaxID)]} {
-                        set RequestID $values(MaxID)
+                    if {[llength $values(MaxId)]} {
+                        set RequestId $values(MaxId)
                     }
                 }
                 set TimeStamp [clock seconds]
-                ReqDb eval {INSERT INTO Requests (TimeStamp,UserName,GroupName,Status,RequestID,Request) VALUES($TimeStamp,$user,$group,0,$RequestID,$Request)}
+                ReqDb eval {INSERT INTO Requests (TimeStamp,UserName,GroupName,Status,RequestId,Request) VALUES($TimeStamp,$user,$group,0,$RequestId,$Request)}
 
-                set RequestID [format "%03s" $RequestID]
-                putlog "REQUEST: \"$user\" \"$group\" \"$Request\" \"$RequestID\""
-                LinePuts "Added your request of $Request (#$RequestID)."
+                set RequestId [format "%03s" $RequestId]
+                putlog "REQUEST: \"$user\" \"$group\" \"$Request\" \"$RequestId\""
+                LinePuts "Added your request of $Request (#$RequestId)."
                 ReqUpdateDir $Action $Request
             }
         }
@@ -191,9 +191,9 @@ proc ReqMain {ArgV} {
                 LinePuts "Wiping filled requests older then $req(MaximumAge) day(s)..."
                 set MaxAge [expr {[clock seconds] - $req(MaximumAge) * 86400}]
 
-                ReqDb eval {SELECT rowid,* FROM Requests WHERE Status=1 AND TimeStamp < $MaxAge ORDER BY RequestID DESC} values {
+                ReqDb eval {SELECT rowid,* FROM Requests WHERE Status=1 AND TimeStamp < $MaxAge ORDER BY RequestId DESC} values {
                     set RequestAge [expr {[clock seconds] - $values(TimeStamp)}]
-                    set RequestID [format "%03s" $values(RequestID)]
+                    set RequestId [format "%03s" $values(RequestId)]
 
                     ## Wipe the directory if it exists
                     set FillPath [string map [list %(request) $values(Request)] $req(FilledTag)]
@@ -204,11 +204,11 @@ proc ReqMain {ArgV} {
                         if {[catch {file delete -force -- $FillPath} ErrorMsg]} {
                             ErrorLog ReqWipe $ErrorMsg
                         }
-                        LinePuts "Wiped: $values(Request) by $values(UserName)/$values(GroupName) (#$RequestID)."
+                        LinePuts "Wiped: $values(Request) by $values(UserName)/$values(GroupName) (#$RequestId)."
                         if {[IsTrue $misc(dZSbotLogging)]} {
                             set RequestAge [FormatDuration $RequestAge]
                         }
-                        putlog "REQWIPE: \"$values(UserName)\" \"$values(GroupName)\" \"$values(Request)\" \"$RequestID\" \"$RequestAge\" \"$req(MaximumAge)\""
+                        putlog "REQWIPE: \"$values(UserName)\" \"$values(GroupName)\" \"$values(Request)\" \"$RequestId\" \"$RequestAge\" \"$req(MaximumAge)\""
                     }
                     ReqDb eval {UPDATE Requests SET Status=2 WHERE rowid=$values(rowid)}
                 }

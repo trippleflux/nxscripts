@@ -130,11 +130,11 @@ proc ArchiveFile {FilePath {FormatStyle "%Y-%m-%d"}} {
     return 1
 }
 
-proc CreateTag {RealPath UserID GroupID Chmod} {
+proc CreateTag {RealPath UserId GroupId Chmod} {
     if {[catch {file mkdir $RealPath} ErrorMsg]} {
         ErrorLog CreateTag $ErrorMsg
     }
-    catch {vfs write $RealPath $UserID $GroupID $Chmod}
+    catch {vfs write $RealPath $UserId $GroupId $Chmod}
 }
 
 proc RemoveTag {RealPath} {
@@ -292,7 +292,7 @@ proc KickUsers {KickPath {RealPaths "False"}} {
         if {[client who init "CID" "STATUS" "VIRTUALPATH" "VIRTUALDATAPATH"] == 0} {
             set UsersOnline 0
             while {[set WhoData [client who fetch]] != ""} {
-                foreach {ClientID Status VfsPath DataPath} $WhoData {break}
+                foreach {ClientId Status VfsPath DataPath} $WhoData {break}
 
                 ## Resolve virtual paths if needed
                 if {[IsTrue $RealPaths]} {
@@ -310,7 +310,7 @@ proc KickUsers {KickPath {RealPaths "False"}} {
                 ## Attempt to kick the client ID
                 if {[string match -nocase $KickPath $MatchPath]} {
                     incr UsersOnline
-                    catch {client kill clientid $ClientID}
+                    catch {client kill clientid $ClientId}
                 }
             }
             ## If there are no longer any users in that dir, we can return
@@ -425,30 +425,30 @@ proc FormatSpeed {Speed {Seconds 0}} {
 
 proc GetUserList {} {
     set UserList ""
-    foreach UserID [user list] {lappend UserList [resolve uid $UserID]}
+    foreach UserId [user list] {lappend UserList [resolve uid $UserId]}
     return [lsort -ascii $UserList]
 }
 
 proc GetGroupList {} {
     set GroupList ""
-    foreach GroupID [group list] {lappend GroupList [resolve gid $GroupID]}
+    foreach GroupId [group list] {lappend GroupList [resolve gid $GroupId]}
     return [lsort -ascii $GroupList]
 }
 
-proc GetGroupName {GroupID} {
-    if {[set GroupName [resolve gid $GroupID]] != ""} {
+proc GetGroupName {GroupId} {
+    if {[set GroupName [resolve gid $GroupId]] != ""} {
         return $GroupName
     }
     return "NoGroup"
 }
 
-proc GetGroupUsers {GroupID} {
+proc GetGroupUsers {GroupId} {
     set UserList ""
     foreach UserName [GetUserList] {
         if {[userfile open $UserName] != 0} {continue}
         set UserFile [userfile bin2ascii]
         if {[regexp -nocase {groups ([\s\d]+)} $UserFile Result GIDList]} {
-            if {[lsearch -exact $GIDList $GroupID] != -1} {lappend UserList $UserName}
+            if {[lsearch -exact $GIDList $GroupId] != -1} {lappend UserList $UserName}
         }
     }
     return $UserList
