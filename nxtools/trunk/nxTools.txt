@@ -1,4 +1,3 @@
-
 ##############################################################################
 #                                                                            #
 #             nxTools - Dupe Checker, Nuker, Pre, Request & Tools            #
@@ -365,8 +364,8 @@ set announce(REQFILL)       "-%sitename- \[REQFILL\] + %bold%request%bold (%bold
 set announce(REQWIPE)       "-%sitename- \[REQWIPE\] + %bold%request%bold was auto-wiped since it's older than %bold%maxdays%bold days."
 set announce(APPROVE)       "-%sitename- \[%section\] + %path/%bold%release%bold was approved by %bold%user%bold@%group."
 set announce(NEWDATE)       "-%sitename- \[%section\] + A new day has come, change your current %bold%path%bold dir to %bold%release%bold"
-set announce(PRE)           "-%sitename- \[%section\] + %bold%pregroup%bold launches %bold%release%bold (%bold%mbytes%boldMB in %bold%files%boldF with %bold%disks%bold Disks) in %bold%path%bold"
-set announce(PREMP3)        "-%sitename- \[%section\] + %bold%pregroup%bold launches %bold%release%bold (%bold%mbytes%boldMB in %bold%files%boldF - %bold%genre%bold - %bold%kbit%boldkbits - %bold%year%bold) in %bold%path%bold"
+set announce(PRE)           "-%sitename- \[%section\] + %bold%pregroup%bold launches %bold%release%bold (%bold%mbytes%boldMB in %bold%files%boldF with %bold%disks%bold Disks)"
+set announce(PREMP3)        "-%sitename- \[%section\] + %bold%pregroup%bold launches %bold%release%bold (%bold%mbytes%boldMB in %bold%files%boldF - %bold%genre%bold - %bold%kbit%boldkbits - %bold%year%bold)"
 set announce(PRETIME)       "-%sitename- \[%section\] + %path/%bold%release%bold was pre'd at %pretime, %bold%preage%bold ago"
 set announce(DENYPRE)       "-%sitename- \[%section\] + %path/%bold%release%bold was denied because it's older than the %bold%rulemins%boldmin limit (pre'd %bold%preage%bold ago)"
 set announce(WARNPRE)       "-%sitename- \[%section\] + %path/%bold%release%bold is older than the %bold%rulemins%boldmin limit (pre'd %bold%preage%bold ago), possible nuke!"
