@@ -393,26 +393,22 @@ proc FormatDurationLong {Seconds} {
 }
 
 proc FormatSize {KBytes} {
-    if {abs($KBytes) >= 1073741824} {
-        return [format "%.2f TB" [expr {double($KBytes) / 1073741824.0}]]
-    } elseif {abs($KBytes) >= 1048576} {
-        return [format "%.2f GB" [expr {double($KBytes) / 1048576.0}]]
-    } elseif {abs($KBytes) >= 1024} {
-        return [format "%.1f MB" [expr {double($KBytes) / 1024.0}]]
-    } else {
-        return [format "%.0f KB" [expr {double($KBytes)}]]
+    foreach Dec {0 1 2 2} Unit {KB MB GB TB} {
+        if {abs($KBytes) >= 1024} {
+            set KBytes [expr {double($KBytes) / 1024.0}]
+        } else {break}
     }
+    return [format "%.*f %s" $Dec $KBytes $Unit]
 }
 
 proc FormatSpeed {Speed {Seconds 0}} {
     if {$Seconds > 0} {set Speed [expr {double($Speed) / $Seconds}]}
-    if {abs($Speed) >= 1048576} {
-        return [format "%.2f GB/s" [expr {double($Speed) / 1048576.0}]]
-    } elseif {abs($Speed) >= 1024} {
-        return [format "%.2f MB/s" [expr {double($Speed) / 1024.0}]]
-    } else {
-        return [format "%.0f KB/s" [expr {double($Speed)}]]
+    foreach Dec {0 2 2} Unit {KB/s MB/s GB/s} {
+        if {abs($Speed) >= 1024} {
+            set Speed [expr {double($Speed) / 1024.0}]
+        } else {break}
     }
+    return [format "%.*f %s" $Dec $Speed $Unit]
 }
 
 # User and Group Procedures
