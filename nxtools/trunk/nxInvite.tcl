@@ -6,6 +6,13 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
+if {[IsTrue $misc(ReloadConfig)]} {
+    if {[catch {source "../scripts/init.itcl"} ErrorMsg]} {
+        iputs "Unable to load script configuration, contact a siteop."
+        return -code error $ErrorMsg
+    }
+}
+
 namespace eval ::nxTools::Invite {
     namespace import -force ::nxLib::*
 }
