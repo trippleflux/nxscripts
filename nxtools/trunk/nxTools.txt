@@ -117,7 +117,7 @@ frequently, so be sure you are always using the latest version.
 [Events]
 OnUploadComplete = TCL ..\scripts\nxTools\nxDupe.tcl upload
 OnUploadError    = TCL ..\scripts\nxTools\nxDupe.tcl uploaderror
-OnFtpLogIn       = TCL ..\scripts\nxTools\nxTools.tcl onelines
+OnFtpLogIn       = TCL ..\scripts\nxTools\nxUtilities.tcl onelines
 
 [FTP_Pre-Command_Events]
 mkd  = TCL ..\scripts\nxTools\nxDupe.tcl premkd
@@ -160,22 +160,22 @@ request     = TCL ..\scripts\nxTools\nxRequest.tcl add
 requests    = TCL ..\scripts\nxTools\nxRequest.tcl view
 reqwipe     = TCL ..\scripts\nxTools\nxRequest.tcl wipe
 rules       = TCL ..\scripts\nxTools\nxRules.tcl
-drives      = TCL ..\scripts\nxTools\nxTools.tcl drives
-errlog      = TCL ..\scripts\nxTools\nxTools.tcl errlog
-ginfo       = TCL ..\scripts\nxTools\nxTools.tcl ginfo
-give        = TCL ..\scripts\nxTools\nxTools.tcl give
-newdate     = TCL ..\scripts\nxTools\nxTools.tcl newdate
-onel        = TCL ..\scripts\nxTools\nxTools.tcl onelines
-resetstats  = TCL ..\scripts\nxTools\nxTools.tcl resetstats
-resetuser   = TCL ..\scripts\nxTools\nxTools.tcl resetuser
-rotatelogs  = TCL ..\scripts\nxTools\nxTools.tcl rotate
-size        = TCL ..\scripts\nxTools\nxTools.tcl size
-syslog      = TCL ..\scripts\nxTools\nxTools.tcl syslog
-take        = TCL ..\scripts\nxTools\nxTools.tcl take
-traffic     = TCL ..\scripts\nxTools\nxTools.tcl traffic
-weekly      = TCL ..\scripts\nxTools\nxTools.tcl weekly
-weeklyset   = TCL ..\scripts\nxTools\nxTools.tcl weeklyset
-who         = TCL ..\scripts\nxTools\nxTools.tcl who
+drives      = TCL ..\scripts\nxTools\nxUtilities.tcl drives
+errlog      = TCL ..\scripts\nxTools\nxUtilities.tcl errlog
+ginfo       = TCL ..\scripts\nxTools\nxUtilities.tcl ginfo
+give        = TCL ..\scripts\nxTools\nxUtilities.tcl give
+newdate     = TCL ..\scripts\nxTools\nxUtilities.tcl newdate
+onel        = TCL ..\scripts\nxTools\nxUtilities.tcl onelines
+resetstats  = TCL ..\scripts\nxTools\nxUtilities.tcl resetstats
+resetuser   = TCL ..\scripts\nxTools\nxUtilities.tcl resetuser
+rotatelogs  = TCL ..\scripts\nxTools\nxUtilities.tcl rotate
+size        = TCL ..\scripts\nxTools\nxUtilities.tcl size
+syslog      = TCL ..\scripts\nxTools\nxUtilities.tcl syslog
+take        = TCL ..\scripts\nxTools\nxUtilities.tcl take
+traffic     = TCL ..\scripts\nxTools\nxUtilities.tcl traffic
+weekly      = TCL ..\scripts\nxTools\nxUtilities.tcl weekly
+weeklyset   = TCL ..\scripts\nxTools\nxUtilities.tcl weeklyset
+who         = TCL ..\scripts\nxTools\nxUtilities.tcl who
 
 [FTP_SITE_Permissions]
 approve     = !A *
@@ -243,17 +243,17 @@ wipe        = M1V
 
     This event triggers the sitebot's daily stats announce, only necessary if you are
     currently using an nxTools compatible sitebot.
-nxDayStats = 59 23 * * TCL ..\scripts\nxTools\nxTools.tcl daystats
+nxDayStats = 59 23 * * TCL ..\scripts\nxTools\nxUtilities.tcl daystats
 
     The rotate logs even does just that, it rotates the defined log files once they
     meet or exceed the required size. Be sure to properly configure this option in the
     init.tcl file.
-nxRotateLogs = 59 23 * * TCL ..\scripts\nxTools\nxTools.tcl rotate
+nxRotateLogs = 59 23 * * TCL ..\scripts\nxTools\nxUtilities.tcl rotate
 
     The newdate even creates dated directories and/or today symlinks. You can also specify
     the date area with a parameter, if you want to trigger a specific area. Refer to the
     configuration file (init.tcl) for more details on this.
-nxNewDate = 0 0 * * TCL ..\scripts\nxTools\nxTools.tcl newdate
+nxNewDate = 0 0 * * TCL ..\scripts\nxTools\nxUtilities.tcl newdate
 
     This event cleans your file and directory dupe logs. It removes both invalid directories
     and old files, also sorting the log entries from oldest to newest.
@@ -266,7 +266,7 @@ nxReqWipe = 0 * * * TCL ..\scripts\nxTools\nxRequest.tcl wipe
     If you would like to use weekly credit allotments, this event should be scheduled to run
     weekly. However, if you would like another time based credit allotments (i.e. daily or
     bi-monthly) schedule it accordingly.
-nxWeekly = 0 0 * 6 TCL ..\scripts\nxTools\nxTools.tcl weeklyset
+nxWeekly = 0 0 * 6 TCL ..\scripts\nxTools\nxUtilities.tcl weeklyset
 
  6. Now restart ioFTPD for the changes to take effect.
 
@@ -285,7 +285,7 @@ nxWeekly = 0 0 * 6 TCL ..\scripts\nxTools\nxTools.tcl weeklyset
     %[execute(TCL ..\scripts\nxTools\nxRequest.tcl)(view)]
 
     Display latest onelines:
-    %[execute(TCL ..\scripts\nxTools\nxTools.tcl)(onelines)]
+    %[execute(TCL ..\scripts\nxTools\nxUtilities.tcl)(onelines)]
 
     Display all rules:
     %[execute(TCL ..\scripts\nxTools\nxRules.tcl)]
