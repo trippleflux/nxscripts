@@ -566,13 +566,3 @@ proc ::nxLib::ParseCookies {InputStr ValueList CookieList} {
     }
     return $OutputStr
 }
-
-# Reload Configuration
-######################################################################
-#
-#if {[IsTrue $misc(ReloadConfig)]} {
-#    if {[catch {source "../scripts/init.itcl"} ErrorMsg]} {
-#        iputs "Unable to load script configuration, contact a siteop."
-#        return -code error $ErrorMsg
-#    }
-#}
