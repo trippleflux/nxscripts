@@ -22,7 +22,7 @@ if {[catch {load "tclsqlite3.dll" Tclsqlite3} ErrorMsg]} {
 proc DupeCheckDirs {VirtualPath} {
     global dupe misc
     ## Check exempts and ignores
-    if {[ListMatch $dupe(CheckExempts) $VirtualPath] || [ListMatch $dupe(IgnoreDirs) $VirtualPath True]} {return 0}
+    if {[ListMatch $dupe(CheckExempts) $VirtualPath] || [ListMatchI $dupe(IgnoreDirs) $VirtualPath]} {return 0}
     set DbFile [file join $misc(DataPath) "DupeDirs.db"]
     set Result 0
     if {![catch {sqlite3 DirDb $DbFile} ErrorMsg]} {
@@ -46,7 +46,7 @@ proc DupeCheckDirs {VirtualPath} {
 proc DupeCheckFiles {VirtualPath} {
     global dupe misc
     ## Check exempts and ignores
-    if {[ListMatch $dupe(CheckExempts) $VirtualPath] || [ListMatch $dupe(IgnoreFiles) $VirtualPath True]} {return 0}
+    if {[ListMatch $dupe(CheckExempts) $VirtualPath] || [ListMatchI $dupe(IgnoreFiles) $VirtualPath]} {return 0}
     set DbFile [file join $misc(DataPath) "DupeFiles.db"]
     set Result 0
     if {![catch {sqlite3 FileDb $DbFile} ErrorMsg]} {
@@ -73,10 +73,10 @@ proc DupeLog {Action VirtualPath} {
 
     ## Check if the virtual path is a file or directory.
     if {[string equal "DELE" $Action] || [string equal "UPLD" $Action] || [file isfile [resolve pwd $VirtualPath]]} {
-        if {[IsTrue $dupe(CheckFiles)] && ![ListMatch $dupe(IgnoreFiles) $VirtualPath True]} {
+        if {[IsTrue $dupe(CheckFiles)] && ![ListMatchI $dupe(IgnoreFiles) $VirtualPath]} {
             return [DupeLogFiles $Action $VirtualPath]
         }
-    } elseif {[IsTrue $dupe(CheckDirs)] && ![ListMatch $dupe(IgnoreDirs) $VirtualPath True]} {
+    } elseif {[IsTrue $dupe(CheckDirs)] && ![ListMatchI $dupe(IgnoreDirs) $VirtualPath]} {
         return [DupeLogDirs $Action $VirtualPath]
     }
     return 0
@@ -220,7 +220,7 @@ proc DupeRebuild {} {
 
             foreach ListItem $dirlist($ListName) {
                 ## Check if the list item is in the ignore list
-                if {[ListMatch $IgnoreList $ListItem True]} {continue}
+                if {[ListMatchI $IgnoreList $ListItem]} {continue}
 
                 ## Read date and owner
                 if {[catch {file stat $ListItem fstat}]} {continue}
@@ -287,7 +287,7 @@ proc ForceCheck {VirtualPath} {
     set FileExt [file extension $VirtualPath]
     set MatchPath [file dirname $VirtualPath]
 
-    if {![string equal -nocase ".nfo" $FileExt] && ![string equal -nocase ".sfv" $FileExt] && ![ListMatch $force(Exempts) $MatchPath True]} {
+    if {![string equal -nocase ".nfo" $FileExt] && ![string equal -nocase ".sfv" $FileExt] && ![ListMatchI $force(Exempts) $MatchPath]} {
         set ReleasePath [resolve pwd [expr {[IsMultiDisk $MatchPath] ? [file dirname $MatchPath] : $MatchPath}]]
         set CheckFile [ListMatch $force(FilePaths) $MatchPath]
 
@@ -323,7 +323,7 @@ proc ForceCheck {VirtualPath} {
 
 proc PreTimeCheck {VirtualPath} {
     global misc mysql pretime
-    if {[ListMatch $pretime(Ignores) $VirtualPath True]} {return 0}
+    if {[ListMatchI $pretime(Ignores) $VirtualPath]} {return 0}
     set Check 0; set Result 0
     foreach ConfigLine $pretime(CheckPaths) {
         if {[llength [set PreCheck [split $ConfigLine  "|"]]] != 4} {
@@ -374,7 +374,7 @@ proc PreTimeCheck {VirtualPath} {
 
 proc RaceLinks {VirtualPath} {
     global latest misc
-    if {[ListMatch $latest(Exempts) $VirtualPath] || [ListMatch $latest(Ignores) $VirtualPath True]} {
+    if {[ListMatch $latest(Exempts) $VirtualPath] || [ListMatchI $latest(Ignores) $VirtualPath]} {
         return 0
     }
     set DbFile [file join $misc(DataPath) "Links.db"]
