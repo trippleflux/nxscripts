@@ -72,14 +72,14 @@ INT TclFreeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST ob
 
         // Set varName(free) to the remaining disk space.
         Tcl_SetStringObj(pFieldObj, "free", -1);
-        pValueObj = Tcl_NewWideIntObj((Tcl_WideUInt) i64FreeBytes);
+        pValueObj = Tcl_NewWideIntObj((Tcl_WideUInt) (i64FreeBytes/1024));
         if (!Tcl_ObjSetVar2(interp, pVarObj, pFieldObj, pValueObj, TCL_LEAVE_ERR_MSG)) {
             return TCL_ERROR;
         }
 
         // Set varName(total) to the total disk space.
         Tcl_SetStringObj(pFieldObj, "total", -1);
-        pValueObj = Tcl_NewWideIntObj((Tcl_WideUInt) i64TotalBytes);
+        pValueObj = Tcl_NewWideIntObj((Tcl_WideUInt) (i64TotalBytes/1024));
         if (!Tcl_ObjSetVar2(interp, pVarObj, pFieldObj, pValueObj, TCL_LEAVE_ERR_MSG)) {
             return TCL_ERROR;
         }

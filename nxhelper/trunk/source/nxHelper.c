@@ -33,6 +33,7 @@ INT Nxhelper_Init(Tcl_Interp *interp)
      * ::nx::free drive varName
      *  - Retrieves the free and total space for "drive" and uses
      *    the array given by "varName" to store information.
+     *  - The free and total space is expressed in kilobytes.
      *  - Returns 1 if successful, and 0 otherwise.
      *
      * ::nx::mp3 file varName
