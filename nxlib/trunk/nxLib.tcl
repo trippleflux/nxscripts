@@ -198,7 +198,7 @@ proc ::nxLib::GetDirStats {RealPath VarName {IgnoreList ""} {FirstCall 1}} {
                 GetDirStats $ListItem stats $IgnoreList 0
             } else {
                 incr stats(FileCount)
-                set stats(TotalSize) [expr wide($stats(TotalSize)) + wide([file size $ListItem])]
+                set stats(TotalSize) [expr {wide($stats(TotalSize)) + wide([file size $ListItem])}]
             }
         }
     }
