@@ -381,12 +381,12 @@ proc PreMain {ArgV} {
             ## Attempt to parse every MP3 file until successful
             foreach FilePath $MP3Files {
                 if {[::nx::mp3 $FilePath mp3]} {
-                    set Codec [format "MPEG %.1f Layer %s" $mp3(version) [string repeat "I" $mp3(layer)]]
+                    set Codec [format "MPEG %.1f Layer %d" $mp3(version) $mp3(layer)]
                     iputs "|------------------------------------------------------------------------|"
                     iputs [format "| Artist  : %-60s |" $mp3(artist)]
                     iputs [format "| Album   : %-60s |" $mp3(album)]
-                    iputs [format "| Genre   : %-16s Year: %-14s BitRate: %-13s |" $mp3(genre) $mp3(year) "$mp3(bitrate) Kbit"]
-                    iputs [format "| Channel : %-15s Codec: %-37s |" $mp3(mode) $Codec]
+                    iputs [format "| Genre   : %-16s Year: %-11s Bitrate: %-16s |" $mp3(genre) $mp3(year) "$mp3(bitrate) Kbit"]
+                    iputs [format "| Channel : %-16s Type: %-13s Codec: %-16s |" $mp3(mode) $mp3(type) $Codec]
                     set IsMP3 1; break
                 } else {
                     ErrorLog PreMP3 "unable to read ID3/MP3 headers from \"$FilePath\": invalid MP3 file"
@@ -440,10 +440,10 @@ proc PreMain {ArgV} {
             if {[IsTrue $misc(dZSbotLogging)]} {
                 set TotalMB [format "%.2f" [expr {double($TotalSize) / 1024.0}]]
                 set LogLine "PRE: \"$DestVirtualPath\" \"$PreGroup\" \"$user\" \"$group\" \"$PreArea\" \"$Files\" \"$TotalMB\" \"$DiskCount\""
-                if {$IsMP3} {append LogLine " \"$mp3(Genre)\" \"$mp3(BitRate)\" \"$mp3(Year)\""}
+                if {$IsMP3} {append LogLine " \"$mp3(genre)\" \"$mp3(bitrate)\" \"$mp3(year)\""}
             } else {
                 set LogLine "PRE: \"$DestVirtualPath\" \"$PreGroup\" \"$user\" \"$group\" \"$PreArea\" \"$Files\" \"$TotalSize\" \"$DiskCount\""
-                if {$IsMP3} {append LogLine " \"$mp3(Artist)|$mp3(Album)|$mp3(Genre)|$mp3(Year)|$mp3(BitRate)\""}
+                if {$IsMP3} {append LogLine " \"$mp3(artist)|$mp3(album)|$mp3(genre)|$mp3(year)|$mp3(bitrate)|$mp3(type)\""}
             }
             putlog $LogLine
 
