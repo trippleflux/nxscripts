@@ -377,15 +377,16 @@ proc PreMain {ArgV} {
             set IsMP3 0
             set FilePath [expr {!$DiskCount ? "*.mp3" : "*/*.mp3"}]
             set MP3Files [glob -nocomplain -types f -directory $DestRealPath $FilePath]
+
             ## Attempt to parse every MP3 file until successful
             foreach FilePath $MP3Files {
-                ## TODO: types - Artist Album Title Genre Year BitRate Codec Layer SampleRate ChannelMode
                 if {[::nx::mp3 $FilePath mp3]} {
+                    set Codec [format "MPEG %.1f Layer %s" $mp3(version) [string repeat "I" $mp3(layer)]]
                     iputs "|------------------------------------------------------------------------|"
-                    LinePuts "Artist  : $mp3(artist)"
-                    LinePuts "Album   : $mp3(album)"
-                    LinePuts "Genre   : [format %-16s $mp3(genre)] Year: [format %-15s $mp3(year)] BitRate: $mp3(bitrate)"
-                    LinePuts "Channel : [format %-15s $mp3(ChannelMode)] Codec: $mp3(Codec) $mp3(Layer)"
+                    iputs [format "| Artist  : %-60s |" $mp3(artist)]
+                    iputs [format "| Album   : %-60s |" $mp3(album)]
+                    iputs [format "| Genre   : %-16s Year: %-14s BitRate: %-13s |" $mp3(genre) $mp3(year) "$mp3(bitrate) Kbit"]
+                    iputs [format "| Channel : %-15s Codec: %-37s |" $mp3(mode) $Codec]
                     set IsMP3 1; break
                 } else {
                     ErrorLog PreMP3 "unable to read ID3/MP3 headers from \"$FilePath\": invalid MP3 file"
