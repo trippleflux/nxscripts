@@ -132,6 +132,13 @@ proc ArchiveFile {FilePath {FormatStyle "%Y-%m-%d"}} {
     return 1
 }
 
+proc CreateTag {RealPath UserID GroupID Chmod} {
+    if {[catch {file mkdir $RealPath} ErrorMsg]} {
+        ErrorLog CreateTag $ErrorMsg
+    }
+    catch {vfs write $RealPath $UserID $GroupID $Chmod}
+}
+
 proc GetDirList {RealPath TargetArray {IgnoreList ""}} {
     upvar $TargetArray list
     array set list [list DirList "" FileList ""]
@@ -404,7 +411,7 @@ proc FormatSize {KBytes} {
     }
 }
 
-proc FormatSpeed {Speed {Seconds "0"}} {
+proc FormatSpeed {Speed {Seconds 0}} {
     if {$Seconds > 0} {set Speed [expr {double($Speed) / $Seconds}]}
     if {abs($Speed) >= 1048576} {
         return [format "%.2f GB/s" [expr {double($Speed) / 1048576.0}]]
