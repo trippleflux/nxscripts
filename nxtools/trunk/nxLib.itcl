@@ -1,9 +1,9 @@
 ################################################################################
 # nxTools - Common Functions Library                                           #
 ################################################################################
-# Author  : neoxed                                                             #
-# Date    : 02-19-2005                                                         #
-# Version : 0.9.7 (rev 183)                                                    #
+# Author  : $-66(AUTHOR) #
+# Date    : $-66(TIMESTAMP) #
+# Version : $-66(VERSION) #
 ################################################################################
 
 # General Procedures
@@ -121,8 +121,6 @@ proc ArchiveFile {FilePath {FormatStyle "%Y-%m-%d"}} {
             ErrorLog ArchiveMkDir $ErrorMsg; return 0
         }
     }
-
-    ## Copy the specified file to the archive directory
     set DatePrefix [clock format [clock seconds] -format $FormatStyle -gmt 0]
     set ArchiveFile [file join $log(ArchivePath) "$DatePrefix.[file tail $FilePath]"]
     if {[catch {file copy -- $FilePath $ArchiveFile} ErrorMsg]} {

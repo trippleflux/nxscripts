@@ -384,7 +384,7 @@ Legend:
     Description:
      - Add, remove or display approved releases.
      - An approved release cannot be nuked and is exempt from dupe and pre time checks.
-     - The release can be approved before or after the directory is created.
+     - The release can be approved before or after the directory was created.
     Examples:
      - SITE APPROVE ADD Something.Cool-NX
      - SITE APPROVE DEL Something.Very.Old-NX
@@ -881,6 +881,7 @@ nxTools v0.9.8 (XX-XX-2005):
   CHG: Improved the rules file reader.
   CHG: Improved the touch function of the pre helper (nxHelper.exe).
   FIX: Directory database cleaning failed.
+  FIX: The approve check on MKD failed.
 
 nxTools v0.9.7 (02-17-2005):
   NEW: Added text templates for SITE FDUPE, text/FileDupe.* files.
