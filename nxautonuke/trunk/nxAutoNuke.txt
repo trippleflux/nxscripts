@@ -25,8 +25,8 @@ ioA as an external nuker. ioA support is credited towards him. :)
    The files must be placed as follows:
    ioFTPD\scripts\init.itcl
    ioFTPD\scripts\nxAutoNuke.cfg
+   ioFTPD\scripts\nxAutoNuke.txt
    ioFTPD\scripts\nxLib.tcl
-   ioFTPD\scripts\nxAutoNuke\nxAutoNuke.txt
    ioFTPD\scripts\nxAutoNuke\nxAutoNuke.tcl
    ioFTPD\scripts\nxAutoNuke\nxAutoNuke_ioA.tcl
 
@@ -55,8 +55,8 @@ autonuke    = M1
    The files must be placed as follows:
    ioFTPD\scripts\init.itcl
    ioFTPD\scripts\nxAutoNuke.cfg
+   ioFTPD\scripts\nxAutoNuke.txt
    ioFTPD\scripts\nxLib.tcl
-   ioFTPD\scripts\nxAutoNuke\nxAutoNuke.txt
    ioFTPD\scripts\nxAutoNuke\nxAutoNuke.tcl
    ioFTPD\scripts\nxAutoNuke\nxAutoNuke_ioA.tcl
 
@@ -124,8 +124,8 @@ set msgtypes(RACE) "ANUKEALLOWED ANUKEBANNED ANUKEDISKS ANUKEEMPTY ANUKEIMDB ANU
    The files must be placed as follows:
    ioFTPD\scripts\init.itcl
    ioFTPD\scripts\nxAutoNuke.cfg
+   ioFTPD\scripts\nxAutoNuke.txt
    ioFTPD\scripts\nxLib.tcl
-   ioFTPD\scripts\nxAutoNuke\nxAutoNuke.txt
    ioFTPD\scripts\nxAutoNuke\nxAutoNuke.tcl
    ioFTPD\scripts\nxAutoNuke\nxAutoNuke_ioA.tcl
 
@@ -193,8 +193,8 @@ set msgtypes(RACE) "ANUKEALLOWED ANUKEBANNED ANUKEDISKS ANUKEEMPTY ANUKEIMDB ANU
    The files must be placed as follows:
    ioFTPD\scripts\init.itcl
    ioFTPD\scripts\nxAutoNuke.cfg
+   ioFTPD\scripts\nxAutoNuke.txt
    ioFTPD\scripts\nxLib.tcl
-   ioFTPD\scripts\nxAutoNuke\nxAutoNuke.txt
    ioFTPD\scripts\nxAutoNuke\nxAutoNuke.tcl
    ioFTPD\scripts\nxAutoNuke\nxAutoNuke_ioA.tcl
 
@@ -251,7 +251,7 @@ set announce(ANUKEMP3)     "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] th
 # Changelog:
 ###############################################################
 
-nxAutoNuke v2.0.0 (01-24-2005):
+nxAutoNuke v2.0.0 (01-27-2005):
   NEW: Installation instructions for nxTools and dZSbot.
   CHG: Nearly configuration options have changed.
   CHG: Redesigned nxAutoNuke, much more efficient now.
