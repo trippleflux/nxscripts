@@ -374,7 +374,7 @@ proc ::nxAutoNuke::Main {} {
 
         ## Convert virtual path date cookies.
         set FormatTime [expr {$TimeNow + ($check(DayOffset) * 86400)}]
-        set check(VirtualPath) [clock format $FormatTime -format $check(VirtualPath) -gmt [IsTrue $misc(UTC_Time)]]
+        set check(VirtualPath) [clock format $FormatTime -format $check(VirtualPath) -gmt [IsTrue $misc(UtcTime)]]
         LinePuts ""
         LinePuts "Checking path: $check(VirtualPath) (day offset: $check(DayOffset))"
         set check(RealPath) [resolve pwd $check(VirtualPath)]
