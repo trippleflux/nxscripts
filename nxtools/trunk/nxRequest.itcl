@@ -169,8 +169,11 @@ proc ReqMain {ArgV} {
                 LinePuts "This item is already requested."
             } elseif {[ReqCheckLimit ReqDb $user]} {
                 set RequestID 1
-                ReqDb eval {SELECT RequestID FROM Requests WHERE Status=0 ORDER BY RequestID DESC LIMIT 1} values {
-                    set RequestID [expr {$values(RequestID) + 1}]
+                ReqDb eval {SELECT (max(RequestID)+1) AS MaxID FROM Requests WHERE Status=0} values {
+                    ## The max() function returns NULL if are no matching records.
+                    if {[llength $values(MaxID)]} {
+                        set RequestID $values(MaxID)
+                    }
                 }
                 set TimeStamp [clock seconds]
                 ReqDb eval {INSERT INTO Requests (TimeStamp,UserName,GroupName,Status,RequestID,Request) VALUES($TimeStamp,$user,$group,0,$RequestID,$Request)}

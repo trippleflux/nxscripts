@@ -26,18 +26,19 @@ proc ArgRange {ArgV Start End} {
     join [lrange [ArgList $ArgV] $Start $End]
 }
 
-proc GetOptions {ArgList ResultsVar StringVar} {
-    upvar $ResultsVar MaxResults $StringVar String
+proc GetOptions {ArgList MaxVar StringVar} {
+    upvar $MaxVar MaxResults $StringVar String
     set Switch [string tolower [lindex $ArgList 0]]
     if {[string index $Switch 0] == "-"} {
         set Switch [string range $Switch 1 end]
         switch -exact -- $Switch {
-            {m} - {max} {
+            {m} -
+            {max} {
                 set MaxResults [lindex $ArgList 1]
                 set String [join [lrange $ArgList 2 end]]
                 if {![string is digit -strict $MaxResults] || $MaxResults < 1} {set MaxResults 10}
             }
-            {h} - {help} - default {return 0}
+            default {return 0}
         }
     } else {
         set MaxResults 10
@@ -195,6 +196,11 @@ proc GetPath {PWD Path} {
     return $VirtualPath
 }
 
+proc IsMultiDisk {DiskPath} {
+    set DiskPath [string tolower [file tail $DiskPath]]
+    return [regexp {^(cd|dis[ck]|dvd)\d{1,2}$} $DiskPath]
+}
+
 proc RemoveParentLinks {RealPath VirtualPath} {
     if {[IsMultiDisk $RealPath]} {
         set RealPath [file dirname $RealPath]
@@ -262,11 +268,6 @@ proc GetCreditsAndStats {VirtualPath {SectionList ""}} {
         }
     }
     return [list 0 0]
-}
-
-proc IsMultiDisk {DiskPath} {
-    set DiskPath [string tolower [file tail $DiskPath]]
-    return [regexp {^(cd|dis[ck]|dvd)\d{1,2}$} $DiskPath]
 }
 
 proc KickUsers {KickPath {RealPaths "False"}} {
