@@ -397,7 +397,7 @@ proc RaceLinks {VirtualPath} {
     if {[set LinkCount [LinkDb eval {SELECT count(*) FROM Links WHERE LinkType=0}]] > $latest(RaceLinks)} {
         set LinkCount [expr {$LinkCount - $latest(RaceLinks)}]
         LinkDb eval "SELECT DirName,rowid FROM Links WHERE LinkType=0 ORDER BY TimeStamp ASC LIMIT $LinkCount" values {
-            catch {file delete -force -- [file join $latest(SymPath) $values(DirName)]}
+            RemoveTag [file join $latest(SymPath) $values(DirName)]
             LinkDb eval {DELETE FROM Links WHERE rowid=$values(rowid)}
         }
     }

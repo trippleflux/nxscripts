@@ -139,7 +139,7 @@ proc PreLinks {VirtualPath} {
     if {[set LinkCount [LinkDb eval {SELECT count(*) FROM Links WHERE LinkType=1}]] > $latest(PreLinks)} {
         set LinkCount [expr {$LinkCount - $latest(PreLinks)}]
         LinkDb eval "SELECT DirName,rowid FROM Links WHERE LinkType=1 ORDER BY TimeStamp ASC LIMIT $LinkCount" values {
-            catch {file delete -force -- [file join $latest(SymPath) $values(DirName)]}
+            RemoveTag [file join $latest(SymPath) $values(DirName)]
             LinkDb eval {DELETE FROM Links WHERE rowid=$values(rowid)}
         }
     }
@@ -253,8 +253,8 @@ proc PreMain {ArgV} {
             set Count 0
             set DbFile [file join $misc(DataPath) "Pres.db"]
             if {![catch {sqlite3 PreDb $DbFile} ErrorMsg]} {
-                PreDb eval "SELECT GroupName, count(*) AS Pres, round(sum(Files)) AS Files, sum(Size) AS Size FROM Pres $WhereClause GROUP BY GroupName ORDER BY Pres DESC LIMIT $MaxResults" values {
-                    iputs [format "| %02d | %-29.29s | %9d | %8dF | %9s |" [incr Count] $values(GroupName) $values(Pres) $values(Files) [FormatSize $values(Size)]]
+                PreDb eval "SELECT GroupName, count(*) AS Pres, round(sum(Files)) AS Files, sum(Size) AS Amount FROM Pres $WhereClause GROUP BY GroupName ORDER BY Pres DESC LIMIT $MaxResults" values {
+                    iputs [format "| %02d | %-29.29s | %9d | %8dF | %9s |" [incr Count] $values(GroupName) $values(Pres) $values(Files) [FormatSize $values(Amount)]]
                 }
                 PreDb close
             } else {ErrorLog PreStats $ErrorMsg}

@@ -890,6 +890,9 @@ Text Templates:
 # 9. Change Log                                                              #
 ##############################################################################
 
+nxTools v0.9.9 (XX-XX-2005):
+  CHG: Directory tags are now safely removed.
+
 nxTools v0.9.8 (03-23-2005):
   NEW: SITE DRIVES to view fixed and network drives.
   NEW: SITE EDITPRE HIDEPATH [group] to re-hide pre paths for groups, in case the
