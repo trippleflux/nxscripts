@@ -266,7 +266,7 @@ proc ApproveCheck {VirtualPath CreateTag} {
         }
         ApproveDb close
     } else {ErrorLog ApproveCheck $ErrorMsg}
-    return $Exists
+    return $Approved
 }
 
 proc ApproveRelease {VirtualPath UserName GroupName} {
