@@ -34,7 +34,7 @@ proc ::nxAutoNuke::Nuke {RealPath VirtualPath UserName GroupName Multi Reason} {
     set RealPath [string map {/ \\} $RealPath]
 
     ## Borrowed this portion from Harm's ioAUTONUKE, since this ioA feature is undocumented.
-    if {[catch {exec $anuke(ioAPath) NUKE $RealPath $VirtualPath $Multi $StatSection $CreditSection $UserName $GroupName $Reason} OutputMsg]} {
+    if {[catch {exec $misc(IoAPath) NUKE $RealPath $VirtualPath $Multi $StatSection $CreditSection $UserName $GroupName $Reason} OutputMsg]} {
         ErrorLog AutoNuke "ioA Output:\n$Output"
         return 0
     }
@@ -308,8 +308,8 @@ proc ::nxAutoNuke::Main {} {
         }
     }
     iputs ".-\[AutoNuke\]-------------------------------------------------------------."
-    if {![file isfile $anuke(ioAPath)]} {
-        ErrorLog AutoNuke "invalid path to ioA \"$anuke(ioAPath)\": the file does not exist"
+    if {![file isfile $misc(IoAPath)]} {
+        ErrorLog AutoNuke "invalid path to ioA \"$misc(IoAPath)\": the file does not exist"
         ErrorReturn "Invalid path to the ioA executable, check your configuration."
     }
     LinePuts "Checking [expr {[llength $anuke(Sections)] / 3}] auto-nuke sections."
@@ -355,9 +355,9 @@ proc ::nxAutoNuke::Main {} {
         keyword    [list ANUKEKEYWORD $anuke(ReasonKeyword) {CheckKeyword $check(Settings) $release(Name)}] \
     ]
     array set DiskChecks [list \
-        empty      [list ANUKEEMPTY $anuke(ReasonEmpty)   {CheckEmpty $disk(RealPath)}] \
-        incomplete [list ANUKEINC   $anuke(ReasonInc)     {CheckInc   $disk(RealPath)}] \
-        mp3        [list ANUKEMP3   $anuke(ReasonMP3)     {CheckMP3   $check(Settings) $disk(RealPath)}] \
+        empty      [list ANUKEEMPTY   $anuke(ReasonEmpty)   {CheckEmpty $disk(RealPath)}] \
+        incomplete [list ANUKEINC     $anuke(ReasonInc)     {CheckInc   $disk(RealPath)}] \
+        mp3        [list ANUKEMP3     $anuke(ReasonMP3)     {CheckMP3   $check(Settings) $disk(RealPath)}] \
     ]
 
     ## Timestamp used to format date cookies
