@@ -167,15 +167,15 @@ proc DbMain {ArgV} {
 
     set Result 0
     switch -exact -- $Action {
-        "create" {
+        {create} {
             LinePuts "Creating [llength $DbList] database(s)."; LinePuts ""
             set Result [DbCreate $DbList]
         }
-        "check" {
+        {check} {
             LinePuts "Checking [llength $DbList] database(s)."; LinePuts ""
             set Result [DbCheck $DbList]
         }
-        "optimize" {
+        {optimize} {
             LinePuts "Optimizing [llength $DbList] database(s)."; LinePuts ""
             set Result [DbOptimize $DbList]
         }

@@ -420,7 +420,7 @@ proc SiteApprove {Action Release} {
     ApproveDb function StrEq {string equal -nocase}
     set Release [file tail $Release]
     switch -exact -- $Action {
-        "add" {
+        {add} {
             iputs ".-\[Approve\]--------------------------------------------------------------."
             if {![regexp "\[$approve(Flags)\]" $flags]} {
                 LinePuts "Only siteops may approve releases."
@@ -450,7 +450,7 @@ proc SiteApprove {Action Release} {
             }
             iputs "'------------------------------------------------------------------------'"
         }
-        "del" {
+        {del} {
             iputs ".-\[Approve\]--------------------------------------------------------------."
             if {![regexp "\[$approve(Flags)\]" $flags]} {
                 LinePuts "Only siteops may deleted approved releases."
@@ -467,7 +467,7 @@ proc SiteApprove {Action Release} {
             }
             iputs "'------------------------------------------------------------------------'"
         }
-        "list" {
+        {list} {
             if {!$IsSiteBot} {
                 foreach MessageType {Header Body None Footer} {
                     set template($MessageType) [ReadFile [file join $misc(Templates) "Approves.$MessageType"]]
@@ -770,13 +770,13 @@ proc DupeMain {ArgV} {
     set Action [string tolower [lindex $ArgList 0]]
     set Result 0
     switch -exact -- $Action {
-        "dupelog" {
+        {dupelog} {
             set VirtualPath [GetPath $pwd [join [lrange $ArgList 2 end]]]
             if {[IsTrue $dupe(CheckDirs)] || [IsTrue $dupe(CheckFiles)]} {
                 set Result [DupeLog [lindex $ArgList 1] $VirtualPath]
             }
         }
-        "postmkd" {
+        {postmkd} {
             set VirtualPath [GetPath $pwd [join [lrange $ArgList 2 end]]]
             if {[IsTrue $dupe(CheckDirs)]} {
                 set Result [DupeLog [lindex $ArgList 1] $VirtualPath]
@@ -786,7 +786,7 @@ proc DupeMain {ArgV} {
             }
             if {[IsTrue $approve(CheckMkd)]} {ApproveCheck $VirtualPath 1}
         }
-        "premkd" {
+        {premkd} {
             set VirtualPath [GetPath $pwd [join [lrange $ArgList 2 end]]]
             if {!([IsTrue $approve(CheckMkd)] && [ApproveCheck $VirtualPath 0])} {
                 if {[IsTrue $dupe(CheckDirs)]} {
@@ -797,7 +797,7 @@ proc DupeMain {ArgV} {
                 }
             }
         }
-        "prestor" {
+        {prestor} {
             set VirtualPath [GetPath $pwd [join [lrange $ArgList 2 end]]]
             if {[IsTrue $force(NfoFirst)] || [IsTrue $force(SfvFirst)] || [IsTrue $force(SampleFirst)]} {
                 set Result [ForceCheck $VirtualPath]
@@ -806,22 +806,22 @@ proc DupeMain {ArgV} {
                 set Result [DupeCheckFiles $VirtualPath]
             }
         }
-        "upload" {
+        {upload} {
             if {[IsTrue $dupe(CheckFiles)]} {
                 foreach {Tmp RealPath CRC VirtualPath} $ArgV {break}
                 set Result [DupeLog "UPLD" $VirtualPath]
             }
         }
-        "uploaderror" {
+        {uploaderror} {
             if {[IsTrue $dupe(CheckFiles)]} {
                 foreach {Tmp RealPath CRC VirtualPath} $ArgV {break}
                 set Result [DupeLog "DELE" $VirtualPath]
             }
         }
-        "clean" {
+        {clean} {
             set Result [DupeClean]
         }
-        "approve" {
+        {approve} {
             array set params [list add 2 del 2 list 0]
             set SubAction [string tolower [lindex $ArgList 1]]
             if {[info exists params($SubAction)] && $ArgLength > $params($SubAction)} {
@@ -832,38 +832,38 @@ proc DupeMain {ArgV} {
                 iputs "        SITE APPROVE LIST"
             }
         }
-        "dupe" {
+        {dupe} {
             if {$ArgLength > 1 && [GetOptions [lrange $ArgList 1 end] MaxResults Pattern]} {
                 set Result [SiteDupe $MaxResults $Pattern]
             } else {
                 iputs "Syntax: SITE DUPE \[-max <limit>\] <release>"
             }
         }
-        "fdupe" {
+        {fdupe} {
             if {$ArgLength > 1 && [GetOptions [lrange $ArgList 1 end] MaxResults Pattern]} {
                 set Result [SiteFileDupe $MaxResults $Pattern]
             } else {
                 iputs "Syntax: SITE FDUPE \[-max <limit>\] <filename>"
             }
         }
-        "new" {
+        {new} {
             if {[GetOptions [lrange $ArgList 1 end] MaxResults SectionName]} {
                 set Result [SiteNew $MaxResults $SectionName]
             } else {
                 iputs "Syntax: SITE NEW \[-max <limit>\] \[section\]"
             }
         }
-        "pretime" {
+        {pretime} {
             if {$ArgLength > 1 && [GetOptions [lrange $ArgList 1 end] MaxResults Pattern]} {
                 set Result [SitePreTime $MaxResults $Pattern]
             } else {
                 iputs "Syntax: SITE PRETIME \[-max <limit>\] <release>"
             }
         }
-        "rebuild" {
+        {rebuild} {
             set Result [DupeRebuild]
         }
-        "undupe" {
+        {undupe} {
             if {$ArgLength > 1} {
                 set Result [SiteUndupe [lrange $ArgList 1 end]]
             } else {
@@ -871,7 +871,7 @@ proc DupeMain {ArgV} {
                 iputs "        SITE UNDUPE -d <directory>"
             }
         }
-        "wipe" {
+        {wipe} {
             if {$ArgLength > 1} {
                 set VirtualPath [GetPath $pwd [join [lrange $ArgList 1 end]]]
                 set Result [SiteWipe $VirtualPath]

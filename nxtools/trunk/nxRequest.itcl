@@ -49,7 +49,7 @@ proc ReqUpdateDir {Action Request {UserID 0} {GroupID 0}} {
         set ReMap [list %(request) $Request]
         set ReqPath [file join $req(RequestPath) [string map $ReMap $req(RequestTag)]]
         switch -exact -- $Action {
-            "del" {
+            {del} {
                 if {[file isdirectory $ReqPath]} {
                     ## Kick users in the directory
                     KickUsers [file join $ReqPath "*"] True
@@ -58,7 +58,7 @@ proc ReqUpdateDir {Action Request {UserID 0} {GroupID 0}} {
                     }
                 }
             }
-            "fill" {
+            {fill} {
                 if {[file isdirectory $ReqPath]} {
                     set FillPath [file join $req(RequestPath) [string map $ReMap $req(FilledTag)]]
                     ## Kick users in the directory
@@ -68,7 +68,7 @@ proc ReqUpdateDir {Action Request {UserID 0} {GroupID 0}} {
                     }
                 }
             }
-            "req" {CreateTag $ReqPath $UserID $GroupID 777}
+            {req} {CreateTag $ReqPath $UserID $GroupID 777}
         }
         catch {vfs flush $req(RequestPath)}
     } else {
@@ -104,7 +104,7 @@ proc ReqMain {ArgV} {
     ReqDb function StrEq {string equal -nocase}
 
     switch -exact -- $Action {
-        "del" - "fill" {
+        {del} - {fill} {
             set Exists 0; set RequestID [SqlEscape $Request]
             ReqDb eval {SELECT rowid,* FROM Requests WHERE Status=0 AND (RequestID=$RequestID OR StrEq(Request,$Request)) LIMIT 1} values {set Exists 1}
             if {!$Exists} {
@@ -134,7 +134,7 @@ proc ReqMain {ArgV} {
             putlog "${LogPrefix}: \"$user\" \"$group\" \"$values(Request)\" \"$values(UserName)\" \"$values(GroupName)\" \"$RequestID\" \"$RequestAge\""
             ReqUpdateDir $Action $values(Request)
         }
-        "view" {
+        {view} {
             if {!$IsSiteBot} {
                 foreach MessageType {Header Body None Footer} {
                     set template($MessageType) [ReadFile [file join $misc(Templates) "Requests.$MessageType"]]
@@ -159,7 +159,7 @@ proc ReqMain {ArgV} {
                 OutputData $template(Footer)
             }
         }
-        "req" {
+        {req} {
             set Request [StripChars $Request]
             if {[ReqDb eval {SELECT count(*) FROM Requests WHERE Status=0 AND StrEq(Request,$Request)}]} {
                 LinePuts "This item is already requested."
@@ -177,7 +177,7 @@ proc ReqMain {ArgV} {
                 ReqUpdateDir $Action $Request
             }
         }
-        "wipe" {
+        {wipe} {
             if {$req(MaximumAge) == 0} {
                 LinePuts "Request wiping is disabled, check your configuration."
             } else {

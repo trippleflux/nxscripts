@@ -85,8 +85,8 @@ set log(Frequency)      "daily"
 set log(MinimumSize)    2
 set log(ArchivePath)    "../logs/Archive"
 set log(RotateList) {
-    "../logs/ioFTPD.log"
-    "../logs/xferlog"
+  {../logs/ioFTPD.log}
+  {../logs/xferlog}
 }
 
 #### One Liners ############################################
@@ -103,8 +103,8 @@ set misc(OneLines)      5
 set hide(UserNames)     "sitebot"
 set hide(GroupNames)    ""
 set hide(Paths) {
-    "/!ADMIN/*"
-    "/GROUPS/*"
+  {/!ADMIN/*}
+  {/GROUPS/*}
 }
 
 #### Site Approve ##########################################
@@ -140,9 +140,9 @@ set invite(Default)     "default"
 # - Paths to hide for site new (case sensitive).
 #
 set new(Exempts) {
-    "/!ADMIN/*"
-    "/GROUPS/*"
-    "/REQS/!SpeedTest/*"
+  {/!ADMIN/*}
+  {/GROUPS/*}
+  {/REQS/!SpeedTest/*}
 }
 
 #### Site Nuke #############################################
@@ -164,8 +164,8 @@ set nuke(InfoTag)       {[NX] - ( NUKED - %(multi)x By %(user)@%(group) For %(re
 # - Virtual paths that cannot be nuked (case sensitive).
 #
 set nuke(NoPaths) {
-    "/"
-    "/!ADMIN/*"
+  {/}
+  {/!ADMIN/*}
 }
 
 #### Site Pre ##############################################
@@ -245,8 +245,8 @@ set rules(LineWidth)    56
 # - Virtual paths that cannot be wiped (case sensitive).
 #
 set wipe(NoPaths) {
-    "/"
-    "/!ADMIN/*"
+  {/}
+  {/!ADMIN/*}
 }
 
 #### Dupe Checking #########################################
@@ -268,13 +268,13 @@ set dupe(AlphaNumChars) 5
 set dupe(IgnoreDirs)    {*/[0-9][0-9][0-9][0-9] */cd[0-9] */dis[ck][0-9] */dvd[0-9] */codec */cover */covers */extra */extras */sample */subs */vobsub */vobsubs}
 set dupe(IgnoreFiles)   {.* *.asc *.bad *.diz *.gif *.jpg *.missing *.nfo *.url}
 set dupe(CheckExempts) {
-    "/!ADMIN/*"
-    "/GROUPS/*"
-    "/REQS/*"
+  {/!ADMIN/*}
+  {/GROUPS/*}
+  {/REQS/*}
 }
 set dupe(LoggingExempts) {
-    "/!ADMIN/*"
-    "/GROUPS/*"
+  {/!ADMIN/*}
+  {/GROUPS/*}
 }
 
 #### Dupe Cleaning #########################################
@@ -294,20 +294,23 @@ set dupe(CleanFiles)    14
 # - Format: <virtual path>|<physical path>|<rebuild directories>|<rebuild files>
 #
 set dupe(RebuildPaths) {
-    "/0DAY|D:/Site/0DAY|True|False"
-    "/APPS|D:/Site/APPS|True|True"
-    "/GAMES|E:/Site/GAMES|True|True"
-    "/SVCD|E:/Site/SVCD|True|True"
-    "/VCD|E:/Site/VCD|True|True"
-    "/XVID|E:/Site/XVID|True|True"
+  {/0DAY|D:/Site/0DAY|True|False}
+  {/APPS|D:/Site/APPS|True|True}
+  {/GAMES|E:/Site/GAMES|True|True}
+  {/SVCD|E:/Site/SVCD|True|True}
+  {/VCD|E:/Site/VCD|True|True}
+  {/XVID|E:/Site/XVID|True|True}
 }
 #
 # - Files and directories to ignore when search the paths (with a few examples of common tags).
 # - The dupe(IgnoreDirs) and dupe(IgnoreFiles) settings are used to prevent defined items from being added.
 #
 set dupe(RebuildIgnore) {
-    .* *.asc *.bad *.diz *.gif *.jpg *.missing *.nfo *.url
-    (incomplete)-* {\[*\] - ( * ) - \[*\]} {\[*complete\]-\[*\]} {\[IMDB\] * \[IMDB\]}
+  .* *.asc *.bad *.diz *.gif *.jpg *.missing *.nfo *.url
+  (incomplete)-*
+  {\[*\] - ( * ) - \[*\]}
+  {\[*complete\]-\[*\]}
+  {\[IMDB\] * \[IMDB\]}
 }
 
 #### Force Settings ########################################
@@ -319,9 +322,9 @@ set dupe(RebuildIgnore) {
 set force(NfoFirst)     True
 set force(SfvFirst)     True
 set force(SampleFirst)  True
-set force(FilePaths)    "/APPS/* /DIVX/* /DVDR/* /GAMES/* /MP3/* /SVCD/* /TVRIPS/* /VCD/* /XVID/* /XXX/*"
-set force(SamplePaths)  "/DIVX/* /DVDR/* /SVCD/* /TVRIPS/* /VCD/* /XVID/* /XXX/*"
-set force(Exempts)      "*/codec */cover */covers */extra */sample */subs */extras */vobsub */vobsubs"
+set force(FilePaths)    {/APPS/* /DIVX/* /DVDR/* /GAMES/* /MP3/* /SVCD/* /TVRIPS/* /VCD/* /XVID/* /XXX/*}
+set force(SamplePaths)  {/DIVX/* /DVDR/* /SVCD/* /TVRIPS/* /VCD/* /XVID/* /XXX/*}
+set force(Exempts)      {*/codec */cover */covers */extra */sample */subs */extras */vobsub */vobsubs}
 
 #### Latest Links ##########################################
 #
@@ -340,9 +343,9 @@ set latest(RaceTag)     {[LatestRace]-%(release)}
 set latest(MaxLength)   40
 set latest(Ignores)     {*/cd[0-9] */dis[ck][0-9] */dvd[0-9] */codec */cover */covers */extra */extras */sample */subs */vobsub */vobsubs}
 set latest(Exempts) {
-    "/!ADMIN/*"
-    "/GROUPS/*"
-    "/REQS/*"
+  {/!ADMIN/*}
+  {/GROUPS/*}
+  {/REQS/*}
 }
 
 #### Pre Time Checking #####################################
@@ -362,11 +365,11 @@ set pretime(AddOnPre)   True
 # - Directories to ignore to from pre time checks (case insensitive).
 #
 set pretime(CheckPaths) {
-    "/APPS/*|True|True|60"
-    "/MP3/????/*|False|True|240"
-    "/SVCD/*|False|True|60"
-    "/VCD/*|True|True|60"
-    "/XXX/*|True|True|60"
+  {/APPS/*|True|True|60}
+  {/MP3/????/*|False|True|240}
+  {/SVCD/*|False|True|60}
+  {/VCD/*|True|True|60}
+  {/XXX/*|True|True|60}
 }
 set pretime(Ignores)    {*/cd[0-9] */dis[ck][0-9] */dvd[0-9] */codec */cover */covers */extra */extras */sample */subs */vobsub */vobsubs}
 
@@ -397,10 +400,10 @@ set mysql(TableName)    "testing"
 # - Note: There must be a "Default" area, other areas are optional.
 #
 set newdate(Default) {
-    "0DAY|New 0DAY|/0DAY/%m%d|E:/ioFTPD/site/0DAY/%m%d|E:/ioFTPD/site/Today-0DAY|True|0|0|0|777"
-    "0DAY|Close 0DAY|/0DAY/%m%d|E:/ioFTPD/site/0DAY/%m%d|E:/ioFTPD/site/Yesterday-0DAY|False|-1|0|0|555"
-    "MP3|New MP3|/MP3/%m%d|E:/ioFTPD/site/MP3/%m%d|E:/ioFTPD/site/Today-MP3|True|0|0|0|777"
-    "MP3|Close MP3|/MP3/%m%d|E:/ioFTPD/site/MP3/%m%d|E:/ioFTPD/site/Yesterday-MP3|False|-1|0|0|555"
+  {0DAY|New 0DAY|/0DAY/%m%d|E:/ioFTPD/site/0DAY/%m%d|E:/ioFTPD/site/Today-0DAY|True|0|0|0|777}
+  {0DAY|Close 0DAY|/0DAY/%m%d|E:/ioFTPD/site/0DAY/%m%d|E:/ioFTPD/site/Yesterday-0DAY|False|-1|0|0|555}
+  {MP3|New MP3|/MP3/%m%d|E:/ioFTPD/site/MP3/%m%d|E:/ioFTPD/site/Today-MP3|True|0|0|0|777}
+  {MP3|Close MP3|/MP3/%m%d|E:/ioFTPD/site/MP3/%m%d|E:/ioFTPD/site/Yesterday-MP3|False|-1|0|0|555}
 }
 #
 # - Rather then closing the previous date directories at the same time as creating the new ones,
@@ -408,8 +411,8 @@ set newdate(Default) {
 # - Scheduler: nxClose = 0 1 * * TCL ..\scripts\nxTools\nxTools.itcl newdate CloseDates
 #
 set newdate(CloseDates) {
-    "0DAY|Close 0DAY|/0DAY/%m%d|E:/ioFTPD/site/0DAY/%m%d|E:/ioFTPD/site/Yesterday-0DAY|False|-1|0|0|555"
-    "MP3|Close MP3|/MP3/%m%d|E:/ioFTPD/site/MP3/%m%d|E:/ioFTPD/site/Yesterday-MP3|False|-1|0|0|555"
+  {0DAY|Close 0DAY|/0DAY/%m%d|E:/ioFTPD/site/0DAY/%m%d|E:/ioFTPD/site/Yesterday-0DAY|False|-1|0|0|555}
+  {MP3|Close MP3|/MP3/%m%d|E:/ioFTPD/site/MP3/%m%d|E:/ioFTPD/site/Yesterday-MP3|False|-1|0|0|555}
 }
 
 #### Weekly Credits ########################################

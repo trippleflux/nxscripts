@@ -134,7 +134,7 @@ proc InvMain {ArgV} {
 
         set Option [string tolower $Option]
         switch -exact -- $Option {
-            "addinv" {
+            {addinv} {
                 if {[string equal "" $Target]} {
                     ErrorReturn "Invalid target, you must specify an invite target to add."
                 } elseif {[info exists invchan($Target)]} {
@@ -154,7 +154,7 @@ proc InvMain {ArgV} {
                 LinePuts "Note: Add channels and edit the invite target's rights."
                 InvCfgWriter $invite(ConfigFile)
             }
-            "delinv" {
+            {delinv} {
                 if {[string equal "" $Target] || ![info exists invchan($Target)]} {
                     ErrorReturn "Invalid target, try \"SITE EDITINV HELP\" to view available targets."
                 }
@@ -162,7 +162,7 @@ proc InvMain {ArgV} {
                 LinePuts "Removed the invite target \"$Target\" and all related settings."
                 InvCfgWriter $invite(ConfigFile)
             }
-            "addchan" {
+            {addchan} {
                 if {[string equal "" $Target] || ![info exists invchan($Target)]} {
                     ErrorReturn "Invalid target, try \"SITE EDITINV HELP\" to view available targets."
                 } elseif {[string equal "" $Value]} {
@@ -180,7 +180,7 @@ proc InvMain {ArgV} {
                 LinePuts "Added the channel \"$Value\" to the invite target \"$Target\"."
                 InvCfgWriter $invite(ConfigFile)
             }
-            "delchan" {
+            {delchan} {
                 if {[string equal "" $Target] || ![info exists invchan($Target)]} {
                     ErrorReturn "Invalid target, try \"SITE EDITINV HELP\" to view available targets."
                 } elseif {[string equal "" $Value]} {
@@ -204,7 +204,7 @@ proc InvMain {ArgV} {
                     LinePuts "The channel \"$Value\" does not exist in the invite target \"$Target\"."
                 }
             }
-            "rights" {
+            {rights} {
                 if {[string equal "" $Target] || ![info exists invchan($Target)]} {
                     ErrorReturn "Invalid target, try \"SITE EDITINV HELP\" to view available targets."
                 } elseif {[string equal "" $Value]} {
@@ -214,7 +214,7 @@ proc InvMain {ArgV} {
                 LinePuts "Invite target \"$Target\" rights set to \"$Value\"."
                 InvCfgWriter $invite(ConfigFile)
             }
-            "view" {
+            {view} {
                 LinePuts "Targets:"
                 foreach Name [lsort -ascii [array names invchan]] {
                     LinePuts [format "%-10s - %s" $Name $invchan($Name)]
@@ -227,31 +227,31 @@ proc InvMain {ArgV} {
             default {
                 set Option [string tolower $Target]
                 switch -exact -- $Option {
-                    "addinv" {
+                    {addinv} {
                         LinePuts "Description:"
                         LinePuts " - Create an invite target and destination channel."
                         LinePuts "Syntax : SITE EDITINV ADDINV <target> <channel>"
                         LinePuts "Example: SITE EDITINV ADDINV Home #Xtreme"
                     }
-                    "delinv" {
+                    {delinv} {
                         LinePuts "Description:"
                         LinePuts " - Delete an invite target and related settings."
                         LinePuts "Syntax : SITE EDITINV DELINV <target>"
                         LinePuts "Example: SITE EDITINV DELINV Home"
                     }
-                    "addchan" {
+                    {addchan} {
                         LinePuts "Description:"
                         LinePuts " - Add a channel to a target's channel list."
                         LinePuts "Syntax : SITE EDITINV ADDCHAN <target> <channel>"
                         LinePuts "Example: SITE EDITINV ADDCHAN Home #Hangout"
                     }
-                    "delchan" {
+                    {delchan} {
                         LinePuts "Description:"
                         LinePuts " - Delete a channel from a target's channel list."
                         LinePuts "Syntax : SITE EDITINV DELCHAN <target> <channel>"
                         LinePuts "Example: SITE EDITINV DELCHAN Home #Hangout"
                     }
-                    "rights" {
+                    {rights} {
                         LinePuts "Description:"
                         LinePuts " - Modify a target's rights and restrictions."
                         LinePuts " - You may restrict specific targets to users, groups, or flags."
