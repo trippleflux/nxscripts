@@ -115,66 +115,67 @@ frequently, so be sure you are always using the latest version.
  3. Add the following to your ioFTPD.ini
 
 [Events]
-OnUploadComplete = TCL ..\scripts\nxTools\nxDupe.itcl upload
-OnUploadError    = TCL ..\scripts\nxTools\nxDupe.itcl uploaderror
-OnFtpLogIn       = TCL ..\scripts\nxTools\nxTools.itcl onelines
+OnUploadComplete = TCL ..\scripts\nxTools\nxDupe.tcl upload
+OnUploadError    = TCL ..\scripts\nxTools\nxDupe.tcl uploaderror
+OnFtpLogIn       = TCL ..\scripts\nxTools\nxTools.tcl onelines
 
 [FTP_Pre-Command_Events]
-mkd  = TCL ..\scripts\nxTools\nxDupe.itcl premkd
-stor = TCL ..\scripts\nxTools\nxDupe.itcl prestor
-pass = TCL ..\scripts\nxTools\nxClose.itcl login
+mkd  = TCL ..\scripts\nxTools\nxDupe.tcl premkd
+stor = TCL ..\scripts\nxTools\nxDupe.tcl prestor
+pass = TCL ..\scripts\nxTools\nxClose.tcl login
 
 [FTP_Post-Command_Events]
-dele = TCL ..\scripts\nxTools\nxDupe.itcl dupelog
-mkd  = TCL ..\scripts\nxTools\nxDupe.itcl postmkd
-rmd  = TCL ..\scripts\nxTools\nxDupe.itcl dupelog
-rnfr = TCL ..\scripts\nxTools\nxDupe.itcl dupelog
-rnto = TCL ..\scripts\nxTools\nxDupe.itcl dupelog
+dele = TCL ..\scripts\nxTools\nxDupe.tcl dupelog
+mkd  = TCL ..\scripts\nxTools\nxDupe.tcl postmkd
+rmd  = TCL ..\scripts\nxTools\nxDupe.tcl dupelog
+rnfr = TCL ..\scripts\nxTools\nxDupe.tcl dupelog
+rnto = TCL ..\scripts\nxTools\nxDupe.tcl dupelog
 
 [FTP_Custom_Commands]
-close       = TCL ..\scripts\nxTools\nxClose.itcl close
-open        = TCL ..\scripts\nxTools\nxClose.itcl open
-db          = TCL ..\scripts\nxTools\nxDB.itcl
-approve     = TCL ..\scripts\nxTools\nxDupe.itcl approve
-cleanlogs   = TCL ..\scripts\nxTools\nxDupe.itcl clean
-dupe        = TCL ..\scripts\nxTools\nxDupe.itcl dupe
-fdupe       = TCL ..\scripts\nxTools\nxDupe.itcl fdupe
-new         = TCL ..\scripts\nxTools\nxDupe.itcl new
-pretime     = TCL ..\scripts\nxTools\nxDupe.itcl pretime
-rebuildlogs = TCL ..\scripts\nxTools\nxDupe.itcl rebuild
-undupe      = TCL ..\scripts\nxTools\nxDupe.itcl undupe
-wipe        = TCL ..\scripts\nxTools\nxDupe.itcl wipe
-editinv     = TCL ..\scripts\nxTools\nxInvite.itcl edit
-invite      = TCL ..\scripts\nxTools\nxInvite.itcl invite
-nuke        = TCL ..\scripts\nxTools\nxNuke.itcl nuke
-nukes       = TCL ..\scripts\nxTools\nxNuke.itcl nukes
-nuketop     = TCL ..\scripts\nxTools\nxNuke.itcl nuketop
-unnuke      = TCL ..\scripts\nxTools\nxNuke.itcl unnuke
-unnukes     = TCL ..\scripts\nxTools\nxNuke.itcl unnukes
-editpre     = TCL ..\scripts\nxTools\nxPre.itcl edit
-pre         = TCL ..\scripts\nxTools\nxPre.itcl pre
-request     = TCL ..\scripts\nxTools\nxRequest.itcl req
-reqdel      = TCL ..\scripts\nxTools\nxRequest.itcl del
-reqfill     = TCL ..\scripts\nxTools\nxRequest.itcl fill
-reqwipe     = TCL ..\scripts\nxTools\nxRequest.itcl wipe
-rules       = TCL ..\scripts\nxTools\nxRules.itcl
-bot         = TCL ..\scripts\nxTools\nxTools.itcl bot
-drives      = TCL ..\scripts\nxTools\nxTools.itcl drives
-errlog      = TCL ..\scripts\nxTools\nxTools.itcl errlog
-ginfo       = TCL ..\scripts\nxTools\nxTools.itcl ginfo
-give        = TCL ..\scripts\nxTools\nxTools.itcl give
-newdate     = TCL ..\scripts\nxTools\nxTools.itcl newdate
-onel        = TCL ..\scripts\nxTools\nxTools.itcl onelines
-resetstats  = TCL ..\scripts\nxTools\nxTools.itcl resetstats
-resetuser   = TCL ..\scripts\nxTools\nxTools.itcl resetuser
-rotatelogs  = TCL ..\scripts\nxTools\nxTools.itcl rotate
-size        = TCL ..\scripts\nxTools\nxTools.itcl size
-syslog      = TCL ..\scripts\nxTools\nxTools.itcl syslog
-take        = TCL ..\scripts\nxTools\nxTools.itcl take
-traffic     = TCL ..\scripts\nxTools\nxTools.itcl traffic
-weekly      = TCL ..\scripts\nxTools\nxTools.itcl weekly
-weeklyset   = TCL ..\scripts\nxTools\nxTools.itcl weeklyset
-who         = TCL ..\scripts\nxTools\nxTools.itcl who
+close       = TCL ..\scripts\nxTools\nxClose.tcl close
+open        = TCL ..\scripts\nxTools\nxClose.tcl open
+db          = TCL ..\scripts\nxTools\nxDB.tcl
+approve     = TCL ..\scripts\nxTools\nxDupe.tcl approve
+cleanlogs   = TCL ..\scripts\nxTools\nxDupe.tcl clean
+dupe        = TCL ..\scripts\nxTools\nxDupe.tcl dupe
+fdupe       = TCL ..\scripts\nxTools\nxDupe.tcl fdupe
+new         = TCL ..\scripts\nxTools\nxDupe.tcl new
+pretime     = TCL ..\scripts\nxTools\nxDupe.tcl pretime
+rebuildlogs = TCL ..\scripts\nxTools\nxDupe.tcl rebuild
+undupe      = TCL ..\scripts\nxTools\nxDupe.tcl undupe
+wipe        = TCL ..\scripts\nxTools\nxDupe.tcl wipe
+editinv     = TCL ..\scripts\nxTools\nxInvite.tcl edit
+invite      = TCL ..\scripts\nxTools\nxInvite.tcl invite
+nuke        = TCL ..\scripts\nxTools\nxNuke.tcl nuke
+nukes       = TCL ..\scripts\nxTools\nxNuke.tcl nukes
+nuketop     = TCL ..\scripts\nxTools\nxNuke.tcl nuketop
+unnuke      = TCL ..\scripts\nxTools\nxNuke.tcl unnuke
+unnukes     = TCL ..\scripts\nxTools\nxNuke.tcl unnukes
+editpre     = TCL ..\scripts\nxTools\nxPre.tcl edit
+pre         = TCL ..\scripts\nxTools\nxPre.tcl pre
+reqdel      = TCL ..\scripts\nxTools\nxRequest.tcl del
+reqfill     = TCL ..\scripts\nxTools\nxRequest.tcl fill
+request     = TCL ..\scripts\nxTools\nxRequest.tcl add
+requests    = TCL ..\scripts\nxTools\nxRequest.tcl view
+reqwipe     = TCL ..\scripts\nxTools\nxRequest.tcl wipe
+rules       = TCL ..\scripts\nxTools\nxRules.tcl
+bot         = TCL ..\scripts\nxTools\nxTools.tcl bot
+drives      = TCL ..\scripts\nxTools\nxTools.tcl drives
+errlog      = TCL ..\scripts\nxTools\nxTools.tcl errlog
+ginfo       = TCL ..\scripts\nxTools\nxTools.tcl ginfo
+give        = TCL ..\scripts\nxTools\nxTools.tcl give
+newdate     = TCL ..\scripts\nxTools\nxTools.tcl newdate
+onel        = TCL ..\scripts\nxTools\nxTools.tcl onelines
+resetstats  = TCL ..\scripts\nxTools\nxTools.tcl resetstats
+resetuser   = TCL ..\scripts\nxTools\nxTools.tcl resetuser
+rotatelogs  = TCL ..\scripts\nxTools\nxTools.tcl rotate
+size        = TCL ..\scripts\nxTools\nxTools.tcl size
+syslog      = TCL ..\scripts\nxTools\nxTools.tcl syslog
+take        = TCL ..\scripts\nxTools\nxTools.tcl take
+traffic     = TCL ..\scripts\nxTools\nxTools.tcl traffic
+weekly      = TCL ..\scripts\nxTools\nxTools.tcl weekly
+weeklyset   = TCL ..\scripts\nxTools\nxTools.tcl weeklyset
+who         = TCL ..\scripts\nxTools\nxTools.tcl who
 
 [FTP_SITE_Permissions]
 approve     = !A *
@@ -242,30 +243,30 @@ wipe        = M1V
 
     This event triggers the sitebot's daily stats announce, only necessary if you are
     currently using an nxTools compatible sitebot.
-nxDayStats = 59 23 * * TCL ..\scripts\nxTools\nxTools.itcl daystats
+nxDayStats = 59 23 * * TCL ..\scripts\nxTools\nxTools.tcl daystats
 
     The rotate logs even does just that, it rotates the defined log files once they
     meet or exceed the required size. Be sure to properly configure this option in the
-    init.itcl file.
-nxRotateLogs = 59 23 * * TCL ..\scripts\nxTools\nxTools.itcl rotate
+    init.tcl file.
+nxRotateLogs = 59 23 * * TCL ..\scripts\nxTools\nxTools.tcl rotate
 
     The newdate even creates dated directories and/or today symlinks. You can also specify
     the date area with a parameter, if you want to trigger a specific area. Refer to the
-    configuration file (init.itcl) for more details on this.
-nxNewDate = 0 0 * * TCL ..\scripts\nxTools\nxTools.itcl newdate
+    configuration file (init.tcl) for more details on this.
+nxNewDate = 0 0 * * TCL ..\scripts\nxTools\nxTools.tcl newdate
 
     This event cleans your file and directory dupe logs. It removes both invalid directories
     and old files, also sorting the log entries from oldest to newest.
-nxCleanLogs = 0 0 * * TCL ..\scripts\nxTools\nxDupe.itcl clean
+nxCleanLogs = 0 0 * * TCL ..\scripts\nxTools\nxDupe.tcl clean
 
     The request wipe event wipes filled requests once they meet or exceed the defined max age,
     which is defined in the configuration. It helps to keep your request directory tidy.
-nxReqWipe = 0 * * * TCL ..\scripts\nxTools\nxRequest.itcl wipe
+nxReqWipe = 0 * * * TCL ..\scripts\nxTools\nxRequest.tcl wipe
 
     If you would like to use weekly credit allotments, this event should be scheduled to run
     weekly. However, if you would like another time based credit allotments (i.e. daily or
     bi-monthly) schedule it accordingly.
-nxWeekly = 0 0 * 6 TCL ..\scripts\nxTools\nxTools.itcl weeklyset
+nxWeekly = 0 0 * 6 TCL ..\scripts\nxTools\nxTools.tcl weeklyset
 
  6. Now restart ioFTPD for the changes to take effect.
 
@@ -281,28 +282,28 @@ nxWeekly = 0 0 * 6 TCL ..\scripts\nxTools\nxTools.itcl weeklyset
     You may add these cookies to any .ioFTPD.message or ioFTPD\text\ files you please.
 
     Display all current requests:
-    %[execute(TCL ..\scripts\nxTools\nxRequest.itcl)(view)]
+    %[execute(TCL ..\scripts\nxTools\nxRequest.tcl)(view)]
 
     Display latest onelines:
-    %[execute(TCL ..\scripts\nxTools\nxTools.itcl)(onelines)]
+    %[execute(TCL ..\scripts\nxTools\nxTools.tcl)(onelines)]
 
     Display all rules:
-    %[execute(TCL ..\scripts\nxTools\nxRules.itcl)]
+    %[execute(TCL ..\scripts\nxTools\nxRules.tcl)]
 
     Display APPS rules:
-    %[execute(TCL ..\scripts\nxTools\nxRules.itcl)(APPS)]
+    %[execute(TCL ..\scripts\nxTools\nxRules.tcl)(APPS)]
 
     Display approved releases:
-    %[execute(TCL ..\scripts\nxTools\nxDupe.itcl)(approve list)]
+    %[execute(TCL ..\scripts\nxTools\nxDupe.tcl)(approve list)]
 
     Display 10 latest releases:
-    %[execute(TCL ..\scripts\nxTools\nxDupe.itcl)(new)]
+    %[execute(TCL ..\scripts\nxTools\nxDupe.tcl)(new)]
 
     Display 15 latest releases:
-    %[execute(TCL ..\scripts\nxTools\nxDupe.itcl)(new -max 15)]
+    %[execute(TCL ..\scripts\nxTools\nxDupe.tcl)(new -max 15)]
 
     Display 5 latest APPS releases:
-    %[execute(TCL ..\scripts\nxTools\nxDupe.itcl)(new -max 5 APPS)]
+    %[execute(TCL ..\scripts\nxTools\nxDupe.tcl)(new -max 5 APPS)]
 
 10. If you use dZSbot, you must enable the misc(dZSbotLogging) option in the config file.
 
@@ -846,7 +847,7 @@ Text Templates:
 # 8. Upgrading                                                               #
 ##############################################################################
 
-0.9.8 -> 0.9.9 - Replace all .itcl files located in /scripts/nxTools/.
+0.9.8 -> 0.9.9 - Replace all files located in /scripts/nxTools/.
                - Remove your nukes and requests database from /scripts/nxTools/data/
                  and recreate them using the "SITE DB CREATE" command.
 
@@ -910,10 +911,13 @@ Text Templates:
 nxTools v0.9.9 (XX-XX-2005):
   NEW: SITE NUKETOP [-max <limit>] [group] to view the top-nuked users.
   NEW: The SITE DB CREATE command checks database schema versions.
+  CHG: All extensions, librarys, and configuration files are loaded by init.itcl
+       when the interpreter is initialized.
   CHG: Cleaned up database opening and improved error messages.
   CHG: Directory tags are safely removed, in case there are files inside.
   CHG: Redesigned the nukes database; nukees are now stored in a separate table.
-  CHG: The original nuke database record is updated when releases are unnuked and re-nuked.
+  CHG: Renamed all .itcl extensions to .tcl, since iTcl is short for "incr Tcl".
+  CHG: The original nukes database records are updated when releases are unnuked and re-nuked.
 
 nxTools v0.9.8 (03-23-2005):
   NEW: SITE DRIVES to view fixed and network drives.

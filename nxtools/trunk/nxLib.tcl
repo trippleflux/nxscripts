@@ -6,27 +6,34 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
+namespace eval ::nxLib {
+    variable LogPath "../logs"
+    namespace export *
+}
+
 # General Procedures
 ######################################################################
 
-interp alias {} IsTrue {} string is true -strict
-interp alias {} IsFalse {} string is false -strict
+## String check wrappers.
+proc ::nxLib::IsDigit {Value} {string is digit -strict $Value}
+proc ::nxLib::IsTrue  {Value} {string is true -strict $Value}
+proc ::nxLib::IsFalse {Value} {string is false -strict $Value}
 
 ## Safe argument handling
-proc ArgList {ArgV} {
+proc ::nxLib::ArgList {ArgV} {
     split [string trim [regsub -all {\s+} $ArgV { }]]
 }
-proc ArgIndex {ArgV Index} {
+proc ::nxLib::ArgIndex {ArgV Index} {
     lindex [ArgList $ArgV] $Index
 }
-proc ArgLength {ArgV} {
+proc ::nxLib::ArgLength {ArgV} {
     llength [ArgList $ArgV]
 }
-proc ArgRange {ArgV Start End} {
+proc ::nxLib::ArgRange {ArgV Start End} {
     join [lrange [ArgList $ArgV] $Start $End]
 }
 
-proc GetOptions {ArgList MaxVar StringVar} {
+proc ::nxLib::GetOptions {ArgList MaxVar StringVar} {
     upvar $MaxVar MaxResults $StringVar String
     set Switch [string tolower [lindex $ArgList 0]]
     if {[string index $Switch 0] == "-"} {
@@ -47,22 +54,22 @@ proc GetOptions {ArgList MaxVar StringVar} {
     return 1
 }
 
-proc ErrorReturn {ErrorMsg} {
+proc ::nxLib::ErrorReturn {ErrorMsg} {
     LinePuts $ErrorMsg
     iputs "'------------------------------------------------------------------------'"
     return -code return
 }
 
-proc LinePuts {String} {iputs [format "| %-70s |" $String]}
+proc ::nxLib::LinePuts {String} {iputs [format "| %-70s |" $String]}
 
-proc StripChars {String} {
+proc ::nxLib::StripChars {String} {
     regsub -all {[\s\.\+\@\#\$\%\^\&\=\*\?\:\;\|\"\/\\]+} $String {.} String
     regsub -all {[\(\<]+} $String {(} String
     regsub -all {[\)\>]+} $String {)} String
     return $String
 }
 
-proc Sleep {MilliSeconds} {
+proc ::nxLib::Sleep {MilliSeconds} {
     set UniqueKey [UniqueKey]
     set ::Sleep_$UniqueKey 0
     after $MilliSeconds [list set ::Sleep_$UniqueKey 1]
@@ -70,7 +77,7 @@ proc Sleep {MilliSeconds} {
     unset ::Sleep_$UniqueKey
 }
 
-proc UniqueKey {} {
+proc ::nxLib::UniqueKey {} {
     set Key [expr {pow(2,31) + [clock clicks]}]
     set Key [string range $Key end-8 end-3]
     return "[clock seconds]$Key"
@@ -79,7 +86,7 @@ proc UniqueKey {} {
 # DataBase Procedures
 ######################################################################
 
-proc DbOpenFile {DbProc FileName} {
+proc ::nxLib::DbOpenFile {DbProc FileName} {
     set DbPath [file join $::misc(DataPath) $FileName]
     if {[catch {sqlite3 $DbProc $DbPath} ErrorMsg]} {
         return -code error "unable to open \"$DbPath\": $ErrorMsg"
@@ -87,7 +94,7 @@ proc DbOpenFile {DbProc FileName} {
     return 1
 }
 
-proc MySqlConnect {} {
+proc ::nxLib::MySqlConnect {} {
     global mysql
     if {[catch {load "mysqltcl.dll" Mysqltcl} ErrorMsg]} {
         ErrorLog MySqlConnect $ErrorMsg
@@ -103,7 +110,7 @@ proc MySqlConnect {} {
     return 0
 }
 
-proc MySqlClose {} {
+proc ::nxLib::MySqlClose {} {
     global mysql
     if {$mysql(ConnHandle) != -1} {
         catch {::mysql::close $mysql(ConnHandle)}
@@ -112,18 +119,18 @@ proc MySqlClose {} {
     return
 }
 
-proc SqlEscape {String} {
+proc ::nxLib::SqlEscape {String} {
     return [string map {\\ \\\\ \' \\\' \" \\\"} $String]
 }
 
-proc SqlWildToLike {Pattern} {
+proc ::nxLib::SqlWildToLike {Pattern} {
     return [string map {* % ? _} [string map {% \\% _ \\_ \\ \\\\ \' \\\' \" \\\"} $Pattern]]
 }
 
 # File and Directory Procedures
 ######################################################################
 
-proc ArchiveFile {FilePath {FormatStyle "%Y-%m-%d"}} {
+proc ::nxLib::ArchiveFile {FilePath {FormatStyle "%Y-%m-%d"}} {
     global log
     if {![file isdirectory $log(ArchivePath)]} {
         if {[catch {file mkdir $log(ArchivePath)} ErrorMsg]} {
@@ -138,14 +145,14 @@ proc ArchiveFile {FilePath {FormatStyle "%Y-%m-%d"}} {
     return 1
 }
 
-proc CreateTag {RealPath UserId GroupId Chmod} {
+proc ::nxLib::CreateTag {RealPath UserId GroupId Chmod} {
     if {[catch {file mkdir $RealPath} ErrorMsg]} {
         ErrorLog CreateTag $ErrorMsg
     }
     catch {vfs write $RealPath $UserId $GroupId $Chmod}
 }
 
-proc RemoveTag {RealPath} {
+proc ::nxLib::RemoveTag {RealPath} {
     ## Safely remove a directory tag, in case there is data inside it.
     catch {file delete -- [file join $RealPath ".ioFTPD"]}
     if {[catch {file delete -- $RealPath} ErrorMsg]} {
@@ -153,7 +160,7 @@ proc RemoveTag {RealPath} {
     }
 }
 
-proc GetDirList {RealPath VarName {IgnoreList ""} {FirstCall 1}} {
+proc ::nxLib::GetDirList {RealPath VarName {IgnoreList ""} {FirstCall 1}} {
     upvar $VarName list
     if {$FirstCall} {
         array set list [list DirList "" FileList ""]
@@ -176,7 +183,7 @@ proc GetDirList {RealPath VarName {IgnoreList ""} {FirstCall 1}} {
     return
 }
 
-proc GetDirStats {RealPath VarName {IgnoreList ""} {FirstCall 1}} {
+proc ::nxLib::GetDirStats {RealPath VarName {IgnoreList ""} {FirstCall 1}} {
     upvar $VarName stats
     if {$FirstCall} {
         array set stats [list DirCount 0 FileCount 0 TotalSize 0]
@@ -200,7 +207,7 @@ proc GetDirStats {RealPath VarName {IgnoreList ""} {FirstCall 1}} {
     return
 }
 
-proc GetPath {PWD Path} {
+proc ::nxLib::GetPath {PWD Path} {
     if {[string index $Path 0] == "/"} {set VirtualPath $Path} else {set VirtualPath "$PWD$Path"}
     regsub -all {[\\/]+} $Path {/} Path
     ## A few "security checks", in case $Path is "." or ".."
@@ -212,12 +219,12 @@ proc GetPath {PWD Path} {
     return $VirtualPath
 }
 
-proc IsMultiDisk {DiskPath} {
+proc ::nxLib::IsMultiDisk {DiskPath} {
     set DiskPath [string tolower [file tail $DiskPath]]
     return [regexp {^(cd|dis[ck]|dvd)\d{1,2}$} $DiskPath]
 }
 
-proc RemoveParentLinks {RealPath VirtualPath} {
+proc ::nxLib::RemoveParentLinks {RealPath VirtualPath} {
     if {[IsMultiDisk $RealPath]} {
         set RealPath [file dirname $RealPath]
     }
@@ -238,7 +245,7 @@ proc RemoveParentLinks {RealPath VirtualPath} {
 # ioFTPD Related Procedures
 ######################################################################
 
-proc GetSectionList {} {
+proc ::nxLib::GetSectionList {} {
     set IsSections 0
     set SectionList ""
     if {![catch {set Handle [open "ioFTPD.ini" r]} ErrorMsg]} {
@@ -266,7 +273,7 @@ proc GetSectionList {} {
     return $SectionList
 }
 
-proc GetSectionPath {FindSection {SectionList ""}} {
+proc ::nxLib::GetSectionPath {FindSection {SectionList ""}} {
     if {![llength $SectionList]} {set SectionList [GetSectionList]}
     foreach {SectionName CreditSection StatSection MatchPath} $SectionList {
         if {[string equal -nocase $FindSection $SectionName]} {
@@ -276,7 +283,7 @@ proc GetSectionPath {FindSection {SectionList ""}} {
     return [list "DEFAULT" "*"]
 }
 
-proc GetCreditsAndStats {VirtualPath {SectionList ""}} {
+proc ::nxLib::GetCreditsAndStats {VirtualPath {SectionList ""}} {
     if {![llength $SectionList]} {set SectionList [GetSectionList]}
     foreach {SectionName CreditSection StatSection MatchPath} $SectionList {
         if {[string match -nocase $MatchPath $VirtualPath]} {
@@ -286,7 +293,7 @@ proc GetCreditsAndStats {VirtualPath {SectionList ""}} {
     return [list 0 0]
 }
 
-proc KickUsers {KickPath {RealPaths "False"}} {
+proc ::nxLib::KickUsers {KickPath {RealPaths "False"}} {
     if {[IsTrue $RealPaths]} {
         catch {client kill realpath $KickPath}
     } else {
@@ -331,21 +338,21 @@ proc KickUsers {KickPath {RealPaths "False"}} {
 # List Procedures
 ######################################################################
 
-proc ListAssign {ValueList args} {
+proc ::nxLib::ListAssign {ValueList args} {
     while {[llength $ValueList] < [llength $args]} {
         lappend ValueList {}
     }
     uplevel [list foreach $args $ValueList break]
 }
 
-proc ListMatch {PatternList String} {
+proc ::nxLib::ListMatch {PatternList String} {
     foreach ListItem $PatternList {
         if {[string match $ListItem $String]} {return 1}
     }
     return 0
 }
 
-proc ListMatchI {PatternList String} {
+proc ::nxLib::ListMatchI {PatternList String} {
     foreach ListItem $PatternList {
         if {[string match -nocase $ListItem $String]} {return 1}
     }
@@ -355,11 +362,11 @@ proc ListMatchI {PatternList String} {
 # Logging Procedures
 ######################################################################
 
-set misc(LogPath) [config read "Locations" "Log_Files"]
-
-proc DebugLog {LogType LogMsg} {
+proc ::nxLib::DebugLog {LogType LogMsg} {
     global args flags group groups path pwd user
-    set LogFile [file join $::misc(LogPath) "nxDebug.log"]
+    variable LogPath
+
+    set LogFile [file join $LogPath "nxDebug.log"]
     if {![catch {set Handle [open $LogFile a]} ErrorMsg]} {
         set TimeNow [clock format [clock seconds] -format "%m-%d-%Y %H:%M:%S"]
         if {[string equal "-state" $LogType]} {
@@ -376,8 +383,10 @@ proc DebugLog {LogType LogMsg} {
     } else {iputs $ErrorMsg}
 }
 
-proc ErrorLog {LogType LogMsg} {
-    set LogFile [file join $::misc(LogPath) "nxError.log"]
+proc ::nxLib::ErrorLog {LogType LogMsg} {
+    variable LogPath
+
+    set LogFile [file join $LogPath "nxError.log"]
     if {![catch {set Handle [open $LogFile a]} ErrorMsg]} {
         set TimeNow [clock format [clock seconds] -format "%m-%d-%Y %H:%M:%S"]
         puts $Handle "$TimeNow - [format %-12s $LogType] : $LogMsg"
@@ -388,7 +397,7 @@ proc ErrorLog {LogType LogMsg} {
 # Formatting Procedures
 ######################################################################
 
-proc FormatDuration {Seconds} {
+proc ::nxLib::FormatDuration {Seconds} {
     set Duration ""
     foreach Div {31536000 604800 86400 3600 60 1} Mod {0 52 7 24 60 60} Unit {y w d h m s} {
         set Num [expr {$Seconds / $Div}]
@@ -398,7 +407,7 @@ proc FormatDuration {Seconds} {
     if {[llength $Duration]} {return [join $Duration]} else {return "0s"}
 }
 
-proc FormatDurationLong {Seconds} {
+proc ::nxLib::FormatDurationLong {Seconds} {
     set Duration ""
     foreach Div {31536000 604800 86400 3600 60 1} Mod {0 52 7 24 60 60} Unit {year week day hour min sec} {
         set Num [expr {$Seconds / $Div}]
@@ -408,7 +417,7 @@ proc FormatDurationLong {Seconds} {
     if {[llength $Duration]} {return [join $Duration {, }]} else {return "0 secs"}
 }
 
-proc FormatSize {KBytes} {
+proc ::nxLib::FormatSize {KBytes} {
     foreach Dec {0 1 2 2} Unit {KB MB GB TB} {
         if {abs($KBytes) >= 1024} {
             set KBytes [expr {double($KBytes) / 1024.0}]
@@ -417,7 +426,7 @@ proc FormatSize {KBytes} {
     return [format "%.*f%s" $Dec $KBytes $Unit]
 }
 
-proc FormatSpeed {Speed {Seconds 0}} {
+proc ::nxLib::FormatSpeed {Speed {Seconds 0}} {
     if {$Seconds > 0} {set Speed [expr {double($Speed) / $Seconds}]}
     foreach Dec {0 2 2} Unit {KB/s MB/s GB/s} {
         if {abs($Speed) >= 1024} {
@@ -430,32 +439,32 @@ proc FormatSpeed {Speed {Seconds 0}} {
 # User and Group Procedures
 ######################################################################
 
-proc GetUserList {} {
+proc ::nxLib::GetUserList {} {
     set UserList ""
     foreach UserId [user list] {lappend UserList [resolve uid $UserId]}
     return [lsort -ascii $UserList]
 }
 
-proc GetGroupList {} {
+proc ::nxLib::GetGroupList {} {
     set GroupList ""
     foreach GroupId [group list] {lappend GroupList [resolve gid $GroupId]}
     return [lsort -ascii $GroupList]
 }
 
-proc GetGroupName {GroupId} {
+proc ::nxLib::GetGroupName {GroupId} {
     if {[set GroupName [resolve gid $GroupId]] != ""} {
         return $GroupName
     }
     return "NoGroup"
 }
 
-proc GetGroupUsers {GroupId} {
+proc ::nxLib::GetGroupUsers {GroupId} {
     set UserList ""
     foreach UserName [GetUserList] {
         if {[userfile open $UserName] != 0} {continue}
         set UserFile [userfile bin2ascii]
-        if {[regexp -nocase {groups ([\s\d]+)} $UserFile Result GIDList]} {
-            if {[lsearch -exact $GIDList $GroupId] != -1} {lappend UserList $UserName}
+        if {[regexp -nocase {groups ([\s\d]+)} $UserFile Result GroupList]} {
+            if {[lsearch -exact $GroupList $GroupId] != -1} {lappend UserList $UserName}
         }
     }
     return $UserList
@@ -464,13 +473,13 @@ proc GetGroupUsers {GroupId} {
 # Cookie Parsing Procedures
 ######################################################################
 
-proc OutputData {OutputData} {
+proc ::nxLib::OutputData {OutputData} {
     foreach Output [split $OutputData "\r\n"] {
         if {![string equal "" $Output]} {iputs $Output}
     }
 }
 
-proc ReadFile {FilePath} {
+proc ::nxLib::ReadFile {FilePath} {
     set FileData ""
     if {![catch {set Handle [open $FilePath r]} ErrorMsg]} {
         set FileData [read -nonewline $Handle]
@@ -479,7 +488,7 @@ proc ReadFile {FilePath} {
     return $FileData
 }
 
-proc ParseCookies {InputStr ValueList CookieList} {
+proc ::nxLib::ParseCookies {InputStr ValueList CookieList} {
     set InputLen [string length $InputStr]
     set OutputStr ""
 

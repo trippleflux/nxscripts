@@ -86,18 +86,20 @@ proc ReqUpdateDir {Action Request {UserId 0} {GroupId 0}} {
 proc ReqMain {ArgV} {
     global misc req flags group user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
+    set IsSiteBot [expr {[info exists user] && [string equal $misc(SiteBot) $user]}]
+
     ## Safe argument handling
     set ArgList [ArgList $ArgV]
     set Action [string tolower [lindex $ArgList 0]]
+
     set Request [join [lrange $ArgList 1 end]]
 
-    if {[string equal "req" $Action] && [string equal "" $Request]} {
+    if {[string equal "view" $Action]} {
         set Action "view"; set ShowText 0
     } else {
         iputs ".-\[Request\]--------------------------------------------------------------."
         set ShowText 1
     }
-    set IsSiteBot [expr {[info exists user] && [string equal $misc(SiteBot) $user]}]
 
     if {[catch {DbOpenFile ReqDb "Requests.db"} ErrorMsg]} {
         ErrorLog RequestDb $ErrorMsg
@@ -107,8 +109,29 @@ proc ReqMain {ArgV} {
     ReqDb function StrEq {string equal -nocase}
 
     switch -exact -- $Action {
+        {add} {
+            set Request [StripChars $Request]
+            if {[ReqDb eval {SELECT count(*) FROM Requests WHERE Status=0 AND StrEq(Request,$Request)}]} {
+                LinePuts "This item is already requested."
+            } elseif {[ReqCheckLimit ReqDb $user]} {
+                set RequestId 1
+                ReqDb eval {SELECT (max(RequestId)+1) AS NextId FROM Requests WHERE Status=0} values {
+                    ## The max() function returns NULL if there are no matching records.
+                    if {[llength $values(NextId)]} {
+                        set RequestId $values(NextId)
+                    }
+                }
+                set TimeStamp [clock seconds]
+                ReqDb eval {INSERT INTO Requests (TimeStamp,UserName,GroupName,Status,RequestId,Request) VALUES($TimeStamp,$user,$group,0,$RequestId,$Request)}
+
+                set RequestId [format "%03s" $RequestId]
+                putlog "REQUEST: \"$user\" \"$group\" \"$Request\" \"$RequestId\""
+                LinePuts "Added your request of $Request (#$RequestId)."
+                ReqUpdateDir $Action $Request
+            }
+        }
         {del} - {fill} {
-            set Exists 0; set RequestId [SqlEscape $Request]
+            set Exists 0
             ReqDb eval {SELECT rowid,* FROM Requests WHERE Status=0 AND (RequestId=$RequestId OR StrEq(Request,$Request)) LIMIT 1} values {set Exists 1}
             if {!$Exists} {
                 ReqDb close
@@ -160,27 +183,6 @@ proc ReqMain {ArgV} {
             if {!$IsSiteBot} {
                 if {!$Count} {OutputData $template(None)}
                 OutputData $template(Footer)
-            }
-        }
-        {req} {
-            set Request [StripChars $Request]
-            if {[ReqDb eval {SELECT count(*) FROM Requests WHERE Status=0 AND StrEq(Request,$Request)}]} {
-                LinePuts "This item is already requested."
-            } elseif {[ReqCheckLimit ReqDb $user]} {
-                set RequestId 1
-                ReqDb eval {SELECT (max(RequestId)+1) AS MaxId FROM Requests WHERE Status=0} values {
-                    ## The max() function returns NULL if are no matching records.
-                    if {[llength $values(MaxId)]} {
-                        set RequestId $values(MaxId)
-                    }
-                }
-                set TimeStamp [clock seconds]
-                ReqDb eval {INSERT INTO Requests (TimeStamp,UserName,GroupName,Status,RequestId,Request) VALUES($TimeStamp,$user,$group,0,$RequestId,$Request)}
-
-                set RequestId [format "%03s" $RequestId]
-                putlog "REQUEST: \"$user\" \"$group\" \"$Request\" \"$RequestId\""
-                LinePuts "Added your request of $Request (#$RequestId)."
-                ReqUpdateDir $Action $Request
             }
         }
         {wipe} {
