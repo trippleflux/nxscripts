@@ -132,6 +132,7 @@ rnfr = TCL ..\scripts\nxTools\nxDupe.tcl dupelog
 rnto = TCL ..\scripts\nxTools\nxDupe.tcl dupelog
 
 [FTP_Custom_Commands]
+bot         = TCL ..\scripts\nxTools\nxBot.tcl
 close       = TCL ..\scripts\nxTools\nxClose.tcl close
 open        = TCL ..\scripts\nxTools\nxClose.tcl open
 db          = TCL ..\scripts\nxTools\nxDB.tcl
@@ -159,7 +160,6 @@ request     = TCL ..\scripts\nxTools\nxRequest.tcl add
 requests    = TCL ..\scripts\nxTools\nxRequest.tcl view
 reqwipe     = TCL ..\scripts\nxTools\nxRequest.tcl wipe
 rules       = TCL ..\scripts\nxTools\nxRules.tcl
-bot         = TCL ..\scripts\nxTools\nxTools.tcl bot
 drives      = TCL ..\scripts\nxTools\nxTools.tcl drives
 errlog      = TCL ..\scripts\nxTools\nxTools.tcl errlog
 ginfo       = TCL ..\scripts\nxTools\nxTools.tcl ginfo
