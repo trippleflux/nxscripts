@@ -3,7 +3,7 @@
 ################################################################################
 # Author  : neoxed                                                             #
 # Date    : 01-31-2005                                                         #
-# Version : 1.1.3 (rev 039)                                                    #
+# Version : 1.1.3 (rev 041)                                                    #
 ################################################################################
 
 #### General ###############################################
@@ -175,7 +175,7 @@ set anuke(Sections) {
     }
     "/MP3/%m%d" 0 {
         "incomplete|Not-Used|3|20|40"
-        "aempty|Not-Used|3|20|40"
+        "empty|Not-Used|3|20|40"
         "mp3|genre:*rap* genre:*punk* year:200[0-6]|5|20|40"
         "type|cable dab demo dvb mixtape radio sample sat tape|3|20|40"
     }
@@ -205,25 +205,24 @@ set anuke(Sections) {
 
 #### End of Settings #######################################
 
-# Source the Common Library
+# Load Libraries
 ######################################################################
 
-set misc(ReloadConfig) False ;# Don't touch this.
 if {[catch {source [file join [file dirname [info script]] "nxLib.itcl"]} ErrorMsg]} {
-    iputs "Error Loading nxLib: $ErrorMsg"; return 1
+    iputs "Error loading nxLib: $ErrorMsg"; return 1
 }
 
 # Nuke Procedures
 ######################################################################
 
-proc ANukeIoA {RealPath VirtualPath Multiplier Reason} {
+proc ANukeIoA {RealPath VirtualPath Multi Reason} {
     global anuke
     ## Find credit and stats section
     foreach {CreditSection StatsSection} [GetCreditsAndStats $VirtualPath] {break}
     set RealPath [string map {/ \\} $RealPath]
 
     ## Borrowed this portion from Harm's ioAUTONUKE (since this ioA feature is undocumented)
-    if {[catch {exec $anuke(ioAPath) NUKE $RealPath $VirtualPath $Multiplier $StatsSection $CreditSection $anuke(UserName) $anuke(GroupName) $Reason} OutputMsg]} {
+    if {[catch {exec $anuke(ioAPath) NUKE $RealPath $VirtualPath $Multi $StatsSection $CreditSection $anuke(UserName) $anuke(GroupName) $Reason} OutputMsg]} {
         ErrorLog ANukeIoA "ioA Output:\n$Output"; return 0
     }
     foreach OutLine [split $OutputMsg "\r\n"] {
@@ -268,7 +267,7 @@ proc ANukeBanned {Patterns ReleaseName TargetValue} {
 
 proc ANukeEmpty {RealPath} {
     foreach FileName [glob -nocomplain -types f -directory $RealPath "*"] {
-        if {![string match -nocase ".ioFTPD*" [file tail $FileName]]} {return 0}
+        if {![string equal -nocase -length 7 ".ioFTPD" [file tail $FileName]]} {return 0}
     }
     return 1
 }
@@ -318,7 +317,7 @@ proc ANukeIMDB {TagList CheckList TargetType TargetValue} {
                 }
             }
             "year" {
-                if {$Year != "" && ![string match -nocase $BanMatch $year]} {
+                if {$year != "" && ![string match -nocase $BanMatch $year]} {
                     set BanValue $year; return 1
                 }
             }
@@ -396,7 +395,7 @@ proc ANukeCheck {RealPath VirtualPath} {
         }
 
         LinePuts "Nuking: [ANukeName $VirtualPath] - $check(Reason)"
-        if {![ANukeIoA $RealPath $VirtualPath $check(Multiplier) $check(Reason)]} {
+        if {![ANukeIoA $RealPath $VirtualPath $check(Multi) $check(Reason)]} {
             LinePuts "Encounted an error nuking the release, check nxError.log for details."
         }
         lappend NukedList $RealPathLow
@@ -414,7 +413,7 @@ proc ANukeCheck {RealPath VirtualPath} {
 
         LinePuts "Warning: [ANukeName $VirtualPath] - $check(Reason)"
         set check(DirAge) [expr {$check(DirAge) / 60}]
-        putlog "$check(WarningLog) \"$check(DirAge)\" \"[expr {$check(NukeMins) - $check(DirAge)}]\" \"$check(NukeMins)\" \"$check(Multiplier)\" \"$UserList\""
+        putlog "$check(WarningLog) \"$check(DirAge)\" \"[expr {$check(NukeMins) - $check(DirAge)}]\" \"$check(NukeMins)\" \"$check(Multi)\" \"$UserList\""
         lappend WarnedList $RealPathLow
     }
     return
@@ -427,8 +426,8 @@ proc ANukeFindTag {RealPath {TagTemplate "*"}} {
 
 proc ANukeUsers {RealPath} {
     global anuke
-    DirList dlist $RealPath ".ioFTPD*"
-    foreach ListItem $dlist(Files) {
+    GetDirList $RealPath dirlist ".ioFTPD*"
+    foreach ListItem $dirlist(FileList) {
         if {[file size $ListItem] < 1} {continue}
         catch {vfs read $ListItem} VfsOwner
         ListAssign $VfsOwner UserID GroupID
@@ -496,7 +495,7 @@ proc ANukeMain {} {
             if {[llength [set NukeCheck [split $ConfigLine "|"]]] != 5} {
                 ErrorLog ANukeConfig "Wrong number of parameters in line: \"$ConfigLine\""; continue
             }
-            foreach {CheckType CheckSettings check(Multiplier) check(WarnMins) check(NukeMins)} $NukeCheck {break}
+            foreach {CheckType CheckSettings check(Multi) check(WarnMins) check(NukeMins)} $NukeCheck {break}
             set TagType ""; set TagTemplate ""
 
             ## Validate auto-nuke type
