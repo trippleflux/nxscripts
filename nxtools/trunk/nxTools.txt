@@ -950,6 +950,9 @@ Text Templates:
 # 9. Change Log                                                                #
 ################################################################################
 
+nxTools v0.9.10 (XX-XX-2005):
+  FIX: SITE PRETIME and pre time checks were broken.
+
 nxTools v0.9.9 (03-27-2005):
   NEW: SITE BOT BW to view the site's current usage.
   NEW: SITE NUKETOP [-max <limit>] [group] to view the top-nuked users.

@@ -1,5 +1,5 @@
 ################################################################################
-# nxTools - Dupe Checking and Force Forcing                                    #
+# nxTools - Dupe Checking and File Forcing                                     #
 ################################################################################
 # Author  : $-66(AUTHOR) #
 # Date    : $-66(TIMESTAMP) #
