@@ -539,44 +539,6 @@ proc ParseCookies {InputStr ValueList CookieList} {
     return $OutputStr
 }
 
-# Timezone Conversion
-######################################################################
-
-proc IsDST {TimeStamp} {
-    set StartDate $TimeStamp; set EndDate $TimeStamp
-    ## Find the first sunday of April (start of daylight savings)
-    set MonthEnd [clock scan "04/30" -base $TimeStamp]
-    for {set i [clock scan "04/01" -base $TimeStamp]} {$i < $MonthEnd} {incr i 86400} {
-        foreach {Day WeekDay} [clock format $i -format "%d %w"] {break}
-        if {$WeekDay == 0} {set StartDate [clock scan "04/$Day" -base $TimeStamp]; break}
-    }
-
-    ## Find the last sunday of October (start of daylight savings)
-    set MonthEnd [clock scan "10/01" -base $TimeStamp]
-    for {set i [clock scan "10/31" -base $TimeStamp]} {$i > $MonthEnd} {incr i -86400} {
-        foreach {Day WeekDay} [clock format $i -format "%d %w"] {break}
-        if {$WeekDay == 0} {set EndDate [clock scan "10/$Day" -base $TimeStamp]; break}
-    }
-
-    ## True if the 'TimeStamp' is between the first sunday of April at 2:00AM and the last sunday of
-    ## October at 1:30AM (to minimize the error margin from 2 hours to 1 hour).
-    return [expr {$TimeStamp >= ($StartDate + 7200) && $TimeStamp <= ($EndDate + 5400)}]
-}
-
-proc ToUTC {TimeStamp TimeZone} {
-    global misc
-    set TimeStamp [expr {$TimeStamp - ($TimeZone * 3600)}]
-    if {[IsTrue $misc(DST_Correct)] && [IsDST [clock seconds]]} {set TimeStamp [expr {$TimeStamp - 3600}]}
-    return $TimeStamp
-}
-
-proc FromUTC {TimeStamp TimeZone} {
-    global misc
-    set TimeStamp [expr {$TimeStamp + ($TimeZone * 3600)}]
-    if {[IsTrue $misc(DST_Correct)] && [IsDST [clock seconds]]} {set TimeStamp [expr {$TimeStamp + 3600}]}
-    return $TimeStamp
-}
-
 # Reload Configuration
 ######################################################################
 

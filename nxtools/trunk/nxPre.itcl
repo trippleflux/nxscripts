@@ -303,9 +303,8 @@ proc PreMain {ArgV} {
 
             ## Find the destination path
             set DestRealPath $prearea($PreArea)
-            set PreTime [set FormatTime [clock seconds]]
-            if {[IsTrue $misc(UTC_Time)]} {set FormatTime [ToUTC $FormatTime $misc(TimeZone)]}
-            set DestRealPath [clock format $FormatTime -format $DestRealPath -gmt 0]
+            set PreTime [clock seconds]
+            set DestRealPath [clock format $PreTime -format $DestRealPath -gmt [IsTrue $misc(UTC_Time)]]
             if {![file isdirectory $DestRealPath]} {
                 LinePuts "The pre destination path for the \"$PreArea\" area does not exist."
                 ErrorReturn "Note: If the area uses dated dirs, check that today's date dir exists."
@@ -461,9 +460,8 @@ proc PreMain {ArgV} {
             }
 
             if {[IsTrue $pretime(AddOnPre)] && [DbConnect]} {
-                set TimeUTC [ToUTC $PreTime $misc(TimeZone)]
                 set PreArea [mysqlescape $PreArea]; set Release [mysqlescape $Release]
-                if {[catch {mysqlexec $mysql(ConnHandle) "INSERT INTO $mysql(TableName) (pretime,section,release,files,kbytes,disks) VALUES('$TimeUTC','$PreArea','$Release','$Files','$TotalSize','$DiskCount')"} ErrorMsg]} {
+                if {[catch {mysqlexec $mysql(ConnHandle) "INSERT INTO $mysql(TableName) (pretime,section,release,files,kbytes,disks) VALUES('$PreTime','$PreArea','$Release','$Files','$TotalSize','$DiskCount')"} ErrorMsg]} {
                     if {[string first "Duplicate entry" $ErrorMsg] == -1} {ErrorLog PreAddToDb $ErrorMsg}
                 }
                 DbClose

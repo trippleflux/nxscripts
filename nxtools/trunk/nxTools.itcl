@@ -91,7 +91,6 @@ proc NewDate {FindArea} {
     global misc newdate
     iputs ".-\[NewDate\]--------------------------------------------------------------."
 
-    ## Find the date area
     set DateArea "Default"
     foreach AreaName [array names newdate] {
         if {[string equal -nocase $AreaName $FindArea]} {set DateArea $AreaName; break}
@@ -101,10 +100,7 @@ proc NewDate {FindArea} {
         ErrorReturn "The newdate area \"$DateArea\" is not defined."
     }
     LinePuts "Creating [llength $newdate($DateArea)] date directories for the \"$DateArea\" area."
-
-    ## Find the current time
     set TimeNow [clock seconds]
-    if {[IsTrue $misc(UTC_Time)]} {set TimeNow [ToUTC $TimeNow $misc(TimeZone)]}
 
     foreach ConfigLine $newdate($DateArea) {
         if {[llength [set NewArea [split $ConfigLine  "|"]]] != 10} {
@@ -115,8 +111,8 @@ proc NewDate {FindArea} {
 
         ## Format cookies and directory paths
         set AreaTime [expr {$TimeNow + ($DayOffset * 86400)}]
-        set VirtualPath [clock format $AreaTime -format $VirtualPath -gmt 0]
-        set RealPath [clock format $AreaTime -format $RealPath -gmt 0]
+        set VirtualPath [clock format $AreaTime -format $VirtualPath -gmt [IsTrue $misc(UTC_Time)]]
+        set RealPath [clock format $AreaTime -format $RealPath -gmt [IsTrue $misc(UTC_Time)]]
 
         ## Create date directory if it doesn't exist
         if {[file isdirectory $RealPath] || ![catch {file mkdir $RealPath} ErrorMsg]} {
@@ -159,7 +155,7 @@ proc OneLines {Message} {
         set Count 0
         OneDb eval {SELECT * FROM OneLines ORDER BY TimeStamp DESC LIMIT $misc(OneLines)} values {
             incr Count
-            set ValueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 0]
+            set ValueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt [IsTrue $misc(UTC_Time)]]
             lappend ValueList $values(UserName) $values(GroupName) $values(Message)
             OutputData [ParseCookies $template(Body) $ValueList {sec min hour day month year2 year4 user group message}]
         }

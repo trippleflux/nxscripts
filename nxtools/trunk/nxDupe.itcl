@@ -337,9 +337,7 @@ proc PreTimeCheck {VirtualPath} {
         set TimeStamp [mysqlsel $mysql(ConnHandle) "SELECT pretime FROM $mysql(TableName) WHERE release='$ReleaseName' LIMIT 1" -flatlist]
 
         if {![string equal "" $TimeStamp]} {
-            ## The timestamp in the database is in UTC time (at least it should be)
-            set TimeUTC [ToUTC [clock seconds] $misc(TimeZone)]
-            if {[set ReleaseAge [expr {$TimeUTC - $TimeStamp}]] > [set LateSecs [expr {$LateMins * 60}]]} {
+            if {[set ReleaseAge [expr {[clock seconds] - $TimeStamp}]] > [set LateSecs [expr {$LateMins * 60}]]} {
                 if {[IsTrue $DenyLate]} {
                     set ErrCode 553; set LogPrefix "DENYPRE"; set Result 1
                     set ErrMsg "Release not allowed by pre rules, older than [FormatDurationLong $LateSecs]."
@@ -355,14 +353,14 @@ proc PreTimeCheck {VirtualPath} {
                     if {[IsTrue $misc(dZSbotLogging)]} {
                         set LateSecs $LateMins
                         set ReleaseAge [FormatDuration $ReleaseAge]
-                        set TimeStamp [clock format $TimeStamp -format "%m/%d/%y %H:%M:%S"]
+                        set TimeStamp [clock format $TimeStamp -format "%m/%d/%y %H:%M:%S" -gmt 1]
                     }
                     putlog "${LogPrefix}: \"$VirtualPath\" \"$LateSecs\" \"$ReleaseAge\" \"$TimeStamp\""
                 }
             } elseif {[IsTrue $LogInfo]} {
                 if {[IsTrue $misc(dZSbotLogging)]} {
                     set ReleaseAge [FormatDuration $ReleaseAge]
-                    set TimeStamp [clock format $TimeStamp -format "%m/%d/%y %H:%M:%S"]
+                    set TimeStamp [clock format $TimeStamp -format "%m/%d/%y %H:%M:%S" -gmt 1]
                 }
                 putlog "PRETIME: \"$VirtualPath\" \"$ReleaseAge\" \"$TimeStamp\""
             }
@@ -516,7 +514,7 @@ proc SiteDupe {MaxResults Pattern} {
         if {$IsSiteBot} {
             iputs "DUPE|$Count|$values(TimeStamp)|$values(UserName)|$values(GroupName)|$values(DirPath)|$values(DirName)"
         } else {
-            set ValueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 0]
+            set ValueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt [IsTrue $misc(UTC_Time)]]
             lappend ValueList $Count $values(UserName) $values(GroupName) $values(DirName) [file join $values(DirPath) $values(DirName)]
             OutputData [ParseCookies $template(Body) $ValueList {sec min hour day month year2 year4 num user group release path}]
         }
@@ -554,7 +552,7 @@ proc SiteFileDupe {MaxResults Pattern} {
         if {$IsSiteBot} {
             iputs "DUPE|$Count|$values(TimeStamp)|$values(UserName)|$values(GroupName)|$values(FileName)"
         } else {
-            set ValueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 0]
+            set ValueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt [IsTrue $misc(UTC_Time)]]
             lappend ValueList $Count $values(UserName) $values(GroupName) $values(FileName)
             OutputData [ParseCookies $template(Body) $ValueList {sec min hour day month year2 year4 num user group file}]
         }
@@ -647,19 +645,20 @@ proc SitePreTime {MaxResults Pattern} {
     if {[DbConnect]} {
         set QueryResults [mysqlsel $mysql(ConnHandle) "SELECT * FROM $mysql(TableName) WHERE release LIKE '$Pattern' ORDER BY pretime DESC LIMIT $MaxResults" -flatlist]
         set SingleResult [expr {[llength $QueryResults] == 1}]
-        set TimeUTC [ToUTC [clock seconds] $misc(TimeZone)]
+        set TimeNow [clock seconds]
 
         foreach {ID PreTime Section Release Files KBytes Disks IsNuked NukeTime NukeReason} $QueryResults {
             incr Count
-            set ReleaseAge [expr {$TimeUTC - $PreTime}]
+            set ReleaseAge [expr {$TimeNow - $PreTime}]
             if {$IsSiteBot} {
                 iputs "PRETIME|$Count|$ReleaseAge|$PreTime|$Section|$Release|$Files|$KBytes|$Disks|$IsNuked|$NukeTime|$NukeReason"
             } else {
                 set BodyTemplate [expr {$SingleResult ? ($IsNuked != 0 ? $template(BodyNuke) : $template(BodyInfo)) : $template(Body)}]
                 set ReleaseAge [FormatDuration $ReleaseAge]
 
-                set ValueList [clock format $PreTime -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 0]
-                set ValueList [concat $ValueList [clock format $NukeTime -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 0]]
+                ## The pre time should always been in UTC (GMT).
+                set ValueList [clock format $PreTime -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 1]
+                set ValueList [concat $ValueList [clock format $NukeTime -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 1]]
                 lappend ValueList $ReleaseAge $Count $Section $Release $Files [FormatSize $KBytes] $Disks $NukeReason
                 OutputData [ParseCookies $BodyTemplate $ValueList {sec min hour day month year2 year4 nukesec nukemin nukehour nukeday nukemonth nukeyear2 nukeyear4 age num section release files size disks reason}]
             }

@@ -16,9 +16,11 @@
 #
 # - Debug mode logs all environment variables, useful for reporting problems.
 # - Reload the configuration every for event, rather then restarting ioFTPD.
+# - Use UTC time for dated directories, otherwise local time is used.
 #
 set misc(DebugMode)     True
 set misc(ReloadConfig)  True
+set misc(UTC_Time)      True
 #
 # - Path to the data directory, containing nxTools data files.
 # - Path to the text directory, containing output templates.
@@ -44,16 +46,6 @@ set misc(MountFile)     "../etc/admin.vfs"
 #   are pre-defined, so invite targets will not work (SITE INVITE <irc nick> [target]).
 #
 set misc(dZSbotLogging) False
-
-#### Time Settings #########################################
-#
-# - Use UTC time for dated directories, otherwise local time is used.
-# - Use daylight savings time correction for UTC conversions.
-# - The GMT time zone your site is in.
-#
-set misc(UTC_Time)      True
-set misc(DST_Correct)   True
-set misc(TimeZone)      -7
 
 #### VFS Settings ##########################################
 #
@@ -171,17 +163,15 @@ set nuke(NoPaths) {
 #### Site Pre ##############################################
 #
 # - Path to the pre configuration file.
-# - Path to nxHelper, used for several pre functions to overcome TCL limitations.
+# - The private path (chattr +h) settings for newly added pre paths via SITE EDITPRE ADDPATH.
 #
 set pre(ConfigFile)     "../scripts/nxTools/nxPre.cfg"
-set pre(HelperBin)      "../scripts/nxTools/nxHelper.exe"
+set pre(PrivatePath)    "=%(group) =STAFF M1"
 #
 # - The User-ID to chown all files too, to hide an affil's identity (to disable, set to "").
-# - The private path (chattr +h) settings for newly added pre paths via SITE EDITPRE ADDPATH.
 # - Set the time of all pre'd files and directories to the pre time.
 #
 set pre(ChownUID)       "0"
-set pre(PrivatePath)    "=%(group) =STAFF M1"
 set pre(TouchTimes)     True
 #
 # - Give credits to the pre'r (user who issues the SITE PRE).
