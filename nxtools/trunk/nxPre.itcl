@@ -280,7 +280,8 @@ proc PreMain {ArgV} {
                     if {![info exists prepath($GroupName)]} {continue}
                     foreach PathEntry $prepath($GroupName) {
                         set PathEntry [string trimright $PathEntry "/"]
-                        if {[string equal -nocase $PathEntry [file dirname $VirtualPath]]} {
+                        set PathLength [string length $PathEntry]
+                        if {[string equal -length $PathLength -nocase $PathEntry $VirtualPath]} {
                             set AllowPath 1; break
                         }
                     }
@@ -358,7 +359,7 @@ proc PreMain {ArgV} {
                 set volume(free) [expr {wide($volume(free)) / 1024}]
 
                 if {$CheckSize > $volume(free)} {
-                    ErrorLog PreLowSpace "unable to pre \"$RealPath\": insufficient disk space on \"$DestDrive\" ([FormatSize $volume(free)] free, needed [FormatSize $CheckSize])"
+                    ErrorLog PreLowSpace "unable to pre \"$RealPath\": insufficient disk space on $DestDrive ([FormatSize $volume(free)] free, needed [FormatSize $CheckSize])"
                     ErrorReturn "Insufficient disk space on target drive, contact a siteop."
                 }
             }
@@ -375,7 +376,7 @@ proc PreMain {ArgV} {
 
             set IsMP3 0
             set FilePath [expr {!$DiskCount ? "*.mp3" : "*/*.mp3"}]
-            set MP3Files [glob -nocomplain -types f -directory $DestRealPath $MP3Path]
+            set MP3Files [glob -nocomplain -types f -directory $DestRealPath $FilePath]
             ## Attempt to parse every MP3 file until successful
             foreach FilePath $MP3Files {
                 ## TODO: types - Artist Album Title Genre Year BitRate Codec Layer SampleRate ChannelMode
@@ -393,7 +394,7 @@ proc PreMain {ArgV} {
 
             ## Hide the user's name
             if {[string is digit -strict $pre(ChownUID)]} {
-                GetDirList $RealPath dirlist ".ioFTPD*"
+                GetDirList $DestRealPath dirlist ".ioFTPD*"
                 foreach ListItem $dirlist(DirList) {
                     catch {vfs read $ListItem} VfsOwner
                     ListAssign $VfsOwner UserID GroupID Chmod
@@ -413,7 +414,7 @@ proc PreMain {ArgV} {
             }
             ## Touch file and directory times
             if {[IsTrue $pre(TouchTimes)]} {
-                if {![::nx::touch -recurse [string map {/ \\} $DestRealPath] $PreTime]} {
+                if {![::nx::touch -recurse $DestRealPath $PreTime]} {
                     ErrorLog PreTouch "unable to touch file times for \"$DestRealPath\""
                 }
             }
