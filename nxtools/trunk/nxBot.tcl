@@ -7,7 +7,7 @@
 ################################################################################
 
 namespace eval ::nxTools::Bot {
-    namespace import -force ::nxTools::Lib::*
+    namespace import -force ::nxLib::*
 }
 
 # Bot Procedures

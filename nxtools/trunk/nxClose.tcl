@@ -7,7 +7,7 @@
 ################################################################################
 
 namespace eval ::nxTools::Close {
-    namespace import -force ::nxTools::Lib::*
+    namespace import -force ::nxLib::*
 }
 
 # Close Procedures

@@ -7,7 +7,7 @@
 ################################################################################
 
 namespace eval ::nxTools::Nuke {
-    namespace import -force ::nxTools::Lib::*
+    namespace import -force ::nxLib::*
 }
 
 # Nuke Procedures

@@ -7,7 +7,7 @@
 ################################################################################
 
 namespace eval ::nxTools::Dupe {
-    namespace import -force ::nxTools::Lib::*
+    namespace import -force ::nxLib::*
 }
 
 # Dupe Procedures

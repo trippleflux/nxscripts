@@ -7,7 +7,7 @@
 ################################################################################
 
 namespace eval ::nxTools::Utils {
-    namespace import -force ::nxTools::Lib::*
+    namespace import -force ::nxLib::*
 }
 
 # User Procedures

@@ -7,7 +7,7 @@
 ################################################################################
 
 namespace eval ::nxTools::Invite {
-    namespace import -force ::nxTools::Lib::*
+    namespace import -force ::nxLib::*
 }
 
 # Invite Procedures

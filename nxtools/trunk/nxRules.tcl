@@ -7,7 +7,7 @@
 ################################################################################
 
 namespace eval ::nxTools::Rules {
-    namespace import -force ::nxTools::Lib::*
+    namespace import -force ::nxLib::*
 }
 
 # Rules Procedures

@@ -7,7 +7,7 @@
 ################################################################################
 
 namespace eval ::nxTools::Pre {
-    namespace import -force ::nxTools::Lib::*
+    namespace import -force ::nxLib::*
 }
 
 # Pre Procedures

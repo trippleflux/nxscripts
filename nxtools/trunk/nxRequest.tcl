@@ -7,7 +7,7 @@
 ################################################################################
 
 namespace eval ::nxTools::Req {
-    namespace import -force ::nxTools::Lib::*
+    namespace import -force ::nxLib::*
 }
 
 # Request Functions

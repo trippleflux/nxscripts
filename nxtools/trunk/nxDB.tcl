@@ -7,7 +7,7 @@
 ################################################################################
 
 namespace eval ::nxTools::Db {
-    namespace import -force ::nxTools::Lib::*
+    namespace import -force ::nxLib::*
     variable dbschema
     variable dbtables
 
