@@ -881,6 +881,8 @@ Text Templates:
 0.9.8 -> 0.9.9 - Replace all files located in /scripts/nxTools/.
                - Remove your nukes and requests database from /scripts/nxTools/data/
                  and recreate them using the "SITE DB CREATE" command.
+               - Changed config option: dupe(RebuildPaths), newdate(Default), and
+                 pretime(CheckPaths).
 
 0.9.7 -> 0.9.8 - Replace all .itcl files located in /scripts/nxTools/.
                - Download an updated nxTools-Libraries package.
@@ -947,6 +949,7 @@ nxTools v0.9.9 (XX-XX-2005):
   CHG: Cleaned up database opening and improved error messages.
   CHG: Directory tags are safely removed, in case there are files inside.
   CHG: Moved all functions into the ::nxTools namespace, and scripts into a child namespace.
+  CHG: Newdate area, pre check path, and rebuild path options are now defined in a Tcl list format.
   CHG: Redesigned the nukes database; nukees are now stored in a separate table.
   CHG: Renamed all .itcl extensions to .tcl, since iTcl is short for "incr Tcl".
   CHG: The original nukes database records are updated when releases are unnuked and re-nuked.

@@ -180,9 +180,9 @@ proc ::nxTools::Dupe::RebuildDb {} {
     DirDb eval {BEGIN; DELETE FROM DupeDirs;}
     FileDb eval {BEGIN; DELETE FROM DupeFiles;}
 
-    foreach ConfigLine $dupe(RebuildPaths) {
-        if {[llength [set RebuildPath [split $ConfigLine "|"]]] != 4} {
-            ErrorLog DupeRebuild "wrong number of parameters in line: \"$ConfigLine\""; continue
+    foreach RebuildPath $dupe(RebuildPaths) {
+        if {[llength $RebuildPath] != 4} {
+            ErrorLog DupeRebuild "wrong number of parameters in line: \"$RebuildPath\""; continue
         }
         foreach {VirtualPath RealPath UpdateDirs UpdateFiles} $RebuildPath {break}
         set TrimLength [expr {[string length [file normalize $RealPath]] + 1}]
@@ -309,9 +309,9 @@ proc ::nxTools::Dupe::PreTimeCheck {VirtualPath} {
     global misc mysql pretime
     if {[ListMatchI $pretime(Ignores) $VirtualPath]} {return 0}
     set Check 0; set Result 0
-    foreach ConfigLine $pretime(CheckPaths) {
-        if {[llength [set PreCheck [split $ConfigLine  "|"]]] != 4} {
-            ErrorLog PreTimeCheck "wrong number of parameters in line: \"$ConfigLine\""; continue
+    foreach PreCheck $pretime(CheckPaths) {
+        if {[llength $PreCheck] != 4} {
+            ErrorLog PreTimeCheck "wrong number of parameters in line: \"$PreCheck\""; continue
         }
         foreach {CheckPath DenyLate LogInfo LateMins} $PreCheck {break}
         if {[string match $CheckPath $VirtualPath]} {set Check 1; break}

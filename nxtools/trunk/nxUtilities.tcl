@@ -87,9 +87,9 @@ proc ::nxTools::Utils::NewDate {FindArea} {
     LinePuts "Creating [llength $newdate($DateArea)] date directories for the \"$DateArea\" area."
     set TimeNow [clock seconds]
 
-    foreach ConfigLine $newdate($DateArea) {
-        if {[llength [set NewArea [split $ConfigLine  "|"]]] != 10} {
-            ErrorLog NewDate "wrong number of options in line: \"$ConfigLine\""; continue
+    foreach NewArea $newdate($DateArea) {
+        if {[llength $NewArea] != 10} {
+            ErrorLog NewDate "wrong number of options in line: \"$NewArea\""; continue
         }
         foreach {AreaName Description VirtualPath RealPath SymLink DoLog DayOffset UserId GroupId Chmod} $NewArea {break}
         LinePuts ""; LinePuts "$AreaName ($Description):"
