@@ -266,7 +266,7 @@ proc GetCreditsAndStats {VirtualPath {SectionList ""}} {
 
 proc IsMultiDisk {DiskPath} {
     set DiskPath [string tolower [file tail $DiskPath]]
-    return [regexp {^(cd[0-9]|dis[ck][0-9]|dvd[0-9])$} $DiskPath]
+    return [regexp {^(cd|dis[ck]|dvd)\d{1,2}$} $DiskPath]
 }
 
 proc KickUsers {KickPath {RealPaths "False"}} {
