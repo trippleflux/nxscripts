@@ -70,9 +70,9 @@ INT TclTouchCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST o
 {
     FILETIME ftTouch;
     BOOL bRetVal;
-    CHAR *szPath;
     DWORD dwAttribs;
     INT i;
+    TCHAR *pszPath;
     ULONG ulClockVal;
     WORD wOptions = 0;
 
@@ -135,11 +135,10 @@ INT TclTouchCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST o
     }
 
     // Validate the file or directory's existence.
-    szPath = Tcl_GetString(objv[i]);
-    dwAttribs = GetFileAttributes(szPath);
+    pszPath = Tcl_GetTString(objv[i]);
+    dwAttribs = GetFileAttributes(pszPath);
     if (dwAttribs == INVALID_FILE_ATTRIBUTES) {
-        Tcl_AppendStringsToObj(Tcl_GetObjResult(interp),
-            "unable to touch \"", szPath, "\": no such file or directory", NULL);
+        Tcl_SetStringObj(Tcl_GetObjResult(interp), "unable to touch item: no such file or directory", -1);
         return TCL_ERROR;
     }
 
@@ -158,13 +157,13 @@ INT TclTouchCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST o
     }
 
     if ((dwAttribs & FILE_ATTRIBUTE_DIRECTORY) && !(dwAttribs & FILE_ATTRIBUTE_REPARSE_POINT) && (wOptions & TOUCH_FLAG_RECURSE)) {
-        bRetVal = RecursiveTouch(szPath, &ftTouch, wOptions);
+        bRetVal = RecursiveTouch(pszPath, &ftTouch, wOptions);
     } else {
         // Add the ISDIR flag if we're touching a directory non-recusively.
         if (dwAttribs & FILE_ATTRIBUTE_DIRECTORY) {
             wOptions |= TOUCH_FLAG_ISDIR;
         }
-        bRetVal = TouchTime(szPath, &ftTouch, wOptions);
+        bRetVal = TouchTime(pszPath, &ftTouch, wOptions);
     }
 
     Tcl_SetIntObj(Tcl_GetObjResult(interp), bRetVal);

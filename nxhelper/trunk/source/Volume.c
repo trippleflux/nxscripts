@@ -12,9 +12,9 @@ BOOL GetDiskSpace(LPCTSTR pszRootPath, PUINT64 i64FreeBytes, PUINT64 i64TotalByt
     *i64TotalBytes = 0;
 
     // Retrieve handle to the kernel32 module.
-    hModKernel = GetModuleHandle(_T("kernel32.dll"));
+    hModKernel = GetModuleHandle(TEXT("kernel32.dll"));
     if (!hModKernel) {
-        hModKernel = LoadLibrary(_T("kernel32.dll"));
+        hModKernel = LoadLibrary(TEXT("kernel32.dll"));
     }
 
     // Retrieve the function address of GetDiskFreeSpaceEx(A/W).
@@ -72,15 +72,15 @@ INT TclVolumeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST 
     switch ((enum eOptions) nIndex) {
         case OPTION_INFO: {
             UINT64 i64FreeBytes, i64TotalBytes;
-            CHAR *pszDrive;
-            CHAR szName[MAX_PATH], szSystem[MAX_PATH];
             DWORD dwFlags, dwMaxLength, dwSerial;
+            TCHAR *pszDrive;
+            TCHAR szName[MAX_PATH], szSystem[MAX_PATH];
 
             if (objc != 4) {
                 Tcl_WrongNumArgs(interp, 2, objv, "drive varName");
                 return TCL_ERROR;
             }
-            pszDrive = Tcl_GetString(objv[2]);
+            pszDrive = Tcl_GetTString(objv[2]);
 
             if (GetVolumeInformation(pszDrive, szName, MAX_PATH, &dwSerial, &dwMaxLength, &dwFlags,
                     szSystem, MAX_PATH) && GetDiskSpace(pszDrive, &i64FreeBytes, &i64TotalBytes)) {
@@ -101,7 +101,7 @@ INT TclVolumeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST 
 
                 // Set varName(name) to the volume name.
                 Tcl_SetStringObj(pFieldObj, "name", -1);
-                pValueObj = Tcl_NewStringObj(szName, -1);
+                pValueObj = Tcl_NewTStringObj(szName, -1);
                 if (!Tcl_ObjSetVar2(interp, pVarObj, pFieldObj, pValueObj, TCL_LEAVE_ERR_MSG)) {
                     return TCL_ERROR;
                 }
@@ -116,7 +116,7 @@ INT TclVolumeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST 
 
                 // Set varName(system) to the file system name.
                 Tcl_SetStringObj(pFieldObj, "system", -1);
-                pValueObj = Tcl_NewStringObj(szSystem, -1);
+                pValueObj = Tcl_NewTStringObj(szSystem, -1);
                 if (!Tcl_ObjSetVar2(interp, pVarObj, pFieldObj, pValueObj, TCL_LEAVE_ERR_MSG)) {
                     return TCL_ERROR;
                 }
@@ -147,14 +147,14 @@ INT TclVolumeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST 
             return TCL_OK;
         }
         case OPTION_TYPE: {
-            CHAR *pszDrive;
+            TCHAR *pszDrive;
 
             if (objc != 3) {
                 Tcl_WrongNumArgs(interp, 2, objv, "drive");
                 return TCL_ERROR;
             }
 
-            pszDrive = Tcl_GetString(objv[2]);
+            pszDrive = Tcl_GetTString(objv[2]);
             Tcl_SetIntObj(Tcl_GetObjResult(interp), (INT)GetDriveType(pszDrive));
 
             return TCL_OK;

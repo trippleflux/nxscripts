@@ -1,6 +1,15 @@
 #ifndef __NXHELPER_H__
 #define __NXHELPER_H__
 
+#define UNICODE
+
+// Unicode macros
+#if defined(_UNICODE) && !defined(UNICODE)
+#define UNICODE
+#elif defined(UNICODE) && !defined(_UNICODE)
+#define _UNICODE
+#endif
+
 // Windows includes
 #define _WIN32_WINNT 0x0400
 #define WIN32_LEAN_AND_MEAN
@@ -25,9 +34,11 @@
 #include <Tcl.h>
 #include <Zlib.h>
 
-// Function includes
+// nxHelper includes
 #include <Constants.h>
+#include <Macros.h>
 
+// Function includes
 #include <Base64.h>
 #include <Compress.h>
 #include <MP3.h>

@@ -169,6 +169,9 @@
 				RelativePath=".\source\Constants.h">
 			</File>
 			<File
+				RelativePath=".\source\Macros.h">
+			</File>
+			<File
 				RelativePath=".\source\nxHelper.h">
 			</File>
 			<Filter
