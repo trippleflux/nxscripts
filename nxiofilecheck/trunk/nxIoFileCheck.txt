@@ -1,4 +1,4 @@
-# nxIoFileCheck v1.0.1 (by neoxed)
+# nxIoFileCheck v1.0.3 (by neoxed)
 ###############################################################
 
 # Information:
@@ -78,17 +78,20 @@ Check the ioFTPD path (-upload):
 # Changelog:
 ###############################################################
 
-nxIoFileCheck v1.0.2 (24/10/2004):
+nxIoFileCheck v1.0.3 (02-24-2005):
+  - Improved the recursive checking function.
+
+nxIoFileCheck v1.0.2 (10-24-2004):
   - Added a "-upload" parameter, to check the SYSTEMPATH environment variable (for the OnUploadComplete event).
   - Renamed the "-scheduler" parameter to "-detach".
   - Fixed the OnUploadComplete event, now uses the SYSTEMPATH environment variable.
 
-nxIoFileCheck v1.0.1 (22/10/2004):
+nxIoFileCheck v1.0.1 (10-22-2004):
   - A few readme updates (typos and an OnUploadComplete example).
   - Added a "-scheduler" parameter, for nxIoFileCheck to detach itself (ioFTPD won't wait for the process to exit).
   - Added a "-silent" parameter, to hide all output (for the OnUploadComplete event).
   - Reparse points (aka NTFS junctions) are ignored to prevent possible infinite loops.
   - The output buffer is disabled (!buffer off) to prevent timeouts when scanning large directories.
 
-nxIoFileCheck v1.0.0 (22/10/2004):
+nxIoFileCheck v1.0.0 (10-22-2004):
   - Initial release.

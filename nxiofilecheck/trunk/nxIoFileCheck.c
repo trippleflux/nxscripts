@@ -1,4 +1,10 @@
+// System includes
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#include <Shlwapi.h>
+#pragma comment (lib,"shlwapi.lib")
+
+// Standard includes
 #include <StdIo.h>
 #include <StdLib.h>
 #include <StdArg.h>
@@ -22,58 +28,54 @@ void __cdecl OutputMessage(LPCTSTR lpFormat, ...)
 	}
 }
 
-void __stdcall RecursiveCleaner(LPCTSTR lpszCheckPath)
+void __stdcall RecursiveCleaner(LPCTSTR pszCurrentPath)
 {
 	DWORD dwRetVal;
-	TCHAR szOriginalPath[MAX_PATH];
+	TCHAR szPath[MAX_PATH];
 
-	if ((dwRetVal = GetCurrentDirectory(MAX_PATH, szOriginalPath)) == 0 || dwRetVal > MAX_PATH) {
-		OutputMessage(_T(" - Unable to retrieve current directory (error %lu).\n"), GetLastError());
-	} else if (!SetCurrentDirectory(lpszCheckPath)) {
-		OutputMessage(_T(" - Unable to change directory: \"%s\" (error %lu).\n"), lpszCheckPath, GetLastError());
+	if (!PathCombine(szPath, pszCurrentPath, _T("*.*"))) {
+		OutputMessage(_T(" - Unable to combine path \"%s\" (error %lu).\n"), pszCurrentPath, GetLastError());
 	} else {
 		HANDLE hFind;
-		WIN32_FIND_DATA lpFindFileData;
+		WIN32_FIND_DATA pFindData;
 
 #ifdef TEST_MODE
-		TCHAR szCurrentDir[MAX_PATH];
-		GetCurrentDirectory(MAX_PATH, szCurrentDir);
-
-		OutputMessage(_T("Test: Checking: %s\n"), szCurrentDir);
+		OutputMessage(_T("Test: Checking: %s\n"), szPath);
 #endif
 
-		hFind = FindFirstFile(_T("*"), &lpFindFileData);
-		if (hFind != INVALID_HANDLE_VALUE) {
+		hFind = FindFirstFile(szPath, &pFindData);
+		if (hFind == INVALID_HANDLE_VALUE) {
+
 			do {
-				if (!_tcscmp(lpFindFileData.cFileName, _T(".")) ||
-					!_tcscmp(lpFindFileData.cFileName, _T("..")) ||
-					lpFindFileData.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
+				if (pFindData.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT ||
+					!_tcscmp(pFindData.cFileName, _T(".")) ||
+					!_tcscmp(pFindData.cFileName, _T("..")) ||
+					!PathCombine(szPath, pszCurrentPath, pFindData.cFileName)) {
 					continue;
 				}
-				if (lpFindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-					RecursiveCleaner(lpFindFileData.cFileName);
-				} else if (_tcsicmp(lpFindFileData.cFileName, _T(".ioFTPD")) == 0) {
+
+				if (pFindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+					RecursiveCleaner(szPath);
+				} else if (!_tcsicmp(pFindData.cFileName, _T(".ioFTPD"))) {
 #ifdef TEST_MODE
-					OutputMessage(_T("Test: Found .ioFTPD file (%lu bytes).\n"), lpFindFileData.nFileSizeLow);
+					OutputMessage(_T("Test: Found .ioFTPD file (%lu bytes).\n"), pFindData.nFileSizeLow);
 #endif
-					// Remove .ioFTPD files >= then IOFILE_MAX_SIZE (4096) bytes
-					if (lpFindFileData.nFileSizeLow >= IOFILE_MAX_SIZE) {
+					if (pFindData.nFileSizeLow >= IOFILE_MAX_SIZE) {
 #ifndef TEST_MODE
-						if (DeleteFile(lpFindFileData.cFileName)) {
-							OutputMessage(_T(" - Removed .ioFTPD file (%lu bytes).\n"), lpFindFileData.nFileSizeLow);
+						if (DeleteFile(szPath)) {
+							OutputMessage(_T(" - Removed .ioFTPD file (%lu bytes).\n"), pFindData.nFileSizeLow);
 						} else {
-							OutputMessage(_T(" - Unable to remove .ioFTPD file (%lu bytes, error %lu).\n"), lpFindFileData.nFileSizeLow, GetLastError());
+							OutputMessage(_T(" - Unable to remove .ioFTPD file (%lu bytes, error %lu).\n"), pFindData.nFileSizeLow, GetLastError());
 						}
 #else
-						OutputMessage(_T("Test: Removed .ioFTPD file (%lu bytes).\n"), lpFindFileData.nFileSizeLow);
+						OutputMessage(_T("Test: Removed .ioFTPD file (%lu bytes).\n"), pFindData.nFileSizeLow);
 #endif
 					}
 				}
-			} while (FindNextFile(hFind, &lpFindFileData) != FALSE);
+			} while (FindNextFile(hFind, &pFindData));
 
 			FindClose(hFind);
 		}
-		SetCurrentDirectory(szOriginalPath);
 	}
 }
 
