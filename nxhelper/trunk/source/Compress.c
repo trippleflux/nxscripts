@@ -56,7 +56,7 @@ INT TclDeflateCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST
     return TCL_OK;
 
     eOutOfMemory:
-        Tcl_SetStringObj(Tcl_GetObjResult(interp), "unable to deflate data: out of memory", -1);
+        Tcl_SetStringObj(Tcl_GetObjResult(interp), "unable to deflate data: insufficient memory", -1);
         return TCL_ERROR;
     eDeflate:
         TclZlibError(interp, "unable to deflate data: ", nError);
@@ -138,7 +138,7 @@ INT TclInflateCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST
     return TCL_OK;
 
     eOutOfMemory:
-        Tcl_SetStringObj(Tcl_GetObjResult(interp), "unable to inflate data: out of memory", -1);
+        Tcl_SetStringObj(Tcl_GetObjResult(interp), "unable to inflate data: insufficient memory", -1);
         return TCL_ERROR;
     eInflate:
         TclZlibError(interp, "unable to inflate data: ", nError);
@@ -150,16 +150,16 @@ static VOID TclZlibError(Tcl_Interp *interp, LPCSTR szMsg, INT nError)
     CHAR *pszError;
 
     switch (nError) {
-        case Z_OK           : pszError = "no error"       ; break;
-        case Z_STREAM_END   : pszError = "stream end"     ; break;
-        case Z_NEED_DICT    : pszError = "need dictionary"; break;
-        case Z_ERRNO        : pszError = "see errno"      ; break;
-        case Z_STREAM_ERROR : pszError = "stream error"   ; break;
-        case Z_DATA_ERROR   : pszError = "data error"     ; break;
-        case Z_MEM_ERROR    : pszError = "memory error"   ; break;
-        case Z_BUF_ERROR    : pszError = "buffer error"   ; break;
-        case Z_VERSION_ERROR: pszError = "version error"  ; break;
-        default             : pszError = "unknown error"  ;
+        case Z_OK           : pszError = "no error"            ; break;
+        case Z_STREAM_END   : pszError = "stream end"          ; break;
+        case Z_NEED_DICT    : pszError = "need dictionary"     ; break;
+        case Z_ERRNO        : pszError = "file error"          ; break;
+        case Z_STREAM_ERROR : pszError = "stream error"        ; break;
+        case Z_DATA_ERROR   : pszError = "data error"          ; break;
+        case Z_MEM_ERROR    : pszError = "insufficient memory" ; break;
+        case Z_BUF_ERROR    : pszError = "buffer error"        ; break;
+        case Z_VERSION_ERROR: pszError = "incompatible version"; break;
+        default             : pszError = "unknown error";
     }
 
     Tcl_ResetResult(interp);

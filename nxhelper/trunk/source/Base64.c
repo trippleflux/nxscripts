@@ -237,11 +237,11 @@ static VOID TclBase64Error(Tcl_Interp *interp, LPCSTR szMsg, INT nError)
     CHAR *pszError;
 
     switch (nError) {
-        case BASE64_SUCCESS : pszError = "no error"     ; break;
-        case BASE64_BADPARAM: pszError = "bad parameter"; break;
-        case BASE64_NOMEM   : pszError = "out of memory"; break;
-        case BASE64_OVERFLOW: pszError = "overflow"     ; break;
-        default             : pszError = "unknown error";
+        case BASE64_SUCCESS : pszError = "no error"           ; break;
+        case BASE64_BADPARAM: pszError = "invalid parameter"  ; break;
+        case BASE64_NOMEM   : pszError = "insufficient memory"; break;
+        case BASE64_OVERFLOW: pszError = "buffer overflow"    ; break;
+        default             : pszError = "unknown error"      ;
     }
 
     Tcl_ResetResult(interp);
