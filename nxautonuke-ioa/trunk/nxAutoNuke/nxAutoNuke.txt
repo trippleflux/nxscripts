@@ -19,8 +19,8 @@ ioA as an external nuker. ioA support is credited towards him. :)
 # nxTools and nxSitebot Installation:
 ###############################################################
 
-1. UnRAR and copy all files and directories maintaining the the
-   original directory structure to x:\ioFTPD\scripts\nxAutoNuke\.
+1. UnRAR and copy all files and directories maintaining the
+   original directory structure to ioFTPD\scripts\.
 
    The files must be placed as follows:
    ioFTPD\scripts\init.itcl
@@ -49,8 +49,8 @@ autonuke    = M1
 # nxTools and dZSbot Installation:
 ###############################################################
 
-1. UnRAR and copy all files and directories maintaining the the
-   original directory structure to x:\ioFTPD\scripts\nxAutoNuke\.
+1. UnRAR and copy all files and directories maintaining the
+   original directory structure to ioFTPD\scripts\.
 
    The files must be placed as follows:
    ioFTPD\scripts\init.itcl
@@ -118,8 +118,8 @@ set msgtypes(RACE) "ANUKEALLOWED ANUKEBANNED ANUKEDISKS ANUKEEMPTY ANUKEIMDB ANU
 # ioA Nuker and dZSbot Installation:
 ###############################################################
 
-1. UnRAR and copy all files and directories maintaining the the
-   original directory structure to x:\ioFTPD\scripts\nxAutoNuke\.
+1. UnRAR and copy all files and directories maintaining the
+   original directory structure to ioFTPD\scripts\.
 
    The files must be placed as follows:
    ioFTPD\scripts\init.itcl
@@ -187,8 +187,8 @@ set msgtypes(RACE) "ANUKEALLOWED ANUKEBANNED ANUKEDISKS ANUKEEMPTY ANUKEIMDB ANU
 # ioA Nuker and ioBanana Installation:
 ###############################################################
 
-1. UnRAR and copy all files and directories maintaining the the
-   original directory structure to x:\ioFTPD\scripts\nxAutoNuke\.
+1. UnRAR and copy all files and directories maintaining the
+   original directory structure to ioFTPD\scripts\.
 
    The files must be placed as follows:
    ioFTPD\scripts\init.itcl
