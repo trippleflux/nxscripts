@@ -3,11 +3,11 @@
 BOOL GetDiskSpace(LPCTSTR pszRootPath, PUINT64 i64FreeBytes, PUINT64 i64TotalBytes)
 {
     HMODULE hModKernel;
-    OSVERSIONINFO osVerInfo;
+    OSVERSIONINFO OSVerInfo;
     PFNGETDISKFREESPACEEX pfnGetDiskFreeSpaceEx = NULL;
     BOOL bRetVal;
 
-    // Set pointers to zero (in case the GetDiskFreeSpace call fails).
+    // Set pointers to zero (in case the GetDiskFreeSpace or Ex call fails).
     *i64FreeBytes = 0;
     *i64TotalBytes = 0;
 
@@ -27,12 +27,12 @@ BOOL GetDiskSpace(LPCTSTR pszRootPath, PUINT64 i64FreeBytes, PUINT64 i64TotalByt
 #endif
 
     // Initialize the OSVERSIONINFO structure.
-    osVerInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-    GetVersionEx(&osVerInfo);
+    OSVerInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+    GetVersionEx(&OSVerInfo);
 
     // GetDiskFreeSpaceEx crashes on NT4 (at least it did for me),
     // we so we'll use GetDiskFreeSpace instead.
-    if (!pfnGetDiskFreeSpaceEx || (osVerInfo.dwPlatformId == VER_PLATFORM_WIN32_NT && osVerInfo.dwMajorVersion <= 4)) {
+    if (!pfnGetDiskFreeSpaceEx || (OSVerInfo.dwPlatformId == VER_PLATFORM_WIN32_NT && OSVerInfo.dwMajorVersion <= 4)) {
         DWORD dwBytesPerSect, dwFreeClusters, dwSectPerClust, dwTotalClusters;
 
         bRetVal = GetDiskFreeSpace(pszRootPath, &dwSectPerClust, &dwBytesPerSect, &dwFreeClusters, &dwTotalClusters);
@@ -72,14 +72,14 @@ INT TclFreeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST ob
 
         // Set varName(free) to the remaining disk space.
         Tcl_SetStringObj(pFieldObj, "free", -1);
-        pValueObj = Tcl_NewWideIntObj((Tcl_WideUInt) (i64FreeBytes/1024));
+        pValueObj = Tcl_NewWideIntObj((Tcl_WideUInt)(i64FreeBytes/1024));
         if (!Tcl_ObjSetVar2(interp, pVarObj, pFieldObj, pValueObj, TCL_LEAVE_ERR_MSG)) {
             return TCL_ERROR;
         }
 
         // Set varName(total) to the total disk space.
         Tcl_SetStringObj(pFieldObj, "total", -1);
-        pValueObj = Tcl_NewWideIntObj((Tcl_WideUInt) (i64TotalBytes/1024));
+        pValueObj = Tcl_NewWideIntObj((Tcl_WideUInt)(i64TotalBytes/1024));
         if (!Tcl_ObjSetVar2(interp, pVarObj, pFieldObj, pValueObj, TCL_LEAVE_ERR_MSG)) {
             return TCL_ERROR;
         }
