@@ -341,14 +341,10 @@ proc NukeMain {ArgV} {
 
             set DbFile [file join $misc(DataPath) "Nukes.db"]
             if {![catch {sqlite3 NukeDb $DbFile} ErrorMsg]} {
-                ## TclSQLite doesn't accept 'NULL' for AutoInc fields when the statement is enclosed in braces.
-                ## Bug report: http://www.sqlite.org/cvstrac/tktview?tn=1179
-                if {[string is digit -strict $NukeId]} {
-                    NukeDb eval {INSERT OR REPLACE INTO Nukes (NukeId,TimeStamp,UserName,GroupName,Status,Release,Reason,Multi,Files,Size) VALUES($NukeId,$NukeTime,$user,$group,$NukeStatus,$Release,$Reason,$Multi,$Files,$TotalSize)}
-                } else {
-                    NukeDb eval {INSERT OR REPLACE INTO Nukes (TimeStamp,UserName,GroupName,Status,Release,Reason,Multi,Files,Size) VALUES($NukeTime,$user,$group,$NukeStatus,$Release,$Reason,$Multi,$Files,$TotalSize)}
-                }
+                if {![string is digit -strict $NukeId]} {unset NukeId}
+                NukeDb eval {INSERT OR REPLACE INTO Nukes (NukeId,TimeStamp,UserName,GroupName,Status,Release,Reason,Multi,Files,Size) VALUES($NukeId,$NukeTime,$user,$group,$NukeStatus,$Release,$Reason,$Multi,$Files,$TotalSize)}
                 set NukeId [NukeDb last_insert_rowid]
+
                 NukeDb eval {BEGIN}
                 foreach {NukeeUser NukeeGroup Amount} $NukeeLog {
                     NukeDb eval {INSERT OR REPLACE INTO Users (NukeId,Status,UserName,GroupName,Amount) VALUES($NukeId,$NukeStatus,$NukeeUser,$NukeeGroup,$Amount)}

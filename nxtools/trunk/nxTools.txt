@@ -909,9 +909,9 @@ Text Templates:
 
 nxTools v0.9.9 (XX-XX-2005):
   NEW: SITE NUKETOP [-max <limit>] [group] to view the top-nuked users.
-  CHG: Directory tags are now safely removed.
+  CHG: Directory tags are safely removed, in case there are files inside.
   CHG: Redesigned the nukes database; nukees are now stored in a separate table.
-  CHG: The original nuke database record is updated when releases are unnuke and re-nuked.
+  CHG: The original nuke database record is updated when releases are unnuked and re-nuked.
 
 nxTools v0.9.8 (03-23-2005):
   NEW: SITE DRIVES to view fixed and network drives.

@@ -139,7 +139,7 @@ proc CreateTag {RealPath UserId GroupId Chmod} {
 
 proc RemoveTag {RealPath} {
     ## Safely remove a directory tag, in case there is data inside it.
-    catch {file delete -- [join $RealPath ".ioFTPD"]}
+    catch {file delete -- [file join $RealPath ".ioFTPD"]}
     if {[catch {file delete -- $RealPath} ErrorMsg]} {
         ErrorLog RemoveTag $ErrorMsg
     }
