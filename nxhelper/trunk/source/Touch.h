@@ -7,7 +7,7 @@
 #define TOUCH_FLAG_ISDIR     0x00000008
 #define TOUCH_FLAG_RECURSE   0x00000010
 
-static BOOL TouchTime(LPCTSTR pszFilePath, LPFILETIME ftTouchTime, WORD wOptions);
+__inline BOOL TouchTime(LPCTSTR pszFilePath, LPFILETIME ftTouchTime, WORD wOptions);
 static BOOL RecursiveTouch(LPCTSTR pszCurentPath, LPFILETIME ftTouchTime, WORD wOptions);
 INT TclTouchCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST objv[]);
 

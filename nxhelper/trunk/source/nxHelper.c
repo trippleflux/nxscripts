@@ -61,7 +61,7 @@ INT Nxhelper_Init(Tcl_Interp *interp)
      *  - Returns the current time, expressed in UTC (coordinated universal time).
      *
      * ::nx::time zone
-     *  - Returns the current bias for local time translation in seconds.
+     *  - Returns the bias for local and UTC time translation, expressed in seconds.
      */
 
     Tcl_CreateObjCommand(interp, "::nx::decode",  TclDecodeCmd, NULL, NULL);
@@ -73,7 +73,7 @@ INT Nxhelper_Init(Tcl_Interp *interp)
     Tcl_CreateObjCommand(interp, "::nx::touch",   TclTouchCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::nx::time",    TclTimeCmd, NULL, NULL);
 
-    if (Tcl_PkgProvide(interp, "nxHelper", HELPER_VER) != TCL_OK) {
+    if (Tcl_PkgProvide(interp, "nxHelper", STR_VERSION) != TCL_OK) {
         return TCL_ERROR;
     }
 

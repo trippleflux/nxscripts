@@ -1,6 +1,6 @@
 #include <nxHelper.h>
 
-static BOOL TouchTime(LPCTSTR pszFilePath, LPFILETIME pftTouchTime, WORD wOptions)
+__inline BOOL TouchTime(LPCTSTR pszFilePath, LPFILETIME pftTouchTime, WORD wOptions)
 {
     BOOL bReturn = FALSE;
     HANDLE hFile = CreateFile(pszFilePath,
@@ -163,7 +163,7 @@ INT TclTouchCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST o
         return TCL_ERROR;
     }
 
-    if (objc > 1) {
+    if (objc == 2) {
         FILETIME ftUser;
         printf("TclTouchCmd - User specified a custom time\n");
         if (Tcl_GetLongFromObj(interp, objv[i+1], (ULONG*)&ulClockVal) != TCL_OK) {
