@@ -1,4 +1,4 @@
 # nxHelper v2 TODO
 ############################################################
 
-- Write an ID3 tag and MP3 header parser, based on CMP3Info.
+- Nothing

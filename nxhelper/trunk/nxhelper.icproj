@@ -4,7 +4,7 @@
 	Version="7.1"
 	Name="nxHelper"
 	VCNestedProjectGUID="{F427E8BD-5964-41ED-836E-BE0B36F6B7E6}"
-	VCNestedProjectFileName="nxHelper.vcproj">
+	VCNestedProjectFileName="nxhelper.vcproj">
 	<Configurations>
 		<Configuration 
 			Name="Debug|Win32">
@@ -12,7 +12,7 @@
 				Name="VCCLCompilerTool">
 				<IntelOptions 
 					Optimization="0"
-					MinimalRebuild="TRUE"
+					MinimalRebuild="1"
 					BasicRuntimeChecks="3"
 					RuntimeLibrary="1"/>
 			</Tool>
@@ -22,138 +22,90 @@
 			<Tool 
 				Name="VCCLCompilerTool">
 				<IntelOptions 
-					Optimization="3"
+					Optimization="1000"
+					GlobalOptimizations="1"
 					InlineFunctionExpansion="1"
-					EnableIntrinsicFunctions="TRUE"
+					EnableIntrinsicFunctions="1"
 					FavorSizeOrSpeed="2"
-					ExceptionHandling="TRUE"
+					ExceptionHandling="0"
 					RuntimeLibrary="0"
-					BufferSecurityCheck="FALSE"/>
+					BufferSecurityCheck="0"/>
 			</Tool>
 		</Configuration>
 	</Configurations>
 	<Files>
 		<File 
+			RelativePath=".\source\MP3Info.c">
+			<FileConfiguration 
+				Name="Debug|Win32"/>
+			<FileConfiguration 
+				Name="Release|Win32"/>
+		</File>
+		<File 
 			RelativePath=".\source\nxHelper.c">
 			<FileConfiguration 
-				Name="Debug|Win32">
-				<Tool 
-					Name="VCCLCompilerTool">
-					<IntelOptions/>
-				</Tool>
-			</FileConfiguration>
+				Name="Debug|Win32"/>
 			<FileConfiguration 
-				Name="Release|Win32">
-				<Tool 
-					Name="VCCLCompilerTool">
-					<IntelOptions/>
-				</Tool>
-			</FileConfiguration>
+				Name="Release|Win32"/>
 		</File>
 		<File 
 			RelativePath=".\source\Base64.c">
 			<FileConfiguration 
-				Name="Debug|Win32">
-				<Tool 
-					Name="VCCLCompilerTool">
-					<IntelOptions/>
-				</Tool>
-			</FileConfiguration>
+				Name="Debug|Win32"/>
 			<FileConfiguration 
-				Name="Release|Win32">
-				<Tool 
-					Name="VCCLCompilerTool">
-					<IntelOptions/>
-				</Tool>
-			</FileConfiguration>
+				Name="Release|Win32"/>
 		</File>
 		<File 
 			RelativePath=".\source\Compress.c">
 			<FileConfiguration 
-				Name="Debug|Win32">
-				<Tool 
-					Name="VCCLCompilerTool">
-					<IntelOptions/>
-				</Tool>
-			</FileConfiguration>
+				Name="Debug|Win32"/>
 			<FileConfiguration 
-				Name="Release|Win32">
-				<Tool 
-					Name="VCCLCompilerTool">
-					<IntelOptions/>
-				</Tool>
-			</FileConfiguration>
+				Name="Release|Win32"/>
 		</File>
 		<File 
 			RelativePath=".\source\MP3.c">
 			<FileConfiguration 
-				Name="Debug|Win32">
-				<Tool 
-					Name="VCCLCompilerTool">
-					<IntelOptions/>
-				</Tool>
-			</FileConfiguration>
+				Name="Debug|Win32"/>
 			<FileConfiguration 
-				Name="Release|Win32">
-				<Tool 
-					Name="VCCLCompilerTool">
-					<IntelOptions/>
-				</Tool>
-			</FileConfiguration>
+				Name="Release|Win32"/>
 		</File>
 		<File 
 			RelativePath=".\source\Times.c">
 			<FileConfiguration 
-				Name="Debug|Win32">
-				<Tool 
-					Name="VCCLCompilerTool">
-					<IntelOptions/>
-				</Tool>
-			</FileConfiguration>
+				Name="Debug|Win32"/>
 			<FileConfiguration 
-				Name="Release|Win32">
-				<Tool 
-					Name="VCCLCompilerTool">
-					<IntelOptions/>
-				</Tool>
-			</FileConfiguration>
+				Name="Release|Win32"/>
 		</File>
 		<File 
 			RelativePath=".\source\Touch.c">
 			<FileConfiguration 
-				Name="Debug|Win32">
-				<Tool 
-					Name="VCCLCompilerTool">
-					<IntelOptions/>
-				</Tool>
-			</FileConfiguration>
+				Name="Debug|Win32"/>
 			<FileConfiguration 
-				Name="Release|Win32">
-				<Tool 
-					Name="VCCLCompilerTool">
-					<IntelOptions/>
-				</Tool>
-			</FileConfiguration>
+				Name="Release|Win32"/>
 		</File>
 		<File 
 			RelativePath=".\source\Volume.c">
 			<FileConfiguration 
-				Name="Debug|Win32">
-				<Tool 
-					Name="VCCLCompilerTool">
-					<IntelOptions/>
-				</Tool>
-			</FileConfiguration>
+				Name="Debug|Win32"/>
 			<FileConfiguration 
-				Name="Release|Win32">
-				<Tool 
-					Name="VCCLCompilerTool">
-					<IntelOptions/>
-				</Tool>
-			</FileConfiguration>
+				Name="Release|Win32"/>
 		</File>
 		<File 
 			RelativePath=".\source\Constants.h">
+			<FileConfiguration 
+				Name="Debug|Win32"/>
+			<FileConfiguration 
+				Name="Release|Win32"/>
+		</File>
+		<File 
+			RelativePath=".\source\Macros.h">
+			<FileConfiguration 
+				Name="Debug|Win32"/>
+			<FileConfiguration 
+				Name="Release|Win32"/>
+		</File>
+		<File 
+			RelativePath=".\source\MP3Info.h">
 			<FileConfiguration 
 				Name="Debug|Win32"/>
 			<FileConfiguration 

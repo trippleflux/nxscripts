@@ -1,66 +1,66 @@
 #include <nxHelper.h>
 
-__inline BOOL TouchTime(LPCTSTR pszFilePath, LPFILETIME pftTouchTime, WORD wOptions)
+__inline BOOL TouchFile(PTCHAR FilePath, PFILETIME TouchTime, USHORT Options)
 {
-    BOOL bReturn = FALSE;
-    HANDLE hFile = CreateFile(pszFilePath,
+    BOOL ReturnValue = FALSE;
+    HANDLE FileHandle = CreateFile(FilePath,
         GENERIC_WRITE,
         FILE_SHARE_READ | FILE_SHARE_WRITE,
         NULL,
         OPEN_EXISTING,
         // Create a handle for a directory or file.
-        (wOptions & TOUCH_FLAG_ISDIR) ? FILE_FLAG_BACKUP_SEMANTICS : 0,
+        (Options & TOUCH_FLAG_ISDIR) ? FILE_FLAG_BACKUP_SEMANTICS : 0,
         0);
 
-    if (hFile != INVALID_HANDLE_VALUE) {
-        bReturn = SetFileTime(hFile,
-            (wOptions & TOUCH_FLAG_CTIME) ? pftTouchTime : NULL,
-            (wOptions & TOUCH_FLAG_ATIME) ? pftTouchTime : NULL,
-            (wOptions & TOUCH_FLAG_MTIME) ? pftTouchTime : NULL);
+    if (FileHandle != INVALID_HANDLE_VALUE) {
+        ReturnValue = SetFileTime(FileHandle,
+            (Options & TOUCH_FLAG_CTIME) ? TouchTime : NULL,
+            (Options & TOUCH_FLAG_ATIME) ? TouchTime : NULL,
+            (Options & TOUCH_FLAG_MTIME) ? TouchTime : NULL);
 
-        CloseHandle(hFile);
+        CloseHandle(FileHandle);
     }
 
-    return bReturn;
+    return ReturnValue;
 }
 
-static BOOL RecursiveTouch(LPCTSTR pszCurentPath, LPFILETIME pftTouchTime, WORD wOptions)
+static BOOL RecursiveTouch(PTCHAR CurentPath, PFILETIME TouchTime, USHORT Options)
 {
-    TCHAR szPath[MAX_PATH];
+    TCHAR FilePath[MAX_PATH];
 
     // Touch the directory.
-    TouchTime(pszCurentPath, pftTouchTime, wOptions | TOUCH_FLAG_ISDIR);
+    TouchFile(CurentPath, TouchTime, Options | TOUCH_FLAG_ISDIR);
 
-    if (PathCombine(szPath, pszCurentPath, TEXT("*.*"))) {
+    if (PathCombine(FilePath, CurentPath, TEXT("*.*"))) {
         WIN32_FIND_DATA FindData;
-        HANDLE hFind = FindFirstFile(szPath, &FindData);
+        HANDLE FindHandle = FindFirstFile(FilePath, &FindData);
 
-        if (hFind == INVALID_HANDLE_VALUE) {
+        if (FindHandle == INVALID_HANDLE_VALUE) {
             return FALSE;
         }
 
         do {
             if (!_tcscmp(FindData.cFileName, TEXT(".")) ||
                 !_tcscmp(FindData.cFileName, TEXT("..")) ||
-                !PathCombine(szPath, pszCurentPath, FindData.cFileName)) {
+                !PathCombine(FilePath, CurentPath, FindData.cFileName)) {
                 continue;
             }
 
             if (FindData.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
                 // Touch the junction, but do not recurse into it (avoid possible infinite loops).
-                TouchTime(szPath, pftTouchTime, wOptions | TOUCH_FLAG_ISDIR);
+                TouchFile(FilePath, TouchTime, Options | TOUCH_FLAG_ISDIR);
 
             } else if (FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
                 // Recurse into the directory.
-                RecursiveTouch(szPath, pftTouchTime, wOptions);
+                RecursiveTouch(FilePath, TouchTime, Options);
 
             } else if (_tcsnicmp(FindData.cFileName, TEXT(".ioFTPD"), 7) != 0) {
                 // Touch the file.
-                TouchTime(szPath, pftTouchTime, wOptions);
+                TouchFile(FilePath, TouchTime, Options);
             }
-        } while(FindNextFile(hFind, &FindData));
+        } while(FindNextFile(FindHandle, &FindData));
 
-        FindClose(hFind);
+        FindClose(FindHandle);
     }
 
     return TRUE;
@@ -68,18 +68,18 @@ static BOOL RecursiveTouch(LPCTSTR pszCurentPath, LPFILETIME pftTouchTime, WORD 
 
 INT TclTouchCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST objv[])
 {
-    FILETIME ftTouch;
-    BOOL bRetVal;
-    DWORD dwAttribs;
-    INT i;
-    TCHAR *pszPath;
-    ULONG ulClockVal;
-    WORD wOptions = 0;
+    FILETIME TouchTime;
+    BOOL ReturnValue;
+    LONG i;
+    PTCHAR FilePath;
+    ULONG ClockVal;
+    ULONG FileAttributes;
+    USHORT Options = 0;
 
-    const static CHAR *szSwitches[] = {
+    const static CHAR *Switches[] = {
         "-atime", "-ctime", "-mtime", "-recurse", "--", NULL
     };
-    enum eSwitches {
+    enum SwitchIndexes {
         OPTION_ATIME, OPTION_CTIME, OPTION_MTIME, OPTION_RECURSE, OPTION_LAST
     };
 
@@ -89,32 +89,32 @@ INT TclTouchCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST o
     }
 
     for (i = 1; i < objc; i++) {
-        CHAR *szName;
-        INT nIndex;
+        PCHAR SwitchName;
+        INT SwitchIndex;
 
-        szName = Tcl_GetString(objv[i]);
-        if (szName[0] != '-') {
+        SwitchName = Tcl_GetString(objv[i]);
+        if (SwitchName[0] != '-') {
             break;
         }
 
-        if (Tcl_GetIndexFromObj(interp, objv[i], szSwitches, "switch", TCL_EXACT, &nIndex) != TCL_OK) {
+        if (Tcl_GetIndexFromObj(interp, objv[i], Switches, "switch", TCL_EXACT, &SwitchIndex) != TCL_OK) {
             return TCL_ERROR;
         }
-        switch ((enum eSwitches) nIndex) {
+        switch ((enum SwitchIndexes) SwitchIndex) {
             case OPTION_ATIME: {
-                wOptions |= TOUCH_FLAG_ATIME;
+                Options |= TOUCH_FLAG_ATIME;
                 break;
             }
             case OPTION_CTIME: {
-                wOptions |= TOUCH_FLAG_MTIME;
+                Options |= TOUCH_FLAG_MTIME;
                 break;
             }
             case OPTION_MTIME: {
-                wOptions |= TOUCH_FLAG_CTIME;
+                Options |= TOUCH_FLAG_CTIME;
                 break;
             }
             case OPTION_RECURSE: {
-                wOptions |= TOUCH_FLAG_RECURSE;
+                Options |= TOUCH_FLAG_RECURSE;
                 break;
             }
             case OPTION_LAST: {
@@ -135,38 +135,38 @@ INT TclTouchCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST o
     }
 
     // Validate the file or directory's existence.
-    pszPath = Tcl_GetTString(objv[i]);
-    dwAttribs = GetFileAttributes(pszPath);
-    if (dwAttribs == INVALID_FILE_ATTRIBUTES) {
+    FilePath = Tcl_GetTString(objv[i]);
+    FileAttributes = GetFileAttributes(FilePath);
+    if (FileAttributes == INVALID_FILE_ATTRIBUTES) {
         Tcl_SetStringObj(Tcl_GetObjResult(interp), "unable to touch item: no such file or directory", -1);
         return TCL_ERROR;
     }
 
     if (objc == 2) {
-        if (Tcl_GetLongFromObj(interp, objv[i+1], (ULONG*)&ulClockVal) != TCL_OK) {
+        if (Tcl_GetLongFromObj(interp, objv[i+1], (ULONG*)&ClockVal) != TCL_OK) {
             return TCL_ERROR;
         }
-        PosixEpochToFileTime((ULONG)ulClockVal, &ftTouch);
+        PosixEpochToFileTime((ULONG)ClockVal, &TouchTime);
     } else {
-        GetSystemTimeAsFileTime(&ftTouch);
+        GetSystemTimeAsFileTime(&TouchTime);
     }
 
     // If no file times are specified, then all times are implied.
-    if (!(wOptions & TOUCH_FLAG_ATIME) && !(wOptions & TOUCH_FLAG_CTIME) && !(wOptions & TOUCH_FLAG_MTIME)) {
-        wOptions |= (TOUCH_FLAG_ATIME | TOUCH_FLAG_CTIME | TOUCH_FLAG_MTIME);
+    if (!(Options & TOUCH_FLAG_ATIME) && !(Options & TOUCH_FLAG_CTIME) && !(Options & TOUCH_FLAG_MTIME)) {
+        Options |= (TOUCH_FLAG_ATIME | TOUCH_FLAG_CTIME | TOUCH_FLAG_MTIME);
     }
 
-    if ((dwAttribs & FILE_ATTRIBUTE_DIRECTORY) && !(dwAttribs & FILE_ATTRIBUTE_REPARSE_POINT) && (wOptions & TOUCH_FLAG_RECURSE)) {
-        bRetVal = RecursiveTouch(pszPath, &ftTouch, wOptions);
+    if ((FileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !(FileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) && (Options & TOUCH_FLAG_RECURSE)) {
+        ReturnValue = RecursiveTouch(FilePath, &TouchTime, Options);
     } else {
         // Add the ISDIR flag if we're touching a directory non-recusively.
-        if (dwAttribs & FILE_ATTRIBUTE_DIRECTORY) {
-            wOptions |= TOUCH_FLAG_ISDIR;
+        if (FileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+            Options |= TOUCH_FLAG_ISDIR;
         }
-        bRetVal = TouchTime(pszPath, &ftTouch, wOptions);
+        ReturnValue = TouchFile(FilePath, &TouchTime, Options);
     }
 
-    Tcl_SetIntObj(Tcl_GetObjResult(interp), bRetVal);
+    Tcl_SetIntObj(Tcl_GetObjResult(interp), ReturnValue);
 
     return TCL_OK;
 }

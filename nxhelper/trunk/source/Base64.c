@@ -1,121 +1,124 @@
 #include <nxHelper.h>
 
-static const CHAR s_chBase64EncodingTable[64] = {
+static const CHAR Base64EncodingTable[64] = {
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q',
     'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
     'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y',
     'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'
 };
 
-static INT Base64EncodeBufferSize(INT nSrcLen)
+static LONG Base64EncodeBufferSize(LONG SourceLen)
 {
-    INT nRet, nOnLastLine;
+    LONG Length;
+    LONG OnLastLine;
 
-    nRet = (nSrcLen*4/3) + (nSrcLen % 3);
-    nOnLastLine = nRet % 76;
+    Length = (SourceLen*4/3) + (SourceLen % 3);
+    OnLastLine = Length % 76;
 
-    if (nOnLastLine && nOnLastLine % 4) {
-        nRet += 4-(nOnLastLine % 4);
+    if (OnLastLine && OnLastLine % 4) {
+        Length += 4-(OnLastLine % 4);
     }
 
-    return nRet;
+    return Length;
 }
 
-static INT Base64Encode(const BYTE *pbSrcData, INT nSrcLen, LPSTR szDest, INT *pnDestLen)
+static LONG Base64Encode(PBYTE SourceData, LONG SourceLen, PCHAR Dest, PLONG DestLen)
 {
-    DWORD dwCurr;
-    INT nLen1 = (nSrcLen/3)*4;
-    INT nLen2 = nLen1/76;
-    INT nLen3 = 19;
-    INT nWritten = 0;
-    INT i, j, k, n;
+    ULONG Current;
+    LONG Len1 = (SourceLen/3)*4;
+    LONG Len2 = Len1/76;
+    LONG Len3 = 19;
+    LONG Written = 0;
+    LONG i, j, k, n;
 
-    if (!pbSrcData || !szDest || !pnDestLen) {
+    if (!SourceData || !Dest || !DestLen) {
         return BASE64_BADPARAM;
     }
 
-    for (i = 0; i <= nLen2; i++) {
-        if (i==nLen2) {
-            nLen3 = (nLen1%76)/4;
+    for (i = 0; i <= Len2; i++) {
+        if (i == Len2) {
+            Len3 = (Len1%76)/4;
         }
 
-        for (j = 0; j < nLen3; j++) {
-            dwCurr = 0;
+        for (j = 0; j < Len3; j++) {
+            Current = 0;
             for (n = 0; n < 3; n++) {
-                dwCurr |= *pbSrcData++;
-                dwCurr <<= 8;
+                Current |= *SourceData++;
+                Current <<= 8;
             }
             for (k = 0; k < 4; k++) {
-                BYTE b = (BYTE)(dwCurr>>26);
-                *szDest++ = s_chBase64EncodingTable[b];
-                dwCurr <<= 6;
+                BYTE b = (BYTE)(Current>>26);
+                *Dest++ = Base64EncodingTable[b];
+                Current <<= 6;
             }
         }
-        nWritten += nLen3*4;
+        Written += Len3*4;
     }
 
-    nLen2 = nSrcLen%3 ? nSrcLen%3 + 1 : 0;
-    if (nLen2) {
+    Len2 = SourceLen%3 ? SourceLen%3 + 1 : 0;
+    if (Len2) {
         BYTE b;
-        dwCurr = 0;
+        Current = 0;
 
         for (n = 0; n < 3; n++) {
-            if (n<(nSrcLen%3)) {
-                dwCurr |= *pbSrcData++;
+            if (n<(SourceLen%3)) {
+                Current |= *SourceData++;
             }
-            dwCurr <<= 8;
+            Current <<= 8;
         }
-        for (k = 0; k < nLen2; k++) {
-            b = (BYTE)(dwCurr>>26);
-            *szDest++ = s_chBase64EncodingTable[b];
-            dwCurr <<= 6;
+        for (k = 0; k < Len2; k++) {
+            b = (BYTE)(Current>>26);
+            *Dest++ = Base64EncodingTable[b];
+            Current <<= 6;
         }
-        nWritten += nLen2;
+        Written += Len2;
 
-        nLen3 = nLen2 ? 4-nLen2 : 0;
-        for (j = 0; j < nLen3; j++) {
-            *szDest++ = '=';
+        Len3 = Len2 ? 4-Len2 : 0;
+        for (j = 0; j < Len3; j++) {
+            *Dest++ = '=';
         }
-        nWritten += nLen3;
+        Written += Len3;
     }
 
-    *pnDestLen = nWritten;
+    *DestLen = Written;
     return BASE64_SUCCESS;
 }
 
-static INT Base64DecodeBufferSize(INT nSrcLen)
+static LONG Base64DecodeBufferSize(LONG SourceLen)
 {
-    return nSrcLen;
+    return SourceLen;
 }
 
-__inline INT Base64DecodeChar(UINT ch)
+__inline LONG Base64DecodeChar(ULONG Char)
 {
     // returns -1 if the character is invalid
     // or should be skipped
     // otherwise, returns the 6-bit code for the character
     // from the encoding table
-    if (ch >= 'A' && ch <= 'Z')
-        return ch - 'A' + 0;    // 0 range starts at 'A'
-    if (ch >= 'a' && ch <= 'z')
-        return ch - 'a' + 26;   // 26 range starts at 'a'
-    if (ch >= '0' && ch <= '9')
-        return ch - '0' + 52;   // 52 range starts at '0'
-    if (ch == '+')
+    if (Char >= 'A' && Char <= 'Z')
+        return Char - 'A' + 0;    // 0 range starts at 'A'
+    if (Char >= 'a' && Char <= 'z')
+        return Char - 'a' + 26;   // 26 range starts at 'a'
+    if (Char >= '0' && Char <= '9')
+        return Char - '0' + 52;   // 52 range starts at '0'
+    if (Char == '+')
         return 62;
-    if (ch == '/')
+    if (Char == '/')
         return 63;
     return -1;
 }
 
-static INT Base64Decode(LPCSTR szSrc, INT nSrcLen, BYTE *pbDest, INT *pnDestLen)
+static LONG Base64Decode(PCHAR SourceData, LONG SourceLen, PBYTE Dest, PLONG DestLen)
 {
-    BOOL bOverflow = (pbDest == NULL) ? TRUE : FALSE;
-    DWORD dwCurr;
-    INT nBits, nCh, i;
-    INT nWritten = 0;
-    LPCSTR szSrcEnd = szSrc + nSrcLen;
+    BOOL Overflow = (Dest == NULL) ? TRUE : FALSE;
+    LONG Bits;
+    LONG Char;
+    LONG i;
+    LONG Written = 0;
+    PCHAR SourceDataEnd = SourceData + SourceLen;
+    ULONG Current;
 
-    if (szSrc == NULL || pnDestLen == NULL) {
+    if (SourceData == NULL || DestLen == NULL) {
         return BASE64_BADPARAM;
     }
 
@@ -124,47 +127,47 @@ static INT Base64Decode(LPCSTR szSrc, INT nSrcLen, BYTE *pbDest, INT *pnDestLen)
     // CRLFs and =, and any characters not in the encoding table
     // are skipped
 
-    while (szSrc < szSrcEnd) {
-        dwCurr = 0;
-        nBits = 0;
+    while (SourceData < SourceDataEnd) {
+        Current = 0;
+        Bits = 0;
 
         for (i = 0; i < 4; i++) {
-            if (szSrc >= szSrcEnd) {
+            if (SourceData >= SourceDataEnd) {
                 break;
             }
 
-            nCh = Base64DecodeChar(*szSrc);
-            szSrc++;
-            if (nCh == -1) {
+            Char = Base64DecodeChar(*SourceData);
+            SourceData++;
+            if (Char == -1) {
                 // skip this char
                 i--;
                 continue;
             }
-            dwCurr <<= 6;
-            dwCurr |= nCh;
-            nBits += 6;
+            Current <<= 6;
+            Current |= Char;
+            Bits += 6;
         }
 
-        if (!bOverflow && nWritten + (nBits/8) > (*pnDestLen)) {
-            bOverflow = TRUE;
+        if (!Overflow && Written + (Bits/8) > (*DestLen)) {
+            Overflow = TRUE;
         }
 
-        // dwCurr has the 3 bytes to write to the output buffer
+        // Current has the 3 bytes to write to the output buffer
         // left to right
-        dwCurr <<= 24-nBits;
-        for (i = 0; i < nBits/8; i++) {
-            if (!bOverflow) {
-                *pbDest = (BYTE) ((dwCurr & 0x00ff0000) >> 16);
-                pbDest++;
+        Current <<= 24-Bits;
+        for (i = 0; i < Bits/8; i++) {
+            if (!Overflow) {
+                *Dest = (BYTE) ((Current & 0x00ff0000) >> 16);
+                Dest++;
             }
-            dwCurr <<= 8;
-            nWritten++;
+            Current <<= 8;
+            Written++;
         }
     }
 
-    *pnDestLen = nWritten;
+    *DestLen = Written;
 
-    if (bOverflow) {
+    if (Overflow) {
         return BASE64_OVERFLOW;
     }
 
@@ -173,9 +176,11 @@ static INT Base64Decode(LPCSTR szSrc, INT nSrcLen, BYTE *pbDest, INT *pnDestLen)
 
 INT TclDecodeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST objv[])
 {
-    INT nDestLen, nSrcLen, nError;
-    BYTE *pbDest;
-    CHAR *szSrc;
+    LONG DestLen;
+    LONG ErrorNum;
+    LONG SourceLen;
+    PBYTE Dest;
+    PCHAR SourceData;
 
     if (objc != 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "string");
@@ -183,30 +188,33 @@ INT TclDecodeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST 
     }
 
     // Retrieve the data
-    szSrc = Tcl_GetStringFromObj(objv[1], &nSrcLen);
+    SourceData = Tcl_GetStringFromObj(objv[1], &SourceLen);
 
     // Create and allocation a destination object
-    nDestLen = Base64DecodeBufferSize(nSrcLen);
-    if (!(pbDest = Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), nDestLen))) {
+    DestLen = Base64DecodeBufferSize(SourceLen);
+    if (!(Dest = Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), DestLen))) {
         TclBase64Error(interp, "unable to decode data: ", BASE64_NOMEM);
         return TCL_ERROR;
     }
 
     // Decode the buffer
-    if ((nError = Base64Decode(szSrc, nSrcLen, pbDest, &nDestLen)) != BASE64_SUCCESS) {
-        TclBase64Error(interp, "unable to decode data: ", nError);
+    if ((ErrorNum = Base64Decode(SourceData, SourceLen, Dest, &DestLen)) != BASE64_SUCCESS) {
+        TclBase64Error(interp, "unable to decode data: ", ErrorNum);
         return TCL_ERROR;
     }
 
     // Set result object to actual length of decoded data
-    Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), nDestLen);
+    Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), DestLen);
     return TCL_OK;
 }
 
 INT TclEncodeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST objv[])
 {
-    INT nDestLen, nSrcLen, nError;
-    BYTE *pbDest, *pbSrc;
+    LONG DestLen;
+    LONG ErrorNum;
+    LONG SourceLen;
+    PBYTE Dest;
+    PBYTE SourceData;
 
     if (objc != 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "data");
@@ -214,38 +222,38 @@ INT TclEncodeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST 
     }
 
     // Retrieve the data
-    pbSrc = Tcl_GetByteArrayFromObj(objv[1], &nSrcLen);
+    SourceData = Tcl_GetByteArrayFromObj(objv[1], &SourceLen);
 
     // Create and allocation a destination object
-    nDestLen = Base64EncodeBufferSize(nSrcLen);
-    if (!(pbDest = Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), nDestLen))) {
+    DestLen = Base64EncodeBufferSize(SourceLen);
+    if (!(Dest = Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), DestLen))) {
         TclBase64Error(interp, "unable to encode data: ", BASE64_NOMEM);
         return TCL_ERROR;
     }
 
     // Encode the buffer
-    if ((nError = Base64Encode(pbSrc, nSrcLen, pbDest, &nDestLen)) != BASE64_SUCCESS) {
-        TclBase64Error(interp, "unable to encode data: ", nError);
+    if ((ErrorNum = Base64Encode(SourceData, SourceLen, Dest, &DestLen)) != BASE64_SUCCESS) {
+        TclBase64Error(interp, "unable to encode data: ", ErrorNum);
         return TCL_ERROR;
     }
 
     // Set result object to actual length of encoded data
-    Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), nDestLen);
+    Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), DestLen);
     return TCL_OK;
 }
 
-static VOID TclBase64Error(Tcl_Interp *interp, LPCSTR szMsg, INT nError)
+static VOID TclBase64Error(Tcl_Interp *interp, PCHAR Message, LONG ErrorNum)
 {
-    CHAR *pszError;
+    PCHAR Error;
 
-    switch (nError) {
-        case BASE64_SUCCESS : pszError = "no error"           ; break;
-        case BASE64_BADPARAM: pszError = "invalid parameter"  ; break;
-        case BASE64_NOMEM   : pszError = "insufficient memory"; break;
-        case BASE64_OVERFLOW: pszError = "buffer overflow"    ; break;
-        default             : pszError = "unknown error"      ;
+    switch (ErrorNum) {
+        case BASE64_SUCCESS : Error = "no error"           ; break;
+        case BASE64_BADPARAM: Error = "invalid parameter"  ; break;
+        case BASE64_NOMEM   : Error = "insufficient memory"; break;
+        case BASE64_OVERFLOW: Error = "buffer overflow"    ; break;
+        default             : Error = "unknown error"      ;
     }
 
     Tcl_ResetResult(interp);
-    Tcl_AppendStringsToObj(Tcl_GetObjResult(interp), szMsg, pszError, NULL);
+    Tcl_AppendStringsToObj(Tcl_GetObjResult(interp), Message, Error, NULL);
 }

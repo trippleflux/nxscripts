@@ -1,5 +1,5 @@
 Microsoft Visual Studio Solution File, Format Version 8.00
-Project("{EAF909A5-FA59-4C3D-9431-0FCC20D5BCF9}") = "nxHelper", "nxHelper.icproj", "{2F82DA68-0232-44F1-9230-67DDCBF72950}"
+Project("{EAF909A5-FA59-4C3D-9431-0FCC20D5BCF9}") = "nxHelper", "nxhelper.icproj", "{E6309477-04DE-4A3C-87C4-728125220E9E}"
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
@@ -12,20 +12,15 @@ Global
 		Release = Release
 	EndGlobalSection
 	GlobalSection(ProjectConfiguration) = postSolution
-		{2F82DA68-0232-44F1-9230-67DDCBF72950}.Debug.ActiveCfg = Debug|Win32
-		{2F82DA68-0232-44F1-9230-67DDCBF72950}.Debug.Build.0 = Debug|Win32
-		{2F82DA68-0232-44F1-9230-67DDCBF72950}.Release.ActiveCfg = Release|Win32
-		{2F82DA68-0232-44F1-9230-67DDCBF72950}.Release.Build.0 = Release|Win32
-		{F427E8BD-5964-41ED-836E-BE0B36F6B7E6}.Release.Build.0 = Release|Win32
-		{F427E8BD-5964-41ED-836E-BE0B36F6B7E6}.Release.ActiveCfg = Release|Win32
-		{F427E8BD-5964-41ED-836E-BE0B36F6B7E6}.Debug.Build.0 = Debug|Win32
+		{E6309477-04DE-4A3C-87C4-728125220E9E}.Debug.ActiveCfg = Debug|Win32
+		{E6309477-04DE-4A3C-87C4-728125220E9E}.Debug.Build.0 = Debug|Win32
+		{E6309477-04DE-4A3C-87C4-728125220E9E}.Release.ActiveCfg = Release|Win32
+		{E6309477-04DE-4A3C-87C4-728125220E9E}.Release.Build.0 = Release|Win32
 		{F427E8BD-5964-41ED-836E-BE0B36F6B7E6}.Debug.ActiveCfg = Debug|Win32
+		{F427E8BD-5964-41ED-836E-BE0B36F6B7E6}.Release.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection
 	GlobalSection(ExtensibilityAddIns) = postSolution
-	EndGlobalSection
-	GlobalSection(DPFSFaultSetInformation) = preSolution
-		DPFSFaultSetInformation = <FaultSetDataset xmlns="urn:xmlns:compuware-com/DevPartner/FaultSimulator/DataAccess" />
 	EndGlobalSection
 EndGlobal

@@ -73,13 +73,14 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="3"
+				Optimization="2"
+				GlobalOptimizations="TRUE"
 				InlineFunctionExpansion="1"
 				EnableIntrinsicFunctions="TRUE"
 				FavorSizeOrSpeed="2"
 				AdditionalIncludeDirectories=".\source;.\zlib;D:\Development\Tcl\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;NXHELPER_EXPORTS"
-				ExceptionHandling="TRUE"
+				ExceptionHandling="FALSE"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="FALSE"
 				UsePrecompiledHeader="0"
@@ -136,6 +137,9 @@
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
 			<File
+				RelativePath=".\source\MP3Info.c">
+			</File>
+			<File
 				RelativePath=".\source\nxHelper.c">
 			</File>
 			<Filter
@@ -170,6 +174,9 @@
 			</File>
 			<File
 				RelativePath=".\source\Macros.h">
+			</File>
+			<File
+				RelativePath=".\source\MP3Info.h">
 			</File>
 			<File
 				RelativePath=".\source\nxHelper.h">

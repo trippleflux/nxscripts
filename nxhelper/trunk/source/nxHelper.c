@@ -23,11 +23,11 @@ INT Nxhelper_Init(Tcl_Interp *interp)
      *  - If an internal or system error occurs, an error is thrown.
      *
      * ::nx::deflate [-level 0-9] data
-     *  - Compresses "data" using zLlib's deflate() function.
+     *  - Compresses "data" using zLib's deflate() function.
      *  - If an internal or system error occurs, an error is thrown.
      *
      * ::nx::inflate [-size integer] data
-     *  - Decompresses "data" using zLlib's inflate() function.
+     *  - Decompresses "data" using zLib's inflate() function.
      *  - If an internal or system error occurs, an error is thrown.
      *
      * ::nx::mp3 file varName
@@ -36,19 +36,23 @@ INT Nxhelper_Init(Tcl_Interp *interp)
      *  - Returns 1 if successful, and 0 otherwise.
      *
      *  - Array Contents:
-     *    album     -
-     *    artist    -
-     *    title     -
-     *    track     -
-     *    genre     -
-     *    year      -
-     *    comment   -
-     *    bitrate   -
-     *    frequency -
-     *    layer     -
-     *    version   -
-     *    mode      -
-     *    length    -
+     *    album     - Title of the recording
+     *    artist    - Artist or author's name
+     *    comment   - File comment
+     *    genre     - Genre or type of music
+     *    title     - Song title
+     *    track     - Track number (1.1 only)
+     *    year      - Release year
+     *    id3       - ID3 tag version
+     *
+     *    bitrate   - Average audio bitrate, in Kbit/s
+     *    frames    - Number of frames
+     *    frequency - Audio frequency
+     *    layer     - MPEG audio layer
+     *    length    - Audio length, in seconds
+     *    mode      - Stereo mode
+     *    type      - Type of audio, CBR or VBR
+     *    version   - MPEG version
      *
      * ::nx::time dst
      *  - Returns 1 if daylight savings time is currently in affect, and 0 if not.

@@ -6,14 +6,14 @@
 #define BASE64_NOMEM        3
 #define BASE64_OVERFLOW     4
 
-static INT Base64EncodeBufferSize(INT nSrcLen);
-static INT Base64Encode(const BYTE *pbSrcData, INT nSrcLen, LPSTR szDest, INT *pnDestLen);
-static INT Base64DecodeBufferSize(INT nSrcLen);
-__inline INT Base64DecodeChar(UINT ch);
-static INT Base64Decode(LPCSTR szSrc, INT nSrcLen, BYTE *pbDest, INT *pnDestLen);
+static LONG Base64EncodeBufferSize(LONG SourceLen);
+static LONG Base64Encode(PBYTE SourceData, LONG SourceLen, PCHAR Dest, PLONG DestLen);
+static LONG Base64DecodeBufferSize(LONG SourceLen);
+__inline LONG Base64DecodeChar(ULONG ch);
+static LONG Base64Decode(PCHAR SourceData, LONG SourceLen, PBYTE Dest, PLONG DestLen);
 
 INT TclDecodeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST objv[]);
 INT TclEncodeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST objv[]);
-static VOID TclBase64Error(Tcl_Interp *interp, LPCSTR szMsg, INT nError);
+static VOID TclBase64Error(Tcl_Interp *interp, PCHAR Message, LONG ErrorNum);
 
 #endif // __BASE64_H__

@@ -26,10 +26,11 @@
 
 // Safe string functions
 //#define STRSAFE_LIB
-//#define STRSAFE_NO_CB_FUNCTIONS
-//#include <StrSafe.h>
+#define STRSAFE_NO_CB_FUNCTIONS
+#include <StrSafe.h>
 
 // Library includes
+#include <MP3Info.h>
 #define USE_TCL_STUBS
 #include <Tcl.h>
 #include <Zlib.h>
