@@ -18,10 +18,10 @@ if {[catch {load tclsqlite3.dll Tclsqlite3} ErrorMsg]} {
 
 # Table Formats
 ######################################################################
-unset -nocomplain dbformat dbversion
+unset -nocomplain dbschema dbsyntax
 
-set dbversion(Approves) 0
-set dbformat(Approves) {
+set dbschema(Approves) 0
+set dbsyntax(Approves) {
 Approves {CREATE TABLE Approves(
 TimeStamp INTEGER default 0,
 UserName  TEXT default '',
@@ -29,8 +29,8 @@ GroupName TEXT default '',
 Release   TEXT default '')}
 }
 
-set dbversion(DupeDirs) 0
-set dbformat(DupeDirs) {
+set dbschema(DupeDirs) 0
+set dbsyntax(DupeDirs) {
 DupeDirs {CREATE TABLE DupeDirs(
 TimeStamp INTEGER default 0,
 UserName  TEXT default '',
@@ -39,8 +39,8 @@ DirPath   TEXT default '',
 DirName   TEXT default '')}
 }
 
-set dbversion(DupeFiles) 0
-set dbformat(DupeFiles) {
+set dbschema(DupeFiles) 0
+set dbsyntax(DupeFiles) {
 DupeFiles {CREATE TABLE DupeFiles(
 TimeStamp INTEGER default 0,
 UserName  TEXT default '',
@@ -48,16 +48,16 @@ GroupName TEXT default '',
 FileName  TEXT default '')}
 }
 
-set dbversion(Links) 0
-set dbformat(Links) {
+set dbschema(Links) 0
+set dbsyntax(Links) {
 Links {CREATE TABLE Links(
 TimeStamp INTEGER default 0,
 LinkType  INTEGER default 0,
 DirName   TEXT default '')}
 }
 
-set dbversion(Nukes) 1
-set dbformat(Nukes) {
+set dbschema(Nukes) 1
+set dbsyntax(Nukes) {
 Nukes {CREATE TABLE Nukes(
 NukeId    INTEGER PRIMARY KEY AUTOINCREMENT,
 TimeStamp INTEGER default 0,
@@ -79,8 +79,8 @@ Amount    INTEGER default 0,
 UNIQUE    (NukeId,UserName))}
 }
 
-set dbversion(OneLines) 0
-set dbformat(OneLines) {
+set dbschema(OneLines) 0
+set dbsyntax(OneLines) {
 OneLines {CREATE TABLE OneLines(
 TimeStamp INTEGER default 0,
 UserName  TEXT default '',
@@ -88,8 +88,8 @@ GroupName TEXT default '',
 Message   TEXT default '')}
 }
 
-set dbversion(Pres) 0
-set dbformat(Pres) {
+set dbschema(Pres) 0
+set dbsyntax(Pres) {
 Pres {CREATE TABLE Pres(
 TimeStamp INTEGER default 0,
 UserName  TEXT default '',
@@ -100,8 +100,8 @@ Files     INTEGER default 0,
 Size      INTEGER default 0)}
 }
 
-set dbversion(Requests) 1
-set dbformat(Requests) {
+set dbschema(Requests) 1
+set dbsyntax(Requests) {
 Requests {CREATE TABLE Requests(
 TimeStamp INTEGER default 0,
 UserName  TEXT default '',
@@ -115,7 +115,7 @@ Request   TEXT default '')}
 ######################################################################
 
 proc DbCreate {DbList} {
-    global dbformat dbversion misc
+    global dbschema dbsyntax misc
     if {![file exists $misc(DataPath)]} {
         catch {file mkdir $misc(DataPath)}
     }
@@ -130,8 +130,8 @@ proc DbCreate {DbList} {
         }
         set CurrentVer [SqliteDb eval {PRAGMA user_version}]
 
-        if {$CurrentVer != $dbversion($DbName)} {
-            LinePuts "- Invalid schema version (current: v$CurrentVer, required: v$dbversion($DbName))."
+        if {$CurrentVer != $dbschema($DbName)} {
+            LinePuts "- Invalid schema version (current: v$CurrentVer, required: v$dbschema($DbName))."
             SqliteDb close
 
             ## Rename the old database to <current name>.old-v<current version>.
@@ -150,8 +150,8 @@ proc DbCreate {DbList} {
             }
         }
 
-        SqliteDb eval "PRAGMA user_version=$dbversion($DbName)"
-        foreach {TableName TableFormat} $dbformat($DbName) {
+        SqliteDb eval "PRAGMA user_version=$dbschema($DbName)"
+        foreach {TableName TableFormat} $dbsyntax($DbName) {
             if {[SqliteDb eval "SELECT count(*) FROM sqlite_master WHERE name='$TableName' AND type='table'"]} {
                 LinePuts "- Table $TableName: exists."
             } else {
@@ -198,7 +198,7 @@ proc DbOptimize {DbList} {
 ######################################################################
 
 proc DbMain {ArgV} {
-    global dbformat misc
+    global dbschema misc
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     ## Safe argument handling
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
@@ -211,7 +211,7 @@ proc DbMain {ArgV} {
         return 1
     }
     iputs ".-\[DB\]-------------------------------------------------------------------."
-    set DbList [lsort -ascii [array names dbformat]]
+    set DbList [lsort -ascii [array names dbschema]]
     if {$ArgLength > 1} {
         set DbArg [lindex $ArgList 1]
         set ValidName 0
