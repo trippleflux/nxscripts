@@ -150,8 +150,8 @@ INT TclTouchCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST o
     endOfForLoop:
     objc -= i;
     if (objc < 1 || objc > 2) {
-    	Tcl_WrongNumArgs(interp, 1, objv, "?switches? path ?clockVal?");
-    	return TCL_ERROR;
+        Tcl_WrongNumArgs(interp, 1, objv, "?switches? path ?clockVal?");
+        return TCL_ERROR;
     }
 
     // Validate the file or directory's existence.
@@ -187,9 +187,9 @@ INT TclTouchCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST o
     }
 
     // If no file times are specified, then all times are implied.
-	if (!(wOptions & TOUCH_FLAG_ATIME) && !(wOptions & TOUCH_FLAG_CTIME) && !(wOptions & TOUCH_FLAG_MTIME)) {
+    if (!(wOptions & TOUCH_FLAG_ATIME) && !(wOptions & TOUCH_FLAG_CTIME) && !(wOptions & TOUCH_FLAG_MTIME)) {
         wOptions |= (TOUCH_FLAG_ATIME | TOUCH_FLAG_CTIME | TOUCH_FLAG_MTIME);
-	}
+    }
 
     if ((dwAttribs & FILE_ATTRIBUTE_DIRECTORY) && !(dwAttribs & FILE_ATTRIBUTE_REPARSE_POINT) && (wOptions & TOUCH_FLAG_RECURSE)) {
         bRetVal = RecursiveTouch(szPath, &ftTouch, wOptions);

@@ -43,7 +43,7 @@ BOOL GetDiskSpace(LPCTSTR pszRootPath, PUINT64 i64FreeBytes, PUINT64 i64TotalByt
     } else {
         UINT64 i64FreeToCaller;
 
-        bRetVal = pfnGetDiskFreeSpaceEx(pszRootPath, (PULARGE_INTEGER)&i64FreeToCaller, 
+        bRetVal = pfnGetDiskFreeSpaceEx(pszRootPath, (PULARGE_INTEGER)&i64FreeToCaller,
             (PULARGE_INTEGER)&(*i64TotalBytes), (PULARGE_INTEGER)&(*i64FreeBytes));
     }
 

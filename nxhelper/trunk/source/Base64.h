@@ -12,8 +12,8 @@ static INT Base64DecodeBufferSize(INT nSrcLen);
 __inline INT Base64DecodeChar(UINT ch);
 static INT Base64Decode(LPCSTR szSrc, INT nSrcLen, BYTE *pbDest, INT *pnDestLen);
 
-INT  TclDecodeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST objv[]);
-INT  TclEncodeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST objv[]);
+INT TclDecodeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST objv[]);
+INT TclEncodeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST objv[]);
 static VOID TclBase64Error(Tcl_Interp *interp, LPCSTR szMsg, INT nError);
 
 #endif // __BASE64_H__
