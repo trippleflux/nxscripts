@@ -1,0 +1,205 @@
+# nxAutoNuke v1.1.3 (by neoxed)
+###############################################################
+
+nxAutoNuke.itcl     = Internal Nuker (nxTools compatible)
+nxAutoNuke_ioA.itcl = ioA Nuker with ioBanana/dZSbot announcement support
+
+# Information:
+###############################################################
+
+  nxAutoNuke is a fully featured auto-nuker. An auto-nuker allows you
+to enforce strict rules on your FTP sites. Auto-nuke checks include:
+MP3 genres and years; IMDB genres, ratings, and years; maximum CD/DVD/Disk
+rules; empty directories; incomplete releases; banned keywords; and allowed
+groups. You may customize the nuke reasons using the provided cookies.
+
+  Thanks to Harm for ioAUTONUKE, which showed me how I was able to use ioA as
+an external nuker. ioA support is credited towards him. :)
+
+
+# ioA Nuker and dZSbot Installation:
+###############################################################
+
+1. Copy nxAutoNuke_ioA.itcl and nxLib.itcl to x:\ioFTPD\scripts\nxAutoNuke\
+
+2. Add the following to your ioFTPD.ini:
+
+[FTP_Custom_Commands]
+autonuke    = TCL ..\scripts\nxAutoNuke\nxAutoNuke_ioA.itcl
+
+[FTP_SITE_Permissions]
+autonuke    = M1
+
+3. Rehash or restart ioFTPD.
+
+4. Configure the options in nxAutoNuke_ioA.itcl.
+
+5. Add the following to your dZSbot.tcl:
+
+set disable(ANUKEALLOW)   0
+set disable(ANUKEBAN)     0
+set disable(ANUKEDISKS)   0
+set disable(ANUKEEMPTY)   0
+set disable(ANUKEIMDB)    0
+set disable(ANUKEINC)     0
+set disable(ANUKEMP3)     0
+set disable(ANUKETYPE)    0
+
+set variables(ANUKEALLOW) "%pf %banned %age %timeleft %nuketime %multi %uploaders"
+set variables(ANUKEBAN)   "%pf %banned %age %timeleft %nuketime %multi %uploaders"
+set variables(ANUKEDISKS) "%pf %disks %maxdisks %age %timeleft %nuketime %multi %uploaders"
+set variables(ANUKEEMPTY) "%pf %age %timeleft %nuketime %multi %uploaders"
+set variables(ANUKEIMDB)  "%pf %type %banned %age %timeleft %nuketime %multi %uploaders"
+set variables(ANUKEINC)   "%pf %age %timeleft %nuketime %multi %uploaders"
+set variables(ANUKEMP3)   "%pf %type %banned %age %timeleft %nuketime %multi %uploaders"
+set variables(ANUKETYPE)  "%pf %banned %age %timeleft %nuketime %multi %uploaders"
+
+set announce(ANUKEALLOW)  "-%sitename- \[%section\] + %path/%bold%release%bold is not from an allowed group, it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
+set announce(ANUKEBAN)    "-%sitename- \[%section\] + %path/%bold%release%bold is a banned release (%bold%banned%bold), it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
+set announce(ANUKEDISKS)  "-%sitename- \[%section\] + %path/%bold%release%bold has %bold%disks%bold disks, exceeding the maximum of %bold%maxdisks%bold disks, it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
+set announce(ANUKEEMPTY)  "-%sitename- \[%section\] + %path/%bold%release%bold is still empty after %bold%age%boldmins, it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
+set announce(ANUKEIMDB)   "-%sitename- \[%section\] + %path/%bold%release%bold the IMDB %type %bold%banned%bold is banned, it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
+set announce(ANUKEINC)    "-%sitename- \[%section\] + %path/%bold%release%bold has been incomplete for %bold%age%boldmins, it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
+set announce(ANUKEMP3)    "-%sitename- \[%section\] + %path/%bold%release%bold the MP3 %type %bold%banned%bold is banned, it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
+set announce(ANUKETYPE)   "-%sitename- \[%section\] + %path/%bold%release%bold is a banned type (%bold%type%bold), it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
+
+6. Find msgtypes(RACE) in your dZSbot.tcl file, and add the following events:
+
+ANUKEALLOW ANUKEBAN ANUKEDISKS ANUKEEMPTY ANUKEIMDB ANUKEINC ANUKEMP3
+
+Example Line:
+set msgtypes(RACE) "ANUKEALLOW ANUKEBAN ANUKEDISKS ANUKEEMPTY ANUKEIMDB ANUKEINC ANUKEMP3 ..."
+
+7. Rehash or restart Windrop.
+
+
+# ioA Nuker and ioBanana Installation:
+###############################################################
+
+1. Copy nxAutoNuke_ioA.itcl and nxLib.itcl to x:\ioFTPD\scripts\nxAutoNuke\
+
+2. Add the following to your ioFTPD.ini:
+
+[FTP_Custom_Commands]
+autonuke    = TCL ..\scripts\nxAutoNuke\nxAutoNuke_ioA.itcl
+
+[FTP_SITE_Permissions]
+autonuke    = M1
+
+3. Rehash or restart ioFTPD.
+
+4. Configure the options in nxAutoNuke_ioA.itcl.
+
+5. Add the following to your ioBanana.tcl:
+
+set disable(ANUKEALLOW)   0
+set disable(ANUKEBAN)     0
+set disable(ANUKEDISKS)   0
+set disable(ANUKEEMPTY)   0
+set disable(ANUKEIMDB)    0
+set disable(ANUKEINC)     0
+set disable(ANUKEMP3)     0
+set disable(ANUKETYPE)    0
+
+set variables(ANUKEALLOW) "%pf %banned %age %timeleft %nuketime %multi %uploaders"
+set variables(ANUKEBAN)   "%pf %banned %age %timeleft %nuketime %multi %uploaders"
+set variables(ANUKEDISKS) "%pf %disks %maxdisks %age %timeleft %nuketime %multi %uploaders"
+set variables(ANUKEEMPTY) "%pf %age %timeleft %nuketime %multi %uploaders"
+set variables(ANUKEIMDB)  "%pf %type %banned %age %timeleft %nuketime %multi %uploaders"
+set variables(ANUKEINC)   "%pf %age %timeleft %nuketime %multi %uploaders"
+set variables(ANUKEMP3)   "%pf %type %banned %age %timeleft %nuketime %multi %uploaders"
+set variables(ANUKETYPE)  "%pf %type %banned %age %timeleft %nuketime %multi %uploaders"
+
+6. Add the following to your ioBanana skin (i.e. ioB_defaul.skin):
+
+set announce(ANUKEALLOW)  "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] is not from an allowed group, it will be nuked [b]%multi[b]x in [b]%timeleft[b]mins. Uploaders: %uploaders"
+set announce(ANUKEBAN)    "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] is a banned release ([b]%banned[b]), it will be nuked [b]%multi[b]x in [b]%timeleft[b]mins. Uploaders: %uploaders"
+set announce(ANUKEDISKS)  "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] has [b]%disks[b] disks, exceeding the maximum of [b]%maxdisks[b] disks, it will be nuked [b]%multi[b]x in [b]%timeleft[b]mins. Uploaders: %uploaders"
+set announce(ANUKEEMPTY)  "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] is still empty after [b]%age[b]mins, it will be nuked [b]%multi[b]x in [b]%timeleft[b]mins. Uploaders: %uploaders"
+set announce(ANUKEIMDB)   "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] the IMDB %type [b]%banned[b] is banned, it will be nuked [b]%multi[b]x in [b]%timeleft[b]mins. Uploaders: %uploaders"
+set announce(ANUKEINC)    "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] has been incomplete for [b]%age[b]mins, it will be nuked [b]%multi[b]x in [b]%timeleft[b]mins. Uploaders: %uploaders"
+set announce(ANUKEMP3)    "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] the MP3 %type [b]%banned[b] is banned, it will be nuked [b]%multi[b]x in [b]%timeleft[b]mins. Uploaders: %uploaders"
+set announce(ANUKETYPE)   "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] is a banned type (%bold%type%bold), it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
+
+7. Rehash or restart Windrop.
+
+
+# Normal Installation (Internal Nuker):
+###############################################################
+
+1. Copy nxAutoNuke.itcl and nxLib.itcl to x:\ioFTPD\scripts\nxAutoNuke\
+
+2. Add the following to your ioFTPD.ini:
+
+[FTP_Custom_Commands]
+autonuke    = TCL ..\scripts\nxAutoNuke\nxAutoNuke.itcl
+
+[FTP_SITE_Permissions]
+autonuke    = M1
+
+3. Rehash or restart ioFTPD.
+
+4. Configure the nxAutoNuke.itcl options; this installation requires
+   the nxTools configuration file (init.itcl).
+
+
+# Changelog:
+###############################################################
+
+nxAutoNuke v1.1.3 (01-24-2005):
+  NEW: Added the nuke multiplier for warnings (%multi).
+  NEW: Added an option to ban keywords in release names. Similar to the "banned"
+       feature, but more accurate and efficient.
+
+nxAutoNuke v1.1.2 (01-20-2005):
+  FIX: Warnings were broken, small typo on my part.
+
+nxAutoNuke v1.1.1 (01-19-2005):
+  FIX: Whoops! Left some debug code in that nuked any failing release.
+
+nxAutoNuke v1.1.0 (01-19-2005):
+  NEW: Added specific ioBanana installation instructions.
+  NEW: Added uploader list to warnings, please update your sitebot skin and variables.
+  CHG: All violating disk directories (CD/DVD/Disc) are displayed.
+  CHG: Most configuration options have changed in some way.
+  CHG: The BadExt and MissingExt options are matched against the full file name.
+  CHG: The IMDB and MP3 tags are now matched using regular expressions (a lot easier).
+  CHG: Updated the internal nuker to reflect the recent changes made to nxNuke.
+
+nxAutoNuke v1.0.7 (11-20-2004):
+  CHG: Minor changes to disk specific auto-nuke checks.
+  CHG: Warning and nuke times to trigger when the age is equal to or greater.
+  FIX: The default approve tag format was incorrect.
+
+nxAutoNuke v1.0.6 (10-20-2004):
+  FIX: Auto-nuke section was incorrect.
+  FIX: Incomplete file (.missing) checking wasn't working correctly.
+
+nxAutoNuke v1.0.5 (10-10-2004):
+  NEW: Added support for day offsets (for checking previous days etc.).
+  CHG: Changed the sections format to accommodate support for day offsets.
+  CHG: Updated the internal nuker to reflect the recent changes made to nxNuke.
+
+nxAutoNuke v1.0.4 (10-08-2004):
+  CHG: Releases with .bad files are also considered incomplete, in addition to .missing files.
+
+nxAutoNuke v1.0.3 (09-25-2004):
+  NEW: Added support for allowed groups (nuke groups which aren't allowed).
+
+nxAutoNuke v1.0.2 (09-23-2004):
+  NEW: Added an option to exempt approved releases.
+  CHG: The ioA version no longer requires the nxTools configuration file.
+
+nxAutoNuke v1.0.1 (09-22-/2004):
+  NEW: Added support for ioA and dZSbot announces.
+  CHG: Updated installation instructions.
+
+nxAutoNuke v1.0.0 (09-21-2004):
+  CHG: Initial release.
+
+
+# Todo:
+###############################################################
+- RiA release name checks will only be added if someone can provide
+  me with the RiA standards/rules.
+- Real documentation.
