@@ -20,63 +20,87 @@ if {[catch {load tclsqlite3.dll Tclsqlite3} ErrorMsg]} {
 ######################################################################
 
 set dbtable(Approves) {
- TimeStamp INT default '0',
- UserName TEXT default '',
- GroupName TEXT default '',
- Release TEXT default ''}
+CREATE TABLE Approves(
+TimeStamp INTEGER default 0,
+UserName  TEXT default '',
+GroupName TEXT default '',
+Release   TEXT default '')
+}
 
 set dbtable(DupeDirs) {
- TimeStamp INT default '0',
- UserName TEXT default '',
- GroupName TEXT default '',
- DirPath TEXT default '',
- DirName TEXT default ''}
+CREATE TABLE DupeDirs(
+TimeStamp INTEGER default 0,
+UserName  TEXT default '',
+GroupName TEXT default '',
+DirPath   TEXT default '',
+DirName   TEXT default '')
+}
 
 set dbtable(DupeFiles) {
- TimeStamp INT default '0',
- UserName TEXT default '',
- GroupName TEXT default '',
- FileName TEXT default ''}
+CREATE TABLE DupeFiles(
+TimeStamp INTEGER default 0,
+UserName  TEXT default '',
+GroupName TEXT default '',
+FileName  TEXT default '')
+}
 
 set dbtable(Links) {
- TimeStamp INT default '0',
- LinkType INT default '0',
- DirName TEXT default ''}
+CREATE TABLE Links(
+TimeStamp INTEGER default 0,
+LinkType  INTEGER default 0,
+DirName   TEXT default '')
+}
 
 set dbtable(Nukes) {
- TimeStamp INT default '0',
- UserName TEXT default '',
- GroupName TEXT default '',
- Status INT default '0',
- Release TEXT default '',
- Reason TEXT default '',
- Multi INT default '0',
- Files INT default '0',
- Size INT default '0',
- Nukees TEXT default ''}
+CREATE TABLE Nukes(
+NukeID    INTEGER PRIMARY KEY AUTOINCREMENT,
+TimeStamp INTEGER default 0,
+UserName  TEXT default '',
+GroupName TEXT default '',
+Status    INTEGER default 0,
+Release   TEXT default '',
+Reason    TEXT default '',
+Multi     INTEGER default 0,
+Files     INTEGER default 0,
+Size      INTEGER default 0);
+
+CREATE TABLE Users(
+NukeID    INTEGER default 0,
+Status    INTEGER default 0,
+UserName  TEXT default '',
+GroupName TEXT default '',
+Amount    INTEGER default 0,
+UNIQUE    (NukeID,UserName));
+}
 
 set dbtable(OneLines) {
- TimeStamp INT default '0',
- UserName TEXT default '',
- GroupName TEXT default '',
- Message TEXT default ''}
+CREATE TABLE OneLines(
+TimeStamp INTEGER default 0,
+UserName  TEXT default '',
+GroupName TEXT default '',
+Message   TEXT default '')
+}
 
 set dbtable(Pres) {
- TimeStamp INT default '0',
- UserName TEXT default '',
- GroupName TEXT default '',
- Area TEXT default '',
- Release TEXT default '',
- Files INT default '0',
- Size INT default '0'}
+CREATE TABLE Pres(
+TimeStamp INTEGER default 0,
+UserName  TEXT default '',
+GroupName TEXT default '',
+Area      TEXT default '',
+Release   TEXT default '',
+Files     INTEGER default 0,
+Size      INTEGER default 0)
+}
 
 set dbtable(Requests) {
- TimeStamp INT default '0',
- UserName TEXT default '',
- GroupName TEXT default '',
- Status INT default '0',
- RequestID INT default '0',
- Request TEXT default ''}
+CREATE TABLE Requests(
+TimeStamp INTEGER default 0,
+UserName  TEXT default '',
+GroupName TEXT default '',
+Status    INTEGER default 0,
+RequestID INTEGER default 0,
+Request   TEXT default '')
+}
 
 # Database Procedures
 ######################################################################
@@ -96,8 +120,8 @@ proc DbCreate {DbList} {
         if {[SqliteDb eval "SELECT count(*) FROM sqlite_master WHERE name='$DbName' AND type='table'"]} {
             LinePuts "- Table already exists."
         } else {
-            LinePuts "- Creating table."
-            SqliteDb eval "CREATE TABLE ${DbName}($dbtable($DbName))"
+            LinePuts "- Creating table(s)."
+            SqliteDb eval $dbtable($DbName)
         }
         SqliteDb close
     }

@@ -11,7 +11,7 @@ Topics:
   2. Thank You's
   3. Requirements
   4. Installation
-  5. Features
+  5. Commands
   6. Troubleshooting
   7. Technical Notes
   8. Upgrading
@@ -27,8 +27,8 @@ Topics:
 
    nxTools is a fully-featured ioFTPD script. Such features include: a dupe
 checker, nuker, pre script, request script, sitebot, and various other tools
-and stats commands. Written in Tcl, which offers fast processing speed and
-easily customizable output. Here is a summary of some of the many features
+and statistic commands. Written in Tcl, which offers fast processing speed
+and easily customizable output. Here is a summary of some of the many features
 included in nxTools.
 
 Dupe Checker:
@@ -96,7 +96,7 @@ Other Features:
    nxTools should only be installed on Windows NT/2000/XP/2003 any other
 operating system is unsupported. This script was tested on v5.8.5r so I cannot
 guarantee it will work on any other versions of ioFTPD. nxTools is updated
-frequently, so be sure you're always using the latest version.
+frequently, so be sure you are always using the latest version.
 
 
 ##############################################################################
@@ -108,7 +108,7 @@ frequently, so be sure you're always using the latest version.
  2. Configure the "init.itcl" file to your liking. The explanations for each
     option are commented within the "init.itcl" file.
 
-    If you're using the pre script, you may want to look at the 'nxPre.cfg' file
+    If you are using the pre script, you may want to look at the 'nxPre.cfg' file
     located in the 'nxTools' directory. Alternatively, you may use the editpre
     function to setup areas, groups, etc. for help on this try SITE EDITPRE HELP.
 
@@ -148,6 +148,7 @@ editinv     = TCL ..\scripts\nxTools\nxInvite.itcl edit
 invite      = TCL ..\scripts\nxTools\nxInvite.itcl invite
 nuke        = TCL ..\scripts\nxTools\nxNuke.itcl nuke
 nukes       = TCL ..\scripts\nxTools\nxNuke.itcl nukes
+nuketop     = TCL ..\scripts\nxTools\nxNuke.itcl nuketop
 unnuke      = TCL ..\scripts\nxTools\nxNuke.itcl unnuke
 unnukes     = TCL ..\scripts\nxTools\nxNuke.itcl unnukes
 editpre     = TCL ..\scripts\nxTools\nxPre.itcl edit
@@ -194,6 +195,7 @@ new         = !A *
 newdate     = M1V
 nuke        = N
 nukes       = !A *
+nuketop     = !A *
 onel        = !A *
 open        = M1
 pre         = !A *
@@ -375,7 +377,7 @@ set announce(WIPE)          "-%sitename- \[%section\] + %bold%user%bold@%group w
 
 
 ##############################################################################
-# 5. Features                                                                #
+# 5. Commands                                                                #
 ##############################################################################
 
 Legend:
@@ -395,7 +397,7 @@ Legend:
 - SITE BOT <args>
     Description:
      - Used specifically by the sitebot to retrieve information.
-     - Allows the sitebot to verify a user's login, view who's online, and display stats.
+     - Allows a sitebot to verify a user's login, view online users, and display upload statistics.
      - The hidden users, groups, and paths defined in the configuration file are not shown.
      - Do not give users or siteops access to this command; it would be a security risk.
     Examples:
@@ -476,7 +478,7 @@ Legend:
     Description:
      - Display information about a group and the users within it.
      - The credit section parameter can be specified to show the ratios and
-       stats for a specific section.
+       statistics for a specific section.
     Examples:
      - SITE GINFO thegroup
      - SITE GINFO thegroup 4
@@ -532,7 +534,7 @@ Legend:
 
 - SITE NUKES [-max <limit>] [release]
     Description:
-     - Display the latest nuked directories, along with their age and nuker.
+     - Displays the latest nuked directories, along with their age and nuker.
      - The default number of results is 10, unless the -max parameter is specified.
      - The -max parameter can be specified to increase or decrease results if needed.
     Examples:
@@ -540,6 +542,17 @@ Legend:
      - SITE NUKES -max 15
      - SITE NUKES *something*
      - SITE NUKES -max 15 *something*
+
+- SITE NUKETOP [-max <limit>] [group]
+    Description:
+     - Displays all users who receive the most nukes, or users in the specified group.
+     - The default number of results is 10, unless the -max parameter is specified.
+     - The -max parameter can be specified to increase or decrease results if needed.
+    Examples:
+     - SITE NUKETOP
+     - SITE NUKETOP -max 15
+     - SITE NUKETOP iND
+     - SITE NUKETOP -max 15 iND
 
 - SITE ONEL [message]
     Description:
@@ -559,7 +572,7 @@ Legend:
     Description:
      - Pre the specified directory to the specified area.
      - To view the latest pres, use "history" as the target area.
-     - To view pre stats, use "stats" as the target area.
+     - To view pre statistic, use "stats" as the target area.
     Examples:
      - SITE PRE HISTORY
      - SITE PRE STATS
@@ -632,15 +645,15 @@ Legend:
 
 - SITE RULES [section]
     Description:
-     - Display site rules, if no section is specified all rules are shown.
+     - Displays the site rules, if no section is specified all rules are shown.
     Examples:
      - SITE RULES
      - SITE RULES APPS
 
 - SITE SIZE <directory>
     Description:
-     - Display stats of a specified directory.
-     - The stats include the number of files, directories, and the total size.
+     - Displays the number of files, directories, and the total size of the
+       specified directory.
     Examples:
      - SITE SIZE Something.Cool-NX
 
@@ -657,8 +670,8 @@ Legend:
 
 - SITE TRAFFIC [username/=group]
     Description:
-     - Display traffic stats of a specific user, group of users, or all users.
-     - With no parameter, all users are shown.
+     - Displays traffic statistic of a specific user, group of users, or all users.
+     - If no parameter is specified, all users are shown.
     Examples:
      - SITE TRAFFIC
      - SITE TRAFFIC someuser
@@ -710,8 +723,8 @@ Legend:
 
 - SITE WHO
     Description:
-     - Display information about who's online.
-     - The hidden users, groups and paths are not shown, unless you're a siteop.
+     - Displays information about who's online.
+     - Hidden users, groups, and paths are only shown to siteops.
     Examples:
      - SITE WHO
 
@@ -833,6 +846,9 @@ Text Templates:
 # 8. Upgrading                                                               #
 ##############################################################################
 
+0.9.8 -> 0.9.9 - Replace all .itcl files located in /scripts/nxTools/.
+               - Delete your nukes database (nxTools/data/Nukes.db) and recreate it.
+
 0.9.7 -> 0.9.8 - Replace all .itcl files located in /scripts/nxTools/.
                - Download an updated nxTools-Libraries package.
                - Removed config options: misc(DST_Correct), misc(TimeZone),
@@ -891,7 +907,10 @@ Text Templates:
 ##############################################################################
 
 nxTools v0.9.9 (XX-XX-2005):
+  NEW: SITE NUKETOP [-max <limit>] [group] to view the top-nuked users.
   CHG: Directory tags are now safely removed.
+  CHG: Redesigned the nukes database; nukees are now stored in a separate table.
+  CHG: The original nuke database record is updated when releases are unnuke and re-nuked.
 
 nxTools v0.9.8 (03-23-2005):
   NEW: SITE DRIVES to view fixed and network drives.
@@ -1037,7 +1056,7 @@ nxTools v0.8.1 (07-25-2004):
   FIX: Forgot to check if the nuke multiplier was negative, in which case nukees would gain credits.
 
 nxTools v0.8.0 (07-25-2004):
-  NEW: File support for SITE SIZE and SITE WIPE, you're now able to size and wipe files.
+  NEW: File support for SITE SIZE and SITE WIPE, you are now able to size and wipe files.
   NEW: SITE EDITINV <option> [value] to remotely edit channels and rights for invite targets.
   NEW: SITE PRE HISTORY [limit] to view the latest pres.
   NEW: SITE BOT STATS <stats> =<group> [stats section] for group stats.

@@ -124,246 +124,329 @@ proc NukeMain {ArgV} {
     ## Safe argument handling
     set ArgList [ArgList $ArgV]
     set Action [string tolower [lindex $ArgList 0]]
-    if {[string equal "nuke" $Action] || [string equal "unnuke" $Action]} {
-        if {[string equal "nuke" $Action]} {
-            iputs ".-\[Nuke\]-----------------------------------------------------------------."
-            foreach {tmp Target Multi Reason} $ArgV {break}
-            if {[llength $ArgList] < 4 || ![string is digit -strict $Multi]} {
-                ErrorReturn "Syntax: SITE NUKE <directory> <multiplier> <reason>"
+    switch -- $Action {
+        {nuke} - {unnuke} {
+            if {[string equal "nuke" $Action]} {
+                iputs ".-\[Nuke\]-----------------------------------------------------------------."
+                foreach {Tmp Target Multi Reason} $ArgV {break}
+                if {[llength $ArgList] < 4 || ![string is digit -strict $Multi]} {
+                    ErrorReturn "Syntax: SITE NUKE <directory> <multiplier> <reason>"
+                }
+                if {$Multi > $nuke(MultiMax)} {
+                    ErrorReturn "The specified multiplier is to large, the max is $nuke(MultiMax)\x."
+                }
+                set IsNuke 1
+            } elseif {[string equal "unnuke" $Action]} {
+                iputs ".-\[UnNuke\]---------------------------------------------------------------."
+                foreach {Tmp Target Reason} $ArgV {break}
+                if {[llength $ArgList] < 3} {ErrorReturn "Syntax: SITE UNNUKE <directory> <reason>"}
+                set IsNuke 0
             }
             set VirtualPath [GetPath $pwd $Target]
             set RealPath [resolve pwd $VirtualPath]
-            set IsNuke 1
-
             if {![file isdirectory $RealPath]} {
                 ErrorReturn "The specified directory does not exist."
-            } elseif {$Multi > $nuke(MultiMax)} {
-                ErrorReturn "The specified multiplier is to large, the max is $nuke(MultiMax)\x."
             }
-        } elseif {[string equal "unnuke" $Action]} {
-            iputs ".-\[UnNuke\]---------------------------------------------------------------."
-            foreach {tmp Target Reason} $ArgV {break}
-            if {[llength $ArgList] < 3} {ErrorReturn "Syntax: SITE UNNUKE <directory> <reason>"}
-            set VirtualPath [GetPath $pwd $Target]
-            set RealPath [resolve pwd $VirtualPath]
-            set IsNuke 0
-            if {![file isdirectory $RealPath]} {ErrorReturn "The specified directory does not exist."}
-
-            ## Check for nuke record
-            set Record [split [NukeRecord $RealPath] "|"]
-            if {[string equal "NUKE" [lindex $Record 0]] && [string is digit -strict [lindex $Record 3]]} {
-                set Multi [lindex $Record 3]
-            } else {ErrorReturn "Unable to find the nuke record."}
-        }
-        set MatchPath [string range $VirtualPath 0 [string last "/" $VirtualPath]]
-        if {[ListMatch $nuke(NoPaths) $MatchPath]} {
-            ErrorReturn "Not allowed to nuke from here."
-        }
-        if {$IsNuke && [NukeFindTags $RealPath $approve(DirTag)] != ""} {
-            ErrorReturn "Approved releases cannot be nuked."
-        }
-        set NukeType 0
-        if {[string first $nuke(GroupFlag) $flags] != -1} {
-            ## Find the group suffix in the release name (Something-GRP)
-            if {[set GroupPos [string last "-" [file tail $VirtualPath]]] == -1} {
-                LinePuts "Unable to verify the release's group suffix."
-                ErrorReturn "Does the directory contain \"-<groupname>\" at the end?"
+            set MatchPath [string range $VirtualPath 0 [string last "/" $VirtualPath]]
+            if {[ListMatch $nuke(NoPaths) $MatchPath]} {
+                ErrorReturn "Not allowed to nuke from here."
             }
-            set AllowNuke 0; set NukeType 1
-            set RlsSuffix [string range [file tail $VirtualPath] [incr GroupPos] end]
-            foreach NukeeGroup $groups {
-                if {[string equal $RlsSuffix $NukeeGroup]} {set AllowNuke 1; break}
+            if {$IsNuke && [llength [NukeFindTags $RealPath $approve(DirTag)]]} {
+                ErrorReturn "Approved releases cannot be nuked."
             }
-            if {!$AllowNuke} {ErrorReturn "You are not allowed to nuke other groups."}
-        }
-        set DiskCount 0; set Files 0; set TotalSize 0
-        set TimeStamp [clock seconds]
-        set Reason [StripChars $Reason]
-        set Release [NukeName $VirtualPath]
-        set ParentPath [file dirname $RealPath]
-        ListAssign [GetCreditsAndStats $VirtualPath] CreditSection StatsSection
 
-        ## Count CDs/Discs/DVDs
-        foreach ListItem [glob -nocomplain -types d -directory $RealPath "*"] {
-            if {[IsMultiDisk $ListItem]} {incr DiskCount}
-        }
+            ## Check if there is an available nuke record.
+            set NukeID ""
+            set Record [NukeRecord $RealPath]
+            set RecordSplit [split $Record "|"]
 
-        ## Count files and total size
-        GetDirList $RealPath dirlist ".ioFTPD*"
-        foreach ListItem $dirlist(FileList) {
-            incr Files; set FileSize [file size $ListItem]
-            set TotalSize [expr {wide($TotalSize) + wide($FileSize)}]
-            catch {lindex [vfs read $ListItem] 0} UserID
-            if {[set NukeeUser [resolve uid $UserID]] != ""} {
-                ## Increase file Count
-                if {[info exists nukefiles($NukeeUser)]} {
-                    incr nukefiles($NukeeUser)
-                } else {set nukefiles($NukeeUser) 1}
-
-                ## Add total size
-                if {[info exists nukesize($NukeeUser)]} {
-                    set nukesize($NukeeUser) [expr {wide($nukesize($NukeeUser)) + wide($FileSize)}]
-                } else {set nukesize($NukeeUser) $FileSize}
-            }
-        }
-        set TotalSize [expr {wide($TotalSize) / 1024}]
-
-        ## Check if Release is an empty nuke (less then 5KB)
-        if {$TotalSize < 5 || ![array exists nukesize]} {
-            set NukeType 2
-            unset -nocomplain nukefiles nukesize
-            catch {lindex [vfs read $RealPath] 0} UserID
-            if {[set NukeeUser [resolve uid $UserID]] != ""} {
-                set nukefiles($NukeeUser) 0
-                set nukesize($NukeeUser) [expr {wide($nuke(EmptyNuke)) * 1024 * 1024}]
-            } else {ErrorReturn "Unable to find the directory owner."}
-        }
-        LinePuts "Release : $Release"
-        LinePuts "Multi   : ${Multi}x"
-        LinePuts "Reason  : $Reason"
-        if {$NukeType} {
-            ## 0=Normal, 1=Group, 2=Empty
-            switch -exact -- $NukeType {
-                2 {set TypeMsg "Empty"}
-                1 {set TypeMsg "Group"}
-                default {set TypeMsg "Unknown"}
-            }
-            LinePuts "Type    : $TypeMsg Nuke"
-        }
-        LinePuts "Files   : [format %-16s ${Files}F] Size: [format %-16s [FormatSize $TotalSize]] CDs: $DiskCount"
-        if {$IsNuke} {
-            iputs "|------------------------------------------------------------------------|"
-            iputs "|    User    |   Group    |    Ratio    |  Amount Lost  |  Credits Lost  |"
-            iputs "|------------------------------------------------------------------------|"
-        } else {
-            iputs "|------------------------------------------------------------------------|"
-            iputs "|    User    |   Group    |    Ratio    | Amount Gained | Credits Gained |"
-            iputs "|------------------------------------------------------------------------|"
-        }
-
-        ## Change the credits and stats of nukees
-        set NukeeLog ""
-        foreach NukeeUser [lsort -ascii [array names nukesize]] {
-            set NukeCredits [expr {wide($nukesize($NukeeUser)) / 1024}]
-            set NukeStats [expr {$NukeType == 2 ? 0 : $NukeCredits}]
-            set Result [NukeCredits $IsNuke $NukeeUser $Multi $NukeCredits $nukefiles($NukeeUser) $NukeStats $CreditSection $StatsSection]
-            foreach {NukeeGroup Ratio OldCredits NewCredits DiffCredits} $Result {break}
-
-            set Ratio [expr {$Ratio != 0 ? "1:$Ratio" : "Unlimited"}]
-            iputs [format "| %-10s | %-10s | %11s | %13s | %14s |" $NukeeUser $NukeeGroup $Ratio [FormatSize $NukeStats] [FormatSize $DiffCredits]]
-            lappend NukeeLog [list $NukeeUser $NukeeGroup $NukeStats]
-        }
-        ## Double join the list (since there's a sublist)
-        set NukeeLog [join [join [lsort -decreasing -integer -index 2 $NukeeLog]]]
-
-        if {$IsNuke} {
-            set ReMap [list %(user) $user %(group) $group %(multi) $Multi %(reason) $Reason]
-            set NukeTag [file join $RealPath [string map $ReMap $nuke(InfoTag)]]
-            CreateTag $NukeTag $uid $gid 555
-            RemoveParentLinks $RealPath $VirtualPath
-
-            NukeRecord $RealPath "NUKE|$user|$group|$Multi|$Reason"
-            set DirChmod 555; set NukeStatus 0; set LogPrefix "NUKE"
-            set NewName "$nuke(Prefix)[file tail $VirtualPath]"
-        } else {
-            foreach ListItem [NukeFindTags $RealPath $nuke(InfoTag)] {
-                if {[catch {file delete -force -- $ListItem} ErrorMsg]} {ErrorLog NukeDeleteTag $ErrorMsg}
-            }
-            catch {file delete -force -- [file join $RealPath ".ioFTPD.nxNuke"]}
-            set DirChmod 777; set NukeStatus 1; set LogPrefix "UNNUKE"
-            set VirtualPath [NukeTrim $VirtualPath]
-            set NewName [file tail $VirtualPath]
-        }
-        set NewPath [file join $ParentPath $NewName]
-        catch {vfs flush $RealPath}
-        if {![string equal -nocase $RealPath $NewPath]} {
-            ## Chmod the directory to 000 so users can't re-enter it
-            catch {vfs read $RealPath} VfsOwner
-            ListAssign $VfsOwner UserID GroupID
-            if {![string is digit -strict $UserID]} {set UserID [lindex $misc(DirOwner) 0]}
-            if {![string is digit -strict $GroupID]} {set GroupID [lindex $misc(DirOwner) 1]}
-            catch {vfs write $RealPath $UserID $GroupID 000}
-            KickUsers [file join $VirtualPath "*"]
-            if {[catch {file rename -force -- $RealPath $NewPath} ErrorMsg]} {
-                ErrorLog NukeRename $ErrorMsg
-                iputs "|------------------------------------------------------------------------|"
-                LinePuts "Unable to rename the nuked directory."
-            }
-        }
-
-        ## Chmod directories
-        GetDirList $NewPath dirlist ".ioFTPD*"
-        foreach ListItem $dirlist(DirList) {
-            catch {vfs read $ListItem} VfsOwner
-            ListAssign $VfsOwner UserID GroupID
-            if {![string is digit -strict $UserID]} {set UserID [lindex $misc(DirOwner) 0]}
-            if {![string is digit -strict $GroupID]} {set GroupID [lindex $misc(DirOwner) 1]}
-            catch {vfs write $ListItem $UserID $GroupID $DirChmod}
-        }
-        catch {vfs flush $ParentPath}
-        if {[IsTrue $misc(dZSbotLogging)]} {
-            foreach {NukeeUser NukeeGroup Amount} $NukeeLog {
-                set Amount [format "%.2f" [expr {double($Amount) / 1024.0}]]
-                putlog "${LogPrefix}: \"$VirtualPath\" \"$user@$group\" \"$NukeeUser@$NukeeGroup\" \"$Multi $Amount\" \"$Reason\""
-            }
-        } else {
-            putlog "${LogPrefix}: \"$VirtualPath\" \"$user\" \"$group\" \"$Multi\" \"$Reason\" \"$Files\" \"$TotalSize\" \"$DiskCount\" \"$NukeeLog\""
-        }
-        set DbFile [file join $misc(DataPath) "Nukes.db"]
-        if {![catch {sqlite3 NukeDb $DbFile} ErrorMsg]} {
-            NukeDb eval {INSERT INTO Nukes (TimeStamp,UserName,GroupName,Status,Release,Reason,Multi,Files,Size,Nukees) VALUES($TimeStamp,$user,$group,$NukeStatus,$Release,$Reason,$Multi,$Files,$TotalSize,$NukeeLog)}
-            NukeDb close
-        } else {ErrorLog NukeDb $ErrorMsg}
-        iputs "'------------------------------------------------------------------------'"
-    } elseif {[string equal "nukes" $Action] || [string equal "unnukes" $Action]} {
-        set IsSiteBot [string equal $misc(SiteBot) $user]
-        if {![GetOptions [lrange $ArgList 1 end] MaxResults Pattern]} {
-            iputs "Syntax: SITE [string toupper $Action] \[-max <limit>\] \[release\]"
-            return 0
-        }
-        set Pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$Pattern*" "*"]]
-        if {[string equal "nukes" $Action]} {
-            if {!$IsSiteBot} {
-                iputs ".-\[Nukes\]----------------------------------------------------------------."
-                iputs "|    Nuker     |    Nukee    |    Multi   |  Reason                      |"
-                iputs "|------------------------------------------------------------------------|"
-            }
-            set NukeStatus 0
-        } elseif {[string equal "unnukes" $Action]} {
-            if {!$IsSiteBot} {
-                iputs ".-\[UnNukes\]--------------------------------------------------------------."
-                iputs "|   UnNuker    |    Nukee    |    Multi   |  Reason                      |"
-                iputs "|------------------------------------------------------------------------|"
-            }
-            set NukeStatus 1
-        }
-        set Count 0
-        set DbFile [file join $misc(DataPath) "Nukes.db"]
-        if {![catch {sqlite3 NukeDb $DbFile} ErrorMsg]} {
-            NukeDb eval "SELECT * FROM Nukes WHERE Status=$NukeStatus AND Release LIKE '$Pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $MaxResults" values {
-                incr Count
-                if {$IsSiteBot} {
-                    iputs "NUKES|$Count|$values(TimeStamp)|$values(Release)|$values(UserName)|$values(GroupName)|$values(Multi)|$values(Reason)|$values(Files)|$values(Size)|$values(Nukees)"
-                } else {
-                    set NukeAge [expr {[clock seconds] - $values(TimeStamp)}]
-                    iputs [format "| %-12.12s | %-11.11s | %-10.10s | %-28.28s |" $values(UserName) [lindex $values(Nukees) 0] $values(Multi)x $values(Reason)]
-                    iputs [format "| Age: %-7.7s | Dir: %-50.50s |" [lrange [FormatDuration $NukeAge] 0 1] $values(Release)]
-                    iputs "|------------------------------------------------------------------------|"
+            ## Record versions:
+            ## v1: nuke-type|user|group|multi|reason
+            ## v2: 2|status|id|user|group|multi|reason
+            switch -regexp -- $Record {
+                {^2\|(0|1)\|\d+\|\S+\|\d+\|.+$} {
+                    set NukeID [lindex $RecordSplit 2]
+                    ## Only use the multiplier if it's a nuke record.
+                    if {!$IsNuke && ![lindex $RecordSplit 1]} {
+                        set Multi [lindex $RecordSplit 5]
+                    }
+                }
+                {^(NUKE|UNNUKE)\|\S+\|\S+\|\d+\|.+$} {
+                    ## Only use the multiplier if it's a nuke record.
+                    if {!$IsNuke && [string equal "UNNUKE" [lindex $RecordSplit 0]]} {
+                        set Multi [lindex $RecordSplit 3]
+                    }
+                }
+                default {
+                    if {![string equal "" $Record]} {
+                        ErrorLog NukeRecord "invalid nuke record for \"$RealPath\": $Record"
+                    }
                 }
             }
-            NukeDb close
-        } else {ErrorLog NukeLatest $ErrorMsg}
-
-        if {!$IsSiteBot} {
-            if {!$Count} {
-                LinePuts "There are no nukes or unnukes to display."
-            } else {
-                LinePuts "Read the rules to avoid being nuked."
+            if {!$IsNuke && ![info exists Multi]} {
+                ErrorReturn "Unable to find the nuke record."
             }
+
+            set NukeType 0
+            if {[string first $nuke(GroupFlag) $flags] != -1} {
+                ## Find the group suffix in the release name (Something-GRP)
+                if {[set GroupPos [string last "-" [file tail $VirtualPath]]] == -1} {
+                    LinePuts "Unable to verify the release's group suffix."
+                    ErrorReturn "Does the directory contain \"-<groupname>\" at the end?"
+                }
+                set AllowNuke 0; set NukeType 1
+                set RlsSuffix [string range [file tail $VirtualPath] [incr GroupPos] end]
+                foreach NukeeGroup $groups {
+                    if {[string equal $RlsSuffix $NukeeGroup]} {set AllowNuke 1; break}
+                }
+                if {!$AllowNuke} {ErrorReturn "You are not allowed to nuke other groups."}
+            }
+            set DiskCount 0; set Files 0; set TotalSize 0
+            set NukeTime [clock seconds]
+            set Reason [StripChars $Reason]
+            set Release [NukeName $VirtualPath]
+            set ParentPath [file dirname $RealPath]
+            ListAssign [GetCreditsAndStats $VirtualPath] CreditSection StatsSection
+
+            ## Count CDs/Discs/DVDs
+            foreach ListItem [glob -nocomplain -types d -directory $RealPath "*"] {
+                if {[IsMultiDisk $ListItem]} {incr DiskCount}
+            }
+
+            ## Count files and total size
+            GetDirList $RealPath dirlist ".ioFTPD*"
+            foreach ListItem $dirlist(FileList) {
+                incr Files; set FileSize [file size $ListItem]
+                set TotalSize [expr {wide($TotalSize) + wide($FileSize)}]
+                catch {lindex [vfs read $ListItem] 0} UserID
+                if {[set NukeeUser [resolve uid $UserID]] != ""} {
+                    ## Increase file Count
+                    if {[info exists nukefiles($NukeeUser)]} {
+                        incr nukefiles($NukeeUser)
+                    } else {set nukefiles($NukeeUser) 1}
+
+                    ## Add total size
+                    if {[info exists nukesize($NukeeUser)]} {
+                        set nukesize($NukeeUser) [expr {wide($nukesize($NukeeUser)) + wide($FileSize)}]
+                    } else {set nukesize($NukeeUser) $FileSize}
+                }
+            }
+            set TotalSize [expr {wide($TotalSize) / 1024}]
+
+            ## Check if Release is an empty nuke (less then 5KB)
+            if {$TotalSize < 5 || ![array exists nukesize]} {
+                set NukeType 2
+                unset -nocomplain nukefiles nukesize
+                catch {lindex [vfs read $RealPath] 0} UserID
+                if {[set NukeeUser [resolve uid $UserID]] != ""} {
+                    set nukefiles($NukeeUser) 0
+                    set nukesize($NukeeUser) [expr {wide($nuke(EmptyNuke)) * 1024 * 1024}]
+                } else {ErrorReturn "Unable to find the directory owner."}
+            }
+            LinePuts "Release : $Release"
+            LinePuts "Multi   : ${Multi}x"
+            LinePuts "Reason  : $Reason"
+            if {$NukeType} {
+                ## 0=Normal, 1=Group, 2=Empty
+                switch -- $NukeType {
+                    2 {set TypeMsg "Empty"}
+                    1 {set TypeMsg "Group"}
+                    default {set TypeMsg "Unknown"}
+                }
+                LinePuts "Type    : $TypeMsg Nuke"
+            }
+            LinePuts "Files   : [format %-16s ${Files}F] Size: [format %-16s [FormatSize $TotalSize]] CDs: $DiskCount"
+            if {$IsNuke} {
+                iputs "|------------------------------------------------------------------------|"
+                iputs "|    User    |   Group    |    Ratio    |  Amount Lost  |  Credits Lost  |"
+                iputs "|------------------------------------------------------------------------|"
+            } else {
+                iputs "|------------------------------------------------------------------------|"
+                iputs "|    User    |   Group    |    Ratio    | Amount Gained | Credits Gained |"
+                iputs "|------------------------------------------------------------------------|"
+            }
+
+            ## Change the credits and stats of nukees
+            set NukeeLog ""
+            foreach NukeeUser [lsort -ascii [array names nukesize]] {
+                set NukeCredits [expr {wide($nukesize($NukeeUser)) / 1024}]
+                set NukeStats [expr {$NukeType == 2 ? 0 : $NukeCredits}]
+                set Result [NukeCredits $IsNuke $NukeeUser $Multi $NukeCredits $nukefiles($NukeeUser) $NukeStats $CreditSection $StatsSection]
+                foreach {NukeeGroup Ratio OldCredits NewCredits DiffCredits} $Result {break}
+
+                set Ratio [expr {$Ratio != 0 ? "1:$Ratio" : "Unlimited"}]
+                iputs [format "| %-10s | %-10s | %11s | %13s | %14s |" $NukeeUser $NukeeGroup $Ratio [FormatSize $NukeStats] [FormatSize $DiffCredits]]
+                lappend NukeeLog [list $NukeeUser $NukeeGroup $NukeStats]
+            }
+            ## Join the list twice because of the sublist used in "lsort -index".
+            set NukeeLog [join [join [lsort -decreasing -integer -index 2 $NukeeLog]]]
+
+            if {$IsNuke} {
+                set ReMap [list %(user) $user %(group) $group %(multi) $Multi %(reason) $Reason]
+                set NukeTag [file join $RealPath [string map $ReMap $nuke(InfoTag)]]
+                CreateTag $NukeTag $uid $gid 555
+                RemoveParentLinks $RealPath $VirtualPath
+
+                set LogPrefix "NUKE"
+                set DirChmod 555; set NukeStatus 0
+                set NewName "$nuke(Prefix)[file tail $VirtualPath]"
+            } else {
+                foreach ListItem [NukeFindTags $RealPath $nuke(InfoTag)] {
+                    RemoveTag $ListItem
+                }
+
+                set LogPrefix "UNNUKE"
+                set DirChmod 777; set NukeStatus 1
+                set VirtualPath [NukeTrim $VirtualPath]
+                set NewName [file tail $VirtualPath]
+            }
+
+            set NewPath [file join $ParentPath $NewName]
+            if {![string equal -nocase $RealPath $NewPath]} {
+                ## In order to prevent users from re-entering the directory, it will be chmodded to 000.
+                catch {vfs read $RealPath} VfsOwner
+                ListAssign $VfsOwner UserID GroupID
+                if {![string is digit -strict $UserID]} {set UserID [lindex $misc(DirOwner) 0]}
+                if {![string is digit -strict $GroupID]} {set GroupID [lindex $misc(DirOwner) 1]}
+                catch {vfs write $RealPath $UserID $GroupID 000}
+                KickUsers [file join $VirtualPath "*"]
+                if {[catch {file rename -force -- $RealPath $NewPath} ErrorMsg]} {
+                    set RenameFail 1
+                    ErrorLog NukeRename $ErrorMsg
+                    iputs "|------------------------------------------------------------------------|"
+                    LinePuts "Unable to rename directory, ask a siteop to rename it manually."
+                } else {
+                    set RenameFail 0
+                }
+            }
+
+            ## Chmod directories
+            GetDirList $NewPath dirlist ".ioFTPD*"
+            foreach ListItem $dirlist(DirList) {
+                catch {vfs read $ListItem} VfsOwner
+                ListAssign $VfsOwner UserID GroupID
+                if {![string is digit -strict $UserID]} {set UserID [lindex $misc(DirOwner) 0]}
+                if {![string is digit -strict $GroupID]} {set GroupID [lindex $misc(DirOwner) 1]}
+                catch {vfs write $ListItem $UserID $GroupID $DirChmod}
+            }
+            catch {vfs flush $ParentPath}
+            if {[IsTrue $misc(dZSbotLogging)]} {
+                foreach {NukeeUser NukeeGroup Amount} $NukeeLog {
+                    set Amount [format "%.2f" [expr {double($Amount) / 1024.0}]]
+                    putlog "${LogPrefix}: \"$VirtualPath\" \"$user@$group\" \"$NukeeUser@$NukeeGroup\" \"$Multi $Amount\" \"$Reason\""
+                }
+            } else {
+                putlog "${LogPrefix}: \"$VirtualPath\" \"$user\" \"$group\" \"$Multi\" \"$Reason\" \"$Files\" \"$TotalSize\" \"$DiskCount\" \"$NukeeLog\""
+            }
+
+            set DbFile [file join $misc(DataPath) "Nukes.db"]
+            if {![catch {sqlite3 NukeDb $DbFile} ErrorMsg]} {
+                ## TclSQLite doesn't accept 'NULL' for AutoInc fields when the statement is enclosed in braces.
+                ## Bug report: http://www.sqlite.org/cvstrac/tktview?tn=1179
+                if {[string is digit -strict $NukeID]} {
+                    NukeDb eval {INSERT OR REPLACE INTO Nukes (NukeID,TimeStamp,UserName,GroupName,Status,Release,Reason,Multi,Files,Size) VALUES($NukeID,$NukeTime,$user,$group,$NukeStatus,$Release,$Reason,$Multi,$Files,$TotalSize)}
+                } else {
+                    NukeDb eval {INSERT OR REPLACE INTO Nukes (TimeStamp,UserName,GroupName,Status,Release,Reason,Multi,Files,Size) VALUES($NukeTime,$user,$group,$NukeStatus,$Release,$Reason,$Multi,$Files,$TotalSize)}
+                }
+                set NukeID [NukeDb last_insert_rowid]
+                NukeDb eval {BEGIN}
+                foreach {NukeeUser NukeeGroup Amount} $NukeeLog {
+                    NukeDb eval {INSERT OR REPLACE INTO Users (NukeID,Status,UserName,GroupName,Amount) VALUES($NukeID,$NukeStatus,$NukeeUser,$NukeeGroup,$Amount)}
+                }
+                NukeDb eval {COMMIT}
+
+                NukeDb close
+            } else {ErrorLog NukeDb $ErrorMsg}
+
+            ## Save the nuke ID and multiplier for later use (ie. unnuke).
+            NukeRecord [expr {$RenameFail ? $RealPath : $NewPath}] "2|$NukeStatus|$NukeID|$user|$group|$Multi|$Reason"
             iputs "'------------------------------------------------------------------------'"
         }
-    } else {
-        ErrorLog InvalidArgs "Invalid function \"[info script] $Action\", check your ioFTPD.ini for errors."
+        {nukes} - {unnukes} {
+            set IsSiteBot [string equal $misc(SiteBot) $user]
+            if {![GetOptions [lrange $ArgList 1 end] MaxResults Pattern]} {
+                iputs "Syntax: SITE [string toupper $Action] \[-max <limit>\] \[release\]"
+                return 0
+            }
+            set Pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$Pattern*" "*"]]
+            if {[string equal "nukes" $Action]} {
+                if {!$IsSiteBot} {
+                    iputs ".-\[Nukes\]----------------------------------------------------------------."
+                    iputs "|    Age    |    Nuker     |   Multi   |  Reason                         |"
+                    iputs "|------------------------------------------------------------------------|"
+                }
+                set NukeStatus 0
+            } elseif {[string equal "unnukes" $Action]} {
+                if {!$IsSiteBot} {
+                    iputs ".-\[UnNukes\]--------------------------------------------------------------."
+                    iputs "|    Age    |   UnNuker    |   Multi   |  Reason                         |"
+                    iputs "|------------------------------------------------------------------------|"
+                }
+                set NukeStatus 1
+            }
+            set Count 0
+            set DbFile [file join $misc(DataPath) "Nukes.db"]
+            if {![catch {sqlite3 NukeDb $DbFile} ErrorMsg]} {
+                NukeDb eval "SELECT * FROM Nukes WHERE Status=$NukeStatus AND Release LIKE '$Pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $MaxResults" values {
+                    incr Count
+                    if {$IsSiteBot} {
+                        iputs "NUKES|$Count|$values(TimeStamp)|$values(Release)|$values(UserName)|$values(GroupName)|$values(Multi)|$values(Reason)|$values(Files)|$values(Size)"
+                    } else {
+                        set NukeAge [expr {[clock seconds] - $values(TimeStamp)}]
+                        iputs [format "| %-9.9s | %-12.12s | %-9.9s | %-31.31s |" [lrange [FormatDuration $NukeAge] 0 1] $values(UserName) $values(Multi)x $values(Reason)]
+                        iputs [format "| Dir: %-65.65s |" $values(Release)]
+                        iputs "|------------------------------------------------------------------------|"
+                    }
+                }
+                NukeDb close
+            } else {ErrorLog NukeLatest $ErrorMsg}
+
+            if {!$IsSiteBot} {
+                if {!$Count} {
+                    LinePuts "There are no nukes or unnukes to display."
+                } else {
+                    LinePuts "Read the rules to avoid being nuked."
+                }
+                iputs "'------------------------------------------------------------------------'"
+            }
+        }
+        {nuketop} {
+            set IsSiteBot [string equal $misc(SiteBot) $user]
+            if {![GetOptions [lrange $ArgList 1 end] MaxResults Pattern]} {
+                iputs "Syntax: SITE NUKETOP \[-max <limit>\] \[group\]"
+                return 0
+            }
+            if {![string equal "" $Pattern]} {
+                set GroupMatch "AND GroupName LIKE '[SqlWildToLike $Pattern]' ESCAPE '\\'"
+            } else {
+                set GroupMatch ""
+            }
+            if {!$IsSiteBot} {
+                iputs ".-\[NukeTop\]--------------------------------------------------------------."
+                iputs "|    User    |   Group    | Times Nuked |  Amount                        |"
+                iputs "|------------------------------------------------------------------------|"
+            }
+            set Count 0
+            set DbFile [file join $misc(DataPath) "Nukes.db"]
+            if {![catch {sqlite3 NukeDb $DbFile} ErrorMsg]} {
+                NukeDb eval "SELECT UserName, GroupName, count(*) AS Nuked, sum(Amount) AS Amount FROM Users WHERE Status=0 $GroupMatch GROUP BY UserName ORDER BY Nuked DESC LIMIT $MaxResults" values {
+                    incr Count
+                    if {$IsSiteBot} {
+                        iputs "NUKETOP|$Count|$values(UserName)|$values(GroupName)|$values(Nuked)|$values(Amount)"
+                    } else {
+                        iputs [format "| %-10.10s | %-10.10s | %11d | %30.30s |" $values(UserName) $values(GroupName) $values(Nuked) [FormatSize $values(Amount)]]
+                    }
+                }
+                NukeDb close
+            } else {ErrorLog NukeTop $ErrorMsg}
+            if {!$IsSiteBot} {
+                if {!$Count} {LinePuts "There are no nukees display."}
+                iputs "'------------------------------------------------------------------------'"
+            }
+        }
+        default {
+            ErrorLog InvalidArgs "Invalid function \"[info script] $Action\", check your ioFTPD.ini for errors."
+        }
     }
     return 0
 }
