@@ -322,7 +322,7 @@ proc ::nxTools::Dupe::PreTimeCheck {VirtualPath} {
         foreach {CheckPath DenyLate LogInfo LateMins} $PreCheck {break}
         if {[string match $CheckPath $VirtualPath]} {set Check 1; break}
     }
-    if {$Check && [MySqlClose]} {
+    if {$Check && [MySqlConnect]} {
         set ReleaseName [::mysql::escape [file tail $VirtualPath]]
         set TimeStamp [::mysql::sel $mysql(ConnHandle) "SELECT pretime FROM $mysql(TableName) WHERE release='$ReleaseName' LIMIT 1" -flatlist]
 
@@ -626,7 +626,7 @@ proc ::nxTools::Dupe::SitePreTime {MaxResults Pattern} {
     }
     set Pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$Pattern*" "*"]]
     set Count 0
-    if {[MySqlClose]} {
+    if {[MySqlConnect]} {
         set QueryResults [::mysql::sel $mysql(ConnHandle) "SELECT * FROM $mysql(TableName) WHERE release LIKE '$Pattern' ORDER BY pretime DESC LIMIT $MaxResults" -list]
         set SingleResult [expr {[llength $QueryResults] == 1}]
         set TimeNow [clock seconds]
