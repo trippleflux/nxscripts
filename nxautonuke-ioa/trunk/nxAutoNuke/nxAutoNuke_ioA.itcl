@@ -517,7 +517,7 @@ proc ANukeMain {} {
             foreach ReleasePath [glob -nocomplain -types d -directory $RealPath "*"] {
                 set ReleaseName [file tail $ReleasePath]
                 ## Remove exempted, old, and approved releases from the list
-                if {![string first $anuke(Prefix) $ReleaseName] || [ListMatch $anuke(Exempts) $ReleaseName True] || [ANukeFindTag $ReleasePath $anuke(ApproveTag)] != "" || \
+                if {![string first $anuke(Prefix) $ReleaseName] || [ListMatchI $anuke(Exempts) $ReleaseName] || [ANukeFindTag $ReleasePath $anuke(ApproveTag)] != "" || \
                     [catch {file stat $ReleasePath fstat}] || [set check(DirAge) [expr {[clock seconds] - $fstat(ctime)}]] > $MaxAge} {
                     continue
                 }
