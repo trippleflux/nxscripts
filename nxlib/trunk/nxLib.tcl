@@ -279,7 +279,7 @@ proc ::nxLib::GetSectionPath {FindSection {SectionList ""}} {
     return [list "DEFAULT" "*"]
 }
 
-proc ::nxLib::GetCreditsAndStats {VirtualPath {SectionList ""}} {
+proc ::nxLib::GetCreditStatSections {VirtualPath {SectionList ""}} {
     if {![llength $SectionList]} {set SectionList [GetSectionList]}
     foreach {SectionName CreditSection StatSection MatchPath} $SectionList {
         if {[string match -nocase $MatchPath $VirtualPath]} {
