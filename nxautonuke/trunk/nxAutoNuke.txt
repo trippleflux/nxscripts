@@ -102,7 +102,7 @@ set announce(ANUKEDISKS)   "-%sitename- \[%section\] + %path/%bold%release%bold 
 set announce(ANUKEEMPTY)   "-%sitename- \[%section\] + %path/%bold%release%bold is still empty after %bold%age%boldmins, it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
 set announce(ANUKEIMDB)    "-%sitename- \[%section\] + %path/%bold%release%bold the IMDB %type %bold%banned%bold is banned, it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
 set announce(ANUKEINC)     "-%sitename- \[%section\] + %path/%bold%release%bold has been incomplete for %bold%age%boldmins, it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
-set announce(ANUKEKEYWORD) "-%sitename- \[%section\] + %path/%bold%release%bold is a banned type (%bold%type%bold), it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
+set announce(ANUKEKEYWORD) "-%sitename- \[%section\] + %path/%bold%release%bold is a banned type (%bold%banned%bold), it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
 set announce(ANUKEMP3)     "-%sitename- \[%section\] + %path/%bold%release%bold the MP3 %type %bold%banned%bold is banned, it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
 
 6. Find msgtypes(RACE) in your dZSbot.tcl file, and add the following events:
@@ -171,7 +171,7 @@ set announce(ANUKEDISKS)   "-%sitename- \[%section\] + %path/%bold%release%bold 
 set announce(ANUKEEMPTY)   "-%sitename- \[%section\] + %path/%bold%release%bold is still empty after %bold%age%boldmins, it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
 set announce(ANUKEIMDB)    "-%sitename- \[%section\] + %path/%bold%release%bold the IMDB %type %bold%banned%bold is banned, it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
 set announce(ANUKEINC)     "-%sitename- \[%section\] + %path/%bold%release%bold has been incomplete for %bold%age%boldmins, it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
-set announce(ANUKEKEYWORD) "-%sitename- \[%section\] + %path/%bold%release%bold is a banned type (%bold%type%bold), it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
+set announce(ANUKEKEYWORD) "-%sitename- \[%section\] + %path/%bold%release%bold is a banned type (%bold%banned%bold), it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
 set announce(ANUKEMP3)     "-%sitename- \[%section\] + %path/%bold%release%bold the MP3 %type %bold%banned%bold is banned, it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
 
 6. Find msgtypes(RACE) in your dZSbot.tcl file, and add the following events:
@@ -242,7 +242,7 @@ set announce(ANUKEDISKS)   "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] ha
 set announce(ANUKEEMPTY)   "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] is still empty after [b]%age[b]mins, it will be nuked [b]%multi[b]x in [b]%timeleft[b]mins. Uploaders: %uploaders"
 set announce(ANUKEIMDB)    "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] the IMDB %type [b]%banned[b] is banned, it will be nuked [b]%multi[b]x in [b]%timeleft[b]mins. Uploaders: %uploaders"
 set announce(ANUKEINC)     "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] has been incomplete for [b]%age[b]mins, it will be nuked [b]%multi[b]x in [b]%timeleft[b]mins. Uploaders: %uploaders"
-set announce(ANUKEKEYWORD) "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] is a banned type (%bold%type%bold), it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
+set announce(ANUKEKEYWORD) "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] is a banned type (%bold%banned%bold), it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
 set announce(ANUKEMP3)     "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] the MP3 %type [b]%banned[b] is banned, it will be nuked [b]%multi[b]x in [b]%timeleft[b]mins. Uploaders: %uploaders"
 
 7. Rehash or restart Windrop.
