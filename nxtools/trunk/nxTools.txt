@@ -942,6 +942,7 @@ Text Templates:
 ################################################################################
 
 nxTools v0.9.9 (XX-XX-2005):
+  NEW: SITE BOT BW to view current bandwidth and users.
   NEW: SITE NUKETOP [-max <limit>] [group] to view the top-nuked users.
   NEW: The SITE DB CREATE command checks database schema versions.
   CHG: All extensions, libraries, and configuration files are loaded by init.itcl
@@ -953,6 +954,9 @@ nxTools v0.9.9 (XX-XX-2005):
   CHG: Redesigned the nukes database; nukees are now stored in a separate table.
   CHG: Renamed all .itcl extensions to .tcl, since iTcl is short for "incr Tcl".
   CHG: The original nukes database records are updated when releases are unnuked and re-nuked.
+  FIX: Approved releases that already exist were also added to the approve list.
+  FIX: Pre areas weren't listed on SITE PRE HELP.
+  FIX: The security check on SITE UNDUPE was not working properly.
 
 nxTools v0.9.8 (03-23-2005):
   NEW: SITE DRIVES to view fixed and network drives.

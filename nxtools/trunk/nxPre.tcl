@@ -58,40 +58,6 @@ proc ::nxTools::Pre::ConfigWriter {ConfigFile} {
     } else {ErrorLog PreConfigWriter $ErrorMsg}
 }
 
-proc ::nxTools::Pre::Links {VirtualPath} {
-    global latest
-    if {[ListMatch $latest(Exempts) $VirtualPath]} {
-        return 0
-    }
-    if {[catch {DbOpenFile LinkDb "Links.db"} ErrorMsg]} {
-        ErrorLog PreLinks $ErrorMsg
-        return 1
-    }
-    ## Format and create the link directory
-    set TagName [file tail $VirtualPath]
-    if {$latest(MaxLength) > 0 && [string length $TagName] > $latest(MaxLength)} {
-        set TagName [string trimright [string range $TagName 0 $latest(MaxLength)] "."]
-    }
-    set TagName [string map [list %(release) $TagName] $latest(PreTag)]
-    set TimeStamp [clock seconds]
-    LinkDb eval {INSERT INTO Links (TimeStamp,LinkType,DirName) VALUES($TimeStamp,1,$TagName)}
-    set TagName [file join $latest(SymPath) $TagName]
-    if {![catch {file mkdir $TagName} ErrorMsg]} {
-        catch {vfs chattr $TagName 1 $VirtualPath}
-    } else {ErrorLog PreLinksMkDir $ErrorMsg}
-
-    ## Remove older links
-    if {[set LinkCount [LinkDb eval {SELECT count(*) FROM Links WHERE LinkType=1}]] > $latest(PreLinks)} {
-        set LinkCount [expr {$LinkCount - $latest(PreLinks)}]
-        LinkDb eval "SELECT DirName,rowid FROM Links WHERE LinkType=1 ORDER BY TimeStamp ASC LIMIT $LinkCount" values {
-            RemoveTag [file join $latest(SymPath) $values(DirName)]
-            LinkDb eval {DELETE FROM Links WHERE rowid=$values(rowid)}
-        }
-    }
-    LinkDb close
-    return 0
-}
-
 proc ::nxTools::Pre::ResolvePath {UserName GroupName RealPath} {
     set BestMatch 0
     set ResolvePath "/"; set VfsFile ""
@@ -139,6 +105,40 @@ proc ::nxTools::Pre::ResolvePath {UserName GroupName RealPath} {
         ErrorReturn "Unable to resolve virtual path, contact a siteop."
     }
     return $ResolvePath
+}
+
+proc ::nxTools::Pre::UpdateLinks {VirtualPath} {
+    global latest
+    if {[ListMatch $latest(Exempts) $VirtualPath]} {
+        return 0
+    }
+    if {[catch {DbOpenFile LinkDb "Links.db"} ErrorMsg]} {
+        ErrorLog PreLinks $ErrorMsg
+        return 1
+    }
+    ## Format and create the link directory
+    set TagName [file tail $VirtualPath]
+    if {$latest(MaxLength) > 0 && [string length $TagName] > $latest(MaxLength)} {
+        set TagName [string trimright [string range $TagName 0 $latest(MaxLength)] "."]
+    }
+    set TagName [string map [list %(release) $TagName] $latest(PreTag)]
+    set TimeStamp [clock seconds]
+    LinkDb eval {INSERT INTO Links (TimeStamp,LinkType,DirName) VALUES($TimeStamp,1,$TagName)}
+    set TagName [file join $latest(SymPath) $TagName]
+    if {![catch {file mkdir $TagName} ErrorMsg]} {
+        catch {vfs chattr $TagName 1 $VirtualPath}
+    } else {ErrorLog PreLinksMkDir $ErrorMsg}
+
+    ## Remove older links
+    if {[set LinkCount [LinkDb eval {SELECT count(*) FROM Links WHERE LinkType=1}]] > $latest(PreLinks)} {
+        set LinkCount [expr {$LinkCount - $latest(PreLinks)}]
+        LinkDb eval "SELECT DirName,rowid FROM Links WHERE LinkType=1 ORDER BY TimeStamp ASC LIMIT $LinkCount" values {
+            RemoveTag [file join $latest(SymPath) $values(DirName)]
+            LinkDb eval {DELETE FROM Links WHERE rowid=$values(rowid)}
+        }
+    }
+    LinkDb close
+    return 0
 }
 
 proc ::nxTools::Pre::UpdateUser {UserName Files Size CreditSection StatSection} {
@@ -200,6 +200,7 @@ proc ::nxTools::Pre::Main {ArgV} {
     if {[string equal "pre" $Action]} {
         if {[string equal "" $Option] || [string equal -nocase "help" $Option]} {
             iputs ".-\[Pre\]------------------------------------------------------------------."
+            ConfigLoader $pre(ConfigFile)
             LinePuts "Syntax: SITE PRE <area> <directory>"
             LinePuts "        SITE PRE HISTORY \[-max <limit>\] \[group\]"
             LinePuts "        SITE PRE STATS \[-max <limit>\] \[group\]"
@@ -302,7 +303,7 @@ proc ::nxTools::Pre::Main {ArgV} {
             if {[file exists $DestRealPath]} {ErrorReturn "A file or directory by that name already exists in the target area."}
 
             ## Find the credit and stats section
-            set DestVirtualPath [PreResolvePath $user $group $DestRealPath]
+            set DestVirtualPath [ResolvePath $user $group $DestRealPath]
             ListAssign [GetCreditStatSections $DestVirtualPath] CreditSection StatSection
 
             ## Count CDs/Discs/DVDs
@@ -411,7 +412,7 @@ proc ::nxTools::Pre::Main {ArgV} {
             catch {vfs flush [file dirname $DestRealPath]}
 
             if {[IsTrue $pre(PreUser)]} {
-                PreCredits $user 0 0 $CreditSection $StatSection
+                UpdateUser $user 0 0 $CreditSection $StatSection
             }
             if {[IsTrue $pre(Uploaders)]} {
                 iputs "|------------------------------------------------------------------------|"
@@ -458,7 +459,7 @@ proc ::nxTools::Pre::Main {ArgV} {
                 MySqlClose
             }
             ## Create latest pre symlinks
-            if {$latest(PreLinks) > 0} {PreLinks $DestVirtualPath}
+            if {$latest(PreLinks) > 0} {UpdateLinks $DestVirtualPath}
         }
     } elseif {[string equal "edit" $Action]} {
         iputs ".-\[EditPre\]--------------------------------------------------------------."
@@ -703,4 +704,4 @@ proc ::nxTools::Pre::Main {ArgV} {
     return 0
 }
 
-PreMain [expr {[info exists args] ? $args : ""}]
+::nxTools::Pre::Main [expr {[info exists args] ? $args : ""}]

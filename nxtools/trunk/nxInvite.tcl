@@ -273,4 +273,4 @@ proc ::nxTools::Invite::Main {ArgV} {
     return 0
 }
 
-InvMain [expr {[info exists args] ? $args : ""}]
+::nxTools::Invite::Main [expr {[info exists args] ? $args : ""}]

@@ -120,13 +120,14 @@ proc ::nxTools::Db::Create {DbList} {
         set DbFile [file tail $DbPath]
         LinePuts "Creating database: $DbFile"
 
+        set Exists [file exists $DbPath]
         if {[catch {sqlite3 SqliteDb $DbPath} ErrorMsg]} {
             LinePuts " - Unable to open file: $ErrorMsg"
             continue
         }
         set CurrentVer [SqliteDb eval {PRAGMA user_version}]
 
-        if {$CurrentVer != $dbschema($DbName)} {
+        if {$Exists && $CurrentVer != $dbschema($DbName)} {
             LinePuts "- Invalid schema version (current: v$CurrentVer, required: v$dbschema($DbName))."
             SqliteDb close
 

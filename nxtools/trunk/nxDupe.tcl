@@ -262,8 +262,9 @@ proc ::nxTools::Dupe::ApproveRelease {VirtualPath UserName GroupName} {
         CreateTag $TagPath [resolve user $UserName] [resolve group $GroupName] 555
     } else {
         ErrorLog ApproveRelease "invalid vpath \"$VirtualPath\", \"$RealPath\" doesn't exist."
+        return 0
     }
-    return 0
+    return 1
 }
 
 proc ::nxTools::Dupe::ForceCheck {VirtualPath} {
@@ -316,7 +317,7 @@ proc ::nxTools::Dupe::PreTimeCheck {VirtualPath} {
         foreach {CheckPath DenyLate LogInfo LateMins} $PreCheck {break}
         if {[string match $CheckPath $VirtualPath]} {set Check 1; break}
     }
-    if {$Check && [DbConnect]} {
+    if {$Check && [MySqlClose]} {
         set ReleaseName [::mysql::escape [file tail $VirtualPath]]
         set TimeStamp [::mysql::sel $mysql(ConnHandle) "SELECT pretime FROM $mysql(TableName) WHERE release='$ReleaseName' LIMIT 1" -flatlist]
 
@@ -349,7 +350,7 @@ proc ::nxTools::Dupe::PreTimeCheck {VirtualPath} {
                 putlog "PRETIME: \"$VirtualPath\" \"$ReleaseAge\" \"$TimeStamp\""
             }
         }
-        DbClose
+        MySqlClose
     }
     return $Result
 }
@@ -620,7 +621,7 @@ proc ::nxTools::Dupe::SitePreTime {MaxResults Pattern} {
     }
     set Pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$Pattern*" "*"]]
     set Count 0
-    if {[DbConnect]} {
+    if {[MySqlClose]} {
         set QueryResults [::mysql::sel $mysql(ConnHandle) "SELECT * FROM $mysql(TableName) WHERE release LIKE '$Pattern' ORDER BY pretime DESC LIMIT $MaxResults" -list]
         set SingleResult [expr {[llength $QueryResults] == 1}]
         set TimeNow [clock seconds]
@@ -642,7 +643,7 @@ proc ::nxTools::Dupe::SitePreTime {MaxResults Pattern} {
                 OutputData [ParseCookies $BodyTemplate $ValueList {sec min hour day month year2 year4 nukesec nukemin nukehour nukeday nukemonth nukeyear2 nukeyear4 age num section release files size disks reason}]
             }
         }
-        DbClose
+        MySqlClose
     }
     if {!$IsSiteBot} {
         if {!$Count} {OutputData $template(None)}
@@ -661,7 +662,7 @@ proc ::nxTools::Dupe::SiteUndupe {ArgList} {
         set ColName "FileName"; set DbName "DupeFiles"
         set Pattern [join [lrange $ArgList 0 end]]
     }
-    if {[regexp {[\*\?]} $Pattern] && [regexp -all {[:alnum:]} $Pattern] < $dupe(AlphaNumChars)} {
+    if {[regexp {[\*\?]} $Pattern] && [regexp -all {[[:alnum:]]} $Pattern] < $dupe(AlphaNumChars)} {
         if {!$IsSiteBot} {ErrorReturn "There must be at $dupe(AlphaNumChars) least alpha-numeric chars when wildcards are used."}
         return 1
     }
