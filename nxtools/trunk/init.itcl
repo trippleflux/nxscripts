@@ -23,7 +23,7 @@ set misc(ReloadConfig)  True
 # - Path to the data directory, containing nxTools data files.
 # - Path to the text directory, containing output templates.
 #
-set misc(DataPath)     "../scripts/nxTools/data"
+set misc(DataPath)      "../scripts/nxTools/data"
 set misc(Templates)     "../scripts/nxTools/text"
 #
 # - The sitebot's FTP user name.
@@ -188,6 +188,7 @@ set pre(TouchTimes)     True
 # - Give credits and stats to uploaders of the release.
 # - These options only reward the pre groups with credits/stats of releases they actually pre.
 # - They are only effective if you "disable" credits and stats in the groups dir, for example:
+#
 #   [Sections]
 #   GROUPS  = 9 /GROUPS/*
 #
@@ -198,7 +199,7 @@ set pre(TouchTimes)     True
 #   SITE CHANGE * RATIO 0 9
 #
 # - Assign an unused credit section to the groups dir and give all users leech in it.
-# - Don't forget to set section 9 in the Default.User as leech as well.
+# - Don't forget to set the ratio for section 9 in Default.User to leech as well.
 #
 set pre(PreUser)        True
 set pre(Uploaders)      True
@@ -260,8 +261,8 @@ set dupe(AddOnPre)      True
 # - Required number of alpha-numeric characters when wildcards are used.
 # - Files and directories to ignore (case insensitive).
 # - Exempt dupe checking or logging in these paths (case sensitive).
-# - The 'CheckExempts' setting is for dupe checking exempts, while 'LoggingExempts' is
-#   for dupe logging exempts.
+# - The dupe(CheckExempts) setting is for dupe checking exempts, while
+#   dupe(LoggingExempts) is for dupe logging exempts.
 #
 set dupe(AlphaNumChars) 5
 set dupe(IgnoreDirs)    {*/[0-9][0-9][0-9][0-9] */cd[0-9] */dis[ck][0-9] */dvd[0-9] */codec */cover */covers */extra */extras */sample */subs */vobsub */vobsubs}
@@ -302,7 +303,7 @@ set dupe(RebuildPaths) {
 }
 #
 # - Files and directories to ignore when search the paths (with a few examples of common tags).
-# - The 'dupe(IgnoreDirs)' and 'dupe(IgnoreFiles)' settings are used to prevent defined items from being added.
+# - The dupe(IgnoreDirs) and dupe(IgnoreFiles) settings are used to prevent defined items from being added.
 #
 set dupe(RebuildIgnore) {
     .* *.asc *.bad *.diz *.gif *.jpg *.missing *.nfo *.url
@@ -348,15 +349,15 @@ set latest(Exempts) {
 #
 # - Check the pre time of releases in the specified paths.
 # - Add pre'd releases to the pre time database.
-# - These two options should be set to 'False' if you do not have a pre database.
+# - These two options should be set to "False" if you do not have a pre database.
 #
 set pretime(CheckMkd)   True
 set pretime(AddOnPre)   True
 #
 # - Virtual paths to enforce pre time checks on.
-# - The 'deny if late' option will deny the creation of releases later then
-#   'pre age', otherwise a warning will be announced.
-# - The 'log attempts' option will announce the pre time or if a user is denied.
+# - The "deny if late" option will deny the creation of releases later then
+#   "pre age", otherwise a warning will be announced.
+# - The "log attempts" option will announce the pre time or if a user is denied.
 # - Format: <virtual path>|<deny if late>|<log attempts>|<pre age (minutes)>
 # - Directories to ignore to from pre time checks (case insensitive).
 #
@@ -381,7 +382,7 @@ set mysql(Password)     "pretimes"
 #
 # - Name of the database and table holding the pre times.
 # - This table MUST be created with the format outlined in
-#   the 'Technical Notes' (section 7) part of the readme.
+#   the Technical Notes (section 7) part of the readme.
 #
 set mysql(DataBase)     "pretimes"
 set mysql(TableName)    "testing"
@@ -389,11 +390,11 @@ set mysql(TableName)    "testing"
 #### New Date ##############################################
 #
 # - This new date function is quite similar to ioA's; however, the line format slightly differs.
-# - The 'symlink' can be disabled by leaving it blank.
-# - The 'day offset' is the offset of the current day (-1 for yesterday, 0 for today, 1 for tomorrow, etc.).
+# - The "symlink" can be disabled by leaving it blank.
+# - The "day offset" is the offset of the current day (-1 for yesterday, 0 for today, 1 for tomorrow, etc.).
 # - Format : <area>|<description>|<virtual path>|<physical path>|<symlink path>|<log or not>|<day offset>|<uid>|<gid>|<chmod>
 # - Cookies: %d - Day, %W - Week, %m - Month, %y - Year (04), %Y - Year with century (2004)
-# - Note: There must be a 'Default' area, other areas are optional.
+# - Note: There must be a "Default" area, other areas are optional.
 #
 set newdate(Default) {
     "0DAY|New 0DAY|/0DAY/%m%d|E:/ioFTPD/site/0DAY/%m%d|E:/ioFTPD/site/Today-0DAY|True|0|0|0|777"

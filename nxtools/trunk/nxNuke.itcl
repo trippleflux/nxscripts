@@ -54,7 +54,7 @@ proc NukeCredits {IsNuke UserName Multi Size Files Stats CreditSection StatsSect
         }
         foreach UserLine $UserFile {
             set LineType [string tolower [lindex $UserLine 0]]
-            if {[lsearch -exact "allup dayup monthup wkup" $LineType] != -1} {
+            if {[lsearch -exact {allup dayup monthup wkup} $LineType] != -1} {
                 set NewFiles [expr {wide([lindex $UserLine $StatsSection]) + $Files}]
                 set NewStats [expr {wide([lindex $UserLine [expr {$StatsSection + 1}]]) + wide($Stats)}]
                 set UserLine [lreplace $UserLine $StatsSection [expr {$StatsSection + 1}] $NewFiles $NewStats]
@@ -79,7 +79,7 @@ proc NukeName {VirtualPath} {
     set Release [file tail [NukeTrim $VirtualPath]]
     if {[IsMultiDisk $Release]} {
         set ParentPath [file tail [file dirname $VirtualPath]]
-        if {$ParentPath != ""} {set Release "$ParentPath ($Release)"}
+        if {![string equal "" $ParentPath]} {set Release "$ParentPath ($Release)"}
     }
     return $Release
 }
@@ -119,7 +119,7 @@ proc NukeTrim {VirtualPath} {
 ######################################################################
 
 proc NukeMain {ArgV} {
-    global approve misc nuke flags group groups pwd user
+    global approve misc nuke flags gid group groups pwd uid user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     ## Safe argument handling
     set ArgList [ArgList $ArgV]
@@ -259,11 +259,12 @@ proc NukeMain {ArgV} {
         if {$IsNuke} {
             set ReMap [list %(user) $user %(group) $group %(multi) $Multi %(reason) $Reason]
             set NukeTag [file join $RealPath [string map $ReMap $nuke(InfoTag)]]
-            if {[catch {file mkdir $NukeTag} ErrorMsg]} {ErrorLog NukeCreateTag $ErrorMsg}
+            CreateTag $NukeTag $uid $gid 555
             RemoveParentLinks $RealPath $VirtualPath
+
             NukeRecord $RealPath "NUKE|$user|$group|$Multi|$Reason"
             set DirChmod 555; set NukeStatus 0; set LogPrefix "NUKE"
-            append NewName $nuke(Prefix) [file tail $VirtualPath]
+            set NewName "$nuke(Prefix)[file tail $VirtualPath]"
         } else {
             foreach ListItem [NukeFindTags $RealPath $nuke(InfoTag)] {
                 if {[catch {file delete -force -- $ListItem} ErrorMsg]} {ErrorLog NukeDeleteTag $ErrorMsg}

@@ -275,10 +275,7 @@ proc ApproveRelease {VirtualPath UserName GroupName} {
     if {[file isdirectory $RealPath]} {
         putlog "APPROVE: \"$VirtualPath\" \"$UserName\" \"$GroupName\""
         set TagPath [file join $RealPath [string map [list %(user) $UserName %(group) $GroupName] $approve(DirTag)]]
-        if {![catch {file mkdir $TagPath} ErrorMsg]} {
-            catch {vfs write $TagPath [resolve user $UserName] [resolve group $GroupName] 555}
-            return 1
-        } else {ErrorLog ApproveMkDir $ErrorMsg}
+        CreateTag $TagPath [resolve user $UserName] [resolve group $GroupName] 555
     } else {
         ErrorLog ApproveRelease "The vpath \"$VirtualPath\" at \"$RealPath\" doesn't exist."
     }
@@ -472,7 +469,7 @@ proc SiteApprove {Action Release} {
         }
         "list" {
             if {!$IsSiteBot} {
-                foreach MessageType "Header Body None Footer" {
+                foreach MessageType {Header Body None Footer} {
                     set template($MessageType) [ReadFile [file join $misc(Templates) "Approves.$MessageType"]]
                 }
                 OutputData $template(Header)
@@ -486,7 +483,7 @@ proc SiteApprove {Action Release} {
                     incr Count
                     set ApproveAge [lrange [FormatDuration $ApproveAge] 0 1]
                     set ValueList [list $Count $ApproveAge $values(UserName) $values(GroupName) $values(Release)]
-                    OutputData [ParseCookies $template(Body) $ValueList "num age user group release"]
+                    OutputData [ParseCookies $template(Body) $ValueList {num age user group release}]
                 }
             }
             if {!$IsSiteBot} {
@@ -507,7 +504,7 @@ proc SiteDupe {MaxResults Pattern} {
         return 1
     }
     if {!$IsSiteBot} {
-        foreach MessageType "Header Body None Footer" {
+        foreach MessageType {Header Body None Footer} {
             set template($MessageType) [ReadFile [file join $misc(Templates) "Dupe.$MessageType"]]
         }
         OutputData $template(Header)
@@ -519,9 +516,9 @@ proc SiteDupe {MaxResults Pattern} {
         if {$IsSiteBot} {
             iputs "DUPE|$Count|$values(TimeStamp)|$values(UserName)|$values(GroupName)|$values(DirPath)|$values(DirName)"
         } else {
-            set ValueList [clock format $values(TimeStamp) -format "{%S} {%M} {%H} {%d} {%m} {%y} {%Y}" -gmt 0]
+            set ValueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 0]
             lappend ValueList $Count $values(UserName) $values(GroupName) $values(DirName) [file join $values(DirPath) $values(DirName)]
-            OutputData [ParseCookies $template(Body) $ValueList "sec min hour day month year2 year4 num user group release path"]
+            OutputData [ParseCookies $template(Body) $ValueList {sec min hour day month year2 year4 num user group release path}]
         }
     }
     if {!$IsSiteBot} {
@@ -531,7 +528,7 @@ proc SiteDupe {MaxResults Pattern} {
         } else {
             set Total $Count
         }
-        OutputData [ParseCookies $template(Footer) [list $Count $Total] "found total"]
+        OutputData [ParseCookies $template(Footer) [list $Count $Total] {found total}]
     }
     DirDb close
     return 0
@@ -545,7 +542,7 @@ proc SiteFileDupe {MaxResults Pattern} {
         return 1
     }
     if {!$IsSiteBot} {
-        foreach MessageType "Header Body None Footer" {
+        foreach MessageType {Header Body None Footer} {
             set template($MessageType) [ReadFile [file join $misc(Templates) "FileDupe.$MessageType"]]
         }
         OutputData $template(Header)
@@ -557,9 +554,9 @@ proc SiteFileDupe {MaxResults Pattern} {
         if {$IsSiteBot} {
             iputs "DUPE|$Count|$values(TimeStamp)|$values(UserName)|$values(GroupName)|$values(FileName)"
         } else {
-            set ValueList [clock format $values(TimeStamp) -format "{%S} {%M} {%H} {%d} {%m} {%y} {%Y}" -gmt 0]
+            set ValueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 0]
             lappend ValueList $Count $values(UserName) $values(GroupName) $values(FileName)
-            OutputData [ParseCookies $template(Body) $ValueList "sec min hour day month year2 year4 num user group file"]
+            OutputData [ParseCookies $template(Body) $ValueList {sec min hour day month year2 year4 num user group file}]
         }
     }
     if {!$IsSiteBot} {
@@ -569,7 +566,7 @@ proc SiteFileDupe {MaxResults Pattern} {
         } else {
             set Total $Count
         }
-        OutputData [ParseCookies $template(Footer) [list $Count $Total] "found total"]
+        OutputData [ParseCookies $template(Footer) [list $Count $Total] {found total}]
     }
     FileDb close
     return 0
@@ -583,7 +580,7 @@ proc SiteNew {MaxResults ShowSection} {
         return 1
     }
     if {!$IsSiteBot} {
-        foreach MessageType "Header Error Body None Footer" {
+        foreach MessageType {Header Error Body None Footer} {
             set template($MessageType) [ReadFile [file join $misc(Templates) "New.$MessageType"]]
         }
         OutputData $template(Header)
@@ -601,7 +598,7 @@ proc SiteNew {MaxResults ShowSection} {
         }
         if {!$ValidSection} {
             set SectionNameList [join [lsort -ascii $SectionNameList]]
-            OutputData [ParseCookies $template(Error) [list $SectionNameList] "sections"]
+            OutputData [ParseCookies $template(Error) [list $SectionNameList] {sections}]
             OutputData $template(Footer)
             DirDb close
             return 1
@@ -626,7 +623,7 @@ proc SiteNew {MaxResults ShowSection} {
         } else {
             set ReleaseAge [lrange [FormatDuration $ReleaseAge] 0 1]
             set ValueList [list $Count $ReleaseAge $values(UserName) $values(GroupName) $ShowSection $values(DirName) [file join $values(DirPath) $values(DirName)]]
-            OutputData [ParseCookies $template(Body) $ValueList "num age user group section release path"]
+            OutputData [ParseCookies $template(Body) $ValueList {num age user group section release path}]
         }
     }
     if {!$IsSiteBot} {
@@ -640,7 +637,7 @@ proc SiteNew {MaxResults ShowSection} {
 proc SitePreTime {MaxResults Pattern} {
     global IsSiteBot misc mysql
     if {!$IsSiteBot} {
-        foreach MessageType "Header Body BodyInfo BodyNuke None Footer" {
+        foreach MessageType {Header Body BodyInfo BodyNuke None Footer} {
             set template($MessageType) [ReadFile [file join $misc(Templates) "PreTime.$MessageType"]]
         }
         OutputData $template(Header)
@@ -661,10 +658,10 @@ proc SitePreTime {MaxResults Pattern} {
                 set BodyTemplate [expr {$SingleResult ? ($IsNuked != 0 ? $template(BodyNuke) : $template(BodyInfo)) : $template(Body)}]
                 set ReleaseAge [FormatDuration $ReleaseAge]
 
-                set ValueList [clock format $PreTime -format "{%S} {%M} {%H} {%d} {%m} {%y} {%Y}" -gmt 0]
-                set ValueList [concat $ValueList [clock format $NukeTime -format "{%S} {%M} {%H} {%d} {%m} {%y} {%Y}" -gmt 0]]
+                set ValueList [clock format $PreTime -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 0]
+                set ValueList [concat $ValueList [clock format $NukeTime -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 0]]
                 lappend ValueList $ReleaseAge $Count $Section $Release $Files [FormatSize $KBytes] $Disks $NukeReason
-                OutputData [ParseCookies $BodyTemplate $ValueList "sec min hour day month year2 year4 nukesec nukemin nukehour nukeday nukemonth nukeyear2 nukeyear4 age num section release files size disks reason"]
+                OutputData [ParseCookies $BodyTemplate $ValueList {sec min hour day month year2 year4 nukesec nukemin nukehour nukeday nukemonth nukeyear2 nukeyear4 age num section release files size disks reason}]
             }
         }
         DbClose

@@ -40,7 +40,7 @@ proc ReqCheckLimit {DbProc UserName} {
     return 1
 }
 
-proc ReqUpdateDir {Action Request} {
+proc ReqUpdateDir {Action Request {UserID 0} {GroupID 0}} {
     global req
     if {[string equal "" $req(RequestPath)]} {
         return
@@ -68,11 +68,7 @@ proc ReqUpdateDir {Action Request} {
                     }
                 }
             }
-            "req" {
-                if {[catch {file mkdir $ReqPath} ErrorMsg]} {
-                    ErrorLog ReqCreate $ErrorMsg
-                }
-            }
+            "req" {CreateTag $ReqPath $UserID $GroupID 777}
         }
         catch {vfs flush $req(RequestPath)}
     } else {
@@ -140,7 +136,7 @@ proc ReqMain {ArgV} {
         }
         "view" {
             if {!$IsSiteBot} {
-                foreach MessageType "Header Body None Footer" {
+                foreach MessageType {Header Body None Footer} {
                     set template($MessageType) [ReadFile [file join $misc(Templates) "Requests.$MessageType"]]
                 }
                 OutputData $template(Header)
@@ -155,7 +151,7 @@ proc ReqMain {ArgV} {
                     incr Count
                     set RequestAge [lrange [FormatDuration $RequestAge] 0 1]
                     set ValueList [list $RequestAge $RequestID $values(UserName) $values(GroupName) $values(Request)]
-                    OutputData [ParseCookies $template(Body) $ValueList "age id user group request"]
+                    OutputData [ParseCookies $template(Body) $ValueList {age id user group request}]
                 }
             }
             if {!$IsSiteBot} {

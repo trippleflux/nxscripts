@@ -19,7 +19,7 @@ if {[catch {load tclsqlite3.dll Tclsqlite3} ErrorMsg]} {
 # User Procedures
 ######################################################################
 
-proc ChangeCredits {UserName Change {Section "0"}} {
+proc ChangeCredits {UserName Change {Section 0}} {
     incr Section
     ## Validate the 'Change' parameter
     if {[regexp {^(\+|\-)?(\d+)$} $Change Result Method Amount] && [userfile open $UserName] == 0} {
@@ -152,16 +152,16 @@ proc OneLines {Message} {
         return 1
     }
     if {[string equal "" $Message]} {
-        foreach MessageType "Header Body None Footer" {
+        foreach MessageType {Header Body None Footer} {
             set template($MessageType) [ReadFile [file join $misc(Templates) "OneLines.$MessageType"]]
         }
         OutputData $template(Header)
         set Count 0
         OneDb eval {SELECT * FROM OneLines ORDER BY TimeStamp DESC LIMIT $misc(OneLines)} values {
             incr Count
-            set ValueList [clock format $values(TimeStamp) -format "{%S} {%M} {%H} {%d} {%m} {%y} {%Y}" -gmt 0]
+            set ValueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 0]
             lappend ValueList $values(UserName) $values(GroupName) $values(Message)
-            OutputData [ParseCookies $template(Body) $ValueList "sec min hour day month year2 year4 user group message"]
+            OutputData [ParseCookies $template(Body) $ValueList {sec min hour day month year2 year4 user group message}]
         }
         if {!$Count} {OutputData $template(None)}
         OutputData $template(Footer)
@@ -606,7 +606,7 @@ proc SiteGroupInfo {GroupName Section} {
 
 proc SiteResetStats {ArgList} {
     set ResetStats ""
-    set StatsTypes "alldn allup monthdn monthup wkdn wkup daydn dayup"
+    set StatsTypes {alldn allup daydn dayup monthdn monthup wkdn wkup}
     iputs ".-\[ResetStats\]-----------------------------------------------------------."
     foreach Arg $ArgList {
         set Arg [string tolower $Arg]
@@ -636,7 +636,7 @@ proc SiteResetUser {UserName} {
     if {[resolve user $UserName] == -1} {
         LinePuts "The specified user does not exist."
     } else {
-        ResetUserFile $UserName "alldn allup monthdn monthup wkdn wkup daydn dayup" $reset(Credits)
+        ResetUserFile $UserName {alldn allup daydn dayup monthdn monthup wkdn wkup} $reset(Credits)
         if {[IsTrue $reset(Credits)]} {LinePuts "Credits Reset...Complete."}
         LinePuts "Stats Reset.....Complete."
     }
@@ -687,7 +687,7 @@ proc SiteTraffic {Target} {
         set UserFile [userfile bin2ascii]
         foreach UserLine [split $UserFile "\r\n"] {
             set LineType [string tolower [lindex $UserLine 0]]
-            if {[lsearch -exact "alldn allup daydn dayup monthdn monthup wkdn wkup" $LineType] != -1} {
+            if {[lsearch -exact {alldn allup daydn dayup monthdn monthup wkdn wkup} $LineType] != -1} {
                 MergeStats [lrange $UserLine 1 end] file($LineType) size($LineType) time($LineType)
             }
         }
@@ -791,7 +791,7 @@ proc ToolsMain {ArgV} {
             } elseif {[string equal "stats" $SubAction] && $ArgLength > 3} {
                 ## Check stats type
                 set StatsType [string tolower $Param1]
-                if {[lsearch -exact "alldn allup daydn dayup monthdn monthup wkdn wkup" $StatsType] == -1} {
+                if {[lsearch -exact {alldn allup daydn dayup monthdn monthup wkdn wkup} $StatsType] == -1} {
                     set StatsType "Stats"
                 }
 

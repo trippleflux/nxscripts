@@ -60,16 +60,16 @@ proc RulesMain {ShowSection} {
     }
     if {[string equal "" $ShowList]} {set ShowList $SectionList}
 
-    foreach MessageType "Header Section SingleLine MultiLine Footer" {
+    foreach MessageType {Header Section SingleLine MultiLine Footer} {
         set template($MessageType) [ReadFile [file join $misc(Templates) "Rules.$MessageType"]]
     }
-    OutputData [ParseCookies $template(Header) [list $SectionList] "sections"]
+    OutputData [ParseCookies $template(Header) [list $SectionList] {sections}]
 
     foreach SectionName $ShowList {
         set RuleList [lindex [array get rule $SectionName] 1]
         if {[string equal "" $RuleList]} {continue}
         set Count 0
-        OutputData [ParseCookies $template(Section) [list $SectionName $SectionList] "section sections"]
+        OutputData [ParseCookies $template(Section) [list $SectionName $SectionList] {section sections}]
 
         foreach {PunishText RuleText} $RuleList {
             incr Count; set MultiLine 0
@@ -85,7 +85,7 @@ proc RulesMain {ShowSection} {
             }
         }
     }
-    OutputData [ParseCookies $template(Footer) [list $SectionList] "sections"]
+    OutputData [ParseCookies $template(Footer) [list $SectionList] {sections}]
     return 0
 }
 
