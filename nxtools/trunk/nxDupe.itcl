@@ -809,13 +809,13 @@ proc DupeMain {ArgV} {
         {upload} {
             if {[IsTrue $dupe(CheckFiles)]} {
                 foreach {Tmp RealPath CRC VirtualPath} $ArgV {break}
-                set Result [DupeLog "UPLD" $VirtualPath]
+                DupeLog "UPLD" $VirtualPath
             }
         }
         {uploaderror} {
             if {[IsTrue $dupe(CheckFiles)]} {
                 foreach {Tmp RealPath CRC VirtualPath} $ArgV {break}
-                set Result [DupeLog "DELE" $VirtualPath]
+                DupeLog "DELE" $VirtualPath
             }
         }
         {clean} {
