@@ -2,4 +2,4 @@
 ############################################################
 
 - Write an ID3 tag and MP3 header parser, based on CMP3Info.
-- Add UNICODE support
+- Add UNICODE support (not critical)

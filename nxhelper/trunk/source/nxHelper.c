@@ -41,6 +41,7 @@ INT Nxhelper_Init(Tcl_Interp *interp)
      *    title     -
      *    track     -
      *    genre     -
+     *    year      -
      *    comment   -
      *    bitrate   -
      *    frequency -
@@ -72,17 +73,20 @@ INT Nxhelper_Init(Tcl_Interp *interp)
      *    -recurse = Recursively touch all files and directories.
      *    --       = End of arguments.
      *
-     * ::nx::volume drive varName
+     * ::nx::volume info drive varName
      *  - Retrieves information for the "drive" and uses
      *    the array given by "varName" to store information.
      *  - Returns 1 if successful, and 0 otherwise.
-     -
+     *
      *  - Array Contents:
      *    name   - Volume name.
      *    serial - Volume serial number.
      *    free   - Remaining space, expressed in bytes.
      *    total  - Total space, expressed in bytes.
-     *    type   - Drive type, the type number corresponds as follows:
+     *
+     * ::nx::volume type drive
+     *  - Retrieves the drive type for "drive".
+     *  - The return value corresponds as follows:
      *
      *    #define DRIVE_UNKNOWN     0
      *    #define DRIVE_NO_ROOT_DIR 1
@@ -92,7 +96,7 @@ INT Nxhelper_Init(Tcl_Interp *interp)
      *    #define DRIVE_CDROM       5
      *    #define DRIVE_RAMDISK     6
      *
-     *    switch -- $volume(type) {
+     *    switch -- $type {
      *        1 {set typeName "Invalid"}
      *        2 {set typeName "Removable"}
      *        3 {set typeName "Fixed"}

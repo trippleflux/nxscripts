@@ -56,90 +56,111 @@ BOOL GetDiskSpace(LPCTSTR pszRootPath, PUINT64 i64FreeBytes, PUINT64 i64TotalByt
 
 INT TclVolumeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST objv[])
 {
-    UINT64 i64FreeBytes, i64TotalBytes;
-    CHAR *pszDrive;
-    CHAR szName[MAX_PATH], szSystem[MAX_PATH];
-    DWORD dwFlags, dwMaxLength, dwSerial;
+    INT nIndex;
+    const static CHAR *szOptions[] = {"info", "type", NULL};
+    enum eOptions {OPTION_INFO, OPTION_TYPE};
 
-    if (objc != 3) {
-        Tcl_WrongNumArgs(interp, 1, objv, "drive varName");
+    if (objc < 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "option ?args?");
         return TCL_ERROR;
     }
-    pszDrive = Tcl_GetString(objv[1]);
 
-    if (GetVolumeInformation(pszDrive, szName, MAX_PATH, &dwSerial, &dwMaxLength, &dwFlags,
-            szSystem, MAX_PATH) && GetDiskSpace(pszDrive, &i64FreeBytes, &i64TotalBytes)) {
-        Tcl_Obj *pVarObj = Tcl_NewStringObj(Tcl_GetString(objv[2]), -1);
-        Tcl_Obj *pFieldObj = Tcl_NewObj();
-        Tcl_Obj *pValueObj;
-        UINT uiType = GetDriveType(pszDrive);
-
-        //
-        // GetVolumeInformation information
-        //
-
-        // Set varName(flags) to the file system flags.
-        Tcl_SetStringObj(pFieldObj, "flags", -1);
-        pValueObj = Tcl_NewLongObj((LONG)dwFlags);
-        if (!Tcl_ObjSetVar2(interp, pVarObj, pFieldObj, pValueObj, TCL_LEAVE_ERR_MSG)) {
-            return TCL_ERROR;
-        }
-
-        // Set varName(name) to the volume name.
-        Tcl_SetStringObj(pFieldObj, "name", -1);
-        pValueObj = Tcl_NewStringObj(szName, -1);
-        if (!Tcl_ObjSetVar2(interp, pVarObj, pFieldObj, pValueObj, TCL_LEAVE_ERR_MSG)) {
-            return TCL_ERROR;
-        }
-
-        // Set varName(serial) to the volume serial number.
-        Tcl_SetStringObj(pFieldObj, "serial", -1);
-        // Tcl can only represent signed integers, so we'll go one up, wide integers.
-        pValueObj = Tcl_NewWideIntObj((Tcl_WideInt)dwSerial); 
-        if (!Tcl_ObjSetVar2(interp, pVarObj, pFieldObj, pValueObj, TCL_LEAVE_ERR_MSG)) {
-            return TCL_ERROR;
-        }
-
-        // Set varName(system) to the file system name.
-        Tcl_SetStringObj(pFieldObj, "system", -1);
-        pValueObj = Tcl_NewStringObj(szSystem, -1);
-        if (!Tcl_ObjSetVar2(interp, pVarObj, pFieldObj, pValueObj, TCL_LEAVE_ERR_MSG)) {
-            return TCL_ERROR;
-        }
-
-        //
-        // GetDriveType information
-        //
-
-        // Set varName(type) to the disk drive type.
-        Tcl_SetStringObj(pFieldObj, "type", -1);
-        pValueObj = Tcl_NewIntObj((INT)uiType);
-        if (!Tcl_ObjSetVar2(interp, pVarObj, pFieldObj, pValueObj, TCL_LEAVE_ERR_MSG)) {
-            return TCL_ERROR;
-        }
-
-        //
-        // GetDiskSpace information
-        //
-
-        // Set varName(free) to the remaining disk space.
-        Tcl_SetStringObj(pFieldObj, "free", -1);
-        pValueObj = Tcl_NewWideIntObj((Tcl_WideUInt)i64FreeBytes);
-        if (!Tcl_ObjSetVar2(interp, pVarObj, pFieldObj, pValueObj, TCL_LEAVE_ERR_MSG)) {
-            return TCL_ERROR;
-        }
-
-        // Set varName(total) to the total disk space.
-        Tcl_SetStringObj(pFieldObj, "total", -1);
-        pValueObj = Tcl_NewWideIntObj((Tcl_WideUInt)i64TotalBytes);
-        if (!Tcl_ObjSetVar2(interp, pVarObj, pFieldObj, pValueObj, TCL_LEAVE_ERR_MSG)) {
-            return TCL_ERROR;
-        }
-
-        Tcl_SetIntObj(Tcl_GetObjResult(interp), 1);
-    } else {
-        Tcl_SetIntObj(Tcl_GetObjResult(interp), 0);
+    if (Tcl_GetIndexFromObj(interp, objv[1], szOptions, "option", 0, &nIndex) != TCL_OK) {
+        return TCL_ERROR;
     }
 
-    return TCL_OK;
+    switch ((enum eOptions) nIndex) {
+        case OPTION_INFO: {
+            UINT64 i64FreeBytes, i64TotalBytes;
+            CHAR *pszDrive;
+            CHAR szName[MAX_PATH], szSystem[MAX_PATH];
+            DWORD dwFlags, dwMaxLength, dwSerial;
+
+            if (objc != 4) {
+                Tcl_WrongNumArgs(interp, 2, objv, "drive varName");
+                return TCL_ERROR;
+            }
+            pszDrive = Tcl_GetString(objv[2]);
+
+            if (GetVolumeInformation(pszDrive, szName, MAX_PATH, &dwSerial, &dwMaxLength, &dwFlags,
+                    szSystem, MAX_PATH) && GetDiskSpace(pszDrive, &i64FreeBytes, &i64TotalBytes)) {
+                Tcl_Obj *pVarObj = Tcl_NewStringObj(Tcl_GetString(objv[3]), -1);
+                Tcl_Obj *pFieldObj = Tcl_NewObj();
+                Tcl_Obj *pValueObj;
+
+                //
+                // GetVolumeInformation information
+                //
+
+                // Set varName(flags) to the file system flags.
+                Tcl_SetStringObj(pFieldObj, "flags", -1);
+                pValueObj = Tcl_NewLongObj((LONG)dwFlags);
+                if (!Tcl_ObjSetVar2(interp, pVarObj, pFieldObj, pValueObj, TCL_LEAVE_ERR_MSG)) {
+                    return TCL_ERROR;
+                }
+
+                // Set varName(name) to the volume name.
+                Tcl_SetStringObj(pFieldObj, "name", -1);
+                pValueObj = Tcl_NewStringObj(szName, -1);
+                if (!Tcl_ObjSetVar2(interp, pVarObj, pFieldObj, pValueObj, TCL_LEAVE_ERR_MSG)) {
+                    return TCL_ERROR;
+                }
+
+                // Set varName(serial) to the volume serial number.
+                Tcl_SetStringObj(pFieldObj, "serial", -1);
+                // Tcl can only represent signed integers, so we'll go one up - wide integers.
+                pValueObj = Tcl_NewWideIntObj((Tcl_WideInt)dwSerial);
+                if (!Tcl_ObjSetVar2(interp, pVarObj, pFieldObj, pValueObj, TCL_LEAVE_ERR_MSG)) {
+                    return TCL_ERROR;
+                }
+
+                // Set varName(system) to the file system name.
+                Tcl_SetStringObj(pFieldObj, "system", -1);
+                pValueObj = Tcl_NewStringObj(szSystem, -1);
+                if (!Tcl_ObjSetVar2(interp, pVarObj, pFieldObj, pValueObj, TCL_LEAVE_ERR_MSG)) {
+                    return TCL_ERROR;
+                }
+
+                //
+                // GetDiskSpace information
+                //
+
+                // Set varName(free) to the remaining disk space.
+                Tcl_SetStringObj(pFieldObj, "free", -1);
+                pValueObj = Tcl_NewWideIntObj((Tcl_WideUInt)i64FreeBytes);
+                if (!Tcl_ObjSetVar2(interp, pVarObj, pFieldObj, pValueObj, TCL_LEAVE_ERR_MSG)) {
+                    return TCL_ERROR;
+                }
+
+                // Set varName(total) to the total disk space.
+                Tcl_SetStringObj(pFieldObj, "total", -1);
+                pValueObj = Tcl_NewWideIntObj((Tcl_WideUInt)i64TotalBytes);
+                if (!Tcl_ObjSetVar2(interp, pVarObj, pFieldObj, pValueObj, TCL_LEAVE_ERR_MSG)) {
+                    return TCL_ERROR;
+                }
+
+                Tcl_SetIntObj(Tcl_GetObjResult(interp), 1);
+            } else {
+                Tcl_SetIntObj(Tcl_GetObjResult(interp), 0);
+            }
+
+            return TCL_OK;
+        }
+        case OPTION_TYPE: {
+            CHAR *pszDrive;
+
+            if (objc != 3) {
+                Tcl_WrongNumArgs(interp, 2, objv, "drive");
+                return TCL_ERROR;
+            }
+
+            pszDrive = Tcl_GetString(objv[2]);
+            Tcl_SetIntObj(Tcl_GetObjResult(interp), (INT)GetDriveType(pszDrive));
+
+            return TCL_OK;
+        }
+        default: {
+            return TCL_ERROR; // Should never be reached.
+        }
+    }
 }
