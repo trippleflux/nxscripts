@@ -18,41 +18,47 @@ if {[catch {load tclsqlite3.dll Tclsqlite3} ErrorMsg]} {
 
 # Table Formats
 ######################################################################
+unset -nocomplain dbformat dbversion
 
-set dbtable(Approves) {
-CREATE TABLE Approves(
+set dbversion(Approves) 0
+set dbformat(Approves) {
+Approves {CREATE TABLE Approves(
 TimeStamp INTEGER default 0,
 UserName  TEXT default '',
 GroupName TEXT default '',
-Release   TEXT default '')
+Release   TEXT default '')}
 }
 
-set dbtable(DupeDirs) {
-CREATE TABLE DupeDirs(
+set dbversion(DupeDirs) 0
+set dbformat(DupeDirs) {
+DupeDirs {CREATE TABLE DupeDirs(
 TimeStamp INTEGER default 0,
 UserName  TEXT default '',
 GroupName TEXT default '',
 DirPath   TEXT default '',
-DirName   TEXT default '')
+DirName   TEXT default '')}
 }
 
-set dbtable(DupeFiles) {
-CREATE TABLE DupeFiles(
+set dbversion(DupeFiles) 0
+set dbformat(DupeFiles) {
+DupeFiles {CREATE TABLE DupeFiles(
 TimeStamp INTEGER default 0,
 UserName  TEXT default '',
 GroupName TEXT default '',
-FileName  TEXT default '')
+FileName  TEXT default '')}
 }
 
-set dbtable(Links) {
-CREATE TABLE Links(
+set dbversion(Links) 0
+set dbformat(Links) {
+Links {CREATE TABLE Links(
 TimeStamp INTEGER default 0,
 LinkType  INTEGER default 0,
-DirName   TEXT default '')
+DirName   TEXT default '')}
 }
 
-set dbtable(Nukes) {
-CREATE TABLE Nukes(
+set dbversion(Nukes) 1
+set dbformat(Nukes) {
+Nukes {CREATE TABLE Nukes(
 NukeId    INTEGER PRIMARY KEY AUTOINCREMENT,
 TimeStamp INTEGER default 0,
 UserName  TEXT default '',
@@ -62,66 +68,96 @@ Release   TEXT default '',
 Reason    TEXT default '',
 Multi     INTEGER default 0,
 Files     INTEGER default 0,
-Size      INTEGER default 0);
+Size      INTEGER default 0)}
 
-CREATE TABLE Users(
+Users {CREATE TABLE Users(
 NukeId    INTEGER default 0,
 Status    INTEGER default 0,
 UserName  TEXT default '',
 GroupName TEXT default '',
 Amount    INTEGER default 0,
-UNIQUE    (NukeId,UserName));
+UNIQUE    (NukeId,UserName))}
 }
 
-set dbtable(OneLines) {
-CREATE TABLE OneLines(
+set dbversion(OneLines) 0
+set dbformat(OneLines) {
+OneLines {CREATE TABLE OneLines(
 TimeStamp INTEGER default 0,
 UserName  TEXT default '',
 GroupName TEXT default '',
-Message   TEXT default '')
+Message   TEXT default '')}
 }
 
-set dbtable(Pres) {
-CREATE TABLE Pres(
+set dbversion(Pres) 0
+set dbformat(Pres) {
+Pres {CREATE TABLE Pres(
 TimeStamp INTEGER default 0,
 UserName  TEXT default '',
 GroupName TEXT default '',
 Area      TEXT default '',
 Release   TEXT default '',
 Files     INTEGER default 0,
-Size      INTEGER default 0)
+Size      INTEGER default 0)}
 }
 
-set dbtable(Requests) {
-CREATE TABLE Requests(
+set dbversion(Requests) 1
+set dbformat(Requests) {
+Requests {CREATE TABLE Requests(
 TimeStamp INTEGER default 0,
 UserName  TEXT default '',
 GroupName TEXT default '',
 Status    INTEGER default 0,
 RequestId INTEGER default 0,
-Request   TEXT default '')
+Request   TEXT default '')}
 }
 
 # Database Procedures
 ######################################################################
 
 proc DbCreate {DbList} {
-    global dbtable misc
+    global dbformat dbversion misc
     if {![file exists $misc(DataPath)]} {
         catch {file mkdir $misc(DataPath)}
     }
     foreach DbName $DbList {
-        LinePuts "Creating database: $DbName"
-        set DbFile [file join $misc(DataPath) ${DbName}.db]
-        if {[catch {sqlite3 SqliteDb $DbFile} ErrorMsg]} {
-            LinePuts " - Unable to open $DbFile: $ErrorMsg"
+        set DbPath [file join $misc(DataPath) ${DbName}.db]
+        set DbFile [file tail $DbPath]
+        LinePuts "Creating database: $DbFile"
+
+        if {[catch {sqlite3 SqliteDb $DbPath} ErrorMsg]} {
+            LinePuts " - Unable to open file: $ErrorMsg"
             continue
         }
-        if {[SqliteDb eval "SELECT count(*) FROM sqlite_master WHERE name='$DbName' AND type='table'"]} {
-            LinePuts "- Table already exists."
-        } else {
-            LinePuts "- Creating table(s)."
-            SqliteDb eval $dbtable($DbName)
+        set CurrentVer [SqliteDb eval {PRAGMA user_version}]
+
+        if {$CurrentVer != $dbversion($DbName)} {
+            LinePuts "- Invalid schema version (current: v$CurrentVer, required: v$dbversion($DbName))."
+            SqliteDb close
+
+            ## Rename the old database to <current name>.old-v<current version>.
+            set DbOld "${DbPath}.old-v$CurrentVer"
+            if {[catch {file rename -- $DbPath $DbOld} ErrorMsg]} {
+                LinePuts "- $ErrorMsg"
+                continue
+            } else {
+                LinePuts "- Renamed current database to [file tail $DbOld]."
+            }
+
+            ## Re-open the database to create the tables.
+            if {[catch {sqlite3 SqliteDb $DbPath} ErrorMsg]} {
+                LinePuts "- Unable to re-open file: $ErrorMsg"
+                continue
+            }
+        }
+
+        SqliteDb eval "PRAGMA user_version=$dbversion($DbName)"
+        foreach {TableName TableFormat} $dbformat($DbName) {
+            if {[SqliteDb eval "SELECT count(*) FROM sqlite_master WHERE name='$TableName' AND type='table'"]} {
+                LinePuts "- Table $TableName: exists."
+            } else {
+                LinePuts "- Creating table $TableName."
+                SqliteDb eval $TableFormat
+            }
         }
         SqliteDb close
     }
@@ -130,10 +166,11 @@ proc DbCreate {DbList} {
 proc DbCheck {DbList} {
     global misc
     foreach DbName $DbList {
-        LinePuts "Checking database: $DbName"
-        set DbFile [file join $misc(DataPath) ${DbName}.db]
-        if {[catch {sqlite3 SqliteDb $DbFile} ErrorMsg]} {
-            LinePuts " - Unable to open $DbFile: $ErrorMsg"
+        set DbPath [file join $misc(DataPath) ${DbName}.db]
+        LinePuts "Checking database: [file tail $DbPath]"
+
+        if {[catch {sqlite3 SqliteDb $DbPath} ErrorMsg]} {
+            LinePuts " - Unable to open file: $ErrorMsg"
             continue
         }
         set Status [SqliteDb eval {PRAGMA integrity_check}]
@@ -145,10 +182,11 @@ proc DbCheck {DbList} {
 proc DbOptimize {DbList} {
     global misc
     foreach DbName $DbList {
-        LinePuts "Optimizing database: $DbName"
-        set DbFile [file join $misc(DataPath) ${DbName}.db]
-        if {[catch {sqlite3 SqliteDb $DbFile} ErrorMsg]} {
-            LinePuts " - Unable to open $DbFile: $ErrorMsg"
+        set DbPath [file join $misc(DataPath) ${DbName}.db]
+        LinePuts "Optimizing database: [file tail $DbPath]"
+
+        if {[catch {sqlite3 SqliteDb $DbPath} ErrorMsg]} {
+            LinePuts " - Unable to open file: $ErrorMsg"
             continue
         }
         SqliteDb eval {VACUUM}
@@ -160,7 +198,7 @@ proc DbOptimize {DbList} {
 ######################################################################
 
 proc DbMain {ArgV} {
-    global dbtable misc
+    global dbformat misc
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     ## Safe argument handling
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
@@ -173,7 +211,7 @@ proc DbMain {ArgV} {
         return 1
     }
     iputs ".-\[DB\]-------------------------------------------------------------------."
-    set DbList [lsort -ascii [array names dbtable]]
+    set DbList [lsort -ascii [array names dbformat]]
     if {$ArgLength > 1} {
         set DbArg [lindex $ArgList 1]
         set ValidName 0

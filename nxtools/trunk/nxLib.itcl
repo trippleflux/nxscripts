@@ -79,23 +79,31 @@ proc UniqueKey {} {
 # DataBase Procedures
 ######################################################################
 
-proc DbConnect {} {
+proc DbOpenFile {DbProc FileName} {
+    set DbPath [file join $::misc(DataPath) $FileName]
+    if {[catch {sqlite3 $DbProc $DbPath} ErrorMsg]} {
+        return -code error "unable to open \"$DbPath\": $ErrorMsg"
+    }
+    return 1
+}
+
+proc MySqlConnect {} {
     global mysql
     if {[catch {load "mysqltcl.dll" Mysqltcl} ErrorMsg]} {
-        ErrorLog DbConnect $ErrorMsg
+        ErrorLog MySqlConnect $ErrorMsg
     } elseif {[catch {set mysql(ConnHandle) [::mysql::connect -host $mysql(Host) -user $mysql(Username) -password $mysql(Password) -port $mysql(Port) -db $mysql(DataBase)]} ErrorMsg]} {
-        ErrorLog DbConnect $ErrorMsg
+        ErrorLog MySqlConnect $ErrorMsg
     } elseif {[lsearch -exact [::mysql::info $mysql(ConnHandle) tables] $mysql(TableName)] != -1} {
         return 1
     } else {
-        ErrorLog DbConnect "The table \"$mysql(TableName)\" does not exist in the database \"$mysql(DataBase)\"."
-        DbClose
+        ErrorLog MySqlConnect "The table \"$mysql(TableName)\" does not exist in the database \"$mysql(DataBase)\"."
+        MySqlClose
     }
     set mysql(ConnHandle) -1
     return 0
 }
 
-proc DbClose {} {
+proc MySqlClose {} {
     global mysql
     if {$mysql(ConnHandle) != -1} {
         catch {::mysql::close $mysql(ConnHandle)}
@@ -350,8 +358,8 @@ proc ListMatchI {PatternList String} {
 set misc(LogPath) [config read "Locations" "Log_Files"]
 
 proc DebugLog {LogType LogMsg} {
-    global misc args flags group groups path pwd user
-    set LogFile [file join $misc(LogPath) "nxDebug.log"]
+    global args flags group groups path pwd user
+    set LogFile [file join $::misc(LogPath) "nxDebug.log"]
     if {![catch {set Handle [open $LogFile a]} ErrorMsg]} {
         set TimeNow [clock format [clock seconds] -format "%m-%d-%Y %H:%M:%S"]
         if {[string equal "-state" $LogType]} {
@@ -369,8 +377,7 @@ proc DebugLog {LogType LogMsg} {
 }
 
 proc ErrorLog {LogType LogMsg} {
-    global misc
-    set LogFile [file join $misc(LogPath) "nxError.log"]
+    set LogFile [file join $::misc(LogPath) "nxError.log"]
     if {![catch {set Handle [open $LogFile a]} ErrorMsg]} {
         set TimeNow [clock format [clock seconds] -format "%m-%d-%Y %H:%M:%S"]
         puts $Handle "$TimeNow - [format %-12s $LogType] : $LogMsg"

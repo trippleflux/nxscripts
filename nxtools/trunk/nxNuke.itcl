@@ -339,8 +339,7 @@ proc NukeMain {ArgV} {
                 putlog "${LogPrefix}: \"$VirtualPath\" \"$user\" \"$group\" \"$Multi\" \"$Reason\" \"$Files\" \"$TotalSize\" \"$DiskCount\" \"$NukeeLog\""
             }
 
-            set DbFile [file join $misc(DataPath) "Nukes.db"]
-            if {![catch {sqlite3 NukeDb $DbFile} ErrorMsg]} {
+            if {![catch {DbOpenFile NukeDb "Nukes.db"} ErrorMsg]} {
                 if {![string is digit -strict $NukeId]} {unset NukeId}
                 NukeDb eval {INSERT OR REPLACE INTO Nukes (NukeId,TimeStamp,UserName,GroupName,Status,Release,Reason,Multi,Files,Size) VALUES($NukeId,$NukeTime,$user,$group,$NukeStatus,$Release,$Reason,$Multi,$Files,$TotalSize)}
                 set NukeId [NukeDb last_insert_rowid]
@@ -381,8 +380,7 @@ proc NukeMain {ArgV} {
                 set NukeStatus 1
             }
             set Count 0
-            set DbFile [file join $misc(DataPath) "Nukes.db"]
-            if {![catch {sqlite3 NukeDb $DbFile} ErrorMsg]} {
+            if {![catch {DbOpenFile NukeDb "Nukes.db"} ErrorMsg]} {
                 NukeDb eval "SELECT * FROM Nukes WHERE Status=$NukeStatus AND Release LIKE '$Pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $MaxResults" values {
                     incr Count
                     if {$IsSiteBot} {
@@ -423,8 +421,7 @@ proc NukeMain {ArgV} {
                 iputs "|------------------------------------------------------------------------|"
             }
             set Count 0
-            set DbFile [file join $misc(DataPath) "Nukes.db"]
-            if {![catch {sqlite3 NukeDb $DbFile} ErrorMsg]} {
+            if {![catch {DbOpenFile NukeDb "Nukes.db"} ErrorMsg]} {
                 NukeDb eval "SELECT UserName, GroupName, count(*) AS Nuked, sum(Amount) AS Amount FROM Users WHERE Status=0 $GroupMatch GROUP BY UserName ORDER BY Nuked DESC LIMIT $MaxResults" values {
                     incr Count
                     if {$IsSiteBot} {

@@ -99,8 +99,7 @@ proc ReqMain {ArgV} {
     }
     set IsSiteBot [expr {[info exists user] && [string equal $misc(SiteBot) $user]}]
 
-    set DbFile [file join $misc(DataPath) "Requests.db"]
-    if {[catch {sqlite3 ReqDb $DbFile} ErrorMsg]} {
+    if {[catch {DbOpenFile ReqDb "Requests.db"} ErrorMsg]} {
         ErrorLog RequestDb $ErrorMsg
         if {$ShowText && !$IsSiteBot} {ErrorReturn "Unable to open requests database."}
         return 1

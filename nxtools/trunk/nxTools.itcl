@@ -145,8 +145,7 @@ proc NewDate {FindArea} {
 
 proc OneLines {Message} {
     global misc group user
-    set DbFile [file join $misc(DataPath) "OneLines.db"]
-    if {[catch {sqlite3 OneDb $DbFile} ErrorMsg]} {
+    if {[catch {DbOpenFile OneDb "OneLines.db"} ErrorMsg]} {
         ErrorLog OneLinesDb $ErrorMsg
         return 1
     }
