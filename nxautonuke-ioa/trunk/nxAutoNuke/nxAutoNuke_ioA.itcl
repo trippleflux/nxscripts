@@ -8,21 +8,15 @@
 
 #### General ###############################################
 #
+# - Use UTC time for dated directories, otherwise local time is used.
+#
+set misc(UTC_Time)      True
+#
 # - User name to open for scheduled functions.
 # - VFS file to mount for scheduled functions.
 #
 set misc(MountUser)     "sitebot"
 set misc(MountFile)     "../etc/admin.vfs"
-
-#### Time Settings #########################################
-#
-# - Use UTC time for dated directories, otherwise local time is used.
-# - Use daylight savings time correction for UTC conversions.
-# - The GMT time zone your site is in.
-#
-set misc(UTC_Time)      True
-set misc(DST_Correct)   True
-set misc(TimeZone)      -7
 
 #### AutoNuke Settings #####################################
 #
@@ -477,13 +471,12 @@ proc ANukeMain {} {
 
     ## Timestamp used to format date cookies
     set TimeNow [clock seconds]
-    if {[IsTrue $misc(UTC_Time)]} {set TimeNow [ToUTC $TimeNow $misc(TimeZone)]}
     set MaxAge [expr {$anuke(MaximumAge) * 60}]
 
     foreach {VirtualPath DayOffset NukeChecks} $anuke(Sections) {
         ## Convert date cookies
         set AreaTime [expr {$TimeNow + ($DayOffset * 86400)}]
-        set VirtualPath [clock format $AreaTime -format $VirtualPath -gmt 0]
+        set VirtualPath [clock format $AreaTime -format $VirtualPath -gmt [IsTrue $misc(UTC_Time)]]
         LinePuts ""; LinePuts "Checking path: $VirtualPath (offset: $DayOffset)"
         set RealPath [resolve pwd $VirtualPath]
         if {![file isdirectory $RealPath]} {
