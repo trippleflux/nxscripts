@@ -59,9 +59,9 @@ proc ::nxTools::Nuke::UpdateRecord {RealPath {Buffer ""}} {
     return [string trim $Record]
 }
 
-proc ::nxTools::Nuke::UpdateUser {IsNuke UserName Multi Size Files Stats CreditSection StatsSection} {
+proc ::nxTools::Nuke::UpdateUser {IsNuke UserName Multi Size Files Stats CreditSection StatSection} {
     set CreditSection [expr {$CreditSection + 1}]
-    set StatsSection [expr {$StatsSection * 3 + 1}]
+    set StatSection [expr {$StatSection * 3 + 1}]
     set GroupName "NoGroup"
     set NewUserFile ""
 
@@ -95,9 +95,9 @@ proc ::nxTools::Nuke::UpdateUser {IsNuke UserName Multi Size Files Stats CreditS
         foreach UserLine $UserFile {
             set LineType [string tolower [lindex $UserLine 0]]
             if {[lsearch -exact {allup dayup monthup wkup} $LineType] != -1} {
-                set NewFiles [expr {wide([lindex $UserLine $StatsSection]) + $Files}]
-                set NewStats [expr {wide([lindex $UserLine [expr {$StatsSection + 1}]]) + wide($Stats)}]
-                set UserLine [lreplace $UserLine $StatsSection [expr {$StatsSection + 1}] $NewFiles $NewStats]
+                set NewFiles [expr {wide([lindex $UserLine $StatSection]) + $Files}]
+                set NewStats [expr {wide([lindex $UserLine [expr {$StatSection + 1}]]) + wide($Stats)}]
+                set UserLine [lreplace $UserLine $StatSection [expr {$StatSection + 1}] $NewFiles $NewStats]
             } elseif {[string equal "credits" $LineType]} {
                 set UserLine [lreplace $UserLine $CreditSection $CreditSection $NewCredits]
             }
@@ -172,10 +172,9 @@ proc ::nxTools::Nuke::Main {ArgV} {
                         set Multi [lindex $RecordSplit 3]
                     }
                 }
+                {} {}
                 default {
-                    if {![string equal "" $Record]} {
-                        ErrorLog NukeRecord "invalid nuke record for \"$RealPath\": $Record"
-                    }
+                    ErrorLog NukeRecord "invalid nuke record for \"$RealPath\": $Record"
                 }
             }
             if {!$IsNuke && ![info exists Multi]} {
@@ -200,7 +199,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
             set Reason [StripChars $Reason]
             set Release [GetName $VirtualPath]
             set ParentPath [file dirname $RealPath]
-            ListAssign [GetCreditsAndStats $VirtualPath] CreditSection StatsSection
+            ListAssign [GetCreditStatSections $VirtualPath] CreditSection StatSection
 
             ## Count CDs/Discs/DVDs
             foreach ListItem [glob -nocomplain -types d -directory $RealPath "*"] {
@@ -263,9 +262,9 @@ proc ::nxTools::Nuke::Main {ArgV} {
             ## Change the credits and stats of nukees
             set NukeeLog ""
             foreach NukeeUser [lsort -ascii [array names nukesize]] {
-                set UpdateUser [expr {wide($nukesize($NukeeUser)) / 1024}]
-                set NukeStats [expr {$NukeType == 2 ? 0 : $UpdateUser}]
-                set Result [UpdateUser $IsNuke $NukeeUser $Multi $UpdateUser $nukefiles($NukeeUser) $NukeStats $CreditSection $StatsSection]
+                set NukeCredits [expr {wide($nukesize($NukeeUser)) / 1024}]
+                set NukeStats [expr {$NukeType == 2 ? 0 : $NukeCredits}]
+                set Result [UpdateUser $IsNuke $NukeeUser $Multi $NukeCredits $nukefiles($NukeeUser) $NukeStats $CreditSection $StatSection]
                 foreach {NukeeGroup Ratio OldCredits NewCredits DiffCredits} $Result {break}
 
                 set Ratio [expr {$Ratio != 0 ? "1:$Ratio" : "Unlimited"}]
@@ -298,12 +297,14 @@ proc ::nxTools::Nuke::Main {ArgV} {
 
             set NewPath [file join $ParentPath $NewName]
             if {![string equal -nocase $RealPath $NewPath]} {
-                ## In order to prevent users from re-entering the directory, it will be chmodded to 000.
+                ## In order to prevent users from re-entering the
+                ## directory while nuking, it will be chmodded to 000.
                 catch {vfs read $RealPath} VfsOwner
                 ListAssign $VfsOwner UserId GroupId
                 if {![string is digit -strict $UserId]} {set UserId [lindex $misc(DirOwner) 0]}
                 if {![string is digit -strict $GroupId]} {set GroupId [lindex $misc(DirOwner) 1]}
                 catch {vfs write $RealPath $UserId $GroupId 000}
+
                 KickUsers [file join $VirtualPath "*"]
                 if {[catch {file rename -force -- $RealPath $NewPath} ErrorMsg]} {
                     set RenameFail 1

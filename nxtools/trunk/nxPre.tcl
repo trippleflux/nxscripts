@@ -141,9 +141,9 @@ proc ::nxTools::Pre::ResolvePath {UserName GroupName RealPath} {
     return $ResolvePath
 }
 
-proc ::nxTools::Pre::UpdateUser {UserName Files Size CreditSection StatsSection} {
+proc ::nxTools::Pre::UpdateUser {UserName Files Size CreditSection StatSection} {
     set CreditSection [expr {$CreditSection + 1}]
-    set StatsSection [expr {$StatsSection * 3 + 1}]
+    set StatSection [expr {$StatSection * 3 + 1}]
     set GroupName "NoGroup"
     set NewUserFile ""
 
@@ -172,9 +172,9 @@ proc ::nxTools::Pre::UpdateUser {UserName Files Size CreditSection StatsSection}
         foreach UserLine $UserFile {
             set LineType [string tolower [lindex $UserLine 0]]
             if {[lsearch -exact "allup dayup monthup wkup" $LineType] != -1} {
-                set NewFiles [expr {wide([lindex $UserLine $StatsSection]) + $Files}]
-                set NewStats [expr {wide([lindex $UserLine [expr {$StatsSection + 1}]]) + wide($Size)}]
-                set UserLine [lreplace $UserLine $StatsSection [expr {$StatsSection + 1}] $NewFiles $NewStats]
+                set NewFiles [expr {wide([lindex $UserLine $StatSection]) + $Files}]
+                set NewStats [expr {wide([lindex $UserLine [expr {$StatSection + 1}]]) + wide($Size)}]
+                set UserLine [lreplace $UserLine $StatSection [expr {$StatSection + 1}] $NewFiles $NewStats]
             } elseif {[string equal "credits" $LineType]} {
                 set UserLine [lreplace $UserLine $CreditSection $CreditSection $NewCredits]
             }
@@ -303,7 +303,7 @@ proc ::nxTools::Pre::Main {ArgV} {
 
             ## Find the credit and stats section
             set DestVirtualPath [PreResolvePath $user $group $DestRealPath]
-            ListAssign [GetCreditsAndStats $DestVirtualPath] CreditSection StatsSection
+            ListAssign [GetCreditStatSections $DestVirtualPath] CreditSection StatSection
 
             ## Count CDs/Discs/DVDs
             foreach ListItem [glob -nocomplain -types d -directory $RealPath "*"] {
@@ -411,7 +411,7 @@ proc ::nxTools::Pre::Main {ArgV} {
             catch {vfs flush [file dirname $DestRealPath]}
 
             if {[IsTrue $pre(PreUser)]} {
-                PreCredits $user 0 0 $CreditSection $StatsSection
+                PreCredits $user 0 0 $CreditSection $StatSection
             }
             if {[IsTrue $pre(Uploaders)]} {
                 iputs "|------------------------------------------------------------------------|"
@@ -419,7 +419,7 @@ proc ::nxTools::Pre::Main {ArgV} {
                 iputs "|------------------------------------------------------------------------|"
                 foreach UserName [lsort -ascii [array names presize]] {
                     set UploadAmount [expr {wide($presize($UserName)) / 1024}]
-                    set Result [UpdateUser $UserName $prefiles($UserName) $UploadAmount $CreditSection $StatsSection]
+                    set Result [UpdateUser $UserName $prefiles($UserName) $UploadAmount $CreditSection $StatSection]
                     foreach {GroupName Ratio OldCredits NewCredits DiffCredits} $Result {break}
                     set Ratio [expr {$Ratio != 0 ? "1:$Ratio" : "Unlimited"}]
                     iputs [format "| %-10s | %-10s | %10s | %7d\F | %8s | %9s |" $UserName $GroupName $Ratio $prefiles($UserName) [FormatSize $UploadAmount] [FormatSize $DiffCredits]]
