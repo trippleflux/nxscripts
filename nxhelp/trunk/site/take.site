@@ -1,0 +1,8 @@
+.-[Take]------------------------------------------------------.
+| Usage: SITE TAKE <username> <credits>                       |
+|                                                             |
+| <username> The username to take credits from.               |
+| <credits>  The amount of credits to take in MB.             |
+|                                                             |
+| Example: SITE TAKE someuser 1000                            |
+'----------------------------------------------------[nxHelp]-'

@@ -1,0 +1,10 @@
+.-[Wipe]------------------------------------------------------.
+| Usage: SITE WIPE <directory>                                |
+|                                                             |
+| <directory>  The directory to wipe.                         |
+|                                                             |
+| Notes: The -R or -r parameter can be specified, put it is   |
+|        ignored. ioA always wipes recursively.               |
+|                                                             |
+| Examples: SITE WIPE Some.Old.Stuff                          |
+'----------------------------------------------------[nxHelp]-'

@@ -1,0 +1,8 @@
+.-[Tagline]---------------------------------------------------.
+| Usage: SITE TAGLINE <tagline>                               |
+|                                                             |
+| <tagline> Your new tagline.                                 |
+|                                                             |
+| Examples: SITE TAGLINE nxHelp Rocks!                        |
+|           SITE TAGLINE Vote nxHelp for President!           |
+'----------------------------------------------------[nxHelp]-'

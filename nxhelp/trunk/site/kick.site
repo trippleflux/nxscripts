@@ -1,0 +1,10 @@
+.-[Kick]------------------------------------------------------.
+| Usage: SITE KICK <username>                                 |
+|                                                             |
+| <username> The username to kick.                            |
+|                                                             |
+| Notes: To list users online, use the SITE WHO command.      |
+|                                                             |
+| Examples: SITE KICK someuser                                |
+|           SITE KICK thatuser                                |
+'----------------------------------------------------[nxHelp]-'

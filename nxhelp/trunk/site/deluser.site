@@ -1,0 +1,12 @@
+.-[DelUser]---------------------------------------------------.
+| Usage: SITE DELUSER <username>                              |
+|                                                             |
+| <username> The username to delete.                          |
+|                                                             |
+| Notes: If you are using a readd script, you may have to use |
+|        SITE PURGE to delete their account or SITE READD to  |
+|        reinstate their account.                             |
+|                                                             |
+| Examples: SITE DELUSER someuser                             |
+|           SITE DELUSER thatuser                             |
+'----------------------------------------------------[nxHelp]-'

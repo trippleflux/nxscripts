@@ -1,0 +1,15 @@
+.-[ChMod]-----------------------------------------------------.
+| Usage: SITE CHMOD <###> <directory/file>                    |
+|                                                             |
+| <###>            The permission number, UNIX style.         |
+| <directory/file> The dir or file to change permission of.   |
+|                                                             |
+| Permissions: 4 - Read                                       |
+|              2 - Write                                      |
+|              1 - Execute                                    |
+|              0 - No Permission                              |
+|                                                             |
+| Examples: SITE CHMOD 755 /                                  |
+|           SITE CHMOD 777 /incoming                          |
+|           SITE CHMOD 755 /pub                               |
+'----------------------------------------------------[nxHelp]-'

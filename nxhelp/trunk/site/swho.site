@@ -1,0 +1,11 @@
+.-[SWho]------------------------------------------------------.
+| Usage: SITE SWHO [cid]                                      |
+|                                                             |
+| [cid] Optional, the connection ID to view extended info on. |
+|                                                             |
+| Notes: Show detailed info about who's online. If [cid] is   |
+|        specified, info will be shown on that connection ID. |
+|                                                             |
+| Examples: SITE SWHO                                         |
+|           SITE SWHO 3                                       |
+'----------------------------------------------------[nxHelp]-'

@@ -1,0 +1,15 @@
+.-[ChOwn]-----------------------------------------------------.
+| Usage: SITE CHOWN [-R] <username>[:group] <directory/file>  |
+|                                                             |
+| [-R]             Optional, change ownership recursively.    |
+| <username>       The username to take ownership.            |
+| [:group]         Optional, the group to take ownership.     |
+| <directory/file> The dir or file to change ownership of.    |
+|                                                             |
+| Notes: Change ownership recursively means all sub-files and |
+|        sub-directories.                                     |
+|                                                             |
+| Examples: SITE CHOWN -R someuser /                          |
+|           SITE CHOWN -R someuser:STAFF /mnt                 |
+|           SITE CHOWN someuser:STAFF /pub                    |
+'----------------------------------------------------[nxHelp]-'

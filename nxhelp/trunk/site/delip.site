@@ -1,0 +1,13 @@
+.-[DelIp]-----------------------------------------------------.
+| Usage: SITE DELIP <user> <ident@ip> [<ident@ip>]            |
+|                                                             |
+| <username> The username to removed an address from.         |
+| <ident@ip> The ident@ip to delete.                          |
+|                                                             |
+| Notes: You may use wildcards to delete more then one IP.    |
+|        You can specify more then one IP to delete at once.  |
+|                                                             |
+| Examples: SITE DELIP someuser someuser@192.168.1.1          |
+|           SITE DELIP someuser *@*.ioftpd.com                |
+|           SITE DELIP someuser someuser@192.* *@*.ioftpd.com |
+'----------------------------------------------------[nxHelp]-'

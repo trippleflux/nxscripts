@@ -1,0 +1,13 @@
+.-[GAddUser]----------------------------------------------------.
+| Usage: SITE GADDUSER <group> <username> <password> [ident@ip] |
+|                                                               |
+| <group>    The group to add the user too.                     |
+| <username> The username to add.                               |
+| <password> The password to set for this user.                 |
+| [ident@ip] Optional, a few addresses may be specified here.   |
+|                                                               |
+| Notes: If you need to add more IPs, use SITE ADDIP.           |
+|                                                               |
+| Examples: SITE GADDUSER STAFF someuser mypass someuser@192.*  |
+|           SITE GADDUSER iND thatuser mypass *@127.*           |
+'------------------------------------------------------[nxHelp]-'

@@ -1,0 +1,7 @@
+.-[Shutdown]--------------------------------------------------.
+| Usage: SITE SHUTDOWN                                        |
+|                                                             |
+| Notes: Shuts down ioFTPD.                                   |
+|                                                             |
+| Examples: SITE SHUTDOWN                                     |
+'----------------------------------------------------[nxHelp]-'

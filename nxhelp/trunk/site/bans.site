@@ -1,0 +1,11 @@
+.-[Bans]------------------------------------------------------.
+| Usage: SITE BANS <args> [ip]                                |
+|                                                             |
+| Args: list   - List banned IP addresses.                    |
+|       remove - Remove a banned IP address.                  |
+|                                                             |
+| [ip] Optional, the IP address to remove.                    |
+|                                                             |
+| Examples: SITE BANS LIST                                    |
+|           SITE BANS REMOVE *@127.0.0.1                      |
+'----------------------------------------------------[nxHelp]-'

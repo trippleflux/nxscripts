@@ -1,0 +1,27 @@
+.-[Change]----------------------------------------------------.
+| Usage: SITE CHANGE <target> <field> <value>                 |
+|                                                             |
+| Target: username      The username to modify.               |
+|         =group        All users in specified group.         |
+|         string        Modify usernames matching a string.   |
+|         "<...> <...>" A list of usernames/groups/strings.   |
+|                                                             |
+| Fields: admingroup <group>        - Change group admin.     |
+|         credits [+/-]<num> [sect] - Add or remove credits.  |
+|         flags [+/-]<flags>        - Add or remove flags.    |
+|         groupdescription <desc>   - Change description.     |
+|         groupslots <user> [leech] - Change group slots.     |
+|         groupvfsfile <file>       - Change VFS file.        |
+|         homedir <vpath>           - Change homedir.         |
+|         logins <logins> [service] - Change max logins.      |
+|         passwd <password>         - Change password.        |
+|         ratio <ratio> [section]   - Change ratio.           |
+|         speedlimit <down> <up>    - Change speedlimit KB/s. |
+|         tagline <tagline>         - Change tagline.         |
+|         vfsfile <file>            - Change VFS file.        |
+|                                                             |
+| Examples: SITE CHANGE someuser <field> <value>              |
+|           SITE CHANGE "someuser =STAFF" <field> <value>     |
+|           SITE CHANGE =STAFF <field> <value>                |
+|           SITE CHANGE * <field> <value>                     |
+'----------------------------------------------------[nxHelp]-'

@@ -1,0 +1,14 @@
+.-[AddIp]-----------------------------------------------------.
+| Usage: SITE ADDIP <username> <ident@ip> [<ident@ip>]        |
+|                                                             |
+| <username> The username to add an address to.               |
+| <ident@ip> The Ident/IP address to add.                     |
+|                                                             |
+| Notes: You can use [#-#],?, and * in the IPs.               |
+|        A user may have a maximum of 25 IP's.                |
+|                                                             |
+| Examples: SITE ADDIP someuser someuser@192.168.1.1          |
+|           SITE ADDIP someuser some*@*.ioftpd.com            |
+|           SITE ADDIP someuser *user@192.168.*.1             |
+|           SITE ADDIP someuser *u?ser@192.168.*.[0-9][0-5]   |
+'----------------------------------------------------[nxHelp]-'

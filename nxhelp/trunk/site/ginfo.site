@@ -1,0 +1,10 @@
+.-[GInfo]-----------------------------------------------------.
+| Usage: SITE GINFO <group>                                   |
+|                                                             |
+| <group> The group to view.                                  |
+|                                                             |
+| Notes: Displays detailed info on a group.                   |
+|                                                             |
+| Examples: SITE GINFO STAFF                                  |
+|           SITE GINFO iND                                    |
+'----------------------------------------------------[nxHelp]-'

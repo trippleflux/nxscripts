@@ -1,0 +1,13 @@
+  |                                                         |
+  |-[User]--------------------------------------------------|
+  |   ADDUSER - Add a user.                                 |
+  |   DELUSER - Delete a user.                              |
+  |   RENUSER - Rename a user.                              |
+  |  GADDUSER - Add a user to a specific group.             |
+  |     ADDIP - Add an IP to a user.                        |
+  |     DELIP - Delete an IP from a user.                   |
+  |     GINFO - Detailed info of a group.                   |
+  |     UINFO - Detailed info of a user.                    |
+  |    CHANGE - Change settings on users or groups.         |
+  |     USERS - List users on site.                         |
+  |    GROUPS - List groups on site.                        |

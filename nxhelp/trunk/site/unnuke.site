@@ -1,0 +1,8 @@
+.-[UnNuke]----------------------------------------------------.
+| Usage: SITE UNNUKE <directory> <reason>                     |
+|                                                             |
+| <directory> The directory to unnuke.                        |
+| <reason>    The reason why it was unnuked.                  |
+|                                                             |
+| Examples: SITE UNNUKE Something.Cool-ABC very.cool          |
+'----------------------------------------------------[nxHelp]-'

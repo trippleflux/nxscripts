@@ -1,0 +1,11 @@
+.-[Request]---------------------------------------------------.
+| Usage: SITE REQUEST [request]                               |
+|                                                             |
+| [request] Optional, the request to add.                     |
+|                                                             |
+| Notes: If no request is specified, the current requests     |
+|        are listed.                                          |
+|                                                             |
+| Examples: SITE REQUEST                                      |
+|           SITE REQUEST nxHelp.Extreme-NX                    |
+'----------------------------------------------------[nxHelp]-'

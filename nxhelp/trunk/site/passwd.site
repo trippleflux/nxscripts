@@ -1,0 +1,8 @@
+.-[Passwd]----------------------------------------------------.
+| Usage: SITE PASSWD <password>                               |
+|                                                             |
+| <password> Your new password.                               |
+|                                                             |
+| Examples: SITE PASSWD mypass                                |
+|           SITE PASSWD newpass                               |
+'----------------------------------------------------[nxHelp]-'

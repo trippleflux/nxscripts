@@ -1,0 +1,9 @@
+.-[Nuke]------------------------------------------------------.
+| Usage: SITE NUKE <directory> <multiplier> <reason>          |
+|                                                             |
+| <directory>  The directory to nuke.                         |
+| <multiplier> The nuke multiplier value.                     |
+| <reason>     The reason it was nuked.                       |
+|                                                             |
+| Examples: SITE NUKE Something.Cool-ABC 5 not.so.cool        |
+'----------------------------------------------------[nxHelp]-'

@@ -1,0 +1,13 @@
+.-[Users]-----------------------------------------------------.
+| Usage: SITE USERS [target]                                  |
+|                                                             |
+| Target: username      The username to list.                 |
+|         =group        List all users in a specified group.  |
+|         string        List users matching a string.         |
+|         "<...> <...>" A list of usernames/groups/strings.   |
+|                                                             |
+| Examples: SITE USERS someuser                               |
+|           SITE USERS "someuser thatuser"                    |
+|           SITE USERS =STAFF                                 |
+|           SITE USERS *user                                  |
+'----------------------------------------------------[nxHelp]-'

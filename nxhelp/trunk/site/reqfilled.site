@@ -1,0 +1,7 @@
+.-[ReqFilled]-------------------------------------------------.
+| Usage: SITE REQFILLED <number>                              |
+|                                                             |
+| <number> The request number to fill.                        |
+|                                                             |
+| Examples: SITE REQFILLED 001                                |
+'----------------------------------------------------[nxHelp]-'

@@ -1,0 +1,10 @@
+.-[Help]------------------------------------------------------.
+| Usage: SITE HELP [command]                                  |
+|                                                             |
+| [command] Optional, extended information on that command.   |
+|                                                             |
+| Notes: Show help on SITE commands.                          |
+|                                                             |
+| Examples: SITE HELP                                         |
+|           SITE HELP adduser                                 |
+'----------------------------------------------------[nxHelp]-'

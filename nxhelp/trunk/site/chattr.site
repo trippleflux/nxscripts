@@ -1,0 +1,19 @@
+.-[Chattr]----------------------------------------------------.
+| Usage: SITE CHATTR <+/-><mode> <dir> <permission/symlink>   |
+|                                                             |
+| <+/->        Add or remove a mode.                          |
+| <mode>       Modes, "h" is hidden and "l" is symlink.       |
+| <dir>        The directory to modify.                       |
+| <permission> Usernames, =groups or flags.                   |
+| <symlink>    The path of the symlink.                       |
+|                                                             |
+| Notes: You many use muliple permissions in a list format,   |
+|        such as "username =group M".                         |
+|                                                             |
+| Examples: SITE CHATTR +h "/incoming" "someuser =STAFF"      |
+|           SITE CHATTR +h "/incoming"                        |
+|           SITE CHATTR -h "/incoming"                        |
+|           SITE CHATTR +l "/dev/ioFTPD" "/pub/ioFTPD-Latest" |
+|           SITE CHATTR +l "/pub/ioFTPD-Latest"               |
+|           SITE CHATTR -l "/pub/ioFTPD-Latest"               |
+'----------------------------------------------------[nxHelp]-'

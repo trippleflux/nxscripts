@@ -1,0 +1,8 @@
+.-[Give]------------------------------------------------------.
+| Usage: SITE GIVE <username> <credits>                       |
+|                                                             |
+| <username> The username to give credits to.                 |
+| <credits>  The amount of credits to give in MB.             |
+|                                                             |
+| Example: SITE GIVE someuser 1000                            |
+'----------------------------------------------------[nxHelp]-'

@@ -1,0 +1,8 @@
+.-[GrpAdd]----------------------------------------------------.
+| Usage: SITE GRPADD <group>                                  |
+|                                                             |
+| <group> The group to add.                                   |
+|                                                             |
+| Example: SITE GRPADD STAFF                                  |
+|          SITE GRPADD iND                                    |
+'----------------------------------------------------[nxHelp]-'

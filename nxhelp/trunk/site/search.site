@@ -1,0 +1,7 @@
+.-[Search]----------------------------------------------------.
+| USAGE: SITE SEARCH <string>                                 |
+|                                                             |
+| <string> The string to search for.                          |
+|                                                             |
+| Examples: SITE SEARCH *Something*                           |
+'----------------------------------------------------[nxHelp]-'

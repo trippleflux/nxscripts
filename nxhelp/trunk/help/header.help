@@ -1,0 +1,21 @@
+.-------------------------------------------------------------.
+|                          SITE HELP                          |
+'-------------------------------------------------------------'
+  |     RULES - Show site rules.                            |
+  |   REQUEST - Add a request.                              |
+  | REQFILLED - Mark a request as filled.                   |
+  |    RESCAN - Rescan a release.                           |
+  |       PRE - PRE a release.                              |
+  |    INVITE - Invite yourself to the IRC channel.         |
+  |      ONEL - Add or view onliners.                       |
+  |       MSG - Send a message to a user or group.          |
+  |  TRANSFER - Transfer credits from a section.            |
+  |      DUPE - Search dupe database.                       |
+  |    SEARCH - Search for a directory on the site.         |
+  |       NEW - Show recent directories.                    |
+  |     NUKES - Show recent nukes.                          |
+  |   UNNUKES - Show recent unnukes.                        |
+  |    PASSWD - Change your password.                       |
+  |     STATS - Show user stats.                            |
+  |   TAGLINE - Change your tagline.                        |
+  |       WHO - Show who is online.                         |

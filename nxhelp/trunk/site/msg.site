@@ -1,0 +1,16 @@
+.-[Message]---------------------------------------------------.
+| Usage: SITE MSG <args>                                      |
+|                                                             |
+| Args: read                        Read your messages.       |
+|       save                        Move messages to inbox.   |
+|       purge                       Delete messages in trash. |
+|       tread                       Read messages in trash.   |
+|       <username> <message>        Send a message.           |
+|       {<user1> <user2>} <message> Send to several users.    |
+|       =<group> <message>          Send message to a group.  |
+|       * <message>                 Send message to everyone. |
+|                                                             |
+| Examples: SITE MSG someuser How's it going?                 |
+|           SITE MSG =ABC You're being deleted next week.     |
+|           SITE MSG * Upgraded hardware, enjoy!              |
+'----------------------------------------------------[nxHelp]-'

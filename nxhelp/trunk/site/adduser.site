@@ -1,0 +1,12 @@
+.-[AddUser]---------------------------------------------------.
+| Usage: SITE ADDUSER <username> <password> [ident@ip]        |
+|                                                             |
+| <username> The username to add.                             |
+| <password> The password to set for this user.               |
+| [ident@ip] Optional, a few addresses may be specified here. |
+|                                                             |
+| Notes: If you need to add more IPs, use SITE ADDIP.         |
+|                                                             |
+| Examples: SITE ADDUSER someuser mypass someuser@192.168.1.1 |
+|           SITE ADDUSER someuser mypass *@192.* *@127.*      |
+'----------------------------------------------------[nxHelp]-'

@@ -1,0 +1,14 @@
+.-[ChGrp]-----------------------------------------------------.
+| Usage: SITE CHGRP <username> <group> [<group>]              |
+|                                                             |
+| <username> The username being changed.                      |
+| <group>    The group to toggle for this user.               |
+| [<group>]  Optional, second group to toggle.                |
+|                                                             |
+| Notes: If the user is currently in the group, they will be  |
+|        removed. If the user is not in the group, they will  |
+|        be added.                                            |
+|                                                             |
+| Example: SITE CHGRP someuser STAFF                          |
+|          SITE CHGRP someuser STAFF iND                      |
+'----------------------------------------------------[nxHelp]-'

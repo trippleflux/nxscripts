@@ -1,0 +1,10 @@
+.-[GrpDel]----------------------------------------------------.
+| Usage: SITE GRPDEL <group>                                  |
+|                                                             |
+| <group> The group to delete.                                |
+|                                                             |
+| Notes: The group must not contain any users in it.          |
+|                                                             |
+| Example: SITE GRPDEL LAMERS                                 |
+|          SITE GRPDEL iND                                    |
+'----------------------------------------------------[nxHelp]-'

@@ -1,0 +1,20 @@
+.-[Config]----------------------------------------------------.
+| Usage: SITE CONFIG <command> [<array> <arguments>]          |
+|                                                             |
+| Args: add <array> <string>            - Add a new line.     |
+|       del <array> <line #>            - Delete a line.      |
+|       insert <array> <line #> <line>  - Insert new line.    |
+|       rehash                          - Reload config.      |
+|       replace <array> <line #> <line> - Replace a line.     |
+|       save                            - Save config file.   |
+|       show [array]                    - List/show an array. |
+|                                                             |
+| Notes: If no array is specified on SITE CONFIG SHOW, a list |
+|        of arrays will be shown.                             |
+|                                                             |
+| Examples: SITE CONFIG show Sections                         |
+|           SITE CONFIG insert Sections 9 Default  = 0 0 /*   |
+|           SITE CONFIG show Sections                         |
+|           SITE CONFIG save                                  |
+|           SITE CONFIG rehash                                |
+'----------------------------------------------------[nxHelp]-'

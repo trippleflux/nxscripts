@@ -1,0 +1,7 @@
+  |                                                         |
+  |-[VfsAdmin]----------------------------------------------|
+  |    CHATTR - Modify symlinks and/or private dirs.        |
+  |     CHMOD - Change permission of a directory or file.   |
+  |     CHOWN - Change ownership of a directory or file.    |
+  |      SIZE - Shows the size of a directory.              |
+  |      WIPE - Wipes a directory.                          |

@@ -1,0 +1,24 @@
+.-[Stats]-----------------------------------------------------.
+| Usage: SITE STATS <args>                                    |
+|                                                             |
+| Args: alldn               - Sort by alltime downloads.      |
+|	allup               - Sort by alltime uploads.        |
+|	monthdn             - Sort by monthly downloads.      |
+|	monthup             - Sort by monthly uploads.        |
+|	wkdn                - Sort by weekly downloads.       |
+|	wkup                - Sort by weekly uploads.         |
+|	daydn               - Sort by today's downloads.      |
+|	dayup               - Sort by today's uploads.        |
+|       count <#>           - Limit number of results.        |
+|	bytes               - Sort by bytes.                  |
+|	files               - Sort by files.                  |
+|	limit <user/=group> - Only specified users/groups.    |
+|	limit "<...> <...>" - List of limits.                 |
+|	section <section #> - Section to compare.             |
+|                                                             |
+| Notes: You may use more then one argument.                  |
+|                                                             |
+| Examples: SITE STATS alldn count 100                        |
+|           SITE STATS monthdn files section 1                |
+|           SITE STATS dayup limit "someuser =STAFF"          |
+'----------------------------------------------------[nxHelp]-'

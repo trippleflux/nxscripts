@@ -1,0 +1,7 @@
+.-[ReqDel]----------------------------------------------------.
+| Usage: SITE REQDEL <number>                                 |
+|                                                             |
+| <number> The request number to delete.                      |
+|                                                             |
+| Examples: SITE REQDEL 001                                   |
+'----------------------------------------------------[nxHelp]-'

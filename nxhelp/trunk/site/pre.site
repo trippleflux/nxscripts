@@ -1,0 +1,8 @@
+.-[Pre]-------------------------------------------------------.
+| Usage: SITE PRE <type> <directory>                          |
+|                                                             |
+| <type>       The desination section for the pre.            |
+| <directory>  The directory to pre.                          |
+|                                                             |
+| Examples: SITE PRE SVCD IoFTPD.Gone.Wild-ABC                |
+'----------------------------------------------------[nxHelp]-'

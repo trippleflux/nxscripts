@@ -1,0 +1,22 @@
+  |                                                         |
+  |-[SiteOps]-----------------------------------------------|
+  |    GRPADD - Add a group.                                |
+  |    GRPDEL - Delete a group.                             |
+  |    GRPREN - Rename a group.                             |
+  |     CHGRP - Change a user's group.                      |
+  |      KICK - Kick a user.                                |
+  |      KILL - Kill a connection ID.                       |
+  |      SWHO - Detailed who.                               |
+  |      BANS - Modify banned users.                        |
+  |    CONFIG - Modify the ioFTPD config.                   |
+  |  SHUTDOWN - Shutdown ioFTPD.                            |
+  |    REQDEL - Delete a request.                           |
+  |      GIVE - Give credits to a user.                     |
+  |      TAKE - Take credits from a user.                   |
+  |   NEWDATE - Manually create today's dated directories.  |
+  |RESETSTATS - Reset stats for a section.                  |
+  | RESETUSER - Reset a user's credits and/or stats.        |
+  |    WEEKLY - Add a user to the weekly allotment.         |
+  |    CMDLOG - Show lines from the command log file.       |
+  |    ERRLOG - Show lines from the error log file.         |
+  |    SYSLOG - Show lines from the sysop log file.         |

@@ -1,0 +1,10 @@
+.-[Kill]------------------------------------------------------.
+| Usage: SITE KILL <cid>                                      |
+|                                                             |
+| <cid> The connection ID to kill.                            |
+|                                                             |
+| Notes: To list CIDs, use the SITE SWHO command.             |
+|                                                             |
+| Examples: SITE KILL 1                                       |
+|           SITE KILL 6                                       |
+'----------------------------------------------------[nxHelp]-'

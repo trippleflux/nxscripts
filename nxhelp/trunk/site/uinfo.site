@@ -1,0 +1,10 @@
+.-[UInfo]-----------------------------------------------------.
+| Usage: SITE UINFO <username>                                |
+|                                                             |
+| <username> The username to view.                            |
+|                                                             |
+| Notes: Displays detailed info on a group.                   |
+|                                                             |
+| Examples: SITE UINFO someuser                               |
+|           SITE UINFO thatuser                               |
+'----------------------------------------------------[nxHelp]-'
