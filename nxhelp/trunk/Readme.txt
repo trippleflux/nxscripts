@@ -53,13 +53,13 @@ will work on any other versions, although it should.
 1. Copy the nxHelp directory to ioFTPD\scripts\ or where ever your
    ioFTPD is installed.
 
-2. Configure the nxHelp/nxHelp.itcl file, the configuration is explained
+2. Configure the nxHelp/nxHelp.tcl file, the configuration is explained
    in that file.
 
 3. Add the following to your ioFTPD.ini
 
 [FTP_Custom_Commands]
-help	= TCL ..\scripts\nxHelp\nxHelp.itcl
+help	= TCL ..\scripts\nxHelp\nxHelp.tcl
 
 [Ftp-SITE-Permissions]
 help		= *
