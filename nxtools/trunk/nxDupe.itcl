@@ -648,13 +648,11 @@ proc SitePreTime {MaxResults Pattern} {
     set Pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$Pattern*" "*"]]
     set Count 0
     if {[DbConnect]} {
-        set QueryResults [mysqlsel $mysql(ConnHandle) "SELECT * FROM $mysql(TableName) WHERE release LIKE '$QueryStr' ORDER BY pretime DESC LIMIT $MaxResults" -list]
+        set QueryResults [mysqlsel $mysql(ConnHandle) "SELECT * FROM $mysql(TableName) WHERE release LIKE '$Pattern' ORDER BY pretime DESC LIMIT $MaxResults" -flatlist]
         set SingleResult [expr {[llength $QueryResults] == 1}]
         set TimeUTC [ToUTC [clock seconds] $misc(TimeZone)]
 
-        foreach QueryLine $QueryResults {
-            if {[string equal "" $QueryLine]} {continue}
-            foreach {ID PreTime Section Release Files KBytes Disks IsNuked NukeTime NukeReason} $QueryLine {break}
+        foreach {ID PreTime Section Release Files KBytes Disks IsNuked NukeTime NukeReason} $QueryResults {
             incr Count
             set ReleaseAge [expr {$TimeUTC - $PreTime}]
             if {$IsSiteBot} {
