@@ -148,9 +148,6 @@
 					RelativePath=".\source\Compress.c">
 				</File>
 				<File
-					RelativePath=".\source\Free.c">
-				</File>
-				<File
 					RelativePath=".\source\MP3.c">
 				</File>
 				<File
@@ -158,6 +155,9 @@
 				</File>
 				<File
 					RelativePath=".\source\Touch.c">
+				</File>
+				<File
+					RelativePath=".\source\Volume.c">
 				</File>
 			</Filter>
 		</Filter>
@@ -181,9 +181,6 @@
 					RelativePath=".\source\Compress.h">
 				</File>
 				<File
-					RelativePath=".\source\Free.h">
-				</File>
-				<File
 					RelativePath=".\source\MP3.h">
 				</File>
 				<File
@@ -191,6 +188,9 @@
 				</File>
 				<File
 					RelativePath=".\source\Touch.h">
+				</File>
+				<File
+					RelativePath=".\source\Volume.h">
 				</File>
 			</Filter>
 		</Filter>

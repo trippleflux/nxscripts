@@ -76,7 +76,7 @@ INT TclTimeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST ob
             return TCL_OK;
         }
         default: {
-            return TCL_ERROR;
+            return TCL_ERROR; // Should never be reached.
         }
     }
 }

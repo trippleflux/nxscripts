@@ -182,9 +182,10 @@ INT TclDecodeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST 
         return TCL_ERROR;
     }
 
-    // Retrieve the data and allocate a destination object
+    // Retrieve the data
     szSrc = Tcl_GetStringFromObj(objv[1], &nSrcLen);
 
+    // Create and allocation a destination object
     nDestLen = Base64DecodeBufferSize(nSrcLen);
     if (!(pbDest = Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), nDestLen))) {
         TclBase64Error(interp, "unable to decode data: ", BASE64_NOMEM);
@@ -212,9 +213,10 @@ INT TclEncodeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST 
         return TCL_ERROR;
     }
 
-    // Retrieve the data and allocate a destination object
+    // Retrieve the data
     pbSrc = Tcl_GetByteArrayFromObj(objv[1], &nSrcLen);
 
+    // Create and allocation a destination object
     nDestLen = Base64EncodeBufferSize(nSrcLen);
     if (!(pbDest = Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), nDestLen))) {
         TclBase64Error(interp, "unable to encode data: ", BASE64_NOMEM);

@@ -1,5 +1,5 @@
 # nxHelper v2 TODO
 ############################################################
 
-- Change ::nx:free to ::nx::drive/volume/etc and show more info (id,fs,name,etc)
 - Write an ID3 tag and MP3 header parser, based on CMP3Info.
+- Add UNICODE support

@@ -16,9 +16,9 @@
 #include <Time.h>
 
 // Safe string functions
-#define STRSAFE_LIB
-#define STRSAFE_NO_CB_FUNCTIONS
-#include <StrSafe.h>
+//#define STRSAFE_LIB
+//#define STRSAFE_NO_CB_FUNCTIONS
+//#include <StrSafe.h>
 
 // Library includes
 #define USE_TCL_STUBS
@@ -30,9 +30,9 @@
 
 #include <Base64.h>
 #include <Compress.h>
-#include <Free.h>
 #include <MP3.h>
 #include <Times.h>
 #include <Touch.h>
+#include <Volume.h>
 
 #endif // __NXHELPER_H__
