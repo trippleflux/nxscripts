@@ -1,4 +1,4 @@
-# nxAutoNuke v2.0.0 By neoxed
+# nxAutoNuke v2.0.1 By neoxed
 ###############################################################
 
 nxAutoNuke.tcl     = nxTools Nuker and nxSitebot/dZSbot support
@@ -250,6 +250,10 @@ set announce(ANUKEMP3)     "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] th
 
 # Changelog:
 ###############################################################
+
+nxAutoNuke v2.0.1 (01-28-2005):
+  FIX: Fixed a few typos.
+  FIX: Forgot to remove some debug code (again).
 
 nxAutoNuke v2.0.0 (01-27-2005):
   NEW: Installation instructions for nxTools and dZSbot.

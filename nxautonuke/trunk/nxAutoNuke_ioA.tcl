@@ -28,14 +28,14 @@ proc ::nxAutoNuke::GetName {VirtualPath} {
 }
 
 proc ::nxAutoNuke::Nuke {RealPath VirtualPath UserName GroupName Multi Reason} {
-    global anuke
+    global misc
     ## Find credit and stats section
-    foreach {CreditSection StatSection} [GetCreditsAndStats $VirtualPath] {break}
+    foreach {CreditSection StatSection} [GetCreditStatSections $VirtualPath] {break}
     set RealPath [string map {/ \\} $RealPath]
 
     ## Borrowed this portion from Harm's ioAUTONUKE, since this ioA feature is undocumented.
     if {[catch {exec $misc(IoAPath) NUKE $RealPath $VirtualPath $Multi $StatSection $CreditSection $UserName $GroupName $Reason} OutputMsg]} {
-        ErrorLog AutoNuke "ioA Output:\n$Output"
+        ErrorLog AutoNuke "ioA Output:\n$OutputMsg"
         return 0
     }
     foreach OutLine [split $OutputMsg "\r\n"] {
@@ -386,9 +386,6 @@ proc ::nxAutoNuke::Main {} {
         foreach ConfigLine $check(SettingsList) {
             foreach {CheckType check(Settings) check(Multi) check(WarnMins) check(NukeMins)} $ConfigLine {break}
             set CheckType [string tolower $CheckType]
-
-            set check(WarnMins) 0
-            set check(NukeMins) 999
 
             ## Split IMDB and MP3 check settings.
             if {[lsearch -exact {imdb mp3} $CheckType] != -1} {

@@ -587,9 +587,6 @@ proc ::nxAutoNuke::Main {} {
             foreach {CheckType check(Settings) check(Multi) check(WarnMins) check(NukeMins)} $ConfigLine {break}
             set CheckType [string tolower $CheckType]
 
-            set check(WarnMins) 0
-            set check(NukeMins) 999
-
             ## Split IMDB and MP3 check settings.
             if {[lsearch -exact {imdb mp3} $CheckType] != -1} {
                 set check(Settings) [SplitSettings $check(Settings)]
