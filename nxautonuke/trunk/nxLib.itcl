@@ -32,13 +32,12 @@ proc GetOptions {ArgList ResultsVar StringVar} {
     if {[string index $Switch 0] == "-"} {
         set Switch [string range $Switch 1 end]
         switch -exact -- $Switch {
-            "m" - "max" {
+            {m} - {max} {
                 set MaxResults [lindex $ArgList 1]
                 set String [join [lrange $ArgList 2 end]]
                 if {![string is digit -strict $MaxResults] || $MaxResults < 1} {set MaxResults 10}
             }
-            "h" - "help" -
-            default {return 0}
+            {h} - {help} - default {return 0}
         }
     } else {
         set MaxResults 10
@@ -154,7 +153,7 @@ proc DirListRecurse {RealPath IgnoreList} {
         set Listing [list $RealPath]
     } else {return}
     foreach ListItem $Listing {
-        if {[file readable $ListItem] && ![ListMatch $IgnoreList [file tail $ListItem] True]} {
+        if {[file readable $ListItem] && ![ListMatchI $IgnoreList [file tail $ListItem]]} {
             if {[file isdirectory $ListItem]} {
                 DirListRecurse $ListItem $IgnoreList
             } else {
@@ -180,7 +179,7 @@ proc DirStatsRecurse {RealPath IgnoreList} {
         set Listing [list $RealPath]
     } else {return}
     foreach ListItem $Listing {
-        if {[file readable $ListItem] && ![ListMatch $IgnoreList [file tail $ListItem] True]} {
+        if {[file readable $ListItem] && ![ListMatchI $IgnoreList [file tail $ListItem]]} {
             if {[file isdirectory $ListItem]} {
                 DirStatsRecurse $ListItem $IgnoreList
             } else {
@@ -329,13 +328,16 @@ proc ListAssign {ValueList args} {
     uplevel [list foreach $args $ValueList break]
 }
 
-proc ListMatch {PatternList String {NoCase "False"}} {
+proc ListMatch {PatternList String} {
     foreach ListItem $PatternList {
-        if {[IsTrue $NoCase]} {
-            if {[string match -nocase $ListItem $String]} {return 1}
-        } else {
-            if {[string match $ListItem $String]} {return 1}
-        }
+        if {[string match $ListItem $String]} {return 1}
+    }
+    return 0
+}
+
+proc ListMatchI {PatternList String} {
+    foreach ListItem $PatternList {
+        if {[string match -nocase $ListItem $String]} {return 1}
     }
     return 0
 }
