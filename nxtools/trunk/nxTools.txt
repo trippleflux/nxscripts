@@ -952,7 +952,7 @@ Text Templates:
 ################################################################################
 
 nxTools v0.9.9 (XX-XX-2005):
-  NEW: SITE BOT BW to view current bandwidth and users.
+  NEW: SITE BOT BW to view the site's current usage.
   NEW: SITE NUKETOP [-max <limit>] [group] to view the top-nuked users.
   NEW: SITE REQUESTS to view requests, split from SITE REQUEST.
   NEW: The SITE DB CREATE command checks database schema versions.
