@@ -10,7 +10,7 @@
 ######################################################################
 
 if {[catch {source [file join [file dirname [info script]] "nxLib.itcl"]} ErrorMsg]} {
-    iputs "Error loading nxLib: $ErrorMsg"; return 1
+    iputs "Error loading nxLib: $ErrorMsg"; return
 }
 
 # Invite Procedures

@@ -10,10 +10,10 @@
 ######################################################################
 
 if {[catch {source [file join [file dirname [info script]] "nxLib.itcl"]} ErrorMsg]} {
-    iputs "Error loading nxLib: $ErrorMsg"; return 1
+    iputs "Error loading nxLib: $ErrorMsg"; return
 }
 if {[catch {load "tclsqlite3.dll" Tclsqlite3} ErrorMsg]} {
-    iputs "Error loading SQLite: $ErrorMsg"; return 1
+    iputs "Error loading TclSQLite: $ErrorMsg"; return
 }
 
 # Nuke Procedures
