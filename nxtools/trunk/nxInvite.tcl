@@ -25,7 +25,7 @@ proc ::nxTools::Invite::ConfigLoader {ConfigFile} {
             } elseif {[string equal {[INVITES]} $FileLine]} {set ConfMode 1; continue
             } elseif {[string equal {[RIGHTS]} $FileLine]} {set ConfMode 2; continue
             } elseif {[string match {\[*\]} $FileLine]} {set ConfMode 0; continue}
-            switch -exact -- $ConfMode {
+            switch -- $ConfMode {
                 1 {set invchan([lindex $FileLine 0]) [lindex $FileLine 1]}
                 2 {set rights([lindex $FileLine 0]) [lindex $FileLine 1]}
             }
@@ -130,7 +130,7 @@ proc ::nxTools::Invite::Main {ArgV} {
         ConfigLoader $invite(ConfigFile)
 
         set Option [string tolower $Option]
-        switch -exact -- $Option {
+        switch -- $Option {
             {addinv} {
                 if {[string equal "" $Target]} {
                     ErrorReturn "Invalid target, you must specify an invite target to add."
@@ -223,7 +223,7 @@ proc ::nxTools::Invite::Main {ArgV} {
             }
             default {
                 set Option [string tolower $Target]
-                switch -exact -- $Option {
+                switch -- $Option {
                     {addinv} {
                         LinePuts "Description:"
                         LinePuts " - Create an invite target and destination channel."

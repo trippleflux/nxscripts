@@ -41,7 +41,7 @@ proc ::nxTools::Req::UpdateDir {Action Request {UserId 0} {GroupId 0}} {
     } elseif {[file exists $req(RequestPath)]} {
         set ReMap [list %(request) $Request]
         set ReqPath [file join $req(RequestPath) [string map $ReMap $req(RequestTag)]]
-        switch -exact -- $Action {
+        switch -- $Action {
             {del} {
                 if {[file isdirectory $ReqPath]} {
                     ## Kick users in the directory
@@ -102,7 +102,7 @@ proc ::nxTools::Req::Main {ArgV} {
     }
     ReqDb function StrEq {string equal -nocase}
 
-    switch -exact -- $Action {
+    switch -- $Action {
         {add} {
             set Request [StripChars $Request]
             if {[ReqDb eval {SELECT count(*) FROM Requests WHERE Status=0 AND StrEq(Request,$Request)}]} {

@@ -28,6 +28,32 @@ proc ::nxTools::Bot::AuthCheck {UserName Password} {
     return 0
 }
 
+proc ::nxTools::Bot::Bandwidth {} {
+    array set who [list BwDn 0.0 BwUp 0.0 UsersDn 0 UsersUp 0 UsersIdle 0]
+    if {[client who init "STATUS" "TRANSFERSPEED"] == 0} {
+        while {[set WhoData [client who fetch]] != ""} {
+            foreach {Status Speed} $WhoData {break}
+            switch -- $Status {
+                0 - 3 {
+                    incr who(UsersIdle)
+                }
+                1 {
+                    set who(BwDn) [expr {double($who(BwDn)) + double($Speed)}]
+                    incr who(UsersDn)
+                }
+                2 {
+                    set who(BwUp) [expr {double($who(BwUp)) + double($Speed)}]
+                    incr who(UsersUp)
+                }
+            }
+        }
+    }
+    set who(BwTotal) [expr {double($who(BwUp)) + double($who(BwDn))}]
+    set who(UsersTotal) [expr {$who(UsersUp) + $who(UsersDn) + $who(UsersIdle)}]
+    iputs "BW|$who(BwUp)|$who(BwDn)|$who(BwTotal)|$who(UsersUp)|$who(UsersDn)|$who(UsersIdle)|$who(UsersTotal)"
+    return 0
+}
+
 proc ::nxTools::Bot::UserStats {StatsType Target StartIndex EndIndex} {
     set StatsList ""
     foreach UserName [GetUserList] {
@@ -100,7 +126,7 @@ proc ::nxTools::Bot::UserInfo {UserName Section} {
     set UserFile [userfile bin2ascii]
     foreach UserLine [split $UserFile "\r\n"] {
         set LineType [string tolower [lindex $UserLine 0]]
-        switch -exact -- $LineType {
+        switch -- $LineType {
             {alldn} - {allup} {MergeStats [lrange $UserLine 1 end] file($LineType) size($LineType) time($LineType)}
             {credits} {set user(Credits) [lindex $UserLine $Section]}
             {flags}   {set user(Flags) [lindex $UserLine 1]}
@@ -132,7 +158,7 @@ proc ::nxTools::Bot::Who {} {
                     }
                 }
             }
-            switch -exact -- $Status {
+            switch -- $Status {
                 0 - 3 {set Status "IDLE"}
                 1 {set Status "DNLD"}
                 2 {set Status "UPLD"}
@@ -152,7 +178,7 @@ proc ::nxTools::Bot::Main {ArgV} {
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
     set Action [string tolower [lindex $ArgList 0]]
     set Result 0
-    switch -exact -- $Action {
+    switch -- $Action {
         {auth} {
             if {$ArgLength > 2} {
                 set Result [AuthCheck [lindex $ArgList 1] [lindex $ArgList 2]]
@@ -161,6 +187,7 @@ proc ::nxTools::Bot::Main {ArgV} {
             }
         }
         {bw} {
+            set Result [Bandwidth]
         }
         {stats} {
             if {$ArgLength > 2} {

@@ -399,7 +399,7 @@ proc ::nxTools::Dupe::SiteApprove {Action Release} {
     }
     ApproveDb function StrEq {string equal -nocase}
     set Release [file tail $Release]
-    switch -exact -- $Action {
+    switch -- $Action {
         {add} {
             iputs ".-\[Approve\]--------------------------------------------------------------."
             if {![regexp "\[$approve(Flags)\]" $flags]} {
@@ -747,7 +747,7 @@ proc ::nxTools::Dupe::Main {ArgV} {
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
     set Action [string tolower [lindex $ArgList 0]]
     set Result 0
-    switch -exact -- $Action {
+    switch -- $Action {
         {dupelog} {
             set VirtualPath [GetPath $pwd [join [lrange $ArgList 2 end]]]
             if {[IsTrue $dupe(CheckDirs)] || [IsTrue $dupe(CheckFiles)]} {

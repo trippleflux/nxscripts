@@ -30,7 +30,7 @@ proc ::nxTools::Close::Main {ArgV} {
     set ArgList [ArgList $ArgV]
     set Action [string tolower [lindex $ArgList 0]]
     set Result 0
-    switch -exact -- $Action {
+    switch -- $Action {
         {close} {
             iputs ".-\[Close\]-----------------------------------------------------------------."
             if {[catch {set CloseInfo [var get nxToolsClosed]}]} {

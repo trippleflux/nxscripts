@@ -25,7 +25,7 @@ proc ::nxTools::Pre::ConfigLoader {ConfigFile} {
             } elseif {[string equal {[GROUPS]} $FileLine]} {set ConfMode 2; continue
             } elseif {[string equal {[PATHS]} $FileLine]} {set ConfMode 3; continue
             } elseif {[string match {\[*\]} $FileLine]} {set ConfMode 0; continue}
-            switch -exact -- $ConfMode {
+            switch -- $ConfMode {
                 1 {set prearea([lindex $FileLine 0]) [lindex $FileLine 1]}
                 2 {set pregrp([lindex $FileLine 0]) [lindex $FileLine 1]}
                 3 {set prepath([lindex $FileLine 0]) [lrange $FileLine 1 end]}
@@ -466,7 +466,7 @@ proc ::nxTools::Pre::Main {ArgV} {
 
         set PreArea [string toupper $Target]
         set Option [string tolower $Option]
-        switch -exact -- $Option {
+        switch -- $Option {
             {addarea} {
                 if {[string equal "" $Target]} {
                     ErrorReturn "Invalid area, you must specify an area to add."
@@ -636,7 +636,7 @@ proc ::nxTools::Pre::Main {ArgV} {
             }
             default {
                 set Option [string tolower $Target]
-                switch -exact -- $Option {
+                switch -- $Option {
                     {addarea} {
                         LinePuts "Description:"
                         LinePuts " - Create a pre area and destination path."

@@ -160,7 +160,7 @@ proc ::nxTools::Utils::RotateLogs {} {
     iputs ".-\[RotateLogs\]-----------------------------------------------------------."
     set DoRotate 0
     set TimeNow [clock seconds]
-    switch -exact -- [string tolower $log(Frequency)] {
+    switch -- [string tolower $log(Frequency)] {
         {month} - {monthly} {
             set DateFormat "%Y-%m"
             if {[clock format $TimeNow -format "%d"] == "01"} {set DoRotate 1}
@@ -347,7 +347,7 @@ proc ::nxTools::Utils::SiteCredits {Type Target Amount Section} {
         ErrorReturn "The specified amount \"$Amount\" is invalid."
     }
     set UnitName [string toupper [string index $Unit 0]]
-    switch -exact -- $UnitName {
+    switch -- $UnitName {
         {G} {set Multi 1048576}
         {M} {set Multi 1024}
         {K} {set Multi 1}
@@ -425,7 +425,7 @@ proc ::nxTools::Utils::SiteGroupInfo {GroupName Section} {
             set UserFile [userfile bin2ascii]
             foreach UserLine [split $UserFile "\r\n"] {
                 set LineType [string tolower [lindex $UserLine 0]]
-                switch -exact -- $LineType {
+                switch -- $LineType {
                     {admingroups} {set uinfo(AdminGroups) [lrange $UserLine 1 end]}
                     {alldn} - {allup} {
                         MergeStats [lrange $UserLine 1 end] file($LineType) uinfo($LineType) time($LineType)
@@ -481,7 +481,7 @@ proc ::nxTools::Utils::SiteResetStats {ArgList} {
     iputs ".-\[ResetStats\]-----------------------------------------------------------."
     foreach Arg $ArgList {
         set Arg [string tolower $Arg]
-        switch -exact -- $Arg {
+        switch -- $Arg {
             {-all}  {set ResetStats $StatsTypes; break}
             {all}   {lappend ResetStats "alldn" "allup"}
             {month} {lappend ResetStats "monthdn" "monthup"}
@@ -574,7 +574,7 @@ proc ::nxTools::Utils::SiteTraffic {Target} {
     iputs [format "| Day Uploads     | %15ld | %15s | %16s |" $file(dayup) [FormatSize $size(dayup)] [FormatSpeed $size(dayup) $time(dayup)]]
     iputs [format "| Day Downloads   | %15ld | %15s | %16s |" $file(daydn) [FormatSize $size(daydn)] [FormatSpeed $size(daydn) $time(daydn)]]
     iputs "|------------------------------------------------------------------------|"
-    switch -exact -- $TrafficType {
+    switch -- $TrafficType {
         0 {LinePuts "Stats for all [llength $UserList] user(s)."}
         1 {LinePuts "Stats for the group $Target."}
         2 {LinePuts "Stats for the user $Target."}
@@ -585,7 +585,7 @@ proc ::nxTools::Utils::SiteTraffic {Target} {
 
 proc ::nxTools::Utils::SiteWho {} {
     global misc cid flags
-    array set who [list BwDn 0 BwUp 0 UsersDn 0 UsersUp 0 UsersIdle 0]
+    array set who [list BwDn 0.0 BwUp 0.0 UsersDn 0 UsersUp 0 UsersIdle 0]
     set IsAdmin [regexp "\[$misc(SiteopFlags)\]" $flags]
     iputs ".------------------------------------------------------------------------."
     iputs "|    User    |   Group    |  Info          |  Action                     |"
@@ -613,7 +613,7 @@ proc ::nxTools::Utils::SiteWho {} {
 
             ## Show hidden users to either admins or the user
             if {$IsAdmin || $cid == $ClientId || ![CheckHidden $UserName $GroupName $VirtualPath]} {
-                switch -exact -- $Status {
+                switch -- $Status {
                     0 - 3 {
                         set Action "IDLE: [FormatDuration $IdleTime]"
                         incr who(UsersIdle)
@@ -654,7 +654,7 @@ proc ::nxTools::Utils::Main {ArgV} {
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
     set Action [string tolower [lindex $ArgList 0]]
     set Result 0
-    switch -exact -- $Action {
+    switch -- $Action {
         {daystats} {
             if {![IsTrue $misc(dZSbotLogging)]} {
                 putlog "DAYSTATS: \"Launch Daystats\""

@@ -226,7 +226,7 @@ proc ::nxTools::Db::Main {ArgV} {
     }
 
     set Result 0
-    switch -exact -- $Action {
+    switch -- $Action {
         {create} {
             LinePuts "Creating [llength $DbList] database(s)."; LinePuts ""
             set Result [Create $DbList]
