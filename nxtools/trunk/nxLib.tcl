@@ -6,7 +6,7 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
-namespace eval ::nxLib {
+namespace eval ::nxTools::Lib {
     variable LogPath "../logs"
     namespace export *
 }
@@ -14,26 +14,24 @@ namespace eval ::nxLib {
 # General Procedures
 ######################################################################
 
-## String check wrappers.
-proc ::nxLib::IsDigit {Value} {string is digit -strict $Value}
-proc ::nxLib::IsTrue  {Value} {string is true -strict $Value}
-proc ::nxLib::IsFalse {Value} {string is false -strict $Value}
+interp alias {} IsTrue {} string is true -strict
+interp alias {} IsFalse {} string is false -strict
 
 ## Safe argument handling
-proc ::nxLib::ArgList {ArgV} {
+proc ::nxTools::Lib::ArgList {ArgV} {
     split [string trim [regsub -all {\s+} $ArgV { }]]
 }
-proc ::nxLib::ArgIndex {ArgV Index} {
+proc ::nxTools::Lib::ArgIndex {ArgV Index} {
     lindex [ArgList $ArgV] $Index
 }
-proc ::nxLib::ArgLength {ArgV} {
+proc ::nxTools::Lib::ArgLength {ArgV} {
     llength [ArgList $ArgV]
 }
-proc ::nxLib::ArgRange {ArgV Start End} {
+proc ::nxTools::Lib::ArgRange {ArgV Start End} {
     join [lrange [ArgList $ArgV] $Start $End]
 }
 
-proc ::nxLib::GetOptions {ArgList MaxVar StringVar} {
+proc ::nxTools::Lib::GetOptions {ArgList MaxVar StringVar} {
     upvar $MaxVar MaxResults $StringVar String
     set Switch [string tolower [lindex $ArgList 0]]
     if {[string index $Switch 0] == "-"} {
@@ -54,22 +52,22 @@ proc ::nxLib::GetOptions {ArgList MaxVar StringVar} {
     return 1
 }
 
-proc ::nxLib::ErrorReturn {ErrorMsg} {
+proc ::nxTools::Lib::ErrorReturn {ErrorMsg} {
     LinePuts $ErrorMsg
     iputs "'------------------------------------------------------------------------'"
     return -code return
 }
 
-proc ::nxLib::LinePuts {String} {iputs [format "| %-70s |" $String]}
+proc ::nxTools::Lib::LinePuts {String} {iputs [format "| %-70s |" $String]}
 
-proc ::nxLib::StripChars {String} {
+proc ::nxTools::Lib::StripChars {String} {
     regsub -all {[\s\.\+\@\#\$\%\^\&\=\*\?\:\;\|\"\/\\]+} $String {.} String
     regsub -all {[\(\<]+} $String {(} String
     regsub -all {[\)\>]+} $String {)} String
     return $String
 }
 
-proc ::nxLib::Sleep {MilliSeconds} {
+proc ::nxTools::Lib::Sleep {MilliSeconds} {
     set UniqueKey [UniqueKey]
     set ::Sleep_$UniqueKey 0
     after $MilliSeconds [list set ::Sleep_$UniqueKey 1]
@@ -77,7 +75,7 @@ proc ::nxLib::Sleep {MilliSeconds} {
     unset ::Sleep_$UniqueKey
 }
 
-proc ::nxLib::UniqueKey {} {
+proc ::nxTools::Lib::UniqueKey {} {
     set Key [expr {pow(2,31) + [clock clicks]}]
     set Key [string range $Key end-8 end-3]
     return "[clock seconds]$Key"
@@ -86,7 +84,7 @@ proc ::nxLib::UniqueKey {} {
 # DataBase Procedures
 ######################################################################
 
-proc ::nxLib::DbOpenFile {DbProc FileName} {
+proc ::nxTools::Lib::DbOpenFile {DbProc FileName} {
     set DbPath [file join $::misc(DataPath) $FileName]
     if {[catch {sqlite3 $DbProc $DbPath} ErrorMsg]} {
         return -code error "unable to open \"$DbPath\": $ErrorMsg"
@@ -94,23 +92,21 @@ proc ::nxLib::DbOpenFile {DbProc FileName} {
     return 1
 }
 
-proc ::nxLib::MySqlConnect {} {
+proc ::nxTools::Lib::MySqlConnect {} {
     global mysql
-    if {[catch {load "mysqltcl.dll" Mysqltcl} ErrorMsg]} {
-        ErrorLog MySqlConnect $ErrorMsg
-    } elseif {[catch {set mysql(ConnHandle) [::mysql::connect -host $mysql(Host) -user $mysql(Username) -password $mysql(Password) -port $mysql(Port) -db $mysql(DataBase)]} ErrorMsg]} {
+    if {[catch {set mysql(ConnHandle) [::mysql::connect -host $mysql(Host) -user $mysql(Username) -password $mysql(Password) -port $mysql(Port) -db $mysql(DataBase)]} ErrorMsg]} {
         ErrorLog MySqlConnect $ErrorMsg
     } elseif {[lsearch -exact [::mysql::info $mysql(ConnHandle) tables] $mysql(TableName)] != -1} {
         return 1
     } else {
-        ErrorLog MySqlConnect "The table \"$mysql(TableName)\" does not exist in the database \"$mysql(DataBase)\"."
+        ErrorLog MySqlConnect "the table \"$mysql(TableName)\" does not exist in the database \"$mysql(DataBase)\""
         MySqlClose
     }
     set mysql(ConnHandle) -1
     return 0
 }
 
-proc ::nxLib::MySqlClose {} {
+proc ::nxTools::Lib::MySqlClose {} {
     global mysql
     if {$mysql(ConnHandle) != -1} {
         catch {::mysql::close $mysql(ConnHandle)}
@@ -119,18 +115,18 @@ proc ::nxLib::MySqlClose {} {
     return
 }
 
-proc ::nxLib::SqlEscape {String} {
+proc ::nxTools::Lib::SqlEscape {String} {
     return [string map {\\ \\\\ \' \\\' \" \\\"} $String]
 }
 
-proc ::nxLib::SqlWildToLike {Pattern} {
+proc ::nxTools::Lib::SqlWildToLike {Pattern} {
     return [string map {* % ? _} [string map {% \\% _ \\_ \\ \\\\ \' \\\' \" \\\"} $Pattern]]
 }
 
 # File and Directory Procedures
 ######################################################################
 
-proc ::nxLib::ArchiveFile {FilePath {FormatStyle "%Y-%m-%d"}} {
+proc ::nxTools::Lib::ArchiveFile {FilePath {FormatStyle "%Y-%m-%d"}} {
     global log
     if {![file isdirectory $log(ArchivePath)]} {
         if {[catch {file mkdir $log(ArchivePath)} ErrorMsg]} {
@@ -145,14 +141,14 @@ proc ::nxLib::ArchiveFile {FilePath {FormatStyle "%Y-%m-%d"}} {
     return 1
 }
 
-proc ::nxLib::CreateTag {RealPath UserId GroupId Chmod} {
+proc ::nxTools::Lib::CreateTag {RealPath UserId GroupId Chmod} {
     if {[catch {file mkdir $RealPath} ErrorMsg]} {
         ErrorLog CreateTag $ErrorMsg
     }
     catch {vfs write $RealPath $UserId $GroupId $Chmod}
 }
 
-proc ::nxLib::RemoveTag {RealPath} {
+proc ::nxTools::Lib::RemoveTag {RealPath} {
     ## Safely remove a directory tag, in case there is data inside it.
     catch {file delete -- [file join $RealPath ".ioFTPD"]}
     if {[catch {file delete -- $RealPath} ErrorMsg]} {
@@ -160,7 +156,7 @@ proc ::nxLib::RemoveTag {RealPath} {
     }
 }
 
-proc ::nxLib::GetDirList {RealPath VarName {IgnoreList ""} {FirstCall 1}} {
+proc ::nxTools::Lib::GetDirList {RealPath VarName {IgnoreList ""} {FirstCall 1}} {
     upvar $VarName list
     if {$FirstCall} {
         array set list [list DirList "" FileList ""]
@@ -183,7 +179,7 @@ proc ::nxLib::GetDirList {RealPath VarName {IgnoreList ""} {FirstCall 1}} {
     return
 }
 
-proc ::nxLib::GetDirStats {RealPath VarName {IgnoreList ""} {FirstCall 1}} {
+proc ::nxTools::Lib::GetDirStats {RealPath VarName {IgnoreList ""} {FirstCall 1}} {
     upvar $VarName stats
     if {$FirstCall} {
         array set stats [list DirCount 0 FileCount 0 TotalSize 0]
@@ -207,7 +203,7 @@ proc ::nxLib::GetDirStats {RealPath VarName {IgnoreList ""} {FirstCall 1}} {
     return
 }
 
-proc ::nxLib::GetPath {PWD Path} {
+proc ::nxTools::Lib::GetPath {PWD Path} {
     if {[string index $Path 0] == "/"} {set VirtualPath $Path} else {set VirtualPath "$PWD$Path"}
     regsub -all {[\\/]+} $Path {/} Path
     ## A few "security checks", in case $Path is "." or ".."
@@ -219,12 +215,12 @@ proc ::nxLib::GetPath {PWD Path} {
     return $VirtualPath
 }
 
-proc ::nxLib::IsMultiDisk {DiskPath} {
+proc ::nxTools::Lib::IsMultiDisk {DiskPath} {
     set DiskPath [string tolower [file tail $DiskPath]]
     return [regexp {^(cd|dis[ck]|dvd)\d{1,2}$} $DiskPath]
 }
 
-proc ::nxLib::RemoveParentLinks {RealPath VirtualPath} {
+proc ::nxTools::Lib::RemoveParentLinks {RealPath VirtualPath} {
     if {[IsMultiDisk $RealPath]} {
         set RealPath [file dirname $RealPath]
     }
@@ -245,7 +241,7 @@ proc ::nxLib::RemoveParentLinks {RealPath VirtualPath} {
 # ioFTPD Related Procedures
 ######################################################################
 
-proc ::nxLib::GetSectionList {} {
+proc ::nxTools::Lib::GetSectionList {} {
     set IsSections 0
     set SectionList ""
     if {![catch {set Handle [open "ioFTPD.ini" r]} ErrorMsg]} {
@@ -263,7 +259,7 @@ proc ::nxLib::GetSectionList {} {
                     switch -exact -- $Items {
                         5 {lappend SectionList $SectionName $CreditSection $Param1 $Param2}
                         4 {lappend SectionList $SectionName $CreditSection 0 $Param1}
-                        default {ErrorLog GetSectionList "Invalid ioFTPD.ini \[Sections\] line: \"$ConfLine\""}
+                        default {ErrorLog GetSectionList "invalid ioFTPD.ini \[Sections\] line: \"$ConfLine\""}
                     }
                 }
             }
@@ -273,7 +269,7 @@ proc ::nxLib::GetSectionList {} {
     return $SectionList
 }
 
-proc ::nxLib::GetSectionPath {FindSection {SectionList ""}} {
+proc ::nxTools::Lib::GetSectionPath {FindSection {SectionList ""}} {
     if {![llength $SectionList]} {set SectionList [GetSectionList]}
     foreach {SectionName CreditSection StatSection MatchPath} $SectionList {
         if {[string equal -nocase $FindSection $SectionName]} {
@@ -283,7 +279,7 @@ proc ::nxLib::GetSectionPath {FindSection {SectionList ""}} {
     return [list "DEFAULT" "*"]
 }
 
-proc ::nxLib::GetCreditsAndStats {VirtualPath {SectionList ""}} {
+proc ::nxTools::Lib::GetCreditsAndStats {VirtualPath {SectionList ""}} {
     if {![llength $SectionList]} {set SectionList [GetSectionList]}
     foreach {SectionName CreditSection StatSection MatchPath} $SectionList {
         if {[string match -nocase $MatchPath $VirtualPath]} {
@@ -293,7 +289,7 @@ proc ::nxLib::GetCreditsAndStats {VirtualPath {SectionList ""}} {
     return [list 0 0]
 }
 
-proc ::nxLib::KickUsers {KickPath {RealPaths "False"}} {
+proc ::nxTools::Lib::KickUsers {KickPath {RealPaths "False"}} {
     if {[IsTrue $RealPaths]} {
         catch {client kill realpath $KickPath}
     } else {
@@ -338,21 +334,21 @@ proc ::nxLib::KickUsers {KickPath {RealPaths "False"}} {
 # List Procedures
 ######################################################################
 
-proc ::nxLib::ListAssign {ValueList args} {
+proc ::nxTools::Lib::ListAssign {ValueList args} {
     while {[llength $ValueList] < [llength $args]} {
         lappend ValueList {}
     }
     uplevel [list foreach $args $ValueList break]
 }
 
-proc ::nxLib::ListMatch {PatternList String} {
+proc ::nxTools::Lib::ListMatch {PatternList String} {
     foreach ListItem $PatternList {
         if {[string match $ListItem $String]} {return 1}
     }
     return 0
 }
 
-proc ::nxLib::ListMatchI {PatternList String} {
+proc ::nxTools::Lib::ListMatchI {PatternList String} {
     foreach ListItem $PatternList {
         if {[string match -nocase $ListItem $String]} {return 1}
     }
@@ -362,7 +358,7 @@ proc ::nxLib::ListMatchI {PatternList String} {
 # Logging Procedures
 ######################################################################
 
-proc ::nxLib::DebugLog {LogType LogMsg} {
+proc ::nxTools::Lib::DebugLog {LogType LogMsg} {
     global args flags group groups path pwd user
     variable LogPath
 
@@ -383,7 +379,7 @@ proc ::nxLib::DebugLog {LogType LogMsg} {
     } else {iputs $ErrorMsg}
 }
 
-proc ::nxLib::ErrorLog {LogType LogMsg} {
+proc ::nxTools::Lib::ErrorLog {LogType LogMsg} {
     variable LogPath
 
     set LogFile [file join $LogPath "nxError.log"]
@@ -397,7 +393,7 @@ proc ::nxLib::ErrorLog {LogType LogMsg} {
 # Formatting Procedures
 ######################################################################
 
-proc ::nxLib::FormatDuration {Seconds} {
+proc ::nxTools::Lib::FormatDuration {Seconds} {
     set Duration ""
     foreach Div {31536000 604800 86400 3600 60 1} Mod {0 52 7 24 60 60} Unit {y w d h m s} {
         set Num [expr {$Seconds / $Div}]
@@ -407,7 +403,7 @@ proc ::nxLib::FormatDuration {Seconds} {
     if {[llength $Duration]} {return [join $Duration]} else {return "0s"}
 }
 
-proc ::nxLib::FormatDurationLong {Seconds} {
+proc ::nxTools::Lib::FormatDurationLong {Seconds} {
     set Duration ""
     foreach Div {31536000 604800 86400 3600 60 1} Mod {0 52 7 24 60 60} Unit {year week day hour min sec} {
         set Num [expr {$Seconds / $Div}]
@@ -417,7 +413,7 @@ proc ::nxLib::FormatDurationLong {Seconds} {
     if {[llength $Duration]} {return [join $Duration {, }]} else {return "0 secs"}
 }
 
-proc ::nxLib::FormatSize {KBytes} {
+proc ::nxTools::Lib::FormatSize {KBytes} {
     foreach Dec {0 1 2 2} Unit {KB MB GB TB} {
         if {abs($KBytes) >= 1024} {
             set KBytes [expr {double($KBytes) / 1024.0}]
@@ -426,7 +422,7 @@ proc ::nxLib::FormatSize {KBytes} {
     return [format "%.*f%s" $Dec $KBytes $Unit]
 }
 
-proc ::nxLib::FormatSpeed {Speed {Seconds 0}} {
+proc ::nxTools::Lib::FormatSpeed {Speed {Seconds 0}} {
     if {$Seconds > 0} {set Speed [expr {double($Speed) / $Seconds}]}
     foreach Dec {0 2 2} Unit {KB/s MB/s GB/s} {
         if {abs($Speed) >= 1024} {
@@ -439,47 +435,56 @@ proc ::nxLib::FormatSpeed {Speed {Seconds 0}} {
 # User and Group Procedures
 ######################################################################
 
-proc ::nxLib::GetUserList {} {
+proc ::nxTools::Lib::GetUserList {} {
     set UserList ""
     foreach UserId [user list] {lappend UserList [resolve uid $UserId]}
     return [lsort -ascii $UserList]
 }
 
-proc ::nxLib::GetGroupList {} {
+proc ::nxTools::Lib::GetGroupList {} {
     set GroupList ""
     foreach GroupId [group list] {lappend GroupList [resolve gid $GroupId]}
     return [lsort -ascii $GroupList]
 }
 
-proc ::nxLib::GetGroupName {GroupId} {
+proc ::nxTools::Lib::GetGroupName {GroupId} {
     if {[set GroupName [resolve gid $GroupId]] != ""} {
         return $GroupName
     }
     return "NoGroup"
 }
 
-proc ::nxLib::GetGroupUsers {GroupId} {
+proc ::nxTools::Lib::GetGroupUsers {GroupId} {
     set UserList ""
     foreach UserName [GetUserList] {
         if {[userfile open $UserName] != 0} {continue}
         set UserFile [userfile bin2ascii]
-        if {[regexp -nocase {groups ([\s\d]+)} $UserFile Result GroupList]} {
-            if {[lsearch -exact $GroupList $GroupId] != -1} {lappend UserList $UserName}
+        if {[regexp -nocase {groups ([\s\d]+)} $UserFile Result GroupIdList]} {
+            if {[lsearch -exact $GroupIdList $GroupId] != -1} {lappend UserList $UserName}
         }
     }
     return $UserList
 }
 
+proc ::nxTools::Lib::MergeStats {StatsLine FileVar SizeVar TimeVar} {
+    upvar $FileVar FileStats $SizeVar SizeStats $TimeVar TimeStats
+    foreach {File Size Time} $StatsLine {
+        set FileStats [expr {wide($FileStats) + wide($File)}]
+        set SizeStats [expr {wide($SizeStats) + wide($Size)}]
+        set TimeStats [expr {wide($TimeStats) + wide($Time)}]
+    }
+}
+
 # Cookie Parsing Procedures
 ######################################################################
 
-proc ::nxLib::OutputData {OutputData} {
+proc ::nxTools::Lib::OutputData {OutputData} {
     foreach Output [split $OutputData "\r\n"] {
         if {![string equal "" $Output]} {iputs $Output}
     }
 }
 
-proc ::nxLib::ReadFile {FilePath} {
+proc ::nxTools::Lib::ReadFile {FilePath} {
     set FileData ""
     if {![catch {set Handle [open $FilePath r]} ErrorMsg]} {
         set FileData [read -nonewline $Handle]
@@ -488,7 +493,7 @@ proc ::nxLib::ReadFile {FilePath} {
     return $FileData
 }
 
-proc ::nxLib::ParseCookies {InputStr ValueList CookieList} {
+proc ::nxTools::Lib::ParseCookies {InputStr ValueList CookieList} {
     set InputLen [string length $InputStr]
     set OutputStr ""
 
@@ -562,10 +567,10 @@ proc ::nxLib::ParseCookies {InputStr ValueList CookieList} {
 
 # Reload Configuration
 ######################################################################
-
-if {[IsTrue $misc(ReloadConfig)]} {
-    if {[catch {source "../scripts/init.itcl"} ErrorMsg]} {
-        iputs "Unable to load script configuration, contact a siteop."
-        return -code error $ErrorMsg
-    }
-}
+#
+#if {[IsTrue $misc(ReloadConfig)]} {
+#    if {[catch {source "../scripts/init.itcl"} ErrorMsg]} {
+#        iputs "Unable to load script configuration, contact a siteop."
+#        return -code error $ErrorMsg
+#    }
+#}

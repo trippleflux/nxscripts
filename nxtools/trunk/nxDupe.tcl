@@ -6,20 +6,14 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
-# Load Libraries
-######################################################################
-
-if {[catch {source [file join [file dirname [info script]] "nxLib.itcl"]} ErrorMsg]} {
-    iputs "Error loading nxLib: $ErrorMsg"; return
-}
-if {[catch {load "tclsqlite3.dll" Tclsqlite3} ErrorMsg]} {
-    iputs "Error loading TclSQLite: $ErrorMsg"; return
+namespace eval ::nxTools::Dupe {
+    namespace import -force ::nxTools::Lib::*
 }
 
 # Dupe Procedures
 ######################################################################
 
-proc DupeCheckDirs {VirtualPath} {
+proc ::nxTools::Dupe::CheckDirs {VirtualPath} {
     global dupe
     ## Check exempts and ignores
     if {[ListMatch $dupe(CheckExempts) $VirtualPath] || [ListMatchI $dupe(IgnoreDirs) $VirtualPath]} {return 0}
@@ -42,7 +36,7 @@ proc DupeCheckDirs {VirtualPath} {
     return $Result
 }
 
-proc DupeCheckFiles {VirtualPath} {
+proc ::nxTools::Dupe::CheckFiles {VirtualPath} {
     global dupe
     ## Check exempts and ignores
     if {[ListMatch $dupe(CheckExempts) $VirtualPath] || [ListMatchI $dupe(IgnoreFiles) $VirtualPath]} {return 0}
@@ -64,7 +58,7 @@ proc DupeCheckFiles {VirtualPath} {
     return $Result
 }
 
-proc DupeLog {Action VirtualPath} {
+proc ::nxTools::Dupe::UpdateLog {Action VirtualPath} {
     global dupe
     if {[ListMatch $dupe(LoggingExempts) $VirtualPath]} {return 0}
     set Action [string toupper $Action]
@@ -72,18 +66,18 @@ proc DupeLog {Action VirtualPath} {
     ## Check if the virtual path is a file or directory.
     if {[string equal "DELE" $Action] || [string equal "UPLD" $Action] || [file isfile [resolve pwd $VirtualPath]]} {
         if {[IsTrue $dupe(CheckFiles)] && ![ListMatchI $dupe(IgnoreFiles) $VirtualPath]} {
-            return [DupeLogFiles $Action $VirtualPath]
+            return [UpdateFiles $Action $VirtualPath]
         }
     } elseif {[IsTrue $dupe(CheckDirs)] && ![ListMatchI $dupe(IgnoreDirs) $VirtualPath]} {
-        return [DupeLogDirs $Action $VirtualPath]
+        return [UpdateDirs $Action $VirtualPath]
     }
     return 0
 }
 
-proc DupeLogDirs {Action VirtualPath} {
+proc ::nxTools::Dupe::UpdateDirs {Action VirtualPath} {
     global dupe group user
     if {[catch {DbOpenFile DirDb "DupeDirs.db"} ErrorMsg]} {
-        ErrorLog DupeLogDirs $ErrorMsg
+        ErrorLog DupeUpdateDirs $ErrorMsg
         return 1
     }
     set DirName [file tail $VirtualPath]
@@ -104,10 +98,10 @@ proc DupeLogDirs {Action VirtualPath} {
     return 0
 }
 
-proc DupeLogFiles {Action VirtualPath} {
+proc ::nxTools::Dupe::UpdateFiles {Action VirtualPath} {
     global dupe group user
     if {[catch {DbOpenFile FileDb "DupeFiles.db"} ErrorMsg]} {
-        ErrorLog DupeLogFiles $ErrorMsg
+        ErrorLog DupeUpdateFiles $ErrorMsg
         return 1
     }
     set FileName [file tail $VirtualPath]
@@ -123,14 +117,14 @@ proc DupeLogFiles {Action VirtualPath} {
     return 0
 }
 
-proc DupeClean {} {
+proc ::nxTools::Dupe::CleanDb {} {
     global dupe misc user group
     ## A userfile and VFS file will have to be opened so that resolve works under ioFTPD's scheduler
     if {![info exists user] && ![info exists group]} {
         if {[userfile open $misc(MountUser)] != 0} {
-            ErrorLog DupeClean "Error opening the user \"$misc(MountUser)\""; return 1
+            ErrorLog DupeClean "unable to open the user \"$misc(MountUser)\""; return 1
         } elseif {[mountfile open $misc(MountFile)] != 0} {
-            ErrorLog DupeClean "Error mounting the VFS-file \"$misc(MountFile)\""; return 1
+            ErrorLog DupeClean "unable to mount the VFS-file \"$misc(MountFile)\""; return 1
         }
     }
     iputs ".-\[CleanLogs\]------------------------------------------------------------."
@@ -168,7 +162,7 @@ proc DupeClean {} {
     return 0
 }
 
-proc DupeRebuild {} {
+proc ::nxTools::Dupe::RebuildDb {} {
     global dupe misc
     iputs ".-\[RebuildLogs\]----------------------------------------------------------."
     if {![llength $dupe(RebuildPaths)]} {
@@ -188,7 +182,7 @@ proc DupeRebuild {} {
 
     foreach ConfigLine $dupe(RebuildPaths) {
         if {[llength [set RebuildPath [split $ConfigLine "|"]]] != 4} {
-            ErrorLog DupeRebuild "Wrong number of parameters in line: \"$ConfigLine\""; continue
+            ErrorLog DupeRebuild "wrong number of parameters in line: \"$ConfigLine\""; continue
         }
         foreach {VirtualPath RealPath UpdateDirs UpdateFiles} $RebuildPath {break}
         set TrimLength [expr {[string length [file normalize $RealPath]] + 1}]
@@ -244,7 +238,7 @@ proc DupeRebuild {} {
 # Other Procedures
 ######################################################################
 
-proc ApproveCheck {VirtualPath CreateTag} {
+proc ::nxTools::Dupe::ApproveCheck {VirtualPath CreateTag} {
     set Approved 0
     if {![catch {DbOpenFile ApproveDb "Approves.db"} ErrorMsg]} {
         ApproveDb function StrEq {string equal -nocase}
@@ -259,7 +253,7 @@ proc ApproveCheck {VirtualPath CreateTag} {
     return $Approved
 }
 
-proc ApproveRelease {VirtualPath UserName GroupName} {
+proc ::nxTools::Dupe::ApproveRelease {VirtualPath UserName GroupName} {
     global approve
     set RealPath [resolve pwd $VirtualPath]
     if {[file isdirectory $RealPath]} {
@@ -267,12 +261,12 @@ proc ApproveRelease {VirtualPath UserName GroupName} {
         set TagPath [file join $RealPath [string map [list %(user) $UserName %(group) $GroupName] $approve(DirTag)]]
         CreateTag $TagPath [resolve user $UserName] [resolve group $GroupName] 555
     } else {
-        ErrorLog ApproveRelease "The vpath \"$VirtualPath\" at \"$RealPath\" doesn't exist."
+        ErrorLog ApproveRelease "invalid vpath \"$VirtualPath\", \"$RealPath\" doesn't exist."
     }
     return 0
 }
 
-proc ForceCheck {VirtualPath} {
+proc ::nxTools::Dupe::ForceCheck {VirtualPath} {
     global force
     set FileExt [file extension $VirtualPath]
     set MatchPath [file dirname $VirtualPath]
@@ -311,13 +305,13 @@ proc ForceCheck {VirtualPath} {
     return 0
 }
 
-proc PreTimeCheck {VirtualPath} {
+proc ::nxTools::Dupe::PreTimeCheck {VirtualPath} {
     global misc mysql pretime
     if {[ListMatchI $pretime(Ignores) $VirtualPath]} {return 0}
     set Check 0; set Result 0
     foreach ConfigLine $pretime(CheckPaths) {
         if {[llength [set PreCheck [split $ConfigLine  "|"]]] != 4} {
-            ErrorLog PreTimeCheck "Wrong number of parameters in line: \"$ConfigLine\""; continue
+            ErrorLog PreTimeCheck "wrong number of parameters in line: \"$ConfigLine\""; continue
         }
         foreach {CheckPath DenyLate LogInfo LateMins} $PreCheck {break}
         if {[string match $CheckPath $VirtualPath]} {set Check 1; break}
@@ -360,7 +354,7 @@ proc PreTimeCheck {VirtualPath} {
     return $Result
 }
 
-proc RaceLinks {VirtualPath} {
+proc ::nxTools::Dupe::RaceLinks {VirtualPath} {
     global latest
     if {[ListMatch $latest(Exempts) $VirtualPath] || [ListMatchI $latest(Ignores) $VirtualPath]} {
         return 0
@@ -397,7 +391,7 @@ proc RaceLinks {VirtualPath} {
 # Site Commands
 ######################################################################
 
-proc SiteApprove {Action Release} {
+proc ::nxTools::Dupe::SiteApprove {Action Release} {
     global IsSiteBot approve misc flags group user
     if {[catch {DbOpenFile ApproveDb "Approves.db"} ErrorMsg]} {
         ErrorLog SiteApprove $ErrorMsg
@@ -481,7 +475,7 @@ proc SiteApprove {Action Release} {
     return 0
 }
 
-proc SiteDupe {MaxResults Pattern} {
+proc ::nxTools::Dupe::SiteDupe {MaxResults Pattern} {
     global IsSiteBot misc
     if {[catch {DbOpenFile DirDb "DupeDirs.db"} ErrorMsg]} {
         ErrorLog SiteDupe $ErrorMsg
@@ -518,7 +512,7 @@ proc SiteDupe {MaxResults Pattern} {
     return 0
 }
 
-proc SiteFileDupe {MaxResults Pattern} {
+proc ::nxTools::Dupe::SiteFileDupe {MaxResults Pattern} {
     global IsSiteBot misc
     if {[catch {DbOpenFile FileDb "DupeFiles.db"} ErrorMsg]} {
         ErrorLog SiteFileDupe $ErrorMsg
@@ -555,7 +549,7 @@ proc SiteFileDupe {MaxResults Pattern} {
     return 0
 }
 
-proc SiteNew {MaxResults ShowSection} {
+proc ::nxTools::Dupe::SiteNew {MaxResults ShowSection} {
     global IsSiteBot misc new
     if {[catch {DbOpenFile DirDb "DupeDirs.db"} ErrorMsg]} {
         ErrorLog SiteNew $ErrorMsg
@@ -616,7 +610,7 @@ proc SiteNew {MaxResults ShowSection} {
     return 0
 }
 
-proc SitePreTime {MaxResults Pattern} {
+proc ::nxTools::Dupe::SitePreTime {MaxResults Pattern} {
     global IsSiteBot misc mysql
     if {!$IsSiteBot} {
         foreach MessageType {Header Body BodyInfo BodyNuke None Footer} {
@@ -657,7 +651,7 @@ proc SitePreTime {MaxResults Pattern} {
     return 0
 }
 
-proc SiteUndupe {ArgList} {
+proc ::nxTools::Dupe::SiteUndupe {ArgList} {
     global IsSiteBot dupe misc
     if {!$IsSiteBot} {iputs ".-\[Undupe\]---------------------------------------------------------------."}
     if {[string equal -nocase "-d" [lindex $ArgList 0]]} {
@@ -698,7 +692,7 @@ proc SiteUndupe {ArgList} {
     return 0
 }
 
-proc SiteWipe {VirtualPath} {
+proc ::nxTools::Dupe::SiteWipe {VirtualPath} {
     global dupe misc wipe group user
     iputs ".-\[Wipe\]-----------------------------------------------------------------."
     ## Resolving a symlink returns its target path, which could have unwanted
@@ -733,10 +727,10 @@ proc SiteWipe {VirtualPath} {
         }
         putlog "WIPE: \"$VirtualPath\" \"$user\" \"$group\" \"$stats(DirCount)\" \"$stats(FileCount)\" \"$stats(TotalSize)\""
         if {[IsTrue $dupe(CheckDirs)]} {
-            DupeLog "WIPE" $VirtualPath
+            UpdateLog "WIPE" $VirtualPath
         }
     } elseif {[IsTrue $dupe(CheckFiles)]} {
-        DupeLog "DELE" $VirtualPath
+        UpdateLog "DELE" $VirtualPath
     }
     return 0
 }
@@ -744,10 +738,11 @@ proc SiteWipe {VirtualPath} {
 # Dupe Main
 ######################################################################
 
-proc DupeMain {ArgV} {
+proc ::nxTools::Dupe::Main {ArgV} {
     global IsSiteBot approve dupe force latest misc pretime group ioerror pwd user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     set IsSiteBot [expr {[info exists user] && [string equal $misc(SiteBot) $user]}]
+
     ## Safe argument handling
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
     set Action [string tolower [lindex $ArgList 0]]
@@ -756,13 +751,13 @@ proc DupeMain {ArgV} {
         {dupelog} {
             set VirtualPath [GetPath $pwd [join [lrange $ArgList 2 end]]]
             if {[IsTrue $dupe(CheckDirs)] || [IsTrue $dupe(CheckFiles)]} {
-                set Result [DupeLog [lindex $ArgList 1] $VirtualPath]
+                set Result [UpdateLog [lindex $ArgList 1] $VirtualPath]
             }
         }
         {postmkd} {
             set VirtualPath [GetPath $pwd [join [lrange $ArgList 2 end]]]
             if {[IsTrue $dupe(CheckDirs)]} {
-                set Result [DupeLog [lindex $ArgList 1] $VirtualPath]
+                set Result [UpdateLog [lindex $ArgList 1] $VirtualPath]
             }
             if {$latest(RaceLinks) > 0} {
                 set Result [RaceLinks $VirtualPath]
@@ -773,7 +768,7 @@ proc DupeMain {ArgV} {
             set VirtualPath [GetPath $pwd [join [lrange $ArgList 2 end]]]
             if {!([IsTrue $approve(CheckMkd)] && [ApproveCheck $VirtualPath 0])} {
                 if {[IsTrue $dupe(CheckDirs)]} {
-                    set Result [DupeCheckDirs $VirtualPath]
+                    set Result [CheckDirs $VirtualPath]
                 }
                 if {$Result == 0 && [IsTrue $pretime(CheckMkd)]} {
                     set Result [PreTimeCheck $VirtualPath]
@@ -786,23 +781,23 @@ proc DupeMain {ArgV} {
                 set Result [ForceCheck $VirtualPath]
             }
             if {$Result == 0 && [IsTrue $dupe(CheckFiles)]} {
-                set Result [DupeCheckFiles $VirtualPath]
+                set Result [CheckFiles $VirtualPath]
             }
         }
         {upload} {
             if {[IsTrue $dupe(CheckFiles)]} {
                 foreach {Tmp RealPath CRC VirtualPath} $ArgV {break}
-                DupeLog "UPLD" $VirtualPath
+                UpdateLog "UPLD" $VirtualPath
             }
         }
         {uploaderror} {
             if {[IsTrue $dupe(CheckFiles)]} {
                 foreach {Tmp RealPath CRC VirtualPath} $ArgV {break}
-                DupeLog "DELE" $VirtualPath
+                UpdateLog "DELE" $VirtualPath
             }
         }
         {clean} {
-            set Result [DupeClean]
+            set Result [CleanDb]
         }
         {approve} {
             array set params [list add 2 del 2 list 0]
@@ -844,7 +839,7 @@ proc DupeMain {ArgV} {
             }
         }
         {rebuild} {
-            set Result [DupeRebuild]
+            set Result [RebuildDb]
         }
         {undupe} {
             if {$ArgLength > 1} {
@@ -863,10 +858,10 @@ proc DupeMain {ArgV} {
             }
         }
         default {
-            ErrorLog InvalidArgs "Invalid function \"[info script] $Action\", check your ioFTPD.ini for errors."
+            ErrorLog InvalidArgs "invalid parameter \"[info script] $Action\": check your ioFTPD.ini for errors"
         }
     }
     return [set ioerror $Result]
 }
 
-DupeMain [expr {[info exists args] ? $args : ""}]
+::nxTools::Dupe::Main [expr {[info exists args] ? $args : ""}]

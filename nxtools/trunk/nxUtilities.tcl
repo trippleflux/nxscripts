@@ -6,23 +6,14 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
-# Load Libraries
-######################################################################
-
-if {[catch {source [file join [file dirname [info script]] "nxLib.itcl"]} ErrorMsg]} {
-    iputs "Error loading nxLib: $ErrorMsg"; return
-}
-if {[catch {load tclsqlite3.dll Tclsqlite3} ErrorMsg]} {
-    iputs "Error loading TclSQLite: $ErrorMsg"; return
-}
-if {[catch {load "nxHelper.dll" Nxhelper} ErrorMsg]} {
-    iputs "Error loading nxHelper: $ErrorMsg"; return
+namespace eval ::nxTools::Utils {
+    namespace import -force ::nxTools::Lib::*
 }
 
 # User Procedures
 ######################################################################
 
-proc ChangeCredits {UserName Change {Section 0}} {
+proc ::nxTools::Utils::ChangeCredits {UserName Change {Section 0}} {
     incr Section
     ## Validate the 'Change' parameter
     if {[regexp {^(\+|\-)?(\d+)$} $Change Result Method Amount] && [userfile open $UserName] == 0} {
@@ -47,36 +38,27 @@ proc ChangeCredits {UserName Change {Section 0}} {
     return 0
 }
 
-proc CheckHidden {UserName GroupName VirtualPath} {
+proc ::nxTools::Utils::CheckHidden {UserName GroupName VirtualPath} {
     global hide
     if {[lsearch -exact $hide(UserNames) $UserName] != -1 || [lsearch -exact $hide(GroupNames) $GroupName] != -1} {return 1}
     if {[ListMatch $hide(Paths) $VirtualPath]} {return 1}
     return 0
 }
 
-proc IsGroupAdmin {UserName Flags GroupId} {
+proc ::nxTools::Utils::IsGroupAdmin {UserName Flags GroupId} {
     global misc
     if {![regexp "\[$misc(GAdminFlags)\]" $Flags]} {
         return 1
     } elseif {[userfile open $UserName] == 0} {
         set UserFile [userfile bin2ascii]
-        if {[regexp -nocase {admingroups ([\s\d]+)} $UserFile Result GIDList]} {
-            if {[lsearch -exact $GIDList $GroupId] != -1} {return 1}
+        if {[regexp -nocase {admingroups ([\s\d]+)} $UserFile Result GroupIdList]} {
+            if {[lsearch -exact $GroupIdList $GroupId] != -1} {return 1}
         }
     }
     return 0
 }
 
-proc MergeStats {StatsLine FileVar SizeVar TimeVar} {
-    upvar $FileVar FileStats $SizeVar SizeStats $TimeVar TimeStats
-    foreach {File Size Time} $StatsLine {
-        set FileStats [expr {wide($FileStats) + wide($File)}]
-        set SizeStats [expr {wide($SizeStats) + wide($Size)}]
-        set TimeStats [expr {wide($TimeStats) + wide($Time)}]
-    }
-}
-
-proc ResetUserFile {UserName StatsTypes {ResetCredits "False"}} {
+proc ::nxTools::Utils::ResetUserFile {UserName StatsTypes {ResetCredits "False"}} {
     set NewUserFile ""
     if {[userfile open $UserName] == 0} {
         userfile lock
@@ -90,7 +72,7 @@ proc ResetUserFile {UserName StatsTypes {ResetCredits "False"}} {
 # Tools Procedures
 ######################################################################
 
-proc NewDate {FindArea} {
+proc ::nxTools::Utils::NewDate {FindArea} {
     global misc newdate
     iputs ".-\[NewDate\]--------------------------------------------------------------."
 
@@ -99,7 +81,7 @@ proc NewDate {FindArea} {
         if {[string equal -nocase $AreaName $FindArea]} {set DateArea $AreaName; break}
     }
     if {![info exists newdate($DateArea)]} {
-        ErrorLog DateArea "The newdate area \"$DateArea\" is not defined."
+        ErrorLog NewDateArea "unknown newdate area \"$DateArea\""
         ErrorReturn "The newdate area \"$DateArea\" is not defined."
     }
     LinePuts "Creating [llength $newdate($DateArea)] date directories for the \"$DateArea\" area."
@@ -107,7 +89,7 @@ proc NewDate {FindArea} {
 
     foreach ConfigLine $newdate($DateArea) {
         if {[llength [set NewArea [split $ConfigLine  "|"]]] != 10} {
-            ErrorLog NewDate "Wrong number of parameters in line: \"$ConfigLine\""; continue
+            ErrorLog NewDate "wrong number of options in line: \"$ConfigLine\""; continue
         }
         foreach {AreaName Description VirtualPath RealPath SymLink DoLog DayOffset UserId GroupId Chmod} $NewArea {break}
         LinePuts ""; LinePuts "$AreaName ($Description):"
@@ -143,7 +125,7 @@ proc NewDate {FindArea} {
     return 0
 }
 
-proc OneLines {Message} {
+proc ::nxTools::Utils::OneLines {Message} {
     global misc group user
     if {[catch {DbOpenFile OneDb "OneLines.db"} ErrorMsg]} {
         ErrorLog OneLinesDb $ErrorMsg
@@ -173,7 +155,7 @@ proc OneLines {Message} {
     OneDb close
 }
 
-proc RotateLogs {} {
+proc ::nxTools::Utils::RotateLogs {} {
     global log
     iputs ".-\[RotateLogs\]-----------------------------------------------------------."
     set DoRotate 0
@@ -188,7 +170,7 @@ proc RotateLogs {} {
             if {[clock format $TimeNow -format "%w"] == "0"} {set DoRotate 1}
         }
         {day} - {daily} {set DateFormat "%Y-%m-%d"; set DoRotate 1}
-        default {ErrorLog RotateLogs "Configuration error, incorrect log rotation frequency."}
+        default {ErrorLog RotateLogs "invalid log rotation frequency: must be montly, weekly, or daily"}
     }
     if {!$DoRotate} {return 0}
 
@@ -203,14 +185,14 @@ proc RotateLogs {} {
             LinePuts "Rotated log \"[file tail $LogFile]\" successfully."
             if {[ArchiveFile $LogFile $DateFormat]} {
                 catch {close [open $LogFile a]}
-            } else {ErrorLog RotateLogs "Unable to archive the file \"$LogFile\"."}
+            } else {ErrorLog RotateLogs "unable to archive log file \"$LogFile\""}
         }
     }
     iputs "'------------------------------------------------------------------------'"
     return 0
 }
 
-proc SearchLog {LogFile MaxResults Pattern} {
+proc ::nxTools::Utils::SearchLog {LogFile MaxResults Pattern} {
     set LogData ""
     if {![catch {set Handle [open $LogFile r]} ErrorMsg]} {
         while {![eof $Handle]} {
@@ -232,7 +214,7 @@ proc SearchLog {LogFile MaxResults Pattern} {
     return 0
 }
 
-proc WeeklyCredits {WkTarget WkAmount} {
+proc ::nxTools::Utils::WeeklyCredits {WkTarget WkAmount} {
     global weekly
     iputs ".-\[WeeklyCredits\]--------------------------------------------------------."
     set CfgComments ""; set TargetList ""
@@ -307,7 +289,7 @@ proc WeeklyCredits {WkTarget WkAmount} {
     iputs "'------------------------------------------------------------------------'"
 }
 
-proc WeeklySet {} {
+proc ::nxTools::Utils::WeeklySet {} {
     global weekly
     iputs ".-\[WeeklySet\]------------------------------------------------------------."
     set TargetList ""
@@ -355,7 +337,7 @@ proc WeeklySet {} {
 # Site Commands
 ######################################################################
 
-proc SiteCredits {Type Target Amount Section} {
+proc ::nxTools::Utils::SiteCredits {Type Target Amount Section} {
     global group user
     iputs ".-\[Credits\]--------------------------------------------------------------."
     if {[resolve user $Target] == -1} {
@@ -391,7 +373,7 @@ proc SiteCredits {Type Target Amount Section} {
     return 0
 }
 
-proc SiteDrives {} {
+proc ::nxTools::Utils::SiteDrives {} {
     iputs ".-\[Drives\]---------------------------------------------------------------."
     iputs "|  Volume Type  | File System |  Volume Name  | Free Space | Total Space |"
     iputs "|------------------------------------------------------------------------|"
@@ -416,7 +398,7 @@ proc SiteDrives {} {
     return 0
 }
 
-proc SiteGroupInfo {GroupName Section} {
+proc ::nxTools::Utils::SiteGroupInfo {GroupName Section} {
     global misc flags user
     iputs ".-\[GroupInfo\]------------------------------------------------------------."
     if {[set GroupId [resolve group $GroupName]] == -1} {
@@ -493,7 +475,7 @@ proc SiteGroupInfo {GroupName Section} {
     return 1
 }
 
-proc SiteResetStats {ArgList} {
+proc ::nxTools::Utils::SiteResetStats {ArgList} {
     set ResetStats ""
     set StatsTypes {alldn allup daydn dayup monthdn monthup wkdn wkup}
     iputs ".-\[ResetStats\]-----------------------------------------------------------."
@@ -519,7 +501,7 @@ proc SiteResetStats {ArgList} {
     return 0
 }
 
-proc SiteResetUser {UserName} {
+proc ::nxTools::Utils::SiteResetUser {UserName} {
     global reset
     iputs ".-\[ResetUser\]------------------------------------------------------------."
     if {[resolve user $UserName] == -1} {
@@ -533,7 +515,7 @@ proc SiteResetUser {UserName} {
     return 0
 }
 
-proc SiteSize {VirtualPath} {
+proc ::nxTools::Utils::SiteSize {VirtualPath} {
     global size
     iputs ".-\[Size\]-----------------------------------------------------------------."
     set RealPath [resolve pwd $VirtualPath]
@@ -549,7 +531,7 @@ proc SiteSize {VirtualPath} {
     return 0
 }
 
-proc SiteTraffic {Target} {
+proc ::nxTools::Utils::SiteTraffic {Target} {
     iputs ".-\[Traffic\]--------------------------------------------------------------."
     if {[string equal "" $Target]} {
         set TrafficType 0
@@ -601,7 +583,7 @@ proc SiteTraffic {Target} {
     return 0
 }
 
-proc SiteWho {} {
+proc ::nxTools::Utils::SiteWho {} {
     global misc cid flags
     array set who [list BwDn 0 BwUp 0 UsersDn 0 UsersUp 0 UsersIdle 0]
     set IsAdmin [regexp "\[$misc(SiteopFlags)\]" $flags]
@@ -663,7 +645,7 @@ proc SiteWho {} {
 # Tools Main
 ######################################################################
 
-proc ToolsMain {ArgV} {
+proc ::nxTools::Utils::Main {ArgV} {
     global IsSiteBot log misc args group ioerror pwd user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     set IsSiteBot [expr {[info exists user] && [string equal $misc(SiteBot) $user]}]
@@ -765,10 +747,10 @@ proc ToolsMain {ArgV} {
             set Result [SiteWho]
         }
         default {
-            ErrorLog InvalidArgs "Invalid function \"[info script] $Action\", check your ioFTPD.ini for errors."
+            ErrorLog InvalidArgs "invalid parameter \"[info script] $Action\": check your ioFTPD.ini for errors"
         }
     }
     return [set ioerror $Result]
 }
 
-ToolsMain [expr {[info exists args] ? $args : ""}]
+::nxTools::Utils::Main [expr {[info exists args] ? $args : ""}]

@@ -6,25 +6,22 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
-# Load Libraries
-######################################################################
-
-if {[catch {source [file join [file dirname [info script]] "nxLib.itcl"]} ErrorMsg]} {
-    iputs "Error loading nxLib: $ErrorMsg"; return
+namespace eval ::nxTools::Invite {
+    namespace import -force ::nxTools::Lib::*
 }
 
 # Invite Procedures
 ######################################################################
 
-proc InvCfgLoader {ConfigFile} {
-    upvar CfgComments CfgComments invchan invchan rights rights
-    set ConfMode 0; set CfgComments ""
+proc ::nxTools::Invite::ConfigLoader {ConfigFile} {
+    upvar ConfigComments ConfigComments invchan invchan rights rights
+    set ConfMode 0; set ConfigComments ""
     if {![catch {set Handle [open $ConfigFile r]} ErrorMsg]} {
         while {![eof $Handle]} {
             set FileLine [string trim [gets $Handle]]
             if {[string equal "" $FileLine]} {continue}
             ## Check config section
-            if {[string index $FileLine 0] == "#"} {append CfgComments $FileLine "\n"; continue
+            if {[string index $FileLine 0] == "#"} {append ConfigComments $FileLine "\n"; continue
             } elseif {[string equal {[INVITES]} $FileLine]} {set ConfMode 1; continue
             } elseif {[string equal {[RIGHTS]} $FileLine]} {set ConfMode 2; continue
             } elseif {[string match {\[*\]} $FileLine]} {set ConfMode 0; continue}
@@ -36,14 +33,14 @@ proc InvCfgLoader {ConfigFile} {
         close $Handle
     } else {
         ErrorReturn "Unable to load the invite configuration, contact a siteop."
-        ErrorLog InvCfgLoader $ErrorMsg
+        ErrorLog InviteConfigLoader $ErrorMsg
     }
 }
 
-proc InvCfgWriter {ConfigFile} {
-    upvar CfgComments CfgComments invchan invchan rights rights
+proc ::nxTools::Invite::ConfigWriter {ConfigFile} {
+    upvar ConfigComments ConfigComments invchan invchan rights rights
     if {![catch {set Handle [open $ConfigFile w]} ErrorMsg]} {
-        puts $Handle $CfgComments
+        puts $Handle $ConfigComments
         puts $Handle "\[INVITES\]"
         foreach {Name Value} [array get invchan] {
             puts $Handle "$Name \"[lsort -ascii $Value]\""
@@ -53,10 +50,10 @@ proc InvCfgWriter {ConfigFile} {
             puts $Handle "$Name \"$Value\""
         }
         close $Handle
-    } else {ErrorLog InvCfgWriter $ErrorMsg}
+    } else {ErrorLog InviteConfigWriter $ErrorMsg}
 }
 
-proc InvFlagCheck {CurrentFlags NeedFlags} {
+proc ::nxTools::Invite::FlagCheck {CurrentFlags NeedFlags} {
     set CurrentFlags [split $CurrentFlags ""]
     foreach NeedFlag [split $NeedFlags ""] {
         if {![string equal "" $NeedFlag] && [lsearch -glob $CurrentFlags $NeedFlag] != -1} {return 1}
@@ -64,7 +61,7 @@ proc InvFlagCheck {CurrentFlags NeedFlags} {
     return 0
 }
 
-proc InvRightsCheck {UserName GroupNames Flags RightsList} {
+proc ::nxTools::Invite::RightsCheck {UserName GroupNames Flags RightsList} {
     set Result 0
     foreach Rights $RightsList {
         if {[string index $Rights 0] == "!"} {
@@ -75,7 +72,7 @@ proc InvRightsCheck {UserName GroupNames Flags RightsList} {
             } elseif {[string index $Rights 0] == "="} {
                 set Rights [string range $Rights 1 end]
                 if {[lsearch -glob $GroupNames $Rights] != -1} {return 0}
-            } elseif {[InvFlagCheck $Flags $Rights]} {
+            } elseif {[FlagCheck $Flags $Rights]} {
                 return 0
             }
         } elseif {[string index $Rights 0] == "-"} {
@@ -84,7 +81,7 @@ proc InvRightsCheck {UserName GroupNames Flags RightsList} {
         } elseif {[string index $Rights 0] == "="} {
             set Rights [string range $Rights 1 end]
             if {[lsearch -glob $GroupNames $Rights] != -1} {set Result 1}
-        } elseif {[InvFlagCheck $Flags $Rights]} {
+        } elseif {[FlagCheck $Flags $Rights]} {
             set Result 1
         }
     }
@@ -94,7 +91,7 @@ proc InvRightsCheck {UserName GroupNames Flags RightsList} {
 # Invite Main
 ######################################################################
 
-proc InvMain {ArgV} {
+proc ::nxTools::Invite::Main {ArgV} {
     global invite misc args flags group groups user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     foreach {Action Option Target Value} $ArgV {break}
@@ -103,7 +100,7 @@ proc InvMain {ArgV} {
 
     if {[string equal "invite" $Action]} {
         iputs ".-\[Invite\]---------------------------------------------------------------."
-        InvCfgLoader $invite(ConfigFile)
+        ConfigLoader $invite(ConfigFile)
 
         if {[string equal "" $Option] || [string equal -nocase "help" $Option]} {
             LinePuts "Syntax : SITE INVITE <irc nick> \[target\]"
@@ -121,7 +118,7 @@ proc InvMain {ArgV} {
             ## Check if the user has the rights to the specified target
             if {![info exists rights($Target)]} {
                 ErrorReturn "The invite target \"$Target\" has no rights defined."
-            } elseif {![InvRightsCheck $user $groups $flags $rights($Target)]} {
+            } elseif {![RightsCheck $user $groups $flags $rights($Target)]} {
                 ErrorReturn "You are not allowed to invite yourself to \"$Target\"."
             }
             set InvTarget $invchan($Target)
@@ -130,7 +127,7 @@ proc InvMain {ArgV} {
         }
     } elseif {[string equal "edit" $Action]} {
         iputs ".-\[EditInvite\]-----------------------------------------------------------."
-        InvCfgLoader $invite(ConfigFile)
+        ConfigLoader $invite(ConfigFile)
 
         set Option [string tolower $Option]
         switch -exact -- $Option {
@@ -152,7 +149,7 @@ proc InvMain {ArgV} {
                 set rights($Target) "!*"
                 LinePuts "Created invite target \"$Target\", destination set to \"$Value\"."
                 LinePuts "Note: Add channels and edit the invite target's rights."
-                InvCfgWriter $invite(ConfigFile)
+                ConfigWriter $invite(ConfigFile)
             }
             {delinv} {
                 if {[string equal "" $Target] || ![info exists invchan($Target)]} {
@@ -160,7 +157,7 @@ proc InvMain {ArgV} {
                 }
                 unset -nocomplain invchan($Target) rights($Target)
                 LinePuts "Removed the invite target \"$Target\" and all related settings."
-                InvCfgWriter $invite(ConfigFile)
+                ConfigWriter $invite(ConfigFile)
             }
             {addchan} {
                 if {[string equal "" $Target] || ![info exists invchan($Target)]} {
@@ -178,7 +175,7 @@ proc InvMain {ArgV} {
                 }
                 lappend invchan($Target) $Value
                 LinePuts "Added the channel \"$Value\" to the invite target \"$Target\"."
-                InvCfgWriter $invite(ConfigFile)
+                ConfigWriter $invite(ConfigFile)
             }
             {delchan} {
                 if {[string equal "" $Target] || ![info exists invchan($Target)]} {
@@ -199,7 +196,7 @@ proc InvMain {ArgV} {
                 }
                 if {$Deleted} {
                     LinePuts "Removed the channel \"$Value\" from the invite target \"$Target\"."
-                    InvCfgWriter $invite(ConfigFile)
+                    ConfigWriter $invite(ConfigFile)
                 } else {
                     LinePuts "The channel \"$Value\" does not exist in the invite target \"$Target\"."
                 }
@@ -212,7 +209,7 @@ proc InvMain {ArgV} {
                 }
                 set rights($Target) $Value
                 LinePuts "Invite target \"$Target\" rights set to \"$Value\"."
-                InvCfgWriter $invite(ConfigFile)
+                ConfigWriter $invite(ConfigFile)
             }
             {view} {
                 LinePuts "Targets:"
@@ -270,7 +267,7 @@ proc InvMain {ArgV} {
             }
         }
     } else {
-        ErrorLog InvalidArgs "Invalid function \"[info script] $Action\", check your ioFTPD.ini for errors."
+        ErrorLog InvalidArgs "invalid parameter \"[info script] $Action\": check your ioFTPD.ini for errors"
     }
     iputs "'------------------------------------------------------------------------'"
     return 0

@@ -6,17 +6,14 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
-# Load Libraries
-######################################################################
-
-if {[catch {source [file join [file dirname [info script]] "nxLib.itcl"]} ErrorMsg]} {
-    iputs "Error loading nxLib: $ErrorMsg"; return
+namespace eval ::nxTools::Bot {
+    namespace import -force ::nxTools::Lib::*
 }
 
 # Bot Procedures
 ######################################################################
 
-proc BotAuth {UserName Password} {
+proc ::nxTools::Bot::AuthCheck {UserName Password} {
     set Valid 0
     if {[userfile open $UserName] == 0} {
         set UserFile [userfile bin2ascii]
@@ -27,11 +24,11 @@ proc BotAuth {UserName Password} {
         }
         if {[string equal -nocase $UserHash [sha1 $Password]]} {set Valid 1}
     }
-    if {$Valid} {iputs "AUTH|Success"} else {iputs "AUTH|Failed"}
+    if {$Valid} {iputs "AUTH|True"} else {iputs "AUTH|False"}
     return 0
 }
 
-proc BotUserStats {StatsType Target StartIndex EndIndex} {
+proc ::nxTools::Bot::UserStats {StatsType Target StartIndex EndIndex} {
     set StatsList ""
     foreach UserName [GetUserList] {
         set Found 0; set GroupName "NoGroup"
@@ -64,7 +61,7 @@ proc BotUserStats {StatsType Target StartIndex EndIndex} {
     return 0
 }
 
-proc BotGroupStats {StatsType Target StartIndex EndIndex} {
+proc ::nxTools::Bot::GroupStats {StatsType Target StartIndex EndIndex} {
     set StatsList ""
     foreach GroupName [GetGroupList] {
         set FileStats 0; set SizeStats 0; set TimeStats 0
@@ -93,7 +90,7 @@ proc BotGroupStats {StatsType Target StartIndex EndIndex} {
     return 0
 }
 
-proc BotUserInfo {UserName Section} {
+proc ::nxTools::Bot::UserInfo {UserName Section} {
     if {![string is digit -strict $Section] || $Section > 9} {set Section 1} else {incr Section}
     array set user [list Credits 0 Flags "" Group "NoGroup" Ratio 0 TagLine "No Tagline Set"]
     set file(alldn) 0; set size(alldn) 0; set time(alldn) 0
@@ -116,7 +113,7 @@ proc BotUserInfo {UserName Section} {
     return 0
 }
 
-proc BotWho {} {
+proc ::nxTools::Bot::Who {} {
     if {[client who init "CID" "UID" "IDENT" "IP" "STATUS" "ACTION" "TIMEIDLE" "TRANSFERSPEED" "VIRTUALPATH" "VIRTUALDATAPATH"] == 0} {
         while {[set WhoData [client who fetch]] != ""} {
             foreach {ClientId UserId Ident IP Status Action IdleTime Speed VirtualPath DataPath} $WhoData {break}
@@ -147,7 +144,7 @@ proc BotWho {} {
     return 0
 }
 
-proc BotMain {ArgV} {
+proc ::nxTools::Bot::Main {ArgV} {
     global misc ioerror
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
 
@@ -158,7 +155,7 @@ proc BotMain {ArgV} {
     switch -exact -- $Action {
         {auth} {
             if {$ArgLength > 2} {
-                set Result [BotUserInfo [lindex $ArgList 1] [lindex $ArgList 2]]
+                set Result [AuthCheck [lindex $ArgList 1] [lindex $ArgList 2]]
             } else {
                 iputs "Syntax: SITE BOT AUTH <username> <password>"
             }
@@ -167,8 +164,6 @@ proc BotMain {ArgV} {
         }
         {stats} {
             if {$ArgLength > 2} {
-                foreach {Action Param1 Param2 Param3} $args {break}
-
                 ## Check stats type
                 set StatsType [string tolower [lindex $ArgList 1]]
                 if {[lsearch -exact {alldn allup daydn dayup monthdn monthup wkdn wkup} $StatsType] == -1} {
@@ -188,23 +183,23 @@ proc BotMain {ArgV} {
                 ## User or group stats
                 if {[string index [set Target [lindex $ArgList 2]] 0] == "="} {
                     set Target [string range $Target 1 end]
-                    set Result [BotGroupStats $StatsType $Target $StartIndex $EndIndex]
+                    set Result [GroupStats $StatsType $Target $StartIndex $EndIndex]
                 } else {
-                    set Result [BotUserStats $StatsType $Target $StartIndex $EndIndex]
+                    set Result [UserStats $StatsType $Target $StartIndex $EndIndex]
                 }
             } else {
                 iputs "Syntax: STATS <stats type> <username/=group> \[stats section\]"
             }
         }
         {user} {
-            if {$ArgLength > 2} {
-                set Result [BotUserInfo [lindex $ArgList 1] [lindex $ArgList 2]]
+            if {$ArgLength > 1} {
+                set Result [UserInfo [lindex $ArgList 1] [lindex $ArgList 2]]
             } else {
                 iputs "Syntax: SITE BOT USER <username> \[credit section\]"
             }
         }
         {who} {
-            set Result [BotWho]
+            set Result [Who]
         }
         default {
             iputs "Syntax: SITE BOT <arguments>"
@@ -213,4 +208,4 @@ proc BotMain {ArgV} {
     return [set ioerror $Result]
 }
 
-BotMain [expr {[info exists args] ? $args : ""}]
+::nxTools::Bot::Main [expr {[info exists args] ? $args : ""}]

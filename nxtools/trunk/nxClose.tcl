@@ -6,17 +6,14 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
-# Load Libraries
-######################################################################
-
-if {[catch {source [file join [file dirname [info script]] "nxLib.itcl"]} ErrorMsg]} {
-    iputs "Error loading nxLib: $ErrorMsg"; return
+namespace eval ::nxTools::Close {
+    namespace import -force ::nxTools::Lib::*
 }
 
 # Close Procedures
 ######################################################################
 
-proc CloseExcempt {UserName GroupName Flags} {
+proc ::nxTools::Close::ExcemptCheck {UserName GroupName Flags} {
     global close
     if {[regexp "\[$close(Flags)\]" $Flags]} {return 1}
     if {[lsearch -exact $close(UserNames) $UserName] != -1 || [lsearch -exact $close(GroupNames) $GroupName] != -1} {return 1}
@@ -26,8 +23,9 @@ proc CloseExcempt {UserName GroupName Flags} {
 # Close Main
 ######################################################################
 
-proc CloseMain {ArgV} {
+proc ::nxTools::Close::Main {ArgV} {
     global close misc flags group ioerror user
+
     ## Safe argument handling
     set ArgList [ArgList $ArgV]
     set Action [string tolower [lindex $ArgList 0]]
@@ -63,7 +61,7 @@ proc CloseMain {ArgV} {
                             }
                         }
                         ## Kick any user non-excempted users
-                        if {![CloseExcempt $UserName $GroupName $Flags]} {
+                        if {![ExcemptCheck $UserName $GroupName $Flags]} {
                             catch {client kill clientid [lindex $WhoData 0]}
                         }
                     }
@@ -74,7 +72,7 @@ proc CloseMain {ArgV} {
             iputs "'------------------------------------------------------------------------'"
         }
         {login} {
-            if {![CloseExcempt $user $group $flags] && ![catch {set CloseInfo [var get nxToolsClosed]}]} {
+            if {![ExcemptCheck $user $group $flags] && ![catch {set CloseInfo [var get nxToolsClosed]}]} {
                 set Duration [expr {[clock seconds] - [lindex $CloseInfo 0]}]
                 iputs -nobuffer "530 Server Closed: [lindex $CloseInfo 1] (since [FormatDuration $Duration] ago)"
                 set Result 1
@@ -97,10 +95,10 @@ proc CloseMain {ArgV} {
             iputs "'------------------------------------------------------------------------'"
         }
         default {
-            ErrorLog InvalidArgs "Invalid function \"[info script] $Action\", check your ioFTPD.ini for errors."
+            ErrorLog InvalidArgs "invalid parameter \"[info script] $Action\": check your ioFTPD.ini for errors"
         }
     }
     return [set ioerror $Result]
 }
 
-CloseMain [expr {[info exists args] ? $args : ""}]
+::nxTools::Close::Main [expr {[info exists args] ? $args : ""}]

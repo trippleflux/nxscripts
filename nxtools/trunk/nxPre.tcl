@@ -6,30 +6,21 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
-# Load Libraries
-######################################################################
-
-if {[catch {source [file join [file dirname [info script]] "nxLib.itcl"]} ErrorMsg]} {
-    iputs "Error loading nxLib: $ErrorMsg"; return
-}
-if {[catch {load "tclsqlite3.dll" Tclsqlite3} ErrorMsg]} {
-    iputs "Error loading TclSQLite: $ErrorMsg"; return
-}
-if {[catch {load "nxHelper.dll" Nxhelper} ErrorMsg]} {
-    iputs "Error loading nxHelper: $ErrorMsg"; return
+namespace eval ::nxTools::Pre {
+    namespace import -force ::nxTools::Lib::*
 }
 
 # Pre Procedures
 ######################################################################
 
-proc PreCfgLoader {ConfigFile} {
-    upvar CfgComments CfgComments prearea prearea pregrp pregrp prepath prepath
-    set ConfMode 0; set CfgComments ""
+proc ::nxTools::Pre::ConfigLoader {ConfigFile} {
+    upvar ConfigComments ConfigComments prearea prearea pregrp pregrp prepath prepath
+    set ConfMode 0; set ConfigComments ""
     if {![catch {set Handle [open $ConfigFile r]} ErrorMsg]} {
         while {![eof $Handle]} {
             if {[set FileLine [string trim [gets $Handle]]] == ""} {continue}
             ## Check config section
-            if {[string index $FileLine 0] == "#"} {append CfgComments $FileLine "\n"; continue
+            if {[string index $FileLine 0] == "#"} {append ConfigComments $FileLine "\n"; continue
             } elseif {[string equal {[AREAS]} $FileLine]} {set ConfMode 1; continue
             } elseif {[string equal {[GROUPS]} $FileLine]} {set ConfMode 2; continue
             } elseif {[string equal {[PATHS]} $FileLine]} {set ConfMode 3; continue
@@ -43,14 +34,14 @@ proc PreCfgLoader {ConfigFile} {
         close $Handle
     } else {
         ErrorReturn "Unable to load the pre configuration, contact a siteop."
-        ErrorLog PreCfgLoader $ErrorMsg
+        ErrorLog PreConfigLoader $ErrorMsg
     }
 }
 
-proc PreCfgWriter {ConfigFile} {
-    upvar CfgComments CfgComments prearea prearea pregrp pregrp prepath prepath
+proc ::nxTools::Pre::ConfigWriter {ConfigFile} {
+    upvar ConfigComments ConfigComments prearea prearea pregrp pregrp prepath prepath
     if {![catch {set Handle [open $ConfigFile w]} ErrorMsg]} {
-        puts $Handle $CfgComments
+        puts $Handle $ConfigComments
         puts $Handle "\[AREAS\]"
         foreach {Name Value} [array get prearea] {
             puts $Handle "$Name \"$Value\""
@@ -64,55 +55,10 @@ proc PreCfgWriter {ConfigFile} {
             puts $Handle "$Name \"[join $Value {" "}]\""
         }
         close $Handle
-    } else {ErrorLog PreCfgWriter $ErrorMsg}
+    } else {ErrorLog PreConfigWriter $ErrorMsg}
 }
 
-proc PreCredits {UserName Files Size CreditSection StatsSection} {
-    set CreditSection [expr {$CreditSection + 1}]
-    set StatsSection [expr {$StatsSection * 3 + 1}]
-    set GroupName "NoGroup"
-    set NewUserFile ""
-
-    if {[userfile open $UserName] == 0} {
-        userfile lock
-        set UserFile [split [userfile bin2ascii] "\r\n"]
-        foreach UserLine $UserFile {
-            set LineType [string tolower [lindex $UserLine 0]]
-            if {[string equal "credits" $LineType]} {
-                set OldCredits [lindex $UserLine $CreditSection]
-            } elseif {[string equal "groups" $LineType]} {
-                set GroupName [GetGroupName [lindex $UserLine 1]]
-            } elseif {[string equal "ratio" $LineType]} {
-                set Ratio [lindex $UserLine $CreditSection]
-            }
-        }
-
-        ## Change credits if the user is not leech
-        if {$Ratio != 0} {
-            set DiffCredits [expr {wide($Size) * $Ratio}]
-            set NewCredits [expr {wide($OldCredits) + wide($DiffCredits)}]
-        } else {
-            set DiffCredits 0
-            set NewCredits $OldCredits
-        }
-        foreach UserLine $UserFile {
-            set LineType [string tolower [lindex $UserLine 0]]
-            if {[lsearch -exact "allup dayup monthup wkup" $LineType] != -1} {
-                set NewFiles [expr {wide([lindex $UserLine $StatsSection]) + $Files}]
-                set NewStats [expr {wide([lindex $UserLine [expr {$StatsSection + 1}]]) + wide($Size)}]
-                set UserLine [lreplace $UserLine $StatsSection [expr {$StatsSection + 1}] $NewFiles $NewStats]
-            } elseif {[string equal "credits" $LineType]} {
-                set UserLine [lreplace $UserLine $CreditSection $CreditSection $NewCredits]
-            }
-            append NewUserFile $UserLine "\r\n"
-        }
-        userfile ascii2bin $NewUserFile
-        userfile unlock
-    }
-    return [list $GroupName $Ratio $OldCredits $NewCredits $DiffCredits]
-}
-
-proc PreLinks {VirtualPath} {
+proc ::nxTools::Pre::Links {VirtualPath} {
     global latest
     if {[ListMatch $latest(Exempts) $VirtualPath]} {
         return 0
@@ -146,7 +92,7 @@ proc PreLinks {VirtualPath} {
     return 0
 }
 
-proc PreResolvePath {UserName GroupName RealPath} {
+proc ::nxTools::Pre::ResolvePath {UserName GroupName RealPath} {
     set BestMatch 0
     set ResolvePath "/"; set VfsFile ""
     set RealPath [string map {\\ /} $RealPath]
@@ -195,10 +141,55 @@ proc PreResolvePath {UserName GroupName RealPath} {
     return $ResolvePath
 }
 
+proc ::nxTools::Pre::UpdateUser {UserName Files Size CreditSection StatsSection} {
+    set CreditSection [expr {$CreditSection + 1}]
+    set StatsSection [expr {$StatsSection * 3 + 1}]
+    set GroupName "NoGroup"
+    set NewUserFile ""
+
+    if {[userfile open $UserName] == 0} {
+        userfile lock
+        set UserFile [split [userfile bin2ascii] "\r\n"]
+        foreach UserLine $UserFile {
+            set LineType [string tolower [lindex $UserLine 0]]
+            if {[string equal "credits" $LineType]} {
+                set OldCredits [lindex $UserLine $CreditSection]
+            } elseif {[string equal "groups" $LineType]} {
+                set GroupName [GetGroupName [lindex $UserLine 1]]
+            } elseif {[string equal "ratio" $LineType]} {
+                set Ratio [lindex $UserLine $CreditSection]
+            }
+        }
+
+        ## Change credits if the user is not leech
+        if {$Ratio != 0} {
+            set DiffCredits [expr {wide($Size) * $Ratio}]
+            set NewCredits [expr {wide($OldCredits) + wide($DiffCredits)}]
+        } else {
+            set DiffCredits 0
+            set NewCredits $OldCredits
+        }
+        foreach UserLine $UserFile {
+            set LineType [string tolower [lindex $UserLine 0]]
+            if {[lsearch -exact "allup dayup monthup wkup" $LineType] != -1} {
+                set NewFiles [expr {wide([lindex $UserLine $StatsSection]) + $Files}]
+                set NewStats [expr {wide([lindex $UserLine [expr {$StatsSection + 1}]]) + wide($Size)}]
+                set UserLine [lreplace $UserLine $StatsSection [expr {$StatsSection + 1}] $NewFiles $NewStats]
+            } elseif {[string equal "credits" $LineType]} {
+                set UserLine [lreplace $UserLine $CreditSection $CreditSection $NewCredits]
+            }
+            append NewUserFile $UserLine "\r\n"
+        }
+        userfile ascii2bin $NewUserFile
+        userfile unlock
+    }
+    return [list $GroupName $Ratio $OldCredits $NewCredits $DiffCredits]
+}
+
 # Pre Main
 ######################################################################
 
-proc PreMain {ArgV} {
+proc ::nxTools::Pre::Main {ArgV} {
     global dupe latest misc mysql pre pretime group groups pwd user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     ## Safe argument handling
@@ -258,7 +249,7 @@ proc PreMain {ArgV} {
             if {!$Count} {LinePuts "There are no statistics to display."}
         } else {
             iputs ".-\[Pre\]------------------------------------------------------------------."
-            PreCfgLoader $pre(ConfigFile)
+            ConfigLoader $pre(ConfigFile)
             set PreArea [string toupper $Option]
 
             ## Check area and group paths
@@ -428,7 +419,7 @@ proc PreMain {ArgV} {
                 iputs "|------------------------------------------------------------------------|"
                 foreach UserName [lsort -ascii [array names presize]] {
                     set UploadAmount [expr {wide($presize($UserName)) / 1024}]
-                    set Result [PreCredits $UserName $prefiles($UserName) $UploadAmount $CreditSection $StatsSection]
+                    set Result [UpdateUser $UserName $prefiles($UserName) $UploadAmount $CreditSection $StatsSection]
                     foreach {GroupName Ratio OldCredits NewCredits DiffCredits} $Result {break}
                     set Ratio [expr {$Ratio != 0 ? "1:$Ratio" : "Unlimited"}]
                     iputs [format "| %-10s | %-10s | %10s | %7d\F | %8s | %9s |" $UserName $GroupName $Ratio $prefiles($UserName) [FormatSize $UploadAmount] [FormatSize $DiffCredits]]
@@ -471,7 +462,7 @@ proc PreMain {ArgV} {
         }
     } elseif {[string equal "edit" $Action]} {
         iputs ".-\[EditPre\]--------------------------------------------------------------."
-        PreCfgLoader $pre(ConfigFile)
+        ConfigLoader $pre(ConfigFile)
 
         set PreArea [string toupper $Target]
         set Option [string tolower $Option]
@@ -504,7 +495,7 @@ proc PreMain {ArgV} {
                 set pregrp($PreArea) ""
                 LinePuts "Created area \"$PreArea\", destination set to \"$Value$Other\"."
                 LinePuts "Note: Add groups to the area so others may pre to it."
-                PreCfgWriter $pre(ConfigFile)
+                ConfigWriter $pre(ConfigFile)
             }
             {delarea} {
                 if {[string equal "" $Target] || ![info exists prearea($PreArea)]} {
@@ -512,7 +503,7 @@ proc PreMain {ArgV} {
                 }
                 unset -nocomplain prearea($PreArea) pregrp($PreArea)
                 LinePuts "Removed the area \"$PreArea\" and all related settings."
-                PreCfgWriter $pre(ConfigFile)
+                ConfigWriter $pre(ConfigFile)
             }
             {addgrp} {
                 if {[string equal "" $Target] || ![info exists prearea($PreArea)]} {
@@ -530,7 +521,7 @@ proc PreMain {ArgV} {
                 }
                 lappend pregrp($PreArea) $Value
                 LinePuts "Added the group \"$Value\" to the \"$PreArea\" allow list."
-                PreCfgWriter $pre(ConfigFile)
+                ConfigWriter $pre(ConfigFile)
             }
             {delgrp} {
                 if {[string equal "" $Target] || ![info exists prearea($PreArea)]} {
@@ -551,7 +542,7 @@ proc PreMain {ArgV} {
                 }
                 if {$Deleted} {
                     LinePuts "Removed the group \"$Value\" from the \"$PreArea\" allow list."
-                    PreCfgWriter $pre(ConfigFile)
+                    ConfigWriter $pre(ConfigFile)
                 } else {
                     LinePuts "The group \"$Value\" does not exist in the \"$PreArea\" allow list."
                 }
@@ -580,7 +571,7 @@ proc PreMain {ArgV} {
                 lappend prepath($Target) $Value
                 catch {vfs chattr $RealPath 0 [string map [list %(group) $Target] $pre(PrivatePath)]}
                 LinePuts "Added path \"$Value\" to the \"$Target\" group."
-                PreCfgWriter $pre(ConfigFile)
+                ConfigWriter $pre(ConfigFile)
             }
             {delpath} {
                 if {[string equal "" $Target]} {
@@ -603,7 +594,7 @@ proc PreMain {ArgV} {
                 }
                 if {$Deleted} {
                     LinePuts "Removed path \"$Value\" for the \"$Target\" group."
-                    PreCfgWriter $pre(ConfigFile)
+                    ConfigWriter $pre(ConfigFile)
                 } else {
                     LinePuts "The path \"$Value\" is not defined for the \"$Target\" group."
                 }

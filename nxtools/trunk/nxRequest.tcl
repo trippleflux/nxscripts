@@ -6,20 +6,14 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
-# Load Libraries
-######################################################################
-
-if {[catch {source [file join [file dirname [info script]] "nxLib.itcl"]} ErrorMsg]} {
-    iputs "Error loading nxLib: $ErrorMsg"; return
-}
-if {[catch {load "tclsqlite3.dll" Tclsqlite3} ErrorMsg]} {
-    iputs "Error loading TclSQLite: $ErrorMsg"; return
+namespace eval ::nxTools::Req {
+    namespace import -force ::nxTools::Lib::*
 }
 
 # Request Functions
 ######################################################################
 
-proc ReqCheckLimit {DbProc UserName} {
+proc ::nxTools::Req::CheckLimit {DbProc UserName} {
     global req
     if {[$DbProc eval {SELECT count(*) FROM Requests WHERE Status=0}] >= $req(TotalLimit)} {
         LinePuts "The maximum request limit has been reached, $req(TotalLimit) requests."
@@ -40,7 +34,7 @@ proc ReqCheckLimit {DbProc UserName} {
     return 1
 }
 
-proc ReqUpdateDir {Action Request {UserId 0} {GroupId 0}} {
+proc ::nxTools::Req::UpdateDir {Action Request {UserId 0} {GroupId 0}} {
     global req
     if {[string equal "" $req(RequestPath)]} {
         return
@@ -83,7 +77,7 @@ proc ReqUpdateDir {Action Request {UserId 0} {GroupId 0}} {
 # Request Main
 ######################################################################
 
-proc ReqMain {ArgV} {
+proc ::nxTools::Req::Main {ArgV} {
     global misc req flags group user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     set IsSiteBot [expr {[info exists user] && [string equal $misc(SiteBot) $user]}]
@@ -113,7 +107,7 @@ proc ReqMain {ArgV} {
             set Request [StripChars $Request]
             if {[ReqDb eval {SELECT count(*) FROM Requests WHERE Status=0 AND StrEq(Request,$Request)}]} {
                 LinePuts "This item is already requested."
-            } elseif {[ReqCheckLimit ReqDb $user]} {
+            } elseif {[CheckLimit ReqDb $user]} {
                 set RequestId 1
                 ReqDb eval {SELECT (max(RequestId)+1) AS NextId FROM Requests WHERE Status=0} values {
                     ## The max() function returns NULL if there are no matching records.
@@ -127,7 +121,7 @@ proc ReqMain {ArgV} {
                 set RequestId [format "%03s" $RequestId]
                 putlog "REQUEST: \"$user\" \"$group\" \"$Request\" \"$RequestId\""
                 LinePuts "Added your request of $Request (#$RequestId)."
-                ReqUpdateDir $Action $Request
+                UpdateDir $Action $Request
             }
         }
         {del} - {fill} {
@@ -158,7 +152,7 @@ proc ReqMain {ArgV} {
                 set RequestAge [FormatDuration $RequestAge]
             }
             putlog "${LogPrefix}: \"$user\" \"$group\" \"$values(Request)\" \"$values(UserName)\" \"$values(GroupName)\" \"$RequestId\" \"$RequestAge\""
-            ReqUpdateDir $Action $values(Request)
+            UpdateDir $Action $values(Request)
         }
         {view} {
             if {!$IsSiteBot} {
@@ -217,7 +211,7 @@ proc ReqMain {ArgV} {
             }
         }
         default {
-            ErrorLog "Invalid function \"[info script] $Action\", check your ioFTPD.ini for errors."
+            ErrorLog "invalid parameter \"[info script] $Action\": check your ioFTPD.ini for errors"
         }
     }
     if {$ShowText} {iputs "'------------------------------------------------------------------------'"}

@@ -6,20 +6,60 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
-# Load Libraries
-######################################################################
-
-if {[catch {source [file join [file dirname [info script]] "nxLib.itcl"]} ErrorMsg]} {
-    iputs "Error loading nxLib: $ErrorMsg"; return
-}
-if {[catch {load "tclsqlite3.dll" Tclsqlite3} ErrorMsg]} {
-    iputs "Error loading TclSQLite: $ErrorMsg"; return
+namespace eval ::nxTools::Nuke {
+    namespace import -force ::nxTools::Lib::*
 }
 
 # Nuke Procedures
 ######################################################################
 
-proc NukeCredits {IsNuke UserName Multi Size Files Stats CreditSection StatsSection} {
+proc ::nxTools::Nuke::FindTags {RealPath TagFormat} {
+    regsub -all {%\(\w+\)} $TagFormat {*} TagFormat
+    set TagFormat [string map {\[ \\\[ \] \\\] \{ \\\{ \} \\\}} $TagFormat]
+    return [glob -nocomplain -types d -directory $RealPath $TagFormat]
+}
+
+proc ::nxTools::Nuke::GetName {VirtualPath} {
+    set Release [file tail [TrimTag $VirtualPath]]
+    if {[IsMultiDisk $Release]} {
+        set ParentPath [file tail [file dirname $VirtualPath]]
+        if {![string equal "" $ParentPath]} {set Release "$ParentPath ($Release)"}
+    }
+    return $Release
+}
+
+proc ::nxTools::Nuke::TrimTag {VirtualPath} {
+    global nuke
+    set ParentPath [file dirname $VirtualPath]
+    set Release [file tail $VirtualPath]
+    if {![string first $nuke(Prefix) $Release]} {
+        set Release [string range $Release [string length $nuke(Prefix)] end]
+    }
+    return [file join $ParentPath $Release]
+}
+
+proc ::nxTools::Nuke::UpdateRecord {RealPath {Buffer ""}} {
+    set Record ""
+    set RealPath [file join $RealPath ".ioFTPD.nxNuke"]
+    set OpenMode [expr {$Buffer != "" ? "w" : "r"}]
+
+    ## Tcl can't open hidden files, quite lame.
+    catch {file attributes $RealPath -hidden 0}
+    if {[catch {set Handle [open $RealPath $OpenMode]} ErrorMsg]} {
+        ErrorLog NukeRecord $ErrorMsg
+    } elseif {[string equal "" $Buffer]} {
+        set Record [read $Handle]
+        close $Handle
+    } else {
+        puts $Handle $Buffer
+        close $Handle
+    }
+    ## Set the file's attributes to hidden
+    catch {file attributes $RealPath -hidden 1}
+    return [string trim $Record]
+}
+
+proc ::nxTools::Nuke::UpdateUser {IsNuke UserName Multi Size Files Stats CreditSection StatsSection} {
     set CreditSection [expr {$CreditSection + 1}]
     set StatsSection [expr {$StatsSection * 3 + 1}]
     set GroupName "NoGroup"
@@ -69,58 +109,13 @@ proc NukeCredits {IsNuke UserName Multi Size Files Stats CreditSection StatsSect
     return [list $GroupName $Ratio $OldCredits $NewCredits $DiffCredits]
 }
 
-proc NukeFindTags {RealPath TagFormat} {
-    regsub -all {%\(\w+\)} $TagFormat {*} TagFormat
-    set TagFormat [string map {\[ \\\[ \] \\\] \{ \\\{ \} \\\}} $TagFormat]
-    return [glob -nocomplain -types d -directory $RealPath $TagFormat]
-}
-
-proc NukeName {VirtualPath} {
-    set Release [file tail [NukeTrim $VirtualPath]]
-    if {[IsMultiDisk $Release]} {
-        set ParentPath [file tail [file dirname $VirtualPath]]
-        if {![string equal "" $ParentPath]} {set Release "$ParentPath ($Release)"}
-    }
-    return $Release
-}
-
-proc NukeRecord {RealPath {Buffer ""}} {
-    set Record ""
-    set RealPath [file join $RealPath ".ioFTPD.nxNuke"]
-    set OpenMode [expr {$Buffer != "" ? "w" : "r"}]
-
-    ## Tcl can't open hidden files, quite lame.
-    catch {file attributes $RealPath -hidden 0}
-    if {[catch {set Handle [open $RealPath $OpenMode]} ErrorMsg]} {
-        ErrorLog NukeRecord $ErrorMsg
-    } elseif {[string equal "" $Buffer]} {
-        set Record [read $Handle]
-        close $Handle
-    } else {
-        puts $Handle $Buffer
-        close $Handle
-    }
-    ## Set the file's attributes to hidden
-    catch {file attributes $RealPath -hidden 1}
-    return [string trim $Record]
-}
-
-proc NukeTrim {VirtualPath} {
-    global nuke
-    set ParentPath [file dirname $VirtualPath]
-    set Release [file tail $VirtualPath]
-    if {[string first $nuke(Prefix) $Release] == 0} {
-        set Release [string range $Release [string length $nuke(Prefix)] end]
-    }
-    return [file join $ParentPath $Release]
-}
-
 # Nuke Main
 ######################################################################
 
-proc NukeMain {ArgV} {
+proc ::nxTools::Nuke::Main {ArgV} {
     global approve misc nuke flags gid group groups pwd uid user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
+
     ## Safe argument handling
     set ArgList [ArgList $ArgV]
     set Action [string tolower [lindex $ArgList 0]]
@@ -151,13 +146,13 @@ proc NukeMain {ArgV} {
             if {[ListMatch $nuke(NoPaths) $MatchPath]} {
                 ErrorReturn "Not allowed to nuke from here."
             }
-            if {$IsNuke && [llength [NukeFindTags $RealPath $approve(DirTag)]]} {
+            if {$IsNuke && [llength [FindTags $RealPath $approve(DirTag)]]} {
                 ErrorReturn "Approved releases cannot be nuked."
             }
 
             ## Check if there is an available nuke record.
             set NukeId ""
-            set Record [NukeRecord $RealPath]
+            set Record [UpdateRecord $RealPath]
             set RecordSplit [split $Record "|"]
 
             ## Record versions:
@@ -203,7 +198,7 @@ proc NukeMain {ArgV} {
             set DiskCount 0; set Files 0; set TotalSize 0
             set NukeTime [clock seconds]
             set Reason [StripChars $Reason]
-            set Release [NukeName $VirtualPath]
+            set Release [GetName $VirtualPath]
             set ParentPath [file dirname $RealPath]
             ListAssign [GetCreditsAndStats $VirtualPath] CreditSection StatsSection
 
@@ -268,9 +263,9 @@ proc NukeMain {ArgV} {
             ## Change the credits and stats of nukees
             set NukeeLog ""
             foreach NukeeUser [lsort -ascii [array names nukesize]] {
-                set NukeCredits [expr {wide($nukesize($NukeeUser)) / 1024}]
-                set NukeStats [expr {$NukeType == 2 ? 0 : $NukeCredits}]
-                set Result [NukeCredits $IsNuke $NukeeUser $Multi $NukeCredits $nukefiles($NukeeUser) $NukeStats $CreditSection $StatsSection]
+                set UpdateUser [expr {wide($nukesize($NukeeUser)) / 1024}]
+                set NukeStats [expr {$NukeType == 2 ? 0 : $UpdateUser}]
+                set Result [UpdateUser $IsNuke $NukeeUser $Multi $UpdateUser $nukefiles($NukeeUser) $NukeStats $CreditSection $StatsSection]
                 foreach {NukeeGroup Ratio OldCredits NewCredits DiffCredits} $Result {break}
 
                 set Ratio [expr {$Ratio != 0 ? "1:$Ratio" : "Unlimited"}]
@@ -291,13 +286,13 @@ proc NukeMain {ArgV} {
                 set NewName "$nuke(Prefix)[file tail $VirtualPath]"
 
             } else {
-                foreach ListItem [NukeFindTags $RealPath $nuke(InfoTag)] {
+                foreach ListItem [FindTags $RealPath $nuke(InfoTag)] {
                     RemoveTag $ListItem
                 }
                 set DirChmod 777
                 set LogPrefix "UNNUKE"
                 set NukeStatus 1
-                set VirtualPath [NukeTrim $VirtualPath]
+                set VirtualPath [TrimTag $VirtualPath]
                 set NewName [file tail $VirtualPath]
             }
 
@@ -355,7 +350,7 @@ proc NukeMain {ArgV} {
             } else {ErrorLog NukeDb $ErrorMsg}
 
             ## Save the nuke ID and multiplier for later use (ie. unnuke).
-            NukeRecord [expr {$RenameFail ? $RealPath : $NewPath}] "2|$NukeStatus|$NukeId|$user|$group|$Multi|$Reason"
+            UpdateRecord [expr {$RenameFail ? $RealPath : $NewPath}] "2|$NukeStatus|$NukeId|$user|$group|$Multi|$Reason"
             iputs "'------------------------------------------------------------------------'"
         }
         {nukes} - {unnukes} {
@@ -439,10 +434,10 @@ proc NukeMain {ArgV} {
             }
         }
         default {
-            ErrorLog InvalidArgs "Invalid function \"[info script] $Action\", check your ioFTPD.ini for errors."
+            ErrorLog InvalidArgs "invalid parameter \"[info script] $Action\": check your ioFTPD.ini for errors"
         }
     }
     return 0
 }
 
-NukeMain [expr {[info exists args] ? $args : ""}]
+::nxTools::Nuke::Main [expr {[info exists args] ? $args : ""}]

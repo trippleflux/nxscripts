@@ -6,116 +6,112 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
-# Load Libraries
-######################################################################
+namespace eval ::nxTools::Db {
+    namespace import -force ::nxTools::Lib::*
+    variable dbschema
+    variable dbtables
 
-if {[catch {source [file join [file dirname [info script]] "nxLib.itcl"]} ErrorMsg]} {
-    iputs "Error loading nxLib: $ErrorMsg"; return
-}
-if {[catch {load tclsqlite3.dll Tclsqlite3} ErrorMsg]} {
-    iputs "Error loading TclSQLite: $ErrorMsg"; return
-}
+    ## Table Formats
+    set dbschema(Approves) 0
+    set dbtables(Approves) {
+        Approves {CREATE TABLE Approves(
+        TimeStamp INTEGER default 0,
+        UserName  TEXT default '',
+        GroupName TEXT default '',
+        Release   TEXT default '')}
+    }
 
-# Table Formats
-######################################################################
-unset -nocomplain dbschema dbtables
+    set dbschema(DupeDirs) 0
+    set dbtables(DupeDirs) {
+        DupeDirs {CREATE TABLE DupeDirs(
+        TimeStamp INTEGER default 0,
+        UserName  TEXT default '',
+        GroupName TEXT default '',
+        DirPath   TEXT default '',
+        DirName   TEXT default '')}
+    }
 
-set dbschema(Approves) 0
-set dbtables(Approves) {
-Approves {CREATE TABLE Approves(
-TimeStamp INTEGER default 0,
-UserName  TEXT default '',
-GroupName TEXT default '',
-Release   TEXT default '')}
-}
+    set dbschema(DupeFiles) 0
+    set dbtables(DupeFiles) {
+        DupeFiles {CREATE TABLE DupeFiles(
+        TimeStamp INTEGER default 0,
+        UserName  TEXT default '',
+        GroupName TEXT default '',
+        FileName  TEXT default '')}
+    }
 
-set dbschema(DupeDirs) 0
-set dbtables(DupeDirs) {
-DupeDirs {CREATE TABLE DupeDirs(
-TimeStamp INTEGER default 0,
-UserName  TEXT default '',
-GroupName TEXT default '',
-DirPath   TEXT default '',
-DirName   TEXT default '')}
-}
+    set dbschema(Links) 0
+    set dbtables(Links) {
+        Links {CREATE TABLE Links(
+        TimeStamp INTEGER default 0,
+        LinkType  INTEGER default 0,
+        DirName   TEXT default '')}
+    }
 
-set dbschema(DupeFiles) 0
-set dbtables(DupeFiles) {
-DupeFiles {CREATE TABLE DupeFiles(
-TimeStamp INTEGER default 0,
-UserName  TEXT default '',
-GroupName TEXT default '',
-FileName  TEXT default '')}
-}
+    set dbschema(Nukes) 1
+    set dbtables(Nukes) {
+        Nukes {CREATE TABLE Nukes(
+        NukeId    INTEGER PRIMARY KEY AUTOINCREMENT,
+        TimeStamp INTEGER default 0,
+        UserName  TEXT default '',
+        GroupName TEXT default '',
+        Status    INTEGER default 0,
+        Release   TEXT default '',
+        Reason    TEXT default '',
+        Multi     INTEGER default 0,
+        Files     INTEGER default 0,
+        Size      INTEGER default 0)}
 
-set dbschema(Links) 0
-set dbtables(Links) {
-Links {CREATE TABLE Links(
-TimeStamp INTEGER default 0,
-LinkType  INTEGER default 0,
-DirName   TEXT default '')}
-}
+        Users {CREATE TABLE Users(
+        NukeId    INTEGER default 0,
+        Status    INTEGER default 0,
+        UserName  TEXT default '',
+        GroupName TEXT default '',
+        Amount    INTEGER default 0,
+        UNIQUE    (NukeId,UserName))}
+    }
 
-set dbschema(Nukes) 1
-set dbtables(Nukes) {
-Nukes {CREATE TABLE Nukes(
-NukeId    INTEGER PRIMARY KEY AUTOINCREMENT,
-TimeStamp INTEGER default 0,
-UserName  TEXT default '',
-GroupName TEXT default '',
-Status    INTEGER default 0,
-Release   TEXT default '',
-Reason    TEXT default '',
-Multi     INTEGER default 0,
-Files     INTEGER default 0,
-Size      INTEGER default 0)}
+    set dbschema(OneLines) 0
+    set dbtables(OneLines) {
+        OneLines {CREATE TABLE OneLines(
+        TimeStamp INTEGER default 0,
+        UserName  TEXT default '',
+        GroupName TEXT default '',
+        Message   TEXT default '')}
+    }
 
-Users {CREATE TABLE Users(
-NukeId    INTEGER default 0,
-Status    INTEGER default 0,
-UserName  TEXT default '',
-GroupName TEXT default '',
-Amount    INTEGER default 0,
-UNIQUE    (NukeId,UserName))}
-}
+    set dbschema(Pres) 0
+    set dbtables(Pres) {
+        Pres {CREATE TABLE Pres(
+        TimeStamp INTEGER default 0,
+        UserName  TEXT default '',
+        GroupName TEXT default '',
+        Area      TEXT default '',
+        Release   TEXT default '',
+        Files     INTEGER default 0,
+        Size      INTEGER default 0)}
+    }
 
-set dbschema(OneLines) 0
-set dbtables(OneLines) {
-OneLines {CREATE TABLE OneLines(
-TimeStamp INTEGER default 0,
-UserName  TEXT default '',
-GroupName TEXT default '',
-Message   TEXT default '')}
-}
-
-set dbschema(Pres) 0
-set dbtables(Pres) {
-Pres {CREATE TABLE Pres(
-TimeStamp INTEGER default 0,
-UserName  TEXT default '',
-GroupName TEXT default '',
-Area      TEXT default '',
-Release   TEXT default '',
-Files     INTEGER default 0,
-Size      INTEGER default 0)}
-}
-
-set dbschema(Requests) 1
-set dbtables(Requests) {
-Requests {CREATE TABLE Requests(
-TimeStamp INTEGER default 0,
-UserName  TEXT default '',
-GroupName TEXT default '',
-Status    INTEGER default 0,
-RequestId INTEGER default 0,
-Request   TEXT default '')}
+    set dbschema(Requests) 1
+    set dbtables(Requests) {
+        Requests {CREATE TABLE Requests(
+        TimeStamp INTEGER default 0,
+        UserName  TEXT default '',
+        GroupName TEXT default '',
+        Status    INTEGER default 0,
+        RequestId INTEGER default 0,
+        Request   TEXT default '')}
+    }
 }
 
 # Database Procedures
 ######################################################################
 
-proc DbCreate {DbList} {
-    global dbschema dbtables misc
+proc ::nxTools::Db::Create {DbList} {
+    global misc
+    variable dbschema
+    variable dbtables
+
     if {![file exists $misc(DataPath)]} {
         catch {file mkdir $misc(DataPath)}
     }
@@ -163,7 +159,7 @@ proc DbCreate {DbList} {
     }
 }
 
-proc DbCheck {DbList} {
+proc ::nxTools::Db::Check {DbList} {
     global misc
     foreach DbName $DbList {
         set DbPath [file join $misc(DataPath) ${DbName}.db]
@@ -179,7 +175,7 @@ proc DbCheck {DbList} {
     }
 }
 
-proc DbOptimize {DbList} {
+proc ::nxTools::Db::Optimize {DbList} {
     global misc
     foreach DbName $DbList {
         set DbPath [file join $misc(DataPath) ${DbName}.db]
@@ -197,9 +193,11 @@ proc DbOptimize {DbList} {
 # Database Main
 ######################################################################
 
-proc DbMain {ArgV} {
-    global dbschema misc
+proc ::nxTools::Db::Main {ArgV} {
+    global misc
+    variable dbschema
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
+
     ## Safe argument handling
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
     set Action [string tolower [lindex $ArgList 0]]
@@ -231,19 +229,19 @@ proc DbMain {ArgV} {
     switch -exact -- $Action {
         {create} {
             LinePuts "Creating [llength $DbList] database(s)."; LinePuts ""
-            set Result [DbCreate $DbList]
+            set Result [Create $DbList]
         }
         {check} {
             LinePuts "Checking [llength $DbList] database(s)."; LinePuts ""
-            set Result [DbCheck $DbList]
+            set Result [Check $DbList]
         }
         {optimize} {
             LinePuts "Optimizing [llength $DbList] database(s)."; LinePuts ""
-            set Result [DbOptimize $DbList]
+            set Result [Optimize $DbList]
         }
     }
     iputs "'------------------------------------------------------------------------'"
     return $Result
 }
 
-DbMain [expr {[info exists args] ? $args : ""}]
+::nxTools::Db::Main [expr {[info exists args] ? $args : ""}]

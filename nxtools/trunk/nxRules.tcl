@@ -6,17 +6,14 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
-# Load Libraries
-######################################################################
-
-if {[catch {source [file join [file dirname [info script]] "nxLib.itcl"]} ErrorMsg]} {
-    iputs "Error loading nxLib: $ErrorMsg"; return
+namespace eval ::nxTools::Rules {
+    namespace import -force ::nxTools::Lib::*
 }
 
 # Rules Procedures
 ######################################################################
 
-proc RulesWrap {WrapText TextWidth} {
+proc ::nxTools::Rules::WordWrap {WrapText TextWidth} {
     set Result ""
     while {[string length $WrapText] > $TextWidth} {
         set Index [string last { } $WrapText $TextWidth]
@@ -31,7 +28,7 @@ proc RulesWrap {WrapText TextWidth} {
 # Rules Main
 ######################################################################
 
-proc RulesMain {ShowSection} {
+proc ::nxTools::Rules::Main {ShowSection} {
     global misc rules
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     set SectionList ""; set SectionName ""; set ShowList ""
@@ -74,7 +71,7 @@ proc RulesMain {ShowSection} {
         foreach {PunishText RuleText} $RuleList {
             incr Count; set MultiLine 0
             ## Wrap each line before displaying
-            foreach RuleLine [RulesWrap $RuleText $rules(LineWidth)] {
+            foreach RuleLine [WordWrap $RuleText $rules(LineWidth)] {
                 set ValueList [list $Count $PunishText $RuleLine $SectionName]
                 if {!$MultiLine} {
                     OutputData [ParseCookies $template(SingleLine) $ValueList {num punishment rule section}]
@@ -89,4 +86,4 @@ proc RulesMain {ShowSection} {
     return 0
 }
 
-RulesMain [expr {[info exists args] ? $args : ""}]
+::nxTools::Rules::Main [expr {[info exists args] ? $args : ""}]

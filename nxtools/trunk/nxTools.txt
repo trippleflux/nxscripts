@@ -911,10 +911,11 @@ Text Templates:
 nxTools v0.9.9 (XX-XX-2005):
   NEW: SITE NUKETOP [-max <limit>] [group] to view the top-nuked users.
   NEW: The SITE DB CREATE command checks database schema versions.
-  CHG: All extensions, librarys, and configuration files are loaded by init.itcl
+  CHG: All extensions, libraries, and configuration files are loaded by init.itcl
        when the interpreter is initialized.
   CHG: Cleaned up database opening and improved error messages.
   CHG: Directory tags are safely removed, in case there are files inside.
+  CHG: Moved all functions into the ::nxTools namespace, and scripts into a child namespace.
   CHG: Redesigned the nukes database; nukees are now stored in a separate table.
   CHG: Renamed all .itcl extensions to .tcl, since iTcl is short for "incr Tcl".
   CHG: The original nukes database records are updated when releases are unnuked and re-nuked.
