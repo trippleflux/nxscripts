@@ -1,0 +1,2 @@
+| - %-48(release) Area: %-13.13(section) |
+| Pre'd: %02(month)/%02(day)/%02(year2) %02(hour):%02(min):%02(sec)    Age: %-17(age) Info: %3(files)F/%-8(size) |

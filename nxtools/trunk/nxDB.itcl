@@ -1,0 +1,187 @@
+################################################################################
+# nxTools - Database Utilities                                                 #
+################################################################################
+# Author  : neoxed                                                             #
+# Date    : 02-19-2005                                                         #
+# Version : 0.9.7 (rev 1)                                                      #
+################################################################################
+
+# Load Libraries
+######################################################################
+
+if {[catch {source [file join [file dirname [info script]] "nxLib.itcl"]} ErrorMsg]} {
+    iputs "Error loading nxLib: $ErrorMsg"; return 1
+}
+if {[catch {load tclsqlite3.dll Tclsqlite3} ErrorMsg]} {
+    iputs "Error loading SQLite: $ErrorMsg"; return 1
+}
+
+# Table Formats
+######################################################################
+
+set dbtable(Approves) {
+ TimeStamp INT default '0',
+ UserName TEXT default '',
+ GroupName TEXT default '',
+ Release TEXT default ''}
+
+set dbtable(DupeDirs) {
+ TimeStamp INT default '0',
+ UserName TEXT default '',
+ GroupName TEXT default '',
+ DirPath TEXT default '',
+ DirName TEXT default ''}
+
+set dbtable(DupeFiles) {
+ TimeStamp INT default '0',
+ UserName TEXT default '',
+ GroupName TEXT default '',
+ FileName TEXT default ''}
+
+set dbtable(Links) {
+ TimeStamp INT default '0',
+ LinkType INT default '0',
+ DirName TEXT default ''}
+
+set dbtable(Nukes) {
+ TimeStamp INT default '0',
+ UserName TEXT default '',
+ GroupName TEXT default '',
+ Status INT default '0',
+ Release TEXT default '',
+ Reason TEXT default '',
+ Multi INT default '0',
+ Files INT default '0',
+ Size INT default '0',
+ Nukees TEXT default ''}
+
+set dbtable(OneLines) {
+ TimeStamp INT default '0',
+ UserName TEXT default '',
+ GroupName TEXT default '',
+ Message TEXT default ''}
+
+set dbtable(Pres) {
+ TimeStamp INT default '0',
+ UserName TEXT default '',
+ GroupName TEXT default '',
+ Area TEXT default '',
+ Release TEXT default '',
+ Files INT default '0',
+ Size INT default '0'}
+
+set dbtable(Requests) {
+ TimeStamp INT default '0',
+ UserName TEXT default '',
+ GroupName TEXT default '',
+ Status INT default '0',
+ RequestID INT default '0',
+ Request TEXT default ''}
+
+# Database Procedures
+######################################################################
+
+proc DbCreate {DbList} {
+    global dbtable misc
+    if {![file exists $misc(DataPath)]} {
+        catch {file mkdir $misc(DataPath)}
+    }
+    foreach DbName $DbList {
+        LinePuts "Creating database: $DbName"
+        set DbFile [file join $misc(DataPath) ${DbName}.db]
+        if {[catch {sqlite3 SqliteDb $DbFile} ErrorMsg]} {
+            LinePuts " - Unable to open $DbFile: $ErrorMsg"
+            continue
+        }
+        if {[SqliteDb eval "SELECT count(*) FROM sqlite_master WHERE name='$DbName' AND type='table'"]} {
+            LinePuts "- Table already exists."
+        } else {
+            LinePuts "- Creating table."
+            SqliteDb eval "CREATE TABLE ${DbName}($dbtable($DbName))"
+        }
+        SqliteDb close
+    }
+}
+
+proc DbCheck {DbList} {
+    global misc
+    foreach DbName $DbList {
+        LinePuts "Checking database: $DbName"
+        set DbFile [file join $misc(DataPath) ${DbName}.db]
+        if {[catch {sqlite3 SqliteDb $DbFile} ErrorMsg]} {
+            LinePuts " - Unable to open $DbFile: $ErrorMsg"
+            continue
+        }
+        set Status [SqliteDb eval {PRAGMA integrity_check}]
+        LinePuts " - Status: $Status"
+        SqliteDb close
+    }
+}
+
+proc DbOptimize {DbList} {
+    global misc
+    foreach DbName $DbList {
+        LinePuts "Optimizing database: $DbName"
+        set DbFile [file join $misc(DataPath) ${DbName}.db]
+        if {[catch {sqlite3 SqliteDb $DbFile} ErrorMsg]} {
+            LinePuts " - Unable to open $DbFile: $ErrorMsg"
+            continue
+        }
+        SqliteDb eval {VACUUM}
+        SqliteDb close
+    }
+}
+
+# Database Main
+######################################################################
+
+proc DbMain {ArgV} {
+    global dbtable misc
+    if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
+    ## Safe argument handling
+    set ArgLength [llength [set ArgList [ArgList $ArgV]]]
+    set Action [string tolower [lindex $ArgList 0]]
+
+    if {[lsearch -exact "create check optimize" $Action] == -1} {
+        iputs "Syntax: SITE DB CHECK \[database\]"
+        iputs "        SITE DB CREATE \[database\]"
+        iputs "        SITE DB OPTIMIZE \[database\]"
+        return 1
+    }
+    iputs ".-\[DB\]-------------------------------------------------------------------."
+    set DbList [lsort -ascii [array names dbtable]]
+    if {$ArgLength > 1} {
+        set DbArg [lindex $ArgList 1]
+        set ValidName 0
+        foreach DbName $DbList {
+            if {[string equal -nocase $DbArg $DbName]} {
+                set DbList $DbName
+                set ValidName 1; break
+            }
+        }
+        if {!$ValidName} {
+            LinePuts "Invalid database name \"$DbArg\", must be:"
+            ErrorReturn [join $DbList ", "]
+        }
+    }
+
+    set Result 0
+    switch -exact -- $Action {
+        "create" {
+            LinePuts "Creating [llength $DbList] database(s)."; LinePuts ""
+            set Result [DbCreate $DbList]
+        }
+        "check" {
+            LinePuts "Checking [llength $DbList] database(s)."; LinePuts ""
+            set Result [DbCheck $DbList]
+        }
+        "optimize" {
+            LinePuts "Optimizing [llength $DbList] database(s)."; LinePuts ""
+            set Result [DbOptimize $DbList]
+        }
+    }
+    iputs "'------------------------------------------------------------------------'"
+    return $Result
+}
+
+DbMain [expr {[info exists args] ? $args : ""}]
