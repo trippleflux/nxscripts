@@ -229,7 +229,7 @@ proc SearchLog {LogFile MaxResults Pattern} {
         iputs " $LogLine"
     }
 
-    if {!$Count} {LinePuts "No Results found."}
+    if {!$Count} {LinePuts "No results found."}
     iputs "'------------------------------------------------------------------------'"
     return 0
 }

@@ -116,12 +116,12 @@ proc SqlWildToLike {Pattern} {
 
 proc ArchiveFile {FilePath {FormatStyle "%Y-%m-%d"}} {
     global log
-    ## Create the archive directory if it doesn't exist
     if {![file isdirectory $log(ArchivePath)]} {
         if {[catch {file mkdir $log(ArchivePath)} ErrorMsg]} {
             ErrorLog ArchiveMkDir $ErrorMsg; return 0
         }
     }
+
     ## Copy the specified file to the archive directory
     set DatePrefix [clock format [clock seconds] -format $FormatStyle -gmt 0]
     set ArchiveFile [file join $log(ArchivePath) "$DatePrefix.[file tail $FilePath]"]
@@ -194,7 +194,7 @@ proc DirStatsRecurse {RealPath IgnoreList} {
 proc GetPath {PWD Path} {
     if {[string index $Path 0] == "/"} {set VirtualPath $Path} else {set VirtualPath "$PWD$Path"}
     regsub -all {[\\/]+} $Path {/} Path
-    ## A few 'security checks', in case $Path is "." or ".."
+    ## A few "security checks", in case $Path is "." or ".."
     if {[file tail $VirtualPath] == "." || [file tail $VirtualPath] == ".."} {
         set VirtualPath [file dirname $VirtualPath]
     } elseif {![string equal "/" $VirtualPath]} {
@@ -225,7 +225,8 @@ proc RemoveParentLinks {RealPath VirtualPath} {
 ######################################################################
 
 proc GetSectionList {} {
-    set IsSections 0; set SectionList ""
+    set IsSections 0
+    set SectionList ""
     if {![catch {set Handle [open "ioFTPD.ini" r]} ErrorMsg]} {
         while {![eof $Handle]} {
             set ConfLine [string trim [gets $Handle]]
@@ -252,7 +253,7 @@ proc GetSectionList {} {
 }
 
 proc GetSectionPath {FindSection {SectionList ""}} {
-    if {$SectionList == ""} {set SectionList [GetSectionList]}
+    if {![llength $SectionList]} {set SectionList [GetSectionList]}
     foreach {SectionName CreditSection StatSection MatchPath} $SectionList {
         if {[string equal -nocase $FindSection $SectionName]} {
             return [list $SectionName $MatchPath]
@@ -262,7 +263,7 @@ proc GetSectionPath {FindSection {SectionList ""}} {
 }
 
 proc GetCreditsAndStats {VirtualPath {SectionList ""}} {
-    if {$SectionList == ""} {set SectionList [GetSectionList]}
+    if {![llength $SectionList]} {set SectionList [GetSectionList]}
     foreach {SectionName CreditSection StatSection MatchPath} $SectionList {
         if {[string match -nocase $MatchPath $VirtualPath]} {
             return [list $CreditSection $StatSection]
@@ -297,8 +298,8 @@ proc KickUsers {KickPath {RealPaths "False"}} {
                     set VfsPath [resolve pwd $VfsPath]
                     set DataPath [resolve pwd $DataPath]
                 }
-                ## Directly after a transfer, the DataPath will be the last file
-                ## transfered by that user; however, their 'Status' will be IDLE - bug?
+                ## Following a transfer, the user's data path will be the last file
+                ## transfered; however, their status will be IDLE. Bug?
                 if {$Status == 1 || $Status == 2} {
                     set MatchPath $DataPath
                 } else {
@@ -350,7 +351,6 @@ set misc(LogPath) [config read "Locations" "Log_Files"]
 proc DebugLog {LogType LogMsg} {
     global misc args flags group groups path pwd user
     set LogFile [file join $misc(LogPath) "nxDebug.log"]
-
     if {![catch {set Handle [open $LogFile a]} ErrorMsg]} {
         set TimeNow [clock format [clock seconds] -format "%m-%d-%Y %H:%M:%S"]
         if {[string equal "-state" $LogType]} {
@@ -370,7 +370,6 @@ proc DebugLog {LogType LogMsg} {
 proc ErrorLog {LogType LogMsg} {
     global misc
     set LogFile [file join $misc(LogPath) "nxError.log"]
-
     if {![catch {set Handle [open $LogFile a]} ErrorMsg]} {
         set TimeNow [clock format [clock seconds] -format "%m-%d-%Y %H:%M:%S"]
         puts $Handle "$TimeNow - [format %-12s $LogType] : $LogMsg"
@@ -518,7 +517,7 @@ proc ParseCookies {InputStr ValueList CookieList} {
             ## Find cookie name
             if {[string index $InputStr $InputIdx] == "("} {
                 set BeforeIdx [incr InputIdx]
-                while {[string index $InputStr $InputIdx] != ")" && [string index $InputStr $InputIdx] != ""} {incr InputIdx}
+                while {[string index $InputStr $InputIdx] != ")" && $InputIdx <= $InputLen} {incr InputIdx}
                 set CookieName [string range $InputStr $BeforeIdx [expr {$InputIdx - 1}]]
             } else {
                 ## Invalid cookie format, an open parenthesis is expected

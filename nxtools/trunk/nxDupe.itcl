@@ -683,7 +683,7 @@ proc SiteUndupe {ArgList} {
         set ColName "FileName"; set DbName "DupeFiles"
         set Pattern [join [lrange $ArgList 0 end]]
     }
-    if {[regexp {[\*\?]} $Pattern] && [regexp -all {[[:alnum:]]} $Pattern] < $dupe(AlphaNumChars)} {
+    if {[regexp {[\*\?]} $Pattern] && [regexp -all {[:alnum:]} $Pattern] < $dupe(AlphaNumChars)} {
         if {!$IsSiteBot} {ErrorReturn "There must be at $dupe(AlphaNumChars) least alpha-numeric chars when wildcards are used."}
         return 1
     }

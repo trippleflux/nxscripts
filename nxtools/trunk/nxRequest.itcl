@@ -45,7 +45,6 @@ proc ReqUpdateDir {Action Request {UserID 0} {GroupID 0}} {
     if {[string equal "" $req(RequestPath)]} {
         return
     } elseif {[file exists $req(RequestPath)]} {
-        set Action [string tolower $Action]
         set ReMap [list %(request) $Request]
         set ReqPath [file join $req(RequestPath) [string map $ReMap $req(RequestTag)]]
         switch -exact -- $Action {
@@ -68,7 +67,12 @@ proc ReqUpdateDir {Action Request {UserID 0} {GroupID 0}} {
                     }
                 }
             }
-            {req} {CreateTag $ReqPath $UserID $GroupID 777}
+            {req} {
+                CreateTag $ReqPath $UserID $GroupID 777
+            }
+            default {
+                ErrorLog ReqUpdateDir "Unknown event \"$Action\"."
+            }
         }
         catch {vfs flush $req(RequestPath)}
     } else {
