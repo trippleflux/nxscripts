@@ -212,22 +212,24 @@ proc RotateLogs {} {
     return 0
 }
 
-proc SearchLog {LogFile SearchString} {
+proc SearchLog {LogFile MaxResults Pattern} {
     set LogData ""
     if {![catch {set Handle [open $LogFile r]} ErrorMsg]} {
         while {![eof $Handle]} {
-            set LogLine [string trim [gets $Handle]]
-            if {![string equal "" $LogLine] && [string match -nocase $SearchString $LogLine]} {
-                set LogData [linsert $LogData 0 $LogLine]
+            if {[gets $Handle LogLine] > 0 && [string match -nocase $Pattern $LogLine]} {
+                set LogData [linsert $LogData 0 [string trim $LogLine]]
             }
         }
         close $Handle
     } else {ErrorLog SearchLog $ErrorMsg}
-    if {[llength $LogData]} {
-        foreach LogLine $LogData {iputs " $LogLine"}
-    } else {
-        LinePuts "No Results found."
+
+    set Count 0
+    foreach LogLine $LogData {
+        if {[incr Count] > $MaxResults} {break}
+        iputs " $LogLine"
     }
+
+    if {!$Count} {LinePuts "No Results found."}
     iputs "'------------------------------------------------------------------------'"
     return 0
 }
@@ -824,11 +826,11 @@ proc ToolsMain {ArgV} {
             }
         }
         "errlog" {
-            if {$ArgLength > 1} {
+            if {$ArgLength > 1 && [GetOptions [lrange $ArgList 1 end] MaxResults Pattern]} {
                 iputs ".-\[ErrorLog\]-------------------------------------------------------------."
-                set Result [SearchLog $log(Error) [join [lrange $ArgList 1 end]]]
+                set Result [SearchLog $log(Error) $MaxResults $Pattern]
             } else {
-                iputs "Syntax: SITE ERRLOG <search string>"
+                iputs "Syntax: SITE ERRLOG \[-max <limit>\] <pattern>"
             }
         }
         "ginfo" {
@@ -879,11 +881,11 @@ proc ToolsMain {ArgV} {
             }
         }
         "syslog" {
-            if {$ArgLength > 1} {
+            if {$ArgLength > 1 && [GetOptions [lrange $ArgList 1 end] MaxResults Pattern]} {
                 iputs ".-\[SysopLog\]-------------------------------------------------------------."
-                set Result [SearchLog $log(SysOp) [join [lrange $ArgList 1 end]]]
+                set Result [SearchLog $log(SysOp) $MaxResults $Pattern]
             } else {
-                iputs "Syntax: SITE SYSLOG <search string>"
+                iputs "Syntax: SITE SYSLOG \[-max <limit>\] <pattern>"
             }
         }
         "take" {

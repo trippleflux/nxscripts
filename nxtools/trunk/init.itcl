@@ -205,7 +205,7 @@ set pre(Uploaders)      True
 
 #### Site Request ##########################################
 #
-# - Maximum number of unfilled requests - per user and in total.
+# - Maximum number of unfilled requests, per user and in total.
 #
 set req(UserLimit)      2
 set req(TotalLimit)     20
@@ -234,7 +234,7 @@ set reset(Credits)      True
 #### Site Rules ############################################
 #
 # - Path to rules configuration file.
-# - Width of the rules variable in the message files.
+# - Width of the %(rules) cookie in the message files.
 #
 set rules(ConfigFile)   "../scripts/nxTools/nxRules.cfg"
 set rules(LineWidth)    56
