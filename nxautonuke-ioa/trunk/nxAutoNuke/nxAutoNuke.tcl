@@ -555,9 +555,9 @@ proc ::nxAutoNuke::Main {} {
         keyword    [list ANUKEKEYWORD $anuke(ReasonKeyword) {CheckKeyword $check(Settings) $release(Name)}] \
     ]
     array set DiskChecks [list \
-        empty      [list ANUKEEMPTY $anuke(ReasonEmpty)   {CheckEmpty $disk(RealPath)}] \
-        incomplete [list ANUKEINC   $anuke(ReasonInc)     {CheckInc   $disk(RealPath)}] \
-        mp3        [list ANUKEMP3   $anuke(ReasonMP3)     {CheckMP3   $check(Settings) $disk(RealPath)}] \
+        empty      [list ANUKEEMPTY   $anuke(ReasonEmpty)   {CheckEmpty $disk(RealPath)}] \
+        incomplete [list ANUKEINC     $anuke(ReasonInc)     {CheckInc   $disk(RealPath)}] \
+        mp3        [list ANUKEMP3     $anuke(ReasonMP3)     {CheckMP3   $check(Settings) $disk(RealPath)}] \
     ]
 
     ## Timestamp used to format date cookies
