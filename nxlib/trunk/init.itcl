@@ -32,11 +32,11 @@ proc nxLoadError {LogType LogMsg} {
 
 foreach FilePath $TclFiles {
     if {[catch {source $FilePath} ErrorMsg]} {
-        nxLoadError TclLoad "unable to load \"$FilePath\": $ErrorMsg"
+        nxLoadError LoadScript "unable to source \"$FilePath\": $ErrorMsg"
     }
 }
 foreach FilePath $LibFiles {
     if {[catch {load $FilePath} ErrorMsg]} {
-        nxLoadError LibLoad $ErrorMsg
+        nxLoadError LoadExtension $ErrorMsg
     }
 }
