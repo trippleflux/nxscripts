@@ -385,7 +385,7 @@ set mysql(Password)     "pretimes"
 #
 # - Name of the database and table holding the pre times.
 # - This table MUST be created with the format outlined in
-#   the Technical Notes (section 7) part of the readme.
+#   the "Technical Notes" (section 7) part of the readme.
 #
 set mysql(DataBase)     "pretimes"
 set mysql(TableName)    "testing"

@@ -633,7 +633,6 @@ proc PreMain {ArgV} {
                 if {[info exists prepath($Target)]} {
                     foreach PathEntry $prepath($Target) {
                         if {[string equal -nocase $PathEntry $Value]} {
-                            catch {vfs chattr [resolve pwd $PathEntry] 0 ""}
                             set prepath($Target) [lreplace $prepath($Target) $Index $Index]
                             set Deleted 1; break
                         }
@@ -646,6 +645,27 @@ proc PreMain {ArgV} {
                     PreCfgWriter $pre(ConfigFile)
                 } else {
                     LinePuts "The path \"$Value\" is not defined for the \"$Target\" group."
+                }
+            }
+            {hidepath} - {hidepaths} {
+                if {[string equal "" $Target]} {
+                    set Target "*"
+                } elseif {![info exists prepath($Target)]} {
+                    ErrorReturn "Invalid group, try \"SITE EDITPRE HELP HIDEPATH\" for help."
+                }
+                foreach Name [lsort -ascii [array names prepath]] {
+                    if {![string match $Target $Name]} {continue}
+                    LinePuts "Hiding pre paths for: $Name"
+                    set PrivPath [string map [list %(group) $Name] $pre(PrivatePath)]
+
+                    foreach PathEntry $prepath($Name) {
+                        set RealPath [resolve pwd $PathEntry]
+                        if {[file exists $RealPath]} {
+                            catch {vfs chattr $RealPath 0 $PrivPath}
+                        } else {
+                            LinePuts "- The vpath \"$PathEntry\" does not exist."
+                        }
+                    }
                 }
             }
             {view} {
@@ -707,12 +727,20 @@ proc PreMain {ArgV} {
                         LinePuts "Syntax : SITE EDITPRE DELPATH <group> <path>"
                         LinePuts "Example: SITE EDITPRE DELPATH NX /GROUPS/NX/"
                     }
+                    {hidepath} - {hidepaths} {
+                        LinePuts "Description:"
+                        LinePuts " - Re-hides all group pre paths using private paths (chattr +h)."
+                        LinePuts " - Useful for when the chattr value is accidentally removed."
+                        LinePuts " - If the group is not specified, all pre paths will be hidden."
+                        LinePuts "Syntax : SITE EDITPRE HIDEPATH \[group\]"
+                        LinePuts "Example: SITE EDITPRE HIDEPATH NX"
+                    }
                     default {
                         LinePuts "Description:"
                         LinePuts " - Used to edit pre areas, groups and paths."
                         LinePuts " - For more detailed help, try \"SITE EDITPRE HELP\" <option>"
                         LinePuts "Syntax: SITE EDITPRE <option> <area> \[value\]"
-                        LinePuts "Option: addarea delarea addgrp delgrp addpath delpath view"
+                        LinePuts "Option: addarea delarea addgrp delgrp addpath delpath hidepath view"
                         LinePuts "Areas : [lsort -ascii [array names prearea]]"
                     }
                 }

@@ -878,10 +878,12 @@ Text Templates:
 ##############################################################################
 
 nxTools v0.9.8 (XX-XX-2005):
+  NEW: SITE EDITPRE HIDEPATH [group] to re-hide pre paths for groups, in case the
+  chattr +h value is accidentally removed from the directories.
   CHG: Improved the rules file reader.
   CHG: Improved the touch function of the pre helper (nxHelper.exe).
   FIX: Directory database cleaning failed.
-  FIX: The approve check on MKD failed.
+  FIX: The approve check failed on MKD.
 
 nxTools v0.9.7 (02-17-2005):
   NEW: Added text templates for SITE FDUPE, text/FileDupe.* files.
@@ -1108,7 +1110,7 @@ nxTools v0.6.1 (05-15-2004):
 
 - Finish nxBot (the nxTools sitebot).
 
-- I've written a version of this in C, with an XML-based configuration. The rewrite
+- I've written a version of this in C, with an XML based configuration. The rewrite
   is mostly finished with the exception of the SHmem stuff. I do not plan on fully
   implementing it, since the IPC interfaces *may* require some drastic changes with
   the upcoming release of ioFTPD Beta 6. However, due to my limited amount of free
