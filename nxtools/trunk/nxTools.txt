@@ -108,6 +108,7 @@ frequently, so be sure you are always using the latest version.
 
     ioFTPD\scripts\init.itcl
     ioFTPD\scripts\nxTools.cfg
+    ioFTPD\scripts\nxTools.txt
     ioFTPD\scripts\nxLib.tcl
     ioFTPD\scripts\nxTools\data\*
     ioFTPD\scripts\nxTools\text\*
@@ -123,8 +124,6 @@ frequently, so be sure you are always using the latest version.
     ioFTPD\scripts\nxTools\nxRequest.tcl
     ioFTPD\scripts\nxTools\nxRules.cfg
     ioFTPD\scripts\nxTools\nxRules.tcl
-    ioFTPD\scripts\nxTools\nxTools.cfg
-    ioFTPD\scripts\nxTools\nxTools.txt
     ioFTPD\scripts\nxTools\nxUtilities.tcl
     ioFTPD\scripts\nxTools\nxWeekly.cfg
 
@@ -951,7 +950,7 @@ Text Templates:
 # 9. Change Log                                                                #
 ################################################################################
 
-nxTools v0.9.9 (XX-XX-2005):
+nxTools v0.9.9 (03-27-2005):
   NEW: SITE BOT BW to view the site's current usage.
   NEW: SITE NUKETOP [-max <limit>] [group] to view the top-nuked users.
   NEW: The SITE DB CREATE command checks database schema versions.
