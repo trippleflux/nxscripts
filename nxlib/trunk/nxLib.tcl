@@ -86,6 +86,8 @@ proc ::nxLib::UniqueKey {} {
 
 proc ::nxLib::DbOpenFile {DbProc FileName} {
     set DbPath [file join $::misc(DataPath) $FileName]
+    if {![file exists $DbPath]} {
+        return -code error "the database \"$DbPath\" does not exist: please run \"SITE DB CREATE\""
     if {[catch {sqlite3 $DbProc $DbPath} ErrorMsg]} {
         return -code error "unable to open \"$DbPath\": $ErrorMsg"
     }
