@@ -61,10 +61,10 @@ proc ::nxLib::ErrorReturn {ErrorMsg} {
 proc ::nxLib::LinePuts {String} {iputs [format "| %-70s |" $String]}
 
 proc ::nxLib::StripChars {String} {
-    regsub -all {[\s\.\+\@\#\$\%\^\&\=\*\?\:\;\|\"\/\\]+} $String {.} String
-    regsub -all {[\(\<]+} $String {(} String
-    regsub -all {[\)\>]+} $String {)} String
-    return $String
+    regsub -all {[\(\<\{]+} $String {(} String
+    regsub -all {[\)\>\}]+} $String {)} String
+    regsub -all {[^A-Za-z0-9_\-\(\)]+} $String {.} String
+    return [string trim $String "."]
 }
 
 proc ::nxLib::Sleep {MilliSeconds} {
