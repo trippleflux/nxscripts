@@ -1,0 +1,44 @@
+################################################################################
+# nxScripts - Script Loader                                                    #
+################################################################################
+# Author  : $-66(AUTHOR) #
+# Date    : $-66(TIMESTAMP) #
+# Version : $-66(VERSION) #
+################################################################################
+
+## Tcl scripts to source.
+set TclFiles {
+  {../scripts/nxAutoNuke.cfg}
+  {../scripts/nxTools.cfg}
+  {../scripts/nxLib.tcl}
+}
+
+## Tcl extensions to load.
+set LibFiles {
+  {nxHelper.dll}
+  {mysqltcl.dll}
+  {tclsqlite3.dll}
+}
+
+## End of settings.
+
+set misc(fuck) 1
+
+proc nxLoadError {LogType LogMsg} {
+    if {![catch {set Handle [open "../logs/nxError.log" a]}]} {
+        set TimeNow [clock format [clock seconds] -format "%m-%d-%Y %H:%M:%S"]
+        puts $Handle "$TimeNow - [format %-12s $LogType] : $LogMsg"
+        close $Handle
+    }
+}
+
+foreach FilePath $TclFiles {
+    if {[catch {source $FilePath} ErrorMsg]} {
+        nxLoadError TclLoad "unable to load \"$FilePath\": $ErrorMsg"
+    }
+}
+foreach FilePath $LibFiles {
+    if {[catch {load $FilePath} ErrorMsg]} {
+        nxLoadError LibLoad $ErrorMsg
+    }
+}
