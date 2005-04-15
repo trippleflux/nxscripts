@@ -348,7 +348,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
 
                 NukeDb eval {BEGIN}
                 foreach {NukeeUser NukeeGroup Amount} $NukeeLog {
-                    NukeDb eval {INSERT OR REPLACE INTO Users (NukeId,Status,UserName,GroupName,Amount) VALUES($NukeId,$NukeStatus,$NukeeUser,$NukeeGroup,$Amount)}
+                    NukeDb eval {INSERT OR REPLACE INTO Users (NukeId,UserName,GroupName,Amount) VALUES($NukeId,$NukeeUser,$NukeeGroup,$Amount)}
                 }
                 NukeDb eval {COMMIT}
 
@@ -413,7 +413,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
                 return 0
             }
             if {![string equal "" $Pattern]} {
-                set GroupMatch "AND GroupName LIKE '[SqlWildToLike $Pattern]' ESCAPE '\\'"
+                set GroupMatch "GroupName LIKE '[SqlWildToLike $Pattern]' ESCAPE '\\' AND"
             } else {
                 set GroupMatch ""
             }
@@ -422,9 +422,13 @@ proc ::nxTools::Nuke::Main {ArgV} {
                 iputs "|    User    |   Group    | Times Nuked |  Amount                        |"
                 iputs "|------------------------------------------------------------------------|"
             }
+
             set Count 0
             if {![catch {DbOpenFile NukeDb "Nukes.db"} ErrorMsg]} {
-                NukeDb eval "SELECT UserName, GroupName, count(*) AS Nuked, sum(Amount) AS Amount FROM Users WHERE Status=0 $GroupMatch GROUP BY UserName ORDER BY Nuked DESC LIMIT $MaxResults" values {
+                NukeDb eval "SELECT UserName, GroupName, count(*) AS Nuked, sum(Amount) AS Amount FROM Users \
+                    WHERE $GroupMatch (SELECT count(*) FROM Nukes WHERE NukeId=Users.NukeId AND Status=0) \
+                    GROUP BY UserName ORDER BY Nuked DESC LIMIT $MaxResults" values {
+
                     incr Count
                     if {$IsSiteBot} {
                         iputs "NUKETOP|$Count|$values(UserName)|$values(GroupName)|$values(Nuked)|$values(Amount)"

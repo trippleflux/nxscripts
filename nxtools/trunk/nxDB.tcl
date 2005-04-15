@@ -53,7 +53,7 @@ namespace eval ::nxTools::Db {
         DirName   TEXT default '')}
     }
 
-    set dbschema(Nukes) 1
+    set dbschema(Nukes) 2
     set dbtables(Nukes) {
         Nukes {CREATE TABLE Nukes(
         NukeId    INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -69,7 +69,6 @@ namespace eval ::nxTools::Db {
 
         Users {CREATE TABLE Users(
         NukeId    INTEGER default 0,
-        Status    INTEGER default 0,
         UserName  TEXT default '',
         GroupName TEXT default '',
         Amount    INTEGER default 0,
