@@ -366,8 +366,8 @@ set disable(WIPE)           0
 
 set variables(APPROVEADD)   "%user %group %release"
 set variables(APPROVEDEL)   "%user %group %release"
-set variables(CLOSE)        "%user %group %duration %reason"
-set variables(OPEN)         "%user %group %reason"
+set variables(CLOSE)        "%user %group %reason"
+set variables(OPEN)         "%user %group %duration %reason"
 set variables(GIVE)         "%user %group %mbytes %target"
 set variables(TAKE)         "%user %group %mbytes %target"
 set variables(INVITE)       "%user %group %ircnick"
@@ -956,6 +956,7 @@ Text Templates:
 
 nxTools v0.9.10 (XX-XX-2005):
   CHG: Removed the Users.Status column from the Nukes database.
+  FIX: The cookies for variables(CLOSE) and variables(OPEN) were mixed up.
   FIX: SITE PRETIME and pre time checks were broken.
 
 nxTools v0.9.9 (03-27-2005):
