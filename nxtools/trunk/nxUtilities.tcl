@@ -382,6 +382,7 @@ proc ::nxTools::Utils::SiteDrives {} {
     iputs ".-\[Drives\]---------------------------------------------------------------."
     iputs "|  Volume Type  | File System |  Volume Name  | Free Space | Total Space |"
     iputs "|------------------------------------------------------------------------|"
+    set Free 0; set Total 0
     foreach VolName [file volumes] {
         set VolName [string map {/ \\} $VolName]
 
@@ -392,6 +393,9 @@ proc ::nxTools::Utils::SiteDrives {} {
             default {continue}
         }
         if {[::nx::volume info $VolName volume]} {
+            set Free [expr {wide($Free) + $volume(free)}]
+            set Total [expr {wide($Total) + $volume(total)}]
+
             set volume(free) [FormatSize [expr {$volume(free) / 1024}]]
             set volume(total) [FormatSize [expr {$volume(total) / 1024}]]
             iputs [format "| %-3s %9s | %-11s | %-13s | %10s | %11s |" $VolName $TypeName $volume(system) $volume(name) $volume(free) $volume(total)]
@@ -399,6 +403,10 @@ proc ::nxTools::Utils::SiteDrives {} {
             LinePuts "$VolName Unable to retrieve volume information."
         }
     }
+    iputs "|------------------------------------------------------------------------|"
+    set Free [FormatSize [expr {wide($Free) / 1024}]]
+    set Total [FormatSize [expr {wide($Total) / 1024}]]
+    iputs [format "|                                       Total | %10s | %11s |" $Free $Total]
     iputs "'------------------------------------------------------------------------'"
     return 0
 }

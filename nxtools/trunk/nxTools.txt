@@ -955,6 +955,7 @@ Text Templates:
 ################################################################################
 
 nxTools v0.9.10 (XX-XX-2005):
+  NEW: Added free and drive totals to the footer of SITE DRIVES.
   CHG: Removed the Users.Status column from the Nukes database.
   FIX: The cookies for variables(CLOSE) and variables(OPEN) were mixed up.
   FIX: SITE PRETIME and pre time checks were broken.
