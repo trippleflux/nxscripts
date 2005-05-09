@@ -91,7 +91,8 @@ proc ::nxLib::DbOpenFile {DbProc FileName} {
     } elseif {[catch {sqlite3 $DbProc $DbPath} ErrorMsg]} {
         return -code error "unable to open \"$DbPath\": $ErrorMsg"
     }
-    return 1
+    $DbProc timeout 1000
+    return
 }
 
 proc ::nxLib::MySqlConnect {} {
