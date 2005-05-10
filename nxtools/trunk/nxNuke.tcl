@@ -46,7 +46,7 @@ proc ::nxTools::Nuke::TrimTag {VirtualPath} {
 proc ::nxTools::Nuke::UpdateRecord {RealPath {Buffer ""}} {
     set Record ""
     set RealPath [file join $RealPath ".ioFTPD.nxNuke"]
-    set OpenMode [expr {$Buffer != "" ? "w" : "r"}]
+    set OpenMode [expr {$Buffer eq "" ? "RDONLY CREAT" : "w"}]
 
     ## Tcl can't open hidden files, quite lame.
     catch {file attributes $RealPath -hidden 0}
@@ -386,7 +386,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
                 NukeDb eval "SELECT * FROM Nukes WHERE Status=$NukeStatus AND Release LIKE '$Pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $MaxResults" values {
                     incr Count
                     if {$IsSiteBot} {
-                        iputs "NUKES|$Count|$values(TimeStamp)|$values(Release)|$values(UserName)|$values(GroupName)|$values(Multi)|$values(Reason)|$values(Files)|$values(Size)"
+                        iputs [list NUKES $Count $values(TimeStamp) $values(Release) $values(UserName) $values(GroupName) $values(Multi) $values(Reason) $values(Files) $values(Size)]
                     } else {
                         set NukeAge [expr {[clock seconds] - $values(TimeStamp)}]
                         iputs [format "| %-9.9s | %-12.12s | %-9.9s | %-31.31s |" [lrange [FormatDuration $NukeAge] 0 1] $values(UserName) $values(Multi)x $values(Reason)]
@@ -431,7 +431,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
 
                     incr Count
                     if {$IsSiteBot} {
-                        iputs "NUKETOP|$Count|$values(UserName)|$values(GroupName)|$values(Nuked)|$values(Amount)"
+                        iputs [list NUKETOP $Count $values(UserName) $values(GroupName) $values(Nuked) $values(Amount)]
                     } else {
                         iputs [format "| %-10.10s | %-10.10s | %11d | %30.30s |" $values(UserName) $values(GroupName) $values(Nuked) [FormatSize $values(Amount)]]
                     }

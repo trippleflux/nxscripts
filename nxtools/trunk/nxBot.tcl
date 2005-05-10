@@ -29,7 +29,7 @@ proc ::nxTools::Bot::AuthCheck {UserName Password} {
         }
         if {[string equal -nocase $UserHash [sha1 $Password]]} {set Valid 1}
     }
-    if {$Valid} {iputs "AUTH|True"} else {iputs "AUTH|False"}
+    if {$Valid} {iputs [list AUTH True]} else {iputs [list AUTH False]}
     return 0
 }
 
@@ -55,7 +55,7 @@ proc ::nxTools::Bot::Bandwidth {} {
     }
     set who(BwTotal) [expr {double($who(BwUp)) + double($who(BwDn))}]
     set who(UsersTotal) [expr {$who(UsersUp) + $who(UsersDn) + $who(UsersIdle)}]
-    iputs "BW|$who(BwUp)|$who(BwDn)|$who(BwTotal)|$who(UsersUp)|$who(UsersDn)|$who(UsersIdle)|$who(UsersTotal)"
+    iputs [list BW $who(BwUp) $who(BwDn) $who(BwTotal) $who(UsersUp) $who(UsersDn) $who(UsersIdle) $who(UsersTotal)]
     return 0
 }
 
@@ -87,7 +87,7 @@ proc ::nxTools::Bot::UserStats {StatsType Target StartIndex EndIndex} {
         incr Count
         foreach {UserName GroupName FileStats SizeStats TimeStats} $UserStats {break}
         if {![string match $Target $UserName]} {continue}
-        iputs "USTATS|[format %02d $Count]|$UserName|$GroupName|$FileStats|$SizeStats|$TimeStats"
+        iputs [list USTATS $Count $UserName $GroupName $FileStats $SizeStats $TimeStats]
     }
     return 0
 }
@@ -116,7 +116,7 @@ proc ::nxTools::Bot::GroupStats {StatsType Target StartIndex EndIndex} {
         incr Count
         foreach {GroupName FileStats SizeStats TimeStats} $GroupStats {break}
         if {![string match $Target $GroupName]} {continue}
-        iputs "GSTATS|[format %02d $Count]|$GroupName|$FileStats|$SizeStats|$TimeStats"
+        iputs [list GSTATS $Count $GroupName $FileStats $SizeStats $TimeStats]
     }
     return 0
 }
@@ -140,7 +140,7 @@ proc ::nxTools::Bot::UserInfo {UserName Section} {
             {tagline} {set user(TagLine) [string map {| ""} [ArgRange $UserLine 1 end]]}
         }
     }
-    iputs "USER|$UserName|$user(Group)|$user(Flags)|$user(TagLine)|$user(Credits)|$user(Ratio)|$file(alldn)|$size(alldn)|$time(alldn)|$file(allup)|$size(allup)|$time(allup)"
+    iputs [list USER $UserName $user(Group) $user(Flags) $user(TagLine) $user(Credits) $user(Ratio) $file(alldn) $size(alldn) $time(alldn) $file(allup) $size(allup) $time(allup)]
     return 0
 }
 
@@ -150,7 +150,7 @@ proc ::nxTools::Bot::Who {} {
             foreach {ClientId UserId Ident IP Status Action IdleTime Speed VirtualPath DataPath} $WhoData {break}
             set UserName [resolve uid $UserId]
             set GroupName "NoGroup"
-            if {[string equal -nocase "pass" [lindex $Action 0]]} {set Action "[lindex $Action 0] *****"}
+            if {[string match -nocase "pass *" $Action]} {set Action "PASS *****"}
             set FileName [file tail $DataPath]
             set Speed [expr {double($Speed)}]
 
@@ -169,7 +169,7 @@ proc ::nxTools::Bot::Who {} {
                 2 {set Status "UPLD"}
                 default {continue}
             }
-            iputs "WHO|$ClientId|$UserName|$GroupName|$Ident|$IP|$Status|$Action|$VirtualPath|$FileName|$IdleTime|$Speed"
+            iputs [list WHO $ClientId $UserName $GroupName $Ident $IP $Status $Action $VirtualPath $FileName $IdleTime $Speed]
         }
     }
     return 0

@@ -463,7 +463,7 @@ proc ::nxTools::Dupe::SiteApprove {Action Release} {
             ApproveDb eval {SELECT * FROM Approves ORDER BY Release ASC} values {
                 set ApproveAge [expr {[clock seconds] - $values(TimeStamp)}]
                 if {$IsSiteBot} {
-                    iputs "APPROVE|$values(TimeStamp)|$ApproveAge|$values(UserName)|$values(GroupName)|$values(Release)"
+                    iputs [list APPROVE $values(TimeStamp) $ApproveAge $values(UserName) $values(GroupName) $values(Release)]
                 } else {
                     incr Count
                     set ApproveAge [lrange [FormatDuration $ApproveAge] 0 1]
@@ -498,7 +498,7 @@ proc ::nxTools::Dupe::SiteDupe {MaxResults Pattern} {
     DirDb eval "SELECT * FROM DupeDirs WHERE DirName LIKE '$Pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $MaxResults" values {
         incr Count
         if {$IsSiteBot} {
-            iputs "DUPE|$Count|$values(TimeStamp)|$values(UserName)|$values(GroupName)|$values(DirPath)|$values(DirName)"
+            iputs [list DUPE $Count $values(TimeStamp) $values(UserName) $values(GroupName) $values(DirPath) $values(DirName)]
         } else {
             set ValueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt [IsTrue $misc(UtcTime)]]
             lappend ValueList $Count $values(UserName) $values(GroupName) $values(DirName) [file join $values(DirPath) $values(DirName)]
@@ -535,7 +535,7 @@ proc ::nxTools::Dupe::SiteFileDupe {MaxResults Pattern} {
     FileDb eval "SELECT * FROM DupeFiles WHERE FileName LIKE '$Pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $MaxResults" values {
         incr Count
         if {$IsSiteBot} {
-            iputs "DUPE|$Count|$values(TimeStamp)|$values(UserName)|$values(GroupName)|$values(FileName)"
+            iputs [list DUPE $Count $values(TimeStamp) $values(UserName) $values(GroupName) $values(FileName)]
         } else {
             set ValueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt [IsTrue $misc(UtcTime)]]
             lappend ValueList $Count $values(UserName) $values(GroupName) $values(FileName)
@@ -601,7 +601,7 @@ proc ::nxTools::Dupe::SiteNew {MaxResults ShowSection} {
         }
         set ReleaseAge [expr {[clock seconds] - $values(TimeStamp)}]
         if {$IsSiteBot} {
-            iputs "NEW|$Count|$ReleaseAge|$values(UserName)|$values(GroupName)|$ShowSection|$values(DirPath)|$values(DirName)"
+            iputs [list NEW $Count $ReleaseAge $values(UserName) $values(GroupName) $ShowSection $values(DirPath) $values(DirName)]
         } else {
             set ReleaseAge [lrange [FormatDuration $ReleaseAge] 0 1]
             set ValueList [list $Count $ReleaseAge $values(UserName) $values(GroupName) $ShowSection $values(DirName) [file join $values(DirPath) $values(DirName)]]
@@ -636,7 +636,7 @@ proc ::nxTools::Dupe::SitePreTime {MaxResults Pattern} {
             foreach {PreId PreTime Section Release Files KBytes Disks IsNuked NukeTime NukeReason} $QueryLine {break}
             set ReleaseAge [expr {$TimeNow - $PreTime}]
             if {$IsSiteBot} {
-                iputs "PRETIME|$Count|$ReleaseAge|$PreTime|$Section|$Release|$Files|$KBytes|$Disks|$IsNuked|$NukeTime|$NukeReason"
+                iputs [list PRETIME $Count $ReleaseAge $PreTime $Section $Release $Files $KBytes $Disks $IsNuked $NukeTime $NukeReason]
             } else {
                 set BodyTemplate [expr {$SingleResult ? ($IsNuked != 0 ? $template(BodyNuke) : $template(BodyInfo)) : $template(Body)}]
                 set ReleaseAge [FormatDuration $ReleaseAge]
@@ -681,7 +681,7 @@ proc ::nxTools::Dupe::SiteUndupe {ArgList} {
         DupeDb eval "SELECT $ColName,rowid FROM $DbName WHERE $ColName LIKE '$Pattern' ESCAPE '\\' ORDER BY $ColName ASC" values {
             incr Removed
             if {$IsSiteBot} {
-                iputs "UNDUPE|$values($ColName)"
+                iputs [list UNDUPE $values($ColName)]
             } else {
                 LinePuts "Unduped: $values($ColName)"
             }

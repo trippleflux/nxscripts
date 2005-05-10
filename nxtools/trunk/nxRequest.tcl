@@ -172,7 +172,7 @@ proc ::nxTools::Req::Main {ArgV} {
                 set RequestAge [expr {[clock seconds] - $values(TimeStamp)}]
                 set RequestId [format "%03s" $values(RequestId)]
                 if {$IsSiteBot} {
-                    iputs "REQS|$values(TimeStamp)|$RequestAge|$RequestId|$values(UserName)|$values(GroupName)|$values(Request)"
+                    iputs [list REQS $values(TimeStamp) $RequestAge $RequestId $values(UserName) $values(GroupName) $values(Request)]
                 } else {
                     incr Count
                     set RequestAge [lrange [FormatDuration $RequestAge] 0 1]
