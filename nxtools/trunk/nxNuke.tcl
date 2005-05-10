@@ -48,8 +48,10 @@ proc ::nxTools::Nuke::UpdateRecord {RealPath {Buffer ""}} {
     set RealPath [file join $RealPath ".ioFTPD.nxNuke"]
     set OpenMode [expr {$Buffer eq "" ? "RDONLY CREAT" : "w"}]
 
-    ## Tcl can't open hidden files, quite lame.
+    ## Tcl cannot open hidden files, so the
+    ## hidden attribute must be removed first.
     catch {file attributes $RealPath -hidden 0}
+
     if {[catch {set Handle [open $RealPath $OpenMode]} ErrorMsg]} {
         ErrorLog NukeRecord $ErrorMsg
     } elseif {[string equal "" $Buffer]} {
@@ -59,7 +61,7 @@ proc ::nxTools::Nuke::UpdateRecord {RealPath {Buffer ""}} {
         puts $Handle $Buffer
         close $Handle
     }
-    ## Set the file's attributes to hidden
+
     catch {file attributes $RealPath -hidden 1}
     return [string trim $Record]
 }
