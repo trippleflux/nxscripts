@@ -20,14 +20,13 @@ namespace eval ::nxTools::Utils {
 
 proc ::nxTools::Utils::ChangeCredits {UserName Change {Section 0}} {
     incr Section
-    ## Validate the 'Change' parameter
     if {[regexp {^(\+|\-)?(\d+)$} $Change Result Method Amount] && [userfile open $UserName] == 0} {
         set NewUserFile ""
         userfile lock
         set UserFile [userfile bin2ascii]
         foreach UserLine [split $UserFile "\r\n"] {
             if {[string equal -nocase "credits" [lindex $UserLine 0]]} {
-                if {[string equal "" $Method]} {
+                if {![string length $Method]} {
                     set Value $Amount
                 } else {
                     set Value [expr wide([lindex $UserLine $Section]) $Method wide($Amount)]
@@ -99,18 +98,16 @@ proc ::nxTools::Utils::NewDate {FindArea} {
         foreach {AreaName Description VirtualPath RealPath SymLink DoLog DayOffset UserId GroupId Chmod} $NewArea {break}
         LinePuts ""; LinePuts "$AreaName ($Description):"
 
-        ## Format cookies and directory paths
+        ## Format cookies and directory paths.
         set AreaTime [expr {$TimeNow + ($DayOffset * 86400)}]
         set VirtualPath [clock format $AreaTime -format $VirtualPath -gmt [IsTrue $misc(UtcTime)]]
         set RealPath [clock format $AreaTime -format $RealPath -gmt [IsTrue $misc(UtcTime)]]
 
-        ## Create date directory if it doesn't exist
         if {[file isdirectory $RealPath] || ![catch {file mkdir $RealPath} ErrorMsg]} {
             LinePuts "Created directory: $RealPath"
             catch {vfs write $RealPath $UserId $GroupId $Chmod}
 
-            if {![string equal "" $SymLink]} {
-                ## Create symlink directory if it doesn't exist
+            if {[string length $SymLink]} {
                 if {[file isdirectory $SymLink] || ![catch {file mkdir $SymLink} ErrorMsg]} {
                     LinePuts "Created symlink: $SymLink"
                     catch {vfs chattr $SymLink 1 $VirtualPath}
@@ -136,7 +133,7 @@ proc ::nxTools::Utils::OneLines {Message} {
         ErrorLog OneLinesDb $ErrorMsg
         return 1
     }
-    if {[string equal "" $Message]} {
+    if {![string length $Message]} {
         foreach MessageType {Header Body None Footer} {
             set template($MessageType) [ReadFile [file join $misc(Templates) "OneLines.$MessageType"]]
         }
@@ -181,7 +178,7 @@ proc ::nxTools::Utils::RotateLogs {} {
 
     set MinimumSize [expr {$log(MinimumSize) * 1024 * 1024}]
     foreach LogFile $log(RotateList) {
-        ## Archive the file if it exists and meets the size requirement
+        ## Archive log file if it exists and meets the size requirement.
         if {![file isfile $LogFile]} {
             LinePuts "Skipping log \"[file tail $LogFile]\" - the file does not exist."
         } elseif {[file size $LogFile] < $MinimumSize} {
@@ -239,8 +236,8 @@ proc ::nxTools::Utils::WeeklyCredits {WkTarget WkAmount} {
         ErrorReturn "Unable to load the weekly credits configuration, contact a siteop."
     }
 
-    ## Display weekly credit targets
-    if {[string equal "" $WkTarget]} {
+    ## Display weekly credit targets.
+    if {![string length $WkTarget]} {
         if {[llength $TargetList]} {
             iputs "|     Target     |   Section   |  Credit Amount                          |"
             iputs "|------------------------------------------------------------------------|"
@@ -250,7 +247,7 @@ proc ::nxTools::Utils::WeeklyCredits {WkTarget WkAmount} {
             }
         } else {LinePuts "There are currently no weekly credit targets."}
     } elseif {[regexp {^(\d),((\+|\-)?\d+)$} $WkAmount Result Section Credits]} {
-        ## Add or remove weekly credit targets
+        ## Add or remove weekly credit targets.
         set Deleted 0; set Index 0
         set CreditsKB [expr {wide($Credits) * 1024}]
         foreach ListItem $TargetList {
@@ -262,7 +259,7 @@ proc ::nxTools::Utils::WeeklyCredits {WkTarget WkAmount} {
         if {$Deleted} {
             LinePuts "Removed the target \"$WkTarget\" (${Credits}MB in section $Section) from weekly credits."
         } else {
-            ## Check if the user or group exists
+            ## Check if the user or group exists.
             if {[string index $WkTarget 0] == "="} {
                 if {[resolve group [string range $WkTarget 1 end]] == -1} {
                     ErrorReturn "The specified group does not exist."
@@ -274,7 +271,7 @@ proc ::nxTools::Utils::WeeklyCredits {WkTarget WkAmount} {
             lappend TargetList [list $WkTarget $Section $CreditsKB]
         }
 
-        ## Rewrite weekly configuration file
+        ## Rewrite weekly configuration file.
         if {![catch {set Handle [open $weekly(ConfigFile) w]} ErrorMsg]} {
             puts -nonewline $Handle $CfgComments
             foreach ListItem [lsort -ascii -index 0 $TargetList] {
@@ -321,7 +318,7 @@ proc ::nxTools::Utils::WeeklySet {} {
                 }
                 set UserList [GetGroupUsers $GroupId]
                 set UserCount [llength $UserList]
-                ## Split the credits amongst the users in the group
+                ## Split credits evenly amongst its group members.
                 if {$UserCount > 1 && [IsTrue $weekly(SplitGroup)]} {
                     if {![regexp {^(\+|\-)?(\d+)$} $Credits Result Method Amount]} {continue}
                     set Credits $Method; append Credits [expr {wide($Amount) / $UserCount}]
@@ -423,12 +420,10 @@ proc ::nxTools::Utils::SiteGroupInfo {GroupName Section} {
     iputs "|  Username          |   All Up   |   All Dn   |   Ratio    |   Flags    |"
     iputs "|------------------------------------------------------------------------|"
 
-    ## Validate section number
+    ## Validate section number.
     if {![string is digit -strict $Section] || $Section > 9} {set Section 1} else {incr Section}
     set LeechCount 0
     set UserList [GetGroupUsers $GroupId]
-
-    ## Group stats totals
     set file(alldn) 0; set size(alldn) 0; set time(alldn) 0
     set file(allup) 0; set size(allup) 0; set time(allup) 0
 
@@ -449,14 +444,13 @@ proc ::nxTools::Utils::SiteGroupInfo {GroupName Section} {
                 }
             }
         }
-        ## Count leechers
         if {$uinfo(Ratio) != 0} {
             set uinfo(Ratio) "1:$uinfo(Ratio)"
         } else {
             set uinfo(Ratio) "Unlimited"; incr LeechCount
         }
 
-        ## Siteop/group admin prefix
+        ## Siteop and group admin prefix.
         if {[regexp "\[$misc(SiteopFlags)\]" $uinfo(Flags)]} {
             set uinfo(Prefix) "*"
         } elseif {[lsearch -exact $uinfo(AdminGroups) $GroupId] != -1} {
@@ -465,7 +459,7 @@ proc ::nxTools::Utils::SiteGroupInfo {GroupName Section} {
         iputs [format "| %-18s | %10s | %10s | %-10s | %-10s |" $uinfo(Prefix)$UserName [FormatSize $uinfo(allup)] [FormatSize $uinfo(alldn)] $uinfo(Ratio) $uinfo(Flags)]
     }
 
-    ## Find the group's slots and tagline
+    ## Find the group's description and slot count.
     array set ginfo [list Slots "0 0" TagLine "No TagLine Set"]
     if {[groupfile open $GroupName] == 0} {
         set GroupFile [groupfile bin2ascii]
@@ -536,7 +530,6 @@ proc ::nxTools::Utils::SiteSize {VirtualPath} {
         ErrorReturn "The specified file or directory does not exist."
     }
 
-    ## Count Files, directories and the total size
     GetDirStats $RealPath stats ".ioFTPD*"
     set stats(TotalSize) [expr {wide($stats(TotalSize)) / 1024}]
     LinePuts "$stats(FileCount) File(s), $stats(DirCount) Directory(s), [FormatSize $stats(TotalSize)]"
@@ -546,7 +539,7 @@ proc ::nxTools::Utils::SiteSize {VirtualPath} {
 
 proc ::nxTools::Utils::SiteTraffic {Target} {
     iputs ".-\[Traffic\]--------------------------------------------------------------."
-    if {[string equal "" $Target]} {
+    if {![string length $Target]} {
         set TrafficType 0
         set UserList [GetUserList]
     } elseif {[string index $Target 0] == "="} {
@@ -611,7 +604,7 @@ proc ::nxTools::Utils::SiteWho {} {
             set GroupName "NoGroup"; set TagLine "No Tagline Set"
             set FileName [file tail $DataPath]
 
-            ## Find the user's group and tagline
+            ## Find the user's group and tagline.
             if {[userfile open $UserName] == 0} {
                 set UserFile [userfile bin2ascii]
                 foreach UserLine [split $UserFile "\r\n"] {
@@ -624,7 +617,7 @@ proc ::nxTools::Utils::SiteWho {} {
                 }
             }
 
-            ## Show hidden users to either admins or the user
+            ## Show hidden users to either admins or the user.
             if {$IsAdmin || $cid == $ClientId || ![CheckHidden $UserName $GroupName $VirtualPath]} {
                 switch -- $Status {
                     0 - 3 {
@@ -663,7 +656,7 @@ proc ::nxTools::Utils::Main {ArgV} {
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     set IsSiteBot [expr {[info exists user] && [string equal $misc(SiteBot) $user]}]
 
-    ## Safe argument handling
+    ## Safe argument handling.
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
     set Action [string tolower [lindex $ArgList 0]]
     set Result 0

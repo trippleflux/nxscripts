@@ -31,7 +31,7 @@ proc ::nxTools::Close::ExcemptCheck {UserName GroupName Flags} {
 proc ::nxTools::Close::Main {ArgV} {
     global close misc flags group ioerror user
 
-    ## Safe argument handling
+    ## Safe argument handling.
     set ArgList [ArgList $ArgV]
     set Action [string tolower [lindex $ArgList 0]]
     set Result 0
@@ -45,15 +45,15 @@ proc ::nxTools::Close::Main {ArgV} {
                 LinePuts "Server is now closed for: $CloseReason."
                 putlog "CLOSE: \"$user\" \"$group\" \"$CloseReason\""
 
-                ## Save the close info to a "global" variable
                 set CloseInfo [list [clock seconds] $CloseReason]
                 var set nxToolsClosed $CloseInfo
 
-                ## Kick online users
+                ## Kick online users.
                 if {[IsTrue $close(KickOnClose)] && [client who init "CID" "UID"] == 0} {
                     while {[set WhoData [client who fetch]] != ""} {
                         set UserName [resolve uid [lindex $WhoData 1]]
-                        set GroupName "NoGroup"; set Flags ""
+                        set Flags ""
+                        set GroupName "NoGroup"
                         if {[userfile open $UserName] == 0} {
                             set UserFile [userfile bin2ascii]
                             foreach UserLine [split $UserFile "\r\n"] {
@@ -65,7 +65,6 @@ proc ::nxTools::Close::Main {ArgV} {
                                 }
                             }
                         }
-                        ## Kick any user non-excempted users
                         if {![ExcemptCheck $UserName $GroupName $Flags]} {
                             catch {client kill clientid [lindex $WhoData 0]}
                         }
@@ -94,7 +93,6 @@ proc ::nxTools::Close::Main {ArgV} {
                     set Duration [FormatDuration $Duration]
                 }
                 putlog "OPEN: \"$user\" \"$group\" \"$Duration\" \"[lindex $CloseInfo 1]\""
-                ## Unset the "global" variable
                 catch {var unset nxToolsClosed}
             }
             iputs "'------------------------------------------------------------------------'"

@@ -28,7 +28,7 @@ proc ::nxTools::Nuke::GetName {VirtualPath} {
     set Release [file tail [TrimTag $VirtualPath]]
     if {[IsMultiDisk $Release]} {
         set ParentPath [file tail [file dirname $VirtualPath]]
-        if {![string equal "" $ParentPath]} {set Release "$ParentPath ($Release)"}
+        if {[string length $ParentPath]} {set Release "$ParentPath ($Release)"}
     }
     return $Release
 }
@@ -54,7 +54,7 @@ proc ::nxTools::Nuke::UpdateRecord {RealPath {Buffer ""}} {
 
     if {[catch {set Handle [open $RealPath $OpenMode]} ErrorMsg]} {
         ErrorLog NukeRecord $ErrorMsg
-    } elseif {[string equal "" $Buffer]} {
+    } elseif {![string length $Buffer]} {
         set Record [read $Handle]
         close $Handle
     } else {
@@ -86,7 +86,6 @@ proc ::nxTools::Nuke::UpdateUser {IsNuke UserName Multi Size Files Stats CreditS
             }
         }
 
-        ## Change credits if the user is not leech
         if {$Ratio != 0} {
             set DiffCredits [expr {(wide($Size) * $Ratio) + (wide($Size) * ($Multi - 1))}]
             set NewCredits [expr {wide($OldCredits) + ($IsNuke ? -wide($DiffCredits) : wide($DiffCredits))}]
@@ -123,7 +122,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
     global approve misc nuke flags gid group groups pwd uid user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
 
-    ## Safe argument handling
+    ## Safe argument handling.
     set ArgList [ArgList $ArgV]
     set Action [string tolower [lindex $ArgList 0]]
     switch -- $Action {
@@ -208,24 +207,22 @@ proc ::nxTools::Nuke::Main {ArgV} {
             set ParentPath [file dirname $RealPath]
             ListAssign [GetCreditStatSections $VirtualPath] CreditSection StatSection
 
-            ## Count CDs/Discs/DVDs
+            ## Count disk sub-directories.
             foreach ListItem [glob -nocomplain -types d -directory $RealPath "*"] {
                 if {[IsMultiDisk $ListItem]} {incr DiskCount}
             }
 
-            ## Count files and total size
+            ## Count files and total size.
             GetDirList $RealPath dirlist ".ioFTPD*"
             foreach ListItem $dirlist(FileList) {
                 incr Files; set FileSize [file size $ListItem]
                 set TotalSize [expr {wide($TotalSize) + wide($FileSize)}]
                 catch {lindex [vfs read $ListItem] 0} UserId
                 if {[set NukeeUser [resolve uid $UserId]] != ""} {
-                    ## Increase file Count
                     if {[info exists nukefiles($NukeeUser)]} {
                         incr nukefiles($NukeeUser)
                     } else {set nukefiles($NukeeUser) 1}
 
-                    ## Add total size
                     if {[info exists nukesize($NukeeUser)]} {
                         set nukesize($NukeeUser) [expr {wide($nukesize($NukeeUser)) + wide($FileSize)}]
                     } else {set nukesize($NukeeUser) $FileSize}
@@ -233,7 +230,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
             }
             set TotalSize [expr {wide($TotalSize) / 1024}]
 
-            ## Check if Release is an empty nuke (less then 5KB)
+            ## Check if Release is an empty nuke (less than 5KB).
             if {$TotalSize < 5 || ![array exists nukesize]} {
                 set NukeType 2
                 unset -nocomplain nukefiles nukesize
@@ -266,7 +263,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
                 iputs "|------------------------------------------------------------------------|"
             }
 
-            ## Change the credits and stats of nukees
+            ## Change the credits and stats of nukees.
             set NukeeLog ""
             foreach NukeeUser [lsort -ascii [array names nukesize]] {
                 set NukeCredits [expr {wide($nukesize($NukeeUser)) / 1024}]
@@ -323,7 +320,6 @@ proc ::nxTools::Nuke::Main {ArgV} {
                 }
             }
 
-            ## Chmod directories
             GetDirList $NewPath dirlist ".ioFTPD*"
             foreach ListItem $dirlist(DirList) {
                 catch {vfs read $ListItem} VfsOwner
@@ -343,7 +339,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
             }
 
             if {![catch {DbOpenFile NukeDb "Nukes.db"} ErrorMsg]} {
-                ## In order to pass a NULL value to TclSQLite, the variable must be unset.
+                ## To pass a NULL value to TclSQLite the variable must be unset.
                 if {![string is digit -strict $NukeId]} {unset NukeId}
                 NukeDb eval {INSERT OR REPLACE INTO Nukes (NukeId,TimeStamp,UserName,GroupName,Status,Release,Reason,Multi,Files,Size) VALUES($NukeId,$NukeTime,$user,$group,$NukeStatus,$Release,$Reason,$Multi,$Files,$TotalSize)}
                 set NukeId [NukeDb last_insert_rowid]
@@ -414,7 +410,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
                 iputs "Syntax: SITE NUKETOP \[-max <limit>\] \[group\]"
                 return 0
             }
-            if {![string equal "" $Pattern]} {
+            if {[string length $Pattern]} {
                 set GroupMatch "GroupName LIKE '[SqlWildToLike $Pattern]' ESCAPE '\\' AND"
             } else {
                 set GroupMatch ""

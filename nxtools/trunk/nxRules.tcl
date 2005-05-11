@@ -26,7 +26,7 @@ proc ::nxTools::Rules::WordWrap {WrapText TextWidth} {
         lappend Result [string trim [string range $WrapText 0 $Index]]
         set WrapText [string range $WrapText [expr {$Index + 1}] end]
     }
-    if {![string equal "" $WrapText]} {lappend Result $WrapText}
+    if {[string length $WrapText]} {lappend Result $WrapText}
     return $Result
 }
 
@@ -38,12 +38,11 @@ proc ::nxTools::Rules::Main {ShowSection} {
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     set SectionList ""; set SectionName ""; set ShowList ""
 
-    ## Read rules configuration
+    ## Read rules configuration.
     if {![catch {set Handle [open $rules(ConfigFile) r]} ErrorMsg]} {
         while {![eof $Handle]} {
             set FileLine [string trim [gets $Handle]]
-            ## Check config section
-            if {[string equal "" $FileLine] || [string index $FileLine 0] == "#"} {continue
+            if {![string length $FileLine] || [string index $FileLine 0] == "#"} {continue
             } elseif {[string match {\[*\]} $FileLine]} {
                 set SectionName [string range $FileLine 1 end-1]
                 lappend SectionList $SectionName
@@ -54,13 +53,13 @@ proc ::nxTools::Rules::Main {ShowSection} {
         close $Handle
     } else {ErrorLog RulesRead $ErrorMsg; return 1}
 
-    ## Find specified section, show all areas if is there no match
+    ## Find the specified section, show all areas if is there no match.
     foreach SectionName $SectionList {
         if {[string equal -nocase $SectionName $ShowSection]} {
             set ShowList [list $SectionName]; break
         }
     }
-    if {[string equal "" $ShowList]} {set ShowList $SectionList}
+    if {![string length $ShowList]} {set ShowList $SectionList}
 
     foreach MessageType {Header Section SingleLine MultiLine Footer} {
         set template($MessageType) [ReadFile [file join $misc(Templates) "Rules.$MessageType"]]
@@ -69,13 +68,13 @@ proc ::nxTools::Rules::Main {ShowSection} {
 
     foreach SectionName $ShowList {
         set RuleList [lindex [array get rule $SectionName] 1]
-        if {[string equal "" $RuleList]} {continue}
+        if {![string length $RuleList]} {continue}
         set Count 0
         OutputData [ParseCookies $template(Section) [list $SectionName $SectionList] {section sections}]
 
         foreach {PunishText RuleText} $RuleList {
             incr Count; set MultiLine 0
-            ## Wrap each line before displaying
+            ## Wrap each line before displaying.
             foreach RuleLine [WordWrap $RuleText $rules(LineWidth)] {
                 set ValueList [list $Count $PunishText $RuleLine $SectionName]
                 if {!$MultiLine} {

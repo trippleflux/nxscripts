@@ -203,7 +203,7 @@ proc ::nxTools::Db::Main {ArgV} {
     variable dbschema
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
 
-    ## Safe argument handling
+    ## Safe argument handling.
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
     set Action [string tolower [lindex $ArgList 0]]
 

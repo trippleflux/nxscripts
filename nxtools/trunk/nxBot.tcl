@@ -80,7 +80,6 @@ proc ::nxTools::Bot::UserStats {StatsType Target StartIndex EndIndex} {
         lappend StatsList [list $UserName $GroupName $FileStats $SizeStats $TimeStats]
     }
 
-    ## Sort user stats
     set Count 0
     set StatsList [lsort -decreasing -integer -index 3 $StatsList]
     foreach UserStats $StatsList {
@@ -109,7 +108,6 @@ proc ::nxTools::Bot::GroupStats {StatsType Target StartIndex EndIndex} {
         lappend StatsList [list $GroupName $FileStats $SizeStats $TimeStats]
     }
 
-    ## Sort group stats
     set Count 0
     set StatsList [lsort -decreasing -integer -index 2 $StatsList]
     foreach GroupStats $StatsList {
@@ -154,7 +152,7 @@ proc ::nxTools::Bot::Who {} {
             set FileName [file tail $DataPath]
             set Speed [expr {double($Speed)}]
 
-            ## Find the user's group name
+            ## Find the user's primary group.
             if {[userfile open $UserName] == 0} {
                 set UserFile [userfile bin2ascii]
                 foreach UserLine [split $UserFile "\r\n"] {
@@ -179,7 +177,7 @@ proc ::nxTools::Bot::Main {ArgV} {
     global misc ioerror
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
 
-    ## Safe argument handling
+    ## Safe argument handling.
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
     set Action [string tolower [lindex $ArgList 0]]
     set Result 0
@@ -196,13 +194,13 @@ proc ::nxTools::Bot::Main {ArgV} {
         }
         {stats} {
             if {$ArgLength > 2} {
-                ## Check stats type
+                ## Check stats type.
                 set StatsType [string tolower [lindex $ArgList 1]]
                 if {[lsearch -exact {alldn allup daydn dayup monthdn monthup wkdn wkup} $StatsType] == -1} {
                     set StatsType "Stats"
                 }
 
-                ## Check section number
+                ## Check section number.
                 set Section [lindex $ArgList 2]
                 if {![string is digit -strict $Section] || $Section > 9} {
                     set StartIndex 1
@@ -212,7 +210,6 @@ proc ::nxTools::Bot::Main {ArgV} {
                     set EndIndex [incr Section 2]
                 }
 
-                ## User or group stats
                 if {[string index [set Target [lindex $ArgList 2]] 0] == "="} {
                     set Target [string range $Target 1 end]
                     set Result [GroupStats $StatsType $Target $StartIndex $EndIndex]

@@ -41,7 +41,7 @@ proc ::nxTools::Req::CheckLimit {DbProc UserName} {
 
 proc ::nxTools::Req::UpdateDir {Action Request {UserId 0} {GroupId 0}} {
     global req
-    if {[string equal "" $req(RequestPath)]} {
+    if {![string length $req(RequestPath)]} {
         return
     } elseif {[file exists $req(RequestPath)]} {
         set ReMap [list %(request) $Request]
@@ -52,7 +52,6 @@ proc ::nxTools::Req::UpdateDir {Action Request {UserId 0} {GroupId 0}} {
             }
             {del} {
                 if {[file isdirectory $ReqPath]} {
-                    ## Kick users in the directory
                     KickUsers [file join $ReqPath "*"] True
                     if {[catch {file delete -force -- $ReqPath} ErrorMsg]} {
                         ErrorLog ReqDelete $ErrorMsg
@@ -62,7 +61,6 @@ proc ::nxTools::Req::UpdateDir {Action Request {UserId 0} {GroupId 0}} {
             {fill} {
                 if {[file isdirectory $ReqPath]} {
                     set FillPath [file join $req(RequestPath) [string map $ReMap $req(FilledTag)]]
-                    ## Kick users in the directory
                     KickUsers [file join $ReqPath "*"] True
                     if {[catch {file rename -force -- $ReqPath $FillPath} ErrorMsg]} {
                         ErrorLog ReqFill $ErrorMsg
@@ -87,7 +85,7 @@ proc ::nxTools::Req::Main {ArgV} {
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     set IsSiteBot [expr {[info exists user] && [string equal $misc(SiteBot) $user]}]
 
-    ## Safe argument handling
+    ## Safe argument handling.
     set ArgList [ArgList $ArgV]
     set Action [string tolower [lindex $ArgList 0]]
     set Request [join [lrange $ArgList 1 end]]
@@ -107,7 +105,7 @@ proc ::nxTools::Req::Main {ArgV} {
 
     switch -- $Action {
         {add} {
-            if {[string equal "" $Request]} {
+            if {![string length $Request]} {
                 ErrorReturn "Syntax: SITE REQUEST <request>"
             }
             set Request [StripChars $Request]
@@ -142,7 +140,7 @@ proc ::nxTools::Req::Main {ArgV} {
                 LinePuts "Filled request $values(Request) by $values(UserName)/$values(GroupName)."
                 set LogPrefix "REQFILL"
             } elseif {[string equal "del" $Action]} {
-                ## Only siteops or the requester may delete a request
+                ## Only siteops or its owner may delete the request.
                 if {![string equal $user $values(UserName)] && ![regexp "\[$misc(SiteopFlags)\]" $flags]} {
                     ReqDb close
                     ErrorReturn "You are not allowed to delete another user's request."
@@ -196,11 +194,10 @@ proc ::nxTools::Req::Main {ArgV} {
                     set RequestAge [expr {[clock seconds] - $values(TimeStamp)}]
                     set RequestId [format "%03s" $values(RequestId)]
 
-                    ## Wipe the directory if it exists
+                    ## Wipe the directory if it exists.
                     set FillPath [string map [list %(request) $values(Request)] $req(FilledTag)]
                     set FillPath [file join $req(RequestPath) $FillPath]
                     if {[file isdirectory $FillPath]} {
-                        ## Kick users in the directory
                         KickUsers [file join $FillPath "*"] True
                         if {[catch {file delete -force -- $FillPath} ErrorMsg]} {
                             ErrorLog ReqWipe $ErrorMsg

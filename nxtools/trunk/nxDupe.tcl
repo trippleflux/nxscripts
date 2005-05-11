@@ -20,7 +20,6 @@ namespace eval ::nxTools::Dupe {
 
 proc ::nxTools::Dupe::CheckDirs {VirtualPath} {
     global dupe
-    ## Check exempts and ignores
     if {[ListMatch $dupe(CheckExempts) $VirtualPath] || [ListMatchI $dupe(IgnoreDirs) $VirtualPath]} {return 0}
     set Result 0
     if {![catch {DbOpenFile DirDb "DupeDirs.db"} ErrorMsg]} {
@@ -43,7 +42,6 @@ proc ::nxTools::Dupe::CheckDirs {VirtualPath} {
 
 proc ::nxTools::Dupe::CheckFiles {VirtualPath} {
     global dupe
-    ## Check exempts and ignores
     if {[ListMatch $dupe(CheckExempts) $VirtualPath] || [ListMatchI $dupe(IgnoreFiles) $VirtualPath]} {return 0}
     set Result 0
     if {![catch {DbOpenFile FileDb "DupeFiles.db"} ErrorMsg]} {
@@ -93,7 +91,7 @@ proc ::nxTools::Dupe::UpdateDirs {Action VirtualPath} {
         DirDb eval {INSERT INTO DupeDirs (TimeStamp,UserName,GroupName,DirPath,DirName) VALUES($TimeStamp,$user,$group,$DirPath,$DirName)}
     } elseif {[lsearch -sorted "RMD RNFR WIPE" $Action] != -1} {
         ## Append a slash to improve the accuracy of StrEqN.
-        ## Ex. /Dir/Blah matches /Dir/Blah.Blah but /Dir/Blah/ doesn't.
+        ## For example, /Dir/Blah matches /Dir/Blah.Blah but /Dir/Blah/ does not.
         append VirtualPath "/"
         DirDb function StrEq {string equal -nocase}
         DirDb function StrEqN {string equal -nocase -length}
@@ -124,7 +122,6 @@ proc ::nxTools::Dupe::UpdateFiles {Action VirtualPath} {
 
 proc ::nxTools::Dupe::CleanDb {} {
     global dupe misc user group
-    ## A userfile and VFS file will have to be opened so that resolve works under ioFTPD's scheduler
     if {![info exists user] && ![info exists group]} {
         if {[userfile open $misc(MountUser)] != 0} {
             ErrorLog DupeClean "unable to open the user \"$misc(MountUser)\""; return 1
@@ -192,7 +189,6 @@ proc ::nxTools::Dupe::RebuildDb {} {
         foreach {VirtualPath RealPath UpdateDirs UpdateFiles} $RebuildPath {break}
         set TrimLength [expr {[string length [file normalize $RealPath]] + 1}]
 
-        ## Process directory lists
         LinePuts "Updating dupe database from: $RealPath"
         GetDirList $RealPath dirlist $dupe(RebuildIgnore)
 
@@ -210,17 +206,14 @@ proc ::nxTools::Dupe::RebuildDb {} {
             set DefGroup [resolve gid [lindex $DefOwner 1]]
 
             foreach ListItem $dirlist($ListName) {
-                ## Check if the list item is in the ignore list
                 if {[ListMatchI $IgnoreList $ListItem]} {continue}
 
-                ## Read date and owner
                 if {[catch {file stat $ListItem fstat}]} {continue}
                 if {$MaxAge != 0 && ([clock seconds] - $fstat(ctime)) > $MaxAge} {continue}
                 catch {vfs read $ListItem} Owner
                 if {[set UserName [resolve uid [lindex $Owner 0]]] == ""} {set UserName $DefUser}
                 if {[set GroupName [resolve gid [lindex $Owner 1]]] == ""} {set GroupName $DefGroup}
 
-                ## File/directory specific log types
                 set BaseName [file tail $ListItem]
                 if {$FileMode} {
                     FileDb eval {INSERT INTO DupeFiles (TimeStamp,UserName,GroupName,FileName) VALUES($fstat(ctime),$UserName,$GroupName,$BaseName)}
@@ -326,7 +319,7 @@ proc ::nxTools::Dupe::PreTimeCheck {VirtualPath} {
         set ReleaseName [::mysql::escape [file tail $VirtualPath]]
         set TimeStamp [::mysql::sel $mysql(ConnHandle) "SELECT pretime FROM $mysql(TableName) WHERE release='$ReleaseName' LIMIT 1" -flatlist]
 
-        if {![string equal "" $TimeStamp]} {
+        if {[string is digit -strict $TimeStamp]} {
             if {[set ReleaseAge [expr {[clock seconds] - $TimeStamp}]] > [set LateSecs [expr {$LateMins * 60}]]} {
                 if {[IsTrue $DenyLate]} {
                     set ErrCode 553; set LogPrefix "DENYPRE"; set Result 1
@@ -369,7 +362,7 @@ proc ::nxTools::Dupe::RaceLinks {VirtualPath} {
         ErrorLog RaceLinks $ErrorMsg
         return 1
     }
-    ## Format and create the link directory
+    ## Format and create link directory.
     set TagName [file tail $VirtualPath]
     if {$latest(MaxLength) > 0 && [string length $TagName] > $latest(MaxLength)} {
         set TagName [string trimright [string range $TagName 0 $latest(MaxLength)] "."]
@@ -382,7 +375,7 @@ proc ::nxTools::Dupe::RaceLinks {VirtualPath} {
         catch {vfs chattr $TagName 1 $VirtualPath}
     } else {ErrorLog RaceLinksMkDir $ErrorMsg}
 
-    ## Remove older links
+    ## Remove older links.
     if {[set LinkCount [LinkDb eval {SELECT count(*) FROM Links WHERE LinkType=0}]] > $latest(RaceLinks)} {
         set LinkCount [expr {$LinkCount - $latest(RaceLinks)}]
         LinkDb eval "SELECT DirName,rowid FROM Links WHERE LinkType=0 ORDER BY TimeStamp ASC LIMIT $LinkCount" values {
@@ -569,7 +562,7 @@ proc ::nxTools::Dupe::SiteNew {MaxResults ShowSection} {
     }
     set SectionList [GetSectionList]
     if {![set ShowAll [string equal "" $ShowSection]]} {
-        ## Validate the section name
+        ## Validate the section name.
         set SectionNameList ""; set ValidSection 0
         foreach {SectionName CreditSection StatSection MatchPath} $SectionList {
             if {[string equal -nocase $ShowSection $SectionName]} {
@@ -592,7 +585,7 @@ proc ::nxTools::Dupe::SiteNew {MaxResults ShowSection} {
     set Count 0
     DirDb eval "SELECT * FROM DupeDirs $WhereClause ORDER BY TimeStamp DESC LIMIT $MaxResults" values {
         incr Count
-        ## Find section name and check the match path
+        ## Find section name and check the match path.
         if {$ShowAll} {
             set SectionName "Default"
             foreach {SectionName CreditSection StatSection MatchPath} $SectionList {
@@ -749,7 +742,7 @@ proc ::nxTools::Dupe::Main {ArgV} {
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     set IsSiteBot [expr {[info exists user] && [string equal $misc(SiteBot) $user]}]
 
-    ## Safe argument handling
+    ## Safe argument handling.
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
     set Action [string tolower [lindex $ArgList 0]]
     set Result 0

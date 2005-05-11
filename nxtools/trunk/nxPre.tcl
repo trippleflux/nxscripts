@@ -20,17 +20,19 @@ namespace eval ::nxTools::Pre {
 
 proc ::nxTools::Pre::ConfigLoader {ConfigFile} {
     upvar ConfigComments ConfigComments prearea prearea pregrp pregrp prepath prepath
-    set ConfMode 0; set ConfigComments ""
+    set ConfigComments ""
+    set ConfigSection 0
     if {![catch {set Handle [open $ConfigFile r]} ErrorMsg]} {
         while {![eof $Handle]} {
-            if {[set FileLine [string trim [gets $Handle]]] == ""} {continue}
-            ## Check config section
+            set FileLine [string trim [gets $Handle]]
+            if {![string length $FileLine]} {continue}
+
             if {[string index $FileLine 0] == "#"} {append ConfigComments $FileLine "\n"; continue
-            } elseif {[string equal {[AREAS]} $FileLine]} {set ConfMode 1; continue
-            } elseif {[string equal {[GROUPS]} $FileLine]} {set ConfMode 2; continue
-            } elseif {[string equal {[PATHS]} $FileLine]} {set ConfMode 3; continue
-            } elseif {[string match {\[*\]} $FileLine]} {set ConfMode 0; continue}
-            switch -- $ConfMode {
+            } elseif {[string equal {[AREAS]} $FileLine]} {set ConfigSection 1; continue
+            } elseif {[string equal {[GROUPS]} $FileLine]} {set ConfigSection 2; continue
+            } elseif {[string equal {[PATHS]} $FileLine]} {set ConfigSection 3; continue
+            } elseif {[string match {\[*\]} $FileLine]} {set ConfigSection 0; continue}
+            switch -- $ConfigSection {
                 1 {set prearea([lindex $FileLine 0]) [lindex $FileLine 1]}
                 2 {set pregrp([lindex $FileLine 0]) [lindex $FileLine 1]}
                 3 {set prepath([lindex $FileLine 0]) [lrange $FileLine 1 end]}
@@ -68,7 +70,7 @@ proc ::nxTools::Pre::ResolvePath {UserName GroupName RealPath} {
     set ResolvePath "/"; set VfsFile ""
     set RealPath [string map {\\ /} $RealPath]
 
-    ## Find the user VFS-File
+    ## Find the user VFS file.
     if {[userfile open $UserName] == 0} {
         set UserFile [userfile bin2ascii]
         foreach UserLine [split $UserFile "\r\n"] {
@@ -78,7 +80,7 @@ proc ::nxTools::Pre::ResolvePath {UserName GroupName RealPath} {
             }
         }
     }
-    ## Use the group VFS-File (if the user vfs file doesn't exist)
+    ## Use the group VFS file if the user vfs file does not exist.
     if {![file isfile $VfsFile] && [groupfile open $GroupName] == 0} {
         set GroupFile [groupfile bin2ascii]
         foreach GroupLine [split $GroupFile "\r\n"] {
@@ -88,7 +90,7 @@ proc ::nxTools::Pre::ResolvePath {UserName GroupName RealPath} {
             }
         }
     }
-    ## Use the default VFS-File (if the user and group vfs file don't exist)
+    ## Use the default VFS file if both the user and group VFS file do not exist.
     if {![file isfile $VfsFile]} {
         set VfsFile [config read "Locations" "Default_Vfs"]
     }
@@ -97,7 +99,7 @@ proc ::nxTools::Pre::ResolvePath {UserName GroupName RealPath} {
             if {[set FileLine [string trim [gets $Handle]]] == ""} {continue}
             foreach {VfsRealPath VfsVirtualPath} [string map {\\ /} $FileLine] {break}
             if {[string first [string tolower $VfsRealPath] [string tolower $RealPath]] == 0} {
-                ## Use the longest available mount path (more accurate)
+                ## Use the longest available mount path, improves more accuracy.
                 if {[set Length [string length $VfsRealPath]] > $BestMatch} {
                     set ResolvePath [string range $RealPath [set BestMatch $Length] end]
                     set ResolvePath [file join $VfsVirtualPath [string trimleft $ResolvePath "/"]]
@@ -121,7 +123,7 @@ proc ::nxTools::Pre::UpdateLinks {VirtualPath} {
         ErrorLog PreLinks $ErrorMsg
         return 1
     }
-    ## Format and create the link directory
+    ## Format and create link directory.
     set TagName [file tail $VirtualPath]
     if {$latest(MaxLength) > 0 && [string length $TagName] > $latest(MaxLength)} {
         set TagName [string trimright [string range $TagName 0 $latest(MaxLength)] "."]
@@ -134,7 +136,7 @@ proc ::nxTools::Pre::UpdateLinks {VirtualPath} {
         catch {vfs chattr $TagName 1 $VirtualPath}
     } else {ErrorLog PreLinksMkDir $ErrorMsg}
 
-    ## Remove older links
+    ## Remove older links.
     if {[set LinkCount [LinkDb eval {SELECT count(*) FROM Links WHERE LinkType=1}]] > $latest(PreLinks)} {
         set LinkCount [expr {$LinkCount - $latest(PreLinks)}]
         LinkDb eval "SELECT DirName,rowid FROM Links WHERE LinkType=1 ORDER BY TimeStamp ASC LIMIT $LinkCount" values {
@@ -166,7 +168,6 @@ proc ::nxTools::Pre::UpdateUser {UserName Files Size CreditSection StatSection} 
             }
         }
 
-        ## Change credits if the user is not leech
         if {$Ratio != 0} {
             set DiffCredits [expr {wide($Size) * $Ratio}]
             set NewCredits [expr {wide($OldCredits) + wide($DiffCredits)}]
@@ -203,7 +204,7 @@ proc ::nxTools::Pre::Main {ArgV} {
     set Action [string tolower $Action]
 
     if {[string equal "pre" $Action]} {
-        if {[string equal "" $Option] || [string equal -nocase "help" $Option]} {
+        if {![string length $Option] || [string equal -nocase "help" $Option]} {
             iputs ".-\[Pre\]------------------------------------------------------------------."
             ConfigLoader $pre(ConfigFile)
             LinePuts "Syntax: SITE PRE <area> <directory>"
@@ -216,7 +217,7 @@ proc ::nxTools::Pre::Main {ArgV} {
                 iputs "Syntax: SITE PRE HISTORY \[-max <limit>\] \[group\]"
                 return 0
             }
-            if {![string equal "" $Pattern]} {
+            if {[string length $Pattern]} {
                 set WhereClause "WHERE GroupName LIKE '[SqlWildToLike $Pattern]' ESCAPE '\\'"
             } else {
                 set WhereClause ""
@@ -237,7 +238,7 @@ proc ::nxTools::Pre::Main {ArgV} {
                 iputs "Syntax: SITE PRE STATS \[-max <limit>\] \[group\]"
                 return 0
             }
-            if {![string equal "" $Pattern]} {
+            if {[string length $Pattern]} {
                 set WhereClause "WHERE GroupName LIKE '[SqlWildToLike $Pattern]' ESCAPE '\\'"
             } else {
                 set WhereClause ""
@@ -258,14 +259,14 @@ proc ::nxTools::Pre::Main {ArgV} {
             ConfigLoader $pre(ConfigFile)
             set PreArea [string toupper $Option]
 
-            ## Check area and group paths
-            if {![info exists prearea($PreArea)] || [string equal "" $prearea($PreArea)]} {
+            ## Check area and group paths.
+            if {![info exists prearea($PreArea)] || ![string length $prearea($PreArea)]} {
                 ErrorReturn "Invalid area, try \"SITE PRE HELP\" to view available areas."
             } elseif {![info exists pregrp($PreArea)]} {
                 ErrorReturn "The specified area has no group list defined."
             }
 
-            ## Check if group is allowed to pre to the area and from this path
+            ## Check if group is allowed to pre to the area and from this path.
             set AllowPath 0; set PreGroup ""
             set VirtualPath [GetPath $pwd $Target]
             foreach GroupName $groups {
@@ -282,21 +283,21 @@ proc ::nxTools::Pre::Main {ArgV} {
                     if {$AllowPath} {break}
                 }
             }
-            if {[string equal "" $PreGroup]} {
+            if {![string length $PreGroup]} {
                 ErrorReturn "Your group(s) are not allowed to pre to the \"$PreArea\" area."
             } elseif {!$AllowPath} {
                 ErrorReturn "Your group \"$PreGroup\" is not allowed to pre from this path."
             }
 
-            ## Check if the specified directory exists
+            ## Check if the specified directory exists.
             set RealPath [resolve pwd $VirtualPath]
-            if {[string equal "" $Target] || ![file isdirectory $RealPath]} {
+            if {![string length $Target] || ![file isdirectory $RealPath]} {
                 ErrorReturn "The specified directory does not exist."
             }
             set DiskCount 0; set Files 0; set TotalSize 0
             set Release [file tail $VirtualPath]
 
-            ## Find the destination path
+            ## Find destination path.
             set DestRealPath $prearea($PreArea)
             set PreTime [clock seconds]
             set DestRealPath [clock format $PreTime -format $DestRealPath -gmt [IsTrue $misc(UtcTime)]]
@@ -307,16 +308,16 @@ proc ::nxTools::Pre::Main {ArgV} {
             set DestRealPath [file join $DestRealPath $Release]
             if {[file exists $DestRealPath]} {ErrorReturn "A file or directory by that name already exists in the target area."}
 
-            ## Find the credit and stats section
+            ## Find the credit and stats section.
             set DestVirtualPath [ResolvePath $user $group $DestRealPath]
             ListAssign [GetCreditStatSections $DestVirtualPath] CreditSection StatSection
 
-            ## Count CDs/Discs/DVDs
+            ## Count disk sub-directories.
             foreach ListItem [glob -nocomplain -types d -directory $RealPath "*"] {
                 if {[IsMultiDisk $ListItem]} {incr DiskCount}
             }
 
-            ## Count files and total size
+            ## Count files and total size.
             GetDirList $RealPath dirlist ".ioFTPD*"
             foreach ListItem $dirlist(FileList) {
                 incr Files; set FileSize [file size $ListItem]
@@ -325,12 +326,10 @@ proc ::nxTools::Pre::Main {ArgV} {
                 if {[IsTrue $pre(Uploaders)]} {
                     catch {lindex [vfs read $ListItem] 0} UserId
                     if {$FileSize > 0 && [set UserName [resolve uid $UserId]] != ""} {
-                        ## Increase file Count
                         if {[info exists prefiles($UserName)]} {
                             incr prefiles($UserName)
                         } else {set prefiles($UserName) 1}
 
-                        ## Add total size
                         if {[info exists presize($UserName)]} {
                             set presize($UserName) [expr {wide($presize($UserName)) + wide($FileSize)}]
                         } else {set presize($UserName) $FileSize}
@@ -361,7 +360,7 @@ proc ::nxTools::Pre::Main {ArgV} {
             LinePuts "Release : $Release"
             LinePuts "Files   : [format %-16s ${Files}F] Size: [format %-16s [FormatSize $TotalSize]] CDs: $DiskCount"
 
-            ## Move release to the destination path
+            ## Move release to the destination path.
             KickUsers [file join $VirtualPath "*"]
             if {[catch {file rename -force -- $RealPath $DestRealPath} ErrorMsg]} {
                 ErrorLog PreMove $ErrorMsg
@@ -372,7 +371,7 @@ proc ::nxTools::Pre::Main {ArgV} {
             set FilePath [expr {!$DiskCount ? "*.mp3" : "*/*.mp3"}]
             set MP3Files [glob -nocomplain -types f -directory $DestRealPath $FilePath]
 
-            ## Attempt to parse every MP3 file until successful
+            ## Attempt to parse every MP3 file until successful.
             foreach FilePath $MP3Files {
                 if {[::nx::mp3 $FilePath mp3]} {
                     set Codec [format "MPEG %.1f Layer %d" $mp3(version) $mp3(layer)]
@@ -387,7 +386,7 @@ proc ::nxTools::Pre::Main {ArgV} {
                 }
             }
 
-            ## Hide the user's name
+            ## Change file and directory ownership.
             if {[string is digit -strict $pre(ChownUserId)]} {
                 GetDirList $DestRealPath dirlist ".ioFTPD*"
                 foreach ListItem $dirlist(DirList) {
@@ -407,7 +406,7 @@ proc ::nxTools::Pre::Main {ArgV} {
                     catch {vfs write $ListItem $pre(ChownUserId) $GroupId $Chmod}
                 }
             }
-            ## Touch file and directory times
+            ## Update file and directory times.
             if {[IsTrue $pre(TouchTimes)]} {
                 if {![::nx::touch -recurse $DestRealPath $PreTime]} {
                     ErrorLog PreTouch "unable to touch file times for \"$DestRealPath\""
@@ -463,7 +462,7 @@ proc ::nxTools::Pre::Main {ArgV} {
                 }
                 MySqlClose
             }
-            ## Create latest pre symlinks
+            ## Create latest pre symlinks.
             if {$latest(PreLinks) > 0} {UpdateLinks $DestVirtualPath}
         }
     } elseif {[string equal "edit" $Action]} {
@@ -474,26 +473,24 @@ proc ::nxTools::Pre::Main {ArgV} {
         set Option [string tolower $Option]
         switch -- $Option {
             {addarea} {
-                if {[string equal "" $Target]} {
+                if {![string length $Target]} {
                     ErrorReturn "Invalid area, you must specify an area to add."
                 } elseif {[info exists prearea($PreArea)]} {
                     ErrorReturn "The \"$PreArea\" area already exists, delete it first."
-                } elseif {[string equal "" $Value]} {
+                } elseif {![string length $Value]} {
                     ErrorReturn "The \"$PreArea\" area must have a destination path."
                 }
 
-                ## Check pre destination path
                 set RealPath [resolve pwd $Value]
                 if {[string index $Value 0] != "/" || ![file isdirectory $RealPath]} {
                     LinePuts "The destination path \"$Value\" is invalid or does not exist."
                     ErrorReturn "Note: Make sure the path begins with a forward slash."
                 } elseif {[string index $RealPath end] != "/"} {append RealPath "/"}
 
-                ## Check date cookie(s)
                 if {[string first "%" $Other] != -1} {
                     set Other [string trim $Other "/"]
                     append RealPath $Other "/"
-                } elseif {![string equal "" $Other]} {
+                } elseif {[string length $Other]} {
                     LinePuts "Invalid destination date cookie(s) \"$Other\"."
                     ErrorReturn "Note: Try \"SITE EDITPRE HELP ADDAREA\" to view valid date cookies."
                 }
@@ -504,7 +501,7 @@ proc ::nxTools::Pre::Main {ArgV} {
                 ConfigWriter $pre(ConfigFile)
             }
             {delarea} {
-                if {[string equal "" $Target] || ![info exists prearea($PreArea)]} {
+                if {![string length $Target] || ![info exists prearea($PreArea)]} {
                     ErrorReturn "Invalid area, try \"SITE EDITPRE HELP\" to view available areas."
                 }
                 unset -nocomplain prearea($PreArea) pregrp($PreArea)
@@ -512,13 +509,13 @@ proc ::nxTools::Pre::Main {ArgV} {
                 ConfigWriter $pre(ConfigFile)
             }
             {addgrp} {
-                if {[string equal "" $Target] || ![info exists prearea($PreArea)]} {
+                if {![string length $Target] || ![info exists prearea($PreArea)]} {
                     ErrorReturn "Invalid area, try \"SITE EDITPRE HELP\" to view available areas."
-                } elseif {[string equal "" $Value]} {
+                } elseif {![string length $Value]} {
                     ErrorReturn "Invalid group, you must specify a group to add."
                 }
 
-                ## Check if the group already exists in the area
+                ## Check if the group already exists in the area.
                 if {![info exists pregrp($PreArea)]} {set pregrp($PreArea) ""}
                 foreach GroupEntry $pregrp($PreArea) {
                     if {[string equal -nocase $GroupEntry $Value]} {
@@ -530,14 +527,12 @@ proc ::nxTools::Pre::Main {ArgV} {
                 ConfigWriter $pre(ConfigFile)
             }
             {delgrp} {
-                if {[string equal "" $Target] || ![info exists prearea($PreArea)]} {
+                if {![string length $Target] || ![info exists prearea($PreArea)]} {
                     ErrorReturn "Invalid area, try \"SITE EDITPRE HELP\" to view available areas."
-                } elseif {[string equal "" $Value]} {
+                } elseif {![string length $Value]} {
                     ErrorReturn "Invalid group, you must specify a group to remove."
                 }
                 set Deleted 0; set Index 0
-
-                ## Remove the group from the area list
                 if {![info exists pregrp($PreArea)]} {set pregrp($PreArea) ""}
                 foreach GroupEntry $pregrp($PreArea) {
                     if {[string equal -nocase $GroupEntry $Value]} {
@@ -554,20 +549,19 @@ proc ::nxTools::Pre::Main {ArgV} {
                 }
             }
             {addpath} {
-                if {[string equal "" $Target]} {
+                if {![string length $Target]} {
                     ErrorReturn "Invalid group, try \"SITE EDITPRE HELP ADDPATH\" for help."
-                } elseif {[string equal "" $Value]} {
+                } elseif {![string length $Value]} {
                     ErrorReturn "Invalid path, you must specify a path where group can pre from."
                 }
 
-                ## Check group path
                 set RealPath [resolve pwd $Value]
                 if {[string index $Value 0] != "/" || ![file isdirectory $RealPath]} {
                     LinePuts "The path \"$Value\" is invalid or does not exist."
                     ErrorReturn "Note: Make sure the path has both leading and trailing slashes."
                 } elseif {[string index $Value end] != "/"} {append Value "/"}
 
-                ## Check if the path already defined for that group
+                ## Check if the path already defined for that group.
                 if {![info exists prepath($Target)]} {set prepath($Target) ""}
                 foreach PathEntry $prepath($Target) {
                     if {[string equal -nocase $PathEntry $Value]} {
@@ -580,13 +574,11 @@ proc ::nxTools::Pre::Main {ArgV} {
                 ConfigWriter $pre(ConfigFile)
             }
             {delpath} {
-                if {[string equal "" $Target]} {
+                if {![string length $Target]} {
                     ErrorReturn "Invalid group, try \"SITE EDITPRE HELP DELPATH\" for help."
-                } elseif {[string equal "" $Value]} {
+                } elseif {![string length $Value]} {
                     ErrorReturn "Invalid path, you must specify a path to delete."
                 }
-
-                ## Remove the path from the group
                 set Deleted 0; set Index 0
                 if {[info exists prepath($Target)]} {
                     foreach PathEntry $prepath($Target) {
@@ -596,7 +588,7 @@ proc ::nxTools::Pre::Main {ArgV} {
                         }
                         incr Index
                     }
-                    if {[string equal "" $prepath($Target)]} {unset prepath($Target)}
+                    if {![string length $prepath($Target)]} {unset prepath($Target)}
                 }
                 if {$Deleted} {
                     LinePuts "Removed path \"$Value\" for the \"$Target\" group."
@@ -606,7 +598,7 @@ proc ::nxTools::Pre::Main {ArgV} {
                 }
             }
             {hidepath} - {hidepaths} {
-                if {[string equal "" $Target]} {
+                if {![string length $Target]} {
                     set Target "*"
                 } elseif {![info exists prepath($Target)]} {
                     ErrorReturn "Invalid group, try \"SITE EDITPRE HELP HIDEPATH\" for help."

@@ -20,17 +20,18 @@ namespace eval ::nxTools::Invite {
 
 proc ::nxTools::Invite::ConfigLoader {ConfigFile} {
     upvar ConfigComments ConfigComments invchan invchan rights rights
-    set ConfMode 0; set ConfigComments ""
+    set ConfigComments ""
+    set ConfigSection 0
     if {![catch {set Handle [open $ConfigFile r]} ErrorMsg]} {
         while {![eof $Handle]} {
             set FileLine [string trim [gets $Handle]]
-            if {[string equal "" $FileLine]} {continue}
-            ## Check config section
+            if {![string length $FileLine]} {continue}
+
             if {[string index $FileLine 0] == "#"} {append ConfigComments $FileLine "\n"; continue
-            } elseif {[string equal {[INVITES]} $FileLine]} {set ConfMode 1; continue
-            } elseif {[string equal {[RIGHTS]} $FileLine]} {set ConfMode 2; continue
-            } elseif {[string match {\[*\]} $FileLine]} {set ConfMode 0; continue}
-            switch -- $ConfMode {
+            } elseif {[string equal {[INVITES]} $FileLine]} {set ConfigSection 1; continue
+            } elseif {[string equal {[RIGHTS]} $FileLine]} {set ConfigSection 2; continue
+            } elseif {[string match {\[*\]} $FileLine]} {set ConfigSection 0; continue}
+            switch -- $ConfigSection {
                 1 {set invchan([lindex $FileLine 0]) [lindex $FileLine 1]}
                 2 {set rights([lindex $FileLine 0]) [lindex $FileLine 1]}
             }
@@ -61,13 +62,12 @@ proc ::nxTools::Invite::ConfigWriter {ConfigFile} {
 proc ::nxTools::Invite::FlagCheck {CurrentFlags NeedFlags} {
     set CurrentFlags [split $CurrentFlags ""]
     foreach NeedFlag [split $NeedFlags ""] {
-        if {![string equal "" $NeedFlag] && [lsearch -glob $CurrentFlags $NeedFlag] != -1} {return 1}
+        if {[string length $NeedFlag] && [lsearch -glob $CurrentFlags $NeedFlag] != -1} {return 1}
     }
     return 0
 }
 
-proc ::nxTools::Invite::RightsCheck {UserName GroupNames Flags RightsList} {
-    set Result 0
+proc ::nxTools::Invite::RightsCheck {RightsList UserName GroupNames Flags} {
     foreach Rights $RightsList {
         if {[string index $Rights 0] == "!"} {
             set Rights [string range $Rights 1 end]
@@ -77,20 +77,16 @@ proc ::nxTools::Invite::RightsCheck {UserName GroupNames Flags RightsList} {
             } elseif {[string index $Rights 0] == "="} {
                 set Rights [string range $Rights 1 end]
                 if {[lsearch -glob $GroupNames $Rights] != -1} {return 0}
-            } elseif {[FlagCheck $Flags $Rights]} {
-                return 0
-            }
+            } elseif {[FlagCheck $Flags $Rights]} {return 0}
         } elseif {[string index $Rights 0] == "-"} {
             set Rights [string range $Rights 1 end]
-            if {[string match $Rights $UserName]} {set Result 1}
+            if {[string match $Rights $UserName]} {return 1}
         } elseif {[string index $Rights 0] == "="} {
             set Rights [string range $Rights 1 end]
-            if {[lsearch -glob $GroupNames $Rights] != -1} {set Result 1}
-        } elseif {[FlagCheck $Flags $Rights]} {
-            set Result 1
-        }
+            if {[lsearch -glob $GroupNames $Rights] != -1} {return 1}
+        } elseif {[FlagCheck $Flags $Rights]} {return 1}
     }
-    return $Result
+    return 0
 }
 
 # Invite Main
@@ -107,27 +103,26 @@ proc ::nxTools::Invite::Main {ArgV} {
         iputs ".-\[Invite\]---------------------------------------------------------------."
         ConfigLoader $invite(ConfigFile)
 
-        if {[string equal "" $Option] || [string equal -nocase "help" $Option]} {
+        if {![string length $Option] || [string equal -nocase "help" $Option]} {
             LinePuts "Syntax : SITE INVITE <irc nick> \[target\]"
             LinePuts "Targets: [lsort -ascii [array names invchan]]"
         } elseif {[IsTrue $misc(dZSbotLogging)]} {
             LinePuts "Inviting the nickname \"$Option\"."
             putlog "INVITE: \"$user\" \"$group\" \"$Option\""
         } else {
-            ## Check invite target
-            if {[string equal "" $Target]} {set Target $invite(Default)}
-            if {![info exists invchan($Target)] || [string equal "" $invchan($Target)]} {
+            if {![string length $Target]} {set Target $invite(Default)}
+            if {![info exists invchan($Target)] || ![string length $invchan($Target)]} {
                 ErrorReturn "Invalid target, try \"SITE INVITE HELP\" to view available targets."
             }
 
-            ## Check if the user has the rights to the specified target
+            ## Check if the user has access to the specified target.
             if {![info exists rights($Target)]} {
                 ErrorReturn "The invite target \"$Target\" has no rights defined."
-            } elseif {![RightsCheck $user $groups $flags $rights($Target)]} {
-                ErrorReturn "You are not allowed to invite yourself to \"$Target\"."
+            } elseif {![RightsCheck $rights($Target) $user $groups $flags]} {
+                ErrorReturn "You do not have access to the \"$Target\" target."
             }
             set InvTarget $invchan($Target)
-            LinePuts "Inviting the nickname \"$Option\" to the channel(s): [join $InvTarget {, }]"
+            LinePuts "Inviting \"$Option\" to: [join $InvTarget {, }]"
             putlog "INVITE: \"$user\" \"$group\" \"$Option\" \"$InvTarget\""
         }
     } elseif {[string equal "edit" $Action]} {
@@ -137,15 +132,14 @@ proc ::nxTools::Invite::Main {ArgV} {
         set Option [string tolower $Option]
         switch -- $Option {
             {addinv} {
-                if {[string equal "" $Target]} {
+                if {![string length $Target]} {
                     ErrorReturn "Invalid target, you must specify an invite target to add."
                 } elseif {[info exists invchan($Target)]} {
                     ErrorReturn "The invite target \"$Target\" already exists, delete it first."
-                } elseif {[string equal "" $Value]} {
+                } elseif {![string length $Value]} {
                     ErrorReturn "The invite target \"$Target\" must have a destination channel."
                 }
 
-                ## Check if the channel is valid
                 if {[string index $Value 0] != "#"} {
                     LinePuts "The destination channel \"$Value\" is invalid."
                     ErrorReturn "Note: Make sure the channel begins with a \"#\" character."
@@ -157,7 +151,7 @@ proc ::nxTools::Invite::Main {ArgV} {
                 ConfigWriter $invite(ConfigFile)
             }
             {delinv} {
-                if {[string equal "" $Target] || ![info exists invchan($Target)]} {
+                if {![string length $Target] || ![info exists invchan($Target)]} {
                     ErrorReturn "Invalid target, try \"SITE EDITINV HELP\" to view available targets."
                 }
                 unset -nocomplain invchan($Target) rights($Target)
@@ -165,13 +159,12 @@ proc ::nxTools::Invite::Main {ArgV} {
                 ConfigWriter $invite(ConfigFile)
             }
             {addchan} {
-                if {[string equal "" $Target] || ![info exists invchan($Target)]} {
+                if {![string length $Target] || ![info exists invchan($Target)]} {
                     ErrorReturn "Invalid target, try \"SITE EDITINV HELP\" to view available targets."
-                } elseif {[string equal "" $Value]} {
+                } elseif {![string length $Value]} {
                     ErrorReturn "Invalid channel, you must specify a channel to add."
                 }
 
-                ## Check if the channel already exists
                 if {![info exists invchan($Target)]} {set invchan($Target) ""}
                 foreach ChanEntry $invchan($Target) {
                     if {[string equal -nocase $ChanEntry $Value]} {
@@ -183,14 +176,12 @@ proc ::nxTools::Invite::Main {ArgV} {
                 ConfigWriter $invite(ConfigFile)
             }
             {delchan} {
-                if {[string equal "" $Target] || ![info exists invchan($Target)]} {
+                if {![string length $Target] || ![info exists invchan($Target)]} {
                     ErrorReturn "Invalid target, try \"SITE EDITINV HELP\" to view available targets."
-                } elseif {[string equal "" $Value]} {
+                } elseif {![string length $Value]} {
                     ErrorReturn "Invalid channel, you must specify a channel to remove."
                 }
                 set Deleted 0; set Index 0
-
-                ## Remove the channel from the invite target
                 if {![info exists invchan($Target)]} {set invchan($Target) ""}
                 foreach ChanEntry $invchan($Target) {
                     if {[string equal -nocase $ChanEntry $Value]} {
@@ -207,9 +198,9 @@ proc ::nxTools::Invite::Main {ArgV} {
                 }
             }
             {rights} {
-                if {[string equal "" $Target] || ![info exists invchan($Target)]} {
+                if {![string length $Target] || ![info exists invchan($Target)]} {
                     ErrorReturn "Invalid target, try \"SITE EDITINV HELP\" to view available targets."
-                } elseif {[string equal "" $Value]} {
+                } elseif {![string length $Value]} {
                     ErrorReturn "Invalid rights, you must specify the invite target's rights."
                 }
                 set rights($Target) $Value
