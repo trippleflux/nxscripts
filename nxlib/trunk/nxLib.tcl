@@ -231,7 +231,7 @@ proc ::nxLib::RemoveParentLinks {RealPath VirtualPath} {
     set VirtualPath [string trimright $VirtualPath "/"]
     set VirtualLen [string length $VirtualPath]
     foreach LinkPath [glob -nocomplain -types d -directory $RealPath "*"] {
-        if {[catch {vfs chattr $LinkPath 1} LinkTarget] || [string equal "" $LinkTarget]} {continue}
+        if {[catch {vfs chattr $LinkPath 1} LinkTarget] || ![string length $LinkTarget]} {continue}
         regsub -all {[\\/]+} $LinkTarget {/} LinkTarget
         set LinkTarget "/[string trim $LinkTarget {/}]"
         if {[string equal -nocase -length $VirtualLen $VirtualPath $LinkTarget]} {
@@ -483,7 +483,7 @@ proc ::nxLib::MergeStats {StatsLine FileVar SizeVar TimeVar} {
 
 proc ::nxLib::OutputData {OutputData} {
     foreach Output [split $OutputData "\r\n"] {
-        if {![string equal "" $Output]} {iputs $Output}
+        if {[string length $Output]} {iputs $Output}
     }
 }
 
