@@ -119,7 +119,7 @@ proc ::nxTools::Pre::UpdateLinks {VirtualPath} {
     if {[ListMatch $latest(Exempts) $VirtualPath]} {
         return 0
     }
-    if {[catch {DbOpenFile LinkDb "Links.db"} ErrorMsg]} {
+    if {[catch {DbOpenFile [namespace current]::LinkDb "Links.db"} ErrorMsg]} {
         ErrorLog PreLinks $ErrorMsg
         return 1
     }
@@ -226,7 +226,7 @@ proc ::nxTools::Pre::Main {ArgV} {
             iputs "| ## |  Release                                              |  Amount   |"
             iputs "|------------------------------------------------------------------------|"
             set Count 0
-            if {![catch {DbOpenFile PreDb "Pres.db"} ErrorMsg]} {
+            if {![catch {DbOpenFile [namespace current]::PreDb "Pres.db"} ErrorMsg]} {
                 PreDb eval "SELECT Release,Size FROM Pres $WhereClause ORDER BY TimeStamp DESC LIMIT $MaxResults" values {
                     iputs [format "| %02d | %-53.53s | %9s |" [incr Count] $values(Release) [FormatSize $values(Size)]]
                 }
@@ -247,7 +247,7 @@ proc ::nxTools::Pre::Main {ArgV} {
             iputs "| ## |  Group                        |   Pres    |   Files   |  Amount   |"
             iputs "|------------------------------------------------------------------------|"
             set Count 0
-            if {![catch {DbOpenFile PreDb "Pres.db"} ErrorMsg]} {
+            if {![catch {DbOpenFile [namespace current]::PreDb "Pres.db"} ErrorMsg]} {
                 PreDb eval "SELECT GroupName, count(*) AS Pres, round(sum(Files)) AS Files, sum(Size) AS Amount FROM Pres $WhereClause GROUP BY GroupName ORDER BY Pres DESC LIMIT $MaxResults" values {
                     iputs [format "| %02d | %-29.29s | %9d | %8dF | %9s |" [incr Count] $values(GroupName) $values(Pres) $values(Files) [FormatSize $values(Amount)]]
                 }
@@ -440,13 +440,13 @@ proc ::nxTools::Pre::Main {ArgV} {
             }
             putlog $LogLine
 
-            if {![catch {DbOpenFile PreDb "Pres.db"} ErrorMsg]} {
+            if {![catch {DbOpenFile [namespace current]::PreDb "Pres.db"} ErrorMsg]} {
                 PreDb eval {INSERT INTO Pres (TimeStamp,UserName,GroupName,Area,Release,Files,Size) VALUES($PreTime,$user,$PreGroup,$PreArea,$Release,$Files,$TotalSize)}
                 PreDb close
             } else {ErrorLog PreDb $ErrorMsg}
 
             if {[IsTrue $dupe(AddOnPre)]} {
-                if {![catch {DbOpenFile DirDb "DupeDirs.db"} ErrorMsg]} {
+                if {![catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} ErrorMsg]} {
                     set LogUser [expr {$pre(ChownUserId) != "" ? [resolve uid $pre(ChownUserId)] : $user}]
                     set LogPath [string range $DestVirtualPath 0 [string last "/" $DestVirtualPath]]
                     DirDb eval {INSERT INTO DupeDirs (TimeStamp,UserName,GroupName,DirPath,DirName) VALUES($PreTime,$LogUser,$PreGroup,$LogPath,$Release)}

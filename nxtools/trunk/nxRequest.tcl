@@ -47,9 +47,7 @@ proc ::nxTools::Req::UpdateDir {Action Request {UserId 0} {GroupId 0}} {
         set ReMap [list %(request) $Request]
         set ReqPath [file join $req(RequestPath) [string map $ReMap $req(RequestTag)]]
         switch -- $Action {
-            {add} {
-                CreateTag $ReqPath $UserId $GroupId 777
-            }
+            {add} {CreateTag $ReqPath $UserId $GroupId 777}
             {del} {
                 if {[file isdirectory $ReqPath]} {
                     KickUsers [file join $ReqPath "*"] True
@@ -96,7 +94,7 @@ proc ::nxTools::Req::Main {ArgV} {
         iputs ".-\[Request\]--------------------------------------------------------------."
         set ShowText 1
     }
-    if {[catch {DbOpenFile ReqDb "Requests.db"} ErrorMsg]} {
+    if {[catch {DbOpenFile [namespace current]::[namespace current]:: ReqDb "Requests.db"} ErrorMsg]} {
         ErrorLog RequestDb $ErrorMsg
         if {!$IsSiteBot} {ErrorReturn "Unable to open requests database."}
         return 1
@@ -114,8 +112,8 @@ proc ::nxTools::Req::Main {ArgV} {
             } elseif {[CheckLimit ReqDb $user]} {
                 set RequestId 1
                 ReqDb eval {SELECT (max(RequestId)+1) AS NextId FROM Requests WHERE Status=0} values {
-                    ## The max() function returns NULL if there are no matching records.
-                    if {[llength $values(NextId)]} {
+                    ## max() returns NULL if there are no matching records.
+                    if {[string length $values(NextId)]} {
                         set RequestId $values(NextId)
                     }
                 }
@@ -140,7 +138,7 @@ proc ::nxTools::Req::Main {ArgV} {
                 LinePuts "Filled request $values(Request) by $values(UserName)/$values(GroupName)."
                 set LogPrefix "REQFILL"
             } elseif {[string equal "del" $Action]} {
-                ## Only siteops or its owner may delete the request.
+                ## Only siteops or the owner may delete a request.
                 if {![string equal $user $values(UserName)] && ![regexp "\[$misc(SiteopFlags)\]" $flags]} {
                     ReqDb close
                     ErrorReturn "You are not allowed to delete another user's request."

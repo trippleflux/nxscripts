@@ -338,7 +338,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
                 putlog "${LogPrefix}: \"$VirtualPath\" \"$user\" \"$group\" \"$Multi\" \"$Reason\" \"$Files\" \"$TotalSize\" \"$DiskCount\" \"$NukeeLog\""
             }
 
-            if {![catch {DbOpenFile NukeDb "Nukes.db"} ErrorMsg]} {
+            if {![catch {DbOpenFile [namespace current]::NukeDb "Nukes.db"} ErrorMsg]} {
                 ## To pass a NULL value to TclSQLite the variable must be unset.
                 if {![string is digit -strict $NukeId]} {unset NukeId}
                 NukeDb eval {INSERT OR REPLACE INTO Nukes (NukeId,TimeStamp,UserName,GroupName,Status,Release,Reason,Multi,Files,Size) VALUES($NukeId,$NukeTime,$user,$group,$NukeStatus,$Release,$Reason,$Multi,$Files,$TotalSize)}
@@ -380,7 +380,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
                 set NukeStatus 1
             }
             set Count 0
-            if {![catch {DbOpenFile NukeDb "Nukes.db"} ErrorMsg]} {
+            if {![catch {DbOpenFile [namespace current]::NukeDb "Nukes.db"} ErrorMsg]} {
                 NukeDb eval "SELECT * FROM Nukes WHERE Status=$NukeStatus AND Release LIKE '$Pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $MaxResults" values {
                     incr Count
                     if {$IsSiteBot} {
@@ -422,7 +422,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
             }
 
             set Count 0
-            if {![catch {DbOpenFile NukeDb "Nukes.db"} ErrorMsg]} {
+            if {![catch {DbOpenFile [namespace current]::NukeDb "Nukes.db"} ErrorMsg]} {
                 NukeDb eval "SELECT UserName, GroupName, count(*) AS Nuked, sum(Amount) AS Amount FROM Users \
                     WHERE $GroupMatch (SELECT count(*) FROM Nukes WHERE NukeId=Users.NukeId AND Status=0) \
                     GROUP BY UserName ORDER BY Nuked DESC LIMIT $MaxResults" values {
