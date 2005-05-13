@@ -180,7 +180,7 @@ pre         = TCL ..\scripts\nxTools\nxPre.tcl pre
 reqdel      = TCL ..\scripts\nxTools\nxRequest.tcl del
 reqfill     = TCL ..\scripts\nxTools\nxRequest.tcl fill
 request     = TCL ..\scripts\nxTools\nxRequest.tcl add
-requests    = TCL ..\scripts\nxTools\nxRequest.tcl view
+requests    = TCL ..\scripts\nxTools\nxRequest.tcl list
 reqwipe     = TCL ..\scripts\nxTools\nxRequest.tcl wipe
 rules       = TCL ..\scripts\nxTools\nxRules.tcl
 drives      = TCL ..\scripts\nxTools\nxUtilities.tcl drives
@@ -311,7 +311,7 @@ nxWeekly = 0 0 * 6 TCL ..\scripts\nxTools\nxUtilities.tcl weeklyset
     files you please.
 
     Display all current requests:
-    %[execute(TCL ..\scripts\nxTools\nxRequest.tcl)(view)]
+    %[execute(TCL ..\scripts\nxTools\nxRequest.tcl)(list)]
 
     Display latest one-lines:
     %[execute(TCL ..\scripts\nxTools\nxUtilities.tcl)(onelines)]
@@ -956,9 +956,11 @@ Text Templates:
 
 nxTools v0.9.10 (XX-XX-2005):
   NEW: Added free and drive totals to the footer of SITE DRIVES.
-  CHG: Removed the Users.Status column from the Nukes database.
-  FIX: The cookies for variables(CLOSE) and variables(OPEN) were mixed up.
+  CHG: Removed the Users.Status column from the nukes database.
+  CHG: Sitebot specific output is shown as a Tcl list.
   FIX: SITE PRETIME and pre time checks were broken.
+  FIX: The cookies for variables(CLOSE) and variables(OPEN) were mixed up.
+  FIX: Unable to open record when nuking "new" releases.
 
 nxTools v0.9.9 (03-27-2005):
   NEW: SITE BOT BW to view the site's current usage.
