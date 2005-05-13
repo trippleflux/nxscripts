@@ -177,7 +177,7 @@ proc ::nxTools::Pre::UpdateUser {UserName Files Size CreditSection StatSection} 
         }
         foreach UserLine $UserFile {
             set LineType [string tolower [lindex $UserLine 0]]
-            if {[lsearch -exact "allup dayup monthup wkup" $LineType] != -1} {
+            if {[lsearch -exact {allup dayup monthup wkup} $LineType] != -1} {
                 set NewFiles [expr {wide([lindex $UserLine $StatSection]) + $Files}]
                 set NewStats [expr {wide([lindex $UserLine [expr {$StatSection + 1}]]) + wide($Size)}]
                 set UserLine [lreplace $UserLine $StatSection [expr {$StatSection + 1}] $NewFiles $NewStats]

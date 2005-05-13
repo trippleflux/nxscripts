@@ -207,7 +207,7 @@ proc ::nxTools::Db::Main {ArgV} {
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
     set Action [string tolower [lindex $ArgList 0]]
 
-    if {[lsearch -exact "create check optimize" $Action] == -1} {
+    if {[lsearch -exact {create check optimize} $Action] == -1} {
         iputs "Syntax: SITE DB CHECK \[database\]"
         iputs "        SITE DB CREATE \[database\]"
         iputs "        SITE DB OPTIMIZE \[database\]"

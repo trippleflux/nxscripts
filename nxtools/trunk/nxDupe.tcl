@@ -89,7 +89,7 @@ proc ::nxTools::Dupe::UpdateDirs {Action VirtualPath} {
     if {[string equal "MKD" $Action] || [string equal "RNTO" $Action]} {
         set TimeStamp [clock seconds]
         DirDb eval {INSERT INTO DupeDirs (TimeStamp,UserName,GroupName,DirPath,DirName) VALUES($TimeStamp,$user,$group,$DirPath,$DirName)}
-    } elseif {[lsearch -sorted "RMD RNFR WIPE" $Action] != -1} {
+    } elseif {[lsearch -sorted {RMD RNFR WIPE} $Action] != -1} {
         ## Append a slash to improve the accuracy of StrEqN.
         ## For example, /Dir/Blah matches /Dir/Blah.Blah but /Dir/Blah/ does not.
         append VirtualPath "/"
