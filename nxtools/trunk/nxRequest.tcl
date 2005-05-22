@@ -84,8 +84,8 @@ proc ::nxTools::Req::Main {ArgV} {
     set IsSiteBot [expr {[info exists user] && [string equal $misc(SiteBot) $user]}]
 
     ## Safe argument handling.
-    set ArgList [ArgList $ArgV]
-    set Action [string tolower [lindex $ArgList 0]]
+    set ArgLength [llength [set ArgList [ArgList $ArgV]]]
+    set Event [string tolower [lindex $ArgList 0]]
     set Request [join [lrange $ArgList 1 end]]
 
     if {[string equal "view" $Action]} {
@@ -94,12 +94,11 @@ proc ::nxTools::Req::Main {ArgV} {
         iputs ".-\[Request\]--------------------------------------------------------------."
         set ShowText 1
     }
-    if {[catch {DbOpenFile [namespace current]::[namespace current]:: ReqDb "Requests.db"} ErrorMsg]} {
+    if {[catch {DbOpenFile [namespace current]:: ReqDb "Requests.db"} ErrorMsg]} {
         ErrorLog RequestDb $ErrorMsg
         if {!$IsSiteBot} {ErrorReturn "Unable to open requests database."}
         return 1
     }
-    ReqDb function StrEq {string equal -nocase}
 
     switch -- $Action {
         {add} {
@@ -107,7 +106,7 @@ proc ::nxTools::Req::Main {ArgV} {
                 ErrorReturn "Syntax: SITE REQUEST <request>"
             }
             set Request [StripChars $Request]
-            if {[ReqDb eval {SELECT count(*) FROM Requests WHERE Status=0 AND StrEq(Request,$Request)}]} {
+            if {[ReqDb eval {SELECT count(*) FROM Requests WHERE Status=0 AND StrCaseEq(Request,$Request)}]} {
                 LinePuts "This item is already requested."
             } elseif {[CheckLimit ReqDb $user]} {
                 set RequestId 1
@@ -128,7 +127,7 @@ proc ::nxTools::Req::Main {ArgV} {
         }
         {del} - {fill} {
             set Exists 0
-            ReqDb eval {SELECT rowid,* FROM Requests WHERE Status=0 AND (RequestId=$Request OR StrEq(Request,$Request)) LIMIT 1} values {set Exists 1}
+            ReqDb eval {SELECT rowid,* FROM Requests WHERE Status=0 AND (RequestId=$Request OR StrCaseEq(Request,$Request)) LIMIT 1} values {set Exists 1}
             if {!$Exists} {
                 ReqDb close
                 ErrorReturn "Invalid request, use \"SITE REQUESTS\" to view current requests."

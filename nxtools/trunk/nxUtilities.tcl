@@ -129,7 +129,7 @@ proc ::nxTools::Utils::NewDate {FindArea} {
 
 proc ::nxTools::Utils::OneLines {Message} {
     global misc group user
-    if {[catch {DbOpenFile [namespace current]::[namespace current]::OneDb "OneLines.db"} ErrorMsg]} {
+    if {[catch {DbOpenFile [namespace current]::OneDb "OneLines.db"} ErrorMsg]} {
         ErrorLog OneLinesDb $ErrorMsg
         return 1
     }
