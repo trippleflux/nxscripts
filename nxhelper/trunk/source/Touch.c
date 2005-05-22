@@ -1,5 +1,10 @@
+
 #include <nxHelper.h>
 
+__inline BOOL TouchFile(PTCHAR FilePath, PFILETIME TouchTime, USHORT Options);
+static BOOL RecursiveTouch(PTCHAR CurentPath, PFILETIME TouchTime, USHORT Options);
+
+
 __inline BOOL TouchFile(PTCHAR FilePath, PFILETIME TouchTime, USHORT Options)
 {
     BOOL ReturnValue = FALSE;
@@ -24,6 +29,7 @@ __inline BOOL TouchFile(PTCHAR FilePath, PFILETIME TouchTime, USHORT Options)
     return ReturnValue;
 }
 
+
 static BOOL RecursiveTouch(PTCHAR CurentPath, PFILETIME TouchTime, USHORT Options)
 {
     TCHAR FilePath[MAX_PATH];
@@ -66,6 +72,7 @@ static BOOL RecursiveTouch(PTCHAR CurentPath, PFILETIME TouchTime, USHORT Option
     return TRUE;
 }
 
+
 INT TclTouchCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST objv[])
 {
     FILETIME TouchTime;

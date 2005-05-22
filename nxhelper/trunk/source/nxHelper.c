@@ -3,6 +3,7 @@
 __declspec(dllexport) INT Nxhelper_Init(Tcl_Interp *interp);
 __declspec(dllexport) INT Nxhelper_SafeInit(Tcl_Interp *interp);
 
+
 INT Nxhelper_Init(Tcl_Interp *interp)
 {
 #ifdef USE_TCL_STUBS
@@ -127,6 +128,7 @@ INT Nxhelper_Init(Tcl_Interp *interp)
     return TCL_OK;
 }
 
+
 INT Nxhelper_SafeInit(Tcl_Interp *interp)
 {
     return Nxhelper_Init(interp);

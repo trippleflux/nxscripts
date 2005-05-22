@@ -1,5 +1,12 @@
 #include <nxHelper.h>
 
+static LONG Base64EncodeBufferSize(LONG SourceLen);
+static LONG Base64Encode(PBYTE SourceData, LONG SourceLen, PCHAR Dest, PLONG DestLen);
+static LONG Base64DecodeBufferSize(LONG SourceLen);
+__inline LONG Base64DecodeChar(ULONG ch);
+static LONG Base64Decode(PCHAR SourceData, LONG SourceLen, PBYTE Dest, PLONG DestLen);
+static VOID TclBase64Error(Tcl_Interp *interp, PCHAR Message, LONG ErrorNum);
+
 static const CHAR Base64EncodingTable[64] = {
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q',
     'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
@@ -7,6 +14,7 @@ static const CHAR Base64EncodingTable[64] = {
     'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'
 };
 
+
 static LONG Base64EncodeBufferSize(LONG SourceLen)
 {
     LONG Length;
@@ -22,6 +30,7 @@ static LONG Base64EncodeBufferSize(LONG SourceLen)
     return Length;
 }
 
+
 static LONG Base64Encode(PBYTE SourceData, LONG SourceLen, PCHAR Dest, PLONG DestLen)
 {
     ULONG Current;
@@ -84,11 +93,13 @@ static LONG Base64Encode(PBYTE SourceData, LONG SourceLen, PCHAR Dest, PLONG Des
     return BASE64_SUCCESS;
 }
 
+
 static LONG Base64DecodeBufferSize(LONG SourceLen)
 {
     return SourceLen;
 }
 
+
 __inline LONG Base64DecodeChar(ULONG Char)
 {
     // returns -1 if the character is invalid
@@ -108,6 +119,7 @@ __inline LONG Base64DecodeChar(ULONG Char)
     return -1;
 }
 
+
 static LONG Base64Decode(PCHAR SourceData, LONG SourceLen, PBYTE Dest, PLONG DestLen)
 {
     BOOL Overflow = (Dest == NULL) ? TRUE : FALSE;
@@ -174,6 +186,7 @@ static LONG Base64Decode(PCHAR SourceData, LONG SourceLen, PBYTE Dest, PLONG Des
     return BASE64_SUCCESS;
 }
 
+
 INT TclDecodeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST objv[])
 {
     LONG DestLen;
@@ -208,6 +221,7 @@ INT TclDecodeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST 
     return TCL_OK;
 }
 
+
 INT TclEncodeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST objv[])
 {
     LONG DestLen;
@@ -242,6 +256,7 @@ INT TclEncodeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST 
     return TCL_OK;
 }
 
+
 static VOID TclBase64Error(Tcl_Interp *interp, PCHAR Message, LONG ErrorNum)
 {
     PCHAR Error;

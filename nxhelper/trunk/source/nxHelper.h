@@ -25,7 +25,7 @@
 #include <Time.h>
 
 // Safe string functions
-//#define STRSAFE_LIB
+#define STRSAFE_LIB
 #define STRSAFE_NO_CB_FUNCTIONS
 #include <StrSafe.h>
 

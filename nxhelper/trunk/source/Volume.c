@@ -1,5 +1,6 @@
 #include <nxHelper.h>
 
+
 BOOL GetDiskSpace(PTCHAR RootPath, PULONGLONG FreeBytes, PUINT64 TotalBytes)
 {
     HMODULE ModKernel;
@@ -57,6 +58,7 @@ BOOL GetDiskSpace(PTCHAR RootPath, PULONGLONG FreeBytes, PUINT64 TotalBytes)
     return ReturnValue;
 }
 
+
 INT TclVolumeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST objv[])
 {
     INT OptionIndex;

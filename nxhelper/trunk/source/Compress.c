@@ -1,5 +1,8 @@
 #include <nxHelper.h>
 
+static VOID TclZlibError(Tcl_Interp *interp, PCHAR Message, LONG ErrorNum);
+
+
 INT TclDeflateCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST objv[])
 {
     LONG CompressionLevel;
@@ -65,6 +68,7 @@ INT TclDeflateCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST
         return TCL_ERROR;
 }
 
+
 INT TclInflateCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST objv[])
 {
     LONG BufferDelta;
@@ -149,6 +153,7 @@ INT TclInflateCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST
         return TCL_ERROR;
 }
 
+
 static VOID TclZlibError(Tcl_Interp *interp, PCHAR Message, LONG ErrorNum)
 {
     PCHAR Error;

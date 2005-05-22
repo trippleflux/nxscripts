@@ -1,11 +1,13 @@
 #include <nxHelper.h>
 
+
 ULONG FileTimeToPosixEpoch(const PFILETIME FileTime)
 {
     ULONGLONG Time = ((ULONGLONG)FileTime->dwHighDateTime << 32) + FileTime->dwLowDateTime;
     return (ULONG)((Time - 116444736000000000) / 10000000);
 }
 
+
 VOID PosixEpochToFileTime(ULONG EpochTime, PFILETIME FileTime)
 {
     ULONGLONG Time = UInt32x32To64(EpochTime, 10000000) + 116444736000000000;
@@ -13,6 +15,7 @@ VOID PosixEpochToFileTime(ULONG EpochTime, PFILETIME FileTime)
     FileTime->dwHighDateTime = (DWORD)(Time >> 32);
 }
 
+
 BOOL GetTimeZoneBias(PLONG Bias)
 {
     TIME_ZONE_INFORMATION TimeZoneInfo;
@@ -26,6 +29,7 @@ BOOL GetTimeZoneBias(PLONG Bias)
     return FALSE;
 }
 
+
 INT TclTimeCmd(ClientData dummy, Tcl_Interp *interp, INT objc, Tcl_Obj *CONST objv[])
 {
     INT OptionIndex;
