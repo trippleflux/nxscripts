@@ -30,12 +30,10 @@ proc ::nxTools::Close::ExcemptCheck {UserName GroupName Flags} {
 
 proc ::nxTools::Close::Main {ArgV} {
     global close misc flags group ioerror user
-
-    ## Safe argument handling.
     set ArgList [ArgList $ArgV]
-    set Action [string tolower [lindex $ArgList 0]]
+    set Event [string tolower [lindex $ArgList 0]]
     set Result 0
-    switch -- $Action {
+    switch -- $Event {
         {close} {
             iputs ".-\[Close\]-----------------------------------------------------------------."
             if {[catch {set CloseInfo [var get nxToolsClosed]}]} {
@@ -98,7 +96,7 @@ proc ::nxTools::Close::Main {ArgV} {
             iputs "'------------------------------------------------------------------------'"
         }
         default {
-            ErrorLog InvalidArgs "invalid parameter \"[info script] $Action\": check your ioFTPD.ini for errors"
+            ErrorLog InvalidArgs "invalid parameter \"[info script] $Event\": check your ioFTPD.ini for errors"
         }
     }
     return [set ioerror $Result]

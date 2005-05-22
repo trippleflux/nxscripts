@@ -203,11 +203,9 @@ proc ::nxTools::Db::Main {ArgV} {
     variable dbschema
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
 
-    ## Safe argument handling.
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
-    set Action [string tolower [lindex $ArgList 0]]
-
-    if {[lsearch -exact {create check optimize} $Action] == -1} {
+    set Event [string tolower [lindex $ArgList 0]]
+    if {[lsearch -exact {create check optimize} $Event] == -1} {
         iputs "Syntax: SITE DB CHECK \[database\]"
         iputs "        SITE DB CREATE \[database\]"
         iputs "        SITE DB OPTIMIZE \[database\]"
@@ -231,7 +229,7 @@ proc ::nxTools::Db::Main {ArgV} {
     }
 
     set Result 0
-    switch -- $Action {
+    switch -- $Event {
         {create} {
             LinePuts "Creating [llength $DbList] database(s)."; LinePuts ""
             set Result [Create $DbList]

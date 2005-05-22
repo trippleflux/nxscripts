@@ -652,15 +652,14 @@ proc ::nxTools::Utils::SiteWho {} {
 ######################################################################
 
 proc ::nxTools::Utils::Main {ArgV} {
-    global IsSiteBot log misc args group ioerror pwd user
+    global IsSiteBot log misc group ioerror pwd user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     set IsSiteBot [expr {[info exists user] && [string equal $misc(SiteBot) $user]}]
 
-    ## Safe argument handling.
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
-    set Action [string tolower [lindex $ArgList 0]]
+    set Event [string tolower [lindex $ArgList 0]]
     set Result 0
-    switch -- $Action {
+    switch -- $Event {
         {daystats} {
             if {![IsTrue $misc(dZSbotLogging)]} {
                 putlog "DAYSTATS: \"Launch Daystats\""
@@ -686,7 +685,7 @@ proc ::nxTools::Utils::Main {ArgV} {
             set Result 1
         }
         {give} {
-            foreach {Action Target Amount Section} $args {break}
+            foreach {Target Amount Section} [lrange $ArgList 1 end] {break}
             if {$ArgLength > 2} {
                 set Result [SiteCredits give $Target $Amount $Section]
             } else {
@@ -733,7 +732,7 @@ proc ::nxTools::Utils::Main {ArgV} {
             }
         }
         {take} {
-            foreach {Action Target Amount Section} $args {break}
+            foreach {Target Amount Section} [lrange $ArgList 1 end] {break}
             if {$ArgLength > 2} {
                 set Result [SiteCredits take $Target $Amount $Section]
             } else {
@@ -753,7 +752,7 @@ proc ::nxTools::Utils::Main {ArgV} {
             set Result [SiteWho]
         }
         default {
-            ErrorLog InvalidArgs "invalid parameter \"[info script] $Action\": check your ioFTPD.ini for errors"
+            ErrorLog InvalidArgs "invalid parameter \"[info script] $Event\": check your ioFTPD.ini for errors"
         }
     }
     return [set ioerror $Result]

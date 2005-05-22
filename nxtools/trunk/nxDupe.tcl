@@ -59,23 +59,23 @@ proc ::nxTools::Dupe::CheckFiles {VirtualPath} {
     return $Result
 }
 
-proc ::nxTools::Dupe::UpdateLog {Action VirtualPath} {
+proc ::nxTools::Dupe::UpdateLog {Event VirtualPath} {
     global dupe
     if {[ListMatch $dupe(LoggingExempts) $VirtualPath]} {return 0}
-    set Action [string toupper $Action]
+    set Event [string toupper $Event]
 
     ## Check if the virtual path is a file or directory.
-    if {[string equal "DELE" $Action] || [string equal "UPLD" $Action] || [file isfile [resolve pwd $VirtualPath]]} {
+    if {[string equal "DELE" $Event] || [string equal "UPLD" $Event] || [file isfile [resolve pwd $VirtualPath]]} {
         if {[IsTrue $dupe(CheckFiles)] && ![ListMatchI $dupe(IgnoreFiles) $VirtualPath]} {
-            return [UpdateFiles $Action $VirtualPath]
+            return [UpdateFiles $Event $VirtualPath]
         }
     } elseif {[IsTrue $dupe(CheckDirs)] && ![ListMatchI $dupe(IgnoreDirs) $VirtualPath]} {
-        return [UpdateDirs $Action $VirtualPath]
+        return [UpdateDirs $Event $VirtualPath]
     }
     return 0
 }
 
-proc ::nxTools::Dupe::UpdateDirs {Action VirtualPath} {
+proc ::nxTools::Dupe::UpdateDirs {Event VirtualPath} {
     global dupe group user
     if {[catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} ErrorMsg]} {
         ErrorLog DupeUpdateDirs $ErrorMsg
@@ -84,10 +84,10 @@ proc ::nxTools::Dupe::UpdateDirs {Action VirtualPath} {
     set DirName [file tail $VirtualPath]
     set DirPath [string range $VirtualPath 0 [string last "/" $VirtualPath]]
 
-    if {[string equal "MKD" $Action] || [string equal "RNTO" $Action]} {
+    if {[string equal "MKD" $Event] || [string equal "RNTO" $Event]} {
         set TimeStamp [clock seconds]
         DirDb eval {INSERT INTO DupeDirs (TimeStamp,UserName,GroupName,DirPath,DirName) VALUES($TimeStamp,$user,$group,$DirPath,$DirName)}
-    } elseif {[lsearch -sorted {RMD RNFR WIPE} $Action] != -1} {
+    } elseif {[lsearch -sorted {RMD RNFR WIPE} $Event] != -1} {
         ## Append a slash to improve the accuracy of StrCaseEqN.
         ## For example, /Dir/Blah matches /Dir/Blah.Blah but /Dir/Blah/ does not.
         append VirtualPath "/"
@@ -97,7 +97,7 @@ proc ::nxTools::Dupe::UpdateDirs {Action VirtualPath} {
     return 0
 }
 
-proc ::nxTools::Dupe::UpdateFiles {Action VirtualPath} {
+proc ::nxTools::Dupe::UpdateFiles {Event VirtualPath} {
     global dupe group user
     if {[catch {DbOpenFile [namespace current]::FileDb "DupeFiles.db"} ErrorMsg]} {
         ErrorLog DupeUpdateFiles $ErrorMsg
@@ -105,10 +105,10 @@ proc ::nxTools::Dupe::UpdateFiles {Action VirtualPath} {
     }
     set FileName [file tail $VirtualPath]
 
-    if {[string equal "UPLD" $Action] || [string equal "RNTO" $Action]} {
+    if {[string equal "UPLD" $Event] || [string equal "RNTO" $Event]} {
         set TimeStamp [clock seconds]
         FileDb eval {INSERT INTO DupeFiles (TimeStamp,UserName,GroupName,FileName) VALUES($TimeStamp,$user,$group,$FileName)}
-    } elseif {[string equal "DELE" $Action] || [string equal "RNFR" $Action]} {
+    } elseif {[string equal "DELE" $Event] || [string equal "RNFR" $Event]} {
         FileDb eval {DELETE FROM DupeFiles WHERE StrCaseEq(FileName,$FileName)}
     }
     FileDb close
@@ -384,14 +384,14 @@ proc ::nxTools::Dupe::RaceLinks {VirtualPath} {
 # Site Commands
 ######################################################################
 
-proc ::nxTools::Dupe::SiteApprove {Action Release} {
+proc ::nxTools::Dupe::SiteApprove {Event Release} {
     global IsSiteBot approve misc flags group user
     if {[catch {DbOpenFile [namespace current]::ApproveDb "Approves.db"} ErrorMsg]} {
         ErrorLog SiteApprove $ErrorMsg
         return 1
     }
     set Release [file tail $Release]
-    switch -- $Action {
+    switch -- $Event {
         {add} {
             iputs ".-\[Approve\]--------------------------------------------------------------."
             if {![regexp "\[$approve(Flags)\]" $flags]} {
@@ -734,11 +734,10 @@ proc ::nxTools::Dupe::Main {ArgV} {
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     set IsSiteBot [expr {[info exists user] && [string equal $misc(SiteBot) $user]}]
 
-    ## Safe argument handling.
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
-    set Action [string tolower [lindex $ArgList 0]]
+    set Event [string tolower [lindex $ArgList 0]]
     set Result 0
-    switch -- $Action {
+    switch -- $Event {
         {dupelog} {
             set VirtualPath [GetPath $pwd [join [lrange $ArgList 2 end]]]
             if {[IsTrue $dupe(CheckDirs)] || [IsTrue $dupe(CheckFiles)]} {
@@ -792,9 +791,9 @@ proc ::nxTools::Dupe::Main {ArgV} {
         }
         {approve} {
             array set params [list add 2 del 2 list 0]
-            set SubAction [string tolower [lindex $ArgList 1]]
-            if {[info exists params($SubAction)] && $ArgLength > $params($SubAction)} {
-                set Result [SiteApprove $SubAction [join [lrange $ArgList 2 end]]]
+            set SubEvent [string tolower [lindex $ArgList 1]]
+            if {[info exists params($SubEvent)] && $ArgLength > $params($SubEvent)} {
+                set Result [SiteApprove $SubEvent [join [lrange $ArgList 2 end]]]
             } else {
                 iputs "Syntax: SITE APPROVE ALL <release>"
                 iputs "        SITE APPROVE DEL <release>"
@@ -849,7 +848,7 @@ proc ::nxTools::Dupe::Main {ArgV} {
             }
         }
         default {
-            ErrorLog InvalidArgs "invalid parameter \"[info script] $Action\": check your ioFTPD.ini for errors"
+            ErrorLog InvalidArgs "invalid parameter \"[info script] $Event\": check your ioFTPD.ini for errors"
         }
     }
     return [set ioerror $Result]

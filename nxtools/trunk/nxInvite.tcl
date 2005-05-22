@@ -93,13 +93,15 @@ proc ::nxTools::Invite::RightsCheck {RightsList UserName GroupNames Flags} {
 ######################################################################
 
 proc ::nxTools::Invite::Main {ArgV} {
-    global invite misc args flags group groups user
+    global invite misc flags group groups user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
-    foreach {Action Option Target Value} $ArgV {break}
-    set Action [string tolower $Action]
+
+    set ArgList [ArgList $ArgV]
+    foreach {Event Option Target Value} $ArgV {break}
+    set Event [string tolower $Event]
     set Target [string tolower $Target]
 
-    if {[string equal "invite" $Action]} {
+    if {[string equal "invite" $Event]} {
         iputs ".-\[Invite\]---------------------------------------------------------------."
         ConfigLoader $invite(ConfigFile)
 
@@ -125,7 +127,7 @@ proc ::nxTools::Invite::Main {ArgV} {
             LinePuts "Inviting \"$Option\" to: [join $InvTarget {, }]"
             putlog "INVITE: \"$user\" \"$group\" \"$Option\" \"$InvTarget\""
         }
-    } elseif {[string equal "edit" $Action]} {
+    } elseif {[string equal "edit" $Event]} {
         iputs ".-\[EditInvite\]-----------------------------------------------------------."
         ConfigLoader $invite(ConfigFile)
 
@@ -263,7 +265,7 @@ proc ::nxTools::Invite::Main {ArgV} {
             }
         }
     } else {
-        ErrorLog InvalidArgs "invalid parameter \"[info script] $Action\": check your ioFTPD.ini for errors"
+        ErrorLog InvalidArgs "invalid parameter \"[info script] $Event\": check your ioFTPD.ini for errors"
     }
     iputs "'------------------------------------------------------------------------'"
     return 0

@@ -198,12 +198,12 @@ proc ::nxTools::Pre::UpdateUser {UserName Files Size CreditSection StatSection} 
 proc ::nxTools::Pre::Main {ArgV} {
     global dupe latest misc mysql pre pretime group groups pwd user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
-    ## Safe argument handling
-    set ArgList [ArgList $ArgV]
-    foreach {Action Option Target Value Other} $ArgV {break}
-    set Action [string tolower $Action]
 
-    if {[string equal "pre" $Action]} {
+    set ArgList [ArgList $ArgV]
+    foreach {Event Option Target Value Other} $ArgV {break}
+    set Event [string tolower $Event]
+
+    if {[string equal "pre" $Event]} {
         if {![string length $Option] || [string equal -nocase "help" $Option]} {
             iputs ".-\[Pre\]------------------------------------------------------------------."
             ConfigLoader $pre(ConfigFile)
@@ -465,7 +465,7 @@ proc ::nxTools::Pre::Main {ArgV} {
             ## Create latest pre symlinks.
             if {$latest(PreLinks) > 0} {UpdateLinks $DestVirtualPath}
         }
-    } elseif {[string equal "edit" $Action]} {
+    } elseif {[string equal "edit" $Event]} {
         iputs ".-\[EditPre\]--------------------------------------------------------------."
         ConfigLoader $pre(ConfigFile)
 

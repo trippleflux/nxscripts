@@ -176,12 +176,10 @@ proc ::nxTools::Bot::Who {} {
 proc ::nxTools::Bot::Main {ArgV} {
     global misc ioerror
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
-
-    ## Safe argument handling.
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
-    set Action [string tolower [lindex $ArgList 0]]
+    set Event [string tolower [lindex $ArgList 0]]
     set Result 0
-    switch -- $Action {
+    switch -- $Event {
         {auth} {
             if {$ArgLength > 2} {
                 set Result [AuthCheck [lindex $ArgList 1] [lindex $ArgList 2]]

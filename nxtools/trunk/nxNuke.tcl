@@ -121,13 +121,11 @@ proc ::nxTools::Nuke::UpdateUser {IsNuke UserName Multi Size Files Stats CreditS
 proc ::nxTools::Nuke::Main {ArgV} {
     global approve misc nuke flags gid group groups pwd uid user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
-
-    ## Safe argument handling.
     set ArgList [ArgList $ArgV]
-    set Action [string tolower [lindex $ArgList 0]]
-    switch -- $Action {
+    set Event [string tolower [lindex $ArgList 0]]
+    switch -- $Event {
         {nuke} - {unnuke} {
-            if {[string equal "nuke" $Action]} {
+            if {[string equal "nuke" $Event]} {
                 iputs ".-\[Nuke\]-----------------------------------------------------------------."
                 foreach {Tmp Target Multi Reason} $ArgV {break}
                 if {[llength $ArgList] < 4 || ![string is digit -strict $Multi]} {
@@ -137,7 +135,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
                     ErrorReturn "The specified multiplier is to large, the max is $nuke(MultiMax)\x."
                 }
                 set IsNuke 1
-            } elseif {[string equal "unnuke" $Action]} {
+            } elseif {[string equal "unnuke" $Event]} {
                 iputs ".-\[UnNuke\]---------------------------------------------------------------."
                 foreach {Tmp Target Reason} $ArgV {break}
                 if {[llength $ArgList] < 3} {ErrorReturn "Syntax: SITE UNNUKE <directory> <reason>"}
@@ -360,18 +358,18 @@ proc ::nxTools::Nuke::Main {ArgV} {
         {nukes} - {unnukes} {
             set IsSiteBot [string equal $misc(SiteBot) $user]
             if {![GetOptions [lrange $ArgList 1 end] MaxResults Pattern]} {
-                iputs "Syntax: SITE [string toupper $Action] \[-max <limit>\] \[release\]"
+                iputs "Syntax: SITE [string toupper $Event] \[-max <limit>\] \[release\]"
                 return 0
             }
             set Pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$Pattern*" "*"]]
-            if {[string equal "nukes" $Action]} {
+            if {[string equal "nukes" $Event]} {
                 if {!$IsSiteBot} {
                     iputs ".-\[Nukes\]----------------------------------------------------------------."
                     iputs "|    Age    |    Nuker     |   Multi   |  Reason                         |"
                     iputs "|------------------------------------------------------------------------|"
                 }
                 set NukeStatus 0
-            } elseif {[string equal "unnukes" $Action]} {
+            } elseif {[string equal "unnukes" $Event]} {
                 if {!$IsSiteBot} {
                     iputs ".-\[UnNukes\]--------------------------------------------------------------."
                     iputs "|    Age    |   UnNuker    |   Multi   |  Reason                         |"
@@ -442,7 +440,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
             }
         }
         default {
-            ErrorLog InvalidArgs "invalid parameter \"[info script] $Action\": check your ioFTPD.ini for errors"
+            ErrorLog InvalidArgs "invalid parameter \"[info script] $Event\": check your ioFTPD.ini for errors"
         }
     }
     return 0

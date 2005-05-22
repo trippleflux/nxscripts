@@ -39,14 +39,14 @@ proc ::nxTools::Req::CheckLimit {DbProc UserName} {
     return 1
 }
 
-proc ::nxTools::Req::UpdateDir {Action Request {UserId 0} {GroupId 0}} {
+proc ::nxTools::Req::UpdateDir {Event Request {UserId 0} {GroupId 0}} {
     global req
     if {![string length $req(RequestPath)]} {
         return
     } elseif {[file exists $req(RequestPath)]} {
         set ReMap [list %(request) $Request]
         set ReqPath [file join $req(RequestPath) [string map $ReMap $req(RequestTag)]]
-        switch -- $Action {
+        switch -- $Event {
             {add} {CreateTag $ReqPath $UserId $GroupId 777}
             {del} {
                 if {[file isdirectory $ReqPath]} {
@@ -66,7 +66,7 @@ proc ::nxTools::Req::UpdateDir {Action Request {UserId 0} {GroupId 0}} {
                 }
             }
             default {
-                ErrorLog ReqUpdateDir "Unknown event \"$Action\"."
+                ErrorLog ReqUpdateDir "Unknown event \"$Event\"."
             }
         }
         catch {vfs flush $req(RequestPath)}
@@ -83,12 +83,11 @@ proc ::nxTools::Req::Main {ArgV} {
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     set IsSiteBot [expr {[info exists user] && [string equal $misc(SiteBot) $user]}]
 
-    ## Safe argument handling.
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
     set Event [string tolower [lindex $ArgList 0]]
     set Request [join [lrange $ArgList 1 end]]
 
-    if {[string equal "view" $Action]} {
+    if {[string equal "view" $Event]} {
         set ShowText 0
     } else {
         iputs ".-\[Request\]--------------------------------------------------------------."
@@ -100,7 +99,7 @@ proc ::nxTools::Req::Main {ArgV} {
         return 1
     }
 
-    switch -- $Action {
+    switch -- $Event {
         {add} {
             if {![string length $Request]} {
                 ErrorReturn "Syntax: SITE REQUEST <request>"
@@ -122,7 +121,7 @@ proc ::nxTools::Req::Main {ArgV} {
                 set RequestId [format "%03s" $RequestId]
                 putlog "REQUEST: \"$user\" \"$group\" \"$Request\" \"$RequestId\""
                 LinePuts "Added your request of $Request (#$RequestId)."
-                UpdateDir $Action $Request
+                UpdateDir $Event $Request
             }
         }
         {del} - {fill} {
@@ -132,11 +131,11 @@ proc ::nxTools::Req::Main {ArgV} {
                 ReqDb close
                 ErrorReturn "Invalid request, use \"SITE REQUESTS\" to view current requests."
             }
-            if {[string equal "fill" $Action]} {
+            if {[string equal "fill" $Event]} {
                 ReqDb eval {UPDATE Requests SET Status=1 WHERE rowid=$values(rowid)}
                 LinePuts "Filled request $values(Request) by $values(UserName)/$values(GroupName)."
                 set LogPrefix "REQFILL"
-            } elseif {[string equal "del" $Action]} {
+            } elseif {[string equal "del" $Event]} {
                 ## Only siteops or the owner may delete a request.
                 if {![string equal $user $values(UserName)] && ![regexp "\[$misc(SiteopFlags)\]" $flags]} {
                     ReqDb close
@@ -153,7 +152,7 @@ proc ::nxTools::Req::Main {ArgV} {
                 set RequestAge [FormatDuration $RequestAge]
             }
             putlog "${LogPrefix}: \"$user\" \"$group\" \"$values(Request)\" \"$values(UserName)\" \"$values(GroupName)\" \"$RequestId\" \"$RequestAge\""
-            UpdateDir $Action $values(Request)
+            UpdateDir $Event $values(Request)
         }
         {view} {
             if {!$IsSiteBot} {
@@ -211,7 +210,7 @@ proc ::nxTools::Req::Main {ArgV} {
             }
         }
         default {
-            ErrorLog "invalid parameter \"[info script] $Action\": check your ioFTPD.ini for errors"
+            ErrorLog "invalid parameter \"[info script] $Event\": check your ioFTPD.ini for errors"
         }
     }
     if {$ShowText} {iputs "'------------------------------------------------------------------------'"}
