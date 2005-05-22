@@ -1,50 +1,65 @@
+/*
+ * Infernus Library - Tcl extension for the Infernus sitebot.
+ * Copyright (c) 2005 Infernus Development Team
+ *
+ * File Name:
+ *   nxHelper.h
+ *
+ * Author:
+ *   neoxed (neoxed@gmail.com) May 22, 2005
+ *
+ * Abstract:
+ *   Common include file.
+ */
+
 #ifndef __NXHELPER_H__
 #define __NXHELPER_H__
 
 #define UNICODE
 
-// Unicode macros
+/* Unicode macros. */
 #if defined(_UNICODE) && !defined(UNICODE)
 #define UNICODE
 #elif defined(UNICODE) && !defined(_UNICODE)
 #define _UNICODE
 #endif
 
-// Windows includes
+/* Windows includes. */
 #define _WIN32_WINNT 0x0400
 #define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#include <ShlWapi.h>
+#include <windows.h>
+#include <shlwapi.h>
 #pragma comment (lib,"shlwapi.lib")
 
-// Common includes
-#include <StdIo.h>
-#include <StdLib.h>
-#include <String.h>
-#include <TChar.h>
-#include <Time.h>
+/* Common includes. */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <tchar.h>
+#include <time.h>
 
-// Safe string functions
+/* Library includes. */
+#include <tcl.h>
+#include <zlib.h>
+
+#undef TCL_STORAGE_CLASS
+#define TCL_STORAGE_CLASS DLLEXPORT
+
+/* Safe string functions. */
 #define STRSAFE_LIB
 #define STRSAFE_NO_CB_FUNCTIONS
-#include <StrSafe.h>
+#include <strsafe.h>
 
-// Library includes
-#include <MP3Info.h>
-#define USE_TCL_STUBS
-#include <Tcl.h>
-#include <Zlib.h>
+/* nxHelper includes. */
+#include <nxMacros.h>
+//#include <nxMP3Info.h>
 
-// nxHelper includes
-#include <Constants.h>
-#include <Macros.h>
+/* Function includes. */
+//#include <nxBase64.h>
+//#include <nxMP3.h>
+#include <nxTime.h>
+#include <nxTouch.h>
+//#include <nxVolume.h>
+#include <nxZlib.h>
 
-// Function includes
-#include <Base64.h>
-#include <Compress.h>
-#include <MP3.h>
-#include <Times.h>
-#include <Touch.h>
-#include <Volume.h>
-
-#endif // __NXHELPER_H__
+#endif /* __NXHELPER_H__ */

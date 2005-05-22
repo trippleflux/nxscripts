@@ -1,0 +1,54 @@
+#
+# Infernus Library - Tcl extension for the Infernus sitebot.
+# Copyright (c) 2005 Infernus Development Team
+#
+# File Name:
+#   Makefile.in
+#
+# Author:
+#   neoxed (neoxed@gmail.com) May 19, 2005
+#
+# Abstract:
+#   Makefile template Jean-loup Gailly's and Mark Adler's zLib library.
+#
+
+LIBNAME=libz.a
+
+# Build flags
+AR=@AR@
+CC=@CC@
+RANLIB=@RANLIB@
+CFLAGS=@CFLAGS_OPTIMIZE@
+ARFLAGS=r
+
+# Object files
+OBJS = adler32.o compress.o crc32.o gzio.o uncompr.o deflate.o trees.o \
+       zutil.o inflate.o infback.o inftrees.o inffast.o
+OBJA =
+
+# Targets
+default: library
+
+library: $(LIBNAME)
+
+$(LIBNAME): $(OBJS) $(OBJA)
+	$(AR) $(ARFLAGS) $@ $(OBJS) $(OBJA)
+	$(RANLIB) $(LIBNAME)
+
+# Source files
+adler32.o: zlib.h zconf.h
+compress.o: zlib.h zconf.h
+crc32.o: crc32.h zlib.h zconf.h
+deflate.o: deflate.h zutil.h zlib.h zconf.h
+gzio.o: zutil.h zlib.h zconf.h
+infback.o: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h
+inffast.o: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h
+inflate.o: zutil.h zlib.h zconf.h inftrees.h inflate.h inffast.h
+inftrees.o: zutil.h zlib.h zconf.h inftrees.h
+trees.o: deflate.h zutil.h zlib.h zconf.h trees.h
+uncompr.o: zlib.h zconf.h
+zutil.o: zutil.h zlib.h zconf.h
+
+# Clean up
+clean:
+	rm -f $(LIBNAME) *.o
