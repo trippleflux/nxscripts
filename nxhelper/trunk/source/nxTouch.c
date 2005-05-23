@@ -13,7 +13,7 @@
  *   recursively and non-recursively.
  *
  *   Tcl Commands:
- *     ::nx::touch ?switches? path ?clockVal?
+ *     ::nx::touch [switches] <path> [clockVal]
  *       - If no time attributes are specified, all attributes are set.
  *       - If "clockVal" is not specified, the current time is used.
  *       - An error is raised if the time cannot be changed on the file or directory.

@@ -12,8 +12,18 @@
  *   Implements a Tcl interface to retrieve Windows volume information.
  *
  *   Tcl Commands:
- *     ::nx::volume info <volume> <varName>
- *       - Retrieves information about the specified volume.
+ *    ::nx::volume info <volume> <varName>
+ *      - Retrieves information for the "drive" and uses
+ *        the array given by "varName" to store information.
+ *      - Array Contents:
+ *        name   - Name of the volume.
+ *        fs     - File system name.
+ *        serial - Volume serial number.
+ *        length - Maximum length of a file name.
+ *        flags  - Flags associated with the file system.
+ *        type   - Volume type, see below for an explanation.
+ *        free   - Remaining space, expressed in bytes.
+ *        total  - Total space, expressed in bytes.
  *
  *     ::nx::volume type <volume>
  *       - Retrieves the drive type for "drive".

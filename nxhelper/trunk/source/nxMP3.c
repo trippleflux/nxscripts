@@ -12,11 +12,10 @@
  *   Implements an interface to retrieve information from MP3 files.
  *
  *   Tcl Commands:
- *     ::nx::mp3 file varName
+ *     ::nx::mp3 <file> <varName>
  *      - Retrieves the ID3/MP3 header info for "file" and uses
  *        the array given by "varName" to store information.
  *      - An error is raised if the file is invalid or cannot be opened for reading.
- *
  *      - Array Contents:
  *        bitrate   - Average audio bitrate, in Kbit/s.
  *        frames    - Number of frames.

@@ -18,7 +18,7 @@
  *     ::nx::time local (no longer implemented)
  *       - Returns the current local time.
  *
- *     ::nx::time utc   (no longer implemented)
+ *     ::nx::time utc (no longer implemented)
  *       - Returns the current time, expressed in UTC.
  *
  *     ::nx::time zone
