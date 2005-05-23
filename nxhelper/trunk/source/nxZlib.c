@@ -22,11 +22,11 @@
  *     ::nx::zlib deflate [-level 0-9] <data>
  *       - Compresses "data" using the zlib compression algorithm.
  *       - The -level switch sets the compression level, "fast" (1) by default.
- *       - An error is raised if the command fails (insufficient memory or zlib error).
+ *       - An error is raised if the data cannot be compressed.
  *
  *     ::nx::zlib inflate <data>
  *       - Inflates gzip or zlib compressed data.
- *       - An error is raised if the command fails (insufficient memory or zlib error).
+ *       - An error is raised if the data cannot be decompressed.
  */
 
 #include <nxHelper.h>

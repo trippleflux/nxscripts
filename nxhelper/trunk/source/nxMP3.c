@@ -15,7 +15,7 @@
  *     ::nx::mp3 file varName
  *      - Retrieves the ID3/MP3 header info for "file" and uses
  *        the array given by "varName" to store information.
- *      - Returns 1 if successful, and 0 otherwise.
+ *      - An error is raised if the file is invalid or cannot be opened for reading.
  *
  *      - Array Contents:
  *        bitrate   - Average audio bitrate, in Kbit/s.
@@ -61,8 +61,8 @@
 int
 Mp3ObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
+    int status = TCL_ERROR;
     MP3INFO MP3Info;
-    int result = 0;
     TCHAR *filePath;
 
     if (objc != 3) {
@@ -158,12 +158,17 @@ Mp3ObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
             }
 
             Tcl_DecrRefCount(fieldObj);
-            result = 1;
+            status = TCL_OK;
+        } else {
+            Tcl_AppendResult(interp, "unable to read \"", Tcl_GetString(objv[1]),
+            "\": not a valid MP3 file", NULL);
         }
 
         MP3CloseFile(&MP3Info);
+    } else {
+        Tcl_AppendResult(interp, "unable to open \"", Tcl_GetString(objv[1]), "\": ",
+            TclSetWinError(interp, GetLastError()), NULL);
     }
 
-    Tcl_SetIntObj(Tcl_GetObjResult(interp), result);
-    return TCL_OK;
+    return status;
 }

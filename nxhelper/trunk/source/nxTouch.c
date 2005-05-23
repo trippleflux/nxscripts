@@ -16,6 +16,7 @@
  *     ::nx::touch ?switches? path ?clockVal?
  *       - If no time attributes are specified, all attributes are set.
  *       - If "clockVal" is not specified, the current time is used.
+ *       - An error is raised if the time cannot be changed on the file or directory.
  *       - Switches:
  *         -atime   = Set file last-access time.
  *         -ctime   = Set file creation time.
@@ -26,15 +27,14 @@
 
 #include <nxHelper.h>
 
-__inline BOOL TouchFile(TCHAR *filePath, FILETIME *touchTime, unsigned short options);
-static BOOL RecursiveTouch(TCHAR *CurentPath, FILETIME *touchTime, unsigned short options);
+__inline unsigned long TouchFile(TCHAR *filePath, FILETIME *touchTime, unsigned short options);
+static unsigned long RecursiveTouch(TCHAR *CurentPath, FILETIME *touchTime, unsigned short options);
 
 
-__inline BOOL
+__inline unsigned long
 TouchFile(TCHAR *filePath, FILETIME *touchTime, unsigned short options)
 {
-    BOOL result = FALSE;
-    HANDLE FileHandle = CreateFile(filePath,
+    HANDLE fileHandle = CreateFile(filePath,
         GENERIC_WRITE,
         FILE_SHARE_READ | FILE_SHARE_WRITE,
         NULL,
@@ -43,23 +43,30 @@ TouchFile(TCHAR *filePath, FILETIME *touchTime, unsigned short options)
         (options & TOUCH_FLAG_ISDIR) ? FILE_FLAG_BACKUP_SEMANTICS : 0,
         0);
 
-    if (FileHandle != INVALID_HANDLE_VALUE) {
-        result = SetFileTime(FileHandle,
+    if (fileHandle == INVALID_HANDLE_VALUE) {
+        return GetLastError();
+    } else {
+        unsigned long result = ERROR_SUCCESS;
+
+        if (!SetFileTime(fileHandle,
             (options & TOUCH_FLAG_CTIME) ? touchTime : NULL,
             (options & TOUCH_FLAG_ATIME) ? touchTime : NULL,
-            (options & TOUCH_FLAG_MTIME) ? touchTime : NULL);
+            (options & TOUCH_FLAG_MTIME) ? touchTime : NULL)) {
 
-        CloseHandle(FileHandle);
+            result = GetLastError();
+        }
+
+        CloseHandle(fileHandle);
+        return result;
     }
-
-    return result;
 }
 
 
-static BOOL
+static unsigned long
 RecursiveTouch(TCHAR *CurentPath, FILETIME *touchTime, unsigned short options)
 {
     TCHAR filePath[MAX_PATH];
+    unsigned long status = ERROR_SUCCESS;
 
     /* Touch the directory we're entering. */
     TouchFile(CurentPath, touchTime, options | TOUCH_FLAG_ISDIR);
@@ -69,7 +76,7 @@ RecursiveTouch(TCHAR *CurentPath, FILETIME *touchTime, unsigned short options)
         HANDLE FindHandle = FindFirstFile(filePath, &FindData);
 
         if (FindHandle == INVALID_HANDLE_VALUE) {
-            return FALSE;
+            return GetLastError();
         }
 
         do {
@@ -85,7 +92,7 @@ RecursiveTouch(TCHAR *CurentPath, FILETIME *touchTime, unsigned short options)
 
             } else if (FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
                 /* Recurse into the directory. */
-                RecursiveTouch(filePath, touchTime, options);
+                status = RecursiveTouch(filePath, touchTime, options);
 
             } else if (_tcsnicmp(FindData.cFileName, TEXT(".ioFTPD"), 7) != 0) {
                 /* Touch the file. */
@@ -96,7 +103,7 @@ RecursiveTouch(TCHAR *CurentPath, FILETIME *touchTime, unsigned short options)
         FindClose(FindHandle);
     }
 
-    return TRUE;
+    return status;
 }
 
 
@@ -122,10 +129,10 @@ int
 TouchObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
     FILETIME touchTime;
-    BOOL result;
     int i;
     unsigned long fileAttributes;
     unsigned long clockVal;
+    unsigned long result;
     unsigned short options = 0;
     TCHAR *filePath;
     const static char *switches[] = {
@@ -192,7 +199,8 @@ TouchObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
     filePath = Tcl_GetTString(objv[i]);
     fileAttributes = GetFileAttributes(filePath);
     if (fileAttributes == INVALID_FILE_ATTRIBUTES) {
-        Tcl_SetStringObj(Tcl_GetObjResult(interp), "unable to touch item: no such file or directory", -1);
+        Tcl_AppendResult(interp, "unable to touch \"", Tcl_GetString(objv[i]),
+            "\": no such file or directory", NULL);
         return TCL_ERROR;
     }
 
@@ -220,7 +228,11 @@ TouchObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
         result = TouchFile(filePath, &touchTime, options);
     }
 
-    Tcl_SetIntObj(Tcl_GetObjResult(interp), result);
+    if (result != ERROR_SUCCESS) {
+        Tcl_AppendResult(interp, "unable to touch \"", Tcl_GetString(objv[i]), "\": ",
+            TclSetWinError(interp, result), NULL);
+        return TCL_ERROR;
+    }
 
     return TCL_OK;
 }

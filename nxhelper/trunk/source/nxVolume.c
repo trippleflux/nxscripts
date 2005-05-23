@@ -9,7 +9,14 @@
  *   neoxed (neoxed@gmail.com) May 22, 2005
  *
  * Abstract:
- *   Volume command definitions.
+ *   Implements a Tcl interface to retrieve Windows volume information.
+ *
+ *   Tcl Commands:
+ *     ::nx::volume info <volume> <varName>
+ *       - Retrieves information about the specified volume.
+ *
+ *     ::nx::volume type <volume>
+ *       - Retrieves the drive type for "drive".
  */
 
 #include <nxHelper.h>
