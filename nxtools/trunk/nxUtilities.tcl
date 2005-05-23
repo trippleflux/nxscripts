@@ -389,15 +389,15 @@ proc ::nxTools::Utils::SiteDrives {} {
             4 {set TypeName "Network"}
             default {continue}
         }
-        if {[::nx::volume info $VolName volume]} {
+        if {[catch {::nx::volume info $VolName volume} ErrorMsg]} {
+            LinePuts "$VolName Unable to retrieve volume information."
+        } else {
             set Free [expr {wide($Free) + $volume(free)}]
             set Total [expr {wide($Total) + $volume(total)}]
 
             set volume(free) [FormatSize [expr {$volume(free) / 1024}]]
             set volume(total) [FormatSize [expr {$volume(total) / 1024}]]
-            iputs [format "| %-3s %9s | %-11s | %-13s | %10s | %11s |" $VolName $TypeName $volume(system) $volume(name) $volume(free) $volume(total)]
-        } else {
-            LinePuts "$VolName Unable to retrieve volume information."
+            iputs [format "| %-3s %9s | %-11s | %-13s | %10s | %11s |" $VolName $TypeName $volume(fs) $volume(name) $volume(free) $volume(total)]
         }
     }
     iputs "|------------------------------------------------------------------------|"

@@ -344,8 +344,8 @@ proc ::nxTools::Pre::Main {ArgV} {
             set DestDrive [lindex [file split $DestRealPath] 0]
 
             if {![string equal -nocase $SourceDrive $DestDrive]} {
-                if {![::nx::volume info $DestDrive volume]} {
-                    ErrorLog PreCheckSpace "unable to retrieve volume information for \"$DestDrive\""
+                if {[catch {::nx::volume info $DestDrive volume} ErrorMsg]} {
+                    ErrorLog PreCheckSpace $ErrorMsg
                     ErrorReturn "Unable to check available space on target drive, contact a siteop."
                 }
                 set CheckSize [expr {wide($TotalSize) + (10*1024)}]
@@ -373,7 +373,9 @@ proc ::nxTools::Pre::Main {ArgV} {
 
             ## Attempt to parse every MP3 file until successful.
             foreach FilePath $MP3Files {
-                if {[::nx::mp3 $FilePath mp3]} {
+                if {[catch {::nx::mp3 $FilePath mp3} ErrorMsg]} {
+                    ErrorLog PreMP3 $ErrorMsg
+                } else {
                     set Codec [format "MPEG %.1f Layer %d" $mp3(version) $mp3(layer)]
                     iputs "|------------------------------------------------------------------------|"
                     iputs [format "| Artist  : %-60s |" $mp3(artist)]
@@ -381,8 +383,6 @@ proc ::nxTools::Pre::Main {ArgV} {
                     iputs [format "| Genre   : %-16s Year: %-11s Bitrate: %-16s |" $mp3(genre) $mp3(year) "$mp3(bitrate) Kbit"]
                     iputs [format "| Channel : %-16s Type: %-13s Codec: %-16s |" $mp3(mode) $mp3(type) $Codec]
                     set IsMP3 1; break
-                } else {
-                    ErrorLog PreMP3 "unable to read ID3/MP3 headers from \"$FilePath\": invalid MP3 file"
                 }
             }
 
@@ -408,8 +408,8 @@ proc ::nxTools::Pre::Main {ArgV} {
             }
             ## Update file and directory times.
             if {[IsTrue $pre(TouchTimes)]} {
-                if {![::nx::touch -recurse $DestRealPath $PreTime]} {
-                    ErrorLog PreTouch "unable to touch file times for \"$DestRealPath\""
+                if {[catch {::nx::touch -recurse $DestRealPath $PreTime} ErrorMsg]} {
+                    ErrorLog PreTouch $ErrorMsg
                 }
             }
             catch {vfs flush [file dirname $RealPath]}
