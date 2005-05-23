@@ -106,8 +106,7 @@ Nxhelper_Init(Tcl_Interp *interp)
         return TCL_ERROR;
     }
 
-//  Tcl_CreateObjCommand(interp, "::nx::decode", DecodeObjCmd, NULL, NULL);
-//  Tcl_CreateObjCommand(interp, "::nx::encode", EncodeObjCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::nx::base64", Base64ObjCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::nx::mp3",    Mp3ObjCmd,    NULL, NULL);
     Tcl_CreateObjCommand(interp, "::nx::time",   TimeObjCmd,   NULL, NULL);
     Tcl_CreateObjCommand(interp, "::nx::touch",  TouchObjCmd,  NULL, NULL);

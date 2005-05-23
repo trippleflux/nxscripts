@@ -52,7 +52,7 @@
 #include <nxMacros.h>
 #include <nxMP3Info.h>
 
-//#include <nxBase64.h>
+#include <nxBase64.h>
 #include <nxMP3.h>
 #include <nxTime.h>
 #include <nxTouch.h>

@@ -133,6 +133,7 @@ STUBPREFIX      = $(PROJECT)stub
 
 DLLOBJS = \
     $(TMP_DIR)\nxHelper.obj \
+    $(TMP_DIR)\nxBase64.obj \
     $(TMP_DIR)\nxMP3.obj \
     $(TMP_DIR)\nxMP3Info.obj \
     $(TMP_DIR)\nxTime.obj \
