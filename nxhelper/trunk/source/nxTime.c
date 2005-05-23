@@ -57,6 +57,24 @@ BOOL GetTimeZoneBias(long *bias)
 }
 
 
+/*
+ * TimeObjCmd
+ *
+ *	 This function provides the "::nx::time" Tcl command.
+ *
+ * Arguments:
+ *   dummy  - Not used.
+ *   interp - Current interpreter.
+ *   objc   - Number of arguments.
+ *   objv   - Argument objects.
+ *
+ * Returns:
+ *   A standard Tcl result.
+ *
+ * Remarks:
+ *   None.
+ */
+
 int TimeObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
     int index;

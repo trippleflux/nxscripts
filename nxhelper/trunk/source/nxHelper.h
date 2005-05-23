@@ -38,28 +38,37 @@
 #include <tchar.h>
 #include <time.h>
 
-/* Library includes. */
-#include <tcl.h>
-#include <zlib.h>
-
-#undef TCL_STORAGE_CLASS
-#define TCL_STORAGE_CLASS DLLEXPORT
-
-/* Safe string functions. */
 #define STRSAFE_LIB
 #define STRSAFE_NO_CB_FUNCTIONS
 #include <strsafe.h>
 
+/* Library includes. */
+#include <tcl.h>
+#include <zlib.h>
+#undef TCL_STORAGE_CLASS
+#define TCL_STORAGE_CLASS DLLEXPORT
+
 /* nxHelper includes. */
 #include <nxMacros.h>
-//#include <nxMP3Info.h>
+#include <nxMP3Info.h>
 
-/* Function includes. */
 //#include <nxBase64.h>
-//#include <nxMP3.h>
+#include <nxMP3.h>
 #include <nxTime.h>
 #include <nxTouch.h>
-//#include <nxVolume.h>
+#include <nxUtil.h>
+#include <nxVolume.h>
 #include <nxZlib.h>
+
+/* Global variables. */
+typedef BOOL (WINAPI *Fn_GetDiskFreeSpaceEx)(
+    LPCTSTR lpDirectoryName,
+    PULARGE_INTEGER lpFreeBytesAvailableToCaller,
+    PULARGE_INTEGER lpTotalNumberOfBytes,
+    PULARGE_INTEGER lpTotalNumberOfFreeBytes
+);
+
+Fn_GetDiskFreeSpaceEx GetDiskFreeSpaceExPtr;
+OSVERSIONINFO osVersion;
 
 #endif /* __NXHELPER_H__ */

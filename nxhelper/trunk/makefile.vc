@@ -133,8 +133,12 @@ STUBPREFIX      = $(PROJECT)stub
 
 DLLOBJS = \
     $(TMP_DIR)\nxHelper.obj \
+    $(TMP_DIR)\nxMP3.obj \
+    $(TMP_DIR)\nxMP3Info.obj \
     $(TMP_DIR)\nxTime.obj \
     $(TMP_DIR)\nxTouch.obj \
+    $(TMP_DIR)\nxUtil.obj \
+    $(TMP_DIR)\nxVolume.obj \
     $(TMP_DIR)\nxZlib.obj \
 !if !$(STATIC_BUILD)
     $(TMP_DIR)\nxHelper.res

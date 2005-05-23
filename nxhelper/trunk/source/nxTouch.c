@@ -59,7 +59,7 @@ static BOOL RecursiveTouch(TCHAR *CurentPath, FILETIME *touchTime, unsigned shor
 {
     TCHAR filePath[MAX_PATH];
 
-    // Touch the directory.
+    // Touch the directory we're entering.
     TouchFile(CurentPath, touchTime, options | TOUCH_FLAG_ISDIR);
 
     if (PathCombine(filePath, CurentPath, TEXT("*.*"))) {
@@ -98,6 +98,24 @@ static BOOL RecursiveTouch(TCHAR *CurentPath, FILETIME *touchTime, unsigned shor
 }
 
 
+/*
+ * TouchObjCmd
+ *
+ *	 This function provides the "::nx::touch" Tcl command.
+ *
+ * Arguments:
+ *   dummy  - Not used.
+ *   interp - Current interpreter.
+ *   objc   - Number of arguments.
+ *   objv   - Argument objects.
+ *
+ * Returns:
+ *   A standard Tcl result.
+ *
+ * Remarks:
+ *   None.
+ */
+
 int TouchObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
     FILETIME touchTime;

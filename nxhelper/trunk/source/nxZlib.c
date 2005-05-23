@@ -180,9 +180,9 @@ ZlibInflateObj(Tcl_Obj *sourceObj, Tcl_Obj *destObj)
 
 
 /*
- * Tcl_ZlibObjCmd
+ * ZlibObjCmd
  *
- *   This function provides the "zlib" Tcl command.
+ *	 This function provides the "::nx::zlib" Tcl command.
  *
  * Arguments:
  *   dummy  - Not used.
