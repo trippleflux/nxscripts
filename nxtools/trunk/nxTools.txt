@@ -887,6 +887,7 @@ Text Templates:
 0.9.8 -> 0.9.10 - Replace all files located in /scripts/nxTools/.
                 - Remove your nukes database from /scripts/nxTools/data/
                   and recreate it using the "SITE DB CREATE" command.
+                - Download an updated nxTools-Libraries package.
 
 0.9.8 -> 0.9.9  - Replace all files located in /scripts/nxTools/.
                 - Remove your nukes and requests database from /scripts/nxTools/data/
@@ -956,11 +957,15 @@ Text Templates:
 
 nxTools v0.9.10 (XX-XX-2005):
   NEW: Added free and drive totals to the footer of SITE DRIVES.
+  NEW: Added custom string comparison functions to TclSQLite, replacing the
+       user-defined Tcl functions used previously (speeds up dupe checker).
   CHG: Removed the Users.Status column from the nukes database.
+  CHG: Rewrote portions of nxHelper, more efficient now.
   CHG: Sitebot specific output is shown as a Tcl list.
+  FIX: Argument handling for SITE GIVE/TAKE.
+  FIX: Meaningless error when nuking "new" releases (unable to open nuke record).
   FIX: SITE PRETIME and pre time checks were broken.
   FIX: The cookies for variables(CLOSE) and variables(OPEN) were mixed up.
-  FIX: Unable to open record when nuking "new" releases.
 
 nxTools v0.9.9 (03-27-2005):
   NEW: SITE BOT BW to view the site's current usage.
