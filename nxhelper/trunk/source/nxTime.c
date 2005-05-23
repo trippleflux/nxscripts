@@ -1,6 +1,6 @@
 /*
- * Infernus Library - Tcl extension for the Infernus sitebot.
- * Copyright (c) 2005 Infernus Development Team
+ * nxHelper - Tcl extension for nxTools.
+ * Copyright (c) 2005 neoxed
  *
  * File Name:
  *   nxTime.c
@@ -28,14 +28,16 @@
 #include <nxHelper.h>
 
 
-unsigned long FileTimeToPosixEpoch(const FILETIME *FileTime)
+unsigned long
+FileTimeToPosixEpoch(const FILETIME *FileTime)
 {
     ULONGLONG epochTime = ((ULONGLONG)FileTime->dwHighDateTime << 32) + FileTime->dwLowDateTime;
     return (unsigned long)((epochTime - 116444736000000000) / 10000000);
 }
 
 
-void PosixEpochToFileTime(unsigned long epochTime, FILETIME *fileTime)
+void
+PosixEpochToFileTime(unsigned long epochTime, FILETIME *fileTime)
 {
     ULONGLONG timeNs = UInt32x32To64(epochTime, 10000000) + 116444736000000000;
     fileTime->dwLowDateTime = (DWORD)timeNs;
@@ -43,7 +45,8 @@ void PosixEpochToFileTime(unsigned long epochTime, FILETIME *fileTime)
 }
 
 
-BOOL GetTimeZoneBias(long *bias)
+BOOL
+GetTimeZoneBias(long *bias)
 {
     TIME_ZONE_INFORMATION timeZoneInfo;
 
@@ -75,7 +78,8 @@ BOOL GetTimeZoneBias(long *bias)
  *   None.
  */
 
-int TimeObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int
+TimeObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
     int index;
     const static char *options[] = {"dst", /*"local", "utc",*/ "zone", NULL};
@@ -127,7 +131,7 @@ int TimeObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
         }
     }
 
-    // This point should never be reached.
+    /* This point should never be reached. */
     Tcl_Panic("unexpected fallthrough");
     return TCL_ERROR;
 }

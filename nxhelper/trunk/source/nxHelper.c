@@ -1,6 +1,6 @@
 /*
- * Infernus Library - Tcl extension for the Infernus sitebot.
- * Copyright (c) 2005 Infernus Development Team
+ * nxHelper - Tcl extension for nxTools.
+ * Copyright (c) 2005 neoxed
  *
  * File Name:
  *   nxHelper.c
@@ -22,8 +22,28 @@ TCL_DECLARE_MUTEX(initMutex)
 OSVERSIONINFO osVersion;
 Fn_GetDiskFreeSpaceEx GetDiskFreeSpaceExPtr = NULL;
 
+EXTERN int Nxhelper_Init(Tcl_Interp *interp);
+EXTERN int Nxhelper_SafeInit(Tcl_Interp *interp);
+static void Nxhelper_Exit(ClientData dummy);
+
 
-EXTERN int Nxhelper_Init(Tcl_Interp *interp)
+/*
+ * Nxhelper_Init
+ *
+ *   Initializes the extension for a regular interpreter.
+ *
+ * Arguments:
+ *   interp - Current interpreter.
+ *
+ * Returns:
+ *   A standard Tcl result.
+ *
+ * Remarks:
+ *   None.
+ */
+
+int
+Nxhelper_Init(Tcl_Interp *interp)
 {
     /* Wide integer support was added in Tcl 8.4. */
 #ifdef USE_TCL_STUBS
@@ -75,6 +95,9 @@ EXTERN int Nxhelper_Init(Tcl_Interp *interp)
          */
         SetErrorMode(SetErrorMode(0) | SEM_FAILCRITICALERRORS);
 
+        /* An exit handler should be registered once. */
+        Tcl_CreateExitHandler(Nxhelper_Exit, NULL);
+
         initialized = TRUE;
     }
     Tcl_MutexUnlock(&initMutex);
@@ -95,7 +118,57 @@ EXTERN int Nxhelper_Init(Tcl_Interp *interp)
 }
 
 
-EXTERN int Nxhelper_SafeInit(Tcl_Interp *interp)
+/*
+ * Nxhelper_SafeInit
+ *
+ *   Initializes the extension for a safe interpreter.
+ *
+ * Arguments:
+ *   interp - Current interpreter.
+ *
+ * Returns:
+ *   A standard Tcl result.
+ *
+ * Remarks:
+ *   None.
+ */
+
+int
+Nxhelper_SafeInit(Tcl_Interp *interp)
 {
     return Nxhelper_Init(interp);
+}
+
+
+/*
+ * Nxhelper_Exit
+ *
+ *   Cleans up library on exit, frees all state structures.
+ *
+ * Arguments:
+ *   dummy - Not used.
+ *
+ * Returns:
+ *   None.
+ *
+ * Remarks:
+ *   None.
+ */
+
+static void
+Nxhelper_Exit(ClientData dummy)
+{
+    Tcl_MutexLock(&initMutex);
+
+    if (kernelModule != NULL) {
+        FreeLibrary(kernelModule);
+        kernelModule = NULL;
+    }
+    initialized = FALSE;
+
+    Tcl_MutexUnlock(&initMutex);
+
+#ifdef TCL_MEM_DEBUG
+    Tcl_DumpActiveMemory("MemDump.txt");
+#endif
 }

@@ -1,6 +1,6 @@
 /*
- * Infernus Library - Tcl extension for the Infernus sitebot.
- * Copyright (c) 2005 Infernus Development Team
+ * nxHelper - Tcl extension for nxTools.
+ * Copyright (c) 2005 neoxed
  *
  * File Name:
  *   nxTouch.h
@@ -30,7 +30,8 @@ __inline BOOL TouchFile(TCHAR *filePath, FILETIME *touchTime, unsigned short opt
 static BOOL RecursiveTouch(TCHAR *CurentPath, FILETIME *touchTime, unsigned short options);
 
 
-__inline BOOL TouchFile(TCHAR *filePath, FILETIME *touchTime, unsigned short options)
+__inline BOOL
+TouchFile(TCHAR *filePath, FILETIME *touchTime, unsigned short options)
 {
     BOOL result = FALSE;
     HANDLE FileHandle = CreateFile(filePath,
@@ -38,7 +39,7 @@ __inline BOOL TouchFile(TCHAR *filePath, FILETIME *touchTime, unsigned short opt
         FILE_SHARE_READ | FILE_SHARE_WRITE,
         NULL,
         OPEN_EXISTING,
-        // Create a handle for a directory or file.
+        /* Create a handle for a directory or file. */
         (options & TOUCH_FLAG_ISDIR) ? FILE_FLAG_BACKUP_SEMANTICS : 0,
         0);
 
@@ -55,11 +56,12 @@ __inline BOOL TouchFile(TCHAR *filePath, FILETIME *touchTime, unsigned short opt
 }
 
 
-static BOOL RecursiveTouch(TCHAR *CurentPath, FILETIME *touchTime, unsigned short options)
+static BOOL
+RecursiveTouch(TCHAR *CurentPath, FILETIME *touchTime, unsigned short options)
 {
     TCHAR filePath[MAX_PATH];
 
-    // Touch the directory we're entering.
+    /* Touch the directory we're entering. */
     TouchFile(CurentPath, touchTime, options | TOUCH_FLAG_ISDIR);
 
     if (PathCombine(filePath, CurentPath, TEXT("*.*"))) {
@@ -78,15 +80,15 @@ static BOOL RecursiveTouch(TCHAR *CurentPath, FILETIME *touchTime, unsigned shor
             }
 
             if (FindData.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
-                // Touch the junction, but do not recurse into it (avoid possible infinite loops).
+                /* Touch the junction, but do not recurse into it (avoid possible infinite loops). */
                 TouchFile(filePath, touchTime, options | TOUCH_FLAG_ISDIR);
 
             } else if (FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-                // Recurse into the directory.
+                /* Recurse into the directory. */
                 RecursiveTouch(filePath, touchTime, options);
 
             } else if (_tcsnicmp(FindData.cFileName, TEXT(".ioFTPD"), 7) != 0) {
-                // Touch the file.
+                /* Touch the file. */
                 TouchFile(filePath, touchTime, options);
             }
         } while(FindNextFile(FindHandle, &FindData));
@@ -116,7 +118,8 @@ static BOOL RecursiveTouch(TCHAR *CurentPath, FILETIME *touchTime, unsigned shor
  *   None.
  */
 
-int TouchObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int
+TouchObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
     FILETIME touchTime;
     BOOL result;

@@ -1,7 +1,7 @@
 @ECHO OFF
 ::
-:: nxHelper Library - Tcl extension for the nxHelper sitebot.
-:: Copyright (c) 2005 nxHelper Development Team
+:: nxHelper - Tcl extension for nxTools.
+:: Copyright (c) 2005 neoxed
 ::
 :: File Name:
 ::   Build.bat

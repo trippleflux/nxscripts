@@ -1,6 +1,6 @@
 /*
- * Infernus Library - Tcl extension for the Infernus sitebot.
- * Copyright (c) 2005 Infernus Development Team
+ * nxHelper - Tcl extension for nxTools.
+ * Copyright (c) 2005 neoxed
  *
  * File Name:
  *   nxVolume.c
@@ -133,7 +133,8 @@ GetVolumeInfo(TCHAR *volumePath, VolumeInfo *volumeInfo)
  *   None.
  */
 
-int VolumeObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int
+VolumeObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
     int index;
     const static char *options[] = {"info", "type", NULL};

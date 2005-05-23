@@ -1,6 +1,6 @@
 /*
- * Infernus Library - Tcl extension for the Infernus sitebot.
- * Copyright (c) 2005 Infernus Development Team
+ * nxHelper - Tcl extension for nxTools.
+ * Copyright (c) 2005 neoxed
  *
  * File Name:
  *   nxMP3.c
@@ -58,7 +58,8 @@
  *   None.
  */
 
-int Mp3ObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int
+Mp3ObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
     MP3INFO MP3Info;
     int result = 0;

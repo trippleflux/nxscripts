@@ -1,10 +1,10 @@
-#ifndef __MP3INFO_H__
-#define __MP3INFO_H__
+#ifndef __NXMP3INFO_H__
+#define __NXMP3INFO_H__
 
-// Size of read buffer in bytes (must be at least 12).
-#define MP3_BUFFER    256
+/* Size of read buffer in bytes (must be at least 12). */
+#define MP3_BUFFER    512
 
-// VBR header flags.
+/* VBR header flags. */
 #define MP3_FLAG_VBR_FRAMES     0x0001
 #define MP3_FLAG_VBR_BYTES      0x0002
 #define MP3_FLAG_VBR_TOC        0x0004
@@ -29,7 +29,7 @@ typedef struct {
     FLOAT Version;     // ID3 version (only 1.0 and 1.1 are supported)
 } MP3TAG;
 
-// Frame header bit manipulation macros
+/* Frame header bit manipulation macros. */
 #define MP3GetFrameSync(FrameHeader)     ((FrameHeader >> 21) & 2047)
 #define MP3GetVersionIndex(FrameHeader)  ((FrameHeader >> 19) & 3 )
 #define MP3GetLayerIndex(FrameHeader)    ((FrameHeader >> 17) & 3 )
@@ -44,7 +44,7 @@ typedef struct {
 #define MP3GetOrginalBit(FrameHeader)    ((FrameHeader >>  2) & 1 )
 #define MP3GetEmphasisIndex(FrameHeader) ((FrameHeader      ) & 3 )
 
-// User functions
+/* User functions */
 BOOL MP3OpenFile(PTCHAR FilePath, MP3INFO *MP3Info);
 BOOL MP3CloseFile(MP3INFO *MP3Info);
 BOOL MP3LoadHeader(MP3INFO *MP3Info);
@@ -57,4 +57,4 @@ LONG MP3GetLength(MP3INFO *MP3Info);
 PCHAR MP3GetMode(MP3INFO *MP3Info);
 FLOAT MP3GetVersion(MP3INFO *MP3Info);
 
-#endif // __MP3INFO_H__
+#endif /* __NXMP3INFO_H__ */
