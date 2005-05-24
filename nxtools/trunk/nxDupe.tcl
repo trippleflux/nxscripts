@@ -91,7 +91,7 @@ proc ::nxTools::Dupe::UpdateDirs {Event VirtualPath} {
         ## Append a slash to improve the accuracy of StrCaseEqN.
         ## For example, /Dir/Blah matches /Dir/Blah.Blah but /Dir/Blah/ does not.
         append VirtualPath "/"
-        DirDb eval {DELETE FROM DupeDirs WHERE StrCaseEqN(length($VirtualPath),DirPath,$VirtualPath) OR (StrCaseEq(DirPath,$DirPath) AND StrCaseEq(DirName,$DirName))}
+        DirDb eval {DELETE FROM DupeDirs WHERE StrCaseEqN(DirPath,$VirtualPath,length($VirtualPath)) OR (StrCaseEq(DirPath,$DirPath) AND StrCaseEq(DirName,$DirName))}
     }
     DirDb close
     return 0
