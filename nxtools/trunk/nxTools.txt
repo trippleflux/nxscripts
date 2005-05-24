@@ -885,8 +885,6 @@ Text Templates:
 ################################################################################
 
 0.9.8 -> 0.9.10 - Replace all files located in /scripts/nxTools/.
-                - Remove your nukes database from /scripts/nxTools/data/
-                  and recreate it using the "SITE DB CREATE" command.
                 - Download an updated nxTools-Libraries package.
 
 0.9.8 -> 0.9.9  - Replace all files located in /scripts/nxTools/.
@@ -955,7 +953,7 @@ Text Templates:
 # 9. Change Log                                                                #
 ################################################################################
 
-nxTools v0.9.10 (XX-XX-2005):
+nxTools v0.9.10 (05-24-2005):
   NEW: Added free and drive totals to the footer of SITE DRIVES.
   NEW: Added custom string comparison functions to TclSQLite, replacing the
        user-defined Tcl functions used previously (speeds up dupe checker).
@@ -965,7 +963,7 @@ nxTools v0.9.10 (XX-XX-2005):
   FIX: Argument handling for SITE GIVE/TAKE.
   FIX: Meaningless error when nuking "new" releases (unable to open nuke record).
   FIX: SITE PRETIME and pre time checks were broken.
-  FIX: The cookies for variables(CLOSE) and variables(OPEN) were mixed up.
+  FIX: The dZSbot cookies for variables(CLOSE) and variables(OPEN) were mixed up.
 
 nxTools v0.9.9 (03-27-2005):
   NEW: SITE BOT BW to view the site's current usage.
@@ -1235,21 +1233,21 @@ nxTools v0.6.1 (05-15-2004):
 # 10. Todo List                                                                #
 ################################################################################
 
-- Rewrite the request script and add support for nxSitebot.
+- Rewrite request script, better user/group/time limits.
 
-- Make SITE GINFO/WHO customizable (not a high priority).
+- Rewrite nuker to use the nukees stored in nukes.db, fall back to read.
 
-- Finish nxSitebot (the nxTools sitebot).
+- Write user/credits during pre (chown + group nukes = no loss).
+  See: http://www.ioftpd.com/board/showthread.php?s=&threadid=4971
 
-- I've written a version of this in C, with an XML based configuration. The
-  rewrite is mostly finished with the exception of the SHmem stuff. I do not
-  plan on fully implementing it, since the IPC interfaces *may* require some
-  drastic changes with the upcoming release of ioFTPD Beta 6. However, due to my
-  limited amount of free time, the rewrite won't be finished anytime soon, if at
-  all. Most of my time goes into other projects...
+- Add support for text justification in the message templates (left, right, and center).
+
+- Make SITE GINFO/WHO customizable - not a high priority.
+
+- Write a compatible sitebot (Infernus is on the way!).
 
 - Convert this manual to a cleanly formatted HTML file (like WarC and Harm have
-  done with ioA and ioBanana). This manual is over a 1000 lines. :|
+  done with ioA and ioBanana). This manual is over a 1250 lines. :|
 
 
 ################################################################################
