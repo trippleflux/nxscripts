@@ -93,7 +93,7 @@ proc ::nxTools::Req::Main {ArgV} {
         iputs ".-\[Request\]--------------------------------------------------------------."
         set ShowText 1
     }
-    if {[catch {DbOpenFile [namespace current]:: ReqDb "Requests.db"} ErrorMsg]} {
+    if {[catch {DbOpenFile [namespace current]::ReqDb "Requests.db"} ErrorMsg]} {
         ErrorLog RequestDb $ErrorMsg
         if {!$IsSiteBot} {ErrorReturn "Unable to open requests database."}
         return 1
