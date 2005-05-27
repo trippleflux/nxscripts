@@ -848,7 +848,7 @@ proc ::nxTools::Dupe::Main {ArgV} {
             }
         }
         default {
-            ErrorLog InvalidArgs "invalid parameter \"[info script] $Event\": check your ioFTPD.ini for errors"
+            ErrorLog InvalidArgs "unknown function \"[info script] $Event\": check your ioFTPD.ini for errors"
         }
     }
     return [set ioerror $Result]

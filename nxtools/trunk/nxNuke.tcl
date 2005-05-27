@@ -440,7 +440,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
             }
         }
         default {
-            ErrorLog InvalidArgs "invalid parameter \"[info script] $Event\": check your ioFTPD.ini for errors"
+            ErrorLog InvalidArgs "unknown function \"[info script] $Event\": check your ioFTPD.ini for errors"
         }
     }
     return 0
