@@ -210,7 +210,7 @@ proc ::nxTools::Req::Main {ArgV} {
             }
         }
         default {
-            ErrorLog "invalid parameter \"[info script] $Event\": check your ioFTPD.ini for errors"
+            ErrorLog InvalidArgs "invalid parameter \"[info script] $Event\": check your ioFTPD.ini for errors"
         }
     }
     if {$ShowText} {iputs "'------------------------------------------------------------------------'"}
