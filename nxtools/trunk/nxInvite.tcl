@@ -124,7 +124,7 @@ proc ::nxTools::Invite::Main {ArgV} {
                 ErrorReturn "You do not have access to the \"$Target\" target."
             }
             set InvTarget $invchan($Target)
-            LinePuts "Inviting \"$Option\" to: [join $InvTarget {, }]"
+            LinePuts "Inviting \"$Option\" to: [JoinLiteral $InvTarget]"
             putlog "INVITE: \"$user\" \"$group\" \"$Option\" \"$InvTarget\""
         }
     } elseif {[string equal "edit" $Event]} {

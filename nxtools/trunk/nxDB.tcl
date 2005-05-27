@@ -224,7 +224,7 @@ proc ::nxTools::Db::Main {ArgV} {
         }
         if {!$ValidName} {
             LinePuts "Invalid database name \"$DbArg\", must be:"
-            ErrorReturn [join $DbList ", "]
+            ErrorReturn [JoinLiteral $DbList]
         }
     }
 
