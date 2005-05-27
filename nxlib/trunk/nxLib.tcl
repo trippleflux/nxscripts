@@ -34,9 +34,9 @@ proc ::nxLib::ArgRange {ArgV Start End} {
 proc ::nxLib::GetOptions {ArgList MaxVar StringVar} {
     upvar $MaxVar MaxResults $StringVar String
     set Switch [string tolower [lindex $ArgList 0]]
-    if {[string index $Switch 0] == "-"} {
+    if {[string index $Switch 0] eq "-"} {
         set Switch [string range $Switch 1 end]
-        switch -exact -- $Switch {
+        switch -- $Switch {
             {m} -
             {max} {
                 set MaxResults [lindex $ArgList 1]
@@ -170,7 +170,7 @@ proc ::nxLib::RemoveTag {RealPath} {
 proc ::nxLib::GetDirList {RealPath VarName {IgnoreList ""} {FirstCall 1}} {
     upvar $VarName list
     if {$FirstCall} {
-        array set list [list DirList "" FileList ""]
+        array set list [list DirList [list] FileList [list]]
     }
     if {[file isdirectory $RealPath]} {
         lappend list(DirList) $RealPath
@@ -215,12 +215,12 @@ proc ::nxLib::GetDirStats {RealPath VarName {IgnoreList ""} {FirstCall 1}} {
 }
 
 proc ::nxLib::GetPath {PWD Path} {
-    if {[string index $Path 0] == "/"} {set VirtualPath $Path} else {set VirtualPath "$PWD$Path"}
+    if {[string index $Path 0] eq "/"} {set VirtualPath $Path} else {set VirtualPath "$PWD$Path"}
     regsub -all {[\\/]+} $Path {/} Path
     ## A few "security checks", in case $Path is "." or ".."
-    if {[file tail $VirtualPath] == "." || [file tail $VirtualPath] == ".."} {
+    if {[file tail $VirtualPath] eq "." || [file tail $VirtualPath] eq ".."} {
         set VirtualPath [file dirname $VirtualPath]
-    } elseif {![string equal "/" $VirtualPath]} {
+    } elseif {$VirtualPath ne "/"} {
         set VirtualPath [string trimright $VirtualPath "/"]
     }
     return $VirtualPath
@@ -254,12 +254,12 @@ proc ::nxLib::RemoveParentLinks {RealPath VirtualPath} {
 
 proc ::nxLib::GetSectionList {} {
     set IsSections 0
-    set SectionList ""
+    set SectionList [list]
     if {![catch {set Handle [open "ioFTPD.ini" r]} ErrorMsg]} {
         while {![eof $Handle]} {
             set ConfLine [string trim [gets $Handle]]
-            if {[string index $ConfLine 0] == ";" || [string index $ConfLine 0] == "#"} {continue}
-            if {[string equal {[Sections]} $ConfLine]} {
+            if {[string index $ConfLine 0] eq ";" || [string index $ConfLine 0] eq "#"} {continue}
+            if {$ConfLine eq {[Sections]}} {
                 set IsSections 1
             } elseif {$IsSections} {
                 if {[string match {\[*\]} $ConfLine]} {
@@ -267,7 +267,7 @@ proc ::nxLib::GetSectionList {} {
                 } elseif {[set Items [llength $ConfLine]]} {
                     ## Check if the user was to lazy to define the stats section
                     foreach {SectionName EqSign CreditSection Param1 Param2} $ConfLine {break}
-                    switch -exact -- $Items {
+                    switch -- $Items {
                         5 {lappend SectionList $SectionName $CreditSection $Param1 $Param2}
                         4 {lappend SectionList $SectionName $CreditSection 0 $Param1}
                         default {ErrorLog GetSectionList "invalid ioFTPD.ini \[Sections\] line: \"$ConfLine\""}
@@ -326,7 +326,7 @@ proc ::nxLib::KickUsers {KickPath {RealPaths "False"}} {
                 if {$Status == 1 || $Status == 2} {
                     set MatchPath $DataPath
                 } else {
-                    if {[string index $VfsPath end] != "/"} {append VfsPath "/"}
+                    if {[string index $VfsPath end] ne "/"} {append VfsPath "/"}
                     set MatchPath $VfsPath
                 }
                 ## Attempt to kick the client ID
@@ -376,7 +376,7 @@ proc ::nxLib::DebugLog {LogType LogMsg} {
     set LogFile [file join $LogPath "nxDebug.log"]
     if {![catch {set Handle [open $LogFile a]} ErrorMsg]} {
         set TimeNow [clock format [clock seconds] -format "%m-%d-%Y %H:%M:%S"]
-        if {[string equal "-state" $LogType]} {
+        if {$LogType eq {-state}} {
             puts $Handle "$TimeNow -------------------------------------------------------------------"
             puts $Handle "$TimeNow - [format %-12s Script] : $LogMsg"
             foreach EnvVar {args user group groups flags path pwd} {
@@ -405,7 +405,7 @@ proc ::nxLib::ErrorLog {LogType LogMsg} {
 ######################################################################
 
 proc ::nxLib::FormatDuration {Seconds} {
-    set Duration ""
+    set Duration [list]
     foreach Div {31536000 604800 86400 3600 60 1} Mod {0 52 7 24 60 60} Unit {y w d h m s} {
         set Num [expr {$Seconds / $Div}]
         if {$Mod > 0} {set Num [expr {$Num % $Mod}]}
@@ -415,7 +415,7 @@ proc ::nxLib::FormatDuration {Seconds} {
 }
 
 proc ::nxLib::FormatDurationLong {Seconds} {
-    set Duration ""
+    set Duration [list]
     foreach Div {31536000 604800 86400 3600 60 1} Mod {0 52 7 24 60 60} Unit {year week day hour min sec} {
         set Num [expr {$Seconds / $Div}]
         if {$Mod > 0} {set Num [expr {$Num % $Mod}]}
@@ -426,9 +426,8 @@ proc ::nxLib::FormatDurationLong {Seconds} {
 
 proc ::nxLib::FormatSize {KBytes} {
     foreach Dec {0 1 2 2} Unit {KB MB GB TB} {
-        if {abs($KBytes) >= 1024} {
-            set KBytes [expr {double($KBytes) / 1024.0}]
-        } else {break}
+        if {abs($KBytes) < 1024} {break}
+        set KBytes [expr {double($KBytes) / 1024.0}]
     }
     return [format "%.*f%s" $Dec $KBytes $Unit]
 }
@@ -436,9 +435,8 @@ proc ::nxLib::FormatSize {KBytes} {
 proc ::nxLib::FormatSpeed {Speed {Seconds 0}} {
     if {$Seconds > 0} {set Speed [expr {double($Speed) / $Seconds}]}
     foreach Dec {0 2 2} Unit {KB/s MB/s GB/s} {
-        if {abs($Speed) >= 1024} {
-            set Speed [expr {double($Speed) / 1024.0}]
-        } else {break}
+        if {abs($Speed) < 1024} {break}
+        set Speed [expr {double($Speed) / 1024.0}]
     }
     return [format "%.*f%s" $Dec $Speed $Unit]
 }
@@ -447,13 +445,13 @@ proc ::nxLib::FormatSpeed {Speed {Seconds 0}} {
 ######################################################################
 
 proc ::nxLib::GetUserList {} {
-    set UserList ""
+    set UserList [list]
     foreach UserId [user list] {lappend UserList [resolve uid $UserId]}
     return [lsort -ascii $UserList]
 }
 
 proc ::nxLib::GetGroupList {} {
-    set GroupList ""
+    set GroupList [list]
     foreach GroupId [group list] {lappend GroupList [resolve gid $GroupId]}
     return [lsort -ascii $GroupList]
 }
@@ -466,7 +464,7 @@ proc ::nxLib::GetGroupName {GroupId} {
 }
 
 proc ::nxLib::GetGroupUsers {GroupId} {
-    set UserList ""
+    set UserList [list]
     foreach UserName [GetUserList] {
         if {[userfile open $UserName] != 0} {continue}
         set UserFile [userfile bin2ascii]
@@ -509,14 +507,14 @@ proc ::nxLib::ParseCookies {InputStr ValueList CookieList} {
     set OutputStr ""
 
     for {set InputIdx 0} {$InputIdx < $InputLen} {incr InputIdx} {
-        if {[string index $InputStr $InputIdx] == "%"} {
-            ## Save this index for invalid cookies
+        if {[string index $InputStr $InputIdx] eq "%"} {
+            ## Save this index for invalid cookies.
             set StartIdx $InputIdx
 
             ## Find position field
             set BeforeIdx [incr InputIdx]
-            if {[string index $InputStr $InputIdx] == "-"} {
-                ## Ignore the negative sign if a does not number follow, for example: %-(cookie)
+            if {[string index $InputStr $InputIdx] eq "-"} {
+                ## Ignore the negative sign if a does not number follow, for example: %-(cookie).
                 if {[string is digit -strict [string index $InputStr [incr InputIdx]]]} {incr InputIdx} else {incr BeforeIdx}
             }
             while {[string is digit -strict [string index $InputStr $InputIdx]]} {incr InputIdx}
@@ -526,11 +524,11 @@ proc ::nxLib::ParseCookies {InputStr ValueList CookieList} {
                 set RightPos 0
             }
 
-            ## Find minimum/precision field
-            if {[string index $InputStr $InputIdx] == "."} {
+            ## Find minimum/precision field.
+            if {[string index $InputStr $InputIdx] eq "."} {
                 set BeforeIdx [incr InputIdx]
-                ## Ignore the negative sign, for example: %.-(cookie)
-                if {[string index $InputStr $InputIdx] == "-"} {incr BeforeIdx; incr InputIdx}
+                ## Ignore the negative sign, for example: %.-(cookie).
+                if {[string index $InputStr $InputIdx] eq "-"} {incr BeforeIdx; incr InputIdx}
                 while {[string is digit -strict [string index $InputStr $InputIdx]]} {incr InputIdx}
                 if {$BeforeIdx != $InputIdx} {
                     set LeftPos [string range $InputStr $BeforeIdx [expr {$InputIdx - 1}]]
@@ -543,20 +541,20 @@ proc ::nxLib::ParseCookies {InputStr ValueList CookieList} {
                 set LeftPos 999999
             }
 
-            ## Find cookie name
-            if {[string index $InputStr $InputIdx] == "("} {
+            ## Find cookie name.
+            if {[string index $InputStr $InputIdx] eq "("} {
                 set BeforeIdx [incr InputIdx]
-                while {[string index $InputStr $InputIdx] != ")" && $InputIdx <= $InputLen} {incr InputIdx}
+                while {[string index $InputStr $InputIdx] ne ")" && $InputIdx <= $InputLen} {incr InputIdx}
                 set CookieName [string range $InputStr $BeforeIdx [expr {$InputIdx - 1}]]
             } else {
-                ## Invalid cookie format, an open parenthesis is expected
+                ## Invalid cookie format, an open parenthesis is expected.
                 append OutputStr [string range $InputStr $StartIdx $InputIdx]
                 continue
             }
 
             if {[set CookiePos [lsearch -exact $CookieList $CookieName]] != -1} {
                 set Value [lindex $ValueList $CookiePos]
-                ## Type of cookie substitution to perform
+                ## Type of cookie substitution to perform.
                 if {[string is integer -strict $Value]} {
                     append OutputStr [format "%${RightPos}i" $Value]
                 } elseif {[regexp {^-?[0-9]+\.[0-9]+$} $Value]} {
