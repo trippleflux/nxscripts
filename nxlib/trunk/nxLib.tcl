@@ -58,6 +58,14 @@ proc ::nxLib::ErrorReturn {ErrorMsg} {
     return -code return
 }
 
+proc ::nxLib::JoinLiteral {List {Word "and"}} {
+    set ListLiteral [join [lrange $List 0 end-1] ", "]
+    if {[llength $List] != 2} {
+        append ListLiteral ","
+    }
+    return [append ListLiteral " " $Word " " [lindex $List end]]
+}
+
 proc ::nxLib::LinePuts {String} {iputs [format "| %-70s |" $String]}
 
 proc ::nxLib::StripChars {String} {
