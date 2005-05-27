@@ -160,12 +160,12 @@ close       = TCL ..\scripts\nxTools\nxClose.tcl close
 open        = TCL ..\scripts\nxTools\nxClose.tcl open
 db          = TCL ..\scripts\nxTools\nxDB.tcl
 approve     = TCL ..\scripts\nxTools\nxDupe.tcl approve
-cleanlogs   = TCL ..\scripts\nxTools\nxDupe.tcl clean
+clean       = TCL ..\scripts\nxTools\nxDupe.tcl clean
 dupe        = TCL ..\scripts\nxTools\nxDupe.tcl dupe
 fdupe       = TCL ..\scripts\nxTools\nxDupe.tcl fdupe
 new         = TCL ..\scripts\nxTools\nxDupe.tcl new
 pretime     = TCL ..\scripts\nxTools\nxDupe.tcl pretime
-rebuildlogs = TCL ..\scripts\nxTools\nxDupe.tcl rebuild
+rebuild     = TCL ..\scripts\nxTools\nxDupe.tcl rebuild
 undupe      = TCL ..\scripts\nxTools\nxDupe.tcl undupe
 wipe        = TCL ..\scripts\nxTools\nxDupe.tcl wipe
 editinv     = TCL ..\scripts\nxTools\nxInvite.tcl edit
@@ -203,7 +203,7 @@ who         = TCL ..\scripts\nxTools\nxUtilities.tcl who
 [FTP_SITE_Permissions]
 approve     = !A *
 bot         = M -sitebot
-cleanlogs   = M1
+clean       = M1
 close       = M1
 db          = M
 drives      = M1V
@@ -224,7 +224,7 @@ onel        = !A *
 open        = M1
 pre         = !A *
 pretime     = !A *
-rebuildlogs = M1
+rebuild     = M1
 reqdel      = !A *
 reqfill     = !A *
 request     = !A *
@@ -273,6 +273,10 @@ wipe        = M1V
     you are currently using an nxTools compatible sitebot.
 nxDayStats = 59 23 * * TCL ..\scripts\nxTools\nxUtilities.tcl daystats
 
+    This event removes invalid and/or old entries from your file and directory
+    dupe database.
+nxDupeClean = 0 0 * * TCL ..\scripts\nxTools\nxDupe.tcl clean
+
     The rotate logs even does just that, it rotates the defined log files once
     they meet or exceed the required size. Be sure to properly configure this
     option in the nxTools.cfg file.
@@ -282,10 +286,6 @@ nxRotateLogs = 59 23 * * TCL ..\scripts\nxTools\nxUtilities.tcl rotate
     also specify the date area with a parameter, if you want to trigger a specific
     area. Refer to the configuration file (nxTools.cfg) for more details on this.
 nxNewDate = 0 0 * * TCL ..\scripts\nxTools\nxUtilities.tcl newdate
-
-    This event cleans your file and directory dupe logs. It removes both invalid
-    directories and old files, also sorting the log entries from oldest to newest.
-nxCleanLogs = 0 0 * * TCL ..\scripts\nxTools\nxDupe.tcl clean
 
     The request wipe event wipes filled requests once they meet or exceed the
     defined max age, which is defined in the configuration. It helps to keep your
@@ -437,11 +437,11 @@ Legend:
      - SITE BOT STATS alldn =thegroup
      - SITE BOT WHO
 
-- SITE CLEANLOGS
+- SITE CLEAN
     Description:
-     - Clean the dupe logs of old or invalid dupe entries.
+     - Removes old and invalid entries in the dupe database.
     Examples:
-     - SITE CLEANLOGS
+     - SITE CLEAN
 
 - SITE CLOSE [reason]
     Description:
@@ -612,14 +612,11 @@ Legend:
      - SITE PRE APPS Something.Cool-NX
      - SITE PRE XXX ioFTPD.Gone.Wild.Vol.2.XviD-NX
 
-- SITE REBUILDLOGS
+- SITE REBUILD
     Description:
-     - Rebuilds the file and directory dupe logs by scanning the paths you
-       defined in the configuration file.
-     - The generated log files will be RebuildDirs.log and RebuildFiles.log;
-       which you'll have to manually rename if you wish to use them.
+     - Updates the file and directory dupe database by scanning predefined paths.
     Examples:
-     - SITE REBUILDLOGS
+     - SITE REBUILD
 
 - SITE REQDEL <request id>
     Description:
@@ -952,6 +949,11 @@ Text Templates:
 ################################################################################
 # 9. Change Log                                                                #
 ################################################################################
+
+nxTools v0.9.11 (XX-XX-2005):
+  CHG: Renamed SITE CLEANLOGS to SITE CLEANLOGS and SITE REBUILDLOGS to SITE REBUILD.
+  FIX: Corrected several errors in the readme.
+  FIX: The InvalidArgs error message for request didn't work.
 
 nxTools v0.9.10 (05-24-2005):
   NEW: Added free and drive totals to the footer of SITE DRIVES.

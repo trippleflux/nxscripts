@@ -124,27 +124,27 @@ proc ::nxTools::Dupe::CleanDb {} {
             ErrorLog DupeClean "unable to mount the VFS-file \"$misc(MountFile)\""; return 1
         }
     }
-    iputs ".-\[CleanLogs\]------------------------------------------------------------."
-    if {$dupe(CleanFiles) == 0} {
+    iputs ".-\[DupeClean\]------------------------------------------------------------."
+    if {$dupe(CleanFiles) < 1} {
         LinePuts "File database cleaning disabled, skipping."
     } elseif {[catch {DbOpenFile [namespace current]::FileDb "DupeFiles.db"} ErrorMsg]} {
         LinePuts "Unable to open the file database."
         ErrorLog CleanFiles $ErrorMsg
     } else {
         LinePuts "Cleaning the file database."
-        set MaxAge [expr {[clock seconds] - $dupe(CleanFiles) * 86400}]
+        set MaxAge [expr {[clock seconds] - ($dupe(CleanFiles) * 86400)}]
         FileDb eval {DELETE FROM DupeFiles WHERE TimeStamp < $MaxAge}
         FileDb close
     }
 
-    if {$dupe(CleanFiles) == 0} {
+    if {$dupe(CleanFiles) < 1} {
         LinePuts "Directory database cleaning disabled, skipping."
     } elseif {[catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} ErrorMsg]} {
         LinePuts "Unable to open the directory database."
         ErrorLog CleanDirs $ErrorMsg
     } else {
         LinePuts "Cleaning the directory database."
-        set MaxAge [expr {[clock seconds] - $dupe(CleanDirs) * 86400}]
+        set MaxAge [expr {[clock seconds] - ($dupe(CleanDirs) * 86400)}]
         DirDb eval {BEGIN}
         DirDb eval {SELECT DirPath,DirName,rowid FROM DupeDirs WHERE TimeStamp < $MaxAge ORDER BY TimeStamp DESC} values {
             set FullPath [file join $values(DirPath) $values(DirName)]
@@ -161,7 +161,7 @@ proc ::nxTools::Dupe::CleanDb {} {
 
 proc ::nxTools::Dupe::RebuildDb {} {
     global dupe misc
-    iputs ".-\[RebuildLogs\]----------------------------------------------------------."
+    iputs ".-\[DupeUpdate\]-----------------------------------------------------------."
     if {![llength $dupe(RebuildPaths)]} {
         ErrorReturn "There are no paths defined, check your configuration."
     }
