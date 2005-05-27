@@ -232,7 +232,6 @@ Base64ObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
         Tcl_WrongNumArgs(interp, 1, objv, "option data");
         return TCL_ERROR;
     }
-
     if (Tcl_GetIndexFromObj(interp, objv[1], options, "option", 0, &index) != TCL_OK) {
         return TCL_ERROR;
     }

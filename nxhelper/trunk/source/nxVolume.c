@@ -26,7 +26,8 @@
  *        total  - Total space, expressed in bytes.
  *
  *     ::nx::volume type <volume>
- *       - Retrieves the drive type for "drive".
+ *      - Determines whether a volume is a removable, fixed, CD-ROM, RAM disk,
+ *        or network drive.
  */
 
 #include <nxHelper.h>

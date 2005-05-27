@@ -16,5 +16,6 @@
 #define __NXUTIL_H__
 
 char *TclSetWinError(Tcl_Interp *interp, unsigned long errorCode);
+int PartialSwitchCompare(Tcl_Obj *objPtr, const char *switchName);
 
 #endif /* __NXUTIL_H__ */

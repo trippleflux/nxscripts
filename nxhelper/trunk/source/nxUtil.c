@@ -64,3 +64,36 @@ TclSetWinError(Tcl_Interp *interp, unsigned long errorCode)
     Tcl_SetErrorCode(interp, "WINDOWS", errorId, tsdPtr->systemError, NULL);
     return tsdPtr->systemError;
 }
+
+
+/*
+ * PartialSwitchCompare
+ *
+ *   Performs a partial string comparison for a single switch. This behavior is
+ *   consistent with Tcl commands that accept one switch argument, such as
+ *   'string match' and 'string map'.
+ *
+ * Arguments:
+ *   objPtr     - The string value of this object is compared against "name".
+ *   switchName - Full name of the switch.
+ *
+ * Returns:
+ *   If "name" and the string value of "objPtr" match partially or completely,
+ *   the return value is non-zero. If they do not match, the return value is zero.
+ *
+ * Remarks:
+ *   None.
+ */
+
+int
+PartialSwitchCompare(Tcl_Obj *objPtr, const char *switchName)
+{
+    int optionLength;
+    char *option = Tcl_GetStringFromObj(objPtr, &optionLength);
+
+    /*
+     * The user supplied switch must be at least one character
+     * in length to account for the switch prefix (hyphen).
+     */
+    return (optionLength > 1 && strncmp(switchName, option, optionLength) == 0);
+}

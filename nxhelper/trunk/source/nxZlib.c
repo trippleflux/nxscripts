@@ -30,7 +30,6 @@
  */
 
 #include <nxHelper.h>
-#include <zlib.h>
 
 static int ZlibDeflateObj(Tcl_Obj *sourceObj, Tcl_Obj *destObj, int level);
 static int ZlibInflateObj(Tcl_Obj *sourceObj, Tcl_Obj *destObj);
@@ -121,13 +120,15 @@ ZlibInflateObj(Tcl_Obj *sourceObj, Tcl_Obj *destObj)
 {
     int bufferFactor;
     int bufferLength;
-    int bufferPrev = 0;
     int dataLength;
     int status;
     unsigned char *buffer;
     z_stream stream;
 
     stream.next_in = Tcl_GetByteArrayFromObj(sourceObj, &dataLength);
+    if (dataLength < 1) {
+        return Z_DATA_ERROR;
+    }
 
     /*
      * The opaque, zalloc, and zfree struct members must
@@ -136,6 +137,7 @@ ZlibInflateObj(Tcl_Obj *sourceObj, Tcl_Obj *destObj)
     stream.opaque = (voidpf) Z_NULL;
     stream.zalloc = (alloc_func) Z_NULL;
     stream.zfree  = (free_func) Z_NULL;
+    stream.avail_in = dataLength;
 
     status = inflateInit(&stream);
     if (status != Z_OK) {
@@ -143,24 +145,24 @@ ZlibInflateObj(Tcl_Obj *sourceObj, Tcl_Obj *destObj)
     }
 
     /* Increase the buffer size by a factor of two each attempt. */
-    for (bufferFactor = 1; bufferFactor < 16; bufferFactor++) {
+    for (bufferFactor = 1; bufferFactor < 20; bufferFactor++) {
         bufferLength = dataLength * (1 << bufferFactor);
         buffer = Tcl_SetByteArrayLength(destObj, bufferLength);
 
-        stream.next_out  = buffer + bufferPrev;
-        stream.avail_out = bufferLength - bufferPrev;
+        stream.next_out  = buffer + stream.total_out;
+        stream.avail_out = bufferLength - stream.total_out;
 
         status = inflate(&stream, Z_SYNC_FLUSH);
 
-        /* inflate() returns Z_STREAM_END once all input data has been processed. */
+        /* inflate() returns Z_STREAM_END when all input data has been processed. */
         if (status == Z_STREAM_END) {
             status = Z_OK;
             break;
         }
 
         /*
-         * If inflate() returns Z_OK and with avail_out at zero, it must be
-         * called again with a larger buffer to process any pending data.
+         * If inflate() returns Z_OK with avail_out at zero, it must be
+         * called again with a larger buffer to process remaining data.
          */
         if (status == Z_OK && stream.avail_out == 0) {
             status = Z_BUF_ERROR;
@@ -168,8 +170,6 @@ ZlibInflateObj(Tcl_Obj *sourceObj, Tcl_Obj *destObj)
             inflateEnd(&stream);
             return (status == Z_OK) ? Z_BUF_ERROR : status;
         }
-
-        bufferPrev = bufferLength;
     }
 
     inflateEnd(&stream);
@@ -204,11 +204,10 @@ ZlibObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
     static const char *options[] = {"adler32", "crc32", "deflate", "inflate", NULL};
     enum options {OPTION_ADLER32, OPTION_CRC32, OPTION_DEFLATE, OPTION_INFLATE};
 
-    if (objc < 3) {
+    if (objc < 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "option arg ?arg ...?");
         return TCL_ERROR;
     }
-
     if (Tcl_GetIndexFromObj(interp, objv[1], options, "option", 0, &index) != TCL_OK) {
         return TCL_ERROR;
     }
@@ -238,6 +237,10 @@ ZlibObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
                     checksum = crc32(checksum, data, dataLength);
                     break;
                 }
+                default: {
+                    /* To keep GCC from complaining... */
+                    break;
+                }
             }
 
             Tcl_SetLongObj(Tcl_GetObjResult(interp), (long)checksum);
@@ -252,12 +255,13 @@ ZlibObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
                     break;
                 }
                 case 5: {
-                    if (strcmp(Tcl_GetStringFromObj(objv[2], NULL), "-level") == 0) {
+                    if (PartialSwitchCompare(objv[2], "-level")) {
                         if (Tcl_GetIntFromObj(interp, objv[3], &level) != TCL_OK) {
                             return TCL_ERROR;
                         }
                         if (level < 0 || level > 9) {
-                            Tcl_SetResult(interp, "invalid compression level: must be between 0 and 9", TCL_STATIC);
+                            Tcl_AppendResult(interp, "invalid compression level \"",
+                                Tcl_GetStringFromObj(objv[3], NULL), "\": must be between 0 and 9", NULL);
                             return TCL_ERROR;
                         }
                         break;
