@@ -59,8 +59,9 @@ proc ::nxLib::ErrorReturn {ErrorMsg} {
 }
 
 proc ::nxLib::JoinLiteral {List {Word "and"}} {
+    if {[llength $List] < 2} {return [join $List]}
     set ListLiteral [join [lrange $List 0 end-1] ", "]
-    if {[llength $List] != 2} {
+    if {[llength $List] > 2} {
         append ListLiteral ","
     }
     return [append ListLiteral " " $Word " " [lindex $List end]]
