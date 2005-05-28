@@ -202,9 +202,9 @@ proc ::nxTools::Db::Main {ArgV} {
     global misc
     variable dbschema
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
-
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
     set Event [string tolower [lindex $ArgList 0]]
+
     if {[lsearch -exact {create check optimize} $Event] == -1} {
         iputs "Syntax: SITE DB CHECK \[database\]"
         iputs "        SITE DB CREATE \[database\]"

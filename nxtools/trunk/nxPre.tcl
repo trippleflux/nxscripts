@@ -18,34 +18,36 @@ namespace eval ::nxTools::Pre {
 # Pre Procedures
 ######################################################################
 
-proc ::nxTools::Pre::ConfigLoader {ConfigFile} {
+proc ::nxTools::Pre::ConfigRead {ConfigFile} {
     upvar ConfigComments ConfigComments prearea prearea pregrp pregrp prepath prepath
     set ConfigComments ""
-    set ConfigSection 0
+    set ConfigSection -1
     if {![catch {set Handle [open $ConfigFile r]} ErrorMsg]} {
         while {![eof $Handle]} {
             set FileLine [string trim [gets $Handle]]
             if {![string length $FileLine]} {continue}
 
-            if {[string index $FileLine 0] == "#"} {append ConfigComments $FileLine "\n"; continue
-            } elseif {[string equal {[AREAS]} $FileLine]} {set ConfigSection 1; continue
-            } elseif {[string equal {[GROUPS]} $FileLine]} {set ConfigSection 2; continue
-            } elseif {[string equal {[PATHS]} $FileLine]} {set ConfigSection 3; continue
-            } elseif {[string match {\[*\]} $FileLine]} {set ConfigSection 0; continue}
-            switch -- $ConfigSection {
-                1 {set prearea([lindex $FileLine 0]) [lindex $FileLine 1]}
-                2 {set pregrp([lindex $FileLine 0]) [lindex $FileLine 1]}
-                3 {set prepath([lindex $FileLine 0]) [lrange $FileLine 1 end]}
+            if {[string index $FileLine 0] == "#"} {
+                append ConfigComments $FileLine "\n"; continue
+            }
+            if {[string match {\[*\]} $FileLine]} {
+                set ConfigSection [lsearch -exact {[AREAS] [GROUPS] [PATHS]} $FileLine]
+            } else {
+                switch -- $ConfigSection {
+                    0 {set prearea([lindex $FileLine 0]) [lindex $FileLine 1]}
+                    1 {set pregrp([lindex $FileLine 0]) [lindex $FileLine 1]}
+                    2 {set prepath([lindex $FileLine 0]) [lrange $FileLine 1 end]}
+                }
             }
         }
         close $Handle
     } else {
         ErrorReturn "Unable to load the pre configuration, contact a siteop."
-        ErrorLog PreConfigLoader $ErrorMsg
+        ErrorLog PreConfigRead $ErrorMsg
     }
 }
 
-proc ::nxTools::Pre::ConfigWriter {ConfigFile} {
+proc ::nxTools::Pre::ConfigWrite {ConfigFile} {
     upvar ConfigComments ConfigComments prearea prearea pregrp pregrp prepath prepath
     if {![catch {set Handle [open $ConfigFile w]} ErrorMsg]} {
         puts $Handle $ConfigComments
@@ -62,7 +64,7 @@ proc ::nxTools::Pre::ConfigWriter {ConfigFile} {
             puts $Handle "$Name \"[join $Value {" "}]\""
         }
         close $Handle
-    } else {ErrorLog PreConfigWriter $ErrorMsg}
+    } else {ErrorLog PreConfigWrite $ErrorMsg}
 }
 
 proc ::nxTools::Pre::ResolvePath {UserName GroupName RealPath} {
@@ -74,8 +76,7 @@ proc ::nxTools::Pre::ResolvePath {UserName GroupName RealPath} {
     if {[userfile open $UserName] == 0} {
         set UserFile [userfile bin2ascii]
         foreach UserLine [split $UserFile "\r\n"] {
-            set LineType [string tolower [lindex $UserLine 0]]
-            if {[string equal "vfsfile" $LineType]} {
+            if {[string equal -nocase "vfsfile" [lindex $UserLine 0]]} {
                 set VfsFile [ArgRange $UserLine 1 end]; break
             }
         }
@@ -84,8 +85,7 @@ proc ::nxTools::Pre::ResolvePath {UserName GroupName RealPath} {
     if {![file isfile $VfsFile] && [groupfile open $GroupName] == 0} {
         set GroupFile [groupfile bin2ascii]
         foreach GroupLine [split $GroupFile "\r\n"] {
-            set LineType [string tolower [lindex $GroupLine 0]]
-            if {[string equal "vfsfile" $LineType]} {
+            if {[string equal -nocase "vfsfile" [lindex $UserLine 0]]} {
                 set VfsFile [ArgRange $GroupLine 1 end]; break
             }
         }
@@ -159,11 +159,11 @@ proc ::nxTools::Pre::UpdateUser {UserName Files Size CreditSection StatSection} 
         set UserFile [split [userfile bin2ascii] "\r\n"]
         foreach UserLine $UserFile {
             set LineType [string tolower [lindex $UserLine 0]]
-            if {[string equal "credits" $LineType]} {
+            if {$LineType eq "credits"} {
                 set OldCredits [lindex $UserLine $CreditSection]
-            } elseif {[string equal "groups" $LineType]} {
+            } elseif {$LineType eq "groups"} {
                 set GroupName [GetGroupName [lindex $UserLine 1]]
-            } elseif {[string equal "ratio" $LineType]} {
+            } elseif {$LineType eq "ratio"} {
                 set Ratio [lindex $UserLine $CreditSection]
             }
         }
@@ -181,7 +181,7 @@ proc ::nxTools::Pre::UpdateUser {UserName Files Size CreditSection StatSection} 
                 set NewFiles [expr {wide([lindex $UserLine $StatSection]) + $Files}]
                 set NewStats [expr {wide([lindex $UserLine [expr {$StatSection + 1}]]) + wide($Size)}]
                 set UserLine [lreplace $UserLine $StatSection [expr {$StatSection + 1}] $NewFiles $NewStats]
-            } elseif {[string equal "credits" $LineType]} {
+            } elseif {$LineType eq "credits"} {
                 set UserLine [lreplace $UserLine $CreditSection $CreditSection $NewCredits]
             }
             append NewUserFile $UserLine "\r\n"
@@ -206,7 +206,7 @@ proc ::nxTools::Pre::Main {ArgV} {
     if {[string equal "pre" $Event]} {
         if {![string length $Option] || [string equal -nocase "help" $Option]} {
             iputs ".-\[Pre\]------------------------------------------------------------------."
-            ConfigLoader $pre(ConfigFile)
+            ConfigRead $pre(ConfigFile)
             LinePuts "Syntax: SITE PRE <area> <directory>"
             LinePuts "        SITE PRE HISTORY \[-max <limit>\] \[group\]"
             LinePuts "        SITE PRE STATS \[-max <limit>\] \[group\]"
@@ -256,7 +256,7 @@ proc ::nxTools::Pre::Main {ArgV} {
             if {!$Count} {LinePuts "There are no statistics to display."}
         } else {
             iputs ".-\[Pre\]------------------------------------------------------------------."
-            ConfigLoader $pre(ConfigFile)
+            ConfigRead $pre(ConfigFile)
             set PreArea [string toupper $Option]
 
             ## Check area and group paths.
@@ -467,7 +467,7 @@ proc ::nxTools::Pre::Main {ArgV} {
         }
     } elseif {[string equal "edit" $Event]} {
         iputs ".-\[EditPre\]--------------------------------------------------------------."
-        ConfigLoader $pre(ConfigFile)
+        ConfigRead $pre(ConfigFile)
 
         set PreArea [string toupper $Target]
         set Option [string tolower $Option]
@@ -498,7 +498,7 @@ proc ::nxTools::Pre::Main {ArgV} {
                 set pregrp($PreArea) ""
                 LinePuts "Created area \"$PreArea\", destination set to \"$Value$Other\"."
                 LinePuts "Note: Add groups to the area so others may pre to it."
-                ConfigWriter $pre(ConfigFile)
+                ConfigWrite $pre(ConfigFile)
             }
             {delarea} {
                 if {![string length $Target] || ![info exists prearea($PreArea)]} {
@@ -506,7 +506,7 @@ proc ::nxTools::Pre::Main {ArgV} {
                 }
                 unset -nocomplain prearea($PreArea) pregrp($PreArea)
                 LinePuts "Removed the area \"$PreArea\" and all related settings."
-                ConfigWriter $pre(ConfigFile)
+                ConfigWrite $pre(ConfigFile)
             }
             {addgrp} {
                 if {![string length $Target] || ![info exists prearea($PreArea)]} {
@@ -524,7 +524,7 @@ proc ::nxTools::Pre::Main {ArgV} {
                 }
                 lappend pregrp($PreArea) $Value
                 LinePuts "Added the group \"$Value\" to the \"$PreArea\" allow list."
-                ConfigWriter $pre(ConfigFile)
+                ConfigWrite $pre(ConfigFile)
             }
             {delgrp} {
                 if {![string length $Target] || ![info exists prearea($PreArea)]} {
@@ -543,7 +543,7 @@ proc ::nxTools::Pre::Main {ArgV} {
                 }
                 if {$Deleted} {
                     LinePuts "Removed the group \"$Value\" from the \"$PreArea\" allow list."
-                    ConfigWriter $pre(ConfigFile)
+                    ConfigWrite $pre(ConfigFile)
                 } else {
                     LinePuts "The group \"$Value\" does not exist in the \"$PreArea\" allow list."
                 }
@@ -571,7 +571,7 @@ proc ::nxTools::Pre::Main {ArgV} {
                 lappend prepath($Target) $Value
                 catch {vfs chattr $RealPath 0 [string map [list %(group) $Target] $pre(PrivatePath)]}
                 LinePuts "Added path \"$Value\" to the \"$Target\" group."
-                ConfigWriter $pre(ConfigFile)
+                ConfigWrite $pre(ConfigFile)
             }
             {delpath} {
                 if {![string length $Target]} {
@@ -592,7 +592,7 @@ proc ::nxTools::Pre::Main {ArgV} {
                 }
                 if {$Deleted} {
                     LinePuts "Removed path \"$Value\" for the \"$Target\" group."
-                    ConfigWriter $pre(ConfigFile)
+                    ConfigWrite $pre(ConfigFile)
                 } else {
                     LinePuts "The path \"$Value\" is not defined for the \"$Target\" group."
                 }

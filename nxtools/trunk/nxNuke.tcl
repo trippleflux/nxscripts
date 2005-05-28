@@ -77,11 +77,11 @@ proc ::nxTools::Nuke::UpdateUser {IsNuke UserName Multi Size Files Stats CreditS
         set UserFile [split [userfile bin2ascii] "\r\n"]
         foreach UserLine $UserFile {
             set LineType [string tolower [lindex $UserLine 0]]
-            if {[string equal "credits" $LineType]} {
+            if {$LineType eq "credits"} {
                 set OldCredits [lindex $UserLine $CreditSection]
-            } elseif {[string equal "groups" $LineType]} {
+            } elseif {$LineType eq "groups"} {
                 set GroupName [GetGroupName [lindex $UserLine 1]]
-            } elseif {[string equal "ratio" $LineType]} {
+            } elseif {$LineType eq "ratio"} {
                 set Ratio [lindex $UserLine $CreditSection]
             }
         }
@@ -104,7 +104,7 @@ proc ::nxTools::Nuke::UpdateUser {IsNuke UserName Multi Size Files Stats CreditS
                 set NewFiles [expr {wide([lindex $UserLine $StatSection]) + $Files}]
                 set NewStats [expr {wide([lindex $UserLine [expr {$StatSection + 1}]]) + wide($Stats)}]
                 set UserLine [lreplace $UserLine $StatSection [expr {$StatSection + 1}] $NewFiles $NewStats]
-            } elseif {[string equal "credits" $LineType]} {
+            } elseif {$LineType eq "credits"} {
                 set UserLine [lreplace $UserLine $CreditSection $CreditSection $NewCredits]
             }
             append NewUserFile $UserLine "\r\n"
@@ -172,7 +172,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
                 }
                 {^(NUKE|UNNUKE)\|\S+\|\S+\|\d+\|.+$} {
                     ## Only use the multiplier if it's a nuke record.
-                    if {!$IsNuke && [string equal "UNNUKE" [lindex $RecordSplit 0]]} {
+                    if {!$IsNuke && [lindex $RecordSplit 0] eq "UNNUKE"} {
                         set Multi [lindex $RecordSplit 3]
                     }
                 }
@@ -193,8 +193,8 @@ proc ::nxTools::Nuke::Main {ArgV} {
                 }
                 set AllowNuke 0; set NukeType 1
                 set RlsSuffix [string range [file tail $VirtualPath] [incr GroupPos] end]
-                foreach NukeeGroup $groups {
-                    if {[string equal $RlsSuffix $NukeeGroup]} {set AllowNuke 1; break}
+                foreach NukerGroup $groups {
+                    if {$RlsSuffix eq $NukerGroup} {set AllowNuke 1; break}
                 }
                 if {!$AllowNuke} {ErrorReturn "You are not allowed to nuke other groups."}
             }
@@ -262,7 +262,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
             }
 
             ## Change the credits and stats of nukees.
-            set NukeeLog ""
+            set NukeeLog [list]
             foreach NukeeUser [lsort -ascii [array names nukesize]] {
                 set NukeCredits [expr {wide($nukesize($NukeeUser)) / 1024}]
                 set NukeStats [expr {$NukeType == 2 ? 0 : $NukeCredits}]

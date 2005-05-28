@@ -81,13 +81,13 @@ proc ::nxTools::Req::UpdateDir {Event Request {UserId 0} {GroupId 0}} {
 proc ::nxTools::Req::Main {ArgV} {
     global misc req flags group user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
-    set IsSiteBot [expr {[info exists user] && [string equal $misc(SiteBot) $user]}]
+    set IsSiteBot [expr {[info exists user] && $misc(SiteBot) eq $user}]
 
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
     set Event [string tolower [lindex $ArgList 0]]
     set Request [join [lrange $ArgList 1 end]]
 
-    if {[string equal "view" $Event]} {
+    if {[string equal "list" $Event]} {
         set ShowText 0
     } else {
         iputs ".-\[Request\]--------------------------------------------------------------."
@@ -154,7 +154,7 @@ proc ::nxTools::Req::Main {ArgV} {
             putlog "${LogPrefix}: \"$user\" \"$group\" \"$values(Request)\" \"$values(UserName)\" \"$values(GroupName)\" \"$RequestId\" \"$RequestAge\""
             UpdateDir $Event $values(Request)
         }
-        {view} {
+        {list} {
             if {!$IsSiteBot} {
                 foreach MessageType {Header Body None Footer} {
                     set template($MessageType) [ReadFile [file join $misc(Templates) "Requests.$MessageType"]]

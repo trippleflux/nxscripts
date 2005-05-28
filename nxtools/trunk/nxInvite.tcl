@@ -18,32 +18,35 @@ namespace eval ::nxTools::Invite {
 # Invite Procedures
 ######################################################################
 
-proc ::nxTools::Invite::ConfigLoader {ConfigFile} {
+proc ::nxTools::Invite::ConfigRead {ConfigFile} {
     upvar ConfigComments ConfigComments invchan invchan rights rights
     set ConfigComments ""
-    set ConfigSection 0
+    set ConfigSection -1
     if {![catch {set Handle [open $ConfigFile r]} ErrorMsg]} {
         while {![eof $Handle]} {
             set FileLine [string trim [gets $Handle]]
             if {![string length $FileLine]} {continue}
 
-            if {[string index $FileLine 0] == "#"} {append ConfigComments $FileLine "\n"; continue
-            } elseif {[string equal {[INVITES]} $FileLine]} {set ConfigSection 1; continue
-            } elseif {[string equal {[RIGHTS]} $FileLine]} {set ConfigSection 2; continue
-            } elseif {[string match {\[*\]} $FileLine]} {set ConfigSection 0; continue}
-            switch -- $ConfigSection {
-                1 {set invchan([lindex $FileLine 0]) [lindex $FileLine 1]}
-                2 {set rights([lindex $FileLine 0]) [lindex $FileLine 1]}
+            if {[string index $FileLine 0] == "#"} {
+                append ConfigComments $FileLine "\n"; continue
+            }
+            if {[string match {\[*\]} $FileLine]} {
+                set ConfigSection [lsearch -exact {[INVITES] [RIGHTS]} $FileLine]
+            } else {
+                switch -- $ConfigSection {
+                    0 {set invchan([lindex $FileLine 0]) [lindex $FileLine 1]}
+                    1 {set rights([lindex $FileLine 0]) [lindex $FileLine 1]}
+                }
             }
         }
         close $Handle
     } else {
         ErrorReturn "Unable to load the invite configuration, contact a siteop."
-        ErrorLog InviteConfigLoader $ErrorMsg
+        ErrorLog InviteConfigRead $ErrorMsg
     }
 }
 
-proc ::nxTools::Invite::ConfigWriter {ConfigFile} {
+proc ::nxTools::Invite::ConfigWrite {ConfigFile} {
     upvar ConfigComments ConfigComments invchan invchan rights rights
     if {![catch {set Handle [open $ConfigFile w]} ErrorMsg]} {
         puts $Handle $ConfigComments
@@ -56,7 +59,7 @@ proc ::nxTools::Invite::ConfigWriter {ConfigFile} {
             puts $Handle "$Name \"$Value\""
         }
         close $Handle
-    } else {ErrorLog InviteConfigWriter $ErrorMsg}
+    } else {ErrorLog InviteConfigWrite $ErrorMsg}
 }
 
 proc ::nxTools::Invite::FlagCheck {CurrentFlags NeedFlags} {
@@ -103,7 +106,7 @@ proc ::nxTools::Invite::Main {ArgV} {
 
     if {[string equal "invite" $Event]} {
         iputs ".-\[Invite\]---------------------------------------------------------------."
-        ConfigLoader $invite(ConfigFile)
+        ConfigRead $invite(ConfigFile)
 
         if {![string length $Option] || [string equal -nocase "help" $Option]} {
             LinePuts "Syntax : SITE INVITE <irc nick> \[target\]"
@@ -129,7 +132,7 @@ proc ::nxTools::Invite::Main {ArgV} {
         }
     } elseif {[string equal "edit" $Event]} {
         iputs ".-\[EditInvite\]-----------------------------------------------------------."
-        ConfigLoader $invite(ConfigFile)
+        ConfigRead $invite(ConfigFile)
 
         set Option [string tolower $Option]
         switch -- $Option {
@@ -150,7 +153,7 @@ proc ::nxTools::Invite::Main {ArgV} {
                 set rights($Target) "!*"
                 LinePuts "Created invite target \"$Target\", destination set to \"$Value\"."
                 LinePuts "Note: Add channels and edit the invite target's rights."
-                ConfigWriter $invite(ConfigFile)
+                ConfigWrite $invite(ConfigFile)
             }
             {delinv} {
                 if {![string length $Target] || ![info exists invchan($Target)]} {
@@ -158,7 +161,7 @@ proc ::nxTools::Invite::Main {ArgV} {
                 }
                 unset -nocomplain invchan($Target) rights($Target)
                 LinePuts "Removed the invite target \"$Target\" and all related settings."
-                ConfigWriter $invite(ConfigFile)
+                ConfigWrite $invite(ConfigFile)
             }
             {addchan} {
                 if {![string length $Target] || ![info exists invchan($Target)]} {
@@ -175,7 +178,7 @@ proc ::nxTools::Invite::Main {ArgV} {
                 }
                 lappend invchan($Target) $Value
                 LinePuts "Added the channel \"$Value\" to the invite target \"$Target\"."
-                ConfigWriter $invite(ConfigFile)
+                ConfigWrite $invite(ConfigFile)
             }
             {delchan} {
                 if {![string length $Target] || ![info exists invchan($Target)]} {
@@ -194,7 +197,7 @@ proc ::nxTools::Invite::Main {ArgV} {
                 }
                 if {$Deleted} {
                     LinePuts "Removed the channel \"$Value\" from the invite target \"$Target\"."
-                    ConfigWriter $invite(ConfigFile)
+                    ConfigWrite $invite(ConfigFile)
                 } else {
                     LinePuts "The channel \"$Value\" does not exist in the invite target \"$Target\"."
                 }
@@ -207,7 +210,7 @@ proc ::nxTools::Invite::Main {ArgV} {
                 }
                 set rights($Target) $Value
                 LinePuts "Invite target \"$Target\" rights set to \"$Value\"."
-                ConfigWriter $invite(ConfigFile)
+                ConfigWrite $invite(ConfigFile)
             }
             {view} {
                 LinePuts "Targets:"

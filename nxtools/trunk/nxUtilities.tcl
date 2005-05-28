@@ -251,7 +251,7 @@ proc ::nxTools::Utils::WeeklyCredits {WkTarget WkAmount} {
         set Deleted 0; set Index 0
         set CreditsKB [expr {wide($Credits) * 1024}]
         foreach ListItem $TargetList {
-            if {[string equal $ListItem [list $WkTarget $Section $CreditsKB]]} {
+            if {$ListItem eq [list $WkTarget $Section $CreditsKB]} {
                 set Deleted 1
                 set TargetList [lreplace $TargetList $Index $Index]
             } else {incr Index}
@@ -339,7 +339,7 @@ proc ::nxTools::Utils::WeeklySet {} {
 # Site Commands
 ######################################################################
 
-proc ::nxTools::Utils::SiteCredits {Type Target Amount Section} {
+proc ::nxTools::Utils::SiteCredits {Event Target Amount Section} {
     global group user
     iputs ".-\[Credits\]--------------------------------------------------------------."
     if {[resolve user $Target] == -1} {
@@ -362,15 +362,16 @@ proc ::nxTools::Utils::SiteCredits {Type Target Amount Section} {
     set AmountKB [expr {wide($Amount) * $Multi}]
     set AmountMB [expr {wide($AmountKB) / 1024}]
 
-    if {[string equal -nocase $Type "give"]} {
+    if {$Event eq "GIVE"} {
         ChangeCredits $Target "+$AmountKB" $Section
         LinePuts "Gave $Amount$UnitName of credits to $Target in section $Section."
-        putlog "GIVE: \"$user\" \"$group\" \"$AmountMB\" \"$Target\""
-    } elseif {[string equal -nocase $Type "take"]} {
+    } elseif {$Event eq "TAKE"} {
         ChangeCredits $Target "-$AmountKB" $Section
         LinePuts "Took $Amount$UnitName of credits from $Target in section $Section."
-        putlog "TAKE: \"$user\" \"$group\" \"$AmountMB\" \"$Target\""
+    } else {
+        ErrorLog SiteCredits "unknown event \"$Event\""
     }
+    putlog "${Event}: \"$user\" \"$group\" \"$AmountMB\" \"$Target\""
     iputs "'------------------------------------------------------------------------'"
     return 0
 }
@@ -465,9 +466,9 @@ proc ::nxTools::Utils::SiteGroupInfo {GroupName Section} {
         set GroupFile [groupfile bin2ascii]
         foreach GroupLine [split $GroupFile "\r\n"] {
             set LineType [string tolower [lindex $GroupLine 0]]
-            if {[string equal "description" $LineType]} {
+            if {$LineType eq "description"} {
                 set ginfo(TagLine) [ArgRange $GroupLine 1 end]
-            } elseif {[string equal "slots" $LineType]} {
+            } elseif {$LineType eq "slots"} {
                 set ginfo(Slots) [lrange $GroupLine 1 2]
             }
         }
@@ -609,9 +610,9 @@ proc ::nxTools::Utils::SiteWho {} {
                 set UserFile [userfile bin2ascii]
                 foreach UserLine [split $UserFile "\r\n"] {
                     set LineType [string tolower [lindex $UserLine 0]]
-                    if {[string equal "groups" $LineType]} {
+                    if {$LineType eq "groups"} {
                         set GroupName [GetGroupName [lindex $UserLine 1]]
-                    } elseif {[string equal "tagline" $LineType]} {
+                    } elseif {$LineType eq "tagline"} {
                         set TagLine [ArgRange $UserLine 1 end]
                     }
                 }
@@ -654,7 +655,7 @@ proc ::nxTools::Utils::SiteWho {} {
 proc ::nxTools::Utils::Main {ArgV} {
     global IsSiteBot log misc group ioerror pwd user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
-    set IsSiteBot [expr {[info exists user] && [string equal $misc(SiteBot) $user]}]
+    set IsSiteBot [expr {[info exists user] && $misc(SiteBot) eq $user}]
 
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
     set Event [string tolower [lindex $ArgList 0]]
@@ -687,7 +688,7 @@ proc ::nxTools::Utils::Main {ArgV} {
         {give} {
             foreach {Target Amount Section} [lrange $ArgList 1 end] {break}
             if {$ArgLength > 2} {
-                set Result [SiteCredits give $Target $Amount $Section]
+                set Result [SiteCredits GIVE $Target $Amount $Section]
             } else {
                 iputs "Syntax: SITE GIVE <username> <credits> \[credit section\]"
             }
@@ -734,7 +735,7 @@ proc ::nxTools::Utils::Main {ArgV} {
         {take} {
             foreach {Target Amount Section} [lrange $ArgList 1 end] {break}
             if {$ArgLength > 2} {
-                set Result [SiteCredits take $Target $Amount $Section]
+                set Result [SiteCredits TAKE $Target $Amount $Section]
             } else {
                 iputs "Syntax: SITE TAKE <username> <credits> \[credit section\]"
             }

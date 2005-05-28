@@ -68,10 +68,10 @@ proc ::nxTools::Bot::UserStats {StatsType Target StartIndex EndIndex} {
         set UserFile [userfile bin2ascii]
         foreach UserLine [split $UserFile "\r\n"] {
             set LineType [string tolower [lindex $UserLine 0]]
-            if {[string equal "groups" $LineType]} {
+            if {$LineType eq "groups"} {
                 set GroupName [GetGroupName [lindex $UserLine 1]]
                 incr Found
-            } elseif {[string equal $StatsType $LineType]} {
+            } elseif {$LineType eq $StatsType} {
                 MergeStats [lrange $UserLine $StartIndex $EndIndex] FileStats SizeStats TimeStats
                 incr Found
             }

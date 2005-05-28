@@ -56,9 +56,9 @@ proc ::nxTools::Close::Main {ArgV} {
                             set UserFile [userfile bin2ascii]
                             foreach UserLine [split $UserFile "\r\n"] {
                                 set LineType [string tolower [lindex $UserLine 0]]
-                                if {[string equal "groups" $LineType]} {
+                                if {$LineType eq "groups"} {
                                     set GroupName [GetGroupName [lindex $UserLine 1]]
-                                } elseif {[string equal "flags" $LineType]} {
+                                } elseif {$LineType eq "flags"} {
                                     set Flags [lindex $UserLine 1]
                                 }
                             }

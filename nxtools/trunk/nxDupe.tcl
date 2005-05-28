@@ -65,7 +65,7 @@ proc ::nxTools::Dupe::UpdateLog {Event VirtualPath} {
     set Event [string toupper $Event]
 
     ## Check if the virtual path is a file or directory.
-    if {[string equal "DELE" $Event] || [string equal "UPLD" $Event] || [file isfile [resolve pwd $VirtualPath]]} {
+    if {$Event eq "UPLD" || $Event eq "DELE" || [file isfile [resolve pwd $VirtualPath]]} {
         if {[IsTrue $dupe(CheckFiles)] && ![ListMatchI $dupe(IgnoreFiles) $VirtualPath]} {
             return [UpdateFiles $Event $VirtualPath]
         }
@@ -84,7 +84,7 @@ proc ::nxTools::Dupe::UpdateDirs {Event VirtualPath} {
     set DirName [file tail $VirtualPath]
     set DirPath [string range $VirtualPath 0 [string last "/" $VirtualPath]]
 
-    if {[string equal "MKD" $Event] || [string equal "RNTO" $Event]} {
+    if {$Event eq "MKD"  || $Event eq "RNTO"} {
         set TimeStamp [clock seconds]
         DirDb eval {INSERT INTO DupeDirs (TimeStamp,UserName,GroupName,DirPath,DirName) VALUES($TimeStamp,$user,$group,$DirPath,$DirName)}
     } elseif {[lsearch -sorted {RMD RNFR WIPE} $Event] != -1} {
@@ -105,10 +105,10 @@ proc ::nxTools::Dupe::UpdateFiles {Event VirtualPath} {
     }
     set FileName [file tail $VirtualPath]
 
-    if {[string equal "UPLD" $Event] || [string equal "RNTO" $Event]} {
+    if {$Event eq "UPLD" || $Event eq "RNTO"} {
         set TimeStamp [clock seconds]
         FileDb eval {INSERT INTO DupeFiles (TimeStamp,UserName,GroupName,FileName) VALUES($TimeStamp,$user,$group,$FileName)}
-    } elseif {[string equal "DELE" $Event] || [string equal "RNFR" $Event]} {
+    } elseif {$Event eq "DELE" || $Event eq "RNFR"} {
         FileDb eval {DELETE FROM DupeFiles WHERE StrCaseEq(FileName,$FileName)}
     }
     FileDb close
@@ -732,7 +732,7 @@ proc ::nxTools::Dupe::SiteWipe {VirtualPath} {
 proc ::nxTools::Dupe::Main {ArgV} {
     global IsSiteBot approve dupe force latest misc pretime group ioerror pwd user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
-    set IsSiteBot [expr {[info exists user] && [string equal $misc(SiteBot) $user]}]
+    set IsSiteBot [expr {[info exists user] && $misc(SiteBot) eq $user}]
 
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
     set Event [string tolower [lindex $ArgList 0]]
