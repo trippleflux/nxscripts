@@ -71,23 +71,16 @@ proc ::nxTools::Invite::FlagCheck {CurrentFlags NeedFlags} {
 }
 
 proc ::nxTools::Invite::RightsCheck {RightsList UserName GroupNames Flags} {
-    foreach Rights $RightsList {
-        if {[string index $Rights 0] == "!"} {
-            set Rights [string range $Rights 1 end]
-            if {[string index $Rights 0] == "-"} {
-                set Rights [string range $Rights 1 end]
-                if {[string match $Rights $UserName]} {return 0}
-            } elseif {[string index $Rights 0] == "="} {
-                set Rights [string range $Rights 1 end]
-                if {[lsearch -glob $GroupNames $Rights] != -1} {return 0}
-            } elseif {[FlagCheck $Flags $Rights]} {return 0}
-        } elseif {[string index $Rights 0] == "-"} {
-            set Rights [string range $Rights 1 end]
-            if {[string match $Rights $UserName]} {return 1}
-        } elseif {[string index $Rights 0] == "="} {
-            set Rights [string range $Rights 1 end]
-            if {[lsearch -glob $GroupNames $Rights] != -1} {return 1}
-        } elseif {[FlagCheck $Flags $Rights]} {return 1}
+    foreach Right $RightsList {
+        regexp {^(!?[=-]?)(.+)} $Right Result Prefix Right
+        switch -- $Prefix {
+            {!-} {if {[string match $Right $UserName]} {return 0}}
+            {!=} {if {[lsearch -glob $GroupNames $Right] != -1} {return 0}}
+            {!}  {if {[FlagCheck $Flags $Right]} {return 0}}
+            {-}  {if {[string match $Right $UserName]} {return 1}}
+            {=}  {if {[lsearch -glob $GroupNames $Right] != -1} {return 1}}
+            default {if {[FlagCheck $Flags $Right]} {return 1}}
+        }
     }
     return 0
 }
