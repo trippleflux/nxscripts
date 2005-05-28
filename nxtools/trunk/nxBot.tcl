@@ -176,21 +176,22 @@ proc ::nxTools::Bot::Who {} {
 proc ::nxTools::Bot::Main {ArgV} {
     global misc ioerror
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
-    set ArgLength [llength [set ArgList [ArgList $ArgV]]]
-    set Event [string tolower [lindex $ArgList 0]]
     set Result 0
+
+    set ArgLength [llength [set ArgList [ArgList $ArgV]]]
+    set Event [string toupper [lindex $ArgList 0]]
     switch -- $Event {
-        {auth} {
+        {AUTH} {
             if {$ArgLength > 2} {
                 set Result [AuthCheck [lindex $ArgList 1] [lindex $ArgList 2]]
             } else {
                 iputs "Syntax: SITE BOT AUTH <username> <password>"
             }
         }
-        {bw} {
+        {BW} {
             set Result [Bandwidth]
         }
-        {stats} {
+        {STATS} {
             if {$ArgLength > 2} {
                 ## Check stats type.
                 set StatsType [string tolower [lindex $ArgList 1]]
@@ -218,14 +219,14 @@ proc ::nxTools::Bot::Main {ArgV} {
                 iputs "Syntax: STATS <stats type> <username/=group> \[stats section\]"
             }
         }
-        {user} {
+        {USER} {
             if {$ArgLength > 1} {
                 set Result [UserInfo [lindex $ArgList 1] [lindex $ArgList 2]]
             } else {
                 iputs "Syntax: SITE BOT USER <username> \[credit section\]"
             }
         }
-        {who} {
+        {WHO} {
             set Result [Who]
         }
         default {

@@ -369,7 +369,7 @@ proc ::nxTools::Utils::SiteCredits {Event Target Amount Section} {
         ChangeCredits $Target "-$AmountKB" $Section
         LinePuts "Took $Amount$UnitName of credits from $Target in section $Section."
     } else {
-        ErrorLog SiteCredits "unknown event \"$Event\""
+        ErrorLog SiteCredits "Unknown event \"$Event\"."
     }
     putlog "${Event}: \"$user\" \"$group\" \"$AmountMB\" \"$Target\""
     iputs "'------------------------------------------------------------------------'"
@@ -656,20 +656,20 @@ proc ::nxTools::Utils::Main {ArgV} {
     global IsSiteBot log misc group ioerror pwd user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     set IsSiteBot [expr {[info exists user] && $misc(SiteBot) eq $user}]
+    set Result 0
 
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
-    set Event [string tolower [lindex $ArgList 0]]
-    set Result 0
+    set Event [string toupper [lindex $ArgList 0]]
     switch -- $Event {
-        {daystats} {
+        {DAYSTATS} {
             if {![IsTrue $misc(dZSbotLogging)]} {
                 putlog "DAYSTATS: \"Launch Daystats\""
             }
         }
-        {drives} {
+        {DRIVES} {
             set Result [SiteDrives]
         }
-        {errlog} {
+        {ERRLOG} {
             if {$ArgLength > 1 && [GetOptions [lrange $ArgList 1 end] MaxResults Pattern]} {
                 iputs ".-\[ErrorLog\]-------------------------------------------------------------."
                 set Result [SearchLog $log(Error) $MaxResults $Pattern]
@@ -677,7 +677,7 @@ proc ::nxTools::Utils::Main {ArgV} {
                 iputs "Syntax: SITE ERRLOG \[-max <limit>\] <pattern>"
             }
         }
-        {ginfo} {
+        {GINFO} {
             if {$ArgLength > 1 && [string is digit [lindex $ArgList 2]]} {
                 set Result [SiteGroupInfo [lindex $ArgList 1] [lindex $ArgList 2]]
             } else {
@@ -685,38 +685,38 @@ proc ::nxTools::Utils::Main {ArgV} {
             }
             set Result 1
         }
-        {give} {
+        {GIVE} - {TAKE} {
             foreach {Target Amount Section} [lrange $ArgList 1 end] {break}
             if {$ArgLength > 2} {
-                set Result [SiteCredits GIVE $Target $Amount $Section]
+                set Result [SiteCredits $Event $Target $Amount $Section]
             } else {
-                iputs "Syntax: SITE GIVE <username> <credits> \[credit section\]"
+                iputs "Syntax: SITE $Event <username> <credits> \[credit section\]"
             }
         }
-        {newdate} {
+        {NEWDATE} {
             set Result [NewDate [lindex $ArgList 1]]
         }
-        {onelines} {
+        {ONELINES} {
             set Result [OneLines [join [lrange $ArgList 1 end]]]
         }
-        {resetstats} {
+        {RESETSTATS} {
             if {$ArgLength > 1} {
                 set Result [SiteResetStats [join [lrange $ArgList 1 end]]]
             } else {
                 iputs "Syntax: SITE RESETSTATS <stats type(s)>"
             }
         }
-        {resetuser} {
+        {RESETUSER} {
             if {$ArgLength > 1} {
                 set Result [SiteResetUser [lindex $ArgList 1]]
             } else {
                 iputs "Syntax: SITE RESETUSER <username>"
             }
         }
-        {rotate} {
+        {ROTATE} {
             set Result [RotateLogs]
         }
-        {size} {
+        {SIZE} {
             if {$ArgLength > 1} {
                 set VirtualPath [GetPath $pwd [join [lrange $ArgList 1 end]]]
                 set Result [SiteSize $VirtualPath]
@@ -724,7 +724,7 @@ proc ::nxTools::Utils::Main {ArgV} {
                 iputs " Usage: SITE SIZE <file/directory>"
             }
         }
-        {syslog} {
+        {SYSLOG} {
             if {$ArgLength > 1 && [GetOptions [lrange $ArgList 1 end] MaxResults Pattern]} {
                 iputs ".-\[SysopLog\]-------------------------------------------------------------."
                 set Result [SearchLog $log(SysOp) $MaxResults $Pattern]
@@ -732,28 +732,20 @@ proc ::nxTools::Utils::Main {ArgV} {
                 iputs "Syntax: SITE SYSLOG \[-max <limit>\] <pattern>"
             }
         }
-        {take} {
-            foreach {Target Amount Section} [lrange $ArgList 1 end] {break}
-            if {$ArgLength > 2} {
-                set Result [SiteCredits TAKE $Target $Amount $Section]
-            } else {
-                iputs "Syntax: SITE TAKE <username> <credits> \[credit section\]"
-            }
-        }
-        {traffic} {
+        {TRAFFIC} {
             set Result [SiteTraffic [lindex $ArgList 1]]
         }
-        {weekly} {
+        {WEEKLY} {
             set Result [WeeklyCredits [lindex $ArgList 1] [lindex $ArgList 2]]
         }
-        {weeklyset} {
+        {WEEKLYSET} {
             set Result [WeeklySet]
         }
-        {who} {
+        {WHO} {
             set Result [SiteWho]
         }
         default {
-            ErrorLog InvalidArgs "unknown function \"[info script] $Event\": check your ioFTPD.ini for errors"
+            ErrorLog InvalidArgs "unknown event \"[info script] $Event\": check your ioFTPD.ini for errors"
         }
     }
     return [set ioerror $Result]

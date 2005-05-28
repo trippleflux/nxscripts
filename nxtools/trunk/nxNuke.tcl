@@ -121,11 +121,12 @@ proc ::nxTools::Nuke::UpdateUser {IsNuke UserName Multi Size Files Stats CreditS
 proc ::nxTools::Nuke::Main {ArgV} {
     global approve misc nuke flags gid group groups pwd uid user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
+
     set ArgList [ArgList $ArgV]
-    set Event [string tolower [lindex $ArgList 0]]
+    set Event [string toupper [lindex $ArgList 0]]
     switch -- $Event {
-        {nuke} - {unnuke} {
-            if {[string equal "nuke" $Event]} {
+        {NUKE} - {UNNUKE} {
+            if {$Event eq "NUKE"} {
                 iputs ".-\[Nuke\]-----------------------------------------------------------------."
                 foreach {Tmp Target Multi Reason} $ArgV {break}
                 if {[llength $ArgList] < 4 || ![string is digit -strict $Multi]} {
@@ -135,7 +136,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
                     ErrorReturn "The specified multiplier is to large, the max is $nuke(MultiMax)\x."
                 }
                 set IsNuke 1
-            } elseif {[string equal "unnuke" $Event]} {
+            } elseif {$Event eq "UNNUKE"} {
                 iputs ".-\[UnNuke\]---------------------------------------------------------------."
                 foreach {Tmp Target Reason} $ArgV {break}
                 if {[llength $ArgList] < 3} {ErrorReturn "Syntax: SITE UNNUKE <directory> <reason>"}
@@ -355,10 +356,10 @@ proc ::nxTools::Nuke::Main {ArgV} {
             UpdateRecord [expr {$RenameFail ? $RealPath : $NewPath}] "2|$NukeStatus|$NukeId|$user|$group|$Multi|$Reason"
             iputs "'------------------------------------------------------------------------'"
         }
-        {nukes} - {unnukes} {
+        {NUKES} - {UNNUKES} {
             set IsSiteBot [string equal $misc(SiteBot) $user]
             if {![GetOptions [lrange $ArgList 1 end] MaxResults Pattern]} {
-                iputs "Syntax: SITE [string toupper $Event] \[-max <limit>\] \[release\]"
+                iputs "Syntax: SITE $Event \[-max <limit>\] \[release\]"
                 return 0
             }
             set Pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$Pattern*" "*"]]
@@ -402,7 +403,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
                 iputs "'------------------------------------------------------------------------'"
             }
         }
-        {nuketop} {
+        {NUKETOP} {
             set IsSiteBot [string equal $misc(SiteBot) $user]
             if {![GetOptions [lrange $ArgList 1 end] MaxResults Pattern]} {
                 iputs "Syntax: SITE NUKETOP \[-max <limit>\] \[group\]"
@@ -440,7 +441,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
             }
         }
         default {
-            ErrorLog InvalidArgs "unknown function \"[info script] $Event\": check your ioFTPD.ini for errors"
+            ErrorLog InvalidArgs "unknown event \"[info script] $Event\": check your ioFTPD.ini for errors"
         }
     }
     return 0

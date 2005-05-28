@@ -392,7 +392,7 @@ proc ::nxTools::Dupe::SiteApprove {Event Release} {
     }
     set Release [file tail $Release]
     switch -- $Event {
-        {add} {
+        {ADD} {
             iputs ".-\[Approve\]--------------------------------------------------------------."
             if {![regexp "\[$approve(Flags)\]" $flags]} {
                 LinePuts "Only siteops may approve releases."
@@ -420,7 +420,7 @@ proc ::nxTools::Dupe::SiteApprove {Event Release} {
             }
             iputs "'------------------------------------------------------------------------'"
         }
-        {del} {
+        {DEL} {
             iputs ".-\[Approve\]--------------------------------------------------------------."
             if {![regexp "\[$approve(Flags)\]" $flags]} {
                 LinePuts "Only siteops may deleted approved releases."
@@ -437,7 +437,7 @@ proc ::nxTools::Dupe::SiteApprove {Event Release} {
             }
             iputs "'------------------------------------------------------------------------'"
         }
-        {list} {
+        {LIST} {
             if {!$IsSiteBot} {
                 foreach MessageType {Header Body None Footer} {
                     set template($MessageType) [ReadFile [file join $misc(Templates) "Approves.$MessageType"]]
@@ -733,18 +733,18 @@ proc ::nxTools::Dupe::Main {ArgV} {
     global IsSiteBot approve dupe force latest misc pretime group ioerror pwd user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     set IsSiteBot [expr {[info exists user] && $misc(SiteBot) eq $user}]
+    set Result 0
 
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
-    set Event [string tolower [lindex $ArgList 0]]
-    set Result 0
+    set Event [string toupper [lindex $ArgList 0]]
     switch -- $Event {
-        {dupelog} {
+        {DUPELOG} {
             set VirtualPath [GetPath $pwd [join [lrange $ArgList 2 end]]]
             if {[IsTrue $dupe(CheckDirs)] || [IsTrue $dupe(CheckFiles)]} {
                 set Result [UpdateLog [lindex $ArgList 1] $VirtualPath]
             }
         }
-        {postmkd} {
+        {POSTMKD} {
             set VirtualPath [GetPath $pwd [join [lrange $ArgList 2 end]]]
             if {[IsTrue $dupe(CheckDirs)]} {
                 set Result [UpdateLog [lindex $ArgList 1] $VirtualPath]
@@ -754,7 +754,7 @@ proc ::nxTools::Dupe::Main {ArgV} {
             }
             if {[IsTrue $approve(CheckMkd)]} {ApproveCheck $VirtualPath 1}
         }
-        {premkd} {
+        {PREMKD} {
             set VirtualPath [GetPath $pwd [join [lrange $ArgList 2 end]]]
             if {!([IsTrue $approve(CheckMkd)] && [ApproveCheck $VirtualPath 0])} {
                 if {[IsTrue $dupe(CheckDirs)]} {
@@ -765,7 +765,7 @@ proc ::nxTools::Dupe::Main {ArgV} {
                 }
             }
         }
-        {prestor} {
+        {PRESTOR} {
             set VirtualPath [GetPath $pwd [join [lrange $ArgList 2 end]]]
             if {[IsTrue $force(NfoFirst)] || [IsTrue $force(SfvFirst)] || [IsTrue $force(SampleFirst)]} {
                 set Result [ForceCheck $VirtualPath]
@@ -774,64 +774,65 @@ proc ::nxTools::Dupe::Main {ArgV} {
                 set Result [CheckFiles $VirtualPath]
             }
         }
-        {upload} {
+        {UPLOAD} {
             if {[IsTrue $dupe(CheckFiles)]} {
                 foreach {Tmp RealPath CRC VirtualPath} $ArgV {break}
                 UpdateLog "UPLD" $VirtualPath
             }
         }
-        {uploaderror} {
+        {UPLOADERROR} {
             if {[IsTrue $dupe(CheckFiles)]} {
                 foreach {Tmp RealPath CRC VirtualPath} $ArgV {break}
                 UpdateLog "DELE" $VirtualPath
             }
         }
-        {clean} {
+        {CLEAN} {
             set Result [CleanDb]
         }
-        {approve} {
-            array set params [list add 2 del 2 list 0]
-            set SubEvent [string tolower [lindex $ArgList 1]]
+        {APPROVE} {
+            array set params [list ADD 2 DEL 2 LIST 0]
+            set SubEvent [string toupper [lindex $ArgList 1]]
+
             if {[info exists params($SubEvent)] && $ArgLength > $params($SubEvent)} {
                 set Result [SiteApprove $SubEvent [join [lrange $ArgList 2 end]]]
             } else {
-                iputs "Syntax: SITE APPROVE ALL <release>"
+                iputs "Syntax: SITE APPROVE ADD <release>"
                 iputs "        SITE APPROVE DEL <release>"
                 iputs "        SITE APPROVE LIST"
             }
         }
-        {dupe} {
+        {DUPE} {
             if {$ArgLength > 1 && [GetOptions [lrange $ArgList 1 end] MaxResults Pattern]} {
                 set Result [SiteDupe $MaxResults $Pattern]
             } else {
                 iputs "Syntax: SITE DUPE \[-max <limit>\] <release>"
             }
         }
-        {fdupe} {
+        {FDUPE} {
             if {$ArgLength > 1 && [GetOptions [lrange $ArgList 1 end] MaxResults Pattern]} {
                 set Result [SiteFileDupe $MaxResults $Pattern]
             } else {
                 iputs "Syntax: SITE FDUPE \[-max <limit>\] <filename>"
             }
         }
-        {new} {
+        {NEW} {
             if {[GetOptions [lrange $ArgList 1 end] MaxResults SectionName]} {
                 set Result [SiteNew $MaxResults $SectionName]
             } else {
                 iputs "Syntax: SITE NEW \[-max <limit>\] \[section\]"
             }
         }
-        {pretime} {
+        {PRETIME} {
             if {$ArgLength > 1 && [GetOptions [lrange $ArgList 1 end] MaxResults Pattern]} {
                 set Result [SitePreTime $MaxResults $Pattern]
             } else {
                 iputs "Syntax: SITE PRETIME \[-max <limit>\] <release>"
             }
         }
-        {rebuild} {
+        {REBUILD} {
             set Result [RebuildDb]
         }
-        {undupe} {
+        {UNDUPE} {
             if {$ArgLength > 1} {
                 set Result [SiteUndupe [lrange $ArgList 1 end]]
             } else {
@@ -839,7 +840,7 @@ proc ::nxTools::Dupe::Main {ArgV} {
                 iputs "        SITE UNDUPE -d <directory>"
             }
         }
-        {wipe} {
+        {WIPE} {
             if {$ArgLength > 1} {
                 set VirtualPath [GetPath $pwd [join [lrange $ArgList 1 end]]]
                 set Result [SiteWipe $VirtualPath]
@@ -848,7 +849,7 @@ proc ::nxTools::Dupe::Main {ArgV} {
             }
         }
         default {
-            ErrorLog InvalidArgs "unknown function \"[info script] $Event\": check your ioFTPD.ini for errors"
+            ErrorLog InvalidArgs "unknown event \"[info script] $Event\": check your ioFTPD.ini for errors"
         }
     }
     return [set ioerror $Result]

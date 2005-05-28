@@ -261,7 +261,7 @@ proc ::nxTools::Invite::Main {ArgV} {
             }
         }
     } else {
-        ErrorLog InvalidArgs "unknown function \"[info script] $Event\": check your ioFTPD.ini for errors"
+        ErrorLog InvalidArgs "unknown event \"[info script] $Event\": check your ioFTPD.ini for errors"
     }
     iputs "'------------------------------------------------------------------------'"
     return 0

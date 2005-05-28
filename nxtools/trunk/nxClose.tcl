@@ -30,11 +30,12 @@ proc ::nxTools::Close::ExcemptCheck {UserName GroupName Flags} {
 
 proc ::nxTools::Close::Main {ArgV} {
     global close misc flags group ioerror user
-    set ArgList [ArgList $ArgV]
-    set Event [string tolower [lindex $ArgList 0]]
     set Result 0
+
+    set ArgList [ArgList $ArgV]
+    set Event [string toupper [lindex $ArgList 0]]
     switch -- $Event {
-        {close} {
+        {CLOSE} {
             iputs ".-\[Close\]-----------------------------------------------------------------."
             if {[catch {set CloseInfo [var get nxToolsClosed]}]} {
                 if {[set CloseReason [join [lrange $ArgList 1 end]]] == ""} {
@@ -73,14 +74,14 @@ proc ::nxTools::Close::Main {ArgV} {
             }
             iputs "'------------------------------------------------------------------------'"
         }
-        {login} {
+        {LOGIN} {
             if {![ExcemptCheck $user $group $flags] && ![catch {set CloseInfo [var get nxToolsClosed]}]} {
                 set Duration [expr {[clock seconds] - [lindex $CloseInfo 0]}]
                 iputs -nobuffer "530 Server Closed: [lindex $CloseInfo 1] (since [FormatDuration $Duration] ago)"
                 set Result 1
             }
         }
-        {open} {
+        {OPEN} {
             iputs ".-\[Open\]-----------------------------------------------------------------."
             if {[catch {set CloseInfo [var get nxToolsClosed]}]} {
                 LinePuts "Server is currently open, use \"SITE CLOSE \[reason\]\" to close it."
@@ -96,7 +97,7 @@ proc ::nxTools::Close::Main {ArgV} {
             iputs "'------------------------------------------------------------------------'"
         }
         default {
-            ErrorLog InvalidArgs "unknown function \"[info script] $Event\": check your ioFTPD.ini for errors"
+            ErrorLog InvalidArgs "unknown event \"[info script] $Event\": check your ioFTPD.ini for errors"
         }
     }
     return [set ioerror $Result]

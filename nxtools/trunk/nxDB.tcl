@@ -202,15 +202,16 @@ proc ::nxTools::Db::Main {ArgV} {
     global misc
     variable dbschema
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
-    set ArgLength [llength [set ArgList [ArgList $ArgV]]]
-    set Event [string tolower [lindex $ArgList 0]]
 
-    if {[lsearch -exact {create check optimize} $Event] == -1} {
+    set ArgLength [llength [set ArgList [ArgList $ArgV]]]
+    set Event [string toupper [lindex $ArgList 0]]
+    if {[lsearch -exact {CREATE CHECK OPTIMIZE} $Event] == -1} {
         iputs "Syntax: SITE DB CHECK \[database\]"
         iputs "        SITE DB CREATE \[database\]"
         iputs "        SITE DB OPTIMIZE \[database\]"
         return 1
     }
+
     iputs ".-\[DB\]-------------------------------------------------------------------."
     set DbList [lsort -ascii [array names dbschema]]
     if {$ArgLength > 1} {
@@ -230,15 +231,15 @@ proc ::nxTools::Db::Main {ArgV} {
 
     set Result 0
     switch -- $Event {
-        {create} {
+        {CREATE} {
             LinePuts "Creating [llength $DbList] database(s)."; LinePuts ""
             set Result [Create $DbList]
         }
-        {check} {
+        {CHECK} {
             LinePuts "Checking [llength $DbList] database(s)."; LinePuts ""
             set Result [Check $DbList]
         }
-        {optimize} {
+        {OPTIMIZE} {
             LinePuts "Optimizing [llength $DbList] database(s)."; LinePuts ""
             set Result [Optimize $DbList]
         }
