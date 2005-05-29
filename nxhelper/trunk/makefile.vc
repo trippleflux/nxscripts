@@ -214,14 +214,18 @@ cflags = $(cflags) -QIA64_Bx
 !if $(MSVCRT)
 !if $(DEBUG)
 crt = -MDd
+deflibs = -nodefaultlib:libcmt -nodefaultlib:libc
 !else
 crt = -MD
+deflibs = -nodefaultlib:libcmt -nodefaultlib:libc
 !endif
 !else
 !if $(DEBUG)
 crt = -MTd
+deflibs =  -nodefaultlib:libcmt -nodefaultlib:msvcrt
 !else
 crt = -MT
+deflibs = -nodefaultlib:msvcrt
 !endif
 !endif
 
@@ -262,7 +266,7 @@ lflags  = $(lflags) -align:4096
 lflags  = $(lflags) -ws:aggressive
 !endif
 
-dlllflags = $(lflags) -dll -nodefaultlib:libcmt -nodefaultlib:libc
+dlllflags = $(lflags) -dll $(deflibs)
 conlflags = $(lflags) -subsystem:console
 guilflags = $(lflags) -subsystem:windows
 baselibs  = $(TCLSTUBLIB) "$(ZLIBDIR)\zlib.lib"
