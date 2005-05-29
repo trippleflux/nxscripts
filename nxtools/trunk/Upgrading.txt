@@ -1,0 +1,86 @@
+################################################################################
+#                             nxTools - Upgrading                              #
+################################################################################
+
+0.9.10 -> 0.9.11
+ - Replace all files located in /scripts/nxTools/.
+ - Download an updated nxTools-Libraries package.
+ - New config options: req(Limits).
+ - Removed config options: req(TimeDays), req(TimeLimit), req(TotalLimit), and
+   req(UserLimit).
+
+0.9.8 -> 0.9.10
+ - Replace all files located in /scripts/nxTools/.
+ - Download an updated nxTools-Libraries package.
+
+0.9.8 -> 0.9.9
+ - Replace all files located in /scripts/nxTools/.
+ - Remove your nukes and requests database from /scripts/nxTools/data/
+   and recreate them using the "SITE DB CREATE" command.
+ - Changed config option: dupe(RebuildPaths), newdate(Default), and
+   pretime(CheckPaths).
+ - Renamed config options: misc(UTC_Time) to misc(UtcTime) and pre(ChownUID) to
+   pre(ChownUserId).
+ - Repeat steps 1 to 3 in the installation section.
+
+0.9.7 -> 0.9.8
+ - Replace all .itcl files located in /scripts/nxTools/.
+ - Download an updated nxTools-Libraries package.
+ - Removed config options: misc(DST_Correct), misc(TimeZone), and pre(HelperBin).
+
+0.9.6 -> 0.9.7
+ - Replace all .itcl files located in /scripts/nxTools/.
+ - Add the new site commands to your ioFTPD.ini, check install step #3.
+ - Install the two required Tcl libraries, check install step #7.
+ - New config options: approve(CheckMkd), approve(DirTag), approve(Flags),
+   dupe(AlphaNumChars), misc(DataPath), and req(TimeDays).
+ - Changed config option: req(TimeLimit).
+ - Removed config options: dupe(CleanBackUp), dupe(UpdupeRanges), log(DupeDirs),
+   log(DupeFiles), log(LatestLinks), log(Nukes), log(OneLines), log(Pres),
+   log(RebuildDirs), log(RebuildFiles), log(Requests), and pretime(AddOnMkd).
+
+0.9.5 -> 0.9.6
+ - Replace all .itcl files located in /scripts/nxTools/.
+ - New config option: misc(dZSbotLogging).
+
+0.9.1 -> 0.9.5
+ - These versions were not released, internal testing.
+
+0.8.1 -> 0.9.1
+ - Replace all .exe and .itcl files located in /scripts/nxTools/.
+ - New config options: nuke(GroupFlag), pre(ChownUID), and req(TimeLimit).
+ - Removed config options: pre(Chown).
+ - Delete your requests log file and redo the newdate configuration.
+ - Update the command parameters under [FTP_Custom_Commands].
+
+0.8.1 -> 0.9.0
+ - Replace all .exe and .itcl files located in /scripts/nxTools/.
+ - New config options: dupe(CheckExempts), dupe(LoggingExempts), dupe(RebuildIgnore),
+   dupe(RebuildPaths), latest(FullPath), pre(AddToDupe), and pre(HelperBin).
+ - Removed config options: log(ioFTPD) and pre(TouchBin).
+
+0.8.0 -> 0.8.1
+ - Replace all .itcl files located in /scripts/nxTools/.
+
+0.7.4 -> 0.8.0
+ - Replace all .itcl files located in /scripts/nxTools/.
+ - Remove [SECTIONS] config portion from the nxPre.cfg.
+ - Modify the [Sections] ioFTPD.ini to the proper format, refer to step #4.
+
+0.7.3 -> 0.7.4
+ - Replace all .itcl files located in /scripts/nxTools/.
+
+0.7.2 -> 0.7.3
+ - Replace all .itcl files located in /scripts/nxTools/.
+ - Add the new site commands to your ioFTPD.ini, check install step #3.
+ - Install and configure the sitebot.
+
+0.7.1 -> 0.7.2
+ - Replace all .itcl files located in /scripts/nxTools/.
+
+0.7.0 -> 0.7.1
+ - Replace the files: nxDupe.itcl, nxNuke.itcl, nxPre.itcl, and nxTools.itcl
+   located in /scripts/nxTools/.
+
+0.6.1 -> 0.7.0
+ - Replace and reconfigure everything, far too many changes to list.
