@@ -201,9 +201,9 @@ proc ::nxTools::Pre::Main {ArgV} {
 
     set ArgList [ArgList $ArgV]
     foreach {Event Option Target Value Other} $ArgV {break}
-    set Event [string tolower $Event]
+    set Event [string toupper $Event]
 
-    if {[string equal "pre" $Event]} {
+    if {$Event eq "pre"} {
         if {![string length $Option] || [string equal -nocase "help" $Option]} {
             iputs ".-\[Pre\]------------------------------------------------------------------."
             ConfigRead $pre(ConfigFile)
@@ -465,7 +465,7 @@ proc ::nxTools::Pre::Main {ArgV} {
             ## Create latest pre symlinks.
             if {$latest(PreLinks) > 0} {UpdateLinks $DestVirtualPath}
         }
-    } elseif {[string equal "edit" $Event]} {
+    } elseif {$Event eq "EDIT"} {
         iputs ".-\[EditPre\]--------------------------------------------------------------."
         ConfigRead $pre(ConfigFile)
 

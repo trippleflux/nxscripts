@@ -369,14 +369,14 @@ proc ::nxTools::Nuke::Main {ArgV} {
                 return 0
             }
             set Pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$Pattern*" "*"]]
-            if {[string equal "nukes" $Event]} {
+            if {$Event eq "NUKES"} {
                 if {!$IsSiteBot} {
                     iputs ".-\[Nukes\]----------------------------------------------------------------."
                     iputs "|    Age    |    Nuker     |   Multi   |  Reason                         |"
                     iputs "|------------------------------------------------------------------------|"
                 }
                 set NukeStatus 0
-            } elseif {[string equal "unnukes" $Event]} {
+            } elseif {$Event eq "UNNUKES"} {
                 if {!$IsSiteBot} {
                     iputs ".-\[UnNukes\]--------------------------------------------------------------."
                     iputs "|    Age    |   UnNuker    |   Multi   |  Reason                         |"
