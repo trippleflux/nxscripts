@@ -150,7 +150,7 @@ proc ::nxTools::Utils::OneLines {Message} {
     } else {
         iputs ".-\[OneLines\]-------------------------------------------------------------."
         set TimeStamp [clock seconds]
-        OneDb eval {INSERT INTO OneLines (TimeStamp,UserName,GroupName,Message) VALUES($TimeStamp,$user,$group,$Message)}
+        OneDb eval {INSERT INTO OneLines(TimeStamp,UserName,GroupName,Message) VALUES($TimeStamp,$user,$group,$Message)}
         LinePuts "Added message \"$Message\" by $user/$group."
         iputs "'------------------------------------------------------------------------'"
     }
@@ -369,7 +369,7 @@ proc ::nxTools::Utils::SiteCredits {Event Target Amount Section} {
         ChangeCredits $Target "-$AmountKB" $Section
         LinePuts "Took $Amount$UnitName of credits from $Target in section $Section."
     } else {
-        ErrorLog SiteCredits "Unknown event \"$Event\"."
+        ErrorLog SiteCredits "unknown event \"$Event\""
     }
     putlog "${Event}: \"$user\" \"$group\" \"$AmountMB\" \"$Target\""
     iputs "'------------------------------------------------------------------------'"

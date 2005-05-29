@@ -86,7 +86,7 @@ proc ::nxTools::Dupe::UpdateDirs {Event VirtualPath} {
 
     if {$Event eq "MKD"  || $Event eq "RNTO"} {
         set TimeStamp [clock seconds]
-        DirDb eval {INSERT INTO DupeDirs (TimeStamp,UserName,GroupName,DirPath,DirName) VALUES($TimeStamp,$user,$group,$DirPath,$DirName)}
+        DirDb eval {INSERT INTO DupeDirs(TimeStamp,UserName,GroupName,DirPath,DirName) VALUES($TimeStamp,$user,$group,$DirPath,$DirName)}
     } elseif {[lsearch -sorted {RMD RNFR WIPE} $Event] != -1} {
         ## Append a slash to improve the accuracy of StrCaseEqN.
         ## For example, /Dir/Blah matches /Dir/Blah.Blah but /Dir/Blah/ does not.
@@ -107,7 +107,7 @@ proc ::nxTools::Dupe::UpdateFiles {Event VirtualPath} {
 
     if {$Event eq "UPLD" || $Event eq "RNTO"} {
         set TimeStamp [clock seconds]
-        FileDb eval {INSERT INTO DupeFiles (TimeStamp,UserName,GroupName,FileName) VALUES($TimeStamp,$user,$group,$FileName)}
+        FileDb eval {INSERT INTO DupeFiles(TimeStamp,UserName,GroupName,FileName) VALUES($TimeStamp,$user,$group,$FileName)}
     } elseif {$Event eq "DELE" || $Event eq "RNFR"} {
         FileDb eval {DELETE FROM DupeFiles WHERE StrCaseEq(FileName,$FileName)}
     }
@@ -211,11 +211,11 @@ proc ::nxTools::Dupe::RebuildDb {} {
 
                 set BaseName [file tail $ListItem]
                 if {$FileMode} {
-                    FileDb eval {INSERT INTO DupeFiles (TimeStamp,UserName,GroupName,FileName) VALUES($fstat(ctime),$UserName,$GroupName,$BaseName)}
+                    FileDb eval {INSERT INTO DupeFiles(TimeStamp,UserName,GroupName,FileName) VALUES($fstat(ctime),$UserName,$GroupName,$BaseName)}
                 } else {
                     set DirPath [file join $VirtualPath [string range [file dirname $ListItem] $TrimLength end]]
                     append DirPath "/"
-                    DirDb eval {INSERT INTO DupeDirs (TimeStamp,UserName,GroupName,DirPath,DirName) VALUES($fstat(ctime),$UserName,$GroupName,$DirPath,$BaseName)}
+                    DirDb eval {INSERT INTO DupeDirs(TimeStamp,UserName,GroupName,DirPath,DirName) VALUES($fstat(ctime),$UserName,$GroupName,$DirPath,$BaseName)}
                 }
             }
         }
@@ -363,7 +363,7 @@ proc ::nxTools::Dupe::RaceLinks {VirtualPath} {
     }
     set TagName [string map [list %(release) $TagName] $latest(RaceTag)]
     set TimeStamp [clock seconds]
-    LinkDb eval {INSERT INTO Links (TimeStamp,LinkType,DirName) VALUES($TimeStamp,0,$TagName)}
+    LinkDb eval {INSERT INTO Links(TimeStamp,LinkType,DirName) VALUES($TimeStamp,0,$TagName)}
     set TagName [file join $latest(SymPath) $TagName]
     if {![catch {file mkdir $TagName} ErrorMsg]} {
         catch {vfs chattr $TagName 1 $VirtualPath}
@@ -413,7 +413,7 @@ proc ::nxTools::Dupe::SiteApprove {Event Release} {
                     LinePuts "Found the release, approved \"$VirtualPath\"."
                 } else {
                     set TimeStamp [clock seconds]
-                    ApproveDb eval {INSERT INTO Approves (TimeStamp,UserName,GroupName,Release) values($TimeStamp,$user,$group,$Release)}
+                    ApproveDb eval {INSERT INTO Approves(TimeStamp,UserName,GroupName,Release) VALUES($TimeStamp,$user,$group,$Release)}
                     putlog "APPROVEADD: \"$user\" \"$group\" \"$Release\""
                     LinePuts "Added \"$Release\" to the approve list."
                 }

@@ -130,7 +130,7 @@ proc ::nxTools::Pre::UpdateLinks {VirtualPath} {
     }
     set TagName [string map [list %(release) $TagName] $latest(PreTag)]
     set TimeStamp [clock seconds]
-    LinkDb eval {INSERT INTO Links (TimeStamp,LinkType,DirName) VALUES($TimeStamp,1,$TagName)}
+    LinkDb eval {INSERT INTO Links(TimeStamp,LinkType,DirName) VALUES($TimeStamp,1,$TagName)}
     set TagName [file join $latest(SymPath) $TagName]
     if {![catch {file mkdir $TagName} ErrorMsg]} {
         catch {vfs chattr $TagName 1 $VirtualPath}
@@ -441,7 +441,7 @@ proc ::nxTools::Pre::Main {ArgV} {
             putlog $LogLine
 
             if {![catch {DbOpenFile [namespace current]::PreDb "Pres.db"} ErrorMsg]} {
-                PreDb eval {INSERT INTO Pres (TimeStamp,UserName,GroupName,Area,Release,Files,Size) VALUES($PreTime,$user,$PreGroup,$PreArea,$Release,$Files,$TotalSize)}
+                PreDb eval {INSERT INTO Pres(TimeStamp,UserName,GroupName,Area,Release,Files,Size) VALUES($PreTime,$user,$PreGroup,$PreArea,$Release,$Files,$TotalSize)}
                 PreDb close
             } else {ErrorLog PreDb $ErrorMsg}
 
@@ -449,7 +449,7 @@ proc ::nxTools::Pre::Main {ArgV} {
                 if {![catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} ErrorMsg]} {
                     set LogUser [expr {$pre(ChownUserId) != "" ? [resolve uid $pre(ChownUserId)] : $user}]
                     set LogPath [string range $DestVirtualPath 0 [string last "/" $DestVirtualPath]]
-                    DirDb eval {INSERT INTO DupeDirs (TimeStamp,UserName,GroupName,DirPath,DirName) VALUES($PreTime,$LogUser,$PreGroup,$LogPath,$Release)}
+                    DirDb eval {INSERT INTO DupeDirs(TimeStamp,UserName,GroupName,DirPath,DirName) VALUES($PreTime,$LogUser,$PreGroup,$LogPath,$Release)}
                     DirDb close
                 } else {ErrorLog PreDupeDb $ErrorMsg}
             }

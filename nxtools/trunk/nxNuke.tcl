@@ -340,12 +340,18 @@ proc ::nxTools::Nuke::Main {ArgV} {
             if {![catch {DbOpenFile [namespace current]::NukeDb "Nukes.db"} ErrorMsg]} {
                 ## To pass a NULL value to TclSQLite the variable must be unset.
                 if {![string is digit -strict $NukeId]} {unset NukeId}
-                NukeDb eval {INSERT OR REPLACE INTO Nukes (NukeId,TimeStamp,UserName,GroupName,Status,Release,Reason,Multi,Files,Size) VALUES($NukeId,$NukeTime,$user,$group,$NukeStatus,$Release,$Reason,$Multi,$Files,$TotalSize)}
+                NukeDb eval {INSERT OR REPLACE INTO
+                    Nukes(NukeId,TimeStamp,UserName,GroupName,Status,Release,Reason,Multi,Files,Size)
+                    VALUES($NukeId,$NukeTime,$user,$group,$NukeStatus,$Release,$Reason,$Multi,$Files,$TotalSize)
+                }
                 set NukeId [NukeDb last_insert_rowid]
 
                 NukeDb eval {BEGIN}
                 foreach {NukeeUser NukeeGroup Amount} $NukeeLog {
-                    NukeDb eval {INSERT OR REPLACE INTO Users (NukeId,UserName,GroupName,Amount) VALUES($NukeId,$NukeeUser,$NukeeGroup,$Amount)}
+                    NukeDb eval {INSERT OR REPLACE INTO
+                        Users(NukeId,UserName,GroupName,Amount)
+                        VALUES($NukeId,$NukeeUser,$NukeeGroup,$Amount)
+                    }
                 }
                 NukeDb eval {COMMIT}
 
