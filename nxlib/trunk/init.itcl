@@ -6,21 +6,21 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
-## Tcl scripts to source.
+############################################################
+
 set TclFiles {
   {../scripts/nxAutoNuke.cfg}
   {../scripts/nxTools.cfg}
   {../scripts/nxLib.tcl}
 }
 
-## Tcl extensions to load.
 set LibFiles {
   {nxHelper.dll}
   {mysqltcl.dll}
   {tclsqlite3.dll}
 }
 
-## End of settings.
+############################################################
 
 proc nxLoadError {LogType LogMsg} {
     if {![catch {set Handle [open "../logs/nxError.log" a]}]} {
@@ -31,11 +31,14 @@ proc nxLoadError {LogType LogMsg} {
 }
 
 foreach FilePath $TclFiles {
+    set FilePath [file normalize $FilePath]
     if {[catch {source $FilePath} ErrorMsg]} {
         nxLoadError LoadScript "unable to source \"$FilePath\": $ErrorMsg"
     }
 }
+
 foreach FilePath $LibFiles {
+    set FilePath [file normalize $FilePath]
     if {[catch {load $FilePath} ErrorMsg]} {
         nxLoadError LoadExtension $ErrorMsg
     }
