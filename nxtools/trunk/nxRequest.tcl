@@ -48,6 +48,9 @@ proc ::nxTools::Req::CheckLimit {UserName GroupName} {
             set TimeStamp [expr {[clock seconds] - ($TimePeriod * 86400)}]
             if {[ReqDb eval {SELECT count(*) FROM Requests WHERE TimeStamp > $TimeStamp AND UserName=$UserName}] >= $TimeLimit} {
                 LinePuts "Only $TimeLimit request(s) can be made every $TimePeriod day(s)."
+                set LastReq [ReqDb eval {SELECT TimeStamp FROM Requests WHERE UserName=$UserName ORDER BY TimeStamp DESC LIMIT 1}]
+                set TimeLeft [FormatDuration [expr {$LastReq - $TimeStamp}]]
+                LinePuts "You have to wait $TimeLeft until you can request again."
                 return 0
             }
         }
