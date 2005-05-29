@@ -959,7 +959,7 @@ Text Templates:
 nxTools v0.9.11 (XX-XX-2005):
   NEW: Request limits for individual users and groups.
   CHG: Improved configuration file parser for invite and pre.
-  CHG: Renamed SITE CLEANLOGS to SITE CLEANLOGS and SITE REBUILDLOGS to SITE REBUILD.
+  CHG: Renamed SITE CLEANLOGS to SITE CLEAN and SITE REBUILDLOGS to SITE REBUILD.
   FIX: Corrected several errors in the readme.
   FIX: The InvalidArgs error message for request didn't work.
 
