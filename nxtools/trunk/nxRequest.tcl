@@ -15,26 +15,43 @@ namespace eval ::nxTools::Req {
     namespace import -force ::nxLib::*
 }
 
-# Request Functions
+# Request Procedures
 ######################################################################
 
-proc ::nxTools::Req::CheckLimit {DbProc UserName} {
+proc ::nxTools::Req::CheckLimit {UserName GroupName} {
     global req
-    if {[$DbProc eval {SELECT count(*) FROM Requests WHERE Status=0}] >= $req(TotalLimit)} {
-        LinePuts "The maximum request limit has been reached, $req(TotalLimit) requests."
-        return 0
-    }
-    if {[$DbProc eval {SELECT count(*) FROM Requests WHERE Status=0 AND UserName=$UserName}] >= $req(UserLimit)} {
-        LinePuts "You have made to many requests, the limit is $req(UserLimit) request(s) per user."
-        return 0
-    }
-    if {$req(TimeDays) > 0 && $req(TimeLimit) > 0} {
-        set TimeStamp [expr {[clock seconds] - $req(TimeDays) * 86400}]
-        if {[$DbProc eval {SELECT count(*) FROM Requests WHERE TimeStamp > $TimeStamp AND UserName=$UserName}] >= $req(TimeLimit)} {
-            LinePuts "You have reached your request limit for the time being."
-            LinePuts "Only $req(TimeLimit) request(s) are allowed every $req(TimeDays) day(s)."
+    foreach ReqLimit $req(Limits) {
+        if {[llength $ReqLimit] != 5} {
+            ErrorLog ReqLimit "wrong number of options in line: \"$ReqLimit\""; continue
+        }
+        foreach {Target GroupLimit UserLimit TimeLimit TimePeriod} $ReqLimit {break}
+
+        if {[string index $Target 0] eq "="} {
+            set Target [string range $Target 1 end]
+            if {$Target ne $GroupName} {continue}
+
+            ## Group request limits are only checked when 'Target' has a group prefix (=).
+            if {$GroupLimit >= 0 && [ReqDb eval {SELECT count(*) FROM Requests WHERE Status=0 AND GroupName=$Target}] >= $GroupLimit} {
+                LinePuts "You have reached your group's request limit of $GroupLimit request(s)."
+                return 0
+            }
+            set GroupMatch "AND GroupName='[SqlEscape $Target]'"
+        } elseif {$Target eq $UserName || $Target eq "*"} {
+            set GroupMatch ""
+        } else {continue}
+
+        if {$UserLimit >= 0 && [ReqDb eval "SELECT count(*) FROM Requests WHERE Status=0 AND UserName='[SqlEscape $UserName]' $GroupMatch"] >= $UserLimit} {
+            LinePuts "You have reached your individual request limit of $UserLimit request(s)."
             return 0
         }
+        if {$TimeLimit >= 0 && $TimePeriod >= 0} {
+            set TimeStamp [expr {[clock seconds] - ($TimePeriod * 86400)}]
+            if {[ReqDb eval {SELECT count(*) FROM Requests WHERE TimeStamp > $TimeStamp AND UserName=$UserName}] >= $TimeLimit} {
+                LinePuts "Only $TimeLimit request(s) can be made every $TimePeriod day(s)."
+                return 0
+            }
+        }
+        break
     }
     return 1
 }
@@ -43,177 +60,207 @@ proc ::nxTools::Req::UpdateDir {Event Request {UserId 0} {GroupId 0}} {
     global req
     if {![string length $req(RequestPath)]} {
         return
-    } elseif {[file exists $req(RequestPath)]} {
-        set ReMap [list %(request) $Request]
-        set ReqPath [file join $req(RequestPath) [string map $ReMap $req(RequestTag)]]
-        switch -- $Event {
-            {add} {CreateTag $ReqPath $UserId $GroupId 777}
-            {del} {
-                if {[file isdirectory $ReqPath]} {
-                    KickUsers [file join $ReqPath "*"] True
-                    if {[catch {file delete -force -- $ReqPath} ErrorMsg]} {
-                        ErrorLog ReqDelete $ErrorMsg
-                    }
+    } elseif {![file exists $req(RequestPath)]} {
+        ErrorLog ReqUpdateDir "The requests directory \"$req(RequestPath)\" does not exist."
+        return
+    }
+    set ReMap [list %(request) $Request]
+    set ReqPath [file join $req(RequestPath) [string map $ReMap $req(RequestTag)]]
+    switch -- $Event {
+        {ADD} {CreateTag $ReqPath $UserId $GroupId 777}
+        {DEL} {
+            if {[file isdirectory $ReqPath]} {
+                KickUsers [file join $ReqPath "*"] True
+                if {[catch {file delete -force -- $ReqPath} ErrorMsg]} {
+                    ErrorLog ReqDelete $ErrorMsg
                 }
-            }
-            {fill} {
-                if {[file isdirectory $ReqPath]} {
-                    set FillPath [file join $req(RequestPath) [string map $ReMap $req(FilledTag)]]
-                    KickUsers [file join $ReqPath "*"] True
-                    if {[catch {file rename -force -- $ReqPath $FillPath} ErrorMsg]} {
-                        ErrorLog ReqFill $ErrorMsg
-                    }
-                }
-            }
-            default {
-                ErrorLog ReqUpdateDir "Unknown event \"$Event\"."
             }
         }
-        catch {vfs flush $req(RequestPath)}
-    } else {
-        ErrorLog ReqUpdateDir "The requests directory \"$req(RequestPath)\" does not exist."
+        {FILL} {
+            if {[file isdirectory $ReqPath]} {
+                set FillPath [file join $req(RequestPath) [string map $ReMap $req(FilledTag)]]
+                KickUsers [file join $ReqPath "*"] True
+                if {[catch {file rename -force -- $ReqPath $FillPath} ErrorMsg]} {
+                    ErrorLog ReqFill $ErrorMsg
+                }
+            }
+        }
+        default {
+            ErrorLog ReqUpdateDir "unknown event \"$Event\""
+        }
     }
+    catch {vfs flush $req(RequestPath)}
+    return
+}
+
+# Request Events
+######################################################################
+
+proc ::nxTools::Req::Add {UserName GroupName Request} {
+    global misc req
+    iputs ".-\[Request\]--------------------------------------------------------------."
+    set Request [StripChars $Request]
+
+    if {[ReqDb eval {SELECT count(*) FROM Requests WHERE Status=0 AND StrCaseEq(Request,$Request)}]} {
+        LinePuts "This item is already requested."
+    } elseif {[CheckLimit $UserName $GroupName]} {
+        set RequestId 1
+        ReqDb eval {SELECT (max(RequestId)+1) AS NextId FROM Requests WHERE Status=0} values {
+            ## The max() function returns NULL if there are no matching records.
+            if {[string length $values(NextId)]} {
+                set RequestId $values(NextId)
+            }
+        }
+        set TimeStamp [clock seconds]
+        ReqDb eval {INSERT INTO Requests(TimeStamp,UserName,GroupName,Status,RequestId,Request) VALUES($TimeStamp,$UserName,$GroupName,0,$RequestId,$Request)}
+
+        set RequestId [format "%03s" $RequestId]
+        putlog "REQUEST: \"$UserName\" \"$GroupName\" \"$Request\" \"$RequestId\""
+        LinePuts "Added your request of $Request (#$RequestId)."
+        UpdateDir ADD $Request
+    }
+    iputs "'------------------------------------------------------------------------'"
+    return 0
+}
+
+proc ::nxTools::Req::Update {Event UserName GroupName Request} {
+    global misc req
+    iputs ".-\[Request\]--------------------------------------------------------------."
+    set Exists 0
+    set Request [StripChars $Request]
+
+    ReqDb eval {SELECT rowid,* FROM Requests WHERE Status=0 AND (RequestId=$Request OR StrCaseEq(Request,$Request)) LIMIT 1} values {set Exists 1}
+    if {!$Exists} {
+        LinePuts "Invalid request, use \"SITE REQUESTS\" to view current requests."
+    } else {
+        if {$Event eq "FILL"} {
+            ReqDb eval {UPDATE Requests SET Status=1 WHERE rowid=$values(rowid)}
+            LinePuts "Filled request $values(Request) for $values(UserName)/$values(GroupName)."
+            set LogPrefix "REQFILL"
+
+        } elseif {$Event eq "DEL"} {
+            ## Only siteops or the owner may delete a request.
+            if {$UserName ne $values(UserName) && ![regexp "\[$misc(SiteopFlags)\]" $flags]} {
+                ReqDb close
+                ErrorReturn "You are not allowed to delete another user's request."
+            }
+            ReqDb eval {DELETE FROM Requests WHERE rowid=$values(rowid)}
+            LinePuts "Deleted request $values(Request) for $values(UserName)/$values(GroupName)."
+            set LogPrefix "REQDEL"
+        }
+
+        set RequestAge [expr {[clock seconds] - $values(TimeStamp)}]
+        set RequestId [format "%03s" $values(RequestId)]
+        if {[IsTrue $misc(dZSbotLogging)]} {
+            set RequestAge [FormatDuration $RequestAge]
+        }
+        putlog "${LogPrefix}: \"$UserName\" \"$GroupName\" \"$values(Request)\" \"$values(UserName)\" \"$values(GroupName)\" \"$RequestId\" \"$RequestAge\""
+        UpdateDir $Event $values(Request)
+    }
+    iputs "'------------------------------------------------------------------------'"
+    return 0
+}
+
+proc ::nxTools::Req::List {IsSiteBot} {
+    global misc req
+    if {!$IsSiteBot} {
+        foreach MessageType {Header Body None Footer} {
+            set template($MessageType) [ReadFile [file join $misc(Templates) "Requests.$MessageType"]]
+        }
+        OutputData $template(Header)
+        set Count 0
+    }
+    ReqDb eval {SELECT * FROM Requests WHERE Status=0 ORDER BY RequestId DESC} values {
+        set RequestAge [expr {[clock seconds] - $values(TimeStamp)}]
+        set RequestId [format "%03s" $values(RequestId)]
+        if {$IsSiteBot} {
+            iputs [list REQS $values(TimeStamp) $RequestAge $RequestId $values(UserName) $values(GroupName) $values(Request)]
+        } else {
+            incr Count
+            set RequestAge [lrange [FormatDuration $RequestAge] 0 1]
+            set ValueList [list $RequestAge $RequestId $values(UserName) $values(GroupName) $values(Request)]
+            OutputData [ParseCookies $template(Body) $ValueList {age id user group request}]
+        }
+    }
+    if {!$IsSiteBot} {
+        if {!$Count} {OutputData $template(None)}
+        OutputData $template(Footer)
+    }
+}
+
+proc ::nxTools::Req::Wipe {} {
+    global misc req
+    iputs ".-\[Request\]--------------------------------------------------------------."
+    if {$req(MaximumAge) < 1} {
+        LinePuts "Request wiping is disabled, check your configuration."
+    } else {
+        LinePuts "Wiping filled requests older then $req(MaximumAge) day(s)..."
+        set MaxAge [expr {[clock seconds] - $req(MaximumAge) * 86400}]
+
+        ReqDb eval {SELECT rowid,* FROM Requests WHERE Status=1 AND TimeStamp < $MaxAge ORDER BY RequestId DESC} values {
+            set RequestAge [expr {[clock seconds] - $values(TimeStamp)}]
+            set RequestId [format "%03s" $values(RequestId)]
+
+            ## Wipe the directory if it exists.
+            set FillPath [string map [list %(request) $values(Request)] $req(FilledTag)]
+            set FillPath [file join $req(RequestPath) $FillPath]
+            if {[file isdirectory $FillPath]} {
+                KickUsers [file join $FillPath "*"] True
+                if {[catch {file delete -force -- $FillPath} ErrorMsg]} {
+                    ErrorLog ReqWipe $ErrorMsg
+                }
+                LinePuts "Wiped: $values(Request) by $values(UserName)/$values(GroupName) (#$RequestId)."
+                if {[IsTrue $misc(dZSbotLogging)]} {
+                    set RequestAge [FormatDuration $RequestAge]
+                }
+                putlog "REQWIPE: \"$values(UserName)\" \"$values(GroupName)\" \"$values(Request)\" \"$RequestId\" \"$RequestAge\" \"$req(MaximumAge)\""
+            }
+            ReqDb eval {UPDATE Requests SET Status=2 WHERE rowid=$values(rowid)}
+        }
+        catch {vfs flush $req(RequestPath)}
+    }
+    iputs "'------------------------------------------------------------------------'"
+    return 0
 }
 
 # Request Main
 ######################################################################
 
 proc ::nxTools::Req::Main {ArgV} {
-    global misc req flags group user
+    global misc flags group user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     set IsSiteBot [expr {[info exists user] && $misc(SiteBot) eq $user}]
 
-    set ArgLength [llength [set ArgList [ArgList $ArgV]]]
-    set Event [string tolower [lindex $ArgList 0]]
-    set Request [join [lrange $ArgList 1 end]]
-
-    if {[string equal "list" $Event]} {
-        set ShowText 0
-    } else {
-        iputs ".-\[Request\]--------------------------------------------------------------."
-        set ShowText 1
-    }
     if {[catch {DbOpenFile [namespace current]::ReqDb "Requests.db"} ErrorMsg]} {
         ErrorLog RequestDb $ErrorMsg
-        if {!$IsSiteBot} {ErrorReturn "Unable to open requests database."}
+        if {!$IsSiteBot} {iputs "Unable to open requests database."}
         return 1
     }
 
+    set ArgLength [llength [set ArgList [ArgList $ArgV]]]
+    set Event [string toupper [lindex $ArgList 0]]
     switch -- $Event {
-        {add} {
-            if {![string length $Request]} {
-                ErrorReturn "Syntax: SITE REQUEST <request>"
-            }
-            set Request [StripChars $Request]
-            if {[ReqDb eval {SELECT count(*) FROM Requests WHERE Status=0 AND StrCaseEq(Request,$Request)}]} {
-                LinePuts "This item is already requested."
-            } elseif {[CheckLimit ReqDb $user]} {
-                set RequestId 1
-                ReqDb eval {SELECT (max(RequestId)+1) AS NextId FROM Requests WHERE Status=0} values {
-                    ## max() returns NULL if there are no matching records.
-                    if {[string length $values(NextId)]} {
-                        set RequestId $values(NextId)
-                    }
-                }
-                set TimeStamp [clock seconds]
-                ReqDb eval {INSERT INTO Requests (TimeStamp,UserName,GroupName,Status,RequestId,Request) VALUES($TimeStamp,$user,$group,0,$RequestId,$Request)}
-
-                set RequestId [format "%03s" $RequestId]
-                putlog "REQUEST: \"$user\" \"$group\" \"$Request\" \"$RequestId\""
-                LinePuts "Added your request of $Request (#$RequestId)."
-                UpdateDir $Event $Request
-            }
-        }
-        {del} - {fill} {
-            set Exists 0
-            ReqDb eval {SELECT rowid,* FROM Requests WHERE Status=0 AND (RequestId=$Request OR StrCaseEq(Request,$Request)) LIMIT 1} values {set Exists 1}
-            if {!$Exists} {
-                ReqDb close
-                ErrorReturn "Invalid request, use \"SITE REQUESTS\" to view current requests."
-            }
-            if {[string equal "fill" $Event]} {
-                ReqDb eval {UPDATE Requests SET Status=1 WHERE rowid=$values(rowid)}
-                LinePuts "Filled request $values(Request) by $values(UserName)/$values(GroupName)."
-                set LogPrefix "REQFILL"
-            } elseif {[string equal "del" $Event]} {
-                ## Only siteops or the owner may delete a request.
-                if {![string equal $user $values(UserName)] && ![regexp "\[$misc(SiteopFlags)\]" $flags]} {
-                    ReqDb close
-                    ErrorReturn "You are not allowed to delete another user's request."
-                }
-                ReqDb eval {DELETE FROM Requests WHERE rowid=$values(rowid)}
-                LinePuts "Deleted request $values(Request) by $values(UserName)/$values(GroupName)."
-                set LogPrefix "REQDEL"
-            }
-
-            set RequestAge [expr {[clock seconds] - $values(TimeStamp)}]
-            set RequestId [format "%03s" $values(RequestId)]
-            if {[IsTrue $misc(dZSbotLogging)]} {
-                set RequestAge [FormatDuration $RequestAge]
-            }
-            putlog "${LogPrefix}: \"$user\" \"$group\" \"$values(Request)\" \"$values(UserName)\" \"$values(GroupName)\" \"$RequestId\" \"$RequestAge\""
-            UpdateDir $Event $values(Request)
-        }
-        {list} {
-            if {!$IsSiteBot} {
-                foreach MessageType {Header Body None Footer} {
-                    set template($MessageType) [ReadFile [file join $misc(Templates) "Requests.$MessageType"]]
-                }
-                OutputData $template(Header)
-                set Count 0
-            }
-            ReqDb eval {SELECT * FROM Requests WHERE Status=0 ORDER BY RequestId DESC} values {
-                set RequestAge [expr {[clock seconds] - $values(TimeStamp)}]
-                set RequestId [format "%03s" $values(RequestId)]
-                if {$IsSiteBot} {
-                    iputs [list REQS $values(TimeStamp) $RequestAge $RequestId $values(UserName) $values(GroupName) $values(Request)]
-                } else {
-                    incr Count
-                    set RequestAge [lrange [FormatDuration $RequestAge] 0 1]
-                    set ValueList [list $RequestAge $RequestId $values(UserName) $values(GroupName) $values(Request)]
-                    OutputData [ParseCookies $template(Body) $ValueList {age id user group request}]
-                }
-            }
-            if {!$IsSiteBot} {
-                if {!$Count} {OutputData $template(None)}
-                OutputData $template(Footer)
-            }
-        }
-        {wipe} {
-            if {$req(MaximumAge) == 0} {
-                LinePuts "Request wiping is disabled, check your configuration."
+        {ADD} {
+            if {$ArgLength > 1} {
+                Add $user $group [join [lrange $ArgList 1 end]]
             } else {
-                LinePuts "Wiping filled requests older then $req(MaximumAge) day(s)..."
-                set MaxAge [expr {[clock seconds] - $req(MaximumAge) * 86400}]
-
-                ReqDb eval {SELECT rowid,* FROM Requests WHERE Status=1 AND TimeStamp < $MaxAge ORDER BY RequestId DESC} values {
-                    set RequestAge [expr {[clock seconds] - $values(TimeStamp)}]
-                    set RequestId [format "%03s" $values(RequestId)]
-
-                    ## Wipe the directory if it exists.
-                    set FillPath [string map [list %(request) $values(Request)] $req(FilledTag)]
-                    set FillPath [file join $req(RequestPath) $FillPath]
-                    if {[file isdirectory $FillPath]} {
-                        KickUsers [file join $FillPath "*"] True
-                        if {[catch {file delete -force -- $FillPath} ErrorMsg]} {
-                            ErrorLog ReqWipe $ErrorMsg
-                        }
-                        LinePuts "Wiped: $values(Request) by $values(UserName)/$values(GroupName) (#$RequestId)."
-                        if {[IsTrue $misc(dZSbotLogging)]} {
-                            set RequestAge [FormatDuration $RequestAge]
-                        }
-                        putlog "REQWIPE: \"$values(UserName)\" \"$values(GroupName)\" \"$values(Request)\" \"$RequestId\" \"$RequestAge\" \"$req(MaximumAge)\""
-                    }
-                    ReqDb eval {UPDATE Requests SET Status=2 WHERE rowid=$values(rowid)}
-                }
-                catch {vfs flush $req(RequestPath)}
+                iputs "Syntax: SITE REQUEST <request>"
             }
         }
+        {DEL} - {FILL} {
+            if {$ArgLength > 1} {
+                Update $Event $user $group [join [lrange $ArgList 1 end]]
+            } else {
+                iputs "Syntax: SITE REQ$Event <id/request>"
+            }
+        }
+        {LIST} {List $IsSiteBot}
+        {WIPE} {Wipe}
         default {
-            ErrorLog InvalidArgs "unknown function \"[info script] $Event\": check your ioFTPD.ini for errors"
+            ErrorLog InvalidArgs "unknown event \"[info script] $Event\": check your ioFTPD.ini for errors"
         }
     }
-    if {$ShowText} {iputs "'------------------------------------------------------------------------'"}
+
     ReqDb close
     return 0
 }

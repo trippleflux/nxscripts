@@ -881,6 +881,12 @@ Text Templates:
 # 8. Upgrading                                                                 #
 ################################################################################
 
+0.9.8 -> 0.9.11 - Replace all files located in /scripts/nxTools/.
+                - Download an updated nxTools-Libraries package.
+                - New config options: req(Limits).
+                - Removed config options: req(TimeDays), req(TimeLimit),
+                  req(TotalLimit), and req(UserLimit).
+
 0.9.8 -> 0.9.10 - Replace all files located in /scripts/nxTools/.
                 - Download an updated nxTools-Libraries package.
 
@@ -951,6 +957,7 @@ Text Templates:
 ################################################################################
 
 nxTools v0.9.11 (XX-XX-2005):
+  NEW: Request limits for individual users and groups.
   CHG: Improved configuration file parser for invite and pre.
   CHG: Renamed SITE CLEANLOGS to SITE CLEANLOGS and SITE REBUILDLOGS to SITE REBUILD.
   FIX: Corrected several errors in the readme.
