@@ -102,6 +102,7 @@ proc ::nxTools::Req::UpdateDir {Event Request {UserId 0} {GroupId 0}} {
 proc ::nxTools::Req::Add {UserName GroupName Request} {
     global misc req
     iputs ".-\[Request\]--------------------------------------------------------------."
+    set Result 1
     set Request [StripChars $Request]
 
     if {[ReqDb eval {SELECT count(*) FROM Requests WHERE Status=0 AND StrCaseEq(Request,$Request)}]} {
@@ -121,15 +122,16 @@ proc ::nxTools::Req::Add {UserName GroupName Request} {
         putlog "REQUEST: \"$UserName\" \"$GroupName\" \"$Request\" \"$RequestId\""
         LinePuts "Added your request of $Request (#$RequestId)."
         UpdateDir ADD $Request
+        set Result 0
     }
     iputs "'------------------------------------------------------------------------'"
-    return 0
+    return $Result
 }
 
 proc ::nxTools::Req::Update {Event UserName GroupName Request} {
     global misc req
     iputs ".-\[Request\]--------------------------------------------------------------."
-    set Exists 0
+    set Exists 0; set Result 1
     set Request [StripChars $Request]
 
     ReqDb eval {SELECT rowid,* FROM Requests WHERE Status=0 AND (RequestId=$Request OR StrCaseEq(Request,$Request)) LIMIT 1} values {set Exists 1}
@@ -159,9 +161,10 @@ proc ::nxTools::Req::Update {Event UserName GroupName Request} {
         }
         putlog "${LogPrefix}: \"$UserName\" \"$GroupName\" \"$values(Request)\" \"$values(UserName)\" \"$values(GroupName)\" \"$RequestId\" \"$RequestAge\""
         UpdateDir $Event $values(Request)
+        set Result 0
     }
     iputs "'------------------------------------------------------------------------'"
-    return 0
+    return $Result
 }
 
 proc ::nxTools::Req::List {IsSiteBot} {
@@ -189,6 +192,7 @@ proc ::nxTools::Req::List {IsSiteBot} {
         if {!$Count} {OutputData $template(None)}
         OutputData $template(Footer)
     }
+    return 0
 }
 
 proc ::nxTools::Req::Wipe {} {
@@ -263,6 +267,7 @@ proc ::nxTools::Req::Main {ArgV} {
         {WIPE} {set Result [Wipe]}
         default {
             ErrorLog InvalidArgs "unknown event \"[info script] $Event\": check your ioFTPD.ini for errors"
+            set Result 1
         }
     }
 

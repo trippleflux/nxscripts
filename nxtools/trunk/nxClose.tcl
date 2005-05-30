@@ -98,6 +98,7 @@ proc ::nxTools::Close::Main {ArgV} {
         }
         default {
             ErrorLog InvalidArgs "unknown event \"[info script] $Event\": check your ioFTPD.ini for errors"
+            set Result 1
         }
     }
     return [set ioerror $Result]
