@@ -197,7 +197,7 @@ proc ::nxTools::Req::Wipe {} {
     if {$req(MaximumAge) < 1} {
         LinePuts "Request wiping is disabled, check your configuration."
     } else {
-        LinePuts "Wiping filled requests older then $req(MaximumAge) day(s)..."
+        LinePuts "Wiping filled requests older than $req(MaximumAge) day(s)..."
         set MaxAge [expr {[clock seconds] - $req(MaximumAge) * 86400}]
 
         ReqDb eval {SELECT rowid,* FROM Requests WHERE Status=1 AND TimeStamp < $MaxAge ORDER BY RequestId DESC} values {
@@ -230,7 +230,7 @@ proc ::nxTools::Req::Wipe {} {
 ######################################################################
 
 proc ::nxTools::Req::Main {ArgV} {
-    global misc flags group user
+    global misc flags ioerror group user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     set IsSiteBot [expr {[info exists user] && $misc(SiteBot) eq $user}]
 
@@ -241,31 +241,33 @@ proc ::nxTools::Req::Main {ArgV} {
     }
 
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
+    set Request [join [lrange $ArgList 1 end]]
+    set Result 0
     set Event [string toupper [lindex $ArgList 0]]
     switch -- $Event {
         {ADD} {
             if {$ArgLength > 1} {
-                Add $user $group [join [lrange $ArgList 1 end]]
+                set Result [Add $user $group $Request]
             } else {
                 iputs "Syntax: SITE REQUEST <request>"
             }
         }
         {DEL} - {FILL} {
             if {$ArgLength > 1} {
-                Update $Event $user $group [join [lrange $ArgList 1 end]]
+                set Result [Update $Event $user $group $Request]
             } else {
                 iputs "Syntax: SITE REQ$Event <id/request>"
             }
         }
-        {LIST} {List $IsSiteBot}
-        {WIPE} {Wipe}
+        {LIST} {set Result [List $IsSiteBot]}
+        {WIPE} {set Result [Wipe]}
         default {
             ErrorLog InvalidArgs "unknown event \"[info script] $Event\": check your ioFTPD.ini for errors"
         }
     }
 
     ReqDb close
-    return 0
+    return [set ioerror $Result]
 }
 
 ::nxTools::Req::Main [expr {[info exists args] ? $args : ""}]

@@ -190,7 +190,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
             if {[string first $nuke(GroupFlag) $flags] != -1} {
                 ## Find the group suffix in the release name (Something-GRP)
                 if {[set GroupPos [string last "-" [file tail $VirtualPath]]] == -1} {
-                    ErrorReturn "Unable to verify the release's group, is it suffixed with \"-<group>\"?"
+                    ErrorReturn "Unable to verify the release's group, does it end with -<group>?"
                 }
                 set AllowNuke 0; set NukeType 1
                 set RlsSuffix [string range [file tail $VirtualPath] [incr GroupPos] end]
@@ -272,10 +272,9 @@ proc ::nxTools::Nuke::Main {ArgV} {
 
                 set Ratio [expr {$Ratio != 0 ? "1:$Ratio" : "Unlimited"}]
                 iputs [format "| %-10s | %-10s | %11s | %13s | %14s |" $NukeeUser $NukeeGroup $Ratio [FormatSize $NukeStats] [FormatSize $DiffCredits]]
-                lappend NukeeLog [list $NukeeUser $NukeeGroup $NukeStats]
+                lappend NukeeLog [list $NukeeUser $NukeeGroup $DiffCredits $NukeStats]
             }
-            ## Join the list twice because of the sublist used in "lsort -index".
-            set NukeeLog [join [join [lsort -decreasing -integer -index 2 $NukeeLog]]]
+            set NukeeLog [join [lsort -decreasing -integer -index 2 $NukeeLog]]
 
             if {$IsNuke} {
                 set ReMap [list %(user) $user %(group) $group %(multi) $Multi %(reason) $Reason]
@@ -329,9 +328,9 @@ proc ::nxTools::Nuke::Main {ArgV} {
             }
             catch {vfs flush $ParentPath}
             if {[IsTrue $misc(dZSbotLogging)]} {
-                foreach {NukeeUser NukeeGroup Amount} $NukeeLog {
-                    set Amount [format "%.2f" [expr {double($Amount) / 1024.0}]]
-                    putlog "${LogPrefix}: \"$VirtualPath\" \"$user@$group\" \"$NukeeUser@$NukeeGroup\" \"$Multi $Amount\" \"$Reason\""
+                foreach {NukeeUser NukeeGroup NukeeCredits NukeeStats} $NukeeLog {
+                    set NukeeStats [format "%.2f" [expr {double($NukeeStats) / 1024.0}]]
+                    putlog "${LogPrefix}: \"$VirtualPath\" \"$user@$group\" \"$NukeeUser@$NukeeGroup\" \"$Multi $NukeeStats\" \"$Reason\""
                 }
             } else {
                 putlog "${LogPrefix}: \"$VirtualPath\" \"$user\" \"$group\" \"$Multi\" \"$Reason\" \"$Files\" \"$TotalSize\" \"$DiskCount\" \"$NukeeLog\""
