@@ -413,7 +413,7 @@ proc ::nxAutoNuke::GetUserList {RealPath} {
         }
     }
     ## Check if the release is an empty nuke
-    if {[array names uploader] == ""} {
+    if {![array exists uploader]} {
         catch {vfs read $RealPath} VfsOwner
         ListAssign $VfsOwner UserId GroupId
         if {[set UserName [resolve uid $UserId]] != ""} {
@@ -538,12 +538,12 @@ proc ::nxAutoNuke::Main {} {
     ## release(Name)        - Release name.
     ## release(RealPath)    - Release physical path.
     ## release(VirtualPath) - Release virtual path.
-    ## release(PathList)    - Release sub-directory list.
+    ## release(PathList)    - Release subdirectory list.
     ##
     ## Disk check variables:
     ##
-    ## disk(Age)         - Age of disk sub-directory, in seconds.
-    ## disk(Name)        - Name of disk sub-directory.
+    ## disk(Age)         - Age of disk subdirectory, in seconds.
+    ## disk(Name)        - Name of disk subdirectory.
     ## disk(RealPath)    - Disk physical path.
     ## disk(VirtualPath) - Disk virtual path.
     ##
@@ -588,9 +588,9 @@ proc ::nxAutoNuke::Main {} {
             set CheckType [string tolower $CheckType]
 
             ## Split IMDB and MP3 check settings.
-            if {[lsearch -exact {imdb mp3} $CheckType] != -1} {
+            if {$CheckType eq "imdb" || $CheckType eq "mp3"} {
                 set check(Settings) [SplitSettings $check(Settings)]
-            } elseif {[string equal "keyword" $CheckType]} {
+            } elseif {$CheckType eq "keyword"} {
                 set check(Settings) [string tolower $check(Settings)]
             }
 
@@ -603,14 +603,14 @@ proc ::nxAutoNuke::Main {} {
                     continue
                 }
 
-                ## Find release sub-directories.
+                ## Find release subdirectories.
                 set release(PathList) ""
                 foreach DiskDir [glob -nocomplain -types d -directory $release(RealPath) "*"] {
                     if {![ListMatchI $anuke(Exempts) [file tail $DiskDir]] && [IsMultiDisk $DiskDir]} {
                         lappend release(PathList) $DiskDir
                     }
                 }
-                ## If there are no sub-directories present, check the release's root directory.
+                ## If there are no subdirectories present, check the release's root directory.
                 if {![llength $release(PathList)]} {
                     lappend release(PathList) $release(RealPath)
                 }
@@ -627,10 +627,10 @@ proc ::nxAutoNuke::Main {} {
                 } elseif {[info exists DiskChecks($CheckType)]} {
                     foreach {check(WarnType) check(Reason) CheckProc} $DiskChecks($CheckType) {break}
 
-                    ## Check each release sub-directory.
+                    ## Check each release subdirectory.
                     foreach disk(RealPath) $release(PathList) {
                         if {[IsMultiDisk $disk(RealPath)]} {
-                            ## Retrieve the age of the sub-directory.
+                            ## Retrieve the subdirectory's age.
                             if {[catch {file stat $disk(RealPath) stat}]} {continue}
                             set disk(Age) [expr {[clock seconds] - $stat(ctime)}]
 
