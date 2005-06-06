@@ -131,7 +131,6 @@ proc ::nxAutoNuke::CheckImdb {CheckList RealPath} {
             {year} {
                 if {![string match -nocase $Value $year]} {set Nuke 1}
             }
-            default {continue}
         }
 
         if {$Nuke} {
@@ -185,7 +184,6 @@ proc ::nxAutoNuke::CheckMP3 {CheckList RealPath} {
             {year} {
                 if {![string match -nocase $Value $year]} {set Nuke 1}
             }
-            default {continue}
         }
 
         if {$Nuke} {
@@ -402,8 +400,6 @@ proc ::nxAutoNuke::Main {} {
                 [catch {file stat $release(RealPath) stat}] || [set release(Age) [expr {[clock seconds] - $stat(ctime)}]] > $MaxAge} {
                     continue
                 }
-
-                iputs $release(Name)
 
                 ## Find release subdirectories.
                 set release(PathList) ""
