@@ -22,7 +22,7 @@ proc ::nxAutoNuke::GetName {VirtualPath} {
     set Release [file tail $VirtualPath]
     if {[IsMultiDisk $Release]} {
         set ParentPath [file tail [file dirname $VirtualPath]]
-        if {![string equal "" $ParentPath]} {set Release "$ParentPath ($Release)"}
+        if {[string length $ParentPath]} {set Release "$ParentPath ($Release)"}
     }
     return $Release
 }
@@ -31,9 +31,16 @@ proc ::nxAutoNuke::Nuke {RealPath VirtualPath UserName GroupName Multi Reason} {
     global misc
     ## Find credit and stats section
     foreach {CreditSection StatSection} [GetCreditStatSections $VirtualPath] {break}
-    set RealPath [string map {/ \\} $RealPath]
 
-    ## Borrowed this portion from Harm's ioAUTONUKE, since this ioA feature is undocumented.
+    ## Borrowed this portion from Harm's ioAUTONUKE, since
+    ## these features are undocumented for ioA and ioBanana.
+    if {[string length $misc(ioBPath)]} {
+        set ParentVirtual [string map {/ \\} [file dirname $VirtualPath]]
+        set ParentReal [string map {/ \\} [file dirname $RealPath]]
+        catch {exec $misc(ioBPath) KICKNUKE NUKE [file tail $VirtualPath] $ParentVirtual $ParentReal [resolve user $UserName]}
+    }
+
+    set RealPath [string map {/ \\} $RealPath]
     if {[catch {exec $misc(IoAPath) NUKE $RealPath $VirtualPath $Multi $StatSection $CreditSection $UserName $GroupName $Reason} OutputMsg]} {
         ErrorLog AutoNuke "ioA Output:\n$OutputMsg"
         return 0
@@ -310,6 +317,11 @@ proc ::nxAutoNuke::Main {} {
         ErrorLog AutoNuke "invalid path to ioA \"$misc(IoAPath)\": the file does not exist"
         ErrorReturn "Invalid path to the ioA executable, check your configuration."
     }
+    if {[string length $misc(IoBPath)] && ![file isfile $misc(IoBPath)]} {
+        ErrorLog AutoNuke "invalid path to ioBanana \"$misc(IoBPath)\": the file does not exist"
+        ErrorReturn "Invalid path to the ioBanana executable, check your configuration."
+    }
+
     LinePuts "Checking [expr {[llength $anuke(Sections)] / 3}] auto-nuke sections."
 
     variable check

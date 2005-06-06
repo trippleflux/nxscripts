@@ -1,9 +1,6 @@
 # nxAutoNuke v2.0.3 By neoxed
 ###############################################################
 
-nxAutoNuke.tcl     = nxTools Nuker and nxSitebot/dZSbot support
-nxAutoNuke-ioA.tcl = ioA Nuker and ioBanana/dZSbot support
-
 # Information:
 ###############################################################
 
@@ -16,7 +13,7 @@ groups. Nuke reasons are customizable using cookies.
   Thanks to Harm for ioAUTONUKE, which showed me how I was able to use
 ioA as an external nuker. ioA support is credited towards him. :)
 
-# ioA Nuker and dZSbot Installation:
+# ioA and dZSbot Installation:
 ###############################################################
 
 1. UnRAR and copy all files and directories, maintaining the
@@ -30,8 +27,7 @@ ioA as an external nuker. ioA support is credited towards him. :)
    ioFTPD\scripts\nxAutoNuke\nxAutoNuke.tcl
    ioFTPD\scripts\nxAutoNuke\nxAutoNuke-ioA.tcl
 
-2. Configure nxAutoNuke.cfg to your liking and remember to uncomment
-   the four options under "ioA sections".
+2. Configure nxAutoNuke.cfg to your liking. Read the comments carefully!
 
 3. Add the following to your ioFTPD.ini:
 
@@ -85,7 +81,7 @@ set msgtypes(RACE) "ANUKEALLOWED ANUKEBANNED ANUKEDISKS ANUKEEMPTY ANUKEIMDB ANU
 7. Rehash or restart Windrop.
 
 
-# ioA Nuker and ioBanana Installation:
+# ioA and ioBanana Installation:
 ###############################################################
 
 1. UnRAR and copy all files and directories, maintaining the
@@ -99,8 +95,7 @@ set msgtypes(RACE) "ANUKEALLOWED ANUKEBANNED ANUKEDISKS ANUKEEMPTY ANUKEIMDB ANU
    ioFTPD\scripts\nxAutoNuke\nxAutoNuke.tcl
    ioFTPD\scripts\nxAutoNuke\nxAutoNuke-ioA.tcl
 
-2. Configure nxAutoNuke.cfg to your liking and remember to uncomment
-   the four options under "ioA sections".
+2. Configure nxAutoNuke.cfg to your liking. Read the comments carefully!
 
 3. Add the following to your ioFTPD.ini:
 
@@ -153,6 +148,7 @@ set announce(ANUKEMP3)     "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] th
 ###############################################################
 
 nxAutoNuke v2.0.3 (XX-XX-2005):
+  NEW: Added 'kicknuke' support for ioBanana.
   CHG: The ioA version is distributed separately now.
 
 nxAutoNuke v2.0.2 (04-03-2005):
@@ -226,5 +222,5 @@ nxAutoNuke v1.0.0 (09-21-2004):
 # Todo:
 ###############################################################
 - RiA release name checks will only be added if someone can provide
-  me with the RiA standards/rules.
+  me with an original copy of the RiA standards/rules.
 - Real documentation.
