@@ -22,7 +22,7 @@ proc ::nxAutoNuke::GetName {VirtualPath} {
     set Release [file tail $VirtualPath]
     if {[IsMultiDisk $Release]} {
         set ParentPath [file tail [file dirname $VirtualPath]]
-        if {![string equal "" $ParentPath]} {set Release "$ParentPath ($Release)"}
+        if {[string length $ParentPath]} {set Release "$ParentPath ($Release)"}
     }
     return $Release
 }

@@ -27,7 +27,7 @@ ioA as an external nuker. ioA support is credited towards him. :)
    ioFTPD\scripts\nxAutoNuke\nxAutoNuke.tcl
    ioFTPD\scripts\nxAutoNuke\nxAutoNuke_ioA.tcl
 
-2. Configure nxAutoNuke.cfg to your liking.
+2. Configure nxAutoNuke.cfg to your liking. Read the comments carefully!
 
 3. Add the following to your ioFTPD.ini:
 
@@ -189,5 +189,5 @@ nxAutoNuke v1.0.0 (09-21-2004):
 # Todo:
 ###############################################################
 - RiA release name checks will only be added if someone can provide
-  me with the RiA standards/rules.
+  me with an original copy of the RiA standards/rules.
 - Real documentation.
