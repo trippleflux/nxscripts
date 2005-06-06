@@ -206,8 +206,8 @@ proc ::nxTools::Dupe::RebuildDb {} {
                 if {[catch {file stat $ListItem fstat}]} {continue}
                 if {$MaxAge != 0 && ([clock seconds] - $fstat(ctime)) > $MaxAge} {continue}
                 catch {vfs read $ListItem} Owner
-                if {[set UserName [resolve uid [lindex $Owner 0]]] == ""} {set UserName $DefUser}
-                if {[set GroupName [resolve gid [lindex $Owner 1]]] == ""} {set GroupName $DefGroup}
+                if {[set UserName [resolve uid [lindex $Owner 0]]] eq ""} {set UserName $DefUser}
+                if {[set GroupName [resolve gid [lindex $Owner 1]]] eq ""} {set GroupName $DefGroup}
 
                 set BaseName [file tail $ListItem]
                 if {$FileMode} {

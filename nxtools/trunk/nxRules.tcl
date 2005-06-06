@@ -42,7 +42,7 @@ proc ::nxTools::Rules::Main {ShowSection} {
     if {![catch {set Handle [open $rules(ConfigFile) r]} ErrorMsg]} {
         while {![eof $Handle]} {
             set FileLine [string trim [gets $Handle]]
-            if {![string length $FileLine] || [string index $FileLine 0] == "#"} {continue
+            if {![string length $FileLine] || [string index $FileLine 0] eq "#"} {continue
             } elseif {[string match {\[*\]} $FileLine]} {
                 set SectionName [string range $FileLine 1 end-1]
                 lappend SectionList $SectionName

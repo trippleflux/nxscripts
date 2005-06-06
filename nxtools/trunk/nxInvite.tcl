@@ -27,7 +27,7 @@ proc ::nxTools::Invite::ConfigRead {ConfigFile} {
             set FileLine [string trim [gets $Handle]]
             if {![string length $FileLine]} {continue}
 
-            if {[string index $FileLine 0] == "#"} {
+            if {[string index $FileLine 0] eq "#"} {
                 append ConfigComments $FileLine "\n"; continue
             }
             if {[string match {\[*\]} $FileLine]} {
@@ -138,7 +138,7 @@ proc ::nxTools::Invite::Main {ArgV} {
                     ErrorReturn "The invite target \"$Target\" must have a destination channel."
                 }
 
-                if {[string index $Value 0] != "#"} {
+                if {[string index $Value 0] ne "#"} {
                     LinePuts "The destination channel \"$Value\" is invalid."
                     ErrorReturn "Note: Make sure the channel begins with a \"#\" character."
                 }

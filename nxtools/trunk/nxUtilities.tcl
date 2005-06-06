@@ -165,11 +165,11 @@ proc ::nxTools::Utils::RotateLogs {} {
     switch -- [string tolower $log(Frequency)] {
         {month} - {monthly} {
             set DateFormat "%Y-%m"
-            if {[clock format $TimeNow -format "%d"] == "01"} {set DoRotate 1}
+            if {[clock format $TimeNow -format "%d"] eq "01"} {set DoRotate 1}
         }
         {week} - {weekly} {
             set DateFormat "%Y-Week%W"
-            if {[clock format $TimeNow -format "%w"] == "0"} {set DoRotate 1}
+            if {[clock format $TimeNow -format "%w"] eq "0"} {set DoRotate 1}
         }
         {day} - {daily} {set DateFormat "%Y-%m-%d"; set DoRotate 1}
         default {ErrorLog RotateLogs "invalid log rotation frequency: must be montly, weekly, or daily"}
@@ -223,7 +223,7 @@ proc ::nxTools::Utils::WeeklyCredits {WkTarget WkAmount} {
     if {![catch {set Handle [open $weekly(ConfigFile) r]} ErrorMsg]} {
         while {![eof $Handle]} {
             set FileLine [string trim [gets $Handle]]
-            if {[string index $FileLine 0] == "#"} {
+            if {[string index $FileLine 0] eq "#"} {
                 append CfgComments $FileLine "\n"
             } elseif {[llength [set FileLine [split $FileLine "|"]]] == 3} {
                 foreach {Target Section Credits} $FileLine {break}
@@ -260,7 +260,7 @@ proc ::nxTools::Utils::WeeklyCredits {WkTarget WkAmount} {
             LinePuts "Removed the target \"$WkTarget\" (${Credits}MB in section $Section) from weekly credits."
         } else {
             ## Check if the user or group exists.
-            if {[string index $WkTarget 0] == "="} {
+            if {[string index $WkTarget 0] eq "="} {
                 if {[resolve group [string range $WkTarget 1 end]] == -1} {
                     ErrorReturn "The specified group does not exist."
                 }
@@ -298,7 +298,7 @@ proc ::nxTools::Utils::WeeklySet {} {
     if {![catch {set Handle [open $weekly(ConfigFile) r]} ErrorMsg]} {
         while {![eof $Handle]} {
             set FileLine [string trim [gets $Handle]]
-            if {[string index $FileLine 0] != "#" && [llength [set FileLine [split $FileLine "|"]]] == 3} {
+            if {[string index $FileLine 0] ne "#" && [llength [set FileLine [split $FileLine "|"]]] == 3} {
                 foreach {Target Section Credits} $FileLine {break}
                 lappend TargetList [list $Target $Section $Credits]
             }
@@ -311,7 +311,7 @@ proc ::nxTools::Utils::WeeklySet {} {
     if {[llength $TargetList]} {
         foreach ListItem [lsort -ascii -index 0 $TargetList] {
             foreach {Target Section Credits} $ListItem {break}
-            if {[string index $Target 0] == "="} {
+            if {[string index $Target 0] eq "="} {
                 set Target [string range $Target 1 end]
                 if {[set GroupId [resolve group $Target]] == -1} {
                     LinePuts "Skipping invalid group \"$Target\"."; continue
@@ -543,7 +543,7 @@ proc ::nxTools::Utils::SiteTraffic {Target} {
     if {![string length $Target]} {
         set TrafficType 0
         set UserList [GetUserList]
-    } elseif {[string index $Target 0] == "="} {
+    } elseif {[string index $Target 0] eq "="} {
         set Target [string range $Target 1 end]
         if {[resolve group $Target] == -1} {
             ErrorReturn "The specified group does not exist."
@@ -598,7 +598,7 @@ proc ::nxTools::Utils::SiteWho {} {
     iputs "|    User    |   Group    |  Info          |  Action                     |"
     iputs "|------------------------------------------------------------------------|"
     if {[client who init "CID" "UID" "STATUS" "TIMEIDLE" "TRANSFERSPEED" "VIRTUALPATH" "VIRTUALDATAPATH"] == 0} {
-        while {[set WhoData [client who fetch]] != ""} {
+        while {[set WhoData [client who fetch]] ne ""} {
             foreach {ClientId UserId Status IdleTime Speed VirtualPath DataPath} $WhoData {break}
             set IsMe [expr {$cid == $ClientId ? "*" : ""}]
             set UserName [resolve uid $UserId]

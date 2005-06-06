@@ -217,7 +217,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
                 incr Files; set FileSize [file size $ListItem]
                 set TotalSize [expr {wide($TotalSize) + wide($FileSize)}]
                 catch {lindex [vfs read $ListItem] 0} UserId
-                if {[set NukeeUser [resolve uid $UserId]] != ""} {
+                if {[set NukeeUser [resolve uid $UserId]] ne ""} {
                     if {[info exists nukefiles($NukeeUser)]} {
                         incr nukefiles($NukeeUser)
                     } else {set nukefiles($NukeeUser) 1}
@@ -234,7 +234,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
                 set NukeType 2
                 unset -nocomplain nukefiles nukesize
                 catch {lindex [vfs read $RealPath] 0} UserId
-                if {[set NukeeUser [resolve uid $UserId]] != ""} {
+                if {[set NukeeUser [resolve uid $UserId]] ne ""} {
                     set nukefiles($NukeeUser) 0
                     set nukesize($NukeeUser) [expr {wide($nuke(EmptyNuke)) * 1024 * 1024}]
                 } else {ErrorReturn "Unable to find the directory owner."}

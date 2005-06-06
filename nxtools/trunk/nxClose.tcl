@@ -38,18 +38,17 @@ proc ::nxTools::Close::Main {ArgV} {
         {CLOSE} {
             iputs ".-\[Close\]-----------------------------------------------------------------."
             if {[catch {set CloseInfo [var get nxToolsClosed]}]} {
-                if {[set CloseReason [join [lrange $ArgList 1 end]]] == ""} {
-                    set CloseReason "No Reason"
-                }
+                set CloseReason [join [lrange $ArgList 1 end]]
+                if {![string length $CloseReason]} {set CloseReason "No Reason"}
+                set CloseInfo [list [clock seconds] $CloseReason]
+
+                var set nxToolsClosed $CloseInfo
                 LinePuts "Server is now closed for: $CloseReason."
                 putlog "CLOSE: \"$user\" \"$group\" \"$CloseReason\""
 
-                set CloseInfo [list [clock seconds] $CloseReason]
-                var set nxToolsClosed $CloseInfo
-
                 ## Kick online users.
                 if {[IsTrue $close(KickOnClose)] && [client who init "CID" "UID"] == 0} {
-                    while {[set WhoData [client who fetch]] != ""} {
+                    while {[set WhoData [client who fetch]] ne ""} {
                         set UserName [resolve uid [lindex $WhoData 1]]
                         set Flags ""
                         set GroupName "NoGroup"

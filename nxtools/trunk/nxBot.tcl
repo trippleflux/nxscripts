@@ -36,7 +36,7 @@ proc ::nxTools::Bot::AuthCheck {UserName Password} {
 proc ::nxTools::Bot::Bandwidth {} {
     array set who [list BwDn 0.0 BwUp 0.0 UsersDn 0 UsersUp 0 UsersIdle 0]
     if {[client who init "STATUS" "TRANSFERSPEED"] == 0} {
-        while {[set WhoData [client who fetch]] != ""} {
+        while {[set WhoData [client who fetch]] ne ""} {
             foreach {Status Speed} $WhoData {break}
             switch -- $Status {
                 0 - 3 {
@@ -144,7 +144,7 @@ proc ::nxTools::Bot::UserInfo {UserName Section} {
 
 proc ::nxTools::Bot::Who {} {
     if {[client who init "CID" "UID" "IDENT" "IP" "STATUS" "ACTION" "TIMEIDLE" "TRANSFERSPEED" "VIRTUALPATH" "VIRTUALDATAPATH"] == 0} {
-        while {[set WhoData [client who fetch]] != ""} {
+        while {[set WhoData [client who fetch]] ne ""} {
             foreach {ClientId UserId Ident IP Status Action IdleTime Speed VirtualPath DataPath} $WhoData {break}
             set UserName [resolve uid $UserId]
             set GroupName "NoGroup"
@@ -209,7 +209,8 @@ proc ::nxTools::Bot::Main {ArgV} {
                     set EndIndex [incr Section 2]
                 }
 
-                if {[string index [set Target [lindex $ArgList 2]] 0] == "="} {
+                set Target [lindex $ArgList 2]
+                if {[string index $Target 0] eq "="} {
                     set Target [string range $Target 1 end]
                     set Result [GroupStats $StatsType $Target $StartIndex $EndIndex]
                 } else {
