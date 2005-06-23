@@ -12,9 +12,15 @@
  * panic if the requested memory allocation fails. Since LibTomCrypt checks
  * return value of XMALLOC/XREALLOC, the 'attempt' functions are better suited.
  */
-#define XMALLOC  attemptckalloc
-#define XREALLOC attemptckrealloc
-#define XFREE    ckfree
+#ifdef TCL_MEM_DEBUG
+#define XMALLOC(n)      Tcl_AttemptDbCkalloc((n), __FILE__, __LINE__)
+#define XREALLOC(p,n)   Tcl_AttemptDbCkrealloc((char *)(p), (n), __FILE__, __LINE__)
+#define XFREE(p)        Tcl_DbCkfree((char *)(p), __FILE__, __LINE__)
+#else /* TCL_MEM_DEBUG */
+#define XMALLOC(n)      Tcl_AttemptAlloc((n))
+#define XREALLOC(p,n)   Tcl_AttemptRealloc((char *)(p),(n))
+#define XFREE(p)        Tcl_Free((char *)(p))
+#endif /* TCL_MEM_DEBUG */
 
 #define XMEMSET  memset
 #define XMEMCPY  memcpy

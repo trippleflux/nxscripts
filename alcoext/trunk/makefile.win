@@ -12,7 +12,7 @@
 #   Build configuration file for NMAKE, or a compatible tool.
 #
 #   Usage:
-#     nmake -f makefile [OPTION=1 ...]
+#     nmake -f makefile.win [OPTION=1 ...]
 #
 #   Options:
 #     DEBUG    - Symbolic debugging.
@@ -133,7 +133,8 @@ TCL_INCLUDES = $(TCL_DIR)\include
 PKG_SUFFIX  = -$(PKG_SUFFIX)
 !endif
 
-PKG_FILE    = $(PKG_TOPDIR)\$(PKG_NAME)$(PKG_SUFFIX).dll
+PKG_FILE    = $(PKG_NAME)$(PKG_SUFFIX).dll
+PKG_OUTFILE = $(PKG_TOPDIR)\$(PKG_FILE)
 PKG_INTDIR  = $(PKG_TOPDIR)\$(PKG_OPTIONS)
 
 INCLUDE_DIRS=\
@@ -415,6 +416,8 @@ all:     setup library install
 release: setup library
 
 clean:
+    @IF EXIST $(PKG_FILE) DEL /F $(PKG_FILE)
+    @IF EXIST $(PKG_OUTFILE) DEL /F $(PKG_OUTFILE)
     @IF EXIST $(PKG_INTDIR)\nul RMDIR /Q /S $(PKG_INTDIR)
     @IF EXIST version.vc DEL /F version.vc
 
@@ -426,10 +429,10 @@ distclean: clean
     @IF EXIST nmakehlp.obj DEL /F nmakehlp.obj
 
 install:
-    @COPY /Y $(PKG_FILE) $(ROOT)
+    @COPY /Y $(PKG_OUTFILE) $(ROOT)
 
 library: $(OBJECT_FILES)
-    $(LINK) $(LFLAGS) -out:$(PKG_FILE) $(INTERMEDIATE_FILES)
+    $(LINK) $(LFLAGS) -out:$(PKG_OUTFILE) $(INTERMEDIATE_FILES)
 
 setup:
     @IF NOT EXIST $(PKG_TOPDIR)\nul MKDIR $(PKG_TOPDIR)

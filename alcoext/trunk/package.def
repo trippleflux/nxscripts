@@ -25,7 +25,7 @@ PKG_STATUS  = 0
 
 ### Release Number
 #
-# - Increments each alpha, beta, and RC release.
+# - Increments for each alpha, beta, and RC release.
 # - The release number is disregarded for finals.
 #
 PKG_RELEASE = 0
