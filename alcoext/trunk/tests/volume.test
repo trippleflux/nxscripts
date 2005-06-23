@@ -1,0 +1,146 @@
+#
+# # AlcoExt - Alcoholicz Tcl extension.
+# Copyright (c) 2005 Alcoholicz Scripting Team
+#
+# File Name:
+#   volume.test
+#
+# Author:
+#   neoxed (neoxed@gmail.com) May 27, 2005
+#
+# Abstract:
+#   Volume command test suite.
+#
+
+package require tcltest 2
+namespace import -force ::tcltest::*
+
+if {$tcl_platform(platform) eq "windows"} {
+    set libFile "AlcoExt*"
+} else {
+    set libFile "libAlcoExt*"
+}
+append libFile [info sharedlibextension]
+
+set parentPath [file dirname [file dirname [file normalize [info script]]]]
+load [lindex [glob -dir $parentPath -types f $libFile] 0]
+
+namespace import -force ::alcoholicz::*
+
+################################################################################
+# volume                                                                       #
+################################################################################
+
+test volume-1.1 {volume: no args} {
+    list [catch {volume} msg] $msg
+} {1 {wrong # args: should be "volume option arg ?arg ...?"}}
+
+test volume-1.2 {volume: one arg} {
+    list [catch {volume .} msg] $msg
+} {1 {bad option ".": must be info or list}}
+
+test volume-1.3 {volume: invalid option} {
+    list [catch {volume . a} msg] $msg
+} {1 {bad option ".": must be info or list}}
+
+################################################################################
+# volume list                                                                  #
+################################################################################
+
+test volume-2.1 {volume list: no args} {
+    -body {volume list}
+}
+
+test volume-2.2 {volume list: too many args} {
+    list [catch {volume list a b} msg] $msg
+} {1 {wrong # args: should be "volume list ?switches? ?pattern?"}}
+
+test volume-2.3 {volume list: valid switches} {
+    -body {volume list --}
+}
+
+test volume-2.4 {volume list: valid switches} {
+    -body {volume list -- a}
+}
+test volume-2.5 {volume list: valid switches} {
+    -body {volume list -local --}
+}
+
+test volume-2.6 {volume list: valid switches} {
+    -body {volume list -local -- a}
+}
+
+test volume-2.7 {volume list: valid switches} {
+    -body {volume list -mounts --}
+}
+
+test volume-2.8 {volume list: valid switches} {
+    -body {volume list -mounts -- a}
+}
+
+test volume-2.9 {volume list: valid switches} {
+    -body {volume list -local -mounts --}
+}
+
+test volume-2.10 {volume list: valid switches} {
+    -body {volume list -local -mounts -- a}
+}
+
+test volume-2.11 {volume list: invalid switches} {
+    list [catch {volume list -fake} msg] $msg
+} {1 {bad switch "-fake": must be -local, -mounts, or --}}
+
+test volume-2.12 {volume list: invalid switches} {
+    list [catch {volume list -local -t*st} msg] $msg
+} {1 {bad switch "-t*st": must be -local, -mounts, or --}}
+
+################################################################################
+# volume info                                                                  #
+################################################################################
+
+set currentVolume [lindex [file split [pwd]] 0]
+
+test volume-3.1 {volume info: no args} {
+    list [catch {volume info} msg] $msg
+} {1 {wrong # args: should be "volume info volume varName"}}
+
+test volume-3.2 {volume info: too many args} {
+    list [catch {volume info a b c} msg] $msg
+} {1 {wrong # args: should be "volume info volume varName"}}
+
+test volume-3.3 {volume info: invalid volume} {
+    set status [catch {volume info ! volInfo}]
+    unset -nocomplain volInfo
+    set status
+} {1}
+
+test volume-3.4 {volume info: no array elements if function fails} {
+    catch {volume info ? volInfo}
+    set names [lsort [array names volInfo]]
+    unset -nocomplain volInfo
+    set names
+} {}
+
+test volume-3.5 {volume info: array elements} {
+    volume info $currentVolume volInfo
+    set names [lsort [array names volInfo]]
+    unset -nocomplain volInfo
+    set names
+} {flags free id length name total type}
+
+test volume-3.6 {volume info: varName isn't an array} {
+    unset -nocomplain test; set test 1
+    set result [list [catch {volume info $currentVolume test} msg] $msg]
+    set result
+} {1 {can't set "test(length)": variable isn't array}}
+
+test volume-3.7 {volume info: flags must be in alphabetical order} {
+    volume info $currentVolume volInfo
+    set result [string equal $volInfo(flags) [lsort $volInfo(flags)]]
+    unset -nocomplain volInfo
+    set result
+} {1}
+
+
+::tcltest::cleanupTests
+return

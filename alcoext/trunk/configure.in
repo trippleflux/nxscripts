@@ -1,0 +1,258 @@
+#!/bin/bash -norc
+dnl This file is an input file used by the GNU "autoconf" program to
+dnl generate the file "configure", which is run during Tcl installation
+dnl to configure the system for the local environment.
+#
+#-----------------------------------------------------------------------
+
+AC_INIT([AlcoExt], [0.1])
+AC_CONFIG_HEADER(./unix/config.h)
+
+#--------------------------------------------------------------------
+# Load TEA and the tclConfig.sh file.
+#--------------------------------------------------------------------
+
+TEA_INIT([3.2])
+TEA_PATH_TCLCONFIG
+TEA_LOAD_TCLCONFIG
+
+#-----------------------------------------------------------------------
+# Handle the --prefix=... option by defaulting to what Tcl gave.
+# Must be called after TEA_LOAD_TCLCONFIG and before TEA_SETUP_COMPILER.
+#-----------------------------------------------------------------------
+
+TEA_PREFIX
+
+#-----------------------------------------------------------------------
+# Standard compiler checks.
+# This sets up CC by using the CC env var, or looks for gcc otherwise.
+# This also calls AC_PROG_CC, AC_PROG_INSTALL and a few others to create
+# the basic setup necessary to compile executables.
+#-----------------------------------------------------------------------
+
+TEA_SETUP_COMPILER
+
+#--------------------------------------------------------------------
+# StatFS checks.
+# TODO:
+# - Check for statfs/statfs64/statvfs/statvfs64 functions.
+# - Check struct members (FreeBSD's statfs::f_fsid member differs from linux's).
+#--------------------------------------------------------------------
+
+AC_CHECK_HEADER(sys/mount.h,   [AC_DEFINE([HAVE_SYS_MOUNT_H],   1, [Define to 1 if you have the <sys/mount.h.h> header file.])])
+AC_CHECK_HEADER(sys/statfs.h,  [AC_DEFINE([HAVE_SYS_STATFS_H],  1, [Define to 1 if you have the <sys/statfs.h> header file.])])
+AC_CHECK_HEADER(sys/statvfs.h, [AC_DEFINE([HAVE_SYS_STATVFS_H], 1, [Define to 1 if you have the <sys/statvfs.h> header file.])])
+AC_CHECK_HEADER(sys/vfs.h,     [AC_DEFINE([HAVE_SYS_VFS_H],     1, [Define to 1 if you have the <sys/vfs.h> header file.])])
+
+#-----------------------------------------------------------------------
+# Specify the C source files to compile in TEA_ADD_SOURCES,
+# public headers that need to be installed in TEA_ADD_HEADERS,
+# stub library C source files to compile in TEA_ADD_STUB_SOURCES,
+# and runtime Tcl library files in TEA_ADD_TCL_SOURCES.
+# This defines PKG(_STUB)_SOURCES, PKG(_STUB)_OBJECTS, PKG_HEADERS
+# and PKG_TCL_SOURCES.
+#-----------------------------------------------------------------------
+
+TEA_ADD_SOURCES(
+    ./libs/tomcrypt/ciphers/aes/aes.c
+    ./libs/tomcrypt/ciphers/anubis.c
+    ./libs/tomcrypt/ciphers/blowfish.c
+    ./libs/tomcrypt/ciphers/cast5.c
+    ./libs/tomcrypt/ciphers/des.c
+    ./libs/tomcrypt/ciphers/khazad.c
+    ./libs/tomcrypt/ciphers/noekeon.c
+    ./libs/tomcrypt/ciphers/rc2.c
+    ./libs/tomcrypt/ciphers/rc5.c
+    ./libs/tomcrypt/ciphers/rc6.c
+    ./libs/tomcrypt/ciphers/safer/safer.c
+    ./libs/tomcrypt/ciphers/safer/safer_tab.c
+    ./libs/tomcrypt/ciphers/safer/saferp.c
+    ./libs/tomcrypt/ciphers/skipjack.c
+    ./libs/tomcrypt/ciphers/twofish/twofish.c
+    ./libs/tomcrypt/ciphers/xtea.c
+    ./libs/tomcrypt/hashes/helper/hash_memory.c
+    ./libs/tomcrypt/hashes/md2.c
+    ./libs/tomcrypt/hashes/md4.c
+    ./libs/tomcrypt/hashes/md5.c
+    ./libs/tomcrypt/hashes/rmd128.c
+    ./libs/tomcrypt/hashes/rmd160.c
+    ./libs/tomcrypt/hashes/sha1.c
+    ./libs/tomcrypt/hashes/sha2/sha256.c
+    ./libs/tomcrypt/hashes/sha2/sha512.c
+    ./libs/tomcrypt/hashes/tiger.c
+    ./libs/tomcrypt/hashes/whirl/whirl.c
+    ./libs/tomcrypt/hmac/hmac_done.c
+    ./libs/tomcrypt/hmac/hmac_init.c
+    ./libs/tomcrypt/hmac/hmac_memory.c
+    ./libs/tomcrypt/hmac/hmac_process.c
+    ./libs/tomcrypt/misc/base64/base64_decode.c
+    ./libs/tomcrypt/misc/base64/base64_encode.c
+    ./libs/tomcrypt/misc/burn_stack.c
+    ./libs/tomcrypt/misc/crypt/crypt_argchk.c
+    ./libs/tomcrypt/misc/crypt/crypt_cipher_descriptor.c
+    ./libs/tomcrypt/misc/crypt/crypt_cipher_is_valid.c
+    ./libs/tomcrypt/misc/crypt/crypt_find_cipher.c
+    ./libs/tomcrypt/misc/crypt/crypt_find_cipher_any.c
+    ./libs/tomcrypt/misc/crypt/crypt_find_cipher_id.c
+    ./libs/tomcrypt/misc/crypt/crypt_find_hash.c
+    ./libs/tomcrypt/misc/crypt/crypt_find_hash_any.c
+    ./libs/tomcrypt/misc/crypt/crypt_find_hash_id.c
+    ./libs/tomcrypt/misc/crypt/crypt_find_prng.c
+    ./libs/tomcrypt/misc/crypt/crypt_hash_descriptor.c
+    ./libs/tomcrypt/misc/crypt/crypt_hash_is_valid.c
+    ./libs/tomcrypt/misc/crypt/crypt_prng_descriptor.c
+    ./libs/tomcrypt/misc/crypt/crypt_prng_is_valid.c
+    ./libs/tomcrypt/misc/crypt/crypt_register_cipher.c
+    ./libs/tomcrypt/misc/crypt/crypt_register_hash.c
+    ./libs/tomcrypt/misc/crypt/crypt_register_prng.c
+    ./libs/tomcrypt/misc/crypt/crypt_unregister_cipher.c
+    ./libs/tomcrypt/misc/crypt/crypt_unregister_hash.c
+    ./libs/tomcrypt/misc/crypt/crypt_unregister_prng.c
+    ./libs/tomcrypt/misc/error_to_string.c
+    ./libs/tomcrypt/misc/pkcs5/pkcs_5_1.c
+    ./libs/tomcrypt/misc/pkcs5/pkcs_5_2.c
+    ./libs/tomcrypt/misc/zeromem.c
+    ./libs/tomcrypt/modes/cbc/cbc_decrypt.c
+    ./libs/tomcrypt/modes/cbc/cbc_done.c
+    ./libs/tomcrypt/modes/cbc/cbc_encrypt.c
+    ./libs/tomcrypt/modes/cbc/cbc_getiv.c
+    ./libs/tomcrypt/modes/cbc/cbc_setiv.c
+    ./libs/tomcrypt/modes/cbc/cbc_start.c
+    ./libs/tomcrypt/modes/cfb/cfb_decrypt.c
+    ./libs/tomcrypt/modes/cfb/cfb_done.c
+    ./libs/tomcrypt/modes/cfb/cfb_encrypt.c
+    ./libs/tomcrypt/modes/cfb/cfb_getiv.c
+    ./libs/tomcrypt/modes/cfb/cfb_setiv.c
+    ./libs/tomcrypt/modes/cfb/cfb_start.c
+    ./libs/tomcrypt/modes/ctr/ctr_decrypt.c
+    ./libs/tomcrypt/modes/ctr/ctr_done.c
+    ./libs/tomcrypt/modes/ctr/ctr_encrypt.c
+    ./libs/tomcrypt/modes/ctr/ctr_getiv.c
+    ./libs/tomcrypt/modes/ctr/ctr_setiv.c
+    ./libs/tomcrypt/modes/ctr/ctr_start.c
+    ./libs/tomcrypt/modes/ecb/ecb_decrypt.c
+    ./libs/tomcrypt/modes/ecb/ecb_done.c
+    ./libs/tomcrypt/modes/ecb/ecb_encrypt.c
+    ./libs/tomcrypt/modes/ecb/ecb_start.c
+    ./libs/tomcrypt/modes/ofb/ofb_decrypt.c
+    ./libs/tomcrypt/modes/ofb/ofb_done.c
+    ./libs/tomcrypt/modes/ofb/ofb_encrypt.c
+    ./libs/tomcrypt/modes/ofb/ofb_getiv.c
+    ./libs/tomcrypt/modes/ofb/ofb_setiv.c
+    ./libs/tomcrypt/modes/ofb/ofb_start.c
+    ./libs/tomcrypt/prngs/fortuna.c
+    ./libs/tomcrypt/prngs/rc4.c
+    ./libs/tomcrypt/prngs/rng_get_bytes.c
+    ./libs/tomcrypt/prngs/rng_make_prng.c
+    ./libs/tomcrypt/prngs/sober128.c
+    ./libs/tomcrypt/prngs/sprng.c
+    ./libs/tomcrypt/prngs/yarrow.c
+    ./libs/zlib/source/adler32.c
+    ./libs/zlib/source/compress.c
+    ./libs/zlib/source/crc32.c
+    ./libs/zlib/source/deflate.c
+    ./libs/zlib/source/gzio.c
+    ./libs/zlib/source/infback.c
+    ./libs/zlib/source/inffast.c
+    ./libs/zlib/source/inflate.c
+    ./libs/zlib/source/inftrees.c
+    ./libs/zlib/source/trees.c
+    ./libs/zlib/source/uncompr.c
+    ./libs/zlib/source/zutil.c
+    ./generic/alcoExt.c
+    ./generic/alcoCrypt.c
+    ./generic/alcoEncoding.c
+    ./generic/alcoUtil.c
+    ./generic/alcoVolume.c
+    ./generic/alcoZlib.c
+    ./unix/alcoUnixGlFtpd.c
+    ./unix/alcoUnixVolume.c
+)
+TEA_ADD_HEADERS([])
+TEA_ADD_INCLUDES(
+    -I\"./libs/tomcrypt/headers/\"
+    -I\"./libs/zlib/headers/\"
+    -I\"./generic/\"
+    -I\"./unix/\"
+)
+TEA_ADD_LIBS([])
+TEA_ADD_CFLAGS([])
+TEA_ADD_STUB_SOURCES([])
+TEA_ADD_TCL_SOURCES([])
+
+CLEANFILES=""
+AC_SUBST(CLEANFILES)
+
+#--------------------------------------------------------------------
+# Choose which headers you need.  Extension authors should try very
+# hard to only rely on the Tcl public header files.  Internal headers
+# contain private data structures and are subject to change without
+# notice.
+# This MUST be called after TEA_LOAD_TCLCONFIG / TEA_LOAD_TKCONFIG
+#--------------------------------------------------------------------
+
+TEA_PUBLIC_TCL_HEADERS
+
+#--------------------------------------------------------------------
+# Check whether --enable-threads or --disable-threads was given.
+# This auto-enables if Tcl was compiled threaded.
+#--------------------------------------------------------------------
+
+TEA_ENABLE_THREADS
+
+#--------------------------------------------------------------------
+# The statement below defines a collection of symbols related to
+# building as a shared library instead of a static library.
+#--------------------------------------------------------------------
+
+TEA_ENABLE_SHARED
+
+#--------------------------------------------------------------------
+# This macro figures out what flags to use with the compiler/linker
+# when building shared/static debug/optimized objects.  This information
+# can be taken from the tclConfig.sh file, but this figures it all out.
+#--------------------------------------------------------------------
+
+TEA_CONFIG_CFLAGS
+
+#--------------------------------------------------------------------
+# Set the default compiler switches based on the --enable-symbols option.
+#--------------------------------------------------------------------
+
+TEA_ENABLE_SYMBOLS
+
+#--------------------------------------------------------------------
+# Everyone should be linking against the Tcl stub library.  If you
+# can't for some reason, remove this definition.  If you aren't using
+# stubs, you also need to modify the SHLIB_LD_LIBS setting below to
+# link against the non-stubbed Tcl library.  Add Tk too if necessary.
+#--------------------------------------------------------------------
+
+AC_DEFINE(USE_TCL_STUBS, 1, [Use Tcl stubs])
+
+#--------------------------------------------------------------------
+# This macro generates a line to use when building a library.  It
+# depends on values set by the TEA_ENABLE_SHARED, TEA_ENABLE_SYMBOLS,
+# and TEA_LOAD_TCLCONFIG macros above.
+#--------------------------------------------------------------------
+
+TEA_MAKE_LIB
+
+#--------------------------------------------------------------------
+# Find tclsh so that we can run pkg_mkIndex to generate the pkgIndex.tcl
+# file during the install process.  Don't run the TCLSH_PROG through
+# ${CYGPATH} because it's being used directly by make.
+# Require that we use a tclsh shell version 8.2 or later since earlier
+# versions have bugs in the pkg_mkIndex routine.
+# Add WISH as well if this is a Tk extension.
+#--------------------------------------------------------------------
+
+TEA_PROG_TCLSH
+
+#--------------------------------------------------------------------
+# Finally, substitute all of the various values into the Makefile.
+# You may alternatively have a special pkgIndex.tcl.in or other files
+# which require substituting th AC variables in.  Include these here.
+#--------------------------------------------------------------------
+
+AC_OUTPUT(makefile)

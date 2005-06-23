@@ -1,0 +1,467 @@
+#
+# AlcoExt - Alcoholicz Tcl extension.
+# Copyright (c) 2005 Alcoholicz Scripting Team
+#
+# File Name:
+#   crypt.test
+#
+# Author:
+#   neoxed (neoxed@gmail.com) May 25, 2005
+#
+# Abstract:
+#   Crypt command test suite.
+#
+
+package require tcltest 2
+namespace import -force ::tcltest::*
+set scriptPath [file dirname [file normalize [info script]]]
+
+if {$tcl_platform(platform) eq "windows"} {
+    set libFile "AlcoExt*"
+} else {
+    set libFile "libAlcoExt*"
+}
+append libFile [info sharedlibextension]
+set libFile [lindex [glob -dir [file dirname $scriptPath] -types f $libFile] 0]
+load $libFile
+
+namespace import -force ::alcoholicz::*
+
+# Source crypt test vectors.
+source [file join $scriptPath crypt-hash.tv]
+source [file join $scriptPath crypt-hmac.tv]
+source [file join $scriptPath crypt-cipher.tv]
+
+################################################################################
+# crypt                                                                        #
+################################################################################
+
+test crypt-1.1 {crypt: no args} {
+    list [catch {crypt} msg] $msg
+} {1 {wrong # args: should be "crypt option arg ?arg ...?"}}
+
+test crypt-1.2 {crypt: one arg} {
+    list [catch {crypt .} msg] $msg
+} {1 {bad option ".": must be decrypt, encrypt, end, hash, info, pkcs5, rand, start, or update}}
+
+test crypt-1.3 {crypt: invalid option} {
+    list [catch {crypt . a} msg] $msg
+} {1 {bad option ".": must be decrypt, encrypt, end, hash, info, pkcs5, rand, start, or update}}
+
+################################################################################
+# crypt decrypt                                                                #
+################################################################################
+
+test crypt-2.1 {crypt decrypt: no args} {
+    list [catch {crypt decrypt} msg] $msg
+} {1 {wrong # args: should be "crypt decrypt ?switches? cipher key data"}}
+
+test crypt-2.2 {crypt decrypt: ecb tests} {
+    foreach algo [array names cipherTestData] {
+        set n 1
+        foreach {key plain cipher} $cipherTestData($algo) {
+            set result [crypt decrypt $algo $key $cipher]
+
+            if {$plain ne $result} {
+                return "ecb $algo (vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - cipher=[encode hex $cipher]\n\
+                    - needed=[encode hex $plain]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+################################################################################
+# crypt encrypt                                                                #
+################################################################################
+
+test crypt-3.1 {crypt encrypt: no args} {
+    list [catch {crypt encrypt} msg] $msg
+} {1 {wrong # args: should be "crypt encrypt ?switches? cipher key data"}}
+
+test crypt-3.2 {crypt decrypt: ecb tests} {
+    foreach algo [array names cipherTestData] {
+        set n 1
+        foreach {key plain cipher} $cipherTestData($algo) {
+            set result [crypt encrypt $algo $key $plain]
+
+            if {$cipher ne $result} {
+                return "ecb $algo (vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - needed=[encode hex $cipher]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+################################################################################
+# crypt hash                                                                   #
+################################################################################
+
+test crypt-4.1 {crypt hash: no args} {
+    list [catch {crypt hash} msg] $msg
+} {1 {wrong # args: should be "crypt hash ?-hmac key? hash data"}}
+
+test crypt-4.2 {crypt hash: too many args} {
+    list [catch {crypt hash a b c} msg] $msg
+} {1 {wrong # args: should be "crypt hash ?-hmac key? hash data"}}
+
+test crypt-4.3 {crypt hash: too many args} {
+    list [catch {crypt hash -hmac a b c d} msg] $msg
+} {1 {wrong # args: should be "crypt hash ?-hmac key? hash data"}}
+
+test crypt-4.4 {crypt hash: invalid hash} {
+    list [catch {crypt hash . a} msg] $msg
+} {1 {bad hash ".": must be md2, md4, md5, rmd128, rmd160, sha1, sha224, sha256, sha384, sha512, tiger, or whirlpool}}
+
+test crypt-4.5 {crypt hash: invalid hash, with -hmac} {
+    list [catch {crypt hash -hmac a . b} msg] $msg
+} {1 {bad hash ".": must be md2, md4, md5, rmd128, rmd160, sha1, sha224, sha256, sha384, sha512, tiger, or whirlpool}}
+
+test crypt-4.5 {crypt hash: hash tests} {
+    foreach algo [array names hashTestData] {
+        set n 1
+        foreach {plain hash} $hashTestData($algo) {
+            set result [crypt hash $algo $plain]
+
+            if {$hash ne $result} {
+                return "hash $algo (vector $n):\n\
+                    - plain =[encode hex $plain]\n\
+                    - needed=[encode hex $hash]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-4.6 {crypt hash: hmac tests} {
+    foreach algo [array names hmacTestData] {
+        set n 1
+        foreach {key plain hash} $hmacTestData($algo) {
+            set result [crypt hash -hmac $key $algo $plain]
+
+            if {$hash ne $result} {
+                return "hmac $algo (vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - needed=[encode hex $hash]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+################################################################################
+# crypt start                                                                  #
+################################################################################
+
+test crypt-5.1 {crypt start: no args} {
+    list [catch {crypt start} msg] $msg
+} {1 {wrong # args: should be "crypt start ?-hmac key? hash"}}
+
+test crypt-5.2 {crypt start: too many args} {
+    list [catch {crypt start a b} msg] $msg
+} {1 {wrong # args: should be "crypt start ?-hmac key? hash"}}
+
+test crypt-5.3 {crypt start: too many args} {
+    list [catch {crypt start -hmac a b c} msg] $msg
+} {1 {wrong # args: should be "crypt start ?-hmac key? hash"}}
+
+test crypt-5.4 {crypt start: invalid hash} {
+    list [catch {crypt start .} msg] $msg
+} {1 {bad hash ".": must be md2, md4, md5, rmd128, rmd160, sha1, sha224, sha256, sha384, sha512, tiger, or whirlpool}}
+
+test crypt-5.5 {crypt start: invalid hash, with -hmac} {
+    list [catch {crypt start -hmac a .} msg] $msg
+} {1 {bad hash ".": must be md2, md4, md5, rmd128, rmd160, sha1, sha224, sha256, sha384, sha512, tiger, or whirlpool}}
+
+test crypt-5.6 {crypt start: handle format} {
+    -match regexp
+    -body {
+        set handle [crypt start md5]
+        crypt end $handle
+        set handle
+    }
+    -result {crypt\d+}
+}
+
+test crypt-5.7 {crypt start: check return} {
+    set handlesBefore [crypt info handles]
+    set handle [crypt start md5]
+    set handlesAfter [crypt info handles]
+    crypt end $handle
+    list [expr {[lsearch -exact $handlesBefore $handle] != -1}] [expr {[lsearch -exact $handlesAfter $handle] != -1}]
+} {0 1}
+
+################################################################################
+# crypt update                                                                 #
+################################################################################
+
+test crypt-6.1 {crypt update: no args} {
+    list [catch {crypt update} msg] $msg
+} {1 {wrong # args: should be "crypt update handle data"}}
+
+test crypt-6.2 {crypt update: too many args} {
+    list [catch {crypt update a b c} msg] $msg
+} {1 {wrong # args: should be "crypt update handle data"}}
+
+test crypt-6.3 {crypt update: invalid handle} {
+    list [catch {crypt update . a} msg] $msg
+} {1 {invalid crypt handle "."}}
+
+test crypt-6.4 {crypt update: hash tests} {
+    foreach algo [array names hashTestData] {
+        set n 1
+        foreach {plain hash} $hashTestData($algo) {
+            set handle [crypt start $algo]
+            crypt update $handle $plain
+            set result [crypt end $handle]
+
+            if {$hash ne $result} {
+                return "hash $algo (vector $n):\n\
+                    - plain =[encode hex $plain]\n\
+                    - needed=[encode hex $hash]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-6.5 {crypt update: hmac tests} {
+    foreach algo [array names hmacTestData] {
+        set n 1
+        foreach {key plain hash} $hmacTestData($algo) {
+            set handle [crypt start -hmac $key $algo]
+            crypt update $handle $plain
+            set result [crypt end $handle]
+
+            if {$hash ne $result} {
+                return "hmac $algo (vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - needed=[encode hex $hash]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-6.6 {crypt update: hash tests, two updates} {
+    foreach algo [array names hashTestData] {
+        set n 1
+        foreach {plain hash} $hashTestData($algo) {
+            set handle [crypt start $algo]
+            set index [expr {[string length $plain] / 2}]
+            crypt update $handle [string range $plain 0 $index]
+            crypt update $handle [string range $plain [incr index] end]
+            set result [crypt end $handle]
+
+            if {$hash ne $result} {
+                return "hash $algo (vector $n):\n\
+                    - plain =[encode hex $plain]\n\
+                    - needed=[encode hex $hash]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-6.7 {crypt update: hmac tests, three updates} {
+    foreach algo [array names hmacTestData] {
+        set n 1
+        foreach {key plain hash} $hmacTestData($algo) {
+            set handle [crypt start -hmac $key $algo]
+            set index [expr {[string length $plain] / 2}]
+            crypt update $handle [string range $plain 0 $index]
+            crypt update $handle [string range $plain [incr index] end]
+            set result [crypt end $handle]
+
+            if {$hash ne $result} {
+                return "hmac $algo (vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - needed=[encode hex $hash]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+################################################################################
+# crypt end                                                                    #
+################################################################################
+
+test crypt-7.1 {crypt end: no args} {
+    list [catch {crypt end} msg] $msg
+} {1 {wrong # args: should be "crypt end handle"}}
+
+test crypt-7.2 {crypt end: too many args} {
+    list [catch {crypt end a b} msg] $msg
+} {1 {wrong # args: should be "crypt end handle"}}
+
+test crypt-7.3 {crypt end: invalid handle} {
+    list [catch {crypt end .} msg] $msg
+} {1 {invalid crypt handle "."}}
+
+test crypt-7.4 {crypt end: check close} {
+    set handlesStart [crypt info handles]
+    set handle [crypt start md5]
+    set handlesMiddle [crypt info handles]
+    crypt end $handle
+    set handlesEnd [crypt info handles]
+    list [llength $handlesStart] [llength $handlesMiddle] [llength $handlesEnd]
+} {0 1 0}
+
+################################################################################
+# crypt info                                                                   #
+################################################################################
+
+test crypt-8.1 {crypt info: no args} {
+    list [catch {crypt info} msg] $msg
+} {1 {wrong # args: should be "crypt info option"}}
+
+test crypt-8.2 {crypt info: too many args} {
+    list [catch {crypt info a b} msg] $msg
+} {1 {wrong # args: should be "crypt info option"}}
+
+test crypt-8.3 {crypt info: invalid option} {
+    list [catch {crypt info .} msg] $msg
+} {1 {bad option ".": must be ciphers, handles, hashes, or modes}}
+
+test crypt-8.5 {crypt info: cipher count} {
+    llength [crypt info ciphers]
+} {19}
+
+test crypt-8.4 {crypt info: ciphers must be in alphabetical order} {
+    set ciphers [crypt info ciphers]
+    string equal $ciphers [lsort $ciphers]
+} {1}
+
+test crypt-8.6 {crypt info: handles} {
+    llength [crypt info handles]
+} {0}
+
+test crypt-8.7 {crypt info: handles} {
+    set handleOne [crypt start md5]
+    set handleTwo [crypt start tiger]
+    set handles [crypt info handles]
+    crypt end $handleOne
+    crypt end $handleTwo
+    list [llength $handles] [llength [crypt info handles]]
+} {2 0}
+
+test crypt-8.8 {crypt info: hash count} {
+    llength [crypt info hashes]
+} {12}
+
+test crypt-8.9 {crypt info: hashes must be in alphabetical order} {
+    set hashes [crypt info hashes]
+    string equal $hashes [lsort $hashes]
+} {1}
+
+test crypt-8.10 {crypt info: mode list} {
+    llength [crypt info modes]
+} {5}
+
+test crypt-8.11 {crypt info: modes must be in alphabetical order} {
+    set modes [crypt info modes]
+    string equal $modes [lsort $modes]
+} {1}
+
+################################################################################
+# crypt pkcs5                                                                  #
+################################################################################
+
+test crypt-9.1 {crypt pkcs5: no args} {
+    list [catch {crypt pkcs5} msg] $msg
+} {1 {wrong # args: should be "crypt pkcs5 ?-rounds count? hash salt password"}}
+
+test crypt-9.2 {crypt pkcs5: too many args} {
+    list [catch {crypt pkcs5 a b c d} msg] $msg
+} {1 {wrong # args: should be "crypt pkcs5 ?-rounds count? hash salt password"}}
+
+test crypt-9.3 {crypt pkcs5: too many args, with -rounds} {
+    list [catch {crypt pkcs5 -rounds a b c d e} msg] $msg
+} {1 {wrong # args: should be "crypt pkcs5 ?-rounds count? hash salt password"}}
+
+test crypt-9.4 {crypt pkcs5: -rounds switch} {
+    list [catch {crypt pkcs5 -rounds . a b c} msg] $msg
+} {1 {expected integer but got "."}}
+
+test crypt-9.5 {crypt pkcs5: -rounds switch} {
+    list [catch {crypt pkcs5 -rounds -1 a b c} msg] $msg
+} {1 {invalid round count "-1": must be 0 or greater}}
+
+################################################################################
+# crypt rand                                                                   #
+################################################################################
+
+test crypt-10.1 {crypt rand: no args} {
+    list [catch {crypt rand} msg] $msg
+} {1 {wrong # args: should be "crypt rand bytes"}}
+
+test crypt-10.2 {crypt rand: too many args} {
+    list [catch {crypt rand a b} msg] $msg
+} {1 {wrong # args: should be "crypt rand bytes"}}
+
+test crypt-10.3 {crypt rand: invalid byte count} {
+    list [catch {crypt rand a} msg] $msg
+} {1 {expected integer but got "a"}}
+
+test crypt-10.4 {crypt rand: invalid byte count} {
+    list [catch {crypt rand -1} msg] $msg
+} {1 {invalid byte count "-1": must be greater than 0}}
+
+test crypt-10.5 {crypt rand: invalid byte count} {
+    list [catch {crypt rand 0} msg] $msg
+} {1 {invalid byte count "0": must be greater than 0}}
+
+test crypt-10.6 {crypt rand: retrieve 24 bytes} {
+    string length [crypt rand 24]
+} {24}
+
+################################################################################
+# crypt leak test                                                              #
+################################################################################
+
+test crypt-11.1 {crypt: leak test} {
+    set handleList [list]
+    # Ensure remaining crypt handles are freed during finalization.
+    for {set i 0} {$i < 20} {incr i} {
+        # These must not be closed!
+        lappend handleList [crypt start md5]
+    }
+    list [llength $handleList] [llength [crypt info handles]]
+} {20 20}
+
+test crypt-11.2 {crypt: leak test, separate interp} {singleTestInterp} {
+    set interp [interp create]
+    interp eval $interp [list load $libFile]
+
+    interp eval $interp {
+        namespace import -force ::alcoholicz::*
+        set handleList [list]
+
+        for {set i 0} {$i < 20} {incr i} {
+            # These must not be closed!
+            lappend handleList [crypt start md5]
+        }
+        list [llength $handleList] [llength [crypt info handles]]
+    }
+} {20 20}
+
+
+::tcltest::cleanupTests
+return
