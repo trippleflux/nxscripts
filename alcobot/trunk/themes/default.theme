@@ -1,0 +1,95 @@
+################################################################################
+#                        AlcoBot - Alcoholicz site bot.                        #
+#                 Copyright (c) 2005 Alcoholicz Scripting Team                 #
+################################################################################
+#
+# Control Identifiers:
+#   [b]  - Bold code
+#   [c]  - Colour code, followed by a colour index.
+#   [c#] - Section colour code.
+#   [o]  - Reset code.
+#   [r]  - Reverse code.
+#   [u]  - Underline code.
+#
+# Colour Index:
+#   00 - White   04 - Light Red   08 - Yellow         12 - Light Blue
+#   01 - Black   05 - Brown       09 - Light Green    13 - Pink
+#   02 - Blue    06 - Purple      10 - Cyan           14 - Grey
+#   03 - Green   07 - Orange      11 - Light Cyan     15 - Light Grey
+#
+# Variables:
+#   %[width].[precision](variableName)
+#   - All variable names are in camel casing (lower-case for the first word
+#     and the first character of all subsequent words is capitalized).
+#   - The 'width' and 'precision' fields work just as they do in the
+#     C printf() function.
+#
+#### Colour
+#
+# Format : <section>,<number> = <colour>
+# Example: APPS,1 = 03
+#
+# - The 'DEFAULT' entry is used if the announce is not section oriented
+#   or there are no colours defined for the specific section.
+# - The section colour identifier is '[c#]' (ex. for 'APPS,2' the colour
+#   identifier would be '[c2]').
+# - There is no limit to the number of section colours you may define.
+#
+[Colour]
+# Section colour one [c1].
+DEFAULT,1 =12
+APPS,1    =03
+DVDR,1    =04
+GAMES,1   =03
+XVID,1    =04
+
+# Section colour two [c2].
+DEFAULT,2 =14
+APPS,2    =14
+DVDR,2    =15
+GAMES,2   =14
+XVID,2    =15
+
+#### Format
+#
+# Format : <entry> = <text>
+# Example: prefix = [SITE]
+#
+# - Customize date, time, size, and speed output. These entries are
+#   required and should NOT be removed or commented out.
+# - Refer to Tcl's manual for available date and time descriptors.
+#   URL: http://www.tcl.tk/man/tcl8.4/TclCmd/clock.htm#M6
+#
+[Format]
+prefix    =[%(siteTag)]
+time      =%H[b]:[b]%M[b]:[b]%S
+date      =%m[b]/[b]%d[b]/[b]%y
+
+sizeKilo  =[b]%.0(size)[b]KB
+sizeMega  =[b]%.1(size)[b]MB
+sizeGiga  =[b]%.2(size)[b]GB
+sizeTera  =[b]%.2(size)[b]TB
+
+speedKilo =[b]%.0(speed)[b]KB/s
+speedMega =[b]%.1(speed)[b]MB/s
+speedGiga =[b]%.2(speed)[b]GB/s
+
+#### Theme
+#
+# Format : <entry> = <text>
+# Example: NEWDIR = %section :: New Release: %(releaseName) by %(user)/%(group)
+#
+# - Theme definitions may contain control identifiers.
+# - There are three variables common to all entries: %(prefix), %(siteName),
+#   and %(siteName). All other variables are specific to each theme entry.
+#
+# TODO: Mention variable file list (when there is one).
+#
+[Theme]
+affilsHead =[b]Affiliated Groups:[b]
+affilsBody =[b][%(section)][b] %(groups)
+affilsFoot =Total: [b]%(groupCount)[b] affil(s) in [b]%(sectionCount)[b] section(s).
+
+bannedHead =[b]Banned Groups:[b]
+bannedBody =[b][%(section)][b] %(groups)
+bannedFoot =Total: [b]%(groupCount)[b] banned group(s) in [b]%(sectionCount)[b] section(s).
