@@ -143,12 +143,13 @@ proc ::alcoholicz::CmdProc {script user host handle channel text} {
     set target "PRIVMSG $channel"
 
     # Check if the invoked command has a predefined target.
-    foreach {pattern target} [array get targets] {
-        if {[string match $pattern $::lastbind]} {
-            if {$target eq "notice"} {
-                set target "NOTICE $user"
-            } elseif {$target eq "user"} {
-                set target "PRIVMSG $user"
+    foreach name [array names targets] {
+        if {[string match $name $::lastbind]} {
+            LogDebug CmdProc "Matched command \"$::lastbind\" to \"$name\", using target \"$targets($name)\"."
+            switch -- $targets($name) {
+                notice {set target "NOTICE $user"}
+                user   {set target "PRIVMSG $user"}
+                default {return}
             }
             break
         }
@@ -564,9 +565,10 @@ proc ::alcoholicz::InitConfig {filePath} {
         # the channel by default, so 'chan*' entries are ignored.
         switch -glob -- [string tolower $target] {
             {chan*} {continue}
-            {not*}  {set target notice}
-            {priv*} -
-            {user}  {set target user}
+            {disable*} {set target disable}
+            {not*} {set target notice}
+            {user} -
+            {priv*} {set target user}
             default {
                 LogWarning InitConfig "Invalid command target \"$target\" for \"$command\"."
                 continue
