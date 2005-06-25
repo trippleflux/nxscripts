@@ -47,8 +47,8 @@ int pkcs_5_alg1(const unsigned char *password, unsigned long password_len,
    }
 
    /* allocate memory */
-   md  = XMALLOC(sizeof(hash_state));
-   buf = XMALLOC(MAXBLOCKSIZE);
+   md  = (hash_state *) XMALLOC(sizeof(hash_state));
+   buf = (unsigned char *) XMALLOC(MAXBLOCKSIZE);
    if (md == NULL || buf == NULL) {
       if (md != NULL) {
          XFREE(md);

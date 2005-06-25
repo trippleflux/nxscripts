@@ -296,7 +296,7 @@ int fortuna_export(unsigned char *out, unsigned long *outlen, prng_state *prng)
       return CRYPT_BUFFER_OVERFLOW;
    }
 
-   md = XMALLOC(sizeof(hash_state));
+   md = (hash_state *) XMALLOC(sizeof(hash_state));
    if (md == NULL) {
       return CRYPT_MEM;
    }

@@ -42,7 +42,7 @@ int hmac_memory(int hash,
     LTC_ARGCHK(outlen != NULL);
 
     /* allocate ram for hmac state */
-    hmac = XMALLOC(sizeof(hmac_state));
+    hmac = (hmac_state *) XMALLOC(sizeof(hmac_state));
     if (hmac == NULL) {
        return CRYPT_MEM;
     }

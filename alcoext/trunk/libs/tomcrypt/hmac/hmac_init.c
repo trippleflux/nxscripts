@@ -50,13 +50,13 @@ int hmac_init(hmac_state *hmac, int hash, const unsigned char *key, unsigned lon
     }
 
     /* allocate ram for buf */
-    buf = XMALLOC(HMAC_BLOCKSIZE);
+    buf = (unsigned char *) XMALLOC(HMAC_BLOCKSIZE);
     if (buf == NULL) {
        return CRYPT_MEM;
     }
 
     /* allocate memory for key */
-    hmac->key = XMALLOC(HMAC_BLOCKSIZE);
+    hmac->key = (unsigned char *) XMALLOC(HMAC_BLOCKSIZE);
     if (hmac->key == NULL) {
        XFREE(buf);
        return CRYPT_MEM;

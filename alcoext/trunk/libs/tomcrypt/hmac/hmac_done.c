@@ -45,8 +45,8 @@ int hmac_done(hmac_state *hmac, unsigned char *out, unsigned long *outlen)
     hashsize = hash_descriptor[hash].hashsize;
 
     /* allocate buffers */
-    buf  = XMALLOC(HMAC_BLOCKSIZE);
-    isha = XMALLOC(hashsize);
+    buf  = (unsigned char *) XMALLOC(HMAC_BLOCKSIZE);
+    isha = (unsigned char *) XMALLOC(hashsize);
     if (buf == NULL || isha == NULL) {
        if (buf != NULL) {
           XFREE(buf);
