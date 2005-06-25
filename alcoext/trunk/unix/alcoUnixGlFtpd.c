@@ -607,7 +607,7 @@ GlWhoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr
 /*
  * GetOnlineData
  *
- *   Retrieve the online data for a glFTPD shared memory segment.
+ *   Retrieve online data from a glFTPD shared memory segment.
  *
  * Arguments:
  *   interp        - Interpreter to use for error reporting.
@@ -637,7 +637,7 @@ GetOnlineData(Tcl_Interp *interp, key_t shmKey, int version, int *maxUsers, GlOn
     shmId = shmget(shmKey, 0, 0);
     if (shmId < 0) {
         Tcl_ResetResult(interp);
-        Tcl_AppendResult(interp, "unable to retreive shared memory identifier: ",
+        Tcl_AppendResult(interp, "unable to retrieve shared memory identifier: ",
             Tcl_PosixError(interp), NULL);
         return TCL_ERROR;
     }
@@ -652,13 +652,13 @@ GetOnlineData(Tcl_Interp *interp, key_t shmKey, int version, int *maxUsers, GlOn
     shmData = shmat(shmId, NULL, SHM_RDONLY);
     if (shmData == (void *) -1) {
         Tcl_ResetResult(interp);
-        Tcl_AppendResult(interp, "unable to retreive shared memory data: ",
+        Tcl_AppendResult(interp, "unable to retrieve shared memory data: ",
             Tcl_PosixError(interp), NULL);
         return TCL_ERROR;
     }
 
     if (shmInfo.shm_segsz % versions[version].structSize) {
-        Tcl_SetResult(interp, "unable to retreive shared memory data: "
+        Tcl_SetResult(interp, "unable to retrieve shared memory data: "
             "glftpd version mismatch", TCL_STATIC);
         return TCL_ERROR;
     }
@@ -883,7 +883,7 @@ GetOnlineFields(Tcl_Interp *interp, GlHandle *handlePtr, unsigned char *fields, 
                     break;
                 }
                 case WHO_UID: {
-                    /* TODO: Resolve usernames to user IDs.*/
+                    /* TODO: Resolve user names to user IDs.*/
                     elementObj = Tcl_NewLongObj(-1);
                     break;
                 }

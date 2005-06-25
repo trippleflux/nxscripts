@@ -289,7 +289,7 @@ test glftpd-5.10 {glftpd info: maxusers with wrong version} {unix shmKeyExists} 
     set result [list [catch {glftpd info maxusers $handle} msg] $msg]
     glftpd close $handle
     set result
-} {1 {unable to retreive shared memory data: glftpd version mismatch}}
+} {1 {unable to retrieve shared memory data: glftpd version mismatch}}
 
 ################################################################################
 # glftpd kill                                                                  #
