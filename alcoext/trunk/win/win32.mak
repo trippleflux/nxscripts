@@ -305,7 +305,7 @@ cflags = $(cflags) -D_WIN32_IE=$(_WIN32_IE) -DWINVER=$(NMAKE_WINVER)
 
 !IF "$(CPU)" != "IA64"
 !IFDEF NODEBUG
-cdebug = -Ox -GF -DNDEBUG
+cdebug = -Ox -GF -GL -DNDEBUG
 !ELSE IFDEF PROFILE
 cdebug = -Gh -Ox -GF -Zd -DNDEBUG
 !ELSE IFDEF TUNE
@@ -499,7 +499,7 @@ DLLENTRY =
 !IF "$(CPU)" == "i386"
 
 !IFDEF NODEBUG
-ldebug = /RELEASE
+ldebug = /RELEASE /LTCG:STATUS
 !ELSE
 ldebug = /DEBUG /DEBUGTYPE:cv
 !ENDIF
@@ -507,7 +507,7 @@ ldebug = /DEBUG /DEBUGTYPE:cv
 !ELSE
 
 !IFDEF NODEBUG
-ldebug = /RELEASE
+ldebug = /RELEASE /LTCG:STATUS
 !ELSE IFDEF PROFILE
 ldebug = /DEBUG:mapped,partial /DEBUGTYPE:coff
 !ELSE IFDEF TUNE
