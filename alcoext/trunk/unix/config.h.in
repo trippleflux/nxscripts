@@ -1,4 +1,4 @@
-/* unix/config.h.in.  Generated from configure.in by autoheader.  */
+/* ./unix/config.h.in.  Generated from configure.in by autoheader.  */
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
@@ -36,7 +36,7 @@
 /* Is 'struct stat64' in <sys/stat.h>? */
 #undef HAVE_STRUCT_STAT64
 
-/* Define to 1 if you have the <sys/mount.h.h> header file. */
+/* Define to 1 if you have the <sys/mount.h> header file. */
 #undef HAVE_SYS_MOUNT_H
 
 /* Define to 1 if you have the <sys/param.h> header file. */
@@ -51,11 +51,17 @@
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #undef HAVE_SYS_STAT_H
 
+/* Define to 1 if you have the <sys/time.h> header file. */
+#undef HAVE_SYS_TIME_H
+
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
 
 /* Define to 1 if you have the <sys/vfs.h> header file. */
 #undef HAVE_SYS_VFS_H
+
+/* Define to 1 if you have the <time.h> header file. */
+#undef HAVE_TIME_H
 
 /* Is off64_t in <sys/types.h>? */
 #undef HAVE_TYPE_OFF64_T

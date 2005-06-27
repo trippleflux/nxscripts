@@ -33,13 +33,15 @@ TEA_PREFIX
 TEA_SETUP_COMPILER
 
 #--------------------------------------------------------------------
-# StatFS checks.
+# Header and function checks.
 # TODO:
 # - Check for statfs/statfs64/statvfs/statvfs64 functions.
 # - Check struct members (FreeBSD's statfs::f_fsid member differs from linux's).
 #--------------------------------------------------------------------
 
-AC_CHECK_HEADER(sys/mount.h,   [AC_DEFINE([HAVE_SYS_MOUNT_H],   1, [Define to 1 if you have the <sys/mount.h.h> header file.])])
+AC_CHECK_HEADER(time.h,        [AC_DEFINE([HAVE_TIME_H],        1, [Define to 1 if you have the <time.h> header file.])])
+AC_CHECK_HEADER(sys/time.h,    [AC_DEFINE([HAVE_SYS_TIME_H],    1, [Define to 1 if you have the <sys/time.h> header file.])])
+AC_CHECK_HEADER(sys/mount.h,   [AC_DEFINE([HAVE_SYS_MOUNT_H],   1, [Define to 1 if you have the <sys/mount.h> header file.])])
 AC_CHECK_HEADER(sys/statfs.h,  [AC_DEFINE([HAVE_SYS_STATFS_H],  1, [Define to 1 if you have the <sys/statfs.h> header file.])])
 AC_CHECK_HEADER(sys/statvfs.h, [AC_DEFINE([HAVE_SYS_STATVFS_H], 1, [Define to 1 if you have the <sys/statvfs.h> header file.])])
 AC_CHECK_HEADER(sys/vfs.h,     [AC_DEFINE([HAVE_SYS_VFS_H],     1, [Define to 1 if you have the <sys/vfs.h> header file.])])
