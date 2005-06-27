@@ -9,7 +9,7 @@
  *   neoxed (neoxed@gmail.com) April 23, 2005
  *
  * Abstract:
- *   TODO: docs
+ *   Definitions for the ioFTPD extension.
  */
 
 #ifndef __ALCOWINIOFTPD_H__
