@@ -51,18 +51,29 @@
 
 #include <alcoExt.h>
 
+/* Tcl command functions. */
 static int GlOpenCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
 static int GlSetCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
 static int GlCloseCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
 static int GlInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
 static int GlKillCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
 static int GlWhoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
-static int GetOnlineData(Tcl_Interp *interp, key_t shmKey, int version, int *maxUsers, GlOnlineGeneric ***onlineData);
-static void FreeOnlineData(int maxUsers, GlOnlineGeneric **onlineData);
-static int GetOnlineFields(Tcl_Interp *interp, GlHandle *handlePtr, unsigned char *fields, int fieldCount);
 
-/* Default path to glFTPD's 'etc' directory. */
-#define GLFTPD_ETC_PATH "/glftpd/etc"
+/* Online data functions. */
+static int GetOnlineData(Tcl_Interp *interp, key_t shmKey, int version,
+    int *maxUsers, GlOnlineGeneric ***onlineData);
+static void FreeOnlineData(int maxUsers, GlOnlineGeneric **onlineData);
+static int GetOnlineFields(Tcl_Interp *interp, GlHandle *handlePtr, unsigned char *fields,
+    int fieldCount, GlUser *userListPtr, GlGroup *groupListPtr);
+
+/* User and group functions */
+inline int ParseFields(const char *line, int delims, int *lengthPtr, long *idPtr);
+static int GetUserList(Tcl_Interp *interp, const char *etcPath, GlUser *userListPtr);
+static void FreeUserList(GlUser *userListPtr);
+static long GetUserIdFromName(GlUser *userListPtr, const char *userName);
+static int GetGroupList(Tcl_Interp *interp, const char *etcPath, GlGroup *groupListPtr);
+static void FreeGroupList(GlGroup *groupListPtr);
+static char *GetGroupNameFromId(GlGroup *groupListPtr, long groupId);
 
 /* Changes to this array must also be reflected in GetOnlineData(). */
 static const GlVersion versions[] = {
@@ -114,6 +125,481 @@ enum {
     WHO_UID,
     WHO_USER
 };
+
+
+/*
+ * ParseFields
+ *
+ *   Parse the name and ID fields from a 'passwd' or 'group' file entry.
+ *
+ * Arguments:
+ *   line      - Entry to parse.
+ *   delims    - Number of required delimiters.
+ *   lengthPtr - Pointer to receive the length of the first field.
+ *   idPtr     - Pointer to receive the ID field.
+ *
+ * Returns:
+ *   A standard Tcl result.
+ *
+ * Remarks:
+ *   None.
+ */
+
+inline int
+ParseFields(const char *line, int delims, int *lengthPtr, long *idPtr)
+{
+    char *p = (char *) line;
+    int i;
+
+    /* Format: <name>:ignored:<ID> */
+    for (i = 0; i < delims; i++) {
+        if ((p = strstr(p, ":")) == NULL) {
+            break;
+        }
+        p++;
+
+        if (i == 0) {
+            /* Length of the 'name' field in characters. */
+            *lengthPtr = (int) (p - line) - 1;
+
+        } else if (i == 1) {
+            /* Retrieve the long value of the 'ID' field. */
+            *idPtr = strtol(p, NULL, 10);
+        }
+    }
+
+    return (i < delims) ? TCL_ERROR : TCL_OK;
+}
+
+
+/*
+ * GetUserList
+ *
+ *   Creates a list of users from the 'passwd' file located in 'etcPath'.
+ *
+ * Arguments:
+ *   interp      - Interpreter to use for error reporting.
+ *   etcPath     - Path to glFTPD's 'etc' directory.
+ *   userListPtr - Pointer to a receive a list of 'GlUser' structures.
+ *
+ * Returns:
+ *   A standard Tcl result.
+ *
+ * Remarks:
+ *   If the function fails, an error message is left in the interpreter's result.
+ */
+
+static int
+GetUserList(Tcl_Interp *interp, const char *etcPath, GlUser *userListPtr)
+{
+    char *p;
+    char line[512];
+    char passwdFile[PATH_MAX];
+    int nameLength;
+    long userId;
+    FILE *stream;
+
+    strncpy(passwdFile, etcPath, PATH_MAX);
+    strncat(passwdFile, GLFTPD_PASSWD, PATH_MAX);
+    passwdFile[PATH_MAX-1] = '\0';
+
+    stream = fopen(passwdFile, "r");
+    if (stream == NULL) {
+        Tcl_ResetResult(interp);
+        Tcl_AppendResult(interp, "unable to open \"", passwdFile, "\": ",
+            Tcl_PosixError(interp), NULL);
+        return TCL_ERROR;
+    }
+
+    /* Format: User:Password:UID:GID:Date:HomeDir:Irrelevant */
+    while ((p = fgets(line, sizeof(line), stream)) != NULL) {
+
+        /* Strip leading spaces and skip empty or commented lines. */
+        while (*p == ' ' || *p == '\t') {
+            p++;
+        }
+        if (*p == '\0' || *p == '#') {
+            continue;
+        }
+
+        /* A 'passwd' entry has 6 delimiters for 7 fields. */
+        if (ParseFields(p, 6, &nameLength, &userId) == TCL_OK) {
+            GlUser *userPtr = (GlUser *) ckalloc(sizeof(GlUser));
+
+            if (nameLength > GL_USER_LENGTH) {
+                nameLength = GL_USER_LENGTH;
+            } else {
+                nameLength++;
+            }
+            strncpy(userPtr->name, p, nameLength);
+            userPtr->name[nameLength-1] = '\0';
+            userPtr->id = userId;
+
+            /* Insert entry at the list head. */
+            if (userListPtr == NULL) {
+                userPtr->next = NULL;
+            } else {
+                userPtr->next = userListPtr;
+            }
+            userListPtr = userPtr;
+        }
+    }
+
+    fclose(stream);
+    return TCL_OK;
+}
+
+
+/*
+ * FreeUserList
+ *
+ *   Frees a list of 'GlUser' structures.
+ *
+ * Arguments:
+ *   userListPtr - Pointer to a 'GlUser' structure that represents the list head.
+ *
+ * Returns:
+ *   None.
+ *
+ * Remarks:
+ *   None.
+ */
+
+static void
+FreeUserList(GlUser *userListPtr)
+{
+    GlUser *userPtr;
+    while (userListPtr != NULL) {
+        userPtr = userListPtr->next;
+        ckfree((char *) userListPtr);
+        userListPtr = userPtr;
+    }
+}
+
+
+/*
+ * GetUserIdFromName
+ *
+ *   Retrieves the user ID for a given user name.
+ *
+ * Arguments:
+ *   userListPtr - Pointer to a 'GlUser' structure that represents the list head.
+ *   userName    - The user name to look-up.
+ *
+ * Returns:
+ *   If the function is successful, the corresponding user ID for the given
+ *   user name is returned. If the function fails, -1 is returned.
+ *
+ * Remarks:
+ *   None.
+ */
+
+static long
+GetUserIdFromName(GlUser *userListPtr, const char *userName)
+{
+    GlUser *userPtr;
+    for (userPtr = userListPtr; userPtr != NULL; userPtr = userListPtr->next) {
+        if (strcmp(userName, userPtr->name) == 0) {
+            return userPtr->id;
+        }
+    }
+    return -1;
+}
+
+
+/*
+ * GetGroupList
+ *
+ *   Creates a list of groups from the 'group' file located in 'etcPath'.
+ *
+ * Arguments:
+ *   interp       - Interpreter to use for error reporting.
+ *   etcPath      - Path to glFTPD's 'etc' directory.
+ *   groupListPtr - Pointer to a receive a list of 'GlGroup' structures.
+ *
+ * Returns:
+ *   A standard Tcl result.
+ *
+ * Remarks:
+ *   If the function fails, an error message is left in the interpreter's result.
+ */
+
+static int
+GetGroupList(Tcl_Interp *interp, const char *etcPath, GlGroup *groupListPtr)
+{
+    char *p;
+    char line[512];
+    char groupFile[PATH_MAX];
+    int nameLength;
+    long userId;
+    FILE *stream;
+
+    strncpy(groupFile, etcPath, PATH_MAX);
+    strncat(groupFile, GLFTPD_GROUP, PATH_MAX);
+    groupFile[PATH_MAX-1] = '\0';
+
+    stream = fopen(groupFile, "r");
+    if (stream == NULL) {
+        Tcl_ResetResult(interp);
+        Tcl_AppendResult(interp, "unable to open \"", groupFile, "\": ",
+            Tcl_PosixError(interp), NULL);
+        return TCL_ERROR;
+    }
+
+    /* Format: Group:Description:GID:Irrelevant */
+    while ((p = fgets(line, sizeof(line), stream)) != NULL) {
+
+        /* Strip leading spaces and skip empty or commented lines. */
+        while (*p == ' ' || *p == '\t') {
+            p++;
+        }
+        if (*p == '\0' || *p == '#') {
+            continue;
+        }
+
+        /* A 'passwd' entry has 3 delimiters for 4 fields. */
+        if (ParseFields(p, 3, &nameLength, &userId) == TCL_OK) {
+            GlGroup *groupPtr = (GlGroup *) ckalloc(sizeof(GlUser));
+
+            if (nameLength > GL_GROUP_LENGTH) {
+                nameLength = GL_GROUP_LENGTH;
+            } else {
+                nameLength++;
+            }
+            strncpy(groupPtr->name, p, nameLength);
+            groupPtr->name[nameLength-1] = '\0';
+            groupPtr->id = userId;
+
+            /* Insert entry at the list head. */
+            if (groupListPtr == NULL) {
+                groupPtr->next = NULL;
+            } else {
+                groupPtr->next = groupListPtr;
+            }
+            groupListPtr = groupPtr;
+        }
+    }
+
+    fclose(stream);
+    return TCL_OK;
+}
+
+/*
+ * FreeGroupList
+ *
+ *   Frees a list of 'GlGroup' structures.
+ *
+ * Arguments:
+ *   groupListPtr - Pointer to a 'GlGroup' structure that represents the list head.
+ *
+ * Returns:
+ *   None.
+ *
+ * Remarks:
+ *   None.
+ */
+
+static void
+FreeGroupList(GlGroup *groupListPtr)
+{
+    GlGroup *groupPtr;
+    while (groupListPtr != NULL) {
+        groupPtr = groupListPtr->next;
+        ckfree((char *) groupListPtr);
+        groupListPtr = groupPtr;
+    }
+}
+
+
+/*
+ * GetGroupNameFromId
+ *
+ *   Retrieves the group's name for a given group ID.
+ *
+ * Arguments:
+ *   groupListPtr - Pointer to a 'GlGroup' structure that represents the list head.
+ *   groupId      - The group ID to look-up.
+ *
+ * Returns:
+ *   If the function is successful, the corresponding group name for the given
+ *   group ID is returned. If the function fails, "NoGroup" is returned.
+ *
+ * Remarks:
+ *   None.
+ */
+
+static char *
+GetGroupNameFromId(GlGroup *groupListPtr, long groupId)
+{
+    GlGroup *groupPtr;
+    for (groupPtr = groupListPtr; groupPtr != NULL; groupPtr = groupListPtr->next) {
+        if (groupId == groupPtr->id) {
+            return groupPtr->name;
+        }
+    }
+    return "NoGroup";
+}
+
+
+/*
+ * GetOnlineData
+ *
+ *   Retrieve online data from a glFTPD shared memory segment.
+ *
+ * Arguments:
+ *   interp        - Interpreter to use for error reporting.
+ *   shmKey        - Shared memory key used by glFTPD.
+ *   version       - Online structure version, must be an index in the 'versions' array.
+ *   maxUsers      - Location to store the maximum number of online users is stored.
+ *   onlineDataPtr - Location to store the online data is stored. If this argument
+ *                   is NULL, no data is allocated. The caller MUST free this data
+ *                   when finished.
+ *
+ * Returns:
+ *   A standard Tcl result.
+ *
+ * Remarks:
+ *   If the function fails, an error message is left in the interpreter's result.
+ */
+
+static int
+GetOnlineData(Tcl_Interp *interp, key_t shmKey, int version, int *maxUsers, GlOnlineGeneric ***onlineDataPtr)
+{
+    int i;
+    int shmId;
+    struct shmid_ds shmInfo;
+    void *shmData;
+    GlOnlineGeneric *entry;
+
+    shmId = shmget(shmKey, 0, 0);
+    if (shmId < 0) {
+        Tcl_ResetResult(interp);
+        Tcl_AppendResult(interp, "unable to retrieve shared memory identifier: ",
+            Tcl_PosixError(interp), NULL);
+        return TCL_ERROR;
+    }
+
+    if (shmctl(shmId, IPC_STAT, &shmInfo) < 0) {
+        Tcl_ResetResult(interp);
+        Tcl_AppendResult(interp, "unable to query the shared memory segment: ",
+            Tcl_PosixError(interp), NULL);
+        return TCL_ERROR;
+    }
+
+    shmData = shmat(shmId, NULL, SHM_RDONLY);
+    if (shmData == (void *) -1) {
+        Tcl_ResetResult(interp);
+        Tcl_AppendResult(interp, "unable to retrieve shared memory data: ",
+            Tcl_PosixError(interp), NULL);
+        return TCL_ERROR;
+    }
+
+    if (shmInfo.shm_segsz % versions[version].structSize) {
+        Tcl_ResetResult(interp);
+        Tcl_SetResult(interp, "unable to retrieve shared memory data: "
+            "glftpd version mismatch", TCL_STATIC);
+        return TCL_ERROR;
+    }
+
+    *maxUsers = shmInfo.shm_segsz / versions[version].structSize;
+
+    if (!onlineDataPtr) {
+        return TCL_OK;
+    }
+
+    /* Copy data into the generic online structure. */
+    *onlineDataPtr = (GlOnlineGeneric **) ckalloc(sizeof(GlOnlineGeneric *) * (*maxUsers));
+
+    switch (version) {
+        case GLFTPD_130: {
+            GlOnline130 *glData = (GlOnline130 *) shmData;
+
+            for (i = 0; i < *maxUsers; i++) {
+                entry = (GlOnlineGeneric *) ckalloc(sizeof(GlOnlineGeneric));
+
+                memcpy(entry->tagline  ,  glData[i].tagline,    sizeof(glData[i].tagline));
+                memcpy(entry->username,   glData[i].username,   sizeof(glData[i].username));
+                memcpy(entry->status,     glData[i].status,     sizeof(glData[i].status));
+                memcpy(entry->host,       glData[i].host,       sizeof(glData[i].host));
+                memcpy(entry->currentdir, glData[i].currentdir, sizeof(glData[i].currentdir));
+                entry->ssl_flag      = -1; /* Not present in glFTPD 1.3x. */
+                entry->groupid       = glData[i].groupid;
+                entry->login_time    = glData[i].login_time;
+                entry->tstart        = glData[i].tstart;
+                entry->txfer.tv_sec  = 0; /* Not present in glFTPD 1.3x. */
+                entry->txfer.tv_usec = 0;
+                entry->bytes_xfer    = glData[i].bytes_xfer;
+                entry->bytes_txfer   = 0; /* Not present in glFTPD 1.3x. */
+                entry->procid        = glData[i].procid;
+                (*onlineDataPtr)[i]  = entry;
+            }
+        }
+        case GLFTPD_200: {
+            GlOnline200 *glData = (GlOnline200 *) shmData;
+
+            for (i = 0; i < *maxUsers; i++) {
+                entry = (GlOnlineGeneric *) ckalloc(sizeof(GlOnlineGeneric));
+
+                memcpy(entry->tagline  ,  glData[i].tagline,    sizeof(glData[i].tagline));
+                memcpy(entry->username,   glData[i].username,   sizeof(glData[i].username));
+                memcpy(entry->status,     glData[i].status,     sizeof(glData[i].status));
+                memcpy(entry->host,       glData[i].host,       sizeof(glData[i].host));
+                memcpy(entry->currentdir, glData[i].currentdir, sizeof(glData[i].currentdir));
+                entry->ssl_flag     = glData[i].ssl_flag;
+                entry->groupid      = glData[i].groupid;
+                entry->login_time   = glData[i].login_time;
+                entry->tstart       = glData[i].tstart;
+                entry->txfer        = glData[i].txfer;
+                entry->bytes_xfer   = glData[i].bytes_xfer;
+                entry->bytes_txfer  = 0; /* Not present in glFTPD 2.00. */
+                entry->procid       = glData[i].procid;
+                (*onlineDataPtr)[i] = entry;
+            }
+        }
+        case GLFTPD_201: {
+            /*
+             * The 'GlOnlineGeneric' structure is the exact same
+             * as the 'GlOnline201' structure (for now anyway).
+             */
+            assert(sizeof(GlOnlineGeneric) == sizeof(GlOnline201));
+
+            for (i = 0; i < *maxUsers; i++) {
+                entry = (GlOnlineGeneric *) ckalloc(sizeof(GlOnlineGeneric));
+                memcpy(entry, shmData + (i * sizeof(GlOnline201)), sizeof(GlOnline201));
+                (*onlineDataPtr)[i] = entry;
+            }
+        }
+    }
+
+    return TCL_OK;
+}
+
+
+/*
+ * FreeOnlineData
+ *
+ *   Frees online data allocated by 'GetOnlineData'.
+ *
+ * Arguments:
+ *   maxUsers      - Maximum number of online users.
+ *   onlineDataPtr - Location of the online data.
+ *
+ * Returns:
+ *   None.
+ *
+ * Remarks:
+ *   None.
+ */
+
+static void
+FreeOnlineData(int maxUsers, GlOnlineGeneric **onlineDataPtr)
+{
+    int i;
+    for (i = 0; i < maxUsers; i++) {
+        ckfree((char *) onlineDataPtr[i]);
+    }
+    ckfree((char *) onlineDataPtr);
+}
 
 
 /*
@@ -337,7 +823,7 @@ GlSetCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr
 /*
  * GlCloseCmd
  *
- *   Closes a glFTPD session handle.
+ *   Close a glFTPD session handle.
  *
  * Arguments:
  *   interp   - Current interpreter.
@@ -375,6 +861,40 @@ GlCloseCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *stateP
     Tcl_DeleteHashEntry(hashEntryPtr);
 
     return TCL_OK;
+}
+
+
+/*
+ * GlCloseHandles
+ *
+ *   Close all 'glftpd' handles in the given hash table.
+ *
+ * Arguments:
+ *   tablePtr - Hash table of 'glftpd' handles.
+ *
+ * Returns:
+ *   None.
+ *
+ * Remarks:
+ *   None.
+ */
+
+void
+GlCloseHandles(Tcl_HashTable *tablePtr)
+{
+    GlHandle *handlePtr;
+    Tcl_HashSearch search;
+    Tcl_HashEntry *entryPtr;
+
+    for (entryPtr = Tcl_FirstHashEntry(tablePtr, &search);
+        entryPtr != NULL;
+        entryPtr = Tcl_NextHashEntry(&search)) {
+
+        handlePtr = (GlHandle *) Tcl_GetHashValue(entryPtr);
+        ckfree(handlePtr->etcPath);
+        ckfree((char *) handlePtr);
+        Tcl_DeleteHashEntry(entryPtr);
+    }
 }
 
 
@@ -511,7 +1031,7 @@ GlKillCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePt
     }
 
     for (i = 0; i < maxUsers; i++) {
-        if (onlineData[i]->procid == (pid_t) procId) {
+        if (onlineData[i]->procid > 0 && onlineData[i]->procid == (pid_t) procId) {
 
             if (kill(onlineData[i]->procid, SIGTERM) == 0) {
                 status = TCL_OK;
@@ -563,6 +1083,8 @@ GlWhoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr
     int result;
     unsigned char *fields;
     GlHandle *handlePtr;
+    GlGroup *groupListPtr = NULL;
+    GlUser *userListPtr = NULL;
     Tcl_HashEntry *hashEntryPtr;
     Tcl_Obj **elementPtrs;
 
@@ -582,185 +1104,45 @@ GlWhoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr
     }
 
     /* Create an array of indices from 'whoFields'. */
+    result = TCL_ERROR;
     fields = (unsigned char *) ckalloc(elementCount);
 
     for (i = 0; i < elementCount; i++) {
-        if (Tcl_GetIndexFromObj(interp, elementPtrs[i], whoFields, "field", 0, &fieldIndex) != TCL_OK) {
-            ckfree((char *) fields);
-            return TCL_ERROR;
+        if (Tcl_GetIndexFromObj(interp, elementPtrs[i], whoFields, "field", 0,
+            &fieldIndex) != TCL_OK) {
+            goto end;
+        }
+
+        if (fieldIndex == WHO_GROUP) {
+            /* Read '/glftpd/etc/group' for group ID to group name resolving. */
+            if (groupListPtr == NULL && GetGroupList(interp, handlePtr->etcPath,
+                groupListPtr) != TCL_OK) {
+                goto end;
+            }
+        } else if (fieldIndex == WHO_UID) {
+            /* Read '/glftpd/etc/passwd' for user name to user ID resolving. */
+            if (userListPtr == NULL && GetUserList(interp, handlePtr->etcPath,
+                userListPtr) != TCL_OK) {
+                goto end;
+            }
         }
 
         fields[i] = (unsigned char) fieldIndex;
     }
 
-    /* TODO:
-     * - Read /glftpd/etc/group if the 'group' field is requested.
-     * - Read /glftpd/etc/passwd if the 'uid' field is requested.
-     */
-    result = GetOnlineFields(interp, handlePtr, fields, elementCount);
+    result = GetOnlineFields(interp, handlePtr, fields, elementCount,
+        userListPtr, groupListPtr);
+
+    end:
+    if (userListPtr != NULL) {
+        FreeUserList(userListPtr);
+    }
+    if (groupListPtr != NULL) {
+        FreeGroupList(groupListPtr);
+    }
 
     ckfree((char *) fields);
     return result;
-}
-
-
-/*
- * GetOnlineData
- *
- *   Retrieve online data from a glFTPD shared memory segment.
- *
- * Arguments:
- *   interp        - Interpreter to use for error reporting.
- *   shmKey        - Shared memory key used by glFTPD.
- *   version       - Online structure version, must be an index in the 'versions' array.
- *   maxUsers      - Location to store the maximum number of online users is stored.
- *   onlineDataPtr - Location to store the online data is stored. If this argument
- *                   is NULL, no data is allocated. The caller MUST free this data
- *                   when finished.
- *
- * Returns:
- *   A standard Tcl result.
- *
- * Remarks:
- *   If the command fails, an error message is left in the interpreter's result.
- */
-
-static int
-GetOnlineData(Tcl_Interp *interp, key_t shmKey, int version, int *maxUsers, GlOnlineGeneric ***onlineDataPtr)
-{
-    int i;
-    int shmId;
-    struct shmid_ds shmInfo;
-    void *shmData;
-    GlOnlineGeneric *entry;
-
-    shmId = shmget(shmKey, 0, 0);
-    if (shmId < 0) {
-        Tcl_ResetResult(interp);
-        Tcl_AppendResult(interp, "unable to retrieve shared memory identifier: ",
-            Tcl_PosixError(interp), NULL);
-        return TCL_ERROR;
-    }
-
-    if (shmctl(shmId, IPC_STAT, &shmInfo) < 0) {
-        Tcl_ResetResult(interp);
-        Tcl_AppendResult(interp, "unable to query the shared memory segment: ",
-            Tcl_PosixError(interp), NULL);
-        return TCL_ERROR;
-    }
-
-    shmData = shmat(shmId, NULL, SHM_RDONLY);
-    if (shmData == (void *) -1) {
-        Tcl_ResetResult(interp);
-        Tcl_AppendResult(interp, "unable to retrieve shared memory data: ",
-            Tcl_PosixError(interp), NULL);
-        return TCL_ERROR;
-    }
-
-    if (shmInfo.shm_segsz % versions[version].structSize) {
-        Tcl_SetResult(interp, "unable to retrieve shared memory data: "
-            "glftpd version mismatch", TCL_STATIC);
-        return TCL_ERROR;
-    }
-
-    *maxUsers = shmInfo.shm_segsz / versions[version].structSize;
-
-    if (!onlineDataPtr) {
-        return TCL_OK;
-    }
-
-    /* Copy data into the generic online structure. */
-    *onlineDataPtr = (GlOnlineGeneric **) ckalloc(sizeof(GlOnlineGeneric *) * (*maxUsers));
-
-    switch (version) {
-        case GLFTPD_130: {
-            GlOnline130 *glData = (GlOnline130 *) shmData;
-
-            for (i = 0; i < *maxUsers; i++) {
-                entry = (GlOnlineGeneric *) ckalloc(sizeof(GlOnlineGeneric));
-
-                memcpy(entry->tagline  ,  glData[i].tagline,    sizeof(glData[i].tagline));
-                memcpy(entry->username,   glData[i].username,   sizeof(glData[i].username));
-                memcpy(entry->status,     glData[i].status,     sizeof(glData[i].status));
-                memcpy(entry->host,       glData[i].host,       sizeof(glData[i].host));
-                memcpy(entry->currentdir, glData[i].currentdir, sizeof(glData[i].currentdir));
-                entry->ssl_flag      = -1; /* Not present in glFTPD 1.3x. */
-                entry->groupid       = glData[i].groupid;
-                entry->login_time    = glData[i].login_time;
-                entry->tstart        = glData[i].tstart;
-                entry->txfer.tv_sec  = 0; /* Not present in glFTPD 1.3x. */
-                entry->txfer.tv_usec = 0;
-                entry->bytes_xfer    = glData[i].bytes_xfer;
-                entry->bytes_txfer   = 0; /* Not present in glFTPD 1.3x. */
-                entry->procid        = glData[i].procid;
-                (*onlineDataPtr)[i]  = entry;
-            }
-        }
-        case GLFTPD_200: {
-            GlOnline200 *glData = (GlOnline200 *) shmData;
-
-            for (i = 0; i < *maxUsers; i++) {
-                entry = (GlOnlineGeneric *) ckalloc(sizeof(GlOnlineGeneric));
-
-                memcpy(entry->tagline  ,  glData[i].tagline,    sizeof(glData[i].tagline));
-                memcpy(entry->username,   glData[i].username,   sizeof(glData[i].username));
-                memcpy(entry->status,     glData[i].status,     sizeof(glData[i].status));
-                memcpy(entry->host,       glData[i].host,       sizeof(glData[i].host));
-                memcpy(entry->currentdir, glData[i].currentdir, sizeof(glData[i].currentdir));
-                entry->ssl_flag     = glData[i].ssl_flag;
-                entry->groupid      = glData[i].groupid;
-                entry->login_time   = glData[i].login_time;
-                entry->tstart       = glData[i].tstart;
-                entry->txfer        = glData[i].txfer;
-                entry->bytes_xfer   = glData[i].bytes_xfer;
-                entry->bytes_txfer  = 0; /* Not present in glFTPD 2.00. */
-                entry->procid       = glData[i].procid;
-                (*onlineDataPtr)[i] = entry;
-            }
-        }
-        case GLFTPD_201: {
-            /*
-             * The 'GlOnlineGeneric' structure is the exact same
-             * as the 'GlOnline201' structure (for now anyway).
-             */
-            assert(sizeof(GlOnlineGeneric) == sizeof(GlOnline201));
-
-            for (i = 0; i < *maxUsers; i++) {
-                entry = (GlOnlineGeneric *) ckalloc(sizeof(GlOnlineGeneric));
-                memcpy(entry, shmData + (i * sizeof(GlOnline201)), sizeof(GlOnline201));
-                (*onlineDataPtr)[i] = entry;
-            }
-        }
-    }
-
-    return TCL_OK;
-}
-
-
-/*
- * FreeOnlineData
- *
- *   Frees online data allocated by 'GetOnlineData'.
- *
- * Arguments:
- *   maxUsers      - Maximum number of online users.
- *   onlineDataPtr - Location of the online data.
- *
- * Returns:
- *   None.
- *
- * Remarks:
- *   None.
- */
-
-static void
-FreeOnlineData(int maxUsers, GlOnlineGeneric **onlineDataPtr)
-{
-    int i;
-    for (i = 0; i < maxUsers; i++) {
-        ckfree((char *) onlineDataPtr[i]);
-    }
-    ckfree((char *) onlineDataPtr);
 }
 
 
@@ -770,21 +1152,24 @@ FreeOnlineData(int maxUsers, GlOnlineGeneric **onlineDataPtr)
  *   Retrieve a list of online users and the requested fields.
  *
  * Arguments:
- *   interp     - Current interpreter.
- *   handlePtr  - Pointer to a 'GlHandle' structure.
- *   fields     - Array of fields to retrieve.
- *   fieldCount - Number of fields given for the 'fields' parameter.
+ *   interp       - Current interpreter.
+ *   handlePtr    - Pointer to a 'GlHandle' structure.
+ *   fields       - Array of fields to retrieve.
+ *   fieldCount   - Number of fields given for the 'fields' parameter.
+ *   userListPtr  - Pointer to a 'GlUser' structure that represents the list head.
+ *   groupListPtr - Pointer to a 'GlGroup' structure that represents the list head.
  *
  * Returns:
  *   A standard Tcl result.
  *
  * Remarks:
- *   If the command succeeds, the user list is left in the interpreter's
- *   result. If the command fails, an error message is left instead.
+ *   If the function succeeds, the user list is left in the interpreter's
+ *   result. If the function fails, an error message is left instead.
  */
 
 static int
-GetOnlineFields(Tcl_Interp *interp, GlHandle *handlePtr, unsigned char *fields, int fieldCount)
+GetOnlineFields(Tcl_Interp *interp, GlHandle *handlePtr, unsigned char *fields,
+    int fieldCount, GlUser *userListPtr, GlGroup *groupListPtr)
 {
     int i;
     int j;
@@ -825,8 +1210,8 @@ GetOnlineFields(Tcl_Interp *interp, GlHandle *handlePtr, unsigned char *fields, 
                     break;
                 }
                 case WHO_GROUP: {
-                    /* TODO: Resolve group IDs to group names.*/
-                    elementObj = Tcl_NewStringObj("NoGroup", -1);
+                    elementObj = Tcl_NewStringObj(GetGroupNameFromId(groupListPtr,
+                        onlineData[i]->groupid), -1);
                     break;
                 }
                 case WHO_HOST: {
@@ -883,8 +1268,8 @@ GetOnlineFields(Tcl_Interp *interp, GlHandle *handlePtr, unsigned char *fields, 
                     break;
                 }
                 case WHO_UID: {
-                    /* TODO: Resolve user names to user IDs.*/
-                    elementObj = Tcl_NewLongObj(-1);
+                    elementObj = Tcl_NewLongObj(GetUserIdFromName(userListPtr,
+                        onlineData[i]->username));
                     break;
                 }
                 case WHO_USER: {

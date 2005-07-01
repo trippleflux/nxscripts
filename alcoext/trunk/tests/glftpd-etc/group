@@ -1,0 +1,20 @@
+admins:The Admins:201:
+crooks:The Crooks:202:
+people:The People:203:
+
+# Commented group.
+#suckers:The Suckers:204:
+friends:My Friends:205:
+
+ 	 # Leading whitespace (space + tab + space).
+ 	 losers:The Losers:106:206:
+
+# Long group name (test for buffer overflows).
+myReallyReallyReallyReallyLongName:Long Group Name:207:
+
+:No Name:208:
+
+# Invalid lines.
+crazies
+fakes:The Fakes
+liars:The Liars:109

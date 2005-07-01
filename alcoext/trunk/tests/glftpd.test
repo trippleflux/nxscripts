@@ -22,8 +22,8 @@ if {$tcl_platform(platform) eq "windows"} {
 }
 append libFile [info sharedlibextension]
 
-set parentPath [file dirname [file dirname [file normalize [info script]]]]
-set libFile [lindex [glob -dir $parentPath -types f $libFile] 0]
+set currentPath [file dirname [file normalize [info script]]]
+set libFile [lindex [glob -dir [file dirname $currentPath] -types f $libFile] 0]
 load $libFile
 
 namespace import -force ::alcoholicz::*
@@ -43,8 +43,18 @@ proc CheckShmKey {shmKey} {
     return 0
 }
 
-# Check if the shared memory key exists, some tests require it.
+proc GetNonExistentDir {} {
+    # Loop until a nonexistent directory is found.
+    while {1} {
+        set rnd [expr {rand() * [clock clicks]}]
+        set path [file join [testsDirectory] $rnd]
+        if {![file exists $path]} {return $path}
+    }
+}
+
+# Check if the shared memory key and etc directory exists.
 testConstraint shmKeyExists [CheckShmKey $shmKey]
+testConstraint etcPathExists [file isdirectory $etcPath]
 
 ################################################################################
 # glftpd                                                                        #
@@ -346,12 +356,58 @@ test glftpd-7.4 {glftpd who: invalid field} {unix} {
     set result
 } {1 {bad field ".": must be action, gid, group, host, idletime, logintime, path, pid, size, speed, ssl, status, tagline, uid, or user}}
 
-test glftpd-7.5 {glftpd who: check fields} {unix shmKeyExists} {
+test glftpd-7.5 {glftpd who: invalid etc path} {
+    -constraints {unix}
+    -setup {set tempDir [makeDirectory  {} [GetNonExistentDir]]}
+    -body {
+        set handle [glftpd open $shmKey]
+        glftpd set $handle -etc $tempDir
+        set result [list [catch {glftpd who $handle "uid"} msg] $msg]
+        glftpd close $handle
+        string equal $result [list 1 "unable to open \"$tempDir/passwd\": no such file or directory"]
+    }
+    -cleanup {removeDirectory $tempDir}
+    -result 1
+}
+
+test glftpd-7.6 {glftpd who: invalid etc path} {
+    -constraints {unix}
+    -setup {set tempDir [makeDirectory  {} [GetNonExistentDir]]}
+    -body {
+        set handle [glftpd open $shmKey]
+        glftpd set $handle -etc $tempDir
+        set result [list [catch {glftpd who $handle "group"} msg] $msg]
+        glftpd close $handle
+        string equal $result [list 1 "unable to open \"$tempDir/group\": no such file or directory"]
+    }
+    -cleanup {removeDirectory $tempDir}
+    -result 1
+}
+
+test glftpd-7.7 {glftpd who: passwd file parser} {unix shmKeyExists} {
+    set handle [glftpd open $shmKey]
+    glftpd set $handle -etc [file join $currentPath glftpd-etc] -version $version
+
+    # glFTPD's 'passwd' file is parsed for resolving user names to IDs.
+    glftpd who $handle "uid"
+    glftpd close $handle
+} {}
+
+test glftpd-7.8 {glftpd who: group file parser} {unix shmKeyExists} {
+    set handle [glftpd open $shmKey]
+    glftpd set $handle -etc [file join $currentPath glftpd-etc] -version $version
+
+    # glFTPD's 'group' file is parsed for resolving group IDs to names.
+    glftpd who $handle "group"
+    glftpd close $handle
+} {}
+
+test glftpd-7.9 {glftpd who: check fields} {unix etcPathExists shmKeyExists} {
     set fields {action gid group host idletime logintime path pid size speed ssl status tagline uid user}
     set fieldCount [llength $fields]
 
     set handle [glftpd open $shmKey]
-    glftpd set $handle -version $version
+    glftpd set $handle -etc $etcPath -version $version
     for {set i 0} {$i < $fieldCount} {incr i} {
         set getFields [lrange $fields 0 $i]
         set data [glftpd who $handle $getFields]

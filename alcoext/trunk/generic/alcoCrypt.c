@@ -830,8 +830,9 @@ CryptCloseHandles(Tcl_HashTable *tablePtr)
     Tcl_HashSearch search;
     Tcl_HashEntry *entryPtr;
 
-    for (entryPtr = Tcl_FirstHashEntry(tablePtr, &search); entryPtr != NULL;
-         entryPtr = Tcl_NextHashEntry(&search)) {
+    for (entryPtr = Tcl_FirstHashEntry(tablePtr, &search);
+        entryPtr != NULL;
+        entryPtr = Tcl_NextHashEntry(&search)) {
 
         ckfree((char *) Tcl_GetHashValue(entryPtr));
         Tcl_DeleteHashEntry(entryPtr);

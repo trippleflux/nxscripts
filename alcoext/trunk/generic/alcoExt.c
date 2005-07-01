@@ -108,9 +108,9 @@ Alcoext_Init(Tcl_Interp *interp)
             GetProcAddress(winProcs.kernelModule, "GetVolumeNameForVolumeMountPointA");
 
         /*
-         * If GetVolumeInformation() is called on a floppy drive or a CD-ROM drive
-         * that does not have a disk inserted, the system will display a message box
-         * asking the user to insert one.
+         * If GetVolumeInformation() is called on a floppy drive or a CD-ROM
+         * drive that does not have a disk inserted, the system will display a
+         * message box asking the user to insert one.
          */
         SetErrorMode(SetErrorMode(0) | SEM_FAILCRITICALERRORS);
 #endif /* __WIN32__ */
@@ -369,22 +369,17 @@ FreeState(ExtState *statePtr)
     if (statePtr != NULL) {
         CryptCloseHandles(statePtr->cryptTable);
         Tcl_DeleteHashTable(statePtr->cryptTable);
-
         ckfree((char *) statePtr->cryptTable);
-        statePtr->cryptTable = NULL;
 
 #ifdef __WIN32__
         /* TODO: IoCloseHandles(statePtr->ioTable); */
         Tcl_DeleteHashTable(statePtr->ioTable);
-
         ckfree((char *) statePtr->ioTable);
-        statePtr->ioTable = NULL;
 #else /* __WIN32__ */
-        /* TODO: GlCloseHandles(statePtr->glTable); */
-        Tcl_DeleteHashTable(statePtr->glTable);
 
+        GlCloseHandles(statePtr->glTable);
+        Tcl_DeleteHashTable(statePtr->glTable);
         ckfree((char *) statePtr->glTable);
-        statePtr->glTable = NULL;
 #endif /* __WIN32__ */
 
         ckfree((char *) statePtr);
