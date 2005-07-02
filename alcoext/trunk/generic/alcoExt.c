@@ -26,8 +26,9 @@ TCL_DECLARE_MUTEX(initMutex)
 TCL_DECLARE_MUTEX(stateMutex)
 
 #ifdef __WIN32__
-WinProcs winProcs;
+static HMODULE kernelModule = NULL;
 OSVERSIONINFOA osVersion;
+WinProcs winProcs;
 #endif /* __WIN32__ */
 
 static void FreeState(ExtState *statePtr);
@@ -80,9 +81,9 @@ Alcoext_Init(Tcl_Interp *interp)
         GetVersionExA(&osVersion);
 
         ZeroMemory(&winProcs, sizeof(WinProcs));
-        winProcs.kernelModule = LoadLibraryA("kernel32.dll");
+        kernelModule = LoadLibraryA("kernel32.dll");
 
-        if (winProcs.kernelModule == NULL) {
+        if (kernelModule == NULL) {
             Tcl_AppendResult(interp, "unable to load kernel32.dll: ",
                 TclSetWinError(interp, GetLastError()), NULL);
 
@@ -94,18 +95,18 @@ Alcoext_Init(Tcl_Interp *interp)
          * These functions must be resolved on run-time for backwards
          * compatibility on older Windows systems (earlier than NT v5).
          */
-        winProcs.getDiskFreeSpaceEx = (Fn_GetDiskFreeSpaceExA)
-            GetProcAddress(winProcs.kernelModule, "GetDiskFreeSpaceExA");
+        winProcs.getDiskFreeSpaceEx = (GetDiskFreeSpaceExProc)
+            GetProcAddress(kernelModule, "GetDiskFreeSpaceExA");
 
-        winProcs.findFirstVolumeMountPoint = (Fn_FindFirstVolumeMountPointA)
-            GetProcAddress(winProcs.kernelModule, "FindFirstVolumeMountPointA");
-        winProcs.findNextVolumeMountPoint = (Fn_FindNextVolumeMountPointA)
-            GetProcAddress(winProcs.kernelModule, "FindNextVolumeMountPointA");
-        winProcs.findVolumeMountPointClose = (Fn_FindVolumeMountPointClose)
-            GetProcAddress(winProcs.kernelModule, "FindVolumeMountPointClose");
+        winProcs.findFirstVolumeMountPoint = (FindFirstVolumeMountPointProc)
+            GetProcAddress(kernelModule, "FindFirstVolumeMountPointA");
+        winProcs.findNextVolumeMountPoint = (FindNextVolumeMountPointProc)
+            GetProcAddress(kernelModule, "FindNextVolumeMountPointA");
+        winProcs.findVolumeMountPointClose = (FindVolumeMountPointCloseProc)
+            GetProcAddress(kernelModule, "FindVolumeMountPointClose");
 
-        winProcs.getVolumeNameForVolumeMountPoint = (Fn_GetVolumeNameForVolumeMountPointA)
-            GetProcAddress(winProcs.kernelModule, "GetVolumeNameForVolumeMountPointA");
+        winProcs.getVolumeNameForVolumeMountPoint = (GetVolumeNameForVolumeMountPointProc)
+            GetProcAddress(kernelModule, "GetVolumeNameForVolumeMountPointA");
 
         /*
          * If GetVolumeInformation() is called on a floppy drive or a CD-ROM
@@ -172,6 +173,7 @@ Alcoext_Init(Tcl_Interp *interp)
     Tcl_InitHashTable(statePtr->ioTable, TCL_STRING_KEYS);
     statePtr->ioHandle = 0;
 #else /* __WIN32__ */
+
     statePtr->glTable = (Tcl_HashTable *) ckalloc(sizeof(Tcl_HashTable));
     Tcl_InitHashTable(statePtr->glTable, TCL_STRING_KEYS);
     statePtr->glHandle = 0;
@@ -409,9 +411,9 @@ ExitHandler(ClientData dummy)
 {
     Tcl_MutexLock(&initMutex);
 #ifdef __WIN32__
-    if (winProcs.kernelModule != NULL) {
-        FreeLibrary(winProcs.kernelModule);
-        winProcs.kernelModule = NULL;
+    if (kernelModule != NULL) {
+        FreeLibrary(kernelModule);
+        kernelModule = NULL;
     }
 #endif /* __WIN32__ */
 

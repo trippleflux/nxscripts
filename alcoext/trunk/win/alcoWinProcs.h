@@ -15,42 +15,41 @@
 #ifndef __ALCOWINPROCS_H__
 #define __ALCOWINPROCS_H__
 
-typedef BOOL (WINAPI *Fn_GetDiskFreeSpaceExA)(
+typedef BOOL (WINAPI *GetDiskFreeSpaceExProc)(
     LPCSTR lpDirectoryName,
     PULARGE_INTEGER lpFreeBytesAvailableToCaller,
     PULARGE_INTEGER lpTotalNumberOfBytes,
     PULARGE_INTEGER lpTotalNumberOfFreeBytes
 );
 
-typedef HANDLE (WINAPI *Fn_FindFirstVolumeMountPointA)(
+typedef HANDLE (WINAPI *FindFirstVolumeMountPointProc)(
     LPCSTR lpszRootPathName,
     LPSTR lpszVolumeMountPoint,
     DWORD cchBufferLength
 );
 
-typedef BOOL (WINAPI *Fn_FindNextVolumeMountPointA)(
+typedef BOOL (WINAPI *FindNextVolumeMountPointProc)(
     HANDLE hFindVolumeMountPoint,
     LPSTR lpszVolumeMountPoint,
     DWORD cchBufferLength
 );
 
-typedef BOOL (WINAPI *Fn_FindVolumeMountPointClose)(
-    HANDLE hFindVolumeMountPoint
-);
-
-typedef BOOL (WINAPI *Fn_GetVolumeNameForVolumeMountPointA)(
+typedef BOOL (WINAPI *GetVolumeNameForVolumeMountPointProc)(
     LPCSTR lpszVolumeMountPoint,
-    LPTSTR lpszVolumeName,
+    LPSTR lpszVolumeName,
     DWORD cchBufferLength
 );
 
+typedef BOOL (WINAPI *FindVolumeMountPointCloseProc)(
+    HANDLE hFindVolumeMountPoint
+);
+
 typedef struct {
-    HMODULE kernelModule;
-    Fn_GetDiskFreeSpaceExA        getDiskFreeSpaceEx;
-    Fn_FindFirstVolumeMountPointA findFirstVolumeMountPoint;
-    Fn_FindNextVolumeMountPointA  findNextVolumeMountPoint;
-    Fn_FindVolumeMountPointClose  findVolumeMountPointClose;
-    Fn_GetVolumeNameForVolumeMountPointA getVolumeNameForVolumeMountPoint;
+    GetDiskFreeSpaceExProc                  getDiskFreeSpaceEx;
+    FindFirstVolumeMountPointProc           findFirstVolumeMountPoint;
+    FindNextVolumeMountPointProc            findNextVolumeMountPoint;
+    FindVolumeMountPointCloseProc           findVolumeMountPointClose;
+    GetVolumeNameForVolumeMountPointProc    getVolumeNameForVolumeMountPoint;
 } WinProcs;
 
 #endif /* __ALCOWINPROCS_H__ */
