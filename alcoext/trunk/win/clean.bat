@@ -19,14 +19,12 @@ SET TCL_DIR=D:\Projects\Tcl
 :: -------------------------------------------------------------------------
 
 CALL "C:\Program Files\Microsoft Visual Studio .NET 2003\Common7\Tools\vsvars32.bat"
-SET CURR_DIR=%CD%
-CD ..
 
 ECHO:========================================================================
 ECHO: AlcoExt - Cleaning
 ECHO:========================================================================
 
-nmake -nologo -f makefile.win distclean
+nmake -nologo -f makefile distclean
 IF errorlevel 1 GOTO error
 
 ECHO *** Finished ***
@@ -35,6 +33,5 @@ GOTO end
 :error
 ECHO *** Error ***
 
-CD %CURR_DIR%
 :end
 PAUSE

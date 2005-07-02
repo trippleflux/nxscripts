@@ -3,7 +3,7 @@
 # Copyright (c) 2005 Alcoholicz Scripting Team
 #
 # File Name:
-#   makefile.win
+#   makefile
 #
 # Author:
 #   neoxed (neoxed@gmail.com) June 12, 2005
@@ -12,7 +12,7 @@
 #   Build configuration file for NMAKE, or a compatible tool.
 #
 #   Usage:
-#     nmake -f makefile.win [OPTION=1 ...]
+#     nmake -f makefile [OPTION=1 ...]
 #
 #   Options:
 #     DEBUG    - Symbolic debugging.
@@ -27,15 +27,15 @@ TARGETOS    = WINNT
 
 # -------------------------------------------------------------------------
 
-!if !exist("makefile.win")
+!if !exist("makefile")
 !error You must run this makefile from the directory it is located in.
 !endif
 
-!include "package.def"
+!include "../package.def"
 
 # -------------------------------------------------------------------------
 
-ROOT        = .
+ROOT        = ..
 PKG_SUFFIX  =
 PKG_TOPDIR  = Release
 PKG_OPTIONS = Release
@@ -81,7 +81,7 @@ TCL_CFLAGS  = $(TCL_CFLAGS) -DTCL_THREADS=1
 !endif
 !endif
 
-!include "win/win32.mak"
+!include "win32.mak"
 
 !ifdef DEVPERF
 !if $(DEVPERF)
@@ -96,7 +96,7 @@ LINK    = NMLINK /NMttOn
 # -------------------------------------------------------------------------
 
 !if !exist(nmakehlp.exe)
-!if [$(CC) -nologo -MT win/nmakehlp.c -link -subsystem:console > nul]
+!if [$(CC) -nologo -MT nmakehlp.c -link -subsystem:console > nul]
 !endif
 !endif
 
