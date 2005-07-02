@@ -116,39 +116,27 @@
  * f_fsid::val[1] - Type of file system, MOUNT_xxx flag.
  */
 #define F_FSID(buf) ((buf).f_fsid.val[0])
-#endif
-
-#if (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_FSID)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_FSID))
+#elif (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_FSID)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_FSID))
 #define F_FSID(buf) ((buf).f_fsid)
-#endif
-
-#ifndef F_FSID
+#else
 #define F_FSID(buf) (0)
 #endif
 
 /* Check for the f_flag or f_flags member. */
 #if (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_FLAG)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_FLAG))
 #define F_FLAGS(buf) ((buf).f_flag)
-#endif
-
-#if (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_FLAGS)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_FLAGS))
+#elif (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_FLAGS)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_FLAGS))
 #define F_FLAGS(buf) ((buf).f_flags)
-#endif
-
-#ifndef F_FLAGS
+#else
 #define F_FLAGS(buf) (0)
 #endif
 
 /* Check for the f_namemax or f_namelen member. */
 #if (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_NAMEMAX)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_NAMEMAX))
 #define F_NAMELEN(buf) ((buf).f_namemax)
-#endif
-
-#if (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_NAMELEN)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_NAMELEN))
+#elif (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_NAMELEN)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_NAMELEN))
 #define F_NAMELEN(buf) ((buf).f_namelen)
-#endif
-
-#ifndef F_NAMELEN
+#else
 #define F_NAMELEN(buf) (255)
 #endif
 
