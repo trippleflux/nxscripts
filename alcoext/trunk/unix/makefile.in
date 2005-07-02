@@ -31,7 +31,7 @@ PKG_STUB_OBJECTS= @PKG_STUB_OBJECTS@
 #========================================================================
 
 BUILD_DIR       = .
-ROOT_DIR        = .
+ROOT_DIR        = ..
 SHELL           = @SHELL@
 BINARIES        = $(PKG_LIB_FILE)
 CLEANFILES      = @CLEANFILES@
