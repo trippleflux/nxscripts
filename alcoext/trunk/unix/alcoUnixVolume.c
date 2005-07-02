@@ -136,36 +136,33 @@ const VolumeFlagList volumeFlags[] = {
 int
 GetVolumeInfo(Tcl_Interp *interp, char *volumePath, VolumeInfo *volumeInfo)
 {
-    struct statfs statBuf;
+    struct STATFS_T fsInfo;
 
-    /* TODO: add compatibility for statfs64. */
-
-    if (statfs(volumePath, &statBuf) != 0) {
+    if (STATFS_FN(volumePath, &fsInfo) != 0) {
         Tcl_ResetResult(interp);
         Tcl_AppendResult(interp, "unable to retrieve mount information for \"",
             volumePath, "\": ", Tcl_PosixError(interp), NULL);
         return TCL_ERROR;
     }
 
-    /*
-     * The contents of the statfs::f_fsid member is as follows.
-     * f_fsid::val[0] - The dev_t identifier for the device, which is
-     *                  all that we're interested in.
-     * f_fsid::val[1] - Type of file system, MOUNT_xxx flag.
-     */
-    volumeInfo->id = (unsigned long)statBuf.f_fsid.val[0];
+    /* Free and total space. */
+    volumeInfo->free  = (uint64_t)fsInfo.f_bsize * (uint64_t)fsInfo.f_bfree;
+    volumeInfo->total = (uint64_t)fsInfo.f_bsize * (uint64_t)fsInfo.f_blocks;
 
-    volumeInfo->flags = (unsigned long)statBuf.f_flags;
-    volumeInfo->free = (uint64_t)statBuf.f_bsize * (uint64_t)statBuf.f_bfree;
-    volumeInfo->total = (uint64_t)statBuf.f_bsize * (uint64_t)statBuf.f_blocks;
+    volumeInfo->id     = (unsigned long) F_FSID(fsInfo);
+    volumeInfo->flags  = (unsigned long) F_FLAGS(fsInfo);
+    volumeInfo->length = (unsigned long) F_NAMELEN(fsInfo);
 
     /* Not supported. */
-    volumeInfo->length = 0;
     volumeInfo->name[0] = '\0';
 
     /* File system name. */
-    strncpy(volumeInfo->type, statBuf.f_fstypename, VOLINFO_TYPE_LENGTH);
+#ifdef HAVE_STRUCT_STATFS_F_FSTYPENAME
+    strncpy(volumeInfo->type, fsInfo.f_fstypename, VOLINFO_TYPE_LENGTH);
     volumeInfo->type[VOLINFO_TYPE_LENGTH-1] = '\0';
+#else
+    volumeInfo->type[0] = '\0';
+#endif
 
     return TCL_OK;
 }

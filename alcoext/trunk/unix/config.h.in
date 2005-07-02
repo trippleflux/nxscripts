@@ -1,4 +1,4 @@
-/* ./unix/config.h.in.  Generated from configure.in by autoheader.  */
+/* config.h.in.  Generated from configure.in by autoheader.  */
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
@@ -35,6 +35,48 @@
 
 /* Is 'struct stat64' in <sys/stat.h>? */
 #undef HAVE_STRUCT_STAT64
+
+/* Define to 1 if `f_flag' is member of `struct statfs'. */
+#undef HAVE_STRUCT_STATFS_F_FLAG
+
+/* Define to 1 if `f_flags' is member of `struct statfs'. */
+#undef HAVE_STRUCT_STATFS_F_FLAGS
+
+/* Define to 1 if `f_fsid' is member of `struct statfs'. */
+#undef HAVE_STRUCT_STATFS_F_FSID
+
+/* Define to 1 if `f_fsid.val' is member of `struct statfs'. */
+#undef HAVE_STRUCT_STATFS_F_FSID_VAL
+
+/* Define to 1 if `f_fstypename' is member of `struct statfs'. */
+#undef HAVE_STRUCT_STATFS_F_FSTYPENAME
+
+/* Define to 1 if `f_namelen' is member of `struct statfs'. */
+#undef HAVE_STRUCT_STATFS_F_NAMELEN
+
+/* Define to 1 if `f_namemax' is member of `struct statfs'. */
+#undef HAVE_STRUCT_STATFS_F_NAMEMAX
+
+/* Define to 1 if `f_flag' is member of `struct statvfs'. */
+#undef HAVE_STRUCT_STATVFS_F_FLAG
+
+/* Define to 1 if `f_flags' is member of `struct statvfs'. */
+#undef HAVE_STRUCT_STATVFS_F_FLAGS
+
+/* Define to 1 if `f_fsid' is member of `struct statvfs'. */
+#undef HAVE_STRUCT_STATVFS_F_FSID
+
+/* Define to 1 if `f_fsid.val' is member of `struct statvfs'. */
+#undef HAVE_STRUCT_STATVFS_F_FSID_VAL
+
+/* Define to 1 if `f_fstypename' is member of `struct statvfs'. */
+#undef HAVE_STRUCT_STATVFS_F_FSTYPENAME
+
+/* Define to 1 if `f_namelen' is member of `struct statvfs'. */
+#undef HAVE_STRUCT_STATVFS_F_NAMELEN
+
+/* Define to 1 if `f_namemax' is member of `struct statvfs'. */
+#undef HAVE_STRUCT_STATVFS_F_NAMEMAX
 
 /* Define to 1 if you have the <sys/mount.h> header file. */
 #undef HAVE_SYS_MOUNT_H
@@ -113,6 +155,28 @@
 
 /* Is this a static build? */
 #undef STATIC_BUILD
+
+/* Whether statfs requires two arguments and struct statfs has bsize property
+   */
+#undef STAT_STATFS2_BSIZE
+
+/* Whether statfs requires 2 arguments and struct statfs has fsize */
+#undef STAT_STATFS2_FSIZE
+
+/* Whether statfs requires 2 arguments and struct fs_data is available */
+#undef STAT_STATFS2_FS_DATA
+
+/* Whether statfs requires 3 arguments */
+#undef STAT_STATFS3_OSF1
+
+/* Whether statfs requires 4 arguments */
+#undef STAT_STATFS4
+
+/* Whether statvfs() is available */
+#undef STAT_STATVFS
+
+/* Whether statvfs64() is available */
+#undef STAT_STATVFS64
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS

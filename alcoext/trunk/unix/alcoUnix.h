@@ -75,4 +75,81 @@
 
 #include "alcoUnixGlFtpd.h"
 
+/* Statfs function and structure checks. */
+#ifdef STAT_STATVFS64
+#define STATFS_FN(path, buf) (statvfs64(path,buf))
+#define STATFS_T statvfs64
+#define USE_STATVFS
+
+/* Use statvfs() if available, otherwise fallback to statfs(). */
+#elif defined(STAT_STATVFS)
+#define STATFS_FN(path, buf) (statvfs(path,buf))
+#define STATFS_T statvfs
+#define USE_STATVFS
+
+/* For implementations of statfs() that take four parameters. */
+#elif defined(STAT_STATFS4)
+#define STATFS_FN(path, buf) (statfs(path,buf,sizeof(buf),0))
+#define STATFS_T statfs
+#define USE_STATFS
+
+/* For implementations of statfs() that take three parameters. */
+#elif defined(STAT_STATFS3_OSF1)
+#define STATFS_FN(path, buf) (statfs(path,buf,sizeof(buf)))
+#define STATFS_T statfs
+#define USE_STATFS
+
+/* For implementations of statfs() that take two parameters. */
+#elif defined(STAT_STATFS2_FS_DATA) || defined(STAT_STATFS2_BSIZE) || defined(STAT_STATFS2_FSIZE)
+#define STATFS_FN(path, buf) (statfs(path,buf))
+#define STATFS_T statfs
+#define USE_STATFS
+
+#endif /* STAT_STATVFS64 */
+
+/* Check for the f_fsid.val or f_fsid member. */
+#if (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_FSID_VAL)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_FSID_VAL))
+/*
+ * The contents of the f_fsid member on BSD systems is as follows.
+ * f_fsid::val[0] - The dev_t identifier for the device, which is
+ *                  all that we're interested in.
+ * f_fsid::val[1] - Type of file system, MOUNT_xxx flag.
+ */
+#define F_FSID(buf) ((buf).f_fsid.val[0])
+#endif
+
+#if (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_FSID)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_FSID))
+#define F_FSID(buf) ((buf).f_fsid)
+#endif
+
+#ifndef F_FSID
+#define F_FSID(buf) (0)
+#endif
+
+/* Check for the f_flag or f_flags member. */
+#if (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_FLAG)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_FLAG))
+#define F_FLAGS(buf) ((buf).f_flag)
+#endif
+
+#if (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_FLAGS)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_FLAGS))
+#define F_FLAGS(buf) ((buf).f_flags)
+#endif
+
+#ifndef F_FLAGS
+#define F_FLAGS(buf) (0)
+#endif
+
+/* Check for the f_namemax or f_namelen member. */
+#if (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_NAMEMAX)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_NAMEMAX))
+#define F_NAMELEN(buf) ((buf).f_namemax)
+#endif
+
+#if (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_NAMELEN)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_NAMELEN))
+#define F_NAMELEN(buf) ((buf).f_namelen)
+#endif
+
+#ifndef F_NAMELEN
+#define F_NAMELEN(buf) (255)
+#endif
+
 #endif /* __ALCOUNIX_H__ */
