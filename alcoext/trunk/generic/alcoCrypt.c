@@ -72,9 +72,9 @@ static const CryptCipherMode cipherModes[] = {
 };
 
 /*
- * TODO:
- * - Zero sensitive stack/heap data.
- * - Check if there's a way to zero Tcl command objects (objv) without breaking something.
+ * Sensitive data is not cleared/zeroed because it is not possible to modify
+ * Tcl command arguments (objv) because these objects are shared. Therefore,
+ * clearing/zeroing any other data would be meaningless.
  */
 
 
