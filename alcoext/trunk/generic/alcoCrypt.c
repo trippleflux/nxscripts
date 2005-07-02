@@ -72,9 +72,10 @@ static const CryptCipherMode cipherModes[] = {
 };
 
 /*
- * Sensitive data is not cleared/zeroed because it is not possible to modify
- * Tcl command arguments (objv) because these objects are shared. Therefore,
- * clearing/zeroing any other data would be meaningless.
+ * Sensitive data is not cleared because it is not possible to modify Tcl
+ * command arguments (objv). These argument objects are shared, so modifying
+ * them would have serious consequences. Therefore, clearing any other data
+ * would be meaningless.
  */
 
 
