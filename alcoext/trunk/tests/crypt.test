@@ -14,7 +14,6 @@
 
 package require tcltest 2
 namespace import -force ::tcltest::*
-set scriptPath [file dirname [file normalize [info script]]]
 
 if {$tcl_platform(platform) eq "windows"} {
     set libFile "AlcoExt*"
@@ -22,15 +21,17 @@ if {$tcl_platform(platform) eq "windows"} {
     set libFile "libAlcoExt*"
 }
 append libFile [info sharedlibextension]
-set libFile [lindex [glob -dir [file dirname $scriptPath] -types f $libFile] 0]
+
+set currentPath [file dirname [file normalize [info script]]]
+set libFile [lindex [glob -dir [file dirname $currentPath] -types f $libFile] 0]
 load $libFile
 
 namespace import -force ::alcoholicz::*
 
 # Source crypt test vectors.
-source [file join $scriptPath crypt-hash.tv]
-source [file join $scriptPath crypt-hmac.tv]
-source [file join $scriptPath crypt-cipher.tv]
+source [file join $currentPath crypt-hash.tv]
+source [file join $currentPath crypt-hmac.tv]
+source [file join $currentPath crypt-cipher.tv]
 
 ################################################################################
 # crypt                                                                        #
@@ -57,9 +58,9 @@ test crypt-2.1 {crypt decrypt: no args} {
 } {1 {wrong # args: should be "crypt decrypt ?switches? cipher key data"}}
 
 test crypt-2.2 {crypt decrypt: ecb tests} {
-    foreach algo [array names cipherTestData] {
+    foreach algo [array names cipherTest] {
         set n 1
-        foreach {key plain cipher} $cipherTestData($algo) {
+        foreach {key plain cipher} $cipherTest($algo) {
             set result [crypt decrypt $algo $key $cipher]
 
             if {$plain ne $result} {
@@ -83,9 +84,9 @@ test crypt-3.1 {crypt encrypt: no args} {
 } {1 {wrong # args: should be "crypt encrypt ?switches? cipher key data"}}
 
 test crypt-3.2 {crypt decrypt: ecb tests} {
-    foreach algo [array names cipherTestData] {
+    foreach algo [array names cipherTest] {
         set n 1
-        foreach {key plain cipher} $cipherTestData($algo) {
+        foreach {key plain cipher} $cipherTest($algo) {
             set result [crypt encrypt $algo $key $plain]
 
             if {$cipher ne $result} {
@@ -125,9 +126,9 @@ test crypt-4.5 {crypt hash: invalid hash, with -hmac} {
 } {1 {bad hash ".": must be md2, md4, md5, rmd128, rmd160, sha1, sha224, sha256, sha384, sha512, tiger, or whirlpool}}
 
 test crypt-4.5 {crypt hash: hash tests} {
-    foreach algo [array names hashTestData] {
+    foreach algo [array names hashTest] {
         set n 1
-        foreach {plain hash} $hashTestData($algo) {
+        foreach {plain hash} $hashTest($algo) {
             set result [crypt hash $algo $plain]
 
             if {$hash ne $result} {
@@ -142,9 +143,9 @@ test crypt-4.5 {crypt hash: hash tests} {
 } {}
 
 test crypt-4.6 {crypt hash: hmac tests} {
-    foreach algo [array names hmacTestData] {
+    foreach algo [array names hmacTest] {
         set n 1
-        foreach {key plain hash} $hmacTestData($algo) {
+        foreach {key plain hash} $hmacTest($algo) {
             set result [crypt hash -hmac $key $algo $plain]
 
             if {$hash ne $result} {
@@ -218,9 +219,9 @@ test crypt-6.3 {crypt update: invalid handle} {
 } {1 {invalid crypt handle "."}}
 
 test crypt-6.4 {crypt update: hash tests} {
-    foreach algo [array names hashTestData] {
+    foreach algo [array names hashTest] {
         set n 1
-        foreach {plain hash} $hashTestData($algo) {
+        foreach {plain hash} $hashTest($algo) {
             set handle [crypt start $algo]
             crypt update $handle $plain
             set result [crypt end $handle]
@@ -237,9 +238,9 @@ test crypt-6.4 {crypt update: hash tests} {
 } {}
 
 test crypt-6.5 {crypt update: hmac tests} {
-    foreach algo [array names hmacTestData] {
+    foreach algo [array names hmacTest] {
         set n 1
-        foreach {key plain hash} $hmacTestData($algo) {
+        foreach {key plain hash} $hmacTest($algo) {
             set handle [crypt start -hmac $key $algo]
             crypt update $handle $plain
             set result [crypt end $handle]
@@ -257,9 +258,9 @@ test crypt-6.5 {crypt update: hmac tests} {
 } {}
 
 test crypt-6.6 {crypt update: hash tests, two updates} {
-    foreach algo [array names hashTestData] {
+    foreach algo [array names hashTest] {
         set n 1
-        foreach {plain hash} $hashTestData($algo) {
+        foreach {plain hash} $hashTest($algo) {
             set handle [crypt start $algo]
             set index [expr {[string length $plain] / 2}]
             crypt update $handle [string range $plain 0 $index]
@@ -277,10 +278,10 @@ test crypt-6.6 {crypt update: hash tests, two updates} {
     }
 } {}
 
-test crypt-6.7 {crypt update: hmac tests, three updates} {
-    foreach algo [array names hmacTestData] {
+test crypt-6.7 {crypt update: hmac tests, two updates} {
+    foreach algo [array names hmacTest] {
         set n 1
-        foreach {key plain hash} $hmacTestData($algo) {
+        foreach {key plain hash} $hmacTest($algo) {
             set handle [crypt start -hmac $key $algo]
             set index [expr {[string length $plain] / 2}]
             crypt update $handle [string range $plain 0 $index]
