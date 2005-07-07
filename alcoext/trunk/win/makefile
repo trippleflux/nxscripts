@@ -141,11 +141,11 @@ PKG_SUFFIX  = -$(PKG_SUFFIX)
 !endif
 
 # File and directory paths.
-PKG_BASE    = $(PKG_NAME).dll
 PKG_FILE    = $(PKG_NAME)$(PKG_SUFFIX).dll
 PKG_OUTFILE = $(PKG_TOPDIR)\$(PKG_FILE)
 PKG_INTDIR  = $(PKG_TOPDIR)\$(PKG_OPTIONS:, =)
-PKG_INSTALL = $(INSTALL)\$(PKG_NAME)
+PKG_INSTALL_FILE = $(PKG_NAME)$(PKG_MAJOR)$(PKG_MINOR).dll
+PKG_INSTALL_DIR  = $(INSTALL)\$(PKG_NAME)$(PKG_MAJOR).$(PKG_MINOR)
 
 # Append file and option definitions to cflags.
 PKG_CFLAGS  = $(PKG_CFLAGS) "-DPACKAGE_FILE=\"$(PKG_FILE)\"" "-DPACKAGE_OPTIONS=\"$(PKG_OPTIONS)\""
@@ -425,7 +425,7 @@ $<
 # -------------------------------------------------------------------------
 
 default: all
-all:     setup library
+all:     library
 
 clean:
     @IF EXIST "$(PKG_FILE)" DEL /F "$(PKG_FILE)"
@@ -440,17 +440,21 @@ distclean: clean
     @IF EXIST nmakehlp.exe DEL /F nmakehlp.exe
     @IF EXIST nmakehlp.obj DEL /F nmakehlp.obj
 
-install:
-	@ECHO Installing to: $(PKG_INSTALL)
-    @IF NOT EXIST "$(PKG_INSTALL)" MKDIR "$(PKG_INSTALL)"
-    @COPY /Y $(PKG_OUTFILE) "$(PKG_INSTALL)\$(PKG_BASE)" >NUL
-    @TYPE << >"$(PKG_INSTALL)\pkgIndex.tcl"
-# Tcl package index file.
-package ifneeded $(PKG_NAME) $(PKG_VERSION_DOT) [list load [file join $$dir $(PKG_BASE)]]
-<<
+install: library package-index
+	@ECHO Installing to: $(PKG_INSTALL_DIR)
+    @IF NOT EXIST "$(PKG_INSTALL_DIR)" MKDIR "$(PKG_INSTALL_DIR)"
+    @COPY /Y "$(PKG_OUTFILE)" "$(PKG_INSTALL_DIR)\$(PKG_INSTALL_FILE)" >NUL
+    @COPY /Y "$(PKG_INTDIR)\pkgIndex.tcl" "$(PKG_INSTALL_DIR)" >NUL
 
-library: $(OBJECT_FILES)
+library: setup $(OBJECT_FILES)
     $(LINK) $(LFLAGS) "-out:$(PKG_OUTFILE)" $(INTERMEDIATE_FILES)
+
+package-index: setup
+    @TYPE << >"$(PKG_INTDIR)\pkgIndex.tcl"
+# Tcl package index file.
+if {![package vsatisfies [package provide Tcl] 8.4]} {return}
+package ifneeded $(PKG_NAME) $(PKG_VERSION_DOT) [list load [file join $$dir $(PKG_INSTALL_FILE)]]
+<<
 
 setup:
     @IF NOT EXIST "$(PKG_TOPDIR)" MKDIR "$(PKG_TOPDIR)"

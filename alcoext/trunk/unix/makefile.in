@@ -27,6 +27,31 @@ PKG_STUB_SOURCES= @PKG_STUB_SOURCES@
 PKG_STUB_OBJECTS= @PKG_STUB_OBJECTS@
 
 #========================================================================
+# Installation
+#========================================================================
+
+# These variable names must be lower-case.
+prefix          = @prefix@
+exec_prefix     = @exec_prefix@
+
+BIN_DIR         = @bindir@
+DATA_DIR        = @datadir@
+INCLUDE_DIR     = @includedir@
+LIB_DIR         = @libdir@
+SRC_DIR         = @srcdir@
+
+DEST_DIR        =
+PKG_DIR         = $(PACKAGE_NAME)$(PACKAGE_VERSION)
+PKG_DATA_DIR    = $(DATA_DIR)/$(PKG_DIR)
+PKG_LIB_DIR     = $(LIB_DIR)/$(PKG_DIR)
+PKG_INCLUDE_DIR = $(INCLUDE_DIR)/$(PKG_DIR)
+
+INSTALL         = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA    = @INSTALL_DATA@
+INSTALL_SCRIPT  = @INSTALL_SCRIPT@
+
+#========================================================================
 # Locations
 #========================================================================
 
@@ -62,6 +87,7 @@ SHLIB_CFLAGS    = @SHLIB_CFLAGS@
 SHLIB_LD        = @SHLIB_LD@
 SHLIB_LD_LIBS   = @SHLIB_LD_LIBS@
 STLIB_LD        = @STLIB_LD@
+SHARED_BUILD    = @SHARED_BUILD@
 
 TCL_BIN_DIR     = @TCL_BIN_DIR@
 TCL_DEFS        = @TCL_DEFS@
@@ -95,11 +121,13 @@ COMPILE         = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLA
 
 all: binaries libraries
 
-binaries: $(BINARIES)
+binaries: $(BINARIES) package-index
 
 libraries: binaries
 
 depend:
+
+install: install-binaries
 
 test: binaries libraries
 	$(TCLSH) `@CYGPATH@ $(ROOT_DIR)/tests/all.tcl` $(TESTFLAGS)
@@ -144,6 +172,56 @@ VPATH = $(ROOT_DIR):\
 	$(COMPILE) -c `@CYGPATH@ $<` -o $@
 
 #========================================================================
+# Create package index file.
+#========================================================================
+
+package-index: $(PKG_LIB_FILE)
+	@echo -e '# Tcl package index file.\n\
+	    if {![package vsatisfies [package provide Tcl] 8.4]} {return}\n\
+	    package ifneeded $(PACKAGE_NAME) $(PACKAGE_VERSION) [list load [file join $$dir $(PKG_LIB_FILE)]]'\
+	> pkgIndex.tcl
+
+#========================================================================
+# Install binaries and package index file.
+#========================================================================
+
+install-binaries: binaries
+	@mkdir -p $(DEST_DIR)$(PKG_LIB_DIR)
+	@list='$(BINARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    echo " $(INSTALL_PROGRAM) $$p $(DEST_DIR)$(PKG_LIB_DIR)/$$p"; \
+	    $(INSTALL_PROGRAM) $$p $(DEST_DIR)$(PKG_LIB_DIR)/$$p; \
+	    stub=`echo $$p|sed -e "s/.*\(stub\).*/\1/"`; \
+	    if test "x$$stub" = "xstub"; then \
+		echo " $(RANLIB_STUB) $(DEST_DIR)$(PKG_LIB_DIR)/$$p"; \
+		$(RANLIB_STUB) $(DEST_DIR)$(PKG_LIB_DIR)/$$p; \
+	    else \
+		echo " $(RANLIB) $(DEST_DIR)$(PKG_LIB_DIR)/$$p"; \
+		$(RANLIB) $(DEST_DIR)$(PKG_LIB_DIR)/$$p; \
+	    fi; \
+	    ext=`echo $$p|sed -e "s/.*\.//"`; \
+	    if test "x$$ext" = "xdll"; then \
+		lib=`basename $$p|sed -e 's/.[^.]*$$//'`.lib; \
+		if test -f $$lib; then \
+		    echo " $(INSTALL_DATA) $$lib $(DEST_DIR)$(PKG_LIB_DIR)/$$lib"; \
+	            $(INSTALL_DATA) $$lib $(DEST_DIR)$(PKG_LIB_DIR)/$$lib; \
+		fi; \
+	    fi; \
+	  fi; \
+	done
+	@list='$(PKG_TCL_SOURCES)'; for p in $$list; do \
+	  if test -f $(SRC_DIR)/$$p; then \
+	    destp=`basename $$p`; \
+	    echo " Install $$destp $(DEST_DIR)$(PKG_LIB_DIR)/$$destp"; \
+	    $(INSTALL_DATA) $(SRC_DIR)/$$p $(DEST_DIR)$(PKG_LIB_DIR)/$$destp; \
+	  fi; \
+	done
+	@if test "x$(SHARED_BUILD)" = "x1"; then \
+	    echo " Install pkgIndex.tcl $(DEST_DIR)$(PKG_LIB_DIR)"; \
+	    $(INSTALL_DATA) pkgIndex.tcl $(DEST_DIR)$(PKG_LIB_DIR); \
+	fi
+
+#========================================================================
 # Don't modify the file to clean here.  Instead, set the "CLEANFILES"
 # variable in configure.in
 #========================================================================
@@ -154,10 +232,10 @@ clean:
 	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
 distclean: clean
-	-rm -f config.cache config.log config.status Makefile
+	-rm -f config.cache config.log config.status config.h makefile
 	-rm -rf autom4te.cache
 
-.PHONY: all binaries clean depend distclean libraries test
+.PHONY: all binaries clean depend distclean libraries install package-index test
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
