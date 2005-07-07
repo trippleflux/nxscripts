@@ -59,6 +59,9 @@ TclSetWinError(Tcl_Interp *interp, unsigned long errorCode)
         ERROR_BUFFER_SIZE,
         NULL)) {
             StringCchCopyA(tsdPtr->systemError, ERROR_BUFFER_SIZE, "unknown error");
+    } else {
+        /* Remove trailing CR/LF. */
+        tsdPtr->systemError[strlen(tsdPtr->systemError)-2] = '\0';
     }
 
     Tcl_SetErrorCode(interp, "WINDOWS", errorId, tsdPtr->systemError, NULL);
