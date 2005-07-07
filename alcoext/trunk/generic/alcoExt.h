@@ -15,6 +15,11 @@
 #ifndef __ALCOEXT_H__
 #define __ALCOEXT_H__
 
+/* config.h must be included before tcl.h for memory debugging. */
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif /* HAVE_CONFIG_H */
+
 #include <tcl.h>
 
 /* These definitions are only present in headers for Tcl 8.5, or newer. */
