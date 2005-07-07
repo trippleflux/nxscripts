@@ -38,13 +38,18 @@ const VolumeFlagList volumeFlags[] = {
     {"expReadOnly",     MNT_EXRDONLY},
 #endif
 #ifdef MNT_EXPORTED
-    {"expReadWrite",    MNT_EXPORTED},
+    {"exported",        MNT_EXPORTED},
+#elif defined(ST_EXPORTED)
+    {"exported",        ST_EXPORTED},
 #endif
 #ifdef MNT_IGNORE
     {"ignore",          MNT_IGNORE},
 #endif
 #ifdef MNT_LOCAL
     {"local",           MNT_LOCAL},
+#endif
+#ifdef ST_LARGEFILES
+    {"largeFiles",      ST_LARGEFILES},
 #endif
 #ifdef MNT_MULTILABEL
     {"mac",             MNT_MULTILABEL},
@@ -78,22 +83,28 @@ const VolumeFlagList volumeFlags[] = {
 #endif
 #ifdef MNT_NOSUID
     {"noSuid",          MNT_NOSUID},
-#elif defined(MS_NODEV)
-    {"noSuid",          MS_NODEV},
+#elif defined(MS_NOSUID)
+    {"noSuid",          MS_NOSUID},
+#elif defined(ST_NOSUID)
+    {"noSuid",          ST_NOSUID},
 #endif
 #ifdef MNT_NOSYMFOLLOW
     {"noSymFollow",     MNT_NOSYMFOLLOW},
 #endif
 #ifdef MNT_QUOTA
     {"quotas",          MNT_QUOTA},
+#elif defined(ST_QUOTA)
+    {"quotas",          ST_QUOTA},
 #endif
 #ifdef MNT_RDONLY
     {"readOnly",        MNT_RDONLY},
 #elif defined(MS_RDONLY)
     {"readOnly",        MS_RDONLY},
+#elif defined(ST_RDONLY)
+    {"readOnly",        ST_RDONLY},
 #endif
 #ifdef MNT_ROOTFS
-    {"rootFs",          MNT_ROOTFS},
+    {"root",            MNT_ROOTFS},
 #endif
 #ifdef MNT_SOFTDEP
     {"softDep",         MNT_SOFTDEP},
@@ -156,13 +167,9 @@ GetVolumeInfo(Tcl_Interp *interp, char *volumePath, VolumeInfo *volumeInfo)
     /* Not supported. */
     volumeInfo->name[0] = '\0';
 
-    /* File system name. */
-#ifdef HAVE_STRUCT_STATFS_F_FSTYPENAME
-    strncpy(volumeInfo->type, fsInfo.f_fstypename, VOLINFO_TYPE_LENGTH);
+    /* File system type. */
+    strncpy(volumeInfo->type, F_TYPENAME(fsInfo), VOLINFO_TYPE_LENGTH);
     volumeInfo->type[VOLINFO_TYPE_LENGTH-1] = '\0';
-#else
-    volumeInfo->type[0] = '\0';
-#endif
 
     return TCL_OK;
 }

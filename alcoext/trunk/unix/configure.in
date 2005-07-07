@@ -270,6 +270,8 @@ $ac_includes_default
 #endif
 "
 
+# Structure member checks.
+AC_CHECK_MEMBERS([struct statfs.f_basetype],,,[$statxfs_includes])
 AC_CHECK_MEMBERS([struct statfs.f_flag],,,[$statxfs_includes])
 AC_CHECK_MEMBERS([struct statfs.f_flags],,,[$statxfs_includes])
 AC_CHECK_MEMBERS([struct statfs.f_fsid.val],,,[$statxfs_includes])
@@ -278,6 +280,7 @@ AC_CHECK_MEMBERS([struct statfs.f_fstypename],,,[$statxfs_includes])
 AC_CHECK_MEMBERS([struct statfs.f_namelen],,,[$statxfs_includes])
 AC_CHECK_MEMBERS([struct statfs.f_namemax],,,[$statxfs_includes])
 
+AC_CHECK_MEMBERS([struct statvfs.f_basetype],,,[$statxfs_includes])
 AC_CHECK_MEMBERS([struct statvfs.f_flag],,,[$statxfs_includes])
 AC_CHECK_MEMBERS([struct statvfs.f_flags],,,[$statxfs_includes])
 AC_CHECK_MEMBERS([struct statvfs.f_fsid.val],,,[$statxfs_includes])

@@ -107,6 +107,15 @@
 
 #endif /* STAT_STATVFS64 */
 
+/* Check for the f_basetype or f_fstypename member. */
+#if (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_BASETYPE)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_BASETYPE))
+#define F_TYPENAME(buf) ((buf).f_basetype)
+#elif (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_FSTYPENAME)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_FSTYPENAME))
+#define F_TYPENAME(buf) ((buf).f_fstypename)
+#else
+#define F_TYPENAME(buf) ("")
+#endif
+
 /* Check for the f_fsid.val or f_fsid member. */
 #if (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_FSID_VAL)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_FSID_VAL))
 /*
