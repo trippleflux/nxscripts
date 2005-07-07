@@ -138,108 +138,108 @@ test glftpd-2.5 {glftpd open: handle list} {unix} {
 } {0 1}
 
 ################################################################################
-# glftpd set                                                                   #
+# glftpd config                                                                   #
 ################################################################################
 
-test glftpd-3.1 {glftpd set: no args} {unix} {
-    list [catch {glftpd set} msg] $msg
-} {1 {wrong # args: should be "glftpd set handle ?switch? ?value? ?switch value?..."}}
+test glftpd-3.1 {glftpd config: no args} {unix} {
+    list [catch {glftpd config} msg] $msg
+} {1 {wrong # args: should be "glftpd config handle ?switch? ?value? ?switch value?..."}}
 
-test glftpd-3.2 {glftpd set: wrong args} {unix} {
-    list [catch {glftpd set . -switch val -switch} msg] $msg
-} {1 {wrong # args: should be "glftpd set handle ?switch? ?value? ?switch value?..."}}
+test glftpd-3.2 {glftpd config: wrong args} {unix} {
+    list [catch {glftpd config . -switch val -switch} msg] $msg
+} {1 {wrong # args: should be "glftpd config handle ?switch? ?value? ?switch value?..."}}
 
-test glftpd-3.3 {glftpd set: wrong args} {unix} {
-    list [catch {glftpd set . -switch 0 -switch 0 -switch} msg] $msg
-} {1 {wrong # args: should be "glftpd set handle ?switch? ?value? ?switch value?..."}}
+test glftpd-3.3 {glftpd config: wrong args} {unix} {
+    list [catch {glftpd config . -switch 0 -switch 0 -switch} msg] $msg
+} {1 {wrong # args: should be "glftpd config handle ?switch? ?value? ?switch value?..."}}
 
-test glftpd-3.4 {glftpd set: invalid handle} {unix} {
-    list [catch {glftpd set .} msg] $msg
+test glftpd-3.4 {glftpd config: invalid handle} {unix} {
+    list [catch {glftpd config .} msg] $msg
 } {1 {invalid glftpd handle "."}}
 
-test glftpd-3.5 {glftpd set: invalid switch, get one value} {unix} {
+test glftpd-3.5 {glftpd config: invalid switch, get one value} {unix} {
     set handle [glftpd open $shmKey]
-    set result [list [catch {glftpd set $handle -fake} msg] $msg]
+    set result [list [catch {glftpd config $handle -fake} msg] $msg]
     glftpd close $handle
     set result
 } {1 {bad switch "-fake": must be -etc, -key, or -version}}
 
-test glftpd-3.6 {glftpd set: invalid switch, change one value} {unix} {
+test glftpd-3.6 {glftpd config: invalid switch, change one value} {unix} {
     set handle [glftpd open $shmKey]
-    set result [list [catch {glftpd set $handle -fake 0} msg] $msg]
+    set result [list [catch {glftpd config $handle -fake 0} msg] $msg]
     glftpd close $handle
     set result
 } {1 {bad switch "-fake": must be -etc, -key, or -version}}
 
-test glftpd-3.7 {glftpd set: invalid switch, change several values} {unix} {
+test glftpd-3.7 {glftpd config: invalid switch, change several values} {unix} {
     set handle [glftpd open $shmKey]
-    set result [list [catch {glftpd set $handle -key 1 -fake 0} msg] $msg]
+    set result [list [catch {glftpd config $handle -key 1 -fake 0} msg] $msg]
     glftpd close $handle
     set result
 } {1 {bad switch "-fake": must be -etc, -key, or -version}}
 
-test glftpd-3.8 {glftpd set: get all values} {unix} {
+test glftpd-3.8 {glftpd config: get all values} {unix} {
     set handle [glftpd open $shmKey]
-    set result [glftpd set $handle]
+    set result [glftpd config $handle]
     glftpd close $handle
     set result
 } [list -etc /glftpd/etc -key $shmKey -version 2.01]
 
-test glftpd-3.9 {glftpd set: get -etc} {unix} {
+test glftpd-3.9 {glftpd config: get -etc} {unix} {
     set handle [glftpd open $shmKey]
-    set result [glftpd set $handle -etc]
+    set result [glftpd config $handle -etc]
     glftpd close $handle
     set result
 } {/glftpd/etc}
 
-test glftpd-3.10 {glftpd set: get -key} {unix} {
+test glftpd-3.10 {glftpd config: get -key} {unix} {
     set handle [glftpd open $shmKey]
-    set result [glftpd set $handle -key]
+    set result [glftpd config $handle -key]
     glftpd close $handle
     set result
 } $shmKey
 
-test glftpd-3.11 {glftpd set: get -version} {unix} {
+test glftpd-3.11 {glftpd config: get -version} {unix} {
     set handle [glftpd open $shmKey]
-    set result [glftpd set $handle -version]
+    set result [glftpd config $handle -version]
     glftpd close $handle
     set result
 } {2.01}
 
-test glftpd-3.12 {glftpd set: change -etc} {unix} {
+test glftpd-3.12 {glftpd config: change -etc} {unix} {
     set handle [glftpd open $shmKey]
-    glftpd set $handle -etc {/jail/glftpd/etc}
-    set result [glftpd set $handle -etc]
+    glftpd config $handle -etc {/jail/glftpd/etc}
+    set result [glftpd config $handle -etc]
     glftpd close $handle
     set result
 } {/jail/glftpd/etc}
 
-test glftpd-3.13 {glftpd set: change -key} {unix} {
+test glftpd-3.13 {glftpd config: change -key} {unix} {
     set handle [glftpd open $shmKey]
-    glftpd set $handle -key 256
-    set result [glftpd set $handle -key]
+    glftpd config $handle -key 256
+    set result [glftpd config $handle -key]
     glftpd close $handle
     set result
 } {256}
 
-test glftpd-3.14 {glftpd set: change -version} {unix} {
+test glftpd-3.14 {glftpd config: change -version} {unix} {
     set handle [glftpd open $shmKey]
-    glftpd set $handle -version 2.00
-    set result [glftpd set $handle -version]
+    glftpd config $handle -version 2.00
+    set result [glftpd config $handle -version]
     glftpd close $handle
     set result
 } {2.00}
 
-test glftpd-3.15 {glftpd set: invalid -key} {unix} {
+test glftpd-3.15 {glftpd config: invalid -key} {unix} {
     set handle [glftpd open $shmKey]
-    set result [list [catch {glftpd set $handle -key a} msg] $msg]
+    set result [list [catch {glftpd config $handle -key a} msg] $msg]
     glftpd close $handle
     set result
 } {1 {expected integer but got "a"}}
 
-test glftpd-3.16 {glftpd set: invalid -version} {unix} {
+test glftpd-3.16 {glftpd config: invalid -version} {unix} {
     set handle [glftpd open $shmKey]
-    set result [list [catch {glftpd set $handle -version 1.0} msg] $msg]
+    set result [list [catch {glftpd config $handle -version 1.0} msg] $msg]
     glftpd close $handle
     set result
 } {1 {bad version "1.0": must be 1.3, 2.00, or 2.01}}
@@ -316,7 +316,7 @@ test glftpd-5.8 {glftpd info: maxusers with too many args} {unix} {
 
 test glftpd-5.9 {glftpd info: maxusers} {unix shmKeyExists} {
     set handle [glftpd open $shmKey]
-    glftpd set $handle -version $version
+    glftpd config $handle -version $version
     set maxusers [glftpd info maxusers $handle]
     glftpd close $handle
     list [string is digit -strict $maxusers] [expr {$maxusers >= 0}]
@@ -329,7 +329,7 @@ test glftpd-5.10 {glftpd info: maxusers with wrong version} {unix shmKeyExists} 
     }
 
     set handle [glftpd open $shmKey]
-    glftpd set $handle -version [lindex [lreplace $vers $index $index] 0]
+    glftpd config $handle -version [lindex [lreplace $vers $index $index] 0]
     set result [list [catch {glftpd info maxusers $handle} msg] $msg]
     glftpd close $handle
     set result
@@ -360,7 +360,7 @@ test glftpd-6.4 {glftpd kill: invalid pid} {unix} {
 
 test glftpd-6.5 {glftpd kill: unknown pid} {unix shmKeyExists} {
     set handle [glftpd open $shmKey]
-    glftpd set $handle -version $version
+    glftpd config $handle -version $version
     # Use the current tclsh process ID.
     set result [list [catch {glftpd kill $handle [pid]} msg] $msg]
     glftpd close $handle
@@ -395,7 +395,7 @@ test glftpd-7.5 {glftpd who: invalid etc path} {
     -setup {set tempDir [makeDirectory  {} [GetNonExistentDir]]}
     -body {
         set handle [glftpd open $shmKey]
-        glftpd set $handle -etc $tempDir
+        glftpd config $handle -etc $tempDir
         set result [list [catch {glftpd who $handle "uid"} msg] $msg]
         glftpd close $handle
         string equal $result [list 1 "unable to open \"$tempDir/passwd\": no such file or directory"]
@@ -409,7 +409,7 @@ test glftpd-7.6 {glftpd who: invalid etc path} {
     -setup {set tempDir [makeDirectory  {} [GetNonExistentDir]]}
     -body {
         set handle [glftpd open $shmKey]
-        glftpd set $handle -etc $tempDir
+        glftpd config $handle -etc $tempDir
         set result [list [catch {glftpd who $handle "group"} msg] $msg]
         glftpd close $handle
         string equal $result [list 1 "unable to open \"$tempDir/group\": no such file or directory"]
@@ -420,7 +420,7 @@ test glftpd-7.6 {glftpd who: invalid etc path} {
 
 test glftpd-7.7 {glftpd who: passwd file parser} {unix shmKeyExists} {
     set handle [glftpd open $shmKey]
-    glftpd set $handle -etc [file join $currentPath glftpd-etc] -version $version
+    glftpd config $handle -etc [file join $currentPath glftpd-etc] -version $version
 
     # glFTPD's 'passwd' file is parsed for resolving user names to IDs.
     glftpd who $handle "uid"
@@ -429,7 +429,7 @@ test glftpd-7.7 {glftpd who: passwd file parser} {unix shmKeyExists} {
 
 test glftpd-7.8 {glftpd who: group file parser} {unix shmKeyExists} {
     set handle [glftpd open $shmKey]
-    glftpd set $handle -etc [file join $currentPath glftpd-etc] -version $version
+    glftpd config $handle -etc [file join $currentPath glftpd-etc] -version $version
 
     # glFTPD's 'group' file is parsed for resolving group IDs to names.
     glftpd who $handle "group"
@@ -441,7 +441,7 @@ test glftpd-7.9 {glftpd who: user ID resolving} {unix shmKeyExists} {
     set result ""
 
     set handle [glftpd open $shmKey]
-    glftpd set $handle -etc $etcPath -version $version
+    glftpd config $handle -etc $etcPath -version $version
     foreach online [glftpd who $handle "uid user"] {
         set id [lindex $online 0]
         set name [lindex $online 1]
@@ -459,7 +459,7 @@ test glftpd-7.10 {glftpd who: group name resolving} {unix shmKeyExists} {
     set result ""
 
     set handle [glftpd open $shmKey]
-    glftpd set $handle -etc $etcPath -version $version
+    glftpd config $handle -etc $etcPath -version $version
     foreach online [glftpd who $handle "gid group"] {
         set id [lindex $online 0]
         set name [lindex $online 1]
@@ -480,7 +480,7 @@ test glftpd-7.11 {glftpd who: check fields} {unix etcPathExists shmKeyExists} {
     set result ""
 
     set handle [glftpd open $shmKey]
-    glftpd set $handle -etc $etcPath -version $version
+    glftpd config $handle -etc $etcPath -version $version
     for {set i 0} {$i < $fieldCount} {incr i} {
         set getFields [lrange $fields 0 $i]
         set data [glftpd who $handle $getFields]

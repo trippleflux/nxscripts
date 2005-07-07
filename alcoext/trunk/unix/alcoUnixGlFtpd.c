@@ -16,9 +16,9 @@
  *       - Returns a glFTPD session handle, used by all subcommands.
  *       - The default 'etc' directory path and version is '/glftpd/etc' and
  *         2.01, respectively. These default values can be changed with the
- *         'glftpd set' command.
+ *         'glftpd config' command.
  *
- *     glftpd set <handle> [<switch> [value] ...]
+ *     glftpd config <handle> [<switch> [value] ...]
  *       - Modify and retrieve options for glFTPD handles.
  *       - This command behaves similar to Tcl's 'fconfigure' command. If no
  *         switches are given, a list of options and values is returned. If
@@ -53,7 +53,7 @@
 
 /* Tcl command functions. */
 static int GlOpenCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
-static int GlSetCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
+static int GlConfigCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
 static int GlCloseCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
 static int GlInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
 static int GlKillCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
@@ -663,7 +663,7 @@ GlOpenCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePt
 
 
 /*
- * GlSetCmd
+ * GlConfigCmd
  *
  *   Change options for an existing glFTPD session handle.
  *
@@ -681,7 +681,7 @@ GlOpenCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePt
  */
 
 static int
-GlSetCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
+GlConfigCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
 {
     int i;
     int index;
@@ -703,7 +703,7 @@ GlSetCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr
 
     /*
      * List all options and their corresponding values.
-     * Cmd: glftpd set <handle>
+     * Cmd: glftpd config <handle>
      */
     if (objc == 3) {
         Tcl_Obj *resultPtr = Tcl_GetObjResult(interp);
@@ -735,7 +735,7 @@ GlSetCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr
 
     /*
      * Retrieve the value of a given option.
-     * Cmd: glftpd set <handle> -switch
+     * Cmd: glftpd config <handle> -switch
      */
     if (objc == 4) {
         if (Tcl_GetIndexFromObj(interp, objv[3], switches, "switch", TCL_EXACT, &index) != TCL_OK) {
@@ -762,8 +762,8 @@ GlSetCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr
 
     /*
      * Change one or more options.
-     * Cmd: glftpd set <handle> -switch value
-     * Cmd: glftpd set <handle> -switch value -switch value
+     * Cmd: glftpd config <handle> -switch value
+     * Cmd: glftpd config <handle> -switch value -switch value
      */
     for (i = 3; i < objc; i++) {
         char *name = Tcl_GetString(objv[i]);
@@ -1315,8 +1315,8 @@ GlFtpdObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 {
     ExtState *statePtr = (ExtState *) clientData;
     int index;
-    static const char *options[] = {"close", "info", "kill", "open", "set", "who", NULL};
-    enum options {OPTION_CLOSE, OPTION_INFO, OPTION_KICK, OPTION_OPEN, OPTION_SET, OPTION_WHO};
+    static const char *options[] = {"close", "config", "info", "kill", "open", "who", NULL};
+    enum options {OPTION_CLOSE, OPTION_CONFIG, OPTION_INFO, OPTION_KICK, OPTION_OPEN, OPTION_WHO};
 
     if (objc < 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "option arg ?arg ...?");
@@ -1328,12 +1328,12 @@ GlFtpdObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
     }
 
     switch ((enum options) index) {
-        case OPTION_CLOSE: return GlCloseCmd(interp, objc, objv, statePtr);
-        case OPTION_INFO:  return GlInfoCmd(interp, objc, objv, statePtr);
-        case OPTION_KICK:  return GlKillCmd(interp, objc, objv, statePtr);
-        case OPTION_OPEN:  return GlOpenCmd(interp, objc, objv, statePtr);
-        case OPTION_SET:   return GlSetCmd(interp, objc, objv, statePtr);
-        case OPTION_WHO:   return GlWhoCmd(interp, objc, objv, statePtr);
+        case OPTION_CONFIG: return GlConfigCmd(interp, objc, objv, statePtr);
+        case OPTION_CLOSE:  return GlCloseCmd(interp, objc, objv, statePtr);
+        case OPTION_INFO:   return GlInfoCmd(interp, objc, objv, statePtr);
+        case OPTION_KICK:   return GlKillCmd(interp, objc, objv, statePtr);
+        case OPTION_OPEN:   return GlOpenCmd(interp, objc, objv, statePtr);
+        case OPTION_WHO:    return GlWhoCmd(interp, objc, objv, statePtr);
     }
 
     /* This point should never be reached. */
