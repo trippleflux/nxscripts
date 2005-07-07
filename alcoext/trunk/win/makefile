@@ -15,10 +15,11 @@
 #     nmake -f makefile [OPTION=1 ...]
 #
 #   Options:
-#     DEBUG    - Symbolic debugging.
-#     DEVPERF  - Compuware DevPartner performance analysis.
-#     MEMDEBUG - Tcl memory debugging.
-#     THREADS  - Threading support.
+#     DEBUG    - Toggle symbolic debugging.
+#     DEVPERF  - Toggle Compuware DevPartner performance analysis.
+#     INSTALL  - Target installation path.
+#     MEMDEBUG - Toggle Tcl memory debugging.
+#     THREADS  - Toggle threading support.
 #
 
 # PSDK Settings
@@ -67,16 +68,22 @@ PKG_OPTIONS = Debug
 !if $(MEMDEBUG)
 !message *** Option: Memory Debugging
 PKG_SUFFIX  = $(PKG_SUFFIX)M
-PKG_OPTIONS = $(PKG_OPTIONS)Memory
+PKG_OPTIONS = $(PKG_OPTIONS), Memory
 TCL_CFLAGS  = $(TCL_CFLAGS) -DTCL_MEM_DEBUG=1
 !endif
+!endif
+
+!ifndef INSTALL
+INSTALL     = $(ROOT)
+!elseif !exist("$(INSTALL)")
+!error The given installation path does not exist.
 !endif
 
 !ifdef THREADS
 !if $(THREADS)
 !message *** Option: Threads
 PKG_SUFFIX  = $(PKG_SUFFIX)T
-PKG_OPTIONS = $(PKG_OPTIONS)Threads
+PKG_OPTIONS = $(PKG_OPTIONS), Threads
 TCL_CFLAGS  = $(TCL_CFLAGS) -DTCL_THREADS=1
 !endif
 !endif
@@ -87,7 +94,7 @@ TCL_CFLAGS  = $(TCL_CFLAGS) -DTCL_THREADS=1
 !if $(DEVPERF)
 !message *** Option: DevPartner Performance Analysis
 PKG_SUFFIX  = $(PKG_SUFFIX)P
-PKG_OPTIONS = $(PKG_OPTIONS)Perf
+PKG_OPTIONS = $(PKG_OPTIONS), Perf
 CC      = NMCL /NMttOn
 LINK    = NMLINK /NMttOn
 !endif
@@ -101,14 +108,14 @@ LINK    = NMLINK /NMttOn
 !endif
 
 !if !defined(TCL_DIR)
-!error Failed to find tcl.h; the TCL_DIR variable is incorrect.
+!error Unable to find tcl.h; the TCL_DIR variable is incorrect.
 !endif
 
 TCL_DIR = $(TCL_DIR:/=\)
 !if exist("$(TCL_DIR)\include\tcl.h")
 TCL_H   = $(TCL_DIR)\include\tcl.h
 !else
-!error Failed to find tcl.h; the TCL_DIR variable is incorrect.
+!error Unable to find tcl.h; the TCL_DIR variable is incorrect.
 !endif
 
 !if [nmakehlp -v $(TCL_H) ""] == 0
@@ -133,9 +140,15 @@ TCL_INCLUDES = $(TCL_DIR)\include
 PKG_SUFFIX  = -$(PKG_SUFFIX)
 !endif
 
+# File and directory paths.
+PKG_BASE    = $(PKG_NAME).dll
 PKG_FILE    = $(PKG_NAME)$(PKG_SUFFIX).dll
 PKG_OUTFILE = $(PKG_TOPDIR)\$(PKG_FILE)
-PKG_INTDIR  = $(PKG_TOPDIR)\$(PKG_OPTIONS)
+PKG_INTDIR  = $(PKG_TOPDIR)\$(PKG_OPTIONS:, =)
+PKG_INSTALL = $(INSTALL)\$(PKG_NAME)
+
+# Append file and option definitions to cflags.
+PKG_CFLAGS  = $(PKG_CFLAGS) "-DPACKAGE_FILE=\"$(PKG_FILE)\"" "-DPACKAGE_OPTIONS=\"$(PKG_OPTIONS)\""
 
 INCLUDE_DIRS=\
     -I"$(TCL_INCLUDES)"\
@@ -412,28 +425,33 @@ $<
 # -------------------------------------------------------------------------
 
 default: all
-all:     setup library install
-release: setup library
+all:     setup library
 
 clean:
-    @IF EXIST $(PKG_FILE) DEL /F $(PKG_FILE)
-    @IF EXIST $(PKG_OUTFILE) DEL /F $(PKG_OUTFILE)
-    @IF EXIST $(PKG_INTDIR)\nul RMDIR /Q /S $(PKG_INTDIR)
+    @IF EXIST "$(PKG_FILE)" DEL /F "$(PKG_FILE)"
+    @IF EXIST "$(PKG_OUTFILE)" DEL /F "$(PKG_OUTFILE)"
+    @IF EXIST "$(PKG_INTDIR)" RMDIR /Q /S "$(PKG_INTDIR)"
     @IF EXIST version.vc DEL /F version.vc
 
 distclean: clean
-    @DEL $(PKG_NAME)*.dll *.obj *.pdb
-    @IF EXIST Debug\nul RMDIR /Q /S Debug
-    @IF EXIST Release\nul RMDIR /Q /S Release
+    @DEL "$(PKG_NAME)*.dll" *.obj *.pdb
+    @IF EXIST Debug RMDIR /Q /S Debug
+    @IF EXIST Release RMDIR /Q /S Release
     @IF EXIST nmakehlp.exe DEL /F nmakehlp.exe
     @IF EXIST nmakehlp.obj DEL /F nmakehlp.obj
 
 install:
-    @COPY /Y $(PKG_OUTFILE) $(ROOT)
+	@ECHO Installing to: $(PKG_INSTALL)
+    @IF NOT EXIST "$(PKG_INSTALL)" MKDIR "$(PKG_INSTALL)"
+    @COPY /Y $(PKG_OUTFILE) "$(PKG_INSTALL)\$(PKG_BASE)" >NUL
+    @TYPE << >"$(PKG_INSTALL)\pkgIndex.tcl"
+# Tcl package index file.
+package ifneeded $(PKG_NAME) $(PKG_VERSION_DOT) [list load [file join $$dir $(PKG_BASE)]]
+<<
 
 library: $(OBJECT_FILES)
-    $(LINK) $(LFLAGS) -out:$(PKG_OUTFILE) $(INTERMEDIATE_FILES)
+    $(LINK) $(LFLAGS) "-out:$(PKG_OUTFILE)" $(INTERMEDIATE_FILES)
 
 setup:
-    @IF NOT EXIST $(PKG_TOPDIR)\nul MKDIR $(PKG_TOPDIR)
-    @IF NOT EXIST $(PKG_INTDIR)\nul MKDIR $(PKG_INTDIR)
+    @IF NOT EXIST "$(PKG_TOPDIR)" MKDIR "$(PKG_TOPDIR)"
+    @IF NOT EXIST "$(PKG_INTDIR)" MKDIR "$(PKG_INTDIR)"
