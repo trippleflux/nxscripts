@@ -43,6 +43,34 @@ proc CheckShmKey {shmKey} {
     return 0
 }
 
+# Retrieve a list of users and UIDs {UserName UserID UserName UserID ...}
+proc GetUserNames {passwd} {
+    set users [list]
+    set handle [open $passwd r]
+    while {![eof $handle]} {
+        ## Format: user:password:uid:gid:date:homedir:irrelevant
+        set line [split [gets $handle] ":"]
+        if {[llength $line] != 7} {continue}
+        lappend users [lindex $line 0] [lindex $line 2]
+    }
+    close $handle
+    return $users
+}
+
+# Retrieve a list of GIDs and groups {GroupID GroupName GroupID GroupName ...}
+proc GetGroupIds {group} {
+    set groups [list]
+    set handle [open $group r]
+    while {![eof $handle]} {
+        ## Format: group:description:gid:irrelevant
+        set line [split [gets $handle] ":"]
+        if {[llength $line] != 4} {continue}
+        lappend groups [lindex $line 2] [lindex $line 0]
+    }
+    close $handle
+    return $groups
+}
+
 proc GetNonExistentDir {} {
     # Loop until a nonexistent directory is found.
     while {1} {
@@ -104,7 +132,9 @@ test glftpd-2.5 {glftpd open: handle list} {unix} {
     set handle [glftpd open $shmKey]
     set handlesAfter [glftpd info handles]
     glftpd close $handle
-    list [expr {[lsearch -exact $handlesBefore $handle] != -1}] [expr {[lsearch -exact $handlesAfter $handle] != -1}]
+    set result [list [expr {[lsearch -exact $handlesBefore $handle] != -1}] [expr {[lsearch -exact $handlesAfter $handle] != -1}]]
+    unset handlesBefore handlesAfter
+    set result
 } {0 1}
 
 ################################################################################
@@ -236,7 +266,9 @@ test glftpd-4.4 {glftpd close: check close} {unix} {
     set handlesMiddle [glftpd info handles]
     glftpd close $handle
     set handlesEnd [glftpd info handles]
-    list [llength $handlesStart] [llength $handlesMiddle] [llength $handlesEnd]
+    set result [list [llength $handlesStart] [llength $handlesMiddle] [llength $handlesEnd]]
+    unset handlesStart handlesMiddle handlesEnd
+    set result
 } {0 1 0}
 
 ################################################################################
@@ -256,8 +288,8 @@ test glftpd-5.3 {glftpd info: invalid option} {unix} {
 } {1 {bad option ".": must be handles or maxusers}}
 
 test glftpd-5.4 {glftpd info: handles with too many args} {unix} {
-    llength [glftpd info handles]
-} {0}
+    list [catch {glftpd info handles a} msg] $msg
+} {1 {wrong # args: should be "glftpd info handles"}}
 
 test glftpd-5.5 {glftpd info: handles} {unix} {
     llength [glftpd info handles]
@@ -269,7 +301,9 @@ test glftpd-5.6 {glftpd info: handles} {unix} {
     set handles [glftpd info handles]
     glftpd close $handleOne
     glftpd close $handleTwo
-    list [llength $handles] [llength [glftpd info handles]]
+    set result [list [llength $handles] [llength [glftpd info handles]]]
+    unset handles
+    set result
 } {2 0}
 
 test glftpd-5.7 {glftpd info: maxusers with invalid handle} {unix} {
@@ -402,9 +436,48 @@ test glftpd-7.8 {glftpd who: group file parser} {unix shmKeyExists} {
     glftpd close $handle
 } {}
 
-test glftpd-7.9 {glftpd who: check fields} {unix etcPathExists shmKeyExists} {
+test glftpd-7.9 {glftpd who: user ID resolving} {unix shmKeyExists} {
+    array set users [GetUserNames [file join $etcPath passwd]]
+    set result ""
+
+    set handle [glftpd open $shmKey]
+    glftpd set $handle -etc $etcPath -version $version
+    foreach online [glftpd who $handle "uid user"] {
+        set id [lindex $online 0]
+        set name [lindex $online 1]
+        if {[info exists users($name)] && $users($name) != $id} {
+            set result "expected $users($name) for user $name but got $id"
+        }
+    }
+    glftpd close $handle
+    unset -nocomplain online id name
+    set result
+} {}
+
+test glftpd-7.10 {glftpd who: group name resolving} {unix shmKeyExists} {
+    array set gids [GetGroupIds [file join $etcPath group]]
+    set result ""
+
+    set handle [glftpd open $shmKey]
+    glftpd set $handle -etc $etcPath -version $version
+    foreach online [glftpd who $handle "gid group"] {
+        set id [lindex $online 0]
+        set name [lindex $online 1]
+
+        if {[info exists gids($id)] && $gids($id) ne $name} {
+            set result "expected $gids($id) for GID $id but got $name"
+            break
+        }
+    }
+    glftpd close $handle
+    unset -nocomplain online id name
+    set result
+} {}
+
+test glftpd-7.11 {glftpd who: check fields} {unix etcPathExists shmKeyExists} {
     set fields {action gid group host idletime logintime path pid size speed ssl status tagline uid user}
     set fieldCount [llength $fields]
+    set result ""
 
     set handle [glftpd open $shmKey]
     glftpd set $handle -etc $etcPath -version $version
@@ -413,11 +486,14 @@ test glftpd-7.9 {glftpd who: check fields} {unix etcPathExists shmKeyExists} {
         set data [glftpd who $handle $getFields]
         foreach user $data {
             if {[llength $user] != [llength $getFields]} {
-                return "expected fields \"$getFields\" but got \"$user\""
+                set result "expected fields \"$getFields\" but got \"$user\""
+                break
             }
         }
     }
     glftpd close $handle
+    unset -nocomplain data user
+    set result
 } {}
 
 ################################################################################
@@ -436,7 +512,8 @@ test glftpd-8.1 {glftpd: leak test} {unix} {
 
 test glftpd-8.2 {glftpd: leak test, separate interp} {unix singleTestInterp} {
     set interp [interp create]
-    interp eval $interp [list load $libFile; set shmKey $shmKey]
+    interp eval $interp [list load $libFile]
+    interp eval $interp [list set shmKey $shmKey]
 
     interp eval $interp {
         namespace import -force ::alcoholicz::*

@@ -346,8 +346,7 @@ test crypt-8.5 {crypt info: cipher count} {
 } {19}
 
 test crypt-8.4 {crypt info: ciphers must be in alphabetical order} {
-    set ciphers [crypt info ciphers]
-    string equal $ciphers [lsort $ciphers]
+    string equal [crypt info ciphers] [lsort [crypt info ciphers]]
 } {1}
 
 test crypt-8.6 {crypt info: handles} {
@@ -368,8 +367,7 @@ test crypt-8.8 {crypt info: hash count} {
 } {12}
 
 test crypt-8.9 {crypt info: hashes must be in alphabetical order} {
-    set hashes [crypt info hashes]
-    string equal $hashes [lsort $hashes]
+    string equal [crypt info hashes] [lsort [crypt info hashes]]
 } {1}
 
 test crypt-8.10 {crypt info: mode list} {
@@ -377,8 +375,7 @@ test crypt-8.10 {crypt info: mode list} {
 } {5}
 
 test crypt-8.11 {crypt info: modes must be in alphabetical order} {
-    set modes [crypt info modes]
-    string equal $modes [lsort $modes]
+    string equal [crypt info modes] [lsort [crypt info modes]]
 } {1}
 
 ################################################################################

@@ -64,16 +64,16 @@ static int GetOnlineData(Tcl_Interp *interp, key_t shmKey, int version,
     int *maxUsers, GlOnlineGeneric ***onlineData);
 static void FreeOnlineData(int maxUsers, GlOnlineGeneric **onlineData);
 static int GetOnlineFields(Tcl_Interp *interp, GlHandle *handlePtr, unsigned char *fields,
-    int fieldCount, GlUser *userListPtr, GlGroup *groupListPtr);
+    int fieldCount, GlUser **userListPtr, GlGroup **groupListPtr);
 
 /* User and group functions */
 inline int ParseFields(const char *line, int delims, int *lengthPtr, long *idPtr);
-static int GetUserList(Tcl_Interp *interp, const char *etcPath, GlUser *userListPtr);
-static void FreeUserList(GlUser *userListPtr);
-static long GetUserIdFromName(GlUser *userListPtr, const char *userName);
-static int GetGroupList(Tcl_Interp *interp, const char *etcPath, GlGroup *groupListPtr);
-static void FreeGroupList(GlGroup *groupListPtr);
-static char *GetGroupNameFromId(GlGroup *groupListPtr, long groupId);
+static int GetUserList(Tcl_Interp *interp, const char *etcPath, GlUser **userListPtr);
+static void FreeUserList(GlUser **userListPtr);
+static long GetUserIdFromName(GlUser **userListPtr, const char *userName);
+static int GetGroupList(Tcl_Interp *interp, const char *etcPath, GlGroup **groupListPtr);
+static void FreeGroupList(GlGroup **groupListPtr);
+static char *GetGroupNameFromId(GlGroup **groupListPtr, long groupId);
 
 /* Changes to this array must also be reflected in GetOnlineData(). */
 static const GlVersion versions[] = {
@@ -151,13 +151,14 @@ ParseFields(const char *line, int delims, int *lengthPtr, long *idPtr)
     char *p = (char *) line;
     int i;
 
-    /* Format: <name>:ignored:<ID> */
+    *lengthPtr = 0;
     for (i = 0; i < delims; i++) {
         if ((p = strstr(p, ":")) == NULL) {
             break;
         }
         p++;
 
+        /* Format: <name>:ignored:<ID> */
         if (i == 0) {
             /* Length of the 'name' field in characters. */
             *lengthPtr = (int) (p - line) - 1;
@@ -168,7 +169,7 @@ ParseFields(const char *line, int delims, int *lengthPtr, long *idPtr)
         }
     }
 
-    return (i < delims) ? TCL_ERROR : TCL_OK;
+    return (i < delims || *lengthPtr < 1) ? TCL_ERROR : TCL_OK;
 }
 
 
@@ -190,7 +191,7 @@ ParseFields(const char *line, int delims, int *lengthPtr, long *idPtr)
  */
 
 static int
-GetUserList(Tcl_Interp *interp, const char *etcPath, GlUser *userListPtr)
+GetUserList(Tcl_Interp *interp, const char *etcPath, GlUser **userListPtr)
 {
     char *p;
     char line[512];
@@ -236,12 +237,8 @@ GetUserList(Tcl_Interp *interp, const char *etcPath, GlUser *userListPtr)
             userPtr->id = userId;
 
             /* Insert entry at the list head. */
-            if (userListPtr == NULL) {
-                userPtr->next = NULL;
-            } else {
-                userPtr->next = userListPtr;
-            }
-            userListPtr = userPtr;
+            userPtr->next = *userListPtr;
+            *userListPtr = userPtr;
         }
     }
 
@@ -266,13 +263,14 @@ GetUserList(Tcl_Interp *interp, const char *etcPath, GlUser *userListPtr)
  */
 
 static void
-FreeUserList(GlUser *userListPtr)
+FreeUserList(GlUser **userListPtr)
 {
     GlUser *userPtr;
-    while (userListPtr != NULL) {
-        userPtr = userListPtr->next;
-        ckfree((char *) userListPtr);
-        userListPtr = userPtr;
+
+    while (*userListPtr != NULL) {
+        userPtr = (*userListPtr)->next;
+        ckfree((char *) *userListPtr);
+        *userListPtr = userPtr;
     }
 }
 
@@ -295,10 +293,11 @@ FreeUserList(GlUser *userListPtr)
  */
 
 static long
-GetUserIdFromName(GlUser *userListPtr, const char *userName)
+GetUserIdFromName(GlUser **userListPtr, const char *userName)
 {
     GlUser *userPtr;
-    for (userPtr = userListPtr; userPtr != NULL; userPtr = userListPtr->next) {
+
+    for (userPtr = *userListPtr; userPtr != NULL; userPtr = userPtr->next) {
         if (strcmp(userName, userPtr->name) == 0) {
             return userPtr->id;
         }
@@ -325,7 +324,7 @@ GetUserIdFromName(GlUser *userListPtr, const char *userName)
  */
 
 static int
-GetGroupList(Tcl_Interp *interp, const char *etcPath, GlGroup *groupListPtr)
+GetGroupList(Tcl_Interp *interp, const char *etcPath, GlGroup **groupListPtr)
 {
     char *p;
     char line[512];
@@ -371,12 +370,8 @@ GetGroupList(Tcl_Interp *interp, const char *etcPath, GlGroup *groupListPtr)
             groupPtr->id = userId;
 
             /* Insert entry at the list head. */
-            if (groupListPtr == NULL) {
-                groupPtr->next = NULL;
-            } else {
-                groupPtr->next = groupListPtr;
-            }
-            groupListPtr = groupPtr;
+            groupPtr->next = *groupListPtr;
+            *groupListPtr = groupPtr;
         }
     }
 
@@ -400,13 +395,14 @@ GetGroupList(Tcl_Interp *interp, const char *etcPath, GlGroup *groupListPtr)
  */
 
 static void
-FreeGroupList(GlGroup *groupListPtr)
+FreeGroupList(GlGroup **groupListPtr)
 {
     GlGroup *groupPtr;
-    while (groupListPtr != NULL) {
-        groupPtr = groupListPtr->next;
-        ckfree((char *) groupListPtr);
-        groupListPtr = groupPtr;
+
+    while (*groupListPtr != NULL) {
+        groupPtr = (*groupListPtr)->next;
+        ckfree((char *) *groupListPtr);
+        *groupListPtr = groupPtr;
     }
 }
 
@@ -429,10 +425,11 @@ FreeGroupList(GlGroup *groupListPtr)
  */
 
 static char *
-GetGroupNameFromId(GlGroup *groupListPtr, long groupId)
+GetGroupNameFromId(GlGroup **groupListPtr, long groupId)
 {
     GlGroup *groupPtr;
-    for (groupPtr = groupListPtr; groupPtr != NULL; groupPtr = groupListPtr->next) {
+
+    for (groupPtr = *groupListPtr; groupPtr != NULL; groupPtr = groupPtr->next) {
         if (groupId == groupPtr->id) {
             return groupPtr->name;
         }
@@ -941,6 +938,11 @@ GlInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePt
             Tcl_HashEntry *hashEntryPtr;
             Tcl_HashSearch hashSearch;
 
+            if (objc != 3) {
+                Tcl_WrongNumArgs(interp, 3, objv, NULL);
+                return TCL_ERROR;
+            }
+
             /* Create a list of open glFTPD handles. */
             for (hashEntryPtr = Tcl_FirstHashEntry(statePtr->glTable, &hashSearch);
                 hashEntryPtr != NULL;
@@ -1116,13 +1118,13 @@ GlWhoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr
         if (fieldIndex == WHO_GROUP) {
             /* Read '/glftpd/etc/group' for group ID to group name resolving. */
             if (groupListPtr == NULL && GetGroupList(interp, handlePtr->etcPath,
-                groupListPtr) != TCL_OK) {
+                &groupListPtr) != TCL_OK) {
                 goto end;
             }
         } else if (fieldIndex == WHO_UID) {
             /* Read '/glftpd/etc/passwd' for user name to user ID resolving. */
             if (userListPtr == NULL && GetUserList(interp, handlePtr->etcPath,
-                userListPtr) != TCL_OK) {
+                &userListPtr) != TCL_OK) {
                 goto end;
             }
         }
@@ -1131,14 +1133,14 @@ GlWhoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr
     }
 
     result = GetOnlineFields(interp, handlePtr, fields, elementCount,
-        userListPtr, groupListPtr);
+        &userListPtr, &groupListPtr);
 
     end:
     if (userListPtr != NULL) {
-        FreeUserList(userListPtr);
+        FreeUserList(&userListPtr);
     }
     if (groupListPtr != NULL) {
-        FreeGroupList(groupListPtr);
+        FreeGroupList(&groupListPtr);
     }
 
     ckfree((char *) fields);
@@ -1169,7 +1171,7 @@ GlWhoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr
 
 static int
 GetOnlineFields(Tcl_Interp *interp, GlHandle *handlePtr, unsigned char *fields,
-    int fieldCount, GlUser *userListPtr, GlGroup *groupListPtr)
+    int fieldCount, GlUser **userListPtr, GlGroup **groupListPtr)
 {
     int i;
     int j;
