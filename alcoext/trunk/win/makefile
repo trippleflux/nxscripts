@@ -37,9 +37,8 @@ TARGETOS    = WINNT
 # -------------------------------------------------------------------------
 
 ROOT        = ..
-PKG_SUFFIX  =
-PKG_TOPDIR  = Release
-PKG_OPTIONS = Release
+TCL_SUFFIX  = tg
+PKG_SUFFIX  = DMTP
 
 PKG_VERSION_DOT = $(PKG_MAJOR).$(PKG_MINOR).$(PKG_PATCH)
 PKG_VERSION_RES = $(PKG_MAJOR),$(PKG_MINOR),$(PKG_PATCH),$(PKG_STATUS)
@@ -52,25 +51,28 @@ ZLIB_CFLAGS = -DASMV -DASMINF
 
 # -------------------------------------------------------------------------
 
-NODEBUG=1
-
-!ifdef DEBUG
-!if $(DEBUG)
+!if "$(DEBUG)" == "1"
 !message *** Option: Symbolic Debugging
-PKG_SUFFIX  = $(PKG_SUFFIX)D
-PKG_TOPDIR  = Debug
 PKG_OPTIONS = Debug
+PKG_TOPDIR  = Debug
+# Make sure NODEBUG is not defined for debug builds.
+!ifdef NODEBUG
 !undef NODEBUG
 !endif
+!else
+NODEBUG     = 1
+PKG_OPTIONS = Release
+PKG_TOPDIR  = Release
+PKG_SUFFIX  = $(PKG_SUFFIX:D=)
+TCL_SUFFIX  = $(TCL_SUFFIX:g=)
 !endif
 
-!ifdef MEMDEBUG
-!if $(MEMDEBUG)
+!if "$(MEMDEBUG)" == "1"
 !message *** Option: Memory Debugging
-PKG_SUFFIX  = $(PKG_SUFFIX)M
 PKG_OPTIONS = $(PKG_OPTIONS), Memory
 TCL_CFLAGS  = $(TCL_CFLAGS) -DTCL_MEM_DEBUG=1
-!endif
+!else
+PKG_SUFFIX  = $(PKG_SUFFIX:M=)
 !endif
 
 !ifndef INSTALL
@@ -79,25 +81,24 @@ INSTALL     = $(ROOT)
 !error The given installation path does not exist.
 !endif
 
-!ifdef THREADS
-!if $(THREADS)
+!if "$(THREADS)" == "1"
 !message *** Option: Threads
-PKG_SUFFIX  = $(PKG_SUFFIX)T
 PKG_OPTIONS = $(PKG_OPTIONS), Threads
 TCL_CFLAGS  = $(TCL_CFLAGS) -DTCL_THREADS=1
-!endif
+!else
+PKG_SUFFIX  = $(PKG_SUFFIX:T=)
+TCL_SUFFIX  = $(TCL_SUFFIX:t=)
 !endif
 
 !include "win32.mak"
 
-!ifdef DEVPERF
-!if $(DEVPERF)
+!if "$(DEVPERF)" == "1"
 !message *** Option: DevPartner Performance Analysis
-PKG_SUFFIX  = $(PKG_SUFFIX)P
+CC          = NMCL /NMttOn
+LINK        = NMLINK /NMttOn
 PKG_OPTIONS = $(PKG_OPTIONS), Perf
-CC      = NMCL /NMttOn
-LINK    = NMLINK /NMttOn
-!endif
+!else
+PKG_SUFFIX  = $(PKG_SUFFIX:P=)
 !endif
 
 # -------------------------------------------------------------------------
@@ -125,9 +126,9 @@ TCL_DOTVERSION  = 8.4
 TCL_VERSION = $(TCL_DOTVERSION:.=)
 !endif
 
-TCL_SH       = "$(TCL_DIR)\bin\tclsh$(TCL_VERSION)$(SUFX).exe"
+TCL_SH       = "$(TCL_DIR)\bin\tclsh$(TCL_VERSION)$(TCL_SUFFIX).exe"
 TCL_STUBLIB  = "$(TCL_DIR)\lib\tclstub$(TCL_VERSION).lib"
-TCL_IMPLIB   = "$(TCL_DIR)\lib\tcl$(TCL_VERSION)$(SUFX).lib"
+TCL_IMPLIB   = "$(TCL_DIR)\lib\tcl$(TCL_VERSION)$(TCL_SUFFIX).lib"
 TCL_LIBRARY  = $(TCL_DIR)\lib
 TCL_INCLUDES = $(TCL_DIR)\include
 
