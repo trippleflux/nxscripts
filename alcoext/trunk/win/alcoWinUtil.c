@@ -41,7 +41,6 @@ static Tcl_ThreadDataKey dataKey;
  * Remarks:
  *   None.
  */
-
 char *
 TclSetWinError(Tcl_Interp *interp, unsigned long errorCode)
 {
@@ -68,7 +67,6 @@ TclSetWinError(Tcl_Interp *interp, unsigned long errorCode)
     return tsdPtr->systemError;
 }
 
-
 /*
  * IsFeatureAvailable
  *
@@ -84,7 +82,6 @@ TclSetWinError(Tcl_Interp *interp, unsigned long errorCode)
  * Remarks:
  *   None.
  */
-
 int
 IsFeatureAvailable(unsigned long features)
 {

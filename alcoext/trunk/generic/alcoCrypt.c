@@ -36,12 +36,6 @@
 
 #include <alcoExt.h>
 
-/* Round 'a' up to a multiple of 'b'. */
-#ifdef ROUNDUP
-#undef ROUNDUP
-#endif
-#define ROUNDUP(a,b) ((((a) + ((b) - 1)) / (b)) * (b))
-
 static int CryptProcessCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], unsigned char mode);
 static int CryptHashCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int CryptStartCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
@@ -104,7 +98,6 @@ static const CryptCipherMode cipherModes[] = {
  * Remarks:
  *   None.
  */
-
 static int
 DecryptCBC(int cipher, int rounds, unsigned char *iv, unsigned char *key, unsigned long keyLength,
     unsigned char *data, unsigned long dataLength, unsigned char *dest)
@@ -190,7 +183,6 @@ DecryptOFB(int cipher, int rounds, unsigned char *iv, unsigned char *key, unsign
     return status;
 }
 
-
 /*
  * EncryptCBC
  * EncryptCFB
@@ -216,7 +208,6 @@ DecryptOFB(int cipher, int rounds, unsigned char *iv, unsigned char *key, unsign
  * Remarks:
  *   None.
  */
-
 static int
 EncryptCBC(int cipher, int rounds, unsigned char *iv, unsigned char *key, unsigned long keyLength,
     unsigned char *data, unsigned long dataLength, unsigned char *dest)
@@ -302,7 +293,6 @@ EncryptOFB(int cipher, int rounds, unsigned char *iv, unsigned char *key, unsign
     return status;
 }
 
-
 /*
  * CryptProcessCmd
  *
@@ -320,7 +310,6 @@ EncryptOFB(int cipher, int rounds, unsigned char *iv, unsigned char *key, unsign
  * Remarks:
  *   None.
  */
-
 static int
 CryptProcessCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], unsigned char mode)
 {
@@ -401,10 +390,12 @@ CryptProcessCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], unsigned ch
             char length[12];
 
 #ifdef __WIN32__
-        StringCchPrintfA(length, 12, "%d", cipher_descriptor[cipherIndex].block_length);
+        StringCchPrintfA(length, ARRAYSIZE(length), "%d",
+            cipher_descriptor[cipherIndex].block_length);
 #else /* __WIN32__ */
-        snprintf(length, 12, "%d", cipher_descriptor[cipherIndex].block_length);
-        length[11] = '\0';
+        snprintf(length, ARRAYSIZE(length), "%d",
+            cipher_descriptor[cipherIndex].block_length);
+        length[ARRAYSIZE(length)-1] = '\0';
 #endif /* __WIN32__ */
 
             Tcl_AppendResult(interp, "invalid initialisation vector size: must be ",
@@ -431,23 +422,25 @@ CryptProcessCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], unsigned ch
 
             /* Fixed key length. */
 #ifdef __WIN32__
-            StringCchPrintfA(message, 64, "%d", cipher_descriptor[cipherIndex].min_key_length);
+            StringCchPrintfA(message, ARRAYSIZE(message), "%d",
+                cipher_descriptor[cipherIndex].min_key_length);
 #else /* __WIN32__ */
-            snprintf(message, 64, "%d", cipher_descriptor[cipherIndex].min_key_length);
-            message[63] = '\0';
+            snprintf(message, ARRAYSIZE(message), "%d",
+                cipher_descriptor[cipherIndex].min_key_length);
+            message[ARRAYSIZE(message)-1] = '\0';
 #endif /* __WIN32__ */
 
         } else {
             /* Ranging key length. */
 #ifdef __WIN32__
-            StringCchPrintfA(message, 64, "between %d and %d",
+            StringCchPrintfA(message, ARRAYSIZE(message), "between %d and %d",
                 cipher_descriptor[cipherIndex].min_key_length,
                 cipher_descriptor[cipherIndex].max_key_length);
 #else /* __WIN32__ */
-            snprintf(message, 64, "between %d and %d",
+            snprintf(message, ARRAYSIZE(message), "between %d and %d",
                 cipher_descriptor[cipherIndex].min_key_length,
                 cipher_descriptor[cipherIndex].max_key_length);
-            message[63] = '\0';
+            message[ARRAYSIZE(message)-1] = '\0';
 #endif /* __WIN32__ */
 
         }
@@ -509,7 +502,6 @@ CryptProcessCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], unsigned ch
     return TCL_OK;
 }
 
-
 /*
  * CryptHashCmd
  *
@@ -526,7 +518,6 @@ CryptProcessCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], unsigned ch
  * Remarks:
  *   None.
  */
-
 static int
 CryptHashCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
@@ -593,7 +584,6 @@ CryptHashCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
     return TCL_OK;
 }
 
-
 /*
  * CryptStartCmd
  *
@@ -611,7 +601,6 @@ CryptHashCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
  * Remarks:
  *   None.
  */
-
 static int
 CryptStartCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
 {
@@ -669,10 +658,10 @@ CryptStartCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *sta
     }
 
 #ifdef __WIN32__
-    StringCchPrintfA(handleId, 20, "crypt%lu", statePtr->cryptHandle);
+    StringCchPrintfA(handleId, ARRAYSIZE(handleId), "crypt%lu", statePtr->cryptHandle);
 #else /* __WIN32__ */
-    snprintf(handleId, 20, "crypt%lu", statePtr->cryptHandle);
-    handleId[19] = '\0';
+    snprintf(handleId, ARRAYSIZE(handleId), "crypt%lu", statePtr->cryptHandle);
+    handleId[ARRAYSIZE(handleId)-1] = '\0';
 #endif /* __WIN32__ */
 
     statePtr->cryptHandle++;
@@ -684,7 +673,6 @@ CryptStartCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *sta
     return TCL_OK;
 }
 
-
 /*
  * CryptUpdateCmd
  *
@@ -702,7 +690,6 @@ CryptStartCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *sta
  * Remarks:
  *   None.
  */
-
 static int
 CryptUpdateCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
 {
@@ -742,7 +729,6 @@ CryptUpdateCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *st
     return TCL_OK;
 }
 
-
 /*
  * CryptEndCmd
  *
@@ -760,7 +746,6 @@ CryptUpdateCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *st
  * Remarks:
  *   None.
  */
-
 static int
 CryptEndCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
 {
@@ -809,7 +794,6 @@ CryptEndCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *state
     return TCL_OK;
 }
 
-
 /*
  * CryptCloseHandles
  *
@@ -824,7 +808,6 @@ CryptEndCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *state
  * Remarks:
  *   None.
  */
-
 void
 CryptCloseHandles(Tcl_HashTable *tablePtr)
 {
@@ -840,7 +823,6 @@ CryptCloseHandles(Tcl_HashTable *tablePtr)
     }
 }
 
-
 /*
  * CryptInfoCmd
  *
@@ -858,7 +840,6 @@ CryptCloseHandles(Tcl_HashTable *tablePtr)
  * Remarks:
  *   None.
  */
-
 static int
 CryptInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
 {
@@ -925,7 +906,6 @@ CryptInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *stat
     return TCL_ERROR;
 }
 
-
 /*
  * CryptPkcs5Cmd
  *
@@ -942,7 +922,6 @@ CryptInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *stat
  * Remarks:
  *   None.
  */
-
 static int
 CryptPkcs5Cmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
@@ -1008,7 +987,6 @@ CryptPkcs5Cmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
     return TCL_OK;
 }
 
-
 /*
  * CryptRandCmd
  *
@@ -1025,7 +1003,6 @@ CryptPkcs5Cmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
  * Remarks:
  *   None.
  */
-
 static int
 CryptRandCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
@@ -1056,7 +1033,6 @@ CryptRandCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
     return TCL_OK;
 }
 
-
 /*
  * CryptObjCmd
  *
@@ -1074,7 +1050,6 @@ CryptRandCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
  * Remarks:
  *   None.
  */
-
 int
 CryptObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {

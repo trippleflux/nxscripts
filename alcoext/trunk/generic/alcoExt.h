@@ -12,13 +12,13 @@
  *   Common include file.
  */
 
-#ifndef __ALCOEXT_H__
-#define __ALCOEXT_H__
+#ifndef _ALCOEXT_H_
+#define _ALCOEXT_H_
 
 /* config.h must be included before tcl.h for memory debugging. */
 #ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif /* HAVE_CONFIG_H */
+#   include "config.h"
+#endif
 
 #include <tcl.h>
 
@@ -38,7 +38,7 @@ typedef struct {
 #ifdef __WIN32__
     unsigned long ioHandle;
     Tcl_HashTable *ioTable;
-#else /* __WIN32__ */
+#else
     unsigned long glHandle;
     Tcl_HashTable *glTable;
 #endif /* __WIN32__ */
@@ -53,10 +53,10 @@ typedef struct StateList {
 } StateList;
 
 #ifdef __WIN32__
-#include "../win/alcoWin.h"
-#else /* __WIN32__ */
-#include "../unix/alcoUnix.h"
-#endif /* __WIN32__ */
+#   include "../win/alcoWin.h"
+#else
+#   include "../unix/alcoUnix.h"
+#endif
 
 #include <tomcrypt.h>
 #include <zlib.h>
@@ -72,4 +72,4 @@ EXTERN Tcl_PackageInitProc   Alcoext_SafeInit;
 EXTERN Tcl_PackageUnloadProc Alcoext_Unload;
 EXTERN Tcl_PackageUnloadProc Alcoext_SafeUnload;
 
-#endif /* __ALCOEXT_H__ */
+#endif /* _ALCOEXT_H_ */

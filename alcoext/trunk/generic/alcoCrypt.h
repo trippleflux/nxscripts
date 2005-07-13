@@ -12,8 +12,8 @@
  *   Cryptography extension definitions.
  */
 
-#ifndef __ALCOCRYPT_H__
-#define __ALCOCRYPT_H__
+#ifndef _ALCOCRYPT_H_
+#define _ALCOCRYPT_H_
 
 /* Modes for CryptProcessCmd. */
 #define MODE_DECRYPT 1
@@ -58,4 +58,4 @@ typedef struct {
 Tcl_ObjCmdProc CryptObjCmd;
 void CryptCloseHandles(Tcl_HashTable *tablePtr);
 
-#endif /* __ALCOCRYPT_H__ */
+#endif /* _ALCOCRYPT_H_ */

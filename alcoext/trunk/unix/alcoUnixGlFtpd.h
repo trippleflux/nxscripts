@@ -12,8 +12,8 @@
  *   glFTPD specific definitions.
  */
 
-#ifndef __ALCOUNIXGLFTPD_H__
-#define __ALCOUNIXGLFTPD_H__
+#ifndef _ALCOUNIXGLFTPD_H_
+#define _ALCOUNIXGLFTPD_H_
 
 /* Default path to glFTPD's 'etc' directory. */
 #define GLFTPD_ETC_PATH "/glftpd/etc"
@@ -116,4 +116,4 @@ typedef struct {
 Tcl_ObjCmdProc GlFtpdObjCmd;
 void GlCloseHandles(Tcl_HashTable *tablePtr);
 
-#endif /* __ALCOUNIXGLFTPD_H__ */
+#endif /* _ALCOUNIXGLFTPD_H_ */

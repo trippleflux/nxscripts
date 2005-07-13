@@ -12,8 +12,8 @@
  *   Structures and definitions for volume related procedures.
  */
 
-#ifndef __ALCOVOLUME_H__
-#define __ALCOVOLUME_H__
+#ifndef _ALCOVOLUME_H_
+#define _ALCOVOLUME_H_
 
 /* Length of the 'VolumeInfo::name' member. */
 #define VOLINFO_NAME_LENGTH     128
@@ -52,4 +52,4 @@ int GetVolumeInfo(Tcl_Interp *interp, char *volumePath, VolumeInfo *volumeInfo);
 Tcl_Obj *GetVolumeList(Tcl_Interp *interp, unsigned short options, char *pattern);
 Tcl_ObjCmdProc VolumeObjCmd;
 
-#endif /* __ALCOVOLUME_H__ */
+#endif /* _ALCOVOLUME_H_ */

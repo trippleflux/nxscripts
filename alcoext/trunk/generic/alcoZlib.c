@@ -69,7 +69,6 @@ static int ZlibInflateObj(Tcl_Obj *sourceObj, Tcl_Obj *destObj, int window);
  * Remarks:
  *   None.
  */
-
 static int
 ZlibDeflateObj(Tcl_Obj *sourceObj, Tcl_Obj *destObj, int level, int window)
 {
@@ -126,7 +125,6 @@ ZlibDeflateObj(Tcl_Obj *sourceObj, Tcl_Obj *destObj, int level, int window)
     return status;
 }
 
-
 /*
  * ZlibInflateObj
  *
@@ -143,7 +141,6 @@ ZlibDeflateObj(Tcl_Obj *sourceObj, Tcl_Obj *destObj, int level, int window)
  * Remarks:
  *   None.
  */
-
 static int
 ZlibInflateObj(Tcl_Obj *sourceObj, Tcl_Obj *destObj, int window)
 {
@@ -207,7 +204,6 @@ ZlibInflateObj(Tcl_Obj *sourceObj, Tcl_Obj *destObj, int window)
     return status;
 }
 
-
 /*
  * ZlibObjCmd
  *
@@ -225,7 +221,6 @@ ZlibInflateObj(Tcl_Obj *sourceObj, Tcl_Obj *destObj, int window)
  * Remarks:
  *   None.
  */
-
 int
 ZlibObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {

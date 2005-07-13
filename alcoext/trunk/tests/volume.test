@@ -131,6 +131,7 @@ test volume-3.5 {volume info: array elements} {
 test volume-3.6 {volume info: varName isn't an array} {
     unset -nocomplain test; set test 1
     set result [list [catch {volume info $currentVolume test} msg] $msg]
+    unset test
     set result
 } {1 {can't set "test(length)": variable isn't array}}
 

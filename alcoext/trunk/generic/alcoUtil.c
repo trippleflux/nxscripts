@@ -14,7 +14,6 @@
 
 #include <alcoExt.h>
 
-
 /*
  * GetHandleTableEntry
  *
@@ -34,7 +33,6 @@
  * Remarks:
  *   None.
  */
-
 Tcl_HashEntry *
 GetHandleTableEntry(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_HashTable *tablePtr, const char *type)
 {
@@ -52,7 +50,6 @@ GetHandleTableEntry(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_HashTable *tablePtr
     return hashEntryPtr;
 }
 
-
 /*
  * PartialSwitchCompare
  *
@@ -71,7 +68,6 @@ GetHandleTableEntry(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_HashTable *tablePtr
  * Remarks:
  *   None.
  */
-
 int
 PartialSwitchCompare(Tcl_Obj *objPtr, const char *switchName)
 {

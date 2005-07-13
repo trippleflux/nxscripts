@@ -12,8 +12,8 @@
  *   Unix specific includes, macros, and function declarations.
  */
 
-#ifndef __ALCOUNIX_H__
-#define __ALCOUNIX_H__
+#ifndef _ALCOUNIX_H_
+#define _ALCOUNIX_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,90 +26,74 @@
 #include <sys/shm.h>
 
 #ifdef HAVE_INTTYPES_H
-#include <inttypes.h>
-#endif /* HAVE_INTTYPES_H */
-
+#   include <inttypes.h>
+#endif
 #ifdef HAVE_LIMITS_H
-#include <limits.h>
-#endif /* HAVE_LIMITS_H */
-
+#   include <limits.h>
+#endif
 #ifdef HAVE_STDINT_H
-#include <stdint.h>
-#endif /* HAVE_STDINT_H */
-
+#   include <stdint.h>
+#endif
 #ifdef HAVE_TIME_H
-#include <time.h>
-#endif /* HAVE_TIME_H */
-
+#   include <time.h>
+#endif
 #ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif /* HAVE_UNISTD_H */
-
+#   include <unistd.h>
+#endif
 #ifdef HAVE_SYS_PARAM_H
-#include <sys/param.h>
-#endif /* HAVE_SYS_PARAM_H */
-
+#   include <sys/param.h>
+#endif
 #ifdef HAVE_SYS_MOUNT_H
-#include <sys/mount.h>
-#endif /* HAVE_SYS_MOUNT_H */
-
+#   include <sys/mount.h>
+#endif
 #ifdef HAVE_SYS_STATFS_H
-#include <sys/statfs.h>
-#endif /* HAVE_SYS_STATFS_H */
-
+#   include <sys/statfs.h>
+#endif
 #ifdef HAVE_SYS_STATVFS_H
-#include <sys/statvfs.h>
-#endif /* HAVE_SYS_STATVFS_H */
-
+#   include <sys/statvfs.h>
+#endif
 #ifdef HAVE_SYS_VFS_H
-#include <sys/vfs.h>
-#endif /* HAVE_SYS_VFS_H */
-
+#   include <sys/vfs.h>
+#endif
 #ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif /* HAVE_SYS_TIME_H */
+#   include <sys/time.h>
+#endif
 
 #include "alcoUnixGlFtpd.h"
 
 /* Statfs function and structure checks. */
 #ifdef STAT_STATVFS64
-#define STATFS_FN(path, buf) (statvfs64(path,buf))
-#define STATFS_T statvfs64
-#define USE_STATVFS
-
-/* Use statvfs() if available, otherwise fallback to statfs(). */
+#   define STATFS_FN(path, buf) (statvfs64(path,buf))
+#   define STATFS_T statvfs64
+#   define USE_STATVFS
 #elif defined(STAT_STATVFS)
-#define STATFS_FN(path, buf) (statvfs(path,buf))
-#define STATFS_T statvfs
-#define USE_STATVFS
-
-/* For implementations of statfs() that take four parameters. */
+#   define STATFS_FN(path, buf) (statvfs(path,buf))
+#   define STATFS_T statvfs
+#   define USE_STATVFS
 #elif defined(STAT_STATFS4)
-#define STATFS_FN(path, buf) (statfs(path,buf,sizeof(buf),0))
-#define STATFS_T statfs
-#define USE_STATFS
-
-/* For implementations of statfs() that take three parameters. */
+/* For implementations of statfs() that take four parameters. */
+#   define STATFS_FN(path, buf) (statfs(path,buf,sizeof(buf),0))
+#   define STATFS_T statfs
+#   define USE_STATFS
 #elif defined(STAT_STATFS3_OSF1)
-#define STATFS_FN(path, buf) (statfs(path,buf,sizeof(buf)))
-#define STATFS_T statfs
-#define USE_STATFS
-
-/* For implementations of statfs() that take two parameters. */
+/* For implementations of statfs() that take three parameters. */
+#   define STATFS_FN(path, buf) (statfs(path,buf,sizeof(buf)))
+#   define STATFS_T statfs
+#   define USE_STATFS
 #elif defined(STAT_STATFS2_FS_DATA) || defined(STAT_STATFS2_BSIZE) || defined(STAT_STATFS2_FSIZE)
-#define STATFS_FN(path, buf) (statfs(path,buf))
-#define STATFS_T statfs
-#define USE_STATFS
-
+/* For implementations of statfs() that take two parameters. */
+#   define STATFS_FN(path, buf) (statfs(path,buf))
+#   define STATFS_T statfs
+#   define USE_STATFS
 #endif /* STAT_STATVFS64 */
 
 /* Check for the f_basetype or f_fstypename member. */
 #if (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_BASETYPE)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_BASETYPE))
-#define F_TYPENAME(buf) ((buf).f_basetype)
+#   define F_TYPENAME(buf) ((buf).f_basetype)
 #elif (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_FSTYPENAME)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_FSTYPENAME))
-#define F_TYPENAME(buf) ((buf).f_fstypename)
+#   define F_TYPENAME(buf) ((buf).f_fstypename)
 #else
-#define F_TYPENAME(buf) ("")
+#   define F_TYPENAME(buf) ("")
 #endif
 
 /* Check for the f_fsid.val or f_fsid member. */
@@ -120,29 +104,29 @@
  *                  all that we're interested in.
  * f_fsid::val[1] - Type of file system, MOUNT_xxx flag.
  */
-#define F_FSID(buf) ((buf).f_fsid.val[0])
+#   define F_FSID(buf) ((buf).f_fsid.val[0])
 #elif (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_FSID)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_FSID))
-#define F_FSID(buf) ((buf).f_fsid)
+#   define F_FSID(buf) ((buf).f_fsid)
 #else
-#define F_FSID(buf) (0)
+#   define F_FSID(buf) (0)
 #endif
 
 /* Check for the f_flag or f_flags member. */
 #if (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_FLAG)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_FLAG))
-#define F_FLAGS(buf) ((buf).f_flag)
+#   define F_FLAGS(buf) ((buf).f_flag)
 #elif (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_FLAGS)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_FLAGS))
-#define F_FLAGS(buf) ((buf).f_flags)
+#   define F_FLAGS(buf) ((buf).f_flags)
 #else
-#define F_FLAGS(buf) (0)
+#   define F_FLAGS(buf) (0)
 #endif
 
 /* Check for the f_namemax or f_namelen member. */
 #if (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_NAMEMAX)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_NAMEMAX))
-#define F_NAMELEN(buf) ((buf).f_namemax)
+#   define F_NAMELEN(buf) ((buf).f_namemax)
 #elif (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_NAMELEN)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_NAMELEN))
-#define F_NAMELEN(buf) ((buf).f_namelen)
+#   define F_NAMELEN(buf) ((buf).f_namelen)
 #else
-#define F_NAMELEN(buf) (255)
+#   define F_NAMELEN(buf) (255)
 #endif
 
-#endif /* __ALCOUNIX_H__ */
+#endif /* _ALCOUNIX_H_ */

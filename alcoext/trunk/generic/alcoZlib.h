@@ -12,9 +12,9 @@
  *   Zlib extension definitions.
  */
 
-#ifndef __ALCOZLIB_H__
-#define __ALCOZLIB_H__
+#ifndef _ALCOZLIB_H_
+#define _ALCOZLIB_H_
 
 Tcl_ObjCmdProc ZlibObjCmd;
 
-#endif /* __ALCOZLIB_H__ */
+#endif /* _ALCOZLIB_H_ */

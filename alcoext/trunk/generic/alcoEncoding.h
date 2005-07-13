@@ -12,8 +12,8 @@
  *   Encoding definitions.
  */
 
-#ifndef __ALCOENCODING_H__
-#define __ALCOENCODING_H__
+#ifndef _ALCOENCODING_H_
+#define _ALCOENCODING_H_
 
 typedef unsigned long (EncLengthProc)(
     unsigned long sourceLength
@@ -40,4 +40,4 @@ const EncodingFuncts encodeFuncts[ENCODING_TYPES];
 
 Tcl_ObjCmdProc EncodingObjCmd;
 
-#endif /* __ALCOENCODING_H__ */
+#endif /* _ALCOENCODING_H_ */

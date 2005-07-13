@@ -12,9 +12,9 @@
  *   Definitions for the ioFTPD extension.
  */
 
-#ifndef __ALCOWINIOFTPD_H__
-#define __ALCOWINIOFTPD_H__
+#ifndef _ALCOWINIOFTPD_H_
+#define _ALCOWINIOFTPD_H_
 
 Tcl_ObjCmdProc IoFtpdObjCmd;
 
-#endif /* __ALCOWINIOFTPD_H__ */
+#endif /* _ALCOWINIOFTPD_H_ */

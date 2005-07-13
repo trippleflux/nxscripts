@@ -12,10 +12,23 @@
  *   Miscellanenous utility definitions.
  */
 
-#ifndef __ALCOUTIL_H__
-#define __ALCOUTIL_H__
+#ifndef _ALCOUTIL_H_
+#define _ALCOUTIL_H_
+
+#ifdef ARRAYSIZE
+#   undef ARRAYSIZE
+#endif
+#ifdef ROUNDUP
+#   undef ROUNDUP
+#endif
+
+/* ARRAYSIZE - Returns the number of entries in an array. */
+#define ARRAYSIZE(array)    (sizeof(array) / sizeof(array[0]))
+
+/* ROUNDUP - Round 'a' up to a multiple of 'b'. */
+#define ROUNDUP(a,b)        ((((a) + ((b) - 1)) / (b)) * (b))
 
 Tcl_HashEntry *GetHandleTableEntry(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_HashTable *tablePtr, const char *type);
 int PartialSwitchCompare(Tcl_Obj *objPtr, const char *switchName);
 
-#endif /* __ALCOUTIL_H__ */
+#endif /* _ALCOUTIL_H_ */

@@ -144,7 +144,6 @@ enum {
  * Remarks:
  *   None.
  */
-
 inline int
 ParseFields(const char *line, int delims, int *lengthPtr, long *idPtr)
 {
@@ -172,7 +171,6 @@ ParseFields(const char *line, int delims, int *lengthPtr, long *idPtr)
     return (i < delims || *lengthPtr < 1) ? TCL_ERROR : TCL_OK;
 }
 
-
 /*
  * GetUserList
  *
@@ -189,7 +187,6 @@ ParseFields(const char *line, int delims, int *lengthPtr, long *idPtr)
  * Remarks:
  *   If the function fails, an error message is left in the interpreter's result.
  */
-
 static int
 GetUserList(Tcl_Interp *interp, const char *etcPath, GlUser **userListPtr)
 {
@@ -200,9 +197,9 @@ GetUserList(Tcl_Interp *interp, const char *etcPath, GlUser **userListPtr)
     long userId;
     FILE *stream;
 
-    strncpy(passwdFile, etcPath, PATH_MAX);
-    strncat(passwdFile, GLFTPD_PASSWD, PATH_MAX);
-    passwdFile[PATH_MAX-1] = '\0';
+    strncpy(passwdFile, etcPath, ARRAYSIZE(passwdFile));
+    strncat(passwdFile, GLFTPD_PASSWD, ARRAYSIZE(passwdFile));
+    passwdFile[ARRAYSIZE(passwdFile)-1] = '\0';
 
     stream = fopen(passwdFile, "r");
     if (stream == NULL) {
@@ -213,7 +210,7 @@ GetUserList(Tcl_Interp *interp, const char *etcPath, GlUser **userListPtr)
     }
 
     /* Format: User:Password:UID:GID:Date:HomeDir:Irrelevant */
-    while ((p = fgets(line, sizeof(line), stream)) != NULL) {
+    while ((p = fgets(line, ARRAYSIZE(line), stream)) != NULL) {
 
         /* Strip leading spaces and skip empty or commented lines. */
         while (*p == ' ' || *p == '\t') {
@@ -246,7 +243,6 @@ GetUserList(Tcl_Interp *interp, const char *etcPath, GlUser **userListPtr)
     return TCL_OK;
 }
 
-
 /*
  * FreeUserList
  *
@@ -261,7 +257,6 @@ GetUserList(Tcl_Interp *interp, const char *etcPath, GlUser **userListPtr)
  * Remarks:
  *   None.
  */
-
 static void
 FreeUserList(GlUser **userListPtr)
 {
@@ -274,7 +269,6 @@ FreeUserList(GlUser **userListPtr)
     }
 }
 
-
 /*
  * GetUserIdFromName
  *
@@ -291,7 +285,6 @@ FreeUserList(GlUser **userListPtr)
  * Remarks:
  *   None.
  */
-
 static long
 GetUserIdFromName(GlUser **userListPtr, const char *userName)
 {
@@ -305,7 +298,6 @@ GetUserIdFromName(GlUser **userListPtr, const char *userName)
     return -1;
 }
 
-
 /*
  * GetGroupList
  *
@@ -322,7 +314,6 @@ GetUserIdFromName(GlUser **userListPtr, const char *userName)
  * Remarks:
  *   If the function fails, an error message is left in the interpreter's result.
  */
-
 static int
 GetGroupList(Tcl_Interp *interp, const char *etcPath, GlGroup **groupListPtr)
 {
@@ -333,9 +324,9 @@ GetGroupList(Tcl_Interp *interp, const char *etcPath, GlGroup **groupListPtr)
     long userId;
     FILE *stream;
 
-    strncpy(groupFile, etcPath, PATH_MAX);
-    strncat(groupFile, GLFTPD_GROUP, PATH_MAX);
-    groupFile[PATH_MAX-1] = '\0';
+    strncpy(groupFile, etcPath, ARRAYSIZE(groupFile));
+    strncat(groupFile, GLFTPD_GROUP, ARRAYSIZE(groupFile));
+    groupFile[ARRAYSIZE(groupFile)-1] = '\0';
 
     stream = fopen(groupFile, "r");
     if (stream == NULL) {
@@ -346,7 +337,7 @@ GetGroupList(Tcl_Interp *interp, const char *etcPath, GlGroup **groupListPtr)
     }
 
     /* Format: Group:Description:GID:Irrelevant */
-    while ((p = fgets(line, sizeof(line), stream)) != NULL) {
+    while ((p = fgets(line, ARRAYSIZE(line), stream)) != NULL) {
 
         /* Strip leading spaces and skip empty or commented lines. */
         while (*p == ' ' || *p == '\t') {
@@ -378,7 +369,7 @@ GetGroupList(Tcl_Interp *interp, const char *etcPath, GlGroup **groupListPtr)
     fclose(stream);
     return TCL_OK;
 }
-
+
 /*
  * FreeGroupList
  *
@@ -393,7 +384,6 @@ GetGroupList(Tcl_Interp *interp, const char *etcPath, GlGroup **groupListPtr)
  * Remarks:
  *   None.
  */
-
 static void
 FreeGroupList(GlGroup **groupListPtr)
 {
@@ -406,7 +396,6 @@ FreeGroupList(GlGroup **groupListPtr)
     }
 }
 
-
 /*
  * GetGroupNameFromId
  *
@@ -423,7 +412,6 @@ FreeGroupList(GlGroup **groupListPtr)
  * Remarks:
  *   None.
  */
-
 static char *
 GetGroupNameFromId(GlGroup **groupListPtr, long groupId)
 {
@@ -437,7 +425,6 @@ GetGroupNameFromId(GlGroup **groupListPtr, long groupId)
     return "NoGroup";
 }
 
-
 /*
  * GetOnlineData
  *
@@ -458,7 +445,6 @@ GetGroupNameFromId(GlGroup **groupListPtr, long groupId)
  * Remarks:
  *   If the function fails, an error message is left in the interpreter's result.
  */
-
 static int
 GetOnlineData(Tcl_Interp *interp, key_t shmKey, int version, int *maxUsers, GlOnlineGeneric ***onlineDataPtr)
 {
@@ -571,7 +557,6 @@ GetOnlineData(Tcl_Interp *interp, key_t shmKey, int version, int *maxUsers, GlOn
     return TCL_OK;
 }
 
-
 /*
  * FreeOnlineData
  *
@@ -587,7 +572,6 @@ GetOnlineData(Tcl_Interp *interp, key_t shmKey, int version, int *maxUsers, GlOn
  * Remarks:
  *   None.
  */
-
 static void
 FreeOnlineData(int maxUsers, GlOnlineGeneric **onlineDataPtr)
 {
@@ -598,7 +582,6 @@ FreeOnlineData(int maxUsers, GlOnlineGeneric **onlineDataPtr)
     ckfree((char *) onlineDataPtr);
 }
 
-
 /*
  * GlOpenCmd
  *
@@ -616,7 +599,6 @@ FreeOnlineData(int maxUsers, GlOnlineGeneric **onlineDataPtr)
  * Remarks:
  *   None.
  */
-
 static int
 GlOpenCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
 {
@@ -661,7 +643,6 @@ GlOpenCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePt
     return TCL_OK;
 }
 
-
 /*
  * GlConfigCmd
  *
@@ -679,7 +660,6 @@ GlOpenCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePt
  * Remarks:
  *   None.
  */
-
 static int
 GlConfigCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
 {
@@ -816,7 +796,6 @@ GlConfigCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *state
     return TCL_OK;
 }
 
-
 /*
  * GlCloseCmd
  *
@@ -834,7 +813,6 @@ GlConfigCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *state
  * Remarks:
  *   None.
  */
-
 static int
 GlCloseCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
 {
@@ -860,7 +838,6 @@ GlCloseCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *stateP
     return TCL_OK;
 }
 
-
 /*
  * GlCloseHandles
  *
@@ -875,7 +852,6 @@ GlCloseCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *stateP
  * Remarks:
  *   None.
  */
-
 void
 GlCloseHandles(Tcl_HashTable *tablePtr)
 {
@@ -894,7 +870,6 @@ GlCloseHandles(Tcl_HashTable *tablePtr)
     }
 }
 
-
 /*
  * GlInfoCmd
  *
@@ -912,7 +887,6 @@ GlCloseHandles(Tcl_HashTable *tablePtr)
  * Remarks:
  *   None.
  */
-
 static int
 GlInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
 {
@@ -983,7 +957,6 @@ GlInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePt
     return TCL_ERROR;
 }
 
-
 /*
  * GlKillCmd
  *
@@ -1001,7 +974,6 @@ GlInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePt
  * Remarks:
  *   None.
  */
-
 static int
 GlKillCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
 {
@@ -1057,7 +1029,6 @@ GlKillCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePt
     return status;
 }
 
-
 /*
  * GlWhoCmd
  *
@@ -1075,7 +1046,6 @@ GlKillCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePt
  * Remarks:
  *   None.
  */
-
 static int
 GlWhoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
 {
@@ -1147,7 +1117,6 @@ GlWhoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr
     return result;
 }
 
-
 /*
  * GetOnlineFields
  *
@@ -1168,7 +1137,6 @@ GlWhoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr
  *   If the function succeeds, the user list is left in the interpreter's
  *   result. If the function fails, an error message is left instead.
  */
-
 static int
 GetOnlineFields(Tcl_Interp *interp, GlHandle *handlePtr, unsigned char *fields,
     int fieldCount, GlUser **userListPtr, GlGroup **groupListPtr)
@@ -1291,7 +1259,7 @@ GetOnlineFields(Tcl_Interp *interp, GlHandle *handlePtr, unsigned char *fields,
     return TCL_OK;
 }
 
-
+
 /*
  * GlFtpdObjCmd
  *
@@ -1309,7 +1277,6 @@ GetOnlineFields(Tcl_Interp *interp, GlHandle *handlePtr, unsigned char *fields,
  * Remarks:
  *   None.
  */
-
 int
 GlFtpdObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {

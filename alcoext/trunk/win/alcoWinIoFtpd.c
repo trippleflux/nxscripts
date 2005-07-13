@@ -14,7 +14,6 @@
 
 #include <alcoExt.h>
 
-
 /*
  *  IoFtpdObjCmd
  *
@@ -32,7 +31,6 @@
  * Remarks:
  *   None.
  */
-
 int
 IoFtpdObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {

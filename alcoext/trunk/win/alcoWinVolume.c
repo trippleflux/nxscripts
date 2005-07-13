@@ -54,7 +54,6 @@ const VolumeFlagList volumeFlags[] = {
  * Remarks:
  *   None.
  */
-
 static BOOL
 GetVolumeSize(char *volumePath, ULONGLONG *bytesFree, ULONGLONG *bytesTotal)
 {
@@ -92,7 +91,6 @@ GetVolumeSize(char *volumePath, ULONGLONG *bytesFree, ULONGLONG *bytesTotal)
     return result;
 }
 
-
 /*
  * GetVolumeInfo
  *
@@ -109,7 +107,6 @@ GetVolumeSize(char *volumePath, ULONGLONG *bytesFree, ULONGLONG *bytesTotal)
  * Remarks:
  *   None.
  */
-
 int
 GetVolumeInfo(Tcl_Interp *interp, char *volumePath, VolumeInfo *volumeInfo)
 {
@@ -148,7 +145,6 @@ GetVolumeInfo(Tcl_Interp *interp, char *volumePath, VolumeInfo *volumeInfo)
     return TCL_OK;
 }
 
-
 /*
  * GetVolumeList
  *
@@ -167,7 +163,6 @@ GetVolumeInfo(Tcl_Interp *interp, char *volumePath, VolumeInfo *volumeInfo)
  * Remarks:
  *   None.
  */
-
 Tcl_Obj *
 GetVolumeList(Tcl_Interp *interp, unsigned short options, char *pattern)
 {

@@ -12,8 +12,8 @@
  *   Declarations for Windows API functions resolved on run-time.
  */
 
-#ifndef __ALCOWINPROCS_H__
-#define __ALCOWINPROCS_H__
+#ifndef _ALCOWINPROCS_H_
+#define _ALCOWINPROCS_H_
 
 typedef BOOL (WINAPI *GetDiskFreeSpaceExProc)(
     LPCSTR lpDirectoryName,
@@ -52,4 +52,4 @@ typedef struct {
     GetVolumeNameForVolumeMountPointProc    getVolumeNameForVolumeMountPoint;
 } WinProcs;
 
-#endif /* __ALCOWINPROCS_H__ */
+#endif /* _ALCOWINPROCS_H_ */

@@ -62,7 +62,6 @@ const EncodingFuncts decodeFuncts[ENCODING_TYPES] = {
  * Remarks:
  *   None.
  */
-
 static unsigned long
 Base64DecodeGetDestLength(unsigned long sourceLength)
 {
@@ -87,7 +86,6 @@ HexEncodeGetDestLength(unsigned long sourceLength)
     return (sourceLength * 2) + 1;
 }
 
-
 /*
  * HexDecode
  *
@@ -105,7 +103,6 @@ HexEncodeGetDestLength(unsigned long sourceLength)
  * Remarks:
  *   None.
  */
-
 static int
 HexDecode(const unsigned char *source, unsigned long sourceLength, unsigned char *dest, unsigned long *destLength)
 {
@@ -147,7 +144,6 @@ HexDecodeChar(char c)
     return -1;
 }
 
-
 /*
  * HexEncode
  *
@@ -165,7 +161,6 @@ HexDecodeChar(char c)
  * Remarks:
  *   None.
  */
-
 static int
 HexEncode(const unsigned char *source, unsigned long sourceLength, unsigned char *dest, unsigned long *destLength)
 {
@@ -192,7 +187,6 @@ HexEncode(const unsigned char *source, unsigned long sourceLength, unsigned char
     return CRYPT_OK;
 }
 
-
 /*
  * EncodingObjCmd
  *
@@ -210,7 +204,6 @@ HexEncode(const unsigned char *source, unsigned long sourceLength, unsigned char
  * Remarks:
  *   None.
  */
-
 int
 EncodingObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {

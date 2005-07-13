@@ -50,7 +50,6 @@ static Tcl_InterpDeleteProc InterpDeleteHandler;
  * Remarks:
  *   None.
  */
-
 int
 Alcoext_Init(Tcl_Interp *interp)
 {
@@ -247,7 +246,6 @@ Alcoext_Init(Tcl_Interp *interp)
     return TCL_OK;
 }
 
-
 /*
  * Alcoext_SafeInit
  *
@@ -262,14 +260,12 @@ Alcoext_Init(Tcl_Interp *interp)
  * Remarks:
  *   None.
  */
-
 int
 Alcoext_SafeInit(Tcl_Interp *interp)
 {
     return Alcoext_Init(interp);
 }
 
-
 /*
  * Alcoext_Unload
  *
@@ -285,7 +281,6 @@ Alcoext_SafeInit(Tcl_Interp *interp)
  * Remarks:
  *   None.
  */
-
 int
 Alcoext_Unload(Tcl_Interp *interp, int flags)
 {
@@ -326,7 +321,6 @@ Alcoext_Unload(Tcl_Interp *interp, int flags)
     return TCL_ERROR;
 }
 
-
 /*
  * Alcoext_SafeUnload
  *
@@ -342,14 +336,12 @@ Alcoext_Unload(Tcl_Interp *interp, int flags)
  * Remarks:
  *   None.
  */
-
 int
 Alcoext_SafeUnload(Tcl_Interp *interp, int flags)
 {
     return Alcoext_Unload(interp, flags);
 }
 
-
 /*
  * FreeState
  *
@@ -364,7 +356,6 @@ Alcoext_SafeUnload(Tcl_Interp *interp, int flags)
  * Remarks:
  *   None.
  */
-
 static void
 FreeState(ExtState *statePtr)
 {
@@ -389,7 +380,6 @@ FreeState(ExtState *statePtr)
     }
 }
 
-
 /*
  * ExitHandler
  *
@@ -405,7 +395,6 @@ FreeState(ExtState *statePtr)
  * Remarks:
  *   None.
  */
-
 static void
 ExitHandler(ClientData dummy)
 {
@@ -441,7 +430,6 @@ ExitHandler(ClientData dummy)
 #endif
 }
 
-
 /*
  * InterpDeleteHandler
  *
@@ -457,7 +445,6 @@ ExitHandler(ClientData dummy)
  * Remarks:
  *   None.
  */
-
 static void
 InterpDeleteHandler(ClientData clientData, Tcl_Interp *interp)
 {

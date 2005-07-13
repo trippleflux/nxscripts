@@ -94,11 +94,11 @@ test glftpd-1.1 {glftpd: no args} {unix} {
 
 test glftpd-1.2 {glftpd: one arg} {unix} {
     list [catch {glftpd .} msg] $msg
-} {1 {bad option ".": must be close, info, kill, open, set, or who}}
+} {1 {bad option ".": must be close, config, info, kill, open, or who}}
 
 test glftpd-1.3 {glftpd: invalid option} {unix} {
     list [catch {glftpd . a} msg] $msg
-} {1 {bad option ".": must be close, info, kill, open, set, or who}}
+} {1 {bad option ".": must be close, config, info, kill, open, or who}}
 
 ################################################################################
 # glftpd open                                                                  #
