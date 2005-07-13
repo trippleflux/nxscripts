@@ -425,7 +425,7 @@ TEA_ADD_CFLAGS([])
 TEA_ADD_STUB_SOURCES([])
 TEA_ADD_TCL_SOURCES([])
 
-CLEANFILES=""
+CLEANFILES="pkgIndex.tcl"
 AC_SUBST(CLEANFILES)
 
 #--------------------------------------------------------------------
