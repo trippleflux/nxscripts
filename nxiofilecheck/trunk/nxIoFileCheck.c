@@ -28,23 +28,23 @@ void __cdecl OutputMessage(LPCTSTR lpFormat, ...)
 	}
 }
 
-void __stdcall RecursiveCleaner(LPCTSTR pszCurrentPath)
+void __fastcall RecursiveCleaner(LPCTSTR pszCurrentPath)
 {
 	DWORD dwRetVal;
 	TCHAR szPath[MAX_PATH];
 
-	if (!PathCombine(szPath, pszCurrentPath, _T("*.*"))) {
+	if (!PathCombine(szPath, pszCurrentPath, _T("*"))) {
 		OutputMessage(_T(" - Unable to combine path \"%s\" (error %lu).\n"), pszCurrentPath, GetLastError());
 	} else {
 		HANDLE hFind;
 		WIN32_FIND_DATA pFindData;
 
 #ifdef TEST_MODE
-		OutputMessage(_T("Test: Checking: %s\n"), szPath);
+		OutputMessage(_T("Test: Checking: %s\\\n"), pszCurrentPath);
 #endif
 
 		hFind = FindFirstFile(szPath, &pFindData);
-		if (hFind == INVALID_HANDLE_VALUE) {
+		if (hFind != INVALID_HANDLE_VALUE) {
 
 			do {
 				if (pFindData.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT ||
@@ -63,18 +63,23 @@ void __stdcall RecursiveCleaner(LPCTSTR pszCurrentPath)
 					if (pFindData.nFileSizeLow >= IOFILE_MAX_SIZE) {
 #ifndef TEST_MODE
 						if (DeleteFile(szPath)) {
-							OutputMessage(_T(" - Removed .ioFTPD file (%lu bytes).\n"), pFindData.nFileSizeLow);
+							OutputMessage(_T(" - Removed %s\\.ioFTPD (%lu bytes).\n"),
+							    pszCurrentPath, pFindData.nFileSizeLow);
 						} else {
-							OutputMessage(_T(" - Unable to remove .ioFTPD file (%lu bytes, error %lu).\n"), pFindData.nFileSizeLow, GetLastError());
+							OutputMessage(_T(" - Unable to remove %s\\.ioFTPD (%lu bytes, error %lu).\n"),
+							    pszCurrentPath, pFindData.nFileSizeLow, GetLastError());
 						}
 #else
-						OutputMessage(_T("Test: Removed .ioFTPD file (%lu bytes).\n"), pFindData.nFileSizeLow);
+						OutputMessage(_T("Test: Removed %s\\.ioFTPD (%lu bytes).\n"),
+						    pszCurrentPath, pFindData.nFileSizeLow);
 #endif
 					}
 				}
 			} while (FindNextFile(hFind, &pFindData));
 
 			FindClose(hFind);
+		} else {
+		    OutputMessage(_T(" - Unable to search path \"%s\" (error %lu).\n"), szPath, GetLastError());
 		}
 	}
 }
