@@ -138,7 +138,7 @@ test glftpd-2.5 {glftpd open: handle list} {unix} {
 } {0 1}
 
 ################################################################################
-# glftpd config                                                                   #
+# glftpd config                                                                #
 ################################################################################
 
 test glftpd-3.1 {glftpd config: no args} {unix} {

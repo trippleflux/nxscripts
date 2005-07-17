@@ -18,9 +18,8 @@
 #define TCL_TSD_INIT(keyPtr) (ThreadSpecificData *)Tcl_GetThreadData((keyPtr), sizeof(ThreadSpecificData))
 #endif
 
-#define ERROR_BUFFER_SIZE 512
 typedef struct {
-    char systemError[ERROR_BUFFER_SIZE];
+    char systemError[512];
 } ThreadSpecificData;
 
 static Tcl_ThreadDataKey dataKey;
@@ -47,17 +46,16 @@ TclSetWinError(Tcl_Interp *interp, unsigned long errorCode)
     char errorId[12];
     ThreadSpecificData *tsdPtr = TCL_TSD_INIT(&dataKey);
 
-    StringCchPrintfA(errorId, 12, "%lu", errorCode);
+    StringCchPrintfA(errorId, ARRAYSIZE(errorId), "%lu", errorCode);
 
-    if (!FormatMessageA(
-        FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_MAX_WIDTH_MASK,
+    if (!FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM,
         NULL,
         errorCode,
         0,
         tsdPtr->systemError,
-        ERROR_BUFFER_SIZE,
+        ARRAYSIZE(tsdPtr->systemError),
         NULL)) {
-            StringCchCopyA(tsdPtr->systemError, ERROR_BUFFER_SIZE, "unknown error");
+            StringCchCopyA(tsdPtr->systemError, ARRAYSIZE(tsdPtr->systemError), "unknown error");
     } else {
         /* Remove trailing CR/LF. */
         tsdPtr->systemError[strlen(tsdPtr->systemError)-2] = '\0';

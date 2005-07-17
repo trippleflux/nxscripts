@@ -632,8 +632,8 @@ GlOpenCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePt
     handlePtr->version = GLFTPD_201;
 
     /* Create a hash table entry and return the handle's identifier. */
-    snprintf(handleId, 20, "glftpd%lu", statePtr->glHandle);
-    handleId[19] = '\0';
+    snprintf(handleId, ARRAYSIZE(handleId), "glftpd%lu", statePtr->glHandle);
+    handleId[ARRAYSIZE(handleId)-1] = '\0';
     statePtr->glHandle++;
 
     hashEntryPtr = Tcl_CreateHashEntry(statePtr->glTable, handleId, &newEntry);
