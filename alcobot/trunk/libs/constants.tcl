@@ -3,7 +3,7 @@
 # Copyright (c) 2005 Alcoholicz Scripting Team
 #
 # File Name:
-#   alcoBotConstants.tcl
+#   constants.tcl
 #
 # Author:
 #   neoxed (neoxed@gmail.com) June 3, 2005

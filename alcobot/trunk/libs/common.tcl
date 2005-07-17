@@ -3,7 +3,7 @@
 # Copyright (c) 2005 Alcoholicz Scripting Team
 #
 # File Name:
-#   alcoLibCommon.tcl
+#   common.tcl
 #
 # Author:
 #   neoxed (neoxed@gmail.com) May 16, 2005

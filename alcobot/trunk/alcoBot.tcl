@@ -585,25 +585,30 @@ proc ::alcoholicz::InitConfig {filePath} {
 # Load all library scripts and Tcl extensions. An error is raised if a
 # required script or extension could not be loaded.
 #
-proc ::alcoholicz::InitLibraries {libPath} {
+proc ::alcoholicz::InitLibraries {rootPath} {
+    global auto_path
     global tcl_platform
 
-    foreach script {alcoBotConstants.tcl libs/alcoLibCommon.tcl libs/alcoLibConfig.tcl libs/alcoLibFtp.tcl libs/alcoLibTree.tcl} {
+    set libPath [file join $rootPath libs]
+    foreach script {constants.tcl common.tcl config.tcl ftp.tcl tree.tcl} {
         set script [file join $libPath $script]
         if {[catch {source $script} message]} {
-            error "couldn't source library \"$script\": $message"
+            error "couldn't source script \"$script\": $message"
         }
     }
 
-    # The Alcoholicz Tcl extension is named differently on Windows.
-    if {$tcl_platform(platform) eq "windows"} {
-        set libFile "libs/AlcoExt"
-    } else {
-        set libFile "libs/libAlcoExt"
+    # Add the libs directory to the package search path.
+    if {[lsearch -exact $auto_path $libPath] == -1} {
+        lappend auto_path $libPath
     }
-    append libFile [info sharedlibextension]
 
-    load [file join $libPath $libFile]
+    # Load the Alcoholicz Tcl extension.
+    package require AlcoExt 0.1
+
+    # Load optional packages.
+    foreach {name version} {mysqltcl 3.0 sqlite3 3.2 tls 1.5} {
+        catch {package require $name $version}
+    }
     return
 }
 

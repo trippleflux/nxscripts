@@ -3,7 +3,7 @@
 # Copyright (c) 2005 Alcoholicz Scripting Team
 #
 # File Name:
-#   alcoLibConfig.tcl
+#   config.tcl
 #
 # Author:
 #   neoxed (neoxed@gmail.com) May 13, 2005
