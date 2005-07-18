@@ -1,0 +1,208 @@
+#
+# AlcoTcld - Alcoholicz Tcl daemon.
+# Copyright (c) 2005 Alcoholicz Scripting Team
+#
+# File Name:
+#   makefile
+#
+# Author:
+#   neoxed (neoxed@gmail.com) July 17, 2005
+#
+# Abstract:
+#   Build configuration file for NMAKE, or a compatible tool.
+#
+#   Usage:
+#     nmake -f makefile [OPTION=1 ...]
+#
+#   Options:
+#     DEBUG    - Toggle symbolic debugging.
+#     DEVPERF  - Toggle Compuware DevPartner performance analysis.
+#     MEMDEBUG - Toggle Tcl memory debugging.
+#     THREADS  - Toggle threading support.
+#
+
+# PSDK Settings
+APPVER      = 4.0
+TARGETOS    = WINNT
+
+# -------------------------------------------------------------------------
+
+!if !exist("makefile")
+!error You must run this makefile from the directory it is located in.
+!endif
+
+!include "../package.def"
+
+# -------------------------------------------------------------------------
+
+ROOT        = ..
+TCL_SUFFIX  = tg
+PKG_SUFFIX  = DMTP
+
+PKG_VERSION_DOT = $(PKG_MAJOR).$(PKG_MINOR).$(PKG_PATCH)
+PKG_VERSION_RES = $(PKG_MAJOR),$(PKG_MINOR),$(PKG_PATCH),$(PKG_STATUS)
+
+PKG_CFLAGS  = "-DPACKAGE_NAME=\"$(PKG_NAME)\"" "-DPACKAGE_DESC=\"$(PKG_DESC)\"" "-DPACKAGE_VERSION=\"$(PKG_VERSION_DOT)\"" -DPACKAGE_VERSION_RES=$(PKG_VERSION_RES)
+PKG_LFLAGS  = -nodefaultlib:msvcrt -opt:ref -opt:nowin98
+LTC_CFLAGS  =
+TCL_CFLAGS  =
+ZLIB_CFLAGS = -DASMV -DASMINF
+
+# -------------------------------------------------------------------------
+
+!if "$(DEBUG)" == "1"
+!message *** Option: Symbolic Debugging
+PKG_OPTIONS = Debug
+PKG_TOPDIR  = Debug
+# Make sure NODEBUG is not defined for debug builds.
+!ifdef NODEBUG
+!undef NODEBUG
+!endif
+!else
+NODEBUG     = 1
+PKG_OPTIONS = Release
+PKG_TOPDIR  = Release
+PKG_SUFFIX  = $(PKG_SUFFIX:D=)
+TCL_SUFFIX  = $(TCL_SUFFIX:g=)
+!endif
+
+!if "$(MEMDEBUG)" == "1"
+!message *** Option: Memory Debugging
+PKG_OPTIONS = $(PKG_OPTIONS), Memory
+TCL_CFLAGS  = $(TCL_CFLAGS) -DTCL_MEM_DEBUG=1
+!else
+PKG_SUFFIX  = $(PKG_SUFFIX:M=)
+!endif
+
+!if "$(THREADS)" == "1"
+!message *** Option: Threads
+PKG_OPTIONS = $(PKG_OPTIONS), Threads
+TCL_CFLAGS  = $(TCL_CFLAGS) -DTCL_THREADS=1
+!else
+PKG_SUFFIX  = $(PKG_SUFFIX:T=)
+TCL_SUFFIX  = $(TCL_SUFFIX:t=)
+!endif
+
+!include "win32.mak"
+
+!if "$(DEVPERF)" == "1"
+!message *** Option: DevPartner Performance Analysis
+CC          = NMCL /NMttOn
+LINK        = NMLINK /NMttOn
+PKG_OPTIONS = $(PKG_OPTIONS), Perf
+!else
+PKG_SUFFIX  = $(PKG_SUFFIX:P=)
+!endif
+
+# -------------------------------------------------------------------------
+
+!if !exist(nmakehlp.exe)
+!if [$(CC) -nologo -MT nmakehlp.c -link -subsystem:console > nul]
+!endif
+!endif
+
+!if !defined(TCL_DIR)
+!error Unable to find tcl.h; the TCL_DIR variable is incorrect.
+!endif
+
+TCL_DIR = $(TCL_DIR:/=\)
+!if exist("$(TCL_DIR)\include\tcl.h")
+TCL_H   = $(TCL_DIR)\include\tcl.h
+!else
+!error Unable to find tcl.h; the TCL_DIR variable is incorrect.
+!endif
+
+!if [nmakehlp -v $(TCL_H) ""] == 0
+!include version.vc
+!else
+TCL_DOTVERSION  = 8.4
+TCL_VERSION = $(TCL_DOTVERSION:.=)
+!endif
+
+TCL_LIB      = "$(TCL_DIR)\bin\tcl$(TCL_VERSION)$(TCL_SUFFIX).dll"
+TCL_SH       = "$(TCL_DIR)\bin\tclsh$(TCL_VERSION)$(TCL_SUFFIX).exe"
+TCL_STUBLIB  = "$(TCL_DIR)\lib\tclstub$(TCL_VERSION).lib"
+TCL_IMPLIB   = "$(TCL_DIR)\lib\tcl$(TCL_VERSION)$(TCL_SUFFIX).lib"
+TCL_LIBRARY  = $(TCL_DIR)\lib
+TCL_INCLUDES = $(TCL_DIR)\include
+
+!message *** Tcl Version: $(TCL_DOTVERSION)
+!message *** Tcl Imports: $(TCL_IMPLIB)
+
+# -------------------------------------------------------------------------
+
+!if "$(PKG_SUFFIX)" != ""
+PKG_SUFFIX  = -$(PKG_SUFFIX)
+!endif
+
+# File and directory paths.
+PKG_FILE    = $(PKG_NAME)$(PKG_SUFFIX).exe
+PKG_OUTFILE = $(PKG_TOPDIR)\$(PKG_FILE)
+PKG_INTDIR  = $(PKG_TOPDIR)\$(PKG_OPTIONS:, =)
+
+# Append file and option definitions to cflags.
+PKG_CFLAGS  = $(PKG_CFLAGS) "-DPACKAGE_FILE=\"$(PKG_FILE)\"" "-DPACKAGE_OPTIONS=\"$(PKG_OPTIONS)\""
+
+INCLUDE_DIRS=\
+    -I"$(TCL_INCLUDES)"\
+    -I"$(ROOT)\generic"\
+    -I"$(ROOT)\win"
+
+INTERMEDIATE_FILES=\
+    $(PKG_INTDIR)\tcld.obj\
+    $(PKG_INTDIR)\tcld.res
+
+OBJECT_FILES=\
+    $(ROOT)\generic\tcld.obj\
+    $(ROOT)\win\tcld.res
+
+# -------------------------------------------------------------------------
+
+AFLAGS  = -nologo -coff
+CFLAGS  = $(cdebug) $(cflags) $(cvarsmt) $(PKG_CFLAGS) $(LTC_CFLAGS) $(TCL_CFLAGS) $(ZLIB_CFLAGS) $(INCLUDE_DIRS)
+LFLAGS  = $(ldebug) $(conlflags) $(conlibsmt) $(PKG_LFLAGS) $(TCL_IMPLIB)
+RFLAGS  = $(rcflags) $(rcvars) $(PKG_CFLAGS)
+
+# -------------------------------------------------------------------------
+
+.asm.obj::
+    $(AS) -c $(AFLAGS) -Fo"$(PKG_INTDIR)\\" @<<
+$<
+<<
+
+.c.obj::
+    $(CC) -c $(CFLAGS) -Fo"$(PKG_INTDIR)\\" @<<
+$<
+<<
+
+.rc.res:
+    $(RC) $(RFLAGS) -Fo"$(PKG_INTDIR)\$(<B).res" $<
+
+.SUFFIXES:
+.SUFFIXES:.asm .c .rc
+
+# -------------------------------------------------------------------------
+
+default: all
+all:     library
+
+clean:
+    @IF EXIST "$(PKG_FILE)" DEL /F "$(PKG_FILE)"
+    @IF EXIST "$(PKG_OUTFILE)" DEL /F "$(PKG_OUTFILE)"
+    @IF EXIST "$(PKG_INTDIR)" RMDIR /Q /S "$(PKG_INTDIR)"
+    @IF EXIST version.vc DEL /F version.vc
+
+distclean: clean
+    @DEL "$(PKG_NAME)*.exe" *.obj *.pdb
+    @IF EXIST Debug RMDIR /Q /S Debug
+    @IF EXIST Release RMDIR /Q /S Release
+    @IF EXIST nmakehlp.exe DEL /F nmakehlp.exe
+    @IF EXIST nmakehlp.obj DEL /F nmakehlp.obj
+
+library: setup $(OBJECT_FILES)
+    $(LINK) $(LFLAGS) "-out:$(PKG_OUTFILE)" $(INTERMEDIATE_FILES)
+    @COPY /Y "$(TCL_LIB)" "$(PKG_TOPDIR)" > NUL
+
+setup:
+    @IF NOT EXIST "$(PKG_TOPDIR)" MKDIR "$(PKG_TOPDIR)"
+    @IF NOT EXIST "$(PKG_INTDIR)" MKDIR "$(PKG_INTDIR)"
