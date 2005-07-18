@@ -7,9 +7,6 @@
 #ifndef TOMCRYPT_CFG_H
 #define TOMCRYPT_CFG_H
 
-/* type of argument checking, 0=default, 1=fatal and 2=none */
-#define ARGTYPE 2
-
 /* Controls endianess and size of registers.  Leave uncommented to get platform neutral [slower] code
  *
  * Note: in order to use the optimized macros your platform must support unaligned 32 and 64 bit read/writes.
@@ -47,14 +44,14 @@
 
 /* No asm is a quick way to disable anything "not portable" */
 #ifdef LTC_NO_ASM
-   #undef ENDIAN_LITTLE
-   #undef ENDIAN_BIG
-   #undef ENDIAN_32BITWORD
-   #undef ENDIAN_64BITWORD
-   #undef LTC_FAST
-   #undef LTC_FAST_TYPE
-   #define LTC_NO_ROLC
-	#define LTC_NO_BSWAP
+    #undef ENDIAN_LITTLE
+    #undef ENDIAN_BIG
+    #undef ENDIAN_32BITWORD
+    #undef ENDIAN_64BITWORD
+    #undef LTC_FAST
+    #undef LTC_FAST_TYPE
+    #define LTC_NO_ROLC
+    #define LTC_NO_BSWAP
 #endif
 
 /* #define ENDIAN_LITTLE */

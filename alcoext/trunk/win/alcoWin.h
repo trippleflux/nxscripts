@@ -15,6 +15,10 @@
 #ifndef _ALCOWIN_H_
 #define _ALCOWIN_H_
 
+#ifndef _WINDOWS
+#   define _WINDOWS
+#endif
+
 /* Windows linkage. */
 #ifdef TCL_STORAGE_CLASS
 #   undef TCL_STORAGE_CLASS

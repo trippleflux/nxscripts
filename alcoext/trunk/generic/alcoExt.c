@@ -25,11 +25,11 @@ TCL_DECLARE_MUTEX(initMutex)
  */
 TCL_DECLARE_MUTEX(stateMutex)
 
-#ifdef __WIN32__
+#ifdef _WINDOWS
 static HMODULE kernelModule = NULL;
 OSVERSIONINFOA osVersion;
 WinProcs winProcs;
-#endif /* __WIN32__ */
+#endif /* _WINDOWS */
 
 static void FreeState(ExtState *statePtr);
 static Tcl_ExitProc         ExitHandler;
@@ -74,7 +74,7 @@ Alcoext_Init(Tcl_Interp *interp)
     Tcl_MutexLock(&initMutex);
 
     if (!initialised) {
-#ifdef __WIN32__
+#ifdef _WINDOWS
         /* Initialise the OS version structure. */
         osVersion.dwOSVersionInfoSize = sizeof(OSVERSIONINFOA);
         GetVersionExA(&osVersion);
@@ -113,7 +113,7 @@ Alcoext_Init(Tcl_Interp *interp)
          * message box asking the user to insert one.
          */
         SetErrorMode(SetErrorMode(0) | SEM_FAILCRITICALERRORS);
-#endif /* __WIN32__ */
+#endif /* _WINDOWS */
 
         /* An exit handler must only be registered once. */
         Tcl_CreateExitHandler(ExitHandler, NULL);
@@ -167,16 +167,16 @@ Alcoext_Init(Tcl_Interp *interp)
     Tcl_InitHashTable(statePtr->cryptTable, TCL_STRING_KEYS);
     statePtr->cryptHandle = 0;
 
-#ifdef __WIN32__
+#ifdef _WINDOWS
     statePtr->ioTable = (Tcl_HashTable *) ckalloc(sizeof(Tcl_HashTable));
     Tcl_InitHashTable(statePtr->ioTable, TCL_STRING_KEYS);
     statePtr->ioHandle = 0;
-#else /* __WIN32__ */
+#else /* _WINDOWS */
 
     statePtr->glTable = (Tcl_HashTable *) ckalloc(sizeof(Tcl_HashTable));
     Tcl_InitHashTable(statePtr->glTable, TCL_STRING_KEYS);
     statePtr->glHandle = 0;
-#endif /* __WIN32__ */
+#endif /* _WINDOWS */
 
     /*
      * Since callbacks registered with Tcl_CallWhenDeleted() are not executed in
@@ -224,22 +224,22 @@ Alcoext_Init(Tcl_Interp *interp)
         Tcl_CreateObjCommand(interp, "::alcoholicz::volume", VolumeObjCmd,
             (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
 
-#ifdef __WIN32__
+#ifdef _WINDOWS
         Tcl_CreateObjCommand(interp, "::alcoholicz::ioftpd", IoFtpdObjCmd,
             (ClientData) statePtr, (Tcl_CmdDeleteProc *) NULL);
-#else /* __WIN32__ */
+#else /* _WINDOWS */
         Tcl_CreateObjCommand(interp, "::alcoholicz::glftpd", GlFtpdObjCmd,
             (ClientData) statePtr, (Tcl_CmdDeleteProc *) NULL);
-#endif /* __WIN32__ */
+#endif /* _WINDOWS */
     }
 
     Tcl_Eval(interp, "namespace eval ::alcoholicz {"
         "namespace export crypt encode decode volume zlib "
-#ifdef __WIN32__
+#ifdef _WINDOWS
         "ioftpd "
-#else /* __WIN32__ */
+#else /* _WINDOWS */
         "glftpd "
-#endif /* __WIN32__ */
+#endif /* _WINDOWS */
         "}"
         );
 
@@ -364,16 +364,16 @@ FreeState(ExtState *statePtr)
         Tcl_DeleteHashTable(statePtr->cryptTable);
         ckfree((char *) statePtr->cryptTable);
 
-#ifdef __WIN32__
+#ifdef _WINDOWS
         /* TODO: IoCloseHandles(statePtr->ioTable); */
         Tcl_DeleteHashTable(statePtr->ioTable);
         ckfree((char *) statePtr->ioTable);
-#else /* __WIN32__ */
+#else /* _WINDOWS */
 
         GlCloseHandles(statePtr->glTable);
         Tcl_DeleteHashTable(statePtr->glTable);
         ckfree((char *) statePtr->glTable);
-#endif /* __WIN32__ */
+#endif /* _WINDOWS */
 
         ckfree((char *) statePtr);
         statePtr = NULL;
@@ -399,12 +399,12 @@ static void
 ExitHandler(ClientData dummy)
 {
     Tcl_MutexLock(&initMutex);
-#ifdef __WIN32__
+#ifdef _WINDOWS
     if (kernelModule != NULL) {
         FreeLibrary(kernelModule);
         kernelModule = NULL;
     }
-#endif /* __WIN32__ */
+#endif /* _WINDOWS */
 
     initialised = 0;
     Tcl_MutexUnlock(&initMutex);

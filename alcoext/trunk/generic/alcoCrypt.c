@@ -389,14 +389,14 @@ CryptProcessCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], unsigned ch
         if (ivLength != cipher_descriptor[cipherIndex].block_length) {
             char length[12];
 
-#ifdef __WIN32__
+#ifdef _WINDOWS
         StringCchPrintfA(length, ARRAYSIZE(length), "%d",
             cipher_descriptor[cipherIndex].block_length);
-#else /* __WIN32__ */
+#else /* _WINDOWS */
         snprintf(length, ARRAYSIZE(length), "%d",
             cipher_descriptor[cipherIndex].block_length);
         length[ARRAYSIZE(length)-1] = '\0';
-#endif /* __WIN32__ */
+#endif /* _WINDOWS */
 
             Tcl_AppendResult(interp, "invalid initialisation vector size: must be ",
                 length, " bytes", NULL);
@@ -421,27 +421,27 @@ CryptProcessCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], unsigned ch
             cipher_descriptor[cipherIndex].max_key_length) {
 
             /* Fixed key length. */
-#ifdef __WIN32__
+#ifdef _WINDOWS
             StringCchPrintfA(message, ARRAYSIZE(message), "%d",
                 cipher_descriptor[cipherIndex].min_key_length);
-#else /* __WIN32__ */
+#else /* _WINDOWS */
             snprintf(message, ARRAYSIZE(message), "%d",
                 cipher_descriptor[cipherIndex].min_key_length);
             message[ARRAYSIZE(message)-1] = '\0';
-#endif /* __WIN32__ */
+#endif /* _WINDOWS */
 
         } else {
             /* Ranging key length. */
-#ifdef __WIN32__
+#ifdef _WINDOWS
             StringCchPrintfA(message, ARRAYSIZE(message), "between %d and %d",
                 cipher_descriptor[cipherIndex].min_key_length,
                 cipher_descriptor[cipherIndex].max_key_length);
-#else /* __WIN32__ */
+#else /* _WINDOWS */
             snprintf(message, ARRAYSIZE(message), "between %d and %d",
                 cipher_descriptor[cipherIndex].min_key_length,
                 cipher_descriptor[cipherIndex].max_key_length);
             message[ARRAYSIZE(message)-1] = '\0';
-#endif /* __WIN32__ */
+#endif /* _WINDOWS */
 
         }
 
@@ -657,12 +657,12 @@ CryptStartCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *sta
         return TCL_ERROR;
     }
 
-#ifdef __WIN32__
+#ifdef _WINDOWS
     StringCchPrintfA(handleId, ARRAYSIZE(handleId), "crypt%lu", statePtr->cryptHandle);
-#else /* __WIN32__ */
+#else /* _WINDOWS */
     snprintf(handleId, ARRAYSIZE(handleId), "crypt%lu", statePtr->cryptHandle);
     handleId[ARRAYSIZE(handleId)-1] = '\0';
-#endif /* __WIN32__ */
+#endif /* _WINDOWS */
 
     statePtr->cryptHandle++;
 

@@ -30,18 +30,24 @@
 typedef int (Tcl_PackageUnloadProc) _ANSI_ARGS_((Tcl_Interp *interp, int flags));
 #endif /* TCL_UNLOAD_DETACH_FROM_INTERPRETER */
 
+#if defined(_WIN32) || defined(_WIN64) || defined(_WINDOWS)
+#   include "../win/alcoWin.h"
+#else
+#   include "../unix/alcoUnix.h"
+#endif
+
 /* Extension state structure. */
 typedef struct {
     unsigned long cryptHandle;
     Tcl_HashTable *cryptTable;
 
-#ifdef __WIN32__
+#ifdef _WINDOWS
     unsigned long ioHandle;
     Tcl_HashTable *ioTable;
 #else
     unsigned long glHandle;
     Tcl_HashTable *glTable;
-#endif /* __WIN32__ */
+#endif /* _WINDOWS */
 
 } ExtState;
 
@@ -51,12 +57,6 @@ typedef struct StateList {
     struct StateList *next;
     struct StateList *prev;
 } StateList;
-
-#ifdef __WIN32__
-#   include "../win/alcoWin.h"
-#else
-#   include "../unix/alcoUnix.h"
-#endif
 
 #include <tomcrypt.h>
 #include <zlib.h>
