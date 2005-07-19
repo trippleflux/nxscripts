@@ -19,7 +19,7 @@
 #endif
 
 typedef struct {
-    char systemError[512];
+    char message[512];
 } ThreadSpecificData;
 
 static Tcl_ThreadDataKey dataKey;
@@ -48,21 +48,26 @@ TclSetWinError(Tcl_Interp *interp, unsigned long errorCode)
 
     StringCchPrintfA(errorId, ARRAYSIZE(errorId), "%lu", errorCode);
 
-    if (!FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM,
+    if (FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM,
         NULL,
         errorCode,
-        0,
-        tsdPtr->systemError,
-        ARRAYSIZE(tsdPtr->systemError),
-        NULL)) {
-            StringCchCopyA(tsdPtr->systemError, ARRAYSIZE(tsdPtr->systemError), "unknown error");
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        tsdPtr->message,
+        ARRAYSIZE(tsdPtr->message),
+        NULL) == 0) {
+        StringCchCopyA(tsdPtr->message, ARRAYSIZE(tsdPtr->message), "unknown error");
     } else {
+        size_t length;
+        StringCchLengthA(tsdPtr->message, ARRAYSIZE(tsdPtr->message), &length);
+
         /* Remove trailing CR/LF. */
-        tsdPtr->systemError[strlen(tsdPtr->systemError)-2] = '\0';
+        if (length >= 2 && tsdPtr->message[length-2] == '\r' && tsdPtr->message[length-1] == '\n') {
+            tsdPtr->message[length-2] = '\0';
+        }
     }
 
-    Tcl_SetErrorCode(interp, "WINDOWS", errorId, tsdPtr->systemError, NULL);
-    return tsdPtr->systemError;
+    Tcl_SetErrorCode(interp, "WINDOWS", errorId, tsdPtr->message, NULL);
+    return tsdPtr->message;
 }
 
 /*
