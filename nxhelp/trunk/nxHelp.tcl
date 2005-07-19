@@ -1,65 +1,86 @@
 ################################################################################
-#  nxHelp v1.10                                                                #
+# nxHelp - SITE HELP Script                                                    #
 ################################################################################
 # Author  : neoxed                                                             #
-# Date    : 05-03-2004                                                         #
-# Version : 1.1.0 (rev 4)                                                      #
+# Date    : 18-07-2005                                                         #
+# Version : 2.0.0 (rev 5)                                                      #
 ################################################################################
 
-# Path to the help files.
-# - Shown on 'SITE HELP'
+namespace eval ::nxHelp {
+    # Path to SITE command files.
+    variable cmdPath    "../scripts/nxHelp/site"
 
-set help(HelpFiles) "../scripts/nxHelp/help"
+    # Path to help files.
+    variable helpPath   "../scripts/nxHelp/help"
 
-# Path to site command help files.
-# - Shown on 'SITE HELP <command>'
-
-set help(SiteFiles) "../scripts/nxHelp/site"
-
-# Permissions to display help files.
-# - The files will be shown in the defined order.
-# - If you leave the 'flags' directive empty, the file will be shown to all users.
-# - The file must be located in the 'help(HelpFiles)' path.
-# - Format: "<flags>|<file to display>"
-
-set help(Permissions) {
-  "M1G|user.help"
-  "M1|siteop.help"
-  "M1V|vfs.help"
-  "M1N|nuke.help"
+    # Permissions for help files displayed on 'SITE HELP'.
+    # - If the 'flags' field is left empty, the file is shown to all users.
+    # - The 'file to display' must be located in 'helpPath'.
+    # - Format: <flags>|<file to display>
+    variable permissions {
+        {M1G|user.help}
+        {M1|siteop.help}
+        {M1V|vfs.help}
+        {M1N|nuke.help}
+    }
 }
 
 # End of Settings
 ##############################################################################
 
-proc CheckFlags {need have} {
-    if {[regexp "\[$need\]" $have]} {return 1}
+proc ::nxHelp::ArgsToList {ArgV} {
+    split [string trim [regsub -all {\s+} $ArgV { }]]
+}
+
+proc ::nxHelp::CheckFlags {required current} {
+    foreach flag [split $required {}] {
+        if {[string first $flag $required] != -1} {
+            return 1
+        }
+    }
     return 0
 }
 
-proc ShowFile {FilePath} {
-    if {![catch {set Handle [open $FilePath r]} ErrorMsg]} {
-        while {![eof $Handle]} {
-            if {[gets $Handle Line] > 0} {iputs $Line}
+proc ::nxHelp::ShowFile {path} {
+    if {![catch {set handle [open $path r]} message]} {
+        while {![eof $handle]} {
+            if {[gets $handle line] > 0} {iputs $line}
         }
-        close $Handle
+        close $handle
     }
 }
 
-if {![info exists args] || [string equal "" $args]} {
-    ShowFile [file join $help(HelpFiles) "header.help"]
-    foreach perm $help(Permissions) {
-        set perm [split $perm "|"]
-        if {[string equal "" [lindex $perm 0]] || [CheckFlags [lindex $perm 0] $flags]} {
-            ShowFile [file join $help(HelpFiles) [lindex $perm 1]]
+proc ::nxHelp::Main {argv} {
+    global flags
+    variable cmdPath
+    variable helpPath
+    variable permissions
+
+    # Safe argument handling.
+    set argList [ArgsToList $argv]
+
+    if {![llength $argList]} {
+        ShowFile [file join $helpPath "header.help"]
+        foreach entry $permissions {
+            foreach {neededFlags filePath} [split $entry "|"] {break}
+
+            # An empty flag field implies all users.
+            if {$neededFlags eq "" || [CheckFlags $neededFlags $flags]} {
+                ShowFile [file join $helpPath $filePath]
+            }
+        }
+        ShowFile [file join $helpPath "footer.help"]
+    } else {
+        set topic [string tolower [lindex $argList 0]]
+        set cmdFile [join [list $cmdPath ${topic}.site] "/"]
+
+        if {[file readable $cmdFile]} {
+            ShowFile $cmdFile
+        } else {
+            ShowFile [file join $helpPath "notfound.help"]
         }
     }
-    ShowFile [file join $help(HelpFiles) "footer.help"]
-} else {
-    set topic [string tolower [lindex $args 0]]
-    if {[file readable [file join $help(SiteFiles) $topic\.site]]} {
-        ShowFile [file join $help(SiteFiles) $topic\.site]
-    } else {
-        ShowFile [file join $help(HelpFiles) "notfound.help"]
-    }
+    return 0
 }
+
+::nxHelp::Main [expr {[info exists args] ? $args : ""}]

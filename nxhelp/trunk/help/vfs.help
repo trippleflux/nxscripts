@@ -1,4 +1,3 @@
-  |                                                         |
   |-[VfsAdmin]----------------------------------------------|
   |    CHATTR - Modify symlinks and/or private dirs.        |
   |     CHMOD - Change permission of a directory or file.   |
