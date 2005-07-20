@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 
     DEBUGLOG("main: Starting...\n");
 
-    /* Change working directory to current process' location. */
+    /* Change working directory to the image location. */
     if (GetModuleFileNameA(NULL, currentPath, ARRAYSIZE(currentPath))) {
         PathRemoveFileSpecA(currentPath);
         if (!SetCurrentDirectoryA(currentPath)) {
@@ -84,7 +84,7 @@ int main(int argc, char **argv)
         if (errorId == ERROR_FAILED_SERVICE_CONTROLLER_CONNECT) {
             Tcl_Interp *interp = TclInit(argc, argv, FALSE, NULL);
             if (interp == NULL) {
-                return -1;
+                return 1;
             }
 
             /* Wait forever... */

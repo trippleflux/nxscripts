@@ -15,6 +15,10 @@
 #ifndef _TCLD_H_
 #define _TCLD_H_
 
+#ifdef HAVE_CONFIG_H
+#   include "config.h"
+#endif
+
 #include <tcl.h>
 
 #if defined(_WIN32) || defined(_WIN64) || defined(_WINDOWS)

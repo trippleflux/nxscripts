@@ -45,7 +45,7 @@ void DebugLog(const char *format, ...)
         SYSTEMTIME now;
         GetSystemTime(&now);
 
-        fprintf(logHandle, "%04d-%02d-%02d %02d:%02d:%02d [%04lu] ",
+        fprintf(logHandle, "%04d-%02d-%02d %02d:%02d:%02d [%5lu] ",
             now.wYear, now.wMonth, now.wDay, now.wHour, now.wMinute, now.wSecond,
             GetCurrentThreadId());
 #else
@@ -163,6 +163,12 @@ Tcl_Interp *TclInit(int argc, char **argv, int service, Tcl_ExitProc *exitProc)
         success = 0;
     }
 
+    /*
+     * Nothing must be done to obstruct the interpreter's result object if
+     * Tcl_EvalFile() succeeds. The result is used to determine whether or
+     * not we fork the process into the background (nix only).
+     */
+
     return (success != 0) ? interp : NULL;
 }
 
@@ -203,7 +209,7 @@ static void TclLogError(const char *message, Tcl_Obj *objPtr)
         SYSTEMTIME now;
         GetSystemTime(&now);
 
-        StringCchPrintfA(timeStamp, ARRAYSIZE(timeStamp), "%04d-%02d-%02d %02d:%02d:%02d ",
+        StringCchPrintfA(timeStamp, ARRAYSIZE(timeStamp), "%04d-%02d-%02d %02d:%02d:%02d - ",
             now.wYear, now.wMonth, now.wDay, now.wHour, now.wMinute, now.wSecond);
 #else
         time_t timer;
@@ -211,7 +217,7 @@ static void TclLogError(const char *message, Tcl_Obj *objPtr)
         time(&timer);
         now = localtime(&timer);
 
-        snprintf(timeStamp, ARRAYSIZE(timeStamp), "%04d-%02d-%02d %02d:%02d:%02d ",
+        snprintf(timeStamp, ARRAYSIZE(timeStamp), "%04d-%02d-%02d %02d:%02d:%02d - ",
             now->tm_year+1900, now->tm_mon, now->tm_mday,
             now->tm_hour, now->tm_min, now->tm_sec);
         timeStamp[ARRAYSIZE(timeStamp)-1] = '\0';
