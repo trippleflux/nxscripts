@@ -14,8 +14,6 @@
 
 #include <tcld.h>
 
-#include <time.h>
-
 static void TclLogError(const char *message, Tcl_Obj *objPtr);
 
 
@@ -84,7 +82,7 @@ void DebugLog(const char *format, ...)
  *   structure. If the function fails, the return value is NULL.
  *
  * Remarks:
- *   None.
+ *   The caller should delete the returned interpeter when finished.
  */
 Tcl_Interp *TclInit(int argc, char **argv, int service, Tcl_ExitProc *exitProc)
 {
