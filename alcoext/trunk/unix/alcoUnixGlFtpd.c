@@ -152,7 +152,7 @@ ParseFields(const char *line, int delims, int *lengthPtr, long *idPtr)
 
     *lengthPtr = 0;
     for (i = 0; i < delims; i++) {
-        if ((p = strstr(p, ":")) == NULL) {
+        if ((p = strchr(p, ':')) == NULL) {
             break;
         }
         p++;
