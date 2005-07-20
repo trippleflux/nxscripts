@@ -15,6 +15,10 @@
 #ifndef _TCLDWIN_H_
 #define _TCLDWIN_H_
 
+#if defined(DEBUG) && !defined(_DEBUG)
+#   define _DEBUG
+#endif
+
 #ifndef _WINDOWS
 #   define _WINDOWS
 #endif

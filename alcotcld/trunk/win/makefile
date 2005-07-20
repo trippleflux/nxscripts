@@ -150,10 +150,12 @@ INCLUDE_DIRS=\
 
 INTERMEDIATE_FILES=\
     $(PKG_INTDIR)\tcld.obj\
+    $(PKG_INTDIR)\tcldWinMain.obj\
     $(PKG_INTDIR)\tcld.res
 
 OBJECT_FILES=\
     $(ROOT)\generic\tcld.obj\
+    $(ROOT)\win\tcldWinMain.obj\
     $(ROOT)\win\tcld.res
 
 # -------------------------------------------------------------------------

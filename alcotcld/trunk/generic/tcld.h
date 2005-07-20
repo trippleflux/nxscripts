@@ -23,10 +23,27 @@
 #   include "../unix/tcldUnix.h"
 #endif
 
+#ifndef TRUE
+#   define TRUE  1
+#endif
+#ifndef FALSE
+#   define FALSE 0
+#endif
+
 /* ARRAYSIZE - Returns the number of entries in an array. */
 #ifdef ARRAYSIZE
 #   undef ARRAYSIZE
 #endif
-#define ARRAYSIZE(a)    (sizeof(a) / sizeof(a[0]))
+#define ARRAYSIZE(a) (sizeof(a) / sizeof(a[0]))
+
+/* DEBUGLOG - Write a message to the debug log. */
+#if defined(DEBUG) || defined(_DEBUG)
+void DebugLog(const char *format, ...);
+#   define DEBUGLOG DebugLog
+#else
+#   define DEBUGLOG
+#endif
+
+Tcl_Interp *TclInit(int argc, char **argv, int service, Tcl_ExitProc *exitProc);
 
 #endif /* _TCLD_H_ */
