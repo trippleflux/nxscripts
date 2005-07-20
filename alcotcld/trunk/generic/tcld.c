@@ -14,7 +14,7 @@
 
 #include <tcld.h>
 
-static void TclDisplayError(const char *message, Tcl_Obj *objPtr);
+static void TclLogError(const char *message, Tcl_Obj *objPtr);
 
 
 /*
@@ -44,7 +44,7 @@ void DebugLog(const char *format, ...)
 #endif /* _WINDOWS */
 
     va_start(argList, format);
-    logHandle = fopen("Tcld.log", "a");
+    logHandle = fopen("Debug.log", "a");
     if (logHandle != NULL) {
 #ifdef _WINDOWS
         GetSystemTime(&now);
@@ -117,7 +117,7 @@ Tcl_Interp *TclInit(int argc, char **argv, int service, Tcl_ExitProc *exitProc)
      * continue and function normally (for the most part anyway).
      */
     if (Tcl_Init(interp) != TCL_OK) {
-        TclDisplayError("Tcl initialisation failed:\n", Tcl_GetObjResult(interp));
+        TclLogError("Tcl initialisation failed:\n", Tcl_GetObjResult(interp));
     }
 
     /* Set the "argc", "argv", and "argv0" global variables. */
@@ -152,7 +152,7 @@ Tcl_Interp *TclInit(int argc, char **argv, int service, Tcl_ExitProc *exitProc)
     }
 
     if (Tcl_EvalFile(interp, argv[1]) != TCL_OK) {
-        TclDisplayError("Script evaluation failed:\n",
+        TclLogError("Script evaluation failed:\n",
             Tcl_GetVar2Ex(interp, "errorInfo", NULL, TCL_GLOBAL_ONLY));
 
         /* Delete the interpreter if it still exists. */
@@ -166,9 +166,9 @@ Tcl_Interp *TclInit(int argc, char **argv, int service, Tcl_ExitProc *exitProc)
 }
 
 /*
- * TclDisplayError
+ * TclLogError
  *
- *   Displays an error message to stderr.
+ *   Displays an error message to stderr and logs it to Error.log.
  *
  * Arguments:
  *   message - Pointer to a buffer containing a string which explains the error.
@@ -180,15 +180,44 @@ Tcl_Interp *TclInit(int argc, char **argv, int service, Tcl_ExitProc *exitProc)
  * Remarks:
  *   None.
  */
-static void TclDisplayError(const char *message, Tcl_Obj *objPtr)
+static void TclLogError(const char *message, Tcl_Obj *objPtr)
 {
-    Tcl_Channel errorChannel = Tcl_GetStdChannel(TCL_STDERR);
+    Tcl_Channel channel;
 
-    DEBUGLOG("TclDisplayError: %s%s\n", message, Tcl_GetString(objPtr));
+    DEBUGLOG("TclLogError: %s%s\n", message, Tcl_GetString(objPtr));
 
-    if (errorChannel) {
-        Tcl_WriteChars(errorChannel, message, -1);
-        Tcl_WriteObj(errorChannel, objPtr);
-        Tcl_WriteChars(errorChannel, "\n", 1);
+    /* Write message to stderr. */
+    channel = Tcl_GetStdChannel(TCL_STDERR);
+    if (channel != NULL) {
+        Tcl_WriteChars(channel, message, -1);
+        Tcl_WriteObj(channel, objPtr);
+        Tcl_WriteChars(channel, "\n", 1);
+    }
+
+    /* Write message to Error.log. */
+    channel = Tcl_OpenFileChannel(NULL, "Error.log", "a", 0644);
+    if (channel != NULL) {
+        char timeStamp[64];
+#ifdef _WINDOWS
+        SYSTEMTIME now;
+        GetSystemTime(&now);
+
+        StringCchPrintfA(timeStamp, ARRAYSIZE(timeStamp), "%04d-%02d-%02d %02d:%02d:%02d ",
+            now.wYear, now.wMonth, now.wDay, now.wHour, now.wMinute, now.wSecond);
+#else
+    struct tm *now;
+        now = localtime(time(NULL));
+
+        snprintf(timeStamp, ARRAYSIZE(timeStamp), "%04d-%02d-%02d %02d:%02d:%02d ",
+            now->tm_year, now->tm_mon, now->tm_mday,
+            now->tm_hour, now->tm_min, now->tm_sec);
+       timeStamp[ARRAYSIZE(timeStamp)-1] = '\0';
+#endif /* _WINDOWS */
+
+        Tcl_WriteChars(channel, timeStamp, -1);
+        Tcl_WriteChars(channel, message, -1);
+        Tcl_WriteObj(channel, objPtr);
+        Tcl_WriteChars(channel, "\n\n", 2);
+        Tcl_Close(NULL, channel);
     }
 }

@@ -25,6 +25,7 @@
 
 /* System includes. */
 #include <windows.h>
+#include <shlwapi.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>

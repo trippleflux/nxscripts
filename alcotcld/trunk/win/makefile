@@ -162,7 +162,7 @@ OBJECT_FILES=\
 
 AFLAGS  = -nologo -coff
 CFLAGS  = $(cdebug) $(cflags) $(cvarsmt) $(PKG_CFLAGS) $(LTC_CFLAGS) $(TCL_CFLAGS) $(ZLIB_CFLAGS) $(INCLUDE_DIRS)
-LFLAGS  = $(ldebug) $(conlflags) $(conlibsmt) $(PKG_LFLAGS) $(TCL_IMPLIB)
+LFLAGS  = $(ldebug) $(conlflags) $(conlibsmt) shlwapi.lib $(PKG_LFLAGS) $(TCL_IMPLIB)
 RFLAGS  = $(rcflags) $(rcvars) $(PKG_CFLAGS)
 
 # -------------------------------------------------------------------------

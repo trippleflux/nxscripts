@@ -1,3 +1,16 @@
+/*
+ * AlcoTcld - Alcoholicz Tcl daemon.
+ * Copyright (c) 2005 Alcoholicz Scripting Team
+ *
+ * File Name:
+ *   tcldWinMain.c
+ *
+ * Author:
+ *   neoxed (neoxed@gmail.com) July 19, 2005
+ *
+ * Abstract:
+ *   Windows application entry point.
+ */
 
 #include <tcld.h>
 
@@ -37,10 +50,24 @@ static DWORD WINAPI TclThread(void *param);
  */
 int main(int argc, char **argv)
 {
+    char currentPath[512];
     SERVICE_TABLE_ENTRYA serviceTable[] = {
         {"",   ServiceMain},
         {NULL, NULL}
     };
+
+    DEBUGLOG("main: Starting...\n");
+
+    /* Change working directory to current process' location. */
+    if (GetModuleFileNameA(NULL, currentPath, ARRAYSIZE(currentPath))) {
+        PathRemoveFileSpecA(currentPath);
+        if (!SetCurrentDirectoryA(currentPath)) {
+            DEBUGLOG("main: Unable to change directory to %s, error %lu.\n",
+                currentPath, GetLastError());
+        }
+    } else {
+        DEBUGLOG("main: GetModuleFileName() failed with %lu.\n", GetLastError());
+    }
 
     /* Needed for TclThread. */
     cmdArgc = argc;
