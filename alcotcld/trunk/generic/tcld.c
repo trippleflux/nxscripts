@@ -14,6 +14,8 @@
 
 #include <tcld.h>
 
+#include <time.h>
+
 static void TclLogError(const char *message, Tcl_Obj *objPtr);
 
 
@@ -37,24 +39,25 @@ void DebugLog(const char *format, ...)
 {
     FILE *logHandle;
     va_list argList;
-#ifdef _WINDOWS
-    SYSTEMTIME now;
-#else
-    struct tm *now;
-#endif /* _WINDOWS */
 
     va_start(argList, format);
     logHandle = fopen("Debug.log", "a");
     if (logHandle != NULL) {
 #ifdef _WINDOWS
+        SYSTEMTIME now;
         GetSystemTime(&now);
+
         fprintf(logHandle, "%04d-%02d-%02d %02d:%02d:%02d [%04lu] ",
             now.wYear, now.wMonth, now.wDay, now.wHour, now.wMinute, now.wSecond,
             GetCurrentThreadId());
 #else
-        now = localtime(time(NULL));
+        time_t timer;
+        struct tm *now;
+        time(&timer);
+        now = localtime(&timer);
+
         fprintf(logHandle, "%04d-%02d-%02d %02d:%02d:%02d - ",
-            now->tm_year, now->tm_mon, now->tm_mday,
+            now->tm_year+1900, now->tm_mon, now->tm_mday,
             now->tm_hour, now->tm_min, now->tm_sec);
 #endif /* _WINDOWS */
 
@@ -205,13 +208,15 @@ static void TclLogError(const char *message, Tcl_Obj *objPtr)
         StringCchPrintfA(timeStamp, ARRAYSIZE(timeStamp), "%04d-%02d-%02d %02d:%02d:%02d ",
             now.wYear, now.wMonth, now.wDay, now.wHour, now.wMinute, now.wSecond);
 #else
-    struct tm *now;
-        now = localtime(time(NULL));
+        time_t timer;
+        struct tm *now;
+        time(&timer);
+        now = localtime(&timer);
 
         snprintf(timeStamp, ARRAYSIZE(timeStamp), "%04d-%02d-%02d %02d:%02d:%02d ",
-            now->tm_year, now->tm_mon, now->tm_mday,
+            now->tm_year+1900, now->tm_mon, now->tm_mday,
             now->tm_hour, now->tm_min, now->tm_sec);
-       timeStamp[ARRAYSIZE(timeStamp)-1] = '\0';
+        timeStamp[ARRAYSIZE(timeStamp)-1] = '\0';
 #endif /* _WINDOWS */
 
         Tcl_WriteChars(channel, timeStamp, -1);
