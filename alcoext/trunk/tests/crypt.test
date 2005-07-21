@@ -33,6 +33,38 @@ source [file join $currentPath crypt-hash.tv]
 source [file join $currentPath crypt-hmac.tv]
 source [file join $currentPath crypt-cipher.tv]
 
+# Algorithm definitions.
+# algo    keyMin keyMax block rounds
+set cipherList {
+3des        24    24     8      16
+aes         16    32     16     10
+anubis      16    40     16     12
+blowfish    8     56     8      16
+cast5       5     16     8      16
+des         8     8      8      16
+khazad      16    16     8      8
+noekeon     16    16     16     16
+rc2         8     128    8      16
+rc5         8     128    8      12
+rc6         8     128    16     20
+safer+      16    32     16     8
+safer-k64   8     8      8      8
+safer-sk64  8     8      8      8
+safer-k128  16    16     8      8
+safer-sk128 16    16     8      8
+skipjack    10    10     8      32
+twofish     16    32     16     16
+xtea        16    16     8      32
+}
+
+set testData {
+"\x32\xF8\x62\x06\xBB\x4E\x52\x5B\x32\xF8"
+"\xD4\x41\x13\x20\x32\xBD\xAC\x67\x15\xF4\x45\x3C\xBC\x24\x34\xD8"
+"\x6B\x6F\x32\xE5\xEA\xC2\xF4\x24\x07\x4C\x33\xF7\xC9\x88\xD5\xFE\x6B\x6F\x32\xE5\xEA\xC2\xF4\x24"
+"\xB3\xE9\x5F\x51\x95\xBA\x64\x6D\xAF\x33\x3A\xA8\x91\x30\x45\x1F\xB3\xE9\x5F\x51\x95\xBA\x64\x6D\xAF\x33\x3A\xA8\x91\x30\x45\x1F"
+"\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37"
+}
+
 ################################################################################
 # crypt                                                                        #
 ################################################################################
@@ -57,14 +89,14 @@ test crypt-2.1 {crypt decrypt: no args} {
     list [catch {crypt decrypt} msg] $msg
 } {1 {wrong # args: should be "crypt decrypt ?switches? cipher key data"}}
 
-test crypt-2.2 {crypt decrypt: ecb tests} {
+test crypt-2.2 {crypt decrypt: ECB mode tests} {
     foreach algo [array names cipherTest] {
         set n 1
         foreach {key plain cipher} $cipherTest($algo) {
             set result [crypt decrypt $algo $key $cipher]
 
             if {$plain ne $result} {
-                return "ecb $algo (vector $n):\n\
+                return "ECB $algo (vector $n):\n\
                     - key   =[encode hex $key]\n\
                     - cipher=[encode hex $cipher]\n\
                     - needed=[encode hex $plain]\n\
@@ -83,17 +115,129 @@ test crypt-3.1 {crypt encrypt: no args} {
     list [catch {crypt encrypt} msg] $msg
 } {1 {wrong # args: should be "crypt encrypt ?switches? cipher key data"}}
 
-test crypt-3.2 {crypt decrypt: ecb tests} {
+test crypt-3.2 {crypt decrypt: ECB mode tests} {
     foreach algo [array names cipherTest] {
         set n 1
         foreach {key plain cipher} $cipherTest($algo) {
             set result [crypt encrypt $algo $key $plain]
 
             if {$cipher ne $result} {
-                return "ecb $algo (vector $n):\n\
+                return "ECB $algo (vector $n):\n\
                     - key   =[encode hex $key]\n\
                     - plain =[encode hex $plain]\n\
                     - needed=[encode hex $cipher]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-3.3 {crypt decrypt: more ECB mode tests} {
+    foreach {algo minKey maxKey blockLength defRounds} $cipherList {
+        set key [string repeat "ab" [expr {$maxKey / 2}]]
+
+        set n 1
+        foreach plain $testData {
+            set length [string length $plain]
+            set cipher [crypt encrypt -mode ecb $algo $key $plain]
+            set result [crypt decrypt -mode ecb $algo $key $cipher]
+
+            # Plain-text is padded to a multiple of a cipher's block-length in ECB mode.
+            set result [string range $result 0 [incr length -1]]
+
+            if {$plain ne $result} {
+                return "ECB $algo (block-length $blockLength, vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-3.4 {crypt decrypt: CBC mode tests} {
+    foreach {algo minKey maxKey blockLength defRounds} $cipherList {
+        set iv  [string repeat "\0" $blockLength]
+        set key [string repeat "ab" [expr {$maxKey / 2}]]
+
+        set n 1
+        foreach plain $testData {
+            set length [string length $plain]
+            set cipher [crypt encrypt -iv $iv -mode cbc $algo $key $plain]
+            set result [crypt decrypt -iv $iv -mode cbc $algo $key $cipher]
+
+            # Plain-text is padded to a multiple of a cipher's block-length in CBC mode.
+            set result [string range $result 0 [incr length -1]]
+
+            if {$plain ne $result} {
+                return "CBC $algo (block-length $blockLength, vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-3.5 {crypt decrypt: CFB mode tests} {
+    foreach {algo minKey maxKey blockLength defRounds} $cipherList {
+        set iv  [string repeat "\0" $blockLength]
+        set key [string repeat "ab" [expr {$maxKey / 2}]]
+
+        set n 1
+        foreach plain $testData {
+            set cipher [crypt encrypt -iv $iv -mode cfb $algo $key $plain]
+            set result [crypt decrypt -iv $iv -mode cfb $algo $key $cipher]
+
+            if {$plain ne $result} {
+                return "CFB $algo (block-length $blockLength, vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-3.6 {crypt decrypt: CTR mode tests} {
+    foreach {algo minKey maxKey blockLength defRounds} $cipherList {
+        set iv  [string repeat "\0" $blockLength]
+        set key [string repeat "ab" [expr {$maxKey / 2}]]
+
+        set n 1
+        foreach plain $testData {
+            set cipher [crypt encrypt -iv $iv -mode ctr $algo $key $plain]
+            set result [crypt decrypt -iv $iv -mode ctr $algo $key $cipher]
+
+            if {$plain ne $result} {
+                return "CTR $algo (block-length $blockLength, vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-3.7 {crypt decrypt: OFB mode tests} {
+    foreach {algo minKey maxKey blockLength defRounds} $cipherList {
+        set iv  [string repeat "\0" $blockLength]
+        set key [string repeat "ab" [expr {$maxKey / 2}]]
+
+        set n 1
+        foreach plain $testData {
+            set cipher [crypt encrypt -iv $iv -mode ofb $algo $key $plain]
+            set result [crypt decrypt -iv $iv -mode ofb $algo $key $cipher]
+
+            if {$plain ne $result} {
+                return "OFB $algo (block-length $blockLength, vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
                     - result=[encode hex $result]"
             }
             incr n
