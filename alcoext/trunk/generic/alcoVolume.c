@@ -126,6 +126,7 @@ VolumeObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
         case OPTION_INFO: {
             Tcl_Obj *fieldObj;
             Tcl_Obj *flagListObj;
+            Tcl_Obj *valueObj;
             VolumeInfo volumeInfo;
 
             if (objc != 4) {
@@ -145,19 +146,20 @@ VolumeObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
             fieldObj = Tcl_NewObj();
             Tcl_IncrRefCount(fieldObj);
 
-            /* Easier than repeating this... */
-            #define TCL_STORE_ARRAY(fieldName, valueObj) \
-            Tcl_SetStringObj(fieldObj, fieldName, -1); \
-            if (Tcl_ObjSetVar2(interp, objv[3], fieldObj, valueObj, TCL_LEAVE_ERR_MSG) == NULL) { \
-                Tcl_DecrRefCount(fieldObj); \
-                Tcl_DecrRefCount(valueObj); \
-                return TCL_ERROR; \
-            }
+/* Easier than repeating this... */
+#define TCL_STORE_ARRAY(name, value)                                                        \
+    valueObj = (value);                                                                     \
+    Tcl_SetStringObj(fieldObj, (name), -1);                                                 \
+    if (Tcl_ObjSetVar2(interp, objv[3], fieldObj, valueObj, TCL_LEAVE_ERR_MSG) == NULL) {   \
+        Tcl_DecrRefCount(fieldObj);                                                         \
+        Tcl_DecrRefCount(valueObj);                                                         \
+        return TCL_ERROR;                                                                   \
+    }
 
             TCL_STORE_ARRAY("length", Tcl_NewLongObj((long)volumeInfo.length));
             TCL_STORE_ARRAY("id",     Tcl_NewWideIntObj((Tcl_WideInt)volumeInfo.id));
             TCL_STORE_ARRAY("name",   Tcl_NewStringObj(volumeInfo.name, -1));
-            TCL_STORE_ARRAY("type",   Tcl_NewStringObj(volumeInfo.type, -1)); /* TODO: make this a list {fs type} */
+            TCL_STORE_ARRAY("type",   Tcl_NewStringObj(volumeInfo.type, -1));
             TCL_STORE_ARRAY("free",   Tcl_NewWideIntObj((Tcl_WideInt)volumeInfo.free));
             TCL_STORE_ARRAY("total",  Tcl_NewWideIntObj((Tcl_WideInt)volumeInfo.total));
 
