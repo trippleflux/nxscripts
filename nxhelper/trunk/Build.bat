@@ -4,63 +4,40 @@
 :: Copyright (c) 2005 neoxed
 ::
 :: File Name:
-::   Build.bat
+::   build.bat
 ::
 :: Author:
-::   neoxed (neoxed@gmail.com) May 22, 2005
+::   neoxed (neoxed@gmail.com) June 26, 2005
 ::
 :: Abstract:
-::   Build script for Microsoft's C/C++ compiler.
+::   Batch script to build a release and debug version of nxHelper.
 ::
 
-:: ----------------------------------------------------------
-:: Configuration
-::
 :: Tcl installation path.
-SET TCLDIR=D:\Projects\Tcl
+SET TCL_DIR=D:\Projects\Tcl
 
-:: Zlib installation path.
-SET ZLIBDIR=.\zlib
-:: ----------------------------------------------------------
+:: -------------------------------------------------------------------------
 
-CALL "C:\Program Files\Microsoft Visual Studio .NET 2003\Vc7\bin\vcvars32.bat"
-
-TITLE Building nxHelper Tcl Extension - Compiling...
-
-ECHO:=======================================================================
-ECHO: Support Libraries
-ECHO:=======================================================================
-
-SET CURRPATH=%CD%
-
-IF EXIST "%ZLIBDIR%\zlib.lib" (
-    ECHO zLib already built.
-) ELSE (
-    cd %ZLIBDIR%
-    nmake -nologo -f makefile.vc
-    cd %CURRPATH%
-)
+CALL "C:\Program Files\Microsoft Visual Studio .NET 2003\Common7\Tools\vsvars32.bat"
 
 ECHO:=======================================================================
 ECHO: nxHelper - Release Build
 ECHO:=======================================================================
 
-nmake -nologo -f makefile.vc release OPTS=threads
+nmake -nologo -f makefile all THREADS=1
 IF errorlevel 1 GOTO error
 
 ECHO:=======================================================================
 ECHO: nxHelper - Debug Build
 ECHO:=======================================================================
 
-nmake -nologo -f makefile.vc release OPTS=threads,symbols STATS=memdbg
+nmake -nologo -f makefile all DEBUG=1 MEMDEBUG=1 THREADS=1
 IF errorlevel 1 GOTO error
 
-TITLE Building nxHelper Tcl Extension - Finished
 ECHO *** Finished ***
 GOTO end
 
 :error
-TITLE Building Inferno Tcl Extension - Error
 ECHO *** Error ***
 
 :end
