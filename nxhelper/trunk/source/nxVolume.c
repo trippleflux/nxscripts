@@ -13,7 +13,7 @@
  *
  *   Tcl Commands:
  *    ::nx::volume info <volume> <varName>
- *      - Retrieves information for the "drive" and uses
+ *      - Retrieves information for the "volume" and uses
  *        the array given by "varName" to store information.
  *      - Array Contents:
  *        name   - Name of the volume.
@@ -55,7 +55,6 @@ static BOOL GetVolumeSize(TCHAR *volumePath, ULONGLONG *bytesFree, ULONGLONG *by
  * Remarks:
  *   None.
  */
-
 static BOOL
 GetVolumeSize(TCHAR *volumePath, ULONGLONG *bytesFree, ULONGLONG *bytesTotal)
 {
@@ -95,7 +94,6 @@ GetVolumeSize(TCHAR *volumePath, ULONGLONG *bytesFree, ULONGLONG *bytesTotal)
     return result;
 }
 
-
 /*
  * GetVolumeInfo
  *
@@ -112,7 +110,6 @@ GetVolumeSize(TCHAR *volumePath, ULONGLONG *bytesFree, ULONGLONG *bytesTotal)
  * Remarks:
  *   None.
  */
-
 static BOOL
 GetVolumeInfo(TCHAR *volumePath, VolumeInfo *volumeInfo)
 {
@@ -132,7 +129,6 @@ GetVolumeInfo(TCHAR *volumePath, VolumeInfo *volumeInfo)
     return TRUE;
 }
 
-
 /*
  * VolumeObjCmd
  *
@@ -150,7 +146,6 @@ GetVolumeInfo(TCHAR *volumePath, VolumeInfo *volumeInfo)
  * Remarks:
  *   None.
  */
-
 int
 VolumeObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
@@ -170,6 +165,7 @@ VolumeObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
     switch ((enum options) index) {
         case OPTION_INFO: {
             Tcl_Obj *fieldObj;
+            Tcl_Obj *valueObj;
             TCHAR *volumePath;
             VolumeInfo volumeInfo;
 
@@ -192,13 +188,14 @@ VolumeObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
             fieldObj = Tcl_NewObj();
             Tcl_IncrRefCount(fieldObj);
 
-            /* Easier then repeating this... */
-            #define TCL_STORE_ARRAY(fieldName, valueObj) \
-            Tcl_SetStringObj(fieldObj, fieldName, -1); \
-            if (Tcl_ObjSetVar2(interp, objv[3], fieldObj, valueObj, TCL_LEAVE_ERR_MSG) == NULL) { \
-                Tcl_DecrRefCount(fieldObj); \
-                Tcl_DecrRefCount(valueObj); \
-                return TCL_ERROR; \
+            /* Easier than repeating this... */
+            #define TCL_STORE_ARRAY(name, value)                                                    \
+            valueObj = (value);                                                                     \
+            Tcl_SetStringObj(fieldObj, (name), -1);                                                 \
+            if (Tcl_ObjSetVar2(interp, objv[3], fieldObj, valueObj, TCL_LEAVE_ERR_MSG) == NULL) {   \
+                Tcl_DecrRefCount(fieldObj);                                                         \
+                Tcl_DecrRefCount(valueObj);                                                         \
+                return TCL_ERROR;                                                                   \
             }
 
             TCL_STORE_ARRAY("name",   Tcl_NewTStringObj(volumeInfo.name, -1));

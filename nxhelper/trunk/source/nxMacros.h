@@ -15,6 +15,20 @@
 #ifndef __NXMACROS_H__
 #define __NXMACROS_H__
 
+#ifdef ARRAYSIZE
+#   undef ARRAYSIZE
+#endif
+#ifdef ROUNDUP
+#   undef ROUNDUP
+#endif
+
+/* ARRAYSIZE - Returns the number of entries in an array. */
+#define ARRAYSIZE(a)    (sizeof(a) / sizeof(a[0]))
+
+/* ROUNDUP - Round 'a' up to a multiple of 'b'. */
+#define ROUNDUP(a,b)    ((((a) + ((b) - 1)) / (b)) * (b))
+
+
 #if defined(UNICODE) && (TCL_UTF_MAX != 3)
 #error "Unsupported TCL_UTF_MAX value, must be 3."
 #endif
