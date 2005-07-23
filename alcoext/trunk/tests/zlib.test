@@ -225,15 +225,15 @@ test zlib-8.4 {zlib gzip: -level switch} {
 
 test zlib-8.5 {zlib gzip: default compression} {
     encode hex [zlib gzip test]
-} {1F8B08000000000004FF2B492D2E01000C7E7FD804000000}
+} {1F8B080000000000040B2B492D2E01000C7E7FD804000000}
 
 test zlib-8.6 {zlib gzip: max compression} {
     encode hex [zlib gzip -level 9 test]
-} {1F8B08000000000002FF2B492D2E01000C7E7FD804000000}
+} {1F8B080000000000020B2B492D2E01000C7E7FD804000000}
 
 test zlib-8.7 {zlib gzip: max compression, more data} {
     encode hex [zlib gzip -level 9 [string repeat "\\test\t \0" 100]]
-} {1F8B08000000000002FF8B29492D2EE154608819A547E9511A8306008ADC41F820030000}
+} {1F8B080000000000020B8B29492D2EE154608819A547E9511A8306008ADC41F820030000}
 
 ################################################################################
 # zlib gunzip                                                                  #
