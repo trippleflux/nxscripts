@@ -47,52 +47,50 @@ test volume-1.3 {volume: invalid option} {
 # volume list                                                                  #
 ################################################################################
 
-test volume-2.1 {volume list: no args} {
-    -body {volume list}
-}
+test volume-2.1 {volume list: too many args} {
+    list [catch {volume list a b c} msg] $msg
+} {1 {bad switch "a": must be -local, -mounts, or -root}}
 
-test volume-2.2 {volume list: too many args} {
-    list [catch {volume list a b} msg] $msg
-} {1 {wrong # args: should be "volume list ?switches? ?pattern?"}}
+test volume-2.2 {volume list: default to -root} {
+    string equal [volume list] [volume list -root]
+} {1}
 
-test volume-2.3 {volume list: valid switches} {
-    -body {volume list --}
-}
+test volume-2.3 {volume list: -local and -root are the same on win} {win} {
+    string equal [volume list -local] [volume list -root]
+} {1}
 
-test volume-2.4 {volume list: valid switches} {
-    -body {volume list -- a}
-}
-test volume-2.5 {volume list: valid switches} {
-    -body {volume list -local --}
-}
+test volume-2.4 {volume list: -root on nix} {unix} {
+    # The only 'root' path on a UNIX system is "/".
+    string equal [volume list -root] "/"
+} {1}
 
-test volume-2.6 {volume list: valid switches} {
-    -body {volume list -local -- a}
-}
+test volume-2.5 {volume list: -root only} {
+    expr {[llength [volume list -root]] > 0}
+} {1}
 
-test volume-2.7 {volume list: valid switches} {
-    -body {volume list -mounts --}
-}
+test volume-2.6 {volume list: all flags} {
+    expr {[llength [volume list -local -mounts -root]] > 0}
+} {1}
 
-test volume-2.8 {volume list: valid switches} {
-    -body {volume list -mounts -- a}
-}
+test volume-2.7 {volume list: -mounts result} {
+    # If there are mount points are present, make sure the
+    # returned list is different from the root volumes list.
+    set result 1
+    set mounts [volume list -mounts]
+    if {[llength $mounts] && $mounts eq [volume list -root]} {
+        set result 0
+    }
+    unset mounts
+    set result
+} {1}
 
-test volume-2.9 {volume list: valid switches} {
-    -body {volume list -local -mounts --}
-}
-
-test volume-2.10 {volume list: valid switches} {
-    -body {volume list -local -mounts -- a}
-}
-
-test volume-2.11 {volume list: invalid switches} {
+test volume-2.8 {volume list: invalid switches} {
     list [catch {volume list -fake} msg] $msg
-} {1 {bad switch "-fake": must be -local, -mounts, or --}}
+} {1 {bad switch "-fake": must be -local, -mounts, or -root}}
 
-test volume-2.12 {volume list: invalid switches} {
+test volume-2.9 {volume list: invalid switches} {
     list [catch {volume list -local -t*st} msg] $msg
-} {1 {bad switch "-t*st": must be -local, -mounts, or --}}
+} {1 {bad switch "-t*st": must be -local, -mounts, or -root}}
 
 ################################################################################
 # volume info                                                                  #

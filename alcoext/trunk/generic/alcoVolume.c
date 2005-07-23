@@ -12,7 +12,7 @@
  *   Implements a Tcl interface to retrieve volume information.
  *
  *   Tcl Commands:
- *     volume list [-local] [-mounts] [--] [pattern]
+ *     volume list [-local] [-mounts] [-root]
  *       - Retrieves a list of volumes and mount points.
  *
  *     volume info <volume> <varName>
@@ -65,19 +65,14 @@ VolumeObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
 
     switch ((enum options) index) {
         case OPTION_LIST: {
-            char *pattern;
             int i;
-            int listOptions = 0;
+            unsigned short listOptions = 0;
             Tcl_Obj *objPtr;
-            static const char *switches[] = {"-local", "-mounts", "--", NULL};
-            enum switches {SWITCH_LOCAL, SWITCH_MOUNTS, SWITCH_LAST};
+            static const char *switches[] = {"-local", "-mounts", "-root", NULL};
+            enum switches {SWITCH_LOCAL, SWITCH_MOUNTS, SWITCH_ROOT};
 
             for (i = 2; i < objc; i++) {
                 char *name = Tcl_GetString(objv[i]);
-
-                if (name[0] != '-') {
-                    break;
-                }
 
                 if (Tcl_GetIndexFromObj(interp, objv[i], switches, "switch", TCL_EXACT, &index) != TCL_OK) {
                     return TCL_ERROR;
@@ -92,30 +87,19 @@ VolumeObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
                         listOptions |= VOLLIST_FLAG_MOUNTS;
                         break;
                     }
-                    case SWITCH_LAST: {
-                        i++;
-                        goto endOfSwitches;
+                    case SWITCH_ROOT: {
+                        listOptions |= VOLLIST_FLAG_ROOT;
+                        break;
                     }
                 }
             }
 
-    endOfSwitches:
-            switch (objc - i) {
-                case 0: {
-                    pattern = NULL;
-                    break;
-                }
-                case 1: {
-                    pattern = Tcl_GetString(objv[objc-1]);
-                    break;
-                }
-                default: {
-                    Tcl_WrongNumArgs(interp, 2, objv, "?switches? ?pattern?");
-                    return TCL_ERROR;
-                }
+            /* Default to -root if no switches were given. */
+            if (listOptions == 0) {
+                listOptions |= VOLLIST_FLAG_ROOT;
             }
 
-            objPtr = GetVolumeList(interp, listOptions, pattern);
+            objPtr = GetVolumeList(interp, listOptions);
             if (objPtr == NULL) {
                 return TCL_ERROR;
             }

@@ -167,8 +167,8 @@ GetVolumeInfo(Tcl_Interp *interp, char *volumePath, VolumeInfo *volumeInfo)
     volumeInfo->name[0] = '\0';
 
     /* File system type. */
-    strncpy(volumeInfo->type, F_TYPENAME(fsInfo), VOLINFO_TYPE_LENGTH);
-    volumeInfo->type[VOLINFO_TYPE_LENGTH-1] = '\0';
+    strncpy(volumeInfo->type, F_TYPENAME(fsInfo), ARRAYSIZE(volumeInfo->type));
+    volumeInfo->type[ARRAYSIZE(volumeInfo->type)-1] = '\0';
 
     return TCL_OK;
 }
@@ -181,8 +181,6 @@ GetVolumeInfo(Tcl_Interp *interp, char *volumePath, VolumeInfo *volumeInfo)
  * Arguments:
  *   interp  - Interpreter to use for error reporting.
  *   options - OR-ed value of flags that determine the returned volumes.
- *   pattern - Only volumes matching 'pattern' are returned. If this argument
- *             is NULL, all volumes are returned.
  *
  * Returns:
  *   A Tcl list object with applicable volumes and mount points. If the function
@@ -192,11 +190,19 @@ GetVolumeInfo(Tcl_Interp *interp, char *volumePath, VolumeInfo *volumeInfo)
  *   None.
  */
 Tcl_Obj *
-GetVolumeList(Tcl_Interp *interp, unsigned short options, char *pattern)
+GetVolumeList(Tcl_Interp *interp, unsigned short options)
 {
     Tcl_Obj *volumeList = Tcl_NewObj();
 
-    /* TODO */
+    /* The only 'root' path on a UNIX system is "/". */
+    if (options & VOLLIST_FLAG_ROOT) {
+        Tcl_ListObjAppendElement(NULL, volumeList, Tcl_NewStringObj("/", 1));
+    }
+
+    /* Append all mount points. */
+    if (options & VOLLIST_FLAG_MOUNTS) {
+        /* TODO: List mounts using BSD's getmntinfo(). */
+    }
 
     return volumeList;
 }

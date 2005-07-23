@@ -110,15 +110,15 @@ GetVolumeSize(char *volumePath, ULONGLONG *bytesFree, ULONGLONG *bytesTotal)
 int
 GetVolumeInfo(Tcl_Interp *interp, char *volumePath, VolumeInfo *volumeInfo)
 {
-    char fsName[VOLINFO_TYPE_LENGTH-12];
+    char fsName[128];
     char *type;
 
     if (!GetVolumeInformationA(volumePath,
-        volumeInfo->name, VOLINFO_NAME_LENGTH,
+        volumeInfo->name, ARRAYSIZE(volumeInfo->name),
         &volumeInfo->id,
         &volumeInfo->length,
         &volumeInfo->flags,
-        fsName, VOLINFO_TYPE_LENGTH-12)) {
+        fsName, ARRAYSIZE(fsName))) {
 
         Tcl_ResetResult(interp);
         Tcl_AppendResult(interp, "unable to retrieve volume information for \"",
@@ -139,8 +139,8 @@ GetVolumeInfo(Tcl_Interp *interp, char *volumePath, VolumeInfo *volumeInfo)
         case DRIVE_REMOVABLE: type = "Removable, "; break;
         default:              type = "Unknown, "; break;
     }
-    StringCchCopyA(volumeInfo->type, VOLINFO_TYPE_LENGTH, type);
-    StringCchCatA(volumeInfo->type, VOLINFO_TYPE_LENGTH, fsName);
+    StringCchCopyA(volumeInfo->type, ARRAYSIZE(volumeInfo->type), type);
+    StringCchCatA(volumeInfo->type, ARRAYSIZE(volumeInfo->type), fsName);
 
     return TCL_OK;
 }
@@ -153,8 +153,6 @@ GetVolumeInfo(Tcl_Interp *interp, char *volumePath, VolumeInfo *volumeInfo)
  * Arguments:
  *   interp  - Interpreter to use for error reporting.
  *   options - OR-ed value of flags that determine the returned volumes.
- *   pattern - Only volumes matching 'pattern' are returned. If this argument
- *             is NULL, all volumes are returned.
  *
  * Returns:
  *   A Tcl list object with applicable volumes and mount points. If the function
@@ -164,15 +162,12 @@ GetVolumeInfo(Tcl_Interp *interp, char *volumePath, VolumeInfo *volumeInfo)
  *   None.
  */
 Tcl_Obj *
-GetVolumeList(Tcl_Interp *interp, unsigned short options, char *pattern)
+GetVolumeList(Tcl_Interp *interp, unsigned short options)
 {
-#if 1
-    /* TODO: Fix function. */
-    return Tcl_NewObj();
-#else
     HRESULT result;
     Tcl_Obj *volumeList;
     Tcl_Obj *elementPtr;
+    Tcl_Obj *normalPath;
     char volumeGUID[MAX_PATH];
     char *buffer;
     char *drive;
@@ -182,8 +177,7 @@ GetVolumeList(Tcl_Interp *interp, unsigned short options, char *pattern)
     /* Volume mounts were added in Windows 2000 using reparse points. */
     if ((options & VOLLIST_FLAG_MOUNTS) && (osVersion.dwPlatformId != VER_PLATFORM_WIN32_NT ||
         osVersion.dwMajorVersion < 5 || !IsFeatureAvailable(FEATURE_MOUNT_POINTS))) {
-
-        Tcl_SetResult(interp, "volume mount points are only available for NT5+ systems", TCL_STATIC);
+        Tcl_SetResult(interp, "volume mount points are only available on NT5+ systems", TCL_STATIC);
         return NULL;
     }
 
@@ -191,26 +185,25 @@ GetVolumeList(Tcl_Interp *interp, unsigned short options, char *pattern)
 
     /* Retrieve a list of logical drives. */
     bufferLength = GetLogicalDriveStringsA(0, NULL);
-    buffer = (char*) ckalloc(bufferLength * sizeof(char));
-    if (buffer == NULL) {
-        return volumeList;
-    }
+    buffer = ckalloc(bufferLength * sizeof(char));
     GetLogicalDriveStringsA(bufferLength, buffer);
     drive = buffer;
 
     result = StringCchLengthA(drive, bufferLength, &driveEnd);
     while (SUCCEEDED(result) && driveEnd) {
-        /* Append DOS drive name. */
-        if (1) {
+        /* Append root volume name. */
+        if (options & VOLLIST_FLAG_LOCAL || options & VOLLIST_FLAG_ROOT) {
             elementPtr = Tcl_NewStringObj(drive, -1);
             Tcl_IncrRefCount(elementPtr);
-            elementPtr = Tcl_FSGetNormalizedPath(NULL, elementPtr);
+            normalPath = Tcl_FSGetNormalizedPath(NULL, elementPtr);
 
-            Tcl_ListObjAppendElement(NULL, volumeList, elementPtr);
+            if (normalPath != NULL) {
+                Tcl_ListObjAppendElement(NULL, volumeList, normalPath);
+            }
             Tcl_DecrRefCount(elementPtr);
         }
 
-        /* Append all mount points for the drive. */
+        /* Append all mount points for the volume. */
         if ((options & VOLLIST_FLAG_MOUNTS) && winProcs.getVolumeNameForVolumeMountPoint(drive, volumeGUID, MAX_PATH)) {
             HANDLE mountHandle;
             char mountPath[MAX_PATH];
@@ -223,8 +216,9 @@ GetVolumeList(Tcl_Interp *interp, unsigned short options, char *pattern)
                     Tcl_ListObjAppendElement(NULL, elementPtr, Tcl_NewStringObj(mountPath, -1));
 
                     /* Join the drive and mount target paths. */
-                    elementPtr = Tcl_FSJoinPath(elementPtr, 2);
-                    Tcl_ListObjAppendElement(NULL, volumeList, elementPtr);
+                    Tcl_IncrRefCount(elementPtr);
+                    normalPath = Tcl_FSJoinPath(elementPtr, 2);
+                    Tcl_ListObjAppendElement(NULL, volumeList, normalPath);
                     Tcl_DecrRefCount(elementPtr);
 
                 } while (winProcs.findNextVolumeMountPoint(mountHandle, mountPath, MAX_PATH));
@@ -240,5 +234,4 @@ GetVolumeList(Tcl_Interp *interp, unsigned short options, char *pattern)
 
     ckfree(buffer);
     return volumeList;
-#endif
 }
