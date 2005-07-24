@@ -85,7 +85,7 @@ testConstraint shmKeyExists [CheckShmKey $shmKey]
 testConstraint etcPathExists [file isdirectory $etcPath]
 
 ################################################################################
-# glftpd                                                                        #
+# glftpd                                                                       #
 ################################################################################
 
 test glftpd-1.1 {glftpd: no args} {unix} {

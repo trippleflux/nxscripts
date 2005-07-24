@@ -108,9 +108,9 @@ typedef struct {
 } GlVersion;
 
 typedef struct {
-    char *etcPath;
-    key_t shmKey;
-    int version;
+    char *etcPath; /* Path to glFTPD's 'etc' directory. */
+    key_t shmKey;  /* Shared memory segment key. */
+    int version;   /* Array index in 'versions', representing the online structure version. */
 } GlHandle;
 
 Tcl_ObjCmdProc GlFtpdObjCmd;

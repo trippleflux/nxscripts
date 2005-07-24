@@ -646,7 +646,7 @@ GlOpenCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePt
 /*
  * GlConfigCmd
  *
- *   Change options for an existing glFTPD session handle.
+ *   Changes options for an existing glFTPD session handle.
  *
  * Arguments:
  *   interp   - Current interpreter.
@@ -799,7 +799,7 @@ GlConfigCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *state
 /*
  * GlCloseCmd
  *
- *   Close a glFTPD session handle.
+ *   Closes a glFTPD session handle.
  *
  * Arguments:
  *   interp   - Current interpreter.
@@ -841,10 +841,10 @@ GlCloseCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *stateP
 /*
  * GlCloseHandles
  *
- *   Close all 'glftpd' handles in the given hash table.
+ *   Closes all glFTPD session handles in the given hash table.
  *
  * Arguments:
- *   tablePtr - Hash table of 'glftpd' handles.
+ *   tablePtr - Hash table of glFTPD session.
  *
  * Returns:
  *   None.
@@ -873,7 +873,7 @@ GlCloseHandles(Tcl_HashTable *tablePtr)
 /*
  * GlInfoCmd
  *
- *   Retrieves information about glFTPD session handles.
+ *   Retrieves information about a glFTPD session handle.
  *
  * Arguments:
  *   interp   - Current interpreter.
@@ -1282,8 +1282,14 @@ GlFtpdObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 {
     ExtState *statePtr = (ExtState *) clientData;
     int index;
-    static const char *options[] = {"close", "config", "info", "kill", "open", "who", NULL};
-    enum options {OPTION_CLOSE, OPTION_CONFIG, OPTION_INFO, OPTION_KICK, OPTION_OPEN, OPTION_WHO};
+    static const char *options[] = {
+        "close", "config", "info",
+        "kill", "open", "who", NULL
+    };
+    enum options {
+        OPTION_CLOSE, OPTION_CONFIG, OPTION_INFO,
+        OPTION_KILL, OPTION_OPEN, OPTION_WHO
+    };
 
     if (objc < 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "option arg ?arg ...?");
@@ -1295,10 +1301,10 @@ GlFtpdObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
     }
 
     switch ((enum options) index) {
-        case OPTION_CONFIG: return GlConfigCmd(interp, objc, objv, statePtr);
         case OPTION_CLOSE:  return GlCloseCmd(interp, objc, objv, statePtr);
+        case OPTION_CONFIG: return GlConfigCmd(interp, objc, objv, statePtr);
         case OPTION_INFO:   return GlInfoCmd(interp, objc, objv, statePtr);
-        case OPTION_KICK:   return GlKillCmd(interp, objc, objv, statePtr);
+        case OPTION_KILL:   return GlKillCmd(interp, objc, objv, statePtr);
         case OPTION_OPEN:   return GlOpenCmd(interp, objc, objv, statePtr);
         case OPTION_WHO:    return GlWhoCmd(interp, objc, objv, statePtr);
     }
