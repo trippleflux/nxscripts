@@ -153,10 +153,10 @@ IoWhoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr
  *	This function provides the "ioftpd" Tcl command.
  *
  * Arguments:
- *   dummy  - Not used.
- *   interp - Current interpreter.
- *   objc   - Number of arguments.
- *   objv   - Argument objects.
+ *   clientData - Pointer to a 'ExtState' structure.
+ *   interp     - Current interpreter.
+ *   objc       - Number of arguments.
+ *   objv       - Argument objects.
  *
  * Returns:
  *   A standard Tcl result.
