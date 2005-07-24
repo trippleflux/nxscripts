@@ -1,0 +1,52 @@
+#
+# AlcoExt - Alcoholicz Tcl extension.
+# Copyright (c) 2005 Alcoholicz Scripting Team
+#
+# File Name:
+#   ioftpd.test
+#
+# Author:
+#   neoxed (neoxed@gmail.com) July 23, 2005
+#
+# Abstract:
+#   ioFTPD interface test suite.
+#
+
+package require tcltest 2
+namespace import -force ::tcltest::*
+
+if {$tcl_platform(platform) eq "windows"} {
+    set libFile "AlcoExt*"
+} else {
+    set libFile "libAlcoExt*"
+}
+append libFile [info sharedlibextension]
+
+set currentPath [file dirname [file normalize [info script]]]
+set libFile [lindex [glob -dir [file dirname $currentPath] -types f $libFile] 0]
+load $libFile
+
+namespace import -force ::alcoholicz::*
+
+# ioFTPD settings (box specific).
+set msgWindow "ioFTPD::MessageWindow"
+
+################################################################################
+# ioftpd                                                                       #
+################################################################################
+
+test ioftpd-1.1 {ioftpd: no args} {win} {
+    list [catch {ioftpd} msg] $msg
+} {1 {wrong # args: should be "ioftpd option arg ?arg ...?"}}
+
+test ioftpd-1.2 {ioftpd: one arg} {win} {
+    list [catch {ioftpd .} msg] $msg
+} {1 {bad option ".": must be info, kick, kill, resolve, or who}}
+
+test ioftpd-1.3 {ioftpd: invalid option} {win} {
+    list [catch {ioftpd . a} msg] $msg
+} {1 {bad option ".": must be info, kick, kill, resolve, or who}}
+
+
+::tcltest::cleanupTests
+return

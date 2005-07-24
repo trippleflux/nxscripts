@@ -41,14 +41,10 @@ typedef struct {
     unsigned long cryptHandle;
     Tcl_HashTable *cryptTable;
 
-#ifdef _WINDOWS
-    unsigned long ioHandle;
-    Tcl_HashTable *ioTable;
-#else
+#ifndef _WINDOWS
     unsigned long glHandle;
     Tcl_HashTable *glTable;
-#endif /* _WINDOWS */
-
+#endif /* !_WINDOWS */
 } ExtState;
 
 typedef struct StateList {

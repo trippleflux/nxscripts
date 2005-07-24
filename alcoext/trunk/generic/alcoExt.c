@@ -150,10 +150,13 @@ Alcoext_Init(Tcl_Interp *interp)
         register_hash(&sha512_desc);
         register_hash(&tiger_desc);
         register_hash(&whirlpool_desc);
+#if 0
+        /* Not used, yet. */
         register_prng(&fortuna_desc);
         register_prng(&rc4_desc);
         register_prng(&sober128_desc);
         register_prng(&yarrow_desc);
+#endif
 
         initialised = 1;
     }
@@ -167,16 +170,11 @@ Alcoext_Init(Tcl_Interp *interp)
     Tcl_InitHashTable(statePtr->cryptTable, TCL_STRING_KEYS);
     statePtr->cryptHandle = 0;
 
-#ifdef _WINDOWS
-    statePtr->ioTable = (Tcl_HashTable *) ckalloc(sizeof(Tcl_HashTable));
-    Tcl_InitHashTable(statePtr->ioTable, TCL_STRING_KEYS);
-    statePtr->ioHandle = 0;
-#else /* _WINDOWS */
-
+#ifndef _WINDOWS
     statePtr->glTable = (Tcl_HashTable *) ckalloc(sizeof(Tcl_HashTable));
     Tcl_InitHashTable(statePtr->glTable, TCL_STRING_KEYS);
     statePtr->glHandle = 0;
-#endif /* _WINDOWS */
+#endif /* !_WINDOWS */
 
     /*
      * Since callbacks registered with Tcl_CallWhenDeleted() are not executed in
@@ -364,16 +362,11 @@ FreeState(ExtState *statePtr)
         Tcl_DeleteHashTable(statePtr->cryptTable);
         ckfree((char *) statePtr->cryptTable);
 
-#ifdef _WINDOWS
-        /* TODO: IoCloseHandles(statePtr->ioTable); */
-        Tcl_DeleteHashTable(statePtr->ioTable);
-        ckfree((char *) statePtr->ioTable);
-#else /* _WINDOWS */
-
+#ifndef _WINDOWS
         GlCloseHandles(statePtr->glTable);
         Tcl_DeleteHashTable(statePtr->glTable);
         ckfree((char *) statePtr->glTable);
-#endif /* _WINDOWS */
+#endif /* !_WINDOWS */
 
         ckfree((char *) statePtr);
         statePtr = NULL;
