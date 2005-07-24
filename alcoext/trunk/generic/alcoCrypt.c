@@ -66,10 +66,12 @@ static const CryptCipherMode cipherModes[] = {
 };
 
 /*
- * Sensitive data is not cleared because it is not possible to modify Tcl
- * command arguments (objv). These argument objects are shared, so modifying
- * them would have serious consequences. Therefore, clearing any other data
- * would be meaningless.
+ * Implementation and Security Note:
+ * Tcl argument objects (objv) cannot be modified without creating noticeable
+ * problems. These argument objects are shared and could be referenced by other
+ * variables within the Tcl interpreter. Therefore, clearing any other memory
+ * blocks or stack space which may have contained sensitive data would be
+ * meaningless (e.g. using SecureZeroMemory or defining LTC_CLEAN_STACK).
  */
 
 
@@ -377,7 +379,7 @@ CryptProcessCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], unsigned ch
         return TCL_ERROR;
     }
 
-    /* Certain cipher modes require an IV and others do not (i.e. ECB). */
+    /* Certain cipher modes require an IV and others do not (e.g. ECB). */
     if (iv != NULL) {
         if (!(cipherModes[modeIndex].options & CRYPT_REQUIRES_IV)) {
             Tcl_AppendResult(interp, cipherModes[modeIndex].name,
