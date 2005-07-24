@@ -126,7 +126,7 @@ proc ::alcoholicz::TreeGet {tree key args} {
 # TreeGetNaive
 #
 # A variation of TreeGet that returns an empty string when a nonexistent key is
-# specified. This simplifies implementations that consider the keys existence to
+# specified. This simplifies implementations that consider the key's existence to
 # be irrelevant.
 #
 proc ::alcoholicz::TreeGetNaive {tree key args} {

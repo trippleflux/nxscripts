@@ -3,7 +3,7 @@
 # Copyright (c) 2005 Alcoholicz Scripting Team
 #
 # File Name:
-#   alcoBot.tcl
+#   AlcoBot.tcl
 #
 # Author:
 #   neoxed (neoxed@gmail.com) April 16, 2005
@@ -687,7 +687,7 @@ proc ::alcoholicz::InitTheme {themeFile} {
             # Create a mapping of section colours to use with 'string map'. The
             # colour index must be zero-padded to two digits to avoid conflicts
             # with other numerical chars. Note that the %s identifier is used
-            # instead of %d to avoid octal interpretation (ex. format %d 08).
+            # instead of %d to avoid octal interpretation (e.g. format %d 08).
             lappend colours($section) "\[c$num\]" [format "\003%02s" $value]
         }
     }

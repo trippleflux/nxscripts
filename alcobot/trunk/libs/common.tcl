@@ -280,7 +280,7 @@ proc ::alcoholicz::VarReplace {input varList valueList} {
             # Find the width field (before dot).
             set beforeIndex [incr inputIndex]
             if {[string index $input $inputIndex] eq "-"} {
-                # Ignore the negative sign if a number does not follow, ex. %-(variable).
+                # Ignore the negative sign if a number does not follow, e.g. %-(variable).
                 if {[string is digit -strict [string index $input [incr inputIndex]]]} {
                     incr inputIndex
                 } else {incr beforeIndex}
@@ -342,7 +342,7 @@ proc ::alcoholicz::VarReplace {input varList valueList} {
 ####
 # VarReplaceBase
 #
-# Replaces static content and control codes (bold, colour, underline etc.).
+# Replaces static content and control codes (i.e. bold, colour, and underline).
 #
 proc ::alcoholicz::VarReplaceBase {text {doPrefix 1}} {
     # Replace static variables.

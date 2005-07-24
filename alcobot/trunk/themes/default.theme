@@ -31,7 +31,7 @@
 #
 # - The 'DEFAULT' entry is used if the announce is not section oriented
 #   or there are no colours defined for the specific section.
-# - The section colour identifier is '[c#]' (ex. for 'APPS,2' the colour
+# - The section colour identifier is '[c#]' (i.e. for 'APPS,2' the colour
 #   identifier would be '[c2]').
 # - There is no limit to the number of section colours you may define.
 #
