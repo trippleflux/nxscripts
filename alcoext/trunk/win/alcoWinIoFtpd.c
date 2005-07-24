@@ -21,6 +21,44 @@ static int IoKillCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtSta
 static int IoResolveCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
 static int IoWhoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
 
+/* TODO: Add user, gid, and group fields (not available in struct). */
+static const char *whoFields[] = {
+    "action",
+    "cid",
+    "host",
+    "ident",
+    "idletime",
+    "ip",
+    "logintime",
+    "realdatapath",
+    "realpath",
+    "size",
+    "speed",
+    "status",
+    "uid",
+    "vdatapath",
+    "vpath",
+    NULL
+};
+
+enum {
+    WHO_ACTION = 0,
+    WHO_CID,
+    WHO_HOST,
+    WHO_IDENT,
+    WHO_IDLETIME,
+    WHO_IP,
+    WHO_LOGINTIME,
+    WHO_REALDATAPATH,
+    WHO_REALPATH,
+    WHO_SIZE,
+    WHO_SPEED,
+    WHO_STATUS,
+    WHO_UID,
+    WHO_VDATAPATH,
+    WHO_VPATH,
+};
+
 
 /*
  * IoInfoCmd
@@ -42,7 +80,13 @@ static int IoWhoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtStat
 static int
 IoInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
 {
-    /* TODO */
+    if (objc != 4) {
+        Tcl_WrongNumArgs(interp, 2, objv, "msgWindow varName");
+        return TCL_ERROR;
+    }
+
+    /* TODO: IPC stuff. */
+
     return TCL_OK;
 }
 
@@ -66,7 +110,13 @@ IoInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePt
 static int
 IoKickCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
 {
-    /* TODO */
+    if (objc != 4) {
+        Tcl_WrongNumArgs(interp, 2, objv, "msgWindow user");
+        return TCL_ERROR;
+    }
+
+    /* TODO: IPC stuff. */
+
     return TCL_OK;
 }
 
@@ -90,7 +140,13 @@ IoKickCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePt
 static int
 IoKillCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
 {
-    /* TODO */
+    if (objc != 4) {
+        Tcl_WrongNumArgs(interp, 2, objv, "msgWindow uid");
+        return TCL_ERROR;
+    }
+
+    /* TODO: IPC stuff. */
+
     return TCL_OK;
 }
 
@@ -99,10 +155,10 @@ IoKillCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePt
  *
  *   Resolves names and IDs for users and groups.
  *
- *   user name  -> user ID
- *   user ID    -> user name
- *   group name -> group ID
- *   group ID   -> group name
+ *   User  -> UID
+ *   UID   -> User
+ *   Group -> GID
+ *   GID   -> Group
  *
  * Arguments:
  *   interp   - Current interpreter.
@@ -119,7 +175,36 @@ IoKillCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePt
 static int
 IoResolveCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
 {
-    /* TODO */
+    int index;
+    static const char *options[] = {"gid", "group", "uid", "user", NULL};
+    enum options {OPTION_GID, OPTION_GROUP, OPTION_UID, OPTION_USER};
+
+    if (objc != 5) {
+        Tcl_WrongNumArgs(interp, 2, objv, "option msgWindow value");
+        return TCL_ERROR;
+    }
+
+    if (Tcl_GetIndexFromObj(interp, objv[2], options, "option", 0, &index) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    switch ((enum options) index) {
+        case OPTION_GID: {
+            break;
+        }
+        case OPTION_GROUP: {
+            break;
+        }
+        case OPTION_UID: {
+            break;
+        }
+        case OPTION_USER: {
+            break;
+        }
+    }
+
+    /* TODO: IPC stuff. */
+
     return TCL_OK;
 }
 
@@ -143,8 +228,41 @@ IoResolveCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *stat
 static int
 IoWhoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
 {
-    /* TODO */
-    return TCL_OK;
+    int elementCount;
+    int fieldIndex;
+    int i;
+    int result;
+    unsigned char *fields;
+    Tcl_Obj **elementPtrs;
+
+    if (objc != 4) {
+        Tcl_WrongNumArgs(interp, 2, objv, "msgWindow fields");
+        return TCL_ERROR;
+    }
+
+    if (Tcl_ListObjGetElements(interp, objv[3], &elementCount, &elementPtrs) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    /* Create an array of indices from 'whoFields'. */
+    result = TCL_ERROR;
+    fields = (unsigned char *) ckalloc(elementCount);
+
+    for (i = 0; i < elementCount; i++) {
+        if (Tcl_GetIndexFromObj(interp, elementPtrs[i], whoFields, "field", 0,
+            &fieldIndex) != TCL_OK) {
+            goto end;
+        }
+
+        fields[i] = (unsigned char) fieldIndex;
+    }
+
+    /* TODO: IPC stuff. */
+    result = TCL_OK;
+
+    end:
+    ckfree((char *) fields);
+    return result;
 }
 
 /*

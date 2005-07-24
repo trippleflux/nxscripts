@@ -47,6 +47,74 @@ test ioftpd-1.3 {ioftpd: invalid option} {win} {
     list [catch {ioftpd . a} msg] $msg
 } {1 {bad option ".": must be info, kick, kill, resolve, or who}}
 
+################################################################################
+# ioftpd info                                                                  #
+################################################################################
+
+test ioftpd-2.1 {ioftpd info: no args} {win} {
+    list [catch {ioftpd info} msg] $msg
+} {1 {wrong # args: should be "ioftpd info msgWindow varName"}}
+
+test ioftpd-2.2 {ioftpd info: too many args} {win} {
+    list [catch {ioftpd info a b c} msg] $msg
+} {1 {wrong # args: should be "ioftpd info msgWindow varName"}}
+
+################################################################################
+# ioftpd kick                                                                  #
+################################################################################
+
+test ioftpd-3.1 {ioftpd kick: no args} {win} {
+    list [catch {ioftpd kick} msg] $msg
+} {1 {wrong # args: should be "ioftpd kick msgWindow user"}}
+
+test ioftpd-3.2 {ioftpd kick: too many args} {win} {
+    list [catch {ioftpd kick a b c} msg] $msg
+} {1 {wrong # args: should be "ioftpd kick msgWindow user"}}
+
+################################################################################
+# ioftpd kill                                                                  #
+################################################################################
+
+test ioftpd-4.1 {ioftpd kill: no args} {win} {
+    list [catch {ioftpd kill} msg] $msg
+} {1 {wrong # args: should be "ioftpd kill msgWindow uid"}}
+
+test ioftpd-4.2 {ioftpd kill: too many args} {win} {
+    list [catch {ioftpd kill a b c} msg] $msg
+} {1 {wrong # args: should be "ioftpd kill msgWindow uid"}}
+
+################################################################################
+# ioftpd resolve                                                               #
+################################################################################
+
+test ioftpd-5.1 {ioftpd resolve: no args} {win} {
+    list [catch {ioftpd resolve} msg] $msg
+} {1 {wrong # args: should be "ioftpd resolve option msgWindow value"}}
+
+test ioftpd-5.2 {ioftpd resolve: too many args} {win} {
+    list [catch {ioftpd resolve a b c d} msg] $msg
+} {1 {wrong # args: should be "ioftpd resolve option msgWindow value"}}
+
+test ioftpd-5.2 {ioftpd resolve: invalid sub-option} {win} {
+    list [catch {ioftpd resolve fake a b} msg] $msg
+} {1 {bad option "fake": must be gid, group, uid, or user}}
+
+################################################################################
+# ioftpd who                                                                   #
+################################################################################
+
+test ioftpd-6.1 {ioftpd who: no args} {win} {
+    list [catch {ioftpd who} msg] $msg
+} {1 {wrong # args: should be "ioftpd who msgWindow fields"}}
+
+test ioftpd-6.2 {ioftpd who: too many args} {win} {
+    list [catch {ioftpd who a b c} msg] $msg
+} {1 {wrong # args: should be "ioftpd who msgWindow fields"}}
+
+test ioftpd-6.3 {ioftpd who: invalid field} {win} {
+    list [catch {ioftpd who a .} msg] $msg
+} {1 {bad field ".": must be action, cid, host, ident, idletime, ip, logintime, realdatapath, realpath, size, speed, status, uid, vdatapath, or vpath}}
+
 
 ::tcltest::cleanupTests
 return
