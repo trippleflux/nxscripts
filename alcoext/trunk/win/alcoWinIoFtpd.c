@@ -87,6 +87,12 @@ IoInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePt
 
     /* TODO: IPC stuff. */
 
+    /*
+     * path - ioFTPD image path (C:\ioFTPD\system\ioFTPD.exe).
+     * pid  - Process ID.
+     * time - Start time, seconds since epoch.
+     */
+
     return TCL_OK;
 }
 
@@ -231,7 +237,7 @@ IoWhoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr
     int elementCount;
     int fieldIndex;
     int i;
-    int result;
+    int result = TCL_ERROR;
     unsigned char *fields;
     Tcl_Obj **elementPtrs;
 
@@ -244,10 +250,10 @@ IoWhoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr
         return TCL_ERROR;
     }
 
-    /* Create an array of indices from 'whoFields'. */
-    result = TCL_ERROR;
-    fields = (unsigned char *) ckalloc(elementCount);
+    /* Never make assumptions on type sizes. */
+    fields = (unsigned char *) ckalloc(elementCount * sizeof(unsigned char));
 
+    /* Create an array of indices from 'whoFields'. */
     for (i = 0; i < elementCount; i++) {
         if (Tcl_GetIndexFromObj(interp, elementPtrs[i], whoFields, "field", 0,
             &fieldIndex) != TCL_OK) {

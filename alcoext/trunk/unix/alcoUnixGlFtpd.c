@@ -1052,7 +1052,7 @@ GlWhoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr
     int elementCount;
     int fieldIndex;
     int i;
-    int result;
+    int result = TCL_ERROR;
     unsigned char *fields;
     GlHandle *handlePtr;
     GlGroup *groupListPtr = NULL;
@@ -1075,10 +1075,10 @@ GlWhoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr
         return TCL_ERROR;
     }
 
-    /* Create an array of indices from 'whoFields'. */
-    result = TCL_ERROR;
-    fields = (unsigned char *) ckalloc(elementCount);
+    /* Never make assumptions on type sizes. */
+    fields = (unsigned char *) ckalloc(elementCount * sizeof(unsigned char));
 
+    /* Create an array of indices from 'whoFields'. */
     for (i = 0; i < elementCount; i++) {
         if (Tcl_GetIndexFromObj(interp, elementPtrs[i], whoFields, "field", 0,
             &fieldIndex) != TCL_OK) {
