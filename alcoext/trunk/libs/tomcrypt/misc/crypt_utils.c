@@ -66,8 +66,9 @@ const char *error_to_string(int err)
        "generic error",
        "no-operation requested",
 
-       "invalid key-size for block cipher",
+       "invalid key length for block cipher",
        "invalid number of rounds for block cipher",
+       "invalid salt length",
        "algorithm failed test vectors",
 
        "buffer overflow",

@@ -683,15 +683,15 @@ test crypt-8.11 {crypt info: modes must be in alphabetical order} {
 
 test crypt-9.1 {crypt pkcs5: no args} {
     list [catch {crypt pkcs5} msg] $msg
-} {1 {wrong # args: should be "crypt pkcs5 ?-rounds count? hash salt password"}}
+} {1 {wrong # args: should be "crypt pkcs5 ?switches? hash salt password"}}
 
 test crypt-9.2 {crypt pkcs5: too many args} {
     list [catch {crypt pkcs5 a b c d} msg] $msg
-} {1 {wrong # args: should be "crypt pkcs5 ?-rounds count? hash salt password"}}
+} {1 {wrong # args: should be "crypt pkcs5 ?switches? hash salt password"}}
 
-test crypt-9.3 {crypt pkcs5: too many args, with -rounds} {
-    list [catch {crypt pkcs5 -rounds a b c d e} msg] $msg
-} {1 {wrong # args: should be "crypt pkcs5 ?-rounds count? hash salt password"}}
+test crypt-9.3 {crypt pkcs5: invalid switch} {
+    list [catch {crypt pkcs5 -fake a b c} msg] $msg
+} {1 {bad switch "-fake": must be -v1, -v2, or -rounds}}
 
 test crypt-9.4 {crypt pkcs5: -rounds switch} {
     list [catch {crypt pkcs5 -rounds . a b c} msg] $msg
@@ -699,7 +699,23 @@ test crypt-9.4 {crypt pkcs5: -rounds switch} {
 
 test crypt-9.5 {crypt pkcs5: -rounds switch} {
     list [catch {crypt pkcs5 -rounds -1 a b c} msg] $msg
-} {1 {invalid round count "-1": must be 0 or greater}}
+} {1 {invalid round count "-1": must be greater than 0}}
+
+test crypt-9.6 {crypt pkcs5: v1 salt must be 8 bytes} {
+    list [catch {crypt pkcs5 -v1 md5 a b} msg] $msg
+} {1 {unable to hash password: invalid salt length}}
+
+test crypt-9.7 {crypt pkcs5: v1} {
+    encode hex [crypt pkcs5 -v1 md5 [string repeat "\0" 8] test]
+} {B369450CA718ACB4B079A19E5D8AE004}
+
+test crypt-9.8 {crypt pkcs5: v2} {
+    encode hex [crypt pkcs5 -v2 md5 [string repeat "\0" 4] test]
+} {BF0BA55416BCEF9D16EDD3DD3BB8DC77}
+
+test crypt-9.9 {crypt pkcs5: default to v2} {
+    encode hex [crypt pkcs5 md5 [string repeat "\0" 4] test]
+} {BF0BA55416BCEF9D16EDD3DD3BB8DC77}
 
 ################################################################################
 # crypt rand                                                                   #

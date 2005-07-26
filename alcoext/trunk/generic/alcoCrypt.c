@@ -39,7 +39,7 @@
  *
  *   Other Commands:
  *     crypt info    <ciphers|handles|hashes|modes>
- *     crypt pkcs5   [-rounds <count>] <hash algorithm> <salt> <password>
+ *     crypt pkcs5   [-v1] [-v2] [-rounds <count>] <hash algorithm> <salt> <password>
  *     crypt rand    <bytes>
  */
 
@@ -348,7 +348,6 @@ CryptProcessCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], unsigned ch
 
     for (i = 2; i < objc; i++) {
         char *name = Tcl_GetString(objv[i]);
-
         if (name[0] != '-') {
             break;
         }
@@ -1009,7 +1008,7 @@ CryptInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *stat
 /*
  * CryptPkcs5Cmd
  *
- *   Create a PKCS #5 v2 compliant hash.
+ *   Create a PKCS #5 v1 or v2 compliant hash.
  *
  * Arguments:
  *   interp - Current interpreter.
@@ -1025,41 +1024,61 @@ CryptInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *stat
 static int
 CryptPkcs5Cmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
-    int hashIndex;
-    int rounds = 0;
+    int i;
+    int index;
+    int rounds = 1;
     int passLength;
     int saltLength;
     int status;
     unsigned char *dest;
     unsigned char *pass;
     unsigned char *salt;
+    unsigned char pkcsFiveAlgo = 2;
     unsigned long destLength;
+    static const char *switches[] = {"-v1", "-v2", "-rounds", NULL};
+    enum switches {SWITCH_ALGO1, SWITCH_ALGO2, SWITCH_ROUNDS};
 
-    switch (objc) {
-        case 5: {
+    for (i = 2; i+3 < objc; i++) {
+        char *name = Tcl_GetString(objv[i]);
+        if (name[0] != '-') {
             break;
         }
-        case 7: {
-            if (PartialSwitchCompare(objv[2], "-rounds")) {
-                if (Tcl_GetIntFromObj(interp, objv[3], &rounds) != TCL_OK) {
+
+        if (Tcl_GetIndexFromObj(interp, objv[i], switches, "switch", TCL_EXACT, &index) != TCL_OK) {
+            return TCL_ERROR;
+        }
+
+        switch ((enum switches) index) {
+            case SWITCH_ALGO1: {
+                pkcsFiveAlgo = 1;
+                break;
+            }
+            case SWITCH_ALGO2: {
+                pkcsFiveAlgo = 2;
+                break;
+            }
+            case SWITCH_ROUNDS: {
+                i++;
+                if (Tcl_GetIntFromObj(interp, objv[i], &rounds) != TCL_OK) {
                     return TCL_ERROR;
                 }
-                if (rounds < 0) {
+                if (rounds < 1) {
                     Tcl_AppendResult(interp, "invalid round count \"",
-                        Tcl_GetString(objv[3]), "\": must be 0 or greater", NULL);
+                        Tcl_GetString(objv[i]), "\": must be greater than 0", NULL);
                     return TCL_ERROR;
                 }
                 break;
             }
         }
-        default: {
-            Tcl_WrongNumArgs(interp, 2, objv, "?-rounds count? hash salt password");
-            return TCL_ERROR;
-        }
+    }
+
+    if ((objc - i) != 3) {
+        Tcl_WrongNumArgs(interp, 2, objv, "?switches? hash salt password");
+        return TCL_ERROR;
     }
 
     if (Tcl_GetIndexFromObjStruct(interp, objv[objc-3], hash_descriptor,
-        sizeof(hash_descriptor[0]), "hash", TCL_EXACT, &hashIndex) != TCL_OK) {
+        sizeof(hash_descriptor[0]), "hash", TCL_EXACT, &index) != TCL_OK) {
         return TCL_ERROR;
     }
 
@@ -1067,12 +1086,20 @@ CryptPkcs5Cmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
     pass = Tcl_GetByteArrayFromObj(objv[objc-1], &passLength);
 
     /* Create a byte object to hold the hash digest. */
-    destLength = hash_descriptor[hashIndex].hashsize;
+    destLength = hash_descriptor[index].hashsize;
     dest = Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), (int)destLength);
 
-    status = pkcs_5_alg2(pass, (unsigned long)passLength,
-                         salt, (unsigned long)saltLength,
-                         rounds, hashIndex, dest, &destLength);
+    if (pkcsFiveAlgo == 2) {
+        status = pkcs_5_alg2(pass, (unsigned long)passLength,
+                             salt, (unsigned long)saltLength,
+                             rounds, index, dest, &destLength);
+    } else if (saltLength != 8) {
+        /* The salt must be 8 bytes for PKCS #5 v1. */
+        status = CRYPT_INVALID_SALT;
+    } else {
+        status = pkcs_5_alg1(pass, (unsigned long)passLength,
+                             salt, rounds, index, dest, &destLength);
+    }
 
     if (status != CRYPT_OK) {
         Tcl_ResetResult(interp);
