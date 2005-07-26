@@ -12,7 +12,7 @@
 
 /**
   @file omac_init.c
-  OMAC1 support, by Tom St Denis
+  OMAC1 implementation, by Tom St Denis
 */
 
 #ifdef OMAC

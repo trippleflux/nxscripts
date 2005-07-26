@@ -29,9 +29,11 @@ load $libFile
 namespace import -force ::alcoholicz::*
 
 # Source crypt test vectors.
+source [file join $currentPath crypt-cipher.tv]
 source [file join $currentPath crypt-hash.tv]
 source [file join $currentPath crypt-hmac.tv]
-source [file join $currentPath crypt-cipher.tv]
+source [file join $currentPath crypt-omac.tv]
+source [file join $currentPath crypt-pmac.tv]
 
 # Algorithm definitions.
 # algo    keyMin keyMax block rounds
@@ -251,25 +253,37 @@ test crypt-3.7 {crypt decrypt: OFB mode tests} {
 
 test crypt-4.1 {crypt hash: no args} {
     list [catch {crypt hash} msg] $msg
-} {1 {wrong # args: should be "crypt hash ?-hmac key? hash data"}}
+} {1 {wrong # args: should be "crypt hash ?switches? algorithm data"}}
 
 test crypt-4.2 {crypt hash: too many args} {
     list [catch {crypt hash a b c} msg] $msg
-} {1 {wrong # args: should be "crypt hash ?-hmac key? hash data"}}
+} {1 {wrong # args: should be "crypt hash ?switches? algorithm data"}}
 
 test crypt-4.3 {crypt hash: too many args} {
     list [catch {crypt hash -hmac a b c d} msg] $msg
-} {1 {wrong # args: should be "crypt hash ?-hmac key? hash data"}}
+} {1 {wrong # args: should be "crypt hash ?switches? algorithm data"}}
 
-test crypt-4.4 {crypt hash: invalid hash} {
+test crypt-4.4 {crypt hash: invalid switch} {
+    list [catch {crypt hash -fake a b c} msg] $msg
+} {1 {bad switch "-fake": must be -hmac, -omac, -pelican, or -pmac}}
+
+test crypt-4.5 {crypt hash: invalid hash} {
     list [catch {crypt hash . a} msg] $msg
 } {1 {bad hash ".": must be md2, md4, md5, rmd128, rmd160, sha1, sha224, sha256, sha384, sha512, tiger, or whirlpool}}
 
-test crypt-4.5 {crypt hash: invalid hash, with -hmac} {
-    list [catch {crypt hash -hmac a . b} msg] $msg
-} {1 {bad hash ".": must be md2, md4, md5, rmd128, rmd160, sha1, sha224, sha256, sha384, sha512, tiger, or whirlpool}}
+test crypt-4.6 {crypt hash: invalid cipher, with -omac} {
+    list [catch {crypt hash -omac a . b} msg] $msg
+} {1 {bad cipher ".": must be 3des, aes, anubis, blowfish, cast5, des, khazad, noekeon, rc2, rc5, rc6, safer+, safer-k128, safer-k64, safer-sk128, safer-sk64, skipjack, twofish, or xtea}}
 
-test crypt-4.5 {crypt hash: hash tests} {
+test crypt-4.7 {crypt hash: invalid cipher, with -pelican} {
+    list [catch {crypt hash -pelican a . b} msg] $msg
+} {1 {bad cipher ".": must be 3des, aes, anubis, blowfish, cast5, des, khazad, noekeon, rc2, rc5, rc6, safer+, safer-k128, safer-k64, safer-sk128, safer-sk64, skipjack, twofish, or xtea}}
+
+test crypt-4.8 {crypt hash: invalid cipher, with -pmac} {
+    list [catch {crypt hash -pmac a . b} msg] $msg
+} {1 {bad cipher ".": must be 3des, aes, anubis, blowfish, cast5, des, khazad, noekeon, rc2, rc5, rc6, safer+, safer-k128, safer-k64, safer-sk128, safer-sk64, skipjack, twofish, or xtea}}
+
+test crypt-4.9 {crypt hash: hash tests} {
     foreach algo [array names hashTest] {
         set n 1
         foreach {plain hash} $hashTest($algo) {
@@ -286,14 +300,50 @@ test crypt-4.5 {crypt hash: hash tests} {
     }
 } {}
 
-test crypt-4.6 {crypt hash: hmac tests} {
+test crypt-4.10 {crypt hash: HMAC tests} {
     foreach algo [array names hmacTest] {
         set n 1
         foreach {key plain hash} $hmacTest($algo) {
             set result [crypt hash -hmac $key $algo $plain]
 
             if {$hash ne $result} {
-                return "hmac $algo (vector $n):\n\
+                return "HMAC $algo (vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - needed=[encode hex $hash]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-4.11 {crypt hash: OMAC tests} {
+    foreach algo [array names omacTest] {
+        set n 1
+        foreach {key plain hash} $omacTest($algo) {
+            set result [crypt hash -omac $key $algo $plain]
+
+            if {$hash ne $result} {
+                return "OMAC $algo (vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - needed=[encode hex $hash]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-4.12 {crypt hash: PMAC tests} {
+    foreach algo [array names pmacTest] {
+        set n 1
+        foreach {key plain hash} $pmacTest($algo) {
+            set result [crypt hash -pmac $key $algo $plain]
+
+            if {$hash ne $result} {
+                return "PMAC $algo (vector $n):\n\
                     - key   =[encode hex $key]\n\
                     - plain =[encode hex $plain]\n\
                     - needed=[encode hex $hash]\n\
@@ -310,41 +360,56 @@ test crypt-4.6 {crypt hash: hmac tests} {
 
 test crypt-5.1 {crypt start: no args} {
     list [catch {crypt start} msg] $msg
-} {1 {wrong # args: should be "crypt start ?-hmac key? hash"}}
+} {1 {wrong # args: should be "crypt start ?switches? algorithm"}}
 
 test crypt-5.2 {crypt start: too many args} {
     list [catch {crypt start a b} msg] $msg
-} {1 {wrong # args: should be "crypt start ?-hmac key? hash"}}
+} {1 {wrong # args: should be "crypt start ?switches? algorithm"}}
 
 test crypt-5.3 {crypt start: too many args} {
     list [catch {crypt start -hmac a b c} msg] $msg
-} {1 {wrong # args: should be "crypt start ?-hmac key? hash"}}
+} {1 {wrong # args: should be "crypt start ?switches? algorithm"}}
 
-test crypt-5.4 {crypt start: invalid hash} {
+test crypt-5.4 {crypt start: invalid switch} {
+    list [catch {crypt start -fake a b} msg] $msg
+} {1 {bad switch "-fake": must be -hmac, -omac, -pelican, or -pmac}}
+
+test crypt-5.5 {crypt start: invalid hash} {
     list [catch {crypt start .} msg] $msg
 } {1 {bad hash ".": must be md2, md4, md5, rmd128, rmd160, sha1, sha224, sha256, sha384, sha512, tiger, or whirlpool}}
 
-test crypt-5.5 {crypt start: invalid hash, with -hmac} {
-    list [catch {crypt start -hmac a .} msg] $msg
-} {1 {bad hash ".": must be md2, md4, md5, rmd128, rmd160, sha1, sha224, sha256, sha384, sha512, tiger, or whirlpool}}
+test crypt-5.6 {crypt start: invalid cipher, with -omac} {
+    list [catch {crypt start -omac a .} msg] $msg
+} {1 {bad cipher ".": must be 3des, aes, anubis, blowfish, cast5, des, khazad, noekeon, rc2, rc5, rc6, safer+, safer-k128, safer-k64, safer-sk128, safer-sk64, skipjack, twofish, or xtea}}
 
-test crypt-5.6 {crypt start: handle format} {
+test crypt-5.7 {crypt start: invalid cipher, with -pelican} {
+    list [catch {crypt start -pelican a .} msg] $msg
+} {1 {bad cipher ".": must be 3des, aes, anubis, blowfish, cast5, des, khazad, noekeon, rc2, rc5, rc6, safer+, safer-k128, safer-k64, safer-sk128, safer-sk64, skipjack, twofish, or xtea}}
+
+test crypt-5.8 {crypt start: invalid cipher, with -pmac} {
+    list [catch {crypt start -pmac a .} msg] $msg
+} {1 {bad cipher ".": must be 3des, aes, anubis, blowfish, cast5, des, khazad, noekeon, rc2, rc5, rc6, safer+, safer-k128, safer-k64, safer-sk128, safer-sk64, skipjack, twofish, or xtea}}
+
+test crypt-5.9 {crypt start: handle format} {
     -match regexp
     -body {
         set handle [crypt start md5]
         crypt end $handle
         set handle
     }
-    -result {crypt\d+}
+    -result {hash\d+}
 }
 
-test crypt-5.7 {crypt start: check return} {
+test crypt-5.10 {crypt start: check return} {
     set handlesBefore [crypt info handles]
     set handle [crypt start md5]
     set handlesAfter [crypt info handles]
     crypt end $handle
-    list [expr {[lsearch -exact $handlesBefore $handle] != -1}] [expr {[lsearch -exact $handlesAfter $handle] != -1}]
-} {0 1}
+
+    set result [list [lsearch -exact $handlesBefore $handle] [lsearch -exact $handlesAfter $handle]]
+    unset handlesBefore handlesAfter
+    set result
+} {-1 0}
 
 ################################################################################
 # crypt update                                                                 #
@@ -381,27 +446,7 @@ test crypt-6.4 {crypt update: hash tests} {
     }
 } {}
 
-test crypt-6.5 {crypt update: hmac tests} {
-    foreach algo [array names hmacTest] {
-        set n 1
-        foreach {key plain hash} $hmacTest($algo) {
-            set handle [crypt start -hmac $key $algo]
-            crypt update $handle $plain
-            set result [crypt end $handle]
-
-            if {$hash ne $result} {
-                return "hmac $algo (vector $n):\n\
-                    - key   =[encode hex $key]\n\
-                    - plain =[encode hex $plain]\n\
-                    - needed=[encode hex $hash]\n\
-                    - result=[encode hex $result]"
-            }
-            incr n
-        }
-    }
-} {}
-
-test crypt-6.6 {crypt update: hash tests, two updates} {
+test crypt-6.5 {crypt update: hash tests, two updates} {
     foreach algo [array names hashTest] {
         set n 1
         foreach {plain hash} $hashTest($algo) {
@@ -422,7 +467,27 @@ test crypt-6.6 {crypt update: hash tests, two updates} {
     }
 } {}
 
-test crypt-6.7 {crypt update: hmac tests, two updates} {
+test crypt-6.6 {crypt update: HMAC tests} {
+    foreach algo [array names hmacTest] {
+        set n 1
+        foreach {key plain hash} $hmacTest($algo) {
+            set handle [crypt start -hmac $key $algo]
+            crypt update $handle $plain
+            set result [crypt end $handle]
+
+            if {$hash ne $result} {
+                return "HMAC $algo (vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - needed=[encode hex $hash]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-6.7 {crypt update: HMAC tests, two updates} {
     foreach algo [array names hmacTest] {
         set n 1
         foreach {key plain hash} $hmacTest($algo) {
@@ -433,7 +498,91 @@ test crypt-6.7 {crypt update: hmac tests, two updates} {
             set result [crypt end $handle]
 
             if {$hash ne $result} {
-                return "hmac $algo (vector $n):\n\
+                return "HMAC $algo (vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - needed=[encode hex $hash]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-6.8 {crypt update: OMAC tests} {
+    foreach algo [array names omacTest] {
+        set n 1
+        foreach {key plain hash} $omacTest($algo) {
+            set handle [crypt start -omac $key $algo]
+            crypt update $handle $plain
+            set result [crypt end $handle]
+
+            if {$hash ne $result} {
+                return "OMAC $algo (vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - needed=[encode hex $hash]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-6.9 {crypt update: OMAC tests, two updates} {
+    foreach algo [array names omacTest] {
+        set n 1
+        foreach {key plain hash} $omacTest($algo) {
+            set handle [crypt start -omac $key $algo]
+            set index [expr {[string length $plain] / 2}]
+            crypt update $handle [string range $plain 0 $index]
+            crypt update $handle [string range $plain [incr index] end]
+            set result [crypt end $handle]
+
+            if {$hash ne $result} {
+                return "OMAC $algo (vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - needed=[encode hex $hash]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-6.10 {crypt update: PMAC tests} {
+    foreach algo [array names pmacTest] {
+        set n 1
+        foreach {key plain hash} $pmacTest($algo) {
+            set handle [crypt start -pmac $key $algo]
+            crypt update $handle $plain
+            set result [crypt end $handle]
+
+            if {$hash ne $result} {
+                return "PMAC $algo (vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - needed=[encode hex $hash]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-6.11 {crypt update: PMAC tests, two updates} {
+    foreach algo [array names pmacTest] {
+        set n 1
+        foreach {key plain hash} $pmacTest($algo) {
+            set handle [crypt start -pmac $key $algo]
+            set index [expr {[string length $plain] / 2}]
+            crypt update $handle [string range $plain 0 $index]
+            crypt update $handle [string range $plain [incr index] end]
+            set result [crypt end $handle]
+
+            if {$hash ne $result} {
+                return "PMAC $algo (vector $n):\n\
                     - key   =[encode hex $key]\n\
                     - plain =[encode hex $plain]\n\
                     - needed=[encode hex $hash]\n\
@@ -466,7 +615,10 @@ test crypt-7.4 {crypt end: check close} {
     set handlesMiddle [crypt info handles]
     crypt end $handle
     set handlesEnd [crypt info handles]
-    list [llength $handlesStart] [llength $handlesMiddle] [llength $handlesEnd]
+
+    set result [list [llength $handlesStart] [llength $handlesMiddle] [llength $handlesEnd]]
+    unset handlesStart handlesMiddle handlesEnd
+    set result
 } {0 1 0}
 
 ################################################################################
@@ -503,7 +655,10 @@ test crypt-8.7 {crypt info: handles} {
     set handles [crypt info handles]
     crypt end $handleOne
     crypt end $handleTwo
-    list [llength $handles] [llength [crypt info handles]]
+
+    set result [list [llength $handles] [llength [crypt info handles]]]
+    unset handles
+    set result
 } {2 0}
 
 test crypt-8.8 {crypt info: hash count} {

@@ -23,8 +23,17 @@
  *     crypt encrypt [-iv <iv>] [-mode <mode>] [-rounds <count>] <cipher> <key> <data>
  *
  *   Hash Commands:
- *     crypt hash    [-hmac <key>] <hash algorithm> <data>
- *     crypt start   [-hmac <key>] <hash algorithm>
+ *     crypt hash    <hash algorithm> <data>
+ *     crypt hash    -hmac    <key> <hash algorithm> <data>
+ *     crypt hash    -omac    <key> <cipher algorithm> <data>
+ *     crypt hash    -pelican <key> <cipher algorithm> <data>
+ *     crypt hash    -pmac    <key> <cipher algorithm> <data>
+ *
+ *     crypt start   <hash algorithm>
+ *     crypt start   -hmac    <key> <hash algorithm>
+ *     crypt start   -omac    <key> <cipher algorithm>
+ *     crypt start   -pelican <key> <cipher algorithm>
+ *     crypt start   -pmac    <key> <cipher algorithm>
  *     crypt update  <handle> <data>
  *     crypt end     <handle>
  *
@@ -36,6 +45,7 @@
 
 #include <alcoExt.h>
 
+/* Tcl command functions. */
 static int CryptProcessCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], unsigned char mode);
 static int CryptHashCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int CryptStartCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
@@ -45,16 +55,17 @@ static int CryptInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], Ext
 static int CryptPkcs5Cmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int CryptRandCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
-static CryptProcessProc DecryptCBC;
-static CryptProcessProc DecryptCFB;
-static CryptProcessProc DecryptCTR;
-static CryptProcessProc DecryptECB;
-static CryptProcessProc DecryptOFB;
-static CryptProcessProc EncryptCBC;
-static CryptProcessProc EncryptCFB;
-static CryptProcessProc EncryptCTR;
-static CryptProcessProc EncryptECB;
-static CryptProcessProc EncryptOFB;
+/* Cipher mode functions. */
+static CryptModeProc DecryptCBC;
+static CryptModeProc DecryptCFB;
+static CryptModeProc DecryptCTR;
+static CryptModeProc DecryptECB;
+static CryptModeProc DecryptOFB;
+static CryptModeProc EncryptCBC;
+static CryptModeProc EncryptCFB;
+static CryptModeProc EncryptCTR;
+static CryptModeProc EncryptECB;
+static CryptModeProc EncryptOFB;
 
 static const CryptCipherMode cipherModes[] = {
     {"cbc", DecryptCBC, EncryptCBC, CRYPT_REQUIRES_IV|CRYPT_PAD_PLAINTEXT},
@@ -63,6 +74,10 @@ static const CryptCipherMode cipherModes[] = {
     {"ecb", DecryptECB, EncryptECB, CRYPT_PAD_PLAINTEXT},
     {"ofb", DecryptOFB, EncryptOFB, CRYPT_REQUIRES_IV},
     {NULL}
+};
+
+static const char *macSwitches[] = {
+    "-hmac", "-omac", "-pelican", "-pmac", NULL
 };
 
 /*
@@ -476,14 +491,14 @@ CryptProcessCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], unsigned ch
     dest = Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), dataLength);
 
     if (mode == MODE_DECRYPT) {
-        status = cipherModes[modeIndex].Decrypt(
+        status = cipherModes[modeIndex].decrypt(
             cipherIndex, rounds, iv,
             key, (unsigned long)keyLength,
             data, (unsigned long)dataLength,
             dest);
 
     } else if (mode == MODE_ENCRYPT) {
-        status = cipherModes[modeIndex].Encrypt(
+        status = cipherModes[modeIndex].encrypt(
             cipherIndex, rounds, iv,
             key, (unsigned long)keyLength,
             data, (unsigned long)dataLength,
@@ -524,59 +539,86 @@ static int
 CryptHashCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
     int dataLength;
-    int hashIndex;
+    int index;
+    int keyLength;
     int status;
     unsigned char *data;
     unsigned char *dest;
-    unsigned char hmac = 0;
+    unsigned char *key;
+    unsigned char type = CRYPT_HASH;
     unsigned long destLength;
 
-    switch (objc) {
-        case 4: {
-            break;
-        }
-        case 6: {
-            if (PartialSwitchCompare(objv[2], "-hmac")) {
-                hmac = 1;
-                break;
-            }
-        }
-        default: {
-            Tcl_WrongNumArgs(interp, 2, objv, "?-hmac key? hash data");
+    /* Argument checks. */
+    if (objc == 6) {
+        if (Tcl_GetIndexFromObj(interp, objv[2], macSwitches, "switch", TCL_EXACT, &index) != TCL_OK) {
             return TCL_ERROR;
         }
+        type = (unsigned char) index;
+        key = Tcl_GetByteArrayFromObj(objv[3], &keyLength);
+
+    } else if (objc != 4) {
+        Tcl_WrongNumArgs(interp, 2, objv, "?switches? algorithm data");
+        return TCL_ERROR;
     }
 
-    if (Tcl_GetIndexFromObjStruct(interp, objv[objc-2], hash_descriptor,
-        sizeof(hash_descriptor[0]), "hash", TCL_EXACT, &hashIndex) != TCL_OK) {
+    /* Retrieve the hash/cipher algorithm index. */
+    if (type == CRYPT_HASH || type == CRYPT_HMAC) {
+        status = Tcl_GetIndexFromObjStruct(interp, objv[objc-2], hash_descriptor,
+            sizeof(hash_descriptor[0]), "hash", TCL_EXACT, &index);
+    } else {
+        status = Tcl_GetIndexFromObjStruct(interp, objv[objc-2], cipher_descriptor,
+            sizeof(cipher_descriptor[0]), "cipher", TCL_EXACT, &index);
+    }
+    if (status != TCL_OK) {
         return TCL_ERROR;
     }
 
     data = Tcl_GetByteArrayFromObj(objv[objc-1], &dataLength);
 
-    /* Create a destination byte object to hold the hash digest. */
-    destLength = hash_descriptor[hashIndex].hashsize;
-    dest = Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), (int)destLength);
+    /* Create a byte object to hold the hash digest. */
+    destLength = MAXBLOCKSIZE;
+    dest = Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), MAXBLOCKSIZE);
 
-    if (hmac) {
-        unsigned char *key;
-        int keyLength;
-
-        key = Tcl_GetByteArrayFromObj(objv[3], &keyLength);
-
-        status = hmac_memory(hashIndex,
-            key, (unsigned long)keyLength,
-            data, (unsigned long)dataLength,
-            dest, &destLength);
-    } else {
-        status = hash_memory(hashIndex,
-            data, (unsigned long)dataLength,
-            dest, &destLength);
+    switch (type) {
+        case CRYPT_HASH: {
+            status = hash_memory(index,
+                data, (unsigned long)dataLength,
+                dest, &destLength);
+            break;
+        }
+        case CRYPT_HMAC: {
+            status = hmac_memory(index,
+                key,  (unsigned long)keyLength,
+                data, (unsigned long)dataLength,
+                dest, &destLength);
+            break;
+        }
+        case CRYPT_OMAC: {
+            status = omac_memory(index,
+                key,  (unsigned long)keyLength,
+                data, (unsigned long)dataLength,
+                dest, &destLength);
+            break;
+        }
+        case CRYPT_PELICAN: {
+            status = pelican_memory(index,
+                key,  (unsigned long)keyLength,
+                data, (unsigned long)dataLength,
+                dest, &destLength);
+            break;
+        }
+        case CRYPT_PMAC: {
+            status = pmac_memory(index,
+                key,  (unsigned long)keyLength,
+                data, (unsigned long)dataLength,
+                dest, &destLength);
+            break;
+        }
     }
 
     if (status != CRYPT_OK) {
         Tcl_ResetResult(interp);
-        Tcl_AppendResult(interp, "couldn't hash data: ", error_to_string(status), NULL);
+        Tcl_AppendResult(interp, "unable to hash data: ", error_to_string(status), NULL);
         return TCL_ERROR;
     }
 
@@ -607,49 +649,66 @@ static int
 CryptStartCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
 {
     char handleId[20];
-    int hashIndex;
+    int index;
+    int keyLength;
     int newEntry;
-    int status = CRYPT_ERROR;
-    unsigned char type;
+    int status;
+    unsigned char *key;
+    unsigned char type = CRYPT_HASH;
     CryptHandle *handlePtr;
     Tcl_HashEntry *hashEntryPtr;
 
-    switch (objc) {
-        case 3: {
-            type = CRYPT_HASH;
-            break;
-        }
-        case 5: {
-            if (PartialSwitchCompare(objv[2], "-hmac")) {
-                type = CRYPT_HMAC;
-                break;
-            }
-        }
-        default: {
-            Tcl_WrongNumArgs(interp, 2, objv, "?-hmac key? hash");
+    /* Argument checks. */
+    if (objc == 5) {
+        if (Tcl_GetIndexFromObj(interp, objv[2], macSwitches, "switch", TCL_EXACT, &index) != TCL_OK) {
             return TCL_ERROR;
         }
+        type = (unsigned char) index;
+        key = Tcl_GetByteArrayFromObj(objv[3], &keyLength);
+
+    } else if (objc != 3) {
+        Tcl_WrongNumArgs(interp, 2, objv, "?switches? algorithm");
+        return TCL_ERROR;
     }
 
-    if (Tcl_GetIndexFromObjStruct(interp, objv[objc-1], hash_descriptor,
-        sizeof(hash_descriptor[0]), "hash", TCL_EXACT, &hashIndex) != TCL_OK) {
+    /* Retrieve the hash/cipher algorithm index. */
+    if (type == CRYPT_HASH || type == CRYPT_HMAC) {
+        status = Tcl_GetIndexFromObjStruct(interp, objv[objc-1], hash_descriptor,
+            sizeof(hash_descriptor[0]), "hash", TCL_EXACT, &index);
+    } else {
+        status = Tcl_GetIndexFromObjStruct(interp, objv[objc-1], cipher_descriptor,
+            sizeof(cipher_descriptor[0]), "cipher", TCL_EXACT, &index);
+    }
+    if (status != TCL_OK) {
         return TCL_ERROR;
     }
 
     handlePtr = (CryptHandle *) ckalloc(sizeof(CryptHandle));
-    handlePtr->hashIndex = hashIndex;
+    handlePtr->algoIndex = index;
     handlePtr->type = type;
 
-    /* Initialise hash/hmac state. */
-    if (type == CRYPT_HASH) {
-        status = hash_descriptor[hashIndex].init(&handlePtr->state.hash);
-
-    } else if (type == CRYPT_HMAC) {
-        unsigned char *key;
-        int keyLength;
-
-        key = Tcl_GetByteArrayFromObj(objv[3], &keyLength);
-        status = hmac_init(&handlePtr->state.hmac, hashIndex, key, (unsigned long)keyLength);
+    /* Initialise hash state. */
+    switch (type) {
+        case CRYPT_HASH: {
+            status = hash_descriptor[index].init(&handlePtr->state.hash);
+            break;
+        }
+        case CRYPT_HMAC: {
+            status = hmac_init(&handlePtr->state.hmac, index, key, (unsigned long)keyLength);
+            break;
+        }
+        case CRYPT_OMAC: {
+            status = omac_init(&handlePtr->state.omac, index, key, (unsigned long)keyLength);
+            break;
+        }
+        case CRYPT_PELICAN: {
+            status = pelican_init(&handlePtr->state.pelican, index, key, (unsigned long)keyLength);
+            break;
+        }
+        case CRYPT_PMAC: {
+            status = pmac_init(&handlePtr->state.pmac, index, key, (unsigned long)keyLength);
+            break;
+        }
     }
 
     if (status != CRYPT_OK) {
@@ -660,9 +719,9 @@ CryptStartCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *sta
     }
 
 #ifdef _WINDOWS
-    StringCchPrintfA(handleId, ARRAYSIZE(handleId), "crypt%lu", statePtr->cryptHandle);
+    StringCchPrintfA(handleId, ARRAYSIZE(handleId), "hash%lu", statePtr->cryptHandle);
 #else /* _WINDOWS */
-    snprintf(handleId, ARRAYSIZE(handleId), "crypt%lu", statePtr->cryptHandle);
+    snprintf(handleId, ARRAYSIZE(handleId), "hash%lu", statePtr->cryptHandle);
     handleId[ARRAYSIZE(handleId)-1] = '\0';
 #endif /* _WINDOWS */
 
@@ -714,12 +773,33 @@ CryptUpdateCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *st
 
     data = Tcl_GetByteArrayFromObj(objv[3], &dataLength);
 
-    /* Update a hash/hmac state. */
-    if (handlePtr->type == CRYPT_HASH) {
-        status = hash_descriptor[handlePtr->hashIndex].process(&handlePtr->state.hash,
-            data, (unsigned long)dataLength);
-    } else if (handlePtr->type == CRYPT_HMAC) {
-        status = hmac_process(&handlePtr->state.hmac, data, (unsigned long)dataLength);
+    /* Update hash state. */
+    switch (handlePtr->type) {
+        case CRYPT_HASH: {
+            status = hash_descriptor[handlePtr->algoIndex].process(&handlePtr->state.hash,
+                data, (unsigned long)dataLength);
+            break;
+        }
+        case CRYPT_HMAC: {
+            status = hmac_process(&handlePtr->state.hmac,
+                data, (unsigned long)dataLength);
+            break;
+        }
+        case CRYPT_OMAC: {
+            status = omac_process(&handlePtr->state.omac,
+                data, (unsigned long)dataLength);
+            break;
+        }
+        case CRYPT_PELICAN: {
+            status = pelican_process(&handlePtr->state.pelican,
+                data, (unsigned long)dataLength);
+            break;
+        }
+        case CRYPT_PMAC: {
+            status = pmac_process(&handlePtr->state.pmac,
+                data, (unsigned long)dataLength);
+            break;
+        }
     }
 
     if (status != CRYPT_OK) {
@@ -734,7 +814,7 @@ CryptUpdateCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *st
 /*
  * CryptEndCmd
  *
- *   Finalize a hash state, returning the digest.
+ *   Finalise a hash state, returning the digest.
  *
  * Arguments:
  *   interp   - Current interpreter.
@@ -768,15 +848,33 @@ CryptEndCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *state
     }
     handlePtr = (CryptHandle *) Tcl_GetHashValue(hashEntryPtr);
 
-    /* Create a destination byte object to hold the hash digest. */
-    destLength = hash_descriptor[handlePtr->hashIndex].hashsize;
-    dest = Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), (int)destLength);
+    /* Create a byte object to hold the hash digest. */
+    destLength = MAXBLOCKSIZE;
+    dest = Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), MAXBLOCKSIZE);
 
-    /* Finalize a hash/hmac state. */
-    if (handlePtr->type == CRYPT_HASH) {
-        status = hash_descriptor[handlePtr->hashIndex].done(&handlePtr->state.hash, dest);
-    } else if (handlePtr->type == CRYPT_HMAC) {
-        status = hmac_done(&handlePtr->state.hmac, dest, &destLength);
+    /* Finalise hash state. */
+    switch (handlePtr->type) {
+        case CRYPT_HASH: {
+            destLength = hash_descriptor[handlePtr->algoIndex].hashsize;
+            status = hash_descriptor[handlePtr->algoIndex].done(&handlePtr->state.hash, dest);
+            break;
+        }
+        case CRYPT_HMAC: {
+            status = hmac_done(&handlePtr->state.hmac, dest, &destLength);
+            break;
+        }
+        case CRYPT_OMAC: {
+            status = omac_done(&handlePtr->state.omac, dest, &destLength);
+            break;
+        }
+        case CRYPT_PELICAN: {
+            status = pelican_done(&handlePtr->state.pelican, dest, &destLength);
+            break;
+        }
+        case CRYPT_PMAC: {
+            status = pmac_done(&handlePtr->state.pmac, dest, &destLength);
+            break;
+        }
     }
 
     /* Free handle structure and remove the hash table entry. */
@@ -785,7 +883,7 @@ CryptEndCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *state
 
     if (status != CRYPT_OK) {
         Tcl_ResetResult(interp);
-        Tcl_AppendResult(interp, "unable to finalize hash state: ",
+        Tcl_AppendResult(interp, "unable to finalise hash state: ",
             error_to_string(status), NULL);
         return TCL_ERROR;
     }
@@ -968,7 +1066,7 @@ CryptPkcs5Cmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
     salt = Tcl_GetByteArrayFromObj(objv[objc-2], &saltLength);
     pass = Tcl_GetByteArrayFromObj(objv[objc-1], &passLength);
 
-    /* Create a destination byte object to hold the hash digest. */
+    /* Create a byte object to hold the hash digest. */
     destLength = hash_descriptor[hashIndex].hashsize;
     dest = Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), (int)destLength);
 
@@ -1028,7 +1126,7 @@ CryptRandCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
     buffer = Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), bytes);
 
     if (rng_get_bytes(buffer, (unsigned long)bytes, NULL) != (unsigned long)bytes) {
-        Tcl_SetResult(interp, "unable to retrieve random bytes", TCL_STATIC);
+        Tcl_SetResult(interp, "unable to retrieve random data", TCL_STATIC);
         return TCL_ERROR;
     }
 

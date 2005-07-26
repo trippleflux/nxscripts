@@ -12,7 +12,7 @@
 
 /**
   @file pelican.c
-  Pelican MAC, initialize state, by Tom St Denis
+  Pelican MAC implementation, by Tom St Denis
 */
 
 #ifdef PELICAN
@@ -23,16 +23,23 @@
 /**
   Initialize a Pelican state
   @param pelmac    The Pelican state to initialize
+  @param cipher    The index of the desired cipher, must be AES
   @param key       The secret key
   @param keylen    The length of the secret key (octets)
   @return CRYPT_OK if successful
 */
-int pelican_init(pelican_state *pelmac, const unsigned char *key, unsigned long keylen)
+int pelican_init(pelican_state *pelmac, int cipher, const unsigned char *key, unsigned long keylen)
 {
+    int index;
     int err;
 
     LTC_ARGCHK(pelmac != NULL);
     LTC_ARGCHK(key    != NULL);
+
+   index = find_cipher("aes");
+   if (cipher != index || index < 0) {
+      return CRYPT_INVALID_CIPHER;
+   }
 
 #ifdef LTC_FAST
     if (16 % sizeof(LTC_FAST_TYPE)) {
@@ -156,21 +163,23 @@ int pelican_done(pelican_state *pelmac, unsigned char *out, unsigned long *outle
    pelmac->state[pelmac->buflen++] ^= 0x80;
    aes_ecb_encrypt(pelmac->state, out, &pelmac->K);
    aes_done(&pelmac->K);
+
+   *outlen = 16;
    return CRYPT_OK;
 }
 
 /**
   Pelican block of memory
-  @param dummy    Not used
+  @param cipher   The index of the desired cipher, must be AES
   @param key      The key for the MAC
   @param keylen   The length of the key (octets)
   @param in       The input to MAC
   @param inlen    The length of the input (octets)
   @param out      [out] The output TAG
-  @param outlen [out] The resulting size of the authentication tag
+  @param outlen   [out] The resulting size of the authentication tag
   @return CRYPT_OK on success
 */
-int pelican_memory(int dummy,
+int pelican_memory(int cipher,
                    const unsigned char *key, unsigned long keylen,
                    const unsigned char *in,  unsigned long inlen,
                          unsigned char *out, unsigned long *outlen)
@@ -188,7 +197,7 @@ int pelican_memory(int dummy,
       return CRYPT_MEM;
    }
 
-   if ((err = pelican_init(pel, key, keylen)) != CRYPT_OK) {
+   if ((err = pelican_init(pel, cipher, key, keylen)) != CRYPT_OK) {
       XFREE(pel);
       return err;
    }

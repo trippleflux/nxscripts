@@ -12,7 +12,7 @@
 
 /**
   @file hmac.c
-  HMAC support, Tom St Denis/Dobes Vandermeer
+  HMAC implementation, Tom St Denis/Dobes Vandermeer
 */
 
 #ifdef HMAC

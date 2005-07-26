@@ -23,7 +23,7 @@
 #define CRYPT_REQUIRES_IV   0x0001
 #define CRYPT_PAD_PLAINTEXT 0x0002
 
-typedef int (CryptProcessProc)(
+typedef int (CryptModeProc)(
     int cipher,
     int rounds,
     unsigned char *iv,
@@ -36,22 +36,30 @@ typedef int (CryptProcessProc)(
 
 typedef struct {
     char *name;
-    CryptProcessProc *Decrypt;
-    CryptProcessProc *Encrypt;
+    CryptModeProc *decrypt;
+    CryptModeProc *encrypt;
     unsigned short options;
 } CryptCipherMode;
 
-/* Hash state type. */
-#define CRYPT_HASH 1
-#define CRYPT_HMAC 2
+/* The order of these constants must reflect that of 'macSwitches'. */
+enum {
+    CRYPT_HMAC = 0,
+    CRYPT_OMAC,
+    CRYPT_PELICAN,
+    CRYPT_PMAC,
+    CRYPT_HASH /* Not a MAC method. */
+};
 
-/* Hash state structure. */
+/* Hash state, used by "crypt start/update/end". */
 typedef struct {
-    int hashIndex;
-    unsigned char type;
+    int algoIndex;      /* Cipher/hash algorithm index. */
+    unsigned char type; /* Type of handle. */
     union {
-        hash_state hash;
-        hmac_state hmac;
+        hash_state    hash;
+        hmac_state    hmac;
+        omac_state    omac;
+        pelican_state pelican;
+        pmac_state    pmac;
     } state;
 } CryptHandle;
 
