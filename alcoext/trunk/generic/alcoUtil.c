@@ -23,7 +23,7 @@
  *   interp   - Interpreter to use for error reporting.
  *   objPtr   - The string value of this object is used to search through tablePtr.
  *   tablePtr - Address of a hash table structure.
- *   type     - Null-terminated string describing the handle type.
+ *   prefix   - Null-terminated string representing the handle identifier's prefix.
  *
  * Returns:
  *   If the handle is valid, the address of the handle's hash table entry is
@@ -34,17 +34,19 @@
  *   None.
  */
 Tcl_HashEntry *
-GetHandleTableEntry(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_HashTable *tablePtr, const char *type)
+GetHandleTableEntry(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_HashTable *tablePtr, const char *prefix)
 {
     char *handle;
-    Tcl_HashEntry *hashEntryPtr;
+    Tcl_HashEntry *hashEntryPtr = NULL;
 
     handle = Tcl_GetString(objPtr);
-    hashEntryPtr = Tcl_FindHashEntry(tablePtr, handle);
+    if (strncmp(handle, prefix, strlen(prefix)) == 0)  {
+        hashEntryPtr = Tcl_FindHashEntry(tablePtr, handle);
+    }
 
     if (hashEntryPtr == NULL) {
         Tcl_ResetResult(interp);
-        Tcl_AppendResult(interp, "invalid ", type, " handle \"", handle, "\"", NULL);
+        Tcl_AppendResult(interp, "invalid ", prefix, " handle \"", handle, "\"", NULL);
     }
 
     return hashEntryPtr;

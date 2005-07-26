@@ -67,6 +67,14 @@ set testData {
 "\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37"
 }
 
+proc GetTclEntropy {} {
+    # Pretty cheesy attempt at gathering entropy from Tcl,
+    # never use this in a production environment!
+    set stuff [expr {pow(2,31) * rand() + ([clock clicks]/2)}]
+    append stuff [clock seconds]
+    return [string range $stuff 0 15]
+}
+
 ################################################################################
 # crypt                                                                        #
 ################################################################################
@@ -77,11 +85,11 @@ test crypt-1.1 {crypt: no args} {
 
 test crypt-1.2 {crypt: one arg} {
     list [catch {crypt .} msg] $msg
-} {1 {bad option ".": must be decrypt, encrypt, end, hash, info, pkcs5, rand, start, or update}}
+} {1 {bad option ".": must be decrypt, encrypt, end, hash, info, pkcs5, prng, rand, start, or update}}
 
 test crypt-1.3 {crypt: invalid option} {
     list [catch {crypt . a} msg] $msg
-} {1 {bad option ".": must be decrypt, encrypt, end, hash, info, pkcs5, rand, start, or update}}
+} {1 {bad option ".": must be decrypt, encrypt, end, hash, info, pkcs5, prng, rand, start, or update}}
 
 ################################################################################
 # crypt decrypt                                                                #
@@ -400,7 +408,7 @@ test crypt-5.9 {crypt start: handle format} {
     -result {hash\d+}
 }
 
-test crypt-5.10 {crypt start: check return} {
+test crypt-5.10 {crypt start: check handle list} {
     set handlesBefore [crypt info handles]
     set handle [crypt start md5]
     set handlesAfter [crypt info handles]
@@ -425,7 +433,7 @@ test crypt-6.2 {crypt update: too many args} {
 
 test crypt-6.3 {crypt update: invalid handle} {
     list [catch {crypt update . a} msg] $msg
-} {1 {invalid crypt handle "."}}
+} {1 {invalid hash handle "."}}
 
 test crypt-6.4 {crypt update: hash tests} {
     foreach algo [array names hashTest] {
@@ -607,7 +615,7 @@ test crypt-7.2 {crypt end: too many args} {
 
 test crypt-7.3 {crypt end: invalid handle} {
     list [catch {crypt end .} msg] $msg
-} {1 {invalid crypt handle "."}}
+} {1 {invalid hash handle "."}}
 
 test crypt-7.4 {crypt end: check close} {
     set handlesStart [crypt info handles]
@@ -635,7 +643,7 @@ test crypt-8.2 {crypt info: too many args} {
 
 test crypt-8.3 {crypt info: invalid option} {
     list [catch {crypt info .} msg] $msg
-} {1 {bad option ".": must be ciphers, handles, hashes, or modes}}
+} {1 {bad option ".": must be ciphers, handles, hashes, modes, or prngs}}
 
 test crypt-8.5 {crypt info: cipher count} {
     llength [crypt info ciphers]
@@ -675,6 +683,14 @@ test crypt-8.10 {crypt info: mode list} {
 
 test crypt-8.11 {crypt info: modes must be in alphabetical order} {
     string equal [crypt info modes] [lsort [crypt info modes]]
+} {1}
+
+test crypt-8.12 {crypt info: PRNG count} {
+    llength [crypt info prngs]
+} {5}
+
+test crypt-8.13 {crypt info: PRNGs must be in alphabetical order} {
+    string equal [crypt info prngs] [lsort [crypt info prngs]]
 } {1}
 
 ################################################################################
@@ -746,10 +762,210 @@ test crypt-10.6 {crypt rand: retrieve 24 bytes} {
 } {24}
 
 ################################################################################
+# crypt prng                                                                   #
+################################################################################
+
+test crypt-11.1 {crypt prng: no args} {
+    list [catch {crypt prng} msg] $msg
+} {1 {wrong # args: should be "crypt prng option arg"}}
+
+test crypt-11.2 {crypt prng: one arg} {
+    list [catch {crypt prng .} msg] $msg
+} {1 {bad option ".": must be close, get, open, put, or set}}
+
+test crypt-11.3 {crypt prng: invalid option} {
+    list [catch {crypt prng . a} msg] $msg
+} {1 {bad option ".": must be close, get, open, put, or set}}
+
+################################################################################
+# crypt prng open                                                              #
+################################################################################
+
+test crypt-12.1 {crypt prng open: no args} {
+    list [catch {crypt prng open} msg] $msg
+} {1 {wrong # args: should be "crypt prng open type"}}
+
+test crypt-12.2 {crypt prng open: too many args} {
+    list [catch {crypt prng open a b} msg] $msg
+} {1 {wrong # args: should be "crypt prng open type"}}
+
+test crypt-12.3 {crypt prng open: invalid option} {
+    list [catch {crypt prng open .} msg] $msg
+} {1 {bad prng ".": must be fortuna, rc4, sober128, sprng, or yarrow}}
+
+test crypt-12.4 {crypt prng open: handle format} {
+    -match regexp
+    -body {
+        set handle [crypt prng open yarrow]
+        crypt prng close $handle
+        set handle
+    }
+    -result {prng\d+}
+}
+
+test crypt-12.5 {crypt prng open: check handle list} {
+    set handlesBefore [crypt info handles]
+    set handle [crypt prng open yarrow]
+    set handlesAfter [crypt info handles]
+    crypt prng close $handle
+
+    set result [list [lsearch -exact $handlesBefore $handle] [lsearch -exact $handlesAfter $handle]]
+    unset handlesBefore handlesAfter
+    set result
+} {-1 0}
+
+################################################################################
+# crypt prng close                                                             #
+################################################################################
+
+test crypt-13.1 {crypt prng close: no args} {
+    list [catch {crypt prng close} msg] $msg
+} {1 {wrong # args: should be "crypt prng close handle"}}
+
+test crypt-13.2 {crypt prng close: too many args} {
+    list [catch {crypt prng close a b} msg] $msg
+} {1 {wrong # args: should be "crypt prng close handle"}}
+
+test crypt-13.3 {crypt prng close: invalid handle} {
+    list [catch {crypt prng close .} msg] $msg
+} {1 {invalid prng handle "."}}
+
+test crypt-13.4 {crypt prng close: check close} {
+    set handlesStart [crypt info handles]
+    set handle [crypt prng open yarrow]
+    set handlesMiddle [crypt info handles]
+    crypt prng close $handle
+    set handlesEnd [crypt info handles]
+
+    set result [list [llength $handlesStart] [llength $handlesMiddle] [llength $handlesEnd]]
+    unset handlesStart handlesMiddle handlesEnd
+    set result
+} {0 1 0}
+
+################################################################################
+# crypt prng put                                                               #
+################################################################################
+
+test crypt-14.1 {crypt prng put: no args} {
+    list [catch {crypt prng put} msg] $msg
+} {1 {wrong # args: should be "crypt prng put handle data"}}
+
+test crypt-14.2 {crypt prng put: too many args} {
+    list [catch {crypt prng put a b c} msg] $msg
+} {1 {wrong # args: should be "crypt prng put handle data"}}
+
+test crypt-14.3 {crypt prng put: invalid handle} {
+    list [catch {crypt prng put . a} msg] $msg
+} {1 {invalid prng handle "."}}
+
+test crypt-14.4 {crypt prng put: one source of entropy} {
+    foreach type [crypt info prngs] {
+        set handle [crypt prng open $type]
+        crypt prng put $handle [GetTclEntropy]
+        crypt prng close $handle
+    }
+} {}
+
+test crypt-14.5 {crypt prng put: multiple sources of entropy} {
+    foreach type [crypt info prngs] {
+        set handle [crypt prng open $type]
+        crypt prng put $handle [GetTclEntropy]
+        crypt prng put $handle [crypt rand 32]
+        crypt prng close $handle
+    }
+} {}
+
+################################################################################
+# crypt prng set                                                               #
+################################################################################
+
+test crypt-15.1 {crypt prng set: no args} {
+    list [catch {crypt prng set} msg] $msg
+} {1 {wrong # args: should be "crypt prng set handle"}}
+
+test crypt-15.2 {crypt prng set: too many args} {
+    list [catch {crypt prng set a b c} msg] $msg
+} {1 {wrong # args: should be "crypt prng set handle"}}
+
+test crypt-15.3 {crypt prng set: invalid handle} {
+    list [catch {crypt prng set .} msg] $msg
+} {1 {invalid prng handle "."}}
+
+test crypt-15.4 {crypt prng set: one source of entropy} {
+    foreach type {rc4 sober128 sprng yarrow} {
+        set handle [crypt prng open $type]
+        crypt prng put $handle [GetTclEntropy]
+        crypt prng set $handle
+        crypt prng close $handle
+    }
+} {}
+
+test crypt-15.5 {crypt prng set: multiple sources of entropy} {
+    foreach type [crypt info prngs] {
+        set handle [crypt prng open $type]
+        crypt prng put $handle [GetTclEntropy]
+        crypt prng put $handle [crypt rand 32]
+        crypt prng put $handle [GetTclEntropy]
+        crypt prng put $handle [crypt rand 16]
+        crypt prng set $handle
+        crypt prng close $handle
+    }
+} {}
+
+################################################################################
+# crypt prng get                                                               #
+################################################################################
+
+test crypt-16.1 {crypt prng get: no args} {
+    list [catch {crypt prng get} msg] $msg
+} {1 {wrong # args: should be "crypt prng get handle bytes"}}
+
+test crypt-16.2 {crypt prng get: too many args} {
+    list [catch {crypt prng get a b c} msg] $msg
+} {1 {wrong # args: should be "crypt prng get handle bytes"}}
+
+test crypt-16.3 {crypt prng get: invalid handle} {
+    list [catch {crypt prng get . a} msg] $msg
+} {1 {invalid prng handle "."}}
+
+test crypt-16.4 {crypt prng get: one source of entropy} {
+    foreach type [crypt info prngs] {
+        set handle [crypt prng open $type]
+        crypt prng put $handle [crypt rand 32]
+        crypt prng set $handle
+        foreach amount {0 3 7 35 92 214} {
+            set data [crypt prng get $handle $amount]
+            if {[string length $data] != $amount} {
+                return "expected $amount bytes from $type, got [string length $data]"
+            }
+        }
+        crypt prng close $handle
+    }
+} {}
+
+test crypt-16.5 {crypt prng get: multiple sources of entropy} {
+    foreach type [crypt info prngs] {
+        set handle [crypt prng open $type]
+        crypt prng put $handle [GetTclEntropy]
+        crypt prng put $handle [crypt rand 32]
+        crypt prng put $handle [GetTclEntropy]
+        crypt prng put $handle [crypt rand 16]
+        crypt prng set $handle
+        foreach amount {0 3 7 35 92 214} {
+            set data [crypt prng get $handle $amount]
+            if {[string length $data] != $amount} {
+                return "expected $amount bytes from $type, got [string length $data]"
+            }
+        }
+        crypt prng close $handle
+    }
+} {}
+
+################################################################################
 # crypt leak test                                                              #
 ################################################################################
 
-test crypt-11.1 {crypt: leak test} {
+test crypt-17.1 {crypt: leak test} {
     set handleList [list]
     # Ensure remaining crypt handles are freed during finalization.
     for {set i 0} {$i < 20} {incr i} {
@@ -759,7 +975,7 @@ test crypt-11.1 {crypt: leak test} {
     list [llength $handleList] [llength [crypt info handles]]
 } {20 20}
 
-test crypt-11.2 {crypt: leak test, separate interp} {singleTestInterp} {
+test crypt-17.2 {crypt: leak test, separate interp} {singleTestInterp} {
     set interp [interp create]
     interp eval $interp [list load $libFile]
 

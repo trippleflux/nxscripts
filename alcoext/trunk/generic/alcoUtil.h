@@ -28,7 +28,14 @@
 /* ROUNDUP - Round 'a' up to a multiple of 'b'. */
 #define ROUNDUP(a,b)    ((((a) + ((b) - 1)) / (b)) * (b))
 
-Tcl_HashEntry *GetHandleTableEntry(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_HashTable *tablePtr, const char *type);
-int PartialSwitchCompare(Tcl_Obj *objPtr, const char *switchName);
+Tcl_HashEntry *GetHandleTableEntry(
+    Tcl_Interp *interp,
+    Tcl_Obj *objPtr,
+    Tcl_HashTable *tablePtr,
+    const char *prefix);
+
+int PartialSwitchCompare(
+    Tcl_Obj *objPtr,
+    const char *switchName);
 
 #endif /* _ALCOUTIL_H_ */

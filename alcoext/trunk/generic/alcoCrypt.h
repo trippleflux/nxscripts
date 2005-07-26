@@ -31,8 +31,7 @@ typedef int (CryptModeProc)(
     unsigned long keyLength,
     unsigned char *data,
     unsigned long dataLength,
-    unsigned char *dest
-);
+    unsigned char *dest);
 
 typedef struct {
     char *name;
@@ -41,18 +40,19 @@ typedef struct {
     unsigned short options;
 } CryptCipherMode;
 
-/* The order of these constants must reflect that of 'macSwitches'. */
+/* The first four constants must reflect the order of 'macSwitches'. */
 enum {
     CRYPT_HMAC = 0,
     CRYPT_OMAC,
     CRYPT_PELICAN,
     CRYPT_PMAC,
-    CRYPT_HASH /* Not a MAC method. */
+    CRYPT_HASH,
+    CRYPT_PRNG
 };
 
-/* Hash state, used by "crypt start/update/end". */
+/* Generic crypt handle. */
 typedef struct {
-    int algoIndex;      /* Cipher/hash algorithm index. */
+    int descIndex;      /* Descriptor table index (cipher, hash, or prng). */
     unsigned char type; /* Type of handle. */
     union {
         hash_state    hash;
@@ -60,6 +60,7 @@ typedef struct {
         omac_state    omac;
         pelican_state pelican;
         pmac_state    pmac;
+        prng_state    prng;
     } state;
 } CryptHandle;
 

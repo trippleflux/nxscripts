@@ -150,13 +150,11 @@ Alcoext_Init(Tcl_Interp *interp)
         register_hash(&sha512_desc);
         register_hash(&tiger_desc);
         register_hash(&whirlpool_desc);
-#if 0
-        /* Not used, yet. */
         register_prng(&fortuna_desc);
         register_prng(&rc4_desc);
         register_prng(&sober128_desc);
+        register_prng(&sprng_desc);
         register_prng(&yarrow_desc);
-#endif
 
         initialised = 1;
     }
@@ -168,12 +166,13 @@ Alcoext_Init(Tcl_Interp *interp)
 
     statePtr->cryptTable = (Tcl_HashTable *) ckalloc(sizeof(Tcl_HashTable));
     Tcl_InitHashTable(statePtr->cryptTable, TCL_STRING_KEYS);
-    statePtr->cryptHandle = 0;
+    statePtr->hashCount = 0;
+    statePtr->prngCount = 0;
 
 #ifndef _WINDOWS
-    statePtr->glTable = (Tcl_HashTable *) ckalloc(sizeof(Tcl_HashTable));
-    Tcl_InitHashTable(statePtr->glTable, TCL_STRING_KEYS);
-    statePtr->glHandle = 0;
+    statePtr->glftpdTable = (Tcl_HashTable *) ckalloc(sizeof(Tcl_HashTable));
+    Tcl_InitHashTable(statePtr->glftpdTable, TCL_STRING_KEYS);
+    statePtr->glftpdCount = 0;
 #endif /* !_WINDOWS */
 
     /*
@@ -363,9 +362,9 @@ FreeState(ExtState *statePtr)
         ckfree((char *) statePtr->cryptTable);
 
 #ifndef _WINDOWS
-        GlCloseHandles(statePtr->glTable);
-        Tcl_DeleteHashTable(statePtr->glTable);
-        ckfree((char *) statePtr->glTable);
+        GlCloseHandles(statePtr->glftpdTable);
+        Tcl_DeleteHashTable(statePtr->glftpdTable);
+        ckfree((char *) statePtr->glftpdTable);
 #endif /* !_WINDOWS */
 
         ckfree((char *) statePtr);

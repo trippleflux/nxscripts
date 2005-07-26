@@ -23,24 +23,33 @@
  *     crypt encrypt [-iv <iv>] [-mode <mode>] [-rounds <count>] <cipher> <key> <data>
  *
  *   Hash Commands:
+ *     TODO: Merge the crypt hash/start/update/end commands.
+ *
  *     crypt hash    <hash algorithm> <data>
- *     crypt hash    -hmac    <key> <hash algorithm> <data>
- *     crypt hash    -omac    <key> <cipher algorithm> <data>
- *     crypt hash    -pelican <key> <cipher algorithm> <data>
- *     crypt hash    -pmac    <key> <cipher algorithm> <data>
+ *     crypt hash    -hmac    <key> <hash> <data>
+ *     crypt hash    -omac    <key> <cipher> <data>
+ *     crypt hash    -pelican <key> <cipher> <data>
+ *     crypt hash    -pmac    <key> <cipher> <data>
  *
  *     crypt start   <hash algorithm>
- *     crypt start   -hmac    <key> <hash algorithm>
- *     crypt start   -omac    <key> <cipher algorithm>
- *     crypt start   -pelican <key> <cipher algorithm>
- *     crypt start   -pmac    <key> <cipher algorithm>
+ *     crypt start   -hmac    <key> <hash>
+ *     crypt start   -omac    <key> <cipher>
+ *     crypt start   -pelican <key> <cipher>
+ *     crypt start   -pmac    <key> <cipher>
  *     crypt update  <handle> <data>
  *     crypt end     <handle>
  *
+ *   Random Commands
+ *     crypt prng open  <type>           - Create a PRNG.
+ *     crypt prng put   <handle> <data>  - Add entropy to the PRNG.
+ *     crypt prng set   <handle>         - Set the PRNG as ready.
+ *     crypt prng get   <handle> <bytes> - Retrieve random data from the PRNG.
+ *     crypt prng close <handle>         - Close a PRNG.
+ *     crypt rand       <bytes>          - Retrieve random data from the system.
+ *
  *   Other Commands:
- *     crypt info    <ciphers|handles|hashes|modes>
- *     crypt pkcs5   [-v1] [-v2] [-rounds <count>] <hash algorithm> <salt> <password>
- *     crypt rand    <bytes>
+ *     crypt info  <ciphers|handles|hashes|modes|prngs>
+ *     crypt pkcs5 [-v1] [-v2] [-rounds <count>] <hash algorithm> <salt> <password>
  */
 
 #include <alcoExt.h>
@@ -53,6 +62,7 @@ static int CryptUpdateCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], E
 static int CryptEndCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
 static int CryptInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
 static int CryptPkcs5Cmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+static int CryptPrngCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
 static int CryptRandCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
 /* Cipher mode functions. */
@@ -683,7 +693,7 @@ CryptStartCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *sta
     }
 
     handlePtr = (CryptHandle *) ckalloc(sizeof(CryptHandle));
-    handlePtr->algoIndex = index;
+    handlePtr->descIndex = index;
     handlePtr->type = type;
 
     /* Initialise hash state. */
@@ -693,38 +703,42 @@ CryptStartCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *sta
             break;
         }
         case CRYPT_HMAC: {
-            status = hmac_init(&handlePtr->state.hmac, index, key, (unsigned long)keyLength);
+            status = hmac_init(&handlePtr->state.hmac, index,
+                key, (unsigned long)keyLength);
             break;
         }
         case CRYPT_OMAC: {
-            status = omac_init(&handlePtr->state.omac, index, key, (unsigned long)keyLength);
+            status = omac_init(&handlePtr->state.omac, index,
+                key, (unsigned long)keyLength);
             break;
         }
         case CRYPT_PELICAN: {
-            status = pelican_init(&handlePtr->state.pelican, index, key, (unsigned long)keyLength);
+            status = pelican_init(&handlePtr->state.pelican, index,
+                key, (unsigned long)keyLength);
             break;
         }
         case CRYPT_PMAC: {
-            status = pmac_init(&handlePtr->state.pmac, index, key, (unsigned long)keyLength);
+            status = pmac_init(&handlePtr->state.pmac, index,
+                key, (unsigned long)keyLength);
             break;
         }
     }
 
     if (status != CRYPT_OK) {
         ckfree((char *) handlePtr);
-        Tcl_AppendResult(interp, "unable to initialise hash state: ",
+        Tcl_AppendResult(interp, "unable to initialise hash: ",
             error_to_string(status), NULL);
         return TCL_ERROR;
     }
 
+    /* The handle identifier doubles as the hash key. */
 #ifdef _WINDOWS
-    StringCchPrintfA(handleId, ARRAYSIZE(handleId), "hash%lu", statePtr->cryptHandle);
+    StringCchPrintfA(handleId, ARRAYSIZE(handleId), "hash%lu", statePtr->hashCount);
 #else /* _WINDOWS */
-    snprintf(handleId, ARRAYSIZE(handleId), "hash%lu", statePtr->cryptHandle);
+    snprintf(handleId, ARRAYSIZE(handleId), "hash%lu", statePtr->hashCount);
     handleId[ARRAYSIZE(handleId)-1] = '\0';
 #endif /* _WINDOWS */
-
-    statePtr->cryptHandle++;
+    statePtr->hashCount++;
 
     hashEntryPtr = Tcl_CreateHashEntry(statePtr->cryptTable, handleId, &newEntry);
     Tcl_SetHashValue(hashEntryPtr, (ClientData) handlePtr);
@@ -764,7 +778,7 @@ CryptUpdateCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *st
         return TCL_ERROR;
     }
 
-    hashEntryPtr = GetHandleTableEntry(interp, objv[2], statePtr->cryptTable, "crypt");
+    hashEntryPtr = GetHandleTableEntry(interp, objv[2], statePtr->cryptTable, "hash");
     if (hashEntryPtr == NULL) {
         return TCL_ERROR;
     }
@@ -775,7 +789,7 @@ CryptUpdateCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *st
     /* Update hash state. */
     switch (handlePtr->type) {
         case CRYPT_HASH: {
-            status = hash_descriptor[handlePtr->algoIndex].process(&handlePtr->state.hash,
+            status = hash_descriptor[handlePtr->descIndex].process(&handlePtr->state.hash,
                 data, (unsigned long)dataLength);
             break;
         }
@@ -802,7 +816,7 @@ CryptUpdateCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *st
     }
 
     if (status != CRYPT_OK) {
-        Tcl_AppendResult(interp, "unable to update hash state: ",
+        Tcl_AppendResult(interp, "unable to update hash: ",
             error_to_string(status), NULL);
         return TCL_ERROR;
     }
@@ -841,7 +855,7 @@ CryptEndCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *state
         return TCL_ERROR;
     }
 
-    hashEntryPtr = GetHandleTableEntry(interp, objv[2], statePtr->cryptTable, "crypt");
+    hashEntryPtr = GetHandleTableEntry(interp, objv[2], statePtr->cryptTable, "hash");
     if (hashEntryPtr == NULL) {
         return TCL_ERROR;
     }
@@ -854,8 +868,8 @@ CryptEndCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *state
     /* Finalise hash state. */
     switch (handlePtr->type) {
         case CRYPT_HASH: {
-            destLength = hash_descriptor[handlePtr->algoIndex].hashsize;
-            status = hash_descriptor[handlePtr->algoIndex].done(&handlePtr->state.hash, dest);
+            destLength = hash_descriptor[handlePtr->descIndex].hashsize;
+            status = hash_descriptor[handlePtr->descIndex].done(&handlePtr->state.hash, dest);
             break;
         }
         case CRYPT_HMAC: {
@@ -882,7 +896,7 @@ CryptEndCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *state
 
     if (status != CRYPT_OK) {
         Tcl_ResetResult(interp);
-        Tcl_AppendResult(interp, "unable to finalise hash state: ",
+        Tcl_AppendResult(interp, "unable to finalise hash: ",
             error_to_string(status), NULL);
         return TCL_ERROR;
     }
@@ -944,8 +958,12 @@ CryptInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *stat
 {
     int index;
     Tcl_Obj *resultPtr;
-    static const char *options[] = {"ciphers", "handles", "hashes", "modes", NULL};
-    enum options {OPTION_CIPHERS, OPTION_HANDLES, OPTION_HASHES, OPTION_MODES};
+    static const char *options[] = {
+        "ciphers", "handles", "hashes", "modes", "prngs", NULL
+    };
+    enum options {
+        OPTION_CIPHERS, OPTION_HANDLES, OPTION_HASHES, OPTION_MODES, OPTION_PRNGS
+    };
 
     if (objc != 3) {
         Tcl_WrongNumArgs(interp, 2, objv, "option");
@@ -995,6 +1013,14 @@ CryptInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *stat
             for (index = 0; cipherModes[index].name != NULL; index++) {
                 Tcl_ListObjAppendElement(NULL, resultPtr,
                     Tcl_NewStringObj(cipherModes[index].name, -1));
+            }
+            return TCL_OK;
+        }
+        case OPTION_PRNGS: {
+            /* Create a list of supported PRNGs. */
+            for (index = 0; index < TAB_SIZE && prng_descriptor[index].name != NULL; index++) {
+                Tcl_ListObjAppendElement(NULL, resultPtr,
+                    Tcl_NewStringObj(prng_descriptor[index].name, -1));
             }
             return TCL_OK;
         }
@@ -1115,9 +1141,205 @@ CryptPkcs5Cmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 }
 
 /*
+ * CryptPrngCmd
+ *
+ *   Create, seed, read, and close a pseudo random number generator.
+ *
+ * Arguments:
+ *   interp   - Current interpreter.
+ *   objc     - Number of arguments.
+ *   objv     - Argument objects.
+ *   statePtr - Pointer to a 'ExtState' structure.
+ *
+ * Returns:
+ *   A standard Tcl result.
+ *
+ * Remarks:
+ *   None.
+ */
+static int
+CryptPrngCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
+{
+    int index;
+    int status;
+    CryptHandle *handlePtr;
+    Tcl_HashEntry *hashEntryPtr;
+    static const char *options[] = {"close", "get", "open", "put", "set", NULL};
+    enum options {OPTION_CLOSE, OPTION_GET, OPTION_OPEN, OPTION_PUT, OPTION_SET};
+
+    if (objc < 3) {
+        Tcl_WrongNumArgs(interp, 2, objv, "option arg");
+        return TCL_ERROR;
+    }
+
+    if (Tcl_GetIndexFromObj(interp, objv[2], options, "option", 0, &index) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    switch ((enum options) index) {
+        case OPTION_CLOSE: {
+            if (objc != 4) {
+                Tcl_WrongNumArgs(interp, 3, objv, "handle");
+                return TCL_ERROR;
+            }
+
+            /* Retrieve handle structure. */
+            hashEntryPtr = GetHandleTableEntry(interp, objv[3], statePtr->cryptTable, "prng");
+            if (hashEntryPtr == NULL) {
+                return TCL_ERROR;
+            }
+            handlePtr = (CryptHandle *) Tcl_GetHashValue(hashEntryPtr);
+
+            /* Free resources and remove the hash table entry. */
+            prng_descriptor[handlePtr->descIndex].done(&handlePtr->state.prng);
+            ckfree((char *) handlePtr);
+            Tcl_DeleteHashEntry(hashEntryPtr);
+
+            return TCL_OK;
+        }
+        case OPTION_GET: {
+            int destLength;
+            unsigned char *dest;
+
+            if (objc != 5) {
+                Tcl_WrongNumArgs(interp, 3, objv, "handle bytes");
+                return TCL_ERROR;
+            }
+
+            /* Retrieve handle structure. */
+            hashEntryPtr = GetHandleTableEntry(interp, objv[3], statePtr->cryptTable, "prng");
+            if (hashEntryPtr == NULL || Tcl_GetIntFromObj(interp, objv[4], &destLength) != TCL_OK) {
+                return TCL_ERROR;
+            }
+            handlePtr = (CryptHandle *) Tcl_GetHashValue(hashEntryPtr);
+
+            /* Create a byte object to hold the hash digest. */
+            dest = Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), destLength);
+
+            /* Retrieve random data from the PRNG. */
+            status = (int) prng_descriptor[handlePtr->descIndex].read(dest,
+                (unsigned long)destLength, &handlePtr->state.prng);
+
+            /*
+             * If the amount read does not equal the request amount, the
+             * operation is considered to have failed. (e.g. if a user requests
+             * five bytes and the function returns four bytes, due to lack of
+             * entropy or whatever the reason).
+             */
+            if (status != destLength) {
+                Tcl_SetResult(interp, "unable to read from PRNG", TCL_STATIC);
+                return TCL_ERROR;
+            }
+
+            return TCL_OK;
+        }
+        case OPTION_OPEN: {
+            char handleId[20];
+            int newEntry;
+
+            if (objc != 4) {
+                Tcl_WrongNumArgs(interp, 3, objv, "type");
+                return TCL_ERROR;
+            }
+
+            if (Tcl_GetIndexFromObjStruct(interp, objv[3], prng_descriptor,
+                sizeof(prng_descriptor[0]), "prng", TCL_EXACT, &index) != TCL_OK) {
+                return TCL_ERROR;
+            }
+
+            /* Initialise the PRNG. */
+            handlePtr = (CryptHandle *) ckalloc(sizeof(CryptHandle));
+            handlePtr->descIndex = index;
+            handlePtr->type = CRYPT_PRNG;
+
+            status = prng_descriptor[index].start(&handlePtr->state.prng);
+            if (status != CRYPT_OK) {
+                ckfree((char *) handlePtr);
+                Tcl_AppendResult(interp, "unable to initialise PRNG: ",
+                    error_to_string(status), NULL);
+                return TCL_ERROR;
+            }
+
+            /* The handle identifier doubles as the hash key. */
+#ifdef _WINDOWS
+            StringCchPrintfA(handleId, ARRAYSIZE(handleId), "prng%lu", statePtr->prngCount);
+#else /* _WINDOWS */
+            snprintf(handleId, ARRAYSIZE(handleId), "prng%lu", statePtr->prngCount);
+            handleId[ARRAYSIZE(handleId)-1] = '\0';
+#endif /* _WINDOWS */
+            statePtr->prngCount++;
+
+            hashEntryPtr = Tcl_CreateHashEntry(statePtr->cryptTable, handleId, &newEntry);
+            Tcl_SetHashValue(hashEntryPtr, (ClientData) handlePtr);
+
+            Tcl_SetStringObj(Tcl_GetObjResult(interp), handleId, -1);
+            return TCL_OK;
+        }
+        case OPTION_PUT: {
+            int dataLength;
+            unsigned char *data;
+
+            if (objc != 5) {
+                Tcl_WrongNumArgs(interp, 3, objv, "handle data");
+                return TCL_ERROR;
+            }
+
+            /* Retrieve handle structure. */
+            hashEntryPtr = GetHandleTableEntry(interp, objv[3], statePtr->cryptTable, "prng");
+            if (hashEntryPtr == NULL) {
+                return TCL_ERROR;
+            }
+            handlePtr = (CryptHandle *) Tcl_GetHashValue(hashEntryPtr);
+
+            data = Tcl_GetByteArrayFromObj(objv[4], &dataLength);
+
+            /* Add entropy to the PRNG. */
+            status = prng_descriptor[handlePtr->descIndex].add_entropy(data,
+                (unsigned long)dataLength, &handlePtr->state.prng);
+
+            if (status != CRYPT_OK) {
+                Tcl_AppendResult(interp, "unable to add entropy to PRNG: ",
+                    error_to_string(status), NULL);
+                return TCL_ERROR;
+            }
+
+            return TCL_OK;
+        }
+        case OPTION_SET: {
+            if (objc != 4) {
+                Tcl_WrongNumArgs(interp, 3, objv, "handle");
+                return TCL_ERROR;
+            }
+
+            /* Retrieve handle structure. */
+            hashEntryPtr = GetHandleTableEntry(interp, objv[3], statePtr->cryptTable, "prng");
+            if (hashEntryPtr == NULL) {
+                return TCL_ERROR;
+            }
+            handlePtr = (CryptHandle *) Tcl_GetHashValue(hashEntryPtr);
+
+            /* Set the PRNG as ready. */
+            status = prng_descriptor[handlePtr->descIndex].ready(&handlePtr->state.prng);
+
+            if (status != CRYPT_OK) {
+                Tcl_AppendResult(interp, "unable to ready the PRNG: ",
+                    error_to_string(status), NULL);
+                return TCL_ERROR;
+            }
+
+            return TCL_OK;
+        }
+    }
+
+    /* This point should never be reached. */
+    Tcl_Panic("unexpected fallthrough");
+    return TCL_ERROR;
+}
+
+/*
  * CryptRandCmd
  *
- *   Retrieves cryptographically random bytes.
+ *   Retrieves random entropy from the system.
  *
  * Arguments:
  *   interp - Current interpreter.
@@ -1184,11 +1406,11 @@ CryptObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
     int index;
     static const char *options[] = {
         "decrypt", "encrypt", "end", "hash", "info",
-        "pkcs5", "rand", "start", "update", NULL
+        "pkcs5", "prng", "rand", "start", "update", NULL
     };
     enum options {
         OPTION_DECRYPT, OPTION_ENCRYPT, OPTION_END, OPTION_HASH, OPTION_INFO,
-        OPTION_PKCS5, OPTION_RAND, OPTION_START, OPTION_UPDATE
+        OPTION_PKCS5, OPTION_PRNG, OPTION_RAND, OPTION_START, OPTION_UPDATE
     };
 
     if (objc < 2) {
@@ -1207,6 +1429,7 @@ CryptObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
         case OPTION_HASH:    return CryptHashCmd(interp, objc, objv);
         case OPTION_INFO:    return CryptInfoCmd(interp, objc, objv, statePtr);
         case OPTION_PKCS5:   return CryptPkcs5Cmd(interp, objc, objv);
+        case OPTION_PRNG:    return CryptPrngCmd(interp, objc, objv, statePtr);
         case OPTION_RAND:    return CryptRandCmd(interp, objc, objv);
         case OPTION_START:   return CryptStartCmd(interp, objc, objv, statePtr);
         case OPTION_UPDATE:  return CryptUpdateCmd(interp, objc, objv, statePtr);

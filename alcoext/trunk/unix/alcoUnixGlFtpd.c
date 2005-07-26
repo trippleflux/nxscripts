@@ -632,11 +632,11 @@ GlOpenCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePt
     handlePtr->version = GLFTPD_201;
 
     /* Create a hash table entry and return the handle's identifier. */
-    snprintf(handleId, ARRAYSIZE(handleId), "glftpd%lu", statePtr->glHandle);
+    snprintf(handleId, ARRAYSIZE(handleId), "glftpd%lu", statePtr->glftpdCount);
     handleId[ARRAYSIZE(handleId)-1] = '\0';
-    statePtr->glHandle++;
+    statePtr->glftpdCount++;
 
-    hashEntryPtr = Tcl_CreateHashEntry(statePtr->glTable, handleId, &newEntry);
+    hashEntryPtr = Tcl_CreateHashEntry(statePtr->glftpdTable, handleId, &newEntry);
     Tcl_SetHashValue(hashEntryPtr, (ClientData) handlePtr);
 
     Tcl_SetStringObj(Tcl_GetObjResult(interp), handleId, -1);
@@ -675,7 +675,7 @@ GlConfigCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *state
         return TCL_ERROR;
     }
 
-    hashEntryPtr = GetHandleTableEntry(interp, objv[2], statePtr->glTable, "glftpd");
+    hashEntryPtr = GetHandleTableEntry(interp, objv[2], statePtr->glftpdTable, "glftpd");
     if (hashEntryPtr == NULL) {
         return TCL_ERROR;
     }
@@ -824,7 +824,7 @@ GlCloseCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *stateP
         return TCL_ERROR;
     }
 
-    hashEntryPtr = GetHandleTableEntry(interp, objv[2], statePtr->glTable, "glftpd");
+    hashEntryPtr = GetHandleTableEntry(interp, objv[2], statePtr->glftpdTable, "glftpd");
     if (hashEntryPtr == NULL) {
         return TCL_ERROR;
     }
@@ -918,11 +918,11 @@ GlInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePt
             }
 
             /* Create a list of open glFTPD handles. */
-            for (hashEntryPtr = Tcl_FirstHashEntry(statePtr->glTable, &hashSearch);
+            for (hashEntryPtr = Tcl_FirstHashEntry(statePtr->glftpdTable, &hashSearch);
                 hashEntryPtr != NULL;
                 hashEntryPtr = Tcl_NextHashEntry(&hashSearch)) {
 
-                name = Tcl_GetHashKey(statePtr->glTable, hashEntryPtr);
+                name = Tcl_GetHashKey(statePtr->glftpdTable, hashEntryPtr);
                 Tcl_ListObjAppendElement(NULL, resultPtr, Tcl_NewStringObj(name, -1));
             }
             return TCL_OK;
@@ -937,7 +937,7 @@ GlInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePt
                 return TCL_ERROR;
             }
 
-            hashEntryPtr = GetHandleTableEntry(interp, objv[3], statePtr->glTable, "glftpd");
+            hashEntryPtr = GetHandleTableEntry(interp, objv[3], statePtr->glftpdTable, "glftpd");
             if (hashEntryPtr == NULL) {
                 return TCL_ERROR;
             }
@@ -990,7 +990,7 @@ GlKillCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePt
         return TCL_ERROR;
     }
 
-    hashEntryPtr = GetHandleTableEntry(interp, objv[2], statePtr->glTable, "glftpd");
+    hashEntryPtr = GetHandleTableEntry(interp, objv[2], statePtr->glftpdTable, "glftpd");
     if (hashEntryPtr == NULL) {
         return TCL_ERROR;
     }
@@ -1065,7 +1065,7 @@ GlWhoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr
         return TCL_ERROR;
     }
 
-    hashEntryPtr = GetHandleTableEntry(interp, objv[2], statePtr->glTable, "glftpd");
+    hashEntryPtr = GetHandleTableEntry(interp, objv[2], statePtr->glftpdTable, "glftpd");
     if (hashEntryPtr == NULL) {
         return TCL_ERROR;
     }

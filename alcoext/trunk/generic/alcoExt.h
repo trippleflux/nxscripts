@@ -38,12 +38,13 @@ typedef int (Tcl_PackageUnloadProc) _ANSI_ARGS_((Tcl_Interp *interp, int flags))
 
 /* Extension state structure. */
 typedef struct {
-    unsigned long cryptHandle;
-    Tcl_HashTable *cryptTable;
+    unsigned long hashCount;    /* Count of hash handles, created by 'crypt start'. */
+    unsigned long prngCount;    /* Count of PRNG handles, created by 'crypt prng open'. */
+    Tcl_HashTable *cryptTable;  /* Table of hash and PRNG handles. */
 
 #ifndef _WINDOWS
-    unsigned long glHandle;
-    Tcl_HashTable *glTable;
+    unsigned long glftpdCount;  /* Count of glftpd handles, created by 'glftpd open'. */
+    Tcl_HashTable *glftpdTable; /* Table of glftpd handles. */
 #endif /* !_WINDOWS */
 } ExtState;
 
