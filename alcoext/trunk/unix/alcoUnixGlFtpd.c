@@ -464,7 +464,7 @@ GetOnlineData(Tcl_Interp *interp, key_t shmKey, int version, int *maxUsers, GlOn
 
     if (shmctl(shmId, IPC_STAT, &shmInfo) < 0) {
         Tcl_ResetResult(interp);
-        Tcl_AppendResult(interp, "unable to query the shared memory segment: ",
+        Tcl_AppendResult(interp, "unable to query shared memory segment: ",
             Tcl_PosixError(interp), NULL);
         return TCL_ERROR;
     }

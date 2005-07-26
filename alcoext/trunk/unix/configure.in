@@ -326,10 +326,10 @@ TEA_ADD_SOURCES(
     ../libs/tomcrypt/hashes/sha2/sha512.c
     ../libs/tomcrypt/hashes/tiger.c
     ../libs/tomcrypt/hashes/whirl/whirl.c
-    ../libs/tomcrypt/hmac/hmac_done.c
-    ../libs/tomcrypt/hmac/hmac_init.c
-    ../libs/tomcrypt/hmac/hmac_memory.c
-    ../libs/tomcrypt/hmac/hmac_process.c
+    ../libs/tomcrypt/mac/hmac.c
+    ../libs/tomcrypt/mac/omac.c
+    ../libs/tomcrypt/mac/pelican.c
+    ../libs/tomcrypt/mac/pmac.c
     ../libs/tomcrypt/misc/base64/base64_decode.c
     ../libs/tomcrypt/misc/base64/base64_encode.c
     ../libs/tomcrypt/misc/burn_stack.c
@@ -357,34 +357,11 @@ TEA_ADD_SOURCES(
     ../libs/tomcrypt/misc/pkcs5/pkcs_5_1.c
     ../libs/tomcrypt/misc/pkcs5/pkcs_5_2.c
     ../libs/tomcrypt/misc/zeromem.c
-    ../libs/tomcrypt/modes/cbc/cbc_decrypt.c
-    ../libs/tomcrypt/modes/cbc/cbc_done.c
-    ../libs/tomcrypt/modes/cbc/cbc_encrypt.c
-    ../libs/tomcrypt/modes/cbc/cbc_getiv.c
-    ../libs/tomcrypt/modes/cbc/cbc_setiv.c
-    ../libs/tomcrypt/modes/cbc/cbc_start.c
-    ../libs/tomcrypt/modes/cfb/cfb_decrypt.c
-    ../libs/tomcrypt/modes/cfb/cfb_done.c
-    ../libs/tomcrypt/modes/cfb/cfb_encrypt.c
-    ../libs/tomcrypt/modes/cfb/cfb_getiv.c
-    ../libs/tomcrypt/modes/cfb/cfb_setiv.c
-    ../libs/tomcrypt/modes/cfb/cfb_start.c
-    ../libs/tomcrypt/modes/ctr/ctr_decrypt.c
-    ../libs/tomcrypt/modes/ctr/ctr_done.c
-    ../libs/tomcrypt/modes/ctr/ctr_encrypt.c
-    ../libs/tomcrypt/modes/ctr/ctr_getiv.c
-    ../libs/tomcrypt/modes/ctr/ctr_setiv.c
-    ../libs/tomcrypt/modes/ctr/ctr_start.c
-    ../libs/tomcrypt/modes/ecb/ecb_decrypt.c
-    ../libs/tomcrypt/modes/ecb/ecb_done.c
-    ../libs/tomcrypt/modes/ecb/ecb_encrypt.c
-    ../libs/tomcrypt/modes/ecb/ecb_start.c
-    ../libs/tomcrypt/modes/ofb/ofb_decrypt.c
-    ../libs/tomcrypt/modes/ofb/ofb_done.c
-    ../libs/tomcrypt/modes/ofb/ofb_encrypt.c
-    ../libs/tomcrypt/modes/ofb/ofb_getiv.c
-    ../libs/tomcrypt/modes/ofb/ofb_setiv.c
-    ../libs/tomcrypt/modes/ofb/ofb_start.c
+    ../libs/tomcrypt/modes/cbc.c
+    ../libs/tomcrypt/modes/cfb.c
+    ../libs/tomcrypt/modes/ctr.c
+    ../libs/tomcrypt/modes/ecb.c
+    ../libs/tomcrypt/modes/ofb.c
     ../libs/tomcrypt/prngs/fortuna.c
     ../libs/tomcrypt/prngs/rc4.c
     ../libs/tomcrypt/prngs/rng_get_bytes.c

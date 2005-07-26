@@ -186,10 +186,10 @@ INTERMEDIATE_FILES=\
     $(PKG_INTDIR)\sha512.obj\
     $(PKG_INTDIR)\tiger.obj\
     $(PKG_INTDIR)\whirl.obj\
-    $(PKG_INTDIR)\hmac_done.obj\
-    $(PKG_INTDIR)\hmac_init.obj\
-    $(PKG_INTDIR)\hmac_memory.obj\
-    $(PKG_INTDIR)\hmac_process.obj\
+    $(PKG_INTDIR)\hmac.obj\
+    $(PKG_INTDIR)\omac.obj\
+    $(PKG_INTDIR)\pelican.obj\
+    $(PKG_INTDIR)\pmac.obj\
     $(PKG_INTDIR)\base64_decode.obj\
     $(PKG_INTDIR)\base64_encode.obj\
     $(PKG_INTDIR)\burn_stack.obj\
@@ -217,34 +217,11 @@ INTERMEDIATE_FILES=\
     $(PKG_INTDIR)\pkcs_5_1.obj\
     $(PKG_INTDIR)\pkcs_5_2.obj\
     $(PKG_INTDIR)\zeromem.obj\
-    $(PKG_INTDIR)\cbc_decrypt.obj\
-    $(PKG_INTDIR)\cbc_done.obj\
-    $(PKG_INTDIR)\cbc_encrypt.obj\
-    $(PKG_INTDIR)\cbc_getiv.obj\
-    $(PKG_INTDIR)\cbc_setiv.obj\
-    $(PKG_INTDIR)\cbc_start.obj\
-    $(PKG_INTDIR)\cfb_decrypt.obj\
-    $(PKG_INTDIR)\cfb_done.obj\
-    $(PKG_INTDIR)\cfb_encrypt.obj\
-    $(PKG_INTDIR)\cfb_getiv.obj\
-    $(PKG_INTDIR)\cfb_setiv.obj\
-    $(PKG_INTDIR)\cfb_start.obj\
-    $(PKG_INTDIR)\ctr_decrypt.obj\
-    $(PKG_INTDIR)\ctr_done.obj\
-    $(PKG_INTDIR)\ctr_encrypt.obj\
-    $(PKG_INTDIR)\ctr_getiv.obj\
-    $(PKG_INTDIR)\ctr_setiv.obj\
-    $(PKG_INTDIR)\ctr_start.obj\
-    $(PKG_INTDIR)\ecb_decrypt.obj\
-    $(PKG_INTDIR)\ecb_done.obj\
-    $(PKG_INTDIR)\ecb_encrypt.obj\
-    $(PKG_INTDIR)\ecb_start.obj\
-    $(PKG_INTDIR)\ofb_decrypt.obj\
-    $(PKG_INTDIR)\ofb_done.obj\
-    $(PKG_INTDIR)\ofb_encrypt.obj\
-    $(PKG_INTDIR)\ofb_getiv.obj\
-    $(PKG_INTDIR)\ofb_setiv.obj\
-    $(PKG_INTDIR)\ofb_start.obj\
+    $(PKG_INTDIR)\cbc.obj\
+    $(PKG_INTDIR)\cfb.obj\
+    $(PKG_INTDIR)\ctr.obj\
+    $(PKG_INTDIR)\ecb.obj\
+    $(PKG_INTDIR)\ofb.obj\
     $(PKG_INTDIR)\fortuna.obj\
     $(PKG_INTDIR)\rc4.obj\
     $(PKG_INTDIR)\rng_get_bytes.obj\
@@ -306,10 +283,10 @@ OBJECT_FILES=\
     $(ROOT)\libs\tomcrypt\hashes\sha2\sha512.obj\
     $(ROOT)\libs\tomcrypt\hashes\tiger.obj\
     $(ROOT)\libs\tomcrypt\hashes\whirl\whirl.obj\
-    $(ROOT)\libs\tomcrypt\hmac\hmac_done.obj\
-    $(ROOT)\libs\tomcrypt\hmac\hmac_init.obj\
-    $(ROOT)\libs\tomcrypt\hmac\hmac_memory.obj\
-    $(ROOT)\libs\tomcrypt\hmac\hmac_process.obj\
+    $(ROOT)\libs\tomcrypt\mac\hmac.obj\
+    $(ROOT)\libs\tomcrypt\mac\omac.obj\
+    $(ROOT)\libs\tomcrypt\mac\pelican.obj\
+    $(ROOT)\libs\tomcrypt\mac\pmac.obj\
     $(ROOT)\libs\tomcrypt\misc\base64\base64_decode.obj\
     $(ROOT)\libs\tomcrypt\misc\base64\base64_encode.obj\
     $(ROOT)\libs\tomcrypt\misc\burn_stack.obj\
@@ -337,34 +314,11 @@ OBJECT_FILES=\
     $(ROOT)\libs\tomcrypt\misc\pkcs5\pkcs_5_1.obj\
     $(ROOT)\libs\tomcrypt\misc\pkcs5\pkcs_5_2.obj\
     $(ROOT)\libs\tomcrypt\misc\zeromem.obj\
-    $(ROOT)\libs\tomcrypt\modes\cbc\cbc_decrypt.obj\
-    $(ROOT)\libs\tomcrypt\modes\cbc\cbc_done.obj\
-    $(ROOT)\libs\tomcrypt\modes\cbc\cbc_encrypt.obj\
-    $(ROOT)\libs\tomcrypt\modes\cbc\cbc_getiv.obj\
-    $(ROOT)\libs\tomcrypt\modes\cbc\cbc_setiv.obj\
-    $(ROOT)\libs\tomcrypt\modes\cbc\cbc_start.obj\
-    $(ROOT)\libs\tomcrypt\modes\cfb\cfb_decrypt.obj\
-    $(ROOT)\libs\tomcrypt\modes\cfb\cfb_done.obj\
-    $(ROOT)\libs\tomcrypt\modes\cfb\cfb_encrypt.obj\
-    $(ROOT)\libs\tomcrypt\modes\cfb\cfb_getiv.obj\
-    $(ROOT)\libs\tomcrypt\modes\cfb\cfb_setiv.obj\
-    $(ROOT)\libs\tomcrypt\modes\cfb\cfb_start.obj\
-    $(ROOT)\libs\tomcrypt\modes\ctr\ctr_decrypt.obj\
-    $(ROOT)\libs\tomcrypt\modes\ctr\ctr_done.obj\
-    $(ROOT)\libs\tomcrypt\modes\ctr\ctr_encrypt.obj\
-    $(ROOT)\libs\tomcrypt\modes\ctr\ctr_getiv.obj\
-    $(ROOT)\libs\tomcrypt\modes\ctr\ctr_setiv.obj\
-    $(ROOT)\libs\tomcrypt\modes\ctr\ctr_start.obj\
-    $(ROOT)\libs\tomcrypt\modes\ecb\ecb_decrypt.obj\
-    $(ROOT)\libs\tomcrypt\modes\ecb\ecb_done.obj\
-    $(ROOT)\libs\tomcrypt\modes\ecb\ecb_encrypt.obj\
-    $(ROOT)\libs\tomcrypt\modes\ecb\ecb_start.obj\
-    $(ROOT)\libs\tomcrypt\modes\ofb\ofb_decrypt.obj\
-    $(ROOT)\libs\tomcrypt\modes\ofb\ofb_done.obj\
-    $(ROOT)\libs\tomcrypt\modes\ofb\ofb_encrypt.obj\
-    $(ROOT)\libs\tomcrypt\modes\ofb\ofb_getiv.obj\
-    $(ROOT)\libs\tomcrypt\modes\ofb\ofb_setiv.obj\
-    $(ROOT)\libs\tomcrypt\modes\ofb\ofb_start.obj\
+    $(ROOT)\libs\tomcrypt\modes\cbc.obj\
+    $(ROOT)\libs\tomcrypt\modes\cfb.obj\
+    $(ROOT)\libs\tomcrypt\modes\ctr.obj\
+    $(ROOT)\libs\tomcrypt\modes\ecb.obj\
+    $(ROOT)\libs\tomcrypt\modes\ofb.obj\
     $(ROOT)\libs\tomcrypt\prngs\fortuna.obj\
     $(ROOT)\libs\tomcrypt\prngs\rc4.obj\
     $(ROOT)\libs\tomcrypt\prngs\rng_get_bytes.obj\
@@ -372,15 +326,15 @@ OBJECT_FILES=\
     $(ROOT)\libs\tomcrypt\prngs\sober128.obj\
     $(ROOT)\libs\tomcrypt\prngs\sprng.obj\
     $(ROOT)\libs\tomcrypt\prngs\yarrow.obj\
+    $(ROOT)\libs\zlib\source\masmx86\gvmat32.obj\
+    $(ROOT)\libs\zlib\source\masmx86\gvmat32c.obj\
+    $(ROOT)\libs\zlib\source\masmx86\inffas32.obj\
     $(ROOT)\libs\zlib\source\adler32.obj\
     $(ROOT)\libs\zlib\source\compress.obj\
     $(ROOT)\libs\zlib\source\crc32.obj\
     $(ROOT)\libs\zlib\source\deflate.obj\
-    $(ROOT)\libs\zlib\source\gvmat32.obj\
-    $(ROOT)\libs\zlib\source\gvmat32c.obj\
     $(ROOT)\libs\zlib\source\gzio.obj\
     $(ROOT)\libs\zlib\source\infback.obj\
-    $(ROOT)\libs\zlib\source\inffas32.obj\
     $(ROOT)\libs\zlib\source\inffast.obj\
     $(ROOT)\libs\zlib\source\inflate.obj\
     $(ROOT)\libs\zlib\source\inftrees.obj\
