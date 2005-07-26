@@ -192,31 +192,12 @@ INTERMEDIATE_FILES=\
     $(PKG_INTDIR)\pmac.obj\
     $(PKG_INTDIR)\base64_decode.obj\
     $(PKG_INTDIR)\base64_encode.obj\
-    $(PKG_INTDIR)\burn_stack.obj\
-    $(PKG_INTDIR)\crypt_argchk.obj\
-    $(PKG_INTDIR)\crypt_cipher_descriptor.obj\
-    $(PKG_INTDIR)\crypt_cipher_is_valid.obj\
-    $(PKG_INTDIR)\crypt_find_cipher.obj\
-    $(PKG_INTDIR)\crypt_find_cipher_any.obj\
-    $(PKG_INTDIR)\crypt_find_cipher_id.obj\
-    $(PKG_INTDIR)\crypt_find_hash.obj\
-    $(PKG_INTDIR)\crypt_find_hash_any.obj\
-    $(PKG_INTDIR)\crypt_find_hash_id.obj\
-    $(PKG_INTDIR)\crypt_find_prng.obj\
-    $(PKG_INTDIR)\crypt_hash_descriptor.obj\
-    $(PKG_INTDIR)\crypt_hash_is_valid.obj\
-    $(PKG_INTDIR)\crypt_prng_descriptor.obj\
-    $(PKG_INTDIR)\crypt_prng_is_valid.obj\
-    $(PKG_INTDIR)\crypt_register_cipher.obj\
-    $(PKG_INTDIR)\crypt_register_hash.obj\
-    $(PKG_INTDIR)\crypt_register_prng.obj\
-    $(PKG_INTDIR)\crypt_unregister_cipher.obj\
-    $(PKG_INTDIR)\crypt_unregister_hash.obj\
-    $(PKG_INTDIR)\crypt_unregister_prng.obj\
-    $(PKG_INTDIR)\error_to_string.obj\
     $(PKG_INTDIR)\pkcs_5_1.obj\
     $(PKG_INTDIR)\pkcs_5_2.obj\
-    $(PKG_INTDIR)\zeromem.obj\
+    $(PKG_INTDIR)\crypt_cipher.obj\
+    $(PKG_INTDIR)\crypt_hash.obj\
+    $(PKG_INTDIR)\crypt_prng.obj\
+    $(PKG_INTDIR)\crypt_utils.obj\
     $(PKG_INTDIR)\cbc.obj\
     $(PKG_INTDIR)\cfb.obj\
     $(PKG_INTDIR)\ctr.obj\
@@ -289,31 +270,12 @@ OBJECT_FILES=\
     $(ROOT)\libs\tomcrypt\mac\pmac.obj\
     $(ROOT)\libs\tomcrypt\misc\base64\base64_decode.obj\
     $(ROOT)\libs\tomcrypt\misc\base64\base64_encode.obj\
-    $(ROOT)\libs\tomcrypt\misc\burn_stack.obj\
-    $(ROOT)\libs\tomcrypt\misc\crypt\crypt_argchk.obj\
-    $(ROOT)\libs\tomcrypt\misc\crypt\crypt_cipher_descriptor.obj\
-    $(ROOT)\libs\tomcrypt\misc\crypt\crypt_cipher_is_valid.obj\
-    $(ROOT)\libs\tomcrypt\misc\crypt\crypt_find_cipher.obj\
-    $(ROOT)\libs\tomcrypt\misc\crypt\crypt_find_cipher_any.obj\
-    $(ROOT)\libs\tomcrypt\misc\crypt\crypt_find_cipher_id.obj\
-    $(ROOT)\libs\tomcrypt\misc\crypt\crypt_find_hash.obj\
-    $(ROOT)\libs\tomcrypt\misc\crypt\crypt_find_hash_any.obj\
-    $(ROOT)\libs\tomcrypt\misc\crypt\crypt_find_hash_id.obj\
-    $(ROOT)\libs\tomcrypt\misc\crypt\crypt_find_prng.obj\
-    $(ROOT)\libs\tomcrypt\misc\crypt\crypt_hash_descriptor.obj\
-    $(ROOT)\libs\tomcrypt\misc\crypt\crypt_hash_is_valid.obj\
-    $(ROOT)\libs\tomcrypt\misc\crypt\crypt_prng_descriptor.obj\
-    $(ROOT)\libs\tomcrypt\misc\crypt\crypt_prng_is_valid.obj\
-    $(ROOT)\libs\tomcrypt\misc\crypt\crypt_register_cipher.obj\
-    $(ROOT)\libs\tomcrypt\misc\crypt\crypt_register_hash.obj\
-    $(ROOT)\libs\tomcrypt\misc\crypt\crypt_register_prng.obj\
-    $(ROOT)\libs\tomcrypt\misc\crypt\crypt_unregister_cipher.obj\
-    $(ROOT)\libs\tomcrypt\misc\crypt\crypt_unregister_hash.obj\
-    $(ROOT)\libs\tomcrypt\misc\crypt\crypt_unregister_prng.obj\
-    $(ROOT)\libs\tomcrypt\misc\error_to_string.obj\
     $(ROOT)\libs\tomcrypt\misc\pkcs5\pkcs_5_1.obj\
     $(ROOT)\libs\tomcrypt\misc\pkcs5\pkcs_5_2.obj\
-    $(ROOT)\libs\tomcrypt\misc\zeromem.obj\
+    $(ROOT)\libs\tomcrypt\misc\crypt_cipher.obj\
+    $(ROOT)\libs\tomcrypt\misc\crypt_hash.obj\
+    $(ROOT)\libs\tomcrypt\misc\crypt_prng.obj\
+    $(ROOT)\libs\tomcrypt\misc\crypt_utils.obj\
     $(ROOT)\libs\tomcrypt\modes\cbc.obj\
     $(ROOT)\libs\tomcrypt\modes\cfb.obj\
     $(ROOT)\libs\tomcrypt\modes\ctr.obj\

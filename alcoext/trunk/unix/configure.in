@@ -332,31 +332,12 @@ TEA_ADD_SOURCES(
     ../libs/tomcrypt/mac/pmac.c
     ../libs/tomcrypt/misc/base64/base64_decode.c
     ../libs/tomcrypt/misc/base64/base64_encode.c
-    ../libs/tomcrypt/misc/burn_stack.c
-    ../libs/tomcrypt/misc/crypt/crypt_argchk.c
-    ../libs/tomcrypt/misc/crypt/crypt_cipher_descriptor.c
-    ../libs/tomcrypt/misc/crypt/crypt_cipher_is_valid.c
-    ../libs/tomcrypt/misc/crypt/crypt_find_cipher.c
-    ../libs/tomcrypt/misc/crypt/crypt_find_cipher_any.c
-    ../libs/tomcrypt/misc/crypt/crypt_find_cipher_id.c
-    ../libs/tomcrypt/misc/crypt/crypt_find_hash.c
-    ../libs/tomcrypt/misc/crypt/crypt_find_hash_any.c
-    ../libs/tomcrypt/misc/crypt/crypt_find_hash_id.c
-    ../libs/tomcrypt/misc/crypt/crypt_find_prng.c
-    ../libs/tomcrypt/misc/crypt/crypt_hash_descriptor.c
-    ../libs/tomcrypt/misc/crypt/crypt_hash_is_valid.c
-    ../libs/tomcrypt/misc/crypt/crypt_prng_descriptor.c
-    ../libs/tomcrypt/misc/crypt/crypt_prng_is_valid.c
-    ../libs/tomcrypt/misc/crypt/crypt_register_cipher.c
-    ../libs/tomcrypt/misc/crypt/crypt_register_hash.c
-    ../libs/tomcrypt/misc/crypt/crypt_register_prng.c
-    ../libs/tomcrypt/misc/crypt/crypt_unregister_cipher.c
-    ../libs/tomcrypt/misc/crypt/crypt_unregister_hash.c
-    ../libs/tomcrypt/misc/crypt/crypt_unregister_prng.c
-    ../libs/tomcrypt/misc/error_to_string.c
     ../libs/tomcrypt/misc/pkcs5/pkcs_5_1.c
     ../libs/tomcrypt/misc/pkcs5/pkcs_5_2.c
-    ../libs/tomcrypt/misc/zeromem.c
+    ../libs/tomcrypt/misc/crypt_cipher.c
+    ../libs/tomcrypt/misc/crypt_hash.c
+    ../libs/tomcrypt/misc/crypt_prng.c
+    ../libs/tomcrypt/misc/crypt_utils.c
     ../libs/tomcrypt/modes/cbc.c
     ../libs/tomcrypt/modes/cfb.c
     ../libs/tomcrypt/modes/ctr.c
