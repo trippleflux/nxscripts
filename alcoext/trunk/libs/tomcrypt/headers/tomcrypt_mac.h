@@ -9,22 +9,13 @@ typedef struct Hmac_state {
 int hmac_init(hmac_state *hmac, int hash, const unsigned char *key, unsigned long keylen);
 int hmac_process(hmac_state *hmac, const unsigned char *in, unsigned long inlen);
 int hmac_done(hmac_state *hmac, unsigned char *out, unsigned long *outlen);
-int hmac_test(void);
 int hmac_memory(int hash,
                 const unsigned char *key, unsigned long keylen,
                 const unsigned char *in,  unsigned long inlen,
                       unsigned char *out, unsigned long *outlen);
-int hmac_memory_multi(int hash,
-                const unsigned char *key,  unsigned long keylen,
-                      unsigned char *out,  unsigned long *outlen,
-                const unsigned char *in,   unsigned long inlen, ...);
-int hmac_file(int hash, const char *fname, const unsigned char *key,
-              unsigned long keylen,
-              unsigned char *dst, unsigned long *dstlen);
 #endif
 
 #ifdef OMAC
-
 typedef struct {
    int             cipher_idx,
                    buflen,
@@ -42,19 +33,9 @@ int omac_memory(int cipher,
                const unsigned char *key, unsigned long keylen,
                const unsigned char *in,  unsigned long inlen,
                      unsigned char *out, unsigned long *outlen);
-int omac_memory_multi(int cipher,
-                const unsigned char *key, unsigned long keylen,
-                      unsigned char *out, unsigned long *outlen,
-                const unsigned char *in,  unsigned long inlen, ...);
-int omac_file(int cipher,
-              const unsigned char *key, unsigned long keylen,
-              const          char *filename,
-                    unsigned char *out, unsigned long *outlen);
-int omac_test(void);
 #endif /* OMAC */
 
 #ifdef PMAC
-
 typedef struct {
    unsigned char     Ls[32][MAXBLOCKSIZE],    /* L shifted by i bits to the left */
                      Li[MAXBLOCKSIZE],        /* value of Li [current value, we calc from previous recall] */
@@ -72,29 +53,32 @@ typedef struct {
 int pmac_init(pmac_state *pmac, int cipher, const unsigned char *key, unsigned long keylen);
 int pmac_process(pmac_state *pmac, const unsigned char *in, unsigned long inlen);
 int pmac_done(pmac_state *pmac, unsigned char *out, unsigned long *outlen);
-
 int pmac_memory(int cipher,
                const unsigned char *key, unsigned long keylen,
-               const unsigned char *msg, unsigned long msglen,
+               const unsigned char *in,  unsigned long inlen,
                      unsigned char *out, unsigned long *outlen);
-
-int pmac_memory_multi(int cipher,
-                const unsigned char *key, unsigned long keylen,
-                      unsigned char *out, unsigned long *outlen,
-                const unsigned char *in, unsigned long inlen, ...);
-
-int pmac_file(int cipher,
-             const unsigned char *key, unsigned long keylen,
-             const          char *filename,
-                   unsigned char *out, unsigned long *outlen);
-
-int pmac_test(void);
 
 /* internal functions */
 int pmac_ntz(unsigned long x);
 void pmac_shift_xor(pmac_state *pmac);
-
 #endif /* PMAC */
+
+#ifdef PELICAN
+typedef struct pelican_state
+{
+    symmetric_key K;
+    unsigned char state[16];
+    int           buflen;
+} pelican_state;
+
+int pelican_init(pelican_state *pelmac, const unsigned char *key, unsigned long keylen);
+int pelican_process(pelican_state *pelmac, const unsigned char *in, unsigned long inlen);
+int pelican_done(pelican_state *pelmac, unsigned char *out, unsigned long *outlen);
+int pelican_memory(int dummy,
+                   const unsigned char *key, unsigned long keylen,
+                   const unsigned char *in,  unsigned long inlen,
+                         unsigned char *out, unsigned long *outlen);
+#endif
 
 #ifdef EAX_MODE
 
@@ -275,23 +259,3 @@ int gcm_memory(      int           cipher,
 int gcm_test(void);
 
 #endif /* GCM_MODE */
-
-#ifdef PELICAN
-
-typedef struct pelican_state
-{
-    symmetric_key K;
-    unsigned char state[16];
-    int           buflen;
-} pelican_state;
-
-int pelican_init(pelican_state *pelmac, const unsigned char *key, unsigned long keylen);
-int pelican_process(pelican_state *pelmac, const unsigned char *in, unsigned long inlen);
-int pelican_done(pelican_state *pelmac, unsigned char *out);
-int pelican_test(void);
-
-int pelican_memory(const unsigned char *key, unsigned long keylen,
-                   const unsigned char *in, unsigned long inlen,
-                         unsigned char *out);
-
-#endif

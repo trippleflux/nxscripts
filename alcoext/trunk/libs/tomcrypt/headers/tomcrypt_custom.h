@@ -95,6 +95,9 @@
 
 /* ---> MAC functions <--- */
 #define HMAC
+#define OMAC
+#define PMAC
+#define PELICAN
 
 /* Various tidbits of modern neatoness */
 #define BASE64
@@ -132,7 +135,6 @@
 #define RC4
 
 /* PKCS #1 (RSA) and #5 (Password Handling) stuff */
-/*#define PKCS_1*/
 #define PKCS_5
 
 /* Dependency checks. */
