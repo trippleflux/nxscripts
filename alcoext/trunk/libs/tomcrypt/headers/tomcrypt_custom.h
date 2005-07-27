@@ -13,13 +13,13 @@
  * return value of XMALLOC/XREALLOC, the 'attempt' functions are better suited.
  */
 #ifdef TCL_MEM_DEBUG
-#define XMALLOC(n)      Tcl_AttemptDbCkalloc((n), __FILE__, __LINE__)
-#define XREALLOC(p,n)   Tcl_AttemptDbCkrealloc((char *)(p), (n), __FILE__, __LINE__)
-#define XFREE(p)        Tcl_DbCkfree((char *)(p), __FILE__, __LINE__)
-#else /* TCL_MEM_DEBUG */
-#define XMALLOC(n)      Tcl_AttemptAlloc((n))
-#define XREALLOC(p,n)   Tcl_AttemptRealloc((char *)(p),(n))
-#define XFREE(p)        Tcl_Free((char *)(p))
+#   define XMALLOC(n)       Tcl_AttemptDbCkalloc((n), __FILE__, __LINE__)
+#   define XREALLOC(p,n)    Tcl_AttemptDbCkrealloc((char *)(p), (n), __FILE__, __LINE__)
+#   define XFREE(p)         Tcl_DbCkfree((char *)(p), __FILE__, __LINE__)
+#else
+#   define XMALLOC(n)       Tcl_AttemptAlloc((n))
+#   define XREALLOC(p,n)    Tcl_AttemptRealloc((char *)(p),(n))
+#   define XFREE(p)         Tcl_Free((char *)(p))
 #endif /* TCL_MEM_DEBUG */
 
 #define XMEMSET  memset
@@ -79,7 +79,6 @@
 #define OFB
 
 /* ---> One-Way Hash Functions <--- */
-#define CHC_HASH
 #define MD2
 #define MD4
 #define MD5
@@ -134,16 +133,16 @@
 /* The RC4 stream cipher */
 #define RC4
 
-/* PKCS #1 (RSA) and #5 (Password Handling) stuff */
+/* PKCS #5 (Password Handling) stuff */
 #define PKCS_5
 
 /* Dependency checks. */
 #if defined(PELICAN) && !defined(RIJNDAEL)
-   #error Pelican-MAC requires RIJNDAEL
+#   error Pelican-MAC requires RIJNDAEL
 #endif
 
 #if defined(YARROW) && !defined(CTR)
-   #error YARROW requires CTR chaining mode to be defined!
+#   error YARROW requires CTR chaining mode to be defined!
 #endif
 
 #endif

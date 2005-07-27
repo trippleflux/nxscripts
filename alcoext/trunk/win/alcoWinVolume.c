@@ -165,14 +165,14 @@ Tcl_Obj *
 GetVolumeList(Tcl_Interp *interp, unsigned short options)
 {
     HRESULT result;
-    Tcl_Obj *volumeList;
-    Tcl_Obj *elementPtr;
-    Tcl_Obj *normalPath;
     char volumeGUID[MAX_PATH];
     char *buffer;
     char *drive;
-    unsigned long bufferLength;
-    unsigned long driveEnd;
+    size_t bufferLength;
+    size_t driveEnd;
+    Tcl_Obj *volumeList;
+    Tcl_Obj *elementPtr;
+    Tcl_Obj *normalPath;
 
     /* Volume mounts were added in Windows 2000 using reparse points. */
     if ((options & VOLLIST_FLAG_MOUNTS) && (osVersion.dwPlatformId != VER_PLATFORM_WIN32_NT ||
@@ -185,8 +185,8 @@ GetVolumeList(Tcl_Interp *interp, unsigned short options)
 
     /* Retrieve a list of logical drives. */
     bufferLength = GetLogicalDriveStringsA(0, NULL);
-    buffer = ckalloc(bufferLength * sizeof(char));
-    GetLogicalDriveStringsA(bufferLength, buffer);
+    buffer = ckalloc((unsigned int)bufferLength * sizeof(char));
+    GetLogicalDriveStringsA((DWORD)bufferLength, buffer);
     drive = buffer;
 
     result = StringCchLengthA(drive, bufferLength, &driveEnd);

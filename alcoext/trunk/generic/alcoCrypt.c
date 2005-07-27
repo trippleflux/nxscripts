@@ -23,8 +23,6 @@
  *     crypt encrypt [-iv <iv>] [-mode <mode>] [-rounds <count>] <cipher> <key> <data>
  *
  *   Hash Commands:
- *     TODO: Merge the crypt hash/start/update/end commands.
- *
  *     crypt hash    <hash algorithm> <data>
  *     crypt hash    -hmac    <key> <hash> <data>
  *     crypt hash    -omac    <key> <cipher> <data>
@@ -50,9 +48,21 @@
  *   Other Commands:
  *     crypt info  <ciphers|handles|hashes|modes|prngs>
  *     crypt pkcs5 [-v1] [-v2] [-rounds <count>] <hash algorithm> <salt> <password>
+ *
+ * Implementation/Security Note:
+ *
+ *   Tcl argument objects (objv) cannot be modified without creating noticeable
+ *   problems. These argument objects are shared and could be referenced by other
+ *   variables within the Tcl interpreter. Therefore, clearing any other memory
+ *   blocks or stack space which may have contained sensitive data would be
+ *   meaningless (e.g. using SecureZeroMemory or defining LTC_CLEAN_STACK).
  */
 
 #include <alcoExt.h>
+
+/* Modes for CryptProcessCmd. */
+#define MODE_DECRYPT 1
+#define MODE_ENCRYPT 2
 
 /* Tcl command functions. */
 static int CryptProcessCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], unsigned char mode);
@@ -90,14 +100,14 @@ static const char *macSwitches[] = {
     "-hmac", "-omac", "-pelican", "-pmac", NULL
 };
 
-/*
- * Implementation and Security Note:
- * Tcl argument objects (objv) cannot be modified without creating noticeable
- * problems. These argument objects are shared and could be referenced by other
- * variables within the Tcl interpreter. Therefore, clearing any other memory
- * blocks or stack space which may have contained sensitive data would be
- * meaningless (e.g. using SecureZeroMemory or defining LTC_CLEAN_STACK).
- */
+enum {
+    CRYPT_HMAC = 0,
+    CRYPT_OMAC,
+    CRYPT_PELICAN,
+    CRYPT_PMAC,
+    CRYPT_HASH,
+    CRYPT_PRNG
+};
 
 
 /*
@@ -483,7 +493,7 @@ CryptProcessCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], unsigned ch
         unsigned char *pad;
 
         padLength = ROUNDUP(dataLength, cipher_descriptor[cipherIndex].block_length);
-        pad = ckalloc(padLength);
+        pad = (unsigned char *) ckalloc(padLength);
 
         /* Copy data and zero-pad the remaining bytes. */
         for (i = 0; i < dataLength; i++) {
@@ -502,19 +512,19 @@ CryptProcessCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], unsigned ch
     if (mode == MODE_DECRYPT) {
         status = cipherModes[modeIndex].decrypt(
             cipherIndex, rounds, iv,
-            key, (unsigned long)keyLength,
+            key,  (unsigned long)keyLength,
             data, (unsigned long)dataLength,
             dest);
 
     } else if (mode == MODE_ENCRYPT) {
         status = cipherModes[modeIndex].encrypt(
             cipherIndex, rounds, iv,
-            key, (unsigned long)keyLength,
+            key,  (unsigned long)keyLength,
             data, (unsigned long)dataLength,
             dest);
 
         if (cipherModes[modeIndex].options & CRYPT_PAD_PLAINTEXT) {
-            ckfree(data);
+            ckfree((char *) data);
         }
     }
 

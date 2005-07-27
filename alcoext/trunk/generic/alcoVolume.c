@@ -72,8 +72,6 @@ VolumeObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
             enum switches {SWITCH_LOCAL, SWITCH_MOUNTS, SWITCH_ROOT};
 
             for (i = 2; i < objc; i++) {
-                char *name = Tcl_GetString(objv[i]);
-
                 if (Tcl_GetIndexFromObj(interp, objv[i], switches, "switch", TCL_EXACT, &index) != TCL_OK) {
                     return TCL_ERROR;
                 }

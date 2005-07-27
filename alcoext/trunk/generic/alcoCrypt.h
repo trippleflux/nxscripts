@@ -15,10 +15,6 @@
 #ifndef _ALCOCRYPT_H_
 #define _ALCOCRYPT_H_
 
-/* Modes for CryptProcessCmd. */
-#define MODE_DECRYPT 1
-#define MODE_ENCRYPT 2
-
 /* Flags for CryptCipherMode::options. */
 #define CRYPT_REQUIRES_IV   0x0001
 #define CRYPT_PAD_PLAINTEXT 0x0002
@@ -39,16 +35,6 @@ typedef struct {
     CryptModeProc *encrypt;
     unsigned short options;
 } CryptCipherMode;
-
-/* The first four constants must reflect the order of 'macSwitches'. */
-enum {
-    CRYPT_HMAC = 0,
-    CRYPT_OMAC,
-    CRYPT_PELICAN,
-    CRYPT_PMAC,
-    CRYPT_HASH,
-    CRYPT_PRNG
-};
 
 /* Generic crypt handle. */
 typedef struct {
