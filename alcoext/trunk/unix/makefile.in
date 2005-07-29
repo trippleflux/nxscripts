@@ -21,8 +21,23 @@ PACKAGE_VERSION = @PACKAGE_VERSION@
 PKG_LIB_FILE    = @PKG_LIB_FILE@
 PKG_STUB_FILE   = @PKG_STUB_LIB_FILE@
 
-PKG_SOURCES     = @PKG_SOURCES@
-PKG_OBJECTS     = @PKG_OBJECTS@
+GENERIC_OBJS    = alcoExt.o alcoCrypt.o alcoEncoding.o alcoUtil.o alcoVolume.o\
+    alcoZlib.o
+
+UNIX_OBJS       = alcoUnixGlFtpd.o alcoUnixVolume.o
+
+TOMCRYPT_OBJS   = aes.o anubis.o blowfish.o cast5.o des.o khazad.o noekeon.o\
+    rc2.o rc5.o rc6.o safer.o safer_tab.o saferp.o skipjack.o twofish.o xtea.o\
+    hash_memory.o md2.o md4.o md5.o rmd128.o rmd160.o sha1.o sha256.o sha512.o\
+    tiger.o whirl.o hmac.o omac.o pelican.o pmac.o base64_decode.o base64_encode.o\
+    pkcs_5_1.o pkcs_5_2.o crypt_cipher.o crypt_hash.o crypt_prng.o crypt_utils.o\
+    cbc.o cfb.o ctr.o ecb.o ofb.o fortuna.o rc4.o rng_get_bytes.o rng_make_prng.o\
+    sober128.o sprng.o yarrow.o
+
+ZLIB_OBJS       = adler32.o compress.o crc32.o deflate.o gzio.o infback.o\
+    inffast.o inflate.o inftrees.o trees.o uncompr.o zutil.o
+
+PKG_OBJECTS     = $(TOMCRYPT_OBJS) $(ZLIB_OBJS) $(GENERIC_OBJS) $(UNIX_OBJS)
 PKG_STUB_SOURCES= @PKG_STUB_SOURCES@
 PKG_STUB_OBJECTS= @PKG_STUB_OBJECTS@
 
@@ -56,14 +71,19 @@ INSTALL_SCRIPT  = @INSTALL_SCRIPT@
 #========================================================================
 
 BUILD_DIR       = .
-ROOT_DIR        = ..
-SHELL           = @SHELL@
-BINARIES        = $(PKG_LIB_FILE)
-CLEANFILES      = @CLEANFILES@
+TOP_DIR         = ..
+GENERIC_DIR     = $(TOP_DIR)/generic
+UNIX_DIR        = $(SRC_DIR)
+TOMCRYPT_DIR    = $(TOP_DIR)/libs/tomcrypt
+ZLIB_DIR        = $(TOP_DIR)/libs/zlib
 
 AR              = @AR@
 CC              = @CC@
 RANLIB          = @RANLIB@
+SHELL           = @SHELL@
+
+BINARIES        = $(PKG_LIB_FILE)
+CLEANFILES      = @CLEANFILES@
 
 #========================================================================
 # Flags
@@ -130,7 +150,7 @@ depend:
 install: install-binaries
 
 test: binaries libraries
-	$(TCLSH) `@CYGPATH@ $(ROOT_DIR)/tests/all.tcl` $(TESTFLAGS)
+	$(TCLSH) `@CYGPATH@ $(TOP_DIR)/tests/all.tcl` $(TESTFLAGS)
 
 $(PKG_LIB_FILE): $(PKG_OBJECTS)
 	-rm -f $(PKG_LIB_FILE)
@@ -142,34 +162,222 @@ $(PKG_STUB_FILE): $(PKG_STUB_OBJECTS)
 	${MAKE_STUB_LIB}
 	$(RANLIB_STUB) $(PKG_STUB_FILE)
 
-VPATH = $(ROOT_DIR):\
-    $(ROOT_DIR)/generic:\
-    $(ROOT_DIR)/unix:\
-    $(ROOT_DIR)/win:\
-    $(ROOT_DIR)/libs/tomcrypt/ciphers:\
-    $(ROOT_DIR)/libs/tomcrypt/ciphers/aes:\
-    $(ROOT_DIR)/libs/tomcrypt/ciphers/safer:\
-    $(ROOT_DIR)/libs/tomcrypt/ciphers/twofish:\
-    $(ROOT_DIR)/libs/tomcrypt/hashes:\
-    $(ROOT_DIR)/libs/tomcrypt/hashes/chc:\
-    $(ROOT_DIR)/libs/tomcrypt/hashes/helper:\
-    $(ROOT_DIR)/libs/tomcrypt/hashes/sha2:\
-    $(ROOT_DIR)/libs/tomcrypt/hashes/whirl:\
-    $(ROOT_DIR)/libs/tomcrypt/hmac:\
-    $(ROOT_DIR)/libs/tomcrypt/misc:\
-    $(ROOT_DIR)/libs/tomcrypt/misc/base64:\
-    $(ROOT_DIR)/libs/tomcrypt/misc/crypt:\
-    $(ROOT_DIR)/libs/tomcrypt/misc/pkcs5:\
-    $(ROOT_DIR)/libs/tomcrypt/modes/cbc:\
-    $(ROOT_DIR)/libs/tomcrypt/modes/cfb:\
-    $(ROOT_DIR)/libs/tomcrypt/modes/ctr:\
-    $(ROOT_DIR)/libs/tomcrypt/modes/ecb:\
-    $(ROOT_DIR)/libs/tomcrypt/modes/ofb:\
-    $(ROOT_DIR)/libs/tomcrypt/prngs:\
-    $(ROOT_DIR)/libs/zlib/source
+#========================================================================
+# Object targets.
+#========================================================================
 
-.c.@OBJEXT@:
-	$(COMPILE) -c `@CYGPATH@ $<` -o $@
+aes.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/aes/aes.c
+
+anubis.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/anubis.c
+
+blowfish.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/blowfish.c
+
+cast5.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/cast5.c
+
+des.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/des.c
+
+khazad.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/khazad.c
+
+noekeon.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/noekeon.c
+
+rc2.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/rc2.c
+
+rc5.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/rc5.c
+
+rc6.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/rc6.c
+
+safer.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/safer/safer.c
+
+safer_tab.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/safer/safer_tab.c
+
+saferp.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/safer/saferp.c
+
+skipjack.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/skipjack.c
+
+twofish.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/twofish/twofish.c
+
+xtea.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/xtea.c
+
+hash_memory.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/hashes/helper/hash_memory.c
+
+md2.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/hashes/md2.c
+
+md4.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/hashes/md4.c
+
+md5.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/hashes/md5.c
+
+rmd128.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/hashes/rmd128.c
+
+rmd160.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/hashes/rmd160.c
+
+sha1.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/hashes/sha1.c
+
+sha256.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/hashes/sha2/sha256.c
+
+sha512.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/hashes/sha2/sha512.c
+
+tiger.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/hashes/tiger.c
+
+whirl.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/hashes/whirl/whirl.c
+
+hmac.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/mac/hmac.c
+
+omac.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/mac/omac.c
+
+pelican.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/mac/pelican.c
+
+pmac.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/mac/pmac.c
+
+base64_decode.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/misc/base64/base64_decode.c
+
+base64_encode.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/misc/base64/base64_encode.c
+
+pkcs_5_1.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/misc/pkcs5/pkcs_5_1.c
+
+pkcs_5_2.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/misc/pkcs5/pkcs_5_2.c
+
+crypt_cipher.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/misc/crypt_cipher.c
+
+crypt_hash.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/misc/crypt_hash.c
+
+crypt_prng.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/misc/crypt_prng.c
+
+crypt_utils.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/misc/crypt_utils.c
+
+cbc.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/modes/cbc.c
+
+cfb.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/modes/cfb.c
+
+ctr.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/modes/ctr.c
+
+ecb.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/modes/ecb.c
+
+ofb.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/modes/ofb.c
+
+fortuna.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/prngs/fortuna.c
+
+rc4.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/prngs/rc4.c
+
+rng_get_bytes.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/prngs/rng_get_bytes.c
+
+rng_make_prng.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/prngs/rng_make_prng.c
+
+sober128.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/prngs/sober128.c
+
+sprng.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/prngs/sprng.c
+
+yarrow.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/prngs/yarrow.c
+
+adler32.o:
+	$(COMPILE) -c $(ZLIB_DIR)/source/adler32.c
+
+compress.o:
+	$(COMPILE) -c $(ZLIB_DIR)/source/compress.c
+
+crc32.o:
+	$(COMPILE) -c $(ZLIB_DIR)/source/crc32.c
+
+deflate.o:
+	$(COMPILE) -c $(ZLIB_DIR)/source/deflate.c
+
+gzio.o:
+	$(COMPILE) -c $(ZLIB_DIR)/source/gzio.c
+
+infback.o:
+	$(COMPILE) -c $(ZLIB_DIR)/source/infback.c
+
+inffast.o:
+	$(COMPILE) -c $(ZLIB_DIR)/source/inffast.c
+
+inflate.o:
+	$(COMPILE) -c $(ZLIB_DIR)/source/inflate.c
+
+inftrees.o:
+	$(COMPILE) -c $(ZLIB_DIR)/source/inftrees.c
+
+trees.o:
+	$(COMPILE) -c $(ZLIB_DIR)/source/trees.c
+
+uncompr.o:
+	$(COMPILE) -c $(ZLIB_DIR)/source/uncompr.c
+
+zutil.o:
+	$(COMPILE) -c $(ZLIB_DIR)/source/zutil.c
+
+alcoExt.o:
+	$(COMPILE) -c $(GENERIC_DIR)/alcoExt.c
+
+alcoCrypt.o:
+	$(COMPILE) -c $(GENERIC_DIR)/alcoCrypt.c
+
+alcoEncoding.o:
+	$(COMPILE) -c $(GENERIC_DIR)/alcoEncoding.c
+
+alcoUtil.o:
+	$(COMPILE) -c $(GENERIC_DIR)/alcoUtil.c
+
+alcoVolume.o:
+	$(COMPILE) -c $(GENERIC_DIR)/alcoVolume.c
+
+alcoZlib.o:
+	$(COMPILE) -c $(GENERIC_DIR)/alcoZlib.c
+
+alcoUnixGlFtpd.o:
+	$(COMPILE) -c $(UNIX_DIR)/alcoUnixGlFtpd.c
+
+alcoUnixVolume.o:
+	$(COMPILE) -c $(UNIX_DIR)/alcoUnixVolume.c
 
 #========================================================================
 # Create package index file.
@@ -228,7 +436,7 @@ install-binaries: binaries
 
 clean:
 	-test -z "$(BINARIES)" || rm -f $(BINARIES)
-	-rm -f *.$(OBJEXT) core *.core
+	-rm -f core *.o *.core
 	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
 distclean: clean

@@ -200,9 +200,32 @@ GetVolumeList(Tcl_Interp *interp, unsigned short options)
     }
 
     /* Append all mount points. */
+#ifdef HAVE_GETMNTINFO
     if (options & VOLLIST_FLAG_MOUNTS) {
-        /* TODO: List mounts using BSD's getmntinfo(). */
+        int count;
+        int i;
+        struct statfs *mounts;
+
+        count = getmntinfo(&mounts, MNT_NOWAIT);
+        if (count == 0) {
+            Tcl_ResetResult(interp);
+            Tcl_AppendResult(interp, "unable to retrieve mount points: ",
+                Tcl_PosixError(interp), NULL);
+
+            Tcl_DecrRefCount(volumeList);
+            return NULL;
+        }
+
+        for (i = 0; i < count; i++) {
+            if ((options & VOLLIST_FLAG_LOCAL) && !(mounts[i].f_flags & MNT_LOCAL)) {
+                continue;
+            }
+
+            Tcl_ListObjAppendElement(NULL, volumeList,
+                Tcl_NewStringObj(mounts[i].f_mntonname, -1));
+        }
     }
+#endif /* HAVE_GETMNTINFO */
 
     return volumeList;
 }

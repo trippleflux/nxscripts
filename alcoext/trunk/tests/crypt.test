@@ -78,7 +78,7 @@ proc GetTclEntropy {} {
 proc ZeroPadData {blockLen data} {
     set dataLen [string length $data]
     set padding [expr {(($dataLen + $blockLen - 1) / $blockLen) * $blockLen}]
-    if {$padding - $dataLen} {
+    if {$padding > $dataLen} {
         append data [string repeat "\0" [expr {$padding - $dataLen}]]
     }
     return $data

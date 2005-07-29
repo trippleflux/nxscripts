@@ -34,26 +34,35 @@ TEA_PREFIX
 TEA_SETUP_COMPILER
 
 #-----------------------------------------------------------------------
-# Time header checks.
+# Header checks.
 #-----------------------------------------------------------------------
 
-AC_CHECK_HEADER(time.h,     [AC_DEFINE([HAVE_TIME_H],     1,
-    [Define to 1 if you have the <time.h> header file.])]
+AC_CHECK_HEADER(time.h,
+    AC_DEFINE([HAVE_TIME_H], 1, [Define to 1 if you have the <time.h> header file.])
 )
-AC_CHECK_HEADER(sys/time.h, [AC_DEFINE([HAVE_SYS_TIME_H], 1,
-    [Define to 1 if you have the <sys/time.h> header file.])]
+AC_CHECK_HEADER(sys/time.h,
+    AC_DEFINE([HAVE_SYS_TIME_H], 1, [Define to 1 if you have the <sys/time.h> header file.])
+)
+AC_CHECK_HEADER(sys/mount.h,
+    AC_DEFINE([HAVE_SYS_MOUNT_H],   1, [Define to 1 if you have the <sys/mount.h> header file.])
+)
+AC_CHECK_HEADER(sys/param.h,
+    AC_DEFINE([HAVE_SYS_PARAM_H],   1, [Define to 1 if you have the <sys/param.h> header file.])
+)
+AC_CHECK_HEADER(sys/statfs.h,
+    AC_DEFINE([HAVE_SYS_STATFS_H],  1, [Define to 1 if you have the <sys/statfs.h> header file.])
+)
+AC_CHECK_HEADER(sys/statvfs.h,
+    AC_DEFINE([HAVE_SYS_STATVFS_H], 1, [Define to 1 if you have the <sys/statvfs.h> header file.])
+)
+AC_CHECK_HEADER(sys/vfs.h,
+    AC_DEFINE([HAVE_SYS_VFS_H],     1, [Define to 1 if you have the <sys/vfs.h> header file.])
 )
 
 #-----------------------------------------------------------------------
 # Statfs checks borrowed from rdesktop.
 # URL: http://sourceforge.net/projects/rdesktop
 #-----------------------------------------------------------------------
-
-AC_CHECK_HEADER(sys/mount.h,   [AC_DEFINE([HAVE_SYS_MOUNT_H],   1, [Define to 1 if you have the <sys/mount.h> header file.])])
-AC_CHECK_HEADER(sys/param.h,   [AC_DEFINE([HAVE_SYS_PARAM_H],   1, [Define to 1 if you have the <sys/param.h> header file.])])
-AC_CHECK_HEADER(sys/statfs.h,  [AC_DEFINE([HAVE_SYS_STATFS_H],  1, [Define to 1 if you have the <sys/statfs.h> header file.])])
-AC_CHECK_HEADER(sys/statvfs.h, [AC_DEFINE([HAVE_SYS_STATVFS_H], 1, [Define to 1 if you have the <sys/statvfs.h> header file.])])
-AC_CHECK_HEADER(sys/vfs.h,     [AC_DEFINE([HAVE_SYS_VFS_H],     1, [Define to 1 if you have the <sys/vfs.h> header file.])])
 
 mount_includes="\
   $ac_includes_default
@@ -289,6 +298,17 @@ AC_CHECK_MEMBERS([struct statvfs.f_fstypename],,,[$statxfs_includes])
 AC_CHECK_MEMBERS([struct statvfs.f_namelen],,,[$statxfs_includes])
 AC_CHECK_MEMBERS([struct statvfs.f_namemax],,,[$statxfs_includes])
 
+# Mount list function checks.
+AC_CHECK_FUNC(getmntent,
+    AC_DEFINE(HAVE_GETMNTENT, 1, [Define to 1 if you have the getmntent() function])
+)
+AC_CHECK_FUNC(getmntinfo,
+    AC_DEFINE(HAVE_GETMNTINFO, 1, [Define to 1 if you have the getmntinfo() function])
+)
+AC_CHECK_FUNC(getmntinfo_r,
+    AC_DEFINE(HAVE_GETMNTINFO_R, 1, [Define to 1 if you have the getmntinfo_r() function])
+)
+
 #-----------------------------------------------------------------------
 # Specify the C source files to compile in TEA_ADD_SOURCES,
 # public headers that need to be installed in TEA_ADD_HEADERS,
@@ -298,79 +318,7 @@ AC_CHECK_MEMBERS([struct statvfs.f_namemax],,,[$statxfs_includes])
 # and PKG_TCL_SOURCES.
 #-----------------------------------------------------------------------
 
-TEA_ADD_SOURCES(
-    ../libs/tomcrypt/ciphers/aes/aes.c
-    ../libs/tomcrypt/ciphers/anubis.c
-    ../libs/tomcrypt/ciphers/blowfish.c
-    ../libs/tomcrypt/ciphers/cast5.c
-    ../libs/tomcrypt/ciphers/des.c
-    ../libs/tomcrypt/ciphers/khazad.c
-    ../libs/tomcrypt/ciphers/noekeon.c
-    ../libs/tomcrypt/ciphers/rc2.c
-    ../libs/tomcrypt/ciphers/rc5.c
-    ../libs/tomcrypt/ciphers/rc6.c
-    ../libs/tomcrypt/ciphers/safer/safer.c
-    ../libs/tomcrypt/ciphers/safer/safer_tab.c
-    ../libs/tomcrypt/ciphers/safer/saferp.c
-    ../libs/tomcrypt/ciphers/skipjack.c
-    ../libs/tomcrypt/ciphers/twofish/twofish.c
-    ../libs/tomcrypt/ciphers/xtea.c
-    ../libs/tomcrypt/hashes/helper/hash_memory.c
-    ../libs/tomcrypt/hashes/md2.c
-    ../libs/tomcrypt/hashes/md4.c
-    ../libs/tomcrypt/hashes/md5.c
-    ../libs/tomcrypt/hashes/rmd128.c
-    ../libs/tomcrypt/hashes/rmd160.c
-    ../libs/tomcrypt/hashes/sha1.c
-    ../libs/tomcrypt/hashes/sha2/sha256.c
-    ../libs/tomcrypt/hashes/sha2/sha512.c
-    ../libs/tomcrypt/hashes/tiger.c
-    ../libs/tomcrypt/hashes/whirl/whirl.c
-    ../libs/tomcrypt/mac/hmac.c
-    ../libs/tomcrypt/mac/omac.c
-    ../libs/tomcrypt/mac/pelican.c
-    ../libs/tomcrypt/mac/pmac.c
-    ../libs/tomcrypt/misc/base64/base64_decode.c
-    ../libs/tomcrypt/misc/base64/base64_encode.c
-    ../libs/tomcrypt/misc/pkcs5/pkcs_5_1.c
-    ../libs/tomcrypt/misc/pkcs5/pkcs_5_2.c
-    ../libs/tomcrypt/misc/crypt_cipher.c
-    ../libs/tomcrypt/misc/crypt_hash.c
-    ../libs/tomcrypt/misc/crypt_prng.c
-    ../libs/tomcrypt/misc/crypt_utils.c
-    ../libs/tomcrypt/modes/cbc.c
-    ../libs/tomcrypt/modes/cfb.c
-    ../libs/tomcrypt/modes/ctr.c
-    ../libs/tomcrypt/modes/ecb.c
-    ../libs/tomcrypt/modes/ofb.c
-    ../libs/tomcrypt/prngs/fortuna.c
-    ../libs/tomcrypt/prngs/rc4.c
-    ../libs/tomcrypt/prngs/rng_get_bytes.c
-    ../libs/tomcrypt/prngs/rng_make_prng.c
-    ../libs/tomcrypt/prngs/sober128.c
-    ../libs/tomcrypt/prngs/sprng.c
-    ../libs/tomcrypt/prngs/yarrow.c
-    ../libs/zlib/source/adler32.c
-    ../libs/zlib/source/compress.c
-    ../libs/zlib/source/crc32.c
-    ../libs/zlib/source/deflate.c
-    ../libs/zlib/source/gzio.c
-    ../libs/zlib/source/infback.c
-    ../libs/zlib/source/inffast.c
-    ../libs/zlib/source/inflate.c
-    ../libs/zlib/source/inftrees.c
-    ../libs/zlib/source/trees.c
-    ../libs/zlib/source/uncompr.c
-    ../libs/zlib/source/zutil.c
-    ../generic/alcoExt.c
-    ../generic/alcoCrypt.c
-    ../generic/alcoEncoding.c
-    ../generic/alcoUtil.c
-    ../generic/alcoVolume.c
-    ../generic/alcoZlib.c
-    ./alcoUnixGlFtpd.c
-    ./alcoUnixVolume.c
-)
+TEA_ADD_SOURCES([])
 TEA_ADD_HEADERS([])
 TEA_ADD_INCLUDES(
     -I\"../libs/tomcrypt/headers/\"
