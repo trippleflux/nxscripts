@@ -75,6 +75,15 @@ proc GetTclEntropy {} {
     return [string range $stuff 0 15]
 }
 
+proc ZeroPadData {blockLen data} {
+    set dataLen [string length $data]
+    set padding [expr {(($dataLen + $blockLen - 1) / $blockLen) * $blockLen}]
+    if {$padding - $dataLen} {
+        append data [string repeat "\0" [expr {$padding - $dataLen}]]
+    }
+    return $data
+}
+
 ################################################################################
 # crypt                                                                        #
 ################################################################################
@@ -149,12 +158,16 @@ test crypt-3.3 {crypt decrypt: more ECB mode tests} {
 
         set n 1
         foreach plain $testData {
-            set length [string length $plain]
-            set cipher [crypt encrypt -mode ecb $algo $key $plain]
+            # Plain-text is padded to a multiple of a cipher's block-length in ECB mode.
+            set plainLen [string length $plain]
+            set plainPad [ZeroPadData $blockLength $plain]
+
+            set cipher [crypt encrypt -mode ecb $algo $key $plainPad]
             set result [crypt decrypt -mode ecb $algo $key $cipher]
 
-            # Plain-text is padded to a multiple of a cipher's block-length in ECB mode.
-            set result [string range $result 0 [incr length -1]]
+            # Trim padding (if any).
+            incr plainLen -1
+            set result [string range $result 0 $plainLen]
 
             if {$plain ne $result} {
                 return "ECB $algo (block-length $blockLength, vector $n):\n\
@@ -174,12 +187,16 @@ test crypt-3.4 {crypt decrypt: CBC mode tests} {
 
         set n 1
         foreach plain $testData {
-            set length [string length $plain]
-            set cipher [crypt encrypt -iv $iv -mode cbc $algo $key $plain]
+            # Plain-text is padded to a multiple of a cipher's block-length in ECB mode.
+            set plainLen [string length $plain]
+            set plainPad [ZeroPadData $blockLength $plain]
+
+            set cipher [crypt encrypt -iv $iv -mode cbc $algo $key $plainPad]
             set result [crypt decrypt -iv $iv -mode cbc $algo $key $cipher]
 
-            # Plain-text is padded to a multiple of a cipher's block-length in CBC mode.
-            set result [string range $result 0 [incr length -1]]
+            # Trim padding (if any).
+            incr plainLen -1
+            set result [string range $result 0 $plainLen]
 
             if {$plain ne $result} {
                 return "CBC $algo (block-length $blockLength, vector $n):\n\

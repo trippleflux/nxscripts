@@ -487,11 +487,21 @@ CryptProcessCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], unsigned ch
 
     data = Tcl_GetByteArrayFromObj(objv[objc-1], &dataLength);
 
-    /* Pad the buffer to a multiple of the cipher's block-length.*/
+#if 0
+    /*
+     * Removed the automatic padding of plain-text for now. I am undecided
+     * whether this behavior should be performed by the function, for simplicity;
+     * or by the caller, for realism and completeness. Writing a function to append
+     * NULL bytes is relatively straightforward (i.e. ZeroPadData in the test suite).
+     */
     if (mode == MODE_ENCRYPT && cipherModes[modeIndex].options & CRYPT_PAD_PLAINTEXT) {
         int padLength;
         unsigned char *pad;
 
+        /*
+         * Pad the buffer to a multiple of the cipher's block-length,
+         * needed for CBC and ECB cipher operation modes.
+         */
         padLength = ROUNDUP(dataLength, cipher_descriptor[cipherIndex].block_length);
         pad = (unsigned char *) ckalloc(padLength);
 
@@ -506,6 +516,7 @@ CryptProcessCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], unsigned ch
         data = pad;
         dataLength = padLength;
     }
+#endif
 
     dest = Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), dataLength);
 
@@ -523,9 +534,11 @@ CryptProcessCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], unsigned ch
             data, (unsigned long)dataLength,
             dest);
 
+#if 0
         if (cipherModes[modeIndex].options & CRYPT_PAD_PLAINTEXT) {
             ckfree((char *) data);
         }
+#endif
     }
 
     if (status != CRYPT_OK) {
