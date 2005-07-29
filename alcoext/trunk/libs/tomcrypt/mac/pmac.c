@@ -17,6 +17,9 @@
 
 #ifdef PMAC
 
+static int pmac_ntz(unsigned long x);
+static void pmac_shift_xor(pmac_state *pmac);
+
 /**
   Internal PMAC function
 */

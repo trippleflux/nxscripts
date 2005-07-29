@@ -57,10 +57,6 @@ int pmac_memory(int cipher,
                const unsigned char *key, unsigned long keylen,
                const unsigned char *in,  unsigned long inlen,
                      unsigned char *out, unsigned long *outlen);
-
-/* internal functions */
-int pmac_ntz(unsigned long x);
-void pmac_shift_xor(pmac_state *pmac);
 #endif /* PMAC */
 
 #ifdef PELICAN
