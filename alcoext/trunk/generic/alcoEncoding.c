@@ -229,7 +229,7 @@ EncodingObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 
     source = Tcl_GetByteArrayFromObj(objv[2], &sourceLength);
 
-    /* Create a destination byte object for decoded data. */
+    /* Create a byte object for the output data. */
     destLength = functTable[index].GetDestLength(sourceLength);
     dest = Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), (int)destLength);
 
