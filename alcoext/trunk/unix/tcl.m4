@@ -9,7 +9,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: tcl.m4,v 1.69 2005/06/23 20:43:02 das Exp $
+# RCS: @(#) $Id: tcl.m4,v 1.71 2005/07/26 19:09:23 mdejong Exp $
 
 AC_PREREQ(2.50)
 
@@ -3562,10 +3562,14 @@ AC_DEFUN(TEA_PUBLIC_TK_HEADERS, [
 
 #------------------------------------------------------------------------
 # TEA_PROG_TCLSH
-#	Locate a tclsh shell in the following directories:
-#		${TCL_BIN_DIR}		${TCL_BIN_DIR}/../bin
-#		${exec_prefix}/bin	${prefix}/bin
-#		${PATH}
+#	Determine the fully qualified path name of the tclsh executable
+#	in the Tcl build directory or the tclsh installed in a bin
+#	directory. This macro will correctly determine the name
+#	of the tclsh executable even if tclsh has not yet been
+#	built in the build directory. The tclsh found is always
+#	associated with a tclConfig.sh file. This tclsh should be used
+#	only for running extension test cases. It should never be
+#	or generation of files (like pkgIndex.tcl) at build time.
 #
 # Arguments
 #	none
@@ -3576,48 +3580,37 @@ AC_DEFUN(TEA_PUBLIC_TK_HEADERS, [
 #------------------------------------------------------------------------
 
 AC_DEFUN(TEA_PROG_TCLSH, [
-    # Allow the user to provide this setting in the env
-    if test "x${TCLSH_PROG}" = "x" ; then
-	AC_MSG_CHECKING([for tclsh])
-
-	AC_CACHE_VAL(ac_cv_path_tclsh, [
-	search_path=`echo ${PATH} | sed -e 's/:/ /g'`
-	if test "${TEA_PLATFORM}" != "windows" -o \
-		\( "$do64bit_ok" = "no" -a "$doWince" = "no" \) ; then
-	    # Do not allow target tclsh in known cross-compile builds,
-	    # as we need one we can run on this system
-	    search_path="${TCL_BIN_DIR} ${TCL_BIN_DIR}/../bin ${exec_prefix}/bin ${prefix}/bin ${search_path}"
-	fi
-	for dir in $search_path ; do
-	    for j in `ls -r $dir/tclsh[[8-9]]*${EXEEXT} 2> /dev/null` \
-		    `ls -r $dir/tclsh*${EXEEXT} 2> /dev/null` ; do
-		if test x"$ac_cv_path_tclsh" = x ; then
-		    if test -f "$j" ; then
-			ac_cv_path_tclsh=$j
-			break
-		    fi
-		fi
-	    done
-	done
-	])
-
-	if test -f "$ac_cv_path_tclsh" ; then
-	    TCLSH_PROG=$ac_cv_path_tclsh
-	    AC_MSG_RESULT([$TCLSH_PROG])
-	else
-	    AC_MSG_ERROR([No tclsh found in PATH: $search_path])
-	fi
+    AC_MSG_CHECKING([for tclsh])
+    if test -f "$TCL_BIN_DIR/Makefile" ; then
+        # tclConfig.sh is in Tcl build directory
+        if test "$TEA_PLATFORM" = "windows"; then
+            TCLSH_PROG=${TCL_BIN_DIR}/tclsh${TCL_MAJOR_VERSION}${TCL_MINOR_VERSION}${TCL_DBGX}${EXEEXT}
+        else
+            TCLSH_PROG=${TCL_BIN_DIR}/tclsh
+        fi
+    else
+        # tclConfig.sh is in $INSTALL/lib directory
+        REAL_TCL_BIN_DIR=`cd ${TCL_BIN_DIR}/../bin/;pwd`
+        if test "$TEA_PLATFORM" = "windows"; then
+            TCLSH_PROG=${REAL_TCL_BIN_DIR}/tclsh${TCL_MAJOR_VERSION}${TCL_MINOR_VERSION}${TCL_DBGX}${EXEEXT}
+        else
+            TCLSH_PROG=${REAL_TCL_BIN_DIR}/tclsh${TCL_MAJOR_VERSION}.${TCL_MINOR_VERSION}${TCL_DBGX}
+        fi
     fi
+    AC_MSG_RESULT($TCLSH_PROG)
     AC_SUBST(TCLSH_PROG)
 ])
 
 #------------------------------------------------------------------------
 # TEA_PROG_WISH
-#	Locate a wish shell in the following directories:
-#		${TK_BIN_DIR}		${TK_BIN_DIR}/../bin
-#		${TCL_BIN_DIR}		${TCL_BIN_DIR}/../bin
-#		${exec_prefix}/bin	${prefix}/bin
-#		${PATH}
+#	Determine the fully qualified path name of the wish executable
+#	in the Tk build directory or the wish installed in a bin
+#	directory. This macro will correctly determine the name
+#	of the wish executable even if wish has not yet been
+#	built in the build directory. The wish found is always
+#	associated with a tkConfig.sh file. This wish should be used
+#	only for running extension test cases. It should never be
+#	or generation of files (like pkgIndex.tcl) at build time.
 #
 # Arguments
 #	none
@@ -3628,38 +3621,24 @@ AC_DEFUN(TEA_PROG_TCLSH, [
 #------------------------------------------------------------------------
 
 AC_DEFUN(TEA_PROG_WISH, [
-    # Allow the user to provide this setting in the env
-    if test "x${WISH_PROG}" = "x" ; then
-	AC_MSG_CHECKING([for wish])
-
-	AC_CACHE_VAL(ac_cv_path_wish, [
-	search_path=`echo ${PATH} | sed -e 's/:/ /g'`
-	if test "${TEA_PLATFORM}" != "windows" -o \
-		\( "$do64bit_ok" = "no" -a "$doWince" = "no" \) ; then
-	    # Do not allow target wish in known cross-compile builds,
-	    # as we need one we can run on this system
-	    search_path="${TK_BIN_DIR} ${TK_BIN_DIR}/../bin ${TCL_BIN_DIR} ${TCL_BIN_DIR}/../bin ${exec_prefix}/bin ${prefix}/bin ${search_path}"
-	fi
-	for dir in $search_path ; do
-	    for j in `ls -r $dir/wish[[8-9]]*${EXEEXT} 2> /dev/null` \
-		    `ls -r $dir/wish*${EXEEXT} 2> /dev/null` ; do
-		if test x"$ac_cv_path_wish" = x ; then
-		    if test -f "$j" ; then
-			ac_cv_path_wish=$j
-			break
-		    fi
-		fi
-	    done
-	done
-	])
-
-	if test -f "$ac_cv_path_wish" ; then
-	WISH_PROG=$ac_cv_path_wish
-	    AC_MSG_RESULT([$WISH_PROG])
-	else
-	    AC_MSG_ERROR([No wish found in PATH: $search_path])
-	fi
+    AC_MSG_CHECKING([for wish])
+    if test -f "$TK_BIN_DIR/Makefile" ; then
+        # tkConfig.sh is in Tk build directory
+        if test "$TEA_PLATFORM" = "windows"; then
+            WISH_PROG=${TK_BIN_DIR}/wish${TK_MAJOR_VERSION}${TK_MINOR_VERSION}${TK_DBGX}${EXEEXT}
+        else
+            WISH_PROG=${TK_BIN_DIR}/wish
+        fi
+    else
+        # tkConfig.sh is in $INSTALL/lib directory
+        REAL_TK_BIN_DIR=`cd ${TK_BIN_DIR}/../bin/;pwd`
+        if test "$TEA_PLATFORM" = "windows"; then
+            WISH_PROG=${REAL_TK_BIN_DIR}/wish${TK_MAJOR_VERSION}${TK_MINOR_VERSION}${TK_DBGX}${EXEEXT}
+        else
+            WISH_PROG=${REAL_TK_BIN_DIR}/wish${TK_MAJOR_VERSION}.${TK_MINOR_VERSION}${TK_DBGX}
+        fi
     fi
+    AC_MSG_RESULT($WISH_PROG)
     AC_SUBST(WISH_PROG)
 ])
 
@@ -3899,6 +3878,11 @@ AC_DEFUN(TEA_PATH_CELIB, [
 	fi
     fi
 ])
+
+# FIXME: This macro is ill-conceived. One can't assume that the
+# TCLSH_PROG can be executed at build time when cross compiling.
+# Also, this will not work when TCLSH_PROG is the tclsh in the
+# build directory.
 
 #------------------------------------------------------------------------
 # TEA_PATH_NOSPACE

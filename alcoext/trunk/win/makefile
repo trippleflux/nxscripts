@@ -368,7 +368,9 @@ library: setup $(OBJECT_FILES)
 
 package-index: setup
     @TYPE << >"$(PKG_INTDIR)\pkgIndex.tcl"
+#
 # Tcl package index file.
+#
 if {![package vsatisfies [package provide Tcl] 8.4]} {return}
 package ifneeded $(PKG_NAME) $(PKG_VERSION_DOT) [list load [file join $$dir $(PKG_INSTALL_FILE)]]
 <<

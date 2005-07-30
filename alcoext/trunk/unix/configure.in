@@ -331,9 +331,6 @@ TEA_ADD_CFLAGS([])
 TEA_ADD_STUB_SOURCES([])
 TEA_ADD_TCL_SOURCES([])
 
-CLEANFILES="pkgIndex.tcl"
-AC_SUBST(CLEANFILES)
-
 #--------------------------------------------------------------------
 # Choose which headers you need.  Extension authors should try very
 # hard to only rely on the Tcl public header files.  Internal headers
@@ -406,4 +403,4 @@ TEA_PROG_TCLSH
 # which require substituting th AC variables in.  Include these here.
 #--------------------------------------------------------------------
 
-AC_OUTPUT(makefile)
+AC_OUTPUT([makefile pkgIndex.tcl])
