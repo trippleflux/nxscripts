@@ -36,6 +36,17 @@
    #define LTC_FAST_TYPE    unsigned long
 #endif
 
+/* detect sparc and sparc64 */
+#if defined(__sparc__)
+  #define ENDIAN_BIG
+  #if defined(__arch64__)
+    #define ENDIAN_64BITWORD
+  #else
+    #define ENDIAN_32BITWORD
+  #endif
+#endif
+
+
 #ifdef LTC_NO_FAST
    #ifdef LTC_FAST
       #undef LTC_FAST
@@ -66,26 +77,6 @@
 
 #if !(defined(ENDIAN_BIG) || defined(ENDIAN_LITTLE))
    #define ENDIAN_NEUTRAL
-#endif
-
-/* packet code */
-#if defined(MRSA) || defined(MDH) || defined(MECC)
-    #define PACKET
-
-    /* size of a packet header in bytes */
-    #define PACKET_SIZE            4
-
-    /* Section tags */
-    #define PACKET_SECT_RSA        0
-    #define PACKET_SECT_DH         1
-    #define PACKET_SECT_ECC        2
-    #define PACKET_SECT_DSA        3
-
-    /* Subsection Tags for the first three sections */
-    #define PACKET_SUB_KEY         0
-    #define PACKET_SUB_ENCRYPTED   1
-    #define PACKET_SUB_SIGNED      2
-    #define PACKET_SUB_ENC_KEY     3
 #endif
 
 #endif

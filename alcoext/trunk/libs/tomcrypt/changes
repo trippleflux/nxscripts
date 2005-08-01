@@ -1,3 +1,45 @@
+August 1st, 2005
+v1.06 -- Fixed rand_prime() to accept negative inputs as a signal for BBS primes. [Fredrik Olsson]
+      -- Added fourth ARGCHK type which outputs to stderr and continues.  Useful if you trap sigsegv.   [Valient Gough]
+      -- Removed the DH code from the tree
+      -- Made the ECC code fully public (you can access ecc_mulmod directly now) useful for debuging
+      -- Added ecc test to tv_gen
+      -- Added hmac callback to hash descriptors.
+      -- Fixed two doxy comment errors in the UTCTIME functions
+      -- rsa_import() can now read OpenSSL format DER public keys as well as the PKCS #1 RSAPublicKey format.
+         Note that rsa_export()  **ONLY** writes PKCS #1 formats
+      -- Changed MIN/MAX to only define if not already present.  -- Kirk J from Demonware ...
+      -- Ported tv_gen to new framework (and yes, I made ecc vectors BEFORE changing the API and YES they match now :-))
+      -- ported testing scripts to support pluggable math.  yipee!
+      -- Wrote a TFM descriptor ... yipee
+      -- Cleaned up LTC_FAST in CBC mode a bit
+      -- Merged in patches from Michael Brown for the sparc/sparc64 targets
+      -- Added find_hash_oid() to search for a hash by its OID
+      -- Cleaned up a few stray CLEAN_STACKs that should have been LTC_CLEAN_STACK
+      -- Added timing resistant ECC, enable by defining LTC_ECC_TIMING_RESISTANT then use ECC API as normal
+      -- Updated the ECC documentation as it was a bit out of date
+
+June 27th, 2005
+v1.05
+      -- Added Technote #6 which covers the current PK compliance.
+      -- Fixed buffer overflow in OAEP decoder
+      -- Added CHOICE to the list of ASN.1 types
+      -- Added UTCTIME to the list of ASN.1 types
+      -- Added MUTEX locks around descriptor table functions [but not on the functions that are dependent on them]
+         All functions call *_is_valid() before using a descriptor index which means the respective table must be unlocked before
+         it can be accessed.  However, during the operation [e.g. CCM] if the descriptor has been altered the results will be
+         undefined.
+      -- Minor updates to the manual to reflect recent changes
+      -- Added a catch to for an error that should never come up in rsa_exptmod().  Just being thorough.
+
+June 15th, 2005
+v1.04
+      -- Fixed off by one [bit] error in dsa_make_key() it was too high by one bit [not a security problem just inconsistent]
+      -- ECC-224 curve was wrong [it was an ok curve just not NIST, so no security flaw just interoperability].
+      -- Removed point compression since it slows down ECC ops to save a measly couple bytes.
+         This makes the ecc export format incompatible with 1.03 [it shouldn't change in the future]
+      -- Removed ECC-160 from timing and added the other curves
+
 June 9th, 2005
 v1.03
       -- Users may want to note that on a P4/GCC3.4 platform "-fno-regmove" greatly accelerates the ciphers/hashes.
@@ -1298,3 +1340,8 @@ v0.02  -- Changed RC5 to only allow 12 to 24 rounds
        -- Added more to the manual.
 
 v0.01  -- We will call this the first version.
+
+/* $Source: /cvs/libtom/libtomcrypt/changes,v $ */
+/* $Revision: 1.123 $ */
+/* $Date: 2005/08/01 16:50:34 $ */
+

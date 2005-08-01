@@ -60,6 +60,7 @@ typedef union Prng_state {
 #endif
 } prng_state;
 
+/** PRNG descriptor */
 extern struct ltc_prng_descriptor {
     /** Name of the PRNG */
     char *name;

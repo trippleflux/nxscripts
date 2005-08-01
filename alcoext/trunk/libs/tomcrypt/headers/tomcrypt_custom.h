@@ -28,8 +28,8 @@
 #define XCLOCK   clock
 #define XCLOCKS_PER_SEC CLOCKS_PER_SEC
 
-/* Type of argument checking, 0=default, 1=fatal and 2=none */
-#define ARGTYPE 2
+/* type of argument checking, 0=default, 1=fatal and 2=error+continue, 3=nothing */
+#define ARGTYPE 3
 
 /* Use small code where possible */
 /* #define LTC_SMALL_CODE */

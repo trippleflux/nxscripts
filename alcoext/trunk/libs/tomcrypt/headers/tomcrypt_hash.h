@@ -123,6 +123,7 @@ typedef union Hash_state {
     void *data;
 } hash_state;
 
+/** hash descriptor */
 extern  struct ltc_hash_descriptor {
     /** name of hash */
     char *name;
@@ -274,6 +275,7 @@ extern const struct ltc_hash_descriptor rmd160_desc;
 
 int find_hash(const char *name);
 int find_hash_id(unsigned char ID);
+int find_hash_oid(const unsigned long *ID, unsigned long IDlen);
 int find_hash_any(const char *name, int digestlen);
 int register_hash(const struct ltc_hash_descriptor *hash);
 int unregister_hash(const struct ltc_hash_descriptor *hash);

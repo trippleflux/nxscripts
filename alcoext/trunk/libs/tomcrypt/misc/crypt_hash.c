@@ -79,6 +79,22 @@ int find_hash_id(unsigned char ID)
    return -1;
 }
 
+/**
+   Find a hash by ID number
+   @param ID    The OID (not same as index) of the hash to find
+   @return >= 0 if found, -1 if not present
+*/
+int find_hash_oid(const unsigned long *ID, unsigned long IDlen)
+{
+   int x;
+   LTC_ARGCHK(ID != NULL);
+   for (x = 0; x < TAB_SIZE; x++) {
+       if (hash_descriptor[x].name != NULL && hash_descriptor[x].OIDlen == IDlen && !memcmp(hash_descriptor[x].OID, ID, sizeof(unsigned long) * IDlen)) {
+          return x;
+       }
+   }
+   return -1;
+}
 /*
    Test if a hash index is valid
    @param idx   The index of the hash to search for

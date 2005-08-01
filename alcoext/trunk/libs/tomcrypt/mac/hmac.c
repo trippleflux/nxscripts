@@ -223,14 +223,18 @@ int hmac_memory(int hash,
                       unsigned char *out,  unsigned long *outlen)
 {
     hmac_state *hmac;
-    int err;
+    int         err;
 
     LTC_ARGCHK(key    != NULL);
-    LTC_ARGCHK(in   != NULL);
+    LTC_ARGCHK(in     != NULL);
     LTC_ARGCHK(out    != NULL);
     LTC_ARGCHK(outlen != NULL);
 
-    /* allocate ram for hmac state */
+    /* make sure hash descriptor is valid */
+    if ((err = hash_is_valid(hash)) != CRYPT_OK) {
+       return err;
+    }
+
     hmac = (hmac_state *) XMALLOC(sizeof(hmac_state));
     if (hmac == NULL) {
        return CRYPT_MEM;
