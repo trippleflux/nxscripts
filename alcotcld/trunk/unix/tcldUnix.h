@@ -17,7 +17,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <locale.h>
 #include <signal.h>
 #include <string.h>
 #include <sys/file.h>

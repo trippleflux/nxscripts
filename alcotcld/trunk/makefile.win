@@ -3,7 +3,7 @@
 # Copyright (c) 2005 Alcoholicz Scripting Team
 #
 # File Name:
-#   makefile
+#   makefile.win
 #
 # Author:
 #   neoxed (neoxed@gmail.com) July 17, 2005
@@ -12,7 +12,7 @@
 #   Build configuration file for NMAKE, or a compatible tool.
 #
 #   Usage:
-#     nmake -f makefile [OPTION=1 ...]
+#     nmake -f makefile.win [OPTION=1 ...]
 #
 #   Options:
 #     DEBUG    - Toggle symbolic debugging.
@@ -27,15 +27,15 @@ TARGETOS    = WINNT
 
 # -------------------------------------------------------------------------
 
-!if !exist("makefile")
+!if !exist("makefile.win")
 !error You must run this makefile from the directory it is located in.
 !endif
 
-!include "../package.def"
+!include "package.def"
 
 # -------------------------------------------------------------------------
 
-ROOT        = ..
+ROOT        = .
 TCL_SUFFIX  = tg
 PKG_SUFFIX  = DMTP
 
@@ -83,7 +83,7 @@ PKG_SUFFIX  = $(PKG_SUFFIX:T=)
 TCL_SUFFIX  = $(TCL_SUFFIX:t=)
 !endif
 
-!include "win32.mak"
+!include "win/win32.mak"
 
 !if "$(DEVPERF)" == "1"
 !message *** Option: DevPartner Performance Analysis
@@ -97,7 +97,7 @@ PKG_SUFFIX  = $(PKG_SUFFIX:P=)
 # -------------------------------------------------------------------------
 
 !if !exist(nmakehlp.exe)
-!if [$(CC) -nologo -MT nmakehlp.c -link -subsystem:console > nul]
+!if [$(CC) -nologo -MT win/nmakehlp.c -link -subsystem:console > nul]
 !endif
 !endif
 
@@ -149,12 +149,12 @@ INCLUDE_DIRS=\
     -I"$(ROOT)\win"
 
 INTERMEDIATE_FILES=\
-    $(PKG_INTDIR)\tcld.obj\
+    $(PKG_INTDIR)\tcldInit.obj\
     $(PKG_INTDIR)\tcldWinMain.obj\
     $(PKG_INTDIR)\tcld.res
 
 OBJECT_FILES=\
-    $(ROOT)\generic\tcld.obj\
+    $(ROOT)\generic\tcldInit.obj\
     $(ROOT)\win\tcldWinMain.obj\
     $(ROOT)\win\tcld.res
 

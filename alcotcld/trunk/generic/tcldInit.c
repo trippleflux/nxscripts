@@ -3,7 +3,7 @@
  * Copyright (c) 2005 Alcoholicz Scripting Team
  *
  * File Name:
- *   tcld.c
+ *   tcldInit.c
  *
  * Author:
  *   neoxed (neoxed@gmail.com) July 17, 2005
