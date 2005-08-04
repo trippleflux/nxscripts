@@ -1,63 +1,40 @@
-#!/bin/bash -norc
-dnl This file is an input file used by the GNU "autoconf" program to
-dnl generate the file "configure", which is run during Tcl installation
-dnl to configure the system for the local environment.
 #
-#-----------------------------------------------------------------------
+# AlcoExt - Alcoholicz Tcl extension.
+# Copyright (c) 2005 Alcoholicz Scripting Team
+#
+# File Name:
+#   configure.in
+#
+# Author:
+#   neoxed (neoxed@gmail.com) Aug 3, 2005
+#
+# Abstract:
+#   Autoconf template.
+#
 
-# TODO: Read package.def and use PKG_NAME/PKG_MAJOR/PKG_MINOR instead.
-AC_INIT([AlcoExt], [0.1])
+# Setup autoconf.
+AC_PREREQ(2.59)
+AC_INIT([AlcoExt],[0.1])
 AC_CONFIG_HEADER(config.h)
 
-#--------------------------------------------------------------------
 # Load TEA and the tclConfig.sh file.
-#--------------------------------------------------------------------
-
 TEA_INIT([3.2])
 TEA_PATH_TCLCONFIG
 TEA_LOAD_TCLCONFIG
-
-#-----------------------------------------------------------------------
-# Handle the --prefix=... option by defaulting to what Tcl gave.
-# Must be called after TEA_LOAD_TCLCONFIG and before TEA_SETUP_COMPILER.
-#-----------------------------------------------------------------------
-
 TEA_PREFIX
-
-#-----------------------------------------------------------------------
-# Standard compiler checks.
-# This sets up CC by using the CC env var, or looks for gcc otherwise.
-# This also calls AC_PROG_CC, AC_PROG_INSTALL and a few others to create
-# the basic setup necessary to compile executables.
-#-----------------------------------------------------------------------
-
 TEA_SETUP_COMPILER
 
-#-----------------------------------------------------------------------
-# Header checks.
-#-----------------------------------------------------------------------
+# Check for compiler characteristics.
+AC_C_CONST
+AC_C_INLINE
+AC_C_VOLATILE
+AC_TYPE_PID_T
+AC_TYPE_SIZE_T
 
-AC_CHECK_HEADER(time.h,
-    AC_DEFINE([HAVE_TIME_H], 1, [Define to 1 if you have the <time.h> header file.])
-)
-AC_CHECK_HEADER(sys/time.h,
-    AC_DEFINE([HAVE_SYS_TIME_H], 1, [Define to 1 if you have the <sys/time.h> header file.])
-)
-AC_CHECK_HEADER(sys/mount.h,
-    AC_DEFINE([HAVE_SYS_MOUNT_H],   1, [Define to 1 if you have the <sys/mount.h> header file.])
-)
-AC_CHECK_HEADER(sys/param.h,
-    AC_DEFINE([HAVE_SYS_PARAM_H],   1, [Define to 1 if you have the <sys/param.h> header file.])
-)
-AC_CHECK_HEADER(sys/statfs.h,
-    AC_DEFINE([HAVE_SYS_STATFS_H],  1, [Define to 1 if you have the <sys/statfs.h> header file.])
-)
-AC_CHECK_HEADER(sys/statvfs.h,
-    AC_DEFINE([HAVE_SYS_STATVFS_H], 1, [Define to 1 if you have the <sys/statvfs.h> header file.])
-)
-AC_CHECK_HEADER(sys/vfs.h,
-    AC_DEFINE([HAVE_SYS_VFS_H],     1, [Define to 1 if you have the <sys/vfs.h> header file.])
-)
+# Check for required headers.
+AC_CHECK_HEADERS([limits.h syslimits.h sys/limits.h])
+AC_CHECK_HEADERS([inttypes.h memory.h stdint.h strings.h time.h unistd.h])
+AC_CHECK_HEADERS([sys/time.h sys/mount.h sys/statfs.h sys/statvfs.h sys/vfs.h])
 
 #-----------------------------------------------------------------------
 # Statfs checks borrowed from rdesktop.

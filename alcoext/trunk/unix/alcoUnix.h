@@ -17,22 +17,23 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stddef.h>
 #include <string.h>
-#include <signal.h>
+#include <errno.h>
 #include <sys/file.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #ifdef HAVE_INTTYPES_H
 #   include <inttypes.h>
 #endif
-#ifdef HAVE_LIMITS_H
-#   include <limits.h>
-#endif
 #ifdef HAVE_STDINT_H
 #   include <stdint.h>
+#endif
+#ifdef HAVE_STRINGS_H
+#   include <strings.h>
 #endif
 #ifdef HAVE_TIME_H
 #   include <time.h>
@@ -57,6 +58,16 @@
 #endif
 #ifdef HAVE_SYS_TIME_H
 #   include <sys/time.h>
+#endif
+
+#ifdef HAVE_LIMITS_H
+#   include <limits.h>
+#endif
+#ifdef HAVE_SYSLIMITS_H
+#   include <syslimits.h>
+#endif
+#ifdef HAVE_SYS_LIMITS_H
+#   include <sys/limits.h>
 #endif
 
 #include "alcoUnixGlFtpd.h"
