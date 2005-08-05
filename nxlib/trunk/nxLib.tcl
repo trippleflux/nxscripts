@@ -76,20 +76,6 @@ proc ::nxLib::StripChars {String} {
     return [string trim $String "."]
 }
 
-proc ::nxLib::Sleep {MilliSeconds} {
-    set UniqueKey [UniqueKey]
-    set ::Sleep_$UniqueKey 0
-    after $MilliSeconds [list set ::Sleep_$UniqueKey 1]
-    vwait ::Sleep_$UniqueKey
-    unset ::Sleep_$UniqueKey
-}
-
-proc ::nxLib::UniqueKey {} {
-    set Key [expr {pow(2,31) + [clock clicks]}]
-    set Key [string range $Key end-8 end-3]
-    return "[clock seconds]$Key"
-}
-
 # DataBase Procedures
 ######################################################################
 
@@ -308,7 +294,7 @@ proc ::nxLib::KickUsers {KickPath {RealPaths "False"}} {
         catch {client kill virtualpath $KickPath}
     }
     set KickPath [string map {\[ \\\[ \] \\\]} $KickPath]
-    Sleep 100
+    ::nx::sleep 250
 
     ## Repeat the kicking process 20 times to ensure users were disconnected
     for {set Count 0} {$Count < 20} {incr Count} {
@@ -339,7 +325,7 @@ proc ::nxLib::KickUsers {KickPath {RealPaths "False"}} {
             ## If there are no longer any users in that dir, we can return
             if {!$UsersOnline} {return}
         }
-        Sleep 100
+        ::nx::sleep 250
     }
 }
 
