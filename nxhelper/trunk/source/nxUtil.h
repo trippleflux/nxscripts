@@ -17,5 +17,6 @@
 
 char *TclSetWinError(Tcl_Interp *interp, unsigned long errorCode);
 int PartialSwitchCompare(Tcl_Obj *objPtr, const char *switchName);
+int SleepObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
 #endif /* __NXUTIL_H__ */

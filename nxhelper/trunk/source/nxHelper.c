@@ -9,12 +9,12 @@
  *   neoxed (neoxed@gmail.com) May 22, 2005
  *
  * Abstract:
- *   Tcl extension initialization procedures.
+ *   Tcl extension initialisation procedures.
  */
 
 #include <nxHelper.h>
 
-static BOOL initialized = FALSE;
+static BOOL initialised = FALSE;
 static HMODULE kernelModule;
 TCL_DECLARE_MUTEX(initMutex)
 
@@ -30,7 +30,7 @@ static void Nxhelper_Exit(ClientData dummy);
 /*
  * Nxhelper_Init
  *
- *   Initializes the extension for a regular interpreter.
+ *   Initialises the extension for a regular interpreter.
  *
  * Arguments:
  *   interp - Current interpreter.
@@ -41,7 +41,6 @@ static void Nxhelper_Exit(ClientData dummy);
  * Remarks:
  *   None.
  */
-
 int
 Nxhelper_Init(Tcl_Interp *interp)
 {
@@ -61,8 +60,8 @@ Nxhelper_Init(Tcl_Interp *interp)
     }
 
     Tcl_MutexLock(&initMutex);
-    if (!initialized) {
-        /* Initialize the OS version structure. */
+    if (!initialised) {
+        /* Initialise the OS version structure. */
         osVersion.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
         GetVersionEx(&osVersion);
 
@@ -98,7 +97,7 @@ Nxhelper_Init(Tcl_Interp *interp)
         /* An exit handler should be registered once. */
         Tcl_CreateExitHandler(Nxhelper_Exit, NULL);
 
-        initialized = TRUE;
+        initialised = TRUE;
     }
     Tcl_MutexUnlock(&initMutex);
 
@@ -108,6 +107,7 @@ Nxhelper_Init(Tcl_Interp *interp)
 
     Tcl_CreateObjCommand(interp, "::nx::base64", Base64ObjCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::nx::mp3",    Mp3ObjCmd,    NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::nx::sleep",  SleepObjCmd,   NULL, NULL);
     Tcl_CreateObjCommand(interp, "::nx::time",   TimeObjCmd,   NULL, NULL);
     Tcl_CreateObjCommand(interp, "::nx::touch",  TouchObjCmd,  NULL, NULL);
     Tcl_CreateObjCommand(interp, "::nx::volume", VolumeObjCmd, NULL, NULL);
@@ -116,11 +116,10 @@ Nxhelper_Init(Tcl_Interp *interp)
     return TCL_OK;
 }
 
-
 /*
  * Nxhelper_SafeInit
  *
- *   Initializes the extension for a safe interpreter.
+ *   Initialises the extension for a safe interpreter.
  *
  * Arguments:
  *   interp - Current interpreter.
@@ -131,14 +130,12 @@ Nxhelper_Init(Tcl_Interp *interp)
  * Remarks:
  *   None.
  */
-
 int
 Nxhelper_SafeInit(Tcl_Interp *interp)
 {
     return Nxhelper_Init(interp);
 }
 
-
 /*
  * Nxhelper_Exit
  *
@@ -153,7 +150,6 @@ Nxhelper_SafeInit(Tcl_Interp *interp)
  * Remarks:
  *   None.
  */
-
 static void
 Nxhelper_Exit(ClientData dummy)
 {
@@ -163,7 +159,7 @@ Nxhelper_Exit(ClientData dummy)
         FreeLibrary(kernelModule);
         kernelModule = NULL;
     }
-    initialized = FALSE;
+    initialised = FALSE;
 
     Tcl_MutexUnlock(&initMutex);
 

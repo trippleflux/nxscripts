@@ -100,3 +100,39 @@ PartialSwitchCompare(Tcl_Obj *objPtr, const char *switchName)
      */
     return (optionLength > 1 && strncmp(switchName, option, optionLength) == 0);
 }
+
+/*
+ * SleepObjCmd
+ *
+ *	 This function provides the "::nx::sleep" Tcl command.
+ *
+ * Arguments:
+ *   dummy  - Not used.
+ *   interp - Current interpreter.
+ *   objc   - Number of arguments.
+ *   objv   - Argument objects.
+ *
+ * Returns:
+ *   A standard Tcl result.
+ *
+ * Remarks:
+ *   None.
+ */
+int
+SleepObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+    long ms;
+
+    if (objc != 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "ms");
+        return TCL_ERROR;
+    }
+
+    if (Tcl_GetLongFromObj(interp, objv[1], &ms) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    Sleep((DWORD) ms);
+
+    return TCL_OK;
+}
