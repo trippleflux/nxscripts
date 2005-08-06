@@ -3,10 +3,14 @@
 ################################################################################
 
 nxTools v0.9.11 (XX-XX-2005):
+  NEW: Added ::nx::sleep <ms> to nxHelper, to suspend execution for the given time.
   NEW: Request limits for individual users and groups.
   CHG: Improved configuration file parser for invite and pre.
   CHG: Renamed SITE CLEANLOGS to SITE CLEAN and SITE REBUILDLOGS to SITE REBUILD.
-  CHG: Split the change log and upgrading instructions into seperate files.
+  CHG: Split the change log and upgrading instructions into separate files.
+  CHG: Switched to a busy callback, instead of the a timeout value, for failed
+       SQLite transactions. This should improve the dupe checker in heavy conditions.
+  CHG: Updated zlib in nxHelper to version 1.2.3.
   FIX: Corrected several errors in the readme.
   FIX: The InvalidArgs error message for request didn't work.
 
