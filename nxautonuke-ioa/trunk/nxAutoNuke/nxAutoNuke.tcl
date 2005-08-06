@@ -32,7 +32,7 @@ proc ::nxAutoNuke::UpdateRecord {RealPath {Buffer ""}} {
     set RealPath [file join $RealPath ".ioFTPD.nxNuke"]
     set OpenMode [expr {$Buffer != "" ? "w" : "r"}]
 
-    ## Tcl can't open hidden files, quite lame.
+    # Tcl can't open hidden files, quite lame.
     catch {file attributes $RealPath -hidden 0}
     if {[catch {set Handle [open $RealPath $OpenMode]} ErrorMsg]} {
         ErrorLog NukeRecord $ErrorMsg
@@ -43,7 +43,7 @@ proc ::nxAutoNuke::UpdateRecord {RealPath {Buffer ""}} {
         puts $Handle $Buffer
         close $Handle
     }
-    ## Set the file's attributes to hidden
+    # Set the file's attributes to hidden
     catch {file attributes $RealPath -hidden 1}
     return [string trim $Record]
 }
@@ -68,7 +68,7 @@ proc ::nxAutoNuke::UpdateUser {UserName Multi Size Files Stats CreditSection Sta
             }
         }
 
-        ## Change credits if the user is not leech
+        # Change credits if the user is not leech
         if {$Ratio != 0} {
             set DiffCredits [expr {(wide($Size) * $Ratio) + (wide($Size) * ($Multi - 1))}]
             set NewCredits [expr {wide($OldCredits) - wide($DiffCredits)}]
@@ -103,14 +103,14 @@ proc ::nxAutoNuke::Nuke {RealPath VirtualPath NukerUser NukerGroup Multi Reason}
         return 0
     }
 
-    ## Check if there is an available nuke record.
+    # Check if there is an available nuke record.
     set NukeId ""
     set Record [UpdateRecord $RealPath]
     set RecordSplit [split $Record "|"]
 
-    ## Record versions:
-    ## v1: nuke-type|user|group|multi|reason
-    ## v2: 2|status|id|user|group|multi|reason
+    # Record versions:
+    # v1: nuke-type|user|group|multi|reason
+    # v2: 2|status|id|user|group|multi|reason
     switch -regexp -- $Record {
         {^2\|(0|1)\|\d+\|\S+\|\d+\|.+$} {
             set NukeId [lindex $RecordSplit 2]
@@ -127,24 +127,24 @@ proc ::nxAutoNuke::Nuke {RealPath VirtualPath NukerUser NukerGroup Multi Reason}
     set ParentPath [file dirname $RealPath]
     ListAssign [GetCreditStatSections $VirtualPath] CreditSection StatSection
 
-    ## Count CDs/Discs/DVDs
+    # Count CDs/Discs/DVDs
     foreach ListItem [glob -nocomplain -types d -directory $RealPath "*"] {
         if {[IsMultiDisk $ListItem]} {incr DiskCount}
     }
 
-    ## Count files and total size
+    # Count files and total size
     GetDirList $RealPath dirlist ".ioFTPD*"
     foreach ListItem $dirlist(FileList) {
         incr Files; set FileSize [file size $ListItem]
         set TotalSize [expr {wide($TotalSize) + wide($FileSize)}]
         catch {lindex [vfs read $ListItem] 0} UserId
         if {[set NukeeUser [resolve uid $UserId]] != ""} {
-            ## Increase file Count
+            # Increase file Count
             if {[info exists nukefiles($NukeeUser)]} {
                 incr nukefiles($NukeeUser)
             } else {set nukefiles($NukeeUser) 1}
 
-            ## Add total size
+            # Add total size
             if {[info exists nukesize($NukeeUser)]} {
                 set nukesize($NukeeUser) [expr {wide($nukesize($NukeeUser)) + wide($FileSize)}]
             } else {set nukesize($NukeeUser) $FileSize}
@@ -152,7 +152,7 @@ proc ::nxAutoNuke::Nuke {RealPath VirtualPath NukerUser NukerGroup Multi Reason}
     }
     set TotalSize [expr {wide($TotalSize) / 1024}]
 
-    ## Check if Release is an empty nuke (less then 5KB)
+    # Check if Release is an empty nuke (less then 5KB)
     if {$TotalSize < 5 || ![array exists nukesize]} {
         unset -nocomplain nukefiles nukesize
         set EmptyNuke 1
@@ -166,7 +166,7 @@ proc ::nxAutoNuke::Nuke {RealPath VirtualPath NukerUser NukerGroup Multi Reason}
         }
     } else {set EmptyNuke 0}
 
-    ## Change the credits and stats of nukees
+    # Change the credits and stats of nukees
     set NukeeLog ""
     foreach NukeeUser [lsort -ascii [array names nukesize]] {
         set NukeCredits [expr {wide($nukesize($NukeeUser)) / 1024}]
@@ -175,21 +175,21 @@ proc ::nxAutoNuke::Nuke {RealPath VirtualPath NukerUser NukerGroup Multi Reason}
         foreach {NukeeGroup Ratio OldCredits NewCredits DiffCredits} $Result {break}
         lappend NukeeLog [list $NukeeUser $NukeeGroup $NukeStats]
     }
-    ## Join the list twice because of the sublist used in "lsort -index".
+    # Join the list twice because of the sublist used in "lsort -index".
     set NukeeLog [join [join [lsort -decreasing -integer -index 2 $NukeeLog]]]
 
-    ## Create nuke tag
+    # Create nuke tag
     set ReMap [list %(user) $NukerUser %(group) $NukerGroup %(multi) $Multi %(reason) $Reason]
     set NukeTag [file join $RealPath [string map $ReMap $nuke(InfoTag)]]
     CreateTag $NukeTag [resolve user $NukerUser] [resolve group $NukerGroup] 555
     RemoveParentLinks $RealPath $VirtualPath
 
-    ## Rename nuke directory
+    # Rename nuke directory
     set NewName "$nuke(Prefix)[file tail $VirtualPath]"
     set NewPath [file join $ParentPath $NewName]
     if {![string equal -nocase $RealPath $NewPath]} {
-        ## In order to prevent users from re-entering the
-        ## directory while nuking, it will be chmodded to 000.
+        # In order to prevent users from re-entering the
+        # directory while nuking, it will be chmodded to 000.
         catch {vfs read $RealPath} VfsOwner
         ListAssign $VfsOwner UserId GroupId
         if {![string is digit -strict $UserId]} {set UserId [lindex $misc(DirOwner) 0]}
@@ -205,7 +205,7 @@ proc ::nxAutoNuke::Nuke {RealPath VirtualPath NukerUser NukerGroup Multi Reason}
         }
     }
 
-    ## Chmod directories
+    # Chmod directories
     GetDirList $NewPath dirlist ".ioFTPD*"
     foreach ListItem $dirlist(DirList) {
         catch {vfs read $ListItem} VfsOwner
@@ -225,7 +225,7 @@ proc ::nxAutoNuke::Nuke {RealPath VirtualPath NukerUser NukerGroup Multi Reason}
     }
 
     if {![catch {DbOpenFile NukeDb "Nukes.db"} ErrorMsg]} {
-        ## In order to pass a NULL value to TclSQLite, the variable must be unset.
+        # In order to pass a NULL value to TclSQLite, the variable must be unset.
         if {![string is digit -strict $NukeId]} {unset NukeId}
         NukeDb eval {INSERT OR REPLACE INTO Nukes (NukeId,TimeStamp,UserName,GroupName,Status,Release,Reason,Multi,Files,Size) VALUES($NukeId,$NukeTime,$NukerUser,$NukerGroup,0,$Release,$Reason,$Multi,$Files,$TotalSize)}
         set NukeId [NukeDb last_insert_rowid]
@@ -239,7 +239,7 @@ proc ::nxAutoNuke::Nuke {RealPath VirtualPath NukerUser NukerGroup Multi Reason}
         NukeDb close
     } else {ErrorLog NukeDb $ErrorMsg}
 
-    ## Save the nuke ID and multiplier for later use (ie. unnuke).
+    # Save the nuke ID and multiplier for later use (ie. unnuke).
     UpdateRecord [expr {$RenameFail ? $RealPath : $NewPath}] "2|0|$NukeId|$NukerUser|$NukerGroup|$Multi|$Reason"
     return 1
 }
@@ -410,7 +410,7 @@ proc ::nxAutoNuke::GetUserList {RealPath} {
             set uploader($UserName) [GetGroupName $GroupId]
         }
     }
-    ## Check if the release is an empty nuke
+    # Check if the release is an empty nuke
     if {![array exists uploader]} {
         catch {vfs read $RealPath} VfsOwner
         ListAssign $VfsOwner UserId GroupId
@@ -418,7 +418,7 @@ proc ::nxAutoNuke::GetUserList {RealPath} {
             set uploader($UserName) [GetGroupName $GroupId]
         } else {return ""}
     }
-    ## Format uploaders list
+    # Format uploaders list
     set FormatList ""
     foreach {UserName GroupName} [array get uploader] {
         set ReMap [list %b \002 %c \003 %u \031 %(user) $UserName %(group) $GroupName]
@@ -447,7 +447,7 @@ proc ::nxAutoNuke::NukeCheck {RealPath VirtualPath DirAge} {
     variable NukedList
     variable WarnedList
 
-    ## Skip the release if it was already nuked.
+    # Skip the release if it was already nuked.
     set CheckPath [string tolower $RealPath]
     if {[lsearch -exact $NukedList $CheckPath] != -1} {return}
 
@@ -455,11 +455,11 @@ proc ::nxAutoNuke::NukeCheck {RealPath VirtualPath DirAge} {
     set WarnSecs [expr {$check(WarnMins) * 60}]
 
     if {$DirAge >= $NukeSecs} {
-        ## Nuke the release
+        # Nuke the release
         lappend check(Cookies) %(age) [expr {$DirAge / 60}]
         set check(Reason) [StripChars [string map $check(Cookies) $check(Reason)]]
 
-        ## Nuke the entire release if anuke(SubDirs) is false.
+        # Nuke the entire release if anuke(SubDirs) is false.
         if {![IsTrue $anuke(SubDirs)] && [IsMultiDisk $VirtualPath]} {
             set RealPath [file dirname $RealPath]
             set VirtualPath [file dirname $VirtualPath]
@@ -471,14 +471,14 @@ proc ::nxAutoNuke::NukeCheck {RealPath VirtualPath DirAge} {
         }
         lappend NukedList $CheckPath
     } elseif {$DirAge >= $WarnSecs && [lsearch -exact $WarnedList $CheckPath] == -1} {
-        ## Obtain a list of nuked users
+        # Obtain a list of nuked users
         if {[IsTrue $anuke(WarnUsers)]} {
             set UserList [GetUserList $RealPath]
         } else {
             set UserList "Disabled"
         }
 
-        ## Log the warning
+        # Log the warning
         lappend check(Cookies) %(age) [expr {$DirAge / 60}]
         set check(Reason) [StripChars [string map $check(Cookies) $check(Reason)]]
 
@@ -499,7 +499,7 @@ proc ::nxAutoNuke::NukeCheck {RealPath VirtualPath DirAge} {
 
 proc ::nxAutoNuke::Main {} {
     global anuke misc user group
-    ## A userfile and VFS file will have to be opened so that resolve works under ioFTPD's scheduler
+    # A userfile and VFS file will have to be opened so that resolve works under ioFTPD's scheduler
     if {![info exists user] && ![info exists group]} {
         if {[userfile open $misc(MountUser)] != 0} {
             ErrorLog AutoNuke "error opening the user \"$misc(MountUser)\""
@@ -519,32 +519,32 @@ proc ::nxAutoNuke::Main {} {
     set anuke(ImdbOrder) [string tolower $anuke(ImdbOrder)]
     set anuke(MP3Order) [string tolower $anuke(MP3Order)]
 
-    ## Check variables:
-    ##
-    ## check(Settings) - Check settings         (user defined)
-    ## check(Multi)    - Nuke multiplier        (user defined)
-    ## check(WarnMins) - Minutes until warning  (user defined)
-    ## check(NukeMins) - Minutes until nuke     (user defined)
-    ## check(Cookies)  - List of reason cookies (script defined)
-    ## check(Reason)   - Nuke reason template   (script defined)
-    ## check(WarnType) - Warning log event type (script defined)
-    ## check(WarnData) - Warning log check data (script defined)
-    ##
-    ## Release check variables:
-    ##
-    ## release(Age)         - Age of release, in seconds.
-    ## release(Name)        - Release name.
-    ## release(RealPath)    - Release physical path.
-    ## release(VirtualPath) - Release virtual path.
-    ## release(PathList)    - Release subdirectory list.
-    ##
-    ## Disk check variables:
-    ##
-    ## disk(Age)         - Age of disk subdirectory, in seconds.
-    ## disk(Name)        - Name of disk subdirectory.
-    ## disk(RealPath)    - Disk physical path.
-    ## disk(VirtualPath) - Disk virtual path.
-    ##
+    # Check variables:
+    #
+    # check(Settings) - Check settings         (user defined).
+    # check(Multi)    - Nuke multiplier        (user defined).
+    # check(WarnMins) - Minutes until warning  (user defined).
+    # check(NukeMins) - Minutes until nuke     (user defined).
+    # check(Cookies)  - List of reason cookies (script defined).
+    # check(Reason)   - Nuke reason template   (script defined).
+    # check(WarnType) - Warning log event type (script defined).
+    # check(WarnData) - Warning log check data (script defined).
+    #
+    # Release check variables:
+    #
+    # release(Age)         - Age of release, in seconds.
+    # release(Name)        - Release name.
+    # release(RealPath)    - Release physical path.
+    # release(VirtualPath) - Release virtual path.
+    # release(PathList)    - Release subdirectory list.
+    #
+    # Disk check variables:
+    #
+    # disk(Age)         - Age of disk subdirectory, in seconds.
+    # disk(Name)        - Name of disk subdirectory.
+    # disk(RealPath)    - Disk physical path.
+    # disk(VirtualPath) - Disk virtual path.
+    #
     array set ReleaseChecks [list \
         allowed    [list ANUKEALLOWED $anuke(ReasonAllowed) {CheckAllowed $check(Settings) $release(Name)}] \
         banned     [list ANUKEBANNED  $anuke(ReasonBanned)  {CheckBanned  $check(Settings) $release(Name)}] \
@@ -558,19 +558,19 @@ proc ::nxAutoNuke::Main {} {
         mp3        [list ANUKEMP3     $anuke(ReasonMP3)     {CheckMP3   $check(Settings) $disk(RealPath)}] \
     ]
 
-    ## Timestamp used to format date cookies
+    # Timestamp used to format date cookies
     set TimeNow [clock seconds]
     set MaxAge [expr {$anuke(MaximumAge) * 60}]
 
     foreach {check(VirtualPath) check(DayOffset) check(SettingsList)} $anuke(Sections) {
-        ## Sort the check settings so the earliest nuke time is processed first.
+        # Sort the check settings so the earliest nuke time is processed first.
         if {[catch {llength $check(SettingsList)} ErrorMsg] || \
         [catch {set check(SettingsList) [lsort -increasing -integer -index 4 $check(SettingsList)]} ErrorMsg]} {
             ErrorLog AutoNuke "invalid check settings for \"$VirtualPath\": $ErrorMsg"
             continue
         }
 
-        ## Convert virtual path date cookies.
+        # Convert virtual path date cookies.
         set FormatTime [expr {$TimeNow + ($check(DayOffset) * 86400)}]
         set check(VirtualPath) [clock format $FormatTime -format $check(VirtualPath) -gmt [IsTrue $misc(UtcTime)]]
         LinePuts ""
@@ -585,7 +585,7 @@ proc ::nxAutoNuke::Main {} {
             foreach {CheckType check(Settings) check(Multi) check(WarnMins) check(NukeMins)} $ConfigLine {break}
             set CheckType [string tolower $CheckType]
 
-            ## Split IMDB and MP3 check settings.
+            # Split IMDB and MP3 check settings.
             if {$CheckType eq "imdb" || $CheckType eq "mp3"} {
                 set check(Settings) [SplitSettings $check(Settings)]
             } elseif {$CheckType eq "keyword"} {
@@ -595,20 +595,20 @@ proc ::nxAutoNuke::Main {} {
             foreach release(RealPath) [glob -nocomplain -types d -directory $check(RealPath) "*"] {
                 set release(Name) [file tail $release(RealPath)]
 
-                ## Ignore exempted, approved, and old releases.
+                # Ignore exempted, approved, and old releases.
                 if {[ListMatchI $anuke(Exempts) $release(Name)] || [llength [FindTags $release(RealPath) $anuke(ApproveTag)]] || \
                 [catch {file stat $release(RealPath) stat}] || [set release(Age) [expr {[clock seconds] - $stat(ctime)}]] > $MaxAge} {
                     continue
                 }
 
-                ## Find release subdirectories.
+                # Find release subdirectories.
                 set release(PathList) ""
                 foreach DiskDir [glob -nocomplain -types d -directory $release(RealPath) "*"] {
                     if {![ListMatchI $anuke(Exempts) [file tail $DiskDir]] && [IsMultiDisk $DiskDir]} {
                         lappend release(PathList) $DiskDir
                     }
                 }
-                ## If there are no subdirectories present, check the release's root directory.
+                # If there are no subdirectories present, check the release's root directory.
                 if {![llength $release(PathList)]} {
                     lappend release(PathList) $release(RealPath)
                 }
@@ -625,10 +625,10 @@ proc ::nxAutoNuke::Main {} {
                 } elseif {[info exists DiskChecks($CheckType)]} {
                     foreach {check(WarnType) check(Reason) CheckProc} $DiskChecks($CheckType) {break}
 
-                    ## Check each release subdirectory.
+                    # Check each release subdirectory.
                     foreach disk(RealPath) $release(PathList) {
                         if {[IsMultiDisk $disk(RealPath)]} {
-                            ## Retrieve the subdirectory's age.
+                            # Retrieve the subdirectory's age.
                             if {[catch {file stat $disk(RealPath) stat}]} {continue}
                             set disk(Age) [expr {[clock seconds] - $stat(ctime)}]
 
