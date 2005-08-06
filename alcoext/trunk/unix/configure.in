@@ -2,7 +2,7 @@
 # AlcoExt - Alcoholicz Tcl extension.
 # Copyright (c) 2005 Alcoholicz Scripting Team
 #
-# File Name:
+# Module Name:
 #   configure.in
 #
 # Author:
@@ -28,6 +28,9 @@ TEA_SETUP_COMPILER
 AC_C_CONST
 AC_C_INLINE
 AC_C_VOLATILE
+
+# Check for library functions, structures, and types.
+AC_CHECK_FUNCS([getmntent getmntinfo getmntinfo_r])
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
 
@@ -256,35 +259,27 @@ $ac_includes_default
 #endif
 "
 
-# Structure member checks.
-AC_CHECK_MEMBERS([struct statfs.f_basetype],,,[$statxfs_includes])
-AC_CHECK_MEMBERS([struct statfs.f_flag],,,[$statxfs_includes])
-AC_CHECK_MEMBERS([struct statfs.f_flags],,,[$statxfs_includes])
-AC_CHECK_MEMBERS([struct statfs.f_fsid.val],,,[$statxfs_includes])
-AC_CHECK_MEMBERS([struct statfs.f_fsid],,,[$statxfs_includes])
-AC_CHECK_MEMBERS([struct statfs.f_fstypename],,,[$statxfs_includes])
-AC_CHECK_MEMBERS([struct statfs.f_namelen],,,[$statxfs_includes])
-AC_CHECK_MEMBERS([struct statfs.f_namemax],,,[$statxfs_includes])
+AC_CHECK_MEMBERS([
+    struct statfs.f_basetype,
+    struct statfs.f_flag,
+    struct statfs.f_flags,
+    struct statfs.f_fsid.val,
+    struct statfs.f_fsid,
+    struct statfs.f_fstypename,
+    struct statfs.f_namelen,
+    struct statfs.f_namemax],,,
+    [$statxfs_includes])
 
-AC_CHECK_MEMBERS([struct statvfs.f_basetype],,,[$statxfs_includes])
-AC_CHECK_MEMBERS([struct statvfs.f_flag],,,[$statxfs_includes])
-AC_CHECK_MEMBERS([struct statvfs.f_flags],,,[$statxfs_includes])
-AC_CHECK_MEMBERS([struct statvfs.f_fsid.val],,,[$statxfs_includes])
-AC_CHECK_MEMBERS([struct statvfs.f_fsid],,,[$statxfs_includes])
-AC_CHECK_MEMBERS([struct statvfs.f_fstypename],,,[$statxfs_includes])
-AC_CHECK_MEMBERS([struct statvfs.f_namelen],,,[$statxfs_includes])
-AC_CHECK_MEMBERS([struct statvfs.f_namemax],,,[$statxfs_includes])
-
-# Mount list function checks.
-AC_CHECK_FUNC(getmntent,
-    AC_DEFINE(HAVE_GETMNTENT, 1, [Define to 1 if you have the getmntent() function])
-)
-AC_CHECK_FUNC(getmntinfo,
-    AC_DEFINE(HAVE_GETMNTINFO, 1, [Define to 1 if you have the getmntinfo() function])
-)
-AC_CHECK_FUNC(getmntinfo_r,
-    AC_DEFINE(HAVE_GETMNTINFO_R, 1, [Define to 1 if you have the getmntinfo_r() function])
-)
+AC_CHECK_MEMBERS([
+    struct statvfs.f_basetype,
+    struct statvfs.f_flag,
+    struct statvfs.f_flags,
+    struct statvfs.f_fsid.val,
+    struct statvfs.f_fsid,
+    struct statvfs.f_fstypename,
+    struct statvfs.f_namelen,
+    struct statvfs.f_namemax],,,
+    [$statxfs_includes])
 
 #-----------------------------------------------------------------------
 # Specify the C source files to compile in TEA_ADD_SOURCES,
