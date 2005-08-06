@@ -17,7 +17,6 @@ namespace eval ::nxLib {
 interp alias {} IsTrue {} string is true -strict
 interp alias {} IsFalse {} string is false -strict
 
-## Safe argument handling
 proc ::nxLib::ArgList {ArgV} {
     split [string trim [regsub -all {\s+} $ArgV { }]]
 }
@@ -147,7 +146,7 @@ proc ::nxLib::CreateTag {RealPath UserId GroupId Chmod} {
 }
 
 proc ::nxLib::RemoveTag {RealPath} {
-    ## Safely remove a directory tag, in case there is data inside it.
+    # Safely remove a directory tag, in case there is data inside it.
     catch {file delete -- [file join $RealPath ".ioFTPD"]}
     if {[catch {file delete -- $RealPath} ErrorMsg]} {
         ErrorLog RemoveTag $ErrorMsg
@@ -204,7 +203,7 @@ proc ::nxLib::GetDirStats {RealPath VarName {IgnoreList ""} {FirstCall 1}} {
 proc ::nxLib::GetPath {PWD Path} {
     if {[string index $Path 0] eq "/"} {set VirtualPath $Path} else {set VirtualPath "$PWD$Path"}
     regsub -all {[\\/]+} $Path {/} Path
-    ## A few "security checks", in case $Path is "." or ".."
+    # A few "security checks", in case $Path is "." or ".."
     if {[file tail $VirtualPath] eq "." || [file tail $VirtualPath] eq ".."} {
         set VirtualPath [file dirname $VirtualPath]
     } elseif {$VirtualPath ne "/"} {
@@ -252,7 +251,7 @@ proc ::nxLib::GetSectionList {} {
                 if {[string match {\[*\]} $ConfLine]} {
                     set IsSections 0
                 } elseif {[set Items [llength $ConfLine]]} {
-                    ## Check if the user was to lazy to define the stats section
+                    # Check if the user was to lazy to define the stats section
                     foreach {SectionName EqSign CreditSection Param1 Param2} $ConfLine {break}
                     switch -- $Items {
                         5 {lappend SectionList $SectionName $CreditSection $Param1 $Param2}
@@ -296,33 +295,33 @@ proc ::nxLib::KickUsers {KickPath {RealPaths "False"}} {
     set KickPath [string map {\[ \\\[ \] \\\]} $KickPath]
     ::nx::sleep 250
 
-    ## Repeat the kicking process 20 times to ensure users were disconnected
+    # Repeat the kicking process 20 times to ensure users were disconnected
     for {set Count 0} {$Count < 20} {incr Count} {
         if {[client who init "CID" "STATUS" "VIRTUALPATH" "VIRTUALDATAPATH"] == 0} {
             set UsersOnline 0
             while {[set WhoData [client who fetch]] != ""} {
                 foreach {ClientId Status VfsPath DataPath} $WhoData {break}
 
-                ## Resolve virtual paths if needed
+                # Resolve virtual paths if needed
                 if {[IsTrue $RealPaths]} {
                     set VfsPath [resolve pwd $VfsPath]
                     set DataPath [resolve pwd $DataPath]
                 }
-                ## Following a transfer, the user's data path will be the last file
-                ## transfered; however, their status will be IDLE. Bug?
+                # Following a transfer, the user's data path will be the last file
+                # transfered; however, their status will be IDLE. Bug?
                 if {$Status == 1 || $Status == 2} {
                     set MatchPath $DataPath
                 } else {
                     if {[string index $VfsPath end] ne "/"} {append VfsPath "/"}
                     set MatchPath $VfsPath
                 }
-                ## Attempt to kick the client ID
+                # Attempt to kick the client ID
                 if {[string match -nocase $KickPath $MatchPath]} {
                     incr UsersOnline
                     catch {client kill clientid $ClientId}
                 }
             }
-            ## If there are no longer any users in that dir, we can return
+            # If there are no longer any users in that dir, we can return
             if {!$UsersOnline} {return}
         }
         ::nx::sleep 250
@@ -495,13 +494,13 @@ proc ::nxLib::ParseCookies {InputStr ValueList CookieList} {
 
     for {set InputIdx 0} {$InputIdx < $InputLen} {incr InputIdx} {
         if {[string index $InputStr $InputIdx] eq "%"} {
-            ## Save this index for invalid cookies.
+            # Save this index for invalid cookies.
             set StartIdx $InputIdx
 
-            ## Find position field
+            # Find position field
             set BeforeIdx [incr InputIdx]
             if {[string index $InputStr $InputIdx] eq "-"} {
-                ## Ignore the negative sign if a does not number follow, for example: %-(cookie).
+                # Ignore the negative sign if a does not number follow, for example: %-(cookie).
                 if {[string is digit -strict [string index $InputStr [incr InputIdx]]]} {incr InputIdx} else {incr BeforeIdx}
             }
             while {[string is digit -strict [string index $InputStr $InputIdx]]} {incr InputIdx}
@@ -511,10 +510,10 @@ proc ::nxLib::ParseCookies {InputStr ValueList CookieList} {
                 set RightPos 0
             }
 
-            ## Find minimum/precision field.
+            # Find minimum/precision field.
             if {[string index $InputStr $InputIdx] eq "."} {
                 set BeforeIdx [incr InputIdx]
-                ## Ignore the negative sign, for example: %.-(cookie).
+                # Ignore the negative sign, for example: %.-(cookie).
                 if {[string index $InputStr $InputIdx] eq "-"} {incr BeforeIdx; incr InputIdx}
                 while {[string is digit -strict [string index $InputStr $InputIdx]]} {incr InputIdx}
                 if {$BeforeIdx != $InputIdx} {
@@ -523,25 +522,25 @@ proc ::nxLib::ParseCookies {InputStr ValueList CookieList} {
                     set LeftPos 0
                 }
             } else {
-                ## Tcl's [format ...] function doesn't accept -1 for the minimum field
-                ## like printf() does, so a reasonably large number will suffice.
+                # Tcl's [format ...] function doesn't accept -1 for the minimum field
+                # like printf() does, so a reasonably large number will suffice.
                 set LeftPos 999999
             }
 
-            ## Find cookie name.
+            # Find cookie name.
             if {[string index $InputStr $InputIdx] eq "("} {
                 set BeforeIdx [incr InputIdx]
                 while {[string index $InputStr $InputIdx] ne ")" && $InputIdx <= $InputLen} {incr InputIdx}
                 set CookieName [string range $InputStr $BeforeIdx [expr {$InputIdx - 1}]]
             } else {
-                ## Invalid cookie format, an open parenthesis is expected.
+                # Invalid cookie format, an open parenthesis is expected.
                 append OutputStr [string range $InputStr $StartIdx $InputIdx]
                 continue
             }
 
             if {[set CookiePos [lsearch -exact $CookieList $CookieName]] != -1} {
                 set Value [lindex $ValueList $CookiePos]
-                ## Type of cookie substitution to perform.
+                # Type of cookie substitution to perform.
                 if {[string is integer -strict $Value]} {
                     append OutputStr [format "%${RightPos}i" $Value]
                 } elseif {[regexp {^-?[0-9]+\.[0-9]+$} $Value]} {
@@ -550,8 +549,8 @@ proc ::nxLib::ParseCookies {InputStr ValueList CookieList} {
                     append OutputStr [format "%${RightPos}.${LeftPos}s" $Value]
                 }
             } else {
-                ## Append the starting point of the cookie to the current index in hope that
-                ## the user will notice that he or she has made an error in the template line.
+                # Append the starting point of the cookie to the current index in hope that
+                # the user will notice that he or she has made an error in the template line.
                 append OutputStr [string range $InputStr $StartIdx $InputIdx]
             }
         } else {
