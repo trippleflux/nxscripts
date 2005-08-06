@@ -85,8 +85,16 @@ proc ::nxLib::DbOpenFile {DbProc FileName} {
     } elseif {[catch {sqlite3 $DbProc $DbPath} ErrorMsg]} {
         return -code error "unable to open \"$DbPath\": $ErrorMsg"
     }
-    $DbProc timeout 1000
+    $DbProc busy ::nxLib::DbBusyHandler
     return
+}
+
+proc ::nxLib::DbBusyHandler {Tries} {
+    # Give up after 50 retries, though it should usually
+    # succeed after 1-5 tries under heavy conditions.
+    if {$Tries > 50} {return 1}
+    ::nx::sleep 100
+    return 0
 }
 
 proc ::nxLib::MySqlConnect {} {
