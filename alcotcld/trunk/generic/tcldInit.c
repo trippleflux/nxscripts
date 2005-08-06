@@ -1,39 +1,48 @@
-/*
- * AlcoTcld - Alcoholicz Tcl daemon.
- * Copyright (c) 2005 Alcoholicz Scripting Team
- *
- * File Name:
- *   tcldInit.c
- *
- * Author:
- *   neoxed (neoxed@gmail.com) July 17, 2005
- *
- * Abstract:
- *   Tcl scripting host.
- */
+/*++
+
+AlcoTcld - Alcoholicz Tcl daemon.
+Copyright (c) 2005 Alcoholicz Scripting Team
+
+Module Name:
+    tcldInit.c
+
+Author:
+    neoxed (neoxed@gmail.com) July 17, 2005
+
+Abstract:
+    Tcl scripting host.
+
+--*/
 
 #include <tcld.h>
 
-static void TclLogError(const char *message, Tcl_Obj *objPtr);
+static void
+TclLogError(
+    const char *message,
+    Tcl_Obj *objPtr
+    );
 
 
-/*
- * DebugLog
- *
- *   Writes an entry to the applications debug log file.
- *
- * Arguments:
- *   format - Pointer to a buffer containing a printf-style format string.
- *   ...    - Arguments to insert into 'format'.
- *
- * Returns:
- *   None.
- *
- * Remarks:
- *   None.
- */
-#if defined(DEBUG) || defined(_DEBUG)
-void DebugLog(const char *format, ...)
+/*++
+
+DebugLog
+
+    Writes an entry to the applications debug log file.
+
+Arguments:
+    format  - Pointer to a buffer containing a printf-style format string.
+    ...     - Arguments to insert into 'format'.
+
+Return Value:
+    None.
+
+--*/
+#ifdef DEBUG
+void
+DebugLog(
+    const char *format,
+    ...
+    )
 {
     FILE *logHandle;
     va_list argList;
@@ -57,33 +66,35 @@ void DebugLog(const char *format, ...)
         fprintf(logHandle, "%04d-%02d-%02d %02d:%02d:%02d - ",
             now->tm_year+1900, now->tm_mon, now->tm_mday,
             now->tm_hour, now->tm_min, now->tm_sec);
-#endif /* _WINDOWS */
+#endif // _WINDOWS
 
         vfprintf(logHandle, format, argList);
         fclose(logHandle);
     }
     va_end(argList);
 }
-#endif /* DEBUG || _DEBUG */
+#endif // DEBUG
 
-/*
- * TclInit
- *
- *   Initialises a Tcl interpeter and evaluates the Tcl script in argv.
- *
- * Arguments:
- *   argc     - Number of command-line arguments.
- *   argv     - Array of pointers to strings that represent command-line arguments.
- *   service  - Boolean to indicate whether the process is running as an NT service.
- *   exitProc - Pointer to a Tcl exit handler function. This argument can be NULL.
- *
- * Returns:
- *   If the function succeeds, the return value is pointer to a Tcl interpeter
- *   structure. If the function fails, the return value is NULL.
- *
- * Remarks:
- *   The caller should delete the returned interpeter when finished.
- */
+/*++
+
+TclInit
+
+    Initialises a Tcl interpeter and evaluates the Tcl script in argv.
+
+Arguments:
+    argc     - Number of command-line arguments.
+    argv     - Array of pointers to strings that represent command-line arguments.
+    service  - Boolean to indicate whether the process is running as an NT service.
+    exitProc - Pointer to a Tcl exit handler function. This argument can be NULL.
+
+Return Value:
+    If the function succeeds, the return value is pointer to a Tcl interpeter
+    structure. If the function fails, the return value is NULL.
+
+Remarks:
+    The caller should delete the returned interpeter when finished.
+
+--*/
 Tcl_Interp *TclInit(int argc, char **argv, int service, Tcl_ExitProc *exitProc)
 {
     char *argList;
@@ -92,7 +103,7 @@ Tcl_Interp *TclInit(int argc, char **argv, int service, Tcl_ExitProc *exitProc)
     Tcl_Interp *interp;
     Tcl_Obj *intObj;
 
-    /* The second command-line argument must be a Tcl script. */
+    // The second command-line argument must be a Tcl script.
     if (argc < 2) {
         DEBUGLOG("TclInit: Invalid command-line arguments.\n");
         fprintf(stderr, "Usage: %s <script file> [arguments]\n", argv[0]);
@@ -100,7 +111,7 @@ Tcl_Interp *TclInit(int argc, char **argv, int service, Tcl_ExitProc *exitProc)
     }
 
 #ifdef _WINDOWS
-    /* Redirect standard channels for Tcl. */
+    // Redirect standard channels for Tcl.
     if (service) {
         freopen("nul", "r", stdin);
         freopen("nul", "w", stdout);
@@ -108,20 +119,20 @@ Tcl_Interp *TclInit(int argc, char **argv, int service, Tcl_ExitProc *exitProc)
     }
 #endif
 
-    /* Initialise Tcl and create an interpreter. */
+    // Initialise Tcl and create an interpreter.
     Tcl_FindExecutable(argv[0]);
     interp = Tcl_CreateInterp();
     Tcl_InitMemory(interp);
 
-    /*
-     * Source the init.tcl script. If this operation fails, we can
-     * continue and function normally (for the most part anyway).
-     */
+    //
+    // Source the init.tcl script. If this operation fails, we can
+    // continue and function normally (for the most part anyway).
+    //
     if (Tcl_Init(interp) != TCL_OK) {
         TclLogError("Tcl initialisation failed:\n", Tcl_GetObjResult(interp));
     }
 
-    /* Set the "argc", "argv", and "argv0" global variables. */
+    // Set the "argc", "argv", and "argv0" global variables.
     intObj = Tcl_NewIntObj(argc-1);
     Tcl_IncrRefCount(intObj);
     Tcl_SetVar2Ex(interp, "argc", NULL, intObj, TCL_GLOBAL_ONLY);
@@ -137,17 +148,17 @@ Tcl_Interp *TclInit(int argc, char **argv, int service, Tcl_ExitProc *exitProc)
     Tcl_SetVar(interp, "argv0", Tcl_DStringValue(&argString), TCL_GLOBAL_ONLY);
     Tcl_DStringFree(&argString);
 
-    /* Set tcl_service, to indicate whether the process is running as a NT service. */
+    // Set tcl_service, to indicate whether the process is running as a NT service.
     intObj = Tcl_NewIntObj(service != 0);
     Tcl_IncrRefCount(intObj);
     Tcl_SetVar2Ex(interp, "tcl_service", NULL, intObj, TCL_GLOBAL_ONLY);
     Tcl_DecrRefCount(intObj);
 
-    /*
-     * Create an exit callback to handle unexpected exit requests, allowing
-     * us to clean up. For example, if the script being evaluated invokes
-     * the "exit" command.
-     */
+    //
+    // Create an exit callback to handle unexpected exit requests, allowing
+    // us to clean up. For example, if the script being evaluated invokes
+    // the "exit" command.
+    //
     if (exitProc != NULL) {
         Tcl_CreateExitHandler(exitProc, NULL);
     }
@@ -156,44 +167,47 @@ Tcl_Interp *TclInit(int argc, char **argv, int service, Tcl_ExitProc *exitProc)
         TclLogError("Script evaluation failed:\n",
             Tcl_GetVar2Ex(interp, "errorInfo", NULL, TCL_GLOBAL_ONLY));
 
-        /* Delete the interpreter if it still exists. */
+        // Delete the interpreter if it still exists.
         if (!Tcl_InterpDeleted(interp)) {
             Tcl_DeleteInterp(interp);
         }
         success = 0;
     }
 
-    /*
-     * Nothing must be done to obstruct the interpreter's result object if
-     * Tcl_EvalFile() succeeds. The result is used to determine whether or
-     * not we fork the process into the background (nix only).
-     */
+    //
+    // Nothing must be done to obstruct the interpreter's result object if
+    // Tcl_EvalFile() succeeds. The result is used to determine whether or
+    // not we fork the process into the background (nix only).
+    //
 
     return (success != 0) ? interp : NULL;
 }
 
-/*
- * TclLogError
- *
- *   Displays an error message to stderr and logs it to Error.log.
- *
- * Arguments:
- *   message - Pointer to a buffer containing a string which explains the error.
- *   objPtr  - Pointer to a Tcl object containing the error text.
- *
- * Returns:
- *   None.
- *
- * Remarks:
- *   None.
- */
-static void TclLogError(const char *message, Tcl_Obj *objPtr)
+/*++
+
+TclLogError
+
+    Displays an error message to stderr and logs it to Error.log.
+
+Arguments:
+    message - Pointer to a buffer containing a string which explains the error.
+    objPtr  - Pointer to a Tcl object containing the error text.
+
+Return Value:
+    None.
+
+--*/
+static void
+TclLogError(
+    const char *message,
+    Tcl_Obj *objPtr
+    )
 {
     Tcl_Channel channel;
 
     DEBUGLOG("TclLogError: %s%s\n", message, Tcl_GetString(objPtr));
 
-    /* Write message to stderr. */
+    // Write message to stderr.
     channel = Tcl_GetStdChannel(TCL_STDERR);
     if (channel != NULL) {
         Tcl_WriteChars(channel, message, -1);
@@ -201,7 +215,7 @@ static void TclLogError(const char *message, Tcl_Obj *objPtr)
         Tcl_WriteChars(channel, "\n", 1);
     }
 
-    /* Write message to Error.log. */
+    // Write message to Error.log.
     channel = Tcl_OpenFileChannel(NULL, "Error.log", "a", 0644);
     if (channel != NULL) {
         char timeStamp[64];
@@ -221,7 +235,7 @@ static void TclLogError(const char *message, Tcl_Obj *objPtr)
             now->tm_year+1900, now->tm_mon, now->tm_mday,
             now->tm_hour, now->tm_min, now->tm_sec);
         timeStamp[ARRAYSIZE(timeStamp)-1] = '\0';
-#endif /* _WINDOWS */
+#endif // _WINDOWS
 
         Tcl_WriteChars(channel, timeStamp, -1);
         Tcl_WriteChars(channel, message, -1);

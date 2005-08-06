@@ -1,36 +1,41 @@
-/*
- * AlcoTcld - Alcoholicz Tcl daemon.
- * Copyright (c) 2005 Alcoholicz Scripting Team
- *
- * File Name:
- *   tcldUnixMain.c
- *
- * Author:
- *   neoxed (neoxed@gmail.com) July 20, 2005
- *
- * Abstract:
- *   BSD/Linux/UNIX application entry point.
- */
+/*++
+
+AlcoTcld - Alcoholicz Tcl daemon.
+Copyright (c) 2005 Alcoholicz Scripting Team
+
+Module Name:
+    tcldUnixMain.c
+
+Author:
+    neoxed (neoxed@gmail.com) July 20, 2005
+
+Abstract:
+    BSD/Linux/UNIX application entry point.
+
+--*/
 
 #include <tcld.h>
 
-/*
- * main
- *
- *   Application entry point.
- *
- * Arguments:
- *   argc - Number of command-line arguments.
- *   argv - Array of pointers to strings that represent command-line arguments.
- *
- * Returns:
- *   If the function succeeds, the return value is zero. If the function
- *   fails, the return value is nonzero.
- *
- * Remarks:
- *   None.
- */
-int main(int argc, char **argv)
+/*++
+
+main
+
+    Application entry point.
+
+Arguments:
+    argc    - Number of command-line arguments.
+    argv    - Array of pointers to strings that represent command-line arguments.
+
+Return Value:
+    If the function succeeds, the return value is zero. If the function
+    fails, the return value is nonzero.
+
+--*/
+int
+main(
+    int argc,
+    char **argv
+    )
 {
     int background = -1;
     char *currentPath;
@@ -39,7 +44,7 @@ int main(int argc, char **argv)
 
     DEBUGLOG("main: Starting...\n");
 
-    /* Change working directory to the image location. */
+    // Change working directory to the image location.
     currentPath = strdup(argv[0]);
     if (currentPath != NULL) {
         char *p = strrchr(currentPath, '/');
@@ -60,10 +65,10 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    /*
-     * The evaluated script must return a true boolean value (1/true/on)
-     * in order for the process to be forked into the background.
-     */
+    //
+    // The evaluated script must return a true boolean value (1/true/on)
+    // in order for the process to be forked into the background.
+    //
     resultObj = Tcl_GetObjResult(interp);
     if (Tcl_GetBooleanFromObj(NULL, resultObj, &background) == TCL_OK && background) {
         pid_t pid = fork();
@@ -78,7 +83,7 @@ int main(int argc, char **argv)
         fprintf(stderr, "Script returned %d, not forking process.\n", background);
     }
 
-    /* Wait forever... */
+    // Wait forever.
     for (;;) {
         sleep(5);
     }

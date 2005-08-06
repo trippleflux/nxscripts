@@ -1,16 +1,18 @@
-/*
- * AlcoTcld - Alcoholicz Tcl daemon.
- * Copyright (c) 2005 Alcoholicz Scripting Team
- *
- * File Name:
- *   tcldWin.h
- *
- * Author:
- *   neoxed (neoxed@gmail.com) July 17, 2005
- *
- * Abstract:
- *   Windows specific includes and defintions.
- */
+/*++
+
+AlcoTcld - Alcoholicz Tcl daemon.
+Copyright (c) 2005 Alcoholicz Scripting Team
+
+Module Name:
+    tcldWin.h
+
+Author:
+    neoxed (neoxed@gmail.com) July 17, 2005
+
+Abstract:
+    Windows specific includes and defintions.
+
+--*/
 
 #ifndef _TCLDWIN_H_
 #define _TCLDWIN_H_
@@ -23,7 +25,7 @@
 #   define _WINDOWS
 #endif
 
-/* System includes. */
+// System includes.
 #include <windows.h>
 #include <shlwapi.h>
 #include <stdlib.h>
@@ -44,8 +46,8 @@
 #   elif defined(_MSC_VER)
 #       define inline __inline
 #   else
-#       error Only MSVC is supported.
+#       define inline
 #   endif
-#endif /* inline */
+#endif // inline
 
-#endif /* _TCLDWIN_H_ */
+#endif // _TCLDWIN_H_
