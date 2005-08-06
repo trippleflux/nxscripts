@@ -74,7 +74,7 @@ proc ::nxTools::Pre::ResolvePath {UserName GroupName RealPath} {
     set ResolvePath "/"; set VfsFile ""
     set RealPath [string map {\\ /} $RealPath]
 
-    ## Find the user VFS file.
+    # Find the user VFS file.
     if {[userfile open $UserName] == 0} {
         set UserFile [userfile bin2ascii]
         foreach UserLine [split $UserFile "\r\n"] {
@@ -83,7 +83,7 @@ proc ::nxTools::Pre::ResolvePath {UserName GroupName RealPath} {
             }
         }
     }
-    ## Use the group VFS file if the user vfs file does not exist.
+    # Use the group VFS file if the user vfs file does not exist.
     if {![file isfile $VfsFile] && [groupfile open $GroupName] == 0} {
         set GroupFile [groupfile bin2ascii]
         foreach GroupLine [split $GroupFile "\r\n"] {
@@ -92,7 +92,7 @@ proc ::nxTools::Pre::ResolvePath {UserName GroupName RealPath} {
             }
         }
     }
-    ## Use the default VFS file if both the user and group VFS file do not exist.
+    # Use the default VFS file if both the user and group VFS file do not exist.
     if {![file isfile $VfsFile]} {
         set VfsFile [config read "Locations" "Default_Vfs"]
     }
@@ -103,7 +103,7 @@ proc ::nxTools::Pre::ResolvePath {UserName GroupName RealPath} {
             foreach {VfsRealPath VfsVirtualPath} [string map {\\ /} $FileLine] {break}
 
             if {[string first [string tolower $VfsRealPath] [string tolower $RealPath]] == 0} {
-                ## Use the longest available mount path, improves more accuracy.
+                # Use the longest available mount path, improves more accuracy.
                 if {[set Length [string length $VfsRealPath]] > $BestMatch} {
                     set ResolvePath [string range $RealPath [set BestMatch $Length] end]
                     set ResolvePath [file join $VfsVirtualPath [string trimleft $ResolvePath "/"]]
@@ -127,7 +127,7 @@ proc ::nxTools::Pre::UpdateLinks {VirtualPath} {
         ErrorLog PreLinks $ErrorMsg
         return 1
     }
-    ## Format and create link directory.
+    # Format and create link directory.
     set TagName [file tail $VirtualPath]
     if {$latest(MaxLength) > 0 && [string length $TagName] > $latest(MaxLength)} {
         set TagName [string trimright [string range $TagName 0 $latest(MaxLength)] "."]
@@ -140,7 +140,7 @@ proc ::nxTools::Pre::UpdateLinks {VirtualPath} {
         catch {vfs chattr $TagName 1 $VirtualPath}
     } else {ErrorLog PreLinksMkDir $ErrorMsg}
 
-    ## Remove older links.
+    # Remove older links.
     if {[set LinkCount [LinkDb eval {SELECT count(*) FROM Links WHERE LinkType=1}]] > $latest(PreLinks)} {
         set LinkCount [expr {$LinkCount - $latest(PreLinks)}]
         LinkDb eval "SELECT DirName,rowid FROM Links WHERE LinkType=1 ORDER BY TimeStamp ASC LIMIT $LinkCount" values {
@@ -256,7 +256,7 @@ proc ::nxTools::Pre::Edit {ArgList} {
                 ErrorReturn "Invalid group, you must specify a group to add."
             }
 
-            ## Check if the group already exists in the area.
+            # Check if the group already exists in the area.
             if {![info exists pregrp($PreArea)]} {set pregrp($PreArea) ""}
             foreach GroupEntry $pregrp($PreArea) {
                 if {[string equal -nocase $GroupEntry $Value]} {
@@ -302,7 +302,7 @@ proc ::nxTools::Pre::Edit {ArgList} {
                 ErrorReturn "Note: Make sure the path has both leading and trailing slashes."
             } elseif {[string index $Value end] ne "/"} {append Value "/"}
 
-            ## Check if the path already defined for that group.
+            # Check if the path already defined for that group.
             if {![info exists prepath($Target)]} {set prepath($Target) ""}
             foreach PathEntry $prepath($Target) {
                 if {[string equal -nocase $PathEntry $Value]} {
@@ -452,7 +452,7 @@ proc ::nxTools::Pre::History {ArgList} {
     }
 
     iputs ".-\[PreHistory\]-----------------------------------------------------------."
-    iputs "| ## |  Release                                              |  Amount   |"
+    iputs "| # |  Release                                              |  Amount   |"
     iputs "|------------------------------------------------------------------------|"
     set Count 0
     if {![catch {DbOpenFile [namespace current]::PreDb "Pres.db"} ErrorMsg]} {
@@ -479,7 +479,7 @@ proc ::nxTools::Pre::Stats {ArgList} {
     }
 
     iputs ".-\[PreStats\]-------------------------------------------------------------."
-    iputs "| ## |  Group                        |   Pres    |   Files   |  Amount   |"
+    iputs "| # |  Group                        |   Pres    |   Files   |  Amount   |"
     iputs "|------------------------------------------------------------------------|"
     set Count 0
     if {![catch {DbOpenFile [namespace current]::PreDb "Pres.db"} ErrorMsg]} {
@@ -500,14 +500,14 @@ proc ::nxTools::Pre::Release {ArgList} {
     set PreArea [string toupper [lindex $ArgList 0]]
     set Target [lindex $ArgList 1]
 
-    ## Check area and group paths.
+    # Check area and group paths.
     if {![info exists prearea($PreArea)] || ![string length $prearea($PreArea)]} {
         ErrorReturn "Invalid area, try \"SITE PRE HELP\" to view available areas."
     } elseif {![info exists pregrp($PreArea)]} {
         ErrorReturn "The specified area has no group list defined."
     }
 
-    ## Check if group is allowed to pre to the area and from this path.
+    # Check if group is allowed to pre to the area and from this path.
     set AllowPath 0; set PreGroup ""
     set VirtualPath [GetPath $pwd $Target]
     foreach GroupName $groups {
@@ -530,7 +530,7 @@ proc ::nxTools::Pre::Release {ArgList} {
         ErrorReturn "Your group \"$PreGroup\" is not allowed to pre from this path."
     }
 
-    ## Check if the specified directory exists.
+    # Check if the specified directory exists.
     set RealPath [resolve pwd $VirtualPath]
     if {![string length $Target] || ![file isdirectory $RealPath]} {
         ErrorReturn "The specified directory does not exist."
@@ -538,7 +538,7 @@ proc ::nxTools::Pre::Release {ArgList} {
     set DiskCount 0; set Files 0; set TotalSize 0
     set Release [file tail $VirtualPath]
 
-    ## Find destination path.
+    # Find destination path.
     set DestRealPath $prearea($PreArea)
     set PreTime [clock seconds]
     set DestRealPath [clock format $PreTime -format $DestRealPath -gmt [IsTrue $misc(UtcTime)]]
@@ -549,16 +549,16 @@ proc ::nxTools::Pre::Release {ArgList} {
     set DestRealPath [file join $DestRealPath $Release]
     if {[file exists $DestRealPath]} {ErrorReturn "A file or directory by that name already exists in the target area."}
 
-    ## Find the credit and stats section.
+    # Find the credit and stats section.
     set DestVirtualPath [ResolvePath $user $group $DestRealPath]
     ListAssign [GetCreditStatSections $DestVirtualPath] CreditSection StatSection
 
-    ## Count disk sub-directories.
+    # Count disk sub-directories.
     foreach ListItem [glob -nocomplain -types d -directory $RealPath "*"] {
         if {[IsMultiDisk $ListItem]} {incr DiskCount}
     }
 
-    ## Count files and total size.
+    # Count files and total size.
     GetDirList $RealPath dirlist ".ioFTPD*"
     foreach ListItem $dirlist(FileList) {
         incr Files; set FileSize [file size $ListItem]
@@ -579,8 +579,8 @@ proc ::nxTools::Pre::Release {ArgList} {
     }
     set TotalSize [expr {wide($TotalSize) / 1024}]
 
-    ## If the pre destination is a different drive, ensure that there
-    ## is adequate space for the release (and a 10MB "safety" buffer).
+    # If the pre destination is a different drive, ensure that there
+    # is adequate space for the release (and a 10MB "safety" buffer).
     set SourceDrive [lindex [file split $RealPath] 0]
     set DestDrive [lindex [file split $DestRealPath] 0]
 
@@ -601,7 +601,7 @@ proc ::nxTools::Pre::Release {ArgList} {
     LinePuts "Release : $Release"
     LinePuts "Files   : [format %-16s ${Files}F] Size: [format %-16s [FormatSize $TotalSize]] CDs: $DiskCount"
 
-    ## Move release to the destination path.
+    # Move release to the destination path.
     KickUsers [file join $VirtualPath "*"]
     if {[catch {file rename -force -- $RealPath $DestRealPath} ErrorMsg]} {
         ErrorLog PreMove $ErrorMsg
@@ -612,7 +612,7 @@ proc ::nxTools::Pre::Release {ArgList} {
     set FilePath [expr {!$DiskCount ? "*.mp3" : "*/*.mp3"}]
     set MP3Files [glob -nocomplain -types f -directory $DestRealPath $FilePath]
 
-    ## Attempt to parse every MP3 file until successful.
+    # Attempt to parse every MP3 file until successful.
     foreach FilePath $MP3Files {
         if {[catch {::nx::mp3 $FilePath mp3} ErrorMsg]} {
             ErrorLog PreMP3 $ErrorMsg
@@ -627,13 +627,13 @@ proc ::nxTools::Pre::Release {ArgList} {
         }
     }
 
-    ## Change file and directory ownership.
+    # Change file and directory ownership.
     if {[string is digit -strict $pre(ChownUserId)]} {
         GetDirList $DestRealPath dirlist ".ioFTPD*"
         foreach ListItem $dirlist(DirList) {
             catch {vfs read $ListItem} VfsOwner
             ListAssign $VfsOwner UserId GroupId Chmod
-            ## Verify the group and chmod the directory.
+            # Verify the group and chmod the directory.
             if {![string is digit -strict $GroupId]} {set GroupId [lindex $misc(DirOwner) 1]}
             if {![string is digit -strict $Chmod]} {set Chmod $misc(DirChmod)}
             catch {vfs write $ListItem $pre(ChownUserId) $GroupId $Chmod}
@@ -641,13 +641,13 @@ proc ::nxTools::Pre::Release {ArgList} {
         foreach ListItem $dirlist(FileList) {
             catch {vfs read $ListItem} VfsOwner
             ListAssign $VfsOwner UserId GroupId Chmod
-            ## Verify the group and chmod the file.
+            # Verify the group and chmod the file.
             if {![string is digit -strict $GroupId]} {set GroupId [lindex $misc(FileOwner) 1]}
             if {![string is digit -strict $Chmod]} {set Chmod $misc(FileChmod)}
             catch {vfs write $ListItem $pre(ChownUserId) $GroupId $Chmod}
         }
     }
-    ## Update file and directory times.
+    # Update file and directory times.
     if {[IsTrue $pre(TouchTimes)]} {
         if {[catch {::nx::touch -recurse $DestRealPath $PreTime} ErrorMsg]} {
             ErrorLog PreTouch $ErrorMsg
@@ -703,7 +703,7 @@ proc ::nxTools::Pre::Release {ArgList} {
         }
         MySqlClose
     }
-    ## Create latest pre symlinks.
+    # Create latest pre symlinks.
     if {$latest(PreLinks) > 0} {UpdateLinks $DestVirtualPath}
     return 0
 }

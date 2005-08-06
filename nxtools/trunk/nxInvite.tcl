@@ -113,7 +113,7 @@ proc ::nxTools::Invite::Main {ArgV} {
                 ErrorReturn "Invalid target, try \"SITE INVITE HELP\" to view available targets."
             }
 
-            ## Check if the user has access to the specified target.
+            # Check if the user has access to the specified target.
             if {![info exists rights($Target)]} {
                 ErrorReturn "The invite target \"$Target\" has no rights defined."
             } elseif {![RightsCheck $rights($Target) $user $groups $flags]} {

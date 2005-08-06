@@ -16,7 +16,7 @@ namespace eval ::nxTools::Db {
     variable dbschema
     variable dbtables
 
-    ## Table Formats
+    # Table Formats
     set dbschema(Approves) 0
     set dbtables(Approves) {
         Approves {CREATE TABLE Approves(
@@ -135,7 +135,7 @@ proc ::nxTools::Db::Create {DbList} {
             LinePuts "- Invalid schema version (current: v$CurrentVer, required: v$dbschema($DbName))."
             SqliteDb close
 
-            ## Rename the old database to <current name>.old-v<current version>.
+            # Rename the old database to <current name>.old-v<current version>.
             set DbOld "${DbPath}.old-v$CurrentVer"
             if {[catch {file rename -- $DbPath $DbOld} ErrorMsg]} {
                 LinePuts "- $ErrorMsg"
@@ -144,7 +144,7 @@ proc ::nxTools::Db::Create {DbList} {
                 LinePuts "- Renamed current database to [file tail $DbOld]."
             }
 
-            ## Re-open the database to create the tables.
+            # Re-open the database to create the tables.
             if {[catch {sqlite3 SqliteDb $DbPath} ErrorMsg]} {
                 LinePuts "- Unable to re-open file: $ErrorMsg"
                 continue

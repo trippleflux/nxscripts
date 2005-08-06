@@ -30,7 +30,7 @@ proc ::nxTools::Req::CheckLimit {UserName GroupName} {
             set Target [string range $Target 1 end]
             if {$Target ne $GroupName} {continue}
 
-            ## Group request limits are only checked when 'Target' has a group prefix (=).
+            # Group request limits are only checked when 'Target' has a group prefix (=).
             if {$GroupLimit >= 0 && [ReqDb eval {SELECT count(*) FROM Requests WHERE Status=0 AND GroupName=$Target}] >= $GroupLimit} {
                 LinePuts "You have reached your group's request limit of $GroupLimit request(s)."
                 return 0
@@ -110,7 +110,7 @@ proc ::nxTools::Req::Add {UserName GroupName Request} {
     } elseif {[CheckLimit $UserName $GroupName]} {
         set RequestId 1
         ReqDb eval {SELECT (max(RequestId)+1) AS NextId FROM Requests WHERE Status=0} values {
-            ## The max() function returns NULL if there are no matching records.
+            # The max() function returns NULL if there are no matching records.
             if {[string length $values(NextId)]} {
                 set RequestId $values(NextId)
             }
@@ -144,7 +144,7 @@ proc ::nxTools::Req::Update {Event UserName GroupName Request} {
             set LogPrefix "REQFILL"
 
         } elseif {$Event eq "DEL"} {
-            ## Only siteops or the owner may delete a request.
+            # Only siteops or the owner may delete a request.
             if {$UserName ne $values(UserName) && ![regexp "\[$misc(SiteopFlags)\]" $flags]} {
                 ReqDb close
                 ErrorReturn "You are not allowed to delete another user's request."
@@ -208,7 +208,7 @@ proc ::nxTools::Req::Wipe {} {
             set RequestAge [expr {[clock seconds] - $values(TimeStamp)}]
             set RequestId [format "%03s" $values(RequestId)]
 
-            ## Wipe the directory if it exists.
+            # Wipe the directory if it exists.
             set FillPath [string map [list %(request) $values(Request)] $req(FilledTag)]
             set FillPath [file join $req(RequestPath) $FillPath]
             if {[file isdirectory $FillPath]} {

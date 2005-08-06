@@ -46,7 +46,7 @@ proc ::nxTools::Close::Main {ArgV} {
                 LinePuts "Server is now closed for: $CloseReason."
                 putlog "CLOSE: \"$user\" \"$group\" \"$CloseReason\""
 
-                ## Kick online users.
+                # Kick online users.
                 if {[IsTrue $close(KickOnClose)] && [client who init "CID" "UID"] == 0} {
                     while {[set WhoData [client who fetch]] ne ""} {
                         set UserName [resolve uid [lindex $WhoData 1]]

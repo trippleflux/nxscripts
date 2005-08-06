@@ -64,7 +64,7 @@ proc ::nxTools::Dupe::UpdateLog {Event VirtualPath} {
     if {[ListMatch $dupe(LoggingExempts) $VirtualPath]} {return 0}
     set Event [string toupper $Event]
 
-    ## Check if the virtual path is a file or directory.
+    # Check if the virtual path is a file or directory.
     if {$Event eq "UPLD" || $Event eq "DELE" || [file isfile [resolve pwd $VirtualPath]]} {
         if {[IsTrue $dupe(CheckFiles)] && ![ListMatchI $dupe(IgnoreFiles) $VirtualPath]} {
             return [UpdateFiles $Event $VirtualPath]
@@ -88,8 +88,8 @@ proc ::nxTools::Dupe::UpdateDirs {Event VirtualPath} {
         set TimeStamp [clock seconds]
         DirDb eval {INSERT INTO DupeDirs(TimeStamp,UserName,GroupName,DirPath,DirName) VALUES($TimeStamp,$user,$group,$DirPath,$DirName)}
     } elseif {[lsearch -sorted {RMD RNFR WIPE} $Event] != -1} {
-        ## Append a slash to improve the accuracy of StrCaseEqN.
-        ## For example, /Dir/Blah matches /Dir/Blah.Blah but /Dir/Blah/ does not.
+        # Append a slash to improve the accuracy of StrCaseEqN.
+        # For example, /Dir/Blah matches /Dir/Blah.Blah but /Dir/Blah/ does not.
         append VirtualPath "/"
         DirDb eval {DELETE FROM DupeDirs WHERE StrCaseEqN(DirPath,$VirtualPath,length($VirtualPath)) OR (StrCaseEq(DirPath,$DirPath) AND StrCaseEq(DirName,$DirName))}
     }
@@ -356,7 +356,7 @@ proc ::nxTools::Dupe::RaceLinks {VirtualPath} {
         ErrorLog RaceLinks $ErrorMsg
         return 1
     }
-    ## Format and create link directory.
+    # Format and create link directory.
     set TagName [file tail $VirtualPath]
     if {$latest(MaxLength) > 0 && [string length $TagName] > $latest(MaxLength)} {
         set TagName [string trimright [string range $TagName 0 $latest(MaxLength)] "."]
@@ -369,7 +369,7 @@ proc ::nxTools::Dupe::RaceLinks {VirtualPath} {
         catch {vfs chattr $TagName 1 $VirtualPath}
     } else {ErrorLog RaceLinksMkDir $ErrorMsg}
 
-    ## Remove older links.
+    # Remove older links.
     if {[set LinkCount [LinkDb eval {SELECT count(*) FROM Links WHERE LinkType=0}]] > $latest(RaceLinks)} {
         set LinkCount [expr {$LinkCount - $latest(RaceLinks)}]
         LinkDb eval "SELECT DirName,rowid FROM Links WHERE LinkType=0 ORDER BY TimeStamp ASC LIMIT $LinkCount" values {
@@ -399,7 +399,7 @@ proc ::nxTools::Dupe::SiteApprove {Event Release} {
             } elseif {[ApproveDb eval {SELECT count(*) FROM Approves WHERE StrCaseEq(Release,$Release)}]} {
                 LinePuts "This release is already approved."
             } else {
-                ## If the release already exists in the dupe database, we'll approve that one.
+                # If the release already exists in the dupe database, we'll approve that one.
                 set Approved 0
                 if {![catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} ErrorMsg]} {
                     DirDb eval {SELECT DirName,DirPath FROM DupeDirs WHERE StrCaseEq(DirName,$Release) ORDER BY TimeStamp DESC LIMIT 1} values {
@@ -554,7 +554,7 @@ proc ::nxTools::Dupe::SiteNew {MaxResults ShowSection} {
     }
     set SectionList [GetSectionList]
     if {![set ShowAll [string equal "" $ShowSection]]} {
-        ## Validate the section name.
+        # Validate the section name.
         set SectionNameList ""; set ValidSection 0
         foreach {SectionName CreditSection StatSection MatchPath} $SectionList {
             if {[string equal -nocase $ShowSection $SectionName]} {
@@ -577,7 +577,7 @@ proc ::nxTools::Dupe::SiteNew {MaxResults ShowSection} {
     set Count 0
     DirDb eval "SELECT * FROM DupeDirs $WhereClause ORDER BY TimeStamp DESC LIMIT $MaxResults" values {
         incr Count
-        ## Find section name and check the match path.
+        # Find section name and check the match path.
         if {$ShowAll} {
             set SectionName "Default"
             foreach {SectionName CreditSection StatSection MatchPath} $SectionList {
@@ -626,7 +626,7 @@ proc ::nxTools::Dupe::SitePreTime {MaxResults Pattern} {
                 set BodyTemplate [expr {$SingleResult ? ($IsNuked != 0 ? $template(BodyNuke) : $template(BodyInfo)) : $template(Body)}]
                 set ReleaseAge [FormatDuration $ReleaseAge]
 
-                ## The pre time should always been in UTC (GMT).
+                # The pre time should always been in UTC (GMT).
                 set ValueList [clock format $PreTime -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 1]
                 set ValueList [concat $ValueList [clock format $NukeTime -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 1]]
                 lappend ValueList $ReleaseAge $Count $Section $Release $Files [FormatSize $KBytes] $Disks $NukeReason
@@ -686,8 +686,8 @@ proc ::nxTools::Dupe::SiteUndupe {ArgList} {
 proc ::nxTools::Dupe::SiteWipe {VirtualPath} {
     global dupe misc wipe group user
     iputs ".-\[Wipe\]-----------------------------------------------------------------."
-    ## Resolving a symlink returns its target path, which could have unwanted
-    ## results. To avoid such issues, we'll resolve the parent path instead.
+    # Resolving a symlink returns its target path, which could have unwanted
+    # results. To avoid such issues, we'll resolve the parent path instead.
     set ParentPath [resolve pwd [file dirname $VirtualPath]]
     set RealPath [file join $ParentPath [file tail $VirtualPath]]
     if {![file exists $RealPath]} {

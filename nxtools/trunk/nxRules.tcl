@@ -38,7 +38,7 @@ proc ::nxTools::Rules::Main {ShowSection} {
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     set SectionList ""; set SectionName ""; set ShowList ""
 
-    ## Read rules configuration.
+    # Read rules configuration.
     if {![catch {set Handle [open $rules(ConfigFile) r]} ErrorMsg]} {
         while {![eof $Handle]} {
             set FileLine [string trim [gets $Handle]]
@@ -53,7 +53,7 @@ proc ::nxTools::Rules::Main {ShowSection} {
         close $Handle
     } else {ErrorLog RulesRead $ErrorMsg; return 1}
 
-    ## Find the specified section, show all areas if is there no match.
+    # Find the specified section, show all areas if is there no match.
     foreach SectionName $SectionList {
         if {[string equal -nocase $SectionName $ShowSection]} {
             set ShowList [list $SectionName]; break
@@ -74,7 +74,7 @@ proc ::nxTools::Rules::Main {ShowSection} {
 
         foreach {PunishText RuleText} $RuleList {
             incr Count; set MultiLine 0
-            ## Wrap each line before displaying.
+            # Wrap each line before displaying.
             foreach RuleLine [WordWrap $RuleText $rules(LineWidth)] {
                 set ValueList [list $Count $PunishText $RuleLine $SectionName]
                 if {!$MultiLine} {

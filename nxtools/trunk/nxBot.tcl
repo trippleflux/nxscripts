@@ -152,7 +152,7 @@ proc ::nxTools::Bot::Who {} {
             set FileName [file tail $DataPath]
             set Speed [expr {double($Speed)}]
 
-            ## Find the user's primary group.
+            # Find the user's primary group.
             if {[userfile open $UserName] == 0} {
                 set UserFile [userfile bin2ascii]
                 foreach UserLine [split $UserFile "\r\n"] {
@@ -193,13 +193,13 @@ proc ::nxTools::Bot::Main {ArgV} {
         }
         {STATS} {
             if {$ArgLength > 2} {
-                ## Check stats type.
+                # Check stats type.
                 set StatsType [string tolower [lindex $ArgList 1]]
                 if {[lsearch -exact {alldn allup daydn dayup monthdn monthup wkdn wkup} $StatsType] == -1} {
                     set StatsType "Stats"
                 }
 
-                ## Check section number.
+                # Check section number.
                 set Section [lindex $ArgList 2]
                 if {![string is digit -strict $Section] || $Section > 9} {
                     set StartIndex 1

@@ -98,7 +98,7 @@ proc ::nxTools::Utils::NewDate {FindArea} {
         foreach {AreaName Description VirtualPath RealPath SymLink DoLog DayOffset UserId GroupId Chmod} $NewArea {break}
         LinePuts ""; LinePuts "$AreaName ($Description):"
 
-        ## Format cookies and directory paths.
+        # Format cookies and directory paths.
         set AreaTime [expr {$TimeNow + ($DayOffset * 86400)}]
         set VirtualPath [clock format $AreaTime -format $VirtualPath -gmt [IsTrue $misc(UtcTime)]]
         set RealPath [clock format $AreaTime -format $RealPath -gmt [IsTrue $misc(UtcTime)]]
@@ -178,7 +178,7 @@ proc ::nxTools::Utils::RotateLogs {} {
 
     set MinimumSize [expr {$log(MinimumSize) * 1024 * 1024}]
     foreach LogFile $log(RotateList) {
-        ## Archive log file if it exists and meets the size requirement.
+        # Archive log file if it exists and meets the size requirement.
         if {![file isfile $LogFile]} {
             LinePuts "Skipping log \"[file tail $LogFile]\" - the file does not exist."
         } elseif {[file size $LogFile] < $MinimumSize} {
@@ -236,7 +236,7 @@ proc ::nxTools::Utils::WeeklyCredits {WkTarget WkAmount} {
         ErrorReturn "Unable to load the weekly credits configuration, contact a siteop."
     }
 
-    ## Display weekly credit targets.
+    # Display weekly credit targets.
     if {![string length $WkTarget]} {
         if {[llength $TargetList]} {
             iputs "|     Target     |   Section   |  Credit Amount                          |"
@@ -247,7 +247,7 @@ proc ::nxTools::Utils::WeeklyCredits {WkTarget WkAmount} {
             }
         } else {LinePuts "There are currently no weekly credit targets."}
     } elseif {[regexp {^(\d),((\+|\-)?\d+)$} $WkAmount Result Section Credits]} {
-        ## Add or remove weekly credit targets.
+        # Add or remove weekly credit targets.
         set Deleted 0; set Index 0
         set CreditsKB [expr {wide($Credits) * 1024}]
         foreach ListItem $TargetList {
@@ -259,7 +259,7 @@ proc ::nxTools::Utils::WeeklyCredits {WkTarget WkAmount} {
         if {$Deleted} {
             LinePuts "Removed the target \"$WkTarget\" (${Credits}MB in section $Section) from weekly credits."
         } else {
-            ## Check if the user or group exists.
+            # Check if the user or group exists.
             if {[string index $WkTarget 0] eq "="} {
                 if {[resolve group [string range $WkTarget 1 end]] == -1} {
                     ErrorReturn "The specified group does not exist."
@@ -271,7 +271,7 @@ proc ::nxTools::Utils::WeeklyCredits {WkTarget WkAmount} {
             lappend TargetList [list $WkTarget $Section $CreditsKB]
         }
 
-        ## Rewrite weekly configuration file.
+        # Rewrite weekly configuration file.
         if {![catch {set Handle [open $weekly(ConfigFile) w]} ErrorMsg]} {
             puts -nonewline $Handle $CfgComments
             foreach ListItem [lsort -ascii -index 0 $TargetList] {
@@ -318,7 +318,7 @@ proc ::nxTools::Utils::WeeklySet {} {
                 }
                 set UserList [GetGroupUsers $GroupId]
                 set UserCount [llength $UserList]
-                ## Split credits evenly amongst its group members.
+                # Split credits evenly amongst its group members.
                 if {$UserCount > 1 && [IsTrue $weekly(SplitGroup)]} {
                     if {![regexp {^(\+|\-)?(\d+)$} $Credits Result Method Amount]} {continue}
                     set Credits $Method; append Credits [expr {wide($Amount) / $UserCount}]
@@ -384,7 +384,7 @@ proc ::nxTools::Utils::SiteDrives {} {
     foreach VolName [file volumes] {
         set VolName [string map {/ \\} $VolName]
 
-        ## We're only interested in fixed volumes and network volumes.
+        # We're only interested in fixed volumes and network volumes.
         switch -- [::nx::volume type $VolName] {
             3 {set TypeName "Fixed"}
             4 {set TypeName "Network"}
@@ -421,7 +421,7 @@ proc ::nxTools::Utils::SiteGroupInfo {GroupName Section} {
     iputs "|  Username          |   All Up   |   All Dn   |   Ratio    |   Flags    |"
     iputs "|------------------------------------------------------------------------|"
 
-    ## Validate section number.
+    # Validate section number.
     if {![string is digit -strict $Section] || $Section > 9} {set Section 1} else {incr Section}
     set LeechCount 0
     set UserList [GetGroupUsers $GroupId]
@@ -451,7 +451,7 @@ proc ::nxTools::Utils::SiteGroupInfo {GroupName Section} {
             set uinfo(Ratio) "Unlimited"; incr LeechCount
         }
 
-        ## Siteop and group admin prefix.
+        # Siteop and group admin prefix.
         if {[regexp "\[$misc(SiteopFlags)\]" $uinfo(Flags)]} {
             set uinfo(Prefix) "*"
         } elseif {[lsearch -exact $uinfo(AdminGroups) $GroupId] != -1} {
@@ -460,7 +460,7 @@ proc ::nxTools::Utils::SiteGroupInfo {GroupName Section} {
         iputs [format "| %-18s | %10s | %10s | %-10s | %-10s |" $uinfo(Prefix)$UserName [FormatSize $uinfo(allup)] [FormatSize $uinfo(alldn)] $uinfo(Ratio) $uinfo(Flags)]
     }
 
-    ## Find the group's description and slot count.
+    # Find the group's description and slot count.
     array set ginfo [list Slots "0 0" TagLine "No TagLine Set"]
     if {[groupfile open $GroupName] == 0} {
         set GroupFile [groupfile bin2ascii]
@@ -605,7 +605,7 @@ proc ::nxTools::Utils::SiteWho {} {
             set GroupName "NoGroup"; set TagLine "No Tagline Set"
             set FileName [file tail $DataPath]
 
-            ## Find the user's group and tagline.
+            # Find the user's group and tagline.
             if {[userfile open $UserName] == 0} {
                 set UserFile [userfile bin2ascii]
                 foreach UserLine [split $UserFile "\r\n"] {
@@ -618,7 +618,7 @@ proc ::nxTools::Utils::SiteWho {} {
                 }
             }
 
-            ## Show hidden users to either admins or the user.
+            # Show hidden users to either admins or the user.
             if {$IsAdmin || $cid == $ClientId || ![CheckHidden $UserName $GroupName $VirtualPath]} {
                 switch -- $Status {
                     0 - 3 {

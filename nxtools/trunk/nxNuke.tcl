@@ -48,8 +48,8 @@ proc ::nxTools::Nuke::UpdateRecord {RealPath {Buffer ""}} {
     set RealPath [file join $RealPath ".ioFTPD.nxNuke"]
     set OpenMode [expr {$Buffer eq "" ? "RDONLY CREAT" : "w"}]
 
-    ## Tcl cannot open hidden files, so the
-    ## hidden attribute must be removed first.
+    # Tcl cannot open hidden files, so the
+    # hidden attribute must be removed first.
     catch {file attributes $RealPath -hidden 0}
 
     if {[catch {set Handle [open $RealPath $OpenMode]} ErrorMsg]} {
@@ -155,24 +155,24 @@ proc ::nxTools::Nuke::Main {ArgV} {
                 ErrorReturn "Approved releases cannot be nuked."
             }
 
-            ## Check if there is an available nuke record.
+            # Check if there is an available nuke record.
             set NukeId ""
             set Record [UpdateRecord $RealPath]
             set RecordSplit [split $Record "|"]
 
-            ## Record versions:
-            ## v1: nuke-type|user|group|multi|reason
-            ## v2: 2|status|id|user|group|multi|reason
+            # Record versions:
+            # v1: nuke-type|user|group|multi|reason
+            # v2: 2|status|id|user|group|multi|reason
             switch -regexp -- $Record {
                 {^2\|(0|1)\|\d+\|\S+\|\d+\|.+$} {
                     set NukeId [lindex $RecordSplit 2]
-                    ## Only use the multiplier if it's a nuke record.
+                    # Only use the multiplier if it's a nuke record.
                     if {!$IsNuke && ![lindex $RecordSplit 1]} {
                         set Multi [lindex $RecordSplit 5]
                     }
                 }
                 {^(NUKE|UNNUKE)\|\S+\|\S+\|\d+\|.+$} {
-                    ## Only use the multiplier if it's a nuke record.
+                    # Only use the multiplier if it's a nuke record.
                     if {!$IsNuke && [lindex $RecordSplit 0] eq "UNNUKE"} {
                         set Multi [lindex $RecordSplit 3]
                     }
@@ -188,7 +188,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
 
             set NukeType 0
             if {[string first $nuke(GroupFlag) $flags] != -1} {
-                ## Find the group suffix in the release name (Something-GRP)
+                # Find the group suffix in the release name (Something-GRP)
                 if {[set GroupPos [string last "-" [file tail $VirtualPath]]] == -1} {
                     ErrorReturn "Unable to verify the release's group, does it end with -<group>?"
                 }
@@ -206,12 +206,12 @@ proc ::nxTools::Nuke::Main {ArgV} {
             set ParentPath [file dirname $RealPath]
             ListAssign [GetCreditStatSections $VirtualPath] CreditSection StatSection
 
-            ## Count disk sub-directories.
+            # Count disk sub-directories.
             foreach ListItem [glob -nocomplain -types d -directory $RealPath "*"] {
                 if {[IsMultiDisk $ListItem]} {incr DiskCount}
             }
 
-            ## Count files and total size.
+            # Count files and total size.
             GetDirList $RealPath dirlist ".ioFTPD*"
             foreach ListItem $dirlist(FileList) {
                 incr Files; set FileSize [file size $ListItem]
@@ -229,7 +229,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
             }
             set TotalSize [expr {wide($TotalSize) / 1024}]
 
-            ## Check if Release is an empty nuke (less than 5KB).
+            # Check if Release is an empty nuke (less than 5KB).
             if {$TotalSize < 5 || ![array exists nukesize]} {
                 set NukeType 2
                 unset -nocomplain nukefiles nukesize
@@ -243,7 +243,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
             LinePuts "Multi   : ${Multi}x"
             LinePuts "Reason  : $Reason"
             if {$NukeType} {
-                ## 0=Normal, 1=Group, 2=Empty
+                # 0=Normal, 1=Group, 2=Empty
                 switch -- $NukeType {
                     2 {set TypeMsg "Empty"}
                     1 {set TypeMsg "Group"}
@@ -262,7 +262,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
                 iputs "|------------------------------------------------------------------------|"
             }
 
-            ## Change the credits and stats of nukees.
+            # Change the credits and stats of nukees.
             set NukeeLog [list]
             foreach NukeeUser [lsort -ascii [array names nukesize]] {
                 set NukeCredits [expr {wide($nukesize($NukeeUser)) / 1024}]
@@ -299,8 +299,8 @@ proc ::nxTools::Nuke::Main {ArgV} {
 
             set NewPath [file join $ParentPath $NewName]
             if {![string equal -nocase $RealPath $NewPath]} {
-                ## In order to prevent users from re-entering the
-                ## directory while nuking, it will be chmodded to 000.
+                # In order to prevent users from re-entering the
+                # directory while nuking, it will be chmodded to 000.
                 catch {vfs read $RealPath} VfsOwner
                 ListAssign $VfsOwner UserId GroupId
                 if {![string is digit -strict $UserId]} {set UserId [lindex $misc(DirOwner) 0]}
@@ -337,7 +337,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
             }
 
             if {![catch {DbOpenFile [namespace current]::NukeDb "Nukes.db"} ErrorMsg]} {
-                ## To pass a NULL value to TclSQLite the variable must be unset.
+                # To pass a NULL value to TclSQLite the variable must be unset.
                 if {![string is digit -strict $NukeId]} {unset NukeId}
                 NukeDb eval {INSERT OR REPLACE INTO
                     Nukes(NukeId,TimeStamp,UserName,GroupName,Status,Release,Reason,Multi,Files,Size)
@@ -357,7 +357,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
                 NukeDb close
             } else {ErrorLog NukeDb $ErrorMsg}
 
-            ## Save the nuke ID and multiplier for later use (ie. unnuke).
+            # Save the nuke ID and multiplier for later use (ie. unnuke).
             UpdateRecord [expr {$RenameFail ? $RealPath : $NewPath}] "2|$NukeStatus|$NukeId|$user|$group|$Multi|$Reason"
             iputs "'------------------------------------------------------------------------'"
         }
