@@ -2,7 +2,7 @@
 # AlcoExt - Alcoholicz Tcl extension.
 # Copyright (c) 2005 Alcoholicz Scripting Team
 #
-# File Name:
+# Module Name:
 #   makefile.in
 #
 # Author:
@@ -128,7 +128,7 @@ TCLSH_ENV       = TCL_LIBRARY=`@CYGPATH@ $(TCL_SRC_DIR)/library` \
 TCLSH_PROG      = @TCLSH_PROG@
 TCLSH           = $(TCLSH_ENV) $(TCLSH_PROG)
 
-DEFS            = -DLTC_NO_ROLC @DEFS@ @PKG_CFLAGS@
+DEFS            = @DEFS@ @PKG_CFLAGS@
 INCLUDES        = @PKG_INCLUDES@ @TCL_INCLUDES@
 LIBS            = @PKG_LIBS@ @LIBS@
 COMPILE         = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)

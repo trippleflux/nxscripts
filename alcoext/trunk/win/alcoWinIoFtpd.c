@@ -1,27 +1,62 @@
-/*
- * AlcoExt - Alcoholicz Tcl extension.
- * Copyright (c) 2005 Alcoholicz Scripting Team
- *
- * File Name:
- *   alcoWinIoFtpd.c
- *
- * Author:
- *   neoxed (neoxed@gmail.com) April 16, 2005
- *
- * Abstract:
- *   Implements a Tcl command-based interface for interaction with ioFTPD.
- */
+/*++
+
+AlcoExt - Alcoholicz Tcl extension.
+Copyright (c) 2005 Alcoholicz Scripting Team
+
+Module Name:
+    alcoWinIoFtpd.c
+
+Author:
+    neoxed (neoxed@gmail.com) April 16, 2005
+
+Abstract:
+    Implements a Tcl command-based interface for interaction with ioFTPD.
+
+--*/
 
 #include <alcoExt.h>
 
-/* Tcl command functions. */
-static int IoInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
-static int IoKickCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
-static int IoKillCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
-static int IoResolveCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
-static int IoWhoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
+static int
+IoInfoCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[],
+    ExtState *statePtr
+    );
 
-/* TODO: Add user, gid, and group fields (not available in struct). */
+static int
+IoKickCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[],
+    ExtState *statePtr
+    );
+static int
+IoKillCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[],
+    ExtState *statePtr
+    );
+
+static int
+IoResolveCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[],
+    ExtState *statePtr
+    );
+
+static int
+IoWhoCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[],
+    ExtState *statePtr
+    );
+
+
+// TODO: Add user, gid, and group fields (not available in struct).
 static const char *whoFields[] = {
     "action",
     "cid",
@@ -60,126 +95,149 @@ enum {
 };
 
 
-/*
- * IoInfoCmd
- *
- *   Retrieves information from an ioFTPD message window.
- *
- * Arguments:
- *   interp   - Current interpreter.
- *   objc     - Number of arguments.
- *   objv     - Argument objects.
- *   statePtr - Pointer to a 'ExtState' structure.
- *
- * Returns:
- *   A standard Tcl result.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+IoInfoCmd
+
+    Retrieves information from an ioFTPD message window.
+
+Arguments:
+    interp   - Current interpreter.
+
+    objc     - Number of arguments.
+
+    objv     - Argument objects.
+
+    statePtr - Pointer to a 'ExtState' structure.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
 static int
-IoInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
+IoInfoCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[],
+    ExtState *statePtr
+    )
 {
     if (objc != 4) {
         Tcl_WrongNumArgs(interp, 2, objv, "msgWindow varName");
         return TCL_ERROR;
     }
 
-    /* TODO: IPC stuff. */
+    // TODO: Process stuff.
 
-    /*
-     * path - ioFTPD image path (C:\ioFTPD\system\ioFTPD.exe).
-     * pid  - Process ID.
-     * time - Start time, seconds since epoch.
-     */
+    //
+    // path - ioFTPD image path (C:\ioFTPD\system\ioFTPD.exe).
+    // pid  - Process ID.
+    // time - Start time, seconds since epoch.
+    //
 
     return TCL_OK;
 }
 
-/*
- * IoKickCmd
- *
- *   Kicks the specified ioFTPD user.
- *
- * Arguments:
- *   interp   - Current interpreter.
- *   objc     - Number of arguments.
- *   objv     - Argument objects.
- *   statePtr - Pointer to a 'ExtState' structure.
- *
- * Returns:
- *   A standard Tcl result.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+IoKickCmd
+
+    Kicks the specified ioFTPD user.
+
+Arguments:
+    interp   - Current interpreter.
+
+    objc     - Number of arguments.
+
+    objv     - Argument objects.
+
+    statePtr - Pointer to a 'ExtState' structure.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
 static int
-IoKickCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
+IoKickCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[],
+    ExtState *statePtr
+    )
 {
     if (objc != 4) {
         Tcl_WrongNumArgs(interp, 2, objv, "msgWindow user");
         return TCL_ERROR;
     }
 
-    /* TODO: IPC stuff. */
+    // TODO: IPC stuff.
 
     return TCL_OK;
 }
 
-/*
- * IoKillCmd
- *
- *   Kills the specified ioFTPD connection ID.
- *
- * Arguments:
- *   interp   - Current interpreter.
- *   objc     - Number of arguments.
- *   objv     - Argument objects.
- *   statePtr - Pointer to a 'ExtState' structure.
- *
- * Returns:
- *   A standard Tcl result.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+IoKillCmd
+
+    Kills the specified ioFTPD connection ID.
+
+Arguments:
+    interp   - Current interpreter.
+
+    objc     - Number of arguments.
+
+    objv     - Argument objects.
+
+    statePtr - Pointer to a 'ExtState' structure.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
 static int
-IoKillCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
+IoKillCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[],
+    ExtState *statePtr
+    )
 {
     if (objc != 4) {
         Tcl_WrongNumArgs(interp, 2, objv, "msgWindow uid");
         return TCL_ERROR;
     }
 
-    /* TODO: IPC stuff. */
+    // TODO: IPC stuff.
 
     return TCL_OK;
 }
 
-/*
- * IoResolveCmd
- *
- *   Resolves names and IDs for users and groups.
- *
- *   User  -> UID
- *   UID   -> User
- *   Group -> GID
- *   GID   -> Group
- *
- * Arguments:
- *   interp   - Current interpreter.
- *   objc     - Number of arguments.
- *   objv     - Argument objects.
- *   statePtr - Pointer to a 'ExtState' structure.
- *
- * Returns:
- *   A standard Tcl result.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+IoResolveCmd
+
+    Resolves names and IDs for users and groups.
+
+Arguments:
+    interp   - Current interpreter.
+
+    objc     - Number of arguments.
+
+    objv     - Argument objects.
+
+    statePtr - Pointer to a 'ExtState' structure.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
 static int
-IoResolveCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
+IoResolveCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[],
+    ExtState *statePtr
+    )
 {
     int index;
     static const char *options[] = {"gid", "group", "uid", "user", NULL};
@@ -209,30 +267,37 @@ IoResolveCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *stat
         }
     }
 
-    /* TODO: IPC stuff. */
+    // TODO: IPC stuff.
 
     return TCL_OK;
 }
 
-/*
- * IoWhoCmd
- *
- *   Retrieves online user information from ioFTPD's shared memory.
- *
- * Arguments:
- *   interp   - Current interpreter.
- *   objc     - Number of arguments.
- *   objv     - Argument objects.
- *   statePtr - Pointer to a 'ExtState' structure.
- *
- * Returns:
- *   A standard Tcl result.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+IoWhoCmd
+
+    Retrieves online user information from ioFTPD's shared memory.
+
+Arguments:
+    interp   - Current interpreter.
+
+    objc     - Number of arguments.
+
+    objv     - Argument objects.
+
+    statePtr - Pointer to a 'ExtState' structure.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
 static int
-IoWhoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
+IoWhoCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[],
+    ExtState *statePtr
+    )
 {
     int elementCount;
     int fieldIndex;
@@ -250,10 +315,10 @@ IoWhoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr
         return TCL_ERROR;
     }
 
-    /* Never make assumptions on type sizes. */
+    // Never make assumptions on type sizes.
     fields = (unsigned char *) ckalloc(elementCount * sizeof(unsigned char));
 
-    /* Create an array of indices from 'whoFields'. */
+    // Create an array of indices from 'whoFields'.
     for (i = 0; i < elementCount; i++) {
         if (Tcl_GetIndexFromObj(interp, elementPtrs[i], whoFields, "field", 0,
             &fieldIndex) != TCL_OK) {
@@ -263,7 +328,7 @@ IoWhoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr
         fields[i] = (unsigned char) fieldIndex;
     }
 
-    /* TODO: IPC stuff. */
+    // TODO: IPC stuff.
     result = TCL_OK;
 
     end:
@@ -271,25 +336,32 @@ IoWhoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr
     return result;
 }
 
-/*
- *  IoFtpdObjCmd
- *
- *	This function provides the "ioftpd" Tcl command.
- *
- * Arguments:
- *   clientData - Pointer to a 'ExtState' structure.
- *   interp     - Current interpreter.
- *   objc       - Number of arguments.
- *   objv       - Argument objects.
- *
- * Returns:
- *   A standard Tcl result.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+IoFtpdObjCmd
+
+  	This function provides the "ioftpd" Tcl command.
+
+Arguments:
+    clientData - Pointer to a 'ExtState' structure.
+
+    interp     - Current interpreter.
+
+    objc       - Number of arguments.
+
+    objv       - Argument objects.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
 int
-IoFtpdObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+IoFtpdObjCmd(
+    ClientData clientData,
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[]
+    )
 {
     ExtState *statePtr = (ExtState *) clientData;
     int index;
@@ -317,7 +389,7 @@ IoFtpdObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
         case OPTION_WHO:     return IoWhoCmd(interp, objc, objv, statePtr);
     }
 
-    /* This point should never be reached. */
+    // This point should never be reached.
     Tcl_Panic("unexpected fallthrough");
     return TCL_ERROR;
 }

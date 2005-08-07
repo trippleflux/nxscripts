@@ -1,21 +1,23 @@
-/*
- * AlcoExt - Alcoholicz Tcl extension.
- * Copyright (c) 2005 Alcoholicz Scripting Team
- *
- * File Name:
- *   alcoCrypt.h
- *
- * Author:
- *   neoxed (neoxed@gmail.com) May 6, 2005
- *
- * Abstract:
- *   Cryptography extension definitions.
- */
+/*++
+
+AlcoExt - Alcoholicz Tcl extension.
+Copyright (c) 2005 Alcoholicz Scripting Team
+
+Module Name:
+    alcoCrypt.h
+
+Author:
+    neoxed (neoxed@gmail.com) May 6, 2005
+
+Abstract:
+    Cryptographic command definitions.
+
+--*/
 
 #ifndef _ALCOCRYPT_H_
 #define _ALCOCRYPT_H_
 
-/* Flags for CryptCipherMode::options. */
+// Flags for CryptCipherMode::options.
 #define CRYPT_REQUIRES_IV   0x0001
 #define CRYPT_PAD_PLAINTEXT 0x0002
 
@@ -36,10 +38,10 @@ typedef struct {
     unsigned short options;
 } CryptCipherMode;
 
-/* Generic crypt handle. */
+// Generic crypt handle.
 typedef struct {
-    int descIndex;      /* Descriptor table index (cipher, hash, or prng). */
-    unsigned char type; /* Type of handle. */
+    int descIndex;      // Descriptor table index (cipher, hash, or prng).
+    unsigned char type; // Type of handle.
     union {
         hash_state    hash;
         hmac_state    hmac;
@@ -50,7 +52,11 @@ typedef struct {
     } state;
 } CryptHandle;
 
-Tcl_ObjCmdProc CryptObjCmd;
-void CryptCloseHandles(Tcl_HashTable *tablePtr);
+void
+CryptCloseHandles(
+    Tcl_HashTable *tablePtr
+    );
 
-#endif /* _ALCOCRYPT_H_ */
+Tcl_ObjCmdProc CryptObjCmd;
+
+#endif // _ALCOCRYPT_H_

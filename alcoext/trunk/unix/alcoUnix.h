@@ -1,16 +1,18 @@
-/*
- * AlcoExt - Alcoholicz Tcl extension.
- * Copyright (c) 2005 Alcoholicz Scripting Team
- *
- * File Name:
- *   alcoUnix.h
- *
- * Author:
- *   neoxed (neoxed@gmail.com) April 16, 2005
- *
- * Abstract:
- *   Unix specific includes, macros, and function declarations.
- */
+/*++
+
+AlcoExt - Alcoholicz Tcl extension.
+Copyright (c) 2005 Alcoholicz Scripting Team
+
+Module Name:
+    alcoUnix.h
+
+Author:
+    neoxed (neoxed@gmail.com) April 16, 2005
+
+Abstract:
+    BSD/Linux/UNIX specific headers and macros.
+
+--*/
 
 #ifndef _ALCOUNIX_H_
 #define _ALCOUNIX_H_
@@ -20,6 +22,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <errno.h>
+#include <signal.h>
 #include <sys/file.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
@@ -72,7 +75,7 @@
 
 #include "alcoUnixGlFtpd.h"
 
-/* Statfs function and structure checks. */
+// Statfs function and structure checks.
 #ifdef STAT_STATVFS64
 #   define STATFS_FN(path, buf) (statvfs64(path,buf))
 #   define STATFS_T statvfs64
@@ -82,23 +85,23 @@
 #   define STATFS_T statvfs
 #   define USE_STATVFS
 #elif defined(STAT_STATFS4)
-/* For implementations of statfs() that take four parameters. */
+// For implementations of statfs() that take four parameters.
 #   define STATFS_FN(path, buf) (statfs(path,buf,sizeof(buf),0))
 #   define STATFS_T statfs
 #   define USE_STATFS
 #elif defined(STAT_STATFS3_OSF1)
-/* For implementations of statfs() that take three parameters. */
+// For implementations of statfs() that take three parameters.
 #   define STATFS_FN(path, buf) (statfs(path,buf,sizeof(buf)))
 #   define STATFS_T statfs
 #   define USE_STATFS
 #elif defined(STAT_STATFS2_FS_DATA) || defined(STAT_STATFS2_BSIZE) || defined(STAT_STATFS2_FSIZE)
-/* For implementations of statfs() that take two parameters. */
+// For implementations of statfs() that take two parameters.
 #   define STATFS_FN(path, buf) (statfs(path,buf))
 #   define STATFS_T statfs
 #   define USE_STATFS
-#endif /* STAT_STATVFS64 */
+#endif // STAT_STATVFS64
 
-/* Check for the f_basetype or f_fstypename member. */
+// Check for the f_basetype or f_fstypename member.
 #if (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_BASETYPE)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_BASETYPE))
 #   define F_TYPENAME(buf) ((buf).f_basetype)
 #elif (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_FSTYPENAME)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_FSTYPENAME))
@@ -107,14 +110,14 @@
 #   define F_TYPENAME(buf) ("")
 #endif
 
-/* Check for the f_fsid.val or f_fsid member. */
+// Check for the f_fsid.val or f_fsid member.
 #if (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_FSID_VAL)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_FSID_VAL))
-/*
- * The contents of the f_fsid member on BSD systems is as follows.
- * f_fsid::val[0] - The dev_t identifier for the device, which is
- *                  all that we're interested in.
- * f_fsid::val[1] - Type of file system, MOUNT_xxx flag.
- */
+//
+// The contents of the f_fsid member on BSD systems is as follows.
+// f_fsid::val[0] - The dev_t identifier for the device, which is
+//                  all that we're interested in.
+// f_fsid::val[1] - Type of file system, MOUNT_xxx flag.
+//
 #   define F_FSID(buf) ((buf).f_fsid.val[0])
 #elif (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_FSID)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_FSID))
 #   define F_FSID(buf) ((buf).f_fsid)
@@ -122,7 +125,7 @@
 #   define F_FSID(buf) (0)
 #endif
 
-/* Check for the f_flag or f_flags member. */
+// Check for the f_flag or f_flags member.
 #if (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_FLAG)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_FLAG))
 #   define F_FLAGS(buf) ((buf).f_flag)
 #elif (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_FLAGS)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_FLAGS))
@@ -131,7 +134,7 @@
 #   define F_FLAGS(buf) (0)
 #endif
 
-/* Check for the f_namemax or f_namelen member. */
+// Check for the f_namemax or f_namelen member.
 #if (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_NAMEMAX)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_NAMEMAX))
 #   define F_NAMELEN(buf) ((buf).f_namemax)
 #elif (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_NAMELEN)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_NAMELEN))
@@ -140,4 +143,4 @@
 #   define F_NAMELEN(buf) (255)
 #endif
 
-#endif /* _ALCOUNIX_H_ */
+#endif // _ALCOUNIX_H_

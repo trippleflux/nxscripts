@@ -1,16 +1,20 @@
-/*
- * AlcoExt - Alcoholicz Tcl extension.
- * Copyright (c) 2005 Alcoholicz Scripting Team
- *
- * File Name:
- *   alcoExt.c
- *
- * Author:
- *   neoxed (neoxed@gmail.com) April 16, 2005
- *
- * Abstract:
- *   Tcl extension initialisation procedures.
- */
+/*++
+
+AlcoExt - Alcoholicz Tcl extension.
+Copyright (c) 2005 Alcoholicz Scripting Team
+
+Module Name:
+    alcoExt.c
+
+Author:
+    neoxed (neoxed@gmail.com) April 16, 2005
+
+Abstract:
+    This module implements the Tcl extension entry point, called when the
+    extension is loaded into a interpreter. There is also support for extension
+    unloading, implemented in Tcl 8.5.
+
+--*/
 
 #include <alcoExt.h>
 
@@ -18,54 +22,55 @@ static unsigned char initialised = 0;
 static StateList *stateListHead = NULL;
 
 TCL_DECLARE_MUTEX(initMutex)
-/*
- * Access to the state list is guarded with a mutex. This is not the most
- * efficient approach, but higher level synchronization methods are more
- * difficult due to the lack of consistency between platforms.
- */
+//
+// Access to the state list is guarded with a mutex. This is not the most
+// efficient approach, but higher level synchronization methods are more
+// difficult due to the lack of consistency between platforms.
+//
 TCL_DECLARE_MUTEX(stateMutex)
 
 #ifdef _WINDOWS
 static HMODULE kernelModule = NULL;
 OSVERSIONINFOA osVersion;
 WinProcs winProcs;
-#endif /* _WINDOWS */
+#endif // _WINDOWS
 
 static void FreeState(ExtState *statePtr);
 static Tcl_ExitProc         ExitHandler;
 static Tcl_InterpDeleteProc InterpDeleteHandler;
 
 
-/*
- * Alcoext_Init
- *
- *   Initialises the extension for a regular interpreter.
- *
- * Arguments:
- *   interp - Current interpreter.
- *
- * Returns:
- *   A standard Tcl result.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+Alcoext_Init
+
+    Initialises the extension for a regular interpreter.
+
+Arguments:
+    interp - Current interpreter.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
 int
-Alcoext_Init(Tcl_Interp *interp)
+Alcoext_Init(
+    Tcl_Interp *interp
+    )
 {
     ExtState *statePtr;
     StateList *stateListPtr;
 
-    /* Wide integer support was added in Tcl 8.4. */
+    // Wide integer support was added in Tcl 8.4.
 #ifdef USE_TCL_STUBS
     if (Tcl_InitStubs(interp, "8.4", 0) == NULL) {
         return TCL_ERROR;
     }
-#else /* USE_TCL_STUBS */
+#else // USE_TCL_STUBS
     if (Tcl_PkgRequire(interp, "Tcl", "8.4", 0) == NULL) {
         return TCL_ERROR;
     }
-#endif /* USE_TCL_STUBS */
+#endif // USE_TCL_STUBS
 
     if (Tcl_PkgProvide(interp, PACKAGE_NAME, PACKAGE_VERSION) != TCL_OK) {
         return TCL_ERROR;
@@ -75,7 +80,7 @@ Alcoext_Init(Tcl_Interp *interp)
 
     if (!initialised) {
 #ifdef _WINDOWS
-        /* Initialise the OS version structure. */
+        // Initialise the OS version structure.
         osVersion.dwOSVersionInfoSize = sizeof(OSVERSIONINFOA);
         GetVersionExA(&osVersion);
 
@@ -90,10 +95,10 @@ Alcoext_Init(Tcl_Interp *interp)
             return TCL_ERROR;
         }
 
-        /*
-         * These functions must be resolved on run-time for backwards
-         * compatibility on older Windows systems (earlier than NT v5).
-         */
+        //
+        // These functions must be resolved on run-time for backwards
+        // compatibility on older Windows systems (earlier than NT v5).
+        //
         winProcs.getDiskFreeSpaceEx = (GetDiskFreeSpaceExProc)
             GetProcAddress(kernelModule, "GetDiskFreeSpaceExA");
 
@@ -107,18 +112,18 @@ Alcoext_Init(Tcl_Interp *interp)
         winProcs.getVolumeNameForVolumeMountPoint = (GetVolumeNameForVolumeMountPointProc)
             GetProcAddress(kernelModule, "GetVolumeNameForVolumeMountPointA");
 
-        /*
-         * If GetVolumeInformation() is called on a floppy drive or a CD-ROM
-         * drive that does not have a disk inserted, the system will display a
-         * message box asking the user to insert one.
-         */
+        //
+        // If GetVolumeInformation() is called on a floppy drive or a CD-ROM
+        // drive that does not have a disk inserted, the system will display a
+        // message box asking the user to insert one.
+        //
         SetErrorMode(SetErrorMode(0) | SEM_FAILCRITICALERRORS);
-#endif /* _WINDOWS */
+#endif // _WINDOWS
 
-        /* An exit handler must only be registered once. */
+        // An exit handler must only be registered once.
         Tcl_CreateExitHandler(ExitHandler, NULL);
 
-        /* Register ciphers, hashes, and PRNGs for LibTomCrypt. */
+        // Register ciphers, hashes, and PRNGs for LibTomCrypt.
         register_cipher(&des3_desc);
         register_cipher(&aes_desc);
         register_cipher(&anubis_desc);
@@ -160,7 +165,7 @@ Alcoext_Init(Tcl_Interp *interp)
     }
     Tcl_MutexUnlock(&initMutex);
 
-    /* Allocate state structures. */
+    // Allocate state structures.
     stateListPtr = (StateList *) ckalloc(sizeof(StateList));
     statePtr = (ExtState *) ckalloc(sizeof(ExtState));
 
@@ -173,21 +178,21 @@ Alcoext_Init(Tcl_Interp *interp)
     statePtr->glftpdTable = (Tcl_HashTable *) ckalloc(sizeof(Tcl_HashTable));
     Tcl_InitHashTable(statePtr->glftpdTable, TCL_STRING_KEYS);
     statePtr->glftpdCount = 0;
-#endif /* !_WINDOWS */
+#endif // !_WINDOWS
 
-    /*
-     * Since callbacks registered with Tcl_CallWhenDeleted() are not executed in
-     * certain situations (calling Tcl_Finalize() or invoking the "exit" command),
-     * these resources must be freed by an exit handler registered with
-     * Tcl_CreateExitHandler().
-     */
+    //
+    // Since callbacks registered with Tcl_CallWhenDeleted() are not executed in
+    // certain situations (calling Tcl_Finalize() or invoking the "exit" command),
+    // these resources must be freed by an exit handler registered with
+    // Tcl_CreateExitHandler().
+    //
     stateListPtr->interp = interp;
     stateListPtr->state  = statePtr;
     stateListPtr->next   = NULL;
     stateListPtr->prev   = NULL;
 
     Tcl_MutexLock(&stateMutex);
-    /* Insert at the list head. */
+    // Insert at the list head.
     if (stateListHead == NULL) {
         stateListHead = stateListPtr;
     } else {
@@ -197,10 +202,10 @@ Alcoext_Init(Tcl_Interp *interp)
     }
     Tcl_MutexUnlock(&stateMutex);
 
-    /* Clean up state on interpreter deletion. */
+    // Clean up state on interpreter deletion.
     Tcl_CallWhenDeleted(interp, InterpDeleteHandler, (ClientData) statePtr);
 
-    /* Create Tcl commands. */
+    // Create Tcl commands.
     Tcl_CreateObjCommand(interp, "::alcoholicz::crypt", CryptObjCmd,
         (ClientData) statePtr, (Tcl_CmdDeleteProc *) NULL);
 
@@ -213,10 +218,10 @@ Alcoext_Init(Tcl_Interp *interp)
     Tcl_CreateObjCommand(interp, "::alcoholicz::zlib", ZlibObjCmd,
         (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
 
-    /*
-     * These commands are not created for safe interpreters because
-     * they interact with the file system and/or other processes.
-     */
+    //
+    // These commands are not created for safe interpreters because
+    // they interact with the file system and/or other processes.
+    //
     if (!Tcl_IsSafe(interp)) {
         Tcl_CreateObjCommand(interp, "::alcoholicz::volume", VolumeObjCmd,
             (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
@@ -224,62 +229,67 @@ Alcoext_Init(Tcl_Interp *interp)
 #ifdef _WINDOWS
         Tcl_CreateObjCommand(interp, "::alcoholicz::ioftpd", IoFtpdObjCmd,
             (ClientData) statePtr, (Tcl_CmdDeleteProc *) NULL);
-#else /* _WINDOWS */
+#else // _WINDOWS
         Tcl_CreateObjCommand(interp, "::alcoholicz::glftpd", GlFtpdObjCmd,
             (ClientData) statePtr, (Tcl_CmdDeleteProc *) NULL);
-#endif /* _WINDOWS */
+#endif // _WINDOWS
     }
 
     Tcl_Eval(interp, "namespace eval ::alcoholicz {"
         "namespace export crypt encode decode volume zlib "
 #ifdef _WINDOWS
         "ioftpd "
-#else /* _WINDOWS */
+#else
         "glftpd "
-#endif /* _WINDOWS */
+#endif // _WINDOWS
         "}"
         );
 
     return TCL_OK;
 }
 
-/*
- * Alcoext_SafeInit
- *
- *   Initialises the extension for a safe interpreter.
- *
- * Arguments:
- *   interp - Current interpreter.
- *
- * Returns:
- *   A standard Tcl result.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+Alcoext_SafeInit
+
+    Initialises the extension for a safe interpreter.
+
+Arguments:
+    interp - Current interpreter.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
 int
-Alcoext_SafeInit(Tcl_Interp *interp)
+Alcoext_SafeInit(
+    Tcl_Interp *interp
+    )
 {
     return Alcoext_Init(interp);
 }
 
-/*
- * Alcoext_Unload
- *
- *   Unload the extension from a process or interpreter.
- *
- * Arguments:
- *   interp - Current interpreter.
- *   flags  - Type of detachment.
- *
- * Returns:
- *   A standard Tcl result.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+Alcoext_Unload
+
+    Unload the extension from a process or interpreter. As proposed
+    in Tcl TIP #100 (http://www.tcl.tk/cgi-bin/tct/tip/100.html).
+
+Arguments:
+    interp - Current interpreter.
+
+    flags  - Type of detachment.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
 int
-Alcoext_Unload(Tcl_Interp *interp, int flags)
+Alcoext_Unload(
+    Tcl_Interp *interp,
+    int flags
+    )
 {
     if (flags == TCL_UNLOAD_DETACH_FROM_INTERPRETER) {
         StateList *stateListPtr;
@@ -288,7 +298,7 @@ Alcoext_Unload(Tcl_Interp *interp, int flags)
         for (stateListPtr = stateListHead; stateListPtr != NULL; stateListPtr = stateListPtr->next) {
 
             if (interp == stateListPtr->interp) {
-                /* Remove the interpreter's state from the list. */
+                // Remove the interpreter's state from the list.
                 if (stateListPtr->prev == NULL) {
                     stateListHead = stateListPtr->next;
                     if (stateListPtr->next != NULL) {
@@ -314,47 +324,51 @@ Alcoext_Unload(Tcl_Interp *interp, int flags)
         return TCL_OK;
     }
 
-    /* Unknown 'flags' value. */
+    // Unknown 'flags' value.
     return TCL_ERROR;
 }
 
-/*
- * Alcoext_SafeUnload
- *
- *   Unload the extension from a process or safe interpreter.
- *
- * Arguments:
- *   interp - Current interpreter.
- *   flags  - Type of detachment.
- *
- * Returns:
- *   A standard Tcl result.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+Alcoext_SafeUnload
+
+    Unload the extension from a process or safe interpreter.
+
+Arguments:
+    interp - Current interpreter.
+
+    flags  - Type of detachment.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
 int
-Alcoext_SafeUnload(Tcl_Interp *interp, int flags)
+Alcoext_SafeUnload(
+    Tcl_Interp *interp,
+    int flags
+    )
 {
     return Alcoext_Unload(interp, flags);
 }
 
-/*
- * FreeState
- *
- *   Deletes hash tables and frees state structure.
- *
- * Arguments:
- *   statePtr - Pointer to a 'ExtState' structure.
- *
- * Returns:
- *   None.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+FreeState
+
+    Deletes hash tables and frees state structure.
+
+Arguments:
+    statePtr - Pointer to a 'ExtState' structure.
+
+Return Value:
+    None.
+
+--*/
 static void
-FreeState(ExtState *statePtr)
+FreeState(
+    ExtState *statePtr
+    )
 {
     if (statePtr != NULL) {
         CryptCloseHandles(statePtr->cryptTable);
@@ -365,30 +379,31 @@ FreeState(ExtState *statePtr)
         GlCloseHandles(statePtr->glftpdTable);
         Tcl_DeleteHashTable(statePtr->glftpdTable);
         ckfree((char *) statePtr->glftpdTable);
-#endif /* !_WINDOWS */
+#endif // !_WINDOWS
 
         ckfree((char *) statePtr);
         statePtr = NULL;
     }
 }
 
-/*
- * ExitHandler
- *
- *   Cleans up library on exit, frees all state structures
- *   for every interpreter this extension was loaded in.
- *
- * Arguments:
- *   dummy - Not used.
- *
- * Returns:
- *   None.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+ExitHandler
+
+    Cleans up library on exit, frees all state structures
+    for every interpreter this extension was loaded in.
+
+Arguments:
+    dummy - Not used.
+
+Return Value:
+    None.
+
+--*/
 static void
-ExitHandler(ClientData dummy)
+ExitHandler(
+    ClientData dummy
+    )
 {
     Tcl_MutexLock(&initMutex);
 #ifdef _WINDOWS
@@ -396,7 +411,7 @@ ExitHandler(ClientData dummy)
         FreeLibrary(kernelModule);
         kernelModule = NULL;
     }
-#endif /* _WINDOWS */
+#endif // _WINDOWS
 
     initialised = 0;
     Tcl_MutexUnlock(&initMutex);
@@ -406,7 +421,7 @@ ExitHandler(ClientData dummy)
         StateList *stateListPtr;
         StateList *nextStateListPtr;
 
-        /* Free all states structures. */
+        // Free all states structures.
         for (stateListPtr = stateListHead; stateListPtr != NULL; stateListPtr = nextStateListPtr) {
             nextStateListPtr = stateListPtr->next;
 
@@ -422,23 +437,26 @@ ExitHandler(ClientData dummy)
 #endif
 }
 
-/*
- * InterpDeleteHandler
- *
- *   Frees the state structure for an interpreter that is being deleted.
- *
- * Arguments:
- *   clientData - Pointer to a 'ExtState' structure.
- *   interp     - Current interpreter.
- *
- * Returns:
- *   None.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+InterpDeleteHandler
+
+    Frees the state structure for an interpreter that is being deleted.
+
+Arguments:
+    clientData - Pointer to a 'ExtState' structure.
+
+    interp     - Current interpreter.
+
+Return Value:
+    None.
+
+--*/
 static void
-InterpDeleteHandler(ClientData clientData, Tcl_Interp *interp)
+InterpDeleteHandler(
+    ClientData clientData,
+    Tcl_Interp *interp
+    )
 {
     ExtState *statePtr = (ExtState *) clientData;
     StateList *stateListPtr;
@@ -451,7 +469,7 @@ InterpDeleteHandler(ClientData clientData, Tcl_Interp *interp)
     for (stateListPtr = stateListHead; stateListPtr != NULL; stateListPtr = stateListPtr->next) {
 
         if (statePtr == stateListPtr->state) {
-            /* Remove the interpreter's state from the list. */
+            // Remove the interpreter's state from the list.
             if (stateListPtr->prev == NULL) {
                 stateListHead = stateListPtr->next;
                 if (stateListPtr->next != NULL) {

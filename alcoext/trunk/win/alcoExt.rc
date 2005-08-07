@@ -1,16 +1,18 @@
-/*
- * AlcoExt - Alcoholicz Tcl extension.
- * Copyright (c) 2005 Alcoholicz Scripting Team
- *
- * File Name:
- *   alcoExt.rc
- *
- * Author:
- *   neoxed (neoxed@gmail.com) April 16, 2005
- *
- * Abstract:
- *   Library version header.
- */
+/*++
+
+AlcoExt - Alcoholicz Tcl extension.
+Copyright (c) 2005 Alcoholicz Scripting Team
+
+Module Name:
+    alcoExt.rc
+
+Author:
+    neoxed (neoxed@gmail.com) April 16, 2005
+
+Abstract:
+    Application version header.
+
+--*/
 
 #include <winver.h>
 

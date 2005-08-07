@@ -1,16 +1,18 @@
-/*
- * AlcoExt - Alcoholicz Tcl extension.
- * Copyright (c) 2005 Alcoholicz Scripting Team
- *
- * File Name:
- *   alcoWin.h
- *
- * Author:
- *   neoxed (neoxed@gmail.com) April 16, 2005
- *
- * Abstract:
- *   Windows specific includes, macros, and function declarations.
- */
+/*++
+
+AlcoExt - Alcoholicz Tcl extension.
+Copyright (c) 2005 Alcoholicz Scripting Team
+
+Module Name:
+    alcoWin.h
+
+Author:
+    neoxed (neoxed@gmail.com) April 16, 2005
+
+Abstract:
+    Windows specific headers and macros.
+
+--*/
 
 #ifndef _ALCOWIN_H_
 #define _ALCOWIN_H_
@@ -19,13 +21,11 @@
 #   define _WINDOWS
 #endif
 
-/* Windows linkage. */
-#ifdef TCL_STORAGE_CLASS
-#   undef TCL_STORAGE_CLASS
-#endif
+// Windows linkage.
+#undef TCL_STORAGE_CLASS
 #define TCL_STORAGE_CLASS DLLEXPORT
 
-/* System includes. */
+// System includes.
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <stdio.h>
@@ -44,16 +44,15 @@
 #   elif defined(_MSC_VER)
 #       define inline __inline
 #   else
-#       error Only MSVC is supported.
-#   endif /* _MSC_VER */
-#endif /* inline */
+#       define inline
+#   endif // _MSC_VER
+#endif // inline
 
 #include "alcoWinIoFtpd.h"
-#include "alcoWinProcs.h"
 #include "alcoWinUtil.h"
 
-/* Global variables. */
+// Global variables.
 WinProcs winProcs;
 OSVERSIONINFOA osVersion;
 
-#endif /* _ALCOWIN_H_ */
+#endif // _ALCOWIN_H_

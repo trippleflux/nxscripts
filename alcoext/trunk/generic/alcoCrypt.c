@@ -1,81 +1,149 @@
-/*
- * AlcoExt - Alcoholicz Tcl extension.
- * Copyright (c) 2005 Alcoholicz Scripting Team
- *
- * File Name:
- *   alcoCrypt.c
- *
- * Author:
- *   neoxed (neoxed@gmail.com) May 6, 2005
- *
- * Abstract:
- *   Cryptography extension, providing hashing and encryption support.
- *
- *   Cipher Modes:
- *     cbc - Cipher Block Chaining
- *     cfb - Cipher Feedback
- *     ctr - Counter
- *     ecb - Electronic Codebook
- *     ofb - Output Feedback
- *
- *   Cipher Commands:
- *     crypt decrypt [-iv <iv>] [-mode <mode>] [-rounds <count>] <cipher> <key> <data>
- *     crypt encrypt [-iv <iv>] [-mode <mode>] [-rounds <count>] <cipher> <key> <data>
- *
- *   Hash Commands:
- *     crypt hash    <hash algorithm> <data>
- *     crypt hash    -hmac    <key> <hash> <data>
- *     crypt hash    -omac    <key> <cipher> <data>
- *     crypt hash    -pelican <key> <cipher> <data>
- *     crypt hash    -pmac    <key> <cipher> <data>
- *
- *     crypt start   <hash algorithm>
- *     crypt start   -hmac    <key> <hash>
- *     crypt start   -omac    <key> <cipher>
- *     crypt start   -pelican <key> <cipher>
- *     crypt start   -pmac    <key> <cipher>
- *     crypt update  <handle> <data>
- *     crypt end     <handle>
- *
- *   Random Commands
- *     crypt prng open  <type>           - Create a PRNG.
- *     crypt prng put   <handle> <data>  - Add entropy to the PRNG.
- *     crypt prng set   <handle>         - Set the PRNG as ready.
- *     crypt prng get   <handle> <bytes> - Retrieve random data from the PRNG.
- *     crypt prng close <handle>         - Close a PRNG.
- *     crypt rand       <bytes>          - Retrieve random data from the system.
- *
- *   Other Commands:
- *     crypt info  <ciphers|handles|hashes|modes|prngs>
- *     crypt pkcs5 [-v1] [-v2] [-rounds <count>] <hash algorithm> <salt> <password>
- *
- * Implementation/Security Note:
- *
- *   Tcl argument objects (objv) cannot be modified without creating noticeable
- *   problems. These argument objects are shared and could be referenced by other
- *   variables within the Tcl interpreter. Therefore, clearing any other memory
- *   blocks or stack space which may have contained sensitive data would be
- *   meaningless (e.g. using SecureZeroMemory or defining LTC_CLEAN_STACK).
- */
+/*++
+
+AlcoExt - Alcoholicz Tcl extension.
+Copyright (c) 2005 Alcoholicz Scripting Team
+
+Module Name:
+    alcoCrypt.c
+
+Author:
+    neoxed (neoxed@gmail.com) May 6, 2005
+
+Abstract:
+    This module implements a interface to LibTomCrypt. Providing support for
+    symmetric block ciphers, one-way hashing, and random number generators.
+
+    Cipher Modes:
+       cbc - Cipher Block Chaining
+       cfb - Cipher Feedback
+       ctr - Counter
+       ecb - Electronic Codebook
+       ofb - Output Feedback
+
+    Cipher Commands:
+       crypt decrypt [-iv <iv>] [-mode <mode>] [-rounds <count>] <cipher> <key> <data>
+       crypt encrypt [-iv <iv>] [-mode <mode>] [-rounds <count>] <cipher> <key> <data>
+
+    Hash Commands:
+       crypt hash    <hash algorithm> <data>
+       crypt hash    -hmac    <key> <hash> <data>
+       crypt hash    -omac    <key> <cipher> <data>
+       crypt hash    -pelican <key> <cipher> <data>
+       crypt hash    -pmac    <key> <cipher> <data>
+
+       crypt start   <hash algorithm>
+       crypt start   -hmac    <key> <hash>
+       crypt start   -omac    <key> <cipher>
+       crypt start   -pelican <key> <cipher>
+       crypt start   -pmac    <key> <cipher>
+       crypt update  <handle> <data>
+       crypt end     <handle>
+
+    Random Commands
+       crypt prng open  <type>           - Create a PRNG.
+       crypt prng put   <handle> <data>  - Add entropy to the PRNG.
+       crypt prng set   <handle>         - Set the PRNG as ready.
+       crypt prng get   <handle> <bytes> - Retrieve random data from the PRNG.
+       crypt prng close <handle>         - Close a PRNG.
+       crypt rand       <bytes>          - Retrieve random data from the system.
+
+    Other Commands:
+       crypt info  <ciphers|handles|hashes|modes|prngs>
+       crypt pkcs5 [-v1] [-v2] [-rounds <count>] <hash algorithm> <salt> <password>
+
+Implementation/Security Note:
+
+    Tcl argument objects (objv) cannot be modified without creating noticeable
+    problems. These argument objects are shared and could be referenced by other
+    variables within the Tcl interpreter. Therefore, clearing any other memory
+    blocks or stack space which may have contained sensitive data would be
+    meaningless (e.g. using SecureZeroMemory or defining LTC_CLEAN_STACK).
+
+--*/
 
 #include <alcoExt.h>
 
-/* Modes for CryptProcessCmd. */
+// Modes for CryptProcessCmd.
 #define MODE_DECRYPT 1
 #define MODE_ENCRYPT 2
 
-/* Tcl command functions. */
-static int CryptProcessCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], unsigned char mode);
-static int CryptHashCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
-static int CryptStartCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
-static int CryptUpdateCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
-static int CryptEndCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
-static int CryptInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
-static int CryptPkcs5Cmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
-static int CryptPrngCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr);
-static int CryptRandCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+//
+// Tcl command functions.
+//
 
-/* Cipher mode functions. */
+static int
+CryptProcessCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[],
+    unsigned char mode
+    );
+
+static int
+CryptHashCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[]
+    );
+
+static int
+CryptStartCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[],
+    ExtState *statePtr
+    );
+
+static int
+CryptUpdateCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[],
+    ExtState *statePtr
+    );
+
+static int
+CryptEndCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[],
+    ExtState *statePtr
+    );
+
+static int
+CryptInfoCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[],
+    ExtState *statePtr
+    );
+
+static int
+CryptPkcs5Cmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[]
+    );
+
+static int
+CryptPrngCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[],
+    ExtState *statePtr
+    );
+
+static int
+CryptRandCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[]
+    );
+
+//
+// Cipher mode functions.
+//
+
 static CryptModeProc DecryptCBC;
 static CryptModeProc DecryptCFB;
 static CryptModeProc DecryptCTR;
@@ -110,40 +178,53 @@ enum {
 };
 
 
-/*
- * DecryptCBC
- * DecryptCFB
- * DecryptCTR
- * DecryptECB
- * DecryptOFB
- *
- *   Decrypts data from the specified cipher mode and algorithm.
- *
- * Arguments:
- *   cipher     - Index of the desired cipher.
- *   rounds     - Number of rounds.
- *   iv         - The initial vector, must be the length of one block.
- *   key        - The secret key.
- *   keyLength  - Length of the secret key.
- *   data       - Cipher text (data to decrypt).
- *   dataLength - Length of cipher text.
- *   dest       - Buffer to receive plain text (decrypted data).
- *
- * Returns:
- *   A LibTomCrypt status code; CRYPT_OK will be returned if successful.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+DecryptCBC
+DecryptCFB
+DecryptCTR
+DecryptECB
+DecryptOFB
+
+    Decrypts data from the specified cipher mode and algorithm.
+
+Arguments:
+    cipher      - Index of the desired cipher.
+
+    rounds      - Number of rounds.
+
+    iv          - The initial vector, must be the length of one block.
+
+    key         - The secret key.
+
+    keyLength   - Length of the secret key.
+
+    data        - Cipher text (data to decrypt).
+
+    dataLength  - Length of cipher text.
+
+    dest        - Buffer to receive plain text (decrypted data).
+
+Return Value:
+    A LibTomCrypt status code; CRYPT_OK will be returned if successful.
+
+--*/
 static int
-DecryptCBC(int cipher, int rounds, unsigned char *iv, unsigned char *key, unsigned long keyLength,
-    unsigned char *data, unsigned long dataLength, unsigned char *dest)
+DecryptCBC(
+    int cipher,
+    int rounds,
+    unsigned char *iv,
+    unsigned char *key,
+    unsigned long keyLength,
+    unsigned char *data,
+    unsigned long dataLength,
+    unsigned char *dest
+    )
 {
     int status;
     symmetric_CBC state;
 
     status = cbc_start(cipher, iv, key, keyLength, rounds, &state);
-
     if (status == CRYPT_OK) {
         status = cbc_decrypt(data, dest, dataLength, &state);
         cbc_done(&state);
@@ -153,14 +234,21 @@ DecryptCBC(int cipher, int rounds, unsigned char *iv, unsigned char *key, unsign
 }
 
 static int
-DecryptCFB(int cipher, int rounds, unsigned char *iv, unsigned char *key, unsigned long keyLength,
-    unsigned char *data, unsigned long dataLength, unsigned char *dest)
+DecryptCFB(
+    int cipher,
+    int rounds,
+    unsigned char *iv,
+    unsigned char *key,
+    unsigned long keyLength,
+    unsigned char *data,
+    unsigned long dataLength,
+    unsigned char *dest
+    )
 {
     int status;
     symmetric_CFB state;
 
     status = cfb_start(cipher, iv, key, keyLength, rounds, &state);
-
     if (status == CRYPT_OK) {
         status = cfb_decrypt(data, dest, dataLength, &state);
         cfb_done(&state);
@@ -170,14 +258,21 @@ DecryptCFB(int cipher, int rounds, unsigned char *iv, unsigned char *key, unsign
 }
 
 static int
-DecryptCTR(int cipher, int rounds, unsigned char *iv, unsigned char *key, unsigned long keyLength,
-    unsigned char *data, unsigned long dataLength, unsigned char *dest)
+DecryptCTR(
+    int cipher,
+    int rounds,
+    unsigned char *iv,
+    unsigned char *key,
+    unsigned long keyLength,
+    unsigned char *data,
+    unsigned long dataLength,
+    unsigned char *dest
+    )
 {
     int status;
     symmetric_CTR state;
 
     status = ctr_start(cipher, iv, key, keyLength, rounds, CTR_COUNTER_LITTLE_ENDIAN, &state);
-
     if (status == CRYPT_OK) {
         status = ctr_decrypt(data, dest, dataLength, &state);
         ctr_done(&state);
@@ -187,14 +282,21 @@ DecryptCTR(int cipher, int rounds, unsigned char *iv, unsigned char *key, unsign
 }
 
 static int
-DecryptECB(int cipher, int rounds, unsigned char *iv, unsigned char *key, unsigned long keyLength,
-    unsigned char *data, unsigned long dataLength, unsigned char *dest)
+DecryptECB(
+    int cipher,
+    int rounds,
+    unsigned char *iv,
+    unsigned char *key,
+    unsigned long keyLength,
+    unsigned char *data,
+    unsigned long dataLength,
+    unsigned char *dest
+    )
 {
     int status;
     symmetric_ECB state;
 
     status = ecb_start(cipher, key, keyLength, rounds, &state);
-
     if (status == CRYPT_OK) {
         status = ecb_decrypt(data, dest, dataLength, &state);
         ecb_done(&state);
@@ -204,14 +306,21 @@ DecryptECB(int cipher, int rounds, unsigned char *iv, unsigned char *key, unsign
 }
 
 static int
-DecryptOFB(int cipher, int rounds, unsigned char *iv, unsigned char *key, unsigned long keyLength,
-    unsigned char *data, unsigned long dataLength, unsigned char *dest)
+DecryptOFB(
+    int cipher,
+    int rounds,
+    unsigned char *iv,
+    unsigned char *key,
+    unsigned long keyLength,
+    unsigned char *data,
+    unsigned long dataLength,
+    unsigned char *dest
+    )
 {
     int status;
     symmetric_OFB state;
 
     status = ofb_start(cipher, iv, key, keyLength, rounds, &state);
-
     if (status == CRYPT_OK) {
         status = ofb_decrypt(data, dest, dataLength, &state);
         ofb_done(&state);
@@ -220,40 +329,53 @@ DecryptOFB(int cipher, int rounds, unsigned char *iv, unsigned char *key, unsign
     return status;
 }
 
-/*
- * EncryptCBC
- * EncryptCFB
- * EncryptCTR
- * EncryptECB
- * EncryptOFB
- *
- *   Encrypts data in the specified cipher mode and algorithm.
- *
- * Arguments:
- *   cipher     - Index of the desired cipher.
- *   rounds     - Number of rounds.
- *   iv         - The initial vector, must be the length of one block.
- *   key        - The secret key.
- *   keyLength  - Length of the secret key.
- *   data       - Plain text (data to encrypt).
- *   dataLength - Length of plain text.
- *   dest       - Buffer to receive cipher text (encrypted data).
- *
- * Returns:
- *   A LibTomCrypt status code; CRYPT_OK will be returned if successful.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+EncryptCBC
+EncryptCFB
+EncryptCTR
+EncryptECB
+EncryptOFB
+
+    Encrypts data in the specified cipher mode and algorithm.
+
+Arguments:
+    cipher      - Index of the desired cipher.
+
+    rounds      - Number of rounds.
+
+    iv          - The initial vector, must be the length of one block.
+
+    key         - The secret key.
+
+    keyLength   - Length of the secret key.
+
+    data        - Plain text (data to encrypt).
+
+    dataLength  - Length of plain text.
+
+    dest        - Buffer to receive cipher text (encrypted data).
+
+Return Value:
+    A LibTomCrypt status code; CRYPT_OK will be returned if successful.
+
+--*/
 static int
-EncryptCBC(int cipher, int rounds, unsigned char *iv, unsigned char *key, unsigned long keyLength,
-    unsigned char *data, unsigned long dataLength, unsigned char *dest)
+EncryptCBC(
+    int cipher,
+    int rounds,
+    unsigned char *iv,
+    unsigned char *key,
+    unsigned long keyLength,
+    unsigned char *data,
+    unsigned long dataLength,
+    unsigned char *dest
+    )
 {
     int status;
     symmetric_CBC state;
 
     status = cbc_start(cipher, iv, key, keyLength, rounds, &state);
-
     if (status == CRYPT_OK) {
         status = cbc_encrypt(data, dest, dataLength, &state);
         cbc_done(&state);
@@ -263,14 +385,21 @@ EncryptCBC(int cipher, int rounds, unsigned char *iv, unsigned char *key, unsign
 }
 
 static int
-EncryptCFB(int cipher, int rounds, unsigned char *iv, unsigned char *key, unsigned long keyLength,
-    unsigned char *data, unsigned long dataLength, unsigned char *dest)
+EncryptCFB(
+    int cipher,
+    int rounds,
+    unsigned char *iv,
+    unsigned char *key,
+    unsigned long keyLength,
+    unsigned char *data,
+    unsigned long dataLength,
+    unsigned char *dest
+    )
 {
     int status;
     symmetric_CFB state;
 
     status = cfb_start(cipher, iv, key, keyLength, rounds, &state);
-
     if (status == CRYPT_OK) {
         status = cfb_encrypt(data, dest, dataLength, &state);
         cfb_done(&state);
@@ -280,14 +409,21 @@ EncryptCFB(int cipher, int rounds, unsigned char *iv, unsigned char *key, unsign
 }
 
 static int
-EncryptCTR(int cipher, int rounds, unsigned char *iv, unsigned char *key, unsigned long keyLength,
-    unsigned char *data, unsigned long dataLength, unsigned char *dest)
+EncryptCTR(
+    int cipher,
+    int rounds,
+    unsigned char *iv,
+    unsigned char *key,
+    unsigned long keyLength,
+    unsigned char *data,
+    unsigned long dataLength,
+    unsigned char *dest
+    )
 {
     int status;
     symmetric_CTR state;
 
     status = ctr_start(cipher, iv, key, keyLength, rounds, CTR_COUNTER_LITTLE_ENDIAN, &state);
-
     if (status == CRYPT_OK) {
         status = ctr_encrypt(data, dest, dataLength, &state);
         ctr_done(&state);
@@ -297,14 +433,21 @@ EncryptCTR(int cipher, int rounds, unsigned char *iv, unsigned char *key, unsign
 }
 
 static int
-EncryptECB(int cipher, int rounds, unsigned char *iv, unsigned char *key, unsigned long keyLength,
-    unsigned char *data, unsigned long dataLength, unsigned char *dest)
+EncryptECB(
+    int cipher,
+    int rounds,
+    unsigned char *iv,
+    unsigned char *key,
+    unsigned long keyLength,
+    unsigned char *data,
+    unsigned long dataLength,
+    unsigned char *dest
+    )
 {
     int status;
     symmetric_ECB state;
 
     status = ecb_start(cipher, key, keyLength, rounds, &state);
-
     if (status == CRYPT_OK) {
         status = ecb_encrypt(data, dest, dataLength, &state);
         ecb_done(&state);
@@ -314,14 +457,21 @@ EncryptECB(int cipher, int rounds, unsigned char *iv, unsigned char *key, unsign
 }
 
 static int
-EncryptOFB(int cipher, int rounds, unsigned char *iv, unsigned char *key, unsigned long keyLength,
-    unsigned char *data, unsigned long dataLength, unsigned char *dest)
+EncryptOFB(
+    int cipher,
+    int rounds,
+    unsigned char *iv,
+    unsigned char *key,
+    unsigned long keyLength,
+    unsigned char *data,
+    unsigned long dataLength,
+    unsigned char *dest
+    )
 {
     int status;
     symmetric_OFB state;
 
     status = ofb_start(cipher, iv, key, keyLength, rounds, &state);
-
     if (status == CRYPT_OK) {
         status = ofb_encrypt(data, dest, dataLength, &state);
         ofb_done(&state);
@@ -330,31 +480,38 @@ EncryptOFB(int cipher, int rounds, unsigned char *iv, unsigned char *key, unsign
     return status;
 }
 
-/*
- * CryptProcessCmd
- *
- *   Encrypts or decrypts data with the specified cipher algorithm.
- *
- * Arguments:
- *   interp - Current interpreter.
- *   objc   - Number of arguments.
- *   objv   - Argument objects.
- *   mode   - Must be either 'MODE_DECRYPT' or 'MODE_ENCRYPT'.
- *
- * Returns:
- *   A standard Tcl result.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+CryptProcessCmd
+
+    Encrypts or decrypts data with the specified cipher algorithm.
+
+Arguments:
+    interp  - Current interpreter.
+
+    objc    - Number of arguments.
+
+    objv    - Argument objects.
+
+    mode    - Must be 'MODE_DECRYPT' or 'MODE_ENCRYPT'.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
 static int
-CryptProcessCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], unsigned char mode)
+CryptProcessCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[],
+    unsigned char mode
+    )
 {
     int i;
     int index;
     int cipherIndex;
     int rounds = 0;
-    int modeIndex = 3; /* ECB mode by default. */
+    int modeIndex = 3; // ECB mode by default.
     int status = CRYPT_ERROR;
     int dataLength;
     int ivLength = 0;
@@ -413,7 +570,7 @@ CryptProcessCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], unsigned ch
         return TCL_ERROR;
     }
 
-    /* Certain cipher modes require an IV and others do not (e.g. ECB). */
+    // Certain cipher modes require an IV and others do not (e.g. ECB).
     if (iv != NULL) {
         if (!(cipherModes[modeIndex].options & CRYPT_REQUIRES_IV)) {
             Tcl_AppendResult(interp, cipherModes[modeIndex].name,
@@ -421,18 +578,18 @@ CryptProcessCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], unsigned ch
             return TCL_ERROR;
         }
 
-        /* Verify the IV's length. */
+        // Verify the IV's length.
         if (ivLength != cipher_descriptor[cipherIndex].block_length) {
             char length[12];
 
 #ifdef _WINDOWS
         StringCchPrintfA(length, ARRAYSIZE(length), "%d",
             cipher_descriptor[cipherIndex].block_length);
-#else /* _WINDOWS */
+#else // _WINDOWS
         snprintf(length, ARRAYSIZE(length), "%d",
             cipher_descriptor[cipherIndex].block_length);
         length[ARRAYSIZE(length)-1] = '\0';
-#endif /* _WINDOWS */
+#endif // _WINDOWS
 
             Tcl_AppendResult(interp, "invalid initialisation vector size: must be ",
                 length, " bytes", NULL);
@@ -445,10 +602,10 @@ CryptProcessCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], unsigned ch
         return TCL_ERROR;
     }
 
-    /*
-     * Verify the given key's length. If the key exceeds the
-     * maximum length, it will be truncated without warning.
-     */
+    //
+    // Verify the given key's length. If the key exceeds the
+    // maximum length, it will be truncated without warning.
+    //
     key = Tcl_GetByteArrayFromObj(objv[objc-2], &keyLength);
     if (cipher_descriptor[cipherIndex].keysize(&keyLength) != CRYPT_OK) {
         char message[64];
@@ -456,28 +613,28 @@ CryptProcessCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], unsigned ch
         if (cipher_descriptor[cipherIndex].min_key_length ==
             cipher_descriptor[cipherIndex].max_key_length) {
 
-            /* Fixed key length. */
+            // Fixed key length.
 #ifdef _WINDOWS
             StringCchPrintfA(message, ARRAYSIZE(message), "%d",
                 cipher_descriptor[cipherIndex].min_key_length);
-#else /* _WINDOWS */
+#else // _WINDOWS
             snprintf(message, ARRAYSIZE(message), "%d",
                 cipher_descriptor[cipherIndex].min_key_length);
             message[ARRAYSIZE(message)-1] = '\0';
-#endif /* _WINDOWS */
+#endif // _WINDOWS
 
         } else {
-            /* Ranging key length. */
+            // Ranging key length.
 #ifdef _WINDOWS
             StringCchPrintfA(message, ARRAYSIZE(message), "between %d and %d",
                 cipher_descriptor[cipherIndex].min_key_length,
                 cipher_descriptor[cipherIndex].max_key_length);
-#else /* _WINDOWS */
+#else // _WINDOWS
             snprintf(message, ARRAYSIZE(message), "between %d and %d",
                 cipher_descriptor[cipherIndex].min_key_length,
                 cipher_descriptor[cipherIndex].max_key_length);
             message[ARRAYSIZE(message)-1] = '\0';
-#endif /* _WINDOWS */
+#endif // _WINDOWS
 
         }
 
@@ -488,24 +645,24 @@ CryptProcessCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], unsigned ch
     data = Tcl_GetByteArrayFromObj(objv[objc-1], &dataLength);
 
 #if 0
-    /*
-     * Removed the automatic padding of plain-text for now. I am undecided
-     * whether this behavior should be performed by the function, for simplicity;
-     * or by the caller, for realism and completeness. Writing a function to append
-     * NULL bytes is relatively straightforward (i.e. ZeroPadData in the test suite).
-     */
+    //
+    // Removed the automatic padding of plain-text for now. I am undecided
+    // whether this behaviour should be performed by the function, for simplicity;
+    // or by the caller, for realism and completeness. Writing a function to append
+    // NULL bytes is relatively straightforward (i.e. ZeroPadData in the test suite).
+    //
     if (mode == MODE_ENCRYPT && cipherModes[modeIndex].options & CRYPT_PAD_PLAINTEXT) {
         int padLength;
         unsigned char *pad;
 
-        /*
-         * Pad the buffer to a multiple of the cipher's block-length,
-         * needed for CBC and ECB cipher operation modes.
-         */
+        //
+        // Pad the buffer to a multiple of the cipher's block-length,
+        // needed for CBC and ECB cipher operation modes.
+        //
         padLength = ROUNDUP(dataLength, cipher_descriptor[cipherIndex].block_length);
         pad = (unsigned char *) ckalloc(padLength);
 
-        /* Copy data and zero-pad the remaining bytes. */
+        // Copy data and zero-pad the remaining bytes.
         for (i = 0; i < dataLength; i++) {
             pad[i] = data[i];
         }
@@ -551,24 +708,29 @@ CryptProcessCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], unsigned ch
     return TCL_OK;
 }
 
-/*
- * CryptHashCmd
- *
- *   Hashes data using the specified hash algorithm.
- *
- * Arguments:
- *   interp - Current interpreter.
- *   objc   - Number of arguments.
- *   objv   - Argument objects.
- *
- * Returns:
- *   A standard Tcl result.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+CryptHashCmd
+
+    Hashes data using the specified hash algorithm.
+
+Arguments:
+    interp  - Current interpreter.
+
+    objc    - Number of arguments.
+
+    objv    - Argument objects.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
 static int
-CryptHashCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+CryptHashCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[]
+    )
 {
     int dataLength;
     int index;
@@ -580,7 +742,7 @@ CryptHashCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
     unsigned char type = CRYPT_HASH;
     unsigned long destLength;
 
-    /* Argument checks. */
+    // Argument checks.
     if (objc == 6) {
         if (Tcl_GetIndexFromObj(interp, objv[2], macSwitches, "switch", TCL_EXACT, &index) != TCL_OK) {
             return TCL_ERROR;
@@ -593,7 +755,7 @@ CryptHashCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
         return TCL_ERROR;
     }
 
-    /* Retrieve the hash/cipher algorithm index. */
+    // Retrieve the hash/cipher algorithm index.
     if (type == CRYPT_HASH || type == CRYPT_HMAC) {
         status = Tcl_GetIndexFromObjStruct(interp, objv[objc-2], hash_descriptor,
             sizeof(hash_descriptor[0]), "hash", TCL_EXACT, &index);
@@ -607,7 +769,7 @@ CryptHashCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
     data = Tcl_GetByteArrayFromObj(objv[objc-1], &dataLength);
 
-    /* Create a byte object to hold the hash digest. */
+    // Create a byte object to hold the hash digest.
     destLength = MAXBLOCKSIZE;
     dest = Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), MAXBLOCKSIZE);
 
@@ -654,31 +816,38 @@ CryptHashCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
         return TCL_ERROR;
     }
 
-    /* Update the object's length. */
+    // Update the object's length.
     Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), (int)destLength);
 
     return TCL_OK;
 }
 
-/*
- * CryptStartCmd
- *
- *   Initialise a hash state.
- *
- * Arguments:
- *   interp   - Current interpreter.
- *   objc     - Number of arguments.
- *   objv     - Argument objects.
- *   statePtr - Pointer to a 'ExtState' structure.
- *
- * Returns:
- *   A standard Tcl result.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+CryptStartCmd
+
+    Initialise a hash state.
+
+Arguments:
+    interp   - Current interpreter.
+
+    objc     - Number of arguments.
+
+    objv     - Argument objects.
+
+    statePtr - Pointer to a 'ExtState' structure.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
 static int
-CryptStartCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
+CryptStartCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[],
+    ExtState *statePtr
+    )
 {
     char handleId[20];
     int index;
@@ -690,7 +859,7 @@ CryptStartCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *sta
     CryptHandle *handlePtr;
     Tcl_HashEntry *hashEntryPtr;
 
-    /* Argument checks. */
+    // Argument checks.
     if (objc == 5) {
         if (Tcl_GetIndexFromObj(interp, objv[2], macSwitches, "switch", TCL_EXACT, &index) != TCL_OK) {
             return TCL_ERROR;
@@ -703,7 +872,7 @@ CryptStartCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *sta
         return TCL_ERROR;
     }
 
-    /* Retrieve the hash/cipher algorithm index. */
+    // Retrieve the hash/cipher algorithm index.
     if (type == CRYPT_HASH || type == CRYPT_HMAC) {
         status = Tcl_GetIndexFromObjStruct(interp, objv[objc-1], hash_descriptor,
             sizeof(hash_descriptor[0]), "hash", TCL_EXACT, &index);
@@ -719,7 +888,7 @@ CryptStartCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *sta
     handlePtr->descIndex = index;
     handlePtr->type = type;
 
-    /* Initialise hash state. */
+    // Initialise hash state.
     switch (type) {
         case CRYPT_HASH: {
             status = hash_descriptor[index].init(&handlePtr->state.hash);
@@ -754,13 +923,13 @@ CryptStartCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *sta
         return TCL_ERROR;
     }
 
-    /* The handle identifier doubles as the hash key. */
+    // The handle identifier doubles as the hash key.
 #ifdef _WINDOWS
     StringCchPrintfA(handleId, ARRAYSIZE(handleId), "hash%lu", statePtr->hashCount);
-#else /* _WINDOWS */
+#else // _WINDOWS
     snprintf(handleId, ARRAYSIZE(handleId), "hash%lu", statePtr->hashCount);
     handleId[ARRAYSIZE(handleId)-1] = '\0';
-#endif /* _WINDOWS */
+#endif // _WINDOWS
     statePtr->hashCount++;
 
     hashEntryPtr = Tcl_CreateHashEntry(statePtr->cryptTable, handleId, &newEntry);
@@ -770,25 +939,32 @@ CryptStartCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *sta
     return TCL_OK;
 }
 
-/*
- * CryptUpdateCmd
- *
- *   Process a block of data.
- *
- * Arguments:
- *   interp   - Current interpreter.
- *   objc     - Number of arguments.
- *   objv     - Argument objects.
- *   statePtr - Pointer to a 'ExtState' structure.
- *
- * Returns:
- *   A standard Tcl result.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+CryptUpdateCmd
+
+    Process a block of data.
+
+Arguments:
+    interp   - Current interpreter.
+
+    objc     - Number of arguments.
+
+    objv     - Argument objects.
+
+    statePtr - Pointer to a 'ExtState' structure.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
 static int
-CryptUpdateCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
+CryptUpdateCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[],
+    ExtState *statePtr
+    )
 {
     int dataLength;
     int status = CRYPT_ERROR;
@@ -809,7 +985,7 @@ CryptUpdateCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *st
 
     data = Tcl_GetByteArrayFromObj(objv[3], &dataLength);
 
-    /* Update hash state. */
+    // Update hash state.
     switch (handlePtr->type) {
         case CRYPT_HASH: {
             status = hash_descriptor[handlePtr->descIndex].process(&handlePtr->state.hash,
@@ -847,25 +1023,32 @@ CryptUpdateCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *st
     return TCL_OK;
 }
 
-/*
- * CryptEndCmd
- *
- *   Finalise a hash state, returning the digest.
- *
- * Arguments:
- *   interp   - Current interpreter.
- *   objc     - Number of arguments.
- *   objv     - Argument objects.
- *   statePtr - Pointer to a 'ExtState' structure.
- *
- * Returns:
- *   A standard Tcl result.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+CryptEndCmd
+
+    Finalise a hash state, returning the digest.
+
+Arguments:
+    interp   - Current interpreter.
+
+    objc     - Number of arguments.
+
+    objv     - Argument objects.
+
+    statePtr - Pointer to a 'ExtState' structure.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
 static int
-CryptEndCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
+CryptEndCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[],
+    ExtState *statePtr
+    )
 {
     int status = CRYPT_ERROR;
     unsigned char *dest;
@@ -884,11 +1067,11 @@ CryptEndCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *state
     }
     handlePtr = (CryptHandle *) Tcl_GetHashValue(hashEntryPtr);
 
-    /* Create a byte object to hold the hash digest. */
+    // Create a byte object to hold the hash digest.
     destLength = MAXBLOCKSIZE;
     dest = Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), MAXBLOCKSIZE);
 
-    /* Finalise hash state. */
+    // Finalise hash state.
     switch (handlePtr->type) {
         case CRYPT_HASH: {
             destLength = hash_descriptor[handlePtr->descIndex].hashsize;
@@ -913,7 +1096,7 @@ CryptEndCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *state
         }
     }
 
-    /* Free handle structure and remove the hash table entry. */
+    // Free handle structure and remove the hash table entry.
     ckfree((char *) handlePtr);
     Tcl_DeleteHashEntry(hashEntryPtr);
 
@@ -924,28 +1107,29 @@ CryptEndCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *state
         return TCL_ERROR;
     }
 
-    /* Update the object's length. */
+    // Update the object's length.
     Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), (int)destLength);
 
     return TCL_OK;
 }
 
-/*
- * CryptCloseHandles
- *
- *   Close all 'crypt' handles in the given hash table.
- *
- * Arguments:
- *   tablePtr - Hash table of 'crypt' handles.
- *
- * Returns:
- *   None.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+CryptCloseHandles
+
+    Close all 'crypt' handles in the given hash table.
+
+Arguments:
+    tablePtr - Hash table of 'crypt' handles.
+
+Return Value:
+    None.
+
+--*/
 void
-CryptCloseHandles(Tcl_HashTable *tablePtr)
+CryptCloseHandles(
+    Tcl_HashTable *tablePtr
+    )
 {
     Tcl_HashSearch search;
     Tcl_HashEntry *entryPtr;
@@ -959,25 +1143,32 @@ CryptCloseHandles(Tcl_HashTable *tablePtr)
     }
 }
 
-/*
- * CryptInfoCmd
- *
- *   Retrieves information about the cryptography extension.
- *
- * Arguments:
- *   interp - Current interpreter.
- *   objc   - Number of arguments.
- *   objv   - Argument objects.
- *   statePtr - Pointer to a 'ExtState' structure.
- *
- * Returns:
- *   A standard Tcl result.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+CryptInfoCmd
+
+    Retrieves information about the cryptography extension.
+
+Arguments:
+    interp   - Current interpreter.
+
+    objc     - Number of arguments.
+
+    objv     - Argument objects.
+
+    statePtr - Pointer to a 'ExtState' structure.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
 static int
-CryptInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
+CryptInfoCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[],
+    ExtState *statePtr
+    )
 {
     int index;
     Tcl_Obj *resultPtr;
@@ -1001,7 +1192,7 @@ CryptInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *stat
 
     switch ((enum options) index) {
         case OPTION_CIPHERS: {
-            /* Create a list of supported ciphers. */
+            // Create a list of supported ciphers.
             for (index = 0; index < TAB_SIZE && cipher_descriptor[index].name != NULL; index++) {
                 Tcl_ListObjAppendElement(NULL, resultPtr,
                     Tcl_NewStringObj(cipher_descriptor[index].name, -1));
@@ -1013,7 +1204,7 @@ CryptInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *stat
             Tcl_HashEntry *hashEntryPtr;
             Tcl_HashSearch hashSearch;
 
-            /* Create a list of open crypt handles. */
+            // Create a list of open crypt handles.
             for (hashEntryPtr = Tcl_FirstHashEntry(statePtr->cryptTable, &hashSearch);
                 hashEntryPtr != NULL;
                 hashEntryPtr = Tcl_NextHashEntry(&hashSearch)) {
@@ -1024,7 +1215,7 @@ CryptInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *stat
             return TCL_OK;
         }
         case OPTION_HASHES: {
-            /* Create a list of supported hashes. */
+            // Create a list of supported hashes.
             for (index = 0; index < TAB_SIZE && hash_descriptor[index].name != NULL; index++) {
                 Tcl_ListObjAppendElement(NULL, resultPtr,
                     Tcl_NewStringObj(hash_descriptor[index].name, -1));
@@ -1032,7 +1223,7 @@ CryptInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *stat
             return TCL_OK;
         }
         case OPTION_MODES: {
-            /* Create a list of supported cipher modes. */
+            // Create a list of supported cipher modes.
             for (index = 0; cipherModes[index].name != NULL; index++) {
                 Tcl_ListObjAppendElement(NULL, resultPtr,
                     Tcl_NewStringObj(cipherModes[index].name, -1));
@@ -1040,7 +1231,7 @@ CryptInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *stat
             return TCL_OK;
         }
         case OPTION_PRNGS: {
-            /* Create a list of supported PRNGs. */
+            // Create a list of supported PRNGs.
             for (index = 0; index < TAB_SIZE && prng_descriptor[index].name != NULL; index++) {
                 Tcl_ListObjAppendElement(NULL, resultPtr,
                     Tcl_NewStringObj(prng_descriptor[index].name, -1));
@@ -1049,29 +1240,34 @@ CryptInfoCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *stat
         }
     }
 
-    /* This point should never be reached. */
+    // This point should never be reached.
     Tcl_Panic("unexpected fallthrough");
     return TCL_ERROR;
 }
 
-/*
- * CryptPkcs5Cmd
- *
- *   Create a PKCS #5 v1 or v2 compliant hash.
- *
- * Arguments:
- *   interp - Current interpreter.
- *   objc   - Number of arguments.
- *   objv   - Argument objects.
- *
- * Returns:
- *   A standard Tcl result.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+CryptPkcs5Cmd
+
+    Create a PKCS #5 v1 or v2 compliant hash.
+
+Arguments:
+    interp  - Current interpreter.
+
+    objc    - Number of arguments.
+
+    objv    - Argument objects.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
 static int
-CryptPkcs5Cmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+CryptPkcs5Cmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[]
+    )
 {
     int i;
     int index;
@@ -1134,7 +1330,7 @@ CryptPkcs5Cmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
     salt = Tcl_GetByteArrayFromObj(objv[objc-2], &saltLength);
     pass = Tcl_GetByteArrayFromObj(objv[objc-1], &passLength);
 
-    /* Create a byte object to hold the hash digest. */
+    // Create a byte object to hold the hash digest.
     destLength = hash_descriptor[index].hashsize;
     dest = Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), (int)destLength);
 
@@ -1143,7 +1339,7 @@ CryptPkcs5Cmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
                              salt, (unsigned long)saltLength,
                              rounds, index, dest, &destLength);
     } else if (saltLength != 8) {
-        /* The salt must be 8 bytes for PKCS #5 v1. */
+        // The salt must be 8 bytes for PKCS #5 v1.
         status = CRYPT_INVALID_SALT;
     } else {
         status = pkcs_5_alg1(pass, (unsigned long)passLength,
@@ -1157,31 +1353,38 @@ CryptPkcs5Cmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
         return TCL_ERROR;
     }
 
-    /* Update the object's length. */
+    // Update the object's length.
     Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), (int)destLength);
 
     return TCL_OK;
 }
 
-/*
- * CryptPrngCmd
- *
- *   Create, seed, read, and close a pseudo random number generator.
- *
- * Arguments:
- *   interp   - Current interpreter.
- *   objc     - Number of arguments.
- *   objv     - Argument objects.
- *   statePtr - Pointer to a 'ExtState' structure.
- *
- * Returns:
- *   A standard Tcl result.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+CryptPrngCmd
+
+    Create, seed, read, and close a pseudo random number generator.
+
+Arguments:
+    interp   - Current interpreter.
+
+    objc     - Number of arguments.
+
+    objv     - Argument objects.
+
+    statePtr - Pointer to a 'ExtState' structure.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
 static int
-CryptPrngCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *statePtr)
+CryptPrngCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[],
+    ExtState *statePtr
+    )
 {
     int index;
     int status;
@@ -1206,14 +1409,14 @@ CryptPrngCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *stat
                 return TCL_ERROR;
             }
 
-            /* Retrieve handle structure. */
+            // Retrieve handle structure.
             hashEntryPtr = GetHandleTableEntry(interp, objv[3], statePtr->cryptTable, "prng");
             if (hashEntryPtr == NULL) {
                 return TCL_ERROR;
             }
             handlePtr = (CryptHandle *) Tcl_GetHashValue(hashEntryPtr);
 
-            /* Free resources and remove the hash table entry. */
+            // Free resources and remove the hash table entry.
             prng_descriptor[handlePtr->descIndex].done(&handlePtr->state.prng);
             ckfree((char *) handlePtr);
             Tcl_DeleteHashEntry(hashEntryPtr);
@@ -1229,26 +1432,26 @@ CryptPrngCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *stat
                 return TCL_ERROR;
             }
 
-            /* Retrieve handle structure. */
+            // Retrieve handle structure.
             hashEntryPtr = GetHandleTableEntry(interp, objv[3], statePtr->cryptTable, "prng");
             if (hashEntryPtr == NULL || Tcl_GetIntFromObj(interp, objv[4], &destLength) != TCL_OK) {
                 return TCL_ERROR;
             }
             handlePtr = (CryptHandle *) Tcl_GetHashValue(hashEntryPtr);
 
-            /* Create a byte object to hold the hash digest. */
+            // Create a byte object to hold the hash digest.
             dest = Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), destLength);
 
-            /* Retrieve random data from the PRNG. */
+            // Retrieve random data from the PRNG.
             status = (int) prng_descriptor[handlePtr->descIndex].read(dest,
                 (unsigned long)destLength, &handlePtr->state.prng);
 
-            /*
-             * If the amount read does not equal the request amount, the
-             * operation is considered to have failed. (e.g. if a user requests
-             * five bytes and the function returns four bytes, due to lack of
-             * entropy or whatever the reason).
-             */
+            //
+            // If the amount read does not equal the request amount, the
+            // operation is considered to have failed. (e.g. if a user requests
+            // five bytes and the function returns four bytes, due to lack of
+            // entropy or whatever the reason).
+            //
             if (status != destLength) {
                 Tcl_SetResult(interp, "unable to read from PRNG", TCL_STATIC);
                 return TCL_ERROR;
@@ -1270,7 +1473,7 @@ CryptPrngCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *stat
                 return TCL_ERROR;
             }
 
-            /* Initialise the PRNG. */
+            // Initialise the PRNG.
             handlePtr = (CryptHandle *) ckalloc(sizeof(CryptHandle));
             handlePtr->descIndex = index;
             handlePtr->type = CRYPT_PRNG;
@@ -1283,13 +1486,13 @@ CryptPrngCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *stat
                 return TCL_ERROR;
             }
 
-            /* The handle identifier doubles as the hash key. */
+            // The handle identifier doubles as the hash key.
 #ifdef _WINDOWS
             StringCchPrintfA(handleId, ARRAYSIZE(handleId), "prng%lu", statePtr->prngCount);
-#else /* _WINDOWS */
+#else // _WINDOWS
             snprintf(handleId, ARRAYSIZE(handleId), "prng%lu", statePtr->prngCount);
             handleId[ARRAYSIZE(handleId)-1] = '\0';
-#endif /* _WINDOWS */
+#endif // _WINDOWS
             statePtr->prngCount++;
 
             hashEntryPtr = Tcl_CreateHashEntry(statePtr->cryptTable, handleId, &newEntry);
@@ -1307,7 +1510,7 @@ CryptPrngCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *stat
                 return TCL_ERROR;
             }
 
-            /* Retrieve handle structure. */
+            // Retrieve handle structure.
             hashEntryPtr = GetHandleTableEntry(interp, objv[3], statePtr->cryptTable, "prng");
             if (hashEntryPtr == NULL) {
                 return TCL_ERROR;
@@ -1316,7 +1519,7 @@ CryptPrngCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *stat
 
             data = Tcl_GetByteArrayFromObj(objv[4], &dataLength);
 
-            /* Add entropy to the PRNG. */
+            // Add entropy to the PRNG.
             status = prng_descriptor[handlePtr->descIndex].add_entropy(data,
                 (unsigned long)dataLength, &handlePtr->state.prng);
 
@@ -1334,14 +1537,14 @@ CryptPrngCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *stat
                 return TCL_ERROR;
             }
 
-            /* Retrieve handle structure. */
+            // Retrieve handle structure.
             hashEntryPtr = GetHandleTableEntry(interp, objv[3], statePtr->cryptTable, "prng");
             if (hashEntryPtr == NULL) {
                 return TCL_ERROR;
             }
             handlePtr = (CryptHandle *) Tcl_GetHashValue(hashEntryPtr);
 
-            /* Set the PRNG as ready. */
+            // Set the PRNG as ready.
             status = prng_descriptor[handlePtr->descIndex].ready(&handlePtr->state.prng);
 
             if (status != CRYPT_OK) {
@@ -1354,29 +1557,34 @@ CryptPrngCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], ExtState *stat
         }
     }
 
-    /* This point should never be reached. */
+    // This point should never be reached.
     Tcl_Panic("unexpected fallthrough");
     return TCL_ERROR;
 }
 
-/*
- * CryptRandCmd
- *
- *   Retrieves random entropy from the system.
- *
- * Arguments:
- *   interp - Current interpreter.
- *   objc   - Number of arguments.
- *   objv   - Argument objects.
- *
- * Returns:
- *   A standard Tcl result.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+CryptRandCmd
+
+    Retrieves random entropy from the system.
+
+Arguments:
+    interp  - Current interpreter.
+
+    objc    - Number of arguments.
+
+    objv    - Argument objects.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
 static int
-CryptRandCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+CryptRandCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[]
+    )
 {
     int bytes;
     unsigned char *buffer;
@@ -1405,25 +1613,32 @@ CryptRandCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
     return TCL_OK;
 }
 
-/*
- * CryptObjCmd
- *
- *   This function provides the "crypt" Tcl command.
- *
- * Arguments:
- *   clientData - Pointer to a 'ExtState' structure.
- *   interp     - Current interpreter.
- *   objc       - Number of arguments.
- *   objv       - Argument objects.
- *
- * Returns:
- *   A standard Tcl result.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+CryptObjCmd
+
+    This function provides the "crypt" Tcl command.
+
+Arguments:
+    clientData  - Pointer to a 'ExtState' structure.
+
+    interp      - Current interpreter.
+
+    objc        - Number of arguments.
+
+    objv        - Argument objects.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
 int
-CryptObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+CryptObjCmd(
+    ClientData clientData,
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[]
+    )
 {
     ExtState *statePtr = (ExtState *) clientData;
     int index;
@@ -1458,7 +1673,7 @@ CryptObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
         case OPTION_UPDATE:  return CryptUpdateCmd(interp, objc, objv, statePtr);
     }
 
-    /* This point should never be reached. */
+    // This point should never be reached.
     Tcl_Panic("unexpected fallthrough");
     return TCL_ERROR;
 }

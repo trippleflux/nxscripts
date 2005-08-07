@@ -1,54 +1,59 @@
-/*
- * AlcoExt - Alcoholicz Tcl extension.
- * Copyright (c) 2005 Alcoholicz Scripting Team
- *
- * File Name:
- *   alcoVolume.c
- *
- * Author:
- *   neoxed (neoxed@gmail.com) June 2, 2005
- *
- * Abstract:
- *   Implements a Tcl interface to retrieve volume information.
- *
- *   Tcl Commands:
- *     volume list [-local] [-mounts] [-root]
- *       - Retrieves a list of volumes and mount points.
- *
- *     volume info <volume> <varName>
- *      - Retrieves information for the given volume, and uses the
- *        variable given by varName to store the returned information.
- *      - Array Contents:
- *        flags  - A list of lags associated with the file system.
- *        free   - Remaining space, expressed in bytes.
- *        id     - Volume identification number.
- *        length - Maximum length of a file name.
- *        name   - Name of the volume.
- *        total  - Total space, expressed in bytes.
- *        type   - Volume type and file system name.
- */
+/*++
+
+AlcoExt - Alcoholicz Tcl extension.
+Copyright (c) 2005 Alcoholicz Scripting Team
+
+Module Name:
+    alcoVolume.c
+
+Author:
+    neoxed (neoxed@gmail.com) June 2, 2005
+
+Abstract:
+    This module implements a interface to list and query volumes.
+
+    volume list [-local] [-mounts] [-root]
+      - Retrieves a list of volumes and mount points.
+
+    volume info <volume> <varName>
+     - Retrieves information for the given volume, and uses the
+       variable given by varName to store the returned information.
+     - Array Contents:
+       flags  - A list of lags associated with the file system.
+       free   - Remaining space, expressed in bytes.
+       id     - Volume identification number.
+       length - Maximum length of a file name.
+       name   - Name of the volume.
+       total  - Total space, expressed in bytes.
+       type   - Volume type and file system name.
+
+--*/
 
 #include <alcoExt.h>
 
-/*
- * VolumeObjCmd
- *
- *	 This function provides the "volume" Tcl command.
- *
- * Arguments:
- *   dummy  - Not used.
- *   interp - Current interpreter.
- *   objc   - Number of arguments.
- *   objv   - Argument objects.
- *
- * Returns:
- *   A standard Tcl result.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+VolumeObjCmd
+
+  	 This function provides the "volume" Tcl command.
+
+Arguments:
+    dummy  - Not used.
+    interp - Current interpreter.
+    objc   - Number of arguments.
+    objv   - Argument objects.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
 int
-VolumeObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+VolumeObjCmd(
+    ClientData dummy,
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[]
+    )
 {
     int index;
     static const char *options[] = {"info", "list", NULL};
@@ -92,7 +97,7 @@ VolumeObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
                 }
             }
 
-            /* Default to -root if no switches were given. */
+            // Default to -root if no switches were given.
             if (listOptions == 0) {
                 listOptions |= VOLLIST_FLAG_ROOT;
             }
@@ -121,14 +126,14 @@ VolumeObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
                 return TCL_ERROR;
             }
 
-            /*
-             * Tcl_ObjSetVar2() won't create a copy of the field object,
-             * so the caller must free the object once finished with it.
-             */
+            //
+            // Tcl_ObjSetVar2() won't create a copy of the field object,
+            // so the caller must free the object once finished with it.
+            //
             fieldObj = Tcl_NewObj();
             Tcl_IncrRefCount(fieldObj);
 
-/* Easier than repeating this... */
+// Easier than repeating this...
 #define TCL_STORE_ARRAY(name, value)                                                        \
     valueObj = (value);                                                                     \
     Tcl_SetStringObj(fieldObj, (name), -1);                                                 \
@@ -145,7 +150,7 @@ VolumeObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
             TCL_STORE_ARRAY("free",   Tcl_NewWideIntObj((Tcl_WideInt)volumeInfo.free));
             TCL_STORE_ARRAY("total",  Tcl_NewWideIntObj((Tcl_WideInt)volumeInfo.total));
 
-            /* Create a list of applicable volume flags. */
+            // Create a list of applicable volume flags.
             flagListObj = Tcl_NewObj();
             for (index = 0; volumeFlags[index].name != NULL; index++) {
                 if (volumeInfo.flags & volumeFlags[index].flag) {
@@ -160,7 +165,7 @@ VolumeObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
         }
     }
 
-    /* This point should never be reached. */
+    // This point should never be reached.
     Tcl_Panic("unexpected fallthrough");
     return TCL_ERROR;
 }

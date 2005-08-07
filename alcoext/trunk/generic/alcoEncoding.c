@@ -1,26 +1,27 @@
-/*
- * AlcoExt - Alcoholicz Tcl extension.
- * Copyright (c) 2005 Alcoholicz Scripting Team
- *
- * File Name:
- *   alcoEncoding.c
- *
- * Author:
- *   neoxed (neoxed@gmail.com) May 21, 2005
- *
- * Abstract:
- *   Implements base64 and hex encoding.
- *
- *   Tcl Commands:
- *     encode <encoding> <data>
- *       - Encodes the given data in the specified format.
- *       - The 'encoding' parameter must be 'base64' or 'hex'.
- *
- *     decode <encoding> <data>
- *       - Decodes the given data from the specified format.
- *       - The 'encoding' parameter must be 'base64' or 'hex'.
- *       - An error is raised if the given data cannot be decoded.
- */
+/*++
+
+AlcoExt - Alcoholicz Tcl extension.
+Copyright (c) 2005 Alcoholicz Scripting Team
+
+Module Name:
+    alcoEncoding.c
+
+Author:
+    neoxed (neoxed@gmail.com) May 21, 2005
+
+Abstract:
+    This module implements a interface to process base64 and hex encodings.
+
+    encode <encoding> <data>
+      - Encodes the given data in the specified format.
+      - The 'encoding' parameter must be 'base64' or 'hex'.
+
+    decode <encoding> <data>
+      - Decodes the given data from the specified format.
+      - The 'encoding' parameter must be 'base64' or 'hex'.
+      - An error is raised if the given data cannot be decoded.
+
+--*/
 
 #include <alcoExt.h>
 
@@ -45,23 +46,22 @@ const EncodingFuncts decodeFuncts[ENCODING_TYPES] = {
 };
 
 
-/*
- * Base64DecodeGetDestLength
- * Base64EncodeGetDestLength
- * HexDecodeGetDestLength
- * HexEncodeGetDestLength
- *
- *   Calculate the required destination buffer size for various encodings.
- *
- * Arguments:
- *   sourceLength  - The length of the source buffer.
- *
- * Returns:
- *   The required destination buffer size to hold the encoded or decoded data.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+Base64DecodeGetDestLength
+Base64EncodeGetDestLength
+HexDecodeGetDestLength
+HexEncodeGetDestLength
+
+    Calculate the required destination buffer size for various encodings.
+
+Arguments:
+    sourceLength  - The length of the source buffer.
+
+Return Value:
+    The required destination buffer size to hold the encoded or decoded data.
+
+--*/
 static unsigned long
 Base64DecodeGetDestLength(unsigned long sourceLength)
 {
@@ -86,25 +86,32 @@ HexEncodeGetDestLength(unsigned long sourceLength)
     return (sourceLength * 2) + 1;
 }
 
-/*
- * HexDecode
- *
- *   Decode a buffer of hex data.
- *
- * Arguments:
- *   source       - Source buffer containing the hex data to decode.
- *   sourceLength - Length of the source buffer.
- *   dest         - Destination buffer of the binary decoded data.
- *   destLength   - The max size of the destination buffer and resulting size.
- *
- * Returns:
- *   A LibTomCrypt status code; CRYPT_OK will be returned if successful.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+HexDecode
+
+    Decode a buffer of hex data.
+
+Arguments:
+    source       - Source buffer containing the hex data to decode.
+
+    sourceLength - Length of the source buffer.
+
+    dest         - Destination buffer of the binary decoded data.
+
+    destLength   - The max size of the destination buffer and resulting size.
+
+Return Value:
+    A LibTomCrypt status code; CRYPT_OK will be returned if successful.
+
+--*/
 static int
-HexDecode(const unsigned char *source, unsigned long sourceLength, unsigned char *dest, unsigned long *destLength)
+HexDecode(
+    const unsigned char *source,
+    unsigned long sourceLength,
+    unsigned char *dest,
+    unsigned long *destLength
+    )
 {
     char c1;
     char c2;
@@ -130,39 +137,48 @@ HexDecode(const unsigned char *source, unsigned long sourceLength, unsigned char
 }
 
 inline char
-HexDecodeChar(char c)
+HexDecodeChar(
+    char ch
+    )
 {
-    if (c >= '0' && c <= '9') {
-        return (c - '0');
+    if (ch >= '0' && ch <= '9') {
+        return (ch - '0');
     }
-    if (c >= 'A' && c <= 'F') {
-        return (c - 'A' + 10);
+    if (ch >= 'A' && ch <= 'F') {
+        return (ch - 'A' + 10);
     }
-    if (c >= 'a' && c <= 'f') {
-        return (c - 'a' + 10);
+    if (ch >= 'a' && ch <= 'f') {
+        return (ch - 'a' + 10);
     }
     return -1;
 }
 
-/*
- * HexEncode
- *
- *   Encode a buffer of data in hex.
- *
- * Arguments:
- *   source       - Source buffer to encode.
- *   sourceLength - Length of the source buffer.
- *   dest         - Destination buffer for the hex encoded data.
- *   destLength   - The max size of the destination buffer and resulting size.
- *
- * Returns:
- *   A LibTomCrypt status code; CRYPT_OK will be returned if successful.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+HexEncode
+
+    Encode a buffer of data in hex.
+
+Arguments:
+    source       - Source buffer to encode.
+
+    sourceLength - Length of the source buffer.
+
+    dest         - Destination buffer for the hex encoded data.
+
+    destLength   - The max size of the destination buffer and resulting size.
+
+Return Value:
+    A LibTomCrypt status code; CRYPT_OK will be returned if successful.
+
+--*/
 static int
-HexEncode(const unsigned char *source, unsigned long sourceLength, unsigned char *dest, unsigned long *destLength)
+HexEncode(
+    const unsigned char *source,
+    unsigned long sourceLength,
+    unsigned char *dest,
+    unsigned long *destLength
+    )
 {
     unsigned char c;
     unsigned long i;
@@ -187,25 +203,32 @@ HexEncode(const unsigned char *source, unsigned long sourceLength, unsigned char
     return CRYPT_OK;
 }
 
-/*
- * EncodingObjCmd
- *
- *   This function provides the "encode" and "decode" Tcl commands.
- *
- * Arguments:
- *   clientData - Pointer to an array of 'EncodingFuncts'.
- *   interp     - Current interpreter.
- *   objc       - Number of arguments.
- *   objv       - Argument objects.
- *
- * Returns:
- *   A standard Tcl result.
- *
- * Remarks:
- *   None.
- */
+/*++
+
+EncodingObjCmd
+
+    This function provides the "encode" and "decode" Tcl commands.
+
+Arguments:
+    clientData - Pointer to an array of 'EncodingFuncts'.
+
+    interp     - Current interpreter.
+
+    objc       - Number of arguments.
+
+    objv       - Argument objects.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
 int
-EncodingObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+EncodingObjCmd(
+    ClientData clientData,
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[]
+    )
 {
     int index;
     int sourceLength;
@@ -229,7 +252,7 @@ EncodingObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 
     source = Tcl_GetByteArrayFromObj(objv[2], &sourceLength);
 
-    /* Create a byte object for the output data. */
+    // Create a byte object for the output data.
     destLength = functTable[index].GetDestLength(sourceLength);
     dest = Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), (int)destLength);
 
@@ -242,7 +265,7 @@ EncodingObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
         return TCL_ERROR;
     }
 
-    /* Update the object's length. */
+    // Update the object's length.
     Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), (int)destLength);
     return TCL_OK;
 }
