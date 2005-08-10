@@ -75,12 +75,12 @@ proc ::nxLib::StripChars {string} {
 # DataBase Procedures
 ######################################################################
 
-proc ::nxLib::DbOpenFile {dbProc dbFile} {
-    set dbFile [file join $::misc(DataPath) $dbFile]
-    if {![file exists $dbFile]} {
-        return -code error "the database \"$dbFile\" does not exist: please run \"SITE DB CREATE\""
-    } elseif {[catch {sqlite3 $dbProc $dbFile} error]} {
-        return -code error "unable to open \"$dbFile\": $error"
+proc ::nxLib::DbOpenFile {dbProc fileName} {
+    set filePath [file join $::misc(DataPath) $fileName]
+    if {![file exists $filePath]} {
+        return -code error "the database \"$filePath\" does not exist: please run \"SITE DB CREATE\""
+    } elseif {[catch {sqlite3 $dbProc $filePath} error]} {
+        return -code error "unable to open \"$filePath\": $error"
     }
     $dbProc busy ::nxLib::DbBusyHandler
     return
