@@ -6,9 +6,9 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
-if {[catch {source "../scripts/init.itcl"} ErrorMsg]} {
+if {[catch {source "../scripts/init.itcl"} error]} {
     iputs "Unable to load script configuration, contact a siteop."
-    return -code error $ErrorMsg
+    return -code error $error
 }
 
 namespace eval ::nxAutoNuke {
@@ -376,9 +376,9 @@ proc ::nxAutoNuke::Main {} {
 
     foreach {check(VirtualPath) check(DayOffset) check(SettingsList)} $anuke(Sections) {
         # Sort the check settings so the earliest nuke time is processed first.
-        if {[catch {llength $check(SettingsList)} ErrorMsg] || \
-        [catch {set check(SettingsList) [lsort -increasing -integer -index 4 $check(SettingsList)]} ErrorMsg]} {
-            ErrorLog AutoNuke "invalid check settings for \"$VirtualPath\": $ErrorMsg"
+        if {[catch {llength $check(SettingsList)} error] || \
+        [catch {set check(SettingsList) [lsort -increasing -integer -index 4 $check(SettingsList)]} error]} {
+            ErrorLog AutoNuke "invalid check settings for \"$VirtualPath\": $error"
             continue
         }
 

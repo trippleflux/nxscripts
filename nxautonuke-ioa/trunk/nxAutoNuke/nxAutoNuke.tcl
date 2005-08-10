@@ -6,9 +6,9 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
-if {[catch {source "../scripts/init.itcl"} ErrorMsg]} {
+if {[catch {source "../scripts/init.itcl"} error]} {
     iputs "Unable to load script configuration, contact a siteop."
-    return -code error $ErrorMsg
+    return -code error $error
 }
 
 namespace eval ::nxAutoNuke {
@@ -34,8 +34,8 @@ proc ::nxAutoNuke::UpdateRecord {RealPath {Buffer ""}} {
 
     # Tcl can't open hidden files, quite lame.
     catch {file attributes $RealPath -hidden 0}
-    if {[catch {set Handle [open $RealPath $OpenMode]} ErrorMsg]} {
-        ErrorLog NukeRecord $ErrorMsg
+    if {[catch {set Handle [open $RealPath $OpenMode]} error]} {
+        ErrorLog NukeRecord $error
     } elseif {[string equal "" $Buffer]} {
         set Record [read $Handle]
         close $Handle
@@ -197,9 +197,9 @@ proc ::nxAutoNuke::Nuke {RealPath VirtualPath NukerUser NukerGroup Multi Reason}
         catch {vfs write $RealPath $UserId $GroupId 000}
 
         KickUsers [file join $VirtualPath "*"]
-        if {[catch {file rename -force -- $RealPath $NewPath} ErrorMsg]} {
+        if {[catch {file rename -force -- $RealPath $NewPath} error]} {
             set RenameFail 1
-            ErrorLog AutoNukeRename $ErrorMsg
+            ErrorLog AutoNukeRename $error
         } else {
             set RenameFail 0
         }
@@ -224,7 +224,7 @@ proc ::nxAutoNuke::Nuke {RealPath VirtualPath NukerUser NukerGroup Multi Reason}
         putlog "NUKE: \"$VirtualPath\" \"$NukerUser\" \"$NukerGroup\" \"$Multi\" \"$Reason\" \"$Files\" \"$TotalSize\" \"$DiskCount\" \"$NukeeLog\""
     }
 
-    if {![catch {DbOpenFile NukeDb "Nukes.db"} ErrorMsg]} {
+    if {![catch {DbOpenFile NukeDb "Nukes.db"} error]} {
         # In order to pass a NULL value to TclSQLite, the variable must be unset.
         if {![string is digit -strict $NukeId]} {unset NukeId}
         NukeDb eval {INSERT OR REPLACE INTO Nukes (NukeId,TimeStamp,UserName,GroupName,Status,Release,Reason,Multi,Files,Size) VALUES($NukeId,$NukeTime,$NukerUser,$NukerGroup,0,$Release,$Reason,$Multi,$Files,$TotalSize)}
@@ -237,7 +237,7 @@ proc ::nxAutoNuke::Nuke {RealPath VirtualPath NukerUser NukerGroup Multi Reason}
         NukeDb eval {COMMIT}
 
         NukeDb close
-    } else {ErrorLog NukeDb $ErrorMsg}
+    } else {ErrorLog NukeDb $error}
 
     # Save the nuke ID and multiplier for later use (ie. unnuke).
     UpdateRecord [expr {$RenameFail ? $RealPath : $NewPath}] "2|0|$NukeId|$NukerUser|$NukerGroup|$Multi|$Reason"
@@ -564,9 +564,9 @@ proc ::nxAutoNuke::Main {} {
 
     foreach {check(VirtualPath) check(DayOffset) check(SettingsList)} $anuke(Sections) {
         # Sort the check settings so the earliest nuke time is processed first.
-        if {[catch {llength $check(SettingsList)} ErrorMsg] || \
-        [catch {set check(SettingsList) [lsort -increasing -integer -index 4 $check(SettingsList)]} ErrorMsg]} {
-            ErrorLog AutoNuke "invalid check settings for \"$VirtualPath\": $ErrorMsg"
+        if {[catch {llength $check(SettingsList)} error] || \
+        [catch {set check(SettingsList) [lsort -increasing -integer -index 4 $check(SettingsList)]} error]} {
+            ErrorLog AutoNuke "invalid check settings for \"$VirtualPath\": $error"
             continue
         }
 
