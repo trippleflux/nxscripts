@@ -62,7 +62,7 @@ proc ::nxTools::Rules::Main {display} {
     }
     if {![string length $displayList]} {set displayList $sectionList}
 
-    foreach fileExt {Header Section SingleLine multiLine Footer} {
+    foreach fileExt {Header Section SingleLine MultiLine Footer} {
         set template($fileExt) [ReadFile [file join $misc(Templates) "Rules.$fileExt"]]
     }
     OutputText [ParseCookies $template(Header) [list $sectionList] {sections}]
@@ -74,16 +74,16 @@ proc ::nxTools::Rules::Main {display} {
         OutputText [ParseCookies $template(Section) [list $sectionName $sectionList] {section sections}]
 
         foreach {punishment text} $ruleList {
-            incr count; set multiLine 0
+            incr count; set isMultiLine 0
             # Wrap each line before displaying.
             foreach line [WordWrap $text $rules(LineWidth)] {
                 set valueList [list $count $punishment $line $sectionName]
-                if {!$multiLine} {
+                if {!$isMultiLine} {
                     OutputText [ParseCookies $template(SingleLine) $valueList {num punishment rule section}]
                 } else {
-                    OutputText [ParseCookies $template(multiLine) $valueList {num punishment rule section}]
+                    OutputText [ParseCookies $template(MultiLine) $valueList {num punishment rule section}]
                 }
-                incr multiLine
+                incr isMultiLine
             }
         }
     }

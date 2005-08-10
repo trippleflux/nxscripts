@@ -18,19 +18,19 @@ namespace eval ::nxTools::Dupe {
 # Dupe Procedures
 ######################################################################
 
-proc ::nxTools::Dupe::CheckDirs {VirtualPath} {
+proc ::nxTools::Dupe::CheckDirs {virtualPath} {
     global dupe
-    if {[ListMatch $dupe(CheckExempts) $VirtualPath] || [ListMatchI $dupe(IgnoreDirs) $VirtualPath]} {return 0}
+    if {[ListMatch $dupe(CheckExempts) $virtualPath] || [ListMatchI $dupe(IgnoreDirs) $virtualPath]} {return 0}
     set result 0
     if {![catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} error]} {
-        set DirName [file tail $VirtualPath]
+        set dirName [file tail $virtualPath]
 
-        DirDb eval {SELECT * FROM DupeDirs WHERE StrCaseEq(DirName,$DirName) LIMIT 1} values {
-            set DupeAge [FormatDuration [expr {[clock seconds] - $values(TimeStamp)}]]
-            set DupePath [file join $values(DirPath) $values(DirName)]
+        DirDb eval {SELECT * FROM DupeDirs WHERE StrCaseEq(DirName,$dirName) LIMIT 1} values {
+            set dupeAge [FormatDuration [expr {[clock seconds] - $values(TimeStamp)}]]
+            set dupePath [file join $values(DirPath) $values(DirName)]
             iputs -noprefix "553-.-\[DupeCheck\]-------------------------------------------------."
-            iputs -noprefix "553-| [format %-59s "Dupe: $DupePath"] |"
-            iputs -noprefix "553-| [format %-59s "Created $DupeAge ago by $values(UserName)."] |"
+            iputs -noprefix "553-| [format %-59s "Dupe: $dupePath"] |"
+            iputs -noprefix "553-| [format %-59s "Created $dupeAge ago by $values(UserName)."] |"
             iputs -noprefix "553 '-------------------------------------------------------------'"
             set result 1
         }
@@ -39,18 +39,18 @@ proc ::nxTools::Dupe::CheckDirs {VirtualPath} {
     return $result
 }
 
-proc ::nxTools::Dupe::CheckFiles {VirtualPath} {
+proc ::nxTools::Dupe::CheckFiles {virtualPath} {
     global dupe
-    if {[ListMatch $dupe(CheckExempts) $VirtualPath] || [ListMatchI $dupe(IgnoreFiles) $VirtualPath]} {return 0}
+    if {[ListMatch $dupe(CheckExempts) $virtualPath] || [ListMatchI $dupe(IgnoreFiles) $virtualPath]} {return 0}
     set result 0
     if {![catch {DbOpenFile [namespace current]::FileDb "DupeFiles.db"} error]} {
-        set FileName [file tail $VirtualPath]
+        set fileName [file tail $virtualPath]
 
-        FileDb eval {SELECT * FROM DupeFiles WHERE StrCaseEq(FileName,$FileName) LIMIT 1} values {
-            set DupeAge [FormatDuration [expr {[clock seconds] - $values(TimeStamp)}]]
+        FileDb eval {SELECT * FROM DupeFiles WHERE StrCaseEq(FileName,$fileName) LIMIT 1} values {
+            set dupeAge [FormatDuration [expr {[clock seconds] - $values(TimeStamp)}]]
             iputs -noprefix "553-.-\[DupeCheck\]-------------------------------------------------."
             iputs -noprefix "553-| [format %-59s "Dupe: $values(FileName)"] |"
-            iputs -noprefix "553-| [format %-59s "Uploaded $DupeAge ago by $values(UserName)."] |"
+            iputs -noprefix "553-| [format %-59s "Uploaded $dupeAge ago by $values(UserName)."] |"
             iputs -noprefix "553 '-------------------------------------------------------------'"
             set result 1
         }
@@ -81,17 +81,17 @@ proc ::nxTools::Dupe::UpdateDirs {command vfsPath} {
         ErrorLog DupeUpdateDirs $error
         return 1
     }
-    set DirName [file tail $vfsPath]
-    set DirPath [string range $vfsPath 0 [string last "/" $vfsPath]]
+    set dirName [file tail $vfsPath]
+    set dirPath [string range $vfsPath 0 [string last "/" $vfsPath]]
 
     if {$command eq "MKD"  || $command eq "RNTO"} {
-        set TimeStamp [clock seconds]
-        DirDb eval {INSERT INTO DupeDirs(TimeStamp,UserName,GroupName,DirPath,DirName) VALUES($TimeStamp,$user,$group,$DirPath,$DirName)}
+        set timeStamp [clock seconds]
+        DirDb eval {INSERT INTO DupeDirs(TimeStamp,UserName,GroupName,DirPath,DirName) VALUES($timeStamp,$user,$group,$dirPath,$dirName)}
     } elseif {[lsearch -sorted {RMD RNFR WIPE} $command] != -1} {
         # Append a slash to improve the accuracy of StrCaseEqN.
         # For example, /Dir/Blah matches /Dir/Blah.Blah but /Dir/Blah/ does not.
         append vfsPath "/"
-        DirDb eval {DELETE FROM DupeDirs WHERE StrCaseEqN(DirPath,$vfsPath,length($vfsPath)) OR (StrCaseEq(DirPath,$DirPath) AND StrCaseEq(DirName,$DirName))}
+        DirDb eval {DELETE FROM DupeDirs WHERE StrCaseEqN(DirPath,$vfsPath,length($vfsPath)) OR (StrCaseEq(DirPath,$dirPath) AND StrCaseEq(DirName,$dirName))}
     }
     DirDb close
     return 0
@@ -106,8 +106,8 @@ proc ::nxTools::Dupe::UpdateFiles {command vfsPath} {
     set fileName [file tail $vfsPath]
 
     if {$command eq "UPLD" || $command eq "RNTO"} {
-        set TimeStamp [clock seconds]
-        FileDb eval {INSERT INTO DupeFiles(TimeStamp,UserName,GroupName,FileName) VALUES($TimeStamp,$user,$group,$fileName)}
+        set timeStamp [clock seconds]
+        FileDb eval {INSERT INTO DupeFiles(TimeStamp,UserName,GroupName,FileName) VALUES($timeStamp,$user,$group,$fileName)}
     } elseif {$command eq "DELE" || $command eq "RNFR"} {
         FileDb eval {DELETE FROM DupeFiles WHERE StrCaseEq(FileName,$fileName)}
     }
@@ -132,8 +132,8 @@ proc ::nxTools::Dupe::CleanDb {} {
         ErrorLog CleanFiles $error
     } else {
         LinePuts "Cleaning the file database."
-        set MaxAge [expr {[clock seconds] - ($dupe(CleanFiles) * 86400)}]
-        FileDb eval {DELETE FROM DupeFiles WHERE TimeStamp < $MaxAge}
+        set maxAge [expr {[clock seconds] - ($dupe(CleanFiles) * 86400)}]
+        FileDb eval {DELETE FROM DupeFiles WHERE TimeStamp < $maxAge}
         FileDb close
     }
 
@@ -144,11 +144,11 @@ proc ::nxTools::Dupe::CleanDb {} {
         ErrorLog CleanDirs $error
     } else {
         LinePuts "Cleaning the directory database."
-        set MaxAge [expr {[clock seconds] - ($dupe(CleanDirs) * 86400)}]
+        set maxAge [expr {[clock seconds] - ($dupe(CleanDirs) * 86400)}]
         DirDb eval {BEGIN}
-        DirDb eval {SELECT DirPath,DirName,rowid FROM DupeDirs WHERE TimeStamp < $MaxAge ORDER BY TimeStamp DESC} values {
-            set FullPath [file join $values(DirPath) $values(DirName)]
-            if {![file isdirectory [resolve pwd $FullPath]]} {
+        DirDb eval {SELECT DirPath,DirName,rowid FROM DupeDirs WHERE TimeStamp < $maxAge ORDER BY TimeStamp DESC} values {
+            set fullPath [file join $values(DirPath) $values(DirName)]
+            if {![file isdirectory [resolve pwd $fullPath]]} {
                 DirDb eval {DELETE FROM DupeDirs WHERE rowid=$values(rowid)}
             }
         }
@@ -177,45 +177,45 @@ proc ::nxTools::Dupe::RebuildDb {} {
     DirDb eval {BEGIN; DELETE FROM DupeDirs;}
     FileDb eval {BEGIN; DELETE FROM DupeFiles;}
 
-    foreach RebuildPath $dupe(RebuildPaths) {
-        if {[llength $RebuildPath] != 4} {
-            ErrorLog DupeRebuild "wrong number of parameters in line: \"$RebuildPath\""; continue
+    foreach rebuildPath $dupe(RebuildPaths) {
+        if {[llength $rebuildPath] != 4} {
+            ErrorLog DupeRebuild "wrong number of parameters in line: \"$rebuildPath\""; continue
         }
-        foreach {VirtualPath RealPath UpdateDirs UpdateFiles} $RebuildPath {break}
-        set TrimLength [expr {[string length [file normalize $RealPath]] + 1}]
+        foreach {virtualPath realPath updateDirs updateFiles} $rebuildPath {break}
+        set trimLength [expr {[string length [file normalize $realPath]] + 1}]
 
-        LinePuts "Updating dupe database from: $RealPath"
-        GetDirList $RealPath dirlist $dupe(RebuildIgnore)
+        LinePuts "Updating dupe database from: $realPath"
+        GetDirList $realPath dirlist $dupe(RebuildIgnore)
 
-        foreach ListName "DirList FileList" DefOwner [list $misc(DirOwner) $misc(FileOwner)] {
-            if {[set FileMode [string equal "FileList" $ListName]]} {
-                if {![IsTrue $UpdateFiles]} {continue}
-                set IgnoreList $dupe(IgnoreFiles)
-                set MaxAge [expr {$dupe(CleanFiles) * 86400}]
+        foreach listName {DirList FileList} defOwner [list $misc(DirOwner) $misc(FileOwner)] {
+            if {[set fileMode [string equal "FileList" $listName]]} {
+                if {![IsTrue $updateFiles]} {continue}
+                set ignoreList $dupe(IgnoreFiles)
+                set maxAge [expr {$dupe(CleanFiles) * 86400}]
             } else {
-                if {![IsTrue $UpdateDirs]} {continue}
-                set IgnoreList $dupe(IgnoreDirs)
-                set MaxAge 0
+                if {![IsTrue $updateDirs]} {continue}
+                set ignoreList $dupe(IgnoreDirs)
+                set maxAge 0
             }
-            set DefUser [resolve uid [lindex $DefOwner 0]]
-            set DefGroup [resolve gid [lindex $DefOwner 1]]
+            set defUser [resolve uid [lindex $defOwner 0]]
+            set defGroup [resolve gid [lindex $defOwner 1]]
 
-            foreach ListItem $dirlist($ListName) {
-                if {[ListMatchI $IgnoreList $ListItem]} {continue}
+            foreach listItem $dirlist($listName) {
+                if {[ListMatchI $ignoreList $listItem]} {continue}
 
-                if {[catch {file stat $ListItem fstat}]} {continue}
-                if {$MaxAge != 0 && ([clock seconds] - $fstat(ctime)) > $MaxAge} {continue}
-                catch {vfs read $ListItem} Owner
-                if {[set UserName [resolve uid [lindex $Owner 0]]] eq ""} {set UserName $DefUser}
-                if {[set GroupName [resolve gid [lindex $Owner 1]]] eq ""} {set GroupName $DefGroup}
+                if {[catch {file stat $listItem fstat}]} {continue}
+                if {$maxAge != 0 && ([clock seconds] - $fstat(ctime)) > $maxAge} {continue}
+                catch {vfs read $listItem} owner
+                if {[set userName [resolve uid [lindex $owner 0]]] eq ""} {set userName $defUser}
+                if {[set groupName [resolve gid [lindex $owner 1]]] eq ""} {set groupName $defGroup}
 
-                set BaseName [file tail $ListItem]
-                if {$FileMode} {
-                    FileDb eval {INSERT INTO DupeFiles(TimeStamp,UserName,GroupName,FileName) VALUES($fstat(ctime),$UserName,$GroupName,$BaseName)}
+                set baseName [file tail $listItem]
+                if {$fileMode} {
+                    FileDb eval {INSERT INTO DupeFiles(TimeStamp,UserName,GroupName,FileName) VALUES($fstat(ctime),$userName,$groupName,$baseName)}
                 } else {
-                    set DirPath [file join $VirtualPath [string range [file dirname $ListItem] $TrimLength end]]
-                    append DirPath "/"
-                    DirDb eval {INSERT INTO DupeDirs(TimeStamp,UserName,GroupName,DirPath,DirName) VALUES($fstat(ctime),$UserName,$GroupName,$DirPath,$BaseName)}
+                    set dirPath [file join $virtualPath [string range [file dirname $listItem] $trimLength end]]
+                    append dirPath "/"
+                    DirDb eval {INSERT INTO DupeDirs(TimeStamp,UserName,GroupName,DirPath,DirName) VALUES($fstat(ctime),$userName,$groupName,$dirPath,$baseName)}
                 }
             }
         }
@@ -231,63 +231,63 @@ proc ::nxTools::Dupe::RebuildDb {} {
 # Other Procedures
 ######################################################################
 
-proc ::nxTools::Dupe::ApproveCheck {VirtualPath CreateTag} {
-    set Approved 0
+proc ::nxTools::Dupe::ApproveCheck {virtualPath createTag} {
+    set approved 0
     if {![catch {DbOpenFile [namespace current]::ApproveDb "Approves.db"} error]} {
-        set Release [file tail $VirtualPath]
-        ApproveDb eval {SELECT UserName,GroupName,rowid FROM Approves WHERE StrCaseEq(Release,$Release) LIMIT 1} values {set Approved 1}
-        if {$Approved && $CreateTag} {
-            ApproveRelease $VirtualPath $values(UserName) $values(GroupName)
+        set release [file tail $virtualPath]
+        ApproveDb eval {SELECT UserName,GroupName,rowid FROM Approves WHERE StrCaseEq(Release,$release) LIMIT 1} values {set approved 1}
+        if {$approved && $createTag} {
+            ApproveRelease $virtualPath $values(UserName) $values(GroupName)
             ApproveDb eval {DELETE FROM Approves WHERE rowid=$values(rowid)}
         }
         ApproveDb close
     } else {ErrorLog ApproveCheck $error}
-    return $Approved
+    return $approved
 }
 
-proc ::nxTools::Dupe::ApproveRelease {VirtualPath UserName GroupName} {
+proc ::nxTools::Dupe::ApproveRelease {virtualPath userName groupName} {
     global approve
-    set RealPath [resolve pwd $VirtualPath]
-    if {[file isdirectory $RealPath]} {
-        putlog "APPROVE: \"$VirtualPath\" \"$UserName\" \"$GroupName\""
-        set TagPath [file join $RealPath [string map [list %(user) $UserName %(group) $GroupName] $approve(DirTag)]]
-        CreateTag $TagPath [resolve user $UserName] [resolve group $GroupName] 555
+    set realPath [resolve pwd $virtualPath]
+    if {[file isdirectory $realPath]} {
+        putlog "APPROVE: \"$virtualPath\" \"$userName\" \"$groupName\""
+        set tagPath [file join $realPath [string map [list %(user) $userName %(group) $groupName] $approve(DirTag)]]
+        CreateTag $tagPath [resolve user $userName] [resolve group $groupName] 555
     } else {
-        ErrorLog ApproveRelease "invalid vpath \"$VirtualPath\", \"$RealPath\" doesn't exist."
+        ErrorLog ApproveRelease "invalid vpath \"$virtualPath\", \"$realPath\" doesn't exist."
         return 0
     }
     return 1
 }
 
-proc ::nxTools::Dupe::ForceCheck {VirtualPath} {
+proc ::nxTools::Dupe::ForceCheck {virtualPath} {
     global force
-    set FileExt [file extension $VirtualPath]
-    set MatchPath [file dirname $VirtualPath]
+    set fileExt [file extension $virtualPath]
+    set matchPath [file dirname $virtualPath]
 
-    if {![string equal -nocase ".nfo" $FileExt] && ![string equal -nocase ".sfv" $FileExt] && ![ListMatchI $force(Exempts) $MatchPath]} {
-        set ReleasePath [resolve pwd [expr {[IsDiskPath $MatchPath] ? [file dirname $MatchPath] : $MatchPath}]]
-        set CheckFile [ListMatch $force(FilePaths) $MatchPath]
+    if {![string equal -nocase ".nfo" $fileExt] && ![string equal -nocase ".sfv" $fileExt] && ![ListMatchI $force(Exempts) $matchPath]} {
+        set releasePath [resolve pwd [expr {[IsDiskPath $matchPath] ? [file dirname $matchPath] : $matchPath}]]
+        set checkFile [ListMatch $force(FilePaths) $matchPath]
 
-        if {$CheckFile && [IsTrue $force(NfoFirst)]} {
-            if {![llength [glob -nocomplain -types f -directory $ReleasePath "*.nfo"]]} {
+        if {$checkFile && [IsTrue $force(NfoFirst)]} {
+            if {![llength [glob -nocomplain -types f -directory $releasePath "*.nfo"]]} {
                 iputs -noprefix "553-.-\[ForceNFO\]------------------------------------."
                 iputs -noprefix "553-| You must upload the NFO first.                |"
                 iputs -noprefix "553 '-----------------------------------------------'"
                 return 1
             }
         }
-        if {$CheckFile && [IsTrue $force(SfvFirst)]} {
-            set RealPath [resolve pwd $MatchPath]
-            if {![llength [glob -nocomplain -types f -directory $RealPath "*.sfv"]]} {
+        if {$checkFile && [IsTrue $force(SfvFirst)]} {
+            set realPath [resolve pwd $matchPath]
+            if {![llength [glob -nocomplain -types f -directory $realPath "*.sfv"]]} {
                 iputs -noprefix "553-.-\[ForceSFV\]------------------------------------."
                 iputs -noprefix "553-| You must upload the SFV first.                |"
                 iputs -noprefix "553 '-----------------------------------------------'"
                 return 1
             }
         }
-        if {[IsTrue $force(SampleFirst)] && [ListMatch $force(SamplePaths) $MatchPath]} {
-            set SampleFiles "sample/{*.avi,*.mpeg,*.mpg,*.vob}"
-            if {![llength [glob -nocomplain -types f -directory $ReleasePath $SampleFiles]]} {
+        if {[IsTrue $force(SampleFirst)] && [ListMatch $force(SamplePaths) $matchPath]} {
+            set sampleFiles "sample/{*.avi,*.mpeg,*.mpg,*.vob}"
+            if {![llength [glob -nocomplain -types f -directory $releasePath $sampleFiles]]} {
                 iputs -noprefix "553-.-\[ForceSample\]---------------------------------."
                 iputs -noprefix "553-| You must upload the sample first.             |"
                 iputs -noprefix "553 '-----------------------------------------------'"
@@ -298,48 +298,48 @@ proc ::nxTools::Dupe::ForceCheck {VirtualPath} {
     return 0
 }
 
-proc ::nxTools::Dupe::PreTimeCheck {VirtualPath} {
+proc ::nxTools::Dupe::PreTimeCheck {virtualPath} {
     global misc mysql pretime
-    if {[ListMatchI $pretime(Ignores) $VirtualPath]} {return 0}
-    set Check 0; set result 0
-    foreach PreCheck $pretime(CheckPaths) {
-        if {[llength $PreCheck] != 4} {
-            ErrorLog PreTimeCheck "wrong number of parameters in line: \"$PreCheck\""; continue
+    if {[ListMatchI $pretime(Ignores) $virtualPath]} {return 0}
+    set check 0; set result 0
+    foreach preCheck $pretime(CheckPaths) {
+        if {[llength $preCheck] != 4} {
+            ErrorLog PreTimeCheck "wrong number of parameters in line: \"$preCheck\""; continue
         }
-        foreach {CheckPath DenyLate LogInfo LateMins} $PreCheck {break}
-        if {[string match $CheckPath $VirtualPath]} {set Check 1; break}
+        foreach {checkPath denyLate logInfo lateMins} $preCheck {break}
+        if {[string match $checkPath $virtualPath]} {set check 1; break}
     }
-    if {$Check && [MySqlConnect]} {
-        set ReleaseName [::mysql::escape [file tail $VirtualPath]]
-        set TimeStamp [::mysql::sel $mysql(ConnHandle) "SELECT pretime FROM $mysql(TableName) WHERE release='$ReleaseName' LIMIT 1" -flatlist]
+    if {$check && [MySqlConnect]} {
+        set releaseName [::mysql::escape [file tail $virtualPath]]
+        set timeStamp [::mysql::sel $mysql(ConnHandle) "SELECT pretime FROM $mysql(TableName) WHERE release='$releaseName' LIMIT 1" -flatlist]
 
-        if {[string is digit -strict $TimeStamp]} {
-            if {[set ReleaseAge [expr {[clock seconds] - $TimeStamp}]] > [set LateSecs [expr {$LateMins * 60}]]} {
-                if {[IsTrue $DenyLate]} {
-                    set ErrCode 553; set LogPrefix "DENYPRE"; set result 1
-                    set ErrMsg "Release not allowed by pre rules, older than [FormatDurationLong $LateSecs]."
+        if {[string is digit -strict $timeStamp]} {
+            if {[set releaseAge [expr {[clock seconds] - $timeStamp}]] > [set lateSecs [expr {$lateMins * 60}]]} {
+                if {[IsTrue $denyLate]} {
+                    set errCode 553; set logPrefix "DENYPRE"; set result 1
+                    set errMsg "Release not allowed by pre rules, older than [FormatDurationLong $lateSecs]."
                 } else {
-                    set ErrCode 257; set LogPrefix "WARNPRE"
-                    set ErrMsg "Release older than [FormatDurationLong $LateSecs], possible nuke."
+                    set errCode 257; set logPrefix "WARNPRE"
+                    set errMsg "Release older than [FormatDurationLong $lateSecs], possible nuke."
                 }
                 iputs -noprefix "${ErrCode}-.-\[PreCheck\]--------------------------------------------------."
-                iputs -noprefix "${ErrCode}-| [format %-59s $ErrMsg] |"
-                iputs -noprefix "${ErrCode}-| [format %-59s "Pre'd [FormatDurationLong $ReleaseAge] ago."] |"
+                iputs -noprefix "${ErrCode}-| [format %-59s $errMsg] |"
+                iputs -noprefix "${ErrCode}-| [format %-59s "Pre'd [FormatDurationLong $releaseAge] ago."] |"
                 iputs -noprefix "${ErrCode} '-------------------------------------------------------------'"
-                if {[IsTrue $LogInfo]} {
+                if {[IsTrue $logInfo]} {
                     if {[IsTrue $misc(dZSbotLogging)]} {
-                        set LateSecs $LateMins
-                        set ReleaseAge [FormatDuration $ReleaseAge]
-                        set TimeStamp [clock format $TimeStamp -format "%m/%d/%y %H:%M:%S" -gmt 1]
+                        set lateSecs $lateMins
+                        set releaseAge [FormatDuration $releaseAge]
+                        set timeStamp [clock format $timeStamp -format "%m/%d/%y %H:%M:%S" -gmt 1]
                     }
-                    putlog "${LogPrefix}: \"$VirtualPath\" \"$LateSecs\" \"$ReleaseAge\" \"$TimeStamp\""
+                    putlog "${LogPrefix}: \"$virtualPath\" \"$lateSecs\" \"$releaseAge\" \"$timeStamp\""
                 }
-            } elseif {[IsTrue $LogInfo]} {
+            } elseif {[IsTrue $logInfo]} {
                 if {[IsTrue $misc(dZSbotLogging)]} {
-                    set ReleaseAge [FormatDuration $ReleaseAge]
-                    set TimeStamp [clock format $TimeStamp -format "%m/%d/%y %H:%M:%S" -gmt 1]
+                    set releaseAge [FormatDuration $releaseAge]
+                    set timeStamp [clock format $timeStamp -format "%m/%d/%y %H:%M:%S" -gmt 1]
                 }
-                putlog "PRETIME: \"$VirtualPath\" \"$ReleaseAge\" \"$TimeStamp\""
+                putlog "PRETIME: \"$virtualPath\" \"$releaseAge\" \"$timeStamp\""
             }
         }
         MySqlClose
@@ -347,9 +347,9 @@ proc ::nxTools::Dupe::PreTimeCheck {VirtualPath} {
     return $result
 }
 
-proc ::nxTools::Dupe::RaceLinks {VirtualPath} {
+proc ::nxTools::Dupe::RaceLinks {virtualPath} {
     global latest
-    if {[ListMatch $latest(Exempts) $VirtualPath] || [ListMatchI $latest(Ignores) $VirtualPath]} {
+    if {[ListMatch $latest(Exempts) $virtualPath] || [ListMatchI $latest(Ignores) $virtualPath]} {
         return 0
     }
     if {[catch {DbOpenFile [namespace current]::LinkDb "Links.db"} error]} {
@@ -357,22 +357,22 @@ proc ::nxTools::Dupe::RaceLinks {VirtualPath} {
         return 1
     }
     # Format and create link directory.
-    set TagName [file tail $VirtualPath]
-    if {$latest(MaxLength) > 0 && [string length $TagName] > $latest(MaxLength)} {
-        set TagName [string trimright [string range $TagName 0 $latest(MaxLength)] "."]
+    set tagName [file tail $virtualPath]
+    if {$latest(MaxLength) > 0 && [string length $tagName] > $latest(MaxLength)} {
+        set tagName [string trimright [string range $tagName 0 $latest(MaxLength)] "."]
     }
-    set TagName [string map [list %(release) $TagName] $latest(RaceTag)]
-    set TimeStamp [clock seconds]
-    LinkDb eval {INSERT INTO Links(TimeStamp,LinkType,DirName) VALUES($TimeStamp,0,$TagName)}
-    set TagName [file join $latest(SymPath) $TagName]
-    if {![catch {file mkdir $TagName} error]} {
-        catch {vfs chattr $TagName 1 $VirtualPath}
+    set tagName [string map [list %(release) $tagName] $latest(RaceTag)]
+    set timeStamp [clock seconds]
+    LinkDb eval {INSERT INTO Links(TimeStamp,LinkType,DirName) VALUES($timeStamp,0,$tagName)}
+    set tagName [file join $latest(SymPath) $tagName]
+    if {![catch {file mkdir $tagName} error]} {
+        catch {vfs chattr $tagName 1 $virtualPath}
     } else {ErrorLog RaceLinksMkDir $error}
 
     # Remove older links.
-    if {[set LinkCount [LinkDb eval {SELECT count(*) FROM Links WHERE LinkType=0}]] > $latest(RaceLinks)} {
-        set LinkCount [expr {$LinkCount - $latest(RaceLinks)}]
-        LinkDb eval "SELECT DirName,rowid FROM Links WHERE LinkType=0 ORDER BY TimeStamp ASC LIMIT $LinkCount" values {
+    if {[set linkCount [LinkDb eval {SELECT count(*) FROM Links WHERE LinkType=0}]] > $latest(RaceLinks)} {
+        set linkCount [expr {$linkCount - $latest(RaceLinks)}]
+        LinkDb eval "SELECT DirName,rowid FROM Links WHERE LinkType=0 ORDER BY TimeStamp ASC LIMIT $linkCount" values {
             RemoveTag [file join $latest(SymPath) $values(DirName)]
             LinkDb eval {DELETE FROM Links WHERE rowid=$values(rowid)}
         }
@@ -384,38 +384,38 @@ proc ::nxTools::Dupe::RaceLinks {VirtualPath} {
 # Site Commands
 ######################################################################
 
-proc ::nxTools::Dupe::SiteApprove {event Release} {
+proc ::nxTools::Dupe::SiteApprove {event release} {
     global IsSiteBot approve misc flags group user
     if {[catch {DbOpenFile [namespace current]::ApproveDb "Approves.db"} error]} {
         ErrorLog SiteApprove $error
         return 1
     }
-    set Release [file tail $Release]
+    set release [file tail $release]
     switch -- $event {
         {ADD} {
             iputs ".-\[Approve\]--------------------------------------------------------------."
             if {![MatchFlags $approve(Flags) $flags]} {
                 LinePuts "Only siteops may approve releases."
-            } elseif {[ApproveDb eval {SELECT count(*) FROM Approves WHERE StrCaseEq(Release,$Release)}]} {
+            } elseif {[ApproveDb eval {SELECT count(*) FROM Approves WHERE StrCaseEq(Release,$release)}]} {
                 LinePuts "This release is already approved."
             } else {
                 # If the release already exists in the dupe database, we'll approve that one.
-                set Approved 0
+                set approved 0
                 if {![catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} error]} {
-                    DirDb eval {SELECT DirName,DirPath FROM DupeDirs WHERE StrCaseEq(DirName,$Release) ORDER BY TimeStamp DESC LIMIT 1} values {
-                        set VirtualPath [file join $values(DirPath) $values(DirName)]
-                        set Approved [ApproveRelease $VirtualPath $user $group]
+                    DirDb eval {SELECT DirName,DirPath FROM DupeDirs WHERE StrCaseEq(DirName,$release) ORDER BY TimeStamp DESC LIMIT 1} values {
+                        set virtualPath [file join $values(DirPath) $values(DirName)]
+                        set approved [ApproveRelease $virtualPath $user $group]
                     }
                     DirDb close
                 } else {ErrorLog SiteApprove $error}
 
-                if {$Approved} {
-                    LinePuts "Found the release, approved \"$VirtualPath\"."
+                if {$approved} {
+                    LinePuts "Found the release, approved \"$virtualPath\"."
                 } else {
-                    set TimeStamp [clock seconds]
-                    ApproveDb eval {INSERT INTO Approves(TimeStamp,UserName,GroupName,Release) VALUES($TimeStamp,$user,$group,$Release)}
-                    putlog "APPROVEADD: \"$user\" \"$group\" \"$Release\""
-                    LinePuts "Added \"$Release\" to the approve list."
+                    set timeStamp [clock seconds]
+                    ApproveDb eval {INSERT INTO Approves(TimeStamp,UserName,GroupName,Release) VALUES($timeStamp,$user,$group,$release)}
+                    putlog "APPROVEADD: \"$user\" \"$group\" \"$release\""
+                    LinePuts "Added \"$release\" to the approve list."
                 }
             }
             iputs "'------------------------------------------------------------------------'"
@@ -425,9 +425,9 @@ proc ::nxTools::Dupe::SiteApprove {event Release} {
             if {![MatchFlags $approve(Flags) $flags]} {
                 LinePuts "Only siteops may deleted approved releases."
             } else {
-                set Exists 0
-                ApproveDb eval {SELECT rowid,* FROM Approves WHERE StrCaseEq(Release,$Release) LIMIT 1} values {set Exists 1}
-                if {$Exists} {
+                set exists 0
+                ApproveDb eval {SELECT rowid,* FROM Approves WHERE StrCaseEq(Release,$release) LIMIT 1} values {set exists 1}
+                if {$exists} {
                     ApproveDb eval {DELETE FROM Approves WHERE rowid=$values(rowid)}
                     putlog "APPROVEDEL: \"$user\" \"$group\" \"$values(Release)\""
                     LinePuts "Removed \"$values(Release)\" from the approve list."
@@ -438,26 +438,26 @@ proc ::nxTools::Dupe::SiteApprove {event Release} {
             iputs "'------------------------------------------------------------------------'"
         }
         {LIST} {
-            if {!$IsSiteBot} {
+            if {!$isSiteBot} {
                 foreach fileExt {Header Body None Footer} {
                     set template($fileExt) [ReadFile [file join $misc(Templates) "Approves.$fileExt"]]
                 }
                 OutputText $template(Header)
-                set Count 0
+                set count 0
             }
             ApproveDb eval {SELECT * FROM Approves ORDER BY Release ASC} values {
-                set ApproveAge [expr {[clock seconds] - $values(TimeStamp)}]
-                if {$IsSiteBot} {
-                    iputs [list APPROVE $values(TimeStamp) $ApproveAge $values(UserName) $values(GroupName) $values(Release)]
+                set approveAge [expr {[clock seconds] - $values(TimeStamp)}]
+                if {$isSiteBot} {
+                    iputs [list APPROVE $values(TimeStamp) $approveAge $values(UserName) $values(GroupName) $values(Release)]
                 } else {
-                    incr Count
-                    set ApproveAge [lrange [FormatDuration $ApproveAge] 0 1]
-                    set ValueList [list $Count $ApproveAge $values(UserName) $values(GroupName) $values(Release)]
-                    OutputText [ParseCookies $template(Body) $ValueList {num age user group release}]
+                    incr count
+                    set approveAge [lrange [FormatDuration $approveAge] 0 1]
+                    set valueList [list $count $approveAge $values(UserName) $values(GroupName) $values(Release)]
+                    OutputText [ParseCookies $template(Body) $valueList {num age user group release}]
                 }
             }
-            if {!$IsSiteBot} {
-                if {!$Count} {OutputText $template(None)}
+            if {!$isSiteBot} {
+                if {!$count} {OutputText $template(None)}
                 OutputText $template(Footer)
             }
         }
@@ -466,262 +466,262 @@ proc ::nxTools::Dupe::SiteApprove {event Release} {
     return 0
 }
 
-proc ::nxTools::Dupe::SiteDupe {MaxResults Pattern} {
+proc ::nxTools::Dupe::SiteDupe {maxResults pattern} {
     global IsSiteBot misc
     if {[catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} error]} {
         ErrorLog SiteDupe $error
         return 1
     }
-    if {!$IsSiteBot} {
+    if {!$isSiteBot} {
         foreach fileExt {Header Body None Footer} {
             set template($fileExt) [ReadFile [file join $misc(Templates) "Dupe.$fileExt"]]
         }
         OutputText $template(Header)
     }
-    set Pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$Pattern*" "*"]]
-    set Count 0
-    DirDb eval "SELECT * FROM DupeDirs WHERE DirName LIKE '$Pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $MaxResults" values {
-        incr Count
-        if {$IsSiteBot} {
-            iputs [list DUPE $Count $values(TimeStamp) $values(UserName) $values(GroupName) $values(DirPath) $values(DirName)]
+    set pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$pattern*" "*"]]
+    set count 0
+    DirDb eval "SELECT * FROM DupeDirs WHERE DirName LIKE '$pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $maxResults" values {
+        incr count
+        if {$isSiteBot} {
+            iputs [list DUPE $count $values(TimeStamp) $values(UserName) $values(GroupName) $values(DirPath) $values(DirName)]
         } else {
-            set ValueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt [IsTrue $misc(UtcTime)]]
-            lappend ValueList $Count $values(UserName) $values(GroupName) $values(DirName) [file join $values(DirPath) $values(DirName)]
-            OutputText [ParseCookies $template(Body) $ValueList {sec min hour day month year2 year4 num user group release path}]
+            set valueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt [IsTrue $misc(UtcTime)]]
+            lappend valueList $count $values(UserName) $values(GroupName) $values(DirName) [file join $values(DirPath) $values(DirName)]
+            OutputText [ParseCookies $template(Body) $valueList {sec min hour day month year2 year4 num user group release path}]
         }
     }
-    if {!$IsSiteBot} {
-        if {!$Count} {OutputText $template(None)}
-        if {$Count == $MaxResults} {
-            set Total [DirDb eval "SELECT count(*) FROM DupeDirs WHERE DirName LIKE '$Pattern' ESCAPE '\\'"]
+    if {!$isSiteBot} {
+        if {!$count} {OutputText $template(None)}
+        if {$count == $maxResults} {
+            set total [DirDb eval "SELECT count(*) FROM DupeDirs WHERE DirName LIKE '$pattern' ESCAPE '\\'"]
         } else {
-            set Total $Count
+            set total $count
         }
-        OutputText [ParseCookies $template(Footer) [list $Count $Total] {found total}]
+        OutputText [ParseCookies $template(Footer) [list $count $total] {found total}]
     }
     DirDb close
     return 0
 }
 
-proc ::nxTools::Dupe::SiteFileDupe {MaxResults Pattern} {
+proc ::nxTools::Dupe::SiteFileDupe {maxResults pattern} {
     global IsSiteBot misc
     if {[catch {DbOpenFile [namespace current]::FileDb "DupeFiles.db"} error]} {
         ErrorLog SiteFileDupe $error
         return 1
     }
-    if {!$IsSiteBot} {
+    if {!$isSiteBot} {
         foreach fileExt {Header Body None Footer} {
             set template($fileExt) [ReadFile [file join $misc(Templates) "FileDupe.$fileExt"]]
         }
         OutputText $template(Header)
     }
-    set Pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$Pattern*" "*"]]
-    set Count 0
-    FileDb eval "SELECT * FROM DupeFiles WHERE FileName LIKE '$Pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $MaxResults" values {
-        incr Count
-        if {$IsSiteBot} {
-            iputs [list DUPE $Count $values(TimeStamp) $values(UserName) $values(GroupName) $values(FileName)]
+    set pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$pattern*" "*"]]
+    set count 0
+    FileDb eval "SELECT * FROM DupeFiles WHERE FileName LIKE '$pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $maxResults" values {
+        incr count
+        if {$isSiteBot} {
+            iputs [list DUPE $count $values(TimeStamp) $values(UserName) $values(GroupName) $values(FileName)]
         } else {
-            set ValueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt [IsTrue $misc(UtcTime)]]
-            lappend ValueList $Count $values(UserName) $values(GroupName) $values(FileName)
-            OutputText [ParseCookies $template(Body) $ValueList {sec min hour day month year2 year4 num user group file}]
+            set valueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt [IsTrue $misc(UtcTime)]]
+            lappend valueList $count $values(UserName) $values(GroupName) $values(FileName)
+            OutputText [ParseCookies $template(Body) $valueList {sec min hour day month year2 year4 num user group file}]
         }
     }
-    if {!$IsSiteBot} {
-        if {!$Count} {OutputText $template(None)}
-        if {$Count == $MaxResults} {
-            set Total [FileDb eval "SELECT count(*) FROM DupeFiles WHERE FileName LIKE '$Pattern' ESCAPE '\\'"]
+    if {!$isSiteBot} {
+        if {!$count} {OutputText $template(None)}
+        if {$count == $maxResults} {
+            set total [FileDb eval "SELECT count(*) FROM DupeFiles WHERE FileName LIKE '$pattern' ESCAPE '\\'"]
         } else {
-            set Total $Count
+            set total $count
         }
-        OutputText [ParseCookies $template(Footer) [list $Count $Total] {found total}]
+        OutputText [ParseCookies $template(Footer) [list $count $total] {found total}]
     }
     FileDb close
     return 0
 }
 
-proc ::nxTools::Dupe::SiteNew {MaxResults ShowSection} {
+proc ::nxTools::Dupe::SiteNew {maxResults showSection} {
     global IsSiteBot misc new
     if {[catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} error]} {
         ErrorLog SiteNew $error
         return 1
     }
-    if {!$IsSiteBot} {
+    if {!$isSiteBot} {
         foreach fileExt {Header Error Body None Footer} {
             set template($fileExt) [ReadFile [file join $misc(Templates) "New.$fileExt"]]
         }
         OutputText $template(Header)
     }
-    set SectionList [GetSectionList]
-    if {![set ShowAll [string equal "" $ShowSection]]} {
+    set sectionList [GetSectionList]
+    if {![set showAll [string equal "" $showSection]]} {
         # Validate the section name.
-        set SectionNameList ""; set ValidSection 0
-        foreach {SectionName CreditSection StatSection MatchPath} $SectionList {
-            if {[string equal -nocase $ShowSection $SectionName]} {
-                set ShowSection $SectionName
-                set ValidSection 1; break
+        set sectionNameList ""; set validSection 0
+        foreach {sectionName creditSection statSection matchPath} $sectionList {
+            if {[string equal -nocase $showSection $sectionName]} {
+                set showSection $sectionName
+                set validSection 1; break
             }
-            lappend SectionNameList $SectionName
+            lappend sectionNameList $sectionName
         }
-        if {!$ValidSection} {
-            set SectionNameList [join [lsort -ascii $SectionNameList]]
-            OutputText [ParseCookies $template(Error) [list $SectionNameList] {sections}]
+        if {!$validSection} {
+            set sectionNameList [join [lsort -ascii $sectionNameList]]
+            OutputText [ParseCookies $template(Error) [list $sectionNameList] {sections}]
             OutputText $template(Footer)
             DirDb close
             return 1
         }
-        set MatchPath [SqlWildToLike $MatchPath]
-        set WhereClause "WHERE DirPath LIKE '$MatchPath' ESCAPE '\\'"
-    } else {set WhereClause ""}
+        set matchPath [SqlWildToLike $matchPath]
+        set whereClause "WHERE DirPath LIKE '$matchPath' ESCAPE '\\'"
+    } else {set whereClause ""}
 
-    set Count 0
-    DirDb eval "SELECT * FROM DupeDirs $WhereClause ORDER BY TimeStamp DESC LIMIT $MaxResults" values {
-        incr Count
+    set count 0
+    DirDb eval "SELECT * FROM DupeDirs $whereClause ORDER BY TimeStamp DESC LIMIT $maxResults" values {
+        incr count
         # Find section name and check the match path.
-        if {$ShowAll} {
-            set SectionName "Default"
-            foreach {SectionName CreditSection StatSection MatchPath} $SectionList {
-                if {[string match -nocase $MatchPath $values(DirPath)]} {set ShowSection $SectionName; break}
+        if {$showAll} {
+            set sectionName "Default"
+            foreach {sectionName creditSection statSection matchPath} $sectionList {
+                if {[string match -nocase $matchPath $values(DirPath)]} {set showSection $sectionName; break}
             }
         }
-        set ReleaseAge [expr {[clock seconds] - $values(TimeStamp)}]
-        if {$IsSiteBot} {
-            iputs [list NEW $Count $ReleaseAge $values(UserName) $values(GroupName) $ShowSection $values(DirPath) $values(DirName)]
+        set releaseAge [expr {[clock seconds] - $values(TimeStamp)}]
+        if {$isSiteBot} {
+            iputs [list NEW $count $releaseAge $values(UserName) $values(GroupName) $showSection $values(DirPath) $values(DirName)]
         } else {
-            set ReleaseAge [lrange [FormatDuration $ReleaseAge] 0 1]
-            set ValueList [list $Count $ReleaseAge $values(UserName) $values(GroupName) $ShowSection $values(DirName) [file join $values(DirPath) $values(DirName)]]
-            OutputText [ParseCookies $template(Body) $ValueList {num age user group section release path}]
+            set releaseAge [lrange [FormatDuration $releaseAge] 0 1]
+            set valueList [list $count $releaseAge $values(UserName) $values(GroupName) $showSection $values(DirName) [file join $values(DirPath) $values(DirName)]]
+            OutputText [ParseCookies $template(Body) $valueList {num age user group section release path}]
         }
     }
-    if {!$IsSiteBot} {
-        if {!$Count} {OutputText $template(None)}
+    if {!$isSiteBot} {
+        if {!$count} {OutputText $template(None)}
         OutputText $template(Footer)
     }
     DirDb close
     return 0
 }
 
-proc ::nxTools::Dupe::SitePreTime {MaxResults Pattern} {
+proc ::nxTools::Dupe::SitePreTime {maxResults pattern} {
     global IsSiteBot misc mysql
-    if {!$IsSiteBot} {
+    if {!$isSiteBot} {
         foreach fileExt {Header Body BodyInfo BodyNuke None Footer} {
             set template($fileExt) [ReadFile [file join $misc(Templates) "PreTime.$fileExt"]]
         }
         OutputText $template(Header)
     }
-    set Pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$Pattern*" "*"]]
-    set Count 0
+    set pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$pattern*" "*"]]
+    set count 0
     if {[MySqlConnect]} {
-        set QueryResults [::mysql::sel $mysql(ConnHandle) "SELECT * FROM $mysql(TableName) WHERE release LIKE '$Pattern' ORDER BY pretime DESC LIMIT $MaxResults" -list]
-        set SingleResult [expr {[llength $QueryResults] == 1}]
-        set TimeNow [clock seconds]
+        set queryResults [::mysql::sel $mysql(ConnHandle) "SELECT * FROM $mysql(TableName) WHERE release LIKE '$pattern' ORDER BY pretime DESC LIMIT $maxResults" -list]
+        set singleResult [expr {[llength $queryResults] == 1}]
+        set timeNow [clock seconds]
 
-        foreach QueryLine $QueryResults {
-            incr Count
-            foreach {PreId PreTime Section Release Files KBytes Disks IsNuked NukeTime NukeReason} $QueryLine {break}
-            set ReleaseAge [expr {$TimeNow - $PreTime}]
-            if {$IsSiteBot} {
-                iputs [list PRETIME $Count $ReleaseAge $PreTime $Section $Release $Files $KBytes $Disks $IsNuked $NukeTime $NukeReason]
+        foreach queryLine $queryResults {
+            incr count
+            foreach {preId preTime section release files kiloBytes disks isNuked nukeTime nukeReason} $queryLine {break}
+            set releaseAge [expr {$timeNow - $preTime}]
+            if {$isSiteBot} {
+                iputs [list PRETIME $count $releaseAge $preTime $section $release $files $kBytes $disks $isNuked $nukeTime $nukeReason]
             } else {
-                set BodyTemplate [expr {$SingleResult ? ($IsNuked != 0 ? $template(BodyNuke) : $template(BodyInfo)) : $template(Body)}]
-                set ReleaseAge [FormatDuration $ReleaseAge]
+                set bodyTemplate [expr {$singleResult ? ($isNuked != 0 ? $template(BodyNuke) : $template(BodyInfo)) : $template(Body)}]
+                set releaseAge [FormatDuration $releaseAge]
 
                 # The pre time should always been in UTC (GMT).
-                set ValueList [clock format $PreTime -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 1]
-                set ValueList [concat $ValueList [clock format $NukeTime -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 1]]
-                lappend ValueList $ReleaseAge $Count $Section $Release $Files [FormatSize $KBytes] $Disks $NukeReason
-                OutputText [ParseCookies $BodyTemplate $ValueList {sec min hour day month year2 year4 nukesec nukemin nukehour nukeday nukemonth nukeyear2 nukeyear4 age num section release files size disks reason}]
+                set valueList [clock format $preTime -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 1]
+                set valueList [concat $valueList [clock format $nukeTime -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 1]]
+                lappend valueList $releaseAge $count $section $release $files [FormatSize $kBytes] $disks $nukeReason
+                OutputText [ParseCookies $bodyTemplate $valueList {sec min hour day month year2 year4 nukesec nukemin nukehour nukeday nukemonth nukeyear2 nukeyear4 age num section release files size disks reason}]
             }
         }
         MySqlClose
     }
-    if {!$IsSiteBot} {
-        if {!$Count} {OutputText $template(None)}
+    if {!$isSiteBot} {
+        if {!$count} {OutputText $template(None)}
         OutputText $template(Footer)
     }
     return 0
 }
 
-proc ::nxTools::Dupe::SiteUndupe {ArgList} {
+proc ::nxTools::Dupe::SiteUndupe {argList} {
     global IsSiteBot dupe misc
-    if {!$IsSiteBot} {iputs ".-\[Undupe\]---------------------------------------------------------------."}
-    if {[string equal -nocase "-d" [lindex $ArgList 0]]} {
-        set ColName "DirName"; set DbName "DupeDirs"
-        set Pattern [join [lrange $ArgList 1 end]]
+    if {!$isSiteBot} {iputs ".-\[Undupe\]---------------------------------------------------------------."}
+    if {[string equal -nocase "-d" [lindex $argList 0]]} {
+        set colName "DirName"; set dbName "DupeDirs"
+        set pattern [join [lrange $argList 1 end]]
     } else {
-        set ColName "FileName"; set DbName "DupeFiles"
-        set Pattern [join [lrange $ArgList 0 end]]
+        set colName "FileName"; set dbName "DupeFiles"
+        set pattern [join [lrange $argList 0 end]]
     }
-    if {[regexp {[\*\?]} $Pattern] && [regexp -all {[[:alnum:]]} $Pattern] < $dupe(AlphaNumChars)} {
-        if {!$IsSiteBot} {ErrorReturn "There must be at $dupe(AlphaNumChars) least alpha-numeric chars when wildcards are used."}
+    if {[regexp {[\*\?]} $pattern] && [regexp -all {[[:alnum:]]} $pattern] < $dupe(AlphaNumChars)} {
+        if {!$isSiteBot} {ErrorReturn "There must be at $dupe(AlphaNumChars) least alpha-numeric chars when wildcards are used."}
         return 1
     }
-    if {!$IsSiteBot} {LinePuts "Searching for: $Pattern"}
-    set Removed 0; set Total 0
-    set Pattern [SqlWildToLike $Pattern]
+    if {!$isSiteBot} {LinePuts "Searching for: $pattern"}
+    set removed 0; set total 0
+    set pattern [SqlWildToLike $pattern]
 
     if {![catch {DbOpenFile [namespace current]::DupeDb "${DbName}.db"} error]} {
-        set Total [DupeDb eval "SELECT count(*) FROM $DbName"]
+        set total [DupeDb eval "SELECT count(*) FROM $dbName"]
         DupeDb eval {BEGIN}
-        DupeDb eval "SELECT $ColName,rowid FROM $DbName WHERE $ColName LIKE '$Pattern' ESCAPE '\\' ORDER BY $ColName ASC" values {
-            incr Removed
-            if {$IsSiteBot} {
-                iputs [list UNDUPE $values($ColName)]
+        DupeDb eval "SELECT $colName,rowid FROM $dbName WHERE $colName LIKE '$pattern' ESCAPE '\\' ORDER BY $colName ASC" values {
+            incr removed
+            if {$isSiteBot} {
+                iputs [list UNDUPE $values($colName)]
             } else {
-                LinePuts "Unduped: $values($ColName)"
+                LinePuts "Unduped: $values($colName)"
             }
-            DupeDb eval "DELETE FROM $DbName WHERE rowid=$values(rowid)"
+            DupeDb eval "DELETE FROM $dbName WHERE rowid=$values(rowid)"
         }
         DupeDb eval {COMMIT}
         DupeDb close
     }
-    if {!$IsSiteBot} {
+    if {!$isSiteBot} {
         iputs "|------------------------------------------------------------------------|"
-        LinePuts "Unduped $Removed of $Total dupe entries."
+        LinePuts "Unduped $removed of $total dupe entries."
         iputs "'------------------------------------------------------------------------'"
     }
     return 0
 }
 
-proc ::nxTools::Dupe::SiteWipe {VirtualPath} {
+proc ::nxTools::Dupe::SiteWipe {virtualPath} {
     global dupe misc wipe group user
     iputs ".-\[Wipe\]-----------------------------------------------------------------."
     # Resolving a symlink returns its target path, which could have unwanted
     # results. To avoid such issues, we'll resolve the parent path instead.
-    set ParentPath [resolve pwd [file dirname $VirtualPath]]
-    set RealPath [file join $ParentPath [file tail $VirtualPath]]
-    if {![file exists $RealPath]} {
+    set parentPath [resolve pwd [file dirname $virtualPath]]
+    set realPath [file join $parentPath [file tail $virtualPath]]
+    if {![file exists $realPath]} {
         ErrorReturn "The specified file or directory does not exist."
     }
 
-    set MatchPath [string range $VirtualPath 0 [string last "/" $VirtualPath]]
-    if {[ListMatch $wipe(NoPaths) $MatchPath]} {
+    set matchPath [string range $virtualPath 0 [string last "/" $virtualPath]]
+    if {[ListMatch $wipe(NoPaths) $matchPath]} {
         ErrorReturn "Not allowed to wipe from here."
     }
-    GetDirStats $RealPath stats ".ioFTPD*"
+    GetDirStats $realPath stats ".ioFTPD*"
     set stats(TotalSize) [expr {wide($stats(TotalSize)) / 1024}]
 
-    set IsDir [file isdirectory $RealPath]
-    KickUsers [expr {$IsDir ? "$VirtualPath/*" : $VirtualPath}]
-    if {[catch {file delete -force -- $RealPath} error]} {
+    set isDir [file isdirectory $realPath]
+    KickUsers [expr {$isDir ? "$virtualPath/*" : $virtualPath}]
+    if {[catch {file delete -force -- $realPath} error]} {
         ErrorLog SiteWipe $error
         LinePuts "Unable to delete the specified file or directory."
     }
-    catch {vfs flush [resolve pwd $ParentPath]}
+    catch {vfs flush [resolve pwd $parentPath]}
     LinePuts "Wiped $stats(FileCount) File(s), $stats(DirCount) Directory(s), [FormatSize $stats(TotalSize)]"
     iputs "'------------------------------------------------------------------------'"
 
-    if {$IsDir} {
-        RemoveParentLinks $RealPath $VirtualPath
+    if {$isDir} {
+        RemoveParentLinks $realPath $virtualPath
         if {[IsTrue $misc(dZSbotLogging)]} {
             set stats(TotalSize) [expr {wide($stats(TotalSize)) / 1024}]
         }
-        putlog "WIPE: \"$VirtualPath\" \"$user\" \"$group\" \"$stats(DirCount)\" \"$stats(FileCount)\" \"$stats(TotalSize)\""
+        putlog "WIPE: \"$virtualPath\" \"$user\" \"$group\" \"$stats(DirCount)\" \"$stats(FileCount)\" \"$stats(TotalSize)\""
         if {[IsTrue $dupe(CheckDirs)]} {
-            UpdateLog "WIPE" $VirtualPath
+            UpdateLog "WIPE" $virtualPath
         }
     } elseif {[IsTrue $dupe(CheckFiles)]} {
-        UpdateLog "DELE" $VirtualPath
+        UpdateLog "DELE" $virtualPath
     }
     return 0
 }
@@ -729,61 +729,61 @@ proc ::nxTools::Dupe::SiteWipe {VirtualPath} {
 # Dupe Main
 ######################################################################
 
-proc ::nxTools::Dupe::Main {ArgV} {
+proc ::nxTools::Dupe::Main {argv} {
     global IsSiteBot approve dupe force latest misc pretime group ioerror pwd user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
-    set IsSiteBot [expr {[info exists user] && $misc(SiteBot) eq $user}]
+    set isSiteBot [expr {[info exists user] && $misc(SiteBot) eq $user}]
     set result 0
 
-    set ArgLength [llength [set ArgList [ArgList $ArgV]]]
-    set event [string toupper [lindex $ArgList 0]]
+    set argLength [llength [set argList [ArgList $argv]]]
+    set event [string toupper [lindex $argList 0]]
     switch -- $event {
         {DUPELOG} {
-            set VirtualPath [GetPath $pwd [join [lrange $ArgList 2 end]]]
+            set virtualPath [GetPath $pwd [join [lrange $argList 2 end]]]
             if {[IsTrue $dupe(CheckDirs)] || [IsTrue $dupe(CheckFiles)]} {
-                set result [UpdateLog [lindex $ArgList 1] $VirtualPath]
+                set result [UpdateLog [lindex $argList 1] $virtualPath]
             }
         }
         {POSTMKD} {
-            set VirtualPath [GetPath $pwd [join [lrange $ArgList 2 end]]]
+            set virtualPath [GetPath $pwd [join [lrange $argList 2 end]]]
             if {[IsTrue $dupe(CheckDirs)]} {
-                set result [UpdateLog [lindex $ArgList 1] $VirtualPath]
+                set result [UpdateLog [lindex $argList 1] $virtualPath]
             }
             if {$latest(RaceLinks) > 0} {
-                set result [RaceLinks $VirtualPath]
+                set result [RaceLinks $virtualPath]
             }
-            if {[IsTrue $approve(CheckMkd)]} {ApproveCheck $VirtualPath 1}
+            if {[IsTrue $approve(CheckMkd)]} {ApproveCheck $virtualPath 1}
         }
         {PREMKD} {
-            set VirtualPath [GetPath $pwd [join [lrange $ArgList 2 end]]]
-            if {!([IsTrue $approve(CheckMkd)] && [ApproveCheck $VirtualPath 0])} {
+            set virtualPath [GetPath $pwd [join [lrange $argList 2 end]]]
+            if {!([IsTrue $approve(CheckMkd)] && [ApproveCheck $virtualPath 0])} {
                 if {[IsTrue $dupe(CheckDirs)]} {
-                    set result [CheckDirs $VirtualPath]
+                    set result [CheckDirs $virtualPath]
                 }
                 if {$result == 0 && [IsTrue $pretime(CheckMkd)]} {
-                    set result [PreTimeCheck $VirtualPath]
+                    set result [PreTimeCheck $virtualPath]
                 }
             }
         }
         {PRESTOR} {
-            set VirtualPath [GetPath $pwd [join [lrange $ArgList 2 end]]]
+            set virtualPath [GetPath $pwd [join [lrange $argList 2 end]]]
             if {[IsTrue $force(NfoFirst)] || [IsTrue $force(SfvFirst)] || [IsTrue $force(SampleFirst)]} {
-                set result [ForceCheck $VirtualPath]
+                set result [ForceCheck $virtualPath]
             }
             if {$result == 0 && [IsTrue $dupe(CheckFiles)]} {
-                set result [CheckFiles $VirtualPath]
+                set result [CheckFiles $virtualPath]
             }
         }
         {UPLOAD} {
             if {[IsTrue $dupe(CheckFiles)]} {
-                foreach {Tmp RealPath CRC VirtualPath} $ArgV {break}
-                UpdateLog "UPLD" $VirtualPath
+                foreach {dummy realPath crc virtualPath} $argv {break}
+                UpdateLog "UPLD" $virtualPath
             }
         }
         {UPLOADERROR} {
             if {[IsTrue $dupe(CheckFiles)]} {
-                foreach {Tmp RealPath CRC VirtualPath} $ArgV {break}
-                UpdateLog "DELE" $VirtualPath
+                foreach {dummy realPath crc virtualPath} $argv {break}
+                UpdateLog "DELE" $virtualPath
             }
         }
         {CLEAN} {
@@ -791,10 +791,10 @@ proc ::nxTools::Dupe::Main {ArgV} {
         }
         {APPROVE} {
             array set params [list ADD 2 DEL 2 LIST 0]
-            set subEvent [string toupper [lindex $ArgList 1]]
+            set subEvent [string toupper [lindex $argList 1]]
 
-            if {[info exists params($subEvent)] && $ArgLength > $params($subEvent)} {
-                set result [SiteApprove $subEvent [join [lrange $ArgList 2 end]]]
+            if {[info exists params($subEvent)] && $argLength > $params($subEvent)} {
+                set result [SiteApprove $subEvent [join [lrange $argList 2 end]]]
             } else {
                 iputs "Syntax: SITE APPROVE ADD <release>"
                 iputs "        SITE APPROVE DEL <release>"
@@ -802,29 +802,29 @@ proc ::nxTools::Dupe::Main {ArgV} {
             }
         }
         {DUPE} {
-            if {$ArgLength > 1 && [GetOptions [lrange $ArgList 1 end] MaxResults Pattern]} {
-                set result [SiteDupe $MaxResults $Pattern]
+            if {$argLength > 1 && [GetOptions [lrange $argList 1 end] maxResults Pattern]} {
+                set result [SiteDupe $maxResults $pattern]
             } else {
                 iputs "Syntax: SITE DUPE \[-max <limit>\] <release>"
             }
         }
         {FDUPE} {
-            if {$ArgLength > 1 && [GetOptions [lrange $ArgList 1 end] MaxResults Pattern]} {
-                set result [SiteFileDupe $MaxResults $Pattern]
+            if {$argLength > 1 && [GetOptions [lrange $argList 1 end] maxResults Pattern]} {
+                set result [SiteFileDupe $maxResults $pattern]
             } else {
                 iputs "Syntax: SITE FDUPE \[-max <limit>\] <filename>"
             }
         }
         {NEW} {
-            if {[GetOptions [lrange $ArgList 1 end] MaxResults SectionName]} {
-                set result [SiteNew $MaxResults $SectionName]
+            if {[GetOptions [lrange $argList 1 end] maxResults SectionName]} {
+                set result [SiteNew $maxResults $sectionName]
             } else {
                 iputs "Syntax: SITE NEW \[-max <limit>\] \[section\]"
             }
         }
         {PRETIME} {
-            if {$ArgLength > 1 && [GetOptions [lrange $ArgList 1 end] MaxResults Pattern]} {
-                set result [SitePreTime $MaxResults $Pattern]
+            if {$argLength > 1 && [GetOptions [lrange $argList 1 end] maxResults Pattern]} {
+                set result [SitePreTime $maxResults $pattern]
             } else {
                 iputs "Syntax: SITE PRETIME \[-max <limit>\] <release>"
             }
@@ -833,17 +833,17 @@ proc ::nxTools::Dupe::Main {ArgV} {
             set result [RebuildDb]
         }
         {UNDUPE} {
-            if {$ArgLength > 1} {
-                set result [SiteUndupe [lrange $ArgList 1 end]]
+            if {$argLength > 1} {
+                set result [SiteUndupe [lrange $argList 1 end]]
             } else {
                 iputs "Syntax: SITE UNDUPE <filename>"
                 iputs "        SITE UNDUPE -d <directory>"
             }
         }
         {WIPE} {
-            if {$ArgLength > 1} {
-                set VirtualPath [GetPath $pwd [join [lrange $ArgList 1 end]]]
-                set result [SiteWipe $VirtualPath]
+            if {$argLength > 1} {
+                set virtualPath [GetPath $pwd [join [lrange $argList 1 end]]]
+                set result [SiteWipe $virtualPath]
             } else {
                 iputs " Usage: SITE WIPE <file/directory>"
             }
