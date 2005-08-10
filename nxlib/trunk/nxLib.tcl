@@ -50,11 +50,6 @@ proc ::nxLib::GetOptions {argList limitVar stringVar} {
     return 1
 }
 
-proc ::nxLib::ErrorReturn {message} {
-    # TODO: kill this function
-    return -code error "ErrorReturn is depreciated"
-}
-
 proc ::nxLib::JoinLiteral {list {word "and"}} {
     if {[llength $list] < 2} {return [join $list]}
     set listLiteral [join [lrange $list 0 end-1] ", "]
@@ -64,7 +59,15 @@ proc ::nxLib::JoinLiteral {list {word "and"}} {
     return [append listLiteral " " $word " " [lindex $list end]]
 }
 
-proc ::nxLib::LinePuts {message} {iputs [format "| %-70s |" $message]}
+proc ::nxLib::ErrorReturn {message} {
+    LinePuts $message
+    iputs "'------------------------------------------------------------------------'"
+    return -code return
+}
+
+proc ::nxLib::LinePuts {message} {
+    iputs [format "| %-70s |" $option]
+}
 
 proc ::nxLib::StripChars {string} {
     regsub -all {[\(\<\{]+} $string {(} string
@@ -169,12 +172,13 @@ proc ::nxLib::GetDirList {realPath varName {ignoreList ""} {firstCall 1}} {
     } elseif {[file isfile $realPath]} {
         set listing [list $realPath]
     } else {return}
-    foreach item $listing {
-        if {[file readable $item] && ![ListMatchI $ignoreList [file tail $item]]} {
-            if {[file isdirectory $item]} {
-                GetDirList $item list $ignoreList 0
+
+    foreach element $listing {
+        if {[file readable $element] && ![ListMatchI $ignoreList [file tail $element]]} {
+            if {[file isdirectory $element]} {
+                GetDirList $element list $ignoreList 0
             } else {
-                lappend list(FileList) $item
+                lappend list(FileList) $element
             }
         }
     }
@@ -192,13 +196,14 @@ proc ::nxLib::GetDirStats {realPath varName {ignoreList ""} {firstCall 1}} {
     } elseif {[file isfile $realPath]} {
         set listing [list $realPath]
     } else {return}
-    foreach item $listing {
-        if {[file readable $item] && ![ListMatchI $ignoreList [file tail $item]]} {
-            if {[file isdirectory $item]} {
-                GetDirStats $item stats $ignoreList 0
+
+    foreach element $listing {
+        if {[file readable $element] && ![ListMatchI $ignoreList [file tail $element]]} {
+            if {[file isdirectory $element]} {
+                GetDirStats $element stats $ignoreList 0
             } else {
                 incr stats(FileCount)
-                set stats(TotalSize) [expr {wide($stats(TotalSize)) + wide([file size $item])}]
+                set stats(TotalSize) [expr {wide($stats(TotalSize)) + wide([file size $element])}]
             }
         }
     }
@@ -261,10 +266,10 @@ proc ::nxLib::GetSectionList {} {
             } elseif {$isSections} {
                 if {[string match {\[*\]} $line]} {
                     set isSections 0
-                } elseif {[set items [llength $line]]} {
+                } elseif {[set elements [llength $line]]} {
                     # Check if the user was to lazy to define the stats section
                     foreach {sectionName eqSign creditSection argOne argTwo} $line {break}
-                    switch -- $items {
+                    switch -- $elements {
                         5 {lappend sectionList $sectionName $creditSection $argOne $argTwo}
                         4 {lappend sectionList $sectionName $creditSection 0 $argOne}
                         default {ErrorLog GetSectionList "invalid ioFTPD.ini \[Sections\] line: \"$line\""}
@@ -349,15 +354,15 @@ proc ::nxLib::ListAssign {valueList args} {
 }
 
 proc ::nxLib::ListMatch {patternList string} {
-    foreach item $patternList {
-        if {[string match $item $string]} {return 1}
+    foreach pattern $patternList {
+        if {[string match $pattern $string]} {return 1}
     }
     return 0
 }
 
 proc ::nxLib::ListMatchI {patternList string} {
-    foreach item $patternList {
-        if {[string match -nocase $item $string]} {return 1}
+    foreach pattern $patternList {
+        if {[string match -nocase $pattern $string]} {return 1}
     }
     return 0
 }
