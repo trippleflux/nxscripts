@@ -207,16 +207,16 @@ proc ::nxTools::Nuke::Main {argv} {
             ListAssign [GetCreditStatSections $virtualPath] creditSection statSection
 
             # Count disk sub-directories.
-            foreach listItem [glob -nocomplain -types d -directory $realPath "*"] {
-                if {[IsDiskPath $listItem]} {incr diskCount}
+            foreach entry [glob -nocomplain -types d -directory $realPath "*"] {
+                if {[IsDiskPath $entry]} {incr diskCount}
             }
 
             # Count files and total size.
             GetDirList $realPath dirlist ".ioFTPD*"
-            foreach listItem $dirlist(FileList) {
-                incr files; set fileSize [file size $listItem]
+            foreach entry $dirlist(FileList) {
+                incr files; set fileSize [file size $entry]
                 set totalSize [expr {wide($totalSize) + wide($fileSize)}]
-                catch {lindex [vfs read $listItem] 0} userId
+                catch {lindex [vfs read $entry] 0} userId
                 if {[set nukeeUser [resolve uid $userId]] ne ""} {
                     if {[info exists nukefiles($nukeeUser)]} {
                         incr nukefiles($nukeeUser)
@@ -287,8 +287,8 @@ proc ::nxTools::Nuke::Main {argv} {
                 set newName "$nuke(Prefix)[file tail $virtualPath]"
 
             } else {
-                foreach listItem [FindTags $realPath $nuke(InfoTag)] {
-                    RemoveTag $listItem
+                foreach entry [FindTags $realPath $nuke(InfoTag)] {
+                    RemoveTag $entry
                 }
                 set dirChmod 777
                 set logPrefix "UNNUKE"
@@ -319,12 +319,12 @@ proc ::nxTools::Nuke::Main {argv} {
             }
 
             GetDirList $newPath dirlist ".ioFTPD*"
-            foreach listItem $dirlist(DirList) {
-                catch {vfs read $listItem} owner
+            foreach entry $dirlist(DirList) {
+                catch {vfs read $entry} owner
                 ListAssign $owner userId groupId
                 if {![string is digit -strict $userId]} {set userId [lindex $misc(DirOwner) 0]}
                 if {![string is digit -strict $groupId]} {set groupId [lindex $misc(DirOwner) 1]}
-                catch {vfs write $listItem $userId $groupId $dirChmod}
+                catch {vfs write $entry $userId $groupId $dirChmod}
             }
             catch {vfs flush $parentPath}
             if {[IsTrue $misc(dZSbotLogging)]} {
@@ -362,21 +362,21 @@ proc ::nxTools::Nuke::Main {argv} {
             iputs "'------------------------------------------------------------------------'"
         }
         {NUKES} - {UNNUKES} {
-            set isSiteBot [string equal $misc(SiteBot) $user]
-            if {![GetOptions [lrange $argList 1 end] maxResults Pattern]} {
+            set isBot [string equal $misc(SiteBot) $user]
+            if {![GetOptions [lrange $argList 1 end] maxResults pattern]} {
                 iputs "Syntax: SITE $event \[-max <limit>\] \[release\]"
                 return 0
             }
             set pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$pattern*" "*"]]
             if {$event eq "NUKES"} {
-                if {!$isSiteBot} {
+                if {!$isBot} {
                     iputs ".-\[Nukes\]----------------------------------------------------------------."
                     iputs "|    Age    |    Nuker     |   Multi   |  Reason                         |"
                     iputs "|------------------------------------------------------------------------|"
                 }
                 set nukeStatus 0
             } elseif {$event eq "UNNUKES"} {
-                if {!$isSiteBot} {
+                if {!$isBot} {
                     iputs ".-\[UnNukes\]--------------------------------------------------------------."
                     iputs "|    Age    |   UnNuker    |   Multi   |  Reason                         |"
                     iputs "|------------------------------------------------------------------------|"
@@ -387,7 +387,7 @@ proc ::nxTools::Nuke::Main {argv} {
             if {![catch {DbOpenFile [namespace current]::NukeDb "Nukes.db"} error]} {
                 NukeDb eval "SELECT * FROM Nukes WHERE Status=$nukeStatus AND Release LIKE '$pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $maxResults" values {
                     incr count
-                    if {$isSiteBot} {
+                    if {$isBot} {
                         iputs [list NUKES $count $values(TimeStamp) $values(Release) $values(UserName) $values(GroupName) $values(Multi) $values(Reason) $values(Files) $values(Size)]
                     } else {
                         set nukeAge [expr {[clock seconds] - $values(TimeStamp)}]
@@ -399,7 +399,7 @@ proc ::nxTools::Nuke::Main {argv} {
                 NukeDb close
             } else {ErrorLog NukeLatest $error}
 
-            if {!$isSiteBot} {
+            if {!$isBot} {
                 if {!$count} {
                     LinePuts "There are no nukes or unnukes to display."
                 } else {
@@ -409,8 +409,8 @@ proc ::nxTools::Nuke::Main {argv} {
             }
         }
         {NUKETOP} {
-            set isSiteBot [string equal $misc(SiteBot) $user]
-            if {![GetOptions [lrange $argList 1 end] maxResults Pattern]} {
+            set isBot [string equal $misc(SiteBot) $user]
+            if {![GetOptions [lrange $argList 1 end] maxResults pattern]} {
                 iputs "Syntax: SITE NUKETOP \[-max <limit>\] \[group\]"
                 return 0
             }
@@ -419,7 +419,7 @@ proc ::nxTools::Nuke::Main {argv} {
             } else {
                 set groupMatch ""
             }
-            if {!$isSiteBot} {
+            if {!$isBot} {
                 iputs ".-\[NukeTop\]--------------------------------------------------------------."
                 iputs "|    User    |   Group    | Times Nuked |  Amount                        |"
                 iputs "|------------------------------------------------------------------------|"
@@ -432,7 +432,7 @@ proc ::nxTools::Nuke::Main {argv} {
                     GROUP BY UserName ORDER BY Nuked DESC LIMIT $maxResults" values {
 
                     incr count
-                    if {$isSiteBot} {
+                    if {$isBot} {
                         iputs [list NUKETOP $count $values(UserName) $values(GroupName) $values(Nuked) $values(Amount)]
                     } else {
                         iputs [format "| %-10.10s | %-10.10s | %11d | %30.30s |" $values(UserName) $values(GroupName) $values(Nuked) [FormatSize $values(Amount)]]
@@ -440,7 +440,7 @@ proc ::nxTools::Nuke::Main {argv} {
                 }
                 NukeDb close
             } else {ErrorLog NukeTop $error}
-            if {!$isSiteBot} {
+            if {!$isBot} {
                 if {!$count} {LinePuts "There are no nukees display."}
                 iputs "'------------------------------------------------------------------------'"
             }

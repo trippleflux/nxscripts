@@ -167,9 +167,9 @@ proc ::nxTools::Req::Update {event userName groupName request} {
     return $result
 }
 
-proc ::nxTools::Req::List {isSiteBot} {
+proc ::nxTools::Req::List {isBot} {
     global misc req
-    if {!$isSiteBot} {
+    if {!$isBot} {
         foreach fileExt {Header Body None Footer} {
             set template($fileExt) [ReadFile [file join $misc(Templates) "Requests.$fileExt"]]
         }
@@ -179,7 +179,7 @@ proc ::nxTools::Req::List {isSiteBot} {
     ReqDb eval {SELECT * FROM Requests WHERE Status=0 ORDER BY RequestId DESC} values {
         set requestAge [expr {[clock seconds] - $values(TimeStamp)}]
         set requestId [format "%03s" $values(RequestId)]
-        if {$isSiteBot} {
+        if {$isBot} {
             iputs [list REQS $values(TimeStamp) $requestAge $requestId $values(UserName) $values(GroupName) $values(Request)]
         } else {
             incr count
@@ -188,7 +188,7 @@ proc ::nxTools::Req::List {isSiteBot} {
             OutputText [ParseCookies $template(Body) $valueList {age id user group request}]
         }
     }
-    if {!$isSiteBot} {
+    if {!$isBot} {
         if {!$count} {OutputText $template(None)}
         OutputText $template(Footer)
     }
@@ -236,11 +236,11 @@ proc ::nxTools::Req::Wipe {} {
 proc ::nxTools::Req::Main {argv} {
     global misc flags ioerror group user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
-    set isSiteBot [expr {[info exists user] && $misc(SiteBot) eq $user}]
+    set isBot [expr {[info exists user] && $misc(SiteBot) eq $user}]
 
     if {[catch {DbOpenFile [namespace current]::ReqDb "Requests.db"} error]} {
         ErrorLog RequestDb $error
-        if {!$isSiteBot} {iputs "Unable to open requests database."}
+        if {!$isBot} {iputs "Unable to open requests database."}
         return 1
     }
 
@@ -263,7 +263,7 @@ proc ::nxTools::Req::Main {argv} {
                 iputs "Syntax: SITE REQ$event <id/request>"
             }
         }
-        {LIST} {set result [List $isSiteBot]}
+        {LIST} {set result [List $isBot]}
         {WIPE} {set result [Wipe]}
         default {
             ErrorLog InvalidArgs "unknown event \"[info script] $event\": check your ioFTPD.ini for errors"

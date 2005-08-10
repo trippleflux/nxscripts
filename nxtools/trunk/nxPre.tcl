@@ -441,7 +441,7 @@ proc ::nxTools::Pre::Edit {argList} {
 }
 
 proc ::nxTools::Pre::History {argList} {
-    if {![GetOptions $argList maxResults Pattern]} {
+    if {![GetOptions $argList maxResults pattern]} {
         iputs "Syntax: SITE PRE HISTORY \[-max <limit>\] \[group\]"
         return 1
     }
@@ -468,7 +468,7 @@ proc ::nxTools::Pre::History {argList} {
 }
 
 proc ::nxTools::Pre::Stats {argList} {
-    if {![GetOptions $argList maxResults Pattern]} {
+    if {![GetOptions $argList maxResults pattern]} {
         iputs "Syntax: SITE PRE STATS \[-max <limit>\] \[group\]"
         return 1
     }
@@ -554,18 +554,18 @@ proc ::nxTools::Pre::Release {argList} {
     ListAssign [GetCreditStatSections $destVirtualPath] creditSection statSection
 
     # Count disk sub-directories.
-    foreach listItem [glob -nocomplain -types d -directory $realPath "*"] {
-        if {[IsDiskPath $listItem]} {incr diskCount}
+    foreach entry [glob -nocomplain -types d -directory $realPath "*"] {
+        if {[IsDiskPath $entry]} {incr diskCount}
     }
 
     # Count files and total size.
     GetDirList $realPath dirlist ".ioFTPD*"
-    foreach listItem $dirlist(FileList) {
-        incr files; set fileSize [file size $listItem]
-        set fileSize [file size $listItem]
+    foreach entry $dirlist(FileList) {
+        incr files; set fileSize [file size $entry]
+        set fileSize [file size $entry]
         set totalSize [expr {wide($totalSize) + wide($fileSize)}]
         if {[IsTrue $pre(Uploaders)]} {
-            catch {lindex [vfs read $listItem] 0} userId
+            catch {lindex [vfs read $entry] 0} userId
             if {$fileSize > 0 && [set userName [resolve uid $userId]] ne ""} {
                 if {[info exists prefiles($userName)]} {
                     incr prefiles($userName)
@@ -630,21 +630,21 @@ proc ::nxTools::Pre::Release {argList} {
     # Change file and directory ownership.
     if {[string is digit -strict $pre(ChownUserId)]} {
         GetDirList $destRealPath dirlist ".ioFTPD*"
-        foreach listItem $dirlist(DirList) {
-            catch {vfs read $listItem} owner
+        foreach entry $dirlist(DirList) {
+            catch {vfs read $entry} owner
             ListAssign $owner userId groupId Chmod
             # Verify the group and chmod the directory.
             if {![string is digit -strict $groupId]} {set groupId [lindex $misc(DirOwner) 1]}
             if {![string is digit -strict $chmod]} {set chmod $misc(DirChmod)}
-            catch {vfs write $listItem $pre(ChownUserId) $groupId $chmod}
+            catch {vfs write $entry $pre(ChownUserId) $groupId $chmod}
         }
-        foreach listItem $dirlist(FileList) {
-            catch {vfs read $listItem} owner
+        foreach entry $dirlist(FileList) {
+            catch {vfs read $entry} owner
             ListAssign $owner userId groupId Chmod
             # Verify the group and chmod the file.
             if {![string is digit -strict $groupId]} {set groupId [lindex $misc(FileOwner) 1]}
             if {![string is digit -strict $chmod]} {set chmod $misc(FileChmod)}
-            catch {vfs write $listItem $pre(ChownUserId) $groupId $chmod}
+            catch {vfs write $entry $pre(ChownUserId) $groupId $chmod}
         }
     }
     # Update file and directory times.
@@ -673,13 +673,13 @@ proc ::nxTools::Pre::Release {argList} {
     }
     if {[IsTrue $misc(dZSbotLogging)]} {
         set totalMB [format "%.2f" [expr {double($totalSize) / 1024.0}]]
-        set logLine "PRE: \"$destVirtualPath\" \"$preGroup\" \"$user\" \"$group\" \"$preArea\" \"$files\" \"$totalMB\" \"$diskCount\""
-        if {$isMP3} {append logLine " \"$mp3(genre)\" \"$mp3(bitrate)\" \"$mp3(year)\""}
+        set line "PRE: \"$destVirtualPath\" \"$preGroup\" \"$user\" \"$group\" \"$preArea\" \"$files\" \"$totalMB\" \"$diskCount\""
+        if {$isMP3} {append line " \"$mp3(genre)\" \"$mp3(bitrate)\" \"$mp3(year)\""}
     } else {
-        set logLine "PRE: \"$destVirtualPath\" \"$preGroup\" \"$user\" \"$group\" \"$preArea\" \"$files\" \"$totalSize\" \"$diskCount\""
-        if {$isMP3} {append logLine " \"$mp3(artist)|$mp3(album)|$mp3(genre)|$mp3(year)|$mp3(bitrate)|$mp3(type)\""}
+        set line "PRE: \"$destVirtualPath\" \"$preGroup\" \"$user\" \"$group\" \"$preArea\" \"$files\" \"$totalSize\" \"$diskCount\""
+        if {$isMP3} {append line " \"$mp3(artist)|$mp3(album)|$mp3(genre)|$mp3(year)|$mp3(bitrate)|$mp3(type)\""}
     }
-    putlog $logLine
+    putlog $line
 
     if {![catch {DbOpenFile [namespace current]::PreDb "Pres.db"} error]} {
         PreDb eval {INSERT INTO Pres(TimeStamp,UserName,GroupName,Area,Release,Files,Size) VALUES($preTime,$user,$preGroup,$preArea,$release,$files,$totalSize)}

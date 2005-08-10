@@ -204,20 +204,20 @@ proc ::nxTools::Utils::RotateLogs {} {
 }
 
 proc ::nxTools::Utils::SearchLog {logFile maxResults pattern} {
-    set logData ""
+    set data [list]
     if {![catch {set handle [open $logFile r]} error]} {
         while {![eof $handle]} {
-            if {[gets $handle LogLine] > 0 && [string match -nocase $pattern $logLine]} {
-                set logData [linsert $logData 0 [string trim $logLine]]
+            if {[gets $handle line] > 0 && [string match -nocase $pattern $line]} {
+                set data [linsert $data 0 [string trim $line]]
             }
         }
         close $handle
     } else {ErrorLog SearchLog $error}
 
     set count 0
-    foreach logLine $logData {
+    foreach line $data {
         if {[incr count] > $maxResults} {break}
-        iputs " $logLine"
+        iputs " $line"
     }
     if {!$count} {LinePuts "No results found."}
 
@@ -250,8 +250,8 @@ proc ::nxTools::Utils::WeeklyCredits {wkTarget wkAmount} {
         if {[llength $targetList]} {
             iputs "|     Target     |   Section   |  Credit Amount                          |"
             iputs "|------------------------------------------------------------------------|"
-            foreach listItem [lsort -ascii -index 0 $targetList] {
-                foreach {target section credits} $listItem {break}
+            foreach element [lsort -ascii -index 0 $targetList] {
+                foreach {target section credits} $element {break}
                 iputs [format "| %-14s | %11d | %-39s |" $target $section "[expr {wide($credits) / 1024}]MB"]
             }
         } else {
@@ -261,8 +261,8 @@ proc ::nxTools::Utils::WeeklyCredits {wkTarget wkAmount} {
         # Add or remove weekly credit targets.
         set deleted 0; set index 0
         set creditsKB [expr {wide($credits) * 1024}]
-        foreach listItem $targetList {
-            if {$listItem eq [list $wkTarget $section $creditsKB]} {
+        foreach element $targetList {
+            if {$element eq [list $wkTarget $section $creditsKB]} {
                 set deleted 1
                 set targetList [lreplace $targetList $index $index]
             } else {incr index}
@@ -285,8 +285,8 @@ proc ::nxTools::Utils::WeeklyCredits {wkTarget wkAmount} {
         # Rewrite weekly configuration file.
         if {![catch {set handle [open $weekly(ConfigFile) w]} error]} {
             puts -nonewline $handle $cfgComments
-            foreach listItem [lsort -ascii -index 0 $targetList] {
-                puts $handle [join $listItem "|"]
+            foreach element [lsort -ascii -index 0 $targetList] {
+                puts $handle [join $element "|"]
             }
             close $handle
         } else {ErrorLog WeeklyWrite $error}
@@ -320,8 +320,8 @@ proc ::nxTools::Utils::WeeklySet {} {
         ErrorReturn "Unable to load the weekly credits configuration, contact a siteop."
     }
     if {[llength $targetList]} {
-        foreach listItem [lsort -ascii -index 0 $targetList] {
-            foreach {target section credits} $listItem {break}
+        foreach element [lsort -ascii -index 0 $targetList] {
+            foreach {target section credits} $element {break}
             if {[string index $target 0] eq "="} {
                 set target [string range $target 1 end]
                 if {[set groupId [resolve group $target]] == -1} {
@@ -586,6 +586,7 @@ proc ::nxTools::Utils::SiteTraffic {target} {
     array set file [list alldn 0 allup 0 daydn 0 dayup 0 monthdn 0 monthup 0 wkdn 0 wkup 0]
     array set size [list alldn 0 allup 0 daydn 0 dayup 0 monthdn 0 monthup 0 wkdn 0 wkup 0]
     array set time [list alldn 0 allup 0 daydn 0 dayup 0 monthdn 0 monthup 0 wkdn 0 wkup 0]
+
     foreach userName $userList {
         if {[userfile open $userName] != 0} {continue}
         set userFile [userfile bin2ascii]
@@ -683,9 +684,9 @@ proc ::nxTools::Utils::SiteWho {} {
 ######################################################################
 
 proc ::nxTools::Utils::Main {argv} {
-    global IsSiteBot log misc group ioerror pwd user
+    global isBot log misc group ioerror pwd user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
-    set isSiteBot [expr {[info exists user] && $misc(SiteBot) eq $user}]
+    set isBot [expr {[info exists user] && $misc(SiteBot) eq $user}]
     set result 0
 
     set argLength [llength [set argList [ArgList $argv]]]
@@ -700,7 +701,7 @@ proc ::nxTools::Utils::Main {argv} {
             set result [SiteDrives]
         }
         {ERRLOG} {
-            if {$argLength > 1 && [GetOptions [lrange $argList 1 end] maxResults Pattern]} {
+            if {$argLength > 1 && [GetOptions [lrange $argList 1 end] maxResults pattern]} {
                 iputs ".-\[ErrorLog\]-------------------------------------------------------------."
                 set result [SearchLog $log(Error) $maxResults $pattern]
             } else {
@@ -755,7 +756,7 @@ proc ::nxTools::Utils::Main {argv} {
             }
         }
         {SYSLOG} {
-            if {$argLength > 1 && [GetOptions [lrange $argList 1 end] maxResults Pattern]} {
+            if {$argLength > 1 && [GetOptions [lrange $argList 1 end] maxResults pattern]} {
                 iputs ".-\[SysopLog\]-------------------------------------------------------------."
                 set result [SearchLog $log(SysOp) $maxResults $pattern]
             } else {
