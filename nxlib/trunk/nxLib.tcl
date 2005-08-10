@@ -7,7 +7,7 @@
 ################################################################################
 
 namespace eval ::nxLib {
-    variable LogPath "../logs"
+    variable logPath "../logs"
     namespace export *
 }
 
@@ -17,90 +17,86 @@ namespace eval ::nxLib {
 interp alias {} IsTrue {} string is true -strict
 interp alias {} IsFalse {} string is false -strict
 
-proc ::nxLib::ArgList {ArgV} {
-    split [string trim [regsub -all {\s+} $ArgV { }]]
+proc ::nxLib::ArgList {argv} {
+    split [string trim [regsub -all {\s+} $argv { }]]
 }
-proc ::nxLib::ArgIndex {ArgV Index} {
-    lindex [ArgList $ArgV] $Index
+proc ::nxLib::Argindex {argv index} {
+    lindex [ArgList $argv] $index
 }
-proc ::nxLib::ArgLength {ArgV} {
-    llength [ArgList $ArgV]
+proc ::nxLib::ArgLength {argv} {
+    llength [ArgList $argv]
 }
-proc ::nxLib::ArgRange {ArgV Start End} {
-    join [lrange [ArgList $ArgV] $Start $End]
+proc ::nxLib::ArgRange {argv start end} {
+    join [lrange [ArgList $argv] $start $end]
 }
 
-proc ::nxLib::GetOptions {ArgList MaxVar StringVar} {
-    upvar $MaxVar MaxResults $StringVar String
-    set Switch [string tolower [lindex $ArgList 0]]
-    if {[string index $Switch 0] eq "-"} {
-        set Switch [string range $Switch 1 end]
-        switch -- $Switch {
-            {m} -
-            {max} {
-                set MaxResults [lindex $ArgList 1]
-                set String [join [lrange $ArgList 2 end]]
-                if {![string is digit -strict $MaxResults] || $MaxResults < 1} {set MaxResults 10}
-            }
-            default {return 0}
+proc ::nxLib::GetOptions {argList limitVar stringVar} {
+    upvar $limitVar limit $stringVar string
+    set option [string tolower [lindex $argList 0]]
+    if {[string index $option 0] eq "-"} {
+        set option [string range $option 1 end]
+        if {$option eq "limit" || $option eq "max"} {
+            set limit [lindex $argList 1]
+            set string [join [lrange $argList 2 end]]
+            if {![string is digit -strict $limit] || $limit < 1} {set limit 10}
+        } else {
+            return 0
         }
     } else {
-        set MaxResults 10
-        set String [join $ArgList]
+        set limit 10
+        set string [join $argList]
     }
     return 1
 }
 
-proc ::nxLib::ErrorReturn {ErrorMsg} {
-    LinePuts $ErrorMsg
-    iputs "'------------------------------------------------------------------------'"
-    return -code return
+proc ::nxLib::ErrorReturn {message} {
+    # TODO: kill this function
+    return -code error "ErrorReturn is depreciated"
 }
 
-proc ::nxLib::JoinLiteral {List {Word "and"}} {
-    if {[llength $List] < 2} {return [join $List]}
-    set ListLiteral [join [lrange $List 0 end-1] ", "]
-    if {[llength $List] > 2} {
-        append ListLiteral ","
+proc ::nxLib::JoinLiteral {list {word "and"}} {
+    if {[llength $list] < 2} {return [join $list]}
+    set listLiteral [join [lrange $list 0 end-1] ", "]
+    if {[llength $list] > 2} {
+        append listLiteral ","
     }
-    return [append ListLiteral " " $Word " " [lindex $List end]]
+    return [append listLiteral " " $word " " [lindex $list end]]
 }
 
-proc ::nxLib::LinePuts {String} {iputs [format "| %-70s |" $String]}
+proc ::nxLib::LinePuts {message} {iputs [format "| %-70s |" $message]}
 
-proc ::nxLib::StripChars {String} {
-    regsub -all {[\(\<\{]+} $String {(} String
-    regsub -all {[\)\>\}]+} $String {)} String
-    regsub -all {[^A-Za-z0-9_\-\(\)]+} $String {.} String
-    return [string trim $String "."]
+proc ::nxLib::StripChars {string} {
+    regsub -all {[\(\<\{]+} $string {(} string
+    regsub -all {[\)\>\}]+} $string {)} string
+    regsub -all {[^A-Za-z0-9_\-\(\)]+} $string {.} string
+    return [string trim $string "."]
 }
 
 # DataBase Procedures
 ######################################################################
 
-proc ::nxLib::DbOpenFile {DbProc FileName} {
-    set DbPath [file join $::misc(DataPath) $FileName]
-    if {![file exists $DbPath]} {
-        return -code error "the database \"$DbPath\" does not exist: please run \"SITE DB CREATE\""
-    } elseif {[catch {sqlite3 $DbProc $DbPath} ErrorMsg]} {
-        return -code error "unable to open \"$DbPath\": $ErrorMsg"
+proc ::nxLib::DbOpenFile {dbProc dbFile} {
+    set dbFile [file join $::misc(DataPath) $dbFile]
+    if {![file exists $dbFile]} {
+        return -code error "the database \"$dbFile\" does not exist: please run \"SITE DB CREATE\""
+    } elseif {[catch {sqlite3 $dbProc $dbFile} error]} {
+        return -code error "unable to open \"$dbFile\": $error"
     }
-    $DbProc busy ::nxLib::DbBusyHandler
+    $dbProc busy ::nxLib::DbBusyHandler
     return
 }
 
-proc ::nxLib::DbBusyHandler {Tries} {
-    # Give up after 50 retries, though it should usually
-    # succeed after 1-5 tries under heavy conditions.
-    if {$Tries > 50} {return 1}
-    ::nx::sleep 100
+proc ::nxLib::DbBusyHandler {tries} {
+    # Give up after 50 attempts, although it should succeed after 1-5.
+    if {$tries > 50} {return 1}
+    ::nx::sleep 200
     return 0
 }
 
 proc ::nxLib::MySqlConnect {} {
     global mysql
-    if {[catch {set mysql(ConnHandle) [::mysql::connect -host $mysql(Host) -user $mysql(Username) -password $mysql(Password) -port $mysql(Port) -db $mysql(DataBase)]} ErrorMsg]} {
-        ErrorLog MySqlConnect $ErrorMsg
+    if {[catch {set mysql(ConnHandle) [::mysql::connect -host $mysql(Host) -user $mysql(Username) -password $mysql(Password) -port $mysql(Port) -db $mysql(DataBase)]} error]} {
+        ErrorLog MySqlConnect $error
     } elseif {[lsearch -exact [::mysql::info $mysql(ConnHandle) tables] $mysql(TableName)] != -1} {
         return 1
     } else {
@@ -120,124 +116,130 @@ proc ::nxLib::MySqlClose {} {
     return
 }
 
-proc ::nxLib::SqlEscape {String} {
-    return [string map {\\ \\\\ \' \\\' \" \\\"} $String]
+proc ::nxLib::SqlEscape {string} {
+    return [string map {\\ \\\\ \' \\\' \" \\\"} $string]
 }
 
-proc ::nxLib::SqlWildToLike {Pattern} {
-    return [string map {* % ? _} [string map {% \\% _ \\_ \\ \\\\ \' \\\' \" \\\"} $Pattern]]
+proc ::nxLib::SqlWildToLike {pattern} {
+    return [string map {* % ? _} [string map {% \\% _ \\_ \\ \\\\ \' \\\' \" \\\"} $pattern]]
 }
 
 # File and Directory Procedures
 ######################################################################
 
-proc ::nxLib::ArchiveFile {FilePath {FormatStyle "%Y-%m-%d"}} {
+proc ::nxLib::ArchiveFile {filePath {formatStyle "%Y-%m-%d"}} {
     global log
     if {![file isdirectory $log(ArchivePath)]} {
-        if {[catch {file mkdir $log(ArchivePath)} ErrorMsg]} {
-            ErrorLog ArchiveMkDir $ErrorMsg; return 0
+        if {[catch {file mkdir $log(ArchivePath)} error]} {
+            ErrorLog ArchiveMkDir $error; return 0
         }
     }
-    set DatePrefix [clock format [clock seconds] -format $FormatStyle -gmt 0]
-    set ArchiveFile [file join $log(ArchivePath) "$DatePrefix.[file tail $FilePath]"]
-    if {[catch {file copy -- $FilePath $ArchiveFile} ErrorMsg]} {
-        ErrorLog ArchiveFile $ErrorMsg; return 0
+    set datePrefix [clock format [clock seconds] -format $formatStyle -gmt 0]
+    set archivePath [file join $log(ArchivePath) "$datePrefix.[file tail $filePath]"]
+    if {[catch {file copy -- $filePath $archivePath} error]} {
+        ErrorLog archivePath $error; return 0
     }
     return 1
 }
 
-proc ::nxLib::CreateTag {RealPath UserId GroupId Chmod} {
-    if {[catch {file mkdir $RealPath} ErrorMsg]} {
-        ErrorLog CreateTag $ErrorMsg
+proc ::nxLib::CreateTag {realPath userId groupId chmod} {
+    if {[catch {file mkdir $realPath} error]} {
+        ErrorLog CreateTag $error
     }
-    catch {vfs write $RealPath $UserId $GroupId $Chmod}
+    catch {vfs write $realPath $userId $groupId $chmod}
 }
 
-proc ::nxLib::RemoveTag {RealPath} {
-    # Safely remove a directory tag, in case there is data inside it.
-    catch {file delete -- [file join $RealPath ".ioFTPD"]}
-    if {[catch {file delete -- $RealPath} ErrorMsg]} {
-        ErrorLog RemoveTag $ErrorMsg
+proc ::nxLib::RemoveTag {realPath} {
+    # Safely remove a directory tag, in case there are other files inside it.
+    catch {file delete -- [file join $realPath ".ioFTPD"]}
+    if {[catch {file delete -- $realPath} error]} {
+        ErrorLog RemoveTag $error
     }
 }
 
-proc ::nxLib::GetDirList {RealPath VarName {IgnoreList ""} {FirstCall 1}} {
-    upvar $VarName list
-    if {$FirstCall} {
+proc ::nxLib::GetDirList {realPath varName {ignoreList ""} {firstCall 1}} {
+    upvar $varName list
+    if {$firstCall} {
         array set list [list DirList [list] FileList [list]]
     }
-    if {[file isdirectory $RealPath]} {
-        lappend list(DirList) $RealPath
-        set Listing [glob -nocomplain -directory $RealPath "*"]
-    } elseif {[file isfile $RealPath]} {
-        set Listing [list $RealPath]
+    if {[file isdirectory $realPath]} {
+        lappend list(DirList) $realPath
+        set listing [glob -nocomplain -directory $realPath "*"]
+    } elseif {[file isfile $realPath]} {
+        set listing [list $realPath]
     } else {return}
-    foreach ListItem $Listing {
-        if {[file readable $ListItem] && ![ListMatchI $IgnoreList [file tail $ListItem]]} {
-            if {[file isdirectory $ListItem]} {
-                GetDirList $ListItem list $IgnoreList 0
+    foreach item $listing {
+        if {[file readable $item] && ![ListMatchI $ignoreList [file tail $item]]} {
+            if {[file isdirectory $item]} {
+                GetDirList $item list $ignoreList 0
             } else {
-                lappend list(FileList) $ListItem
+                lappend list(FileList) $item
             }
         }
     }
     return
 }
 
-proc ::nxLib::GetDirStats {RealPath VarName {IgnoreList ""} {FirstCall 1}} {
-    upvar $VarName stats
-    if {$FirstCall} {
+proc ::nxLib::GetDirStats {realPath varName {ignoreList ""} {firstCall 1}} {
+    upvar $varName stats
+    if {$firstCall} {
         array set stats [list DirCount 0 FileCount 0 TotalSize 0]
     }
-    if {[file isdirectory $RealPath]} {
+    if {[file isdirectory $realPath]} {
         incr stats(DirCount)
-        set Listing [glob -nocomplain -directory $RealPath "*"]
-    } elseif {[file isfile $RealPath]} {
-        set Listing [list $RealPath]
+        set listing [glob -nocomplain -directory $realPath "*"]
+    } elseif {[file isfile $realPath]} {
+        set listing [list $realPath]
     } else {return}
-    foreach ListItem $Listing {
-        if {[file readable $ListItem] && ![ListMatchI $IgnoreList [file tail $ListItem]]} {
-            if {[file isdirectory $ListItem]} {
-                GetDirStats $ListItem stats $IgnoreList 0
+    foreach item $listing {
+        if {[file readable $item] && ![ListMatchI $ignoreList [file tail $item]]} {
+            if {[file isdirectory $item]} {
+                GetDirStats $item stats $ignoreList 0
             } else {
                 incr stats(FileCount)
-                set stats(TotalSize) [expr {wide($stats(TotalSize)) + wide([file size $ListItem])}]
+                set stats(TotalSize) [expr {wide($stats(TotalSize)) + wide([file size $item])}]
             }
         }
     }
     return
 }
 
-proc ::nxLib::GetPath {PWD Path} {
-    if {[string index $Path 0] eq "/"} {set VirtualPath $Path} else {set VirtualPath "$PWD$Path"}
-    regsub -all {[\\/]+} $Path {/} Path
-    # A few "security checks", in case $Path is "." or ".."
-    if {[file tail $VirtualPath] eq "." || [file tail $VirtualPath] eq ".."} {
-        set VirtualPath [file dirname $VirtualPath]
-    } elseif {$VirtualPath ne "/"} {
-        set VirtualPath [string trimright $VirtualPath "/"]
+proc ::nxLib::GetPath {currentPath path} {
+    if {[string index $path 0] eq "/"} {
+        set vfsPath $path
+    } else {
+        set vfsPath "/$currentPath$path"
     }
-    return $VirtualPath
+    regsub -all {[\\/]+} $vfsPath {/} vfsPath
+
+    # Ignore "." and "..".
+    set tail [file tail $vfsPath]
+    if {$tail eq "." || $tail eq ".."} {
+        set vfsPath [file dirname $vfsPath]
+    } elseif {$vfsPath ne "/"} {
+        set vfsPath [string trimright $vfsPath "/"]
+    }
+    return $vfsPath
 }
 
-proc ::nxLib::IsMultiDisk {DiskPath} {
-    set DiskPath [string tolower [file tail $DiskPath]]
-    return [regexp {^(cd|dis[ck]|dvd)\d{1,2}$} $DiskPath]
+proc ::nxLib::IsDiskPath {path} {
+    set path [string tolower [file tail $path]]
+    return [regexp {^(cd|dis[ck]|dvd)\d{1,2}$} $path]
 }
 
-proc ::nxLib::RemoveParentLinks {RealPath VirtualPath} {
-    if {[IsMultiDisk $RealPath]} {
-        set RealPath [file dirname $RealPath]
+proc ::nxLib::RemoveParentLinks {realPath vfsPath} {
+    if {[IsDiskPath $realPath]} {
+        set realPath [file dirname $realPath]
     }
-    set RealPath [file dirname $RealPath]
-    set VirtualPath [string trimright $VirtualPath "/"]
-    set VirtualLen [string length $VirtualPath]
-    foreach LinkPath [glob -nocomplain -types d -directory $RealPath "*"] {
-        if {[catch {vfs chattr $LinkPath 1} LinkTarget] || ![string length $LinkTarget]} {continue}
-        regsub -all {[\\/]+} $LinkTarget {/} LinkTarget
-        set LinkTarget "/[string trim $LinkTarget {/}]"
-        if {[string equal -nocase -length $VirtualLen $VirtualPath $LinkTarget]} {
-            RemoveTag $LinkPath
+    set realPath [file dirname $realPath]
+    set vfsPath [string trimright $vfsPath "/"]
+
+    foreach linkPath [glob -nocomplain -types d -directory $realPath "*"] {
+        if {[catch {vfs chattr $linkPath 1} linkTarget] || ![string length $linkTarget]} {continue}
+        regsub -all {[\\/]+} $linkTarget {/} linkTarget
+        set linkTarget "/[string trim $linkTarget {/}]"
+        if {[string equal -nocase -length [string length $vfsPath] $vfsPath $linkTarget]} {
+            RemoveTag $linkPath
         }
     }
     return
@@ -247,90 +249,89 @@ proc ::nxLib::RemoveParentLinks {RealPath VirtualPath} {
 ######################################################################
 
 proc ::nxLib::GetSectionList {} {
-    set IsSections 0
-    set SectionList [list]
-    if {![catch {set Handle [open "ioFTPD.ini" r]} ErrorMsg]} {
-        while {![eof $Handle]} {
-            set ConfLine [string trim [gets $Handle]]
-            if {[string index $ConfLine 0] eq ";" || [string index $ConfLine 0] eq "#"} {continue}
-            if {$ConfLine eq {[Sections]}} {
-                set IsSections 1
-            } elseif {$IsSections} {
-                if {[string match {\[*\]} $ConfLine]} {
-                    set IsSections 0
-                } elseif {[set Items [llength $ConfLine]]} {
+    set isSections 0
+    set sectionList [list]
+    if {![catch {set handle [open "ioFTPD.ini" r]} error]} {
+        while {![eof $handle]} {
+            set line [string trim [gets $handle]]
+            if {[string index $line 0] eq ";" || [string index $line 0] eq "#"} {continue}
+            if {$line eq {[Sections]}} {
+                set isSections 1
+            } elseif {$isSections} {
+                if {[string match {\[*\]} $line]} {
+                    set isSections 0
+                } elseif {[set items [llength $line]]} {
                     # Check if the user was to lazy to define the stats section
-                    foreach {SectionName EqSign CreditSection Param1 Param2} $ConfLine {break}
-                    switch -- $Items {
-                        5 {lappend SectionList $SectionName $CreditSection $Param1 $Param2}
-                        4 {lappend SectionList $SectionName $CreditSection 0 $Param1}
-                        default {ErrorLog GetSectionList "invalid ioFTPD.ini \[Sections\] line: \"$ConfLine\""}
+                    foreach {sectionName eqSign creditSection argOne argTwo} $line {break}
+                    switch -- $items {
+                        5 {lappend sectionList $sectionName $creditSection $argOne $argTwo}
+                        4 {lappend sectionList $sectionName $creditSection 0 $argOne}
+                        default {ErrorLog GetSectionList "invalid ioFTPD.ini \[Sections\] line: \"$line\""}
                     }
                 }
             }
         }
-        close $Handle
-    } else {ErrorLog GetSectionList $ErrorMsg}
-    return $SectionList
+        close $handle
+    } else {ErrorLog GetSectionList $error}
+    return $sectionList
 }
 
-proc ::nxLib::GetSectionPath {FindSection {SectionList ""}} {
-    if {![llength $SectionList]} {set SectionList [GetSectionList]}
-    foreach {SectionName CreditSection StatSection MatchPath} $SectionList {
-        if {[string equal -nocase $FindSection $SectionName]} {
-            return [list $SectionName $MatchPath]
+proc ::nxLib::GetSectionPath {findSection {sectionList ""}} {
+    if {![llength $sectionList]} {set sectionList [GetSectionList]}
+    foreach {sectionName creditSection statSection matchPath} $sectionList {
+        if {[string equal -nocase $findSection $sectionName]} {
+            return [list $sectionName $matchPath]
         }
     }
     return [list "DEFAULT" "*"]
 }
 
-proc ::nxLib::GetCreditStatSections {VirtualPath {SectionList ""}} {
-    if {![llength $SectionList]} {set SectionList [GetSectionList]}
-    foreach {SectionName CreditSection StatSection MatchPath} $SectionList {
-        if {[string match -nocase $MatchPath $VirtualPath]} {
-            return [list $CreditSection $StatSection]
+proc ::nxLib::GetCreditstatSections {vfsPath {sectionList ""}} {
+    if {![llength $sectionList]} {set sectionList [GetSectionList]}
+    foreach {sectionName creditSection statSection matchPath} $sectionList {
+        if {[string match -nocase $matchPath $vfsPath]} {
+            return [list $creditSection $statSection]
         }
     }
     return [list 0 0]
 }
 
-proc ::nxLib::KickUsers {KickPath {RealPaths "False"}} {
-    if {[IsTrue $RealPaths]} {
-        catch {client kill realpath $KickPath}
+proc ::nxLib::KickUsers {path {isRealPath "False"}} {
+    if {[IsTrue $isRealPath]} {
+        catch {client kill realpath $path}
     } else {
-        catch {client kill virtualpath $KickPath}
+        catch {client kill virtualpath $path}
     }
-    set KickPath [string map {\[ \\\[ \] \\\]} $KickPath]
-    ::nx::sleep 250
+    set path [string map {\[ \\\[ \] \\\]} $path]
+    ::nx::sleep 200
 
-    # Repeat the kicking process 20 times to ensure users were disconnected
-    for {set Count 0} {$Count < 20} {incr Count} {
+    # Repeat the kicking process 20 times to ensure users were disconnected.
+    for {set i 0} {$i < 20} {incr i} {
         if {[client who init "CID" "STATUS" "VIRTUALPATH" "VIRTUALDATAPATH"] == 0} {
-            set UsersOnline 0
-            while {[set WhoData [client who fetch]] != ""} {
-                foreach {ClientId Status VfsPath DataPath} $WhoData {break}
+            set online 0
+            while {[set whoData [client who fetch]] != ""} {
+                foreach {clientId status vfsPath dataPath} $whoData {break}
 
-                # Resolve virtual paths if needed
-                if {[IsTrue $RealPaths]} {
-                    set VfsPath [resolve pwd $VfsPath]
-                    set DataPath [resolve pwd $DataPath]
+                # Resolve virtual paths if needed.
+                if {[IsTrue $isRealPath]} {
+                    set vfsPath [resolve pwd $vfsPath]
+                    set dataPath [resolve pwd $dataPath]
                 }
-                # Following a transfer, the user's data path will be the last file
+                # After a transfer the user's data path will be the last file
                 # transfered; however, their status will be IDLE. Bug?
-                if {$Status == 1 || $Status == 2} {
-                    set MatchPath $DataPath
+                if {$status == 1 || $status == 2} {
+                    set matchPath $dataPath
                 } else {
-                    if {[string index $VfsPath end] ne "/"} {append VfsPath "/"}
-                    set MatchPath $VfsPath
+                    if {[string index $vfsPath end] ne "/"} {append vfsPath "/"}
+                    set matchPath $vfsPath
                 }
-                # Attempt to kick the client ID
-                if {[string match -nocase $KickPath $MatchPath]} {
-                    incr UsersOnline
-                    catch {client kill clientid $ClientId}
+                # Attempt to kick the client ID.
+                if {[string match -nocase $path $matchPath]} {
+                    incr online
+                    catch {client kill clientid $clientId}
                 }
             }
-            # If there are no longer any users in that dir, we can return
-            if {!$UsersOnline} {return}
+            if {!$online} {return}
         }
         ::nx::sleep 250
     }
@@ -339,23 +340,23 @@ proc ::nxLib::KickUsers {KickPath {RealPaths "False"}} {
 # List Procedures
 ######################################################################
 
-proc ::nxLib::ListAssign {ValueList args} {
-    while {[llength $ValueList] < [llength $args]} {
-        lappend ValueList {}
+proc ::nxLib::ListAssign {valueList args} {
+    while {[llength $valueList] < [llength $args]} {
+        lappend valueList {}
     }
-    uplevel [list foreach $args $ValueList break]
+    uplevel [list foreach $args $valueList break]
 }
 
-proc ::nxLib::ListMatch {PatternList String} {
-    foreach ListItem $PatternList {
-        if {[string match $ListItem $String]} {return 1}
+proc ::nxLib::ListMatch {patternList string} {
+    foreach item $patternList {
+        if {[string match $item $string]} {return 1}
     }
     return 0
 }
 
-proc ::nxLib::ListMatchI {PatternList String} {
-    foreach ListItem $PatternList {
-        if {[string match -nocase $ListItem $String]} {return 1}
+proc ::nxLib::ListMatchI {patternList string} {
+    foreach item $patternList {
+        if {[string match -nocase $item $string]} {return 1}
     }
     return 0
 }
@@ -363,207 +364,220 @@ proc ::nxLib::ListMatchI {PatternList String} {
 # Logging Procedures
 ######################################################################
 
-proc ::nxLib::DebugLog {LogType LogMsg} {
+proc ::nxLib::DebugLog {type message} {
     global args flags group groups path pwd user
-    variable LogPath
+    variable logPath
 
-    set LogFile [file join $LogPath "nxDebug.log"]
-    if {![catch {set Handle [open $LogFile a]} ErrorMsg]} {
-        set TimeNow [clock format [clock seconds] -format "%m-%d-%Y %H:%M:%S"]
-        if {$LogType eq {-state}} {
-            puts $Handle "$TimeNow -------------------------------------------------------------------"
-            puts $Handle "$TimeNow - [format %-12s Script] : $LogMsg"
-            foreach EnvVar {args user group groups flags path pwd} {
-                set LogMsg [expr {[info exists $EnvVar] ? [set $EnvVar] : ""}]
-                puts $Handle "$TimeNow - [format %-12s $EnvVar] : $LogMsg"
+    set filePath [file join $logPath "nxDebug.log"]
+    if {![catch {set handle [open $filePath a]} error]} {
+        set now [clock format [clock seconds] -format "%m-%d-%Y %H:%M:%S"]
+        if {$type eq "-state"} {
+            puts $handle "$now -------------------------------------------------------------------"
+            puts $handle "$now - [format %-12s Script] : $message"
+            foreach varName {args user group groups flags path pwd} {
+                set message [expr {[info exists $varName] ? [set $varName] : ""}]
+                puts $handle "$now - [format %-12s $varName] : $message"
             }
         } else {
-            puts $Handle "$TimeNow - [format %-12s $LogType] : $LogMsg"
+            puts $handle "$now - [format %-12s $type] : $message"
         }
-        close $Handle
-    } else {iputs $ErrorMsg}
+        close $handle
+    } else {iputs $error}
 }
 
-proc ::nxLib::ErrorLog {LogType LogMsg} {
-    variable LogPath
+proc ::nxLib::ErrorLog {type message} {
+    variable logPath
 
-    set LogFile [file join $LogPath "nxError.log"]
-    if {![catch {set Handle [open $LogFile a]} ErrorMsg]} {
-        set TimeNow [clock format [clock seconds] -format "%m-%d-%Y %H:%M:%S"]
-        puts $Handle "$TimeNow - [format %-12s $LogType] : $LogMsg"
-        close $Handle
-    } else {iputs $ErrorMsg}
+    set filePath [file join $logPath "nxError.log"]
+    if {![catch {set handle [open $filePath a]} error]} {
+        set now [clock format [clock seconds] -format "%m-%d-%Y %H:%M:%S"]
+        puts $handle "$now - [format %-12s $type] : $message"
+        close $handle
+    } else {iputs $error}
 }
 
 # Formatting Procedures
 ######################################################################
 
-proc ::nxLib::FormatDuration {Seconds} {
-    set Duration [list]
-    foreach Div {31536000 604800 86400 3600 60 1} Mod {0 52 7 24 60 60} Unit {y w d h m s} {
-        set Num [expr {$Seconds / $Div}]
-        if {$Mod > 0} {set Num [expr {$Num % $Mod}]}
-        if {$Num > 0} {lappend Duration "$Num$Unit"}
+proc ::nxLib::FormatDuration {seconds} {
+    set duration [list]
+    foreach divisor {31536000 604800 86400 3600 60 1} mod {0 52 7 24 60 60} unit {y w d h m s} {
+        set num [expr {$seconds / $divisor}]
+        if {$mod > 0} {set num [expr {$num % $mod}]}
+        if {$num > 0} {lappend duration "$num$unit"}
     }
-    if {[llength $Duration]} {return [join $Duration]} else {return "0s"}
+    if {[llength $duration]} {return [join $duration]} else {return "0s"}
 }
 
-proc ::nxLib::FormatDurationLong {Seconds} {
-    set Duration [list]
-    foreach Div {31536000 604800 86400 3600 60 1} Mod {0 52 7 24 60 60} Unit {year week day hour min sec} {
-        set Num [expr {$Seconds / $Div}]
-        if {$Mod > 0} {set Num [expr {$Num % $Mod}]}
-        if {$Num > 1} {lappend Duration "$Num ${Unit}s"} elseif {$Num == 1} {lappend Duration "$Num $Unit"}
+proc ::nxLib::FormatDurationLong {seconds} {
+    set duration [list]
+    foreach divisor {31536000 604800 86400 3600 60 1} mod {0 52 7 24 60 60} unit {year week day hour min sec} {
+        set num [expr {$seconds / $divisor}]
+        if {$mod > 0} {set num [expr {$num % $mod}]}
+        if {$num > 1} {
+            lappend duration "$num ${unit}s"
+        } elseif {$num == 1} {
+            lappend duration "$num $unit"
+        }
     }
-    if {[llength $Duration]} {return [join $Duration {, }]} else {return "0 secs"}
+    if {[llength $duration]} {return [join $duration {, }]} else {return "0 secs"}
 }
 
-proc ::nxLib::FormatSize {KBytes} {
-    foreach Dec {0 1 2 2} Unit {KB MB GB TB} {
-        if {abs($KBytes) < 1024} {break}
-        set KBytes [expr {double($KBytes) / 1024.0}]
+proc ::nxLib::FormatSize {kiloBytes} {
+    foreach decimals {0 1 2 2} unit {KB MB GB TB} {
+        if {abs($kiloBytes) < 1024} {break}
+        set kiloBytes [expr {double($kiloBytes) / 1024.0}]
     }
-    return [format "%.*f%s" $Dec $KBytes $Unit]
+    return [format "%.*f%s" $decimals $kiloBytes $unit]
 }
 
-proc ::nxLib::FormatSpeed {Speed {Seconds 0}} {
-    if {$Seconds > 0} {set Speed [expr {double($Speed) / $Seconds}]}
-    foreach Dec {0 2 2} Unit {KB/s MB/s GB/s} {
-        if {abs($Speed) < 1024} {break}
-        set Speed [expr {double($Speed) / 1024.0}]
+proc ::nxLib::FormatSpeed {speed {seconds 0}} {
+    if {$seconds > 0} {set speed [expr {double($speed) / $seconds}]}
+    foreach decimals {0 2 2} unit {KB/s MB/s GB/s} {
+        if {abs($speed) < 1024} {break}
+        set speed [expr {double($speed) / 1024.0}]
     }
-    return [format "%.*f%s" $Dec $Speed $Unit]
+    return [format "%.*f%s" $decimals $speed $unit]
 }
 
 # User and Group Procedures
 ######################################################################
 
 proc ::nxLib::GetUserList {} {
-    set UserList [list]
-    foreach UserId [user list] {lappend UserList [resolve uid $UserId]}
-    return [lsort -ascii $UserList]
+    set userList [list]
+    foreach userId [user list] {lappend userList [resolve uid $userId]}
+    return [lsort -ascii $userList]
 }
 
 proc ::nxLib::GetGroupList {} {
-    set GroupList [list]
-    foreach GroupId [group list] {lappend GroupList [resolve gid $GroupId]}
-    return [lsort -ascii $GroupList]
+    set groupList [list]
+    foreach groupId [group list] {lappend groupList [resolve gid $groupId]}
+    return [lsort -ascii $groupList]
 }
 
-proc ::nxLib::GetGroupName {GroupId} {
-    if {[set GroupName [resolve gid $GroupId]] != ""} {
-        return $GroupName
+proc ::nxLib::GetGroupName {groupId} {
+    set groupName [resolve gid $groupId]
+    if {$groupName eq ""} {
+        return "NoGroup"
     }
-    return "NoGroup"
+    return $groupName
 }
 
-proc ::nxLib::GetGroupUsers {GroupId} {
-    set UserList [list]
-    foreach UserName [GetUserList] {
-        if {[userfile open $UserName] != 0} {continue}
-        set UserFile [userfile bin2ascii]
-        if {[regexp -nocase {groups ([\s\d]+)} $UserFile Result GroupIdList]} {
-            if {[lsearch -exact $GroupIdList $GroupId] != -1} {lappend UserList $UserName}
+proc ::nxLib::GetGroupUsers {groupId} {
+    set userList [list]
+    foreach userName [GetUserList] {
+        if {[userfile open $userName] != 0} {continue}
+        set userFile [userfile bin2ascii]
+        if {[regexp -nocase {groups ([\s\d]+)} $userFile result groupIdList]} {
+            if {[lsearch -exact $groupIdList $groupId] != -1} {lappend userList $userName}
         }
     }
-    return $UserList
+    return $userList
 }
 
-proc ::nxLib::MergeStats {StatsLine FileVar SizeVar TimeVar} {
-    upvar $FileVar FileStats $SizeVar SizeStats $TimeVar TimeStats
-    foreach {File Size Time} $StatsLine {
-        set FileStats [expr {wide($FileStats) + wide($File)}]
-        set SizeStats [expr {wide($SizeStats) + wide($Size)}]
-        set TimeStats [expr {wide($TimeStats) + wide($Time)}]
+proc ::nxLib::MatchFlags {required current} {
+    set current [split $current {}]
+    foreach flag [split $required {}] {
+        if {[lsearch -exact $flag $current] != -1} {return 1}
+    }
+    return 0
+}
+
+proc ::nxLib::MergeStats {stats filesVar sizeVar timeVar} {
+    upvar $filesVar files $sizeVar size $timeVar time
+    foreach {sectionFiles sectionSize sectionTime} $stats {
+        set files [expr {wide($files) + wide($sectionFiles)}]
+        set size [expr {wide($size) + wide($sectionSize)}]
+        set time [expr {wide($time) + wide($sectionTime)}]
     }
 }
 
 # Cookie Parsing Procedures
 ######################################################################
 
-proc ::nxLib::OutputData {OutputData} {
-    foreach Output [split $OutputData "\r\n"] {
-        if {[string length $Output]} {iputs $Output}
+proc ::nxLib::OutputData {output} {
+    foreach line [split $output "\r\n"] {
+        if {[string length $line]} {iputs $line}
     }
 }
 
-proc ::nxLib::ReadFile {FilePath} {
-    set FileData ""
-    if {![catch {set Handle [open $FilePath r]} ErrorMsg]} {
-        set FileData [read -nonewline $Handle]
-        close $Handle
-    } else {ErrorLog ReadFile $ErrorMsg}
-    return $FileData
+proc ::nxLib::ReadFile {filePath} {
+    set data ""
+    if {![catch {set handle [open $filePath r]} error]} {
+        set data [read -nonewline $handle]
+        close $handle
+    } else {ErrorLog ReadFile $error}
+    return $data
 }
 
-proc ::nxLib::ParseCookies {InputStr ValueList CookieList} {
-    set InputLen [string length $InputStr]
-    set OutputStr ""
+proc ::nxLib::ParseCookies {input valueList cookieList} {
+    set inputLen [string length $input]
+    set output ""
 
-    for {set InputIdx 0} {$InputIdx < $InputLen} {incr InputIdx} {
-        if {[string index $InputStr $InputIdx] eq "%"} {
+    for {set inputIdx 0} {$inputIdx < $inputLen} {incr inputIdx} {
+        if {[string index $input $inputIdx] eq "%"} {
             # Save this index for invalid cookies.
-            set StartIdx $InputIdx
+            set startIdx $inputIdx
 
             # Find position field
-            set BeforeIdx [incr InputIdx]
-            if {[string index $InputStr $InputIdx] eq "-"} {
+            set beforeIdx [incr inputIdx]
+            if {[string index $input $inputIdx] eq "-"} {
                 # Ignore the negative sign if a does not number follow, for example: %-(cookie).
-                if {[string is digit -strict [string index $InputStr [incr InputIdx]]]} {incr InputIdx} else {incr BeforeIdx}
+                if {[string is digit -strict [string index $input [incr inputIdx]]]} {incr inputIdx} else {incr beforeIdx}
             }
-            while {[string is digit -strict [string index $InputStr $InputIdx]]} {incr InputIdx}
-            if {$BeforeIdx != $InputIdx} {
-                set RightPos [string range $InputStr $BeforeIdx [expr {$InputIdx - 1}]]
+            while {[string is digit -strict [string index $input $inputIdx]]} {incr inputIdx}
+            if {$beforeIdx != $inputIdx} {
+                set rightPos [string range $input $beforeIdx [expr {$inputIdx - 1}]]
             } else {
-                set RightPos 0
+                set rightPos 0
             }
 
             # Find minimum/precision field.
-            if {[string index $InputStr $InputIdx] eq "."} {
-                set BeforeIdx [incr InputIdx]
+            if {[string index $input $inputIdx] eq "."} {
+                set beforeIdx [incr inputIdx]
                 # Ignore the negative sign, for example: %.-(cookie).
-                if {[string index $InputStr $InputIdx] eq "-"} {incr BeforeIdx; incr InputIdx}
-                while {[string is digit -strict [string index $InputStr $InputIdx]]} {incr InputIdx}
-                if {$BeforeIdx != $InputIdx} {
-                    set LeftPos [string range $InputStr $BeforeIdx [expr {$InputIdx - 1}]]
+                if {[string index $input $inputIdx] eq "-"} {incr beforeIdx; incr inputIdx}
+                while {[string is digit -strict [string index $input $inputIdx]]} {incr inputIdx}
+                if {$beforeIdx != $inputIdx} {
+                    set leftPos [string range $input $beforeIdx [expr {$inputIdx - 1}]]
                 } else {
-                    set LeftPos 0
+                    set leftPos 0
                 }
             } else {
                 # Tcl's [format ...] function doesn't accept -1 for the minimum field
                 # like printf() does, so a reasonably large number will suffice.
-                set LeftPos 999999
+                set leftPos 999999
             }
 
             # Find cookie name.
-            if {[string index $InputStr $InputIdx] eq "("} {
-                set BeforeIdx [incr InputIdx]
-                while {[string index $InputStr $InputIdx] ne ")" && $InputIdx <= $InputLen} {incr InputIdx}
-                set CookieName [string range $InputStr $BeforeIdx [expr {$InputIdx - 1}]]
+            if {[string index $input $inputIdx] eq "("} {
+                set beforeIdx [incr inputIdx]
+                while {[string index $input $inputIdx] ne ")" && $inputIdx <= $inputLen} {incr inputIdx}
+                set cookie [string range $input $beforeIdx [expr {$inputIdx - 1}]]
             } else {
                 # Invalid cookie format, an open parenthesis is expected.
-                append OutputStr [string range $InputStr $StartIdx $InputIdx]
+                append output [string range $input $startIdx $inputIdx]
                 continue
             }
 
-            if {[set CookiePos [lsearch -exact $CookieList $CookieName]] != -1} {
-                set Value [lindex $ValueList $CookiePos]
+            if {[set index [lsearch -exact $cookieList $cookie]] != -1} {
+                set value [lindex $valueList $index]
                 # Type of cookie substitution to perform.
-                if {[string is integer -strict $Value]} {
-                    append OutputStr [format "%${RightPos}i" $Value]
-                } elseif {[regexp {^-?[0-9]+\.[0-9]+$} $Value]} {
-                    append OutputStr [format "%${RightPos}.${LeftPos}f" $Value]
+                if {[string is integer -strict $value]} {
+                    append output [format "%${rightPos}i" $value]
+                } elseif {[regexp {^-?[0-9]+\.[0-9]+$} $value]} {
+                    append output [format "%${rightPos}.${leftPos}f" $value]
                 } else {
-                    append OutputStr [format "%${RightPos}.${LeftPos}s" $Value]
+                    append output [format "%${rightPos}.${leftPos}s" $value]
                 }
             } else {
                 # Append the starting point of the cookie to the current index in hope that
                 # the user will notice that he or she has made an error in the template line.
-                append OutputStr [string range $InputStr $StartIdx $InputIdx]
+                append output [string range $input $startIdx $inputIdx]
             }
         } else {
-            append OutputStr [string index $InputStr $InputIdx]
+            append output [string index $input $inputIdx]
         }
     }
-    return $OutputStr
+    return $output
 }
