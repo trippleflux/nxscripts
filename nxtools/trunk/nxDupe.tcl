@@ -220,6 +220,7 @@ proc ::nxTools::Dupe::RebuildDb {} {
             }
         }
     }
+
     DirDb eval {COMMIT}
     DirDb close
     FileDb eval {COMMIT}
@@ -688,6 +689,7 @@ proc ::nxTools::Dupe::SiteUndupe {argList} {
 proc ::nxTools::Dupe::SiteWipe {virtualPath} {
     global dupe misc wipe group user
     iputs ".-\[Wipe\]-----------------------------------------------------------------."
+
     # Resolving a symlink returns its target path, which could have unwanted
     # results. To avoid such issues, we'll resolve the parent path instead.
     set parentPath [resolve pwd [file dirname $virtualPath]]
@@ -713,6 +715,7 @@ proc ::nxTools::Dupe::SiteWipe {virtualPath} {
     LinePuts "Wiped $stats(FileCount) File(s), $stats(DirCount) Directory(s), [FormatSize $stats(TotalSize)]"
     iputs "'------------------------------------------------------------------------'"
 
+    # Update the file and directory databases.
     if {$isDir} {
         RemoveParentLinks $realPath $virtualPath
         if {[IsTrue $misc(dZSbotLogging)]} {
