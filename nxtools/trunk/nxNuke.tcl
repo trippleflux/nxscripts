@@ -70,19 +70,19 @@ proc ::nxTools::Nuke::UpdateUser {IsNuke UserName Multi Size Files Stats CreditS
     set CreditSection [expr {$CreditSection + 1}]
     set StatSection [expr {$StatSection * 3 + 1}]
     set GroupName "NoGroup"
-    set NewUserFile ""
+    set newUserFile ""
 
     if {[userfile open $UserName] == 0} {
         userfile lock
-        set UserFile [split [userfile bin2ascii] "\r\n"]
-        foreach UserLine $UserFile {
-            set LineType [string tolower [lindex $UserLine 0]]
-            if {$LineType eq "credits"} {
-                set OldCredits [lindex $UserLine $CreditSection]
-            } elseif {$LineType eq "groups"} {
-                set GroupName [GetGroupName [lindex $UserLine 1]]
-            } elseif {$LineType eq "ratio"} {
-                set Ratio [lindex $UserLine $CreditSection]
+        set userFile [split [userfile bin2ascii] "\r\n"]
+        foreach line $userFile {
+            set type [string tolower [lindex $line 0]]
+            if {$type eq "credits"} {
+                set OldCredits [lindex $line $CreditSection]
+            } elseif {$type eq "groups"} {
+                set GroupName [GetGroupName [lindex $line 1]]
+            } elseif {$type eq "ratio"} {
+                set Ratio [lindex $line $CreditSection]
             }
         }
 
@@ -98,18 +98,18 @@ proc ::nxTools::Nuke::UpdateUser {IsNuke UserName Multi Size Files Stats CreditS
             set Size [expr {-wide($Size)}]
             set Stats [expr {-wide($Stats)}]
         }
-        foreach UserLine $UserFile {
-            set LineType [string tolower [lindex $UserLine 0]]
-            if {[lsearch -exact {allup dayup monthup wkup} $LineType] != -1} {
-                set NewFiles [expr {wide([lindex $UserLine $StatSection]) + $Files}]
-                set NewStats [expr {wide([lindex $UserLine [expr {$StatSection + 1}]]) + wide($Stats)}]
-                set UserLine [lreplace $UserLine $StatSection [expr {$StatSection + 1}] $NewFiles $NewStats]
-            } elseif {$LineType eq "credits"} {
-                set UserLine [lreplace $UserLine $CreditSection $CreditSection $NewCredits]
+        foreach line $userFile {
+            set type [string tolower [lindex $line 0]]
+            if {[lsearch -exact {allup dayup monthup wkup} $type] != -1} {
+                set NewFiles [expr {wide([lindex $line $StatSection]) + $Files}]
+                set NewStats [expr {wide([lindex $line [expr {$StatSection + 1}]]) + wide($Stats)}]
+                set line [lreplace $line $StatSection [expr {$StatSection + 1}] $NewFiles $NewStats]
+            } elseif {$type eq "credits"} {
+                set line [lreplace $line $CreditSection $CreditSection $NewCredits]
             }
-            append NewUserFile $UserLine "\r\n"
+            append newUserFile $line "\r\n"
         }
-        userfile ascii2bin $NewUserFile
+        userfile ascii2bin $newUserFile
         userfile unlock
     }
     return [list $GroupName $Ratio $OldCredits $NewCredits $DiffCredits]
@@ -123,10 +123,10 @@ proc ::nxTools::Nuke::Main {ArgV} {
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
 
     set ArgList [ArgList $ArgV]
-    set Event [string toupper [lindex $ArgList 0]]
-    switch -- $Event {
+    set event [string toupper [lindex $ArgList 0]]
+    switch -- $event {
         {NUKE} - {UNNUKE} {
-            if {$Event eq "NUKE"} {
+            if {$event eq "NUKE"} {
                 iputs ".-\[Nuke\]-----------------------------------------------------------------."
                 foreach {Tmp Target Multi Reason} $ArgV {break}
                 if {[llength $ArgList] < 4 || ![string is digit -strict $Multi]} {
@@ -136,7 +136,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
                     ErrorReturn "The specified multiplier is to large, the max is $nuke(MultiMax)\x."
                 }
                 set IsNuke 1
-            } elseif {$Event eq "UNNUKE"} {
+            } elseif {$event eq "UNNUKE"} {
                 iputs ".-\[UnNuke\]---------------------------------------------------------------."
                 foreach {Tmp Target Reason} $ArgV {break}
                 if {[llength $ArgList] < 3} {ErrorReturn "Syntax: SITE UNNUKE <directory> <reason>"}
@@ -267,8 +267,8 @@ proc ::nxTools::Nuke::Main {ArgV} {
             foreach NukeeUser [lsort -ascii [array names nukesize]] {
                 set NukeCredits [expr {wide($nukesize($NukeeUser)) / 1024}]
                 set NukeStats [expr {$NukeType == 2 ? 0 : $NukeCredits}]
-                set Result [UpdateUser $IsNuke $NukeeUser $Multi $NukeCredits $nukefiles($NukeeUser) $NukeStats $CreditSection $StatSection]
-                foreach {NukeeGroup Ratio OldCredits NewCredits DiffCredits} $Result {break}
+                set result [UpdateUser $IsNuke $NukeeUser $Multi $NukeCredits $nukefiles($NukeeUser) $NukeStats $CreditSection $StatSection]
+                foreach {NukeeGroup Ratio OldCredits NewCredits DiffCredits} $result {break}
 
                 set Ratio [expr {$Ratio != 0 ? "1:$Ratio" : "Unlimited"}]
                 iputs [format "| %-10s | %-10s | %11s | %13s | %14s |" $NukeeUser $NukeeGroup $Ratio [FormatSize $NukeStats] [FormatSize $DiffCredits]]
@@ -364,18 +364,18 @@ proc ::nxTools::Nuke::Main {ArgV} {
         {NUKES} - {UNNUKES} {
             set IsSiteBot [string equal $misc(SiteBot) $user]
             if {![GetOptions [lrange $ArgList 1 end] MaxResults Pattern]} {
-                iputs "Syntax: SITE $Event \[-max <limit>\] \[release\]"
+                iputs "Syntax: SITE $event \[-max <limit>\] \[release\]"
                 return 0
             }
             set Pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$Pattern*" "*"]]
-            if {$Event eq "NUKES"} {
+            if {$event eq "NUKES"} {
                 if {!$IsSiteBot} {
                     iputs ".-\[Nukes\]----------------------------------------------------------------."
                     iputs "|    Age    |    Nuker     |   Multi   |  Reason                         |"
                     iputs "|------------------------------------------------------------------------|"
                 }
                 set NukeStatus 0
-            } elseif {$Event eq "UNNUKES"} {
+            } elseif {$event eq "UNNUKES"} {
                 if {!$IsSiteBot} {
                     iputs ".-\[UnNukes\]--------------------------------------------------------------."
                     iputs "|    Age    |   UnNuker    |   Multi   |  Reason                         |"
@@ -446,7 +446,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
             }
         }
         default {
-            ErrorLog InvalidArgs "unknown event \"[info script] $Event\": check your ioFTPD.ini for errors"
+            ErrorLog InvalidArgs "unknown event \"[info script] $event\": check your ioFTPD.ini for errors"
         }
     }
     return 0

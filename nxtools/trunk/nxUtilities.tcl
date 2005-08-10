@@ -21,21 +21,21 @@ namespace eval ::nxTools::Utils {
 proc ::nxTools::Utils::ChangeCredits {UserName Change {Section 0}} {
     incr Section
     if {[regexp {^(\+|\-)?(\d+)$} $Change Result Method Amount] && [userfile open $UserName] == 0} {
-        set NewUserFile ""
+        set newUserFile ""
         userfile lock
-        set UserFile [userfile bin2ascii]
-        foreach UserLine [split $UserFile "\r\n"] {
-            if {[string equal -nocase "credits" [lindex $UserLine 0]]} {
+        set userFile [userfile bin2ascii]
+        foreach line [split $userFile "\r\n"] {
+            if {[string equal -nocase "credits" [lindex $line 0]]} {
                 if {![string length $Method]} {
                     set Value $Amount
                 } else {
-                    set Value [expr wide([lindex $UserLine $Section]) $Method wide($Amount)]
+                    set Value [expr wide([lindex $line $Section]) $Method wide($Amount)]
                 }
-                set UserLine [lreplace $UserLine $Section $Section $Value]
+                set line [lreplace $line $Section $Section $Value]
             }
-            append NewUserFile $UserLine "\r\n"
+            append newUserFile $line "\r\n"
         }
-        userfile ascii2bin $NewUserFile
+        userfile ascii2bin $newUserFile
         userfile unlock
         return 1
     }
@@ -54,21 +54,21 @@ proc ::nxTools::Utils::IsGroupAdmin {UserName Flags GroupId} {
     if {![MatchFlags $misc(GAdminFlags) $Flags]} {
         return 1
     } elseif {[userfile open $UserName] == 0} {
-        set UserFile [userfile bin2ascii]
-        if {[regexp -nocase {admingroups ([\s\d]+)} $UserFile Result GroupIdList]} {
+        set userFile [userfile bin2ascii]
+        if {[regexp -nocase {admingroups ([\s\d]+)} $userFile Result GroupIdList]} {
             if {[lsearch -exact $GroupIdList $GroupId] != -1} {return 1}
         }
     }
     return 0
 }
 
-proc ::nxTools::Utils::ResetUserFile {UserName StatsTypes {ResetCredits "False"}} {
-    set NewUserFile ""
+proc ::nxTools::Utils::ResetuserFile {UserName StatsTypes {ResetCredits "False"}} {
+    set newUserFile ""
     if {[userfile open $UserName] == 0} {
         userfile lock
-        if {[IsTrue $ResetCredits]} {append NewUserFile "credits" [string repeat " 0" 10] "\r\n"}
-        foreach StatsField $StatsTypes {append NewUserFile $StatsField [string repeat " 0" 30] "\r\n"}
-        userfile ascii2bin $NewUserFile
+        if {[IsTrue $ResetCredits]} {append newUserFile "credits" [string repeat " 0" 10] "\r\n"}
+        foreach StatsField $StatsTypes {append newUserFile $StatsField [string repeat " 0" 30] "\r\n"}
+        userfile ascii2bin $newUserFile
         userfile unlock
     }
 }
@@ -339,7 +339,7 @@ proc ::nxTools::Utils::WeeklySet {} {
 # Site Commands
 ######################################################################
 
-proc ::nxTools::Utils::SiteCredits {Event Target Amount Section} {
+proc ::nxTools::Utils::SiteCredits {event Target Amount Section} {
     global group user
     iputs ".-\[Credits\]--------------------------------------------------------------."
     if {[resolve user $Target] == -1} {
@@ -362,16 +362,16 @@ proc ::nxTools::Utils::SiteCredits {Event Target Amount Section} {
     set AmountKB [expr {wide($Amount) * $Multi}]
     set AmountMB [expr {wide($AmountKB) / 1024}]
 
-    if {$Event eq "GIVE"} {
+    if {$event eq "GIVE"} {
         ChangeCredits $Target "+$AmountKB" $Section
         LinePuts "Gave $Amount$UnitName of credits to $Target in section $Section."
-    } elseif {$Event eq "TAKE"} {
+    } elseif {$event eq "TAKE"} {
         ChangeCredits $Target "-$AmountKB" $Section
         LinePuts "Took $Amount$UnitName of credits from $Target in section $Section."
     } else {
-        ErrorLog SiteCredits "unknown event \"$Event\""
+        ErrorLog SiteCredits "unknown event \"$event\""
     }
-    putlog "${Event}: \"$user\" \"$group\" \"$AmountMB\" \"$Target\""
+    putlog "${event}: \"$user\" \"$group\" \"$AmountMB\" \"$Target\""
     iputs "'------------------------------------------------------------------------'"
     return 0
 }
@@ -431,17 +431,17 @@ proc ::nxTools::Utils::SiteGroupInfo {GroupName Section} {
     foreach UserName $UserList {
         array set uinfo [list alldn 0 allup 0 AdminGroups "" Flags "" Prefix "" Ratio 0]
         if {[userfile open $UserName] == 0} {
-            set UserFile [userfile bin2ascii]
-            foreach UserLine [split $UserFile "\r\n"] {
-                set LineType [string tolower [lindex $UserLine 0]]
-                switch -- $LineType {
-                    {admingroups} {set uinfo(AdminGroups) [lrange $UserLine 1 end]}
+            set userFile [userfile bin2ascii]
+            foreach line [split $userFile "\r\n"] {
+                set type [string tolower [lindex $line 0]]
+                switch -- $type {
+                    {admingroups} {set uinfo(AdminGroups) [lrange $line 1 end]}
                     {alldn} - {allup} {
-                        MergeStats [lrange $UserLine 1 end] file($LineType) uinfo($LineType) time($LineType)
-                        set size($LineType) [expr {wide($uinfo($LineType)) + wide($size($LineType))}]
+                        MergeStats [lrange $line 1 end] file($type) uinfo($type) time($type)
+                        set size($type) [expr {wide($uinfo($type)) + wide($size($type))}]
                     }
-                    {flags} {set uinfo(Flags) [lindex $UserLine 1]}
-                    {ratio} {set uinfo(Ratio) [lindex $UserLine $Section]}
+                    {flags} {set uinfo(Flags) [lindex $line 1]}
+                    {ratio} {set uinfo(Ratio) [lindex $line $Section]}
                 }
             }
         }
@@ -463,13 +463,13 @@ proc ::nxTools::Utils::SiteGroupInfo {GroupName Section} {
     # Find the group's description and slot count.
     array set ginfo [list Slots "0 0" TagLine "No TagLine Set"]
     if {[groupfile open $GroupName] == 0} {
-        set GroupFile [groupfile bin2ascii]
-        foreach GroupLine [split $GroupFile "\r\n"] {
-            set LineType [string tolower [lindex $GroupLine 0]]
-            if {$LineType eq "description"} {
-                set ginfo(TagLine) [ArgRange $GroupLine 1 end]
-            } elseif {$LineType eq "slots"} {
-                set ginfo(Slots) [lrange $GroupLine 1 2]
+        set groupFile [groupfile bin2ascii]
+        foreach line [split $groupFile "\r\n"] {
+            set type [string tolower [lindex $line 0]]
+            if {$type eq "description"} {
+                set ginfo(TagLine) [ArgRange $line 1 end]
+            } elseif {$type eq "slots"} {
+                set ginfo(Slots) [lrange $line 1 2]
             }
         }
     }
@@ -502,7 +502,7 @@ proc ::nxTools::Utils::SiteResetStats {ArgList} {
         LinePuts "No valid stats Types specified."
         LinePuts "Types: $StatsTypes"
     } else {
-        foreach UserName [GetUserList] {ResetUserFile $UserName $ResetStats}
+        foreach UserName [GetUserList] {ResetuserFile $UserName $ResetStats}
         LinePuts "Stats have been reset."
     }
     iputs "'------------------------------------------------------------------------'"
@@ -515,7 +515,7 @@ proc ::nxTools::Utils::SiteResetUser {UserName} {
     if {[resolve user $UserName] == -1} {
         LinePuts "The specified user does not exist."
     } else {
-        ResetUserFile $UserName {alldn allup daydn dayup monthdn monthup wkdn wkup} $reset(Credits)
+        ResetuserFile $UserName {alldn allup daydn dayup monthdn monthup wkdn wkup} $reset(Credits)
         if {[IsTrue $reset(Credits)]} {LinePuts "Credits Reset...Complete."}
         LinePuts "Stats Reset.....Complete."
     }
@@ -562,11 +562,11 @@ proc ::nxTools::Utils::SiteTraffic {Target} {
     array set time [list alldn 0 allup 0 daydn 0 dayup 0 monthdn 0 monthup 0 wkdn 0 wkup 0]
     foreach UserName $UserList {
         if {[userfile open $UserName] != 0} {continue}
-        set UserFile [userfile bin2ascii]
-        foreach UserLine [split $UserFile "\r\n"] {
-            set LineType [string tolower [lindex $UserLine 0]]
-            if {[lsearch -exact {alldn allup daydn dayup monthdn monthup wkdn wkup} $LineType] != -1} {
-                MergeStats [lrange $UserLine 1 end] file($LineType) size($LineType) time($LineType)
+        set userFile [userfile bin2ascii]
+        foreach line [split $userFile "\r\n"] {
+            set type [string tolower [lindex $line 0]]
+            if {[lsearch -exact {alldn allup daydn dayup monthdn monthup wkdn wkup} $type] != -1} {
+                MergeStats [lrange $line 1 end] file($type) size($type) time($type)
             }
         }
     }
@@ -607,13 +607,13 @@ proc ::nxTools::Utils::SiteWho {} {
 
             # Find the user's group and tagline.
             if {[userfile open $UserName] == 0} {
-                set UserFile [userfile bin2ascii]
-                foreach UserLine [split $UserFile "\r\n"] {
-                    set LineType [string tolower [lindex $UserLine 0]]
-                    if {$LineType eq "groups"} {
-                        set GroupName [GetGroupName [lindex $UserLine 1]]
-                    } elseif {$LineType eq "tagline"} {
-                        set TagLine [ArgRange $UserLine 1 end]
+                set userFile [userfile bin2ascii]
+                foreach line [split $userFile "\r\n"] {
+                    set type [string tolower [lindex $line 0]]
+                    if {$type eq "groups"} {
+                        set GroupName [GetGroupName [lindex $line 1]]
+                    } elseif {$type eq "tagline"} {
+                        set TagLine [ArgRange $line 1 end]
                     }
                 }
             }
@@ -656,70 +656,70 @@ proc ::nxTools::Utils::Main {ArgV} {
     global IsSiteBot log misc group ioerror pwd user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     set IsSiteBot [expr {[info exists user] && $misc(SiteBot) eq $user}]
-    set Result 0
+    set result 0
 
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
-    set Event [string toupper [lindex $ArgList 0]]
-    switch -- $Event {
+    set event [string toupper [lindex $ArgList 0]]
+    switch -- $event {
         {DAYSTATS} {
             if {![IsTrue $misc(dZSbotLogging)]} {
                 putlog "DAYSTATS: \"Launch Daystats\""
             }
         }
         {DRIVES} {
-            set Result [SiteDrives]
+            set result [SiteDrives]
         }
         {ERRLOG} {
             if {$ArgLength > 1 && [GetOptions [lrange $ArgList 1 end] MaxResults Pattern]} {
                 iputs ".-\[ErrorLog\]-------------------------------------------------------------."
-                set Result [SearchLog $log(Error) $MaxResults $Pattern]
+                set result [SearchLog $log(Error) $MaxResults $Pattern]
             } else {
                 iputs "Syntax: SITE ERRLOG \[-max <limit>\] <pattern>"
             }
         }
         {GINFO} {
             if {$ArgLength > 1 && [string is digit [lindex $ArgList 2]]} {
-                set Result [SiteGroupInfo [lindex $ArgList 1] [lindex $ArgList 2]]
+                set result [SiteGroupInfo [lindex $ArgList 1] [lindex $ArgList 2]]
             } else {
                 iputs "Syntax: SITE GINFO <group> \[credit section\]"
             }
-            set Result 1
+            set result 1
         }
         {GIVE} - {TAKE} {
             foreach {Target Amount Section} [lrange $ArgList 1 end] {break}
             if {$ArgLength > 2} {
-                set Result [SiteCredits $Event $Target $Amount $Section]
+                set result [SiteCredits $event $Target $Amount $Section]
             } else {
-                iputs "Syntax: SITE $Event <username> <credits> \[credit section\]"
+                iputs "Syntax: SITE $event <username> <credits> \[credit section\]"
             }
         }
         {NEWDATE} {
-            set Result [NewDate [lindex $ArgList 1]]
+            set result [NewDate [lindex $ArgList 1]]
         }
         {ONELINES} {
-            set Result [OneLines [join [lrange $ArgList 1 end]]]
+            set result [OneLines [join [lrange $ArgList 1 end]]]
         }
         {RESETSTATS} {
             if {$ArgLength > 1} {
-                set Result [SiteResetStats [join [lrange $ArgList 1 end]]]
+                set result [SiteResetStats [join [lrange $ArgList 1 end]]]
             } else {
                 iputs "Syntax: SITE RESETSTATS <stats type(s)>"
             }
         }
         {RESETUSER} {
             if {$ArgLength > 1} {
-                set Result [SiteResetUser [lindex $ArgList 1]]
+                set result [SiteResetUser [lindex $ArgList 1]]
             } else {
                 iputs "Syntax: SITE RESETUSER <username>"
             }
         }
         {ROTATE} {
-            set Result [RotateLogs]
+            set result [RotateLogs]
         }
         {SIZE} {
             if {$ArgLength > 1} {
                 set VirtualPath [GetPath $pwd [join [lrange $ArgList 1 end]]]
-                set Result [SiteSize $VirtualPath]
+                set result [SiteSize $VirtualPath]
             } else {
                 iputs " Usage: SITE SIZE <file/directory>"
             }
@@ -727,29 +727,29 @@ proc ::nxTools::Utils::Main {ArgV} {
         {SYSLOG} {
             if {$ArgLength > 1 && [GetOptions [lrange $ArgList 1 end] MaxResults Pattern]} {
                 iputs ".-\[SysopLog\]-------------------------------------------------------------."
-                set Result [SearchLog $log(SysOp) $MaxResults $Pattern]
+                set result [SearchLog $log(SysOp) $MaxResults $Pattern]
             } else {
                 iputs "Syntax: SITE SYSLOG \[-max <limit>\] <pattern>"
             }
         }
         {TRAFFIC} {
-            set Result [SiteTraffic [lindex $ArgList 1]]
+            set result [SiteTraffic [lindex $ArgList 1]]
         }
         {WEEKLY} {
-            set Result [WeeklyCredits [lindex $ArgList 1] [lindex $ArgList 2]]
+            set result [WeeklyCredits [lindex $ArgList 1] [lindex $ArgList 2]]
         }
         {WEEKLYSET} {
-            set Result [WeeklySet]
+            set result [WeeklySet]
         }
         {WHO} {
-            set Result [SiteWho]
+            set result [SiteWho]
         }
         default {
-            ErrorLog InvalidArgs "unknown event \"[info script] $Event\": check your ioFTPD.ini for errors"
-            set Result 1
+            ErrorLog InvalidArgs "unknown event \"[info script] $event\": check your ioFTPD.ini for errors"
+            set result 1
         }
     }
-    return [set ioerror $Result]
+    return [set ioerror $result]
 }
 
 ::nxTools::Utils::Main [expr {[info exists args] ? $args : ""}]

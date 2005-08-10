@@ -21,7 +21,7 @@ namespace eval ::nxTools::Dupe {
 proc ::nxTools::Dupe::CheckDirs {VirtualPath} {
     global dupe
     if {[ListMatch $dupe(CheckExempts) $VirtualPath] || [ListMatchI $dupe(IgnoreDirs) $VirtualPath]} {return 0}
-    set Result 0
+    set result 0
     if {![catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} error]} {
         set DirName [file tail $VirtualPath]
 
@@ -32,17 +32,17 @@ proc ::nxTools::Dupe::CheckDirs {VirtualPath} {
             iputs -noprefix "553-| [format %-59s "Dupe: $DupePath"] |"
             iputs -noprefix "553-| [format %-59s "Created $DupeAge ago by $values(UserName)."] |"
             iputs -noprefix "553 '-------------------------------------------------------------'"
-            set Result 1
+            set result 1
         }
         DirDb close
     } else {ErrorLog DupeCheckDirs $error}
-    return $Result
+    return $result
 }
 
 proc ::nxTools::Dupe::CheckFiles {VirtualPath} {
     global dupe
     if {[ListMatch $dupe(CheckExempts) $VirtualPath] || [ListMatchI $dupe(IgnoreFiles) $VirtualPath]} {return 0}
-    set Result 0
+    set result 0
     if {![catch {DbOpenFile [namespace current]::FileDb "DupeFiles.db"} error]} {
         set FileName [file tail $VirtualPath]
 
@@ -52,64 +52,64 @@ proc ::nxTools::Dupe::CheckFiles {VirtualPath} {
             iputs -noprefix "553-| [format %-59s "Dupe: $values(FileName)"] |"
             iputs -noprefix "553-| [format %-59s "Uploaded $DupeAge ago by $values(UserName)."] |"
             iputs -noprefix "553 '-------------------------------------------------------------'"
-            set Result 1
+            set result 1
         }
         FileDb close
     } else {ErrorLog DupeCheckFiles $error}
-    return $Result
+    return $result
 }
 
-proc ::nxTools::Dupe::UpdateLog {Event VirtualPath} {
+proc ::nxTools::Dupe::UpdateLog {command vfsPath} {
     global dupe
-    if {[ListMatch $dupe(LoggingExempts) $VirtualPath]} {return 0}
-    set Event [string toupper $Event]
+    if {[ListMatch $dupe(LoggingExempts) $vfsPath]} {return 0}
+    set command [string toupper $command]
 
     # Check if the virtual path is a file or directory.
-    if {$Event eq "UPLD" || $Event eq "DELE" || [file isfile [resolve pwd $VirtualPath]]} {
-        if {[IsTrue $dupe(CheckFiles)] && ![ListMatchI $dupe(IgnoreFiles) $VirtualPath]} {
-            return [UpdateFiles $Event $VirtualPath]
+    if {$command eq "UPLD" || $command eq "DELE" || [file isfile [resolve pwd $vfsPath]]} {
+        if {[IsTrue $dupe(CheckFiles)] && ![ListMatchI $dupe(IgnoreFiles) $vfsPath]} {
+            return [UpdateFiles $command $vfsPath]
         }
-    } elseif {[IsTrue $dupe(CheckDirs)] && ![ListMatchI $dupe(IgnoreDirs) $VirtualPath]} {
-        return [UpdateDirs $Event $VirtualPath]
+    } elseif {[IsTrue $dupe(CheckDirs)] && ![ListMatchI $dupe(IgnoreDirs) $vfsPath]} {
+        return [UpdateDirs $command $vfsPath]
     }
     return 0
 }
 
-proc ::nxTools::Dupe::UpdateDirs {Event VirtualPath} {
+proc ::nxTools::Dupe::UpdateDirs {command vfsPath} {
     global dupe group user
     if {[catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} error]} {
         ErrorLog DupeUpdateDirs $error
         return 1
     }
-    set DirName [file tail $VirtualPath]
-    set DirPath [string range $VirtualPath 0 [string last "/" $VirtualPath]]
+    set DirName [file tail $vfsPath]
+    set DirPath [string range $vfsPath 0 [string last "/" $vfsPath]]
 
-    if {$Event eq "MKD"  || $Event eq "RNTO"} {
+    if {$command eq "MKD"  || $command eq "RNTO"} {
         set TimeStamp [clock seconds]
         DirDb eval {INSERT INTO DupeDirs(TimeStamp,UserName,GroupName,DirPath,DirName) VALUES($TimeStamp,$user,$group,$DirPath,$DirName)}
-    } elseif {[lsearch -sorted {RMD RNFR WIPE} $Event] != -1} {
+    } elseif {[lsearch -sorted {RMD RNFR WIPE} $command] != -1} {
         # Append a slash to improve the accuracy of StrCaseEqN.
         # For example, /Dir/Blah matches /Dir/Blah.Blah but /Dir/Blah/ does not.
-        append VirtualPath "/"
-        DirDb eval {DELETE FROM DupeDirs WHERE StrCaseEqN(DirPath,$VirtualPath,length($VirtualPath)) OR (StrCaseEq(DirPath,$DirPath) AND StrCaseEq(DirName,$DirName))}
+        append vfsPath "/"
+        DirDb eval {DELETE FROM DupeDirs WHERE StrCaseEqN(DirPath,$vfsPath,length($vfsPath)) OR (StrCaseEq(DirPath,$DirPath) AND StrCaseEq(DirName,$DirName))}
     }
     DirDb close
     return 0
 }
 
-proc ::nxTools::Dupe::UpdateFiles {Event VirtualPath} {
+proc ::nxTools::Dupe::UpdateFiles {command vfsPath} {
     global dupe group user
     if {[catch {DbOpenFile [namespace current]::FileDb "DupeFiles.db"} error]} {
         ErrorLog DupeUpdateFiles $error
         return 1
     }
-    set FileName [file tail $VirtualPath]
+    set fileName [file tail $vfsPath]
 
-    if {$Event eq "UPLD" || $Event eq "RNTO"} {
+    if {$command eq "UPLD" || $command eq "RNTO"} {
         set TimeStamp [clock seconds]
-        FileDb eval {INSERT INTO DupeFiles(TimeStamp,UserName,GroupName,FileName) VALUES($TimeStamp,$user,$group,$FileName)}
-    } elseif {$Event eq "DELE" || $Event eq "RNFR"} {
-        FileDb eval {DELETE FROM DupeFiles WHERE StrCaseEq(FileName,$FileName)}
+        FileDb eval {INSERT INTO DupeFiles(TimeStamp,UserName,GroupName,FileName) VALUES($TimeStamp,$user,$group,$fileName)}
+    } elseif {$command eq "DELE" || $command eq "RNFR"} {
+        FileDb eval {DELETE FROM DupeFiles WHERE StrCaseEq(FileName,$fileName)}
     }
     FileDb close
     return 0
@@ -301,7 +301,7 @@ proc ::nxTools::Dupe::ForceCheck {VirtualPath} {
 proc ::nxTools::Dupe::PreTimeCheck {VirtualPath} {
     global misc mysql pretime
     if {[ListMatchI $pretime(Ignores) $VirtualPath]} {return 0}
-    set Check 0; set Result 0
+    set Check 0; set result 0
     foreach PreCheck $pretime(CheckPaths) {
         if {[llength $PreCheck] != 4} {
             ErrorLog PreTimeCheck "wrong number of parameters in line: \"$PreCheck\""; continue
@@ -316,7 +316,7 @@ proc ::nxTools::Dupe::PreTimeCheck {VirtualPath} {
         if {[string is digit -strict $TimeStamp]} {
             if {[set ReleaseAge [expr {[clock seconds] - $TimeStamp}]] > [set LateSecs [expr {$LateMins * 60}]]} {
                 if {[IsTrue $DenyLate]} {
-                    set ErrCode 553; set LogPrefix "DENYPRE"; set Result 1
+                    set ErrCode 553; set LogPrefix "DENYPRE"; set result 1
                     set ErrMsg "Release not allowed by pre rules, older than [FormatDurationLong $LateSecs]."
                 } else {
                     set ErrCode 257; set LogPrefix "WARNPRE"
@@ -344,7 +344,7 @@ proc ::nxTools::Dupe::PreTimeCheck {VirtualPath} {
         }
         MySqlClose
     }
-    return $Result
+    return $result
 }
 
 proc ::nxTools::Dupe::RaceLinks {VirtualPath} {
@@ -384,14 +384,14 @@ proc ::nxTools::Dupe::RaceLinks {VirtualPath} {
 # Site Commands
 ######################################################################
 
-proc ::nxTools::Dupe::SiteApprove {Event Release} {
+proc ::nxTools::Dupe::SiteApprove {event Release} {
     global IsSiteBot approve misc flags group user
     if {[catch {DbOpenFile [namespace current]::ApproveDb "Approves.db"} error]} {
         ErrorLog SiteApprove $error
         return 1
     }
     set Release [file tail $Release]
-    switch -- $Event {
+    switch -- $event {
         {ADD} {
             iputs ".-\[Approve\]--------------------------------------------------------------."
             if {![MatchFlags $approve(Flags) $flags]} {
@@ -733,24 +733,24 @@ proc ::nxTools::Dupe::Main {ArgV} {
     global IsSiteBot approve dupe force latest misc pretime group ioerror pwd user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     set IsSiteBot [expr {[info exists user] && $misc(SiteBot) eq $user}]
-    set Result 0
+    set result 0
 
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
-    set Event [string toupper [lindex $ArgList 0]]
-    switch -- $Event {
+    set event [string toupper [lindex $ArgList 0]]
+    switch -- $event {
         {DUPELOG} {
             set VirtualPath [GetPath $pwd [join [lrange $ArgList 2 end]]]
             if {[IsTrue $dupe(CheckDirs)] || [IsTrue $dupe(CheckFiles)]} {
-                set Result [UpdateLog [lindex $ArgList 1] $VirtualPath]
+                set result [UpdateLog [lindex $ArgList 1] $VirtualPath]
             }
         }
         {POSTMKD} {
             set VirtualPath [GetPath $pwd [join [lrange $ArgList 2 end]]]
             if {[IsTrue $dupe(CheckDirs)]} {
-                set Result [UpdateLog [lindex $ArgList 1] $VirtualPath]
+                set result [UpdateLog [lindex $ArgList 1] $VirtualPath]
             }
             if {$latest(RaceLinks) > 0} {
-                set Result [RaceLinks $VirtualPath]
+                set result [RaceLinks $VirtualPath]
             }
             if {[IsTrue $approve(CheckMkd)]} {ApproveCheck $VirtualPath 1}
         }
@@ -758,20 +758,20 @@ proc ::nxTools::Dupe::Main {ArgV} {
             set VirtualPath [GetPath $pwd [join [lrange $ArgList 2 end]]]
             if {!([IsTrue $approve(CheckMkd)] && [ApproveCheck $VirtualPath 0])} {
                 if {[IsTrue $dupe(CheckDirs)]} {
-                    set Result [CheckDirs $VirtualPath]
+                    set result [CheckDirs $VirtualPath]
                 }
-                if {$Result == 0 && [IsTrue $pretime(CheckMkd)]} {
-                    set Result [PreTimeCheck $VirtualPath]
+                if {$result == 0 && [IsTrue $pretime(CheckMkd)]} {
+                    set result [PreTimeCheck $VirtualPath]
                 }
             }
         }
         {PRESTOR} {
             set VirtualPath [GetPath $pwd [join [lrange $ArgList 2 end]]]
             if {[IsTrue $force(NfoFirst)] || [IsTrue $force(SfvFirst)] || [IsTrue $force(SampleFirst)]} {
-                set Result [ForceCheck $VirtualPath]
+                set result [ForceCheck $VirtualPath]
             }
-            if {$Result == 0 && [IsTrue $dupe(CheckFiles)]} {
-                set Result [CheckFiles $VirtualPath]
+            if {$result == 0 && [IsTrue $dupe(CheckFiles)]} {
+                set result [CheckFiles $VirtualPath]
             }
         }
         {UPLOAD} {
@@ -787,14 +787,14 @@ proc ::nxTools::Dupe::Main {ArgV} {
             }
         }
         {CLEAN} {
-            set Result [CleanDb]
+            set result [CleanDb]
         }
         {APPROVE} {
             array set params [list ADD 2 DEL 2 LIST 0]
-            set SubEvent [string toupper [lindex $ArgList 1]]
+            set subEvent [string toupper [lindex $ArgList 1]]
 
-            if {[info exists params($SubEvent)] && $ArgLength > $params($SubEvent)} {
-                set Result [SiteApprove $SubEvent [join [lrange $ArgList 2 end]]]
+            if {[info exists params($subEvent)] && $ArgLength > $params($subEvent)} {
+                set result [SiteApprove $subEvent [join [lrange $ArgList 2 end]]]
             } else {
                 iputs "Syntax: SITE APPROVE ADD <release>"
                 iputs "        SITE APPROVE DEL <release>"
@@ -803,38 +803,38 @@ proc ::nxTools::Dupe::Main {ArgV} {
         }
         {DUPE} {
             if {$ArgLength > 1 && [GetOptions [lrange $ArgList 1 end] MaxResults Pattern]} {
-                set Result [SiteDupe $MaxResults $Pattern]
+                set result [SiteDupe $MaxResults $Pattern]
             } else {
                 iputs "Syntax: SITE DUPE \[-max <limit>\] <release>"
             }
         }
         {FDUPE} {
             if {$ArgLength > 1 && [GetOptions [lrange $ArgList 1 end] MaxResults Pattern]} {
-                set Result [SiteFileDupe $MaxResults $Pattern]
+                set result [SiteFileDupe $MaxResults $Pattern]
             } else {
                 iputs "Syntax: SITE FDUPE \[-max <limit>\] <filename>"
             }
         }
         {NEW} {
             if {[GetOptions [lrange $ArgList 1 end] MaxResults SectionName]} {
-                set Result [SiteNew $MaxResults $SectionName]
+                set result [SiteNew $MaxResults $SectionName]
             } else {
                 iputs "Syntax: SITE NEW \[-max <limit>\] \[section\]"
             }
         }
         {PRETIME} {
             if {$ArgLength > 1 && [GetOptions [lrange $ArgList 1 end] MaxResults Pattern]} {
-                set Result [SitePreTime $MaxResults $Pattern]
+                set result [SitePreTime $MaxResults $Pattern]
             } else {
                 iputs "Syntax: SITE PRETIME \[-max <limit>\] <release>"
             }
         }
         {REBUILD} {
-            set Result [RebuildDb]
+            set result [RebuildDb]
         }
         {UNDUPE} {
             if {$ArgLength > 1} {
-                set Result [SiteUndupe [lrange $ArgList 1 end]]
+                set result [SiteUndupe [lrange $ArgList 1 end]]
             } else {
                 iputs "Syntax: SITE UNDUPE <filename>"
                 iputs "        SITE UNDUPE -d <directory>"
@@ -843,17 +843,17 @@ proc ::nxTools::Dupe::Main {ArgV} {
         {WIPE} {
             if {$ArgLength > 1} {
                 set VirtualPath [GetPath $pwd [join [lrange $ArgList 1 end]]]
-                set Result [SiteWipe $VirtualPath]
+                set result [SiteWipe $VirtualPath]
             } else {
                 iputs " Usage: SITE WIPE <file/directory>"
             }
         }
         default {
-            ErrorLog InvalidArgs "unknown event \"[info script] $Event\": check your ioFTPD.ini for errors"
-            set Result 1
+            ErrorLog InvalidArgs "unknown event \"[info script] $event\": check your ioFTPD.ini for errors"
+            set result 1
         }
     }
-    return [set ioerror $Result]
+    return [set ioerror $result]
 }
 
 ::nxTools::Dupe::Main [expr {[info exists args] ? $args : ""}]

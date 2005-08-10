@@ -93,11 +93,11 @@ proc ::nxTools::Invite::Main {ArgV} {
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
 
     set ArgList [ArgList $ArgV]
-    foreach {Event Option Target Value} $ArgV {break}
-    set Event [string tolower $Event]
+    foreach {event Option Target Value} $ArgV {break}
+    set event [string tolower $event]
     set Target [string tolower $Target]
 
-    if {[string equal "invite" $Event]} {
+    if {[string equal "invite" $event]} {
         iputs ".-\[Invite\]---------------------------------------------------------------."
         ConfigRead $invite(ConfigFile)
 
@@ -123,7 +123,7 @@ proc ::nxTools::Invite::Main {ArgV} {
             LinePuts "Inviting \"$Option\" to: [JoinLiteral $InvTarget]"
             putlog "INVITE: \"$user\" \"$group\" \"$Option\" \"$InvTarget\""
         }
-    } elseif {[string equal "edit" $Event]} {
+    } elseif {[string equal "edit" $event]} {
         iputs ".-\[EditInvite\]-----------------------------------------------------------."
         ConfigRead $invite(ConfigFile)
 
@@ -261,7 +261,7 @@ proc ::nxTools::Invite::Main {ArgV} {
             }
         }
     } else {
-        ErrorLog InvalidArgs "unknown event \"[info script] $Event\": check your ioFTPD.ini for errors"
+        ErrorLog InvalidArgs "unknown event \"[info script] $event\": check your ioFTPD.ini for errors"
     }
     iputs "'------------------------------------------------------------------------'"
     return 0

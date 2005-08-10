@@ -76,19 +76,19 @@ proc ::nxTools::Pre::ResolvePath {UserName GroupName RealPath} {
 
     # Find the user VFS file.
     if {[userfile open $UserName] == 0} {
-        set UserFile [userfile bin2ascii]
-        foreach UserLine [split $UserFile "\r\n"] {
-            if {[string equal -nocase "vfsfile" [lindex $UserLine 0]]} {
-                set VfsFile [ArgRange $UserLine 1 end]; break
+        set userFile [userfile bin2ascii]
+        foreach line [split $userFile "\r\n"] {
+            if {[string equal -nocase "vfsfile" [lindex $line 0]]} {
+                set VfsFile [ArgRange $line 1 end]; break
             }
         }
     }
     # Use the group VFS file if the user vfs file does not exist.
     if {![file isfile $VfsFile] && [groupfile open $GroupName] == 0} {
-        set GroupFile [groupfile bin2ascii]
-        foreach GroupLine [split $GroupFile "\r\n"] {
-            if {[string equal -nocase "vfsfile" [lindex $UserLine 0]]} {
-                set VfsFile [ArgRange $GroupLine 1 end]; break
+        set groupFile [groupfile bin2ascii]
+        foreach line [split $groupFile "\r\n"] {
+            if {[string equal -nocase "vfsfile" [lindex $line 0]]} {
+                set VfsFile [ArgRange $line 1 end]; break
             }
         }
     }
@@ -156,19 +156,19 @@ proc ::nxTools::Pre::UpdateUser {UserName Files Size CreditSection StatSection} 
     set CreditSection [expr {$CreditSection + 1}]
     set StatSection [expr {$StatSection * 3 + 1}]
     set GroupName "NoGroup"
-    set NewUserFile ""
+    set newUserFile ""
 
     if {[userfile open $UserName] == 0} {
         userfile lock
-        set UserFile [split [userfile bin2ascii] "\r\n"]
-        foreach UserLine $UserFile {
-            set LineType [string tolower [lindex $UserLine 0]]
-            if {$LineType eq "credits"} {
-                set OldCredits [lindex $UserLine $CreditSection]
-            } elseif {$LineType eq "groups"} {
-                set GroupName [GetGroupName [lindex $UserLine 1]]
-            } elseif {$LineType eq "ratio"} {
-                set Ratio [lindex $UserLine $CreditSection]
+        set userFile [split [userfile bin2ascii] "\r\n"]
+        foreach line $userFile {
+            set type [string tolower [lindex $line 0]]
+            if {$type eq "credits"} {
+                set OldCredits [lindex $line $CreditSection]
+            } elseif {$type eq "groups"} {
+                set GroupName [GetGroupName [lindex $line 1]]
+            } elseif {$type eq "ratio"} {
+                set Ratio [lindex $line $CreditSection]
             }
         }
 
@@ -179,18 +179,18 @@ proc ::nxTools::Pre::UpdateUser {UserName Files Size CreditSection StatSection} 
             set DiffCredits 0
             set NewCredits $OldCredits
         }
-        foreach UserLine $UserFile {
-            set LineType [string tolower [lindex $UserLine 0]]
-            if {[lsearch -exact {allup dayup monthup wkup} $LineType] != -1} {
-                set NewFiles [expr {wide([lindex $UserLine $StatSection]) + $Files}]
-                set NewStats [expr {wide([lindex $UserLine [expr {$StatSection + 1}]]) + wide($Size)}]
-                set UserLine [lreplace $UserLine $StatSection [expr {$StatSection + 1}] $NewFiles $NewStats]
-            } elseif {$LineType eq "credits"} {
-                set UserLine [lreplace $UserLine $CreditSection $CreditSection $NewCredits]
+        foreach line $userFile {
+            set type [string tolower [lindex $line 0]]
+            if {[lsearch -exact {allup dayup monthup wkup} $type] != -1} {
+                set NewFiles [expr {wide([lindex $line $StatSection]) + $Files}]
+                set NewStats [expr {wide([lindex $line [expr {$StatSection + 1}]]) + wide($Size)}]
+                set line [lreplace $line $StatSection [expr {$StatSection + 1}] $NewFiles $NewStats]
+            } elseif {$type eq "credits"} {
+                set line [lreplace $line $CreditSection $CreditSection $NewCredits]
             }
-            append NewUserFile $UserLine "\r\n"
+            append newUserFile $line "\r\n"
         }
-        userfile ascii2bin $NewUserFile
+        userfile ascii2bin $newUserFile
         userfile unlock
     }
     return [list $GroupName $Ratio $OldCredits $NewCredits $DiffCredits]
@@ -665,8 +665,8 @@ proc ::nxTools::Pre::Release {ArgList} {
         iputs "|------------------------------------------------------------------------|"
         foreach UserName [lsort -ascii [array names presize]] {
             set UploadAmount [expr {wide($presize($UserName)) / 1024}]
-            set Result [UpdateUser $UserName $prefiles($UserName) $UploadAmount $CreditSection $StatSection]
-            foreach {GroupName Ratio OldCredits NewCredits DiffCredits} $Result {break}
+            set result [UpdateUser $UserName $prefiles($UserName) $UploadAmount $CreditSection $StatSection]
+            foreach {GroupName Ratio OldCredits NewCredits DiffCredits} $result {break}
             set Ratio [expr {$Ratio != 0 ? "1:$Ratio" : "Unlimited"}]
             iputs [format "| %-10s | %-10s | %10s | %7d\F | %8s | %9s |" $UserName $GroupName $Ratio $prefiles($UserName) [FormatSize $UploadAmount] [FormatSize $DiffCredits]]
         }
@@ -714,13 +714,13 @@ proc ::nxTools::Pre::Release {ArgList} {
 proc ::nxTools::Pre::Main {ArgV} {
     global misc pre ioerror
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
-    set Result 0
+    set result 0
 
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
-    set Event [string toupper [lindex $ArgList 0]]
-    if {$Event eq "PRE"} {
-        set SubEvent [string toupper [lindex $ArgList 1]]
-        if {$SubEvent eq "HELP" || $ArgLength < 2} {
+    set event [string toupper [lindex $ArgList 0]]
+    if {$event eq "PRE"} {
+        set subEvent [string toupper [lindex $ArgList 1]]
+        if {$subEvent eq "HELP" || $ArgLength < 2} {
             iputs ".-\[Pre\]------------------------------------------------------------------."
             if {[ConfigRead $pre(ConfigFile)]} {
                 LinePuts "Syntax: SITE PRE <area> <directory>"
@@ -729,24 +729,24 @@ proc ::nxTools::Pre::Main {ArgV} {
                 LinePuts "Areas : [lsort -ascii [array names prearea]]"
             }
             iputs "'------------------------------------------------------------------------'"
-        } elseif {$SubEvent eq "HISTORY"} {
-            set Result [History [lrange $ArgList 2 end]]
-        } elseif {$SubEvent eq "STATS"} {
-            set Result [Stats [lrange $ArgList 2 end]]
+        } elseif {$subEvent eq "HISTORY"} {
+            set result [History [lrange $ArgList 2 end]]
+        } elseif {$subEvent eq "STATS"} {
+            set result [Stats [lrange $ArgList 2 end]]
         } else {
             iputs ".-\[Pre\]------------------------------------------------------------------."
-            set Result [Release [lrange $ArgList 1 end]]
+            set result [Release [lrange $ArgList 1 end]]
             iputs "'------------------------------------------------------------------------'"
         }
-    } elseif {$Event eq "EDIT"} {
+    } elseif {$event eq "EDIT"} {
         iputs ".-\[EditPre\]--------------------------------------------------------------."
-        set Result [Edit [lrange $ArgList 1 end]]
+        set result [Edit [lrange $ArgList 1 end]]
         iputs "'------------------------------------------------------------------------'"
     } else {
-        ErrorLog InvalidArgs "unknown event \"[info script] $Event\": check your ioFTPD.ini for errors"
-        set Result 1
+        ErrorLog InvalidArgs "unknown event \"[info script] $event\": check your ioFTPD.ini for errors"
+        set result 1
     }
-    return [set ioerror $Result]
+    return [set ioerror $result]
 }
 
 ::nxTools::Pre::Main [expr {[info exists args] ? $args : ""}]

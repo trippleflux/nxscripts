@@ -59,7 +59,7 @@ proc ::nxTools::Req::CheckLimit {UserName GroupName} {
     return 1
 }
 
-proc ::nxTools::Req::UpdateDir {Event Request {UserId 0} {GroupId 0}} {
+proc ::nxTools::Req::UpdateDir {event Request {UserId 0} {GroupId 0}} {
     global req
     if {![string length $req(RequestPath)]} {
         return
@@ -69,7 +69,7 @@ proc ::nxTools::Req::UpdateDir {Event Request {UserId 0} {GroupId 0}} {
     }
     set ReMap [list %(request) $Request]
     set ReqPath [file join $req(RequestPath) [string map $ReMap $req(RequestTag)]]
-    switch -- $Event {
+    switch -- $event {
         {ADD} {CreateTag $ReqPath $UserId $GroupId 777}
         {DEL} {
             if {[file isdirectory $ReqPath]} {
@@ -89,7 +89,7 @@ proc ::nxTools::Req::UpdateDir {Event Request {UserId 0} {GroupId 0}} {
             }
         }
         default {
-            ErrorLog ReqUpdateDir "unknown event \"$Event\""
+            ErrorLog ReqUpdateDir "unknown event \"$event\""
         }
     }
     catch {vfs flush $req(RequestPath)}
@@ -102,7 +102,7 @@ proc ::nxTools::Req::UpdateDir {Event Request {UserId 0} {GroupId 0}} {
 proc ::nxTools::Req::Add {UserName GroupName Request} {
     global misc req
     iputs ".-\[Request\]--------------------------------------------------------------."
-    set Result 1
+    set result 1
     set Request [StripChars $Request]
 
     if {[ReqDb eval {SELECT count(*) FROM Requests WHERE Status=0 AND StrCaseEq(Request,$Request)}]} {
@@ -122,28 +122,28 @@ proc ::nxTools::Req::Add {UserName GroupName Request} {
         putlog "REQUEST: \"$UserName\" \"$GroupName\" \"$Request\" \"$RequestId\""
         LinePuts "Added your request of $Request (#$RequestId)."
         UpdateDir ADD $Request
-        set Result 0
+        set result 0
     }
     iputs "'------------------------------------------------------------------------'"
-    return $Result
+    return $result
 }
 
-proc ::nxTools::Req::Update {Event UserName GroupName Request} {
+proc ::nxTools::Req::Update {event UserName GroupName Request} {
     global misc req
     iputs ".-\[Request\]--------------------------------------------------------------."
-    set Exists 0; set Result 1
+    set Exists 0; set result 1
     set Request [StripChars $Request]
 
     ReqDb eval {SELECT rowid,* FROM Requests WHERE Status=0 AND (RequestId=$Request OR StrCaseEq(Request,$Request)) LIMIT 1} values {set Exists 1}
     if {!$Exists} {
         LinePuts "Invalid request, use \"SITE REQUESTS\" to view current requests."
     } else {
-        if {$Event eq "FILL"} {
+        if {$event eq "FILL"} {
             ReqDb eval {UPDATE Requests SET Status=1 WHERE rowid=$values(rowid)}
             LinePuts "Filled request $values(Request) for $values(UserName)/$values(GroupName)."
             set LogPrefix "REQFILL"
 
-        } elseif {$Event eq "DEL"} {
+        } elseif {$event eq "DEL"} {
             # Only siteops or the owner may delete a request.
             if {$UserName ne $values(UserName) && ![MatchFlags $misc(SiteopFlags) $flags]} {
                 ReqDb close
@@ -160,11 +160,11 @@ proc ::nxTools::Req::Update {Event UserName GroupName Request} {
             set RequestAge [FormatDuration $RequestAge]
         }
         putlog "${LogPrefix}: \"$UserName\" \"$GroupName\" \"$values(Request)\" \"$values(UserName)\" \"$values(GroupName)\" \"$RequestId\" \"$RequestAge\""
-        UpdateDir $Event $values(Request)
-        set Result 0
+        UpdateDir $event $values(Request)
+        set result 0
     }
     iputs "'------------------------------------------------------------------------'"
-    return $Result
+    return $result
 }
 
 proc ::nxTools::Req::List {IsSiteBot} {
@@ -246,33 +246,33 @@ proc ::nxTools::Req::Main {ArgV} {
 
     set ArgLength [llength [set ArgList [ArgList $ArgV]]]
     set Request [join [lrange $ArgList 1 end]]
-    set Result 0
-    set Event [string toupper [lindex $ArgList 0]]
-    switch -- $Event {
+    set result 0
+    set event [string toupper [lindex $ArgList 0]]
+    switch -- $event {
         {ADD} {
             if {$ArgLength > 1} {
-                set Result [Add $user $group $Request]
+                set result [Add $user $group $Request]
             } else {
                 iputs "Syntax: SITE REQUEST <request>"
             }
         }
         {DEL} - {FILL} {
             if {$ArgLength > 1} {
-                set Result [Update $Event $user $group $Request]
+                set result [Update $event $user $group $Request]
             } else {
-                iputs "Syntax: SITE REQ$Event <id/request>"
+                iputs "Syntax: SITE REQ$event <id/request>"
             }
         }
-        {LIST} {set Result [List $IsSiteBot]}
-        {WIPE} {set Result [Wipe]}
+        {LIST} {set result [List $IsSiteBot]}
+        {WIPE} {set result [Wipe]}
         default {
-            ErrorLog InvalidArgs "unknown event \"[info script] $Event\": check your ioFTPD.ini for errors"
-            set Result 1
+            ErrorLog InvalidArgs "unknown event \"[info script] $event\": check your ioFTPD.ini for errors"
+            set result 1
         }
     }
 
     ReqDb close
-    return [set ioerror $Result]
+    return [set ioerror $result]
 }
 
 ::nxTools::Req::Main [expr {[info exists args] ? $args : ""}]
