@@ -6,9 +6,9 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
-if {[IsTrue $misc(ReloadConfig)] && [catch {source "../scripts/init.itcl"} ErrorMsg]} {
+if {[IsTrue $misc(ReloadConfig)] && [catch {source "../scripts/init.itcl"} error]} {
     iputs "Unable to load script configuration, contact a siteop."
-    return -code error $ErrorMsg
+    return -code error $error
 }
 
 namespace eval ::nxTools::Pre {
@@ -20,8 +20,8 @@ namespace eval ::nxTools::Pre {
 
 proc ::nxTools::Pre::ConfigRead {ConfigFile} {
     upvar ConfigComments ConfigComments prearea prearea pregrp pregrp prepath prepath
-    if {[catch {set Handle [open $ConfigFile r]} ErrorMsg]} {
-        ErrorLog PreConfigRead $ErrorMsg
+    if {[catch {set Handle [open $ConfigFile r]} error]} {
+        ErrorLog PreConfigRead $error
         LinePuts "Unable to load the pre configuration, contact a siteop."
         return 0
     }
@@ -51,7 +51,7 @@ proc ::nxTools::Pre::ConfigRead {ConfigFile} {
 
 proc ::nxTools::Pre::ConfigWrite {ConfigFile} {
     upvar ConfigComments ConfigComments prearea prearea pregrp pregrp prepath prepath
-    if {![catch {set Handle [open $ConfigFile w]} ErrorMsg]} {
+    if {![catch {set Handle [open $ConfigFile w]} error]} {
         puts $Handle $ConfigComments
         puts $Handle "\[AREAS\]"
         foreach {Name Value} [array get prearea] {
@@ -66,7 +66,7 @@ proc ::nxTools::Pre::ConfigWrite {ConfigFile} {
             puts $Handle "$Name \"[join $Value {" "}]\""
         }
         close $Handle
-    } else {ErrorLog PreConfigWrite $ErrorMsg}
+    } else {ErrorLog PreConfigWrite $error}
 }
 
 proc ::nxTools::Pre::ResolvePath {UserName GroupName RealPath} {
@@ -96,7 +96,7 @@ proc ::nxTools::Pre::ResolvePath {UserName GroupName RealPath} {
     if {![file isfile $VfsFile]} {
         set VfsFile [config read "Locations" "Default_Vfs"]
     }
-    if {![catch {set Handle [open $VfsFile r]} ErrorMsg]} {
+    if {![catch {set Handle [open $VfsFile r]} error]} {
         while {![eof $Handle]} {
             set FileLine [string trim [gets $Handle]]
             if {![string length $FileLine]} {continue}
@@ -112,7 +112,7 @@ proc ::nxTools::Pre::ResolvePath {UserName GroupName RealPath} {
         }
         close $Handle
     } else {
-        ErrorLog PreResolvePath $ErrorMsg
+        ErrorLog PreResolvePath $error
         ErrorReturn "Unable to resolve virtual path, contact a siteop."
     }
     return $ResolvePath
@@ -123,8 +123,8 @@ proc ::nxTools::Pre::UpdateLinks {VirtualPath} {
     if {[ListMatch $latest(Exempts) $VirtualPath]} {
         return 0
     }
-    if {[catch {DbOpenFile [namespace current]::LinkDb "Links.db"} ErrorMsg]} {
-        ErrorLog PreLinks $ErrorMsg
+    if {[catch {DbOpenFile [namespace current]::LinkDb "Links.db"} error]} {
+        ErrorLog PreLinks $error
         return 1
     }
     # Format and create link directory.
@@ -136,9 +136,9 @@ proc ::nxTools::Pre::UpdateLinks {VirtualPath} {
     set TimeStamp [clock seconds]
     LinkDb eval {INSERT INTO Links(TimeStamp,LinkType,DirName) VALUES($TimeStamp,1,$TagName)}
     set TagName [file join $latest(SymPath) $TagName]
-    if {![catch {file mkdir $TagName} ErrorMsg]} {
+    if {![catch {file mkdir $TagName} error]} {
         catch {vfs chattr $TagName 1 $VirtualPath}
-    } else {ErrorLog PreLinksMkDir $ErrorMsg}
+    } else {ErrorLog PreLinksMkDir $error}
 
     # Remove older links.
     if {[set LinkCount [LinkDb eval {SELECT count(*) FROM Links WHERE LinkType=1}]] > $latest(PreLinks)} {
@@ -455,12 +455,12 @@ proc ::nxTools::Pre::History {ArgList} {
     iputs "| # |  Release                                              |  Amount   |"
     iputs "|------------------------------------------------------------------------|"
     set Count 0
-    if {![catch {DbOpenFile [namespace current]::PreDb "Pres.db"} ErrorMsg]} {
+    if {![catch {DbOpenFile [namespace current]::PreDb "Pres.db"} error]} {
         PreDb eval "SELECT Release,Size FROM Pres $WhereClause ORDER BY TimeStamp DESC LIMIT $MaxResults" values {
             iputs [format "| %02d | %-53.53s | %9s |" [incr Count] $values(Release) [FormatSize $values(Size)]]
         }
         PreDb close
-    } else {ErrorLog PreHistory $ErrorMsg}
+    } else {ErrorLog PreHistory $error}
 
     if {!$Count} {LinePuts "There are no pres to display."}
     iputs "'------------------------------------------------------------------------'"
@@ -482,12 +482,12 @@ proc ::nxTools::Pre::Stats {ArgList} {
     iputs "| # |  Group                        |   Pres    |   Files   |  Amount   |"
     iputs "|------------------------------------------------------------------------|"
     set Count 0
-    if {![catch {DbOpenFile [namespace current]::PreDb "Pres.db"} ErrorMsg]} {
+    if {![catch {DbOpenFile [namespace current]::PreDb "Pres.db"} error]} {
         PreDb eval "SELECT GroupName, count(*) AS Pres, round(sum(Files)) AS Files, sum(Size) AS Amount FROM Pres $WhereClause GROUP BY GroupName ORDER BY Pres DESC LIMIT $MaxResults" values {
             iputs [format "| %02d | %-29.29s | %9d | %8dF | %9s |" [incr Count] $values(GroupName) $values(Pres) $values(Files) [FormatSize $values(Amount)]]
         }
         PreDb close
-    } else {ErrorLog PreStats $ErrorMsg}
+    } else {ErrorLog PreStats $error}
 
     if {!$Count} {LinePuts "There are no statistics to display."}
     iputs "'------------------------------------------------------------------------'"
@@ -585,8 +585,8 @@ proc ::nxTools::Pre::Release {ArgList} {
     set DestDrive [lindex [file split $DestRealPath] 0]
 
     if {![string equal -nocase $SourceDrive $DestDrive]} {
-        if {[catch {::nx::volume info $DestDrive volume} ErrorMsg]} {
-            ErrorLog PreCheckSpace $ErrorMsg
+        if {[catch {::nx::volume info $DestDrive volume} error]} {
+            ErrorLog PreCheckSpace $error
             ErrorReturn "Unable to check available space on target drive, contact a siteop."
         }
         set CheckSize [expr {wide($TotalSize) + (10*1024)}]
@@ -603,8 +603,8 @@ proc ::nxTools::Pre::Release {ArgList} {
 
     # Move release to the destination path.
     KickUsers [file join $VirtualPath "*"]
-    if {[catch {file rename -force -- $RealPath $DestRealPath} ErrorMsg]} {
-        ErrorLog PreMove $ErrorMsg
+    if {[catch {file rename -force -- $RealPath $DestRealPath} error]} {
+        ErrorLog PreMove $error
         ErrorReturn "Error   : Unable to move directory, aborting."
     }
 
@@ -614,8 +614,8 @@ proc ::nxTools::Pre::Release {ArgList} {
 
     # Attempt to parse every MP3 file until successful.
     foreach FilePath $MP3Files {
-        if {[catch {::nx::mp3 $FilePath mp3} ErrorMsg]} {
-            ErrorLog PreMP3 $ErrorMsg
+        if {[catch {::nx::mp3 $FilePath mp3} error]} {
+            ErrorLog PreMP3 $error
         } else {
             set Codec [format "MPEG %.1f Layer %d" $mp3(version) $mp3(layer)]
             iputs "|------------------------------------------------------------------------|"
@@ -649,8 +649,8 @@ proc ::nxTools::Pre::Release {ArgList} {
     }
     # Update file and directory times.
     if {[IsTrue $pre(TouchTimes)]} {
-        if {[catch {::nx::touch -recurse $DestRealPath $PreTime} ErrorMsg]} {
-            ErrorLog PreTouch $ErrorMsg
+        if {[catch {::nx::touch -recurse $DestRealPath $PreTime} error]} {
+            ErrorLog PreTouch $error
         }
     }
     catch {vfs flush [file dirname $RealPath]}
@@ -681,25 +681,25 @@ proc ::nxTools::Pre::Release {ArgList} {
     }
     putlog $LogLine
 
-    if {![catch {DbOpenFile [namespace current]::PreDb "Pres.db"} ErrorMsg]} {
+    if {![catch {DbOpenFile [namespace current]::PreDb "Pres.db"} error]} {
         PreDb eval {INSERT INTO Pres(TimeStamp,UserName,GroupName,Area,Release,Files,Size) VALUES($PreTime,$user,$PreGroup,$PreArea,$Release,$Files,$TotalSize)}
         PreDb close
-    } else {ErrorLog PreDb $ErrorMsg}
+    } else {ErrorLog PreDb $error}
 
     if {[IsTrue $dupe(AddOnPre)]} {
-        if {![catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} ErrorMsg]} {
+        if {![catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} error]} {
             set LogUser [expr {$pre(ChownUserId) ne "" ? [resolve uid $pre(ChownUserId)] : $user}]
             set LogPath [string range $DestVirtualPath 0 [string last "/" $DestVirtualPath]]
             DirDb eval {INSERT INTO DupeDirs(TimeStamp,UserName,GroupName,DirPath,DirName) VALUES($PreTime,$LogUser,$PreGroup,$LogPath,$Release)}
             DirDb close
-        } else {ErrorLog PreDupeDb $ErrorMsg}
+        } else {ErrorLog PreDupeDb $error}
     }
 
     if {[IsTrue $pretime(AddOnPre)] && [MySqlConnect]} {
         set PreArea [::mysql::escape $PreArea]
         set Release [::mysql::escape $Release]
-        if {[catch {::mysql::exec $mysql(ConnHandle) "INSERT INTO $mysql(TableName) (pretime,section,release,files,kbytes,disks) VALUES('$PreTime','$PreArea','$Release','$Files','$TotalSize','$DiskCount')"} ErrorMsg]} {
-            if {[string first "Duplicate entry" $ErrorMsg] == -1} {ErrorLog PreAddToDb $ErrorMsg}
+        if {[catch {::mysql::exec $mysql(ConnHandle) "INSERT INTO $mysql(TableName) (pretime,section,release,files,kbytes,disks) VALUES('$PreTime','$PreArea','$Release','$Files','$TotalSize','$DiskCount')"} error]} {
+            if {[string first "Duplicate entry" $error] == -1} {ErrorLog PreAddToDb $error}
         }
         MySqlClose
     }

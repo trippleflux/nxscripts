@@ -6,9 +6,9 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
-if {[IsTrue $misc(ReloadConfig)] && [catch {source "../scripts/init.itcl"} ErrorMsg]} {
+if {[IsTrue $misc(ReloadConfig)] && [catch {source "../scripts/init.itcl"} error]} {
     iputs "Unable to load script configuration, contact a siteop."
-    return -code error $ErrorMsg
+    return -code error $error
 }
 
 namespace eval ::nxTools::Nuke {
@@ -52,8 +52,8 @@ proc ::nxTools::Nuke::UpdateRecord {RealPath {Buffer ""}} {
     # hidden attribute must be removed first.
     catch {file attributes $RealPath -hidden 0}
 
-    if {[catch {set Handle [open $RealPath $OpenMode]} ErrorMsg]} {
-        ErrorLog NukeRecord $ErrorMsg
+    if {[catch {set Handle [open $RealPath $OpenMode]} error]} {
+        ErrorLog NukeRecord $error
     } elseif {![string length $Buffer]} {
         set Record [read $Handle]
         close $Handle
@@ -308,9 +308,9 @@ proc ::nxTools::Nuke::Main {ArgV} {
                 catch {vfs write $RealPath $UserId $GroupId 000}
 
                 KickUsers [file join $VirtualPath "*"]
-                if {[catch {file rename -force -- $RealPath $NewPath} ErrorMsg]} {
+                if {[catch {file rename -force -- $RealPath $NewPath} error]} {
                     set RenameFail 1
-                    ErrorLog NukeRename $ErrorMsg
+                    ErrorLog NukeRename $error
                     iputs "|------------------------------------------------------------------------|"
                     LinePuts "Unable to rename directory, ask a siteop to rename it manually."
                 } else {
@@ -336,7 +336,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
                 putlog "${LogPrefix}: \"$VirtualPath\" \"$user\" \"$group\" \"$Multi\" \"$Reason\" \"$Files\" \"$TotalSize\" \"$DiskCount\" \"$NukeeLog\""
             }
 
-            if {![catch {DbOpenFile [namespace current]::NukeDb "Nukes.db"} ErrorMsg]} {
+            if {![catch {DbOpenFile [namespace current]::NukeDb "Nukes.db"} error]} {
                 # To pass a NULL value to TclSQLite the variable must be unset.
                 if {![string is digit -strict $NukeId]} {unset NukeId}
                 NukeDb eval {INSERT OR REPLACE INTO
@@ -355,7 +355,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
                 NukeDb eval {COMMIT}
 
                 NukeDb close
-            } else {ErrorLog NukeDb $ErrorMsg}
+            } else {ErrorLog NukeDb $error}
 
             # Save the nuke ID and multiplier for later use (ie. unnuke).
             UpdateRecord [expr {$RenameFail ? $RealPath : $NewPath}] "2|$NukeStatus|$NukeId|$user|$group|$Multi|$Reason"
@@ -384,7 +384,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
                 set NukeStatus 1
             }
             set Count 0
-            if {![catch {DbOpenFile [namespace current]::NukeDb "Nukes.db"} ErrorMsg]} {
+            if {![catch {DbOpenFile [namespace current]::NukeDb "Nukes.db"} error]} {
                 NukeDb eval "SELECT * FROM Nukes WHERE Status=$NukeStatus AND Release LIKE '$Pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $MaxResults" values {
                     incr Count
                     if {$IsSiteBot} {
@@ -397,7 +397,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
                     }
                 }
                 NukeDb close
-            } else {ErrorLog NukeLatest $ErrorMsg}
+            } else {ErrorLog NukeLatest $error}
 
             if {!$IsSiteBot} {
                 if {!$Count} {
@@ -426,7 +426,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
             }
 
             set Count 0
-            if {![catch {DbOpenFile [namespace current]::NukeDb "Nukes.db"} ErrorMsg]} {
+            if {![catch {DbOpenFile [namespace current]::NukeDb "Nukes.db"} error]} {
                 NukeDb eval "SELECT UserName, GroupName, count(*) AS Nuked, sum(Amount) AS Amount FROM Users \
                     WHERE $GroupMatch (SELECT count(*) FROM Nukes WHERE NukeId=Users.NukeId AND Status=0) \
                     GROUP BY UserName ORDER BY Nuked DESC LIMIT $MaxResults" values {
@@ -439,7 +439,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
                     }
                 }
                 NukeDb close
-            } else {ErrorLog NukeTop $ErrorMsg}
+            } else {ErrorLog NukeTop $error}
             if {!$IsSiteBot} {
                 if {!$Count} {LinePuts "There are no nukees display."}
                 iputs "'------------------------------------------------------------------------'"

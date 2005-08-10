@@ -6,9 +6,9 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
-if {[IsTrue $misc(ReloadConfig)] && [catch {source "../scripts/init.itcl"} ErrorMsg]} {
+if {[IsTrue $misc(ReloadConfig)] && [catch {source "../scripts/init.itcl"} error]} {
     iputs "Unable to load script configuration, contact a siteop."
-    return -code error $ErrorMsg
+    return -code error $error
 }
 
 namespace eval ::nxTools::Invite {
@@ -22,7 +22,7 @@ proc ::nxTools::Invite::ConfigRead {ConfigFile} {
     upvar ConfigComments ConfigComments invchan invchan rights rights
     set ConfigComments ""
     set ConfigSection -1
-    if {![catch {set Handle [open $ConfigFile r]} ErrorMsg]} {
+    if {![catch {set Handle [open $ConfigFile r]} error]} {
         while {![eof $Handle]} {
             set FileLine [string trim [gets $Handle]]
             if {![string length $FileLine]} {continue}
@@ -42,13 +42,13 @@ proc ::nxTools::Invite::ConfigRead {ConfigFile} {
         close $Handle
     } else {
         ErrorReturn "Unable to load the invite configuration, contact a siteop."
-        ErrorLog InviteConfigRead $ErrorMsg
+        ErrorLog InviteConfigRead $error
     }
 }
 
 proc ::nxTools::Invite::ConfigWrite {ConfigFile} {
     upvar ConfigComments ConfigComments invchan invchan rights rights
-    if {![catch {set Handle [open $ConfigFile w]} ErrorMsg]} {
+    if {![catch {set Handle [open $ConfigFile w]} error]} {
         puts $Handle $ConfigComments
         puts $Handle "\[INVITES\]"
         foreach {Name Value} [array get invchan] {
@@ -59,7 +59,7 @@ proc ::nxTools::Invite::ConfigWrite {ConfigFile} {
             puts $Handle "$Name \"$Value\""
         }
         close $Handle
-    } else {ErrorLog InviteConfigWrite $ErrorMsg}
+    } else {ErrorLog InviteConfigWrite $error}
 }
 
 proc ::nxTools::Invite::FlagCheck {CurrentFlags NeedFlags} {

@@ -6,9 +6,9 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
-if {[IsTrue $misc(ReloadConfig)] && [catch {source "../scripts/init.itcl"} ErrorMsg]} {
+if {[IsTrue $misc(ReloadConfig)] && [catch {source "../scripts/init.itcl"} error]} {
     iputs "Unable to load script configuration, contact a siteop."
-    return -code error $ErrorMsg
+    return -code error $error
 }
 
 namespace eval ::nxTools::Dupe {
@@ -22,7 +22,7 @@ proc ::nxTools::Dupe::CheckDirs {VirtualPath} {
     global dupe
     if {[ListMatch $dupe(CheckExempts) $VirtualPath] || [ListMatchI $dupe(IgnoreDirs) $VirtualPath]} {return 0}
     set Result 0
-    if {![catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} ErrorMsg]} {
+    if {![catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} error]} {
         set DirName [file tail $VirtualPath]
 
         DirDb eval {SELECT * FROM DupeDirs WHERE StrCaseEq(DirName,$DirName) LIMIT 1} values {
@@ -35,7 +35,7 @@ proc ::nxTools::Dupe::CheckDirs {VirtualPath} {
             set Result 1
         }
         DirDb close
-    } else {ErrorLog DupeCheckDirs $ErrorMsg}
+    } else {ErrorLog DupeCheckDirs $error}
     return $Result
 }
 
@@ -43,7 +43,7 @@ proc ::nxTools::Dupe::CheckFiles {VirtualPath} {
     global dupe
     if {[ListMatch $dupe(CheckExempts) $VirtualPath] || [ListMatchI $dupe(IgnoreFiles) $VirtualPath]} {return 0}
     set Result 0
-    if {![catch {DbOpenFile [namespace current]::FileDb "DupeFiles.db"} ErrorMsg]} {
+    if {![catch {DbOpenFile [namespace current]::FileDb "DupeFiles.db"} error]} {
         set FileName [file tail $VirtualPath]
 
         FileDb eval {SELECT * FROM DupeFiles WHERE StrCaseEq(FileName,$FileName) LIMIT 1} values {
@@ -55,7 +55,7 @@ proc ::nxTools::Dupe::CheckFiles {VirtualPath} {
             set Result 1
         }
         FileDb close
-    } else {ErrorLog DupeCheckFiles $ErrorMsg}
+    } else {ErrorLog DupeCheckFiles $error}
     return $Result
 }
 
@@ -77,8 +77,8 @@ proc ::nxTools::Dupe::UpdateLog {Event VirtualPath} {
 
 proc ::nxTools::Dupe::UpdateDirs {Event VirtualPath} {
     global dupe group user
-    if {[catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} ErrorMsg]} {
-        ErrorLog DupeUpdateDirs $ErrorMsg
+    if {[catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} error]} {
+        ErrorLog DupeUpdateDirs $error
         return 1
     }
     set DirName [file tail $VirtualPath]
@@ -99,8 +99,8 @@ proc ::nxTools::Dupe::UpdateDirs {Event VirtualPath} {
 
 proc ::nxTools::Dupe::UpdateFiles {Event VirtualPath} {
     global dupe group user
-    if {[catch {DbOpenFile [namespace current]::FileDb "DupeFiles.db"} ErrorMsg]} {
-        ErrorLog DupeUpdateFiles $ErrorMsg
+    if {[catch {DbOpenFile [namespace current]::FileDb "DupeFiles.db"} error]} {
+        ErrorLog DupeUpdateFiles $error
         return 1
     }
     set FileName [file tail $VirtualPath]
@@ -127,9 +127,9 @@ proc ::nxTools::Dupe::CleanDb {} {
     iputs ".-\[DupeClean\]------------------------------------------------------------."
     if {$dupe(CleanFiles) < 1} {
         LinePuts "File database cleaning disabled, skipping."
-    } elseif {[catch {DbOpenFile [namespace current]::FileDb "DupeFiles.db"} ErrorMsg]} {
+    } elseif {[catch {DbOpenFile [namespace current]::FileDb "DupeFiles.db"} error]} {
         LinePuts "Unable to open the file database."
-        ErrorLog CleanFiles $ErrorMsg
+        ErrorLog CleanFiles $error
     } else {
         LinePuts "Cleaning the file database."
         set MaxAge [expr {[clock seconds] - ($dupe(CleanFiles) * 86400)}]
@@ -139,9 +139,9 @@ proc ::nxTools::Dupe::CleanDb {} {
 
     if {$dupe(CleanFiles) < 1} {
         LinePuts "Directory database cleaning disabled, skipping."
-    } elseif {[catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} ErrorMsg]} {
+    } elseif {[catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} error]} {
         LinePuts "Unable to open the directory database."
-        ErrorLog CleanDirs $ErrorMsg
+        ErrorLog CleanDirs $error
     } else {
         LinePuts "Cleaning the directory database."
         set MaxAge [expr {[clock seconds] - ($dupe(CleanDirs) * 86400)}]
@@ -165,12 +165,12 @@ proc ::nxTools::Dupe::RebuildDb {} {
     if {![llength $dupe(RebuildPaths)]} {
         ErrorReturn "There are no paths defined, check your configuration."
     }
-    if {[catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} ErrorMsg]} {
-        ErrorLog RebuildDirs $ErrorMsg
+    if {[catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} error]} {
+        ErrorLog RebuildDirs $error
         return 1
     }
-    if {[catch {DbOpenFile [namespace current]::FileDb "DupeFiles.db"} ErrorMsg]} {
-        ErrorLog RebuildFiles $ErrorMsg
+    if {[catch {DbOpenFile [namespace current]::FileDb "DupeFiles.db"} error]} {
+        ErrorLog RebuildFiles $error
         DirDb close
         return 1
     }
@@ -233,7 +233,7 @@ proc ::nxTools::Dupe::RebuildDb {} {
 
 proc ::nxTools::Dupe::ApproveCheck {VirtualPath CreateTag} {
     set Approved 0
-    if {![catch {DbOpenFile [namespace current]::ApproveDb "Approves.db"} ErrorMsg]} {
+    if {![catch {DbOpenFile [namespace current]::ApproveDb "Approves.db"} error]} {
         set Release [file tail $VirtualPath]
         ApproveDb eval {SELECT UserName,GroupName,rowid FROM Approves WHERE StrCaseEq(Release,$Release) LIMIT 1} values {set Approved 1}
         if {$Approved && $CreateTag} {
@@ -241,7 +241,7 @@ proc ::nxTools::Dupe::ApproveCheck {VirtualPath CreateTag} {
             ApproveDb eval {DELETE FROM Approves WHERE rowid=$values(rowid)}
         }
         ApproveDb close
-    } else {ErrorLog ApproveCheck $ErrorMsg}
+    } else {ErrorLog ApproveCheck $error}
     return $Approved
 }
 
@@ -352,8 +352,8 @@ proc ::nxTools::Dupe::RaceLinks {VirtualPath} {
     if {[ListMatch $latest(Exempts) $VirtualPath] || [ListMatchI $latest(Ignores) $VirtualPath]} {
         return 0
     }
-    if {[catch {DbOpenFile [namespace current]::LinkDb "Links.db"} ErrorMsg]} {
-        ErrorLog RaceLinks $ErrorMsg
+    if {[catch {DbOpenFile [namespace current]::LinkDb "Links.db"} error]} {
+        ErrorLog RaceLinks $error
         return 1
     }
     # Format and create link directory.
@@ -365,9 +365,9 @@ proc ::nxTools::Dupe::RaceLinks {VirtualPath} {
     set TimeStamp [clock seconds]
     LinkDb eval {INSERT INTO Links(TimeStamp,LinkType,DirName) VALUES($TimeStamp,0,$TagName)}
     set TagName [file join $latest(SymPath) $TagName]
-    if {![catch {file mkdir $TagName} ErrorMsg]} {
+    if {![catch {file mkdir $TagName} error]} {
         catch {vfs chattr $TagName 1 $VirtualPath}
-    } else {ErrorLog RaceLinksMkDir $ErrorMsg}
+    } else {ErrorLog RaceLinksMkDir $error}
 
     # Remove older links.
     if {[set LinkCount [LinkDb eval {SELECT count(*) FROM Links WHERE LinkType=0}]] > $latest(RaceLinks)} {
@@ -386,8 +386,8 @@ proc ::nxTools::Dupe::RaceLinks {VirtualPath} {
 
 proc ::nxTools::Dupe::SiteApprove {Event Release} {
     global IsSiteBot approve misc flags group user
-    if {[catch {DbOpenFile [namespace current]::ApproveDb "Approves.db"} ErrorMsg]} {
-        ErrorLog SiteApprove $ErrorMsg
+    if {[catch {DbOpenFile [namespace current]::ApproveDb "Approves.db"} error]} {
+        ErrorLog SiteApprove $error
         return 1
     }
     set Release [file tail $Release]
@@ -401,13 +401,13 @@ proc ::nxTools::Dupe::SiteApprove {Event Release} {
             } else {
                 # If the release already exists in the dupe database, we'll approve that one.
                 set Approved 0
-                if {![catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} ErrorMsg]} {
+                if {![catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} error]} {
                     DirDb eval {SELECT DirName,DirPath FROM DupeDirs WHERE StrCaseEq(DirName,$Release) ORDER BY TimeStamp DESC LIMIT 1} values {
                         set VirtualPath [file join $values(DirPath) $values(DirName)]
                         set Approved [ApproveRelease $VirtualPath $user $group]
                     }
                     DirDb close
-                } else {ErrorLog SiteApprove $ErrorMsg}
+                } else {ErrorLog SiteApprove $error}
 
                 if {$Approved} {
                     LinePuts "Found the release, approved \"$VirtualPath\"."
@@ -468,8 +468,8 @@ proc ::nxTools::Dupe::SiteApprove {Event Release} {
 
 proc ::nxTools::Dupe::SiteDupe {MaxResults Pattern} {
     global IsSiteBot misc
-    if {[catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} ErrorMsg]} {
-        ErrorLog SiteDupe $ErrorMsg
+    if {[catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} error]} {
+        ErrorLog SiteDupe $error
         return 1
     }
     if {!$IsSiteBot} {
@@ -505,8 +505,8 @@ proc ::nxTools::Dupe::SiteDupe {MaxResults Pattern} {
 
 proc ::nxTools::Dupe::SiteFileDupe {MaxResults Pattern} {
     global IsSiteBot misc
-    if {[catch {DbOpenFile [namespace current]::FileDb "DupeFiles.db"} ErrorMsg]} {
-        ErrorLog SiteFileDupe $ErrorMsg
+    if {[catch {DbOpenFile [namespace current]::FileDb "DupeFiles.db"} error]} {
+        ErrorLog SiteFileDupe $error
         return 1
     }
     if {!$IsSiteBot} {
@@ -542,8 +542,8 @@ proc ::nxTools::Dupe::SiteFileDupe {MaxResults Pattern} {
 
 proc ::nxTools::Dupe::SiteNew {MaxResults ShowSection} {
     global IsSiteBot misc new
-    if {[catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} ErrorMsg]} {
-        ErrorLog SiteNew $ErrorMsg
+    if {[catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} error]} {
+        ErrorLog SiteNew $error
         return 1
     }
     if {!$IsSiteBot} {
@@ -660,7 +660,7 @@ proc ::nxTools::Dupe::SiteUndupe {ArgList} {
     set Removed 0; set Total 0
     set Pattern [SqlWildToLike $Pattern]
 
-    if {![catch {DbOpenFile [namespace current]::DupeDb "${DbName}.db"} ErrorMsg]} {
+    if {![catch {DbOpenFile [namespace current]::DupeDb "${DbName}.db"} error]} {
         set Total [DupeDb eval "SELECT count(*) FROM $DbName"]
         DupeDb eval {BEGIN}
         DupeDb eval "SELECT $ColName,rowid FROM $DbName WHERE $ColName LIKE '$Pattern' ESCAPE '\\' ORDER BY $ColName ASC" values {
@@ -703,8 +703,8 @@ proc ::nxTools::Dupe::SiteWipe {VirtualPath} {
 
     set IsDir [file isdirectory $RealPath]
     KickUsers [expr {$IsDir ? "$VirtualPath/*" : $VirtualPath}]
-    if {[catch {file delete -force -- $RealPath} ErrorMsg]} {
-        ErrorLog SiteWipe $ErrorMsg
+    if {[catch {file delete -force -- $RealPath} error]} {
+        ErrorLog SiteWipe $error
         LinePuts "Unable to delete the specified file or directory."
     }
     catch {vfs flush [resolve pwd $ParentPath]}

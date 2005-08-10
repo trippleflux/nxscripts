@@ -6,9 +6,9 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
-if {[IsTrue $misc(ReloadConfig)] && [catch {source "../scripts/init.itcl"} ErrorMsg]} {
+if {[IsTrue $misc(ReloadConfig)] && [catch {source "../scripts/init.itcl"} error]} {
     iputs "Unable to load script configuration, contact a siteop."
-    return -code error $ErrorMsg
+    return -code error $error
 }
 
 namespace eval ::nxTools::Rules {
@@ -39,7 +39,7 @@ proc ::nxTools::Rules::Main {ShowSection} {
     set SectionList ""; set SectionName ""; set ShowList ""
 
     # Read rules configuration.
-    if {![catch {set Handle [open $rules(ConfigFile) r]} ErrorMsg]} {
+    if {![catch {set Handle [open $rules(ConfigFile) r]} error]} {
         while {![eof $Handle]} {
             set FileLine [string trim [gets $Handle]]
             if {![string length $FileLine] || [string index $FileLine 0] eq "#"} {continue
@@ -51,7 +51,7 @@ proc ::nxTools::Rules::Main {ShowSection} {
             }
         }
         close $Handle
-    } else {ErrorLog RulesRead $ErrorMsg; return 1}
+    } else {ErrorLog RulesRead $error; return 1}
 
     # Find the specified section, show all areas if is there no match.
     foreach SectionName $SectionList {

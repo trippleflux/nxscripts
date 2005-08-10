@@ -6,9 +6,9 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
-if {[IsTrue $misc(ReloadConfig)] && [catch {source "../scripts/init.itcl"} ErrorMsg]} {
+if {[IsTrue $misc(ReloadConfig)] && [catch {source "../scripts/init.itcl"} error]} {
     iputs "Unable to load script configuration, contact a siteop."
-    return -code error $ErrorMsg
+    return -code error $error
 }
 
 namespace eval ::nxTools::Utils {
@@ -103,24 +103,24 @@ proc ::nxTools::Utils::NewDate {FindArea} {
         set VirtualPath [clock format $AreaTime -format $VirtualPath -gmt [IsTrue $misc(UtcTime)]]
         set RealPath [clock format $AreaTime -format $RealPath -gmt [IsTrue $misc(UtcTime)]]
 
-        if {[file isdirectory $RealPath] || ![catch {file mkdir $RealPath} ErrorMsg]} {
+        if {[file isdirectory $RealPath] || ![catch {file mkdir $RealPath} error]} {
             LinePuts "Created directory: $RealPath"
             catch {vfs write $RealPath $UserId $GroupId $Chmod}
 
             if {[string length $SymLink]} {
-                if {[file isdirectory $SymLink] || ![catch {file mkdir $SymLink} ErrorMsg]} {
+                if {[file isdirectory $SymLink] || ![catch {file mkdir $SymLink} error]} {
                     LinePuts "Created symlink: $SymLink"
                     catch {vfs chattr $SymLink 1 $VirtualPath}
                     LinePuts "Linked to vpath: $VirtualPath"
                 } else {
                     LinePuts "Unable to create symlink: $SymLink"
-                    ErrorLog NewDateLink $ErrorMsg
+                    ErrorLog NewDateLink $error
                 }
             }
             if {[IsTrue $DoLog]} {putlog "NEWDATE: \"$VirtualPath\" \"$AreaName\" \"$Description\""}
         } else {
             LinePuts "Unable to create directory: $RealPath"
-            ErrorLog NewDateDir $ErrorMsg
+            ErrorLog NewDateDir $error
         }
     }
     iputs "'------------------------------------------------------------------------'"
@@ -129,8 +129,8 @@ proc ::nxTools::Utils::NewDate {FindArea} {
 
 proc ::nxTools::Utils::OneLines {Message} {
     global misc group user
-    if {[catch {DbOpenFile [namespace current]::OneDb "OneLines.db"} ErrorMsg]} {
-        ErrorLog OneLinesDb $ErrorMsg
+    if {[catch {DbOpenFile [namespace current]::OneDb "OneLines.db"} error]} {
+        ErrorLog OneLinesDb $error
         return 1
     }
     if {![string length $Message]} {
@@ -196,14 +196,14 @@ proc ::nxTools::Utils::RotateLogs {} {
 
 proc ::nxTools::Utils::SearchLog {LogFile MaxResults Pattern} {
     set LogData ""
-    if {![catch {set Handle [open $LogFile r]} ErrorMsg]} {
+    if {![catch {set Handle [open $LogFile r]} error]} {
         while {![eof $Handle]} {
             if {[gets $Handle LogLine] > 0 && [string match -nocase $Pattern $LogLine]} {
                 set LogData [linsert $LogData 0 [string trim $LogLine]]
             }
         }
         close $Handle
-    } else {ErrorLog SearchLog $ErrorMsg}
+    } else {ErrorLog SearchLog $error}
 
     set Count 0
     foreach LogLine $LogData {
@@ -220,7 +220,7 @@ proc ::nxTools::Utils::WeeklyCredits {WkTarget WkAmount} {
     global weekly
     iputs ".-\[WeeklyCredits\]--------------------------------------------------------."
     set CfgComments ""; set TargetList ""
-    if {![catch {set Handle [open $weekly(ConfigFile) r]} ErrorMsg]} {
+    if {![catch {set Handle [open $weekly(ConfigFile) r]} error]} {
         while {![eof $Handle]} {
             set FileLine [string trim [gets $Handle]]
             if {[string index $FileLine 0] eq "#"} {
@@ -232,7 +232,7 @@ proc ::nxTools::Utils::WeeklyCredits {WkTarget WkAmount} {
         }
         close $Handle
     } else {
-        ErrorLog WeeklyRead $ErrorMsg
+        ErrorLog WeeklyRead $error
         ErrorReturn "Unable to load the weekly credits configuration, contact a siteop."
     }
 
@@ -272,13 +272,13 @@ proc ::nxTools::Utils::WeeklyCredits {WkTarget WkAmount} {
         }
 
         # Rewrite weekly configuration file.
-        if {![catch {set Handle [open $weekly(ConfigFile) w]} ErrorMsg]} {
+        if {![catch {set Handle [open $weekly(ConfigFile) w]} error]} {
             puts -nonewline $Handle $CfgComments
             foreach ListItem [lsort -ascii -index 0 $TargetList] {
                 puts $Handle [join $ListItem "|"]
             }
             close $Handle
-        } else {ErrorLog WeeklyWrite $ErrorMsg}
+        } else {ErrorLog WeeklyWrite $error}
     } else {
         LinePuts "Syntax:"
         LinePuts "  User Credits - SITE WEEKLY <username> <section>,<credits mb>"
@@ -295,7 +295,7 @@ proc ::nxTools::Utils::WeeklySet {} {
     global weekly
     iputs ".-\[WeeklySet\]------------------------------------------------------------."
     set TargetList ""
-    if {![catch {set Handle [open $weekly(ConfigFile) r]} ErrorMsg]} {
+    if {![catch {set Handle [open $weekly(ConfigFile) r]} error]} {
         while {![eof $Handle]} {
             set FileLine [string trim [gets $Handle]]
             if {[string index $FileLine 0] ne "#" && [llength [set FileLine [split $FileLine "|"]]] == 3} {
@@ -305,7 +305,7 @@ proc ::nxTools::Utils::WeeklySet {} {
         }
         close $Handle
     } else {
-        ErrorLog WeeklyRead $ErrorMsg
+        ErrorLog WeeklyRead $error
         ErrorReturn "Unable to load the weekly credits configuration, contact a siteop."
     }
     if {[llength $TargetList]} {
@@ -390,7 +390,7 @@ proc ::nxTools::Utils::SiteDrives {} {
             4 {set TypeName "Network"}
             default {continue}
         }
-        if {[catch {::nx::volume info $VolName volume} ErrorMsg]} {
+        if {[catch {::nx::volume info $VolName volume} error]} {
             LinePuts "$VolName Unable to retrieve volume information."
         } else {
             set Free [expr {wide($Free) + $volume(free)}]

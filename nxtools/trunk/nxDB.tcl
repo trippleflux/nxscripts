@@ -6,19 +6,19 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
-if {[IsTrue $misc(ReloadConfig)] && [catch {source "../scripts/init.itcl"} ErrorMsg]} {
+if {[IsTrue $misc(ReloadConfig)] && [catch {source "../scripts/init.itcl"} error]} {
     iputs "Unable to load script configuration, contact a siteop."
-    return -code error $ErrorMsg
+    return -code error $error
 }
 
 namespace eval ::nxTools::Db {
     namespace import -force ::nxLib::*
-    variable dbschema
-    variable dbtables
+    variable dbSchema
+    variable dbTables
 
     # Table Formats
-    set dbschema(Approves) 0
-    set dbtables(Approves) {
+    set dbSchema(Approves) 0
+    set dbTables(Approves) {
         Approves {CREATE TABLE Approves(
         TimeStamp INTEGER default 0,
         UserName  TEXT default '',
@@ -26,8 +26,8 @@ namespace eval ::nxTools::Db {
         Release   TEXT default '')}
     }
 
-    set dbschema(DupeDirs) 0
-    set dbtables(DupeDirs) {
+    set dbSchema(DupeDirs) 0
+    set dbTables(DupeDirs) {
         DupeDirs {CREATE TABLE DupeDirs(
         TimeStamp INTEGER default 0,
         UserName  TEXT default '',
@@ -36,8 +36,8 @@ namespace eval ::nxTools::Db {
         DirName   TEXT default '')}
     }
 
-    set dbschema(DupeFiles) 0
-    set dbtables(DupeFiles) {
+    set dbSchema(DupeFiles) 0
+    set dbTables(DupeFiles) {
         DupeFiles {CREATE TABLE DupeFiles(
         TimeStamp INTEGER default 0,
         UserName  TEXT default '',
@@ -45,16 +45,16 @@ namespace eval ::nxTools::Db {
         FileName  TEXT default '')}
     }
 
-    set dbschema(Links) 0
-    set dbtables(Links) {
+    set dbSchema(Links) 0
+    set dbTables(Links) {
         Links {CREATE TABLE Links(
         TimeStamp INTEGER default 0,
         LinkType  INTEGER default 0,
         DirName   TEXT default '')}
     }
 
-    set dbschema(Nukes) 2
-    set dbtables(Nukes) {
+    set dbSchema(Nukes) 2
+    set dbTables(Nukes) {
         Nukes {CREATE TABLE Nukes(
         NukeId    INTEGER PRIMARY KEY AUTOINCREMENT,
         TimeStamp INTEGER default 0,
@@ -75,8 +75,8 @@ namespace eval ::nxTools::Db {
         UNIQUE    (NukeId,UserName))}
     }
 
-    set dbschema(OneLines) 0
-    set dbtables(OneLines) {
+    set dbSchema(OneLines) 0
+    set dbTables(OneLines) {
         OneLines {CREATE TABLE OneLines(
         TimeStamp INTEGER default 0,
         UserName  TEXT default '',
@@ -84,8 +84,8 @@ namespace eval ::nxTools::Db {
         Message   TEXT default '')}
     }
 
-    set dbschema(Pres) 0
-    set dbtables(Pres) {
+    set dbSchema(Pres) 0
+    set dbTables(Pres) {
         Pres {CREATE TABLE Pres(
         TimeStamp INTEGER default 0,
         UserName  TEXT default '',
@@ -96,8 +96,8 @@ namespace eval ::nxTools::Db {
         Size      INTEGER default 0)}
     }
 
-    set dbschema(Requests) 1
-    set dbtables(Requests) {
+    set dbSchema(Requests) 1
+    set dbTables(Requests) {
         Requests {CREATE TABLE Requests(
         TimeStamp INTEGER default 0,
         UserName  TEXT default '',
@@ -111,101 +111,101 @@ namespace eval ::nxTools::Db {
 # Database Procedures
 ######################################################################
 
-proc ::nxTools::Db::Create {DbList} {
+proc ::nxTools::Db::Create {dbList} {
     global misc
-    variable dbschema
-    variable dbtables
+    variable dbSchema
+    variable dbTables
 
     if {![file exists $misc(DataPath)]} {
         catch {file mkdir $misc(DataPath)}
     }
-    foreach DbName $DbList {
-        set DbPath [file join $misc(DataPath) ${DbName}.db]
-        set DbFile [file tail $DbPath]
-        LinePuts "Creating database: $DbFile"
+    foreach dbName $dbList {
+        set filePath [file join $misc(DataPath) ${dbName}.db]
+        set fileName [file tail $filePath]
+        LinePuts "Creating database: $fileName"
 
-        set Exists [file exists $DbPath]
-        if {[catch {sqlite3 SqliteDb $DbPath} ErrorMsg]} {
-            LinePuts " - Unable to open file: $ErrorMsg"
+        set exists [file exists $filePath]
+        if {[catch {sqlite3 db $filePath} error]} {
+            LinePuts " - Unable to open file: $error"
             continue
         }
-        set CurrentVer [SqliteDb eval {PRAGMA user_version}]
+        set currentVer [db eval {PRAGMA user_version}]
 
-        if {$Exists && $CurrentVer != $dbschema($DbName)} {
-            LinePuts "- Invalid schema version (current: v$CurrentVer, required: v$dbschema($DbName))."
-            SqliteDb close
+        if {$exists && $currentVer != $dbSchema($dbName)} {
+            LinePuts "- Invalid schema version (current: v$currentVer, required: v$dbSchema($dbName))."
+            db close
 
             # Rename the old database to <current name>.old-v<current version>.
-            set DbOld "${DbPath}.old-v$CurrentVer"
-            if {[catch {file rename -- $DbPath $DbOld} ErrorMsg]} {
-                LinePuts "- $ErrorMsg"
+            set oldPath "${filePath}.old-v$currentVer"
+            if {[catch {file rename -- $filePath $oldPath} error]} {
+                LinePuts "- $error"
                 continue
             } else {
-                LinePuts "- Renamed current database to [file tail $DbOld]."
+                LinePuts "- Renamed current database to [file tail $oldPath]."
             }
 
             # Re-open the database to create the tables.
-            if {[catch {sqlite3 SqliteDb $DbPath} ErrorMsg]} {
-                LinePuts "- Unable to re-open file: $ErrorMsg"
+            if {[catch {sqlite3 db $filePath} error]} {
+                LinePuts "- Unable to re-open file: $error"
                 continue
             }
         }
 
-        SqliteDb eval "PRAGMA user_version=$dbschema($DbName)"
-        foreach {TableName TableFormat} $dbtables($DbName) {
-            if {[SqliteDb eval "SELECT count(*) FROM sqlite_master WHERE name='$TableName' AND type='table'"]} {
-                LinePuts "- Table $TableName: exists."
+        db eval "PRAGMA user_version=$dbSchema($dbName)"
+        foreach {table query} $dbTables($dbName) {
+            if {[db eval "SELECT count(*) FROM sqlite_master WHERE name='$table' AND type='table'"]} {
+                LinePuts "- Table $table: exists."
             } else {
-                LinePuts "- Creating table $TableName."
-                SqliteDb eval $TableFormat
+                LinePuts "- Creating table $table."
+                db eval $query
             }
         }
-        SqliteDb close
+        db close
     }
 }
 
-proc ::nxTools::Db::Check {DbList} {
+proc ::nxTools::Db::Check {dbList} {
     global misc
-    foreach DbName $DbList {
-        set DbPath [file join $misc(DataPath) ${DbName}.db]
-        LinePuts "Checking database: [file tail $DbPath]"
+    foreach dbName $dbList {
+        set filePath [file join $misc(DataPath) ${dbName}.db]
+        LinePuts "Checking database: [file tail $filePath]"
 
-        if {[catch {sqlite3 SqliteDb $DbPath} ErrorMsg]} {
-            LinePuts " - Unable to open file: $ErrorMsg"
+        if {[catch {sqlite3 db $filePath} error]} {
+            LinePuts " - Unable to open file: $error"
             continue
         }
-        set Status [SqliteDb eval {PRAGMA integrity_check}]
-        LinePuts " - Status: $Status"
-        SqliteDb close
+        set status [db eval {PRAGMA integrity_check}]
+        LinePuts " - Status: $status"
+        db close
     }
 }
 
-proc ::nxTools::Db::Optimize {DbList} {
+proc ::nxTools::Db::Optimize {dbList} {
     global misc
-    foreach DbName $DbList {
-        set DbPath [file join $misc(DataPath) ${DbName}.db]
-        LinePuts "Optimizing database: [file tail $DbPath]"
+    foreach dbName $dbList {
+        set filePath [file join $misc(DataPath) ${dbName}.db]
+        LinePuts "Optimizing database: [file tail $filePath]"
 
-        if {[catch {sqlite3 SqliteDb $DbPath} ErrorMsg]} {
-            LinePuts " - Unable to open file: $ErrorMsg"
+        if {[catch {sqlite3 db $filePath} error]} {
+            LinePuts " - Unable to open file: $error"
             continue
         }
-        SqliteDb eval {VACUUM}
-        SqliteDb close
+        db eval {VACUUM}
+        db close
     }
 }
 
 # Database Main
 ######################################################################
 
-proc ::nxTools::Db::Main {ArgV} {
+proc ::nxTools::Db::Main {argv} {
     global misc
-    variable dbschema
+    variable dbSchema
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
 
-    set ArgLength [llength [set ArgList [ArgList $ArgV]]]
-    set Event [string toupper [lindex $ArgList 0]]
-    if {[lsearch -exact {CREATE CHECK OPTIMIZE} $Event] == -1} {
+    set argLength [llength [set argList [ArgList $argv]]]
+    set event [string toupper [lindex $argList 0]]
+    if {[lsearch -exact {CREATE CHECK OPTIMIZE} $event] == -1} {
         iputs "Syntax: SITE DB CHECK \[database\]"
         iputs "        SITE DB CREATE \[database\]"
         iputs "        SITE DB OPTIMIZE \[database\]"
@@ -213,39 +213,44 @@ proc ::nxTools::Db::Main {ArgV} {
     }
 
     iputs ".-\[DB\]-------------------------------------------------------------------."
-    set DbList [lsort -ascii [array names dbschema]]
-    if {$ArgLength > 1} {
-        set DbArg [lindex $ArgList 1]
-        set ValidName 0
-        foreach DbName $DbList {
-            if {[string equal -nocase $DbArg $DbName]} {
-                set DbList $DbName
-                set ValidName 1; break
+    set dbList [lsort -ascii [array names dbSchema]]
+    set result 0
+
+    if {$argLength > 1} {
+        set arg [lindex $argList 1]
+        set valid 0
+        foreach dbName $dbList {
+            if {[string equal -nocase $arg $dbName]} {
+                set dbList [list $dbName]
+                set valid 1; break
             }
         }
-        if {!$ValidName} {
-            LinePuts "Invalid database name \"$DbArg\", must be:"
-            ErrorReturn [JoinLiteral $DbList]
+        if {!$valid} {
+            LinePuts "Invalid database name \"$arg\", must be:"
+            LinePuts [JoinLiteral $dbList "or"]
+            set result 1
         }
     }
 
-    set Result 0
-    switch -- $Event {
-        {CREATE} {
-            LinePuts "Creating [llength $DbList] database(s)."; LinePuts ""
-            set Result [Create $DbList]
-        }
-        {CHECK} {
-            LinePuts "Checking [llength $DbList] database(s)."; LinePuts ""
-            set Result [Check $DbList]
-        }
-        {OPTIMIZE} {
-            LinePuts "Optimizing [llength $DbList] database(s)."; LinePuts ""
-            set Result [Optimize $DbList]
+    if {!$result} {
+        switch -- $event {
+            {CREATE} {
+                LinePuts "Creating [llength $dbList] database(s)."; LinePuts ""
+                set result [Create $dbList]
+            }
+            {CHECK} {
+                LinePuts "Checking [llength $dbList] database(s)."; LinePuts ""
+                set result [Check $dbList]
+            }
+            {OPTIMIZE} {
+                LinePuts "Optimizing [llength $dbList] database(s)."; LinePuts ""
+                set result [Optimize $dbList]
+            }
         }
     }
+
     iputs "'------------------------------------------------------------------------'"
-    return $Result
+    return $result
 }
 
 ::nxTools::Db::Main [expr {[info exists args] ? $args : ""}]

@@ -6,9 +6,9 @@
 # Version : $-66(VERSION) #
 ################################################################################
 
-if {[IsTrue $misc(ReloadConfig)] && [catch {source "../scripts/init.itcl"} ErrorMsg]} {
+if {[IsTrue $misc(ReloadConfig)] && [catch {source "../scripts/init.itcl"} error]} {
     iputs "Unable to load script configuration, contact a siteop."
-    return -code error $ErrorMsg
+    return -code error $error
 }
 
 namespace eval ::nxTools::Req {
@@ -74,8 +74,8 @@ proc ::nxTools::Req::UpdateDir {Event Request {UserId 0} {GroupId 0}} {
         {DEL} {
             if {[file isdirectory $ReqPath]} {
                 KickUsers [file join $ReqPath "*"] True
-                if {[catch {file delete -force -- $ReqPath} ErrorMsg]} {
-                    ErrorLog ReqDelete $ErrorMsg
+                if {[catch {file delete -force -- $ReqPath} error]} {
+                    ErrorLog ReqDelete $error
                 }
             }
         }
@@ -83,8 +83,8 @@ proc ::nxTools::Req::UpdateDir {Event Request {UserId 0} {GroupId 0}} {
             if {[file isdirectory $ReqPath]} {
                 set FillPath [file join $req(RequestPath) [string map $ReMap $req(FilledTag)]]
                 KickUsers [file join $ReqPath "*"] True
-                if {[catch {file rename -force -- $ReqPath $FillPath} ErrorMsg]} {
-                    ErrorLog ReqFill $ErrorMsg
+                if {[catch {file rename -force -- $ReqPath $FillPath} error]} {
+                    ErrorLog ReqFill $error
                 }
             }
         }
@@ -213,8 +213,8 @@ proc ::nxTools::Req::Wipe {} {
             set FillPath [file join $req(RequestPath) $FillPath]
             if {[file isdirectory $FillPath]} {
                 KickUsers [file join $FillPath "*"] True
-                if {[catch {file delete -force -- $FillPath} ErrorMsg]} {
-                    ErrorLog ReqWipe $ErrorMsg
+                if {[catch {file delete -force -- $FillPath} error]} {
+                    ErrorLog ReqWipe $error
                 }
                 LinePuts "Wiped: $values(Request) by $values(UserName)/$values(GroupName) (#$RequestId)."
                 if {[IsTrue $misc(dZSbotLogging)]} {
@@ -238,8 +238,8 @@ proc ::nxTools::Req::Main {ArgV} {
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     set IsSiteBot [expr {[info exists user] && $misc(SiteBot) eq $user}]
 
-    if {[catch {DbOpenFile [namespace current]::ReqDb "Requests.db"} ErrorMsg]} {
-        ErrorLog RequestDb $ErrorMsg
+    if {[catch {DbOpenFile [namespace current]::ReqDb "Requests.db"} error]} {
+        ErrorLog RequestDb $error
         if {!$IsSiteBot} {iputs "Unable to open requests database."}
         return 1
     }
