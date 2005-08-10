@@ -22,24 +22,24 @@ set LibFiles {
 
 ############################################################
 
-proc nxLoadError {LogType LogMsg} {
-    if {![catch {set Handle [open "../logs/nxError.log" a]}]} {
-        set TimeNow [clock format [clock seconds] -format "%m-%d-%Y %H:%M:%S"]
-        puts $Handle "$TimeNow - [format %-12s $LogType] : $LogMsg"
-        close $Handle
+proc nxLoadError {type message} {
+    if {![catch {set handle [open "../logs/nxError.log" a]}]} {
+        set now [clock format [clock seconds] -format "%m-%d-%Y %H:%M:%S"]
+        puts $handle "$now - [format %-12s $type] : $message"
+        close $handle
     }
 }
 
-foreach FilePath $TclFiles {
-    set FilePath [file normalize $FilePath]
-    if {[catch {source $FilePath} ErrorMsg]} {
-        nxLoadError LoadScript "unable to source \"$FilePath\": $ErrorMsg"
+foreach filePath $TclFiles {
+    set filePath [file normalize $filePath]
+    if {[catch {source $filePath} error]} {
+        nxLoadError LoadScript "unable to source \"$filePath\": $error"
     }
 }
 
-foreach FilePath $LibFiles {
-    set FilePath [file normalize $FilePath]
-    if {[catch {load $FilePath} ErrorMsg]} {
-        nxLoadError LoadExtension $ErrorMsg
+foreach filePath $LibFiles {
+    set filePath [file normalize $filePath]
+    if {[catch {load $filePath} error]} {
+        nxLoadError LoadExtension $error
     }
 }
