@@ -83,7 +83,7 @@ proc ::nxTools::Pre::ResolvePath {userName groupName realPath} {
             }
         }
     }
-    # Use the group VFS file if the user vfs file does not exist.
+    # Use the group VFS file if the user VFS file does not exist.
     if {![file isfile $vfsFile] && [groupfile open $groupName] == 0} {
         set groupFile [groupfile bin2ascii]
         foreach line [split $groupFile "\r\n"] {
@@ -100,13 +100,13 @@ proc ::nxTools::Pre::ResolvePath {userName groupName realPath} {
         while {![eof $handle]} {
             set line [string trim [gets $handle]]
             if {![string length $line]} {continue}
-            foreach {vfsRealPath vfsVirtualPath} [string map {\\ /} $line] {break}
+            foreach {basePath mountPath} [string map {\\ /} $line] {break}
 
-            if {[string first [string tolower $vfsRealPath] [string tolower $realPath]] == 0} {
+            if {[string first [string tolower $basePath] [string tolower $realPath]] == 0} {
                 # Use the longest available mount path, improves more accuracy.
-                if {[set length [string length $vfsRealPath]] > $bestMatch} {
+                if {[set length [string length $basePath]] > $bestMatch} {
                     set resolvePath [string range $realPath [set bestMatch $length] end]
-                    set resolvePath [file join $vfsVirtualPath [string trimleft $resolvePath "/"]]
+                    set resolvePath [file join $mountPath [string trimleft $resolvePath "/"]]
                 }
             }
         }

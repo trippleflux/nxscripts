@@ -59,30 +59,30 @@ proc ::nxTools::Dupe::CheckFiles {virtualPath} {
     return $result
 }
 
-proc ::nxTools::Dupe::UpdateLog {command vfsPath} {
+proc ::nxTools::Dupe::UpdateLog {command virtualPath} {
     global dupe
-    if {[ListMatch $dupe(LoggingExempts) $vfsPath]} {return 0}
+    if {[ListMatch $dupe(LoggingExempts) $virtualPath]} {return 0}
     set command [string toupper $command]
 
     # Check if the virtual path is a file or directory.
-    if {$command eq "UPLD" || $command eq "DELE" || [file isfile [resolve pwd $vfsPath]]} {
-        if {[IsTrue $dupe(CheckFiles)] && ![ListMatchI $dupe(IgnoreFiles) $vfsPath]} {
-            return [UpdateFiles $command $vfsPath]
+    if {$command eq "UPLD" || $command eq "DELE" || [file isfile [resolve pwd $virtualPath]]} {
+        if {[IsTrue $dupe(CheckFiles)] && ![ListMatchI $dupe(IgnoreFiles) $virtualPath]} {
+            return [UpdateFiles $command $virtualPath]
         }
-    } elseif {[IsTrue $dupe(CheckDirs)] && ![ListMatchI $dupe(IgnoreDirs) $vfsPath]} {
-        return [UpdateDirs $command $vfsPath]
+    } elseif {[IsTrue $dupe(CheckDirs)] && ![ListMatchI $dupe(IgnoreDirs) $virtualPath]} {
+        return [UpdateDirs $command $virtualPath]
     }
     return 0
 }
 
-proc ::nxTools::Dupe::UpdateDirs {command vfsPath} {
+proc ::nxTools::Dupe::UpdateDirs {command virtualPath} {
     global dupe group user
     if {[catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} error]} {
         ErrorLog DupeUpdateDirs $error
         return 1
     }
-    set dirName [file tail $vfsPath]
-    set dirPath [string range $vfsPath 0 [string last "/" $vfsPath]]
+    set dirName [file tail $virtualPath]
+    set dirPath [string range $virtualPath 0 [string last "/" $virtualPath]]
 
     if {$command eq "MKD"  || $command eq "RNTO"} {
         set timeStamp [clock seconds]
@@ -90,20 +90,20 @@ proc ::nxTools::Dupe::UpdateDirs {command vfsPath} {
     } elseif {[lsearch -sorted {RMD RNFR WIPE} $command] != -1} {
         # Append a slash to improve the accuracy of StrCaseEqN.
         # For example, /Dir/Blah matches /Dir/Blah.Blah but /Dir/Blah/ does not.
-        append vfsPath "/"
-        DirDb eval {DELETE FROM DupeDirs WHERE StrCaseEqN(DirPath,$vfsPath,length($vfsPath)) OR (StrCaseEq(DirPath,$dirPath) AND StrCaseEq(DirName,$dirName))}
+        append virtualPath "/"
+        DirDb eval {DELETE FROM DupeDirs WHERE StrCaseEqN(DirPath,$virtualPath,length($virtualPath)) OR (StrCaseEq(DirPath,$dirPath) AND StrCaseEq(DirName,$dirName))}
     }
     DirDb close
     return 0
 }
 
-proc ::nxTools::Dupe::UpdateFiles {command vfsPath} {
+proc ::nxTools::Dupe::UpdateFiles {command virtualPath} {
     global dupe group user
     if {[catch {DbOpenFile [namespace current]::FileDb "DupeFiles.db"} error]} {
         ErrorLog DupeUpdateFiles $error
         return 1
     }
-    set fileName [file tail $vfsPath]
+    set fileName [file tail $virtualPath]
 
     if {$command eq "UPLD" || $command eq "RNTO"} {
         set timeStamp [clock seconds]
@@ -399,7 +399,7 @@ proc ::nxTools::Dupe::SiteApprove {event release} {
             } elseif {[ApproveDb eval {SELECT count(*) FROM Approves WHERE StrCaseEq(Release,$release)}]} {
                 LinePuts "This release is already approved."
             } else {
-                # If the release already exists in the dupe database, we'll approve that one.
+                # If the release already exists in the dupe database, approve that one.
                 set approved 0
                 if {![catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} error]} {
                     DirDb eval {SELECT DirName,DirPath FROM DupeDirs WHERE StrCaseEq(DirName,$release) ORDER BY TimeStamp DESC LIMIT 1} values {
@@ -581,7 +581,9 @@ proc ::nxTools::Dupe::SiteNew {maxResults showSection} {
         if {$showAll} {
             set sectionName "Default"
             foreach {sectionName creditSection statSection matchPath} $sectionList {
-                if {[string match -nocase $matchPath $values(DirPath)]} {set showSection $sectionName; break}
+                if {[string match -nocase $matchPath $values(DirPath)]} {
+                    set showSection $sectionName; break
+                }
             }
         }
         set releaseAge [expr {[clock seconds] - $values(TimeStamp)}]
