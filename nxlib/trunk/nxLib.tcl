@@ -18,9 +18,10 @@ interp alias {} IsTrue {} string is true -strict
 interp alias {} IsFalse {} string is false -strict
 
 proc ::nxLib::ArgList {argv} {
+    # TODO: handle quotes
     split [string trim [regsub -all {\s+} $argv { }]]
 }
-proc ::nxLib::Argindex {argv index} {
+proc ::nxLib::ArgIndex {argv index} {
     lindex [ArgList $argv] $index
 }
 proc ::nxLib::ArgLength {argv} {
@@ -206,20 +207,20 @@ proc ::nxLib::GetDirStats {realPath varName {ignoreList ""} {firstCall 1}} {
 
 proc ::nxLib::GetPath {currentPath path} {
     if {[string index $path 0] eq "/"} {
-        set vfsPath $path
+        set virtualPath $path
     } else {
-        set vfsPath "/$currentPath$path"
+        set virtualPath "/$currentPath$path"
     }
-    regsub -all {[\\/]+} $vfsPath {/} vfsPath
+    regsub -all {[\\/]+} $virtualPath {/} virtualPath
 
     # Ignore "." and "..".
-    set tail [file tail $vfsPath]
+    set tail [file tail $virtualPath]
     if {$tail eq "." || $tail eq ".."} {
-        set vfsPath [file dirname $vfsPath]
-    } elseif {$vfsPath ne "/"} {
-        set vfsPath [string trimright $vfsPath "/"]
+        set virtualPath [file dirname $virtualPath]
+    } elseif {$virtualPath ne "/"} {
+        set virtualPath [string trimright $virtualPath "/"]
     }
-    return $vfsPath
+    return $virtualPath
 }
 
 proc ::nxLib::IsDiskPath {path} {
@@ -227,18 +228,18 @@ proc ::nxLib::IsDiskPath {path} {
     return [regexp {^(cd|dis[ck]|dvd)\d{1,2}$} $path]
 }
 
-proc ::nxLib::RemoveParentLinks {realPath vfsPath} {
+proc ::nxLib::RemoveParentLinks {realPath virtualPath} {
     if {[IsDiskPath $realPath]} {
         set realPath [file dirname $realPath]
     }
     set realPath [file dirname $realPath]
-    set vfsPath [string trimright $vfsPath "/"]
+    set virtualPath [string trimright $virtualPath "/"]
 
     foreach linkPath [glob -nocomplain -types d -directory $realPath "*"] {
         if {[catch {vfs chattr $linkPath 1} linkTarget] || ![string length $linkTarget]} {continue}
         regsub -all {[\\/]+} $linkTarget {/} linkTarget
         set linkTarget "/[string trim $linkTarget {/}]"
-        if {[string equal -nocase -length [string length $vfsPath] $vfsPath $linkTarget]} {
+        if {[string equal -nocase -length [string length $virtualPath] $virtualPath $linkTarget]} {
             RemoveTag $linkPath
         }
     }
@@ -286,10 +287,10 @@ proc ::nxLib::GetSectionPath {findSection {sectionList ""}} {
     return [list "DEFAULT" "*"]
 }
 
-proc ::nxLib::GetCreditstatSections {vfsPath {sectionList ""}} {
+proc ::nxLib::GetCreditstatSections {virtualPath {sectionList ""}} {
     if {![llength $sectionList]} {set sectionList [GetSectionList]}
     foreach {sectionName creditSection statSection matchPath} $sectionList {
-        if {[string match -nocase $matchPath $vfsPath]} {
+        if {[string match -nocase $matchPath $virtualPath]} {
             return [list $creditSection $statSection]
         }
     }
@@ -310,11 +311,11 @@ proc ::nxLib::KickUsers {path {isRealPath "False"}} {
         if {[client who init "CID" "STATUS" "VIRTUALPATH" "VIRTUALDATAPATH"] == 0} {
             set online 0
             while {[set whoData [client who fetch]] != ""} {
-                foreach {clientId status vfsPath dataPath} $whoData {break}
+                foreach {clientId status virtualPath dataPath} $whoData {break}
 
                 # Resolve virtual paths if needed.
                 if {[IsTrue $isRealPath]} {
-                    set vfsPath [resolve pwd $vfsPath]
+                    set virtualPath [resolve pwd $virtualPath]
                     set dataPath [resolve pwd $dataPath]
                 }
                 # After a transfer the user's data path will be the last file
@@ -322,8 +323,8 @@ proc ::nxLib::KickUsers {path {isRealPath "False"}} {
                 if {$status == 1 || $status == 2} {
                     set matchPath $dataPath
                 } else {
-                    if {[string index $vfsPath end] ne "/"} {append vfsPath "/"}
-                    set matchPath $vfsPath
+                    if {[string index $virtualPath end] ne "/"} {append virtualPath "/"}
+                    set matchPath $virtualPath
                 }
                 # Attempt to kick the client ID.
                 if {[string match -nocase $path $matchPath]} {
