@@ -495,8 +495,8 @@ proc ::nxLib::MergeStats {stats filesVar sizeVar timeVar} {
 # Cookie Parsing Procedures
 ######################################################################
 
-proc ::nxLib::OutputData {output} {
-    foreach line [split $output "\r\n"] {
+proc ::nxLib::OutputText {text} {
+    foreach line [split $text "\r\n"] {
         if {[string length $line]} {iputs $line}
     }
 }
