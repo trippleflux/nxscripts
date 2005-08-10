@@ -66,7 +66,7 @@ proc ::nxLib::ErrorReturn {message} {
 }
 
 proc ::nxLib::LinePuts {message} {
-    iputs [format "| %-70s |" $option]
+    iputs [format "| %-70s |" $message]
 }
 
 proc ::nxLib::StripChars {string} {
@@ -484,7 +484,7 @@ proc ::nxLib::GetGroupUsers {groupId} {
 proc ::nxLib::MatchFlags {required current} {
     set current [split $current {}]
     foreach flag [split $required {}] {
-        if {[lsearch -exact $flag $current] != -1} {return 1}
+        if {[lsearch -exact $current $flag] != -1} {return 1}
     }
     return 0
 }
