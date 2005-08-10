@@ -61,7 +61,6 @@ frequently, so be sure you are always using the latest version.
     ioFTPD\scripts\nxLib.tcl
     ioFTPD\scripts\nxTools\data\*
     ioFTPD\scripts\nxTools\text\*
-    ioFTPD\scripts\nxTools\nxBot.tcl
     ioFTPD\scripts\nxTools\nxClose.tcl
     ioFTPD\scripts\nxTools\nxDB.tcl
     ioFTPD\scripts\nxTools\nxDupe.tcl
@@ -104,7 +103,6 @@ rnfr = TCL ..\scripts\nxTools\nxDupe.tcl DUPELOG
 rnto = TCL ..\scripts\nxTools\nxDupe.tcl DUPELOG
 
 [FTP_Custom_Commands]
-bot         = TCL ..\scripts\nxTools\nxBot.tcl
 close       = TCL ..\scripts\nxTools\nxClose.tcl CLOSE
 open        = TCL ..\scripts\nxTools\nxClose.tcl OPEN
 db          = TCL ..\scripts\nxTools\nxDB.tcl
@@ -151,7 +149,6 @@ who         = TCL ..\scripts\nxTools\nxUtilities.tcl WHO
 
 [FTP_SITE_Permissions]
 approve     = !A *
-bot         = M -sitebot
 clean       = M1
 close       = M1
 db          = M
@@ -373,18 +370,6 @@ Legend:
      - SITE APPROVE ADD Something.Cool-NX
      - SITE APPROVE DEL Something.Very.Old-NX
      - SITE APPROVE LIST
-
-- SITE BOT <args>
-    Description:
-     - Used specifically by the sitebot to retrieve information.
-     - Allows a sitebot to verify a user's login, view online users, and display upload statistics.
-     - The hidden users, groups, and paths defined in the configuration file are not shown.
-     - Do not give users or siteops access to this command; it would be a security risk.
-    Examples:
-     - SITE BOT AUTH someuser thepassword
-     - SITE BOT STATS allup someuser
-     - SITE BOT STATS alldn =thegroup
-     - SITE BOT WHO
 
 - SITE CLEAN
     Description:

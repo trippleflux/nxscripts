@@ -6,6 +6,7 @@ nxTools v0.9.11 (XX-XX-2005):
   NEW: Added ::nx::sleep <ms> to nxHelper, to suspend execution for the given time.
   NEW: Request limits for individual users and groups.
   CHG: Improved configuration file parser for invite and pre.
+  CHG: Removed SITE BOT command, no longer needed.
   CHG: Renamed SITE CLEANLOGS to SITE CLEAN and SITE REBUILDLOGS to SITE REBUILD.
   CHG: Split the change log and upgrading instructions into separate files.
   CHG: Switched to a busy callback, instead of the a timeout value, for failed
