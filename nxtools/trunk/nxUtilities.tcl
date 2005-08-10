@@ -134,19 +134,19 @@ proc ::nxTools::Utils::OneLines {Message} {
         return 1
     }
     if {![string length $Message]} {
-        foreach MessageType {Header Body None Footer} {
-            set template($MessageType) [ReadFile [file join $misc(Templates) "OneLines.$MessageType"]]
+        foreach fileExt {Header Body None Footer} {
+            set template($fileExt) [ReadFile [file join $misc(Templates) "OneLines.$fileExt"]]
         }
-        OutputData $template(Header)
+        OutputText $template(Header)
         set Count 0
         OneDb eval {SELECT * FROM OneLines ORDER BY TimeStamp DESC LIMIT $misc(OneLines)} values {
             incr Count
             set ValueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt [IsTrue $misc(UtcTime)]]
             lappend ValueList $values(UserName) $values(GroupName) $values(Message)
-            OutputData [ParseCookies $template(Body) $ValueList {sec min hour day month year2 year4 user group message}]
+            OutputText [ParseCookies $template(Body) $ValueList {sec min hour day month year2 year4 user group message}]
         }
-        if {!$Count} {OutputData $template(None)}
-        OutputData $template(Footer)
+        if {!$Count} {OutputText $template(None)}
+        OutputText $template(Footer)
     } else {
         iputs ".-\[OneLines\]-------------------------------------------------------------."
         set TimeStamp [clock seconds]

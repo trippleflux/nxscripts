@@ -170,10 +170,10 @@ proc ::nxTools::Req::Update {Event UserName GroupName Request} {
 proc ::nxTools::Req::List {IsSiteBot} {
     global misc req
     if {!$IsSiteBot} {
-        foreach MessageType {Header Body None Footer} {
-            set template($MessageType) [ReadFile [file join $misc(Templates) "Requests.$MessageType"]]
+        foreach fileExt {Header Body None Footer} {
+            set template($fileExt) [ReadFile [file join $misc(Templates) "Requests.$fileExt"]]
         }
-        OutputData $template(Header)
+        OutputText $template(Header)
         set Count 0
     }
     ReqDb eval {SELECT * FROM Requests WHERE Status=0 ORDER BY RequestId DESC} values {
@@ -185,12 +185,12 @@ proc ::nxTools::Req::List {IsSiteBot} {
             incr Count
             set RequestAge [lrange [FormatDuration $RequestAge] 0 1]
             set ValueList [list $RequestAge $RequestId $values(UserName) $values(GroupName) $values(Request)]
-            OutputData [ParseCookies $template(Body) $ValueList {age id user group request}]
+            OutputText [ParseCookies $template(Body) $ValueList {age id user group request}]
         }
     }
     if {!$IsSiteBot} {
-        if {!$Count} {OutputData $template(None)}
-        OutputData $template(Footer)
+        if {!$Count} {OutputText $template(None)}
+        OutputText $template(Footer)
     }
     return 0
 }

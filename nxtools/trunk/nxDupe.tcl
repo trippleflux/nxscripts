@@ -439,10 +439,10 @@ proc ::nxTools::Dupe::SiteApprove {Event Release} {
         }
         {LIST} {
             if {!$IsSiteBot} {
-                foreach MessageType {Header Body None Footer} {
-                    set template($MessageType) [ReadFile [file join $misc(Templates) "Approves.$MessageType"]]
+                foreach fileExt {Header Body None Footer} {
+                    set template($fileExt) [ReadFile [file join $misc(Templates) "Approves.$fileExt"]]
                 }
-                OutputData $template(Header)
+                OutputText $template(Header)
                 set Count 0
             }
             ApproveDb eval {SELECT * FROM Approves ORDER BY Release ASC} values {
@@ -453,12 +453,12 @@ proc ::nxTools::Dupe::SiteApprove {Event Release} {
                     incr Count
                     set ApproveAge [lrange [FormatDuration $ApproveAge] 0 1]
                     set ValueList [list $Count $ApproveAge $values(UserName) $values(GroupName) $values(Release)]
-                    OutputData [ParseCookies $template(Body) $ValueList {num age user group release}]
+                    OutputText [ParseCookies $template(Body) $ValueList {num age user group release}]
                 }
             }
             if {!$IsSiteBot} {
-                if {!$Count} {OutputData $template(None)}
-                OutputData $template(Footer)
+                if {!$Count} {OutputText $template(None)}
+                OutputText $template(Footer)
             }
         }
     }
@@ -473,10 +473,10 @@ proc ::nxTools::Dupe::SiteDupe {MaxResults Pattern} {
         return 1
     }
     if {!$IsSiteBot} {
-        foreach MessageType {Header Body None Footer} {
-            set template($MessageType) [ReadFile [file join $misc(Templates) "Dupe.$MessageType"]]
+        foreach fileExt {Header Body None Footer} {
+            set template($fileExt) [ReadFile [file join $misc(Templates) "Dupe.$fileExt"]]
         }
-        OutputData $template(Header)
+        OutputText $template(Header)
     }
     set Pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$Pattern*" "*"]]
     set Count 0
@@ -487,17 +487,17 @@ proc ::nxTools::Dupe::SiteDupe {MaxResults Pattern} {
         } else {
             set ValueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt [IsTrue $misc(UtcTime)]]
             lappend ValueList $Count $values(UserName) $values(GroupName) $values(DirName) [file join $values(DirPath) $values(DirName)]
-            OutputData [ParseCookies $template(Body) $ValueList {sec min hour day month year2 year4 num user group release path}]
+            OutputText [ParseCookies $template(Body) $ValueList {sec min hour day month year2 year4 num user group release path}]
         }
     }
     if {!$IsSiteBot} {
-        if {!$Count} {OutputData $template(None)}
+        if {!$Count} {OutputText $template(None)}
         if {$Count == $MaxResults} {
             set Total [DirDb eval "SELECT count(*) FROM DupeDirs WHERE DirName LIKE '$Pattern' ESCAPE '\\'"]
         } else {
             set Total $Count
         }
-        OutputData [ParseCookies $template(Footer) [list $Count $Total] {found total}]
+        OutputText [ParseCookies $template(Footer) [list $Count $Total] {found total}]
     }
     DirDb close
     return 0
@@ -510,10 +510,10 @@ proc ::nxTools::Dupe::SiteFileDupe {MaxResults Pattern} {
         return 1
     }
     if {!$IsSiteBot} {
-        foreach MessageType {Header Body None Footer} {
-            set template($MessageType) [ReadFile [file join $misc(Templates) "FileDupe.$MessageType"]]
+        foreach fileExt {Header Body None Footer} {
+            set template($fileExt) [ReadFile [file join $misc(Templates) "FileDupe.$fileExt"]]
         }
-        OutputData $template(Header)
+        OutputText $template(Header)
     }
     set Pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$Pattern*" "*"]]
     set Count 0
@@ -524,17 +524,17 @@ proc ::nxTools::Dupe::SiteFileDupe {MaxResults Pattern} {
         } else {
             set ValueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt [IsTrue $misc(UtcTime)]]
             lappend ValueList $Count $values(UserName) $values(GroupName) $values(FileName)
-            OutputData [ParseCookies $template(Body) $ValueList {sec min hour day month year2 year4 num user group file}]
+            OutputText [ParseCookies $template(Body) $ValueList {sec min hour day month year2 year4 num user group file}]
         }
     }
     if {!$IsSiteBot} {
-        if {!$Count} {OutputData $template(None)}
+        if {!$Count} {OutputText $template(None)}
         if {$Count == $MaxResults} {
             set Total [FileDb eval "SELECT count(*) FROM DupeFiles WHERE FileName LIKE '$Pattern' ESCAPE '\\'"]
         } else {
             set Total $Count
         }
-        OutputData [ParseCookies $template(Footer) [list $Count $Total] {found total}]
+        OutputText [ParseCookies $template(Footer) [list $Count $Total] {found total}]
     }
     FileDb close
     return 0
@@ -547,10 +547,10 @@ proc ::nxTools::Dupe::SiteNew {MaxResults ShowSection} {
         return 1
     }
     if {!$IsSiteBot} {
-        foreach MessageType {Header Error Body None Footer} {
-            set template($MessageType) [ReadFile [file join $misc(Templates) "New.$MessageType"]]
+        foreach fileExt {Header Error Body None Footer} {
+            set template($fileExt) [ReadFile [file join $misc(Templates) "New.$fileExt"]]
         }
-        OutputData $template(Header)
+        OutputText $template(Header)
     }
     set SectionList [GetSectionList]
     if {![set ShowAll [string equal "" $ShowSection]]} {
@@ -565,8 +565,8 @@ proc ::nxTools::Dupe::SiteNew {MaxResults ShowSection} {
         }
         if {!$ValidSection} {
             set SectionNameList [join [lsort -ascii $SectionNameList]]
-            OutputData [ParseCookies $template(Error) [list $SectionNameList] {sections}]
-            OutputData $template(Footer)
+            OutputText [ParseCookies $template(Error) [list $SectionNameList] {sections}]
+            OutputText $template(Footer)
             DirDb close
             return 1
         }
@@ -590,12 +590,12 @@ proc ::nxTools::Dupe::SiteNew {MaxResults ShowSection} {
         } else {
             set ReleaseAge [lrange [FormatDuration $ReleaseAge] 0 1]
             set ValueList [list $Count $ReleaseAge $values(UserName) $values(GroupName) $ShowSection $values(DirName) [file join $values(DirPath) $values(DirName)]]
-            OutputData [ParseCookies $template(Body) $ValueList {num age user group section release path}]
+            OutputText [ParseCookies $template(Body) $ValueList {num age user group section release path}]
         }
     }
     if {!$IsSiteBot} {
-        if {!$Count} {OutputData $template(None)}
-        OutputData $template(Footer)
+        if {!$Count} {OutputText $template(None)}
+        OutputText $template(Footer)
     }
     DirDb close
     return 0
@@ -604,10 +604,10 @@ proc ::nxTools::Dupe::SiteNew {MaxResults ShowSection} {
 proc ::nxTools::Dupe::SitePreTime {MaxResults Pattern} {
     global IsSiteBot misc mysql
     if {!$IsSiteBot} {
-        foreach MessageType {Header Body BodyInfo BodyNuke None Footer} {
-            set template($MessageType) [ReadFile [file join $misc(Templates) "PreTime.$MessageType"]]
+        foreach fileExt {Header Body BodyInfo BodyNuke None Footer} {
+            set template($fileExt) [ReadFile [file join $misc(Templates) "PreTime.$fileExt"]]
         }
-        OutputData $template(Header)
+        OutputText $template(Header)
     }
     set Pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$Pattern*" "*"]]
     set Count 0
@@ -630,14 +630,14 @@ proc ::nxTools::Dupe::SitePreTime {MaxResults Pattern} {
                 set ValueList [clock format $PreTime -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 1]
                 set ValueList [concat $ValueList [clock format $NukeTime -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 1]]
                 lappend ValueList $ReleaseAge $Count $Section $Release $Files [FormatSize $KBytes] $Disks $NukeReason
-                OutputData [ParseCookies $BodyTemplate $ValueList {sec min hour day month year2 year4 nukesec nukemin nukehour nukeday nukemonth nukeyear2 nukeyear4 age num section release files size disks reason}]
+                OutputText [ParseCookies $BodyTemplate $ValueList {sec min hour day month year2 year4 nukesec nukemin nukehour nukeday nukemonth nukeyear2 nukeyear4 age num section release files size disks reason}]
             }
         }
         MySqlClose
     }
     if {!$IsSiteBot} {
-        if {!$Count} {OutputData $template(None)}
-        OutputData $template(Footer)
+        if {!$Count} {OutputText $template(None)}
+        OutputText $template(Footer)
     }
     return 0
 }

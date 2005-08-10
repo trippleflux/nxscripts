@@ -29,43 +29,43 @@ proc ::nxTools::Close::ExcemptCheck {userName groupName flags} {
 # Close Main
 ######################################################################
 
-proc ::nxTools::Close::Main {ArgV} {
+proc ::nxTools::Close::Main {argv} {
     global close misc flags group ioerror user
-    set Result 0
+    set result 0
 
-    set ArgList [ArgList $ArgV]
-    set Event [string toupper [lindex $ArgList 0]]
-    switch -- $Event {
+    set argList [ArgList $argv]
+    set event [string toupper [lindex $argList 0]]
+    switch -- $event {
         {CLOSE} {
             iputs ".-\[Close\]-----------------------------------------------------------------."
-            if {[catch {set CloseInfo [var get nxToolsClosed]}]} {
-                set CloseReason [join [lrange $ArgList 1 end]]
-                if {![string length $CloseReason]} {set CloseReason "No Reason"}
-                set CloseInfo [list [clock seconds] $CloseReason]
+            if {[catch {set closeInfo [var get nxToolsClosed]}]} {
+                set reason [join [lrange $argList 1 end]]
+                if {![string length $reason]} {set reason "No Reason"}
+                set closeInfo [list [clock seconds] $reason]
 
-                var set nxToolsClosed $CloseInfo
-                LinePuts "Server is now closed for: $CloseReason."
-                putlog "CLOSE: \"$user\" \"$group\" \"$CloseReason\""
+                var set nxToolsClosed $closeInfo
+                LinePuts "Server is now closed for: $reason."
+                putlog "CLOSE: \"$user\" \"$group\" \"$reason\""
 
                 # Kick online users.
                 if {[IsTrue $close(KickOnClose)] && [client who init "CID" "UID"] == 0} {
-                    while {[set WhoData [client who fetch]] ne ""} {
-                        set UserName [resolve uid [lindex $WhoData 1]]
-                        set Flags ""
-                        set GroupName "NoGroup"
-                        if {[userfile open $UserName] == 0} {
-                            set UserFile [userfile bin2ascii]
-                            foreach UserLine [split $UserFile "\r\n"] {
-                                set LineType [string tolower [lindex $UserLine 0]]
-                                if {$LineType eq "groups"} {
-                                    set GroupName [GetGroupName [lindex $UserLine 1]]
-                                } elseif {$LineType eq "flags"} {
-                                    set Flags [lindex $UserLine 1]
+                    while {[set whoData [client who fetch]] ne ""} {
+                        set userName [resolve uid [lindex $whoData 1]]
+                        set groupName "NoGroup"; set flags ""
+
+                        if {[userfile open $userName] == 0} {
+                            set userFile [userfile bin2ascii]
+                            foreach line [split $userFile "\r\n"] {
+                                set type [string tolower [lindex $line 0]]
+                                if {$type eq "groups"} {
+                                    set groupName [GetGroupName [lindex $line 1]]
+                                } elseif {$type eq "flags"} {
+                                    set flags [lindex $line 1]
                                 }
                             }
                         }
-                        if {![ExcemptCheck $UserName $GroupName $Flags]} {
-                            catch {client kill clientid [lindex $WhoData 0]}
+                        if {![ExcemptCheck $userName $groupName $flags]} {
+                            catch {client kill clientid [lindex $whoData 0]}
                         }
                     }
                 }
@@ -75,33 +75,33 @@ proc ::nxTools::Close::Main {ArgV} {
             iputs "'------------------------------------------------------------------------'"
         }
         {LOGIN} {
-            if {![ExcemptCheck $user $group $flags] && ![catch {set CloseInfo [var get nxToolsClosed]}]} {
-                set Duration [expr {[clock seconds] - [lindex $CloseInfo 0]}]
-                iputs -nobuffer "530 Server Closed: [lindex $CloseInfo 1] (since [FormatDuration $Duration] ago)"
-                set Result 1
+            if {![ExcemptCheck $user $group $flags] && ![catch {set closeInfo [var get nxToolsClosed]}]} {
+                set duration [expr {[clock seconds] - [lindex $closeInfo 0]}]
+                iputs -nobuffer "530 Server Closed: [lindex $closeInfo 1] (since [FormatDuration $duration] ago)"
+                set result 1
             }
         }
         {OPEN} {
             iputs ".-\[Open\]-----------------------------------------------------------------."
-            if {[catch {set CloseInfo [var get nxToolsClosed]}]} {
+            if {[catch {set closeInfo [var get nxToolsClosed]}]} {
                 LinePuts "Server is currently open, use \"SITE CLOSE \[reason\]\" to close it."
             } else {
-                set Duration [expr {[clock seconds] - [lindex $CloseInfo 0]}]
-                LinePuts "Server is now open, closed for [FormatDuration $Duration]."
+                set duration [expr {[clock seconds] - [lindex $closeInfo 0]}]
+                LinePuts "Server is now open, closed for [FormatDuration $duration]."
                 if {[IsTrue $misc(dZSbotLogging)]} {
-                    set Duration [FormatDuration $Duration]
+                    set duration [FormatDuration $duration]
                 }
-                putlog "OPEN: \"$user\" \"$group\" \"$Duration\" \"[lindex $CloseInfo 1]\""
+                putlog "OPEN: \"$user\" \"$group\" \"$duration\" \"[lindex $closeInfo 1]\""
                 catch {var unset nxToolsClosed}
             }
             iputs "'------------------------------------------------------------------------'"
         }
         default {
-            ErrorLog InvalidArgs "unknown event \"[info script] $Event\": check your ioFTPD.ini for errors"
-            set Result 1
+            ErrorLog InvalidArgs "unknown event \"[info script] $event\": check your ioFTPD.ini for errors"
+            set result 1
         }
     }
-    return [set ioerror $Result]
+    return [set ioerror $result]
 }
 
 ::nxTools::Close::Main [expr {[info exists args] ? $args : ""}]
