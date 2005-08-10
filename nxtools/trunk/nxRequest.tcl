@@ -145,7 +145,7 @@ proc ::nxTools::Req::Update {Event UserName GroupName Request} {
 
         } elseif {$Event eq "DEL"} {
             # Only siteops or the owner may delete a request.
-            if {$UserName ne $values(UserName) && ![regexp "\[$misc(SiteopFlags)\]" $flags]} {
+            if {$UserName ne $values(UserName) && ![MatchFlags $misc(SiteopFlags) $flags]} {
                 ReqDb close
                 ErrorReturn "You are not allowed to delete another user's request."
             }

@@ -265,7 +265,7 @@ proc ::nxTools::Dupe::ForceCheck {VirtualPath} {
     set MatchPath [file dirname $VirtualPath]
 
     if {![string equal -nocase ".nfo" $FileExt] && ![string equal -nocase ".sfv" $FileExt] && ![ListMatchI $force(Exempts) $MatchPath]} {
-        set ReleasePath [resolve pwd [expr {[IsMultiDisk $MatchPath] ? [file dirname $MatchPath] : $MatchPath}]]
+        set ReleasePath [resolve pwd [expr {[IsDiskPath $MatchPath] ? [file dirname $MatchPath] : $MatchPath}]]
         set CheckFile [ListMatch $force(FilePaths) $MatchPath]
 
         if {$CheckFile && [IsTrue $force(NfoFirst)]} {
@@ -394,7 +394,7 @@ proc ::nxTools::Dupe::SiteApprove {Event Release} {
     switch -- $Event {
         {ADD} {
             iputs ".-\[Approve\]--------------------------------------------------------------."
-            if {![regexp "\[$approve(Flags)\]" $flags]} {
+            if {![MatchFlags $approve(Flags) $flags]} {
                 LinePuts "Only siteops may approve releases."
             } elseif {[ApproveDb eval {SELECT count(*) FROM Approves WHERE StrCaseEq(Release,$Release)}]} {
                 LinePuts "This release is already approved."
@@ -422,7 +422,7 @@ proc ::nxTools::Dupe::SiteApprove {Event Release} {
         }
         {DEL} {
             iputs ".-\[Approve\]--------------------------------------------------------------."
-            if {![regexp "\[$approve(Flags)\]" $flags]} {
+            if {![MatchFlags $approve(Flags) $flags]} {
                 LinePuts "Only siteops may deleted approved releases."
             } else {
                 set Exists 0

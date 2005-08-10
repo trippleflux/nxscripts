@@ -26,7 +26,7 @@ proc ::nxTools::Nuke::FindTags {RealPath TagFormat} {
 
 proc ::nxTools::Nuke::GetName {VirtualPath} {
     set Release [file tail [TrimTag $VirtualPath]]
-    if {[IsMultiDisk $Release]} {
+    if {[IsDiskPath $Release]} {
         set ParentPath [file tail [file dirname $VirtualPath]]
         if {[string length $ParentPath]} {set Release "$ParentPath ($Release)"}
     }
@@ -208,7 +208,7 @@ proc ::nxTools::Nuke::Main {ArgV} {
 
             # Count disk sub-directories.
             foreach ListItem [glob -nocomplain -types d -directory $RealPath "*"] {
-                if {[IsMultiDisk $ListItem]} {incr DiskCount}
+                if {[IsDiskPath $ListItem]} {incr DiskCount}
             }
 
             # Count files and total size.

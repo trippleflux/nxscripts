@@ -51,7 +51,7 @@ proc ::nxTools::Utils::CheckHidden {UserName GroupName VirtualPath} {
 
 proc ::nxTools::Utils::IsGroupAdmin {UserName Flags GroupId} {
     global misc
-    if {![regexp "\[$misc(GAdminFlags)\]" $Flags]} {
+    if {![MatchFlags $misc(GAdminFlags) $Flags]} {
         return 1
     } elseif {[userfile open $UserName] == 0} {
         set UserFile [userfile bin2ascii]
@@ -452,7 +452,7 @@ proc ::nxTools::Utils::SiteGroupInfo {GroupName Section} {
         }
 
         # Siteop and group admin prefix.
-        if {[regexp "\[$misc(SiteopFlags)\]" $uinfo(Flags)]} {
+        if {[MatchFlags $misc(SiteopFlags) $uinfo(Flags)]} {
             set uinfo(Prefix) "*"
         } elseif {[lsearch -exact $uinfo(AdminGroups) $GroupId] != -1} {
             set uinfo(Prefix) "+"
@@ -593,7 +593,7 @@ proc ::nxTools::Utils::SiteTraffic {Target} {
 proc ::nxTools::Utils::SiteWho {} {
     global misc cid flags
     array set who [list BwDn 0.0 BwUp 0.0 UsersDn 0 UsersUp 0 UsersIdle 0]
-    set IsAdmin [regexp "\[$misc(SiteopFlags)\]" $flags]
+    set IsAdmin [MatchFlags $misc(SiteopFlags) $flags]
     iputs ".------------------------------------------------------------------------."
     iputs "|    User    |   Group    |  Info          |  Action                     |"
     iputs "|------------------------------------------------------------------------|"

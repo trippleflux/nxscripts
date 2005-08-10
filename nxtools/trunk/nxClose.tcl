@@ -18,10 +18,11 @@ namespace eval ::nxTools::Close {
 # Close Procedures
 ######################################################################
 
-proc ::nxTools::Close::ExcemptCheck {UserName GroupName Flags} {
+proc ::nxTools::Close::ExcemptCheck {userName groupName flags} {
     global close
-    if {[regexp "\[$close(Flags)\]" $Flags]} {return 1}
-    if {[lsearch -exact $close(UserNames) $UserName] != -1 || [lsearch -exact $close(GroupNames) $GroupName] != -1} {return 1}
+    if {[MatchFlags $close(Flags) $flags] || \
+        [lsearch -exact $close(UserNames) $userName] != -1 || \
+        [lsearch -exact $close(GroupNames) $groupName] != -1} {return 1}
     return 0
 }
 

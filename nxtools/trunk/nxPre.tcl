@@ -555,7 +555,7 @@ proc ::nxTools::Pre::Release {ArgList} {
 
     # Count disk sub-directories.
     foreach ListItem [glob -nocomplain -types d -directory $RealPath "*"] {
-        if {[IsMultiDisk $ListItem]} {incr DiskCount}
+        if {[IsDiskPath $ListItem]} {incr DiskCount}
     }
 
     # Count files and total size.
