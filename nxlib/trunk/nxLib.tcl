@@ -141,7 +141,7 @@ proc ::nxLib::ArchiveFile {filePath {formatStyle "%Y-%m-%d"}} {
     set datePrefix [clock format [clock seconds] -format $formatStyle -gmt 0]
     set archivePath [file join $log(ArchivePath) "$datePrefix.[file tail $filePath]"]
     if {[catch {file rename -- $filePath $archivePath} error]} {
-        ErrorLog archivePath $error; return 0
+        ErrorLog ArchiveFile $error; return 0
     }
     return 1
 }
@@ -317,12 +317,11 @@ proc ::nxLib::KickUsers {path {isRealPath "False"}} {
             set online 0
             while {[set whoData [client who fetch]] != ""} {
                 foreach {clientId status virtualPath dataPath} $whoData {break}
-
-                # Resolve virtual paths if needed.
                 if {[IsTrue $isRealPath]} {
                     set virtualPath [resolve pwd $virtualPath]
                     set dataPath [resolve pwd $dataPath]
                 }
+
                 # After a transfer the user's data path will be the last file
                 # transfered; however, their status will be IDLE. Bug?
                 if {$status == 1 || $status == 2} {
@@ -331,6 +330,7 @@ proc ::nxLib::KickUsers {path {isRealPath "False"}} {
                     if {[string index $virtualPath end] ne "/"} {append virtualPath "/"}
                     set matchPath $virtualPath
                 }
+
                 # Attempt to kick the client ID.
                 if {[string match -nocase $path $matchPath]} {
                     incr online
