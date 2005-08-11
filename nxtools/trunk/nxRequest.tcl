@@ -104,11 +104,12 @@ proc ::nxTools::Req::UpdateDir {event request {userId 0} {groupId 0}} {
 proc ::nxTools::Req::Add {userName groupName request} {
     global misc req
     iputs ".-\[Request\]--------------------------------------------------------------."
-    set result 1
+    set result 0
     set request [StripChars $request]
 
     if {[ReqDb eval {SELECT count(*) FROM Requests WHERE Status=0 AND StrCaseEq(Request,$request)}]} {
         LinePuts "This item is already requested."
+        set result 1
     } elseif {[CheckLimit $userName $groupName]} {
         set requestId 1
         ReqDb eval {SELECT (max(RequestId)+1) AS NextId FROM Requests WHERE Status=0} values {
@@ -124,7 +125,6 @@ proc ::nxTools::Req::Add {userName groupName request} {
         putlog "REQUEST: \"$userName\" \"$groupName\" \"$request\" \"$requestId\""
         LinePuts "Added your request of $request (#$requestId)."
         UpdateDir ADD $request
-        set result 0
     }
 
     iputs "'------------------------------------------------------------------------'"
@@ -134,14 +134,22 @@ proc ::nxTools::Req::Add {userName groupName request} {
 proc ::nxTools::Req::Update {event userName groupName request} {
     global misc req
     iputs ".-\[Request\]--------------------------------------------------------------."
-    set exists 0; set result 1
+    set exists 0
+    set result 0
     set request [StripChars $request]
 
     ReqDb eval {SELECT rowid,* FROM Requests WHERE Status=0 AND (RequestId=$request OR StrCaseEq(Request,$request)) LIMIT 1} values {set exists 1}
     if {!$exists} {
         LinePuts "Invalid request, use \"SITE REQUESTS\" to view current requests."
+        set result 1
     } else {
         if {$event eq "FILL"} {
+            if {$userName eq $values(UserName)} {
+                LinePuts "You cannot fill your own requests."
+                iputs "'------------------------------------------------------------------------'"
+                return 1
+            }
+
             ReqDb eval {UPDATE Requests SET Status=1 WHERE rowid=$values(rowid)}
             LinePuts "Filled request $values(Request) for $values(UserName)/$values(GroupName)."
             set logType "REQFILL"
@@ -149,8 +157,9 @@ proc ::nxTools::Req::Update {event userName groupName request} {
         } elseif {$event eq "DEL"} {
             # Only siteops or the owner may delete a request.
             if {$userName ne $values(UserName) && ![MatchFlags $misc(SiteopFlags) $flags]} {
-                ReqDb close
-                ErrorReturn "You are not allowed to delete another user's request."
+                LinePuts "You are not allowed to delete another user's request."
+                iputs "'------------------------------------------------------------------------'"
+                return 1
             }
             ReqDb eval {DELETE FROM Requests WHERE rowid=$values(rowid)}
             LinePuts "Deleted request $values(Request) for $values(UserName)/$values(GroupName)."
@@ -164,7 +173,6 @@ proc ::nxTools::Req::Update {event userName groupName request} {
         }
         putlog "${logType}: \"$userName\" \"$groupName\" \"$values(Request)\" \"$values(UserName)\" \"$values(GroupName)\" \"$requestId\" \"$requestAge\""
         UpdateDir $event $values(Request)
-        set result 0
     }
 
     iputs "'------------------------------------------------------------------------'"
