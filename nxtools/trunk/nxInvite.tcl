@@ -51,11 +51,11 @@ proc ::nxTools::Invite::ConfigWrite {configFile} {
     if {![catch {set handle [open $configFile w]} error]} {
         puts $handle $configComments
         puts $handle "\[INVITES\]"
-        foreach {vame value} [array get invchan] {
+        foreach {name value} [array get invchan] {
             puts $handle "$name \"[lsort -ascii $value]\""
         }
         puts $handle "\n\[RIGHTS\]"
-        foreach {vame value} [array get rights] {
+        foreach {name value} [array get rights] {
             puts $handle "$name \"$value\""
         }
         close $handle
@@ -164,8 +164,8 @@ proc ::nxTools::Invite::Main {argv} {
                 }
 
                 if {![info exists invchan($target)]} {set invchan($target) ""}
-                foreach chanEntry $invchan($target) {
-                    if {[string equal -nocase $chanEntry $value]} {
+                foreach entry $invchan($target) {
+                    if {[string equal -nocase $entry $value]} {
                         ErrorReturn "The channel \"$value\" already exists in the invite target \"$target\"."
                     }
                 }
@@ -181,8 +181,8 @@ proc ::nxTools::Invite::Main {argv} {
                 }
                 set deleted 0; set index 0
                 if {![info exists invchan($target)]} {set invchan($target) ""}
-                foreach chanEntry $invchan($target) {
-                    if {[string equal -nocase $chanEntry $value]} {
+                foreach entry $invchan($target) {
+                    if {[string equal -nocase $entry $value]} {
                         set invchan($target) [lreplace $invchan($target) $index $index]
                         set deleted 1; break
                     }
