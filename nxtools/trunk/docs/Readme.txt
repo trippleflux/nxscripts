@@ -64,8 +64,6 @@ frequently, so be sure you are always using the latest version.
     ioFTPD\scripts\nxTools\nxClose.tcl
     ioFTPD\scripts\nxTools\nxDB.tcl
     ioFTPD\scripts\nxTools\nxDupe.tcl
-    ioFTPD\scripts\nxTools\nxInvite.cfg
-    ioFTPD\scripts\nxTools\nxInvite.tcl
     ioFTPD\scripts\nxTools\nxNuke.tcl
     ioFTPD\scripts\nxTools\nxPre.cfg
     ioFTPD\scripts\nxTools\nxPre.tcl
@@ -78,7 +76,6 @@ frequently, so be sure you are always using the latest version.
  2. Modify the configuration files to your liking.
 
     nxTools.cfg  - Main nxTools configuration.
-    nxInvite.cfg - Invite areas, managed by "SITE EDITINV".
     nxPre.cfg    - Pre areas and groups, managed by "SITE EDITPRE".
     nxRules.cfg  - Rules to by displayed by "SITE RULES".
     nxWeekly.cfg - Weekly user and group credits, managed by "SITE WEEKLY".
@@ -115,8 +112,6 @@ pretime     = TCL ..\scripts\nxTools\nxDupe.tcl PRETIME
 rebuild     = TCL ..\scripts\nxTools\nxDupe.tcl REBUILD
 undupe      = TCL ..\scripts\nxTools\nxDupe.tcl UNDUPE
 wipe        = TCL ..\scripts\nxTools\nxDupe.tcl WIPE
-editinv     = TCL ..\scripts\nxTools\nxInvite.tcl EDIT
-invite      = TCL ..\scripts\nxTools\nxInvite.tcl INVITE
 nuke        = TCL ..\scripts\nxTools\nxNuke.tcl NUKE
 nukes       = TCL ..\scripts\nxTools\nxNuke.tcl NUKES
 nuketop     = TCL ..\scripts\nxTools\nxNuke.tcl NUKETOP
@@ -134,6 +129,7 @@ drives      = TCL ..\scripts\nxTools\nxUtilities.tcl DRIVES
 errlog      = TCL ..\scripts\nxTools\nxUtilities.tcl ERRLOG
 ginfo       = TCL ..\scripts\nxTools\nxUtilities.tcl GINFO
 give        = TCL ..\scripts\nxTools\nxUtilities.tcl GIVE
+invite      = TCL ..\scripts\nxTools\nxUtilities.tcl INVITE
 newdate     = TCL ..\scripts\nxTools\nxUtilities.tcl NEWDATE
 onel        = TCL ..\scripts\nxTools\nxUtilities.tcl ONELINES
 resetstats  = TCL ..\scripts\nxTools\nxUtilities.tcl RESETSTATS
@@ -154,7 +150,6 @@ close       = M1
 db          = M
 drives      = M1V
 dupe        = !A *
-editinv     = M1
 editpre     = M1
 errlog      = M1
 fdupe       = !A *
@@ -417,13 +412,6 @@ Legend:
      - SITE DUPE *Something*Cool*
      - SITE DUPE -max 30 *Something*Cool*
 
-- SITE EDITINV <option> <target> [value]
-    Description:
-     - Remotely edit the invite targets, channels, rights, and restrictions.
-     - For an explanation of the EDITINV command, try SITE EDITINV HELP.
-    Examples:
-     - SITE EDITINV HELP
-
 - SITE EDITPRE <option> <area> [value]
     Description:
      - Remotely edit the pre areas, pre groups, and pre paths.
@@ -460,14 +448,11 @@ Legend:
      - SITE GIVE someuser 100KB 3
      - SITE GIVE someuser 500GB 3
 
-- SITE INVITE <irc nick> [target]
+- SITE INVITE <irc nick>
     Description:
-     - Invite the specified IRC nickname to the default site channel.
-     - The target parameter can be specified to invite yourself to a specific
-       set of channels.
+     - Invite the specified IRC nickname to the site channel.
     Examples:
      - SITE INVITE mynick
-     - SITE INVITE mynick home
 
 - SITE NEW [-max <limit>] [section]
     Description:
@@ -824,7 +809,7 @@ Text Templates:
 
 - Make SITE GINFO/WHO customizable - not a high priority.
 
-- Write a compatible sitebot (Infernus is on the way!).
+- Write a compatible sitebot; AlcoBot at http://www.alcoholicz.com.
 
 - Convert this manual to a cleanly formatted HTML file (like WarC and Harm have
   done with ioA and ioBanana).
