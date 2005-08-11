@@ -1,4 +1,4 @@
-# nxAutoNuke v2.0.3 By neoxed
+# nxAutoNuke v2.1.0 By neoxed
 ###############################################################
 
 # Information:
@@ -13,7 +13,7 @@ groups. Nuke reasons are customizable using cookies.
   Thanks to Harm for ioAUTONUKE, which showed me how I was able to use
 ioA as an external nuker. ioA support is credited towards him. :)
 
-# nxTools and nxSitebot Installation:
+# nxTools and AlcoBot Installation:
 ###############################################################
 
 1. UnRAR and copy all files and directories, maintaining the
@@ -115,7 +115,8 @@ set msgtypes(RACE) "ANUKEALLOWED ANUKEBANNED ANUKEDISKS ANUKEEMPTY ANUKEIMDB ANU
 # Changelog:
 ###############################################################
 
-nxAutoNuke v2.0.3 (XX-XX-2005):
+nxAutoNuke v2.1.0 (XX-XX-2005):
+  CHG: Updated to work with nxTools v0.9.11.
   CHG: The ioA version is distributed separately now.
 
 nxAutoNuke v2.0.2 (04-03-2005):
@@ -190,4 +191,3 @@ nxAutoNuke v1.0.0 (09-21-2004):
 ###############################################################
 - RiA release name checks will only be added if someone can provide
   me with an original copy of the RiA standards/rules.
-- Real documentation.
