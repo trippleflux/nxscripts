@@ -1,5 +1,5 @@
 ################################################################################
-#              nxTools - Dupe Checker, Nuker, Pre, Request & Tools             #
+#          nxTools - Dupe Checker, nuker, pre, request and utilities.          #
 #                     Written by neoxed (neoxed@gmail.com)                     #
 ################################################################################
 

@@ -1,10 +1,16 @@
-################################################################################
-# nxTools - Pre Script                                                         #
-################################################################################
-# Author  : $-66(AUTHOR) #
-# Date    : $-66(TIMESTAMP) #
-# Version : $-66(VERSION) #
-################################################################################
+#
+# nxTools - Dupe Checker, nuker, pre, request and utilities.
+# Copyright (c) 2004-2005 neoxed
+#
+# Module Name:
+#   Pre
+#
+# Author:
+#   neoxed (neoxed@gmail.com)
+#
+# Abstract:
+#   Implements a pre script and related statistical commands.
+#
 
 if {[IsTrue $misc(ReloadConfig)] && [catch {source "../scripts/init.itcl"} error]} {
     iputs "Unable to load script configuration, contact a siteop."

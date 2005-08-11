@@ -1,10 +1,16 @@
-################################################################################
-# nxTools - Open/Close Script                                                  #
-################################################################################
-# Author  : $-66(AUTHOR) #
-# Date    : $-66(TIMESTAMP) #
-# Version : $-66(VERSION) #
-################################################################################
+#
+# nxTools - Dupe Checker, nuker, pre, request and utilities.
+# Copyright (c) 2004-2005 neoxed
+#
+# Module Name:
+#   Close Site
+#
+# Author:
+#   neoxed (neoxed@gmail.com)
+#
+# Abstract:
+#   Implements commands to open and close the FTP server.
+#
 
 if {[IsTrue $misc(ReloadConfig)] && [catch {source "../scripts/init.itcl"} error]} {
     iputs "Unable to load script configuration, contact a siteop."
