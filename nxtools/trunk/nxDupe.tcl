@@ -303,6 +303,7 @@ proc ::nxTools::Dupe::PreTimeCheck {virtualPath} {
     global misc mysql pretime
     if {[ListMatchI $pretime(Ignores) $virtualPath]} {return 0}
     set check 0; set result 0
+
     foreach preCheck $pretime(CheckPaths) {
         if {[llength $preCheck] != 4} {
             ErrorLog PreTimeCheck "wrong number of parameters in line: \"$preCheck\""; continue
@@ -310,6 +311,7 @@ proc ::nxTools::Dupe::PreTimeCheck {virtualPath} {
         foreach {checkPath denyLate logInfo lateMins} $preCheck {break}
         if {[string match $checkPath $virtualPath]} {set check 1; break}
     }
+
     if {$check && [MySqlConnect]} {
         set releaseName [::mysql::escape [file tail $virtualPath]]
         set timeStamp [::mysql::sel $mysql(ConnHandle) "SELECT pretime FROM $mysql(TableName) WHERE release='$releaseName' LIMIT 1" -flatlist]
@@ -317,10 +319,13 @@ proc ::nxTools::Dupe::PreTimeCheck {virtualPath} {
         if {[string is digit -strict $timeStamp]} {
             if {[set releaseAge [expr {[clock seconds] - $timeStamp}]] > [set lateSecs [expr {$lateMins * 60}]]} {
                 if {[IsTrue $denyLate]} {
-                    set code 553; set logPrefix "DENYPRE"; set result 1
+                    set code 553
+                    set logType "DENYPRE"
                     set message "Release not allowed by pre rules, older than [FormatDurationLong $lateSecs]."
+                    set result 1
                 } else {
-                    set code 257; set logPrefix "WARNPRE"
+                    set code 257
+                    set logType "WARNPRE"
                     set message "Release older than [FormatDurationLong $lateSecs], possible nuke."
                 }
                 iputs -noprefix "${code}-.-\[PreCheck\]--------------------------------------------------."
@@ -333,7 +338,7 @@ proc ::nxTools::Dupe::PreTimeCheck {virtualPath} {
                         set releaseAge [FormatDuration $releaseAge]
                         set timeStamp [clock format $timeStamp -format "%m/%d/%y %H:%M:%S" -gmt 1]
                     }
-                    putlog "${logPrefix}: \"$virtualPath\" \"$lateSecs\" \"$releaseAge\" \"$timeStamp\""
+                    putlog "${logType}: \"$virtualPath\" \"$lateSecs\" \"$releaseAge\" \"$timeStamp\""
                 }
             } elseif {[IsTrue $logInfo]} {
                 if {[IsTrue $misc(dZSbotLogging)]} {
@@ -371,7 +376,8 @@ proc ::nxTools::Dupe::RaceLinks {virtualPath} {
     } else {ErrorLog RaceLinksMkDir $error}
 
     # Remove older links.
-    if {[set linkCount [LinkDb eval {SELECT count(*) FROM Links WHERE LinkType=0}]] > $latest(RaceLinks)} {
+    set linkCount [LinkDb eval {SELECT count(*) FROM Links WHERE LinkType=0}]
+    if {$linkCount > $latest(RaceLinks)} {
         set linkCount [expr {$linkCount - $latest(RaceLinks)}]
         LinkDb eval "SELECT DirName,rowid FROM Links WHERE LinkType=0 ORDER BY TimeStamp ASC LIMIT $linkCount" values {
             RemoveTag [file join $latest(SymPath) $values(DirName)]
@@ -649,10 +655,12 @@ proc ::nxTools::Dupe::SiteUndupe {argList} {
     global isBot dupe misc
     if {!$isBot} {iputs ".-\[Undupe\]---------------------------------------------------------------."}
     if {[string equal -nocase "-d" [lindex $argList 0]]} {
-        set colName "DirName"; set dbName "DupeDirs"
+        set colName "DirName"
+        set dbName "DupeDirs"
         set pattern [join [lrange $argList 1 end]]
     } else {
-        set colName "FileName"; set dbName "DupeFiles"
+        set colName "FileName"
+        set dbName "DupeFiles"
         set pattern [join [lrange $argList 0 end]]
     }
     if {[regexp {[\*\?]} $pattern] && [regexp -all {[[:alnum:]]} $pattern] < $dupe(AlphaNumChars)} {

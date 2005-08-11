@@ -337,7 +337,8 @@ proc ::nxTools::Utils::WeeklySet {} {
                 # Split credits evenly amongst its group members.
                 if {$userCount > 1 && [IsTrue $weekly(SplitGroup)]} {
                     if {![regexp {^(\+|\-)?(\d+)$} $credits result method amount]} {continue}
-                    set credits $method; append credits [expr {wide($amount) / $userCount}]
+                    set credits $method
+                    append credits [expr {wide($amount) / $userCount}]
                 }
 
                 LinePuts "Weekly credits given to $userCount users in $target ([expr {wide($credits) / 1024}]MB in section $section each)."

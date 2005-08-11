@@ -282,7 +282,7 @@ proc ::nxTools::Nuke::Main {argv} {
                 CreateTag $nukeTag $uid $gid 555
                 RemoveParentLinks $realPath $virtualPath
                 set dirChmod 555
-                set logPrefix "NUKE"
+                set logType "NUKE"
                 set nukeStatus 0
                 set newName "$nuke(Prefix)[file tail $virtualPath]"
             } else {
@@ -290,7 +290,7 @@ proc ::nxTools::Nuke::Main {argv} {
                     RemoveTag $entry
                 }
                 set dirChmod 777
-                set logPrefix "UNNUKE"
+                set logType "UNNUKE"
                 set nukeStatus 1
                 set virtualPath [TrimTag $virtualPath]
                 set newName [file tail $virtualPath]
@@ -329,10 +329,10 @@ proc ::nxTools::Nuke::Main {argv} {
             if {[IsTrue $misc(dZSbotLogging)]} {
                 foreach {nukeeUser nukeeGroup nukeeCredits nukeeStats} $nukeeLog {
                     set nukeeStats [format "%.2f" [expr {double($nukeeStats) / 1024.0}]]
-                    putlog "${logPrefix}: \"$virtualPath\" \"$user@$group\" \"$nukeeUser@$nukeeGroup\" \"$multi $nukeeStats\" \"$reason\""
+                    putlog "${logType}: \"$virtualPath\" \"$user@$group\" \"$nukeeUser@$nukeeGroup\" \"$multi $nukeeStats\" \"$reason\""
                 }
             } else {
-                putlog "${logPrefix}: \"$virtualPath\" \"$user\" \"$group\" \"$multi\" \"$reason\" \"$files\" \"$totalSize\" \"$diskCount\" \"$nukeeLog\""
+                putlog "${logType}: \"$virtualPath\" \"$user\" \"$group\" \"$multi\" \"$reason\" \"$files\" \"$totalSize\" \"$diskCount\" \"$nukeeLog\""
             }
 
             if {![catch {DbOpenFile [namespace current]::NukeDb "Nukes.db"} error]} {

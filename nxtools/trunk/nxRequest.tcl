@@ -144,7 +144,7 @@ proc ::nxTools::Req::Update {event userName groupName request} {
         if {$event eq "FILL"} {
             ReqDb eval {UPDATE Requests SET Status=1 WHERE rowid=$values(rowid)}
             LinePuts "Filled request $values(Request) for $values(UserName)/$values(GroupName)."
-            set logPrefix "REQFILL"
+            set logType "REQFILL"
 
         } elseif {$event eq "DEL"} {
             # Only siteops or the owner may delete a request.
@@ -154,7 +154,7 @@ proc ::nxTools::Req::Update {event userName groupName request} {
             }
             ReqDb eval {DELETE FROM Requests WHERE rowid=$values(rowid)}
             LinePuts "Deleted request $values(Request) for $values(UserName)/$values(GroupName)."
-            set logPrefix "REQDEL"
+            set logType "REQDEL"
         }
 
         set requestAge [expr {[clock seconds] - $values(TimeStamp)}]
@@ -162,7 +162,7 @@ proc ::nxTools::Req::Update {event userName groupName request} {
         if {[IsTrue $misc(dZSbotLogging)]} {
             set requestAge [FormatDuration $requestAge]
         }
-        putlog "${logPrefix}: \"$userName\" \"$groupName\" \"$values(Request)\" \"$values(UserName)\" \"$values(GroupName)\" \"$requestId\" \"$requestAge\""
+        putlog "${logType}: \"$userName\" \"$groupName\" \"$values(Request)\" \"$values(UserName)\" \"$values(GroupName)\" \"$requestId\" \"$requestAge\""
         UpdateDir $event $values(Request)
         set result 0
     }
@@ -243,6 +243,7 @@ proc ::nxTools::Req::Main {argv} {
     global misc flags ioerror group user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     set isBot [expr {[info exists user] && $misc(SiteBot) eq $user}]
+    set result 0
 
     if {[catch {DbOpenFile [namespace current]::ReqDb "Requests.db"} error]} {
         ErrorLog RequestDb $error
@@ -251,9 +252,8 @@ proc ::nxTools::Req::Main {argv} {
     }
 
     set argLength [llength [set argList [ArgList $argv]]]
-    set request [join [lrange $argList 1 end]]
-    set result 0
     set event [string toupper [lindex $argList 0]]
+    set request [join [lrange $argList 1 end]]
     switch -- $event {
         {ADD} {
             if {$argLength > 1} {
