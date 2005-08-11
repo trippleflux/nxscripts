@@ -134,7 +134,7 @@ proc ::nxTools::Nuke::Main {argv} {
         {NUKE} - {UNNUKE} {
             if {$event eq "NUKE"} {
                 iputs ".-\[Nuke\]-----------------------------------------------------------------."
-                foreach {dummy target multi reason} $argv {break}
+                foreach {dummy target multi reason} $argList {break}
                 if {[llength $argList] < 4 || ![string is digit -strict $multi]} {
                     ErrorReturn "Syntax: SITE NUKE <directory> <multiplier> <reason>"
                 }
@@ -144,8 +144,10 @@ proc ::nxTools::Nuke::Main {argv} {
                 set isNuke 1
             } elseif {$event eq "UNNUKE"} {
                 iputs ".-\[UnNuke\]---------------------------------------------------------------."
-                foreach {dummy target reason} $argv {break}
-                if {[llength $argList] < 3} {ErrorReturn "Syntax: SITE UNNUKE <directory> <reason>"}
+                if {[llength $argList] < 3} {
+                    ErrorReturn "Syntax: SITE UNNUKE <directory> <reason>"
+                }
+                foreach {dummy target reason} $argList {break}
                 set isNuke 0
             }
             set virtualPath [GetPath $pwd $target]

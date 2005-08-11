@@ -797,18 +797,13 @@ proc ::nxTools::Dupe::Main {argv} {
         }
         {UPLOAD} {
             if {[IsTrue $dupe(CheckFiles)]} {
-                foreach {dummy realPath crc virtualPath} $argv {break}
-                UpdateLog "UPLD" $virtualPath
+                UpdateLog "UPLD" [lindex $argList 3]
             }
         }
         {UPLOADERROR} {
             if {[IsTrue $dupe(CheckFiles)]} {
-                foreach {dummy realPath crc virtualPath} $argv {break}
-                UpdateLog "DELE" $virtualPath
+                UpdateLog "DELE" [lindex $argList 3]
             }
-        }
-        {CLEAN} {
-            set result [CleanDb]
         }
         {APPROVE} {
             array set params [list ADD 2 DEL 2 LIST 0]
@@ -821,6 +816,9 @@ proc ::nxTools::Dupe::Main {argv} {
                 iputs "        SITE APPROVE DEL <release>"
                 iputs "        SITE APPROVE LIST"
             }
+        }
+        {CLEAN} {
+            set result [CleanDb]
         }
         {DUPE} {
             if {$argLength > 1 && [GetOptions [lrange $argList 1 end] limit pattern]} {
