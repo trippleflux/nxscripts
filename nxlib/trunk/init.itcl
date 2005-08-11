@@ -1,12 +1,16 @@
-################################################################################
-# nxScripts - Script and Extension Loader                                      #
-################################################################################
-# Author  : $-66(AUTHOR) #
-# Date    : $-66(TIMESTAMP) #
-# Version : $-66(VERSION) #
-################################################################################
-
-############################################################
+#
+# nxScripts - Scripts by neoxed.
+# Copyright (c) 2004-2005 neoxed
+#
+# Module Name:
+#   Init
+#
+# Author:
+#   neoxed (neoxed@gmail.com)
+#
+# Abstract:
+#   Implements a configuration and extension loader.
+#
 
 set TclFiles {
   {../scripts/nxAutoNuke.cfg}
@@ -20,7 +24,7 @@ set LibFiles {
   {tclsqlite3.dll}
 }
 
-############################################################
+######################################################################
 
 proc nxLoadError {type message} {
     if {![catch {set handle [open "../logs/nxError.log" a]}]} {

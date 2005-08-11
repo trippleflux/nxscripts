@@ -1,10 +1,16 @@
-################################################################################
-# nxTools - Common Functions Library                                           #
-################################################################################
-# Author  : $-66(AUTHOR) #
-# Date    : $-66(TIMESTAMP) #
-# Version : $-66(VERSION) #
-################################################################################
+#
+# nxScripts - Scripts by neoxed.
+# Copyright (c) 2004-2005 neoxed
+#
+# Module Name:
+#   Library
+#
+# Author:
+#   neoxed (neoxed@gmail.com)
+#
+# Abstract:
+#   Implements commonly used functions.
+#
 
 namespace eval ::nxLib {
     variable logPath "../logs"
