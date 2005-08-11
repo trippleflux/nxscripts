@@ -140,7 +140,7 @@ proc ::nxLib::ArchiveFile {filePath {formatStyle "%Y-%m-%d"}} {
     }
     set datePrefix [clock format [clock seconds] -format $formatStyle -gmt 0]
     set archivePath [file join $log(ArchivePath) "$datePrefix.[file tail $filePath]"]
-    if {[catch {file copy -- $filePath $archivePath} error]} {
+    if {[catch {file rename -- $filePath $archivePath} error]} {
         ErrorLog archivePath $error; return 0
     }
     return 1
