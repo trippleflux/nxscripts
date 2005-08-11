@@ -1,9 +1,19 @@
 ################################################################################
-#                             nxAutoNuke - Readme                              #
+#                nxAutoNuke - Extensive auto-nuker for ioFTPD.                 #
+#                     Written by neoxed (neoxed@gmail.com)                     #
 ################################################################################
 
-# Information:
-######################################################################
+Topics:
+ 1. Information
+ 2. ioA and dZSbot Installation
+ 3. ioA and ioBanana Installation
+ 4. Todo List
+ 5. Bugs and Comments
+ 6. License
+
+################################################################################
+# 1. Information                                                               #
+################################################################################
 
   nxAutoNuke is a fully featured auto-nuker. An auto-nuker allows you
 to enforce strict rules on your FTP sites. Auto-nuke checks include:
@@ -14,17 +24,17 @@ groups. Nuke reasons are customizable using cookies.
   Thanks to Harm for ioAUTONUKE, which showed me how I was able to use
 ioA as an external nuker. ioA support is credited towards him. :)
 
-
-# ioA and dZSbot Installation:
-######################################################################
+################################################################################
+# 2. ioA and dZSbot Installation                                               #
+################################################################################
 
 1. UnRAR and copy all files and directories, maintaining the
    original directory structure, to ioFTPD\scripts\.
 
    The files must be placed as follows:
    ioFTPD\scripts\init.itcl
-   ioFTPD\scripts\nxAutoNuke.cfg
    ioFTPD\scripts\nxLib.tcl
+   ioFTPD\scripts\nxAutoNuke.cfg
    ioFTPD\scripts\nxAutoNuke-ioA\nxAutoNuke.tcl
 
 2. Configure nxAutoNuke.cfg to your liking. Read the comments carefully!
@@ -80,17 +90,17 @@ set msgtypes(RACE) "ANUKEALLOWED ANUKEBANNED ANUKEDISKS ANUKEEMPTY ANUKEIMDB ANU
 
 7. Rehash or restart Windrop.
 
-
-# ioA and ioBanana Installation:
-######################################################################
+################################################################################
+# 3. ioA and ioBanana Installation                                             #
+################################################################################
 
 1. UnRAR and copy all files and directories, maintaining the
    original directory structure, to ioFTPD\scripts\.
 
    The files must be placed as follows:
    ioFTPD\scripts\init.itcl
-   ioFTPD\scripts\nxAutoNuke.cfg
    ioFTPD\scripts\nxLib.tcl
+   ioFTPD\scripts\nxAutoNuke.cfg
    ioFTPD\scripts\nxAutoNuke-ioA\nxAutoNuke.tcl
 
 2. Configure nxAutoNuke.cfg to your liking. Read the comments carefully!
@@ -141,9 +151,36 @@ set announce(ANUKEMP3)     "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] th
 
 7. Rehash or restart Windrop.
 
-
-# Todo:
-######################################################################
+################################################################################
+# 4. Todo List                                                                 #
+################################################################################
 
 - RiA release name checks will only be added if someone can provide
   me with an original copy of the RiA standards/rules.
+
+################################################################################
+# 5. Bugs and Comments                                                         #
+################################################################################
+
+   If you have any problems with this script; or you found a bug, spelling
+mistake or grammar error, please report it to me. If it's a technical issue,
+be sure you can reproduce the problem, so I can find a solution.
+
+IRC  : neoxed <#ioFTPD at EFnet>
+Email: neoxed@gmail.com
+
+################################################################################
+# 6. License                                                                   #
+################################################################################
+
+   This application and/or script is licensed under the Creative Commons
+Attribution-NonCommercial-ShareAlike License 2.0. In short - I, the author,
+take absolutely no responsibility to any damage of any kind caused by the use
+or misuse of this script. Those who wish to redistribute or use my work must
+abide by the license. By using this application and/or script, you accept and
+agree to be bound by the terms and conditions of this license. Please see
+the below URLs for more information, as well as the terms and conditions of
+this license.
+
+Commons Deed : http://creativecommons.org/licenses/by-nc-sa/2.0/
+Legal Code   : http://creativecommons.org/licenses/by-nc-sa/2.0/legalcode
