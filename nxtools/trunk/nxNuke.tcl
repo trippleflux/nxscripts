@@ -254,11 +254,11 @@ proc ::nxTools::Nuke::Main {argv} {
             LinePuts "Files   : [format %-16s ${files}F] Size: [format %-16s [FormatSize $totalSize]] CDs: $diskCount"
             if {$isNuke} {
                 iputs "|------------------------------------------------------------------------|"
-                iputs "|    User    |   Group    |    Ratio    |  Amount Lost  |  Credits Lost  |"
+                iputs "|    User    |   Group    |    Ratio    |  Stats Lost   |  Credits Lost  |"
                 iputs "|------------------------------------------------------------------------|"
             } else {
                 iputs "|------------------------------------------------------------------------|"
-                iputs "|    User    |   Group    |    Ratio    | Amount Gained | Credits Gained |"
+                iputs "|    User    |   Group    |    Ratio    | Stats Gained  | Credits Gained |"
                 iputs "|------------------------------------------------------------------------|"
             }
 
@@ -345,10 +345,10 @@ proc ::nxTools::Nuke::Main {argv} {
                 set nukeId [NukeDb last_insert_rowid]
 
                 NukeDb eval {BEGIN}
-                foreach {nukeeUser nukeeGroup amount} $nukeeLog {
+                foreach {nukeeUser nukeeGroup nukeeCredits nukeeStats} $nukeeLog {
                     NukeDb eval {INSERT OR REPLACE INTO
                         Users(NukeId,UserName,GroupName,Amount)
-                        VALUES($nukeId,$nukeeUser,$nukeeGroup,$amount)
+                        VALUES($nukeId,$nukeeUser,$nukeeGroup,$nukeeStats)
                     }
                 }
                 NukeDb eval {COMMIT}
