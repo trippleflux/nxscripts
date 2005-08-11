@@ -95,10 +95,10 @@ PartialSwitchCompare(Tcl_Obj *objPtr, const char *switchName)
     char *option = Tcl_GetStringFromObj(objPtr, &optionLength);
 
     /*
-     * The user supplied switch must be at least one character
-     * in length to account for the switch prefix (hyphen).
+     * The user supplied switch must be at least two characters in
+     * length, to account for the switch prefix and first letter.
      */
-    return (optionLength > 1 && strncmp(switchName, option, optionLength) == 0);
+    return (optionLength > 2 && strncmp(switchName, option, optionLength) == 0);
 }
 
 /*
