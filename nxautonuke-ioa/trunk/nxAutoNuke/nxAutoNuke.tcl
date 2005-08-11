@@ -1,10 +1,16 @@
-################################################################################
-# nxAutoNuke - Auto-Nuke Banned, Empty, Incomplete, IMDB, and MP3 Releases     #
-################################################################################
-# Author  : $-66(AUTHOR) #
-# Date    : $-66(TIMESTAMP) #
-# Version : $-66(VERSION) #
-################################################################################
+#
+# nxAutoNuke - Extensive auto-nuker for ioFTPD.
+# Copyright (c) 2004-2005 neoxed
+#
+# Module Name:
+#   Auto-nuker
+#
+# Author:
+#   neoxed (neoxed@gmail.com)
+#
+# Abstract:
+#   Implements an auto-nuker for nxTools.
+#
 
 if {[catch {source "../scripts/init.itcl"} error]} {
     iputs "Unable to load script configuration, contact a siteop."
