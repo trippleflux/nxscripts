@@ -24,15 +24,36 @@ interp alias {} IsTrue {} string is true -strict
 interp alias {} IsFalse {} string is false -strict
 
 proc ::nxLib::ArgList {argv} {
-    # TODO: handle quotes
-    split [string trim [regsub -all {\s+} $argv { }]]
+    set argList [list]
+    set length [string length $argv]
+
+    for {set index 0} {$index < $length} {incr index} {
+        # Ignore leading white-space.
+        while {[string is space -strict [string index $argv $index]]} {incr index}
+        if {$index >= $length} {break}
+
+        if {[string index $argv $index] eq "\""} {
+            # Find the next quote character.
+            set startIndex [incr index]
+            while {[string index $argv $index] ne "\"" && $index < $length} {incr index}
+        } else {
+            # Find the next white-space character.
+            set startIndex $index
+            while {![string is space -strict [string index $argv $index]] && $index < $length} {incr index}
+        }
+        lappend argList [string range $argv $startIndex [expr {$index - 1}]]
+    }
+    return $argList
 }
+
 proc ::nxLib::ArgIndex {argv index} {
     lindex [ArgList $argv] $index
 }
+
 proc ::nxLib::ArgLength {argv} {
     llength [ArgList $argv]
 }
+
 proc ::nxLib::ArgRange {argv start end} {
     join [lrange [ArgList $argv] $start $end]
 }
@@ -564,7 +585,7 @@ proc ::nxLib::ParseCookies {input valueList cookieList} {
             # Find cookie name.
             if {[string index $input $inputIdx] eq "("} {
                 set beforeIdx [incr inputIdx]
-                while {[string index $input $inputIdx] ne ")" && $inputIdx <= $inputLen} {incr inputIdx}
+                while {[string index $input $inputIdx] ne ")" && $inputIdx < $inputLen} {incr inputIdx}
                 set cookie [string range $input $beforeIdx [expr {$inputIdx - 1}]]
             } else {
                 # Invalid cookie format, an open parenthesis is expected.
