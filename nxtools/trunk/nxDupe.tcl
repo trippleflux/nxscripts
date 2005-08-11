@@ -638,15 +638,15 @@ proc ::nxTools::Dupe::SitePreTime {limit pattern} {
             foreach {preId preTime section release files kiloBytes disks isNuked nukeTime nukeReason} $queryLine {break}
             set releaseAge [expr {$timeNow - $preTime}]
             if {$isBot} {
-                iputs [list PRETIME $count $releaseAge $preTime $section $release $files $kBytes $disks $isNuked $nukeTime $nukeReason]
+                iputs [list PRETIME $count $releaseAge $preTime $section $release $files $kiloBytes $disks $isNuked $nukeTime $nukeReason]
             } else {
                 set bodyTemplate [expr {$singleResult ? ($isNuked != 0 ? $template(BodyNuke) : $template(BodyInfo)) : $template(Body)}]
                 set releaseAge [FormatDuration $releaseAge]
 
                 # The pre time should always been in UTC (GMT).
                 set valueList [clock format $preTime -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 1]
-                set valueList [concat $valueList [clock format $nukeTime -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 1]]
-                lappend valueList $releaseAge $count $section $release $files [FormatSize $kBytes] $disks $nukeReason
+                eval lappend valueList [clock format $nukeTime -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 1]
+                lappend valueList $releaseAge $count $section $release $files [FormatSize $kiloBytes] $disks $nukeReason
                 OutputText [ParseCookies $bodyTemplate $valueList {sec min hour day month year2 year4 nukesec nukemin nukehour nukeday nukemonth nukeyear2 nukeyear4 age num section release files size disks reason}]
             }
         }
