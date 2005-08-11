@@ -179,16 +179,16 @@ proc ::nxTools::Nuke::Main {argv} {
                 }
                 {} {}
                 default {
-                    ErrorLog NukeRecord "invalid nuke record for \"$realPath\": $record"
+                    ErrorLog NukeRecord "invalid nuke record for \"$realPath\": \"$record\""
                 }
             }
-            if {!$isNuke && ![info exists Multi]} {
+            if {!$isNuke && ![info exists multi]} {
                 ErrorReturn "Unable to find the nuke record."
             }
 
             set nukeType 0
             if {[string first $nuke(GroupFlag) $flags] != -1} {
-                # Find the group suffix in the release name (Something-GRP)
+                # Find the group suffix in the release name (Something-GRP).
                 if {[set groupPos [string last "-" [file tail $virtualPath]]] == -1} {
                     ErrorReturn "Unable to verify the release's group, does it end with -<group>?"
                 }
@@ -240,7 +240,7 @@ proc ::nxTools::Nuke::Main {argv} {
                 } else {ErrorReturn "Unable to find the directory owner."}
             }
             LinePuts "Release : $release"
-            LinePuts "Multi   : ${Multi}x"
+            LinePuts "Multi   : ${multi}x"
             LinePuts "Reason  : $reason"
             if {$nukeType} {
                 # 0=Normal, 1=Group, 2=Empty
@@ -251,7 +251,7 @@ proc ::nxTools::Nuke::Main {argv} {
                 }
                 LinePuts "Type    : $typeMsg Nuke"
             }
-            LinePuts "Files   : [format %-16s ${Files}F] Size: [format %-16s [FormatSize $totalSize]] CDs: $diskCount"
+            LinePuts "Files   : [format %-16s ${files}F] Size: [format %-16s [FormatSize $totalSize]] CDs: $diskCount"
             if {$isNuke} {
                 iputs "|------------------------------------------------------------------------|"
                 iputs "|    User    |   Group    |    Ratio    |  Amount Lost  |  Credits Lost  |"
@@ -285,7 +285,6 @@ proc ::nxTools::Nuke::Main {argv} {
                 set logPrefix "NUKE"
                 set nukeStatus 0
                 set newName "$nuke(Prefix)[file tail $virtualPath]"
-
             } else {
                 foreach entry [FindTags $realPath $nuke(InfoTag)] {
                     RemoveTag $entry
@@ -330,14 +329,14 @@ proc ::nxTools::Nuke::Main {argv} {
             if {[IsTrue $misc(dZSbotLogging)]} {
                 foreach {nukeeUser nukeeGroup nukeeCredits nukeeStats} $nukeeLog {
                     set nukeeStats [format "%.2f" [expr {double($nukeeStats) / 1024.0}]]
-                    putlog "${LogPrefix}: \"$virtualPath\" \"$user@$group\" \"$nukeeUser@$nukeeGroup\" \"$multi $nukeeStats\" \"$reason\""
+                    putlog "${logPrefix}: \"$virtualPath\" \"$user@$group\" \"$nukeeUser@$nukeeGroup\" \"$multi $nukeeStats\" \"$reason\""
                 }
             } else {
-                putlog "${LogPrefix}: \"$virtualPath\" \"$user\" \"$group\" \"$multi\" \"$reason\" \"$files\" \"$totalSize\" \"$diskCount\" \"$nukeeLog\""
+                putlog "${logPrefix}: \"$virtualPath\" \"$user\" \"$group\" \"$multi\" \"$reason\" \"$files\" \"$totalSize\" \"$diskCount\" \"$nukeeLog\""
             }
 
             if {![catch {DbOpenFile [namespace current]::NukeDb "Nukes.db"} error]} {
-                # To pass a NULL value to TclSQLite the variable must be unset.
+                # To pass a NULL value to TclSQLite, the variable must be unset.
                 if {![string is digit -strict $nukeId]} {unset nukeId}
                 NukeDb eval {INSERT OR REPLACE INTO
                     Nukes(NukeId,TimeStamp,UserName,GroupName,Status,Release,Reason,Multi,Files,Size)
@@ -363,7 +362,7 @@ proc ::nxTools::Nuke::Main {argv} {
         }
         {NUKES} - {UNNUKES} {
             set isBot [string equal $misc(SiteBot) $user]
-            if {![GetOptions [lrange $argList 1 end] maxResults pattern]} {
+            if {![GetOptions [lrange $argList 1 end] limit pattern]} {
                 iputs "Syntax: SITE $event \[-max <limit>\] \[release\]"
                 return 0
             }
@@ -385,7 +384,7 @@ proc ::nxTools::Nuke::Main {argv} {
             }
             set count 0
             if {![catch {DbOpenFile [namespace current]::NukeDb "Nukes.db"} error]} {
-                NukeDb eval "SELECT * FROM Nukes WHERE Status=$nukeStatus AND Release LIKE '$pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $maxResults" values {
+                NukeDb eval "SELECT * FROM Nukes WHERE Status=$nukeStatus AND Release LIKE '$pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $limit" values {
                     incr count
                     if {$isBot} {
                         iputs [list NUKES $count $values(TimeStamp) $values(Release) $values(UserName) $values(GroupName) $values(Multi) $values(Reason) $values(Files) $values(Size)]
@@ -410,7 +409,7 @@ proc ::nxTools::Nuke::Main {argv} {
         }
         {NUKETOP} {
             set isBot [string equal $misc(SiteBot) $user]
-            if {![GetOptions [lrange $argList 1 end] maxResults pattern]} {
+            if {![GetOptions [lrange $argList 1 end] limit pattern]} {
                 iputs "Syntax: SITE NUKETOP \[-max <limit>\] \[group\]"
                 return 0
             }
@@ -429,7 +428,7 @@ proc ::nxTools::Nuke::Main {argv} {
             if {![catch {DbOpenFile [namespace current]::NukeDb "Nukes.db"} error]} {
                 NukeDb eval "SELECT UserName, GroupName, count(*) AS Nuked, sum(Amount) AS Amount FROM Users \
                     WHERE $groupMatch (SELECT count(*) FROM Nukes WHERE NukeId=Users.NukeId AND Status=0) \
-                    GROUP BY UserName ORDER BY Nuked DESC LIMIT $maxResults" values {
+                    GROUP BY UserName ORDER BY Nuked DESC LIMIT $limit" values {
 
                     incr count
                     if {$isBot} {

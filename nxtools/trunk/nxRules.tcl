@@ -75,6 +75,7 @@ proc ::nxTools::Rules::Main {display} {
 
         foreach {punishment text} $ruleList {
             incr count; set isMultiLine 0
+
             # Wrap each line before displaying.
             foreach line [WordWrap $text $rules(LineWidth)] {
                 set valueList [list $count $punishment $line $sectionName]

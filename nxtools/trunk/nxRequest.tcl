@@ -30,7 +30,7 @@ proc ::nxTools::Req::CheckLimit {userName groupName} {
             set target [string range $target 1 end]
             if {$target ne $groupName} {continue}
 
-            # Group request limits are only checked when 'Target' has a group prefix (=).
+            # Group request limits are only checked when 'target' has a group prefix (=).
             if {$groupLimit >= 0 && [ReqDb eval {SELECT count(*) FROM Requests WHERE Status=0 AND GroupName=$target}] >= $groupLimit} {
                 LinePuts "You have reached your group's request limit of $groupLimit request(s)."
                 return 0
@@ -44,6 +44,7 @@ proc ::nxTools::Req::CheckLimit {userName groupName} {
             LinePuts "You have reached your individual request limit of $userLimit request(s)."
             return 0
         }
+
         if {$timeLimit >= 0 && $timePeriod >= 0} {
             set timeStamp [expr {[clock seconds] - ($timePeriod * 86400)}]
             if {[ReqDb eval {SELECT count(*) FROM Requests WHERE TimeStamp > $timeStamp AND UserName=$userName}] >= $timeLimit} {
@@ -69,6 +70,7 @@ proc ::nxTools::Req::UpdateDir {event request {userId 0} {groupId 0}} {
     }
     set reMap [list %(request) $request]
     set reqPath [file join $req(RequestPath) [string map $reMap $req(RequestTag)]]
+
     switch -- $event {
         {ADD} {CreateTag $reqPath $userId $groupId 777}
         {DEL} {
@@ -124,6 +126,7 @@ proc ::nxTools::Req::Add {userName groupName request} {
         UpdateDir ADD $request
         set result 0
     }
+
     iputs "'------------------------------------------------------------------------'"
     return $result
 }
@@ -159,10 +162,11 @@ proc ::nxTools::Req::Update {event userName groupName request} {
         if {[IsTrue $misc(dZSbotLogging)]} {
             set requestAge [FormatDuration $requestAge]
         }
-        putlog "${LogPrefix}: \"$userName\" \"$groupName\" \"$values(Request)\" \"$values(UserName)\" \"$values(GroupName)\" \"$requestId\" \"$requestAge\""
+        putlog "${logPrefix}: \"$userName\" \"$groupName\" \"$values(Request)\" \"$values(UserName)\" \"$values(GroupName)\" \"$requestId\" \"$requestAge\""
         UpdateDir $event $values(Request)
         set result 0
     }
+
     iputs "'------------------------------------------------------------------------'"
     return $result
 }
@@ -198,6 +202,7 @@ proc ::nxTools::Req::List {isBot} {
 proc ::nxTools::Req::Wipe {} {
     global misc req
     iputs ".-\[Request\]--------------------------------------------------------------."
+
     if {$req(MaximumAge) < 1} {
         LinePuts "Request wiping is disabled, check your configuration."
     } else {
@@ -226,6 +231,7 @@ proc ::nxTools::Req::Wipe {} {
         }
         catch {vfs flush $req(RequestPath)}
     }
+
     iputs "'------------------------------------------------------------------------'"
     return 0
 }

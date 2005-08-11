@@ -24,6 +24,7 @@ proc ::nxTools::Utils::ChangeCredits {userName change {section 0}} {
         set newUserFile ""
         userfile lock
         set userFile [userfile bin2ascii]
+
         foreach line [split $userFile "\r\n"] {
             if {[string equal -nocase "credits" [lindex $line 0]]} {
                 if {![string length $method]} {
@@ -87,7 +88,9 @@ proc ::nxTools::Utils::NewDate {findArea} {
 
     set dateArea "Default"
     foreach areaName [array names newdate] {
-        if {[string equal -nocase $areaName $findArea]} {set dateArea $areaName; break}
+        if {[string equal -nocase $areaName $findArea]} {
+            set dateArea $areaName; break
+        }
     }
     if {![info exists newdate($dateArea)]} {
         ErrorLog NewDateArea "unknown newdate area \"$dateArea\""
@@ -203,7 +206,7 @@ proc ::nxTools::Utils::RotateLogs {} {
     return 0
 }
 
-proc ::nxTools::Utils::SearchLog {logFile maxResults pattern} {
+proc ::nxTools::Utils::SearchLog {logFile limit pattern} {
     set data [list]
     if {![catch {set handle [open $logFile r]} error]} {
         while {![eof $handle]} {
@@ -216,7 +219,7 @@ proc ::nxTools::Utils::SearchLog {logFile maxResults pattern} {
 
     set count 0
     foreach line $data {
-        if {[incr count] > $maxResults} {break}
+        if {[incr count] > $limit} {break}
         iputs " $line"
     }
     if {!$count} {LinePuts "No results found."}
@@ -228,12 +231,13 @@ proc ::nxTools::Utils::SearchLog {logFile maxResults pattern} {
 proc ::nxTools::Utils::WeeklyCredits {wkTarget wkAmount} {
     global weekly
     iputs ".-\[WeeklyCredits\]--------------------------------------------------------."
-    set cfgComments ""; set targetList ""
+    set comments ""; set targetList ""
+
     if {![catch {set handle [open $weekly(ConfigFile) r]} error]} {
         while {![eof $handle]} {
             set line [string trim [gets $handle]]
             if {[string index $line 0] eq "#"} {
-                append cfgComments $line "\n"
+                append comments $line "\n"
             } elseif {[llength [set line [split $line "|"]]] == 3} {
                 foreach {target section credits} $line {break}
                 lappend targetList [list $target $section $credits]
@@ -268,7 +272,7 @@ proc ::nxTools::Utils::WeeklyCredits {wkTarget wkAmount} {
             } else {incr index}
         }
         if {$deleted} {
-            LinePuts "Removed the target \"$wkTarget\" (${Credits}MB in section $section) from weekly credits."
+            LinePuts "Removed the target \"$wkTarget\" (${credits}MB in section $section) from weekly credits."
         } else {
             # Check if the user or group exists.
             if {[string index $wkTarget 0] eq "="} {
@@ -278,13 +282,13 @@ proc ::nxTools::Utils::WeeklyCredits {wkTarget wkAmount} {
             } elseif {[resolve user $wkTarget] == -1} {
                 ErrorReturn "The specified user does not exist."
             }
-            LinePuts "Added the target \"$wkTarget\" (${Credits}MB in section $section) to weekly credits."
+            LinePuts "Added the target \"$wkTarget\" (${credits}MB in section $section) to weekly credits."
             lappend targetList [list $wkTarget $section $creditsKB]
         }
 
         # Rewrite weekly configuration file.
         if {![catch {set handle [open $weekly(ConfigFile) w]} error]} {
-            puts -nonewline $handle $cfgComments
+            puts -nonewline $handle $comments
             foreach element [lsort -ascii -index 0 $targetList] {
                 puts $handle [join $element "|"]
             }
@@ -401,8 +405,8 @@ proc ::nxTools::Utils::SiteDrives {} {
 
         # We're only interested in fixed volumes and network volumes.
         switch -- [::nx::volume type $volName] {
-            3 {set typeName "Fixed"}
-            4 {set typeName "Network"}
+            3 {set type "Fixed"}
+            4 {set type "Network"}
             default {continue}
         }
         if {[catch {::nx::volume info $volName volume} error]} {
@@ -413,7 +417,7 @@ proc ::nxTools::Utils::SiteDrives {} {
 
             set volume(free) [FormatSize [expr {$volume(free) / 1024}]]
             set volume(total) [FormatSize [expr {$volume(total) / 1024}]]
-            iputs [format "| %-3s %9s | %-11s | %-13s | %10s | %11s |" $volName $typeName $volume(fs) $volume(name) $volume(free) $volume(total)]
+            iputs [format "| %-3s %9s | %-11s | %-13s | %10s | %11s |" $volName $type $volume(fs) $volume(name) $volume(free) $volume(total)]
         }
     }
     iputs "|------------------------------------------------------------------------|"
@@ -447,6 +451,7 @@ proc ::nxTools::Utils::SiteGroupInfo {groupName section} {
         array set uinfo [list alldn 0 allup 0 AdminGroups "" Flags "" Prefix "" Ratio 0]
         if {[userfile open $userName] == 0} {
             set userFile [userfile bin2ascii]
+
             foreach line [split $userFile "\r\n"] {
                 set type [string tolower [lindex $line 0]]
                 switch -- $type {
@@ -480,6 +485,7 @@ proc ::nxTools::Utils::SiteGroupInfo {groupName section} {
     array set ginfo [list Slots "0 0" TagLine "No TagLine Set"]
     if {[groupfile open $groupName] == 0} {
         set groupFile [groupfile bin2ascii]
+
         foreach line [split $groupFile "\r\n"] {
             set type [string tolower [lindex $line 0]]
             if {$type eq "description"} {
@@ -489,6 +495,7 @@ proc ::nxTools::Utils::SiteGroupInfo {groupName section} {
             }
         }
     }
+
     iputs "|------------------------------------------------------------------------|"
     iputs [format "| * Denotes SiteOp    + Denotes GAdmin    %30.30s |" $ginfo(TagLine)]
     iputs [format "| User Slots: %-5d   Leech Slots: %-37d |" [lindex $ginfo(Slots) 0] [lindex $ginfo(Slots) 1]]
@@ -510,9 +517,12 @@ proc ::nxTools::Utils::SiteResetStats {argList} {
             {-all}  {set resetStats $statTypes; break}
             {all}   {lappend resetStats "alldn" "allup"}
             {month} {lappend resetStats "monthdn" "monthup"}
-            {wk} - {week} {lappend resetStats "wkdn" "wkup"}
+            {wk} -
+            {week}  {lappend resetStats "wkdn" "wkup"}
             {day}   {lappend resetStats "daydn" "dayup"}
-            default {if {[lsearch -exact $statTypes $arg]} {lappend resetStats $arg}}
+            default {
+                if {[lsearch -exact $statTypes $arg]} {lappend resetStats $arg}
+            }
         }
     }
 
@@ -538,7 +548,9 @@ proc ::nxTools::Utils::SiteResetUser {userName} {
         LinePuts "The specified user does not exist."
     } else {
         ResetUserFile $userName {alldn allup daydn dayup monthdn monthup wkdn wkup} $reset(Credits)
-        if {[IsTrue $reset(Credits)]} {LinePuts "Credits Reset...Complete."}
+        if {[IsTrue $reset(Credits)]} {
+            LinePuts "Credits Reset...Complete."
+        }
         LinePuts "Stats Reset.....Complete."
     }
 
@@ -566,20 +578,20 @@ proc ::nxTools::Utils::SiteTraffic {target} {
     iputs ".-\[Traffic\]--------------------------------------------------------------."
 
     if {![string length $target]} {
-        set trafficType 0
+        set traffic 0
         set userList [GetUserList]
     } elseif {[string index $target 0] eq "="} {
         set target [string range $target 1 end]
         if {[resolve group $target] == -1} {
             ErrorReturn "The specified group does not exist."
         }
-        set trafficType 1
+        set traffic 1
         set userList [GetGroupUsers [resolve group $target]]
     } else {
         if {[resolve user $target] == -1} {
             ErrorReturn "The specified user does not exist."
         }
-        set trafficType 2
+        set traffic 2
         set userList $target
     }
 
@@ -590,6 +602,7 @@ proc ::nxTools::Utils::SiteTraffic {target} {
     foreach userName $userList {
         if {[userfile open $userName] != 0} {continue}
         set userFile [userfile bin2ascii]
+
         foreach line [split $userFile "\r\n"] {
             set type [string tolower [lindex $line 0]]
             if {[lsearch -exact {alldn allup daydn dayup monthdn monthup wkdn wkup} $type] != -1} {
@@ -609,23 +622,22 @@ proc ::nxTools::Utils::SiteTraffic {target} {
     iputs [format "| Day Uploads     | %15ld | %15s | %16s |" $file(dayup) [FormatSize $size(dayup)] [FormatSpeed $size(dayup) $time(dayup)]]
     iputs [format "| Day Downloads   | %15ld | %15s | %16s |" $file(daydn) [FormatSize $size(daydn)] [FormatSpeed $size(daydn) $time(daydn)]]
     iputs "|------------------------------------------------------------------------|"
-    switch -- $trafficType {
+    switch -- $traffic {
         0 {LinePuts "Stats for all [llength $userList] user(s)."}
         1 {LinePuts "Stats for the group $target."}
         2 {LinePuts "Stats for the user $target."}
     }
-
     iputs "'------------------------------------------------------------------------'"
     return 0
 }
 
 proc ::nxTools::Utils::SiteWho {} {
     global misc cid flags
-    array set who [list BwDn 0.0 BwUp 0.0 UsersDn 0 UsersUp 0 UsersIdle 0]
-    set isAdmin [MatchFlags $misc(SiteopFlags) $flags]
     iputs ".------------------------------------------------------------------------."
     iputs "|    User    |   Group    |  Info          |  Action                     |"
     iputs "|------------------------------------------------------------------------|"
+    array set who [list BwDn 0.0 BwUp 0.0 UsersDn 0 UsersUp 0 UsersIdle 0]
+    set isAdmin [MatchFlags $misc(SiteopFlags) $flags]
 
     if {[client who init "CID" "UID" "STATUS" "TIMEIDLE" "TRANSFERSPEED" "VIRTUALPATH" "VIRTUALDATAPATH"] == 0} {
         while {[set whoData [client who fetch]] ne ""} {
@@ -638,6 +650,7 @@ proc ::nxTools::Utils::SiteWho {} {
             # Find the user's group and tagline.
             if {[userfile open $userName] == 0} {
                 set userFile [userfile bin2ascii]
+
                 foreach line [split $userFile "\r\n"] {
                     set type [string tolower [lindex $line 0]]
                     if {$type eq "groups"} {
@@ -701,9 +714,9 @@ proc ::nxTools::Utils::Main {argv} {
             set result [SiteDrives]
         }
         {ERRLOG} {
-            if {$argLength > 1 && [GetOptions [lrange $argList 1 end] maxResults pattern]} {
+            if {$argLength > 1 && [GetOptions [lrange $argList 1 end] limit pattern]} {
                 iputs ".-\[ErrorLog\]-------------------------------------------------------------."
-                set result [SearchLog $log(Error) $maxResults $pattern]
+                set result [SearchLog $log(Error) $limit $pattern]
             } else {
                 iputs "Syntax: SITE ERRLOG \[-max <limit>\] <pattern>"
             }
@@ -756,9 +769,9 @@ proc ::nxTools::Utils::Main {argv} {
             }
         }
         {SYSLOG} {
-            if {$argLength > 1 && [GetOptions [lrange $argList 1 end] maxResults pattern]} {
+            if {$argLength > 1 && [GetOptions [lrange $argList 1 end] limit pattern]} {
                 iputs ".-\[SysopLog\]-------------------------------------------------------------."
-                set result [SearchLog $log(SysOp) $maxResults $pattern]
+                set result [SearchLog $log(SysOp) $limit $pattern]
             } else {
                 iputs "Syntax: SITE SYSLOG \[-max <limit>\] <pattern>"
             }

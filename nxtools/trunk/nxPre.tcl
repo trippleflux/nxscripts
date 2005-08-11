@@ -441,7 +441,7 @@ proc ::nxTools::Pre::Edit {argList} {
 }
 
 proc ::nxTools::Pre::History {argList} {
-    if {![GetOptions $argList maxResults pattern]} {
+    if {![GetOptions $argList limit pattern]} {
         iputs "Syntax: SITE PRE HISTORY \[-max <limit>\] \[group\]"
         return 1
     }
@@ -456,7 +456,7 @@ proc ::nxTools::Pre::History {argList} {
     iputs "|------------------------------------------------------------------------|"
     set count 0
     if {![catch {DbOpenFile [namespace current]::PreDb "Pres.db"} error]} {
-        PreDb eval "SELECT Release,Size FROM Pres $whereClause ORDER BY TimeStamp DESC LIMIT $maxResults" values {
+        PreDb eval "SELECT Release,Size FROM Pres $whereClause ORDER BY TimeStamp DESC LIMIT $limit" values {
             iputs [format "| %02d | %-53.53s | %9s |" [incr count] $values(Release) [FormatSize $values(Size)]]
         }
         PreDb close
@@ -468,7 +468,7 @@ proc ::nxTools::Pre::History {argList} {
 }
 
 proc ::nxTools::Pre::Stats {argList} {
-    if {![GetOptions $argList maxResults pattern]} {
+    if {![GetOptions $argList limit pattern]} {
         iputs "Syntax: SITE PRE STATS \[-max <limit>\] \[group\]"
         return 1
     }
@@ -483,7 +483,7 @@ proc ::nxTools::Pre::Stats {argList} {
     iputs "|------------------------------------------------------------------------|"
     set count 0
     if {![catch {DbOpenFile [namespace current]::PreDb "Pres.db"} error]} {
-        PreDb eval "SELECT GroupName, count(*) AS Pres, round(sum(Files)) AS Files, sum(Size) AS Amount FROM Pres $whereClause GROUP BY GroupName ORDER BY Pres DESC LIMIT $maxResults" values {
+        PreDb eval "SELECT GroupName, count(*) AS Pres, round(sum(Files)) AS Files, sum(Size) AS Amount FROM Pres $whereClause GROUP BY GroupName ORDER BY Pres DESC LIMIT $limit" values {
             iputs [format "| %02d | %-29.29s | %9d | %8dF | %9s |" [incr count] $values(GroupName) $values(Pres) $values(Files) [FormatSize $values(Amount)]]
         }
         PreDb close
@@ -599,7 +599,7 @@ proc ::nxTools::Pre::Release {argList} {
     }
     LinePuts "Area    : $preArea"
     LinePuts "Release : $release"
-    LinePuts "Files   : [format %-16s ${Files}F] Size: [format %-16s [FormatSize $totalSize]] CDs: $diskCount"
+    LinePuts "Files   : [format %-16s ${files}F] Size: [format %-16s [FormatSize $totalSize]] CDs: $diskCount"
 
     # Move release to the destination path.
     KickUsers [file join $virtualPath "*"]

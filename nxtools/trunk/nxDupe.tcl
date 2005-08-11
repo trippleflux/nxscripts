@@ -317,23 +317,23 @@ proc ::nxTools::Dupe::PreTimeCheck {virtualPath} {
         if {[string is digit -strict $timeStamp]} {
             if {[set releaseAge [expr {[clock seconds] - $timeStamp}]] > [set lateSecs [expr {$lateMins * 60}]]} {
                 if {[IsTrue $denyLate]} {
-                    set errCode 553; set logPrefix "DENYPRE"; set result 1
-                    set errMsg "Release not allowed by pre rules, older than [FormatDurationLong $lateSecs]."
+                    set code 553; set logPrefix "DENYPRE"; set result 1
+                    set message "Release not allowed by pre rules, older than [FormatDurationLong $lateSecs]."
                 } else {
-                    set errCode 257; set logPrefix "WARNPRE"
-                    set errMsg "Release older than [FormatDurationLong $lateSecs], possible nuke."
+                    set code 257; set logPrefix "WARNPRE"
+                    set message "Release older than [FormatDurationLong $lateSecs], possible nuke."
                 }
-                iputs -noprefix "${ErrCode}-.-\[PreCheck\]--------------------------------------------------."
-                iputs -noprefix "${ErrCode}-| [format %-59s $errMsg] |"
-                iputs -noprefix "${ErrCode}-| [format %-59s "Pre'd [FormatDurationLong $releaseAge] ago."] |"
-                iputs -noprefix "${ErrCode} '-------------------------------------------------------------'"
+                iputs -noprefix "${code}-.-\[PreCheck\]--------------------------------------------------."
+                iputs -noprefix "${code}-| [format %-59s $message] |"
+                iputs -noprefix "${code}-| [format %-59s "Pre'd [FormatDurationLong $releaseAge] ago."] |"
+                iputs -noprefix "${code} '-------------------------------------------------------------'"
                 if {[IsTrue $logInfo]} {
                     if {[IsTrue $misc(dZSbotLogging)]} {
                         set lateSecs $lateMins
                         set releaseAge [FormatDuration $releaseAge]
                         set timeStamp [clock format $timeStamp -format "%m/%d/%y %H:%M:%S" -gmt 1]
                     }
-                    putlog "${LogPrefix}: \"$virtualPath\" \"$lateSecs\" \"$releaseAge\" \"$timeStamp\""
+                    putlog "${logPrefix}: \"$virtualPath\" \"$lateSecs\" \"$releaseAge\" \"$timeStamp\""
                 }
             } elseif {[IsTrue $logInfo]} {
                 if {[IsTrue $misc(dZSbotLogging)]} {
@@ -467,7 +467,7 @@ proc ::nxTools::Dupe::SiteApprove {event release} {
     return 0
 }
 
-proc ::nxTools::Dupe::SiteDupe {maxResults pattern} {
+proc ::nxTools::Dupe::SiteDupe {limit pattern} {
     global isBot misc
     if {[catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} error]} {
         ErrorLog SiteDupe $error
@@ -481,7 +481,7 @@ proc ::nxTools::Dupe::SiteDupe {maxResults pattern} {
     }
     set pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$pattern*" "*"]]
     set count 0
-    DirDb eval "SELECT * FROM DupeDirs WHERE DirName LIKE '$pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $maxResults" values {
+    DirDb eval "SELECT * FROM DupeDirs WHERE DirName LIKE '$pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $limit" values {
         incr count
         if {$isBot} {
             iputs [list DUPE $count $values(TimeStamp) $values(UserName) $values(GroupName) $values(DirPath) $values(DirName)]
@@ -493,7 +493,7 @@ proc ::nxTools::Dupe::SiteDupe {maxResults pattern} {
     }
     if {!$isBot} {
         if {!$count} {OutputText $template(None)}
-        if {$count == $maxResults} {
+        if {$count == $limit} {
             set total [DirDb eval "SELECT count(*) FROM DupeDirs WHERE DirName LIKE '$pattern' ESCAPE '\\'"]
         } else {
             set total $count
@@ -504,7 +504,7 @@ proc ::nxTools::Dupe::SiteDupe {maxResults pattern} {
     return 0
 }
 
-proc ::nxTools::Dupe::SiteFileDupe {maxResults pattern} {
+proc ::nxTools::Dupe::SiteFileDupe {limit pattern} {
     global isBot misc
     if {[catch {DbOpenFile [namespace current]::FileDb "DupeFiles.db"} error]} {
         ErrorLog SiteFileDupe $error
@@ -518,7 +518,7 @@ proc ::nxTools::Dupe::SiteFileDupe {maxResults pattern} {
     }
     set pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$pattern*" "*"]]
     set count 0
-    FileDb eval "SELECT * FROM DupeFiles WHERE FileName LIKE '$pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $maxResults" values {
+    FileDb eval "SELECT * FROM DupeFiles WHERE FileName LIKE '$pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $limit" values {
         incr count
         if {$isBot} {
             iputs [list DUPE $count $values(TimeStamp) $values(UserName) $values(GroupName) $values(FileName)]
@@ -530,7 +530,7 @@ proc ::nxTools::Dupe::SiteFileDupe {maxResults pattern} {
     }
     if {!$isBot} {
         if {!$count} {OutputText $template(None)}
-        if {$count == $maxResults} {
+        if {$count == $limit} {
             set total [FileDb eval "SELECT count(*) FROM DupeFiles WHERE FileName LIKE '$pattern' ESCAPE '\\'"]
         } else {
             set total $count
@@ -541,7 +541,7 @@ proc ::nxTools::Dupe::SiteFileDupe {maxResults pattern} {
     return 0
 }
 
-proc ::nxTools::Dupe::SiteNew {maxResults showSection} {
+proc ::nxTools::Dupe::SiteNew {limit showSection} {
     global isBot misc new
     if {[catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} error]} {
         ErrorLog SiteNew $error
@@ -576,7 +576,7 @@ proc ::nxTools::Dupe::SiteNew {maxResults showSection} {
     } else {set whereClause ""}
 
     set count 0
-    DirDb eval "SELECT * FROM DupeDirs $whereClause ORDER BY TimeStamp DESC LIMIT $maxResults" values {
+    DirDb eval "SELECT * FROM DupeDirs $whereClause ORDER BY TimeStamp DESC LIMIT $limit" values {
         incr count
         # Find section name and check the match path.
         if {$showAll} {
@@ -604,7 +604,7 @@ proc ::nxTools::Dupe::SiteNew {maxResults showSection} {
     return 0
 }
 
-proc ::nxTools::Dupe::SitePreTime {maxResults pattern} {
+proc ::nxTools::Dupe::SitePreTime {limit pattern} {
     global isBot misc mysql
     if {!$isBot} {
         foreach fileExt {Header Body BodyInfo BodyNuke None Footer} {
@@ -615,7 +615,7 @@ proc ::nxTools::Dupe::SitePreTime {maxResults pattern} {
     set pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$pattern*" "*"]]
     set count 0
     if {[MySqlConnect]} {
-        set queryResults [::mysql::sel $mysql(ConnHandle) "SELECT * FROM $mysql(TableName) WHERE release LIKE '$pattern' ORDER BY pretime DESC LIMIT $maxResults" -list]
+        set queryResults [::mysql::sel $mysql(ConnHandle) "SELECT * FROM $mysql(TableName) WHERE release LIKE '$pattern' ORDER BY pretime DESC LIMIT $limit" -list]
         set singleResult [expr {[llength $queryResults] == 1}]
         set timeNow [clock seconds]
 
@@ -663,7 +663,7 @@ proc ::nxTools::Dupe::SiteUndupe {argList} {
     set removed 0; set total 0
     set pattern [SqlWildToLike $pattern]
 
-    if {![catch {DbOpenFile [namespace current]::DupeDb "${DbName}.db"} error]} {
+    if {![catch {DbOpenFile [namespace current]::DupeDb "${dbName}.db"} error]} {
         set total [DupeDb eval "SELECT count(*) FROM $dbName"]
         DupeDb eval {BEGIN}
         DupeDb eval "SELECT $colName,rowid FROM $dbName WHERE $colName LIKE '$pattern' ESCAPE '\\' ORDER BY $colName ASC" values {
@@ -807,29 +807,29 @@ proc ::nxTools::Dupe::Main {argv} {
             }
         }
         {DUPE} {
-            if {$argLength > 1 && [GetOptions [lrange $argList 1 end] maxResults pattern]} {
-                set result [SiteDupe $maxResults $pattern]
+            if {$argLength > 1 && [GetOptions [lrange $argList 1 end] limit pattern]} {
+                set result [SiteDupe $limit $pattern]
             } else {
                 iputs "Syntax: SITE DUPE \[-max <limit>\] <release>"
             }
         }
         {FDUPE} {
-            if {$argLength > 1 && [GetOptions [lrange $argList 1 end] maxResults pattern]} {
-                set result [SiteFileDupe $maxResults $pattern]
+            if {$argLength > 1 && [GetOptions [lrange $argList 1 end] limit pattern]} {
+                set result [SiteFileDupe $limit $pattern]
             } else {
                 iputs "Syntax: SITE FDUPE \[-max <limit>\] <filename>"
             }
         }
         {NEW} {
-            if {[GetOptions [lrange $argList 1 end] maxResults sectionName]} {
-                set result [SiteNew $maxResults $sectionName]
+            if {[GetOptions [lrange $argList 1 end] limit sectionName]} {
+                set result [SiteNew $limit $sectionName]
             } else {
                 iputs "Syntax: SITE NEW \[-max <limit>\] \[section\]"
             }
         }
         {PRETIME} {
-            if {$argLength > 1 && [GetOptions [lrange $argList 1 end] maxResults pattern]} {
-                set result [SitePreTime $maxResults $pattern]
+            if {$argLength > 1 && [GetOptions [lrange $argList 1 end] limit pattern]} {
+                set result [SitePreTime $limit $pattern]
             } else {
                 iputs "Syntax: SITE PRETIME \[-max <limit>\] <release>"
             }
