@@ -569,8 +569,10 @@ proc ::nxTools::Dupe::SiteNew {limit showSection} {
     }
     set sectionList [GetSectionList]
     if {![set showAll [string equal "" $showSection]]} {
+        set sectionNameList [list]
+        set validSection 0
+
         # Validate the section name.
-        set sectionNameList ""; set validSection 0
         foreach {sectionName creditSection statSection matchPath} $sectionList {
             if {[string equal -nocase $showSection $sectionName]} {
                 set showSection $sectionName

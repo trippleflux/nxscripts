@@ -42,7 +42,9 @@ proc ::nxTools::Rules::WordWrap {text width} {
 proc ::nxTools::Rules::Main {display} {
     global misc rules
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
-    set displayList ""; set sectionList ""; set sectionName ""
+    set displayList [list]
+    set sectionList [list]
+    set sectionName ""
 
     # Read rules configuration.
     if {![catch {set handle [open $rules(ConfigFile) r]} error]} {

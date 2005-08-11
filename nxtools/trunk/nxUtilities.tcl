@@ -238,7 +238,8 @@ proc ::nxTools::Utils::SearchLog {logFile limit pattern} {
 proc ::nxTools::Utils::WeeklyCredits {wkTarget wkAmount} {
     global weekly
     iputs ".-\[WeeklyCredits\]--------------------------------------------------------."
-    set comments ""; set targetList ""
+    set comments ""
+    set targetList [list]
 
     if {![catch {set handle [open $weekly(ConfigFile) r]} error]} {
         while {![eof $handle]} {
@@ -316,7 +317,8 @@ proc ::nxTools::Utils::WeeklyCredits {wkTarget wkAmount} {
 proc ::nxTools::Utils::WeeklySet {} {
     global weekly
     iputs ".-\[WeeklySet\]------------------------------------------------------------."
-    set targetList ""
+    set targetList [list]
+
     if {![catch {set handle [open $weekly(ConfigFile) r]} error]} {
         while {![eof $handle]} {
             set line [string trim [gets $handle]]
@@ -330,6 +332,7 @@ proc ::nxTools::Utils::WeeklySet {} {
         ErrorLog WeeklyRead $error
         ErrorReturn "Unable to load the weekly credits configuration, contact a siteop."
     }
+
     if {[llength $targetList]} {
         foreach element [lsort -ascii -index 0 $targetList] {
             foreach {target section credits} $element {break}
