@@ -159,7 +159,8 @@ proc ::nxTools::Utils::OneLines {message} {
     } else {
         iputs ".-\[OneLines\]-------------------------------------------------------------."
         set timeStamp [clock seconds]
-        OneDb eval {INSERT INTO OneLines(TimeStamp,UserName,GroupName,Message) VALUES($timeStamp,$user,$group,$message)}
+        OneDb eval {INSERT INTO OneLines(TimeStamp,UserName,GroupName,Message)
+            VALUES($timeStamp,$user,$group,$message)}
         LinePuts "Added message \"$message\" by $user/$group."
         iputs "'------------------------------------------------------------------------'"
     }
@@ -272,7 +273,7 @@ proc ::nxTools::Utils::WeeklyCredits {wkTarget wkAmount} {
             } else {incr index}
         }
         if {$deleted} {
-            LinePuts "Removed the target \"$wkTarget\" (${credits}MB in section $section) from weekly credits."
+            LinePuts "Removed \"$wkTarget\" (${credits}MB in section $section) from weekly credits."
         } else {
             # Check if the user or group exists.
             if {[string index $wkTarget 0] eq "="} {
@@ -282,7 +283,7 @@ proc ::nxTools::Utils::WeeklyCredits {wkTarget wkAmount} {
             } elseif {[resolve user $wkTarget] == -1} {
                 ErrorReturn "The specified user does not exist."
             }
-            LinePuts "Added the target \"$wkTarget\" (${credits}MB in section $section) to weekly credits."
+            LinePuts "Added \"$wkTarget\" (${credits}MB in section $section) to weekly credits."
             lappend targetList [list $wkTarget $section $creditsKB]
         }
 
@@ -300,7 +301,7 @@ proc ::nxTools::Utils::WeeklyCredits {wkTarget wkAmount} {
         LinePuts " Group Credits - SITE WEEKLY =<group> <section>,<credits mb>"
         LinePuts "  List Targets - SITE WEEKLY"
         LinePuts "Notes:"
-        LinePuts " - To add(+) or subtract(-) a credits, use the appropriate sign."
+        LinePuts " - To add(+) or subtract(-) credits, use the appropriate sign."
         LinePuts " - To remove a user or group, enter the target's section and credits."
     }
     iputs "'------------------------------------------------------------------------'"
@@ -341,7 +342,7 @@ proc ::nxTools::Utils::WeeklySet {} {
                     append credits [expr {wide($amount) / $userCount}]
                 }
 
-                LinePuts "Weekly credits given to $userCount users in $target ([expr {wide($credits) / 1024}]MB in section $section each)."
+                LinePuts "Weekly credits given to $userCount user(s) in $target ([expr {wide($credits) / 1024}]MB in section $section each)."
                 foreach userName $userList {
                     ChangeCredits $userName $credits $section
                 }
@@ -531,10 +532,10 @@ proc ::nxTools::Utils::SiteResetStats {argList} {
         LinePuts "No valid stats Types specified."
         LinePuts "Types: $statTypes"
     } else {
+        LinePuts "Resetting: [JoinLiteral $resetStats]"
         foreach userName [GetUserList] {
             ResetUserFile $userName $resetStats
         }
-        LinePuts "Stats have been reset."
     }
 
     iputs "'------------------------------------------------------------------------'"
