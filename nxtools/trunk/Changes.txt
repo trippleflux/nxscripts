@@ -4,8 +4,8 @@
 
 nxTools v0.9.11 (XX-XX-2005):
   NEW: Added ::nx::sleep <ms> to nxHelper, to suspend execution for the given time.
-  NEW: New argument parser, supports quoting arguments (e.g. SITE NUKE "Some Thing" 3 no.spaces).
   NEW: Request limits for individual users and groups.
+  NEW: Rewrote argument parser, supports quoting arguments (e.g. SITE PRE freeware "Some Thing").
   CHG: Improved configuration file parser for invite and pre.
   CHG: Removed SITE BOT command, no longer needed.
   CHG: Removed SITE EDITINV, to make room for a new invite system.
