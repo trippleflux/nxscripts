@@ -499,7 +499,7 @@ DLLENTRY =
 !IF "$(CPU)" == "i386"
 
 !IFDEF NODEBUG
-ldebug = /RELEASE /OPT:REF
+ldebug = /RELEASE /OPT:REF /OPT:ICF=12
 !ELSE
 ldebug = /DEBUG /DEBUGTYPE:cv
 !ENDIF
@@ -507,7 +507,7 @@ ldebug = /DEBUG /DEBUGTYPE:cv
 !ELSE
 
 !IFDEF NODEBUG
-ldebug = /RELEASE /OPT:REF
+ldebug = /RELEASE /OPT:REF /OPT:ICF=12
 !ELSE IFDEF PROFILE
 ldebug = /DEBUG:mapped,partial /DEBUGTYPE:coff
 !ELSE IFDEF TUNE
