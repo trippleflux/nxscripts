@@ -143,6 +143,7 @@ proc ::nxTools::Pre::UpdateLinks {virtualPath} {
     set tagName [string map [list %(release) $tagName] $latest(PreTag)]
     set timeStamp [clock seconds]
     LinkDb eval {INSERT INTO Links(TimeStamp,LinkType,DirName) VALUES($timeStamp,1,$tagName)}
+
     set tagName [file join $latest(SymPath) $tagName]
     if {![catch {file mkdir $tagName} error]} {
         catch {vfs chattr $tagName 1 $virtualPath}
@@ -598,6 +599,7 @@ proc ::nxTools::Pre::Release {argList} {
         incr files; set fileSize [file size $entry]
         set fileSize [file size $entry]
         set totalSize [expr {wide($totalSize) + wide($fileSize)}]
+
         if {[IsTrue $pre(Uploaders)]} {
             catch {lindex [vfs read $entry] 0} userId
             if {$fileSize > 0 && [set userName [resolve uid $userId]] ne ""} {
@@ -722,15 +724,22 @@ proc ::nxTools::Pre::Release {argList} {
     putlog $line
 
     if {![catch {DbOpenFile [namespace current]::PreDb "Pres.db"} error]} {
-        PreDb eval {INSERT INTO Pres(TimeStamp,UserName,GroupName,Area,Release,Files,Size) VALUES($preTime,$user,$preGroup,$area,$release,$files,$totalSize)}
+        PreDb eval {INSERT INTO Pres(TimeStamp,UserName,GroupName,Area,Release,Files,Size)
+            VALUES($preTime,$user,$preGroup,$area,$release,$files,$totalSize)}
         PreDb close
     } else {ErrorLog PreDb $error}
 
     if {[IsTrue $dupe(AddOnPre)]} {
         if {![catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} error]} {
-            set logUser [expr {$pre(ChownUserId) ne "" ? [resolve uid $pre(ChownUserId)] : $user}]
+            if {$pre(ChownUserId) eq ""} {
+                set logUser $user
+            } else {
+                set logUser [resolve uid $pre(ChownUserId)]
+            }
             set logPath [string range $destVirtualPath 0 [string last "/" $destVirtualPath]]
-            DirDb eval {INSERT INTO DupeDirs(TimeStamp,UserName,GroupName,DirPath,DirName) VALUES($preTime,$logUser,$preGroup,$logPath,$release)}
+
+            DirDb eval {INSERT INTO DupeDirs(TimeStamp,UserName,GroupName,DirPath,DirName)
+                VALUES($preTime,$logUser,$preGroup,$logPath,$release)}
             DirDb close
         } else {ErrorLog PreDupeDb $error}
     }

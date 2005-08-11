@@ -216,6 +216,7 @@ proc ::nxTools::Nuke::Main {argv} {
             foreach entry $dirlist(FileList) {
                 incr files; set fileSize [file size $entry]
                 set totalSize [expr {wide($totalSize) + wide($fileSize)}]
+
                 catch {lindex [vfs read $entry] 0} userId
                 if {[set nukeeUser [resolve uid $userId]] ne ""} {
                     if {[info exists nukefiles($nukeeUser)]} {

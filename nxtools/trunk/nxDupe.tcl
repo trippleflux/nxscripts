@@ -370,6 +370,7 @@ proc ::nxTools::Dupe::RaceLinks {virtualPath} {
     set tagName [string map [list %(release) $tagName] $latest(RaceTag)]
     set timeStamp [clock seconds]
     LinkDb eval {INSERT INTO Links(TimeStamp,LinkType,DirName) VALUES($timeStamp,0,$tagName)}
+
     set tagName [file join $latest(SymPath) $tagName]
     if {![catch {file mkdir $tagName} error]} {
         catch {vfs chattr $tagName 1 $virtualPath}

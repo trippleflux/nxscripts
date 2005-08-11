@@ -13,6 +13,7 @@ nxTools v0.9.11 (XX-XX-2005):
   CHG: Switched to a busy callback, instead of the timeout value, for failed
        SQLite transactions. This should improve the dupe checker during heavy traffic.
   CHG: Updated zlib in nxHelper to version 1.2.3.
+  CHG: Users cannot fill their own requests.
   FIX: Corrected several errors in the readme.
   FIX: The InvalidArgs error message for request didn't work.
 
