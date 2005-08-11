@@ -57,6 +57,7 @@ frequently, so be sure you are always using the latest version.
 
     ioFTPD\scripts\init.itcl
     ioFTPD\scripts\nxTools.cfg
+    ioFTPD\scripts\nxTools.txt
     ioFTPD\scripts\nxLib.tcl
     ioFTPD\scripts\nxTools\data\*
     ioFTPD\scripts\nxTools\text\*
