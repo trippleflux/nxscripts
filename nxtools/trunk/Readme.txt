@@ -4,7 +4,7 @@
 ################################################################################
 
 Topics:
-  1. Introduction
+  1. Information
   2. Thank You's
   3. Requirements
   4. Installation
@@ -12,12 +12,11 @@ Topics:
   6. Troubleshooting
   7. Technical Notes
   8. Todo List
-  9. Bugs & Comments
+  9. Bugs and Comments
  10. License
 
-
 ################################################################################
-# 1. Introduction                                                              #
+# 1. Information                                                               #
 ################################################################################
 
    nxTools is a fully-featured ioFTPD script. Such features include: a dupe
@@ -35,8 +34,7 @@ and easily customizable output.
 - Thanks to both Mouton and Harm for their work on ioBanana.
 - Thanks to WarC for ioA and especially ZR-Tools (my favourite script!).
 - Several features of nxTools derived from ioA and ioBanana, so a second thank
-  you to their authors. :)
-
+  you to their authors.
 
 ################################################################################
 # 3. Requirements                                                              #
@@ -46,7 +44,6 @@ and easily customizable output.
 operating system is unsupported. This script was tested on v5.8.5r so I cannot
 guarantee it will work on any other versions of ioFTPD. nxTools is updated
 frequently, so be sure you are always using the latest version.
-
 
 ################################################################################
 # 4. Installation                                                              #
@@ -346,7 +343,6 @@ set announce(WARNPRE)       "-%sitename- \[%section\] + %path/%bold%release%bold
 set announce(WIPE)          "-%sitename- \[%section\] + %bold%user%bold@%group wiped %path/%bold%release%bold %bold%mbytes%boldMB (%bold%files%bold files, %bold%dirs%bold dirs)"
 
 12. Finished, for now at least. Be sure to keep your nxTools version up-to-date!
-
 
 ################################################################################
 # 5. Commands                                                                  #
@@ -690,7 +686,6 @@ Legend:
      - SITE WIPE some.old.rar
      - SITE WIPE Something.Very.Old-NX
 
-
 ################################################################################
 # 6. Troubleshooting                                                           #
 ################################################################################
@@ -701,7 +696,6 @@ A: Don't use this script.
 Q: Encountering problems with the script?
 A: Check the file /logs/nxError.log for details. If there is any errors in the
    file /logs/SystemError.log, please report them to me.
-
 
 ################################################################################
 # 7. Technical Notes                                                           #
@@ -795,7 +789,6 @@ Text Templates:
       Rules.MultiLine  : %(num) %(punishment) %(rule) %(section)
       Rules.Footer     : %(sections)
 
-
 ################################################################################
 # 8. Todo List                                                                 #
 ################################################################################
@@ -814,18 +807,16 @@ Text Templates:
 - Convert this manual to a cleanly formatted HTML file (like WarC and Harm have
   done with ioA and ioBanana).
 
-
 ################################################################################
-# 9. Bugs & Comments                                                           #
+# 9. Bugs and Comments                                                         #
 ################################################################################
 
    If you have any problems with this script; or you found a bug, spelling
 mistake or grammar error, please report it to me. If it's a technical issue,
-be sure you can reproduce the problem, so I can find the cause.
+be sure you can reproduce the problem, so I can find a solution.
 
 IRC  : neoxed <#ioFTPD at EFnet>
 Email: neoxed@gmail.com
-
 
 ################################################################################
 # 10. License                                                                  #
