@@ -2,7 +2,7 @@
 #                             nxTools - Change Log                             #
 ################################################################################
 
-nxTools v0.9.11 (XX-XX-2005):
+nxTools v0.9.11 (Aug 11, 2005):
   NEW: Added ::nx::sleep <ms> to nxHelper, to suspend execution for the given time.
   NEW: Request limits for individual users and groups.
   NEW: Rewrote argument parser, supports quoting arguments (e.g. SITE PRE freeware "Some Thing").
@@ -18,7 +18,7 @@ nxTools v0.9.11 (XX-XX-2005):
   FIX: Corrected several errors in the readme.
   FIX: The InvalidArgs error message for request didn't work.
 
-nxTools v0.9.10 (05-24-2005):
+nxTools v0.9.10 (May 24, 2005):
   NEW: Added free and drive totals to the footer of SITE DRIVES.
   NEW: Added custom string comparison functions to TclSQLite, replacing the
        user-defined Tcl functions used previously (speeds up dupe checker).
@@ -30,7 +30,7 @@ nxTools v0.9.10 (05-24-2005):
   FIX: SITE PRETIME and pre time checks were broken.
   FIX: The dZSbot cookies for variables(CLOSE) and variables(OPEN) were mixed up.
 
-nxTools v0.9.9 (03-27-2005):
+nxTools v0.9.9 (Mar 27, 2005):
   NEW: SITE BOT BW to view the site's current usage.
   NEW: SITE NUKETOP [-max <limit>] [group] to view the top-nuked users.
   NEW: The SITE DB CREATE command checks database schema versions.
@@ -47,7 +47,7 @@ nxTools v0.9.9 (03-27-2005):
   FIX: Pre areas weren't listed on SITE PRE HELP.
   FIX: The security check on SITE UNDUPE was not working properly.
 
-nxTools v0.9.8 (03-23-2005):
+nxTools v0.9.8 (Mar 23, 2005):
   NEW: SITE DRIVES to view fixed and network drives.
   NEW: SITE EDITPRE HIDEPATH [group] to re-hide pre paths for groups, in case the
   chattr +h value is accidentally removed from the directories.
@@ -61,7 +61,7 @@ nxTools v0.9.8 (03-23-2005):
   FIX: The approve check failed on MKD.
   FIX: User hiding (chowning) on SITE PRE.
 
-nxTools v0.9.7 (02-17-2005):
+nxTools v0.9.7 (Feb 17, 2005):
   NEW: Added text templates for SITE FDUPE, text/FileDupe.* files.
   NEW: All text-based log files have been replaced with SQLite databases.
   NEW: Approved releases cannot be nuked (if an approve tag is found).
@@ -76,7 +76,7 @@ nxTools v0.9.7 (02-17-2005):
   CHG: Removed the copy method if the move failed on pre.
   FIX: Users could still log in when the site was closed.
 
-nxTools v0.9.6 (01-01-2005):
+nxTools v0.9.6 (Jan 01, 2005):
   NEW: Added support for dZSbot announcements (must be enabled if needed), check install step #10.
   FIX: Newly added requests should have a request ID of one greater then the last request.
   FIX: SITE NUKE failed (small typo for a variable).
@@ -84,7 +84,7 @@ nxTools v0.9.6 (01-01-2005):
   FIX: The lost or gained credits were not displayed properly on SITE NUKE.
   FIX: The year divisor time for FormatDurationLong was wrong.
 
-nxTools v0.9.5 (12-31-2004):
+nxTools v0.9.5 (Dec 31, 2004):
   !!!: Decided to make a public beta release, since I barely work on this script anymore.
   NEW: Added a new template file "New.Error", to display valid sections.
   NEW: Added a few notes about the pre crediting options (disabling credits/stats).
@@ -98,7 +98,7 @@ nxTools v0.9.5 (12-31-2004):
   FIX: SITE NEW displayed all results as "Default" if an invalid section was specified.
   FIX: The weekly credits function was not skipping comments in the Weekly.cfg file.
 
-nxTools v0.9.4 (11-08-2004):
+nxTools v0.9.4 (Nov 08, 2004):
   NEW: Added %(hour), %(min), and %(sec) cookies to SITE DUPE and SITE ONEL.
   NEW: Add pre'd releases to the pre database.
   NEW: Pre time checking and announcing for created directories.
@@ -109,7 +109,7 @@ nxTools v0.9.4 (11-08-2004):
   FIX: The FormatSize and FormatSpeed procedures did not work with negative values,
        the absolute value is now used for comparing.
 
-nxTools v0.9.3 (10-11-2004):
+nxTools v0.9.3 (Oct 11, 2004):
   NEW: Added an '-all' parameter to SITE RESETSTATS to reset all stats types.
   NEW: Latest pre and race symlinks.
   NEW: One-liner (mini-message board) functionality, SITE ONEL [message].
@@ -129,7 +129,7 @@ nxTools v0.9.3 (10-11-2004):
   FIX: The word wrapping procedure in SITE RULES was not trimming white space.
   FIX: Unnuke was not updating the nuke record file (Tcl can't open hidden files).
 
-nxTools v0.9.2 (09-21-2004):
+nxTools v0.9.2 (Sep 21, 2004):
   NEW: Pre now checks for available space on the target drive.
   NEW: The "-scheduler" parameter for cleanlogs is no longer needed, it's now
        automatically detected.
@@ -145,7 +145,7 @@ nxTools v0.9.2 (09-21-2004):
   FIX: Small logistic error with the file and directory ignore settings for SITE REBUILDLOGS.
   FIX: The 'Sleep' procedure was not using a globally scoped variable for vwait.
 
-nxTools v0.9.1 (09-09-2004):
+nxTools v0.9.1 (Sep 09, 2004):
   !!!: This version is the result of alturismo's ideas and reports, thanks. ;)
   NEW: A configuration option to define how many undupe character ranges to allow.
   NEW: Added support for [Sections] in the ioFTPD.ini which do not have the stats
@@ -166,7 +166,7 @@ nxTools v0.9.1 (09-09-2004):
        PRE. This problem is mainly an issue with ioFTPD, since "client kill <type>"
        returns before the applicable user(s) are disconnected.
 
-nxTools v0.9.0 (09-02-2004):
+nxTools v0.9.0 (Sep 02, 2004):
   NEW: Add to directory dupe log on pre, with user and group hiding.
   NEW: Helper executable, for pre and file and directory time touching support.
   NEW: ID3 tag and MP3 support for pre, this functionality is provided by the new
@@ -195,13 +195,13 @@ nxTools v0.9.0 (09-02-2004):
   FIX: Some users reported problems displaying pre stats with large totals.
   FIX: Text alignment issue in SITE WHO, when the download or upload speed were 4+ digits.
 
-nxTools v0.8.1 (07-25-2004):
+nxTools v0.8.1 (Jul 25, 2004):
   CHG: CD/Disk/DVD pattern matching procedures now recognize both DISK and DISC.
   FIX: Cleanlogs failed when running from the scheduler with debug disabled.
   FIX: Forgot to check if the nuke multiplier was negative, in which case nukees
        would gain credits.
 
-nxTools v0.8.0 (07-25-2004):
+nxTools v0.8.0 (Jul 25, 2004):
   NEW: File support for SITE SIZE and SITE WIPE, you are now able to size and wipe files.
   NEW: SITE EDITINV <option> [value] to remotely edit channels and rights for invite targets.
   NEW: SITE PRE HISTORY [limit] to view the latest pres.
@@ -232,7 +232,7 @@ nxTools v0.8.0 (07-25-2004):
   FIX: SITE PRE STATS did not check if the specified output limit was a valid number.
   FIX: The release name did not show up properly when nuking a disc directory in root (ex. /CD1).
 
-nxTools v0.7.4 (06-17-2004):
+nxTools v0.7.4 (Jun 17, 2004):
   CHG: Cleaned up nuke tag deletion.
   CHG: Improved the stats calculating, the loop is broken once the data is found.
   FIX: Clean logs returned if the log archive directory existed.
@@ -240,14 +240,14 @@ nxTools v0.7.4 (06-17-2004):
   FIX: Minor issue when deleting or filling requests with spaces.
   FIX: The nuke prefix was not removed on unnuke for strange directories.
 
-nxTools v0.7.3 (06-13-2004):
+nxTools v0.7.3 (Jun 13, 2004):
   NEW: SITE FDUPE <filename> to search for files in the file dupe log.
   NEW: SITE BOT <auth/stats/who> for the nxTools sitebot.
   CHG: Removed SITE BWHO and SITE BPASSWD, now part of SITE BOT.
   CHG: Reworded many errors and reply messages.
   CHG: The sitebot is now included, still needs testing.
 
-nxTools v0.7.2 (06-08-2004):
+nxTools v0.7.2 (Jun 08, 2004):
   CHG: Cleaned up the user file reading for ginfo and traffic.
   CHG: Improved user file parsing for nuke and pre, minor speed ups.
   CHG: Improved the editpre function, removed an unnecessary loop when rewriting
@@ -255,12 +255,12 @@ nxTools v0.7.2 (06-08-2004):
   FIX: The pre time stamp was incorrect, since it was taken at the end instead
        of at the start.
 
-nxTools v0.7.1 (06-03-2004):
+nxTools v0.7.1 (Jun 03, 2004):
   CHG: Moved a lot of code around, cleaned things up.
   FIX: Fixed CD/Disc/DVD counting regular expressions for nuke and pre.
   FIX: Force NFO and Sample checks incorrectly matched multiple CD releases.
 
-nxTools v0.7.0 (06-01-2004):
+nxTools v0.7.0 (Jun 01, 2004):
   NEW: Added touch support to SITE PRE, to set time stamps on pre'd files.
   NEW: Dupe log cleaning to remove old or invalid dupe entries.
   NEW: Empty nuke support, used when total directory size is less then 5KB.
@@ -290,5 +290,5 @@ nxTools v0.7.0 (06-01-2004):
   FIX: Issue with OnUploadComplerte and OnUploadError argument handling.
   FIX: Several bugs and typos in editpre.
 
-nxTools v0.6.1 (05-15-2004):
+nxTools v0.6.1 (May 15, 2004):
   CHG: Internal release, for selected beta testers.
