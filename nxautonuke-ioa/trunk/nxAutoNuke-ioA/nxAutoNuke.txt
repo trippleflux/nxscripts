@@ -1,4 +1,4 @@
-# nxAutoNuke v2.0.3 By neoxed
+# nxAutoNuke (ioA) v2.1.0 By neoxed
 ###############################################################
 
 # Information:
@@ -147,7 +147,7 @@ set announce(ANUKEMP3)     "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] th
 # Changelog:
 ###############################################################
 
-nxAutoNuke v2.0.3 (XX-XX-2005):
+nxAutoNuke v2.1.0 (XX-XX-2005):
   NEW: Added 'kicknuke' support for ioBanana.
   CHG: The ioA version is distributed separately now.
 
@@ -223,4 +223,3 @@ nxAutoNuke v1.0.0 (09-21-2004):
 ###############################################################
 - RiA release name checks will only be added if someone can provide
   me with an original copy of the RiA standards/rules.
-- Real documentation.
