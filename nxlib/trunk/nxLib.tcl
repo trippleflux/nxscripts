@@ -46,16 +46,9 @@ proc ::nxLib::ArgList {argv} {
     return $argList
 }
 
-proc ::nxLib::ArgIndex {argv index} {
-    lindex [ArgList $argv] $index
-}
-
-proc ::nxLib::ArgLength {argv} {
-    llength [ArgList $argv]
-}
-
-proc ::nxLib::ArgRange {argv start end} {
-    join [lrange [ArgList $argv] $start $end]
+proc ::nxLib::StringRange {string start end} {
+    regsub -all -- {\s+} $string { } string
+    join [lrange [split [string trim $string]] $start $end]
 }
 
 proc ::nxLib::GetOptions {argList limitVar stringVar} {
@@ -97,9 +90,9 @@ proc ::nxLib::LinePuts {message} {
 }
 
 proc ::nxLib::StripChars {string} {
-    regsub -all {[\(\<\{]+} $string {(} string
-    regsub -all {[\)\>\}]+} $string {)} string
-    regsub -all {[^A-Za-z0-9_\-\(\)]+} $string {.} string
+    regsub -all -- {[\(\<\{]+} $string {(} string
+    regsub -all -- {[\)\>\}]+} $string {)} string
+    regsub -all -- {[^A-Za-z0-9_\-\(\)]+} $string {.} string
     return [string trim $string "."]
 }
 
@@ -243,7 +236,7 @@ proc ::nxLib::GetPath {currentPath path} {
     } else {
         set virtualPath "/$currentPath$path"
     }
-    regsub -all {[\\/]+} $virtualPath {/} virtualPath
+    regsub -all -- {[\\/]+} $virtualPath {/} virtualPath
 
     # Ignore "." and "..".
     set tail [file tail $virtualPath]
@@ -269,7 +262,7 @@ proc ::nxLib::RemoveParentLinks {realPath virtualPath} {
 
     foreach linkPath [glob -nocomplain -types d -directory $realPath "*"] {
         if {[catch {vfs chattr $linkPath 1} linkTarget] || ![string length $linkTarget]} {continue}
-        regsub -all {[\\/]+} $linkTarget {/} linkTarget
+        regsub -all -- {[\\/]+} $linkTarget {/} linkTarget
         set linkTarget "/[string trim $linkTarget {/}]"
         if {[string equal -nocase -length [string length $virtualPath] $virtualPath $linkTarget]} {
             RemoveTag $linkPath
