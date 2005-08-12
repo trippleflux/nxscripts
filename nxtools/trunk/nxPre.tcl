@@ -92,7 +92,7 @@ proc ::nxTools::Pre::ResolvePath {userName groupName realPath} {
         set userFile [userfile bin2ascii]
         foreach line [split $userFile "\r\n"] {
             if {[string equal -nocase "vfsfile" [lindex $line 0]]} {
-                set vfsFile [ArgRange $line 1 end]; break
+                set vfsFile [StringRange $line 1 end]; break
             }
         }
     }
@@ -101,7 +101,7 @@ proc ::nxTools::Pre::ResolvePath {userName groupName realPath} {
         set groupFile [groupfile bin2ascii]
         foreach line [split $groupFile "\r\n"] {
             if {[string equal -nocase "vfsfile" [lindex $line 0]]} {
-                set vfsFile [ArgRange $line 1 end]; break
+                set vfsFile [StringRange $line 1 end]; break
             }
         }
     }

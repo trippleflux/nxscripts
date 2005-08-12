@@ -500,7 +500,7 @@ proc ::nxTools::Utils::SiteGroupInfo {groupName section} {
         foreach line [split $groupFile "\r\n"] {
             set type [string tolower [lindex $line 0]]
             if {$type eq "description"} {
-                set ginfo(TagLine) [ArgRange $line 1 end]
+                set ginfo(TagLine) [StringRange $line 1 end]
             } elseif {$type eq "slots"} {
                 set ginfo(Slots) [lrange $line 1 2]
             }
@@ -667,7 +667,7 @@ proc ::nxTools::Utils::SiteWho {} {
                     if {$type eq "groups"} {
                         set groupName [GetGroupName [lindex $line 1]]
                     } elseif {$type eq "tagline"} {
-                        set tagLine [ArgRange $line 1 end]
+                        set tagLine [StringRange $line 1 end]
                     }
                 }
             }
