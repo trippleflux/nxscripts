@@ -411,7 +411,7 @@ proc ::alcoholicz::ModuleUnload {modName} {
     unset modules($modName)
 
     # Raise an error after cleaning up the module.
-    if {$failed} {error "de-initialisation failed: $message"}
+    if {$failed} {error "finalisation failed: $message"}
     return
 }
 
@@ -450,7 +450,7 @@ proc ::alcoholicz::ModuleRead {filePath} {
         incr index
     }
     if {[llength $required]} {
-        error "missing required module information: [join $required {, }]"
+        error "missing required module information: [JoinLiteral $required]"
     }
     set modInfo(file) [file join [file dirname $filePath] $modInfo(file)]
     if {![file isfile $modInfo(file)]} {
@@ -491,7 +491,7 @@ proc ::alcoholicz::SendSectionTheme {section type {values {}}} {
     variable theme
     variable vars
     if {![info exists theme($type)] || ![info exists vars($type)]} {
-        LogError SendSectionTheme "Missing theme or vars definition for \"$type\"."
+        LogError SendSectionTheme "Missing theme or variable definition for \"$type\"."
         return
     }
     SendSection $section [VarReplace $theme($type) $vars($type) $values]
@@ -515,7 +515,7 @@ proc ::alcoholicz::SendTargetTheme {target type {values {}} {section DEFAULT}} {
     variable theme
     variable vars
     if {![info exists theme($type)] || ![info exists vars($type)]} {
-        LogError SendTargetTheme "Missing theme or vars definition for \"$type\"."
+        LogError SendTargetTheme "Missing theme or variable definition for \"$type\"."
         return
     }
     set text [VarReplace $theme($type) $vars($type) $values]
@@ -586,8 +586,7 @@ proc ::alcoholicz::InitConfig {filePath} {
 # required script or extension could not be loaded.
 #
 proc ::alcoholicz::InitLibraries {rootPath} {
-    global auto_path
-    global tcl_platform
+    global auto_path tcl_platform
 
     set libPath [file join $rootPath libs]
     foreach script {constants.tcl common.tcl config.tcl ftp.tcl tree.tcl} {
@@ -705,7 +704,7 @@ proc ::alcoholicz::InitTheme {themeFile} {
     }
     if {[llength $known]} {
         foreach name $known {set format($name) {}}
-        LogWarning InitTheme "Missing required format entries: [join $known {, }]."
+        LogWarning InitTheme "Missing required format entries: [JoinLiteral $known]."
     }
 
     # Process '[Theme]' entries.
@@ -719,7 +718,7 @@ proc ::alcoholicz::InitTheme {themeFile} {
     }
     if {[llength $known]} {
         foreach name $known {set theme($name) {}}
-        LogWarning InitTheme "Missing required theme entries: [join [lsort $known] {, }]."
+        LogWarning InitTheme "Missing required theme entries: [JoinLiteral [lsort $known]]."
     }
 
     ConfigClose $handle

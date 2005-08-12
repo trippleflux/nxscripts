@@ -13,7 +13,7 @@
 #
 
 namespace eval ::alcoholicz {
-    namespace export ArgsToList GetSectionName \
+    namespace export ArgsToList JoinLiteral GetSectionName \
         FormatDate FormatTime FormatDuration FormatDurationLong FormatSize FormatSpeed \
         PathStrip PathParse VarFormat VarReplace VarReplaceBase VarReplaceCommon
 }
@@ -51,6 +51,22 @@ proc ::alcoholicz::ArgsToList {argStr} {
 }
 
 ####
+# JoinLiteral
+#
+# Convert a Tcl list into a human-readable list.
+#
+proc ::alcoholicz::JoinLiteral {list {word "and"}} {
+    if {[llength $list] < 2} {
+        return [join $list]
+    }
+    set literal [join [lrange $list 0 end-1] ", "]
+    if {[llength $list] > 2} {
+        append literal ","
+    }
+    return [append literal " " $word " " [lindex $list end]]
+}
+
+####
 # GetSectionName
 #
 # Retrieve the section name from a given path. An error raised if no match
@@ -59,6 +75,7 @@ proc ::alcoholicz::ArgsToList {argStr} {
 proc ::alcoholicz::GetSectionName {fullPath} {
     variable sections
     set bestMatch 0
+
     foreach name [array names sections] {
         set sectPath [lindex $sections($name) 0]
         set sectLength [string length $sectPath]
