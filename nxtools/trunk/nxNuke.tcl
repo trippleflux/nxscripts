@@ -175,7 +175,7 @@ proc ::nxTools::Nuke::Main {argv} {
                 {^2\|(0|1)\|\d+\|\S+\|\d+\|.+$} {
                     set nukeId [lindex $recordSplit 2]
                     # Only use the multiplier if it's a nuke record.
-                    if {!$isNuke && ![lindex $recordSplit 1]} {
+                    if {!$isNuke && [lindex $recordSplit 1] == 0} {
                         set multi [lindex $recordSplit 5]
                     }
                 }

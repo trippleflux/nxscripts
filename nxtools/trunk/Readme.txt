@@ -731,7 +731,7 @@ Text Templates:
 
 - In the 0.9x versions, the template parser was extended to a few portions of
   nxTools to allow the user to easily customize the script's output. So far the
-  only customizable site commands and their available cookies are:
+  only customizable site commands, and their available cookies, are:
 
   - Viewing Approved Releases (SITE APPROVE LIST)
       New.Header       : N/A
@@ -758,7 +758,7 @@ Text Templates:
       New.None         : N/A
       New.Footer       : N/A
 
-  - Viewing OneLines (SITE ONEL)
+  - Viewing One-lines (SITE ONEL)
       OneLines.Header  : N/A
       OneLines.Body    : %(sec) %(min) %(hour) %(day) %(month) %(year2) %(year4) %(user) %(group) %(message)
       OneLines.None    : N/A
