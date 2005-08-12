@@ -155,7 +155,7 @@ proc ::alcoholicz::CmdProc {script user host handle channel text} {
         }
     }
 
-    set argv [StringToList $text]
+    set argv [ArgsToList $text]
     if {[catch {eval $script [list $user $host $handle $channel $target [llength $argv] $argv]} message]} {
         LogError CmdProc "Error evaluating \"$script\":\n$::errorInfo"
     }

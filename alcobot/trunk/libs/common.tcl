@@ -13,7 +13,7 @@
 #
 
 namespace eval ::alcoholicz {
-    namespace export GetSectionName StringToList \
+    namespace export ArgsToList GetSectionName \
         FormatDate FormatTime FormatDuration FormatDurationLong FormatSize FormatSpeed \
         PathStrip PathParse VarFormat VarReplace VarReplaceBase VarReplaceCommon
 }
@@ -21,6 +21,34 @@ namespace eval ::alcoholicz {
 ################################################################################
 # Utilities                                                                    #
 ################################################################################
+
+####
+# ArgsToList
+#
+# Convert a string into a Tcl list, respecting quoted text segments.
+#
+proc ::alcoholicz::ArgsToList {argStr} {
+    set argList [list]
+    set length [string length $argStr]
+
+    for {set index 0} {$index < $length} {incr index} {
+        # Ignore leading white-space.
+        while {[string is space -strict [string index $argStr $index]]} {incr index}
+        if {$index >= $length} {break}
+
+        if {[string index $argStr $index] eq "\""} {
+            # Find the next quote character.
+            set startIndex [incr index]
+            while {[string index $argStr $index] ne "\"" && $index < $length} {incr index}
+        } else {
+            # Find the next white-space character.
+            set startIndex $index
+            while {![string is space -strict [string index $argStr $index]] && $index < $length} {incr index}
+        }
+        lappend argList [string range $argStr $startIndex [expr {$index - 1}]]
+    }
+    return $argList
+}
 
 ####
 # GetSectionName
@@ -46,16 +74,6 @@ proc ::alcoholicz::GetSectionName {fullPath} {
         error "no matching section found for \"$fullPath\""
     }
     return $sectionName
-}
-
-####
-# StringToList
-#
-# Convert the given string into a Tcl list.
-#
-proc ::alcoholicz::StringToList {string} {
-    regsub -all {\s+} $string { } string
-    return [split [string trim $string]]
 }
 
 ################################################################################
