@@ -2,14 +2,14 @@
 # AlcoBot - Alcoholicz site bot.
 # Copyright (c) 2005 Alcoholicz Scripting Team
 #
-# File Name:
-#   groups.tcl
+# Module Name:
+#   Groups Module
 #
 # Author:
 #   neoxed (neoxed@gmail.com) June 14, 2005
 #
 # Abstract:
-#   Module to manage affiliated and banned groups.
+#   Implements a module to manage affiliated and banned groups.
 #
 
 namespace eval ::alcoholicz::Groups {
@@ -165,7 +165,7 @@ proc ::alcoholicz::Groups::ListBanned {user host handle channel target argc argv
 ####
 # Load
 #
-# Module initialization procedure, called when the module is loaded.
+# Module initialisation procedure, called when the module is loaded.
 #
 proc ::alcoholicz::Groups::Load {firstLoad} {
     variable groupsHandle
@@ -209,7 +209,7 @@ proc ::alcoholicz::Groups::Load {firstLoad} {
 ####
 # Unload
 #
-# Module clean-up procedure, called before the module is unloaded.
+# Module finalisation procedure, called before the module is unloaded.
 #
 proc ::alcoholicz::Groups::Unload {} {
     variable groupsHandle

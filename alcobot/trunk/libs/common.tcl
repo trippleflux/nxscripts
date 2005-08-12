@@ -2,14 +2,14 @@
 # AlcoBot - Alcoholicz site bot.
 # Copyright (c) 2005 Alcoholicz Scripting Team
 #
-# File Name:
-#   common.tcl
+# Module Name:
+#   Common Library
 #
 # Author:
 #   neoxed (neoxed@gmail.com) May 16, 2005
 #
 # Abstract:
-#   Common library functions.
+#   Implements commonly used library functions.
 #
 
 namespace eval ::alcoholicz {

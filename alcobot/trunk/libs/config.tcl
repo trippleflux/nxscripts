@@ -2,14 +2,15 @@
 # AlcoBot - Alcoholicz site bot.
 # Copyright (c) 2005 Alcoholicz Scripting Team
 #
-# File Name:
-#   config.tcl
+# Module Name:
+#   Config Library
 #
 # Author:
 #   neoxed (neoxed@gmail.com) May 13, 2005
 #
 # Abstract:
-#   Configuration file library.
+#   Implements a configuration file library to read from and write to
+#   INI-style configuration files.
 #
 #   Exported Procedures:
 #     ConfigOpen     <filePath> [-align <int>] [-comment <char>]

@@ -2,21 +2,21 @@
 # AlcoBot - Alcoholicz site bot.
 # Copyright (c) 2005 Alcoholicz Scripting Team
 #
-# File Name:
-#   tree.test
+# Module Name:
+#   Tree Tests
 #
 # Author:
 #   neoxed (neoxed@gmail.com) May 12, 2005
 #
 # Abstract:
-#   Tree library test suite.
+#   Implements regression tests for the tree data store library.
 #
 
 package require tcltest 2
 namespace import -force ::tcltest::*
 
 set parentPath [file dirname [file dirname [file normalize [info script]]]]
-source [file join $parentPath libs/alcoLibTree.tcl]
+source [file join $parentPath libs/tree.tcl]
 namespace import -force ::alcoholicz::*
 
 ################################################################################

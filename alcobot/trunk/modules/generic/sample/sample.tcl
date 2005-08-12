@@ -2,14 +2,14 @@
 # AlcoBot - Alcoholicz site bot.
 # Copyright (c) 2005 Alcoholicz Scripting Team
 #
-# File Name:
-#   sample.tcl
+# Module Name:
+#   Sample Module
 #
 # Author:
 #   neoxed (neoxed@gmail.com) April 16, 2005
 #
 # Abstract:
-#   An example module to give developers a starting point.
+#   Implements a example module to give developers a starting point.
 #
 
 namespace eval ::alcoholicz::Sample {
@@ -19,7 +19,7 @@ namespace eval ::alcoholicz::Sample {
 ####
 # Load
 #
-# Module initialization procedure, called when the module is loaded.
+# Module initialisation procedure, called when the module is loaded.
 #
 proc ::alcoholicz::Sample::Load {firstLoad} {
     return
@@ -28,7 +28,7 @@ proc ::alcoholicz::Sample::Load {firstLoad} {
 ####
 # Unload
 #
-# Module clean-up procedure, called before the module is unloaded.
+# Module finalisation procedure, called before the module is unloaded.
 #
 proc ::alcoholicz::Sample::Unload {} {
     return

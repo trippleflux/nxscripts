@@ -2,14 +2,14 @@
 # AlcoBot - Alcoholicz site bot.
 # Copyright (c) 2005 Alcoholicz Scripting Team
 #
-# File Name:
-#   AlcoBot.tcl
+# Module Name:
+#   Bot Core
 #
 # Author:
 #   neoxed (neoxed@gmail.com) April 16, 2005
 #
 # Abstract:
-#   Sitebot core; event handler and module system.
+#   Implements the event handler, module system, and initialisation procedures.
 #
 
 namespace eval ::alcoholicz {
@@ -390,7 +390,7 @@ proc ::alcoholicz::ModuleLoadEx {modName modInfoList} {
 ####
 # ModuleUnload
 #
-# Unload and deinitialise the given module. An error is raised if the
+# Unload and finalise the given module. An error is raised if the
 # module is not loaded or an unexpected error occurs while unloading it.
 #
 proc ::alcoholicz::ModuleUnload {modName} {
@@ -615,7 +615,7 @@ proc ::alcoholicz::InitLibraries {rootPath} {
 ####
 # InitModules
 #
-# Load the given modules. Any preexisting modules that are not listed
+# Load the given modules. Any pre-existing modules that are not listed
 # in the "modList" parameter will be unloaded.
 #
 proc ::alcoholicz::InitModules {modList} {

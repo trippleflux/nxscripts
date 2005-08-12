@@ -2,8 +2,8 @@
 # AlcoBot - Alcoholicz site bot.
 # Copyright (c) 2005 Alcoholicz Scripting Team
 #
-# File Name:
-#   constants.tcl
+# Module Name:
+#   Constants
 #
 # Author:
 #   neoxed (neoxed@gmail.com) June 3, 2005

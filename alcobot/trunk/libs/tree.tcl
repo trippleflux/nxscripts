@@ -2,8 +2,8 @@
 # AlcoBot - Alcoholicz site bot.
 # Copyright (c) 2005 Alcoholicz Scripting Team
 #
-# File Name:
-#   tree.tcl
+# Module Name:
+#   Tree Library
 #
 # Author:
 #   neoxed (neoxed@gmail.com) May 13, 2005
