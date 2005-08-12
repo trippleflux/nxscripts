@@ -7,8 +7,8 @@
  - Replace /scripts/nxLib.tcl and all files located in /scripts/nxTools/.
  - Update your events and scripts in ioFTPD.ini.
  - New config options: req(Limits).
- - Removed config options: req(TimeDays), req(TimeLimit), req(TotalLimit), and
-   req(UserLimit).
+ - Removed config options: invite(ConfigFile), invite(Default), req(TimeDays), 
+   req(TimeLimit), req(TotalLimit), and req(UserLimit).
 
 0.9.8 -> 0.9.10
  - Replace all files located in /scripts/nxTools/.

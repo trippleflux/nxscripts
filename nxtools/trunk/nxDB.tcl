@@ -141,7 +141,7 @@ proc ::nxTools::Db::Create {dbList} {
             LinePuts "- Invalid schema version (current: v$currentVer, required: v$dbSchema($dbName))."
             db close
 
-            # Rename the old database to <current name>.old-v<current version>.
+            # Rename the old database file.
             set oldPath "${filePath}.old-v$currentVer"
             if {[catch {file rename -- $filePath $oldPath} error]} {
                 LinePuts "- $error"
