@@ -17,7 +17,20 @@
 #   OnDelDir         = TCL ..\scripts\nxMissingTags.tcl DELDIR
 #   OnUploadComplete = TCL ..\scripts\nxMissingTags.tcl UPLOAD
 #
-#   4. Rehash or restart ioFTPD for the changes to take effect.
+#   4. If you're using ioA, you may want to add the following lines to remove
+#      tags after nukes and wipes. For those of you who are using nxTools, this
+#      step is not necessary, since nxTools will automatically remove them.
+#
+#   [FTP_Custom_Commands]
+#   nuke = EXEC ..\scripts\ioA.exe NUKE
+#   nuke = TCL  ..\scripts\nxMissingTags.tcl SITE
+#
+#   wipe = EXEC ..\scripts\ioA.exe WIPE
+#   wipe = TCL  ..\scripts\nxMissingTags.tcl SITE
+#
+#   Note: nxMissingTags must go AFTER ioA.
+#
+#   5. Rehash or restart ioFTPD for the changes to take effect.
 #
 
 namespace eval ::nxMissing {
@@ -57,6 +70,25 @@ proc ::nxMissing::ArgList {argv} {
         lappend argList [string range $argv $startIndex [expr {$index - 1}]]
     }
     return $argList
+}
+
+proc ::nxLib::nxMissing {path} {
+    global pwd
+    if {[string index $path 0] eq "/"} {
+        set virtualPath $path
+    } else {
+        set virtualPath "/$pwd$path"
+    }
+    regsub -all -- {[\\/]+} $virtualPath {/} virtualPath
+
+    # Ignore "." and "..".
+    set tail [file tail $virtualPath]
+    if {$tail eq "." || $tail eq ".."} {
+        set virtualPath [file dirname $virtualPath]
+    } elseif {$virtualPath ne "/"} {
+        set virtualPath [string trimright $virtualPath "/"]
+    }
+    return $virtualPath
 }
 
 proc ::nxMissing::ListMatch {patternList string} {
@@ -143,14 +175,17 @@ proc ::nxMissing::Main {argv} {
     set argList [ArgList $argv]
 
     set event [string toupper [lindex $argList 0]]
-    if {$event eq "DELDIR"} {
+    if {$event eq "DELDIR" || $event eq "SITE"} {
         set realPath [lindex $argList 1]
-        # Remove tags on directory deletion.
-        catch {file delete -force [GetSfvTag $realPath]}
-        if {![IsSubDir $realPath]} {
-            catch {file delete -force [GetNfoTag $realPath]}
+        if {$event eq "SITE"} {
+            set realPath [resolve pwd [GetPath $realPath]]
         }
 
+        # Remove tags on directory deletion.
+        catch {file delete -force -- [GetSfvTag $realPath]}
+        if {![IsSubDir $realPath]} {
+            catch {file delete -force -- [GetNfoTag $realPath]}
+        }
     } elseif {$event eq "UPLOAD"} {
         set virtualPath [file dirname [lindex $argList 3]]
 
@@ -160,9 +195,9 @@ proc ::nxMissing::Main {argv} {
             set fileExt [string toupper [file extension $filePath]]
 
             if {$fileExt eq ".NFO"} {
-                catch {file delete -force [GetNfoTag $realPath]}
+                catch {file delete -force -- [GetNfoTag $realPath]}
             } elseif {$fileExt eq ".SFV"} {
-                catch {file delete -force [GetSfvTag $realPath]}
+                catch {file delete -force -- [GetSfvTag $realPath]}
             } else {
                 UpdateTags $realPath $virtualPath
             }
