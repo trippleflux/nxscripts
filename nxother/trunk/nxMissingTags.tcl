@@ -46,7 +46,7 @@ namespace eval ::nxMissing {
     variable subDirs     {cd[0-9] dis[ck][0-9] dvd[0-9] extra extras sub subs vobsub vobsubs}
 
     # Paths to exempt from tag creation.
-    variable exemptPaths {/REQS/* /STAFF/* */codec */cover */covers */sample}
+    variable exemptPaths {/0DAY/* /REQS/* /STAFF/* */codec */cover */covers */sample}
 }
 
 proc ::nxMissing::ArgList {argv} {
