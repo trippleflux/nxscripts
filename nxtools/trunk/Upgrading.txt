@@ -3,13 +3,14 @@
 ################################################################################
 
 0.9.11 -> 0.9.12
+ - New config option: req(ReleaseNames).
  - Removed config options: invite(ConfigFile) and invite(Default).
 
 0.9.10 -> 0.9.11
  - Download an updated nxTools-Libraries package.
  - Replace /scripts/nxLib.tcl and all files located in /scripts/nxTools/.
  - Update your events and scripts in ioFTPD.ini.
- - New config options: req(Limits).
+ - New config option: req(Limits).
  - Removed config options: req(TimeDays), req(TimeLimit), req(TotalLimit), and
    req(UserLimit).
 

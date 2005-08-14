@@ -111,26 +111,34 @@ proc ::nxTools::Req::Add {userName groupName request} {
     global misc req
     iputs ".-\[Request\]--------------------------------------------------------------."
     set result 0
-    set request [StripChars $request]
 
-    if {[ReqDb eval {SELECT count(*) FROM Requests WHERE Status=0 AND StrCaseEq(Request,$request)}]} {
-        LinePuts "This item is already requested."
+    if {[IsTrue $req(ReleaseNames)] && ![regexp {^[\w\.\-\(\)]+\-\w+$} $request]} {
+        LinePuts "Invalid release format, must be: \"Release.Name-Group\"."
         set result 1
-    } elseif {[CheckLimit $userName $groupName]} {
-        set requestId 1
-        ReqDb eval {SELECT (max(RequestId)+1) AS NextId FROM Requests WHERE Status=0} values {
-            # The max() function returns NULL if there are no matching records.
-            if {[string length $values(NextId)]} {
-                set requestId $values(NextId)
-            }
-        }
-        set timeStamp [clock seconds]
-        ReqDb eval {INSERT INTO Requests(TimeStamp,UserName,GroupName,Status,RequestId,Request) VALUES($timeStamp,$userName,$groupName,0,$requestId,$request)}
+    } else {
+        set request [StripChars $request]
+    }
 
-        set requestId [format "%03s" $requestId]
-        putlog "REQUEST: \"$userName\" \"$groupName\" \"$request\" \"$requestId\""
-        LinePuts "Added your request of $request (#$requestId)."
-        UpdateDir ADD $request
+    if {$result == 0} {
+        if {[ReqDb eval {SELECT count(*) FROM Requests WHERE Status=0 AND StrCaseEq(Request,$request)}]} {
+            LinePuts "This item is already requested."
+            set result 1
+        } elseif {[CheckLimit $userName $groupName]} {
+            set requestId 1
+            ReqDb eval {SELECT (max(RequestId)+1) AS NextId FROM Requests WHERE Status=0} values {
+                # The max() function returns NULL if there are no matching records.
+                if {[string length $values(NextId)]} {
+                    set requestId $values(NextId)
+                }
+            }
+            set timeStamp [clock seconds]
+            ReqDb eval {INSERT INTO Requests(TimeStamp,UserName,GroupName,Status,RequestId,Request) VALUES($timeStamp,$userName,$groupName,0,$requestId,$request)}
+
+            set requestId [format "%03s" $requestId]
+            putlog "REQUEST: \"$userName\" \"$groupName\" \"$request\" \"$requestId\""
+            LinePuts "Added your request of $request (#$requestId)."
+            UpdateDir ADD $request
+        }
     }
 
     iputs "'------------------------------------------------------------------------'"

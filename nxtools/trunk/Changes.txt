@@ -3,6 +3,7 @@
 ################################################################################
 
 nxTools v0.9.12 (XXX XX, 2005):
+  NEW: Option to force requests to be proper release names (e.g. release.name-group).
   FIX: Forgot to remove the invite options from nxTools.cfg.
 
 nxTools v0.9.11 (Aug 11, 2005):
