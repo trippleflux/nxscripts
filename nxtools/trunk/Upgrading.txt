@@ -2,13 +2,16 @@
 #                             nxTools - Upgrading                              #
 ################################################################################
 
+0.9.11 -> 0.9.12
+ - Removed config options: invite(ConfigFile) and invite(Default).
+
 0.9.10 -> 0.9.11
  - Download an updated nxTools-Libraries package.
  - Replace /scripts/nxLib.tcl and all files located in /scripts/nxTools/.
  - Update your events and scripts in ioFTPD.ini.
  - New config options: req(Limits).
- - Removed config options: invite(ConfigFile), invite(Default), req(TimeDays), 
-   req(TimeLimit), req(TotalLimit), and req(UserLimit).
+ - Removed config options: req(TimeDays), req(TimeLimit), req(TotalLimit), and
+   req(UserLimit).
 
 0.9.8 -> 0.9.10
  - Replace all files located in /scripts/nxTools/.

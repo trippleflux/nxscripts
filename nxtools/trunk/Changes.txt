@@ -2,6 +2,9 @@
 #                             nxTools - Change Log                             #
 ################################################################################
 
+nxTools v0.9.12 (XXX XX, 2005):
+  FIX: Forgot to remove the invite options from nxTools.cfg.
+
 nxTools v0.9.11 (Aug 11, 2005):
   NEW: Added ::nx::sleep <ms> to nxHelper, to suspend execution for the given time.
   NEW: Request limits for individual users and groups.
