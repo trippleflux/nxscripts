@@ -72,7 +72,7 @@ proc ::nxMissing::ArgList {argv} {
     return $argList
 }
 
-proc ::nxLib::nxMissing {path} {
+proc ::nxMissing::GetPath {path} {
     global pwd
     if {[string index $path 0] eq "/"} {
         set virtualPath $path
