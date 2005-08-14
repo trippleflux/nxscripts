@@ -92,7 +92,7 @@ proc ::nxLib::LinePuts {message} {
 proc ::nxLib::StripChars {string} {
     regsub -all -- {[\(\<\{]+} $string {(} string
     regsub -all -- {[\)\>\}]+} $string {)} string
-    regsub -all -- {[^A-Za-z0-9_\-\(\)]+} $string {.} string
+    regsub -all -- {[^\w\-\(\)]+} $string {.} string
     return [string trim $string "."]
 }
 
