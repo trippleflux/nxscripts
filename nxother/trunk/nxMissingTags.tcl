@@ -46,7 +46,7 @@ namespace eval ::nxMissing {
     variable subDirs     {cd[0-9] dis[ck][0-9] dvd[0-9] extra extras sub subs vobsub vobsubs}
 
     # Paths to exempt from tag creation.
-    variable exemptPaths {/0DAY/* /REQS/* /STAFF/* */codec */cover */covers */sample}
+    variable exemptPaths {/REQS/* /STAFF/* */codec */cover */covers */sample}
 }
 
 proc ::nxMissing::ArgList {argv} {
@@ -138,9 +138,11 @@ proc ::nxMissing::UpdateTags {realPath virtualPath} {
 
     # NFO files reside in the release root directory, not subdirs.
     if {[IsSubDir $realPath]} {
-        set nfoRealPath [file dirname $realPath]
+        set nfoRealPath    [file dirname $realPath]
+        set nfoVirtualPath [file dirname $virtualPath]
     } else {
-        set nfoRealPath $realPath
+        set nfoRealPath    $realPath
+        set nfoVirtualPath $virtualPath
     }
 
     if {![llength [glob -directory $nfoRealPath -nocomplain "*.nfo"]]} {
@@ -152,7 +154,7 @@ proc ::nxMissing::UpdateTags {realPath virtualPath} {
         set tagPath [GetNfoTag $realPath]
         if {![file exists $tagPath]} {
             catch {file mkdir $tagPath}
-            catch {vfs chattr $tagPath 1 $nfoRealPath}
+            catch {vfs chattr $tagPath 1 $nfoVirtualPath}
         }
     }
 
