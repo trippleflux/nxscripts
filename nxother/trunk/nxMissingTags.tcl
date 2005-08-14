@@ -172,6 +172,11 @@ proc ::nxMissing::UpdateTags {realPath virtualPath} {
     }
 }
 
+proc ::nxMissing::RemoveTag {tagPath} {
+    catch {file delete -force -- $tagPath}
+    catch {vfs flush [file dirname $tagPath]}
+}
+
 proc ::nxMissing::Main {argv} {
     variable exemptPaths
     set argList [ArgList $argv]
@@ -184,9 +189,9 @@ proc ::nxMissing::Main {argv} {
         }
 
         # Remove tags on directory deletion.
-        catch {file delete -force -- [GetSfvTag $realPath]}
+        RemoveTag [GetSfvTag $realPath]
         if {![IsSubDir $realPath]} {
-            catch {file delete -force -- [GetNfoTag $realPath]}
+            RemoveTag [GetNfoTag $realPath]
         }
     } elseif {$event eq "UPLOAD"} {
         set virtualPath [file dirname [lindex $argList 3]]
@@ -197,9 +202,9 @@ proc ::nxMissing::Main {argv} {
             set fileExt [string toupper [file extension $filePath]]
 
             if {$fileExt eq ".NFO"} {
-                catch {file delete -force -- [GetNfoTag $realPath]}
+                RemoveTag [GetNfoTag $realPath]
             } elseif {$fileExt eq ".SFV"} {
-                catch {file delete -force -- [GetSfvTag $realPath]}
+                RemoveTag [GetSfvTag $realPath]
             } else {
                 UpdateTags $realPath $virtualPath
             }
