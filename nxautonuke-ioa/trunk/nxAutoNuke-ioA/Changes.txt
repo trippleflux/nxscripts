@@ -2,6 +2,9 @@
 #                           nxAutoNuke - Change Log                            #
 ################################################################################
 
+nxAutoNuke v2.1.1 (Aug 13, 2005):
+  FIX: The virtual path passed to ioBanana used the wrong path delimiters.
+
 nxAutoNuke v2.1.0 (Aug 11, 2005):
   NEW: Added 'kicknuke' support for ioBanana.
   CHG: The ioA version is distributed separately now.

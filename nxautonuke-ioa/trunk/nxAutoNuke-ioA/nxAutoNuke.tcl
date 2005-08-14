@@ -41,7 +41,7 @@ proc ::nxAutoNuke::Nuke {realPath virtualPath userName groupName multi reason} {
     # Borrowed this portion from Harm's ioAUTONUKE, since
     # these features are undocumented for ioA and ioBanana.
     if {[string length $misc(IoBPath)]} {
-        set parentVirtual [string map {/ \\} [file dirname $virtualPath]]
+        set parentVirtual [file dirname $virtualPath]
         set parentReal [string map {/ \\} [file dirname $realPath]]
         catch {exec $misc(IoBPath) KICKNUKE NUKE [file tail $virtualPath] $parentVirtual $parentReal [resolve user $userName]}
     }
