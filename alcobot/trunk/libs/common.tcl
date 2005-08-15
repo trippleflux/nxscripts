@@ -13,9 +13,9 @@
 #
 
 namespace eval ::alcoholicz {
-    namespace export ArgsToList JoinLiteral GetSectionName \
+    namespace export ArgsToList GetSectionName JoinLiteral IsSubDir PathParse PathStrip \
         FormatDate FormatTime FormatDuration FormatDurationLong FormatSize FormatSpeed \
-        PathStrip PathParse VarFormat VarReplace VarReplaceBase VarReplaceCommon
+        VarFormat VarReplace VarReplaceBase VarReplaceCommon
 }
 
 ################################################################################
@@ -25,7 +25,7 @@ namespace eval ::alcoholicz {
 ####
 # ArgsToList
 #
-# Convert a string into a Tcl list, respecting quoted text segments.
+# Convert an argument string into a Tcl list, respecting quoted text segments.
 #
 proc ::alcoholicz::ArgsToList {argStr} {
     set argList [list]
@@ -48,22 +48,6 @@ proc ::alcoholicz::ArgsToList {argStr} {
         lappend argList [string range $argStr $startIndex [expr {$index - 1}]]
     }
     return $argList
-}
-
-####
-# JoinLiteral
-#
-# Convert a Tcl list into a human-readable list.
-#
-proc ::alcoholicz::JoinLiteral {list {word "and"}} {
-    if {[llength $list] < 2} {
-        return [join $list]
-    }
-    set literal [join [lrange $list 0 end-1] ", "]
-    if {[llength $list] > 2} {
-        append literal ","
-    }
-    return [append literal " " $word " " [lindex $list end]]
 }
 
 ####
@@ -91,6 +75,70 @@ proc ::alcoholicz::GetSectionName {fullPath} {
         error "no matching section found for \"$fullPath\""
     }
     return $sectionName
+}
+
+####
+# JoinLiteral
+#
+# Convert a Tcl list into a human-readable list.
+#
+proc ::alcoholicz::JoinLiteral {list {word "and"}} {
+    if {[llength $list] < 2} {
+        return [join $list]
+    }
+    set literal [join [lrange $list 0 end-1] ", "]
+    if {[llength $list] > 2} {
+        append literal ","
+    }
+    return [append literal " " $word " " [lindex $list end]]
+}
+
+####
+# IsSubDir
+#
+# Check if the path's base directory is a known release sub-directory.
+#
+proc ::alcoholicz::IsSubDir {path} {
+    variable subDirList
+    set path [file tail $path]
+    foreach subDir $subDirList {
+        if {[string match -nocase $subDir $path]} {return 1}
+    }
+    return 0
+}
+
+####
+# PathStrip
+#
+# Removes leading, trailing, and duplicate path separators.
+#
+proc ::alcoholicz::PathStrip {path} {
+    regsub -all {[\\/]+} $path {/} path
+    return [string trim $path "/"]
+}
+
+####
+# PathParse
+#
+# Parses elements from a directory path, with subdirectory support.
+#
+proc ::alcoholicz::PathParse {fullPath {basePath ""}} {
+    set basePath [split [PathStrip $basePath] "/"]
+    set fullPath [split [PathStrip $fullPath] "/"]
+    set fullPath [lrange $fullPath [llength $basePath] end]
+
+    set relDir [lindex $fullPath end]
+    set relFull [join [lrange $fullPath 0 end-1] "/"]
+
+    if {[IsSubDir $relDir] && [llength $fullPath] > 1} {
+        set relName "[lindex $fullPath end-1] ([lindex $fullPath end])"
+        set relPath [join [lrange $fullPath 0 end-2] "/"]
+    } else {
+        set relName $relDir
+        set relPath $relFull
+    }
+
+    return [list $relDir $relFull $relName $relPath]
 }
 
 ################################################################################
@@ -193,48 +241,6 @@ proc ::alcoholicz::FormatSpeed {speed {seconds 0}} {
 ################################################################################
 # Variable Replacement                                                         #
 ################################################################################
-
-####
-# PathStrip
-#
-# Removes leading, trailing, and duplicate file separators.
-#
-proc ::alcoholicz::PathStrip {path} {
-    regsub -all {[\\/]+} $path {/} path
-    return [string trim $path "/"]
-}
-
-####
-# PathParse
-#
-# Parses elements from a directory path, with subdirectory support.
-#
-proc ::alcoholicz::PathParse {fullPath {basePath ""}} {
-    variable subDirList
-
-    set basePath [split [PathStrip $basePath] "/"]
-    set fullPath [split [PathStrip $fullPath] "/"]
-    set fullPath [lrange $fullPath [llength $basePath] end]
-
-    set relDir [lindex $fullPath end]
-    set relFull [join [lrange $fullPath 0 end-1] "/"]
-
-    set isSubDir 0
-    foreach subDir $subDirList {
-        if {[string match -nocase $subDir $relDir]} {
-            set isSubDir 1; break
-        }
-    }
-    if {$isSubDir && [llength $fullPath] > 1} {
-        set relName "[lindex $fullPath end-1] ([lindex $fullPath end])"
-        set relPath [join [lrange $fullPath 0 end-2] "/"]
-    } else {
-        set relName $relDir
-        set relPath $relFull
-    }
-
-    return [list $relDir $relFull $relName $relPath]
-}
 
 ####
 # VarFormat
