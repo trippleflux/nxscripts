@@ -520,8 +520,8 @@ proc ::nxAutoNuke::Main {} {
     LinePuts "Checking [expr {[llength $anuke(Sections)] / 3}] auto-nuke sections."
 
     variable check
-    variable nukedList ""
-    variable warnedList ""
+    variable nukedList  [list]
+    variable warnedList [list]
 
     set anuke(ImdbOrder) [string tolower $anuke(ImdbOrder)]
     set anuke(MP3Order) [string tolower $anuke(MP3Order)]
@@ -604,12 +604,12 @@ proc ::nxAutoNuke::Main {} {
 
                 # Ignore exempted, approved, and old releases.
                 if {[ListMatchI $anuke(Exempts) $release(Name)] || [llength [FindTags $release(RealPath) $anuke(ApproveTag)]] || \
-                [catch {file stat $release(RealPath) stat}] || [set release(Age) [expr {[clock seconds] - $stat(ctime)}]] > $maxAge} {
+                    [catch {file stat $release(RealPath) stat}] || [set release(Age) [expr {[clock seconds] - $stat(ctime)}]] > $maxAge} {
                     continue
                 }
 
                 # Find release subdirectories.
-                set release(PathList) ""
+                set release(PathList) [list]
                 foreach diskDir [glob -nocomplain -types d -directory $release(RealPath) "*"] {
                     if {![ListMatchI $anuke(Exempts) [file tail $diskDir]] && [IsDiskPath $diskDir]} {
                         lappend release(PathList) $diskDir
