@@ -35,9 +35,9 @@
 
 namespace eval ::nxMissing {
     # Symlink tag formats, cookies: %release and %disk.
-    variable tagNfo      "(NoNfo)-%release"
-    variable tagSfv      "(NoSfv)-%release"
-    variable tagSfvDisk  "(NoSfv)-%release-%disk"
+    variable tagNfo      "(NoNFO)-%release"
+    variable tagSfv      "(NoSFV)-%release"
+    variable tagSfvDisk  "(NoSFV)-%release-%disk"
 
     # Show warning if the NFO or SFV is missing.
     variable showWarning True
@@ -149,7 +149,6 @@ proc ::nxMissing::UpdateTags {realPath virtualPath} {
         if {[string is true -strict $showWarning]} {
             iputs " Upload the NFO first!"
         }
-
         # Create no-NFO tag.
         set tagPath [GetNfoTag $realPath]
         if {![file exists $tagPath]} {
@@ -162,7 +161,6 @@ proc ::nxMissing::UpdateTags {realPath virtualPath} {
         if {[string is true -strict $showWarning]} {
             iputs " Upload the SFV first!"
         }
-
         # Create no-SFV tag.
         set tagPath [GetSfvTag $realPath]
         if {![file exists $tagPath]} {
@@ -172,9 +170,28 @@ proc ::nxMissing::UpdateTags {realPath virtualPath} {
     }
 }
 
-proc ::nxMissing::RemoveTag {tagPath} {
-    catch {file delete -force -- $tagPath}
-    catch {vfs flush [file dirname $tagPath]}
+proc ::nxMissing::RemoveTag {realPath} {
+    catch {file delete -- [file join $realPath ".ioFTPD"]}
+    catch {file delete -- $realPath}
+    catch {vfs flush [file dirname $realPath]}
+}
+
+proc ::nxMissing::RemoveParentLinks {realPath virtualPath} {
+    if {[IsSubDir $realPath]} {
+        set realPath [file dirname $realPath]
+    }
+    set realPath [file dirname $realPath]
+    set virtualPath [string trimright $virtualPath "/"]
+
+    foreach linkPath [glob -nocomplain -types d -directory $realPath "*"] {
+        if {[catch {vfs chattr $linkPath 1} linkTarget] || ![string length $linkTarget]} {continue}
+        regsub -all -- {[\\/]+} $linkTarget {/} linkTarget
+        set linkTarget "/[string trim $linkTarget {/}]"
+        if {[string equal -nocase -length [string length $virtualPath] $virtualPath $linkTarget]} {
+            RemoveTag $linkPath
+        }
+    }
+    return
 }
 
 proc ::nxMissing::Main {argv} {
@@ -182,17 +199,17 @@ proc ::nxMissing::Main {argv} {
     set argList [ArgList $argv]
 
     set event [string toupper [lindex $argList 0]]
-    if {$event eq "DELDIR" || $event eq "SITE"} {
+    if {$event eq "DELDIR"} {
         set realPath [lindex $argList 1]
-        if {$event eq "SITE"} {
-            set realPath [resolve pwd [GetPath $realPath]]
-        }
 
         # Remove tags on directory deletion.
         RemoveTag [GetSfvTag $realPath]
         if {![IsSubDir $realPath]} {
             RemoveTag [GetNfoTag $realPath]
         }
+    } elseif {$event eq "SITE"} {
+        set virtualPath [GetPath [lindex $argList 1]]
+        RemoveParentLinks [resolve pwd $virtualPath] $virtualPath
     } elseif {$event eq "UPLOAD"} {
         set virtualPath [file dirname [lindex $argList 3]]
 
