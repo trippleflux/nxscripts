@@ -136,7 +136,27 @@ test crypt-2.8 {crypt decrypt: invalid rounds} {
     list [catch {crypt decrypt -rounds -1} msg] $msg
 } {1 {invalid round count "-1": must be 0 or greater}}
 
-test crypt-2.9 {crypt decrypt: ECB mode tests} {
+test crypt-2.9 {crypt decrypt: CBC requires an IV} {
+    list [catch {crypt decrypt -mode cbc blowfish a b} msg] $msg
+} {1 {cbc mode requires an initialisation vector}}
+
+test crypt-2.10 {crypt decrypt: CFB requires an IV} {
+    list [catch {crypt decrypt -mode cfb blowfish a b} msg] $msg
+} {1 {cfb mode requires an initialisation vector}}
+
+test crypt-2.11 {crypt decrypt: CTR requires an IV} {
+    list [catch {crypt decrypt -mode ctr blowfish a b} msg] $msg
+} {1 {ctr mode requires an initialisation vector}}
+
+test crypt-2.12 {crypt decrypt: ECB does not require an IV} {
+    list [catch {crypt decrypt -iv blah -mode ecb blowfish a b} msg] $msg
+} {1 {ecb mode does not require an initialisation vector}}
+
+test crypt-2.13 {crypt decrypt: OFB requires an IV} {
+    list [catch {crypt decrypt -mode ofb blowfish a b} msg] $msg
+} {1 {ofb mode requires an initialisation vector}}
+
+test crypt-2.14 {crypt decrypt: ECB mode tests} {
     foreach algo [array names cipherTest] {
         set n 1
         foreach {key plain cipher} $cipherTest($algo) {
