@@ -299,19 +299,17 @@ Alcoext_Unload(
 
             if (interp == stateListPtr->interp) {
                 // Remove the interpreter's state from the list.
-                if (stateListPtr->prev == NULL) {
-                    stateListHead = stateListPtr->next;
-                    if (stateListPtr->next != NULL) {
-                        stateListHead->prev = NULL;
-                    }
-                } else if (stateListPtr->next == NULL) {
-                    stateListPtr->prev->next = NULL;
-                } else {
-                    stateListPtr->prev->next = stateListPtr->next;
+                if (stateListPtr->next != NULL) {
                     stateListPtr->next->prev = stateListPtr->prev;
                 }
+                if (stateListPtr->prev != NULL) {
+                    stateListPtr->prev->next = stateListPtr->next;
+                }
+                if (stateListHead == stateListPtr) {
+                    stateListHead = stateListPtr->next;
+                }
 
-                ckfree((char *) stateListPtr->state);
+                FreeState(stateListPtr->state);
                 ckfree((char *) stateListPtr);
                 break;
             }

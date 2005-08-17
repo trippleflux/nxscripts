@@ -3,7 +3,7 @@
 # Copyright (c) 2005 Alcoholicz Scripting Team
 #
 # Module Name:
-#   init.test
+#   misc.test
 #
 # Author:
 #   neoxed (neoxed@gmail.com) May 25, 2005
@@ -28,14 +28,15 @@ load $libFile
 
 namespace import -force ::alcoholicz::*
 
-testConstraint threaded [expr {[info exists tcl_platform(threaded)] && $tcl_platform(threaded)}]
-testConstraint threadPkg [expr {![catch {package require Thread}]}]
+testConstraint threaded   [expr {[info exists tcl_platform(threaded)] && $tcl_platform(threaded)}]
+testConstraint threadPkg  [expr {![catch {package require Thread}]}]
+testConstraint haveUnload [expr {[llength [info commands unload]] == 1}]
 
 ################################################################################
-# init                                                                         #
+# load                                                                         #
 ################################################################################
 
-test init-1.1 {init: delete and exit handler} {
+test misc-1.1 {load: delete and exit handler} {
     set interpList [list]
     # Create 20 interpreters and load the extension in each.
     for {set i 0} {$i < 20} {incr i} {
@@ -56,8 +57,26 @@ test init-1.1 {init: delete and exit handler} {
     llength $interpList
 } {17}
 
-test init-1.2 {init: delete and exit handler} {threaded threadPkg} {
+test misc-1.2 {load: delete and exit handler} {threaded threadPkg} {
     # TODO: write a threaded version of test init-1.1.
+} {}
+
+################################################################################
+# unload                                                                       #
+################################################################################
+
+test misc-2.1 {unload: unload extension from interp} {haveUnload} {
+    set interp [interp create]
+    interp eval $interp [list load $libFile]
+    interp eval $interp [list unload -keeplibrary -- $libFile]
+    interp delete $interp
+} {}
+
+test misc-2.2 {unload: unload extension from process} {haveUnload} {
+    set interp [interp create]
+    interp eval $interp [list load $libFile]
+    interp eval $interp [list unload -- $libFile]
+    interp delete $interp
 } {}
 
 
