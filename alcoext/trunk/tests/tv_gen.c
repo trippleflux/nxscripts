@@ -34,6 +34,7 @@ void reg_algs(void)
     register_hash(&sha384_desc);
     register_hash(&sha512_desc);
     register_hash(&tiger_desc);
+    register_hash(&whirlpool_desc);
 }
 
 void cipher_gen(void)
