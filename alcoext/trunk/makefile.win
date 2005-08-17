@@ -47,7 +47,7 @@ PKG_CFLAGS  = "-DPACKAGE_NAME=\"$(PKG_NAME)\"" "-DPACKAGE_DESC=\"$(PKG_DESC)\"" 
 PKG_LFLAGS  = -nodefaultlib:msvcrt -opt:ref -opt:nowin98
 LTC_CFLAGS  =
 TCL_CFLAGS  = -DUSE_TCL_STUBS
-ZLIB_CFLAGS = -DASMV -DASMINF
+ZLIB_CFLAGS =
 
 # -------------------------------------------------------------------------
 
@@ -206,24 +206,16 @@ INTERMEDIATE_FILES=\
     $(PKG_INTDIR)\fortuna.obj\
     $(PKG_INTDIR)\rc4.obj\
     $(PKG_INTDIR)\rng_get_bytes.obj\
-    $(PKG_INTDIR)\rng_make_prng.obj\
     $(PKG_INTDIR)\sober128.obj\
     $(PKG_INTDIR)\sprng.obj\
     $(PKG_INTDIR)\yarrow.obj\
     $(PKG_INTDIR)\adler32.obj\
-    $(PKG_INTDIR)\compress.obj\
     $(PKG_INTDIR)\crc32.obj\
     $(PKG_INTDIR)\deflate.obj\
-    $(PKG_INTDIR)\gvmat32.obj\
-    $(PKG_INTDIR)\gvmat32c.obj\
-    $(PKG_INTDIR)\gzio.obj\
-    $(PKG_INTDIR)\infback.obj\
-    $(PKG_INTDIR)\inffas32.obj\
     $(PKG_INTDIR)\inffast.obj\
     $(PKG_INTDIR)\inflate.obj\
     $(PKG_INTDIR)\inftrees.obj\
     $(PKG_INTDIR)\trees.obj\
-    $(PKG_INTDIR)\uncompr.obj\
     $(PKG_INTDIR)\zutil.obj\
     $(PKG_INTDIR)\alcoExt.obj\
     $(PKG_INTDIR)\alcoCrypt.obj\
@@ -284,24 +276,16 @@ OBJECT_FILES=\
     $(ROOT)\libs\tomcrypt\prngs\fortuna.obj\
     $(ROOT)\libs\tomcrypt\prngs\rc4.obj\
     $(ROOT)\libs\tomcrypt\prngs\rng_get_bytes.obj\
-    $(ROOT)\libs\tomcrypt\prngs\rng_make_prng.obj\
     $(ROOT)\libs\tomcrypt\prngs\sober128.obj\
     $(ROOT)\libs\tomcrypt\prngs\sprng.obj\
     $(ROOT)\libs\tomcrypt\prngs\yarrow.obj\
-    $(ROOT)\libs\zlib\source\masmx86\gvmat32.obj\
-    $(ROOT)\libs\zlib\source\masmx86\gvmat32c.obj\
-    $(ROOT)\libs\zlib\source\masmx86\inffas32.obj\
     $(ROOT)\libs\zlib\source\adler32.obj\
-    $(ROOT)\libs\zlib\source\compress.obj\
     $(ROOT)\libs\zlib\source\crc32.obj\
     $(ROOT)\libs\zlib\source\deflate.obj\
-    $(ROOT)\libs\zlib\source\gzio.obj\
-    $(ROOT)\libs\zlib\source\infback.obj\
     $(ROOT)\libs\zlib\source\inffast.obj\
     $(ROOT)\libs\zlib\source\inflate.obj\
     $(ROOT)\libs\zlib\source\inftrees.obj\
     $(ROOT)\libs\zlib\source\trees.obj\
-    $(ROOT)\libs\zlib\source\uncompr.obj\
     $(ROOT)\libs\zlib\source\zutil.obj\
     $(ROOT)\generic\alcoExt.obj\
     $(ROOT)\generic\alcoCrypt.obj\

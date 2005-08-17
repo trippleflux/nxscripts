@@ -31,11 +31,11 @@ TOMCRYPT_OBJS   = aes.o anubis.o blowfish.o cast5.o des.o khazad.o noekeon.o\
     hash_memory.o md2.o md4.o md5.o rmd128.o rmd160.o sha1.o sha256.o sha512.o\
     tiger.o whirl.o hmac.o omac.o pelican.o pmac.o base64_decode.o base64_encode.o\
     pkcs_5_1.o pkcs_5_2.o crypt_cipher.o crypt_hash.o crypt_prng.o crypt_utils.o\
-    cbc.o cfb.o ctr.o ecb.o ofb.o fortuna.o rc4.o rng_get_bytes.o rng_make_prng.o\
-    sober128.o sprng.o yarrow.o
+    cbc.o cfb.o ctr.o ecb.o ofb.o fortuna.o rc4.o rng_get_bytes.o sober128.o\
+    sprng.o yarrow.o
 
-ZLIB_OBJS       = adler32.o compress.o crc32.o deflate.o gzio.o infback.o\
-    inffast.o inflate.o inftrees.o trees.o uncompr.o zutil.o
+ZLIB_OBJS       = adler32.o crc32.o deflate.o inffast.o inflate.o inftrees.o\
+    trees.o zutil.o
 
 PKG_OBJECTS     = $(TOMCRYPT_OBJS) $(ZLIB_OBJS) $(GENERIC_OBJS) $(UNIX_OBJS)
 PKG_STUB_SOURCES= @PKG_STUB_SOURCES@
@@ -305,9 +305,6 @@ rc4.o:
 rng_get_bytes.o:
 	$(COMPILE) -c $(TOMCRYPT_DIR)/prngs/rng_get_bytes.c
 
-rng_make_prng.o:
-	$(COMPILE) -c $(TOMCRYPT_DIR)/prngs/rng_make_prng.c
-
 sober128.o:
 	$(COMPILE) -c $(TOMCRYPT_DIR)/prngs/sober128.c
 
@@ -320,20 +317,11 @@ yarrow.o:
 adler32.o:
 	$(COMPILE) -c $(ZLIB_DIR)/source/adler32.c
 
-compress.o:
-	$(COMPILE) -c $(ZLIB_DIR)/source/compress.c
-
 crc32.o:
 	$(COMPILE) -c $(ZLIB_DIR)/source/crc32.c
 
 deflate.o:
 	$(COMPILE) -c $(ZLIB_DIR)/source/deflate.c
-
-gzio.o:
-	$(COMPILE) -c $(ZLIB_DIR)/source/gzio.c
-
-infback.o:
-	$(COMPILE) -c $(ZLIB_DIR)/source/infback.c
 
 inffast.o:
 	$(COMPILE) -c $(ZLIB_DIR)/source/inffast.c
@@ -346,9 +334,6 @@ inftrees.o:
 
 trees.o:
 	$(COMPILE) -c $(ZLIB_DIR)/source/trees.c
-
-uncompr.o:
-	$(COMPILE) -c $(ZLIB_DIR)/source/uncompr.c
 
 zutil.o:
 	$(COMPILE) -c $(ZLIB_DIR)/source/zutil.c
