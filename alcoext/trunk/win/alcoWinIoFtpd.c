@@ -31,6 +31,7 @@ IoKickCmd(
     Tcl_Obj *CONST objv[],
     ExtState *statePtr
     );
+
 static int
 IoKillCmd(
     Tcl_Interp *interp,

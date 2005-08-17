@@ -17,13 +17,10 @@ Abstract:
 #ifndef _ALCOCRYPT_H_
 #define _ALCOCRYPT_H_
 
-// Flags for CryptCipherMode::options.
-#define CRYPT_REQUIRES_IV   0x0001
-#define CRYPT_PAD_PLAINTEXT 0x0002
-
 typedef int (CryptModeProc)(
     int cipher,
     int rounds,
+    int counterMode,
     unsigned char *iv,
     unsigned char *key,
     unsigned long keyLength,
@@ -32,13 +29,12 @@ typedef int (CryptModeProc)(
     unsigned char *dest);
 
 typedef struct {
-    char *name;
-    CryptModeProc *decrypt;
-    CryptModeProc *encrypt;
-    unsigned short options;
-} CryptCipherMode;
+    char *name;               // Name of cipher mode.
+    CryptModeProc *decrypt;   // Pointer to the cipher mode's decryption function.
+    CryptModeProc *encrypt;   // Pointer to the cipher mode's encryption function.
+    unsigned char requiresIv; // Boolean to indicate if the cipher mode requires
+} CryptCipherMode;            // an initialisation vector.
 
-// Generic crypt handle.
 typedef struct {
     int descIndex;      // Descriptor table index (cipher, hash, or prng).
     unsigned char type; // Type of handle.

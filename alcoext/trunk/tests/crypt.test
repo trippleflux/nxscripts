@@ -108,7 +108,35 @@ test crypt-2.1 {crypt decrypt: no args} {
     list [catch {crypt decrypt} msg] $msg
 } {1 {wrong # args: should be "crypt decrypt ?switches? cipher key data"}}
 
-test crypt-2.2 {crypt decrypt: ECB mode tests} {
+test crypt-2.2 {crypt decrypt: too many args} {
+    list [catch {crypt decrypt a b c d} msg] $msg
+} {1 {wrong # args: should be "crypt decrypt ?switches? cipher key data"}}
+
+test crypt-2.3 {crypt decrypt: invalid switch} {
+    list [catch {crypt decrypt -fake .} msg] $msg
+} {1 {bad switch "-fake": must be -counter, -iv, -mode, or -rounds}}
+
+test crypt-2.4 {crypt decrypt: no switch argument} {
+    list [catch {crypt decrypt -iv . -mode} msg] $msg
+} {1 {wrong # args: should be "crypt decrypt ?switches? cipher key data"}}
+
+test crypt-2.5 {crypt decrypt: invalid counter mode} {
+    list [catch {crypt decrypt -counter .} msg] $msg
+} {1 {bad counter mode ".": must be littleEndian or bigEndian}}
+
+test crypt-2.6 {crypt decrypt: invalid cipher mode} {
+    list [catch {crypt decrypt -mode .} msg] $msg
+} {1 {bad mode ".": must be cbc, cfb, ctr, ecb, or ofb}}
+
+test crypt-2.7 {crypt decrypt: invalid rounds} {
+    list [catch {crypt decrypt -rounds .} msg] $msg
+} {1 {expected integer but got "."}}
+
+test crypt-2.8 {crypt decrypt: invalid rounds} {
+    list [catch {crypt decrypt -rounds -1} msg] $msg
+} {1 {invalid round count "-1": must be 0 or greater}}
+
+test crypt-2.9 {crypt decrypt: ECB mode tests} {
     foreach algo [array names cipherTest] {
         set n 1
         foreach {key plain cipher} $cipherTest($algo) {

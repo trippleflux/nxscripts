@@ -21,8 +21,8 @@ Abstract:
        ofb - Output Feedback
 
     Cipher Commands:
-       crypt decrypt [-iv <iv>] [-mode <mode>] [-rounds <count>] <cipher> <key> <data>
-       crypt encrypt [-iv <iv>] [-mode <mode>] [-rounds <count>] <cipher> <key> <data>
+       crypt decrypt [-counter|-iv|-mode|-rounds <value> ...] <cipher> <key> <data>
+       crypt encrypt [-counter|-iv|-mode|-rounds <value> ...] <cipher> <key> <data>
 
     Hash Commands:
        crypt hash    <hash algorithm> <data>
@@ -156,11 +156,11 @@ static CryptModeProc EncryptECB;
 static CryptModeProc EncryptOFB;
 
 static const CryptCipherMode cipherModes[] = {
-    {"cbc", DecryptCBC, EncryptCBC, CRYPT_REQUIRES_IV|CRYPT_PAD_PLAINTEXT},
-    {"cfb", DecryptCFB, EncryptCFB, CRYPT_REQUIRES_IV},
-    {"ctr", DecryptCTR, EncryptCTR, CRYPT_REQUIRES_IV},
-    {"ecb", DecryptECB, EncryptECB, CRYPT_PAD_PLAINTEXT},
-    {"ofb", DecryptOFB, EncryptOFB, CRYPT_REQUIRES_IV},
+    {"cbc", DecryptCBC, EncryptCBC, 1},
+    {"cfb", DecryptCFB, EncryptCFB, 1},
+    {"ctr", DecryptCTR, EncryptCTR, 1},
+    {"ecb", DecryptECB, EncryptECB, 0},
+    {"ofb", DecryptOFB, EncryptOFB, 1},
     {NULL}
 };
 
@@ -193,6 +193,8 @@ Arguments:
 
     rounds      - Number of rounds.
 
+    counterMode - The counter mode (CTR_COUNTER_LITTLE_ENDIAN or CTR_COUNTER_BIG_ENDIAN).
+
     iv          - The initial vector, must be the length of one block.
 
     key         - The secret key.
@@ -213,6 +215,7 @@ static int
 DecryptCBC(
     int cipher,
     int rounds,
+    int counterMode,
     unsigned char *iv,
     unsigned char *key,
     unsigned long keyLength,
@@ -237,6 +240,7 @@ static int
 DecryptCFB(
     int cipher,
     int rounds,
+    int counterMode,
     unsigned char *iv,
     unsigned char *key,
     unsigned long keyLength,
@@ -261,6 +265,7 @@ static int
 DecryptCTR(
     int cipher,
     int rounds,
+    int counterMode,
     unsigned char *iv,
     unsigned char *key,
     unsigned long keyLength,
@@ -272,7 +277,7 @@ DecryptCTR(
     int status;
     symmetric_CTR state;
 
-    status = ctr_start(cipher, iv, key, keyLength, rounds, CTR_COUNTER_LITTLE_ENDIAN, &state);
+    status = ctr_start(cipher, iv, key, keyLength, rounds, counterMode, &state);
     if (status == CRYPT_OK) {
         status = ctr_decrypt(data, dest, dataLength, &state);
         ctr_done(&state);
@@ -285,6 +290,7 @@ static int
 DecryptECB(
     int cipher,
     int rounds,
+    int counterMode,
     unsigned char *iv,
     unsigned char *key,
     unsigned long keyLength,
@@ -309,6 +315,7 @@ static int
 DecryptOFB(
     int cipher,
     int rounds,
+    int counterMode,
     unsigned char *iv,
     unsigned char *key,
     unsigned long keyLength,
@@ -344,6 +351,8 @@ Arguments:
 
     rounds      - Number of rounds.
 
+    counterMode - The counter mode (CTR_COUNTER_LITTLE_ENDIAN or CTR_COUNTER_BIG_ENDIAN).
+
     iv          - The initial vector, must be the length of one block.
 
     key         - The secret key.
@@ -364,6 +373,7 @@ static int
 EncryptCBC(
     int cipher,
     int rounds,
+    int counterMode,
     unsigned char *iv,
     unsigned char *key,
     unsigned long keyLength,
@@ -388,6 +398,7 @@ static int
 EncryptCFB(
     int cipher,
     int rounds,
+    int counterMode,
     unsigned char *iv,
     unsigned char *key,
     unsigned long keyLength,
@@ -412,6 +423,7 @@ static int
 EncryptCTR(
     int cipher,
     int rounds,
+    int counterMode,
     unsigned char *iv,
     unsigned char *key,
     unsigned long keyLength,
@@ -423,7 +435,7 @@ EncryptCTR(
     int status;
     symmetric_CTR state;
 
-    status = ctr_start(cipher, iv, key, keyLength, rounds, CTR_COUNTER_LITTLE_ENDIAN, &state);
+    status = ctr_start(cipher, iv, key, keyLength, rounds, counterMode, &state);
     if (status == CRYPT_OK) {
         status = ctr_encrypt(data, dest, dataLength, &state);
         ctr_done(&state);
@@ -436,6 +448,7 @@ static int
 EncryptECB(
     int cipher,
     int rounds,
+    int counterMode,
     unsigned char *iv,
     unsigned char *key,
     unsigned long keyLength,
@@ -460,6 +473,7 @@ static int
 EncryptOFB(
     int cipher,
     int rounds,
+    int counterMode,
     unsigned char *iv,
     unsigned char *key,
     unsigned long keyLength,
@@ -493,7 +507,7 @@ Arguments:
 
     objv    - Argument objects.
 
-    mode    - Must be 'MODE_DECRYPT' or 'MODE_ENCRYPT'.
+    mode    - Process mode (must be MODE_DECRYPT or MODE_ENCRYPT).
 
 Return Value:
     A standard Tcl result.
@@ -510,6 +524,7 @@ CryptProcessCmd(
     int i;
     int index;
     int cipherIndex;
+    int counterMode = CTR_COUNTER_LITTLE_ENDIAN; // Little-endian by default.
     int rounds = 0;
     int modeIndex = 3; // ECB mode by default.
     int status = CRYPT_ERROR;
@@ -520,10 +535,12 @@ CryptProcessCmd(
     unsigned char *dest;
     unsigned char *iv = NULL;
     unsigned char *key;
-    static const char *switches[] = {"-iv", "-mode", "-rounds", NULL};
-    enum switches {SWITCH_IV, SWITCH_MODE, SWITCH_ROUNDS};
+    static const char *switches[] = {
+        "-counter", "-iv", "-mode", "-rounds", NULL
+    };
+    enum switches {SWITCH_COUNTER, SWITCH_IV, SWITCH_MODE, SWITCH_ROUNDS};
 
-    for (i = 2; i < objc; i++) {
+    for (i = 2; i+1 < objc; i++) {
         char *name = Tcl_GetString(objv[i]);
         if (name[0] != '-') {
             break;
@@ -535,6 +552,27 @@ CryptProcessCmd(
 
         i++;
         switch ((enum switches) index) {
+            case SWITCH_COUNTER: {
+                static const char *counterModes[] = {
+                    "littleEndian", "bigEndian", NULL
+                };
+
+                //
+                // Instead of switching through the index obtained by Tcl_GetIndexFromObj,
+                // we ordered the counter modes in accordance to their defined values.
+                //
+                // counterModes[CTR_COUNTER_LITTLE_ENDIAN] == "littleEndian"
+                // counterModes[CTR_COUNTER_BIG_ENDIAN]    == "bigEndian"
+                //
+                assert(CTR_COUNTER_LITTLE_ENDIAN == 0);
+                assert(CTR_COUNTER_BIG_ENDIAN    == 1);
+
+                if (Tcl_GetIndexFromObj(interp, objv[i], counterModes, "counter mode",
+                    TCL_EXACT, &counterMode) != TCL_OK) {
+                    return TCL_ERROR;
+                }
+                break;
+            }
             case SWITCH_IV: {
                 iv = Tcl_GetByteArrayFromObj(objv[i], &ivLength);
                 break;
@@ -572,7 +610,7 @@ CryptProcessCmd(
 
     // Certain cipher modes require an IV and others do not (e.g. ECB).
     if (iv != NULL) {
-        if (!(cipherModes[modeIndex].options & CRYPT_REQUIRES_IV)) {
+        if (cipherModes[modeIndex].requiresIv == 0) {
             Tcl_AppendResult(interp, cipherModes[modeIndex].name,
                 " mode does not require an initialisation vector", NULL);
             return TCL_ERROR;
@@ -596,7 +634,7 @@ CryptProcessCmd(
             return TCL_ERROR;
         }
 
-    } else if (cipherModes[modeIndex].options & CRYPT_REQUIRES_IV) {
+    } else if (cipherModes[modeIndex].requiresIv != 0) {
         Tcl_AppendResult(interp, cipherModes[modeIndex].name,
             " mode requires an initialisation vector", NULL);
         return TCL_ERROR;
@@ -643,59 +681,21 @@ CryptProcessCmd(
     }
 
     data = Tcl_GetByteArrayFromObj(objv[objc-1], &dataLength);
-
-#if 0
-    //
-    // Removed the automatic padding of plain-text for now. I am undecided
-    // whether this behaviour should be performed by the function, for simplicity;
-    // or by the caller, for realism and completeness. Writing a function to append
-    // NULL bytes is relatively straightforward (i.e. ZeroPadData in the test suite).
-    //
-    if (mode == MODE_ENCRYPT && cipherModes[modeIndex].options & CRYPT_PAD_PLAINTEXT) {
-        int padLength;
-        unsigned char *pad;
-
-        //
-        // Pad the buffer to a multiple of the cipher's block-length,
-        // needed for CBC and ECB cipher operation modes.
-        //
-        padLength = ROUNDUP(dataLength, cipher_descriptor[cipherIndex].block_length);
-        pad = (unsigned char *) ckalloc(padLength);
-
-        // Copy data and zero-pad the remaining bytes.
-        for (i = 0; i < dataLength; i++) {
-            pad[i] = data[i];
-        }
-        for (; i < padLength; i++) {
-            pad[i] = 0;
-        }
-
-        data = pad;
-        dataLength = padLength;
-    }
-#endif
-
     dest = Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), dataLength);
 
     if (mode == MODE_DECRYPT) {
         status = cipherModes[modeIndex].decrypt(
-            cipherIndex, rounds, iv,
+            cipherIndex, rounds, counterMode, iv,
             key,  (unsigned long)keyLength,
             data, (unsigned long)dataLength,
             dest);
 
     } else if (mode == MODE_ENCRYPT) {
         status = cipherModes[modeIndex].encrypt(
-            cipherIndex, rounds, iv,
+            cipherIndex, rounds, counterMode, iv,
             key,  (unsigned long)keyLength,
             data, (unsigned long)dataLength,
             dest);
-
-#if 0
-        if (cipherModes[modeIndex].options & CRYPT_PAD_PLAINTEXT) {
-            ckfree((char *) data);
-        }
-#endif
     }
 
     if (status != CRYPT_OK) {
