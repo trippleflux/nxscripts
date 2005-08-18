@@ -2,7 +2,7 @@
 # AlcoTcld - Alcoholicz Tcl daemon.
 # Copyright (c) 2005 Alcoholicz Scripting Team
 #
-# File Name:
+# Module Name:
 #   makefile.win
 #
 # Author:
@@ -16,9 +16,12 @@
 #
 #   Options:
 #     DEBUG    - Toggle symbolic debugging.
-#     DEVPERF  - Toggle Compuware DevPartner performance analysis.
 #     MEMDEBUG - Toggle Tcl memory debugging.
 #     THREADS  - Toggle threading support.
+#
+#   Profiling:
+#     COVERAGE - Toggle Compuware DevPartner code coverage analysis.
+#     PERF     - Toggle Compuware DevPartner performance analysis.
 #
 
 # PSDK Settings
@@ -37,7 +40,7 @@ TARGETOS    = WINNT
 
 ROOT        = .
 TCL_SUFFIX  = tg
-PKG_SUFFIX  = DMTP
+PKG_SUFFIX  = DMTCP
 
 PKG_VERSION_DOT = $(PKG_MAJOR).$(PKG_MINOR).$(PKG_PATCH)
 PKG_VERSION_RES = $(PKG_MAJOR),$(PKG_MINOR),$(PKG_PATCH),$(PKG_STATUS)
@@ -85,19 +88,34 @@ TCL_SUFFIX  = $(TCL_SUFFIX:t=)
 
 !include "win/win32.mak"
 
-!if "$(DEVPERF)" == "1"
+!if "$(COVERAGE)" == "1"
+!message *** Option: DevPartner Code Coverage Analysis
+CC          = NMCL /NMtcOn
+LINK        = NMLINK /NMtcOn
+PATH        = $(HOMEDRIVE)\Program Files\Common Files\Compuware\NMShared;$(PATH)
+PKG_OPTIONS = $(PKG_OPTIONS), Coverage
+!else
+PKG_SUFFIX  = $(PKG_SUFFIX:C=)
+!endif
+
+!if "$(PERF)" == "1"
 !message *** Option: DevPartner Performance Analysis
 CC          = NMCL /NMttOn
 LINK        = NMLINK /NMttOn
+PATH        = $(HOMEDRIVE)\Program Files\Common Files\Compuware\NMShared;$(PATH)
 PKG_OPTIONS = $(PKG_OPTIONS), Perf
 !else
 PKG_SUFFIX  = $(PKG_SUFFIX:P=)
 !endif
 
+!if "$(COVERAGE)" == "1" && "$(PERF)" == "1"
+!error You cannot profile both code coverage and performance.
+!endif
+
 # -------------------------------------------------------------------------
 
 !if !exist(nmakehlp.exe)
-!if [$(CC) -nologo -MT win/nmakehlp.c -link -subsystem:console > nul]
+!if [cl -nologo -MT win/nmakehlp.c -link -subsystem:console > nul]
 !endif
 !endif
 
