@@ -585,7 +585,7 @@ proc ::alcoholicz::InitConfig {filePath} {
 # required script or extension could not be loaded.
 #
 proc ::alcoholicz::InitLibraries {rootPath} {
-    global auto_path tcl_platform
+    global auto_path
 
     set libPath [file join $rootPath libs]
     foreach script {constants.tcl common.tcl config.tcl ftp.tcl tree.tcl} {

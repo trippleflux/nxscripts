@@ -37,18 +37,18 @@
 #
 [Colour]
 # Section colour one [c1].
-DEFAULT,1 =12
-APPS,1    =03
-DVDR,1    =04
-GAMES,1   =03
-XVID,1    =04
+DEFAULT,1 = 12
+APPS,1    = 03
+DVDR,1    = 04
+GAMES,1   = 03
+XVID,1    = 04
 
 # Section colour two [c2].
-DEFAULT,2 =14
-APPS,2    =14
-DVDR,2    =15
-GAMES,2   =14
-XVID,2    =15
+DEFAULT,2 = 14
+APPS,2    = 14
+DVDR,2    = 15
+GAMES,2   = 14
+XVID,2    = 15
 
 #### Format
 #
@@ -61,18 +61,18 @@ XVID,2    =15
 #   URL: http://www.tcl.tk/man/tcl8.4/TclCmd/clock.htm#M6
 #
 [Format]
-prefix    =[%(siteTag)]
-time      =%H[b]:[b]%M[b]:[b]%S
-date      =%m[b]/[b]%d[b]/[b]%y
+prefix    = [%(siteTag)]
+time      = %H[b]:[b]%M[b]:[b]%S
+date      = %m[b]/[b]%d[b]/[b]%y
 
-sizeKilo  =[b]%.0(size)[b]KB
-sizeMega  =[b]%.1(size)[b]MB
-sizeGiga  =[b]%.2(size)[b]GB
-sizeTera  =[b]%.2(size)[b]TB
+sizeKilo  = [b]%.0(size)[b]KB
+sizeMega  = [b]%.1(size)[b]MB
+sizeGiga  = [b]%.2(size)[b]GB
+sizeTera  = [b]%.2(size)[b]TB
 
-speedKilo =[b]%.0(speed)[b]KB/s
-speedMega =[b]%.1(speed)[b]MB/s
-speedGiga =[b]%.2(speed)[b]GB/s
+speedKilo = [b]%.0(speed)[b]KB/s
+speedMega = [b]%.1(speed)[b]MB/s
+speedGiga = [b]%.2(speed)[b]GB/s
 
 #### Theme
 #
@@ -86,10 +86,10 @@ speedGiga =[b]%.2(speed)[b]GB/s
 # TODO: Mention variable file list (when there is one).
 #
 [Theme]
-affilsHead =[b]Affiliated Groups:[b]
-affilsBody =[b][%(section)][b] %(groups)
-affilsFoot =Total: [b]%(groupCount)[b] affil(s) in [b]%(sectionCount)[b] section(s).
+affilsHead = [b]Affiliated Groups:[b]
+affilsBody = [b][%(section)][b] %(groups)
+affilsFoot = Total: [b]%(groupCount)[b] affil(s) in [b]%(sectionCount)[b] section(s).
 
-bannedHead =[b]Banned Groups:[b]
-bannedBody =[b][%(section)][b] %(groups)
-bannedFoot =Total: [b]%(groupCount)[b] banned group(s) in [b]%(sectionCount)[b] section(s).
+bannedHead = [b]Banned Groups:[b]
+bannedBody = [b][%(section)][b] %(groups)
+bannedFoot = Total: [b]%(groupCount)[b] banned group(s) in [b]%(sectionCount)[b] section(s).
