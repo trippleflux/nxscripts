@@ -39,7 +39,7 @@ TARGETOS    = WINNT
 
 # -------------------------------------------------------------------------
 
-ROOT        = .
+TOP         = .
 TCL_SUFFIX  = tg
 PKG_SUFFIX  = DMTCP
 
@@ -48,16 +48,14 @@ PKG_VERSION_RES = $(PKG_MAJOR),$(PKG_MINOR),$(PKG_PATCH),$(PKG_STATUS)
 
 PKG_CFLAGS  = "-DPACKAGE_NAME=\"$(PKG_NAME)\"" "-DPACKAGE_DESC=\"$(PKG_DESC)\"" "-DPACKAGE_VERSION=\"$(PKG_VERSION_DOT)\"" -DPACKAGE_VERSION_RES=$(PKG_VERSION_RES)
 PKG_LFLAGS  = -nodefaultlib:msvcrt -opt:ref -opt:nowin98
-LTC_CFLAGS  =
 TCL_CFLAGS  = -DUSE_TCL_STUBS
-ZLIB_CFLAGS =
 
 # -------------------------------------------------------------------------
 
 !if "$(DEBUG)" == "1"
 !message *** Option: Symbolic Debugging
 PKG_OPTIONS = Debug
-PKG_TOPDIR  = Debug
+PKG_OUTDIR  = Debug
 # Make sure NODEBUG is not defined for debug builds.
 !ifdef NODEBUG
 !undef NODEBUG
@@ -65,7 +63,7 @@ PKG_TOPDIR  = Debug
 !else
 NODEBUG     = 1
 PKG_OPTIONS = Release
-PKG_TOPDIR  = Release
+PKG_OUTDIR  = Release
 PKG_SUFFIX  = $(PKG_SUFFIX:D=)
 TCL_SUFFIX  = $(TCL_SUFFIX:g=)
 !endif
@@ -79,7 +77,7 @@ PKG_SUFFIX  = $(PKG_SUFFIX:M=)
 !endif
 
 !ifndef INSTALL
-INSTALL     = $(ROOT)
+INSTALL     = $(TOP)
 !elseif !exist("$(INSTALL)")
 !error The given installation path does not exist.
 !endif
@@ -161,8 +159,8 @@ PKG_SUFFIX  = -$(PKG_SUFFIX)
 
 # File and directory paths.
 PKG_FILE    = $(PKG_NAME)$(PKG_SUFFIX).dll
-PKG_OUTFILE = $(PKG_TOPDIR)\$(PKG_FILE)
-PKG_INTDIR  = $(PKG_TOPDIR)\$(PKG_OPTIONS:, =)
+PKG_OUTFILE = $(PKG_OUTDIR)\$(PKG_FILE)
+PKG_INTDIR  = $(PKG_OUTDIR)\$(PKG_OPTIONS:, =)
 PKG_INSTALL_FILE = $(PKG_NAME)$(PKG_MAJOR)$(PKG_MINOR).dll
 PKG_INSTALL_DIR  = $(INSTALL)\$(PKG_NAME)$(PKG_MAJOR).$(PKG_MINOR)
 
@@ -171,10 +169,10 @@ PKG_CFLAGS  = $(PKG_CFLAGS) "-DPACKAGE_FILE=\"$(PKG_FILE)\"" "-DPACKAGE_OPTIONS=
 
 INCLUDE_DIRS=\
     -I"$(TCL_INCLUDES)"\
-    -I"$(ROOT)\libs\tomcrypt\headers"\
-    -I"$(ROOT)\libs\zlib\headers"\
-    -I"$(ROOT)\generic"\
-    -I"$(ROOT)\win"
+    -I"$(TOP)\libs\tomcrypt\headers"\
+    -I"$(TOP)\libs\zlib\headers"\
+    -I"$(TOP)\generic"\
+    -I"$(TOP)\win"
 
 INTERMEDIATE_FILES=\
     $(PKG_INTDIR)\aes.obj\
@@ -247,99 +245,91 @@ INTERMEDIATE_FILES=\
     $(PKG_INTDIR)\alcoExt.res
 
 OBJECT_FILES=\
-    $(ROOT)\libs\tomcrypt\ciphers\aes\aes.obj\
-    $(ROOT)\libs\tomcrypt\ciphers\anubis.obj\
-    $(ROOT)\libs\tomcrypt\ciphers\blowfish.obj\
-    $(ROOT)\libs\tomcrypt\ciphers\cast5.obj\
-    $(ROOT)\libs\tomcrypt\ciphers\des.obj\
-    $(ROOT)\libs\tomcrypt\ciphers\khazad.obj\
-    $(ROOT)\libs\tomcrypt\ciphers\noekeon.obj\
-    $(ROOT)\libs\tomcrypt\ciphers\rc2.obj\
-    $(ROOT)\libs\tomcrypt\ciphers\rc5.obj\
-    $(ROOT)\libs\tomcrypt\ciphers\rc6.obj\
-    $(ROOT)\libs\tomcrypt\ciphers\safer\safer.obj\
-    $(ROOT)\libs\tomcrypt\ciphers\safer\safer_tab.obj\
-    $(ROOT)\libs\tomcrypt\ciphers\safer\saferp.obj\
-    $(ROOT)\libs\tomcrypt\ciphers\skipjack.obj\
-    $(ROOT)\libs\tomcrypt\ciphers\twofish\twofish.obj\
-    $(ROOT)\libs\tomcrypt\ciphers\xtea.obj\
-    $(ROOT)\libs\tomcrypt\hashes\helper\hash_memory.obj\
-    $(ROOT)\libs\tomcrypt\hashes\md2.obj\
-    $(ROOT)\libs\tomcrypt\hashes\md4.obj\
-    $(ROOT)\libs\tomcrypt\hashes\md5.obj\
-    $(ROOT)\libs\tomcrypt\hashes\rmd128.obj\
-    $(ROOT)\libs\tomcrypt\hashes\rmd160.obj\
-    $(ROOT)\libs\tomcrypt\hashes\sha1.obj\
-    $(ROOT)\libs\tomcrypt\hashes\sha2\sha256.obj\
-    $(ROOT)\libs\tomcrypt\hashes\sha2\sha512.obj\
-    $(ROOT)\libs\tomcrypt\hashes\tiger.obj\
-    $(ROOT)\libs\tomcrypt\hashes\whirl\whirl.obj\
-    $(ROOT)\libs\tomcrypt\mac\hmac.obj\
-    $(ROOT)\libs\tomcrypt\mac\omac.obj\
-    $(ROOT)\libs\tomcrypt\mac\pelican.obj\
-    $(ROOT)\libs\tomcrypt\mac\pmac.obj\
-    $(ROOT)\libs\tomcrypt\misc\base64\base64_decode.obj\
-    $(ROOT)\libs\tomcrypt\misc\base64\base64_encode.obj\
-    $(ROOT)\libs\tomcrypt\misc\pkcs5\pkcs_5_1.obj\
-    $(ROOT)\libs\tomcrypt\misc\pkcs5\pkcs_5_2.obj\
-    $(ROOT)\libs\tomcrypt\misc\crypt_cipher.obj\
-    $(ROOT)\libs\tomcrypt\misc\crypt_hash.obj\
-    $(ROOT)\libs\tomcrypt\misc\crypt_prng.obj\
-    $(ROOT)\libs\tomcrypt\misc\crypt_utils.obj\
-    $(ROOT)\libs\tomcrypt\modes\cbc.obj\
-    $(ROOT)\libs\tomcrypt\modes\cfb.obj\
-    $(ROOT)\libs\tomcrypt\modes\ctr.obj\
-    $(ROOT)\libs\tomcrypt\modes\ecb.obj\
-    $(ROOT)\libs\tomcrypt\modes\ofb.obj\
-    $(ROOT)\libs\tomcrypt\prngs\fortuna.obj\
-    $(ROOT)\libs\tomcrypt\prngs\rc4.obj\
-    $(ROOT)\libs\tomcrypt\prngs\rng_get_bytes.obj\
-    $(ROOT)\libs\tomcrypt\prngs\sober128.obj\
-    $(ROOT)\libs\tomcrypt\prngs\sprng.obj\
-    $(ROOT)\libs\tomcrypt\prngs\yarrow.obj\
-    $(ROOT)\libs\zlib\source\adler32.obj\
-    $(ROOT)\libs\zlib\source\crc32.obj\
-    $(ROOT)\libs\zlib\source\deflate.obj\
-    $(ROOT)\libs\zlib\source\inffast.obj\
-    $(ROOT)\libs\zlib\source\inflate.obj\
-    $(ROOT)\libs\zlib\source\inftrees.obj\
-    $(ROOT)\libs\zlib\source\trees.obj\
-    $(ROOT)\libs\zlib\source\zutil.obj\
-    $(ROOT)\generic\alcoExt.obj\
-    $(ROOT)\generic\alcoCrypt.obj\
-    $(ROOT)\generic\alcoEncoding.obj\
-    $(ROOT)\generic\alcoUtil.obj\
-    $(ROOT)\generic\alcoVolume.obj\
-    $(ROOT)\generic\alcoZlib.obj\
-    $(ROOT)\win\alcoWinIoFtpd.obj\
-    $(ROOT)\win\alcoWinUtil.obj\
-    $(ROOT)\win\alcoWinVolume.obj\
-    $(ROOT)\win\alcoExt.res
+    $(TOP)\libs\tomcrypt\ciphers\aes\aes.obj\
+    $(TOP)\libs\tomcrypt\ciphers\anubis.obj\
+    $(TOP)\libs\tomcrypt\ciphers\blowfish.obj\
+    $(TOP)\libs\tomcrypt\ciphers\cast5.obj\
+    $(TOP)\libs\tomcrypt\ciphers\des.obj\
+    $(TOP)\libs\tomcrypt\ciphers\khazad.obj\
+    $(TOP)\libs\tomcrypt\ciphers\noekeon.obj\
+    $(TOP)\libs\tomcrypt\ciphers\rc2.obj\
+    $(TOP)\libs\tomcrypt\ciphers\rc5.obj\
+    $(TOP)\libs\tomcrypt\ciphers\rc6.obj\
+    $(TOP)\libs\tomcrypt\ciphers\safer\safer.obj\
+    $(TOP)\libs\tomcrypt\ciphers\safer\safer_tab.obj\
+    $(TOP)\libs\tomcrypt\ciphers\safer\saferp.obj\
+    $(TOP)\libs\tomcrypt\ciphers\skipjack.obj\
+    $(TOP)\libs\tomcrypt\ciphers\twofish\twofish.obj\
+    $(TOP)\libs\tomcrypt\ciphers\xtea.obj\
+    $(TOP)\libs\tomcrypt\hashes\helper\hash_memory.obj\
+    $(TOP)\libs\tomcrypt\hashes\md2.obj\
+    $(TOP)\libs\tomcrypt\hashes\md4.obj\
+    $(TOP)\libs\tomcrypt\hashes\md5.obj\
+    $(TOP)\libs\tomcrypt\hashes\rmd128.obj\
+    $(TOP)\libs\tomcrypt\hashes\rmd160.obj\
+    $(TOP)\libs\tomcrypt\hashes\sha1.obj\
+    $(TOP)\libs\tomcrypt\hashes\sha2\sha256.obj\
+    $(TOP)\libs\tomcrypt\hashes\sha2\sha512.obj\
+    $(TOP)\libs\tomcrypt\hashes\tiger.obj\
+    $(TOP)\libs\tomcrypt\hashes\whirl\whirl.obj\
+    $(TOP)\libs\tomcrypt\mac\hmac.obj\
+    $(TOP)\libs\tomcrypt\mac\omac.obj\
+    $(TOP)\libs\tomcrypt\mac\pelican.obj\
+    $(TOP)\libs\tomcrypt\mac\pmac.obj\
+    $(TOP)\libs\tomcrypt\misc\base64\base64_decode.obj\
+    $(TOP)\libs\tomcrypt\misc\base64\base64_encode.obj\
+    $(TOP)\libs\tomcrypt\misc\pkcs5\pkcs_5_1.obj\
+    $(TOP)\libs\tomcrypt\misc\pkcs5\pkcs_5_2.obj\
+    $(TOP)\libs\tomcrypt\misc\crypt_cipher.obj\
+    $(TOP)\libs\tomcrypt\misc\crypt_hash.obj\
+    $(TOP)\libs\tomcrypt\misc\crypt_prng.obj\
+    $(TOP)\libs\tomcrypt\misc\crypt_utils.obj\
+    $(TOP)\libs\tomcrypt\modes\cbc.obj\
+    $(TOP)\libs\tomcrypt\modes\cfb.obj\
+    $(TOP)\libs\tomcrypt\modes\ctr.obj\
+    $(TOP)\libs\tomcrypt\modes\ecb.obj\
+    $(TOP)\libs\tomcrypt\modes\ofb.obj\
+    $(TOP)\libs\tomcrypt\prngs\fortuna.obj\
+    $(TOP)\libs\tomcrypt\prngs\rc4.obj\
+    $(TOP)\libs\tomcrypt\prngs\rng_get_bytes.obj\
+    $(TOP)\libs\tomcrypt\prngs\sober128.obj\
+    $(TOP)\libs\tomcrypt\prngs\sprng.obj\
+    $(TOP)\libs\tomcrypt\prngs\yarrow.obj\
+    $(TOP)\libs\zlib\source\adler32.obj\
+    $(TOP)\libs\zlib\source\crc32.obj\
+    $(TOP)\libs\zlib\source\deflate.obj\
+    $(TOP)\libs\zlib\source\inffast.obj\
+    $(TOP)\libs\zlib\source\inflate.obj\
+    $(TOP)\libs\zlib\source\inftrees.obj\
+    $(TOP)\libs\zlib\source\trees.obj\
+    $(TOP)\libs\zlib\source\zutil.obj\
+    $(TOP)\generic\alcoExt.obj\
+    $(TOP)\generic\alcoCrypt.obj\
+    $(TOP)\generic\alcoEncoding.obj\
+    $(TOP)\generic\alcoUtil.obj\
+    $(TOP)\generic\alcoVolume.obj\
+    $(TOP)\generic\alcoZlib.obj\
+    $(TOP)\win\alcoWinIoFtpd.obj\
+    $(TOP)\win\alcoWinUtil.obj\
+    $(TOP)\win\alcoWinVolume.obj\
+    $(TOP)\win\alcoExt.res
 
 # -------------------------------------------------------------------------
 
-AFLAGS  = -nologo -coff
-CFLAGS  = $(cdebug) $(cflags) $(cvarsmt) $(PKG_CFLAGS) $(LTC_CFLAGS) $(TCL_CFLAGS) $(ZLIB_CFLAGS) $(INCLUDE_DIRS)
+CFLAGS  = $(cdebug) $(cflags) $(cvarsmt) $(PKG_CFLAGS) $(TCL_CFLAGS) $(INCLUDE_DIRS)
 LFLAGS  = $(ldebug) $(dlllflags) $(conlibsmt) $(PKG_LFLAGS) $(TCL_STUBLIB)
 RFLAGS  = $(rcflags) $(rcvars) $(PKG_CFLAGS)
 
-# -------------------------------------------------------------------------
-
-.asm.obj::
-    $(AS) -c $(AFLAGS) -Fo"$(PKG_INTDIR)\\" @<<
-$<
-<<
-
 .c.obj::
-    $(CC) -c $(CFLAGS) -Fo"$(PKG_INTDIR)\\" @<<
+    $(CC) -c $(CFLAGS) -Fo$(PKG_INTDIR)\ @<<
 $<
 <<
 
 .rc.res:
-    $(RC) $(RFLAGS) -Fo"$(PKG_INTDIR)\$(<B).res" $<
+    $(RC) $(RFLAGS) -fo "$(PKG_INTDIR)\$(<B).res" $<
 
 .SUFFIXES:
-.SUFFIXES:.asm .c .rc
+.SUFFIXES:.c .rc
 
 # -------------------------------------------------------------------------
 
@@ -378,5 +368,5 @@ package ifneeded $(PKG_NAME) $(PKG_VERSION_DOT) [list load [file join $$dir $(PK
 <<
 
 setup:
-    @IF NOT EXIST "$(PKG_TOPDIR)" MKDIR "$(PKG_TOPDIR)"
+    @IF NOT EXIST "$(PKG_OUTDIR)" MKDIR "$(PKG_OUTDIR)"
     @IF NOT EXIST "$(PKG_INTDIR)" MKDIR "$(PKG_INTDIR)"
