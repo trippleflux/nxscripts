@@ -38,7 +38,7 @@ TARGETOS    = WINNT
 
 # -------------------------------------------------------------------------
 
-ROOT        = .
+TOP         = .
 TCL_SUFFIX  = tg
 PKG_SUFFIX  = DMTCP
 
@@ -47,16 +47,14 @@ PKG_VERSION_RES = $(PKG_MAJOR),$(PKG_MINOR),$(PKG_PATCH),$(PKG_STATUS)
 
 PKG_CFLAGS  = "-DPACKAGE_NAME=\"$(PKG_NAME)\"" "-DPACKAGE_DESC=\"$(PKG_DESC)\"" "-DPACKAGE_VERSION=\"$(PKG_VERSION_DOT)\"" -DPACKAGE_VERSION_RES=$(PKG_VERSION_RES)
 PKG_LFLAGS  = -nodefaultlib:msvcrt -opt:ref -opt:nowin98
-LTC_CFLAGS  =
 TCL_CFLAGS  =
-ZLIB_CFLAGS = -DASMV -DASMINF
 
 # -------------------------------------------------------------------------
 
 !if "$(DEBUG)" == "1"
 !message *** Option: Symbolic Debugging
 PKG_OPTIONS = Debug
-PKG_TOPDIR  = Debug
+PKG_OUTDIR  = Debug
 # Make sure NODEBUG is not defined for debug builds.
 !ifdef NODEBUG
 !undef NODEBUG
@@ -64,7 +62,7 @@ PKG_TOPDIR  = Debug
 !else
 NODEBUG     = 1
 PKG_OPTIONS = Release
-PKG_TOPDIR  = Release
+PKG_OUTDIR  = Release
 PKG_SUFFIX  = $(PKG_SUFFIX:D=)
 TCL_SUFFIX  = $(TCL_SUFFIX:g=)
 !endif
@@ -155,16 +153,16 @@ PKG_SUFFIX  = -$(PKG_SUFFIX)
 
 # File and directory paths.
 PKG_FILE    = $(PKG_NAME)$(PKG_SUFFIX).exe
-PKG_OUTFILE = $(PKG_TOPDIR)\$(PKG_FILE)
-PKG_INTDIR  = $(PKG_TOPDIR)\$(PKG_OPTIONS:, =)
+PKG_OUTFILE = $(PKG_OUTDIR)\$(PKG_FILE)
+PKG_INTDIR  = $(PKG_OUTDIR)\$(PKG_OPTIONS:, =)
 
 # Append file and option definitions to cflags.
 PKG_CFLAGS  = $(PKG_CFLAGS) "-DPACKAGE_FILE=\"$(PKG_FILE)\"" "-DPACKAGE_OPTIONS=\"$(PKG_OPTIONS)\""
 
 INCLUDE_DIRS=\
     -I"$(TCL_INCLUDES)"\
-    -I"$(ROOT)\generic"\
-    -I"$(ROOT)\win"
+    -I"$(TOP)\generic"\
+    -I"$(TOP)\win"
 
 INTERMEDIATE_FILES=\
     $(PKG_INTDIR)\tcldInit.obj\
@@ -172,34 +170,26 @@ INTERMEDIATE_FILES=\
     $(PKG_INTDIR)\tcld.res
 
 OBJECT_FILES=\
-    $(ROOT)\generic\tcldInit.obj\
-    $(ROOT)\win\tcldWinMain.obj\
-    $(ROOT)\win\tcld.res
+    $(TOP)\generic\tcldInit.obj\
+    $(TOP)\win\tcldWinMain.obj\
+    $(TOP)\win\tcld.res
 
 # -------------------------------------------------------------------------
 
-AFLAGS  = -nologo -coff
-CFLAGS  = $(cdebug) $(cflags) $(cvarsmt) $(PKG_CFLAGS) $(LTC_CFLAGS) $(TCL_CFLAGS) $(ZLIB_CFLAGS) $(INCLUDE_DIRS)
+CFLAGS  = $(cdebug) $(cflags) $(cvarsmt) $(PKG_CFLAGS) $(TCL_CFLAGS) $(INCLUDE_DIRS)
 LFLAGS  = $(ldebug) $(conlflags) $(conlibsmt) shlwapi.lib $(PKG_LFLAGS) $(TCL_IMPLIB)
 RFLAGS  = $(rcflags) $(rcvars) $(PKG_CFLAGS)
 
-# -------------------------------------------------------------------------
-
-.asm.obj::
-    $(AS) -c $(AFLAGS) -Fo"$(PKG_INTDIR)\\" @<<
-$<
-<<
-
 .c.obj::
-    $(CC) -c $(CFLAGS) -Fo"$(PKG_INTDIR)\\" @<<
+    $(CC) -c $(CFLAGS) -Fo$(PKG_INTDIR)\ @<<
 $<
 <<
 
 .rc.res:
-    $(RC) $(RFLAGS) -Fo"$(PKG_INTDIR)\$(<B).res" $<
+    $(RC) $(RFLAGS) -fo "$(PKG_INTDIR)\$(<B).res" $<
 
 .SUFFIXES:
-.SUFFIXES:.asm .c .rc
+.SUFFIXES:.c .rc
 
 # -------------------------------------------------------------------------
 
@@ -221,8 +211,8 @@ distclean: clean
 
 library: setup $(OBJECT_FILES)
     $(LINK) $(LFLAGS) "-out:$(PKG_OUTFILE)" $(INTERMEDIATE_FILES)
-    @COPY /Y "$(TCL_LIB)" "$(PKG_TOPDIR)" > NUL
+    @COPY /Y "$(TCL_LIB)" "$(PKG_OUTDIR)" > NUL
 
 setup:
-    @IF NOT EXIST "$(PKG_TOPDIR)" MKDIR "$(PKG_TOPDIR)"
+    @IF NOT EXIST "$(PKG_OUTDIR)" MKDIR "$(PKG_OUTDIR)"
     @IF NOT EXIST "$(PKG_INTDIR)" MKDIR "$(PKG_INTDIR)"
