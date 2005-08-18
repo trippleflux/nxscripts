@@ -26,10 +26,6 @@ namespace eval ::alcoholicz {
         SendSection SendSectionTheme SendTarget SendTargetTheme
 }
 
-################################################################################
-# Utilities                                                                    #
-################################################################################
-
 interp alias {} IsTrue {} string is true -strict
 interp alias {} IsFalse {} string is false -strict
 
@@ -56,14 +52,17 @@ proc ::alcoholicz::o {} {return \015}
 proc ::alcoholicz::LogInfo {message} {
     putlog "\[[b]AlcoBot[b]\] $message"
 }
+
 proc ::alcoholicz::LogDebug {function message} {
     if {$::alcoholicz::debugMode} {
         putlog "\[[b]AlcoBot[b]\] Debug :: $function - $message"
     }
 }
+
 proc ::alcoholicz::LogError {function message} {
     putlog "\[[b]AlcoBot[b]\] Error :: $function - $message"
 }
+
 proc ::alcoholicz::LogWarning {function message} {
     putlog "\[[b]AlcoBot[b]\] Warning :: $function - $message"
 }
