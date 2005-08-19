@@ -49,6 +49,19 @@ Abstract:
 
 #include <alcoExt.h>
 
+static voidpf
+ZlibAlloc(
+    voidpf opaque,
+    uInt items,
+    uInt size
+    );
+
+static void
+ZlibFree(
+    voidpf opaque,
+    voidpf address
+    );
+
 static int
 ZlibDeflateObj(
     Tcl_Obj *sourceObj,
@@ -65,6 +78,58 @@ ZlibInflateObj(
     );
 
 
+/*++
+
+ZlibAlloc
+
+    Allocates an array in memory, utilizing Tcl's memory allocater.
+
+Arguments:
+    opaque  - Not used.
+
+    items   - Number of items to allocate.
+
+    size    - Size of each element, in bytes.
+
+Return Value:
+    If the function succeeds, the return value is a pointer to the allocated
+    memory block. If the function fails, the return value is NULL.
+
+--*/
+static voidpf
+ZlibAlloc(
+    voidpf opaque,
+    uInt items,
+    uInt size
+    )
+{
+    return (voidpf)attemptckalloc(items * size);
+}
+
+/*++
+
+ZlibFree
+
+    Frees a block of memory allocated by ZlibAlloc.
+
+Arguments:
+    opaque  - Not used.
+
+    address - Pointer to the memory block to be freed.
+
+Return Value:
+    None.
+
+--*/
+static void
+ZlibFree(
+    voidpf opaque,
+    voidpf address
+    )
+{
+    ckfree((char *)address);
+}
+
 /*++
 
 ZlibDeflateObj
@@ -99,11 +164,11 @@ ZlibDeflateObj(
 
     //
     // The opaque, zalloc, and zfree struct members must
-    // be initialised to zero before calling deflateInit2().
+    // be initialised before calling deflateInit2().
     //
     stream.opaque = (voidpf) NULL;
-    stream.zalloc = (alloc_func) NULL;
-    stream.zfree  = (free_func) NULL;
+    stream.zalloc = ZlibAlloc;
+    stream.zfree  = ZlibFree;
 
     // The stream must be initialised prior to calling deflateBound().
     status = deflateInit2(&stream, level, Z_DEFLATED, window,
@@ -179,11 +244,11 @@ ZlibInflateObj(
 
     //
     // The opaque, zalloc, and zfree struct members must
-    // be initialised to zero before calling inflateInit2().
+    // be initialised before calling inflateInit2().
     //
     stream.opaque = (voidpf) NULL;
-    stream.zalloc = (alloc_func) NULL;
-    stream.zfree  = (free_func) NULL;
+    stream.zalloc = ZlibAlloc;
+    stream.zfree  = ZlibFree;
     stream.avail_in = dataLength;
 
     status = inflateInit2(&stream, window);
