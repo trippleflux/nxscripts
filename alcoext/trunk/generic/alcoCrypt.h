@@ -26,7 +26,8 @@ typedef int (CryptModeProc)(
     unsigned long keyLength,
     unsigned char *data,
     unsigned long dataLength,
-    unsigned char *dest);
+    unsigned char *dest
+    );
 
 typedef struct {
     char *name;               // Name of cipher mode.

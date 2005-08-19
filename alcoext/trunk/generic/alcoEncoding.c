@@ -244,6 +244,7 @@ EncodingObjCmd(
     }
 
     functTable = (EncodingFuncts *) clientData;
+    assert(functTable == decodeFuncts || functTable == encodeFuncts);
 
     if (Tcl_GetIndexFromObjStruct(interp, objv[1], functTable,
         sizeof(EncodingFuncts), "encoding", TCL_EXACT, &index) != TCL_OK) {

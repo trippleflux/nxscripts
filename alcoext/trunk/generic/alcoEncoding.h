@@ -18,13 +18,15 @@ Abstract:
 #define _ALCOENCODING_H_
 
 typedef unsigned long (EncLengthProc)(
-    unsigned long sourceLength);
+    unsigned long sourceLength
+    );
 
 typedef int (EncProcessProc)(
     const unsigned char *source,
     unsigned long sourceLength,
     unsigned char *dest,
-    unsigned long *destLength);
+    unsigned long *destLength
+    );
 
 typedef struct {
     char *name;
