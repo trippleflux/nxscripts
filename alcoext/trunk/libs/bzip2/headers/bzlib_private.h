@@ -62,6 +62,14 @@
 #ifndef _BZLIB_PRIVATE_H
 #define _BZLIB_PRIVATE_H
 
+//
+// Modified by neoxed:
+// - Include config.h if present.
+//
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdlib.h>
 
 #ifndef BZ_NO_STDIO
@@ -89,8 +97,22 @@ typedef unsigned short  UInt16;
 #define True  ((Bool)1)
 #define False ((Bool)0)
 
-#ifndef __GNUC__
-#define __inline__  /* */
+//
+// Modified by neoxed:
+// - Proper 'inline' keyword handling.
+//
+#ifndef inline
+#   if (_MSC_VER >= 1200)
+#       define inline __forceinline
+#   elif defined(_MSC_VER)
+#       define inline __inline
+#   else
+#       define inline
+#   endif // _MSC_VER
+#endif // inline
+
+#ifndef __inline__
+#   define __inline__ inline
 #endif
 
 #ifndef BZ_NO_STDIO
