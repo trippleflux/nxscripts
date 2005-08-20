@@ -10,7 +10,7 @@ Author:
     neoxed (neoxed@gmail.com) August 20, 2005
 
 Abstract:
-    This module implements an interface to bzip2 and zlib.
+    This module implements an interface to Bzip2 and Zlib.
 
     compress adler32 <data>
       - Returns the Alder-32 checksum of "data".
@@ -53,6 +53,26 @@ BzipFree(
     void *address
     );
 
+static int
+BzipCompressObj(
+    Tcl_Obj *sourceObj,
+    Tcl_Obj *destObj,
+    int level
+    );
+
+static int
+BzipDecompressObj(
+    Tcl_Obj *sourceObj,
+    Tcl_Obj *destObj
+   );
+
+static void
+BzipSetError(
+    Tcl_Interp *interp,
+    const char *message,
+    int status
+    );
+
 //
 // Zlib function prototypes.
 //
@@ -71,7 +91,7 @@ ZlibFree(
     );
 
 static int
-ZlibDeflateObj(
+ZlibCompressObj(
     Tcl_Obj *sourceObj,
     Tcl_Obj *destObj,
     int level,
@@ -79,10 +99,17 @@ ZlibDeflateObj(
     );
 
 static int
-ZlibInflateObj(
+ZlibDecompressObj(
     Tcl_Obj *sourceObj,
     Tcl_Obj *destObj,
     int window
+    );
+
+static void
+ZlipSetError(
+    Tcl_Interp *interp,
+    const char *message,
+    int status
     );
 
 //
@@ -169,7 +196,7 @@ BzipAlloc(
 
 BzipFree
 
-    Frees a block of memory allocated by ZlibAlloc.
+    Frees a block of memory allocated by BzipAlloc.
 
 Arguments:
     opaque  - Not used.
@@ -192,6 +219,126 @@ BzipFree(
     if (address != NULL) {
         ckfree((char *)address);
     }
+}
+
+/*++
+
+BzipCompressObj
+
+    Compresses data using the bzip2 compression algorithm.
+
+Arguments:
+    sourceObj - Pointer to a Tcl object containing the data to be compressed.
+
+    destObj   - Pointer to a Tcl object to receive the compressed data.
+
+    level     - Compression level.
+
+Return Value:
+    A Bzip2 status code; BZ_OK is returned if successful.
+
+--*/
+static int
+BzipCompressObj(
+    Tcl_Obj *sourceObj,
+    Tcl_Obj *destObj,
+    int level
+    )
+{
+    bz_stream stream;
+    int status = BZ_OK;
+
+    stream.bzalloc = BzipAlloc;
+    stream.bzfree  = BzipFree;
+    stream.opaque  = NULL;
+
+    // TODO
+
+    return status;
+}
+
+/*++
+
+BzipDecompressObj
+
+    Decompresses bzip2 compressed data.
+
+Arguments:
+    sourceObj - Pointer to a Tcl object containing the data to be decompressed.
+
+    destObj   - Pointer to a Tcl object to receive the decompressed data.
+
+Return Value:
+    A Bzip2 status code; BZ_OK is returned if successful.
+
+--*/
+static int
+BzipDecompressObj(
+    Tcl_Obj *sourceObj,
+    Tcl_Obj *destObj
+    )
+{
+    bz_stream stream;
+    int status = BZ_OK;
+
+    stream.bzalloc = BzipAlloc;
+    stream.bzfree  = BzipFree;
+    stream.opaque  = NULL;
+
+    // TODO
+
+    return status;
+}
+
+/*++
+
+BzipSetError
+
+    Sets the interpreter's result to a human-readable error message.
+
+Arguments:
+    interp  - Interpreter to use for error reporting.
+
+    message - Message describing the failed operation.
+
+    status  - Bzip2 status code.
+
+Return Value:
+    None.
+
+--*/
+static void
+BzipSetError(
+    Tcl_Interp *interp,
+    const char *message,
+    int status
+    )
+{
+    static const char *errors[] = {
+        "success",              // BZ_OK, BZ_RUN_OK, BZ_FLUSH_OK, BZ_FINISH_OK, BZ_STREAM_END
+        "out of sequence",      // BZ_SEQUENCE_ERROR   (-1)
+        "invalid parameter",    // BZ_PARAM_ERROR      (-2)
+        "insufficient memory",  // BZ_MEM_ERROR        (-3)
+        "data error",           // BZ_DATA_ERROR       (-4)
+        "invalid header",       // BZ_DATA_ERROR_MAGIC (-5)
+        "I/O error",            // BZ_IO_ERROR         (-6)
+        "unexpected EOF",       // BZ_UNEXPECTED_EOF   (-7)
+        "output buffer full",   // BZ_OUTBUFF_FULL     (-8)
+        "config error",         // BZ_CONFIG_ERROR     (-9)
+        "unknown error"
+    };
+
+    if (status > 0) {
+        status = 0;
+    } else {
+        status = -status;
+        if (status > ARRAYSIZE(errors)) {
+            status = ARRAYSIZE(errors)-1;
+        }
+    }
+
+    Tcl_ResetResult(interp);
+    Tcl_AppendResult(interp, message, errors[status], NULL);
 }
 
 /*++
@@ -254,9 +401,9 @@ ZlibFree(
 
 /*++
 
-ZlibDeflateObj
+ZlibCompressObj
 
-    Compresses data using the zlib compression algorithm.
+    Compresses data using the Zlib compression algorithm.
 
 Arguments:
     sourceObj - Pointer to a Tcl object containing the data to be compressed.
@@ -265,14 +412,14 @@ Arguments:
 
     level     - Compression level.
 
-    window    - Maximum window size for zlib.
+    window    - Maximum window size for Zlib.
 
 Return Value:
-    A zlib status code; Z_OK is returned if successful.
+    A Zlib status code; Z_OK is returned if successful.
 
 --*/
 static int
-ZlibDeflateObj(
+ZlibCompressObj(
     Tcl_Obj *sourceObj,
     Tcl_Obj *destObj,
     int level,
@@ -312,7 +459,7 @@ ZlibDeflateObj(
     stream.next_out = Tcl_SetByteArrayLength(destObj, stream.avail_out);
 
     //
-    // The Z_FINISH flag instructs zlib to compress all data in a single
+    // The Z_FINISH flag instructs Zlib to compress all data in a single
     // pass, flush it to the output buffer, and return with Z_STREAM_END if
     // successful.
     //
@@ -330,23 +477,23 @@ ZlibDeflateObj(
 
 /*++
 
-ZlibInflateObj
+ZlibDecompressObj
 
-    Decompresses gzip or zlib compressed data.
+    Decompresses Zlib compressed data.
 
 Arguments:
     sourceObj - Pointer to a Tcl object containing the data to be decompressed.
 
     destObj   - Pointer to a Tcl object to receive the decompressed data.
 
-    window    - Maximum window size for zlib.
+    window    - Maximum window size for Zlib.
 
 Return Value:
-    A zlib status code; Z_OK is returned if successful.
+    A Zlib status code; Z_OK is returned if successful.
 
 --*/
 static int
-ZlibInflateObj(
+ZlibDecompressObj(
     Tcl_Obj *sourceObj,
     Tcl_Obj *destObj,
     int window
@@ -410,6 +557,34 @@ ZlibInflateObj(
     Tcl_SetByteArrayLength(destObj, (status == Z_OK ? stream.total_out : 0));
 
     return status;
+}
+
+/*++
+
+ZlipSetError
+
+    Sets the interpreter's result to a human-readable error message.
+
+Arguments:
+    interp  - Interpreter to use for error reporting.
+
+    message - Message describing the failed operation.
+
+    status  - Zlib status code.
+
+Return Value:
+    None.
+
+--*/
+static void
+ZlipSetError(
+    Tcl_Interp *interp,
+    const char *message,
+    int status
+    )
+{
+    Tcl_ResetResult(interp);
+    Tcl_AppendResult(interp, message, zError(status), NULL);
 }
 
 /*++
@@ -522,15 +697,19 @@ CompressObjCmd(
             }
 
             if (index == TYPE_BZIP2) {
-                // TODO: bzip2 support
+                status = BzipCompressObj(objv[objc-1], Tcl_GetObjResult(interp),
+                    level);
+
+                if (status != BZ_OK) {
+                    BzipSetError(interp, "unable to compact data: ", status);
+                    return TCL_ERROR;
+                }
             } else {
-                status = ZlibDeflateObj(objv[objc-1], Tcl_GetObjResult(interp),
+                status = ZlibCompressObj(objv[objc-1], Tcl_GetObjResult(interp),
                     level, compressionFormats[index].window);
 
                 if (status != Z_OK) {
-                    Tcl_ResetResult(interp);
-                    Tcl_AppendResult(interp, "unable to compact data: ",
-                        zError(status), NULL);
+                    ZlipSetError(interp, "unable to compact data: ", status);
                     return TCL_ERROR;
                 }
             }
@@ -551,15 +730,18 @@ CompressObjCmd(
             }
 
             if (index == TYPE_BZIP2) {
-                // TODO: bzip2 support
+                status = BzipDecompressObj(objv[3], Tcl_GetObjResult(interp));
+
+                if (status != BZ_OK) {
+                    BzipSetError(interp, "unable to expand data: ", status);
+                    return TCL_ERROR;
+                }
             } else {
-                status = ZlibInflateObj(objv[3], Tcl_GetObjResult(interp),
+                status = ZlibDecompressObj(objv[3], Tcl_GetObjResult(interp),
                     compressionFormats[index].window);
 
                 if (status != Z_OK) {
-                    Tcl_ResetResult(interp);
-                    Tcl_AppendResult(interp, "unable to expand data: ",
-                        zError(status), NULL);
+                    ZlipSetError(interp, "unable to expand data: ", status);
                     return TCL_ERROR;
                 }
             }
