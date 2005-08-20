@@ -4,50 +4,58 @@ AlcoExt - Alcoholicz Tcl extension.
 Copyright (c) 2005 Alcoholicz Scripting Team
 
 Module Name:
-    alcoZlib.c
+    alcoCompress.c
 
 Author:
-    neoxed (neoxed@gmail.com) April 16, 2005
+    neoxed (neoxed@gmail.com) August 20, 2005
 
 Abstract:
-    This module implements several zlib functions as Tcl commands; such as the
-    Adler32 and CRC32 checksums and gzip/zlib compression. The implementation
-    idea was taken from Tcl TIP #234 (http://www.tcl.tk/cgi-bin/tct/tip/234.html).
+    This module implements an interface to bzip2 and zlib.
 
-    zlib adler32 <data>
-      - Returns the Alder32 checksum of "data".
+    compress adler32 <data>
+      - Returns the Alder-32 checksum of "data".
 
-    zlib crc32 <data>
-      - Returns the CRC32 checksum of "data".
+    compress crc32 <data>
+      - Returns the CRC-32 checksum of "data".
 
-    zlib compress [-level 0-9] <data>
-      - Compresses the given data in raw zlib format. The returned data is
-        does not have the zlib header, trailer, or integrity checksums.
+    compress compact [-level 0-9] <format> <data>
+      - Compresses data in the specified format.
+      - Supported formats: bzip2, gzip, zlib, and zlib-raw.
       - The '-level' switch sets the compression level, one by default.
 
-    zlib decompress <data>
-      - Decompresses raw data as obtained from 'zlib compress'.
+    compress expand <format> <data>
+      - Decompresses data from the specified format.
+      - Supported formats: bzip2, gzip, zlib, and zlib-raw.
       - An error is raised if the given data cannot be decompressed.
 
-    zlib deflate [-level 0-9] <data>
-      - Compress the given data in zlib format.
-      - The '-level' switch sets the compression level, one by default.
-
-    zlib inflate <data>
-      - Decompresses zlib data as obtained from 'zlib deflate'.
-      - An error is raised if the given data cannot be decompressed.
-
-    zlib gzip [-level 0-9] <data>
-      - Compress the given data in gzip format.
-      - The '-level' switch sets the compression level, one by default.
-
-    zlib gunzip <data>
-      - Decompresses gzip data as obtained from 'zlib gzip'.
-      - An error is raised if the given data cannot be decompressed.
+    compress stream <format> <channel>
+      - Create a compression layer for the specified channel.
+      - Supported formats: bzip2, gzip, zlib, and zlib-raw.
 
 --*/
 
 #include <alcoExt.h>
+
+//
+// Bzip function prototypes.
+//
+
+static void *
+BzipAlloc(
+    void *opaque,
+    int items,
+    int size
+    );
+
+static void
+BzipFree(
+    void *opaque,
+    void *address
+    );
+
+//
+// Zlib function prototypes.
+//
 
 static voidpf
 ZlibAlloc(
@@ -77,12 +85,60 @@ ZlibInflateObj(
     int window
     );
 
+//
+// Compression format table.
+//
+
+struct {
+    char *name; // Compression format name.
+    int window; // Zlib window size (not used for bzip2).
+} static const compressionFormats[] = {
+    {"bzip2",    0},
+    {"gzip",     MAX_WBITS + 16},
+    {"zlib",     MAX_WBITS},
+    {"zlib-raw", -MAX_WBITS},
+    {NULL}
+};
+
+enum {
+    TYPE_BZIP2 = 0,
+    TYPE_GZIP,
+    TYPE_ZLIB,
+    TYPE_ZLIBRAW
+};
+
 
 /*++
 
-ZlibAlloc
+bz_internal_error
 
-    Allocates an array in memory, utilizing Tcl's memory allocater.
+    If Bzip is compiled stdio-free, this function is called when an
+    internal error occurs within Bzip.
+
+Arguments:
+    errorCode - Identifier associated with the internal error.
+
+Return Value:
+    None.
+
+--*/
+#ifdef BZ_NO_STDIO
+void
+bz_internal_error(
+    int errorCode
+    )
+{
+#ifdef DEBUG
+    printf("Bzip internal error: %d\n", errorCode);
+#endif
+}
+#endif
+
+/*++
+
+BzipAlloc
+
+    Allocates an array in memory.
 
 Arguments:
     opaque  - Not used.
@@ -95,6 +151,69 @@ Return Value:
     If the function succeeds, the return value is a pointer to the allocated
     memory block. If the function fails, the return value is NULL.
 
+Remarks:
+    This function provides Bzip access to Tcl's memory allocation system.
+
+--*/
+static void *
+BzipAlloc(
+    void *opaque,
+    int items,
+    int size
+    )
+{
+    return (void *)attemptckalloc(items * size);
+}
+
+/*++
+
+BzipFree
+
+    Frees a block of memory allocated by ZlibAlloc.
+
+Arguments:
+    opaque  - Not used.
+
+    address - Pointer to the memory block to be freed.
+
+Return Value:
+    None.
+
+Remarks:
+    This function provides Bzip access to Tcl's memory allocation system.
+
+--*/
+static void
+BzipFree(
+    void *opaque,
+    void *address
+    )
+{
+    if (address != NULL) {
+        ckfree((char *)address);
+    }
+}
+
+/*++
+
+ZlibAlloc
+
+    Allocates an array in memory.
+
+Arguments:
+    opaque  - Not used.
+
+    items   - Number of items to allocate.
+
+    size    - Size of each element, in bytes.
+
+Return Value:
+    If the function succeeds, the return value is a pointer to the allocated
+    memory block. If the function fails, the return value is NULL.
+
+Remarks:
+    This function provides Zlib access to Tcl's memory allocation system.
+
 --*/
 static voidpf
 ZlibAlloc(
@@ -103,7 +222,7 @@ ZlibAlloc(
     uInt size
     )
 {
-    return (voidpf)attemptckalloc(items * size);
+    return (voidpf)attemptckalloc((int)(items * size));
 }
 
 /*++
@@ -119,6 +238,9 @@ Arguments:
 
 Return Value:
     None.
+
+Remarks:
+    This function provides Zlib access to Tcl's memory allocation system.
 
 --*/
 static void
@@ -292,9 +414,9 @@ ZlibInflateObj(
 
 /*++
 
-ZlibObjCmd
+CompressObjCmd
 
-    This function provides the "zlib" Tcl command.
+    This function provides the "compress" Tcl command.
 
 Arguments:
     dummy  - Not used.
@@ -310,7 +432,7 @@ Return Value:
 
 --*/
 int
-ZlibObjCmd(
+CompressObjCmd(
     ClientData dummy,
     Tcl_Interp *interp,
     int objc,
@@ -319,12 +441,10 @@ ZlibObjCmd(
 {
     int index;
     static const char *options[] = {
-        "adler32", "compress", "crc32", "decompress",
-        "deflate", "gunzip", "gzip", "inflate", NULL
+        "adler32", "compact", "crc32", "expand", "stream", NULL
     };
     enum options {
-        OPTION_ADLER32, OPTION_COMPRESS, OPTION_CRC32, OPTION_DECOMPRESS,
-        OPTION_DEFLATE, OPTION_GUNZIP, OPTION_GZIP, OPTION_INFLATE
+        OPTION_ADLER32, OPTION_COMPACT, OPTION_CRC32, OPTION_EXPAND, OPTION_STREAM
     };
 
     if (objc < 2) {
@@ -369,18 +489,15 @@ ZlibObjCmd(
             Tcl_SetLongObj(Tcl_GetObjResult(interp), (long)checksum);
             return TCL_OK;
         }
-        case OPTION_COMPRESS:
-        case OPTION_GZIP:
-        case OPTION_DEFLATE: {
-            int level = Z_BEST_SPEED;  // Use the quickest compression level by default.
+        case OPTION_COMPACT: {
+            int level = Z_BEST_SPEED; // Use the quickest compression level by default.
             int status;
-            int window;
 
             switch (objc) {
-                case 3: {
+                case 4: {
                     break;
                 }
-                case 5: {
+                case 6: {
                     if (PartialSwitchCompare(objv[2], "-level")) {
                         if (Tcl_GetIntFromObj(interp, objv[3], &level) != TCL_OK) {
                             return TCL_ERROR;
@@ -394,85 +511,68 @@ ZlibObjCmd(
                     }
                 }
                 default: {
-                    Tcl_WrongNumArgs(interp, 2, objv, "?-level 0-9? data");
+                    Tcl_WrongNumArgs(interp, 2, objv, "?-level 0-9? format data");
                     return TCL_ERROR;
                 }
             }
 
-            // Each compression type uses a different window size.
-            switch ((enum options) index) {
-                case OPTION_COMPRESS: {
-                    // Raw compressed data (no zlib header or trailer).
-                    window = -MAX_WBITS;
-                    break;
-                }
-                case OPTION_GZIP: {
-                    // GZip compressed data.
-                    window = MAX_WBITS + 16;
-                    break;
-                }
-                case OPTION_DEFLATE: {
-                    // Zlib compressed data.
-                    window = MAX_WBITS;
-                    break;
-                }
-                default: {
-                    return TCL_ERROR;
-                }
-            }
-
-            status = ZlibDeflateObj(objv[objc-1], Tcl_GetObjResult(interp), level, window);
-
-            if (status != Z_OK) {
-                Tcl_ResetResult(interp);
-                Tcl_AppendResult(interp, "unable to ", options[index], " data: ",
-                    zError(status), NULL);
+            if (Tcl_GetIndexFromObjStruct(interp, objv[objc-2], compressionFormats,
+                sizeof(compressionFormats[0]), "format", TCL_EXACT, &index) != TCL_OK) {
                 return TCL_ERROR;
+            }
+
+            if (index == TYPE_BZIP2) {
+                // TODO: bzip2 support
+            } else {
+                status = ZlibDeflateObj(objv[objc-1], Tcl_GetObjResult(interp),
+                    level, compressionFormats[index].window);
+
+                if (status != Z_OK) {
+                    Tcl_ResetResult(interp);
+                    Tcl_AppendResult(interp, "unable to compact data: ",
+                        zError(status), NULL);
+                    return TCL_ERROR;
+                }
             }
 
             return TCL_OK;
         }
-        case OPTION_DECOMPRESS:
-        case OPTION_GUNZIP:
-        case OPTION_INFLATE: {
+        case OPTION_EXPAND: {
             int status;
-            int window;
 
-            if (objc != 3) {
-                Tcl_WrongNumArgs(interp, 2, objv, "data");
+            if (objc != 4) {
+                Tcl_WrongNumArgs(interp, 2, objv, "format data");
                 return TCL_ERROR;
             }
 
-            // Each compression type uses a different window size.
-            switch ((enum options) index) {
-                case OPTION_DECOMPRESS: {
-                    // Raw compressed data (no zlib header or trailer).
-                    window = -MAX_WBITS;
-                    break;
-                }
-                case OPTION_GUNZIP: {
-                    // GZip compressed data.
-                    window = MAX_WBITS + 16;
-                    break;
-                }
-                case OPTION_INFLATE: {
-                    // Zlib compressed data.
-                    window = MAX_WBITS;
-                    break;
-                }
-                default: {
+            if (Tcl_GetIndexFromObjStruct(interp, objv[2], compressionFormats,
+                sizeof(compressionFormats[0]), "format", TCL_EXACT, &index) != TCL_OK) {
+                return TCL_ERROR;
+            }
+
+            if (index == TYPE_BZIP2) {
+                // TODO: bzip2 support
+            } else {
+                status = ZlibInflateObj(objv[3], Tcl_GetObjResult(interp),
+                    compressionFormats[index].window);
+
+                if (status != Z_OK) {
+                    Tcl_ResetResult(interp);
+                    Tcl_AppendResult(interp, "unable to expand data: ",
+                        zError(status), NULL);
                     return TCL_ERROR;
                 }
             }
 
-            status = ZlibInflateObj(objv[2], Tcl_GetObjResult(interp), window);
-
-            if (status != Z_OK) {
-                Tcl_ResetResult(interp);
-                Tcl_AppendResult(interp, "unable to ", options[index], " data: ",
-                    zError(status), NULL);
+            return TCL_OK;
+        }
+        case OPTION_STREAM: {
+            if (objc != 4) {
+                Tcl_WrongNumArgs(interp, 2, objv, "format channel");
                 return TCL_ERROR;
             }
+
+            // TODO: channel support
 
             return TCL_OK;
         }

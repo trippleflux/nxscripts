@@ -56,14 +56,15 @@ typedef struct StateList {
     struct StateList *prev;
 } StateList;
 
+#include <bzlib.h>
 #include <tomcrypt.h>
 #include <zlib.h>
 
+#include "alcoCompress.h"
 #include "alcoCrypt.h"
 #include "alcoEncoding.h"
 #include "alcoUtil.h"
 #include "alcoVolume.h"
-#include "alcoZlib.h"
 
 EXTERN Tcl_PackageInitProc   Alcoext_Init;
 EXTERN Tcl_PackageInitProc   Alcoext_SafeInit;

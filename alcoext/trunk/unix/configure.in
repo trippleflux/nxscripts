@@ -39,8 +39,9 @@ AC_CHECK_HEADERS([limits.h syslimits.h sys/limits.h])
 AC_CHECK_HEADERS([inttypes.h memory.h stdint.h strings.h time.h unistd.h])
 AC_CHECK_HEADERS([sys/time.h sys/mount.h sys/statfs.h sys/statvfs.h sys/vfs.h])
 
-AC_DEFINE(LTC_NO_ROLC, 1, [Prevents compiler warnings when building LibTomCrypt.])
-AC_DEFINE(NOBYFOUR, 1, [Use a smaller CRC32 value table for zlib.])
+AC_DEFINE([BZ_NO_STDIO], 1, [Remove unused stdio functionality in Bzip.])
+AC_DEFINE([LTC_NO_ROLC], 1, [Prevent compiler warnings when building LibTomCrypt.])
+AC_DEFINE([NOBYFOUR], 1, [Use a smaller CRC32 value table for Zlib.])
 
 #-----------------------------------------------------------------------
 # Statfs checks borrowed from rdesktop.
@@ -296,6 +297,7 @@ AC_CHECK_MEMBERS([
 TEA_ADD_SOURCES([])
 TEA_ADD_HEADERS([])
 TEA_ADD_INCLUDES(
+    -I\"../libs/bzip2/headers/\"
     -I\"../libs/tomcrypt/headers/\"
     -I\"../libs/zlib/headers/\"
     -I\"../generic/\"

@@ -540,6 +540,8 @@ CryptProcessCmd(
     };
     enum switches {SWITCH_COUNTER, SWITCH_IV, SWITCH_MODE, SWITCH_ROUNDS};
 
+    assert(mode == MODE_DECRYPT || mode == MODE_ENCRYPT);
+
     for (i = 2; i+1 < objc; i++) {
         char *name = Tcl_GetString(objv[i]);
         if (name[0] != '-') {

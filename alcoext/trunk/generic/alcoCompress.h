@@ -4,19 +4,19 @@ AlcoExt - Alcoholicz Tcl extension.
 Copyright (c) 2005 Alcoholicz Scripting Team
 
 Module Name:
-    alcoZlib.h
+    alcoCompress.h
 
 Author:
     neoxed (neoxed@gmail.com) May 9, 2005
 
 Abstract:
-    Zlib command definitions.
+    Compression command definitions.
 
 --*/
 
-#ifndef _ALCOZLIB_H_
-#define _ALCOZLIB_H_
+#ifndef _ALCOCOMPRESS_H_
+#define _ALCOCOMPRESS_H_
 
-Tcl_ObjCmdProc ZlibObjCmd;
+Tcl_ObjCmdProc CompressObjCmd;
 
-#endif // _ALCOZLIB_H_
+#endif // _ALCOCOMPRESS_H_

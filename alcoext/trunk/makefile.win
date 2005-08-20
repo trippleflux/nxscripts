@@ -48,8 +48,7 @@ PKG_VERSION_RES = $(PKG_MAJOR),$(PKG_MINOR),$(PKG_PATCH),$(PKG_STATUS)
 
 PKG_CFLAGS  = "-DPACKAGE_NAME=\"$(PKG_NAME)\"" "-DPACKAGE_DESC=\"$(PKG_DESC)\"" "-DPACKAGE_VERSION=\"$(PKG_VERSION_DOT)\"" -DPACKAGE_VERSION_RES=$(PKG_VERSION_RES)
 PKG_LFLAGS  = /NODEFAULTLIB:msvcrt /OPT:NOWIN98
-TCL_CFLAGS  = -DUSE_TCL_STUBS
-ZLIB_CFLAGS = -DNOBYFOUR
+MISC_CFLAGS = -DBZ_NO_STDIO -DNOBYFOUR -DUSE_TCL_STUBS
 
 # -------------------------------------------------------------------------
 
@@ -170,12 +169,20 @@ PKG_CFLAGS  = $(PKG_CFLAGS) "-DPACKAGE_FILE=\"$(PKG_FILE)\"" "-DPACKAGE_OPTIONS=
 
 INCLUDE_DIRS=\
     -I"$(TCL_INCLUDES)"\
+    -I"$(TOP)\libs\bzip2\headers"\
     -I"$(TOP)\libs\tomcrypt\headers"\
     -I"$(TOP)\libs\zlib\headers"\
     -I"$(TOP)\generic"\
     -I"$(TOP)\win"
 
 INTERMEDIATE_FILES=\
+    $(PKG_INTDIR)\blocksort.obj\
+    $(PKG_INTDIR)\bzlib.obj\
+    $(PKG_INTDIR)\compress.obj\
+    $(PKG_INTDIR)\crctable.obj\
+    $(PKG_INTDIR)\decompress.obj\
+    $(PKG_INTDIR)\huffman.obj\
+    $(PKG_INTDIR)\randtable.obj\
     $(PKG_INTDIR)\aes.obj\
     $(PKG_INTDIR)\anubis.obj\
     $(PKG_INTDIR)\blowfish.obj\
@@ -234,18 +241,25 @@ INTERMEDIATE_FILES=\
     $(PKG_INTDIR)\inftrees.obj\
     $(PKG_INTDIR)\trees.obj\
     $(PKG_INTDIR)\zutil.obj\
-    $(PKG_INTDIR)\alcoExt.obj\
+    $(PKG_INTDIR)\alcoCompress.obj\
     $(PKG_INTDIR)\alcoCrypt.obj\
     $(PKG_INTDIR)\alcoEncoding.obj\
+    $(PKG_INTDIR)\alcoExt.obj\
     $(PKG_INTDIR)\alcoUtil.obj\
     $(PKG_INTDIR)\alcoVolume.obj\
-    $(PKG_INTDIR)\alcoZlib.obj\
     $(PKG_INTDIR)\alcoWinIoFtpd.obj\
     $(PKG_INTDIR)\alcoWinUtil.obj\
     $(PKG_INTDIR)\alcoWinVolume.obj\
     $(PKG_INTDIR)\alcoExt.res
 
 OBJECT_FILES=\
+    $(TOP)\libs\bzip2\source\blocksort.obj\
+    $(TOP)\libs\bzip2\source\bzlib.obj\
+    $(TOP)\libs\bzip2\source\compress.obj\
+    $(TOP)\libs\bzip2\source\crctable.obj\
+    $(TOP)\libs\bzip2\source\decompress.obj\
+    $(TOP)\libs\bzip2\source\huffman.obj\
+    $(TOP)\libs\bzip2\source\randtable.obj\
     $(TOP)\libs\tomcrypt\ciphers\aes\aes.obj\
     $(TOP)\libs\tomcrypt\ciphers\anubis.obj\
     $(TOP)\libs\tomcrypt\ciphers\blowfish.obj\
@@ -304,12 +318,12 @@ OBJECT_FILES=\
     $(TOP)\libs\zlib\source\inftrees.obj\
     $(TOP)\libs\zlib\source\trees.obj\
     $(TOP)\libs\zlib\source\zutil.obj\
-    $(TOP)\generic\alcoExt.obj\
+    $(TOP)\generic\alcoCompress.obj\
     $(TOP)\generic\alcoCrypt.obj\
     $(TOP)\generic\alcoEncoding.obj\
+    $(TOP)\generic\alcoExt.obj\
     $(TOP)\generic\alcoUtil.obj\
     $(TOP)\generic\alcoVolume.obj\
-    $(TOP)\generic\alcoZlib.obj\
     $(TOP)\win\alcoWinIoFtpd.obj\
     $(TOP)\win\alcoWinUtil.obj\
     $(TOP)\win\alcoWinVolume.obj\
@@ -317,7 +331,7 @@ OBJECT_FILES=\
 
 # -------------------------------------------------------------------------
 
-CFLAGS  = $(cdebug) $(cflags) $(cvarsmt) $(PKG_CFLAGS) $(TCL_CFLAGS) $(ZLIB_CFLAGS) $(INCLUDE_DIRS)
+CFLAGS  = $(cdebug) $(cflags) $(cvarsmt) $(PKG_CFLAGS) $(MISC_CFLAGS) $(INCLUDE_DIRS)
 LFLAGS  = $(ldebug) $(dlllflags) $(conlibsmt) $(PKG_LFLAGS) $(TCL_STUBLIB)
 RFLAGS  = $(rcflags) $(rcvars) $(PKG_CFLAGS)
 

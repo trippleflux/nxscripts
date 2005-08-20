@@ -206,6 +206,9 @@ Alcoext_Init(
     Tcl_CallWhenDeleted(interp, InterpDeleteHandler, (ClientData) statePtr);
 
     // Create Tcl commands.
+    Tcl_CreateObjCommand(interp, "::alcoholicz::compress", CompressObjCmd,
+        (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
+
     Tcl_CreateObjCommand(interp, "::alcoholicz::crypt", CryptObjCmd,
         (ClientData) statePtr, (Tcl_CmdDeleteProc *) NULL);
 
@@ -214,9 +217,6 @@ Alcoext_Init(
 
     Tcl_CreateObjCommand(interp, "::alcoholicz::encode", EncodingObjCmd,
         (ClientData) encodeFuncts, (Tcl_CmdDeleteProc *) NULL);
-
-    Tcl_CreateObjCommand(interp, "::alcoholicz::zlib", ZlibObjCmd,
-        (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
 
     //
     // These commands are not created for safe interpreters because
@@ -236,7 +236,7 @@ Alcoext_Init(
     }
 
     Tcl_Eval(interp, "namespace eval ::alcoholicz {"
-        "namespace export crypt encode decode volume zlib "
+        "namespace export compress crypt encode decode volume "
 #ifdef _WINDOWS
         "ioftpd "
 #else
