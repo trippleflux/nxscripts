@@ -127,7 +127,6 @@ GetVolumeInfo(
     VolumeInfo *volumeInfo
     )
 {
-    char fsName[128];
     char *type;
 
     if (!GetVolumeInformationA(volumePath,
@@ -135,7 +134,7 @@ GetVolumeInfo(
         &volumeInfo->id,
         &volumeInfo->length,
         &volumeInfo->flags,
-        fsName, ARRAYSIZE(fsName))) {
+        NULL, 0)) {
 
         Tcl_ResetResult(interp);
         Tcl_AppendResult(interp, "unable to retrieve volume information for \"",
@@ -149,15 +148,14 @@ GetVolumeInfo(
     }
 
     switch (GetDriveTypeA(volumePath)) {
-        case DRIVE_CDROM:     type = "CD-ROM, "; break;
-        case DRIVE_FIXED:     type = "Fixed, "; break;
-        case DRIVE_RAMDISK:   type = "RAM-Disk, "; break;
-        case DRIVE_REMOTE:    type = "Network, "; break;
-        case DRIVE_REMOVABLE: type = "Removable, "; break;
-        default:              type = "Unknown, "; break;
+        case DRIVE_CDROM:     type = "CD-ROM";    break;
+        case DRIVE_FIXED:     type = "Fixed";     break;
+        case DRIVE_RAMDISK:   type = "RAM-Disk";  break;
+        case DRIVE_REMOTE:    type = "Network";   break;
+        case DRIVE_REMOVABLE: type = "Removable"; break;
+        default:              type = "Unknown";   break;
     }
     StringCchCopyA(volumeInfo->type, ARRAYSIZE(volumeInfo->type), type);
-    StringCchCatA(volumeInfo->type, ARRAYSIZE(volumeInfo->type), fsName);
 
     return TCL_OK;
 }
