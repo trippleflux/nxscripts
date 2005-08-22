@@ -163,8 +163,8 @@ GetVolumeInfo(
     }
 
     // Free and total space.
-    volumeInfo->free  = (uint64_t)fsInfo.f_bsize * (uint64_t)fsInfo.f_bfree;
-    volumeInfo->total = (uint64_t)fsInfo.f_bsize * (uint64_t)fsInfo.f_blocks;
+    volumeInfo->free  = (Tcl_WideUInt)fsInfo.f_bsize * (Tcl_WideUInt)fsInfo.f_bfree;
+    volumeInfo->total = (Tcl_WideUInt)fsInfo.f_bsize * (Tcl_WideUInt)fsInfo.f_blocks;
 
     volumeInfo->id     = (unsigned long) F_FSID(fsInfo);
     volumeInfo->flags  = (unsigned long) F_FLAGS(fsInfo);

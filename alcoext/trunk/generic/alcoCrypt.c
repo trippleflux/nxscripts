@@ -736,11 +736,11 @@ CryptHashCmd(
 {
     int dataLength;
     int index;
-    int keyLength;
+    int keyLength = 0;
     int status;
     unsigned char *data;
     unsigned char *dest;
-    unsigned char *key;
+    unsigned char *key = NULL;
     unsigned char type = CRYPT_HASH;
     unsigned long destLength;
 

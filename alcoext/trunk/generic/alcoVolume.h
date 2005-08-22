@@ -23,13 +23,8 @@ typedef struct {
 } VolumeFlagList;
 
 typedef struct {
-#ifdef _WINDOWS
-    ULONGLONG free;         // Total number of free bytes.
-    ULONGLONG total;        // Total number of bytes.
-#else // _WINDOWS
-    uint64_t free;          // Total number of free bytes.
-    uint64_t total;         // Total number of bytes.
-#endif // _WINDOWS
+    Tcl_WideUInt free;      // Total number of free bytes.
+    Tcl_WideUInt total;     // Total number of bytes.
     unsigned long flags;    // File system flags.
     unsigned long length;   // File system max component length.
     unsigned long id;       // Volume identification number.
