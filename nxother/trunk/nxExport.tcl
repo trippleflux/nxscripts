@@ -15,12 +15,12 @@
 #
 # Installation:
 #
-# 1. Copy the nxExport.itcl file to x:\ioFTPD\scripts
+# 1. Copy the nxExport.tcl file to x:\ioFTPD\scripts
 # 2. Configure the script options.
 # 3. Add the following to the ioFTPD.ini
 #
 # [FTP_Custom_Commands]
-# export = TCL ..\scripts\nxExport.itcl
+# export = TCL ..\scripts\nxExport.tcl
 #
 # [FTP_SITE_Permissions]
 # export = M

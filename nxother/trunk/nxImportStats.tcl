@@ -23,12 +23,12 @@
 #
 # Installation:
 #
-# 1. Copy the nxImportStats.itcl file to x:\ioFTPD\scripts
+# 1. Copy the nxImportStats.tcl file to x:\ioFTPD\scripts
 # 2. Configure the script options.
 # 3. Add the following to the ioFTPD.ini
 #
 # [FTP_Custom_Commands]
-# importstats = TCL ..\scripts\nxImportStats.itcl
+# importstats = TCL ..\scripts\nxImportStats.tcl
 #
 # [FTP_SITE_Permissions]
 # importstats = M
