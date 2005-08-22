@@ -21,10 +21,13 @@ PACKAGE_VERSION = @PACKAGE_VERSION@
 PKG_LIB_FILE    = @PKG_LIB_FILE@
 PKG_STUB_FILE   = @PKG_STUB_LIB_FILE@
 
-GENERIC_OBJS    = alcoExt.o alcoCrypt.o alcoEncoding.o alcoUtil.o alcoVolume.o\
-    alcoZlib.o
+GENERIC_OBJS    = alcoCompress.o alcoCrypt.o alcoExt.o  alcoEncoding.o\
+    alcoUtil.o alcoVolume.o
 
 UNIX_OBJS       = alcoUnixGlFtpd.o alcoUnixVolume.o
+
+BZIP2_OBJS      = blocksort.o bzlib.o compress.o crctable.o decompress.o\
+    huffman.o randtable.o
 
 TOMCRYPT_OBJS   = aes.o anubis.o blowfish.o cast5.o des.o khazad.o noekeon.o\
     rc2.o rc5.o rc6.o safer.o safer_tab.o saferp.o skipjack.o twofish.o xtea.o\
@@ -37,7 +40,7 @@ TOMCRYPT_OBJS   = aes.o anubis.o blowfish.o cast5.o des.o khazad.o noekeon.o\
 ZLIB_OBJS       = adler32.o crc32.o deflate.o inffast.o inflate.o inftrees.o\
     trees.o zutil.o
 
-PKG_OBJECTS     = $(TOMCRYPT_OBJS) $(ZLIB_OBJS) $(GENERIC_OBJS) $(UNIX_OBJS)
+PKG_OBJECTS     = $(BZIP2_OBJS) $(TOMCRYPT_OBJS) $(ZLIB_OBJS) $(GENERIC_OBJS) $(UNIX_OBJS)
 PKG_STUB_SOURCES= @PKG_STUB_SOURCES@
 PKG_STUB_OBJECTS= @PKG_STUB_OBJECTS@
 
@@ -74,6 +77,7 @@ BUILD_DIR       = .
 TOP_DIR         = ..
 GENERIC_DIR     = $(TOP_DIR)/generic
 UNIX_DIR        = $(SRC_DIR)
+BZIP2_DIR       = $(TOP_DIR)/libs/bzip2
 TOMCRYPT_DIR    = $(TOP_DIR)/libs/tomcrypt
 ZLIB_DIR        = $(TOP_DIR)/libs/zlib
 
@@ -163,6 +167,27 @@ $(PKG_STUB_FILE): $(PKG_STUB_OBJECTS)
 #========================================================================
 # Object targets.
 #========================================================================
+
+blocksort.o:
+	$(COMPILE) -c $(BZIP2_DIR)/source/blocksort.c
+
+bzlib.o:
+	$(COMPILE) -c $(BZIP2_DIR)/source/bzlib.c
+
+compress.o:
+	$(COMPILE) -c $(BZIP2_DIR)/source/compress.c
+
+crctable.o:
+	$(COMPILE) -c $(BZIP2_DIR)/source/crctable.c
+
+decompress.o:
+	$(COMPILE) -c $(BZIP2_DIR)/source/decompress.c
+
+huffman.o:
+	$(COMPILE) -c $(BZIP2_DIR)/source/huffman.c
+
+randtable.o:
+	$(COMPILE) -c $(BZIP2_DIR)/source/randtable.c
 
 aes.o:
 	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/aes/aes.c
@@ -341,6 +366,9 @@ zutil.o:
 alcoExt.o:
 	$(COMPILE) -c $(GENERIC_DIR)/alcoExt.c
 
+alcoCompress.o:
+	$(COMPILE) -c $(GENERIC_DIR)/alcoCompress.c
+
 alcoCrypt.o:
 	$(COMPILE) -c $(GENERIC_DIR)/alcoCrypt.c
 
@@ -352,9 +380,6 @@ alcoUtil.o:
 
 alcoVolume.o:
 	$(COMPILE) -c $(GENERIC_DIR)/alcoVolume.c
-
-alcoZlib.o:
-	$(COMPILE) -c $(GENERIC_DIR)/alcoZlib.c
 
 alcoUnixGlFtpd.o:
 	$(COMPILE) -c $(UNIX_DIR)/alcoUnixGlFtpd.c

@@ -4,6 +4,10 @@
 #ifndef TOMCRYPT_CUSTOM_H_
 #define TOMCRYPT_CUSTOM_H_
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 /* For Tcl memory allocation functions. */
 #include <tcl.h>
 

@@ -29,12 +29,6 @@ Abstract:
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#ifdef HAVE_INTTYPES_H
-#   include <inttypes.h>
-#endif
-#ifdef HAVE_STDINT_H
-#   include <stdint.h>
-#endif
 #ifdef HAVE_STRINGS_H
 #   include <strings.h>
 #endif

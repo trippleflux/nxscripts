@@ -36,8 +36,6 @@ Abstract:
 
 #include <alcoExt.h>
 
-#pragma warning(push, 4)
-
 //
 // Bzip function prototypes.
 //
@@ -266,7 +264,7 @@ BzipCompressObj(
         return status;
     }
 
-    stream.next_in = (char *)Tcl_GetByteArrayFromObj(sourceObj, &(int)stream.avail_in);
+    stream.next_in = (char *)Tcl_GetByteArrayFromObj(sourceObj, (int*)&stream.avail_in);
 
     //
     // According to the Bzip2 documentation, the recommended buffer size
@@ -317,7 +315,7 @@ BzipDecompressObj(
     unsigned int sourceLength;
     Tcl_WideUInt totalOut;
 
-    stream.next_in = (char *)Tcl_GetByteArrayFromObj(sourceObj, &(int)sourceLength);
+    stream.next_in = (char *)Tcl_GetByteArrayFromObj(sourceObj, (int *)&sourceLength);
     if (sourceLength < 3) {
         // The Bzip2 header is at least 3 characters in length, 'BZh'.
         return BZ_DATA_ERROR_MAGIC;
@@ -526,7 +524,7 @@ ZlibCompressObj(
     // The next_in, opaque, zalloc, and zfree data structure members
     // must be initialised prior to calling deflateInit2().
     //
-    stream.next_in = Tcl_GetByteArrayFromObj(sourceObj, &(int)stream.avail_in);
+    stream.next_in = Tcl_GetByteArrayFromObj(sourceObj, (int *)&stream.avail_in);
     stream.opaque  = NULL;
     stream.zalloc  = ZlibAlloc;
     stream.zfree   = ZlibFree;
@@ -600,7 +598,7 @@ ZlibDecompressObj(
     // The avail_in, next_in, opaque, zalloc, and zfree data structure
     // members must be initialised prior to calling inflateInit2().
     //
-    stream.next_in = Tcl_GetByteArrayFromObj(sourceObj, &(int)sourceLength);
+    stream.next_in = Tcl_GetByteArrayFromObj(sourceObj, (int *)&sourceLength);
     if (sourceLength < 1) {
         return Z_DATA_ERROR;
     }
