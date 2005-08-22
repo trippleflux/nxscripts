@@ -22,10 +22,19 @@ if {$tcl_platform(platform) eq "windows"} {
 }
 append libFile [info sharedlibextension]
 
-set parentPath [file dirname [file dirname [file normalize [info script]]]]
-load [lindex [glob -dir $parentPath -types f $libFile] 0]
+set currentPath [file dirname [file normalize [info script]]]
+set libFile [lindex [glob -dir [file dirname $currentPath] -types f $libFile] 0]
+load $libFile
 
 namespace import -force ::alcoholicz::*
+
+proc GetFileData {filePath} {
+    set handle [open $filePath r]
+    fconfigure $handle -translation binary
+    set data [read $handle]
+    close $handle
+    return $data
+}
 
 ################################################################################
 # compress                                                                     #
@@ -89,62 +98,115 @@ test compress-3.3 {compress crc32: more data} {
 
 test compress-4.1 {compress compact: no args} {
     list [catch {compress compact} msg] $msg
-} {1 {wrong # args: should be "compress compact ?-level 0-9? format data"}}
+} {1 {wrong # args: should be "compress compact ?-level int? format data"}}
 
 test compress-4.2 {compress compact: too many args} {
     list [catch {compress compact a b c} msg] $msg
-} {1 {wrong # args: should be "compress compact ?-level 0-9? format data"}}
+} {1 {wrong # args: should be "compress compact ?-level int? format data"}}
 
 test compress-4.3 {compress compact: invalid format} {
     list [catch {compress compact . a} msg] $msg
 } {1 {bad format ".": must be bzip2, gzip, zlib, or zlib-raw}}
 
-test compress-4.4 {compress compact: -level switch} {
-    list [catch {compress compact -level -1 a b} msg] $msg
-} {1 {invalid compression level "-1": must be between 0 and 9}}
+# Format: bzip2
+test compress-4.4 {compress compact: bzip2, -level switch} {
+    list [catch {compress compact -level 0 bzip2 a} msg] $msg
+} {1 {invalid compression level "0": must be between 1 and 9}}
 
-test compress-4.5 {compress compact: -level switch} {
-    list [catch {compress compact -level 10 a b} msg] $msg
-} {1 {invalid compression level "10": must be between 0 and 9}}
+test compress-4.5 {compress compact: bzip2, -level switch} {
+    list [catch {compress compact -level 10 bzip2 a} msg] $msg
+} {1 {invalid compression level "10": must be between 1 and 9}}
 
-# Format: bzip2 (TODO)
+test compress-4.6 {compress compact: bzip2, sample file 1} {
+    set bz2Data [GetFileData [file join $currentPath bzip2 sample1.bz2]]
+    set rawData [GetFileData [file join $currentPath bzip2 sample1.ref]]
+    string equal [compress compact -level 1 bzip2 $rawData] $bz2Data
+} {1}
+
+test compress-4.7 {compress compact: bzip2, sample file 2} {
+    set bz2Data [GetFileData [file join $currentPath bzip2 sample2.bz2]]
+    set rawData [GetFileData [file join $currentPath bzip2 sample2.ref]]
+    string equal [compress compact -level 2 bzip2 $rawData] $bz2Data
+} {1}
+
+test compress-4.8 {compress compact: bzip2, sample file 3} {
+    set bz2Data [GetFileData [file join $currentPath bzip2 sample3.bz2]]
+    set rawData [GetFileData [file join $currentPath bzip2 sample3.ref]]
+    string equal [compress compact -level 3 bzip2 $rawData] $bz2Data
+} {1}
+
+test compress-4.9 {compress compact: bzip2, default compression} {
+    encode hex [compress compact bzip2 "test"]
+} {425A6831314159265359338BCFAC000001018002000C00200021981984185DC914E14240CE2F3EB0}
+
+test compress-4.10 {compress compact: bzip2, max compression} {
+    encode hex [compress compact -level 9 bzip2 "test"]
+} {425A6839314159265359338BCFAC000001018002000C00200021981984185DC914E14240CE2F3EB0}
+
+test compress-4.11 {compress compact: bzip2, max compression, more data} {
+    encode hex [compress compact -level 9 bzip2 [string repeat "\\test\t \0" 100]]
+} {425A6839314159265359EC53661B0000C7D38040204000000402000C002000508600295034D91611708B845B22F116116117C5DC914E14243B14D986C0}
 
 # Format: gzip
-test compress-4.9 {compress compact: gzip, default compression} {
+test compress-4.12 {compress compact: gzip, -level switch} {
+    list [catch {compress compact -level -1 gzip a} msg] $msg
+} {1 {invalid compression level "-1": must be between 0 and 9}}
+
+test compress-4.13 {compress compact: gzip, -level switch} {
+    list [catch {compress compact -level 10 gzip a} msg] $msg
+} {1 {invalid compression level "10": must be between 0 and 9}}
+
+test compress-4.14 {compress compact: gzip, default compression} {
     encode hex [compress compact gzip "test"]
 } {1F8B080000000000040B2B492D2E01000C7E7FD804000000}
 
-test compress-4.10 {compress compact: gzip, max compression} {
+test compress-4.15 {compress compact: gzip, max compression} {
     encode hex [compress compact -level 9 gzip "test"]
 } {1F8B080000000000020B2B492D2E01000C7E7FD804000000}
 
-test compress-4.11 {compress compact: gzip, max compression, more data} {
+test compress-4.16 {compress compact: gzip, max compression, more data} {
     encode hex [compress compact -level 9 gzip [string repeat "\\test\t \0" 100]]
 } {1F8B080000000000020B8B29492D2EE154608819A547E9511A8306008ADC41F820030000}
 
 # Format: zlib
-test compress-4.12 {compress compact: zlib, default compression} {
+test compress-4.17 {compress compact: zlib, -level switch} {
+    list [catch {compress compact -level -1 zlib a} msg] $msg
+} {1 {invalid compression level "-1": must be between 0 and 9}}
+
+test compress-4.18 {compress compact: zlib, -level switch} {
+    list [catch {compress compact -level 10 zlib a} msg] $msg
+} {1 {invalid compression level "10": must be between 0 and 9}}
+
+test compress-4.19 {compress compact: zlib, default compression} {
     encode hex [compress compact zlib "test"]
 } {78012B492D2E0100045D01C1}
 
-test compress-4.13 {compress compact: zlib, max compression} {
+test compress-4.20 {compress compact: zlib, max compression} {
     encode hex [compress compact -level 9 zlib "test"]
 } {78DA2B492D2E0100045D01C1}
 
-test compress-4.14 {compress compact: zlib, max compression, more data} {
+test compress-4.21 {compress compact: zlib, max compression, more data} {
     encode hex [compress compact -level 9 zlib [string repeat "\\test\t \0" 100]]
 } {78DA8B29492D2EE154608819A547E9511A8306002C3CE2F5}
 
 # Format: zlib-raw
-test compress-4.15 {compress compact: zlib-raw, default compression} {
+test compress-4.22 {compress compact: zlib-raw, -level switch} {
+    list [catch {compress compact -level -1 zlib-raw a} msg] $msg
+} {1 {invalid compression level "-1": must be between 0 and 9}}
+
+test compress-4.23 {compress compact: zlib-raw, -level switch} {
+    list [catch {compress compact -level 10 zlib-raw a} msg] $msg
+} {1 {invalid compression level "10": must be between 0 and 9}}
+
+test compress-4.24 {compress compact: zlib-raw, default compression} {
     encode hex [compress compact zlib-raw "test"]
 } {2B492D2E0100}
 
-test compress-4.16 {compress compact: zlib-raw, max compression} {
+test compress-4.25 {compress compact: zlib-raw, max compression} {
     encode hex [compress compact -level 9 zlib-raw "test"]
 } {2B492D2E0100}
 
-test compress-4.17 {compress compact: zlib-raw, max compression, more data} {
+test compress-4.26 {compress compact: zlib-raw, max compression, more data} {
     encode hex [compress compact -level 9 zlib-raw [string repeat "\\test\t \0" 100]]
 } {8B29492D2EE154608819A547E9511A830600}
 
@@ -164,56 +226,89 @@ test compress-5.3 {compress expand: invalid format} {
     list [catch {compress expand . a} msg] $msg
 } {1 {bad format ".": must be bzip2, gzip, zlib, or zlib-raw}}
 
-# Format: bzip2 (TODO)
+# Format: bzip2
+test compress-5.4 {compress expand: bzip2, no data} {
+    list [catch {compress expand bzip2 {}} msg] $msg
+} {1 {unable to expand data: invalid header}}
+
+test compress-5.5 {compress expand: bzip2, sample file 1} {
+    set bz2Data [GetFileData [file join $currentPath bzip2 sample1.bz2]]
+    set rawData [GetFileData [file join $currentPath bzip2 sample1.ref]]
+    string equal [compress expand bzip2 $bz2Data] $rawData
+} {1}
+
+test compress-5.6 {compress expand: bzip2, sample file 2} {
+    set bz2Data [GetFileData [file join $currentPath bzip2 sample2.bz2]]
+    set rawData [GetFileData [file join $currentPath bzip2 sample2.ref]]
+    string equal [compress expand bzip2 $bz2Data] $rawData
+} {1}
+
+test compress-5.7 {compress expand: bzip2, sample file 3} {
+    set bz2Data [GetFileData [file join $currentPath bzip2 sample3.bz2]]
+    set rawData [GetFileData [file join $currentPath bzip2 sample3.ref]]
+    string equal [compress expand bzip2 $bz2Data] $rawData
+} {1}
+
+test compress-5.8 {compress expand: bzip2, default compression} {
+    compress expand bzip2 [compress compact bzip2 "test"]
+} {test}
+
+test compress-5.9 {compress expand: bzip2, max compression} {
+    compress expand bzip2 [compress compact -level 9 bzip2 "test"]
+} {test}
+
+test compress-5.10 {compress expand: bzip2, max compression, more data} {
+    compress expand bzip2 [compress compact -level 9 bzip2 [string repeat "\\test\t \0" 100]]
+} [string repeat "\\test\t \0" 100]
 
 # Format: gzip
-test compress-5.8 {compress expand: gzip, no data} {
+test compress-5.11 {compress expand: gzip, no data} {
     list [catch {compress expand gzip {}} msg] $msg
 } {1 {unable to expand data: data error}}
 
-test compress-5.9 {compress inflate: gzip, default compression} {
+test compress-5.12 {compress expand: gzip, default compression} {
     compress expand gzip [compress compact gzip "test"]
 } {test}
 
-test compress-5.10 {compress inflate: gzip, max compression} {
+test compress-5.13 {compress expand: gzip, max compression} {
     compress expand gzip [compress compact -level 9 gzip "test"]
 } {test}
 
-test compress-5.11 {compress inflate: gzip, max compression, more data} {
+test compress-5.14 {compress expand: gzip, max compression, more data} {
     compress expand gzip [compress compact -level 9 gzip [string repeat "\\test\t \0" 100]]
 } [string repeat "\\test\t \0" 100]
 
 # Format: zlib
-test compress-5.12 {compress expand: zlib, no data} {
+test compress-5.15 {compress expand: zlib, no data} {
     list [catch {compress expand zlib {}} msg] $msg
 } {1 {unable to expand data: data error}}
 
-test compress-5.13 {compress inflate: zlib, default compression} {
+test compress-5.16 {compress expand: zlib, default compression} {
     compress expand zlib [compress compact zlib "test"]
 } {test}
 
-test compress-5.14 {compress inflate: zlib, max compression} {
+test compress-5.17 {compress expand: zlib, max compression} {
     compress expand zlib [compress compact -level 9 zlib "test"]
 } {test}
 
-test compress-5.15 {compress inflate: zlib, max compression, more data} {
+test compress-5.18 {compress expand: zlib, max compression, more data} {
     compress expand zlib [compress compact -level 9 zlib [string repeat "\\test\t \0" 100]]
 } [string repeat "\\test\t \0" 100]
 
 # Format: zlib-raw
-test compress-5.16 {compress expand: zlib-raw, no data} {
+test compress-5.19 {compress expand: zlib-raw, no data} {
     list [catch {compress expand zlib-raw {}} msg] $msg
 } {1 {unable to expand data: data error}}
 
-test compress-5.17 {compress inflate: zlib-raw, default compression} {
+test compress-5.20 {compress expand: zlib-raw, default compression} {
     compress expand zlib-raw [compress compact zlib-raw "test"]
 } {test}
 
-test compress-5.18 {compress inflate: zlib-raw, max compression} {
+test compress-5.21 {compress expand: zlib-raw, max compression} {
     compress expand zlib-raw [compress compact -level 9 zlib-raw "test"]
 } {test}
 
-test compress-5.19 {compress inflate: zlib-raw, max compression, more data} {
+test compress-5.22 {compress expand: zlib-raw, max compression, more data} {
     compress expand zlib-raw [compress compact -level 9 zlib-raw [string repeat "\\test\t \0" 100]]
 } [string repeat "\\test\t \0" 100]
 
@@ -234,7 +329,14 @@ test compress-6.2 {compress stream: too many args} {
 ################################################################################
 
 test compress-7.1 {stress test: bzip2} {
-    # TODO
+    set buff ""
+    for {set i 0} {$i < 2000} {incr i} {
+        append buff [format %c [expr {int(rand() * 256)}]]
+        set test [compress expand bzip2 [compress compact -level 9 bzip2 $buff]]
+        if {$test ne $buff} {
+            return "bzip2: expected [encode hex $buff], got [encode hex $"test"]"
+        }
+    }
 } {}
 
 # Test various input buffer sizes to check for inconsistencies with deflateBound().

@@ -36,6 +36,8 @@ Abstract:
 
 #include <alcoExt.h>
 
+#pragma warning(push, 4)
+
 //
 // Bzip function prototypes.
 //
@@ -117,13 +119,15 @@ ZlipSetError(
 //
 
 struct {
-    char *name; // Compression format name.
-    int window; // Zlib window size (not used for bzip2).
+    char *name;     // Compression format name.
+    int minLevel;   // Minimum compression level.
+    int maxLevel;   // Maximum compression level.
+    int window;     // Zlib window size (not used for bzip2).
 } static const compressionFormats[] = {
-    {"bzip2",    0},
-    {"gzip",     MAX_WBITS + 16},
-    {"zlib",     MAX_WBITS},
-    {"zlib-raw", -MAX_WBITS},
+    {"bzip2",    1, 9, 0},
+    {"gzip",     0, 9, MAX_WBITS + 16},
+    {"zlib",     0, 9, MAX_WBITS},
+    {"zlib-raw", 0, 9, -MAX_WBITS},
     {NULL}
 };
 
@@ -225,7 +229,7 @@ BzipFree(
 
 BzipCompressObj
 
-    Compresses data using the bzip2 compression algorithm.
+    Compresses data using the Bzip2 compression algorithm.
 
 Arguments:
     sourceObj - Pointer to a Tcl object containing the data to be compressed.
@@ -246,22 +250,49 @@ BzipCompressObj(
     )
 {
     bz_stream stream;
-    int status = BZ_OK;
+    int status;
+    unsigned int destLength;
 
+    //
+    // The bzalloc, bzfree, and opaque data structure members
+    // must be initialised prior to calling BZ2_bzCompressInit().
+    //
     stream.bzalloc = BzipAlloc;
     stream.bzfree  = BzipFree;
     stream.opaque  = NULL;
 
-    // TODO
+    status = BZ2_bzCompressInit(&stream, level, 0, 0);
+    if (status != BZ_OK) {
+        return status;
+    }
 
-    return status;
+    stream.next_in = (char *)Tcl_GetByteArrayFromObj(sourceObj, &(int)stream.avail_in);
+
+    //
+    // According to the Bzip2 documentation, the recommended buffer size
+    // is 1% larger than the uncompressed data, plus 600 additional bytes.
+    //
+    stream.avail_out = destLength = (unsigned int)((double)stream.avail_in * 1.01) + 600;
+    stream.next_out  = (char *)Tcl_SetByteArrayLength(destObj, stream.avail_out);
+
+    status = BZ2_bzCompress(&stream, BZ_FINISH);
+    BZ2_bzCompressEnd(&stream);
+
+    if (status == BZ_STREAM_END) {
+        // Update the object's length.
+        destLength -= stream.avail_out;
+        Tcl_SetByteArrayLength(destObj, (int)destLength);
+        return BZ_OK;
+    }
+
+    return (status == BZ_FINISH_OK) ? BZ_OUTBUFF_FULL : status;
 }
 
 /*++
 
 BzipDecompressObj
 
-    Decompresses bzip2 compressed data.
+    Decompresses Bzip2 compressed data.
 
 Arguments:
     sourceObj - Pointer to a Tcl object containing the data to be decompressed.
@@ -279,13 +310,75 @@ BzipDecompressObj(
     )
 {
     bz_stream stream;
-    int status = BZ_OK;
+    char *dest;
+    int status;
+    unsigned int destLength;
+    unsigned int factor;
+    unsigned int sourceLength;
+    Tcl_WideUInt totalOut;
 
+    stream.next_in = (char *)Tcl_GetByteArrayFromObj(sourceObj, &(int)sourceLength);
+    if (sourceLength < 3) {
+        // The Bzip2 header is at least 3 characters in length, 'BZh'.
+        return BZ_DATA_ERROR_MAGIC;
+    }
+
+    //
+    // The bzalloc, bzfree, and opaque data structure members
+    // must be initialised prior to calling BZ2_bzDecompressInit().
+    //
     stream.bzalloc = BzipAlloc;
     stream.bzfree  = BzipFree;
     stream.opaque  = NULL;
 
-    // TODO
+    status = BZ2_bzDecompressInit(&stream, 0, 0);
+    if (status != BZ_OK) {
+        return status;
+    }
+
+    stream.avail_in = sourceLength;
+
+    for (factor = 1; factor < 20; factor++) {
+        // Double the destination buffer size each attempt.
+        destLength = sourceLength * (1 << factor);
+        dest = (char *)Tcl_SetByteArrayLength(destObj, (int)destLength);
+
+        totalOut = ((Tcl_WideUInt)stream.total_out_hi32 << 32) + stream.total_out_lo32;
+        stream.next_out  = dest + totalOut;
+        stream.avail_out = destLength - (unsigned int)totalOut;
+
+        //
+        // BZ2_bzDecompress() returns:
+        // - BZ_STREAM_END if the logical end of the stream has been reached.
+        // - BZ_OK if the decompression was successful but there is remaining input data.
+        // - Otherwise an error has occurred while decompressing the data.
+        //
+        status = BZ2_bzDecompress(&stream);
+        if (status != BZ_OK) {
+            break;
+        }
+
+        //
+        // If BZ2_bzDecompress() returns BZ_OK without exhausting the output
+        // buffer, it's assumed we've unexpectedly reached the stream's end.
+        //
+        if (stream.avail_out > 0) {
+            status = BZ_UNEXPECTED_EOF;
+            break;
+        }
+
+        // Increase the destination buffer size and try again.
+        status = BZ_OUTBUFF_FULL;
+    }
+
+    BZ2_bzDecompressEnd(&stream);
+
+    if (status == BZ_STREAM_END) {
+        // Update the object's length.
+        destLength -= stream.avail_out;
+        Tcl_SetByteArrayLength(destObj, (int)destLength);
+        return BZ_OK;
+    }
 
     return status;
 }
@@ -429,17 +522,15 @@ ZlibCompressObj(
     int status;
     z_stream stream;
 
-    stream.next_in = Tcl_GetByteArrayFromObj(sourceObj, &(stream.avail_in));
-
     //
-    // The opaque, zalloc, and zfree struct members must
-    // be initialised before calling deflateInit2().
+    // The next_in, opaque, zalloc, and zfree data structure members
+    // must be initialised prior to calling deflateInit2().
     //
-    stream.opaque = (voidpf) NULL;
-    stream.zalloc = ZlibAlloc;
-    stream.zfree  = ZlibFree;
+    stream.next_in = Tcl_GetByteArrayFromObj(sourceObj, &(int)stream.avail_in);
+    stream.opaque  = NULL;
+    stream.zalloc  = ZlibAlloc;
+    stream.zfree   = ZlibFree;
 
-    // The stream must be initialised prior to calling deflateBound().
     status = deflateInit2(&stream, level, Z_DEFLATED, window,
         MAX_MEM_LEVEL, Z_DEFAULT_STRATEGY);
     if (status != Z_OK) {
@@ -450,13 +541,13 @@ ZlibCompressObj(
 
     //
     // deflateBound() does not always return a sufficient buffer size when
-    // compressing data into the gzip format. So, this kludge will do...
+    // compressing data into the Gzip format. So this kludge will do...
     //
     if (window > 15) {
         stream.avail_out *= 2;
     }
 
-    stream.next_out = Tcl_SetByteArrayLength(destObj, stream.avail_out);
+    stream.next_out = Tcl_SetByteArrayLength(destObj, (int)stream.avail_out);
 
     //
     // The Z_FINISH flag instructs Zlib to compress all data in a single
@@ -464,15 +555,14 @@ ZlibCompressObj(
     // successful.
     //
     status = deflate(&stream, Z_FINISH);
-    if (status != Z_STREAM_END) {
-        deflateEnd(&stream);
-        return (status == Z_OK) ? Z_BUF_ERROR : status;
+    deflateEnd(&stream);
+
+    if (status == Z_STREAM_END) {
+        Tcl_SetByteArrayLength(destObj, (int)stream.total_out);
+        return Z_OK;
     }
 
-    status = deflateEnd(&stream);
-    Tcl_SetByteArrayLength(destObj, (status == Z_OK ? stream.total_out : 0));
-
-    return status;
+    return (status == Z_OK) ? Z_BUF_ERROR : status;
 }
 
 /*++
@@ -499,62 +589,71 @@ ZlibDecompressObj(
     int window
     )
 {
-    int bufferFactor;
-    int bufferLength;
-    int dataLength;
     int status;
-    unsigned char *buffer;
+    uInt destLength;
+    uInt factor;
+    uInt sourceLength;
+    unsigned char *dest;
     z_stream stream;
 
-    stream.next_in = Tcl_GetByteArrayFromObj(sourceObj, &dataLength);
-    if (dataLength < 1) {
+    //
+    // The avail_in, next_in, opaque, zalloc, and zfree data structure
+    // members must be initialised prior to calling inflateInit2().
+    //
+    stream.next_in = Tcl_GetByteArrayFromObj(sourceObj, &(int)sourceLength);
+    if (sourceLength < 1) {
         return Z_DATA_ERROR;
     }
 
-    //
-    // The opaque, zalloc, and zfree struct members must
-    // be initialised before calling inflateInit2().
-    //
-    stream.opaque = (voidpf) NULL;
-    stream.zalloc = ZlibAlloc;
-    stream.zfree  = ZlibFree;
-    stream.avail_in = dataLength;
+    stream.avail_in = sourceLength;
+    stream.opaque   = NULL;
+    stream.zalloc   = ZlibAlloc;
+    stream.zfree    = ZlibFree;
 
     status = inflateInit2(&stream, window);
     if (status != Z_OK) {
         return status;
     }
 
-    // Increase the buffer size by a factor of two each attempt.
-    for (bufferFactor = 1; bufferFactor < 20; bufferFactor++) {
-        bufferLength = dataLength * (1 << bufferFactor);
-        buffer = Tcl_SetByteArrayLength(destObj, bufferLength);
+    // Double the destination buffer size each attempt.
+    for (factor = 1; factor < 20; factor++) {
+        destLength = sourceLength * (1 << factor);
+        dest = Tcl_SetByteArrayLength(destObj, (int)destLength);
 
-        stream.next_out  = buffer + stream.total_out;
-        stream.avail_out = bufferLength - stream.total_out;
+        stream.next_out  = dest + stream.total_out;
+        stream.avail_out = destLength - stream.total_out;
 
+        //
+        // inflate() returns:
+        // - Z_STREAM_END if all input data has been exhausted.
+        // - Z_OK if the inflation was successful but there is remaining input data.
+        // - Otherwise an error has occurred while inflating the data.
+        //
         status = inflate(&stream, Z_SYNC_FLUSH);
-
-        // inflate() returns Z_STREAM_END when all input data has been processed.
-        if (status == Z_STREAM_END) {
-            status = Z_OK;
+        if (status != Z_OK) {
             break;
         }
 
         //
-        // If inflate() returns Z_OK with avail_out at zero, it must be
-        // called again with a larger buffer to process remaining data.
+        // If inflate() returns Z_OK without exhausting the output buffer,
+        // it's assumed we've unexpectedly reached the stream's end.
         //
-        if (status == Z_OK && stream.avail_out == 0) {
-            status = Z_BUF_ERROR;
-        } else {
-            inflateEnd(&stream);
-            return (status == Z_OK) ? Z_BUF_ERROR : status;
+        if (stream.avail_out > 0) {
+            status = Z_STREAM_ERROR;
+            break;
         }
+
+        // Increase the destination buffer size and try again.
+        status = Z_BUF_ERROR;
     }
 
     inflateEnd(&stream);
-    Tcl_SetByteArrayLength(destObj, (status == Z_OK ? stream.total_out : 0));
+
+    if (status == Z_STREAM_END) {
+        // Update the object's length.
+        Tcl_SetByteArrayLength(destObj, (int)stream.total_out);
+        return Z_OK;
+    }
 
     return status;
 }
@@ -665,7 +764,7 @@ CompressObjCmd(
             return TCL_OK;
         }
         case OPTION_COMPACT: {
-            int level = Z_BEST_SPEED; // Use the quickest compression level by default.
+            int level = 1; // Quickest compression level by default.
             int status;
 
             switch (objc) {
@@ -677,22 +776,44 @@ CompressObjCmd(
                         if (Tcl_GetIntFromObj(interp, objv[3], &level) != TCL_OK) {
                             return TCL_ERROR;
                         }
-                        if (level < 0 || level > 9) {
-                            Tcl_AppendResult(interp, "invalid compression level \"",
-                                Tcl_GetString(objv[3]), "\": must be between 0 and 9", NULL);
-                            return TCL_ERROR;
-                        }
                         break;
                     }
                 }
                 default: {
-                    Tcl_WrongNumArgs(interp, 2, objv, "?-level 0-9? format data");
+                    Tcl_WrongNumArgs(interp, 2, objv, "?-level int? format data");
                     return TCL_ERROR;
                 }
             }
 
             if (Tcl_GetIndexFromObjStruct(interp, objv[objc-2], compressionFormats,
                 sizeof(compressionFormats[0]), "format", TCL_EXACT, &index) != TCL_OK) {
+                return TCL_ERROR;
+            }
+
+            //
+            // Zlib accepts compression levels from 0 to 9 while
+            // Bzip2 only accepts 1 to 9.
+            //
+            if (level < compressionFormats[index].minLevel ||
+                level > compressionFormats[index].maxLevel) {
+                char message[64];
+
+#ifdef _WINDOWS
+                StringCchPrintfA(message, ARRAYSIZE(message),
+                    "%d\": must be between %d and %d",
+                    level,
+                    compressionFormats[index].minLevel,
+                    compressionFormats[index].maxLevel);
+#else // _WINDOWS
+                snprintf(message, ARRAYSIZE(message),
+                    "%d\": must be between %d and %d",
+                    level,
+                    compressionFormats[index].minLevel,
+                    compressionFormats[index].maxLevel);
+                message[ARRAYSIZE(message)-1] = '\0';
+#endif // _WINDOWS
+
+                Tcl_AppendResult(interp, "invalid compression level \"", message, NULL);
                 return TCL_ERROR;
             }
 
