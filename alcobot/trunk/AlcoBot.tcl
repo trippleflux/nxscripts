@@ -331,7 +331,7 @@ proc ::alcoholicz::ModuleInfo {option args} {
 proc ::alcoholicz::ModuleLoad {modName} {
     # Locate the module and read its definition file.
     set modPath [ModuleFind $modName]
-    array set modInfo [ModuleRead [file join $modPath ".module"]]
+    array set modInfo [ModuleRead [file join $modPath "module.def"]]
 
     # Refuse to load the module if a dependency is not present.
     foreach modDepend $modInfo(depends) {
@@ -557,7 +557,9 @@ proc ::alcoholicz::InitConfig {filePath} {
     }
 
     # Store sections and targets in an array since they are frequently used.
-    array set sections [ConfigGetEx $configHandle Sections]
+    foreach {name options} [ConfigGetEx $configHandle Sections] {
+        set sections($name) [ArgsToList $options]
+    }
 
     foreach {command target} [ConfigGetEx $configHandle Targets] {
         # Lazy matching for command targets. Commands are sent to
@@ -784,9 +786,9 @@ proc ::alcoholicz::InitMain {} {
         die
     }
 
-    InitVariables [ConfigGet $configHandle General varFiles]
-    InitTheme     [ConfigGet $configHandle General themeFile]
-    InitModules   [ConfigGet $configHandle General modules]
+    InitVariables [ArgsToList [ConfigGet $configHandle General varFiles]]
+    InitTheme     [ArgsToList [ConfigGet $configHandle General themeFile]]
+    InitModules   [ArgsToList [ConfigGet $configHandle General modules]]
 
     ConfigFree $configHandle
     LogInfo "Sitebot loaded, configured for [GetFtpDaemon]."
