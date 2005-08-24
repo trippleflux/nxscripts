@@ -17,7 +17,7 @@ namespace eval ::alcoholicz {
         variable debugMode 0
         variable ftpDaemon 0
     }
-    variable scriptPath [file dirname [info script]]
+    variable scriptPath [file dirname [file normalize [info script]]]
 
     namespace export b c u r o \
         LogDebug LogInfo LogError LogWarning GetFtpDaemon \
@@ -25,6 +25,29 @@ namespace eval ::alcoholicz {
         ModuleFind ModuleHash ModuleInfo ModuleLoad ModuleLoadEx ModuleUnload ModuleRead \
         SendSection SendSectionTheme SendTarget SendTargetTheme
 }
+
+#
+# Context Array Variables
+#
+# commands      - Bound channel commands.
+# colours       - Section colour mappings.
+# event_<type>  - Event callback scripts.
+# flags         - Event groupings.
+# format        - Text formatting definitions.
+# modules       - Loaded modules.
+# replace       - Static text replacements.
+# sections      - Channel and path sections.
+# targets       - Targets for channel commands.
+# theme         - Event theme definitions.
+# vars          - Event variable definitions.
+#
+# Context Scalar Variables
+#
+# configFile    - Fully qualified path to the configuration file.
+# configHandle  - Handle to the configuration file, valid only during init.
+# debugMode     - Boolean value to indicate if we're running in debug mode.
+# ftpDaemon     - FTP daemon identifier: 1=glFTPD and 2=ioFTPD.
+#
 
 interp alias {} IsTrue {} string is true -strict
 interp alias {} IsFalse {} string is false -strict
@@ -107,10 +130,10 @@ proc ::alcoholicz::SetFtpDaemon {name} {
 # Create a channel command.
 #
 proc ::alcoholicz::CmdCreate {flags command args} {
-    variable cmds
+    variable commands
     bind pub $flags $command [list [namespace current]::CmdProc $args]
 
-    set cmds($command) [list $flags $args]
+    set commands($command) [list $flags $args]
     return
 }
 
@@ -120,14 +143,14 @@ proc ::alcoholicz::CmdCreate {flags command args} {
 # Remove a channel command created with 'CmdCreate'.
 #
 proc ::alcoholicz::CmdRemove {command} {
-    variable cmds
-    if {![info exists cmds($command)]} {
+    variable commands
+    if {![info exists commands($command)]} {
         error "unknown command \"$command\""
     }
-    foreach {flags script} $cmds($command) {break}
+    foreach {flags script} $commands($command) {break}
     unbind pub $flags $command [list [namespace current]::CmdProc $script]
 
-    unset cmds($command)
+    unset commands($command)
     return
 }
 
@@ -265,7 +288,7 @@ proc ::alcoholicz::ModuleFind {modName} {
 # ModuleHash
 #
 # Calculate the MD5 check-sum of a given file. Even though the MD5 hash
-# algorithm has been broken, it is still more than suitable for this purpose.
+# algorithm is considered broken, it is still suitable for this purpose.
 #
 proc ::alcoholicz::ModuleHash {filePath} {
     set fileHandle [open $filePath r]
@@ -604,11 +627,6 @@ proc ::alcoholicz::InitLibraries {rootPath} {
 
     # Load the Alcoholicz Tcl extension.
     package require AlcoExt 0.1
-
-    # Load optional packages.
-    foreach {name version} {mysqltcl 3.0 sqlite3 3.2 tls 1.5} {
-        catch {package require $name $version}
-    }
     return
 }
 
@@ -619,13 +637,13 @@ proc ::alcoholicz::InitLibraries {rootPath} {
 # in the "modList" parameter will be unloaded.
 #
 proc ::alcoholicz::InitModules {modList} {
-    variable cmds
+    variable commands
     variable modules
     LogInfo "Loading modules..."
 
-    array set prevCmds [array get cmds]
+    array set prevCommands [array get commands]
     array set prevModules [array get modules]
-    unset -nocomplain cmds modules
+    unset -nocomplain commands modules
 
     # TODO:
     # - The module load order should reflect their dependency requirements.
@@ -650,11 +668,11 @@ proc ::alcoholicz::InitModules {modList} {
     }
 
     # Remove unreferenced commands.
-    foreach command [array names prevCmds] {
-        if {![info exists cmds($command)]} {
-            foreach {flags script} $prevCmds($command) {break}
+    foreach command [array names prevCommands] {
+        if {![info exists commands($command)]} {
+            foreach {flags script} $prevCommands($command) {break}
             unbind pub $flags $command [list [namespace current]::CmdProc $script]
-            unset prevCmds($command)
+            unset prevCommands($command)
         }
     }
     return
@@ -785,7 +803,7 @@ proc ::alcoholicz::InitMain {} {
 
     # Initialise various subsystems.
     LogInfo "Loading configuration..."
-    set configFile [file join $scriptPath "alcoBot.conf"]
+    set configFile [file join $scriptPath "AlcoBot.conf"]
     if {[catch {InitConfig $configFile} message]} {
         LogError InitMain $message
         die
