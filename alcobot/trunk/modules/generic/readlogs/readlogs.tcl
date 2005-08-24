@@ -1,0 +1,296 @@
+#
+# AlcoBot - Alcoholicz site bot.
+# Copyright (c) 2005 Alcoholicz Scripting Team
+#
+# Module Name:
+#   Log Reading Module
+#
+# Author:
+#   neoxed (neoxed@gmail.com) Auguest 22, 2005
+#
+# Abstract:
+#   Implements a module to manage affiliated and banned groups.
+#
+
+namespace eval ::alcoholicz::ReadLogs {
+    if {![info exists logList]} {
+        variable logCount 0
+        variable logList [list]
+        variable timerId ""
+    }
+    namespace import -force ::alcoholicz::*
+}
+
+####
+# AddLog
+#
+# Add a log file to the monitoring list.
+#
+proc ::alcoholicz::ReadLogs::AddLog {logType logFile} {
+    variable logCount
+    variable logList
+    variable logOffset
+
+    # Sanity checks.
+    switch -- [string tolower $logType] {
+        {main}  {set logType 0}
+        {error} {set logType 1}
+        {login} {set logType 2}
+        {sysop} {set logType 3}
+        default {error "unknown log type \"logType\""}
+    }
+
+    if {![file isfile $logFile] || ![file readable $logFile]} {
+        error "file not readable \"$logFile\""
+    }
+
+    set logOffset($logCount) [file size $logFile]
+    lappend logList $logCount $logType [file normalize $logFile]
+
+    incr logCount
+    return
+}
+
+####
+# ParseLogin
+#
+# Parse glFTPD login.log entries.
+#
+proc ::alcoholicz::ReadLogs::ParseLogin {line eventVar dataVar} {
+    upvar $eventVar event $dataVar data
+
+    # Note: In some glFTPD versions there is an extra space before
+    # the host in BADPASSWORD, typo by the developers I guess.
+    array set reLogin {
+        LOGIN       {LOGOUT: (\S+)@(\S+) \((\S+)\) "(\S+)" "(\S+)" "(.+)"$}
+        LOGOUT      {LOGIN: (\S+)@(\S+) \((\S+)\) \S+ "(\S+)" "(\S+)" "(.+)"$}
+        TIMEOUT     {TIMEOUT: (\S+) \((\S+)@(\S+)\) timed out after being idle (\d+) seconds\.$}
+        KILLGHOST   {^'(\S+)' killed a ghost with PID (\d+)\.$}
+        BADHOSTMASK {^(\S+): (\S+)@(\S+) \((\S+)\): Bad user@host\.$}
+        BANNEDHOST  {^(\S+): (\S+)@(\S+) \((\S+)\): Banned user@host\.$}
+        DELETED     {^(\S+): (\S+)@(\S+) \((\S+)\): Deleted\.$}
+        BADPASSWORD {^(\S+): (\S+)@(\S+) \s?\((\S+)\): (?:Login failure|Repeated login failures)\.$}
+        UNKNOWNHOST {^(\S+)@(\S+) \((\S+)\): connection refused: ident@ip not added to any users\.}
+    }
+    foreach event [array names reLogin] {
+        set result [regexp -inline -- $reLogin($event) $line]
+        if {[llength $result]} {
+            set data [lrange $result 1 end]
+            return 1
+        }
+    }
+    return 0
+}
+
+####
+# ParseSysop
+#
+# Parse ioFTPD and glFTPD sysop.log entries.
+#
+proc ::alcoholicz::ReadLogs::ParseSysop {line eventVar dataVar} {
+    variable reSysop
+    upvar $eventVar event $dataVar data
+
+    foreach event [array names reSysop] {
+        set result [regexp -inline -- $reSysop($event) $line]
+        if {[llength $result]} {
+            set data [lrange $result 1 end]
+            return 1
+        }
+    }
+    return 0
+}
+
+####
+# Timer
+#
+# Log timer, executed every second to check for new log file entries.
+#
+proc ::alcoholicz::ReadLogs::Timer {} {
+    variable timerId
+    if {[catch {Update}]} {
+        LogError ReadLogs "Unhandled error, please report to developers:\n$::errorInfo"
+    }
+    set timerId [utimer 1 [namespace current]::Timer]
+    return
+}
+
+####
+# Update
+#
+# Check for new log entries.
+#
+proc ::alcoholicz::ReadLogs::Update {} {
+    variable logList
+    variable logOffset
+    variable reBase
+
+    # This log reading code was taken from Project-ZS-NG's sitebot,
+    # which was coincidently also written by me (neoxed).
+    set lines [list]
+    foreach {logId logType logFile} $logList {
+        if {$reBase($logType) eq ""} {continue}
+        if {![file isfile $logFile] || ![file readable $logFile]} {
+            LogError ReadLogs "Unable to read log file \"$logFile\"."
+            continue
+        }
+
+        set offset [file size $logFile]
+        if {$logOffset($logId) < $offset} {
+            if {![catch {set handle [open $logFile r]} error]} {
+                seek $handle $logOffset($logId)
+                set data [read -nonewline $handle]
+
+                # Update offset with the current file position, in case
+                # additional data was written since the 'file size' call.
+                set offset [tell $handle]
+                close $handle
+
+                foreach line [split $data "\n"] {
+                    # Remove the date and time from the log line.
+                    if {[regexp -- $reBase($logType) $line result event line]} {
+                        lappend lines $logType $event $line
+                    } else {
+                        LogWarning ReadLogs "Invalid log line: $line"
+                    }
+                }
+            } else {
+                LogError ReadLogs "Unable to open log file \"$logFile\": $error"
+            }
+        }
+        set logOffset($logId) $offset
+    }
+
+    #
+    # Log Types:
+    # 0 - Main log (ioFTPD.log or glftpd.log).
+    # 1 - Error log.
+    # 2 - Login log.
+    # 3 - Sysop log.
+    #
+    foreach {logType event line} $lines {
+        # Handle unique log files.
+        switch -- $logType {
+            0 {set line [ArgsToList $line]}
+            1 {set line [list $line]; set event "ERROR"}
+            2 {
+                if {![ParseLogin $line event line]} {
+                    LogWarning ReadLogs "Unknown login.log line: $line"
+                    continue
+                }
+            }
+            3 {
+                if {![ParseSysop $line event line]} {
+                    set event "SYSOP"
+                    set line [list $line]
+                }
+            }
+        }
+
+        putlog "event=$event line=$line"
+
+        #LogDebug ReadLogs "Received event: $event (log: $logType)."
+
+        # TODO:
+        # - Complete channel-flag system.
+        # - Looped variable handling (e.g. PZS-NG race stats and gl v2 nukes).
+        # - Event handling (EventExecute pre/post $event $event $line)
+        # - Output data.
+    }
+
+    return
+}
+
+####
+# Load
+#
+# Module initialisation procedure, called when the module is loaded.
+#
+proc ::alcoholicz::ReadLogs::Load {firstLoad} {
+    variable logCount
+    variable logList
+    variable reBase
+    variable reSysop
+    variable timerId
+    upvar ::alcoholicz::configHandle configHandle
+
+    if {!$firstLoad && [catch {killutimer $timerId} error]} {
+        LogError ReadLogs "Unable to kill log timer: $error"
+    }
+
+    # Regular expression patterns used to remove the time-stamp
+    # from log entries and extract meaningful data.
+    if {$::alcoholicz::ftpDaemon == 1} {
+        set reBase(0) {^\w+ \w+ \s?\d+ \d+:\d+:\d+ \d{4} (\S+): (.+)}
+        set reBase(1) {^\w+ \w+ \s?\d+ \d+:\d+:\d+ \d{4} \[(\d+)\s*\] (.+)}
+        set reBase(2) $reBase(1)
+        set reBase(3) $reBase(1)
+
+        # Common sysop.log entries.
+        set reSysop(ADDUSER)  {^'(\S+)' added user '(\S+)'\.$}
+        set reSysop(GADDUSER) {^'(\S+)' added user '(\S+)' to group '(\S+)'\.$}
+        set reSysop(RENUSER)  {^'(\S+)' renamed user '(\S+)' to '(\S+)'\.$}
+        set reSysop(DELUSER)  {^'(\S+)' deleted user '(\S+)'\.$}
+        set reSysop(READDED)  {^'(\S+)' readded '(\S+)'\.$}
+        set reSysop(PURGED)   {^'(\S+)' purged '(\S+)'$}
+        set reSysop(ADDIP)    {^'(\S+)' added ip '(\S+)' to '(\S+)'$}
+        set reSysop(DELIP)    {^'(\S+)' .*removed ip '(\S+)' from '(\S+)'$}
+        set reSysop(GRPADD)   {^'(\S+)' added group \((\S+)\)$}
+        set reSysop(GRPDEL)   {^'(\S+)' deleted group \((\S+)\)$}
+        set reSysop(CHGRPADD) {^'(\S+)': successfully added to '(\S+)' by (\S+)$}
+        set reSysop(CHGRPDEL) {^'(\S+)': successfully removed from '(\S+)' by (\S+)$}
+    } elseif {$::alcoholicz::ftpDaemon == 2} {
+        set reBase(0) {^\d+-\d+-\d{4} \d+:\d+:\d+ (\S+): (.+)}
+        set reBase(1) {^\d+-\d+-\d{4} \d+:\d+:\d+ ()(.+)}
+        set reBase(2) {}
+        set reBase(3) $reBase(1)
+
+        # Common sysop.log entries.
+        set reSysop(GADDUSER) {^'(\S+)' created user '(\S+)' in group '(\S+)'\.$}
+        set reSysop(RENUSER)  {^'(\S+)' renamed user '(\S+)' to '(\S+)'\.$}
+        set reSysop(DELUSER)  {^'(\S+)' deleted user '(\S+)'\.$}
+        set reSysop(READDED)  {^'(\S+)' readded user '(\S+)'\.$}
+        set reSysop(PURGED)   {^'(\S+)' purged user '(\S+)'\.$}
+        set reSysop(ADDIP)    {^'(\S+)' added ip '(\S+)' to user '(\S+)'\.$}
+        set reSysop(DELIP)    {^'(\S+)' removed ip '(\S+)' from user '(\S+)'\.$}
+        set reSysop(GRPADD)   {^'(\S+)' created group '(\S+)'\.$}
+        set reSysop(GRPREN)   {^'(\S+)' renamed group '(\S+)' to '(\S+)'\.$}
+        set reSysop(GRPDEL)   {^'(\S+)' deleted group '(\S+)'\.$}
+        set reSysop(CHGRPADD) {^'(\S+)' added user '(\S+)' to group '(\S+)'\.$}
+        set reSysop(CHGRPDEL) {^'(\S+)' removed user '(\S+)' from group '(\S+)'\.$}
+    } else {
+        error "unknown FTP daemon \"$::alcoholicz::ftpDaemon\""
+    }
+
+    # Reset the log count, list, and timer ID on rehash/reload.
+    set logCount 0
+    set logList [list]
+    set timerId ""
+
+    # Monitor all user-defined log files.
+    foreach type {main error login sysop} option {mainLogs errorLogs loginLogs sysopLogs} {
+        foreach filePath [ArgsToList [ConfigGet $configHandle Module::ReadLogs $option]] {
+            if {[catch {AddLog $type $filePath} error]} {
+                LogError ReadLogs "Unable to add log file: $error"
+            }
+        }
+    }
+
+    set timerId [utimer 1 [namespace current]::Timer]
+    LogInfo "Monitoring $logCount log file(s)."
+    return
+}
+
+####
+# Unload
+#
+# Module finalisation procedure, called before the module is unloaded.
+#
+proc ::alcoholicz::ReadLogs::Unload {} {
+    variable timerId
+    if {$timerId ne ""} {
+        catch {killutimer $timerId}
+        set timerId ""
+    }
+    return
+}

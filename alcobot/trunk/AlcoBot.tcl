@@ -347,8 +347,8 @@ proc ::alcoholicz::ModuleLoad {modName} {
 # ModuleLoadEx
 #
 # Performs the actual module initialisation. This procedure leaves dependency
-# and parameter checks up to the caller, for reason it is strongly recommended
-# that module writers use ModuleLoad instead.
+# and parameter checks up to the caller. Module writers are strongly encouraged
+# to use ModuleLoad instead.
 #
 proc ::alcoholicz::ModuleLoadEx {modName modInfoList} {
     variable modules
