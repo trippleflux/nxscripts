@@ -60,7 +60,7 @@ proc ::alcoholicz::ReadLogs::ParseLogin {line eventVar dataVar} {
     upvar $eventVar event $dataVar data
 
     # Note: In some glFTPD versions there is an extra space before
-    # the host in BADPASSWORD, typo by the developers I guess.
+    # the host in BADPASSWORD, a typo by their developers I suppose.
     array set reLogin {
         LOGIN       {LOGOUT: (\S+)@(\S+) \((\S+)\) "(\S+)" "(\S+)" "(.+)"$}
         LOGOUT      {LOGIN: (\S+)@(\S+) \((\S+)\) \S+ "(\S+)" "(\S+)" "(.+)"$}
@@ -161,13 +161,11 @@ proc ::alcoholicz::ReadLogs::Update {} {
         set logOffset($logId) $offset
     }
 
-    #
     # Log Types:
     # 0 - Main log (ioFTPD.log or glftpd.log).
     # 1 - Error log.
     # 2 - Login log.
     # 3 - Sysop log.
-    #
     foreach {logType event line} $lines {
         # Handle unique log files.
         switch -- $logType {
@@ -187,9 +185,7 @@ proc ::alcoholicz::ReadLogs::Update {} {
             }
         }
 
-        putlog "event=$event line=$line"
-
-        #LogDebug ReadLogs "Received event: $event (log: $logType)."
+        LogDebug ReadLogs "Received event: $event (log: $logType)."
 
         # TODO:
         # - Complete channel-flag system.
@@ -220,7 +216,9 @@ proc ::alcoholicz::ReadLogs::Load {firstLoad} {
 
     # Regular expression patterns used to remove the time-stamp
     # from log entries and extract meaningful data.
+    unset -nocomplain reBase reSysop
     if {$::alcoholicz::ftpDaemon == 1} {
+        # Base patterns for log types.
         set reBase(0) {^\w+ \w+ \s?\d+ \d+:\d+:\d+ \d{4} (\S+): (.+)}
         set reBase(1) {^\w+ \w+ \s?\d+ \d+:\d+:\d+ \d{4} \[(\d+)\s*\] (.+)}
         set reBase(2) $reBase(1)
@@ -239,7 +237,10 @@ proc ::alcoholicz::ReadLogs::Load {firstLoad} {
         set reSysop(GRPDEL)   {^'(\S+)' deleted group \((\S+)\)$}
         set reSysop(CHGRPADD) {^'(\S+)': successfully added to '(\S+)' by (\S+)$}
         set reSysop(CHGRPDEL) {^'(\S+)': successfully removed from '(\S+)' by (\S+)$}
+        set reSysop(GIVE)     {^'(\S+)' \S+ transferred (\d+)K to (\S+)$}
+        set reSysop(TAKE)     {^'(\S+)' \S+ took (\d+)K from (\S+)$}
     } elseif {$::alcoholicz::ftpDaemon == 2} {
+        # Base patterns for log types.
         set reBase(0) {^\d+-\d+-\d{4} \d+:\d+:\d+ (\S+): (.+)}
         set reBase(1) {^\d+-\d+-\d{4} \d+:\d+:\d+ ()(.+)}
         set reBase(2) {}

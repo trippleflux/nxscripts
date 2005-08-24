@@ -687,7 +687,7 @@ proc ::alcoholicz::InitTheme {themeFile} {
             # Create a mapping of section colours to use with 'string map'. The
             # colour index must be zero-padded to two digits to avoid conflicts
             # with other numerical chars. Note that the %s identifier is used
-            # instead of %d to avoid octal interpretation (e.g. format %d 08).
+            # instead of %d to avoid octal interpretation (e.g. 'format %d 08').
             lappend colours($section) "\[c$num\]" [format "\003%02s" $value]
         }
     }
@@ -743,8 +743,13 @@ proc ::alcoholicz::InitVariables {varFiles} {
         ConfigRead $handle
 
         foreach {name value} [ConfigGetEx $handle Flags] {
+            if {![regexp {^[a-z0-9_]+$} $name]} {
+                LogError FlagDef "Invalid flag \"$name\" in \"$filePath\": must be composed of lower-case alphanumeric chars."
+                continue
+            }
+
             # Several flags have multiple events defined. Therefore,
-            # the config value must be appended, not 'set'.
+            # the config value must be appended to, not replaced.
             eval lappend [list flags($name)] $value
         }
 
