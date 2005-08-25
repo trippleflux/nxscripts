@@ -370,7 +370,7 @@ proc ::nxTools::Utils::WeeklySet {} {
 ######################################################################
 
 proc ::nxTools::Utils::SiteCredits {event target amount section} {
-    global group user
+    global misc group user
     iputs ".-\[Credits\]--------------------------------------------------------------."
     if {[resolve user $target] == -1} {
         ErrorReturn "The specified user does not exist."
@@ -401,7 +401,12 @@ proc ::nxTools::Utils::SiteCredits {event target amount section} {
     } else {
         ErrorLog SiteCredits "unknown event \"$event\""
     }
-    putlog "${event}: \"$user\" \"$group\" \"$amountMB\" \"$target\""
+
+    if {[IsTrue $misc(dZSbotLogging)]} {
+        set amountKB $amountMB
+    }
+    putlog "${event}: \"$user\" \"$group\" \"$amountKB\" \"$target\""
+
     iputs "'------------------------------------------------------------------------'"
     return 0
 }

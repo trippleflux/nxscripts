@@ -5,6 +5,7 @@
 nxTools v0.9.12 (XXX XX, 2005):
   NEW: Option to force requests to be proper release names (e.g. release.name-group).
   FIX: Forgot to remove the invite options from nxTools.cfg.
+  FIX: The credits logged for SITE GIVE/TAKE should be in kilobytes when dZSbot support is disabled.
 
 nxTools v0.9.11 (Aug 11, 2005):
   NEW: Added ::nx::sleep <ms> to nxHelper, to suspend execution for the given time.
