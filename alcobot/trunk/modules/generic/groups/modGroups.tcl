@@ -24,7 +24,7 @@ namespace eval ::alcoholicz::Groups {
 proc ::alcoholicz::Groups::ChangeAffils {event user host handle channel target argc argv} {
     variable groupsHandle
     if {$argc != 2} {
-        putserv "PRIVMSG $channel :Usage: $::lastbind <section> <group>"
+        SendTargetTheme $target commandHelp [list $::lastbind "<section> <group>"]
         return
     }
     ConfigRead $groupsHandle
@@ -74,7 +74,7 @@ proc ::alcoholicz::Groups::ChangeAffils {event user host handle channel target a
 proc ::alcoholicz::Groups::ChangeBanned {event user host handle channel target argc argv} {
     variable groupsHandle
     if {$argc != 2} {
-        putserv "PRIVMSG $channel :Usage: $::lastbind <section> <group>"
+        SendTargetTheme $target commandHelp [list $::lastbind "<section> <group>"]
         return
     }
     ConfigRead $groupsHandle

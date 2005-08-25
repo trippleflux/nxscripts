@@ -130,6 +130,9 @@ SYSOP       = [b][SysOp][b] %(message)
 GIVE        = [b][Give][b] [b]%(user)[b] gave %(credits) of credits to [b]%(target)[b].
 TAKE        = [b][Take][b] [b]%(user)[b] took %(credits) of credits from [b]%(target)[b].
 
+# Command argument help.
+commandHelp = [b]Usage:[b] %(command) %(arguments)
+
 # Module: groups
 affilsHead  = [b]Affiliated Groups:[b]
 affilsBody  = [b][%(section)][b] %(groups)

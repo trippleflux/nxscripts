@@ -136,6 +136,9 @@ REQDEL      = [b][Request][b] [b]%(request)[b] (#%(id)) deleted by [b]%(user)[b]
 REQFILL     = [b][Request][b] [b]%(request)[b] (#%(id)) filled by [b]%(user)[b]/%(group) after %(age).
 REQWIPE     = [b][Request][b] [b]%(request)[b] was auto-wiped since it's older than %(maxAge).
 
+# Command argument help.
+commandHelp = [b]Usage:[b] %(command) %(arguments)
+
 # Module: groups
 affilsHead  = [b]Affiliated Groups:[b]
 affilsBody  = [b][%(section)][b] %(groups)
