@@ -618,14 +618,14 @@ proc ::alcoholicz::SendSection {section text} {
 # Replace theme values and send the text to all channels for the given
 # channel or path section.
 #
-proc ::alcoholicz::SendSectionTheme {section type {values ""}} {
+proc ::alcoholicz::SendSectionTheme {section type {valueList ""}} {
     variable theme
     variable variables
     if {![info exists theme($type)] || ![info exists variables($type)]} {
         LogError SendSectionTheme "Missing theme or variable definition for \"$type\"."
         return
     }
-    SendSection $section [VarReplace $theme($type) $variables($type) $values]
+    SendSection $section [VarReplace $theme($type) $variables($type) $valueList]
 }
 
 ####
@@ -645,15 +645,14 @@ proc ::alcoholicz::SendTarget {target text {section ""}} {
 #
 # Replace theme values and send the text to the given target.
 #
-proc ::alcoholicz::SendTargetTheme {target type {values ""} {section ""}} {
+proc ::alcoholicz::SendTargetTheme {target type {valueList ""} {section ""}} {
     variable theme
     variable variables
     if {![info exists theme($type)] || ![info exists variables($type)]} {
         LogError SendTargetTheme "Missing theme or variable definition for \"$type\"."
         return
     }
-    set text [VarReplace $theme($type) $variables($type) $values]
-    SendTarget $target $text $section
+    SendTarget $target [VarReplace $theme($type) $variables($type) $valueList] $section
 }
 
 ################################################################################
@@ -842,6 +841,11 @@ proc ::alcoholicz::InitTheme {themeFile} {
         set index [lsearch -exact $known $name]
         if {$index != -1} {
             set known [lreplace $known $index $index]
+
+            # Remove quotes around the format value, if present.
+            if {[string index $value 0] eq "\"" && [string index $value end] eq "\""} {
+                set value [string range $value 1 end-1]
+            }
             set format($name) [VarReplaceBase $value 0]
         } else {
             LogDebug InitTheme "Unknown format type \"$name\"."
@@ -858,6 +862,11 @@ proc ::alcoholicz::InitTheme {themeFile} {
         set index [lsearch -exact $known $name]
         if {$index != -1} {
             set known [lreplace $known $index $index]
+
+            # Remove quotes around the theme value, if present.
+            if {[string index $value 0] eq "\"" && [string index $value end] eq "\""} {
+                set value [string range $value 1 end-1]
+            }
             set theme($name) [VarReplaceBase $value]
         }
     }

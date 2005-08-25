@@ -287,18 +287,39 @@ proc ::alcoholicz::VarReplace {input varList valueList} {
 
     set index 0
     foreach varName $varList value $valueList {
-        if {![string match {*:[Ppt]} $varName]} {
-            incr index; continue
-        }
-        set type [string index $varName end]
-        set varName [string range $varName 0 end-2]
+        if {[string match {*:[Ppt]} $varName]} {
+            set type [string index $varName end]
+            set varName [string range $varName 0 end-2]
 
-        if {$type eq "P" || $type eq "p"} {
-            lappend varList ${varName}Dir:z ${varName}Full:z ${varName}Name:z ${varName}Path:z
-            eval lappend valueList [PathParseSection $value [string equal $type "P"]]
-        } elseif {$type eq "t"} {
-            lappend varList ${varName}Date:z ${varName}Time:z
-            lappend valueList [FormatDate $value] [FormatTime $value]
+            if {$type eq "P" || $type eq "p"} {
+                lappend varList ${varName}Dir:z ${varName}Full:z ${varName}Name:z ${varName}Path:z
+                eval lappend valueList [PathParseSection $value [string equal $type "P"]]
+            } elseif {$type eq "t"} {
+                lappend varList ${varName}Date:z ${varName}Time:z
+                lappend valueList [FormatDate $value] [FormatTime $value]
+            }
+        } elseif {[llength $varName] > 1} {
+            variable theme
+            variable variables
+            foreach {varName loopName} $varName {
+                set joinName "${loopName}_JOIN"
+                if {![info exists theme($loopName)] || ![info exists theme($joinName)]} {
+                    LogError VarReplace "Missing theme definition for \"$loopName\" or \"$joinName\"."
+                    continue
+                }
+
+                set data [list]
+                set varCount [llength $variables($loopName)]
+                set valueCount [llength $value]
+                for {set i 0} {$i < $valueCount} {incr i $varCount} {
+                    set values [lrange $value $i [expr {$i + $varCount - 1}]]
+                    lappend data [VarReplace $theme($loopName) $variables($loopName) $values]
+                }
+                lappend varList $varName
+                lappend valueList [join $data $theme($joinName)]
+            }
+        } else {
+            incr index; continue
         }
 
         # Remove the original variable and its value.
