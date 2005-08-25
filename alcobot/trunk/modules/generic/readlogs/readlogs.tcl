@@ -185,11 +185,10 @@ proc ::alcoholicz::ReadLogs::Update {} {
                 }
             }
         }
-
         LogDebug ReadLogs "Received event: $event (log: $logType)."
 
         if {![info exists variables($event)]} {
-            LogDebug ReadLogs "No variable definition for event \"$event\": skipping announce."
+            LogDebug ReadLogs "No variable definition for event, skipping announce."
             continue
         }
 
@@ -204,11 +203,17 @@ proc ::alcoholicz::ReadLogs::Update {} {
 
         set section [GetSectionFromEvent $pathSection $event]
 
-        # TODO:
-        # - Looped variable handling (e.g. PZS-NG race stats and gl v2 nukes).
-        # - Event handling (EventExecute pre/post $event $event $line)
-
+        # If a pre-command event returns false or the event is disabled,
+        # skip the announce. The pre-command event must always be executed,
+        # so the section check comes after.
+        if {![EventExecute pre $event $section $line] || $section eq ""} {
+            LogDebug ReadLogs "Event disabled or callback returned false, skipping announce."
+            continue
+        }
         SendSectionTheme $section $event $line
+
+        # Post-command events are only executed if the announce was successful.
+        EventExecute post $event $section $line
     }
 
     return
