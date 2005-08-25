@@ -77,7 +77,7 @@ speedGiga = [b]%.2(speed)[b]GB/s
 #### Theme
 #
 # Format : <entry> = <text>
-# Example: NEWDIR = %section :: New Release: %(releaseName) by %(user)/%(group)
+# Example: NEWDIR  = %(section) :: New Release: %(releaseName) by %(user)/%(group)
 #
 # - Theme definitions may contain control identifiers.
 # - There are three variables common to all entries: %(prefix), %(siteName),
@@ -87,8 +87,8 @@ speedGiga = [b]%.2(speed)[b]GB/s
 #
 [Theme]
 # ioFTPD events.
-NEWDIR      = [b][%(section)][b] New Release: [b]%(releaseName)[b] by [b]%(user)[b]/%(group)
-DELDIR      = [b][%(section)][b] Directory Deleted: [b]%(releaseName)[b] by [b]%(user)[b]/%(group)
+NEWDIR      = [b][%(section)][b] New Release: [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
+DELDIR      = [b][%(section)][b] Directory Deleted: [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
 LOGIN       = [b][Login][b] [b]%(user)[b]/%(group) has logged in.
 LOGOUT      = [b][Logout][b] [b]%(user)[b]/%(group) has logged out.
 
@@ -109,6 +109,30 @@ GRPDEL      = [b][SysOp][b] [b]%(siteop)[b] deleted group [b]%(group)[b].
 CHGRPADD    = [b][SysOp][b] [b]%(siteop)[b] added [b]%(user)[b] to group [b]%(group)[b].
 CHGRPDEL    = [b][SysOp][b] [b]%(siteop)[b] removed [b]%(user)[b] from group [b]%(group)[b].
 SYSOP       = [b][SysOp][b] %(message)
+
+# nxTools events.
+APPROVEADD  = [b][Approve][b] [b]%(user)[b]/%(group) approved [b]%(releaseName)[b].
+APPROVEDEL  = [b][Approve][b] [b]%(user)[b]/%(group) deleted [b]%(releaseName)[b].
+CLOSE       = [b][Close][b] [b]%(user)[b]/%(group) has closed the server for: %(reason).
+OPEN        = [b][Open][b] [b]%(user)[b]/%(group) has opened the server, closed for %(duration).
+GIVE        = [b][Give][b] [b]%(user)[b]/%(group) gave %(credits) of credits to [b]%(target)[b].
+TAKE        = [b][Take][b] [b]%(user)[b]/%(group) took %(credits) of credits from [b]%(target)[b].
+INVITE      = [b][Invite][b] [b]%(user)[b]/%(group) invited himself as [b]%(nick)[b].
+REQUEST     = [b][Request][b] [b]%(request)[b] (#%(id)) added by [b]%(user)[b]/%(group).
+REQDEL      = [b][Request][b] [b]%(request)[b] (#%(id)) deleted by [b]%(user)[b]/%(group) after %(age).
+REQFILL     = [b][Request][b] [b]%(request)[b] (#%(id)) filled by [b]%(user)[b]/%(group) after %(age).
+REQWIPE     = [b][Request][b] [b]%(request)[b] was auto-wiped since it's older than %(maxAge).
+
+APPROVE     = [b][%(section)][b] %(releasePath)/[b]%(releaseName)[b] was approved by [b]%(user)[b]/%(group).
+NEWDATE     = [b][%(section)][b] A new day has come, change your current dir to [b]%(releaseName)[b].
+NUKE        =
+UNNUKE      =
+PRE         = [b][%(section)][b] [b]%(preGroup)[b] launches [b]%(releaseName)[b] (%(size) in [b]%(files)[b]F with [b]%(disks)[b] disks).
+PRE-MP3     = [b][%(section)][b] [b]%(preGroup)[b] launches [b]%(releaseName)[b] (%(size) in [b]%(files)[b]F - [b]%(genre)[b] - [b]%(bitrate)[b]Kbit/s - [b]%(year)[b]).
+PRETIME     = [b][%(section)][b] %(releasePath)/[b]%(releaseName)[b] was pre'd at %(preDate) %(preTime), %(age) ago.
+DENYPRE     = [b][%(section)][b] %(releasePath)/[b]%(releaseName)[b] was denied because it's older than the %(limit) limit, pre'd %(age) ago.
+WARNPRE     = [b][%(section)][b] %(releasePath)/[b]%(releaseName)[b] is older than the %(limit) limit, pre'd %(age) ago.
+WIPE        = [b][%(section)][b] Wiped: [b]%(releaseName)[b] by [b]%(user)[b]/%(group) (%(size) in [b]%(files)[b] files and [b]%(dirs)[b] dirs).
 
 # Module: groups
 affilsHead  = [b]Affiliated Groups:[b]
