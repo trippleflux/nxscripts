@@ -14,6 +14,7 @@
 
 namespace eval ::alcoholicz::ReadLogs {
     if {![info exists logList]} {
+        variable excludePaths ""
         variable logCount 0
         variable logList [list]
         variable timerId ""
@@ -49,6 +50,19 @@ proc ::alcoholicz::ReadLogs::AddLog {logType logFile} {
 
     incr logCount
     return
+}
+
+####
+# IsPathExcluded
+#
+# Check if a given path is excluded from announcing.
+#
+proc ::alcoholicz::ReadLogs::IsPathExcluded {path} {
+    variable excludePaths
+    foreach pattern $excludePaths {
+        if {[string match -nocase $pattern $path]} {return 1}
+    }
+    return 0
 }
 
 ####
@@ -196,7 +210,13 @@ proc ::alcoholicz::ReadLogs::Update {} {
         # assume it's a section oriented announce (e.g. NEWDIR and DELDIR).
         set index [lsearch -glob $variables($event) "*:P"]
         if {$index != -1} {
-            set pathSection [GetSectionFromPath [lindex $line $index]]
+            set path "/[PathStrip [lindex $line $index]]"
+
+            if {[IsPathExcluded $path]} {
+                LogDebug ReadLogs "Path \"$path\" excluded, skipping announce."
+                continue
+            }
+            set pathSection [GetSectionFromPath $path]
         } else {
             set pathSection $::alcoholicz::defaultSection
         }
@@ -225,6 +245,7 @@ proc ::alcoholicz::ReadLogs::Update {} {
 # Module initialisation procedure, called when the module is loaded.
 #
 proc ::alcoholicz::ReadLogs::Load {firstLoad} {
+    variable excludePaths
     variable logCount
     variable logList
     variable reBase
@@ -298,6 +319,9 @@ proc ::alcoholicz::ReadLogs::Load {firstLoad} {
             }
         }
     }
+
+    # Paths to exclude from announcing.
+    set excludePaths [ArgsToList [ConfigGet $configHandle Module::ReadLogs excludePaths]]
 
     set timerId [utimer 1 [namespace current]::Timer]
     LogInfo "Monitoring $logCount log file(s)."
