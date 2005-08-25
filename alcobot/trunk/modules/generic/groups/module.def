@@ -1,5 +1,5 @@
 # Module Definition File
 desc=Group List
-file=groups.tcl
+file=modGroups.tcl
 context=::alcoholicz::Groups
 depends=
