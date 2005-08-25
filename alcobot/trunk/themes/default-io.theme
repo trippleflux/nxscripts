@@ -111,6 +111,19 @@ CHGRPDEL    = [b][SysOp][b] [b]%(siteop)[b] removed [b]%(user)[b] from group [b]
 SYSOP       = [b][SysOp][b] %(message)
 
 # nxTools events.
+APPROVE     = [b][%(section)][b] %(releasePath)/[b]%(releaseName)[b] was approved by [b]%(user)[b]/%(group).
+NEWDATE     = [b][%(section)][b] A new day has come, change your current dir to [b]%(releaseName)[b].
+NUKE        = [b][%(section)][b] %(releasePath)/[b]%(releaseName)[b] was nuked [b]%(multi)x[b] by [b]%(user)[b]/%(group) for [b]%(reason)[b]. Nukees: %(nukees)
+UNNUKE      = [b][%(section)][b] %(releasePath)/[b]%(releaseName)[b] was unnuked [b]%(multi)x[b] by [b]%(user)[b]/%(group) for [b]%(reason)[b]. Nukees: %(nukees)
+NUKEES      = [b]%(user)[b] (%(stats))
+NUKEES_JOIN = ", "
+PRE         = [b][%(section)][b] [b]%(preGroup)[b] launches [b]%(releaseName)[b] (%(size) in [b]%(files)[b]F with [b]%(disks)[b] disks).
+PRE-MP3     = [b][%(section)][b] [b]%(preGroup)[b] launches [b]%(releaseName)[b] (%(size) in [b]%(files)[b]F - [b]%(genre)[b] - [b]%(bitrate)[b]Kbit/s - [b]%(year)[b]).
+PRETIME     = [b][%(section)][b] %(releasePath)/[b]%(releaseName)[b] was pre'd at %(preDate) %(preTime), %(age) ago.
+DENYPRE     = [b][%(section)][b] %(releasePath)/[b]%(releaseName)[b] was denied because it's older than the %(limit) limit, pre'd %(age) ago.
+WARNPRE     = [b][%(section)][b] %(releasePath)/[b]%(releaseName)[b] is older than the %(limit) limit, pre'd %(age) ago.
+WIPE        = [b][%(section)][b] Wiped: [b]%(releaseName)[b] by [b]%(user)[b]/%(group) (%(size) in [b]%(files)[b] files and [b]%(dirs)[b] dirs).
+
 APPROVEADD  = [b][Approve][b] [b]%(user)[b]/%(group) approved [b]%(releaseName)[b].
 APPROVEDEL  = [b][Approve][b] [b]%(user)[b]/%(group) deleted [b]%(releaseName)[b].
 CLOSE       = [b][Close][b] [b]%(user)[b]/%(group) has closed the server for: %(reason).
@@ -122,19 +135,6 @@ REQUEST     = [b][Request][b] [b]%(request)[b] (#%(id)) added by [b]%(user)[b]/%
 REQDEL      = [b][Request][b] [b]%(request)[b] (#%(id)) deleted by [b]%(user)[b]/%(group) after %(age).
 REQFILL     = [b][Request][b] [b]%(request)[b] (#%(id)) filled by [b]%(user)[b]/%(group) after %(age).
 REQWIPE     = [b][Request][b] [b]%(request)[b] was auto-wiped since it's older than %(maxAge).
-APPROVE     = [b][%(section)][b] %(releasePath)/[b]%(releaseName)[b] was approved by [b]%(user)[b]/%(group).
-NEWDATE     = [b][%(section)][b] A new day has come, change your current dir to [b]%(releaseName)[b].
-PRE         = [b][%(section)][b] [b]%(preGroup)[b] launches [b]%(releaseName)[b] (%(size) in [b]%(files)[b]F with [b]%(disks)[b] disks).
-PRE-MP3     = [b][%(section)][b] [b]%(preGroup)[b] launches [b]%(releaseName)[b] (%(size) in [b]%(files)[b]F - [b]%(genre)[b] - [b]%(bitrate)[b]Kbit/s - [b]%(year)[b]).
-PRETIME     = [b][%(section)][b] %(releasePath)/[b]%(releaseName)[b] was pre'd at %(preDate) %(preTime), %(age) ago.
-DENYPRE     = [b][%(section)][b] %(releasePath)/[b]%(releaseName)[b] was denied because it's older than the %(limit) limit, pre'd %(age) ago.
-WARNPRE     = [b][%(section)][b] %(releasePath)/[b]%(releaseName)[b] is older than the %(limit) limit, pre'd %(age) ago.
-WIPE        = [b][%(section)][b] Wiped: [b]%(releaseName)[b] by [b]%(user)[b]/%(group) (%(size) in [b]%(files)[b] files and [b]%(dirs)[b] dirs).
-
-NUKE        = [b][%(section)][b] %(releasePath)/[b]%(releaseName)[b] was nuked [b]%(multi)x[b] by [b]%(user)[b]/%(group) for [b]%(reason)[b]. Nukees: %(nukees)
-UNNUKE      = [b][%(section)][b] %(releasePath)/[b]%(releaseName)[b] was unnuked [b]%(multi)x[b] by [b]%(user)[b]/%(group) for [b]%(reason)[b]. Nukees: %(nukees)
-NUKEES      = [b]%(user)[b] (%(stats))
-NUKEES_JOIN = ", "
 
 # Module: groups
 affilsHead  = [b]Affiliated Groups:[b]
