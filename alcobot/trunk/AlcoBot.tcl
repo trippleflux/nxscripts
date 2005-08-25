@@ -23,23 +23,25 @@ namespace eval ::alcoholicz {
         LogDebug LogInfo LogError LogWarning GetFtpDaemon \
         CmdCreate CmdRemove EventExecute EventRegister EventUnregister \
         ModuleFind ModuleHash ModuleInfo ModuleLoad ModuleLoadEx ModuleUnload ModuleRead \
+        FlagCheck FlagCheckSection GetSectionFromEvent GetSectionFromPath \
         SendSection SendSectionTheme SendTarget SendTargetTheme
 }
 
 #
 # Context Array Variables
 #
-# commands      - Bound channel commands.
+# chanSections  - Channel sections.
 # colours       - Section colour mappings.
+# commands      - Bound channel commands.
 # event_<type>  - Event callback scripts.
 # flags         - Event groupings.
 # format        - Text formatting definitions.
 # modules       - Loaded modules.
+# pathSections  - Path sections.
 # replace       - Static text replacements.
-# sections      - Channel and path sections.
 # targets       - Targets for channel commands.
 # theme         - Event theme definitions.
-# vars          - Event variable definitions.
+# variables     - Event variable definitions.
 #
 # Context Scalar Variables
 #
@@ -483,22 +485,128 @@ proc ::alcoholicz::ModuleRead {filePath} {
 }
 
 ################################################################################
+# Flags and Sections                                                           #
+################################################################################
+
+####
+# FlagCheck
+#
+# Check if the given event is enabled in the flag list.
+#
+proc ::alcoholicz::FlagCheck {flagList event} {
+    variable flags
+    set result 0
+
+    foreach flag $flagList {
+        set prefix [string index $flag 0]
+        if {$prefix ne "+" && $prefix ne "-"} {continue}
+        set flag [string range $flag 1 end]
+
+        if {$flag eq "all" || $flag eq $event || ([info exists flags($flag)] &&
+            [lsearch -sorted $flags($flag) $event] != -1)} {
+            set result [string equal $prefix "+"]
+        }
+    }
+    return $result
+}
+
+####
+# FlagCheckSection
+#
+# Check if the given event is enabled in a channel or path section.
+#
+proc ::alcoholicz::FlagCheckSection {section event} {
+    variable chanSections
+    variable pathSections
+
+    # Simple wrapper to make my lazy life easier.
+    if {[info exists chanSections($section)]} {
+        if {[FlagCheck [lindex $chanSections($section) 1] $event]} {return 1}
+    }
+    if {[info exists pathSections($section)]} {
+        if {[FlagCheck [lindex $pathSections($section) 2] $event]} {return 1}
+    }
+    return 0
+}
+
+####
+# GetSectionFromEvent
+#
+# Retrieve the destination section name for an event. An empty string
+# is returned if no matching section is found.
+#
+proc ::alcoholicz::GetSectionFromEvent {section event} {
+    variable chanSections
+
+    if {$section ne "" && [FlagCheckSection $section $event]} {
+        return $section
+    }
+
+    # Check if the event is enabled in another channel-section. This allows users
+    # to redirect events without requiring another configuration option. For
+    # example, one could restrict the WIPE event in all path-sections, but allow
+    # it in the STAFF channel-section.
+    foreach section [array names chanSections] {
+
+        # First match wins, so users must restrict the event from in all
+        # sections except the one they want it redirected to.
+        if {[FlagCheck [lindex $chanSections($section) 1] $event]} {
+            return $section
+        }
+    }
+
+    # Not enabled.
+    return ""
+}
+
+####
+# GetSectionFromPath
+#
+# Retrieve the path-section name from a given virtual path. An empty string
+# is returned if no matching section path is found.
+#
+proc ::alcoholicz::GetSectionFromPath {fullPath} {
+    variable pathSections
+    set bestMatch 0
+    set pathSection ""
+
+    foreach name [array names pathSections] {
+        set path [lindex $pathSections($name) 0]
+        set pathLength [string length $path]
+
+        # Best match wins (longest section path).
+        if {$pathLength > $bestMatch && [string equal -length $pathLength $path $fullPath]} {
+            set bestMatch $pathLength
+            set pathSection $name
+        }
+    }
+    return $pathSection
+}
+
+################################################################################
 # Output                                                                       #
 ################################################################################
 
 ####
 # SendSection
 #
-# Send text to all channels for the given section.
+# Send text to all channels for the given channel or path section.
 #
 proc ::alcoholicz::SendSection {section text} {
-    variable sections
-    if {![info exists sections($section)]} {
+    variable chanSections
+    variable pathSections
+
+    if {[info exists chanSections($section)]} {
+        set channels [lindex $chanSections($section) 0]
+    } elseif {[info exists pathSections($section)]} {
+        set channels [lindex $pathSections($section) 1]
+    } else {
         LogError SendSection "Unknown section \"$section\"."
         return
     }
+
     set text [VarReplaceCommon $text $section]
-    foreach channel [lindex $sections($section) 1] {
+    foreach channel $channels {
         putserv "PRIVMSG $channel :$text"
     }
     return
@@ -507,16 +615,17 @@ proc ::alcoholicz::SendSection {section text} {
 ####
 # SendSectionTheme
 #
-# Replace theme values and send the text to all channels for the given section.
+# Replace theme values and send the text to all channels for the given
+# channel or path section.
 #
-proc ::alcoholicz::SendSectionTheme {section type {values {}}} {
+proc ::alcoholicz::SendSectionTheme {section type {values ""}} {
     variable theme
-    variable vars
-    if {![info exists theme($type)] || ![info exists vars($type)]} {
+    variable variables
+    if {![info exists theme($type)] || ![info exists variables($type)]} {
         LogError SendSectionTheme "Missing theme or variable definition for \"$type\"."
         return
     }
-    SendSection $section [VarReplace $theme($type) $vars($type) $values]
+    SendSection $section [VarReplace $theme($type) $variables($type) $values]
 }
 
 ####
@@ -524,7 +633,10 @@ proc ::alcoholicz::SendSectionTheme {section type {values {}}} {
 #
 # Send text to the given target.
 #
-proc ::alcoholicz::SendTarget {target text {section DEFAULT}} {
+proc ::alcoholicz::SendTarget {target text {section ""}} {
+    if {$section eq ""} {
+        set section $::alcoholicz::defaultSection
+    }
     putserv [append target " :" [VarReplaceCommon $text $section]]
 }
 
@@ -533,14 +645,14 @@ proc ::alcoholicz::SendTarget {target text {section DEFAULT}} {
 #
 # Replace theme values and send the text to the given target.
 #
-proc ::alcoholicz::SendTargetTheme {target type {values {}} {section DEFAULT}} {
+proc ::alcoholicz::SendTargetTheme {target type {values ""} {section ""}} {
     variable theme
-    variable vars
-    if {![info exists theme($type)] || ![info exists vars($type)]} {
+    variable variables
+    if {![info exists theme($type)] || ![info exists variables($type)]} {
         LogError SendTargetTheme "Missing theme or variable definition for \"$type\"."
         return
     }
-    set text [VarReplace $theme($type) $vars($type) $values]
+    set text [VarReplace $theme($type) $variables($type) $values]
     SendTarget $target $text $section
 }
 
@@ -557,9 +669,12 @@ proc ::alcoholicz::SendTargetTheme {target type {values {}} {section DEFAULT}} {
 proc ::alcoholicz::InitConfig {filePath} {
     variable configFile
     variable configHandle
-    variable sections
+    variable defaultSection
+    variable chanSections
+    variable pathSections
     variable targets
-    unset -nocomplain sections targets
+
+    unset -nocomplain chanSections pathSections targets
 
     # Update configuration path before reading the file.
     set configFile $filePath
@@ -579,9 +694,20 @@ proc ::alcoholicz::InitConfig {filePath} {
         error "Unable to set FTP daemon: $message"
     }
 
-    # Store sections and targets in an array since they are frequently used.
+    # Read channel and path sections.
     foreach {name options} [ConfigGetEx $configHandle Sections] {
-        set sections($name) [ArgsToList $options]
+        set optionList [ArgsToList $options]
+        if {[llength $optionList] == 2} {
+            set chanSections($name) $optionList
+        } elseif {[llength $optionList] == 3} {
+            set pathSections($name) $optionList
+        } else {
+            LogWarning InitConfig "Wrong number of options for \"$name\": $options"
+        }
+    }
+
+    if {![info exists chanSections($defaultSection)]} {
+        error "No default channel section defined, must be named \"$defaultSection\"."
     }
 
     foreach {command target} [ConfigGetEx $configHandle Targets] {
@@ -594,7 +720,7 @@ proc ::alcoholicz::InitConfig {filePath} {
             {user} -
             {priv*} {set target user}
             default {
-                LogWarning InitConfig "Invalid command target \"$target\" for \"$command\"."
+                LogWarning InitConfig "Invalid command target for \"$command\": $target"
                 continue
             }
         }
@@ -688,7 +814,7 @@ proc ::alcoholicz::InitTheme {themeFile} {
     variable format
     variable theme
     variable scriptPath
-    variable vars
+    variable variables
     unset -nocomplain colours format theme
 
     set themeFile [file join $scriptPath $themeFile]
@@ -722,12 +848,12 @@ proc ::alcoholicz::InitTheme {themeFile} {
         }
     }
     if {[llength $known]} {
-        foreach name $known {set format($name) {}}
+        foreach name $known {set format($name) ""}
         LogWarning InitTheme "Missing required format entries: [JoinLiteral $known]."
     }
 
     # Process '[Theme]' entries.
-    set known [array names vars]
+    set known [array names variables]
     foreach {name value} [ConfigGetEx $handle Theme] {
         set index [lsearch -exact $known $name]
         if {$index != -1} {
@@ -736,7 +862,7 @@ proc ::alcoholicz::InitTheme {themeFile} {
         }
     }
     if {[llength $known]} {
-        foreach name $known {set theme($name) {}}
+        foreach name $known {set theme($name) ""}
         LogWarning InitTheme "Missing required theme entries: [JoinLiteral [lsort $known]]."
     }
 
@@ -753,8 +879,8 @@ proc ::alcoholicz::InitVariables {varFiles} {
     variable flags
     variable replace
     variable scriptPath
-    variable vars
-    unset -nocomplain flags replace vars
+    variable variables
+    unset -nocomplain flags replace variables
 
     foreach filePath $varFiles {
         set handle [ConfigOpen [file join $scriptPath $filePath]]
@@ -762,7 +888,7 @@ proc ::alcoholicz::InitVariables {varFiles} {
 
         foreach {name value} [ConfigGetEx $handle Flags] {
             if {![regexp {^[a-z0-9_]+$} $name]} {
-                LogError FlagDef "Invalid flag \"$name\" in \"$filePath\": must be composed of lower-case alphanumeric chars."
+                LogError InitVariables "Invalid flag \"$name\" in \"$filePath\": must be composed of lower-case alphanumeric chars."
                 continue
             }
 
@@ -772,7 +898,7 @@ proc ::alcoholicz::InitVariables {varFiles} {
         }
 
         array set replace [ConfigGetEx $handle Replace]
-        array set vars [ConfigGetEx $handle Variables]
+        array set variables [ConfigGetEx $handle Variables]
 
         ConfigClose $handle
     }

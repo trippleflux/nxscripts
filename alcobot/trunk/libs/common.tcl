@@ -13,7 +13,7 @@
 #
 
 namespace eval ::alcoholicz {
-    namespace export ArgsToList GetSectionName JoinLiteral IsSubDir PathParse PathStrip \
+    namespace export ArgsToList JoinLiteral IsSubDir PathParse PathParseSection PathStrip \
         FormatDate FormatTime FormatDuration FormatDurationLong FormatSize FormatSpeed \
         VarFormat VarReplace VarReplaceBase VarReplaceCommon
 }
@@ -48,33 +48,6 @@ proc ::alcoholicz::ArgsToList {argStr} {
         lappend argList [string range $argStr $startIndex [expr {$index - 1}]]
     }
     return $argList
-}
-
-####
-# GetSectionName
-#
-# Retrieve the section name from a given path. An error raised if no match
-# is found in the user-defined section paths.
-#
-proc ::alcoholicz::GetSectionName {fullPath} {
-    variable sections
-    set bestMatch 0
-
-    foreach name [array names sections] {
-        set sectPath [lindex $sections($name) 0]
-        set sectLength [string length $sectPath]
-
-        # Best match wins (longest section path).
-        if {$sectLength > $bestMatch && [string equal -length $sectLength $sectPath $fullPath]} {
-            set bestMatch $sectLength
-            set sectionName $name
-        }
-    }
-
-    if {![info exists sectionName]} {
-        error "no matching section found for \"$fullPath\""
-    }
-    return $sectionName
 }
 
 ####
@@ -139,6 +112,25 @@ proc ::alcoholicz::PathParse {fullPath {basePath ""}} {
     }
 
     return [list $relDir $relFull $relName $relPath]
+}
+
+####
+# PathParseSection
+#
+# Basic PathParse wrapper, uses the section path as the base path.
+#
+proc ::alcoholicz::PathParseSection {fullPath useSection} {
+    set basePath ""
+
+    if {$useSection} {
+        variable pathSections
+        set section [GetSectionFromPath $fullPath]
+
+        if {[info exists pathSections($section)]} {
+            set basePath [lindex $pathSections($section) 0]
+        }
+    }
+    return [PathParse $fullPath $basePath]
 }
 
 ################################################################################
@@ -257,7 +249,9 @@ proc ::alcoholicz::VarFormat {valueVar name type width precision} {
         k {set value [FormatSize $value]}
         d {set value [FormatDuration $value]}
         s {set value [FormatSpeed $value]}
-        p - t {return 0}
+        p -
+        P -
+        t {return 0}
         n {
             # Integer or floating point.
             if {[string is integer -strict $value]} {
@@ -293,15 +287,15 @@ proc ::alcoholicz::VarReplace {input varList valueList} {
 
     set index 0
     foreach varName $varList value $valueList {
-        if {![string match {*:[pt]} $varName]} {
+        if {![string match {*:[Ppt]} $varName]} {
             incr index; continue
         }
         set type [string index $varName end]
         set varName [string range $varName 0 end-2]
 
-        if {$type eq "p"} {
+        if {$type eq "P" || $type eq "p"} {
             lappend varList ${varName}Dir:z ${varName}Full:z ${varName}Name:z ${varName}Path:z
-            eval lappend valueList [PathParse $value]
+            eval lappend valueList [PathParseSection $value [string equal $type "P"]]
         } elseif {$type eq "t"} {
             lappend varList ${varName}Date:z ${varName}Time:z
             lappend valueList [FormatDate $value] [FormatTime $value]
@@ -414,5 +408,5 @@ proc ::alcoholicz::VarReplaceCommon {text section} {
     } else {
         LogDebug VarReplaceCommon "No section colours defined for \"$section\"."
     }
-    return [VarReplace $text {date:z time:z} [list [FormatDate $time] [FormatTime $time]]]
+    return [VarReplace $text {date:z time:z section:z} [list [FormatDate $time] [FormatTime $time] $section]]
 }

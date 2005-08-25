@@ -86,10 +86,13 @@ speedGiga = [b]%.2(speed)[b]GB/s
 # TODO: Mention variable file list (when there is one).
 #
 [Theme]
-affilsHead = [b]Affiliated Groups:[b]
-affilsBody = [b][%(section)][b] %(groups)
-affilsFoot = Total: [b]%(groupCount)[b] affil(s) in [b]%(sectionCount)[b] section(s).
+affilsHead  = [b]Affiliated Groups:[b]
+affilsBody  = [b][%(section)][b] %(groups)
+affilsFoot  = Total: [b]%(groupCount)[b] affil(s) in [b]%(sectionCount)[b] section(s).
 
-bannedHead = [b]Banned Groups:[b]
-bannedBody = [b][%(section)][b] %(groups)
-bannedFoot = Total: [b]%(groupCount)[b] banned group(s) in [b]%(sectionCount)[b] section(s).
+bannedHead  = [b]Banned Groups:[b]
+bannedBody  = [b][%(section)][b] %(groups)
+bannedFoot  = Total: [b]%(groupCount)[b] banned group(s) in [b]%(sectionCount)[b] section(s).
+
+NEWDIR      = [b][%(section)][b] New Release: [b]%(releaseName)[b] by [b]%(user)[b]/[b]%(group)[b]
+DELDIR      = [b][%(section)][b] Directory Deleted: [b]%(releaseName)[b] by [b]%(user)[b]/[b]%(group)[b]

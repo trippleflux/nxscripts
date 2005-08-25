@@ -124,6 +124,7 @@ proc ::alcoholicz::ReadLogs::Update {} {
     variable logList
     variable logOffset
     variable reBase
+    upvar ::alcoholicz::variables variables
 
     # This log reading code was taken from Project-ZS-NG's sitebot,
     # which was coincidently also written by me (neoxed).
@@ -187,11 +188,27 @@ proc ::alcoholicz::ReadLogs::Update {} {
 
         LogDebug ReadLogs "Received event: $event (log: $logType)."
 
+        if {![info exists variables($event)]} {
+            LogDebug ReadLogs "No variable definition for event \"$event\": skipping announce."
+            continue
+        }
+
+        # If the event's variable definition contains a section-path cookie,
+        # assume it's a section oriented announce (e.g. NEWDIR and DELDIR).
+        set index [lsearch -glob $variables($event) "*:P"]
+        if {$index != -1} {
+            set pathSection [GetSectionFromPath [lindex $line $index]]
+        } else {
+            set pathSection $::alcoholicz::defaultSection
+        }
+
+        set section [GetSectionFromEvent $pathSection $event]
+
         # TODO:
-        # - Complete channel-flag system.
         # - Looped variable handling (e.g. PZS-NG race stats and gl v2 nukes).
         # - Event handling (EventExecute pre/post $event $event $line)
-        # - Output data.
+
+        SendSectionTheme $section $event $line
     }
 
     return
