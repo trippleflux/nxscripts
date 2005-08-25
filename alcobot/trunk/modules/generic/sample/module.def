@@ -6,6 +6,6 @@
 # depends - Module dependencies, a list of required modules.
 #
 desc=Sample Module
-file=sample.tcl
+file=modSample.tcl
 context=::alcoholicz::Sample
 depends=
