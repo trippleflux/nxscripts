@@ -401,7 +401,12 @@ proc ::alcoholicz::ModuleLoadEx {modName modInfoList} {
 
     # Remove trailing namespace identifiers from the context.
     set modInfo(context) [string trimright $modInfo(context) ":"]
+
     if {[catch {${modInfo(context)}::Load $firstLoad} message]} {
+        # If the module initialisation failed, call the unload procedure
+        # in case the module did not clean up after failing.
+        catch {${modInfo(context)}::Unload}
+
         error "initialisation failed: $message"
     }
 
