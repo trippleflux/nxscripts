@@ -4,6 +4,7 @@
 
 nxTools v0.9.12 (XXX XX, 2005):
   NEW: Option to force requests to be proper release names (e.g. release.name-group).
+  CHG: MP3 pre's are logged as PRE-MP3 instead of just PRE (needed for the sitebot).
   FIX: Forgot to remove the invite options from nxTools.cfg.
   FIX: The credits logged for SITE GIVE/TAKE should be in kilobytes when dZSbot support is disabled.
 
