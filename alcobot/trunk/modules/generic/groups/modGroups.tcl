@@ -60,7 +60,7 @@ proc ::alcoholicz::Groups::ChangeAffils {event user host handle channel target a
             putserv "PRIVMSG $channel :Removed [b]$group[b] from the [b]$section[b] affil list."
         }
     } else {
-        LogError ChangeAffils "Unknown event \"$event\"."
+        LogError ModGroups "Unknown affil event \"$event\"."
     }
 
     ConfigFree $groupsHandle
@@ -110,7 +110,7 @@ proc ::alcoholicz::Groups::ChangeBanned {event user host handle channel target a
             putserv "PRIVMSG $channel :Removed [b]$group[b] from the [b]$section[b] ban list."
         }
     } else {
-        LogError ChangeBanned "Unknown event \"$event\"."
+        LogError ModGroups "Unknown banned event \"$event\"."
     }
 
     ConfigFree $groupsHandle

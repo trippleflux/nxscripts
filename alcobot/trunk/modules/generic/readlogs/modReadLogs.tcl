@@ -123,7 +123,7 @@ proc ::alcoholicz::ReadLogs::ParseSysop {line eventVar dataVar} {
 proc ::alcoholicz::ReadLogs::Timer {} {
     variable timerId
     if {[catch {Update}]} {
-        LogError ReadLogs "Unhandled error, please report to developers:\n$::errorInfo"
+        LogError ModReadLogs "Unhandled error, please report to developers:\n$::errorInfo"
     }
     set timerId [utimer 1 [namespace current]::Timer]
     return
@@ -146,7 +146,7 @@ proc ::alcoholicz::ReadLogs::Update {} {
     foreach {logId logType logFile} $logList {
         if {$reBase($logType) eq ""} {continue}
         if {![file isfile $logFile] || ![file readable $logFile]} {
-            LogError ReadLogs "Unable to read log file \"$logFile\"."
+            LogError ModReadLogs "Unable to read log file \"$logFile\"."
             continue
         }
 
@@ -166,11 +166,11 @@ proc ::alcoholicz::ReadLogs::Update {} {
                     if {[regexp -- $reBase($logType) $line result event line]} {
                         lappend lines $logType $event $line
                     } else {
-                        LogWarning ReadLogs "Invalid log line: $line"
+                        LogWarning ModReadLogs "Invalid log line: $line"
                     }
                 }
             } else {
-                LogError ReadLogs "Unable to open log file \"$logFile\": $error"
+                LogError ModReadLogs "Unable to open log file \"$logFile\": $error"
             }
         }
         set logOffset($logId) $offset
@@ -188,7 +188,7 @@ proc ::alcoholicz::ReadLogs::Update {} {
             1 {set line [list $line]; set event "ERROR"}
             2 {
                 if {![ParseLogin $line event line]} {
-                    LogWarning ReadLogs "Unknown login.log line: $line"
+                    LogWarning ModReadLogs "Unknown login.log line: $line"
                     continue
                 }
             }
@@ -199,10 +199,10 @@ proc ::alcoholicz::ReadLogs::Update {} {
                 }
             }
         }
-        LogDebug ReadLogs "Received event: $event (log: $logType)."
+        LogDebug ModReadLogs "Received event: $event (log: $logType)."
 
         if {![info exists variables($event)]} {
-            LogDebug ReadLogs "No variable definition for event, skipping announce."
+            LogDebug ModReadLogs "No variable definition for event, skipping announce."
             continue
         }
 
@@ -213,7 +213,7 @@ proc ::alcoholicz::ReadLogs::Update {} {
             set path "/[PathStrip [lindex $line $index]]"
 
             if {[IsPathExcluded $path]} {
-                LogDebug ReadLogs "Path \"$path\" excluded, skipping announce."
+                LogDebug ModReadLogs "Path \"$path\" excluded, skipping announce."
                 continue
             }
             set pathSection [GetSectionFromPath $path]
@@ -227,7 +227,7 @@ proc ::alcoholicz::ReadLogs::Update {} {
         # skip the announce. The pre-command event must always be executed,
         # so the section check comes after.
         if {![EventExecute pre $event $section $line] || $section eq ""} {
-            LogDebug ReadLogs "Event disabled or callback returned false, skipping announce."
+            LogDebug ModReadLogs "Event disabled or callback returned false, skipping announce."
             continue
         }
         SendSectionTheme $section $event $line
@@ -254,7 +254,7 @@ proc ::alcoholicz::ReadLogs::Load {firstLoad} {
     upvar ::alcoholicz::configHandle configHandle
 
     if {!$firstLoad && [catch {killutimer $timerId} error]} {
-        LogError ReadLogs "Unable to kill log timer: $error"
+        LogError ModReadLogs "Unable to kill log timer: $error"
     }
 
     # Regular expression patterns used to remove the time-stamp
@@ -315,7 +315,7 @@ proc ::alcoholicz::ReadLogs::Load {firstLoad} {
     foreach type {main error login sysop} option {mainLogs errorLogs loginLogs sysopLogs} {
         foreach filePath [ArgsToList [ConfigGet $configHandle Module::ReadLogs $option]] {
             if {[catch {AddLog $type $filePath} error]} {
-                LogError ReadLogs "Unable to add log file: $error"
+                LogError ModReadLogs "Unable to add log file: $error"
             }
         }
     }
