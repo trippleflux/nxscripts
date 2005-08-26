@@ -23,7 +23,7 @@ namespace eval ::alcoholicz {
         LogDebug LogInfo LogError LogWarning GetFtpDaemon \
         CmdCreate CmdRemove EventExecute EventRegister EventUnregister \
         ModuleFind ModuleHash ModuleInfo ModuleLoad ModuleLoadEx ModuleUnload ModuleRead \
-        FlagGetValue FlagExists FlagCheckEvent FlagCheckSection \
+        FlagGetValue FlagExists FlagIsDisabled FlagIsEnabled FlagCheckEvent FlagCheckSection \
         GetSectionFromEvent GetSectionFromPath \
         SendSection SendSectionTheme SendTarget SendTargetTheme
 }
@@ -515,12 +515,42 @@ proc ::alcoholicz::FlagGetValue {flagList flagName valueVar} {
 ####
 # FlagExists
 #
-# Check if the given flag exists in a list of flags.
+# Check if the given flag exists.
 #
 proc ::alcoholicz::FlagExists {flagList flagName} {
     foreach flag $flagList {
         # Parse: +|-<name>[=<value>]
         if {[regexp {^(?:\+|\-)(\w+)} $flag result name] && $name eq $flagName} {
+            return 1
+        }
+    }
+    return 0
+}
+
+####
+# FlagIsDisabled
+#
+# Check if the given flag exists and is disabled.
+#
+proc ::alcoholicz::FlagIsDisabled {flagList flagName} {
+    foreach flag $flagList {
+        # Parse: -<name>[=<value>]
+        if {[regexp {^\-(\w+)} $flag result name] && $name eq $flagName} {
+            return 1
+        }
+    }
+    return 0
+}
+
+####
+# FlagIsEnabled
+#
+# Check if the given flag exists and is enabled.
+#
+proc ::alcoholicz::FlagIsEnabled {flagList flagName} {
+    foreach flag $flagList {
+        # Parse: +<name>[=<value>]
+        if {[regexp {^\+(\w+)} $flag result name] && $name eq $flagName} {
             return 1
         }
     }
