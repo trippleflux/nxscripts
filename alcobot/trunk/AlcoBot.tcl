@@ -23,7 +23,8 @@ namespace eval ::alcoholicz {
         LogDebug LogInfo LogError LogWarning GetFtpDaemon \
         CmdCreate CmdRemove EventExecute EventRegister EventUnregister \
         ModuleFind ModuleHash ModuleInfo ModuleLoad ModuleLoadEx ModuleUnload ModuleRead \
-        FlagCheck FlagCheckSection GetSectionFromEvent GetSectionFromPath \
+        FlagGetValue FlagExists FlagCheckEvent FlagCheckSection \
+        GetSectionFromEvent GetSectionFromPath \
         SendSection SendSectionTheme SendTarget SendTargetTheme
 }
 
@@ -494,21 +495,53 @@ proc ::alcoholicz::ModuleRead {filePath} {
 ################################################################################
 
 ####
-# FlagCheck
+# FlagGetValue
+#
+# Retrieve a flag's value from a list of flags. If the flag and it's value are
+# present, the value is stored in the given variable and non-zero is returned.
+# If the flag is not listed or does not have a value, zero is returned.
+#
+proc ::alcoholicz::FlagGetValue {flagList flagName valueVar} {
+    upvar $valueVar value
+    foreach flag $flagList {
+        # Parse: +|-<name>=<value>
+        if {[regexp {^(?:\+|\-)(\w+)=(.+)$} $flag result name value] && $name eq $flagName} {
+            return 1
+        }
+    }
+    return 0
+}
+
+####
+# FlagExists
+#
+# Check if the given flag exists in a list of flags.
+#
+proc ::alcoholicz::FlagExists {flagList flagName} {
+    foreach flag $flagList {
+        # Parse: +|-<name>[=<value>]
+        if {[regexp {^(?:\+|\-)(\w+)} $flag result name] && $name eq $flagName} {
+            return 1
+        }
+    }
+    return 0
+}
+
+####
+# FlagCheckEvent
 #
 # Check if the given event is enabled in the flag list.
 #
-proc ::alcoholicz::FlagCheck {flagList event} {
+proc ::alcoholicz::FlagCheckEvent {flagList event} {
     variable flags
     set result 0
 
     foreach flag $flagList {
-        set prefix [string index $flag 0]
-        if {$prefix ne "+" && $prefix ne "-"} {continue}
-        set flag [string range $flag 1 end]
+        # Parse: +|-<name>[=<value>]
+        if {![regexp {^(\+|\-)(\w+)} $flag result prefix name]} {continue}
 
-        if {$flag eq "all" || $flag eq $event || ([info exists flags($flag)] &&
-            [lsearch -sorted $flags($flag) $event] != -1)} {
+        if {$name eq "all" || $name eq $event || ([info exists flags($name)] &&
+            [lsearch -sorted $flags($name) $event] != -1)} {
             set result [string equal $prefix "+"]
         }
     }
@@ -526,10 +559,10 @@ proc ::alcoholicz::FlagCheckSection {section event} {
 
     # Simple wrapper to make my lazy life easier.
     if {[info exists chanSections($section)]} {
-        if {[FlagCheck [lindex $chanSections($section) 1] $event]} {return 1}
+        if {[FlagCheckEvent [lindex $chanSections($section) 1] $event]} {return 1}
     }
     if {[info exists pathSections($section)]} {
-        if {[FlagCheck [lindex $pathSections($section) 2] $event]} {return 1}
+        if {[FlagCheckEvent [lindex $pathSections($section) 2] $event]} {return 1}
     }
     return 0
 }
@@ -555,7 +588,7 @@ proc ::alcoholicz::GetSectionFromEvent {section event} {
 
         # First match wins, so users must restrict the event from in all
         # sections except the one they want it redirected to.
-        if {[FlagCheck [lindex $chanSections($section) 1] $event]} {
+        if {[FlagCheckEvent [lindex $chanSections($section) 1] $event]} {
             return $section
         }
     }
@@ -901,8 +934,9 @@ proc ::alcoholicz::InitVariables {varFiles} {
         ConfigRead $handle
 
         foreach {name value} [ConfigGetEx $handle Flags] {
-            if {![regexp {^[a-z0-9_]+$} $name]} {
-                LogError InitVariables "Invalid flag \"$name\" in \"$filePath\": must be composed of lower-case alphanumeric chars."
+            # Allow underscores for convenience.
+            if {![string is wordchar -strict $name]} {
+                LogError InitVariables "Invalid flag name \"$name\" in \"$filePath\": must be alphanumeric."
                 continue
             }
 
