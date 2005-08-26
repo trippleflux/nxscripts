@@ -124,7 +124,7 @@ test volume-3.5 {volume info: array elements} {
     set names [lsort [array names volInfo]]
     unset -nocomplain volInfo
     set names
-} {flags free id length name total type}
+} {flags free id length name total type used}
 
 test volume-3.6 {volume info: varName isn't an array} {
     unset -nocomplain test; set test 1

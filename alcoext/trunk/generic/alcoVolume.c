@@ -20,12 +20,13 @@ Abstract:
        variable given by varName to store the returned information.
      - Array Contents:
        flags  - A list of lags associated with the file system.
-       free   - Remaining space, expressed in bytes.
        id     - Volume identification number.
        length - Maximum length of a file name.
        name   - Name of the volume.
-       total  - Total space, expressed in bytes.
        type   - Volume type and file system name.
+       free   - Available space, expressed in bytes.
+       used   - Used space, expressed in bytes.
+       total  - Total space, expressed in bytes.
 
 --*/
 
@@ -148,6 +149,7 @@ VolumeObjCmd(
             TCL_STORE_ARRAY("name",   Tcl_NewStringObj(volumeInfo.name, -1));
             TCL_STORE_ARRAY("type",   Tcl_NewStringObj(volumeInfo.type, -1));
             TCL_STORE_ARRAY("free",   Tcl_NewWideIntObj((Tcl_WideInt)volumeInfo.free));
+            TCL_STORE_ARRAY("used",   Tcl_NewWideIntObj((Tcl_WideInt)(volumeInfo.total-volumeInfo.free)));
             TCL_STORE_ARRAY("total",  Tcl_NewWideIntObj((Tcl_WideInt)volumeInfo.total));
 
             // Create a list of applicable volume flags.
