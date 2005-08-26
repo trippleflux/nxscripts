@@ -16,9 +16,7 @@ package require tcltest 2
 namespace import -force ::tcltest::*
 
 set parentPath [file dirname [file dirname [file normalize [info script]]]]
-source [file join $parentPath libs/config.tcl]
-source [file join $parentPath libs/tree.tcl]
-namespace import -force ::alcoholicz::*
+#namespace import -force ::alcoholicz::*
 
 ################################################################################
 # ConfigOpen                                                                   #

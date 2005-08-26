@@ -503,13 +503,14 @@ proc ::alcoholicz::ModuleRead {filePath} {
 #
 proc ::alcoholicz::FlagGetValue {flagList flagName valueVar} {
     upvar $valueVar value
+    set result 0
     foreach flag $flagList {
         # Parse: +|-<name>=<value>
-        if {[regexp {^(?:\+|\-)(\w+)=(.+)$} $flag result name value] && $name eq $flagName} {
-            return 1
+        if {[regexp {^(?:\+|\-)(\w+)=(.+)$} $flag dummy name val] && $name eq $flagName} {
+            set value $val; set result 1
         }
     }
-    return 0
+    return $result
 }
 
 ####
@@ -520,7 +521,7 @@ proc ::alcoholicz::FlagGetValue {flagList flagName valueVar} {
 proc ::alcoholicz::FlagExists {flagList flagName} {
     foreach flag $flagList {
         # Parse: +|-<name>[=<value>]
-        if {[regexp {^(?:\+|\-)(\w+)} $flag result name] && $name eq $flagName} {
+        if {[regexp {^(?:\+|\-)(\w+)} $flag dummy name] && $name eq $flagName} {
             return 1
         }
     }
@@ -533,13 +534,16 @@ proc ::alcoholicz::FlagExists {flagList flagName} {
 # Check if the given flag exists and is disabled.
 #
 proc ::alcoholicz::FlagIsDisabled {flagList flagName} {
+    set result 0
     foreach flag $flagList {
-        # Parse: -<name>[=<value>]
-        if {[regexp {^\-(\w+)} $flag result name] && $name eq $flagName} {
-            return 1
+        # Parse: +|-<name>[=<value>]
+        if {![regexp {^(\+|\-)(\w+)} $flag dummy prefix name]} {continue}
+
+        if {$name eq "all" || $name eq $flagName} {
+            set result [string equal $prefix "-"]
         }
     }
-    return 0
+    return $result
 }
 
 ####
@@ -548,13 +552,16 @@ proc ::alcoholicz::FlagIsDisabled {flagList flagName} {
 # Check if the given flag exists and is enabled.
 #
 proc ::alcoholicz::FlagIsEnabled {flagList flagName} {
+    set result 0
     foreach flag $flagList {
-        # Parse: +<name>[=<value>]
-        if {[regexp {^\+(\w+)} $flag result name] && $name eq $flagName} {
-            return 1
+        # Parse: +|-<name>[=<value>]
+        if {![regexp {^(\+|\-)(\w+)} $flag dummy prefix name]} {continue}
+
+        if {$name eq "all" || $name eq $flagName} {
+            set result [string equal $prefix "+"]
         }
     }
-    return 0
+    return $result
 }
 
 ####
@@ -568,7 +575,7 @@ proc ::alcoholicz::FlagCheckEvent {flagList event} {
 
     foreach flag $flagList {
         # Parse: +|-<name>[=<value>]
-        if {![regexp {^(\+|\-)(\w+)} $flag result prefix name]} {continue}
+        if {![regexp {^(\+|\-)(\w+)} $flag dummy prefix name]} {continue}
 
         if {$name eq "all" || $name eq $event || ([info exists flags($name)] &&
             [lsearch -sorted $flags($name) $event] != -1)} {
@@ -721,6 +728,35 @@ proc ::alcoholicz::SendTargetTheme {target type {valueList ""} {section ""}} {
         return
     }
     SendTarget $target [VarReplace $theme($type) $variables($type) $valueList] $section
+}
+
+################################################################################
+# DCC Commands                                                                 #
+################################################################################
+
+bind dcc n|- "test" ::alcoholicz::DccTest
+
+####
+# DccTest
+#
+# Run the test suite with the ".test" command from Eggdrop's partyline.
+#
+proc ::alcoholicz::DccTest {handle idx text} {
+    variable scriptPath
+    package require tcltest 2
+
+    # Set up test suite.
+    set outChan  [open [file join $scriptPath "tests.log"] w]
+    set testPath [file join $scriptPath "tests"]
+
+    ::tcltest::errorChannel     $outChan
+    ::tcltest::outputChannel    $outChan
+    ::tcltest::singleProcess    1
+    ::tcltest::testsDirectory   $testPath
+    ::tcltest::runAllTests
+
+    close $outChan
+    return
 }
 
 ################################################################################
