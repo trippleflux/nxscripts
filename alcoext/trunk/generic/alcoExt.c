@@ -238,9 +238,9 @@ Alcoext_Init(
     Tcl_Eval(interp, "namespace eval ::alcoholicz {"
         "namespace export compress crypt encode decode volume "
 #ifdef _WINDOWS
-        "ioftpd "
+        "ioftpd"
 #else
-        "glftpd "
+        "glftpd"
 #endif // _WINDOWS
         "}"
         );
