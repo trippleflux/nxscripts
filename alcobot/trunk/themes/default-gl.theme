@@ -133,6 +133,11 @@ TAKE        = [b][Take][b] [b]%(user)[b] took %(credits) of credits from [b]%(ta
 # Command argument help.
 commandHelp = [b]Usage:[b] %(command) %(arguments)
 
+# Module: free
+freeHead    = [b][Free][b] Total Space:
+freeBody    = [b][Free][b] %(sections): %(free) of %(total)
+freeFoot    = [b][Free][b] TOTAL: %(free) of %(total)
+
 # Module: groups
 affilsHead  = [b]Affiliated Groups:[b]
 affilsBody  = [b][%(section)][b] %(groups)
