@@ -731,31 +731,58 @@ proc ::alcoholicz::SendTargetTheme {target type {valueList ""} {section ""}} {
 }
 
 ################################################################################
-# DCC Commands                                                                 #
+# DCC Admin Command                                                                 #
 ################################################################################
 
-bind dcc n|- "test" ::alcoholicz::DccTest
+# Command aliases.
+bind dcc n "alc"        ::alcoholicz::DccAdmin
+bind dcc n "alco"       ::alcoholicz::DccAdmin
+bind dcc n "alcobot"    ::alcoholicz::DccAdmin
+bind dcc n "alcohol"    ::alcoholicz::DccAdmin
+bind dcc n "alcoholicz" ::alcoholicz::DccAdmin
 
 ####
-# DccTest
+# DccAdmin
 #
-# Run the test suite with the ".test" command from Eggdrop's partyline.
+# Bot administration command, used from Eggdrop's party-line.
 #
-proc ::alcoholicz::DccTest {handle idx text} {
+proc ::alcoholicz::DccAdmin {handle idx text} {
     variable scriptPath
-    package require tcltest 2
+    set argv [ArgsToList $text]
 
-    # Set up test suite.
-    set outChan  [open [file join $scriptPath "tests.log"] w]
-    set testPath [file join $scriptPath "tests"]
+    set event [string toupper [lindex $argv 0]]
+    if {$event eq "REHASH" || $event eq "RELOAD"} {
+        # Reload configuration file.
+        InitMain
+    } elseif {$event eq "TEST" || $event eq "TESTS"} {
+        package require tcltest 2
 
-    ::tcltest::errorChannel     $outChan
-    ::tcltest::outputChannel    $outChan
-    ::tcltest::singleProcess    1
-    ::tcltest::testsDirectory   $testPath
-    ::tcltest::runAllTests
+        # The test suite will change the working directory.
+        set workingDir [pwd]
 
-    close $outChan
+        # Configure test suite options.
+        set testPath [file join $scriptPath "tests"]
+        set outChan  [open [file join $scriptPath "tests.log"] w]
+
+        if {[catch {
+            ::tcltest::errorChannel     $outChan
+            ::tcltest::outputChannel    $outChan
+            ::tcltest::singleProcess    1
+            ::tcltest::testsDirectory   $testPath
+            ::tcltest::workingDirectory $testPath
+            ::tcltest::runAllTests
+        }]} {
+            puts $outChan $::errorInfo
+        }
+
+        cd $workingDir
+        close $outChan
+    } else {
+        putdcc $idx "Alcoholicz Bot DCC Admin Help"
+        putdcc $idx "[b].help[b]   - Command help."
+        putdcc $idx "[b].reload[b] - Reload configuration."
+        putdcc $idx "[b].test[b]   - Run test suite."
+    }
     return
 }
 
@@ -841,7 +868,7 @@ proc ::alcoholicz::InitConfig {filePath} {
 proc ::alcoholicz::InitLibraries {rootPath} {
     global auto_path
 
-    set libPath [file join $rootPath libs]
+    set libPath [file join $rootPath "libs"]
     foreach script {constants.tcl common.tcl config.tcl ftp.tcl tree.tcl} {
         set script [file join $libPath $script]
         if {[catch {source $script} message]} {
