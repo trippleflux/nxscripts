@@ -40,8 +40,11 @@ VolumeObjCmd
 
 Arguments:
     dummy  - Not used.
+
     interp - Current interpreter.
+
     objc   - Number of arguments.
+
     objv   - Argument objects.
 
 Return Value:

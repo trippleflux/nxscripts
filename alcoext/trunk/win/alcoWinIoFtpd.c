@@ -20,40 +20,35 @@ static int
 IoInfoCmd(
     Tcl_Interp *interp,
     int objc,
-    Tcl_Obj *CONST objv[],
-    ExtState *statePtr
+    Tcl_Obj *CONST objv[]
     );
 
 static int
 IoKickCmd(
     Tcl_Interp *interp,
     int objc,
-    Tcl_Obj *CONST objv[],
-    ExtState *statePtr
+    Tcl_Obj *CONST objv[]
     );
 
 static int
 IoKillCmd(
     Tcl_Interp *interp,
     int objc,
-    Tcl_Obj *CONST objv[],
-    ExtState *statePtr
+    Tcl_Obj *CONST objv[]
     );
 
 static int
 IoResolveCmd(
     Tcl_Interp *interp,
     int objc,
-    Tcl_Obj *CONST objv[],
-    ExtState *statePtr
+    Tcl_Obj *CONST objv[]
     );
 
 static int
 IoWhoCmd(
     Tcl_Interp *interp,
     int objc,
-    Tcl_Obj *CONST objv[],
-    ExtState *statePtr
+    Tcl_Obj *CONST objv[]
     );
 
 
@@ -103,13 +98,11 @@ IoInfoCmd
     Retrieves information from an ioFTPD message window.
 
 Arguments:
-    interp   - Current interpreter.
+    interp - Current interpreter.
 
-    objc     - Number of arguments.
+    objc   - Number of arguments.
 
-    objv     - Argument objects.
-
-    statePtr - Pointer to a 'ExtState' structure.
+    objv   - Argument objects.
 
 Return Value:
     A standard Tcl result.
@@ -119,8 +112,7 @@ static int
 IoInfoCmd(
     Tcl_Interp *interp,
     int objc,
-    Tcl_Obj *CONST objv[],
-    ExtState *statePtr
+    Tcl_Obj *CONST objv[]
     )
 {
     if (objc != 4) {
@@ -146,13 +138,11 @@ IoKickCmd
     Kicks the specified ioFTPD user.
 
 Arguments:
-    interp   - Current interpreter.
+    interp - Current interpreter.
 
-    objc     - Number of arguments.
+    objc   - Number of arguments.
 
-    objv     - Argument objects.
-
-    statePtr - Pointer to a 'ExtState' structure.
+    objv   - Argument objects.
 
 Return Value:
     A standard Tcl result.
@@ -162,8 +152,7 @@ static int
 IoKickCmd(
     Tcl_Interp *interp,
     int objc,
-    Tcl_Obj *CONST objv[],
-    ExtState *statePtr
+    Tcl_Obj *CONST objv[]
     )
 {
     if (objc != 4) {
@@ -183,13 +172,11 @@ IoKillCmd
     Kills the specified ioFTPD connection ID.
 
 Arguments:
-    interp   - Current interpreter.
+    interp - Current interpreter.
 
-    objc     - Number of arguments.
+    objc   - Number of arguments.
 
-    objv     - Argument objects.
-
-    statePtr - Pointer to a 'ExtState' structure.
+    objv   - Argument objects.
 
 Return Value:
     A standard Tcl result.
@@ -199,8 +186,7 @@ static int
 IoKillCmd(
     Tcl_Interp *interp,
     int objc,
-    Tcl_Obj *CONST objv[],
-    ExtState *statePtr
+    Tcl_Obj *CONST objv[]
     )
 {
     if (objc != 4) {
@@ -220,13 +206,11 @@ IoResolveCmd
     Resolves names and IDs for users and groups.
 
 Arguments:
-    interp   - Current interpreter.
+    interp - Current interpreter.
 
-    objc     - Number of arguments.
+    objc   - Number of arguments.
 
-    objv     - Argument objects.
-
-    statePtr - Pointer to a 'ExtState' structure.
+    objv   - Argument objects.
 
 Return Value:
     A standard Tcl result.
@@ -236,8 +220,7 @@ static int
 IoResolveCmd(
     Tcl_Interp *interp,
     int objc,
-    Tcl_Obj *CONST objv[],
-    ExtState *statePtr
+    Tcl_Obj *CONST objv[]
     )
 {
     int index;
@@ -255,15 +238,19 @@ IoResolveCmd(
 
     switch ((enum options) index) {
         case OPTION_GID: {
+            // Group ID to group name.
             break;
         }
         case OPTION_GROUP: {
+            // Group name to group ID.
             break;
         }
         case OPTION_UID: {
+            // User ID to user name.
             break;
         }
         case OPTION_USER: {
+            // User name to user ID.
             break;
         }
     }
@@ -280,13 +267,11 @@ IoWhoCmd
     Retrieves online user information from ioFTPD's shared memory.
 
 Arguments:
-    interp   - Current interpreter.
+    interp - Current interpreter.
 
-    objc     - Number of arguments.
+    objc   - Number of arguments.
 
-    objv     - Argument objects.
-
-    statePtr - Pointer to a 'ExtState' structure.
+    objv   - Argument objects.
 
 Return Value:
     A standard Tcl result.
@@ -296,8 +281,7 @@ static int
 IoWhoCmd(
     Tcl_Interp *interp,
     int objc,
-    Tcl_Obj *CONST objv[],
-    ExtState *statePtr
+    Tcl_Obj *CONST objv[]
     )
 {
     int elementCount;
@@ -316,8 +300,7 @@ IoWhoCmd(
         return TCL_ERROR;
     }
 
-    // Never make assumptions on type sizes.
-    fields = (unsigned char *) ckalloc(elementCount * sizeof(unsigned char));
+    fields = (unsigned char *)ckalloc(elementCount * sizeof(unsigned char));
 
     // Create an array of indices from 'whoFields'.
     for (i = 0; i < elementCount; i++) {
@@ -326,7 +309,7 @@ IoWhoCmd(
             goto end;
         }
 
-        fields[i] = (unsigned char) fieldIndex;
+        fields[i] = (unsigned char)fieldIndex;
     }
 
     // TODO: IPC stuff.
@@ -344,13 +327,13 @@ IoFtpdObjCmd
   	This function provides the "ioftpd" Tcl command.
 
 Arguments:
-    clientData - Pointer to a 'ExtState' structure.
+    dummy  - Not used.
 
-    interp     - Current interpreter.
+    interp - Current interpreter.
 
-    objc       - Number of arguments.
+    objc   - Number of arguments.
 
-    objv       - Argument objects.
+    objv   - Argument objects.
 
 Return Value:
     A standard Tcl result.
@@ -364,7 +347,6 @@ IoFtpdObjCmd(
     Tcl_Obj *CONST objv[]
     )
 {
-    ExtState *statePtr = (ExtState *) clientData;
     int index;
     static const char *options[] = {
         "info", "kick", "kill", "resolve", "who", NULL
@@ -383,11 +365,11 @@ IoFtpdObjCmd(
     }
 
     switch ((enum options) index) {
-        case OPTION_INFO:    return IoInfoCmd(interp, objc, objv, statePtr);
-        case OPTION_KICK:    return IoKickCmd(interp, objc, objv, statePtr);
-        case OPTION_KILL:    return IoKillCmd(interp, objc, objv, statePtr);
-        case OPTION_RESOLVE: return IoResolveCmd(interp, objc, objv, statePtr);
-        case OPTION_WHO:     return IoWhoCmd(interp, objc, objv, statePtr);
+        case OPTION_INFO:    return IoInfoCmd(interp, objc, objv);
+        case OPTION_KICK:    return IoKickCmd(interp, objc, objv);
+        case OPTION_KILL:    return IoKillCmd(interp, objc, objv);
+        case OPTION_RESOLVE: return IoResolveCmd(interp, objc, objv);
+        case OPTION_WHO:     return IoWhoCmd(interp, objc, objv);
     }
 
     // This point should never be reached.

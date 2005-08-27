@@ -228,7 +228,7 @@ Alcoext_Init(
 
 #ifdef _WINDOWS
         Tcl_CreateObjCommand(interp, "::alcoholicz::ioftpd", IoFtpdObjCmd,
-            (ClientData) statePtr, (Tcl_CmdDeleteProc *) NULL);
+            (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
 #else // _WINDOWS
         Tcl_CreateObjCommand(interp, "::alcoholicz::glftpd", GlFtpdObjCmd,
             (ClientData) statePtr, (Tcl_CmdDeleteProc *) NULL);
