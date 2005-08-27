@@ -721,11 +721,6 @@ proc ::nxTools::Utils::Main {argv} {
     set argLength [llength [set argList [ArgList $argv]]]
     set event [string toupper [lindex $argList 0]]
     switch -- $event {
-        {DAYSTATS} {
-            if {![IsTrue $misc(dZSbotLogging)]} {
-                putlog "DAYSTATS: \"Launch Daystats\""
-            }
-        }
         {DRIVES} {
             set result [SiteDrives]
         }

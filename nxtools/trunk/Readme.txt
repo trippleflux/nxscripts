@@ -207,10 +207,6 @@ wipe        = M1V
     under the [Scheduler] section in the ioFTPD.ini file. Carefully read the
     explanation of each scheduler event, or you may regret using it!
 
-    This event triggers the sitebot's daily stats announce, only necessary if
-    you are currently using an nxTools compatible sitebot.
-nxDayStats = 59 23 * * TCL ..\scripts\nxTools\nxUtilities.tcl DAYSTATS
-
     This event removes invalid and/or old entries from your file and directory
     dupe database.
 nxDupeClean = 0 0 * * TCL ..\scripts\nxTools\nxDupe.tcl CLEAN
