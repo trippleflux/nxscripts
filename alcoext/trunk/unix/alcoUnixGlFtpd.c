@@ -939,7 +939,7 @@ GlConfigCmd(
             case SWITCH_KEY: {
                 long shmKey;
 
-                if (Tcl_GetLongFromObj(interp, objv[objc-1], &shmKey) != TCL_OK) {
+                if (Tcl_GetLongFromObj(interp, objv[i], &shmKey) != TCL_OK) {
                     return TCL_ERROR;
                 }
                 handlePtr->shmKey = (key_t) shmKey;

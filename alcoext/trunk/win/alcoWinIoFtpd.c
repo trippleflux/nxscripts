@@ -341,7 +341,7 @@ Return Value:
 --*/
 int
 IoFtpdObjCmd(
-    ClientData clientData,
+    ClientData dummy,
     Tcl_Interp *interp,
     int objc,
     Tcl_Obj *CONST objv[]
