@@ -47,7 +47,6 @@ PKG_CFLAGS  = "-DPACKAGE_NAME=\"$(PKG_NAME)\"" "-DPACKAGE_DESC=\"$(PKG_DESC)\"" 
 PKG_LFLAGS  = /NODEFAULTLIB:MSVCRT /OPT:NOWIN98
 LTC_CFLAGS  =
 TCL_CFLAGS  = -DUSE_TCL_STUBS
-ZLIB_CFLAGS = -DASMV -DASMINF
 
 # -------------------------------------------------------------------------
 
@@ -161,16 +160,10 @@ INTERMEDIATE_FILES=\
     $(PKG_INTDIR)\compress.obj\
     $(PKG_INTDIR)\crc32.obj\
     $(PKG_INTDIR)\deflate.obj\
-    $(PKG_INTDIR)\gvmat32.obj\
-    $(PKG_INTDIR)\gvmat32c.obj\
-    $(PKG_INTDIR)\gzio.obj\
-    $(PKG_INTDIR)\infback.obj\
-    $(PKG_INTDIR)\inffas32.obj\
     $(PKG_INTDIR)\inffast.obj\
     $(PKG_INTDIR)\inflate.obj\
     $(PKG_INTDIR)\inftrees.obj\
     $(PKG_INTDIR)\trees.obj\
-    $(PKG_INTDIR)\uncompr.obj\
     $(PKG_INTDIR)\zutil.obj\
     $(PKG_INTDIR)\nxHelper.obj\
     $(PKG_INTDIR)\nxBase64.obj\
@@ -188,16 +181,10 @@ OBJECT_FILES=\
     $(ROOT)\zlib\compress.obj\
     $(ROOT)\zlib\crc32.obj\
     $(ROOT)\zlib\deflate.obj\
-    $(ROOT)\zlib\gvmat32.obj\
-    $(ROOT)\zlib\gvmat32c.obj\
-    $(ROOT)\zlib\gzio.obj\
-    $(ROOT)\zlib\infback.obj\
-    $(ROOT)\zlib\inffas32.obj\
     $(ROOT)\zlib\inffast.obj\
     $(ROOT)\zlib\inflate.obj\
     $(ROOT)\zlib\inftrees.obj\
     $(ROOT)\zlib\trees.obj\
-    $(ROOT)\zlib\uncompr.obj\
     $(ROOT)\zlib\zutil.obj\
     $(ROOT)\source\nxHelper.obj\
     $(ROOT)\source\nxBase64.obj\
@@ -213,7 +200,7 @@ OBJECT_FILES=\
 # -------------------------------------------------------------------------
 
 AFLAGS  = -nologo -coff
-CFLAGS  = $(cdebug) $(cflags) $(cvarsmt) $(PKG_CFLAGS) $(LTC_CFLAGS) $(TCL_CFLAGS) $(ZLIB_CFLAGS) $(INCLUDE_DIRS)
+CFLAGS  = $(cdebug) $(cflags) $(cvarsmt) $(PKG_CFLAGS) $(LTC_CFLAGS) $(TCL_CFLAGS) $(INCLUDE_DIRS)
 LFLAGS  = $(ldebug) $(dlllflags) $(conlibsmt) $(PKG_LFLAGS) $(TCL_STUBLIB)
 RFLAGS  = $(rcflags) $(rcvars) $(PKG_CFLAGS)
 
