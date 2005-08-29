@@ -36,7 +36,7 @@ namespace eval ::alcoholicz {
 # cmdFlags      - Command flags.
 # cmdNames      - Commands created with "CmdCreate".
 # colours       - Section colour mappings.
-# events   - Events grouped by their function.
+# events        - Events grouped by their function.
 # event_<type>  - Event callback scripts.
 # format        - Text formatting definitions.
 # modules       - Loaded modules.
@@ -942,8 +942,10 @@ proc ::alcoholicz::InitLibraries {rootPath} {
         }
     }
 
-    # Add the libs directory to the package search path.
-    if {[lsearch -exact $auto_path $libPath] == -1} {
+    # Some users reported that "auto_path" was not always set,
+    # which is bizarre considering Tcl initialises this variable.
+    if {![info exists auto_path] || [lsearch -exact $auto_path $libPath] == -1} {
+        # Add the libs directory to the package search path.
         lappend auto_path $libPath
     }
 
