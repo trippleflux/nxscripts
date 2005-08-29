@@ -94,8 +94,8 @@ proc ::alcoholicz::Free::Load {firstLoad} {
         set prefix $::alcoholicz::cmdPrefix
     }
 
-    CmdCreate - ${prefix}df   [namespace current]::Command
-    CmdCreate - ${prefix}free [namespace current]::Command
+    CmdCreate channel ${prefix}df   [namespace current]::Command
+    CmdCreate channel ${prefix}free [namespace current]::Command
     return
 }
 

@@ -195,15 +195,15 @@ proc ::alcoholicz::Groups::Load {firstLoad} {
     }
 
     # User commands (list groups).
-    CmdCreate - ${prefix}affils  [namespace current]::ListAffils
-    CmdCreate - ${prefix}affills [namespace current]::ListAffils
-    CmdCreate - ${prefix}banned  [namespace current]::ListBanned
+    CmdCreate channel ${prefix}affils  [namespace current]::ListAffils
+    CmdCreate channel ${prefix}affills [namespace current]::ListAffils
+    CmdCreate channel ${prefix}banned  [namespace current]::ListBanned
 
     # Administration commands (add/remove groups).
-    CmdCreate o ${prefix}addaffil [namespace current]::ChangeAffils ADD
-    CmdCreate o ${prefix}delaffil [namespace current]::ChangeAffils DEL
-    CmdCreate o ${prefix}addban   [namespace current]::ChangeBanned ADD
-    CmdCreate o ${prefix}delban   [namespace current]::ChangeBanned DEL
+    CmdCreate channel ${prefix}addaffil [list [namespace current]::ChangeAffils ADD]
+    CmdCreate channel ${prefix}delaffil [list [namespace current]::ChangeAffils DEL]
+    CmdCreate channel ${prefix}addban   [list [namespace current]::ChangeBanned ADD]
+    CmdCreate channel ${prefix}delban   [list [namespace current]::ChangeBanned DEL]
 
     return
 }

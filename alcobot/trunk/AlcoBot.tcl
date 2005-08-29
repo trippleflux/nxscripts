@@ -133,7 +133,7 @@ proc ::alcoholicz::SetFtpDaemon {name} {
 #
 # Create a channel command.
 #
-proc ::alcoholicz::CmdCreate {type name script {argDesc ""} {cmdDesc ""}} {
+proc ::alcoholicz::CmdCreate {type name script {cmdDesc ""} {argDesc ""}} {
     variable cmdNames
 
     switch -- $type {
@@ -172,6 +172,7 @@ proc ::alcoholicz::CmdGetFlags {command} {
 # CmdGetList
 #
 # Retrieve a list of commands created with "CmdCreate".
+# List: {type command} {script argDesc cmdDesc} ...
 #
 proc ::alcoholicz::CmdGetList {typePattern namePattern} {
     variable cmdNames
