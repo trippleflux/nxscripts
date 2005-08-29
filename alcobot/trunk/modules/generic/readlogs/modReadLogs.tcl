@@ -253,10 +253,6 @@ proc ::alcoholicz::ReadLogs::Load {firstLoad} {
     variable timerId
     upvar ::alcoholicz::configHandle configHandle
 
-    if {!$firstLoad && [catch {killutimer $timerId} error]} {
-        LogError ModReadLogs "Unable to kill log timer: $error"
-    }
-
     # Regular expression patterns used to remove the time-stamp
     # from log entries and extract meaningful data.
     unset -nocomplain reBase reSysop
@@ -289,7 +285,7 @@ proc ::alcoholicz::ReadLogs::Load {firstLoad} {
         set reBase(2) {}
         set reBase(3) $reBase(1)
 
-        # Common sysop.log entries.
+        # Common SysOp.log entries.
         set reSysop(GADDUSER) {^'(\S+)' created user '(\S+)' in group '(\S+)'\.$}
         set reSysop(RENUSER)  {^'(\S+)' renamed user '(\S+)' to '(\S+)'\.$}
         set reSysop(DELUSER)  {^'(\S+)' deleted user '(\S+)'\.$}
@@ -323,7 +319,9 @@ proc ::alcoholicz::ReadLogs::Load {firstLoad} {
     # Paths to exclude from announcing.
     set excludePaths [ArgsToList [ConfigGet $configHandle Module::ReadLogs excludePaths]]
 
-    set timerId [utimer 1 [namespace current]::Timer]
+    if {$firstLoad} {
+        set timerId [utimer 1 [namespace current]::Timer]
+    }
     LogInfo "Monitoring $logCount log file(s)."
     return
 }

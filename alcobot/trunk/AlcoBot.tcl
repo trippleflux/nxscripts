@@ -968,10 +968,9 @@ proc ::alcoholicz::InitModules {modList} {
     variable modules
     LogInfo "Loading modules..."
 
-    # Save current array before unsetting it.
+    set prevModList [array names modules]
     array set prevCmdNames [array get cmdNames]
-    array set prevModules [array get modules]
-    unset -nocomplain cmdNames modules
+    unset -nocomplain cmdNames
 
     # TODO:
     # - The module load order should reflect their dependency requirements.
@@ -982,12 +981,15 @@ proc ::alcoholicz::InitModules {modList} {
             LogInfo "Unable to load module \"$modName\": $message"
         } else {
             LogInfo "Module Loaded: $modName"
-            unset -nocomplain prevModules($modName)
+            set index [lsearch -exact $prevModList $modName]
+            if {$index != -1} {
+                set prevModList [lreplace $prevModList $index $index]
+            }
         }
     }
 
     # Remove unreferenced modules.
-    foreach modName [array names prevModules] {
+    foreach modName $prevModList {
         if {[catch {ModuleUnload $modName} message]} {
             LogInfo "Unable to unload module \"$modName\": $message"
         } else {
@@ -998,7 +1000,6 @@ proc ::alcoholicz::InitModules {modList} {
     # Remove unreferenced commands.
     foreach name [array names prevCmdNames] {
         if {![info exists cmdNames($name)]} {
-            LogDebug InitModules "Removing unused command \"[lindex $name 1]\"."
             set cmdNames($name) $prevCmdNames($name)
             CmdRemove [lindex $name 0] [lindex $name 1]
         }
