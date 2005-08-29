@@ -196,7 +196,6 @@ proc ::alcoholicz::Groups::Load {firstLoad} {
 
     # User commands (list groups).
     CmdCreate channel ${prefix}affils  [namespace current]::ListAffils
-    CmdCreate channel ${prefix}affills [namespace current]::ListAffils
     CmdCreate channel ${prefix}banned  [namespace current]::ListBanned
 
     # Administration commands (add/remove groups).
