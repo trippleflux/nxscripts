@@ -2,7 +2,9 @@
 #                             nxTools - Change Log                             #
 ################################################################################
 
-nxTools v0.9.12 (XXX XX, 2005):
+nxTools v0.9.13 (XXX XX, 2005):
+
+nxTools v0.9.12 (Aug 29, 2005):
   NEW: Option to force requests to be proper release names (e.g. release.name-group).
   CHG: MP3 pre's are logged as PRE-MP3 instead of just PRE (needed for the sitebot).
   FIX: Forgot to remove the invite options from nxTools.cfg.

@@ -2,9 +2,13 @@
 #                             nxTools - Upgrading                              #
 ################################################################################
 
-0.9.11 -> 0.9.12
- - New config option: req(ReleaseNames).
+0.9.11 -> 0.9.13
+ - Replace /scripts/nxLib.tcl and all files located in /scripts/nxTools/.
  - Removed config options: invite(ConfigFile) and invite(Default).
+
+0.9.11 -> 0.9.12
+ - Replace /scripts/nxLib.tcl and all files located in /scripts/nxTools/.
+ - New config option: req(ReleaseNames).
 
 0.9.10 -> 0.9.11
  - Download an updated nxTools-Libraries package.
