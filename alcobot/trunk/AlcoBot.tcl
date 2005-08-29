@@ -1134,7 +1134,7 @@ proc ::alcoholicz::InitMain {} {
 
     LogInfo "Loading libraries..."
     if {[catch {InitLibraries $scriptPath} message]} {
-        LogError InitMain $message
+        LogError Libraries $message
         die
     }
 
@@ -1142,13 +1142,17 @@ proc ::alcoholicz::InitMain {} {
     LogInfo "Loading configuration..."
     set configFile [file join $scriptPath "AlcoBot.conf"]
     if {[catch {InitConfig $configFile} message]} {
-        LogError InitMain $message
+        LogError Config $message
         die
     }
 
-    InitVariables [ArgsToList [ConfigGet $configHandle General varFiles]]
-    InitTheme     [ArgsToList [ConfigGet $configHandle General themeFile]]
-    InitModules   [ArgsToList [ConfigGet $configHandle General modules]]
+    foreach funct {InitVariables InitTheme InitModules} option {varFiles themeFile modules} {
+        set value [ArgsToList [ConfigGet $configHandle General $option]]
+        if {[catch {$funct $value} message]} {
+            LogError [string range $funct 4 end] $message
+            die
+        }
+    }
 
     ConfigFree $configHandle
     LogInfo "Sitebot loaded, configured for [GetFtpDaemon]."
