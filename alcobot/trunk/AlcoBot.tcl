@@ -21,8 +21,9 @@ namespace eval ::alcoholicz {
 
     namespace export b c u r o \
         LogDebug LogInfo LogError LogWarning GetFtpDaemon \
-        CmdCreate CmdRemove EventExecute EventRegister EventUnregister \
-        ModuleFind ModuleHash ModuleInfo ModuleLoad ModuleLoadEx ModuleUnload ModuleRead \
+        CmdCreate CmdGetFlags CmdGetList CmdRemove \
+        EventExecute EventRegister EventUnregister \
+        ModuleFind ModuleHash ModuleInfo ModuleLoad ModuleUnload ModuleRead \
         FlagGetValue FlagExists FlagIsDisabled FlagIsEnabled FlagCheckEvent FlagCheckSection \
         GetSectionFromEvent GetSectionFromPath \
         SendSection SendSectionTheme SendTarget SendTargetTheme
@@ -32,15 +33,15 @@ namespace eval ::alcoholicz {
 # Context Array Variables
 #
 # chanSections  - Channel sections.
+# cmdFlags      - Command flags.
+# cmdNames      - Commands created with "CmdCreate".
 # colours       - Section colour mappings.
-# commands      - Bound channel commands.
+# events   - Events grouped by their function.
 # event_<type>  - Event callback scripts.
-# flags         - Event groupings.
 # format        - Text formatting definitions.
 # modules       - Loaded modules.
 # pathSections  - Path sections.
-# replace       - Static text replacements.
-# targets       - Targets for channel commands.
+# replace       - Static variable replacements.
 # theme         - Event theme definitions.
 # variables     - Event variable definitions.
 #
@@ -132,57 +133,125 @@ proc ::alcoholicz::SetFtpDaemon {name} {
 #
 # Create a channel command.
 #
-proc ::alcoholicz::CmdCreate {flags command args} {
-    variable commands
-    bind pub $flags $command [list [namespace current]::CmdProc $args]
+proc ::alcoholicz::CmdCreate {type name script {argDesc ""} {cmdDesc ""}} {
+    variable cmdNames
 
-    set commands($command) [list $flags $args]
+    switch -- $type {
+        chan -
+        channel {
+            set type channel
+            bind pub -|- $name [list [namespace current]::CmdChannelProc $script]
+        }
+        default {
+            # Support for other command types will come later.
+            error "invalid command type \"$type\""
+        }
+    }
+
+    set cmdNames([list $type $name]) [list $script $argDesc $cmdDesc]
     return
+}
+
+####
+# CmdGetFlags
+#
+# Retrieve a list of flags for the given command.
+#
+proc ::alcoholicz::CmdGetFlags {command} {
+    variable cmdFlags
+    foreach pattern [array names cmdFlags] {
+        if {[string match $pattern $command]} {
+            LogDebug CmdGetFlags "Matched command \"$command\" to pattern \"$pattern\"."
+            return $cmdFlags($pattern)
+        }
+    }
+    return {}
+}
+
+####
+# CmdGetList
+#
+# Retrieve a list of commands created with "CmdCreate".
+#
+proc ::alcoholicz::CmdGetList {typePattern namePattern} {
+    variable cmdNames
+    return [array get cmdNames [list $typePattern $namePattern]]
 }
 
 ####
 # CmdRemove
 #
-# Remove a channel command created with 'CmdCreate'.
+# Remove a channel command created with "CmdCreate".
 #
-proc ::alcoholicz::CmdRemove {command} {
-    variable commands
-    if {![info exists commands($command)]} {
-        error "unknown command \"$command\""
-    }
-    foreach {flags script} $commands($command) {break}
-    unbind pub $flags $command [list [namespace current]::CmdProc $script]
+proc ::alcoholicz::CmdRemove {type name} {
+    variable cmdNames
 
-    unset commands($command)
+    if {![info exists cmdNames([list $type $name])]} {
+        # The caller could have specified an invalid command type, a
+        # command name that was already removed, or a command name that
+        # was not created with "CmdCreate".
+        error "invalid command type or name"
+    }
+
+    set script [lindex $cmdNames([list $type $name]) 0]
+
+    switch -- $type {
+        chan -
+        channel {
+            unbind pub -|- $name [list [namespace current]::CmdChannelProc $script]
+        }
+        default {
+            # Support for other command types will come later.
+            error "invalid command type \"$type\""
+        }
+    }
+
+    unset cmdNames([list $type $name])
     return
 }
 
 ####
-# CmdProc
+# CmdChannelProc
 #
-# Wrapper for Eggdrop 'bind pub' commands. Parses the 'text' argument into a
+# Wrapper for Eggdrop "bind pub" commands. Parses the text argument into a
 # Tcl list and provides more information when a command evaluation fails.
 #
-proc ::alcoholicz::CmdProc {script user host handle channel text} {
-    variable targets
+proc ::alcoholicz::CmdChannelProc {script user host handle channel text} {
+    global lastbind
     set target "PRIVMSG $channel"
 
-    # Check if the invoked command has a predefined target.
-    foreach name [array names targets] {
-        if {[string match $name $::lastbind]} {
-            LogDebug CmdProc "Matched command \"$::lastbind\" to \"$name\", using target \"$targets($name)\"."
-            switch -- $targets($name) {
-                notice {set target "NOTICE $user"}
-                user   {set target "PRIVMSG $user"}
-                default {return}
+    foreach {enabled name value} [CmdGetFlags $lastbind] {
+        set result 0
+        switch -- $name {
+            all     {set result 1}
+            channel {set result [string equal -nocase $value $channel]}
+            flags   {set result [matchattr $user $value]}
+            host    {set result [string match -nocase $value $host]}
+            target  {
+                if {$value eq "notice"} {
+                    set target "NOTICE $user"
+                } elseif {$value eq "private"} {
+                    set target "PRIVMSG $user"
+                }
+            }
+            user    {set result [string equal -nocase $value $user]}
+            default {continue}
+        }
+        if {$result} {
+            if {!$enabled} {
+                LogDebug CmdChannel "Matched negation for command \"$lastbind\" on \"$name\", returning."
+                return
             }
             break
         }
     }
 
     set argv [ArgsToList $text]
+
+    # Eval is used to expand arguments to the callback procedure,
+    # e.g. "CmdCreate channel !foo [list ChanFooCmd abc 123]".
     if {[catch {eval $script [list $user $host $handle $channel $target [llength $argv] $argv]} message]} {
-        LogError CmdProc "Error evaluating \"$script\":\n$::errorInfo"
+        LogError CmdChannel "Error evaluating \"$script\":\n$::errorInfo"
     }
     return
 }
@@ -570,15 +639,15 @@ proc ::alcoholicz::FlagIsEnabled {flagList flagName} {
 # Check if the given event is enabled in the flag list.
 #
 proc ::alcoholicz::FlagCheckEvent {flagList event} {
-    variable flags
+    variable events
     set result 0
 
     foreach flag $flagList {
         # Parse: +|-<name>[=<value>]
         if {![regexp {^(\+|\-)(\w+)} $flag dummy prefix name]} {continue}
 
-        if {$name eq "all" || $name eq $event || ([info exists flags($name)] &&
-            [lsearch -sorted $flags($name) $event] != -1)} {
+        if {$name eq "all" || $name eq $event || ([info exists events($name)] &&
+            [lsearch -sorted $events($name) $event] != -1)} {
             set result [string equal $prefix "+"]
         }
     }
@@ -731,7 +800,7 @@ proc ::alcoholicz::SendTargetTheme {target type {valueList ""} {section ""}} {
 }
 
 ################################################################################
-# DCC Admin Command                                                                 #
+# DCC Admin Command                                                            #
 ################################################################################
 
 # Command aliases.
@@ -747,14 +816,18 @@ bind dcc n "alcoholicz" ::alcoholicz::DccAdmin
 # Bot administration command, used from Eggdrop's party-line.
 #
 proc ::alcoholicz::DccAdmin {handle idx text} {
-    variable scriptPath
     set argv [ArgsToList $text]
-
     set event [string toupper [lindex $argv 0]]
-    if {$event eq "REHASH" || $event eq "RELOAD"} {
+
+    if {$event eq "DUMP"} {
+        # TODO: dump internal arrays
+
+    } elseif {$event eq "REHASH" || $event eq "RELOAD"} {
         # Reload configuration file.
         InitMain
+
     } elseif {$event eq "TEST" || $event eq "TESTS"} {
+        variable scriptPath
         package require tcltest 2
 
         # The test suite will change the working directory.
@@ -778,10 +851,11 @@ proc ::alcoholicz::DccAdmin {handle idx text} {
         cd $workingDir
         close $outChan
     } else {
-        putdcc $idx "Alcoholicz Bot DCC Admin Help"
-        putdcc $idx "[b].help[b]   - Command help."
-        putdcc $idx "[b].reload[b] - Reload configuration."
-        putdcc $idx "[b].test[b]   - Run test suite."
+        putdcc $idx "[b]Alcoholicz Bot DCC Admin Help[b]"
+        putdcc $idx ".dump   - Dump configuration."
+        putdcc $idx ".help   - Command help."
+        putdcc $idx ".reload - Reload configuration."
+        putdcc $idx ".test   - Run test suite."
     }
     return
 }
@@ -799,12 +873,12 @@ proc ::alcoholicz::DccAdmin {handle idx text} {
 proc ::alcoholicz::InitConfig {filePath} {
     variable configFile
     variable configHandle
+    variable cmdFlags
     variable defaultSection
     variable chanSections
     variable pathSections
-    variable targets
 
-    unset -nocomplain chanSections pathSections targets
+    unset -nocomplain cmdFlags chanSections pathSections
 
     # Update configuration path before reading the file.
     set configFile $filePath
@@ -824,37 +898,33 @@ proc ::alcoholicz::InitConfig {filePath} {
         error "Unable to set FTP daemon: $message"
     }
 
+    foreach {name value} [ConfigGetEx $configHandle Commands] {
+        set flags [list]
+        foreach flag [ArgsToList $value] {
+            # Parse command flags into a list.
+            if {[regexp {^(\+|\-)(\w+)=?(.*)$} $flag dummy prefix flag setting]} {
+                lappend flags [string equal "+" $prefix] $flag $setting
+            } else {
+                LogWarning InitConfig "Invalid flag for command \"$name\": $flag"
+            }
+        }
+        set cmdFlags($name) $flags
+    }
+
     # Read channel and path sections.
-    foreach {name options} [ConfigGetEx $configHandle Sections] {
-        set optionList [ArgsToList $options]
-        if {[llength $optionList] == 2} {
-            set chanSections($name) $optionList
-        } elseif {[llength $optionList] == 3} {
-            set pathSections($name) $optionList
+    foreach {name value} [ConfigGetEx $configHandle Sections] {
+        set options [ArgsToList $value]
+        if {[llength $options] == 2} {
+            set chanSections($name) $options
+        } elseif {[llength $options] == 3} {
+            set pathSections($name) $options
         } else {
-            LogWarning InitConfig "Wrong number of options for \"$name\": $options"
+            LogWarning InitConfig "Wrong number of options for section \"$name\": $value"
         }
     }
 
     if {![info exists chanSections($defaultSection)]} {
         error "No default channel section defined, must be named \"$defaultSection\"."
-    }
-
-    foreach {command target} [ConfigGetEx $configHandle Targets] {
-        # Lazy matching for command targets. Commands are sent to
-        # the channel by default, so 'chan*' entries are ignored.
-        switch -glob -- [string tolower $target] {
-            {chan*} {continue}
-            {disable*} {set target disable}
-            {not*} {set target notice}
-            {user} -
-            {priv*} {set target user}
-            default {
-                LogWarning InitConfig "Invalid command target for \"$command\": $target"
-                continue
-            }
-        }
-        set targets($command) $target
     }
     return
 }
@@ -893,13 +963,14 @@ proc ::alcoholicz::InitLibraries {rootPath} {
 # in the "modList" parameter will be unloaded.
 #
 proc ::alcoholicz::InitModules {modList} {
-    variable commands
+    variable cmdNames
     variable modules
     LogInfo "Loading modules..."
 
-    array set prevCommands [array get commands]
+    # Save current array before unsetting it.
+    array set prevCmdNames [array get cmdNames]
     array set prevModules [array get modules]
-    unset -nocomplain commands modules
+    unset -nocomplain cmdNames modules
 
     # TODO:
     # - The module load order should reflect their dependency requirements.
@@ -924,11 +995,11 @@ proc ::alcoholicz::InitModules {modList} {
     }
 
     # Remove unreferenced commands.
-    foreach command [array names prevCommands] {
-        if {![info exists commands($command)]} {
-            foreach {flags script} $prevCommands($command) {break}
-            unbind pub $flags $command [list [namespace current]::CmdProc $script]
-            unset prevCommands($command)
+    foreach name [array names prevCmdNames] {
+        if {![info exists cmdNames($name)]} {
+            LogDebug InitModules "Removing unused command \"[lindex $name 1]\"."
+            set cmdNames($name) $prevCmdNames($name)
+            CmdRemove [lindex $name 0] [lindex $name 1]
         }
     }
     return
@@ -951,22 +1022,22 @@ proc ::alcoholicz::InitTheme {themeFile} {
     set handle [ConfigOpen $themeFile]
     ConfigRead $handle
 
-    # Process '[Colour]' entries.
+    # Process colour entries.
     foreach {name value} [ConfigGetEx $handle Colour] {
         if {![regexp {^(\S+),(\d+)$} $name result section num]} {
             LogWarning InitTheme "Invalid colour entry \"$name\"."
         } elseif {![string is digit -strict $value] || $value < 0 || $value > 15} {
             LogWarning InitTheme "Invalid colour value \"$value\" for \"$name\", must be from 0 to 15."
         } else {
-            # Create a mapping of section colours to use with 'string map'. The
+            # Create a mapping of section colours to use with "string map". The
             # colour index must be zero-padded to two digits to avoid conflicts
             # with other numerical chars. Note that the %s identifier is used
-            # instead of %d to avoid octal interpretation (e.g. 'format %d 08').
+            # instead of %d to avoid octal interpretation (e.g. "format %d 08").
             lappend colours($section) "\[c$num\]" [format "\003%02s" $value]
         }
     }
 
-    # Process '[Format]' entries.
+    # Process format entries.
     set known {prefix date time sizeKilo sizeMega sizeGiga sizeTera speedKilo speedGiga speedMega}
     foreach {name value} [ConfigGetEx $handle Format] {
         set index [lsearch -exact $known $name]
@@ -987,7 +1058,7 @@ proc ::alcoholicz::InitTheme {themeFile} {
         LogWarning InitTheme "Missing required format entries: [JoinLiteral $known]."
     }
 
-    # Process '[Theme]' entries.
+    # Process theme entries.
     set known [array names variables]
     foreach {name value} [ConfigGetEx $handle Theme] {
         set index [lsearch -exact $known $name]
@@ -1016,26 +1087,26 @@ proc ::alcoholicz::InitTheme {themeFile} {
 # Read the given variable definition files.
 #
 proc ::alcoholicz::InitVariables {varFiles} {
-    variable flags
+    variable events
     variable replace
     variable scriptPath
     variable variables
-    unset -nocomplain flags replace variables
+    unset -nocomplain events replace variables
 
     foreach filePath $varFiles {
         set handle [ConfigOpen [file join $scriptPath $filePath]]
         ConfigRead $handle
 
-        foreach {name value} [ConfigGetEx $handle Flags] {
+        foreach {name value} [ConfigGetEx $handle Events] {
             # Allow underscores for convenience.
             if {![string is wordchar -strict $name]} {
-                LogError InitVariables "Invalid flag name \"$name\" in \"$filePath\": must be alphanumeric."
+                LogError InitVariables "Invalid event group name \"$name\" in \"$filePath\": must be alphanumeric."
                 continue
             }
 
-            # Several flags have multiple events defined. Therefore,
+            # Several categories have multiple events defined. Therefore,
             # the config value must be appended to, not replaced.
-            eval lappend [list flags($name)] $value
+            eval lappend [list events($name)] $value
         }
 
         array set replace [ConfigGetEx $handle Replace]
@@ -1044,9 +1115,9 @@ proc ::alcoholicz::InitVariables {varFiles} {
         ConfigClose $handle
     }
 
-    # The contents of flags array must be sorted to use 'lsearch -sorted'.
-    foreach name [array name flags] {
-        set flags($name) [lsort -unique $flags($name)]
+    # The contents of "events" array must be sorted to use "lsearch -sorted".
+    foreach name [array names events] {
+        set events($name) [lsort -unique $events($name)]
     }
     return
 }
