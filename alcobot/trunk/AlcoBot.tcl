@@ -573,14 +573,13 @@ proc ::alcoholicz::ModuleRead {filePath} {
 #
 proc ::alcoholicz::FlagGetValue {flagList flagName valueVar} {
     upvar $valueVar value
-    set result 0
     foreach flag $flagList {
         # Parse: +|-<name>=<value>
-        if {[regexp {^(?:\+|\-)(\w+)=(.+)$} $flag dummy name val] && $name eq $flagName} {
-            set value $val; set result 1
+        if {[regexp {^(?:\+|\-)(\w+)=(.+)$} $flag dummy name result] && $name eq $flagName} {
+            set value $result; return 1
         }
     }
-    return $result
+    return 0
 }
 
 ####
@@ -604,16 +603,15 @@ proc ::alcoholicz::FlagExists {flagList flagName} {
 # Check if the given flag exists and is disabled.
 #
 proc ::alcoholicz::FlagIsDisabled {flagList flagName} {
-    set result 0
     foreach flag $flagList {
         # Parse: +|-<name>[=<value>]
         if {![regexp {^(\+|\-)(\w+)} $flag dummy prefix name]} {continue}
 
         if {$name eq "all" || $name eq $flagName} {
-            set result [string equal $prefix "-"]
+            return [string equal $prefix "-"]
         }
     }
-    return $result
+    return 0
 }
 
 ####
@@ -622,16 +620,15 @@ proc ::alcoholicz::FlagIsDisabled {flagList flagName} {
 # Check if the given flag exists and is enabled.
 #
 proc ::alcoholicz::FlagIsEnabled {flagList flagName} {
-    set result 0
     foreach flag $flagList {
         # Parse: +|-<name>[=<value>]
         if {![regexp {^(\+|\-)(\w+)} $flag dummy prefix name]} {continue}
 
         if {$name eq "all" || $name eq $flagName} {
-            set result [string equal $prefix "+"]
+            return [string equal $prefix "+"]
         }
     }
-    return $result
+    return 0
 }
 
 ####
@@ -641,18 +638,16 @@ proc ::alcoholicz::FlagIsEnabled {flagList flagName} {
 #
 proc ::alcoholicz::FlagCheckEvent {flagList event} {
     variable events
-    set result 0
-
     foreach flag $flagList {
         # Parse: +|-<name>[=<value>]
         if {![regexp {^(\+|\-)(\w+)} $flag dummy prefix name]} {continue}
 
         if {$name eq "all" || $name eq $event || ([info exists events($name)] &&
             [lsearch -sorted $events($name) $event] != -1)} {
-            set result [string equal $prefix "+"]
+            return [string equal $prefix "+"]
         }
     }
-    return $result
+    return 0
 }
 
 ####
