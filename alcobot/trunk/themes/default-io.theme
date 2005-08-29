@@ -136,6 +136,17 @@ REQDEL      = [b][Request][b] [b]%(request)[b] (#%(id)) deleted by [b]%(user)[b]
 REQFILL     = [b][Request][b] [b]%(request)[b] (#%(id)) filled by [b]%(user)[b]/%(group) after %(age).
 REQWIPE     = [b][Request][b] [b]%(request)[b] was auto-wiped since it's older than %(maxAge).
 
+# ioZS events.
+COMPLETE   = [b][%(section)][b] [b]%(releaseName)[b] %(message)
+HALFWAY    = [b][%(section)][b] [b]%(releaseName)[b] %(message)
+INCOMPLETE = [b][%(section)][b] [b]%(releaseName)[b] %(message)
+NEWLEADER  = [b][%(section)][b] [b]%(releaseName)[b] %(message)
+RACE       = [b][%(section)][b] [b]%(releaseName)[b] %(message)
+SFV        = [b][%(section)][b] [b]%(releaseName)[b] %(message)
+STATS      = [b][%(section)][b] [b]%(releaseName)[b] %(message)
+UPDATE     = [b][%(section)][b] [b]%(releaseName)[b] %(message)
+WARN       = [b][%(section)][b] [b]%(releaseName)[b] %(message)
+
 # Command argument help.
 commandHelp = [b]Usage:[b] %(command) %(arguments)
 
