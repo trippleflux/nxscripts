@@ -24,7 +24,9 @@ namespace eval ::alcoholicz::Groups {
 proc ::alcoholicz::Groups::ChangeAffils {event user host handle channel target argc argv} {
     variable groupsHandle
     if {$argc != 2} {
-        SendTargetTheme $target commandHelp [list $::lastbind "<section> <group>"]
+        # Channel commands should display the usage message in the
+        # channel they were invoked from, not the output target.
+        SendTargetTheme "PRIVMSG $channel" commandHelp [list $::lastbind "<section> <group>"]
         return
     }
     ConfigRead $groupsHandle
@@ -35,29 +37,29 @@ proc ::alcoholicz::Groups::ChangeAffils {event user host handle channel target a
 
     if {$event eq "ADD"} {
         if {[lsearch -exact $groupList $group] != -1} {
-            putserv "PRIVMSG $channel :[b]$group[b] already exists in the [b]$section[b] affil list."
+            SendTarget $target "[b]$group[b] already exists in the [b]$section[b] affil list."
             return
         }
 
         # Add group to the section's affil list.
         ConfigSet $groupsHandle Affils $section [lappend groupList $group]
         if {[catch {ConfigWrite $groupsHandle} message]} {
-            putserv "PRIVMSG $channel :Unable to update groups file: $message"
+            SendTarget $target "Unable to update groups file: $message"
         } else {
-            putserv "PRIVMSG $channel :Added [b]$group[b] to the [b]$section[b] affil list."
+            SendTarget $target "Added [b]$group[b] to the [b]$section[b] affil list."
         }
     } elseif {$event eq "DEL"} {
         if {[set index [lsearch -exact $groupList $group]] == -1} {
-            putserv "PRIVMSG $channel :[b]$group[b] is not in the [b]$section[b] affil list."
+            SendTarget $target "[b]$group[b] is not in the [b]$section[b] affil list."
             return
         }
 
         # Remove group from the section's affil list.
         ConfigSet $groupsHandle Affils $section [lreplace $groupList $index $index]
         if {[catch {ConfigWrite $groupsHandle} message]} {
-            putserv "PRIVMSG $channel :Unable to update groups file: $message"
+            SendTarget $target "Unable to update groups file: $message"
         } else {
-            putserv "PRIVMSG $channel :Removed [b]$group[b] from the [b]$section[b] affil list."
+            SendTarget $target "Removed [b]$group[b] from the [b]$section[b] affil list."
         }
     } else {
         LogError ModGroups "Unknown affil event \"$event\"."
@@ -74,7 +76,7 @@ proc ::alcoholicz::Groups::ChangeAffils {event user host handle channel target a
 proc ::alcoholicz::Groups::ChangeBanned {event user host handle channel target argc argv} {
     variable groupsHandle
     if {$argc != 2} {
-        SendTargetTheme $target commandHelp [list $::lastbind "<section> <group>"]
+        SendTargetTheme "PRIVMSG $channel" commandHelp [list $::lastbind "<section> <group>"]
         return
     }
     ConfigRead $groupsHandle
@@ -85,29 +87,29 @@ proc ::alcoholicz::Groups::ChangeBanned {event user host handle channel target a
 
     if {$event eq "ADD"} {
         if {[lsearch -exact $groupList $group] != -1} {
-            putserv "PRIVMSG $channel :[b]$group[b] already exists in the [b]$section[b] ban list."
+            SendTarget $target "[b]$group[b] already exists in the [b]$section[b] ban list."
             return
         }
 
         # Add group to the section's ban list.
         ConfigSet $groupsHandle Banned $section [lappend groupList $group]
         if {[catch {ConfigWrite $groupsHandle} message]} {
-            putserv "PRIVMSG $channel :Unable to update groups file: $message"
+            SendTarget $target "Unable to update groups file: $message"
         } else {
-            putserv "PRIVMSG $channel :Added [b]$group[b] to the [b]$section[b] ban list."
+            SendTarget $target "Added [b]$group[b] to the [b]$section[b] ban list."
         }
     } elseif {$event eq "DEL"} {
         if {[set index [lsearch -exact $groupList $group]] == -1} {
-            putserv "PRIVMSG $channel :[b]$group[b] is not in the [b]$section[b] ban list."
+            SendTarget $target "[b]$group[b] is not in the [b]$section[b] ban list."
             return
         }
 
         # Remove group from the section's ban list.
         ConfigSet $groupsHandle Banned $section [lreplace $groupList $index $index]
         if {[catch {ConfigWrite $groupsHandle} message]} {
-            putserv "PRIVMSG $channel :Unable to update groups file: $message"
+            SendTarget $target "Unable to update groups file: $message"
         } else {
-            putserv "PRIVMSG $channel :Removed [b]$group[b] from the [b]$section[b] ban list."
+            SendTarget $target "Removed [b]$group[b] from the [b]$section[b] ban list."
         }
     } else {
         LogError ModGroups "Unknown banned event \"$event\"."

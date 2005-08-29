@@ -28,7 +28,9 @@ proc ::alcoholicz::Free::Command {user host handle channel target argc argv} {
     variable volumeList
 
     if {$argc > 1} {
-        SendTargetTheme $target commandHelp [list $::lastbind "\[section\]"]
+        # Channel commands should display the usage message in the
+        # channel they were invoked from, not the output target.
+        SendTargetTheme "PRIVMSG $channel" commandHelp [list $::lastbind "\[section\]"]
         return
     }
 
