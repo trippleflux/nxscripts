@@ -21,7 +21,7 @@ namespace eval ::alcoholicz {
 
     namespace export b c u r o \
         LogDebug LogInfo LogError LogWarning GetFtpDaemon \
-        CmdCreate CmdGetFlags CmdGetList CmdRemove \
+        CmdCreate CmdGetFlags CmdGetList CmdSetHelp CmdRemove \
         EventExecute EventRegister EventUnregister \
         ModuleFind ModuleHash ModuleInfo ModuleLoad ModuleUnload ModuleRead \
         FlagGetValue FlagExists FlagIsDisabled FlagIsEnabled FlagCheckEvent FlagCheckSection \
@@ -133,7 +133,7 @@ proc ::alcoholicz::SetFtpDaemon {name} {
 #
 # Create a channel command.
 #
-proc ::alcoholicz::CmdCreate {type name script {cmdDesc ""} {argDesc ""}} {
+proc ::alcoholicz::CmdCreate {type name script {category ""} {argDesc ""} {cmdDesc ""}} {
     variable cmdNames
 
     switch -- $type {
@@ -148,7 +148,7 @@ proc ::alcoholicz::CmdCreate {type name script {cmdDesc ""} {argDesc ""}} {
         }
     }
 
-    set cmdNames([list $type $name]) [list $script $argDesc $cmdDesc]
+    set cmdNames([list $type $name]) [list $script $category $argDesc $cmdDesc]
     return
 }
 
@@ -159,6 +159,7 @@ proc ::alcoholicz::CmdCreate {type name script {cmdDesc ""} {argDesc ""}} {
 #
 proc ::alcoholicz::CmdGetFlags {command} {
     variable cmdFlags
+
     foreach pattern [array names cmdFlags] {
         if {[string match $pattern $command]} {
             LogDebug CmdGetFlags "Matched command \"$command\" to pattern \"$pattern\"."
@@ -172,11 +173,31 @@ proc ::alcoholicz::CmdGetFlags {command} {
 # CmdGetList
 #
 # Retrieve a list of commands created with "CmdCreate".
-# List: {type command} {script argDesc cmdDesc} ...
+# List: {type command} {script category argDesc cmdDesc} ...
 #
 proc ::alcoholicz::CmdGetList {typePattern namePattern} {
     variable cmdNames
     return [array get cmdNames [list $typePattern $namePattern]]
+}
+
+####
+# CmdSetHelp
+#
+# Set the argument list and description for a command.
+#
+proc ::alcoholicz::CmdSetHelp {type name {category ""} {argDesc ""} {cmdDesc ""}} {
+    variable cmdNames
+
+    if {![info exists cmdNames([list $type $name])]} {
+        # The caller could have specified an invalid command type, a
+        # command name that was already removed, or a command name that
+        # was not created with "CmdCreate".
+        error "invalid command type or name"
+    }
+
+    set script [lindex $cmdNames([list $type $name]) 0]
+    set cmdNames([list $type $name]) [list $script $category $argDesc $cmdDesc]
+    return
 }
 
 ####

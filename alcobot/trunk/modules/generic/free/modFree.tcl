@@ -94,8 +94,11 @@ proc ::alcoholicz::Free::Load {firstLoad} {
         set prefix $::alcoholicz::cmdPrefix
     }
 
+    # Alias for "!free" (*nix people).
     CmdCreate channel ${prefix}df   [namespace current]::Command
-    CmdCreate channel ${prefix}free [namespace current]::Command
+
+    CmdCreate channel ${prefix}free [namespace current]::Command \
+        "General" "Display free disk space." "\[section\]"
     return
 }
 

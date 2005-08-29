@@ -195,14 +195,24 @@ proc ::alcoholicz::Groups::Load {firstLoad} {
     }
 
     # User commands (list groups).
-    CmdCreate channel ${prefix}affils  [namespace current]::ListAffils
-    CmdCreate channel ${prefix}banned  [namespace current]::ListBanned
+    CmdCreate channel ${prefix}affils  [namespace current]::ListAffils \
+        General "List affiliated groups."
+
+    CmdCreate channel ${prefix}banned  [namespace current]::ListBanned \
+        General "List banned groups."
 
     # Administration commands (add/remove groups).
-    CmdCreate channel ${prefix}addaffil [list [namespace current]::ChangeAffils ADD]
-    CmdCreate channel ${prefix}delaffil [list [namespace current]::ChangeAffils DEL]
-    CmdCreate channel ${prefix}addban   [list [namespace current]::ChangeBanned ADD]
-    CmdCreate channel ${prefix}delban   [list [namespace current]::ChangeBanned DEL]
+    CmdCreate channel ${prefix}addaffil [list [namespace current]::ChangeAffils ADD] \
+        Admin "Add an affiliated group." "<section> <group>"
+
+    CmdCreate channel ${prefix}delaffil [list [namespace current]::ChangeAffils DEL] \
+        Admin "Removed an affiliated group." "<section> <group>"
+
+    CmdCreate channel ${prefix}addban   [list [namespace current]::ChangeBanned ADD] \
+        Admin "Add a banned group." "<section> <group>"
+
+    CmdCreate channel ${prefix}delban   [list [namespace current]::ChangeBanned DEL] \
+        Admin "Removed a banned group." "<section> <group>"
 
     return
 }
