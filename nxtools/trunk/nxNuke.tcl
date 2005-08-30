@@ -370,88 +370,71 @@ proc ::nxTools::Nuke::Main {argv} {
             iputs "'------------------------------------------------------------------------'"
         }
         {NUKES} - {UNNUKES} {
-            set isBot [string equal $misc(SiteBot) $user]
             if {![GetOptions [lrange $argList 1 end] limit pattern]} {
                 iputs "Syntax: SITE $event \[-max <limit>\] \[release\]"
                 return 0
             }
-            set pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$pattern*" "*"]]
             if {$event eq "NUKES"} {
-                if {!$isBot} {
-                    iputs ".-\[Nukes\]----------------------------------------------------------------."
-                    iputs "|    Age    |    Nuker     |   Multi   |  Reason                         |"
-                    iputs "|------------------------------------------------------------------------|"
-                }
+                iputs ".-\[Nukes\]----------------------------------------------------------------."
+                iputs "|    Age    |    Nuker     |   Multi   |  Reason                         |"
+                iputs "|------------------------------------------------------------------------|"
                 set nukeStatus 0
             } elseif {$event eq "UNNUKES"} {
-                if {!$isBot} {
-                    iputs ".-\[UnNukes\]--------------------------------------------------------------."
-                    iputs "|    Age    |   UnNuker    |   Multi   |  Reason                         |"
-                    iputs "|------------------------------------------------------------------------|"
-                }
+                iputs ".-\[UnNukes\]--------------------------------------------------------------."
+                iputs "|    Age    |   UnNuker    |   Multi   |  Reason                         |"
+                iputs "|------------------------------------------------------------------------|"
                 set nukeStatus 1
             }
             set count 0
+            set pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$pattern*" "*"]]
+
             if {![catch {DbOpenFile [namespace current]::NukeDb "Nukes.db"} error]} {
-                NukeDb eval "SELECT * FROM Nukes WHERE Status=$nukeStatus AND Release LIKE '$pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $limit" values {
+                NukeDb eval "SELECT * FROM Nukes WHERE Status=$nukeStatus AND Release \
+                        LIKE '$pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $limit" values {
                     incr count
-                    if {$isBot} {
-                        iputs [list NUKES $count $values(TimeStamp) $values(Release) $values(UserName) $values(GroupName) $values(Multi) $values(Reason) $values(Files) $values(Size)]
-                    } else {
-                        set nukeAge [expr {[clock seconds] - $values(TimeStamp)}]
-                        iputs [format "| %-9.9s | %-12.12s | %-9.9s | %-31.31s |" [lrange [FormatDuration $nukeAge] 0 1] $values(UserName) $values(Multi)x $values(Reason)]
-                        iputs [format "| Dir: %-65.65s |" $values(Release)]
-                        iputs "|------------------------------------------------------------------------|"
-                    }
+                    set nukeAge [FormatDuration [expr {[clock seconds] - $values(TimeStamp)}]]
+                    iputs [format "| %-9.9s | %-12.12s | %-9.9s | %-31.31s |" [lrange $nukeAge 0 1] $values(UserName) $values(Multi)x $values(Reason)]
+                    iputs [format "| Dir: %-65.65s |" $values(Release)]
+                    iputs "|------------------------------------------------------------------------|"
                 }
                 NukeDb close
             } else {ErrorLog NukeLatest $error}
 
-            if {!$isBot} {
-                if {!$count} {
-                    LinePuts "There are no nukes or unnukes to display."
-                } else {
-                    LinePuts "Read the rules to avoid being nuked."
-                }
-                iputs "'------------------------------------------------------------------------'"
+            if {!$count} {
+                LinePuts "There are no nukes or unnukes to display."
+            } else {
+                LinePuts "Read the rules to avoid being nuked."
             }
+            iputs "'------------------------------------------------------------------------'"
         }
         {NUKETOP} {
-            set isBot [string equal $misc(SiteBot) $user]
             if {![GetOptions [lrange $argList 1 end] limit pattern]} {
                 iputs "Syntax: SITE NUKETOP \[-max <limit>\] \[group\]"
                 return 0
             }
+            iputs ".-\[NukeTop\]--------------------------------------------------------------."
+            iputs "|    User    |   Group    | Times Nuked |  Amount                        |"
+            iputs "|------------------------------------------------------------------------|"
+
             if {[string length $pattern]} {
                 set groupMatch "GroupName LIKE '[SqlWildToLike $pattern]' ESCAPE '\\' AND"
             } else {
                 set groupMatch ""
             }
-            if {!$isBot} {
-                iputs ".-\[NukeTop\]--------------------------------------------------------------."
-                iputs "|    User    |   Group    | Times Nuked |  Amount                        |"
-                iputs "|------------------------------------------------------------------------|"
-            }
-
             set count 0
+
             if {![catch {DbOpenFile [namespace current]::NukeDb "Nukes.db"} error]} {
                 NukeDb eval "SELECT UserName, GroupName, count(*) AS Nuked, sum(Amount) AS Amount FROM Users \
-                    WHERE $groupMatch (SELECT count(*) FROM Nukes WHERE NukeId=Users.NukeId AND Status=0) \
-                    GROUP BY UserName ORDER BY Nuked DESC LIMIT $limit" values {
-
+                        WHERE $groupMatch (SELECT count(*) FROM Nukes WHERE NukeId=Users.NukeId AND Status=0) \
+                        GROUP BY UserName ORDER BY Nuked DESC LIMIT $limit" values {
                     incr count
-                    if {$isBot} {
-                        iputs [list NUKETOP $count $values(UserName) $values(GroupName) $values(Nuked) $values(Amount)]
-                    } else {
-                        iputs [format "| %-10.10s | %-10.10s | %11d | %30.30s |" $values(UserName) $values(GroupName) $values(Nuked) [FormatSize $values(Amount)]]
-                    }
+                    iputs [format "| %-10.10s | %-10.10s | %11d | %30.30s |" $values(UserName) $values(GroupName) $values(Nuked) [FormatSize $values(Amount)]]
                 }
                 NukeDb close
             } else {ErrorLog NukeTop $error}
-            if {!$isBot} {
-                if {!$count} {LinePuts "There are no nukees display."}
-                iputs "'------------------------------------------------------------------------'"
-            }
+
+            if {!$count} {LinePuts "There are no nukees display."}
+            iputs "'------------------------------------------------------------------------'"
         }
         default {
             ErrorLog InvalidArgs "unknown event \"[info script] $event\": check your ioFTPD.ini for errors"

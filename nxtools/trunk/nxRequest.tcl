@@ -193,31 +193,25 @@ proc ::nxTools::Req::Update {event userName groupName request} {
     return $result
 }
 
-proc ::nxTools::Req::List {isBot} {
+proc ::nxTools::Req::List {} {
     global misc req
-    if {!$isBot} {
-        foreach fileExt {Header Body None Footer} {
-            set template($fileExt) [ReadFile [file join $misc(Templates) "Requests.$fileExt"]]
-        }
-        OutputText $template(Header)
-        set count 0
+
+    foreach fileExt {Header Body None Footer} {
+        set template($fileExt) [ReadFile [file join $misc(Templates) "Requests.$fileExt"]]
     }
+    OutputText $template(Header)
+    set count 0
+
     ReqDb eval {SELECT * FROM Requests WHERE Status=0 ORDER BY RequestId DESC} values {
-        set requestAge [expr {[clock seconds] - $values(TimeStamp)}]
-        set requestId [format "%03s" $values(RequestId)]
-        if {$isBot} {
-            iputs [list REQS $values(TimeStamp) $requestAge $requestId $values(UserName) $values(GroupName) $values(Request)]
-        } else {
-            incr count
-            set requestAge [lrange [FormatDuration $requestAge] 0 1]
-            set valueList [list $requestAge $requestId $values(UserName) $values(GroupName) $values(Request)]
-            OutputText [ParseCookies $template(Body) $valueList {age id user group request}]
-        }
+        incr count
+        set reqAge [FormatDuration [expr {[clock seconds] - $values(TimeStamp)}]]
+        set reqId [format "%03s" $values(RequestId)]
+        set valueList [list [lrange $reqAge 0 1] $reqId $values(UserName) $values(GroupName) $values(Request)]
+        OutputText [ParseCookies $template(Body) $valueList {age id user group request}]
     }
-    if {!$isBot} {
-        if {!$count} {OutputText $template(None)}
-        OutputText $template(Footer)
-    }
+
+    if {!$count} {OutputText $template(None)}
+    OutputText $template(Footer)
     return 0
 }
 
@@ -264,12 +258,11 @@ proc ::nxTools::Req::Wipe {} {
 proc ::nxTools::Req::Main {argv} {
     global misc flags ioerror group user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
-    set isBot [expr {[info exists user] && $misc(SiteBot) eq $user}]
     set result 0
 
     if {[catch {DbOpenFile [namespace current]::ReqDb "Requests.db"} error]} {
         ErrorLog RequestDb $error
-        if {!$isBot} {iputs "Unable to open requests database."}
+        iputs "Unable to open requests database."
         return 1
     }
 
@@ -291,7 +284,7 @@ proc ::nxTools::Req::Main {argv} {
                 iputs "Syntax: SITE REQ$event <id/request>"
             }
         }
-        {LIST} {set result [List $isBot]}
+        {LIST} {set result [List]}
         {WIPE} {set result [Wipe]}
         default {
             ErrorLog InvalidArgs "unknown event \"[info script] $event\": check your ioFTPD.ini for errors"

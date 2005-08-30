@@ -400,7 +400,7 @@ proc ::nxTools::Dupe::RaceLinks {virtualPath} {
 ######################################################################
 
 proc ::nxTools::Dupe::SiteApprove {event release} {
-    global isBot approve misc flags group user
+    global approve misc flags group user
     if {[catch {DbOpenFile [namespace current]::ApproveDb "Approves.db"} error]} {
         ErrorLog SiteApprove $error
         return 1
@@ -442,6 +442,7 @@ proc ::nxTools::Dupe::SiteApprove {event release} {
             } else {
                 set exists 0
                 ApproveDb eval {SELECT rowid,* FROM Approves WHERE StrCaseEq(Release,$release) LIMIT 1} values {set exists 1}
+
                 if {$exists} {
                     ApproveDb eval {DELETE FROM Approves WHERE rowid=$values(rowid)}
                     putlog "APPROVEDEL: \"$user\" \"$group\" \"$values(Release)\""
@@ -453,28 +454,21 @@ proc ::nxTools::Dupe::SiteApprove {event release} {
             iputs "'------------------------------------------------------------------------'"
         }
         {LIST} {
-            if {!$isBot} {
-                foreach fileExt {Header Body None Footer} {
-                    set template($fileExt) [ReadFile [file join $misc(Templates) "Approves.$fileExt"]]
-                }
-                OutputText $template(Header)
-                set count 0
+            foreach fileExt {Header Body None Footer} {
+                set template($fileExt) [ReadFile [file join $misc(Templates) "Approves.$fileExt"]]
             }
+            OutputText $template(Header)
+            set count 0
+
             ApproveDb eval {SELECT * FROM Approves ORDER BY Release ASC} values {
-                set approveAge [expr {[clock seconds] - $values(TimeStamp)}]
-                if {$isBot} {
-                    iputs [list APPROVE $values(TimeStamp) $approveAge $values(UserName) $values(GroupName) $values(Release)]
-                } else {
-                    incr count
-                    set approveAge [lrange [FormatDuration $approveAge] 0 1]
-                    set valueList [list $count $approveAge $values(UserName) $values(GroupName) $values(Release)]
-                    OutputText [ParseCookies $template(Body) $valueList {num age user group release}]
-                }
+                incr count
+                set age [FormatDuration [expr {[clock seconds] - $values(TimeStamp)}]]
+                set valueList [list $count [lrange $age 0 1] $values(UserName) $values(GroupName) $values(Release)]
+                OutputText [ParseCookies $template(Body) $valueList {num age user group release}]
             }
-            if {!$isBot} {
-                if {!$count} {OutputText $template(None)}
-                OutputText $template(Footer)
-            }
+
+            if {!$count} {OutputText $template(None)}
+            OutputText $template(Footer)
         }
     }
     ApproveDb close
@@ -482,93 +476,82 @@ proc ::nxTools::Dupe::SiteApprove {event release} {
 }
 
 proc ::nxTools::Dupe::SiteDupe {limit pattern} {
-    global isBot misc
+    global misc
     if {[catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} error]} {
         ErrorLog SiteDupe $error
         return 1
     }
-    if {!$isBot} {
-        foreach fileExt {Header Body None Footer} {
-            set template($fileExt) [ReadFile [file join $misc(Templates) "Dupe.$fileExt"]]
-        }
-        OutputText $template(Header)
+    foreach fileExt {Header Body None Footer} {
+        set template($fileExt) [ReadFile [file join $misc(Templates) "Dupe.$fileExt"]]
     }
-    set pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$pattern*" "*"]]
+    OutputText $template(Header)
     set count 0
+    set pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$pattern*" "*"]]
+
     DirDb eval "SELECT * FROM DupeDirs WHERE DirName LIKE '$pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $limit" values {
         incr count
-        if {$isBot} {
-            iputs [list DUPE $count $values(TimeStamp) $values(UserName) $values(GroupName) $values(DirPath) $values(DirName)]
-        } else {
-            set valueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt [IsTrue $misc(UtcTime)]]
-            lappend valueList $count $values(UserName) $values(GroupName) $values(DirName) [file join $values(DirPath) $values(DirName)]
-            OutputText [ParseCookies $template(Body) $valueList {sec min hour day month year2 year4 num user group release path}]
-        }
+        set valueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt [IsTrue $misc(UtcTime)]]
+        lappend valueList $count $values(UserName) $values(GroupName) $values(DirName) [file join $values(DirPath) $values(DirName)]
+        OutputText [ParseCookies $template(Body) $valueList {sec min hour day month year2 year4 num user group release path}]
     }
-    if {!$isBot} {
-        if {!$count} {OutputText $template(None)}
-        if {$count == $limit} {
-            set total [DirDb eval "SELECT count(*) FROM DupeDirs WHERE DirName LIKE '$pattern' ESCAPE '\\'"]
-        } else {
-            set total $count
-        }
-        OutputText [ParseCookies $template(Footer) [list $count $total] {found total}]
+
+    if {!$count} {OutputText $template(None)}
+    if {$count == $limit} {
+        set total [DirDb eval "SELECT count(*) FROM DupeDirs WHERE DirName LIKE '$pattern' ESCAPE '\\'"]
+    } else {
+        set total $count
     }
+
+    OutputText [ParseCookies $template(Footer) [list $count $total] {found total}]
     DirDb close
     return 0
 }
 
 proc ::nxTools::Dupe::SiteFileDupe {limit pattern} {
-    global isBot misc
+    global misc
     if {[catch {DbOpenFile [namespace current]::FileDb "DupeFiles.db"} error]} {
         ErrorLog SiteFileDupe $error
         return 1
     }
-    if {!$isBot} {
-        foreach fileExt {Header Body None Footer} {
-            set template($fileExt) [ReadFile [file join $misc(Templates) "FileDupe.$fileExt"]]
-        }
-        OutputText $template(Header)
+    foreach fileExt {Header Body None Footer} {
+        set template($fileExt) [ReadFile [file join $misc(Templates) "FileDupe.$fileExt"]]
     }
-    set pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$pattern*" "*"]]
+    OutputText $template(Header)
     set count 0
+    set pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$pattern*" "*"]]
+
     FileDb eval "SELECT * FROM DupeFiles WHERE FileName LIKE '$pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $limit" values {
         incr count
-        if {$isBot} {
-            iputs [list DUPE $count $values(TimeStamp) $values(UserName) $values(GroupName) $values(FileName)]
-        } else {
-            set valueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt [IsTrue $misc(UtcTime)]]
-            lappend valueList $count $values(UserName) $values(GroupName) $values(FileName)
-            OutputText [ParseCookies $template(Body) $valueList {sec min hour day month year2 year4 num user group file}]
-        }
+        set valueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt [IsTrue $misc(UtcTime)]]
+        lappend valueList $count $values(UserName) $values(GroupName) $values(FileName)
+        OutputText [ParseCookies $template(Body) $valueList {sec min hour day month year2 year4 num user group file}]
     }
-    if {!$isBot} {
-        if {!$count} {OutputText $template(None)}
-        if {$count == $limit} {
-            set total [FileDb eval "SELECT count(*) FROM DupeFiles WHERE FileName LIKE '$pattern' ESCAPE '\\'"]
-        } else {
-            set total $count
-        }
-        OutputText [ParseCookies $template(Footer) [list $count $total] {found total}]
+
+    if {!$count} {OutputText $template(None)}
+    if {$count == $limit} {
+        set total [FileDb eval "SELECT count(*) FROM DupeFiles WHERE FileName LIKE '$pattern' ESCAPE '\\'"]
+    } else {
+        set total $count
     }
+
+    OutputText [ParseCookies $template(Footer) [list $count $total] {found total}]
     FileDb close
     return 0
 }
 
 proc ::nxTools::Dupe::SiteNew {limit showSection} {
-    global isBot misc new
+    global misc new
     if {[catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} error]} {
         ErrorLog SiteNew $error
         return 1
     }
-    if {!$isBot} {
-        foreach fileExt {Header Error Body None Footer} {
-            set template($fileExt) [ReadFile [file join $misc(Templates) "New.$fileExt"]]
-        }
-        OutputText $template(Header)
+    foreach fileExt {Header Error Body None Footer} {
+        set template($fileExt) [ReadFile [file join $misc(Templates) "New.$fileExt"]]
     }
+    OutputText $template(Header)
     set sectionList [GetSectionList]
-    if {![set showAll [string equal "" $showSection]]} {
+
+    if {$showSection ne ""} {
         set sectionNameList [list]
         set validSection 0
 
@@ -587,83 +570,77 @@ proc ::nxTools::Dupe::SiteNew {limit showSection} {
             DirDb close
             return 1
         }
+
+        set showAll 0
         set matchPath [SqlWildToLike $matchPath]
         set whereClause "WHERE DirPath LIKE '$matchPath' ESCAPE '\\'"
-    } else {set whereClause ""}
+    } else {
+        set showAll 1
+        set whereClause ""
+    }
 
     set count 0
     DirDb eval "SELECT * FROM DupeDirs $whereClause ORDER BY TimeStamp DESC LIMIT $limit" values {
         incr count
         # Find section name and check the match path.
         if {$showAll} {
-            set sectionName "Default"
+            set sectionName "DEFAULT"
             foreach {sectionName creditSection statSection matchPath} $sectionList {
                 if {[string match -nocase $matchPath $values(DirPath)]} {
                     set showSection $sectionName; break
                 }
             }
         }
-        set releaseAge [expr {[clock seconds] - $values(TimeStamp)}]
-        if {$isBot} {
-            iputs [list NEW $count $releaseAge $values(UserName) $values(GroupName) $showSection $values(DirPath) $values(DirName)]
-        } else {
-            set releaseAge [lrange [FormatDuration $releaseAge] 0 1]
-            set valueList [list $count $releaseAge $values(UserName) $values(GroupName) $showSection $values(DirName) [file join $values(DirPath) $values(DirName)]]
-            OutputText [ParseCookies $template(Body) $valueList {num age user group section release path}]
-        }
+
+        set age [FormatDuration [expr {[clock seconds] - $values(TimeStamp)}]]
+        set valueList [list $count [lrange $age 0 1] $values(UserName) $values(GroupName) $showSection $values(DirName) [file join $values(DirPath) $values(DirName)]]
+        OutputText [ParseCookies $template(Body) $valueList {num age user group section release path}]
     }
-    if {!$isBot} {
-        if {!$count} {OutputText $template(None)}
-        OutputText $template(Footer)
-    }
+
+    if {!$count} {OutputText $template(None)}
+    OutputText $template(Footer)
     DirDb close
     return 0
 }
 
 proc ::nxTools::Dupe::SitePreTime {limit pattern} {
-    global isBot misc mysql
-    if {!$isBot} {
-        foreach fileExt {Header Body BodyInfo BodyNuke None Footer} {
-            set template($fileExt) [ReadFile [file join $misc(Templates) "PreTime.$fileExt"]]
-        }
-        OutputText $template(Header)
+    global misc mysql
+    foreach fileExt {Header Body BodyInfo BodyNuke None Footer} {
+        set template($fileExt) [ReadFile [file join $misc(Templates) "PreTime.$fileExt"]]
     }
-    set pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$pattern*" "*"]]
+    OutputText $template(Header)
     set count 0
+    set pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$pattern*" "*"]]
+
     if {[MySqlConnect]} {
         set queryResults [::mysql::sel $mysql(ConnHandle) "SELECT * FROM $mysql(TableName) WHERE release LIKE '$pattern' ORDER BY pretime DESC LIMIT $limit" -list]
         set singleResult [expr {[llength $queryResults] == 1}]
         set timeNow [clock seconds]
 
         foreach queryLine $queryResults {
-            incr count
             foreach {preId preTime section release files kiloBytes disks isNuked nukeTime nukeReason} $queryLine {break}
-            set releaseAge [expr {$timeNow - $preTime}]
-            if {$isBot} {
-                iputs [list PRETIME $count $releaseAge $preTime $section $release $files $kiloBytes $disks $isNuked $nukeTime $nukeReason]
-            } else {
-                set bodyTemplate [expr {$singleResult ? ($isNuked != 0 ? $template(BodyNuke) : $template(BodyInfo)) : $template(Body)}]
-                set releaseAge [FormatDuration $releaseAge]
+            incr count
+            set bodyTemplate [expr {$singleResult ? ($isNuked != 0 ? $template(BodyNuke) : $template(BodyInfo)) : $template(Body)}]
+            set age [FormatDuration [expr {$timeNow - $preTime}]]
 
-                # The pre time should always been in UTC (GMT).
-                set valueList [clock format $preTime -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 1]
-                eval lappend valueList [clock format $nukeTime -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 1]
-                lappend valueList $releaseAge $count $section $release $files [FormatSize $kiloBytes] $disks $nukeReason
-                OutputText [ParseCookies $bodyTemplate $valueList {sec min hour day month year2 year4 nukesec nukemin nukehour nukeday nukemonth nukeyear2 nukeyear4 age num section release files size disks reason}]
-            }
+            # The pre time should always been in UTC (GMT).
+            set valueList [clock format $preTime -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 1]
+            eval lappend valueList [clock format $nukeTime -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 1]
+            lappend valueList $age $count $section $release $files [FormatSize $kiloBytes] $disks $nukeReason
+            OutputText [ParseCookies $bodyTemplate $valueList {sec min hour day month year2 year4 nukesec nukemin nukehour nukeday nukemonth nukeyear2 nukeyear4 age num section release files size disks reason}]
+
         }
         MySqlClose
     }
-    if {!$isBot} {
-        if {!$count} {OutputText $template(None)}
-        OutputText $template(Footer)
-    }
+
+    if {!$count} {OutputText $template(None)}
+    OutputText $template(Footer)
     return 0
 }
 
 proc ::nxTools::Dupe::SiteUndupe {argList} {
-    global isBot dupe misc
-    if {!$isBot} {iputs ".-\[Undupe\]---------------------------------------------------------------."}
+    global dupe misc
+    iputs ".-\[Undupe\]---------------------------------------------------------------."
     if {[string equal -nocase "-d" [lindex $argList 0]]} {
         set colName "DirName"
         set dbName "DupeDirs"
@@ -673,11 +650,12 @@ proc ::nxTools::Dupe::SiteUndupe {argList} {
         set dbName "DupeFiles"
         set pattern [join [lrange $argList 0 end]]
     }
+
     if {[regexp {[\*\?]} $pattern] && [regexp -all {[[:alnum:]]} $pattern] < $dupe(AlphaNumChars)} {
-        if {!$isBot} {ErrorReturn "There must be at $dupe(AlphaNumChars) least alpha-numeric chars when wildcards are used."}
+        ErrorReturn "There must be at $dupe(AlphaNumChars) least alpha-numeric chars when wildcards are used."
         return 1
     }
-    if {!$isBot} {LinePuts "Searching for: $pattern"}
+    LinePuts "Searching for: $pattern"
     set removed 0; set total 0
     set pattern [SqlWildToLike $pattern]
 
@@ -686,21 +664,16 @@ proc ::nxTools::Dupe::SiteUndupe {argList} {
         DupeDb eval {BEGIN}
         DupeDb eval "SELECT $colName,rowid FROM $dbName WHERE $colName LIKE '$pattern' ESCAPE '\\' ORDER BY $colName ASC" values {
             incr removed
-            if {$isBot} {
-                iputs [list UNDUPE $values($colName)]
-            } else {
-                LinePuts "Unduped: $values($colName)"
-            }
+            LinePuts "Unduped: $values($colName)"
             DupeDb eval "DELETE FROM $dbName WHERE rowid=$values(rowid)"
         }
         DupeDb eval {COMMIT}
         DupeDb close
     }
-    if {!$isBot} {
-        iputs "|------------------------------------------------------------------------|"
-        LinePuts "Unduped $removed of $total dupe entries."
-        iputs "'------------------------------------------------------------------------'"
-    }
+
+    iputs "|------------------------------------------------------------------------|"
+    LinePuts "Unduped $removed of $total dupe entries."
+    iputs "'------------------------------------------------------------------------'"
     return 0
 }
 
@@ -753,9 +726,8 @@ proc ::nxTools::Dupe::SiteWipe {virtualPath} {
 ######################################################################
 
 proc ::nxTools::Dupe::Main {argv} {
-    global isBot approve dupe force latest misc pretime group ioerror pwd user
+    global approve dupe force latest misc pretime group ioerror pwd user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
-    set isBot [expr {[info exists user] && $misc(SiteBot) eq $user}]
     set result 0
 
     set argLength [llength [set argList [ArgList $argv]]]

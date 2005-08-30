@@ -3,6 +3,7 @@
 ################################################################################
 
 nxTools v0.9.13 (XXX XX, 2005):
+  CHG: Removed bot specific output for SITE commands.
 
 nxTools v0.9.12 (Aug 29, 2005):
   NEW: Option to force requests to be proper release names (e.g. release.name-group).

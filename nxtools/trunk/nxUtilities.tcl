@@ -713,9 +713,8 @@ proc ::nxTools::Utils::SiteWho {} {
 ######################################################################
 
 proc ::nxTools::Utils::Main {argv} {
-    global isBot log misc group ioerror pwd user
+    global log misc group ioerror pwd user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
-    set isBot [expr {[info exists user] && $misc(SiteBot) eq $user}]
     set result 0
 
     set argLength [llength [set argList [ArgList $argv]]]
