@@ -486,7 +486,7 @@ proc ::nxTools::Dupe::SiteDupe {limit pattern} {
     }
     OutputText $template(Header)
     set count 0
-    set pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$pattern*" "*"]]
+    set pattern [SqlGetPattern $pattern]
 
     DirDb eval "SELECT * FROM DupeDirs WHERE DirName LIKE '$pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $limit" values {
         incr count
@@ -518,7 +518,7 @@ proc ::nxTools::Dupe::SiteFileDupe {limit pattern} {
     }
     OutputText $template(Header)
     set count 0
-    set pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$pattern*" "*"]]
+    set pattern [SqlGetPattern $pattern]
 
     FileDb eval "SELECT * FROM DupeFiles WHERE FileName LIKE '$pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $limit" values {
         incr count
@@ -572,8 +572,7 @@ proc ::nxTools::Dupe::SiteNew {limit showSection} {
         }
 
         set showAll 0
-        set matchPath [SqlWildToLike $matchPath]
-        set whereClause "WHERE DirPath LIKE '$matchPath' ESCAPE '\\'"
+        set whereClause "WHERE DirPath LIKE '[SqlWildToLike $matchPath]' ESCAPE '\\'"
     } else {
         set showAll 1
         set whereClause ""
@@ -610,7 +609,7 @@ proc ::nxTools::Dupe::SitePreTime {limit pattern} {
     }
     OutputText $template(Header)
     set count 0
-    set pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$pattern*" "*"]]
+    set pattern [SqlGetPattern $pattern]
 
     if {[MySqlConnect]} {
         set queryResults [::mysql::sel $mysql(ConnHandle) "SELECT * FROM $mysql(TableName) WHERE release LIKE '$pattern' ORDER BY pretime DESC LIMIT $limit" -list]

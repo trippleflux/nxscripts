@@ -386,7 +386,7 @@ proc ::nxTools::Nuke::Main {argv} {
                 set nukeStatus 1
             }
             set count 0
-            set pattern [SqlWildToLike [regsub -all {[\s\*]+} "*$pattern*" "*"]]
+            set pattern [SqlGetPattern $pattern]
 
             if {![catch {DbOpenFile [namespace current]::NukeDb "Nukes.db"} error]} {
                 NukeDb eval "SELECT * FROM Nukes WHERE Status=$nukeStatus AND Release \
