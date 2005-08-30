@@ -98,7 +98,6 @@ Remarks:
 Tcl_Interp *TclInit(int argc, char **argv, int service, Tcl_ExitProc *exitProc)
 {
     char *argList;
-    int success = 1;
     Tcl_DString argString;
     Tcl_Interp *interp;
     Tcl_Obj *intObj;
@@ -171,7 +170,7 @@ Tcl_Interp *TclInit(int argc, char **argv, int service, Tcl_ExitProc *exitProc)
         if (!Tcl_InterpDeleted(interp)) {
             Tcl_DeleteInterp(interp);
         }
-        success = 0;
+        return NULL;
     }
 
     //
@@ -180,7 +179,7 @@ Tcl_Interp *TclInit(int argc, char **argv, int service, Tcl_ExitProc *exitProc)
     // not we fork the process into the background (nix only).
     //
 
-    return (success != 0) ? interp : NULL;
+    return interp;
 }
 
 /*++
