@@ -93,7 +93,7 @@ LOGIN       = [b][Login][b] [b]%(user)[b]/%(group) has logged in.
 LOGOUT      = [b][Logout][b] [b]%(user)[b]/%(group) has logged out.
 
 # Error events.
-ERROR       = [b][SysOp][b] %(message)
+ERROR       = [b][Error][b] %(message)
 
 # Sysop events.
 GADDUSER    = [b][SysOp][b] [b]%(siteop)[b] added user [b]%(user)[b] to group [b]%(group)[b].

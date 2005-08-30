@@ -100,7 +100,7 @@ REQUEST     = [b][Request][b] [b]%(request)[b] deleted by [b]%(user)[b]/%(group)
 REQFILLED   = [b][Request][b] [b]%(request)[b] filled by [b]%(user)[b]/%(group) for [b]%(reqUser)[b].
 
 # Error events.
-ERROR       = [b][SysOp][b] %(message)
+ERROR       = [b][Error][b] %(message)
 
 # Login events.
 LOGIN       = [b][Login][b] [b]%(user)[b]/%(group) has logged in.
