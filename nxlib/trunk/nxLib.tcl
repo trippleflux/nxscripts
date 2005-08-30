@@ -140,6 +140,12 @@ proc ::nxLib::MySqlClose {} {
     return
 }
 
+proc ::nxLib::SqlGetPattern {pattern} {
+    set pattern "*$pattern*"
+    regsub -all {[\s\*]+} $pattern "*" pattern
+    return [SqlWildToLike $pattern]
+}
+
 proc ::nxLib::SqlEscape {string} {
     return [string map {\\ \\\\ \' \\\' \" \\\"} $string]
 }
