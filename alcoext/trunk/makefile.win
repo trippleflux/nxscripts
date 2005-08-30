@@ -355,14 +355,14 @@ clean:
     @IF EXIST "$(PKG_FILE)" DEL /F "$(PKG_FILE)"
     @IF EXIST "$(PKG_OUTFILE)" DEL /F "$(PKG_OUTFILE)"
     @IF EXIST "$(PKG_INTDIR)" RMDIR /Q /S "$(PKG_INTDIR)"
-    @IF EXIST version.vc DEL /F version.vc
 
 distclean: clean
-    @DEL "$(PKG_NAME)*.dll" *.obj *.pdb
+    @DEL "$(PKG_NAME)*.dll" *.exp *.obj *.pdb
     @IF EXIST Debug RMDIR /Q /S Debug
     @IF EXIST Release RMDIR /Q /S Release
     @IF EXIST nmakehlp.exe DEL /F nmakehlp.exe
     @IF EXIST nmakehlp.obj DEL /F nmakehlp.obj
+    @IF EXIST version.vc DEL /F version.vc
 
 install: library package-index
 	@ECHO Installing to: $(PKG_INSTALL_DIR)
