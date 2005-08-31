@@ -329,9 +329,7 @@ GetUserList(
         return TCL_ERROR;
     }
 
-    // Format: User:Password:UID:GID:Date:HomeDir:Irrelevant
     while ((p = fgets(line, ARRAYSIZE(line), stream)) != NULL) {
-
         // Strip leading spaces and skip empty or commented lines.
         while (*p == ' ' || *p == '\t') {
             p++;
@@ -341,10 +339,11 @@ GetUserList(
         }
 
         // A 'passwd' entry has 6 delimiters for 7 fields.
+        // Format: User:Password:UID:GID:Date:HomeDir:Irrelevant
         if (ParseFields(p, 6, &nameLength, &userId) == TCL_OK) {
             GlUser *userPtr = (GlUser *) ckalloc(sizeof(GlUser));
 
-            if (nameLength > GL_USER_LENGTH) {
+            if (nameLength >= GL_USER_LENGTH) {
                 nameLength = GL_USER_LENGTH;
             } else {
                 nameLength++;
@@ -468,9 +467,7 @@ GetGroupList(
         return TCL_ERROR;
     }
 
-    // Format: Group:Description:GID:Irrelevant
     while ((p = fgets(line, ARRAYSIZE(line), stream)) != NULL) {
-
         // Strip leading spaces and skip empty or commented lines.
         while (*p == ' ' || *p == '\t') {
             p++;
@@ -480,10 +477,11 @@ GetGroupList(
         }
 
         // A 'passwd' entry has 3 delimiters for 4 fields.
+        // Format: Group:Description:GID:Irrelevant
         if (ParseFields(p, 3, &nameLength, &userId) == TCL_OK) {
             GlGroup *groupPtr = (GlGroup *) ckalloc(sizeof(GlUser));
 
-            if (nameLength > GL_GROUP_LENGTH) {
+            if (nameLength >= GL_GROUP_LENGTH) {
                 nameLength = GL_GROUP_LENGTH;
             } else {
                 nameLength++;
@@ -653,14 +651,13 @@ GetOnlineData(
                 memcpy(entry->status,     glData[i].status,     sizeof(glData[i].status));
                 memcpy(entry->host,       glData[i].host,       sizeof(glData[i].host));
                 memcpy(entry->currentdir, glData[i].currentdir, sizeof(glData[i].currentdir));
-                entry->ssl_flag      = -1; // Not present in glFTPD 1.3x.
+                entry->ssl_flag      = -1;      // Not present in glFTPD 1.3x.
                 entry->groupid       = glData[i].groupid;
                 entry->login_time    = glData[i].login_time;
                 entry->tstart        = glData[i].tstart;
-                entry->txfer.tv_sec  = 0; // Not present in glFTPD 1.3x.
-                entry->txfer.tv_usec = 0;
+                entry->txfer         = {0, 0};  // Not present in glFTPD 1.3x.
                 entry->bytes_xfer    = glData[i].bytes_xfer;
-                entry->bytes_txfer   = 0; // Not present in glFTPD 1.3x.
+                entry->bytes_txfer   = 0;       // Not present in glFTPD 1.3x.
                 entry->procid        = glData[i].procid;
                 (*onlineDataPtr)[i]  = entry;
             }
