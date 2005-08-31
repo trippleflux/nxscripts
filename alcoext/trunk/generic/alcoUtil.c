@@ -29,7 +29,7 @@ Arguments:
 
     tablePtr - Address of a hash table structure.
 
-    prefix   - Null-terminated string representing the handle identifier's prefix.
+    type     - Null-terminated string describing the handle type.
 
 Return Value:
     If the handle is valid, the address of the handle's hash table entry is
@@ -42,20 +42,18 @@ GetHandleTableEntry(
     Tcl_Interp *interp,
     Tcl_Obj *objPtr,
     Tcl_HashTable *tablePtr,
-    const char *prefix
+    const char *type
     )
 {
     char *handle;
-    Tcl_HashEntry *hashEntryPtr = NULL;
+    Tcl_HashEntry *hashEntryPtr;
 
     handle = Tcl_GetString(objPtr);
-    if (strncmp(handle, prefix, strlen(prefix)) == 0)  {
-        hashEntryPtr = Tcl_FindHashEntry(tablePtr, handle);
-    }
+    hashEntryPtr = Tcl_FindHashEntry(tablePtr, handle);
 
     if (hashEntryPtr == NULL) {
         Tcl_ResetResult(interp);
-        Tcl_AppendResult(interp, "invalid ", prefix, " handle \"", handle, "\"", NULL);
+        Tcl_AppendResult(interp, "invalid ", type, " handle \"", handle, "\"", NULL);
     }
 
     return hashEntryPtr;

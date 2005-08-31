@@ -32,7 +32,7 @@ GetHandleTableEntry(
     Tcl_Interp *interp,
     Tcl_Obj *objPtr,
     Tcl_HashTable *tablePtr,
-    const char *prefix
+    const char *type
     );
 
 int

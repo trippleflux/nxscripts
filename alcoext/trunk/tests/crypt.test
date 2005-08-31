@@ -475,7 +475,7 @@ test crypt-5.9 {crypt start: handle format} {
         crypt end $handle
         set handle
     }
-    -result {hash\d+}
+    -result {hash\w+}
 }
 
 test crypt-5.10 {crypt start: check handle list} {

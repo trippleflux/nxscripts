@@ -878,7 +878,7 @@ CryptStartCmd(
     ExtState *statePtr
     )
 {
-    char handleId[20];
+    char handleName[5 + TCL_INTEGER_SPACE];
     int index;
     int keyLength;
     int newEntry;
@@ -954,17 +954,19 @@ CryptStartCmd(
 
     // The handle identifier doubles as the hash key.
 #ifdef _WINDOWS
-    StringCchPrintfA(handleId, ARRAYSIZE(handleId), "hash%lu", statePtr->hashCount);
+    StringCchPrintfA(handleName, ARRAYSIZE(handleName), "hash%p", handlePtr);
 #else // _WINDOWS
-    snprintf(handleId, ARRAYSIZE(handleId), "hash%lu", statePtr->hashCount);
-    handleId[ARRAYSIZE(handleId)-1] = '\0';
+    snprintf(handleName, ARRAYSIZE(handleName), "hash%p", handlePtr);
+    handleName[ARRAYSIZE(handleName)-1] = '\0';
 #endif // _WINDOWS
-    statePtr->hashCount++;
 
-    hashEntryPtr = Tcl_CreateHashEntry(statePtr->cryptTable, handleId, &newEntry);
+    hashEntryPtr = Tcl_CreateHashEntry(statePtr->cryptTable, handleName, &newEntry);
+    if (newEntry == 0) {
+        Tcl_Panic("Duplicate crypt hash table entries.");
+    }
     Tcl_SetHashValue(hashEntryPtr, (ClientData) handlePtr);
 
-    Tcl_SetStringObj(Tcl_GetObjResult(interp), handleId, -1);
+    Tcl_SetStringObj(Tcl_GetObjResult(interp), handleName, -1);
     return TCL_OK;
 }
 
@@ -1441,12 +1443,10 @@ CryptPrngCmd(
     }
 
 #ifdef _WINDOWS
-    StringCchPrintfA(channelName, ARRAYSIZE(channelName), "prng%lx",
-        (long) handlePtr);
+    StringCchPrintfA(channelName, ARRAYSIZE(channelName), "prng%p", handlePtr);
 #else // _WINDOWS
-    snprintf(channelName, ARRAYSIZE(channelName), "prng%lx",
-        (long) handlePtr);
-    handleId[ARRAYSIZE(channelName)-1] = '\0';
+    snprintf(channelName, ARRAYSIZE(channelName), "prng%p", handlePtr);
+    handleName[ARRAYSIZE(channelName)-1] = '\0';
 #endif // _WINDOWS
 
     handlePtr->channel = Tcl_CreateChannel(&prngChannelType, channelName,

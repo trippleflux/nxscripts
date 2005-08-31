@@ -758,7 +758,7 @@ GlOpenCmd(
     )
 {
     char *etcPath;
-    char handleId[20];
+    char handleName[7 + TCL_INTEGER_SPACE];
     int etcLength;
     int newEntry;
     long shmKey;
@@ -787,14 +787,16 @@ GlOpenCmd(
     handlePtr->version = GLFTPD_201;
 
     // Create a hash table entry and return the handle's identifier.
-    snprintf(handleId, ARRAYSIZE(handleId), "glftpd%lu", statePtr->glftpdCount);
-    handleId[ARRAYSIZE(handleId)-1] = '\0';
-    statePtr->glftpdCount++;
+    snprintf(handleName, ARRAYSIZE(handleName), "glftpd%p", handlePtr);
+    handleName[ARRAYSIZE(handleName)-1] = '\0';
 
-    hashEntryPtr = Tcl_CreateHashEntry(statePtr->glftpdTable, handleId, &newEntry);
+    hashEntryPtr = Tcl_CreateHashEntry(statePtr->glftpdTable, handleName, &newEntry);
+    if (newEntry == 0) {
+        Tcl_Panic("Duplicate glftpd hash table entries.");
+    }
     Tcl_SetHashValue(hashEntryPtr, (ClientData) handlePtr);
 
-    Tcl_SetStringObj(Tcl_GetObjResult(interp), handleId, -1);
+    Tcl_SetStringObj(Tcl_GetObjResult(interp), handleName, -1);
     return TCL_OK;
 }
 

@@ -124,7 +124,7 @@ test glftpd-2.4 {glftpd open: handle format} {
         glftpd close $handle
         set handle
     }
-    -result {glftpd\d+}
+    -result {glftpd\w+}
 }
 
 test glftpd-2.5 {glftpd open: handle list} {unix} {

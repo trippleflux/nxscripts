@@ -171,12 +171,10 @@ Alcoext_Init(
 
     statePtr->cryptTable = (Tcl_HashTable *) ckalloc(sizeof(Tcl_HashTable));
     Tcl_InitHashTable(statePtr->cryptTable, TCL_STRING_KEYS);
-    statePtr->hashCount = 0;
 
 #ifndef _WINDOWS
     statePtr->glftpdTable = (Tcl_HashTable *) ckalloc(sizeof(Tcl_HashTable));
     Tcl_InitHashTable(statePtr->glftpdTable, TCL_STRING_KEYS);
-    statePtr->glftpdCount = 0;
 #endif // !_WINDOWS
 
     //
