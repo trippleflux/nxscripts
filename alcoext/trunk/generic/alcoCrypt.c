@@ -1813,8 +1813,8 @@ PrngWatch(
 	)
 {
     //
-    // Even though this function is not used, it must be present
-    // the Tcl channel driver.
+    // Even though this function is not used, it must be
+    // present in the Tcl channel driver definition.
     //
     return;
 }
