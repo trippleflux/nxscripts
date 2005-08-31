@@ -37,7 +37,7 @@ typedef struct {
 } CryptCipherMode;            // an initialisation vector.
 
 typedef struct {
-    int descIndex;      // Descriptor table index (cipher, hash, or prng).
+    int descIndex;      // Cipher/hash descriptor index.
     unsigned char type; // Type of handle.
     union {
         hash_state    hash;
@@ -45,9 +45,15 @@ typedef struct {
         omac_state    omac;
         pelican_state pelican;
         pmac_state    pmac;
-        prng_state    prng;
     } state;
 } CryptHandle;
+
+typedef struct {
+    int descIndex;       // PRNG descriptor index.
+    int ready;           // Boolean to indicate if the PRNG is ready.
+    Tcl_Channel channel; // Channel associated with this handle.
+    prng_state state;    // PRNG state.
+} PrngHandle;
 
 void
 CryptCloseHandles(

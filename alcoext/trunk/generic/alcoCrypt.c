@@ -39,13 +39,9 @@ Abstract:
        crypt update  <handle> <data>
        crypt end     <handle>
 
-    Random Commands
-       crypt prng open  <type>           - Create a PRNG.
-       crypt prng put   <handle> <data>  - Add entropy to the PRNG.
-       crypt prng set   <handle>         - Set the PRNG as ready.
-       crypt prng get   <handle> <bytes> - Retrieve random data from the PRNG.
-       crypt prng close <handle>         - Close a PRNG.
-       crypt rand       <bytes>          - Retrieve random data from the system.
+    Random Commands:
+       crypt prng <type>
+       crypt rand <bytes>
 
     Other Commands:
        crypt info  <ciphers|handles|hashes|modes|prngs>
@@ -129,8 +125,7 @@ static int
 CryptPrngCmd(
     Tcl_Interp *interp,
     int objc,
-    Tcl_Obj *CONST objv[],
-    ExtState *statePtr
+    Tcl_Obj *CONST objv[]
     );
 
 static int
@@ -164,6 +159,10 @@ static const CryptCipherMode cipherModes[] = {
     {NULL}
 };
 
+//
+// MAC switches and handle values.
+//
+
 static const char *macSwitches[] = {
     "-hmac", "-omac", "-pelican", "-pmac", NULL
 };
@@ -173,8 +172,36 @@ enum {
     CRYPT_OMAC,
     CRYPT_PELICAN,
     CRYPT_PMAC,
-    CRYPT_HASH,
-    CRYPT_PRNG
+    CRYPT_HASH
+};
+
+//
+// PRNG channel driver.
+//
+
+static Tcl_DriverBlockModeProc PrngSetBlocking;
+static Tcl_DriverCloseProc     PrngClose;
+static Tcl_DriverInputProc     PrngInput;
+static Tcl_DriverOutputProc    PrngOutput;
+static Tcl_DriverGetOptionProc PrngGetOption;
+static Tcl_DriverSetOptionProc PrngSetOption;
+static Tcl_DriverWatchProc     PrngWatch;
+
+static Tcl_ChannelType prngChannelType = {
+    "prng",                 // Channel type.
+    TCL_CHANNEL_VERSION_2,  // Channel driver version.
+    PrngClose,              // Close the channel.
+    PrngInput,              // Read from channel.
+    PrngOutput,             // Write to channel.
+    NULL,                   // Seek proc.
+    PrngSetOption,          // Set channel options.
+    PrngGetOption,          // Get channel options.
+    PrngWatch,              // Event notifier.
+    NULL,                   // Retrieve an OS handle.
+    NULL,                   // Close 2 proc.
+    PrngSetBlocking,        // Set blocking or non-blocking mode.
+    NULL,                   // Flush proc.
+    NULL,                   // Handler proc.
 };
 
 
@@ -199,11 +226,11 @@ Arguments:
 
     key         - The secret key.
 
-    keyLength   - Length of the secret key.
+    keyLength   - Length of the secret key, in bytes.
 
     data        - Cipher text (data to decrypt).
 
-    dataLength  - Length of cipher text.
+    dataLength  - Length of cipher text, in bytes.
 
     dest        - Buffer to receive plain text (decrypted data).
 
@@ -357,11 +384,11 @@ Arguments:
 
     key         - The secret key.
 
-    keyLength   - Length of the secret key.
+    keyLength   - Length of the secret key, in bytes.
 
     data        - Plain text (data to encrypt).
 
-    dataLength  - Length of plain text.
+    dataLength  - Length of plain text, in bytes.
 
     dest        - Buffer to receive cipher text (encrypted data).
 
@@ -1365,16 +1392,14 @@ CryptPkcs5Cmd(
 
 CryptPrngCmd
 
-    Create, seed, read, and close a pseudo random number generator.
+    Create a PRNG Tcl channel.
 
 Arguments:
-    interp   - Current interpreter.
+    interp  - Current interpreter.
 
-    objc     - Number of arguments.
+    objc    - Number of arguments.
 
-    objv     - Argument objects.
-
-    statePtr - Pointer to a 'ExtState' structure.
+    objv    - Argument objects.
 
 Return Value:
     A standard Tcl result.
@@ -1384,184 +1409,58 @@ static int
 CryptPrngCmd(
     Tcl_Interp *interp,
     int objc,
-    Tcl_Obj *CONST objv[],
-    ExtState *statePtr
+    Tcl_Obj *CONST objv[]
     )
 {
+    char channelName[5 + TCL_INTEGER_SPACE];
     int index;
     int status;
-    CryptHandle *handlePtr;
-    Tcl_HashEntry *hashEntryPtr;
-    static const char *options[] = {"close", "get", "open", "put", "set", NULL};
-    enum options {OPTION_CLOSE, OPTION_GET, OPTION_OPEN, OPTION_PUT, OPTION_SET};
+    PrngHandle *handlePtr;
 
-    if (objc < 3) {
-        Tcl_WrongNumArgs(interp, 2, objv, "option arg");
+    if (objc != 3) {
+        Tcl_WrongNumArgs(interp, 2, objv, "type");
         return TCL_ERROR;
     }
 
-    if (Tcl_GetIndexFromObj(interp, objv[2], options, "option", 0, &index) != TCL_OK) {
+    if (Tcl_GetIndexFromObjStruct(interp, objv[2], prng_descriptor,
+        sizeof(prng_descriptor[0]), "prng", TCL_EXACT, &index) != TCL_OK) {
         return TCL_ERROR;
     }
 
-    switch ((enum options) index) {
-        case OPTION_CLOSE: {
-            if (objc != 4) {
-                Tcl_WrongNumArgs(interp, 3, objv, "handle");
-                return TCL_ERROR;
-            }
+    // Initialise the PRNG.
+    handlePtr = (PrngHandle *) ckalloc(sizeof(PrngHandle));
+    handlePtr->descIndex = index;
+    handlePtr->ready = 0;
 
-            // Retrieve handle structure.
-            hashEntryPtr = GetHandleTableEntry(interp, objv[3], statePtr->cryptTable, "prng");
-            if (hashEntryPtr == NULL) {
-                return TCL_ERROR;
-            }
-            handlePtr = (CryptHandle *) Tcl_GetHashValue(hashEntryPtr);
+    status = prng_descriptor[index].start(&handlePtr->state);
+    if (status != CRYPT_OK) {
+        ckfree((char *) handlePtr);
+        Tcl_AppendResult(interp, "unable to initialise PRNG: ",
+            error_to_string(status), NULL);
+        return TCL_ERROR;
+    }
 
-            // Free resources and remove the hash table entry.
-            prng_descriptor[handlePtr->descIndex].done(&handlePtr->state.prng);
-            ckfree((char *) handlePtr);
-            Tcl_DeleteHashEntry(hashEntryPtr);
-
-            return TCL_OK;
-        }
-        case OPTION_GET: {
-            int destLength;
-            unsigned char *dest;
-
-            if (objc != 5) {
-                Tcl_WrongNumArgs(interp, 3, objv, "handle bytes");
-                return TCL_ERROR;
-            }
-
-            // Retrieve handle structure.
-            hashEntryPtr = GetHandleTableEntry(interp, objv[3], statePtr->cryptTable, "prng");
-            if (hashEntryPtr == NULL || Tcl_GetIntFromObj(interp, objv[4], &destLength) != TCL_OK) {
-                return TCL_ERROR;
-            }
-            handlePtr = (CryptHandle *) Tcl_GetHashValue(hashEntryPtr);
-
-            // Create a byte object to hold the hash digest.
-            dest = Tcl_SetByteArrayLength(Tcl_GetObjResult(interp), destLength);
-
-            // Retrieve random data from the PRNG.
-            status = (int) prng_descriptor[handlePtr->descIndex].read(dest,
-                (unsigned long)destLength, &handlePtr->state.prng);
-
-            //
-            // If the amount read does not equal the request amount, the
-            // operation is considered to have failed. (e.g. if a user requests
-            // five bytes and the function returns four bytes, due to lack of
-            // entropy or whatever the reason).
-            //
-            if (status != destLength) {
-                Tcl_SetResult(interp, "unable to read from PRNG", TCL_STATIC);
-                return TCL_ERROR;
-            }
-
-            return TCL_OK;
-        }
-        case OPTION_OPEN: {
-            char handleId[20];
-            int newEntry;
-
-            if (objc != 4) {
-                Tcl_WrongNumArgs(interp, 3, objv, "type");
-                return TCL_ERROR;
-            }
-
-            if (Tcl_GetIndexFromObjStruct(interp, objv[3], prng_descriptor,
-                sizeof(prng_descriptor[0]), "prng", TCL_EXACT, &index) != TCL_OK) {
-                return TCL_ERROR;
-            }
-
-            // Initialise the PRNG.
-            handlePtr = (CryptHandle *) ckalloc(sizeof(CryptHandle));
-            handlePtr->descIndex = index;
-            handlePtr->type = CRYPT_PRNG;
-
-            status = prng_descriptor[index].start(&handlePtr->state.prng);
-            if (status != CRYPT_OK) {
-                ckfree((char *) handlePtr);
-                Tcl_AppendResult(interp, "unable to initialise PRNG: ",
-                    error_to_string(status), NULL);
-                return TCL_ERROR;
-            }
-
-            // The handle identifier doubles as the hash key.
 #ifdef _WINDOWS
-            StringCchPrintfA(handleId, ARRAYSIZE(handleId), "prng%lu", statePtr->prngCount);
+    StringCchPrintfA(channelName, ARRAYSIZE(channelName), "prng%lx",
+        (long) handlePtr);
 #else // _WINDOWS
-            snprintf(handleId, ARRAYSIZE(handleId), "prng%lu", statePtr->prngCount);
-            handleId[ARRAYSIZE(handleId)-1] = '\0';
+    snprintf(channelName, ARRAYSIZE(channelName), "prng%lx",
+        (long) handlePtr);
+    handleId[ARRAYSIZE(channelName)-1] = '\0';
 #endif // _WINDOWS
-            statePtr->prngCount++;
 
-            hashEntryPtr = Tcl_CreateHashEntry(statePtr->cryptTable, handleId, &newEntry);
-            Tcl_SetHashValue(hashEntryPtr, (ClientData) handlePtr);
+    handlePtr->channel = Tcl_CreateChannel(&prngChannelType, channelName,
+	    (ClientData) handlePtr, TCL_READABLE | TCL_WRITABLE);
 
-            Tcl_SetStringObj(Tcl_GetObjResult(interp), handleId, -1);
-            return TCL_OK;
-        }
-        case OPTION_PUT: {
-            int dataLength;
-            unsigned char *data;
+    // Set default channel options.
+    Tcl_SetChannelOption(NULL, handlePtr->channel, "-buffering",   "none");
+    Tcl_SetChannelOption(NULL, handlePtr->channel, "-blocking",    "0");
+    Tcl_SetChannelOption(NULL, handlePtr->channel, "-translation", "binary");
 
-            if (objc != 5) {
-                Tcl_WrongNumArgs(interp, 3, objv, "handle data");
-                return TCL_ERROR;
-            }
+    Tcl_RegisterChannel(interp, handlePtr->channel);
 
-            // Retrieve handle structure.
-            hashEntryPtr = GetHandleTableEntry(interp, objv[3], statePtr->cryptTable, "prng");
-            if (hashEntryPtr == NULL) {
-                return TCL_ERROR;
-            }
-            handlePtr = (CryptHandle *) Tcl_GetHashValue(hashEntryPtr);
-
-            data = Tcl_GetByteArrayFromObj(objv[4], &dataLength);
-
-            // Add entropy to the PRNG.
-            status = prng_descriptor[handlePtr->descIndex].add_entropy(data,
-                (unsigned long)dataLength, &handlePtr->state.prng);
-
-            if (status != CRYPT_OK) {
-                Tcl_AppendResult(interp, "unable to add entropy to PRNG: ",
-                    error_to_string(status), NULL);
-                return TCL_ERROR;
-            }
-
-            return TCL_OK;
-        }
-        case OPTION_SET: {
-            if (objc != 4) {
-                Tcl_WrongNumArgs(interp, 3, objv, "handle");
-                return TCL_ERROR;
-            }
-
-            // Retrieve handle structure.
-            hashEntryPtr = GetHandleTableEntry(interp, objv[3], statePtr->cryptTable, "prng");
-            if (hashEntryPtr == NULL) {
-                return TCL_ERROR;
-            }
-            handlePtr = (CryptHandle *) Tcl_GetHashValue(hashEntryPtr);
-
-            // Set the PRNG as ready.
-            status = prng_descriptor[handlePtr->descIndex].ready(&handlePtr->state.prng);
-
-            if (status != CRYPT_OK) {
-                Tcl_AppendResult(interp, "unable to ready the PRNG: ",
-                    error_to_string(status), NULL);
-                return TCL_ERROR;
-            }
-
-            return TCL_OK;
-        }
-    }
-
-    // This point should never be reached.
-    Tcl_Panic("unexpected fallthrough");
-    return TCL_ERROR;
+    Tcl_SetStringObj(Tcl_GetObjResult(interp), channelName, -1);
+    return TCL_OK;
 }
 
 /*++
@@ -1613,6 +1512,311 @@ CryptRandCmd(
     }
 
     return TCL_OK;
+}
+
+/*++
+
+PrngSetBlocking
+
+    Sets the blocking mode on a PRNG channel.
+
+Arguments:
+    instanceData - Pointer to a 'PrngHandle' structure.
+
+    mode         - Requested blocking mode, TCL_MODE_BLOCKING
+                   or TCL_MODE_NONBLOCKING.
+
+Return Value:
+    If the function succeeds, the return value is zero. If the function
+    fails, the return value is an appropriate errno value.
+
+--*/
+static int
+PrngSetBlocking(
+	ClientData instanceData,
+	int mode
+	)
+{
+    // Always non-blocking.
+    return (mode == TCL_MODE_NONBLOCKING) ? 0 : EINVAL;
+}
+
+/*++
+
+PrngClose
+
+    Closes the PRNG channel.
+
+Arguments:
+    instanceData - Pointer to a 'PrngHandle' structure.
+
+    interp       - Interpreter to use for error reporting. This
+                   argument can be NULL.
+
+Return Value:
+    If the function succeeds, the return value is zero. If the function
+    fails, the return value is an appropriate errno value.
+
+--*/
+static int
+PrngClose(
+    ClientData instanceData,
+    Tcl_Interp *interp
+    )
+{
+    PrngHandle *handlePtr = (PrngHandle *) instanceData;
+
+    // Finalise the PRNG state and free resources.
+    prng_descriptor[handlePtr->descIndex].done(&handlePtr->state);
+    ckfree((char *) handlePtr);
+
+    return 0;
+}
+
+/*++
+
+PrngInput
+
+    Reads random data from the PRNG channel.
+
+Arguments:
+    instanceData - Pointer to a 'PrngHandle' structure.
+
+    dest         - Buffer to receive random data.
+
+    destLength   - Length of the buffer, in bytes.
+
+    errorCodePtr - Location to store the error code.
+
+Return Value:
+    The return value is the number of bytes read from the PRNG.
+
+--*/
+static int
+PrngInput(
+    ClientData instanceData,
+    char *dest,
+    int destLength,
+    int *errorCodePtr
+    )
+{
+    PrngHandle *handlePtr = (PrngHandle *) instanceData;
+
+    //
+    // Not all PRNGs (i.e. the SPRNG) require the caller to mark it as ready
+    // before using it, but I prefer to keep the subtleties consistent.
+    //
+    if (!handlePtr->ready) {
+        *errorCodePtr = EACCES;
+        return -1;
+    }
+
+    *errorCodePtr = 0;
+    return (int) prng_descriptor[handlePtr->descIndex].read(
+        (unsigned char *) dest, (unsigned long) destLength, &handlePtr->state);
+}
+
+/*++
+
+PrngOutput
+
+    Adds entropy to the PRNG channel.
+
+Arguments:
+    instanceData - Pointer to a 'PrngHandle' structure.
+
+    source       - Buffer containing the entropy to add.
+
+    sourceLength - Length of the buffer, in bytes.
+
+    errorCodePtr - Location to store the error code.
+
+Return Value:
+    The return value is the number of bytes added to the PRNG.
+
+--*/
+static int
+PrngOutput(
+	ClientData instanceData,
+	CONST char *source,
+	int sourceLength,
+	int *errorCodePtr
+    )
+{
+    int status;
+    PrngHandle *handlePtr = (PrngHandle *) instanceData;
+
+    // Add entropy to the PRNG.
+    status = prng_descriptor[handlePtr->descIndex].add_entropy(
+        (unsigned char *) source, (unsigned long) sourceLength, &handlePtr->state);
+
+    if (status != CRYPT_OK) {
+        // Try to map the LibTomCrypt status code to an errno value.
+        switch (status) {
+            case CRYPT_INVALID_ARG:
+            case CRYPT_INVALID_CIPHER:
+            case CRYPT_INVALID_HASH:
+            case CRYPT_INVALID_KEYSIZE:
+            case CRYPT_INVALID_PRNG: {
+                *errorCodePtr = EINVAL;
+                break;
+            }
+            default: {
+                *errorCodePtr = EACCES;
+                break;
+            }
+        }
+        return -1;
+    }
+
+    *errorCodePtr = 0;
+    return sourceLength;
+}
+
+/*++
+
+PrngGetOption
+
+    Retrieves an option value for a PRNG channel.
+
+Arguments:
+    instanceData - Pointer to a 'PrngHandle' structure.
+
+    interp       - Interpreter to use for error reporting. This
+                   argument can be NULL.
+
+    optionName   - Name of the option to retrieve the value for, or NULL
+                   to retrieve all options and their values.
+
+    optionValue  - Location to store the computed values, initialised by caller.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
+static int
+PrngGetOption(
+    ClientData instanceData,
+    Tcl_Interp *interp,
+    CONST char *optionName,
+    Tcl_DString *optionValue
+    )
+{
+    size_t length = 0;
+    PrngHandle *handlePtr = (PrngHandle *) instanceData;
+
+    //
+    // The option name will be NULL if all options were
+    // requested, e.g. "fconfigure $prngChannel".
+    //
+    if (optionName != NULL) {
+        length = strlen(optionName);
+    }
+
+    if (length != 0 && (length < 2 || strncmp("-ready", optionName, length) != 0)) {
+        return Tcl_BadChannelOption(interp, optionName, "ready");
+    }
+
+    // Append the option name and its value.
+    if (length == 0) {
+        Tcl_DStringAppendElement(optionValue, "-ready");
+    }
+    Tcl_DStringAppendElement(optionValue, handlePtr->ready ? "1" : "0");
+
+    return TCL_OK;
+}
+
+/*++
+
+PrngSetOption
+
+    Sets PRNG channel specific options.
+
+Arguments:
+    instanceData - Pointer to a 'PrngHandle' structure.
+
+    interp       - Interpreter to use for error reporting. This
+                   argument can be NULL.
+
+    optionName   - Name of the option to set.
+
+    newValue     - New value for option.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
+static int
+PrngSetOption(
+    ClientData instanceData,
+    Tcl_Interp *interp,
+    CONST char *optionName,
+    CONST char *newValue
+    )
+{
+    int ready;
+    size_t length;
+    PrngHandle *handlePtr = (PrngHandle *) instanceData;
+
+    length = strlen(optionName);
+
+    if (length < 2 || strncmp("-ready", optionName, length) != 0) {
+        return Tcl_BadChannelOption(interp, optionName, "ready");
+    }
+
+    if (Tcl_GetBoolean(interp, newValue, &ready) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    if (ready) {
+        // Set the PRNG as ready.
+        int status = prng_descriptor[handlePtr->descIndex].ready(&handlePtr->state);
+
+        if (status != CRYPT_OK) {
+            if (interp != NULL) {
+                Tcl_AppendResult(interp, "unable to ready the PRNG: ",
+                    error_to_string(status), NULL);
+            }
+            return TCL_ERROR;
+        }
+
+        // Only update the status if ready() succeeds.
+        handlePtr->ready = 1;
+    } else {
+        handlePtr->ready = 0;
+    }
+
+    return TCL_OK;
+}
+
+/*++
+
+PrngWatch
+
+    Called by the notifier to set up to watch for events on this channel.
+
+Arguments:
+    instanceData - Pointer to a 'PrngHandle' structure.
+
+    mask         - Events the caller is interested in noticing on this
+                   channel. An OR-ed combination of TCL_READABLE,
+                   TCL_WRITABLE, and TCL_EXCEPTION
+
+Return Value:
+    Mone.
+
+--*/
+static void
+PrngWatch(
+	ClientData instanceData,
+	int mask
+	)
+{
+    //
+    // Even though this function is not used, it must be present
+    // the Tcl channel driver.
+    //
+    return;
 }
 
 /*++
@@ -1669,7 +1873,7 @@ CryptObjCmd(
         case OPTION_HASH:    return CryptHashCmd(interp, objc, objv);
         case OPTION_INFO:    return CryptInfoCmd(interp, objc, objv, statePtr);
         case OPTION_PKCS5:   return CryptPkcs5Cmd(interp, objc, objv);
-        case OPTION_PRNG:    return CryptPrngCmd(interp, objc, objv, statePtr);
+        case OPTION_PRNG:    return CryptPrngCmd(interp, objc, objv);
         case OPTION_RAND:    return CryptRandCmd(interp, objc, objv);
         case OPTION_START:   return CryptStartCmd(interp, objc, objv, statePtr);
         case OPTION_UPDATE:  return CryptUpdateCmd(interp, objc, objv, statePtr);
