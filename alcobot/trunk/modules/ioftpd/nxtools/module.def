@@ -1,0 +1,5 @@
+# Module Definition File
+desc=nxTools Support
+file=modNxTools.tcl
+context=::alcoholicz::NxTools
+depends=
