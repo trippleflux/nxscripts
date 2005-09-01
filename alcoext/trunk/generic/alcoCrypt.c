@@ -878,7 +878,7 @@ CryptStartCmd(
     ExtState *statePtr
     )
 {
-    char handleName[5 + TCL_INTEGER_SPACE];
+    char handleName[4 + (sizeof(void*) * 2) + 1]; // Handle name, pointer in hex, and a NULL.
     int index;
     int keyLength;
     int newEntry;
@@ -1414,7 +1414,7 @@ CryptPrngCmd(
     Tcl_Obj *CONST objv[]
     )
 {
-    char channelName[5 + TCL_INTEGER_SPACE];
+    char channelName[4 + (sizeof(void*) * 2) + 1]; // Channel type, pointer in hex, and a NULL.
     int index;
     int status;
     PrngHandle *handlePtr;
