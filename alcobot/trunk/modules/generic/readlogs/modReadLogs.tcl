@@ -33,11 +33,11 @@ proc ::alcoholicz::ReadLogs::AddLog {logType logFile} {
     variable logOffset
 
     # Sanity checks.
-    switch -- [string tolower $logType] {
-        {main}  {set logType 0}
-        {error} {set logType 1}
-        {login} {set logType 2}
-        {sysop} {set logType 3}
+    switch -- $logType {
+        main  {set logType 0}
+        error {set logType 1}
+        login {set logType 2}
+        sysop {set logType 3}
         default {error "unknown log type \"logType\""}
     }
 
