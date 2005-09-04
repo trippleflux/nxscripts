@@ -137,9 +137,7 @@ proc ::alcoholicz::CmdCreate {type name script {category ""} {argDesc ""} {cmdDe
     variable cmdNames
 
     switch -- $type {
-        chan -
         channel {
-            set type channel
             bind pub -|- $name [list [namespace current]::CmdChannelProc $script]
         }
         default {
@@ -192,7 +190,7 @@ proc ::alcoholicz::CmdSetHelp {type name {category ""} {argDesc ""} {cmdDesc ""}
         # The caller could have specified an invalid command type, a
         # command name that was already removed, or a command name that
         # was not created with "CmdCreate".
-        error "invalid command type or name"
+        error "invalid command type \"$type\" or name \"$name\""
     }
 
     set script [lindex $cmdNames([list $type $name]) 0]
@@ -212,13 +210,12 @@ proc ::alcoholicz::CmdRemove {type name} {
         # The caller could have specified an invalid command type, a
         # command name that was already removed, or a command name that
         # was not created with "CmdCreate".
-        error "invalid command type or name"
+        error "invalid command type \"$type\" or name \"$name\""
     }
 
     set script [lindex $cmdNames([list $type $name]) 0]
 
     switch -- $type {
-        chan -
         channel {
             unbind pub -|- $name [list [namespace current]::CmdChannelProc $script]
         }
@@ -956,7 +953,7 @@ proc ::alcoholicz::InitLibraries {rootPath} {
     global auto_path
 
     set libPath [file join $rootPath "libs"]
-    foreach script {constants.tcl common.tcl config.tcl ftp.tcl tree.tcl} {
+    foreach script {constants.tcl libCommon.tcl libConfig.tcl libTree.tcl} {
         set script [file join $libPath $script]
         if {[catch {source $script} message]} {
             error "couldn't source script \"$script\": $message"
