@@ -26,7 +26,7 @@ proc ::alcoholicz::Groups::ChangeAffils {event user host handle channel target a
     if {$argc != 2} {
         # Channel commands should display the usage message in the
         # channel they were invoked from, not the output target.
-        SendTargetTheme "PRIVMSG $channel" commandHelp [list $::lastbind "<section> <group>"]
+        CmdSendHelp $channel channel $::lastbind
         return
     }
     ConfigRead $groupsHandle
@@ -76,7 +76,7 @@ proc ::alcoholicz::Groups::ChangeAffils {event user host handle channel target a
 proc ::alcoholicz::Groups::ChangeBanned {event user host handle channel target argc argv} {
     variable groupsHandle
     if {$argc != 2} {
-        SendTargetTheme "PRIVMSG $channel" commandHelp [list $::lastbind "<section> <group>"]
+        CmdSendHelp $channel channel $::lastbind
         return
     }
     ConfigRead $groupsHandle

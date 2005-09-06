@@ -30,7 +30,7 @@ proc ::alcoholicz::Free::Command {user host handle channel target argc argv} {
     if {$argc > 1} {
         # Channel commands should display the usage message in the
         # channel they were invoked from, not the output target.
-        SendTargetTheme "PRIVMSG $channel" commandHelp [list $::lastbind "\[section\]"]
+        CmdSendHelp $channel channel $::lastbind
         return
     }
 
@@ -94,11 +94,12 @@ proc ::alcoholicz::Free::Load {firstLoad} {
         set prefix $::alcoholicz::cmdPrefix
     }
 
-    # Alias for "!free" (*nix people).
+    # Alias for "!free".
     CmdCreate channel ${prefix}df   [namespace current]::Command
 
     CmdCreate channel ${prefix}free [namespace current]::Command \
-        "General" "Display free disk space." "\[section\]"
+        General "Display free disk space." "\[section\]"
+
     return
 }
 

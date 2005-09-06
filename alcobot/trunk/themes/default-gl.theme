@@ -139,7 +139,8 @@ GIVE        = [b][[c1]Give[c]][b] [b]%(user)[b] gave %(credits) of credits to [b
 TAKE        = [b][[c1]Take[c]][b] [b]%(user)[b] took %(credits) of credits from [b]%(target)[b].
 
 # Command argument help.
-commandHelp = [b]Usage:[b] %(command) %(arguments)
+commandHelp = [b]Usage:[b] %(command) %(arguments) - %(message)
+commandUsage= [b]Usage:[b] %(command) %(arguments)
 
 # Module: free
 freeHead    = [b][[c1]Free[c]][b] Total Space:

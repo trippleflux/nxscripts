@@ -156,7 +156,8 @@ UPDATE      = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] %(message)
 WARN        = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] %(message)
 
 # Command argument help.
-commandHelp = [b]Usage:[b] %(command) %(arguments)
+commandHelp = [b]Usage:[b] %(command) %(arguments) - %(message)
+commandUsage= [b]Usage:[b] %(command) %(arguments)
 
 # Module: free
 freeHead    = [b][[c1]Free[c]][b] Total Space:

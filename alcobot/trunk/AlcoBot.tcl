@@ -21,7 +21,7 @@ namespace eval ::alcoholicz {
 
     namespace export b c u r o \
         LogDebug LogInfo LogError LogWarning GetFtpDaemon \
-        CmdCreate CmdGetFlags CmdGetList CmdSetHelp CmdRemove \
+        CmdCreate CmdGetFlags CmdGetList CmdSetHelp CmdSendHelp CmdRemove \
         EventExecute EventRegister EventUnregister \
         ModuleFind ModuleHash ModuleInfo ModuleLoad ModuleUnload ModuleRead \
         FlagGetValue FlagExists FlagIsDisabled FlagIsEnabled FlagCheckEvent FlagCheckSection \
@@ -133,7 +133,7 @@ proc ::alcoholicz::SetFtpDaemon {name} {
 #
 # Create a channel command.
 #
-proc ::alcoholicz::CmdCreate {type name script {category ""} {argDesc ""} {cmdDesc ""}} {
+proc ::alcoholicz::CmdCreate {type name script {category ""} {cmdDesc ""} {argDesc ""}} {
     variable cmdNames
 
     switch -- $type {
@@ -183,7 +183,7 @@ proc ::alcoholicz::CmdGetList {typePattern namePattern} {
 #
 # Set the argument list and description for a command.
 #
-proc ::alcoholicz::CmdSetHelp {type name {category ""} {argDesc ""} {cmdDesc ""}} {
+proc ::alcoholicz::CmdSetHelp {type name {category ""} {cmdDesc ""} {argDesc ""}} {
     variable cmdNames
 
     if {![info exists cmdNames([list $type $name])]} {
@@ -195,6 +195,27 @@ proc ::alcoholicz::CmdSetHelp {type name {category ""} {argDesc ""} {cmdDesc ""}
 
     set script [lindex $cmdNames([list $type $name]) 0]
     set cmdNames([list $type $name]) [list $script $category $argDesc $cmdDesc]
+    return
+}
+
+####
+# CmdSendHelp
+#
+# Send a command help message to the specified target.
+#
+proc ::alcoholicz::CmdSendHelp {target type name {message ""}} {
+    variable cmdNames
+
+    if {![info exists cmdNames([list $type $name])]} {
+        error "invalid command type \"$type\" or name \"$name\""
+    }
+
+    set argDesc [lindex $cmdNames([list $type $name]) 2]
+    if {$message ne ""} {
+        SendTargetTheme "PRIVMSG $target" commandHelp  [list $argDesc $name $message]
+    } else {
+        SendTargetTheme "PRIVMSG $target" commandUsage [list $argDesc $name]
+    }
     return
 }
 
