@@ -146,7 +146,7 @@ proc ::nxTools::Req::Add {userName groupName request} {
 }
 
 proc ::nxTools::Req::Update {event userName groupName request} {
-    global misc req
+    global misc req flags
     iputs ".-\[Request\]--------------------------------------------------------------."
     set exists 0
     set result 0
@@ -256,7 +256,7 @@ proc ::nxTools::Req::Wipe {} {
 ######################################################################
 
 proc ::nxTools::Req::Main {argv} {
-    global misc flags ioerror group user
+    global misc ioerror group user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     set result 0
 
