@@ -13,7 +13,6 @@ Topics:
   7. Technical Notes
   8. Todo List
   9. Bugs and Comments
- 10. License
 
 ################################################################################
 # 1. Information                                                               #
@@ -797,7 +796,7 @@ Text Templates:
 
 - Make SITE GINFO and SITE WHO customizable.
 
-- Convert this manual to a cleanly formatted HTML file. Similar to what WarC 
+- Convert this manual to a cleanly formatted HTML file. Similar to what WarC
   and Harm have done with ioA and ioBanana, respectively.
 
 ################################################################################
@@ -810,19 +809,3 @@ be sure you can reproduce the problem, so I can find a solution.
 
 IRC  : neoxed <#ioFTPD at EFnet>
 Email: neoxed@gmail.com
-
-################################################################################
-# 10. License                                                                  #
-################################################################################
-
-   This application and/or script is licensed under the Creative Commons
-Attribution-NonCommercial-ShareAlike License 2.0. In short - I, the author,
-take absolutely no responsibility to any damage of any kind caused by the use
-or misuse of this script. Those who wish to redistribute or use my work must
-abide by the license. By using this application and/or script, you accept and
-agree to be bound by the terms and conditions of this license. Please see
-the below URLs for more information, as well as the terms and conditions of
-this license.
-
-Commons Deed : http://creativecommons.org/licenses/by-nc-sa/2.0/
-Legal Code   : http://creativecommons.org/licenses/by-nc-sa/2.0/legalcode

@@ -3,6 +3,7 @@
 ################################################################################
 
 nxTools v0.9.13 (XXX XX, 2005):
+  NEW: Moved to the modified BSD license.
   CHG: Removed bot specific output for SITE commands.
   CHG: Removed unused configuration options.
   FIX: Admins could not delete requests by other users.
