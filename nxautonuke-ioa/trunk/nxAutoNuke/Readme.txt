@@ -9,7 +9,6 @@ Topics:
  3. nxTools and dZSbot Installation
  4. Todo List
  5. Bugs and Comments
- 6. License
 
 ################################################################################
 # 1. Information                                                               #
@@ -136,19 +135,3 @@ be sure you can reproduce the problem, so I can find a solution.
 
 IRC  : neoxed <#ioFTPD at EFnet>
 Email: neoxed@gmail.com
-
-################################################################################
-# 6. License                                                                   #
-################################################################################
-
-   This application and/or script is licensed under the Creative Commons
-Attribution-NonCommercial-ShareAlike License 2.0. In short - I, the author,
-take absolutely no responsibility to any damage of any kind caused by the use
-or misuse of this script. Those who wish to redistribute or use my work must
-abide by the license. By using this application and/or script, you accept and
-agree to be bound by the terms and conditions of this license. Please see
-the below URLs for more information, as well as the terms and conditions of
-this license.
-
-Commons Deed : http://creativecommons.org/licenses/by-nc-sa/2.0/
-Legal Code   : http://creativecommons.org/licenses/by-nc-sa/2.0/legalcode
