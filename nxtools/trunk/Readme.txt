@@ -789,19 +789,16 @@ Text Templates:
 # 8. Todo List                                                                 #
 ################################################################################
 
-- Rewrite nuker to use the nukees stored in nukes.db, fall back to read.
+- Rewrite nuker to use the nukees stored in Nukes.db, fall back to read.
 
-- Write user/credits during pre (chown + group nukes = no loss).
-  See: http://www.ioftpd.com/board/showthread.php?s=&threadid=4971
+- Write user/credits during pre (chown + group nukes == no loss).
 
-- Add support for text justification in the message templates (left, right, and center).
+- Add support for text justification in message templates (left, right, and center).
 
-- Make SITE GINFO/WHO customizable - not a high priority.
+- Make SITE GINFO and SITE WHO customizable.
 
-- Write a compatible sitebot; AlcoBot at http://www.alcoholicz.com.
-
-- Convert this manual to a cleanly formatted HTML file (like WarC and Harm have
-  done with ioA and ioBanana).
+- Convert this manual to a cleanly formatted HTML file. Similar to what WarC 
+  and Harm have done with ioA and ioBanana, respectively.
 
 ################################################################################
 # 9. Bugs and Comments                                                         #
