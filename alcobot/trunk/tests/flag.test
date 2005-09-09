@@ -22,8 +22,6 @@ set parentPath [file dirname [file dirname [file normalize [info script]]]]
 # FlagGetValue                                                                 #
 ################################################################################
 
-set flags {+one=1 -two=2 invalid=2 -one=10 something=abc +oneSix=16 -twoSix=26}
-
 test flag-1.1 {FlagGetValue: no args} {
     list [catch {FlagGetValue} msg] $msg
 } {1 {wrong # args: should be "FlagGetValue flagList flagName valueVar"}}

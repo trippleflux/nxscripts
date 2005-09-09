@@ -974,7 +974,7 @@ proc ::alcoholicz::InitLibraries {rootPath} {
     global auto_path
 
     set libPath [file join $rootPath "libs"]
-    foreach script {constants.tcl libCommon.tcl libConfig.tcl libTree.tcl} {
+    foreach script {constants.tcl libCommon.tcl libConfig.tcl libGetOpt.tcl libTree.tcl} {
         set script [file join $libPath $script]
         if {[catch {source $script} message]} {
             error "couldn't source script \"$script\": $message"
@@ -989,7 +989,7 @@ proc ::alcoholicz::InitLibraries {rootPath} {
     }
 
     # Load the Alcoholicz Tcl extension.
-    package require AlcoExt 0.1
+    package require AlcoExt 0.2
     return
 }
 
