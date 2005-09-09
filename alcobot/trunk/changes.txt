@@ -1,5 +1,7 @@
 AlcoBot v0.2.0 (XXX XX, 2005):
-  ...
+  NEW: Command-line style option parsing library.
+  NEW: nxTools module for ioFTPD, to interact with nxTools' databases.
+  CHG: Moved to a less restrictive license (modified BSD).
 
 AlcoBot v0.1.0 (Aug 29, 2005):
   CHG: Initial release.
