@@ -423,7 +423,7 @@ BzipSetError(
         status = 0;
     } else {
         status = -status;
-        if (status > ARRAYSIZE(errors)) {
+        if (status >= ARRAYSIZE(errors)) {
             status = ARRAYSIZE(errors)-1;
         }
     }
