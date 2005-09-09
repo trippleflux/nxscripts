@@ -507,7 +507,13 @@ uLong ZEXPORT deflateBound(strm, sourceLen)
         return destLen;
 
     /* default settings: return tight bound for that case */
-    return compressBound(sourceLen);
+
+    /*
+     * Modified by neoxed:
+     * - Removed the call to compressBound, so compress.c can be
+     *   omitted during compilation (code footprint reduction).
+     */
+    return sourceLen + (sourceLen >> 12) + (sourceLen >> 14) + 11;
 }
 
 /* =========================================================================

@@ -157,7 +157,6 @@ INCLUDE_DIRS=\
 
 INTERMEDIATE_FILES=\
     $(PKG_INTDIR)\adler32.obj\
-    $(PKG_INTDIR)\compress.obj\
     $(PKG_INTDIR)\crc32.obj\
     $(PKG_INTDIR)\deflate.obj\
     $(PKG_INTDIR)\inffast.obj\
@@ -178,7 +177,6 @@ INTERMEDIATE_FILES=\
 
 OBJECT_FILES=\
     $(ROOT)\zlib\adler32.obj\
-    $(ROOT)\zlib\compress.obj\
     $(ROOT)\zlib\crc32.obj\
     $(ROOT)\zlib\deflate.obj\
     $(ROOT)\zlib\inffast.obj\
