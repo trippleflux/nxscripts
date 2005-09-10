@@ -824,6 +824,9 @@ CompressObjCmd(
                     return TCL_ERROR;
                 }
             } else {
+                // Assumed to be a Zlib compression format.
+                assert(index == TYPE_GZIP || index == TYPE_ZLIB || index == TYPE_ZLIBRAW);
+
                 status = ZlibCompressObj(objv[objc-1], Tcl_GetObjResult(interp),
                     level, compressionFormats[index].window);
 
@@ -856,6 +859,9 @@ CompressObjCmd(
                     return TCL_ERROR;
                 }
             } else {
+                // Assumed to be a Zlib compression format.
+                assert(index == TYPE_GZIP || index == TYPE_ZLIB || index == TYPE_ZLIBRAW);
+
                 status = ZlibDecompressObj(objv[3], Tcl_GetObjResult(interp),
                     compressionFormats[index].window);
 

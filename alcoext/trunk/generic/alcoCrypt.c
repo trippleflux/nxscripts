@@ -190,7 +190,7 @@ static Tcl_DriverWatchProc     PrngWatch;
 static Tcl_ChannelType prngChannelType = {
     "prng",                 // Channel type.
     TCL_CHANNEL_VERSION_2,  // Channel driver version.
-    PrngClose,              // Close the channel.
+    PrngClose,              // Close channel.
     PrngInput,              // Read from channel.
     PrngOutput,             // Write to channel.
     NULL,                   // Seek proc.
