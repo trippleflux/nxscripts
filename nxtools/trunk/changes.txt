@@ -2,7 +2,7 @@
 #                             nxTools - Change Log                             #
 ################################################################################
 
-nxTools v0.9.13 (XXX XX, 2005):
+nxTools v0.9.13 (Sep 10, 2005):
   NEW: Moved to the modified BSD license.
   CHG: Removed bot specific output for SITE commands.
   CHG: Removed unused configuration options.
