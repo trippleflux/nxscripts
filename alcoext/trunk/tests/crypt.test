@@ -432,6 +432,14 @@ test crypt-4.12 {crypt hash: PMAC tests} {
     }
 } {}
 
+test crypt-4.13 {crypt hash: pelican MAC only accepts AES} {
+    list [catch {crypt hash -pelican a blowfish c} msg] $msg
+} {1 {unable to hash data: invalid cipher specified}}
+
+test crypt-4.14 {crypt hash: pelican MAC test} {
+    encode hex [crypt hash -pelican "testtesttesttest" aes "testtesttesttest"]
+} {70C760C804A0CE77B73CC122AC7243FD}
+
 ################################################################################
 # crypt start                                                                  #
 ################################################################################
