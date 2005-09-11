@@ -65,13 +65,13 @@ proc ::alcoholicz::ConfigOpen {filePath args} {
 
     foreach {option value} $args {
         switch -- $option {
-            {-align} {
+            -align {
                 if {![string is digit -strict $value]} {
                     error "expected digit but got \"$value\""
                 }
                 set align $value
             }
-            {-comment} {
+            -comment {
                 if {[string length $value] != 1} {
                     error "invalid comment \"$value\": must be one character"
                 }
@@ -112,19 +112,19 @@ proc ::alcoholicz::ConfigChange {handle option args} {
     } elseif {$argc == 1} {
         set value [lindex $args 0]
         switch -- $option {
-            {align} {
+            align {
                 if {![string is digit -strict $value]} {
                     error "expected digit but got \"$value\""
                 }
                 set config(align) $value
             }
-            {comment} {
+            comment {
                 if {[string length $value] != 1} {
                     error "invalid comment \"$value\": must be one character"
                 }
                 set config(comment) $value
             }
-            {path} {set config(path) $value}
+            path {set config(path) $value}
         }
         return $value
     } else {
