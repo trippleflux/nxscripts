@@ -18,6 +18,15 @@ namespace import -force ::tcltest::*
 set parentPath [file dirname [file dirname [file normalize [info script]]]]
 #namespace import -force ::alcoholicz::*
 
+proc ArrayGetSort {varName} {
+    upvar $varName var
+    set contents [list]
+    foreach name [lsort [array names var]] {
+        lappend contents $name $var($name)
+    }
+    return $contents
+}
+
 ################################################################################
 # GetIndexFromList                                                             #
 ################################################################################
@@ -46,7 +55,76 @@ test getopt-1.5 {GetIndexFromList: no unique partial match} {
 # GetOptions                                                                   #
 ################################################################################
 
-# TODO
+test getopt-2.1 {GetOptions: no args} {
+    list [catch {GetOptions} msg] $msg
+} {1 {wrong # args: should be "GetOptions argList optList resultVar"}}
 
+test getopt-2.2 {GetOptions: result variable as scalar} {
+    unset -nocomplain result
+    set result ""
+    list [catch {GetOptions "-one 5 blah blah" {{one integer}} result} msg] $msg
+} {1 {the variable "result" is not an array}}
+
+test getopt-2.3 {GetOptions: invalid type} {
+    -body {
+        unset -nocomplain result
+        list [catch {GetOptions "" {one {two .} three} result} msg] $msg
+    }
+    -match glob
+    -result {1 {invalid option definition "two .":  bad type ".", must be *}}
+}
+
+test getopt-2.4 {GetOptions: invalid option} {
+    unset -nocomplain result
+    list [catch {GetOptions "-four blah blah" {one two three} result} msg] $msg
+} {1 {invalid option "-four"}}
+
+test getopt-2.5 {GetOptions: end of options} {
+    unset -nocomplain result
+    list [GetOptions "-one -- -three blah blah" {one two three} result] [ArrayGetSort result]
+} {{-three blah blah} {one {}}}
+
+test getopt-2.6 {GetOptions: options with no values} {
+    unset -nocomplain result
+    list [GetOptions "-one -three blah blah" {one two three} result] [ArrayGetSort result]
+} {{blah blah} {one {} three {}}}
+
+test getopt-2.7 {GetOptions: any value not present} {
+    unset -nocomplain result
+    list [catch {GetOptions "-two -one" {{one arg} two {three arg}} result} msg] $msg
+} {1 {the option "-one" requires a value}}
+
+test getopt-2.8 {GetOptions: any value} {
+    unset -nocomplain result
+    list [GetOptions "-one okay -three -- blah blah" {{one arg} two three} result] [ArrayGetSort result]
+} {{blah blah} {one okay three {}}}
+
+test getopt-2.9 {GetOptions: invalid typed value} {
+    unset -nocomplain result
+    list [catch {GetOptions "-one . -three" {{one integer} two three} result} msg] $msg
+} {1 {the option "-one" requires a integer type value}}
+
+test getopt-2.10 {GetOptions: typed value} {
+    unset -nocomplain result
+    list [GetOptions "-one 5 -three blah blah" {{one integer} two three} result] [ArrayGetSort result]
+} {{blah blah} {one 5 three {}}}
+
+test getopt-2.11 {GetOptions: invalid prefined value} {
+    unset -nocomplain result
+    list [catch {GetOptions "-one 5 -type . -three" {{one integer} {type arg {exact glob regexp}} three} result} msg] $msg
+} {1 {invalid value ".", must be exact, glob, or regexp}}
+
+test getopt-2.12 {GetOptions: prefined value, exact match} {
+    unset -nocomplain result
+    list [GetOptions "-one 5 -type regexp -three blah blah" {{one integer} {type arg {exact glob regexp}} three} result] [ArrayGetSort result]
+} {{blah blah} {one 5 three {} type regexp}}
+
+test getopt-2.13 {GetOptions: prefined value, partial match} {
+    unset -nocomplain result
+    list [GetOptions "-one 5 -type ex -three blah blah" {{one integer} {type arg {exact glob regexp}} three} result] [ArrayGetSort result]
+} {{blah blah} {one 5 three {} type exact}}
+
+
+unset -nocomplain result
 ::tcltest::cleanupTests
 return

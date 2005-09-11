@@ -51,42 +51,123 @@ proc ::alcoholicz::GetIndexFromList {list element} {
 ####
 # GetOptions
 #
-# TODO
+# Parses command line options from an argument list.
 #
-proc ::alcoholicz::GetOptions {argList optList} {
+# Option List:
+#
+# option             - Option with no argument (e.g. "-option").
+#
+# option arg         - Option with any type of argument (e.g. "-option anything").
+#
+# option arg {a b c} - Option with predefined value (e.g. "-option b").
+#
+# option class       - Option with a specific type of value, the "class" can
+#                      be any character class supported by Tcl's "string is"
+#                      command. Such as alnum, alpha, ascii, control, boolean,
+#                      digit, double, false, graph, integer, lower, print, punct,
+#                      space, true, upper, wordchar, or xdigit
+#
+# Example:
+#
+# set argList "-limit 5 -match glob *some pattern*"
+# set optList {{limit integer} {match arg {exact glob regexp}}}
+# set pattern [GetOptions $argList $optList result]
+#
+# $result(limit) = 5
+# $result(match) = glob
+# $pattern       = *some pattern*"
+#
+proc ::alcoholicz::GetOptions {argList optList resultVar} {
+    variable charClasses
+    upvar $resultVar result
 
-    set optNames [list help ?]
+    if {[info exists result] && ![array exists result]} {
+        error "the variable \"$resultVar\" is not an array"
+    }
+
+    # Create a list of option names.
+    set optNames [list]
+    set types [lsort [concat $charClasses arg]]
+
     foreach option $optList {
+        switch -- [llength $option] {
+            1 {}
+            2 {
+                if {[lsearch -exact $types [lindex $option 1]] == -1} {
+                    error "invalid option definition \"$option\": \
+                        bad type \"[lindex $option 1]\", must be [JoinLiteral $types or]"
+                }
+            }
+            3 {
+                if {[lindex $option 1] ne "arg"} {
+                    error "invalid option definition \"$option\": \
+                        value lists can only be used with the \"arg\" type"
+                }
+            }
+            default {
+                error "invalid option definition \"$option\": wrong number of arguments"
+            }
+        }
+        lappend optNames [lindex $option 0]
+    }
 
+    #
+    # Errors thrown before this point indicate implementation problems, errors
+    # thrown after this point indicate user errors. For example, the argument
+    # list may contain an option that is invalid or undefined.
+    #
 
-        if {[regsub -- {\.multi$} $option {} option]} {
-            set multi
-        # Remove this extension before passing to typedGetopt.
+    while {[set argCount [llength $argList]]} {
+        set arg [lindex $argList 0]
 
-        regsub -- {\..*$} $name {} temp
-        set multi($temp) 1
+        # The "--" argument indicates the end of options.
+        if {$arg eq "--"} {
+            set argList [lrange $argList 1 end]
+            break
         }
 
-    }
-}
+        if {[string index $arg 0] eq "-"} {
+            set index [GetIndexFromList $optNames [string range $arg 1 end]]
+            if {$index == -1} {
+                error "invalid option \"$arg\""
+            }
 
-#
-# Definitions:
-#
-# option         - Switch with no argument (e.g. "-foo").
-# option.arg     - Switch with any type of argument (e.g. "-foo bar").
-# option.integer - Switch with a specific class of argument (e.g. "-foo 5").
-# option.(exact|glob|regexp) - Switch with a argument in the list (e.g. "-foo exact").
-#
-# Quantifiers:
-#
-# ? - Single optional argument.
-# * - List of arguments, terminated by "--".
-# + - Optional list of arguments, terminated by "--".
-#
-# Defaults:
-# -help and -?
-#
-# [-limit <#>] [-match exact|glob|regexp]
-# limit.integer match.(exact|glob|regexp)
-#
+            set optCount [llength [lindex $optList $index]]
+            foreach {optName optType optValues} [lindex $optList $index] {break}
+
+            if {$optCount > 1} {
+                if {$argCount < 2} {
+                    error "the option \"$arg\" requires a value"
+                }
+                set value [lindex $argList 1]
+
+                if {$optType eq "arg"} {
+                    if {$optCount > 2} {
+                        set index [GetIndexFromList $optValues $value]
+                        if {$index == -1} {
+                            error "invalid value \"$value\", must be [JoinLiteral $optValues or]"
+                        }
+
+                        # In case a partial match was performed, update
+                        # the "value" variable to match the list element.
+                        set value [lindex $optValues $index]
+                    }
+                } elseif {![string is $optType -strict $value]} {
+                    error "the option \"$arg\" requires a $optType type value"
+                }
+
+                set result($optName) $value
+                set argList [lrange $argList 2 end]
+            } else {
+                # Since this option does not require an argument, an empty
+                # string is used to notify the caller that it was specified.
+                set result($optName) {}
+                set argList [lrange $argList 1 end]
+            }
+        } else {
+            break
+        }
+    }
+
+    return $argList
+}
