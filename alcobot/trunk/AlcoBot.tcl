@@ -870,21 +870,20 @@ proc ::alcoholicz::DccAdmin {handle idx text} {
 
         # Configure test suite options.
         set testPath [file join $scriptPath "tests"]
-        set outChan  [open [file join $scriptPath "tests.log"] w]
+        set logFile [file join $scriptPath "tests.log"]
 
         if {[catch {
-            ::tcltest::errorChannel     $outChan
-            ::tcltest::outputChannel    $outChan
+            ::tcltest::errorFile        $logFile
+            ::tcltest::outputFile       $logFile
             ::tcltest::singleProcess    1
             ::tcltest::testsDirectory   $testPath
             ::tcltest::workingDirectory $testPath
             ::tcltest::runAllTests
         }]} {
-            puts $outChan $::errorInfo
+            putdcc $idx $::errorInfo
         }
 
         cd $workingDir
-        close $outChan
     } else {
         putdcc $idx "[b]Alcoholicz Bot DCC Admin Help[b]"
         putdcc $idx ".dump   - Dump configuration."
