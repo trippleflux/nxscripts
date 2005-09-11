@@ -22,8 +22,8 @@ namespace eval ::alcoholicz {
     namespace export b c u r o \
         LogDebug LogInfo LogError LogWarning GetFtpDaemon \
         CmdCreate CmdGetFlags CmdGetList CmdSetHelp CmdSendHelp CmdRemove \
-        EventExecute EventRegister EventUnregister \
         ModuleFind ModuleHash ModuleInfo ModuleLoad ModuleUnload ModuleRead \
+        ScriptExecute ScriptRegister ScriptUnregister \
         FlagGetValue FlagExists FlagIsDisabled FlagIsEnabled FlagCheckEvent FlagCheckSection \
         GetSectionFromEvent GetSectionFromPath \
         SendSection SendSectionTheme SendTarget SendTargetTheme
@@ -37,11 +37,11 @@ namespace eval ::alcoholicz {
 # cmdNames      - Commands created with "CmdCreate".
 # colours       - Section colour mappings.
 # events        - Events grouped by their function.
-# event_<type>  - Event callback scripts.
 # format        - Text formatting definitions.
 # modules       - Loaded modules.
 # pathSections  - Path sections.
 # replace       - Static variable replacements.
+# scripts       - Callback scripts.
 # theme         - Event theme definitions.
 # variables     - Event variable definitions.
 #
@@ -297,78 +297,6 @@ proc ::alcoholicz::CmdChannelProc {script user host handle channel text} {
 }
 
 ################################################################################
-# Events                                                                       #
-################################################################################
-
-####
-# EventExecute
-#
-# Run all registered scripts for the specified event type.
-#
-proc ::alcoholicz::EventExecute {type event args} {
-    variable [append varName event_ $type]
-    append varName ($event)
-    if {![info exists $varName]} {return 1}
-
-    set result 1
-    foreach {script alwaysExec} [set $varName] {
-        if {!$alwaysExec && !$result} {continue}
-
-        if {[catch {set scriptResult [eval [list $script $event] $args]} message]} {
-            LogError EventExecute "Error evaluating callback \"$script\" for $type $event: $message"
-
-        } elseif {[IsFalse $scriptResult]} {
-            LogDebug EventExecute "The callback \"$script\" for $type $event returned false."
-            set result 0
-
-        } elseif {![IsTrue $scriptResult]} {
-            LogWarning EventExecute "The callback \"$script\" for $type $event did not return a boolean value."
-        }
-    }
-    return $result
-}
-
-####
-# EventRegister
-#
-# Register an event callback script.
-#
-proc ::alcoholicz::EventRegister {type event script {alwaysExec 0}} {
-    variable [append varName event_ $type]
-    append varName ($event)
-
-    if {[info exists $varName]} {
-        # Check the script is already registered.
-        set scriptList [set $varName]
-        foreach {name always} $scriptList {
-            if {$name eq $script} {return $scriptList}
-        }
-    }
-    return [lappend $varName $script [IsTrue $alwaysExec]]
-}
-
-####
-# EventUnregister
-#
-# Unregister an event callback script.
-#
-proc ::alcoholicz::EventUnregister {type event script} {
-    variable [append varName event_ $type]
-    append varName ($event)
-    if {![info exists $varName]} {return [list]}
-    set scriptList [set $varName]
-
-    set index 0
-    foreach {name always} $scriptList {
-        if {$name eq $script} {
-            return [set $varName [lreplace $scriptList $index [incr index]]]
-        }
-        incr index 2
-    }
-    return $scriptList
-}
-
-################################################################################
 # Modules                                                                      #
 ################################################################################
 
@@ -597,6 +525,77 @@ proc ::alcoholicz::ModuleRead {filePath} {
     }
 
     return [array get modInfo]
+}
+
+################################################################################
+# Script                                                                       #
+################################################################################
+
+####
+# ScriptExecute
+#
+# Run all registered scripts for the specified event type.
+#
+proc ::alcoholicz::ScriptExecute {type event args} {
+    variable scripts
+    set varName scripts([list $type $event])
+
+    if {![info exists $varName]} {return 1}
+    set result 1
+    foreach {script alwaysExec} [set $varName] {
+        if {!$alwaysExec && !$result} {continue}
+
+        if {[catch {set scriptResult [eval [list $script $event] $args]} message]} {
+            LogError ScriptExecute "Error evaluating callback \"$script\" for $type $event: $message"
+
+        } elseif {[IsFalse $scriptResult]} {
+            LogDebug ScriptExecute "The callback \"$script\" for $type $event returned false."
+            set result 0
+
+        } elseif {![IsTrue $scriptResult]} {
+            LogWarning ScriptExecute "The callback \"$script\" for $type $event did not return a boolean value."
+        }
+    }
+    return $result
+}
+
+####
+# ScriptRegister
+#
+# Register an event callback script.
+#
+proc ::alcoholicz::ScriptRegister {type event script {alwaysExec 0}} {
+    variable scripts
+    set varName scripts([list $type $event])
+
+    if {[info exists $varName]} {
+        # Check the script is already registered.
+        set scriptList [set $varName]
+        foreach {name always} $scriptList {
+            if {$name eq $script} {return $scriptList}
+        }
+    }
+    return [lappend $varName $script [IsTrue $alwaysExec]]
+}
+
+####
+# ScriptUnregister
+#
+# Unregister an event callback script.
+#
+proc ::alcoholicz::ScriptUnregister {type event script} {
+    variable scripts
+    set varName scripts([list $type $event])
+
+    if {![info exists $varName]} {return [list]}
+    set index 0
+    foreach {name always} [set $varName] {
+        if {$name eq $script} {
+            return [set $varName [lreplace [set $varName] $index [incr index]]]
+        }
+        incr index 2
+    }
+    return [set $varName]
 }
 
 ################################################################################
