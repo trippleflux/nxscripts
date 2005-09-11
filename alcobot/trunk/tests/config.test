@@ -15,9 +15,6 @@
 package require tcltest 2
 namespace import -force ::tcltest::*
 
-set parentPath [file dirname [file dirname [file normalize [info script]]]]
-#namespace import -force ::alcoholicz::*
-
 ################################################################################
 # ConfigOpen                                                                   #
 ################################################################################
