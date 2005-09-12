@@ -64,8 +64,19 @@ proc ::alcoholicz::NxTools::DbBusyHandler {tries} {
 #
 proc ::alcoholicz::NxTools::Approved {user host handle channel target argc argv} {
     if {![DbOpenFile "Approves.db"]} {return}
+    SendTargetTheme $target approveHead
 
+    set count 0
+    db eval {SELECT * FROM Approves ORDER BY Release ASC} values {
+        incr count
+        set age [expr {[clock seconds] - $values(TimeStamp)}]
+        set items [list $values(UserName) $values(GroupName) $values(Release) $age $count]
+        SendTargetTheme $target approveBody $items
+    }
     db close
+
+    if {!$count} {SendTargetTheme $target approveNone}
+    SendTargetTheme $target approveFoot
     return
 }
 
@@ -75,6 +86,19 @@ proc ::alcoholicz::NxTools::Approved {user host handle channel target argc argv}
 # Display recent releases .
 #
 proc ::alcoholicz::NxTools::Latest {user host handle channel target argc argv} {
+    variable defResults
+    variable maxResults
+
+    # Parse command options.
+    set option(limit) $defResults
+    if {[catch {set section [GetOptions $argv {{limit integer}} option]} message]} {
+        CmdSendHelp $channel channel $::lastbind $message
+        return
+    }
+    if {$option(limit) < 0 || $option(limit) > $maxResults} {
+        set option(limit) $maxResults
+    }
+
     if {![DbOpenFile "DupeDirs.db"]} {return}
 
     db close
@@ -160,8 +184,19 @@ proc ::alcoholicz::NxTools::PreStats {user host handle channel target argc argv}
 #
 proc ::alcoholicz::NxTools::Requests {user host handle channel target argc argv} {
     if {![DbOpenFile "Requests.db"]} {return}
+    SendTargetTheme $target requestsHead
 
+    set count 0
+    db eval {SELECT * FROM Requests WHERE Status=0 ORDER BY RequestId DESC} values {
+        incr count
+        set age [expr {[clock seconds] - $values(TimeStamp)}]
+        set items [list $values(UserName) $values(GroupName) $values(Request) $values(RequestId) $age $count]
+        SendTargetTheme $target requestsBody $items
+    }
     db close
+
+    if {!$count} {SendTargetTheme $target requestsNone}
+    SendTargetTheme $target requestsFoot
     return
 }
 

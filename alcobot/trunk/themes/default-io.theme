@@ -137,9 +137,9 @@ OPEN        = [b][[c1]Open[c]][b] [b]%(user)[b]/%(group) has opened the server, 
 GIVE        = [b][[c1]Give[c]][b] [b]%(user)[b]/%(group) gave %(credits) of credits to [b]%(target)[b].
 TAKE        = [b][[c1]Take[c]][b] [b]%(user)[b]/%(group) took %(credits) of credits from [b]%(target)[b].
 INVITE      = [b][[c1]Invite[c]][b] [b]%(user)[b]/%(group) invited himself as [b]%(nick)[b].
-REQUEST     = [b][[c1]Request[c]][b] [b]%(request)[b] (#%(id)) added by [b]%(user)[b]/%(group).
-REQDEL      = [b][[c1]Request[c]][b] [b]%(request)[b] (#%(id)) deleted by [b]%(user)[b]/%(group) after %(age).
-REQFILL     = [b][[c1]Request[c]][b] [b]%(request)[b] (#%(id)) filled by [b]%(user)[b]/%(group) after %(age).
+REQUEST     = [b][[c1]Request[c]][b] [b]%(request)[b] (ID #%(id)) added by [b]%(user)[b]/%(group).
+REQDEL      = [b][[c1]Request[c]][b] [b]%(request)[b] (ID #%(id)) deleted by [b]%(user)[b]/%(group) after %(age).
+REQFILL     = [b][[c1]Request[c]][b] [b]%(request)[b] (ID #%(id)) filled by [b]%(user)[b]/%(group) after %(age).
 REQWIPE     = [b][[c1]Request[c]][b] [b]%(request)[b] was auto-wiped since it's older than %(maxAge).
 
 # ioZS events.
@@ -173,42 +173,51 @@ bannedFoot  = Total: [b]%(groupCount)[b] banned group(s) in [b]%(sectionCount)[b
 
 # Module: nxtools
 approveHead = [b]Approved Releases:[b]
-approveBody =
+approveBody = %02(num). [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
+approveNone = There are no approved releases.
 approveFoot =
 
 latestHead  = [b]Latest Releases:[b]
 latestBody  =
+latestNone  =
 latestFoot  =
 
 searchHead  = [b]Search:[b]
 searchBody  =
+searchNone  =
 searchFoot  =
 
 nukesHead   = [b]Nukes:[b]
 nukesBody   =
+nukesNone   =
 nukesFoot   =
 
 nuketopHead = [b]Nuke Top:[b]
 nuketopBody =
+nuketopNone =
 nuketopFoot =
 
 unnukesHead = [b]Unnukes:[b]
 unnukesBody =
+unnukesNone =
 unnukesFoot =
 
 oneLinesHead= [b]One Lines:[b]
 oneLinesBody=
+oneLinesNone=
 oneLinesFoot=
 
 preStatsHead= [b]Pre Stats:[b]
 preStatsBody=
+preStatsNone=
 preStatsFoot=
 
 requestsHead= [b]Requests:[b]
-requestsBody=
+requestsBody= %02(num). [b]%(request)[b] (ID #%(id)) by [b]%(user)[b]/%(group).
+requestsNone= There are no requests.
 requestsFoot=
 
 undupeHead  = [b]Undupe:[b]
 undupeBody  =
+undupeNone  =
 undupeFoot  =
-undupeError =
