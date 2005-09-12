@@ -147,11 +147,12 @@ proc ::nxLib::SqlGetPattern {pattern} {
 }
 
 proc ::nxLib::SqlEscape {string} {
-    return [string map {\\ \\\\ \' \\\' \" \\\"} $string]
+    return [string map {\\ \\\\ ` \\` ' \\' \" \\\"} $string]
 }
 
 proc ::nxLib::SqlWildToLike {pattern} {
-    return [string map {* % ? _} [string map {% \\% _ \\_ \\ \\\\ \' \\\' \" \\\"} $pattern]]
+    set pattern [string map {* % ? _} [string map {% \\% _ \\_} $pattern]]
+    return [SqlEscape $pattern]
 }
 
 # File and Directory Procedures
