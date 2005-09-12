@@ -651,7 +651,7 @@ proc ::nxTools::Dupe::SiteUndupe {argList} {
     }
 
     if {[regexp {[\*\?]} $pattern] && [regexp -all {[[:alnum:]]} $pattern] < $dupe(AlphaNumChars)} {
-        ErrorReturn "There must be at $dupe(AlphaNumChars) least alpha-numeric chars when wildcards are used."
+        ErrorReturn "There must be at $dupe(AlphaNumChars) least alphanumeric chars when wildcards are used."
         return 1
     }
     LinePuts "Searching for: $pattern"

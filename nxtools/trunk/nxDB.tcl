@@ -150,7 +150,7 @@ proc ::nxTools::Db::Create {dbList} {
                 LinePuts "- Renamed current database to [file tail $oldPath]."
             }
 
-            # Re-open the database to create the tables.
+            # Re-open the database for table creation.
             if {[catch {sqlite3 db $filePath} error]} {
                 LinePuts "- Unable to re-open file: $error"
                 continue
