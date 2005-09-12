@@ -10,7 +10,7 @@
 #   end-of-line characters to Windows (CR/LF).
 #
 # Installation:
-#   1. Copy the nxEOL.tcl file to x:\ioFTPD\scripts
+#   1. Copy the nxEOL.tcl file to x:\ioFTPD\scripts\.
 #   2. Configure the script.
 #   3. Add the following to your ioFTPD.ini:
 #
@@ -22,7 +22,7 @@
 
 namespace eval ::nxEOL {
     # Files masks to perform EOL translation on.
-    variable fileMasks  {*.diz *.nfo *.sfv}
+    variable fileMasks  {*.diz *.nfo *.m3u *.sfv}
 
     # Paths to exempt from EOL translation.
     variable exemptPaths {/STAFF/*}

@@ -9,7 +9,7 @@
 #   This script creates tags for missing NFOs and SFVs.
 #
 # Installation:
-#   1. Copy the nxMissingTags.tcl file to x:\ioFTPD\scripts
+#   1. Copy the nxMissingTags.tcl file to x:\ioFTPD\scripts\.
 #   2. Configure the script.
 #   3. Add the following to your ioFTPD.ini:
 #
