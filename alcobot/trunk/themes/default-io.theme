@@ -91,8 +91,6 @@ speedGiga = [b]%.2(speed)[b]GB/s
 # - There are three variables common to all entries: %(prefix), %(siteName),
 #   and %(siteName). All other variables are specific to each theme entry.
 #
-# TODO: Mention variable file list (when there is one).
-#
 [Theme]
 # ioFTPD events.
 NEWDIR      = [b][[c1]%(section)[c]][b] New Release: [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
@@ -172,3 +170,45 @@ affilsFoot  = Total: [b]%(groupCount)[b] affil(s) in [b]%(sectionCount)[b] secti
 bannedHead  = [b]Banned Groups:[b]
 bannedBody  = [b][[c1]%(section)[c]][b] %(groups)
 bannedFoot  = Total: [b]%(groupCount)[b] banned group(s) in [b]%(sectionCount)[b] section(s).
+
+# Module: nxtools
+approveHead = [b]Approved Releases:[b]
+approveBody =
+approveFoot =
+
+latestHead  = [b]Latest Releases:[b]
+latestBody  =
+latestFoot  =
+
+searchHead  = [b]Search:[b]
+searchBody  =
+searchFoot  =
+
+nukesHead   = [b]Nukes:[b]
+nukesBody   =
+nukesFoot   =
+
+nuketopHead = [b]Nuke Top:[b]
+nuketopBody =
+nuketopFoot =
+
+unnukesHead = [b]Unnukes:[b]
+unnukesBody =
+unnukesFoot =
+
+oneLinesHead= [b]One Lines:[b]
+oneLinesBody=
+oneLinesFoot=
+
+preStatsHead= [b]Pre Stats:[b]
+preStatsBody=
+preStatsFoot=
+
+requestsHead= [b]Requests:[b]
+requestsBody=
+requestsFoot=
+
+undupeHead  = [b]Undupe:[b]
+undupeBody  =
+undupeFoot  =
+undupeError =

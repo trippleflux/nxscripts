@@ -91,8 +91,6 @@ speedGiga = [b]%.2(speed)[b]GB/s
 # - There are three variables common to all entries: %(prefix), %(siteName),
 #   and %(siteName). All other variables are specific to each theme entry.
 #
-# TODO: Mention variable file list (when there is one).
-#
 [Theme]
 # glFTPD events.
 NEWDIR      = [b][[c1]%(section)[c]][b] New Release: [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
