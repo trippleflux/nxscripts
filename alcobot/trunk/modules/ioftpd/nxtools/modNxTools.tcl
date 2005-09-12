@@ -101,6 +101,8 @@ proc ::alcoholicz::NxTools::Latest {user host handle channel target argc argv} {
 
     if {![DbOpenFile "DupeDirs.db"]} {return}
 
+    # TODO
+
     db close
     return
 }
@@ -111,7 +113,26 @@ proc ::alcoholicz::NxTools::Latest {user host handle channel target argc argv} {
 # Search for a release.
 #
 proc ::alcoholicz::NxTools::Search {user host handle channel target argc argv} {
+    variable defResults
+    variable maxResults
+
+    # Parse command options.
+    set option(limit) $defResults
+    set option(section) ""
+    if {[catch {set pattern [GetOptions $argv {{limit integer} {section arg}} option]} message]} {
+        CmdSendHelp $channel channel $::lastbind $message
+        return
+    } elseif {$pattern eq ""} {
+        CmdSendHelp $channel channel $::lastbind $message "you must specify a pattern"
+        return
+    }
+    if {$option(limit) < 0 || $option(limit) > $maxResults} {
+        set option(limit) $maxResults
+    }
+
     if {![DbOpenFile "DupeDirs.db"]} {return}
+
+    # TODO
 
     db close
     return
@@ -123,7 +144,22 @@ proc ::alcoholicz::NxTools::Search {user host handle channel target argc argv} {
 # Display recent nukes.
 #
 proc ::alcoholicz::NxTools::Nukes {user host handle channel target argc argv} {
+    variable defResults
+    variable maxResults
+
+    # Parse command options.
+    set option(limit) $defResults
+    if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
+        CmdSendHelp $channel channel $::lastbind $message
+        return
+    }
+    if {$option(limit) < 0 || $option(limit) > $maxResults} {
+        set option(limit) $maxResults
+    }
+
     if {![DbOpenFile "Nukes.db"]} {return}
+
+    # TODO
 
     db close
     return
@@ -135,7 +171,22 @@ proc ::alcoholicz::NxTools::Nukes {user host handle channel target argc argv} {
 # Display top nuked users.
 #
 proc ::alcoholicz::NxTools::NukeTop {user host handle channel target argc argv} {
+    variable defResults
+    variable maxResults
+
+    # Parse command options.
+    set option(limit) $defResults
+    if {[catch {set group [GetOptions $argv {{limit integer}} option]} message]} {
+        CmdSendHelp $channel channel $::lastbind $message
+        return
+    }
+    if {$option(limit) < 0 || $option(limit) > $maxResults} {
+        set option(limit) $maxResults
+    }
+
     if {![DbOpenFile "Nukes.db"]} {return}
+
+    # TODO
 
     db close
     return
@@ -147,7 +198,22 @@ proc ::alcoholicz::NxTools::NukeTop {user host handle channel target argc argv} 
 # Display recent unnukes.
 #
 proc ::alcoholicz::NxTools::Unnukes {user host handle channel target argc argv} {
+    variable defResults
+    variable maxResults
+
+    # Parse command options.
+    set option(limit) $defResults
+    if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
+        CmdSendHelp $channel channel $::lastbind $message
+        return
+    }
+    if {$option(limit) < 0 || $option(limit) > $maxResults} {
+        set option(limit) $maxResults
+    }
+
     if {![DbOpenFile "Nukes.db"]} {return}
+
+    # TODO
 
     db close
     return
@@ -159,9 +225,21 @@ proc ::alcoholicz::NxTools::Unnukes {user host handle channel target argc argv} 
 # Display recent one-lines.
 #
 proc ::alcoholicz::NxTools::OneLines {user host handle channel target argc argv} {
+    variable oneLines
     if {![DbOpenFile "OneLines.db"]} {return}
+    SendTargetTheme $target oneLinesHead
 
+    set count 0
+    db eval {SELECT * FROM OneLines ORDER BY TimeStamp DESC LIMIT $oneLines} values {
+        incr count
+        set age [expr {[clock seconds] - $values(TimeStamp)}]
+        set items [list $values(UserName) $values(GroupName) $values(Message) $values(TimeStamp) $age $count]
+        SendTargetTheme $target oneLinesBody $items
+    }
     db close
+
+    if {!$count} {SendTargetTheme $target oneLinesNone}
+    SendTargetTheme $target oneLinesFoot
     return
 }
 
@@ -171,7 +249,22 @@ proc ::alcoholicz::NxTools::OneLines {user host handle channel target argc argv}
 # Display group pre statistics.
 #
 proc ::alcoholicz::NxTools::PreStats {user host handle channel target argc argv} {
+    variable defResults
+    variable maxResults
+
+    # Parse command options.
+    set option(limit) $defResults
+    if {[catch {set group [GetOptions $argv {{limit integer}} option]} message]} {
+        CmdSendHelp $channel channel $::lastbind $message
+        return
+    }
+    if {$option(limit) < 0 || $option(limit) > $maxResults} {
+        set option(limit) $maxResults
+    }
+
     if {![DbOpenFile "Pres.db"]} {return}
+
+    # TODO
 
     db close
     return
@@ -206,6 +299,29 @@ proc ::alcoholicz::NxTools::Requests {user host handle channel target argc argv}
 # Remove a file or directory from the dupe database.
 #
 proc ::alcoholicz::NxTools::Undupe {user host handle channel target argc argv} {
+    variable undupeChars
+
+    # Parse command options.
+    if {[catch {set pattern [GetOptions $argv {directory} option]} message]} {
+        CmdSendHelp $channel channel $::lastbind $message
+        return
+    } elseif {[regexp {[\*\?]} $pattern] && [regexp -all {[[:alnum:]]} $pattern] < $undupeChars} {
+        CmdSendHelp $channel channel $::lastbind $message "you must specify at least $undupeChars alphanumeric chars"
+        return
+    }
+
+    if {[info exists option(directory)]} {
+        set colName "DirName"
+        set tableName "DupeDirs"
+    } else {
+        set colName "FileName"
+        set tableName "DupeFiles"
+    }
+
+    if {![DbOpenFile "${tableName}.db"]} {return}
+
+    # TODO
+
     return
 }
 
@@ -298,7 +414,7 @@ proc ::alcoholicz::NxTools::Load {firstLoad} {
     CmdCreate channel ${prefix}approved [namespace current]::Approved \
         General "Display approved releases."
 
-    CmdCreate channel ${prefix}news     [namespace current]::OneLines
+    CmdCreate channel ${prefix}onelines [namespace current]::OneLines
     CmdCreate channel ${prefix}onel     [namespace current]::OneLines \
         General "Display recent one-lines."
 

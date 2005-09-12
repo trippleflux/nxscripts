@@ -203,8 +203,8 @@ unnukesNone =
 unnukesFoot =
 
 oneLinesHead= [b]One Lines:[b]
-oneLinesBody=
-oneLinesNone=
+oneLinesBody= %(entryDate) [b]%(message)[b] by [b]%(user)[b]/%(group).
+oneLinesNone= There are no one-lines.
 oneLinesFoot=
 
 preStatsHead= [b]Pre Stats:[b]
