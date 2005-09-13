@@ -46,6 +46,37 @@ proc ::alcoholicz::NxTools::DbOpenFile {fileName} {
 }
 
 ####
+# EscapeSql
+#
+# Escape SQL quote characters with a backslash.
+#
+proc ::alcoholicz::NxTools::EscapeSql {string} {
+    return [string map {\\ \\\\ ` \\` ' \\' \" \\\"} $string]
+}
+
+####
+# FormatPattern
+#
+# Prepend, append, and replace all spaces with wildcards. For example,
+# "some thing" becomes "*some*thing*".
+#
+proc ::alcoholicz::NxTools::FormatPattern {pattern} {
+    set pattern "*$pattern*"
+    regsub -all {[\s\*]+} $pattern "*" pattern
+    return [WildToLike $pattern]
+}
+
+####
+# WildToLike
+#
+# Convert standard wildcard characters to SQL LIKE characters.
+#
+proc ::alcoholicz::NxTools::WildToLike {pattern} {
+    set pattern [string map {* % ? _} [string map {% \\% _ \\_} $pattern]]
+    return [EscapeSql $pattern]
+}
+
+####
 # DbBusyHandler
 #
 # Callback invoked by SQLite if it tries to open a locked database.
@@ -63,17 +94,18 @@ proc ::alcoholicz::NxTools::DbBusyHandler {tries} {
 # Display approved releases.
 #
 proc ::alcoholicz::NxTools::Approved {user host handle channel target argc argv} {
-    if {![DbOpenFile "Approves.db"]} {return}
     SendTargetTheme $target approveHead
 
     set count 0
-    db eval {SELECT * FROM Approves ORDER BY Release ASC} values {
-        incr count
-        set age [expr {[clock seconds] - $values(TimeStamp)}]
-        set items [list $values(UserName) $values(GroupName) $values(Release) $age $count]
-        SendTargetTheme $target approveBody $items
+    if {[DbOpenFile "Approves.db"]} {
+        db eval {SELECT * FROM Approves ORDER BY Release ASC} values {
+            incr count
+            set age [expr {[clock seconds] - $values(TimeStamp)}]
+            set items [list $values(UserName) $values(GroupName) $values(Release) $age $count]
+            SendTargetTheme $target approveBody $items
+        }
+        db close
     }
-    db close
 
     if {!$count} {SendTargetTheme $target approveNone}
     SendTargetTheme $target approveFoot
@@ -98,12 +130,15 @@ proc ::alcoholicz::NxTools::Latest {user host handle channel target argc argv} {
     if {$option(limit) < 0 || $option(limit) > $maxResults} {
         set option(limit) $maxResults
     }
+    SendTargetTheme $target latestHead
 
-    if {![DbOpenFile "DupeDirs.db"]} {return}
+    set count 0
+    if {[DbOpenFile "DupeDirs.db"]} {
+        db close
+    }
 
-    # TODO
-
-    db close
+    if {!$count} {SendTargetTheme $target latestNone}
+    SendTargetTheme $target latestFoot
     return
 }
 
@@ -118,23 +153,29 @@ proc ::alcoholicz::NxTools::Search {user host handle channel target argc argv} {
 
     # Parse command options.
     set option(limit) $defResults
-    set option(section) ""
     if {[catch {set pattern [GetOptions $argv {{limit integer} {section arg}} option]} message]} {
         CmdSendHelp $channel channel $::lastbind $message
         return
     } elseif {$pattern eq ""} {
-        CmdSendHelp $channel channel $::lastbind $message "you must specify a pattern"
+        CmdSendHelp $channel channel $::lastbind "you must specify a pattern"
         return
     }
     if {$option(limit) < 0 || $option(limit) > $maxResults} {
         set option(limit) $maxResults
     }
+    SendTargetTheme $target searchHead
 
-    if {![DbOpenFile "DupeDirs.db"]} {return}
+    if {[info exists option(section)]} {
+    } else {
+    }
 
-    # TODO
+    set count 0
+    if {[DbOpenFile "DupeDirs.db"]} {
+        db close
+    }
 
-    db close
+    if {!$count} {SendTargetTheme $target searchNone}
+    SendTargetTheme $target searchFoot
     return
 }
 
@@ -156,12 +197,15 @@ proc ::alcoholicz::NxTools::Nukes {user host handle channel target argc argv} {
     if {$option(limit) < 0 || $option(limit) > $maxResults} {
         set option(limit) $maxResults
     }
+    SendTargetTheme $target nukesHead
 
-    if {![DbOpenFile "Nukes.db"]} {return}
+    set count 0
+    if {[DbOpenFile "Nukes.db"]} {
+        db close
+    }
 
-    # TODO
-
-    db close
+    if {!$count} {SendTargetTheme $target nukesNone}
+    SendTargetTheme $target nukesFoot
     return
 }
 
@@ -183,12 +227,15 @@ proc ::alcoholicz::NxTools::NukeTop {user host handle channel target argc argv} 
     if {$option(limit) < 0 || $option(limit) > $maxResults} {
         set option(limit) $maxResults
     }
+    SendTargetTheme $target nuketopHead
 
-    if {![DbOpenFile "Nukes.db"]} {return}
+    set count 0
+    if {[DbOpenFile "Nukes.db"]} {
+        db close
+    }
 
-    # TODO
-
-    db close
+    if {!$count} {SendTargetTheme $target nuketopNone}
+    SendTargetTheme $target nuketopFoot
     return
 }
 
@@ -210,12 +257,15 @@ proc ::alcoholicz::NxTools::Unnukes {user host handle channel target argc argv} 
     if {$option(limit) < 0 || $option(limit) > $maxResults} {
         set option(limit) $maxResults
     }
+    SendTargetTheme $target unnukesHead
 
-    if {![DbOpenFile "Nukes.db"]} {return}
+    set count 0
+    if {[DbOpenFile "Nukes.db"]} {
+        db close
+    }
 
-    # TODO
-
-    db close
+    if {!$count} {SendTargetTheme $target unnukesNone}
+    SendTargetTheme $target unnukesFoot
     return
 }
 
@@ -226,17 +276,18 @@ proc ::alcoholicz::NxTools::Unnukes {user host handle channel target argc argv} 
 #
 proc ::alcoholicz::NxTools::OneLines {user host handle channel target argc argv} {
     variable oneLines
-    if {![DbOpenFile "OneLines.db"]} {return}
     SendTargetTheme $target oneLinesHead
 
     set count 0
-    db eval {SELECT * FROM OneLines ORDER BY TimeStamp DESC LIMIT $oneLines} values {
-        incr count
-        set age [expr {[clock seconds] - $values(TimeStamp)}]
-        set items [list $values(UserName) $values(GroupName) $values(Message) $values(TimeStamp) $age $count]
-        SendTargetTheme $target oneLinesBody $items
+    if {[DbOpenFile "OneLines.db"]} {
+        db eval {SELECT * FROM OneLines ORDER BY TimeStamp DESC LIMIT $oneLines} values {
+            incr count
+            set age [expr {[clock seconds] - $values(TimeStamp)}]
+            set items [list $values(UserName) $values(GroupName) $values(Message) $values(TimeStamp) $age $count]
+            SendTargetTheme $target oneLinesBody $items
+        }
+        db close
     }
-    db close
 
     if {!$count} {SendTargetTheme $target oneLinesNone}
     SendTargetTheme $target oneLinesFoot
@@ -261,12 +312,15 @@ proc ::alcoholicz::NxTools::PreStats {user host handle channel target argc argv}
     if {$option(limit) < 0 || $option(limit) > $maxResults} {
         set option(limit) $maxResults
     }
+    SendTargetTheme $target preStatsHead
 
-    if {![DbOpenFile "Pres.db"]} {return}
+    set count 0
+    if {[DbOpenFile "Pres.db"]} {
+        db close
+    }
 
-    # TODO
-
-    db close
+    if {!$count} {SendTargetTheme $target preStatsNone}
+    SendTargetTheme $target preStatsFoot
     return
 }
 
@@ -276,17 +330,18 @@ proc ::alcoholicz::NxTools::PreStats {user host handle channel target argc argv}
 # Display current requests.
 #
 proc ::alcoholicz::NxTools::Requests {user host handle channel target argc argv} {
-    if {![DbOpenFile "Requests.db"]} {return}
     SendTargetTheme $target requestsHead
 
     set count 0
-    db eval {SELECT * FROM Requests WHERE Status=0 ORDER BY RequestId DESC} values {
-        incr count
-        set age [expr {[clock seconds] - $values(TimeStamp)}]
-        set items [list $values(UserName) $values(GroupName) $values(Request) $values(RequestId) $age $count]
-        SendTargetTheme $target requestsBody $items
+    if {[DbOpenFile "Requests.db"]} {
+        db eval {SELECT * FROM Requests WHERE Status=0 ORDER BY RequestId DESC} values {
+            incr count
+            set age [expr {[clock seconds] - $values(TimeStamp)}]
+            set items [list $values(UserName) $values(GroupName) $values(Request) $values(RequestId) $age $count]
+            SendTargetTheme $target requestsBody $items
+        }
+        db close
     }
-    db close
 
     if {!$count} {SendTargetTheme $target requestsNone}
     SendTargetTheme $target requestsFoot
@@ -306,9 +361,10 @@ proc ::alcoholicz::NxTools::Undupe {user host handle channel target argc argv} {
         CmdSendHelp $channel channel $::lastbind $message
         return
     } elseif {[regexp {[\*\?]} $pattern] && [regexp -all {[[:alnum:]]} $pattern] < $undupeChars} {
-        CmdSendHelp $channel channel $::lastbind $message "you must specify at least $undupeChars alphanumeric chars"
+        CmdSendHelp $channel channel $::lastbind "you must specify at least $undupeChars alphanumeric chars"
         return
     }
+    SendTargetTheme $target undupeHead
 
     if {[info exists option(directory)]} {
         set colName "DirName"
@@ -318,10 +374,13 @@ proc ::alcoholicz::NxTools::Undupe {user host handle channel target argc argv} {
         set tableName "DupeFiles"
     }
 
-    if {![DbOpenFile "${tableName}.db"]} {return}
+    set count 0
+    if {[DbOpenFile "${tableName}.db"]} {
+        db close
+    }
 
-    # TODO
-
+    if {!$count} {SendTargetTheme $target undupeNone}
+    SendTargetTheme $target undupeFoot
     return
 }
 
