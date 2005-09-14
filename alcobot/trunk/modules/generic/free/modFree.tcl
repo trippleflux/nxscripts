@@ -20,6 +20,20 @@ namespace eval ::alcoholicz::Free {
 }
 
 ####
+# InList
+#
+# Searches a list for a given element (case-insensitively). The -nocase switch
+# was not added to lsearch until Tcl 8.5, so this function is provided for
+# backwards compatibility with Tcl 8.4.
+#
+proc ::alcoholicz::Free::InList {list element} {
+    foreach entry $list {
+        if {[string equal -nocase $entry $element]} {return 1}
+    }
+    return 0
+}
+
+####
 # Command
 #
 # Implements a channel command to display available drive space.
@@ -41,7 +55,7 @@ proc ::alcoholicz::Free::Command {user host handle channel target argc argv} {
 
     set count 0; set free 0; set used 0; set total 0
     foreach {volume sections} $volumeList {
-        if {$argc == 1 && [lsearch -exact $sections [lindex $argv 0]] == -1} {continue}
+        if {$argc == 1 && ![InList $sections [lindex $argv 0]]} {continue}
 
         if {[catch {volume info $volume info} message]} {
             LogError ModFree $message; continue
