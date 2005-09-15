@@ -936,11 +936,12 @@ proc ::alcoholicz::DccAdmin {handle idx text} {
 
         cd $workingDir
     } else {
-        putdcc $idx "[b]Alcoholicz Bot DCC Admin Help[b]"
-        putdcc $idx ".dump   - Dump configuration."
-        putdcc $idx ".help   - Command help."
-        putdcc $idx ".reload - Reload configuration."
-        putdcc $idx ".test   - Run test suite."
+        global lastbind
+        putdcc $idx "[b]Alcoholicz Bot DCC Admin[b]"
+        putdcc $idx ".$lastbind dump   - Dump configuration."
+        putdcc $idx ".$lastbind help   - Command help."
+        putdcc $idx ".$lastbind reload - Reload configuration."
+        putdcc $idx ".$lastbind test   - Run test suite."
     }
     return
 }

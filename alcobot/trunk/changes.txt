@@ -8,6 +8,7 @@ AlcoBot v0.2.0 (XXX XX, 2005):
   CHG: Moved to a less restrictive license (modified BSD).
   CHG: The section parameter to the !free command is now case-insensitive.
   FIX: The bot failed to load if auto_path was not set.
+  FIX: The DCC command list did not display the full command names.
 
 AlcoBot v0.1.0 (Aug 29, 2005):
   CHG: Initial release.
