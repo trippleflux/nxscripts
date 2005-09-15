@@ -1,5 +1,6 @@
 AlcoBot v0.2.0 (XXX XX, 2005):
   NEW: Command-line style option parsing library.
+  NEW: DCC command to dump the configuration, ".alcobot dump".
   NEW: Help module, to display support commands.
   NEW: nxTools module for ioFTPD, to interact with nxTools' databases.
   NEW: Variable and theme definitions for nxAutoNuke.

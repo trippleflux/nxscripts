@@ -862,18 +862,58 @@ bind dcc n "alcoholicz" ::alcoholicz::DccAdmin
 # Bot administration command, used from Eggdrop's party-line.
 #
 proc ::alcoholicz::DccAdmin {handle idx text} {
+    variable scriptPath
+
     set argv [ArgsToList $text]
     set event [string toupper [lindex $argv 0]]
 
     if {$event eq "DUMP"} {
-        # TODO: dump internal arrays
+        variable chanSections
+        variable pathSections
+        variable cmdNames
+        variable configFile
+        variable debugMode
+        variable modules
+        variable scripts
 
+        putdcc $idx "[b]General:[b]"
+        putdcc $idx "Config File: $configFile"
+        putdcc $idx "Debug Mode: [expr {$debugMode ? {True} : {False}}]"
+        putdcc $idx "FTP Daemon: [GetFtpDaemon]"
+        putdcc $idx "Script Path: $scriptPath"
+
+        putdcc $idx "[b]Modules:[b]"
+        foreach name [lsort [array names modules]] {
+            foreach {desc file context depends hash} $modules($name) {break}
+            set file [file tail $file]
+            putdcc $idx "$name - [b]Info:[b] $desc [b]File:[b] $file [b]MD5:[b] [encode hex $hash]"
+        }
+
+        putdcc $idx "[b]Sections:[b]"
+        foreach name [lsort [array names chanSections]] {
+            foreach {channels flags} $chanSections($name) {break}
+            putdcc $idx "$name - [b]Channels:[b] [JoinLiteral $channels] [b]Flags:[b] $flags"
+        }
+        foreach name [lsort [array names pathSections]] {
+            foreach {path channels flags} $pathSections($name) {break}
+            putdcc $idx "$name - [b]Channels:[b] [JoinLiteral $channels] [b]Flags:[b] $flags [b]Path:[b] $path"
+        }
+
+        putdcc $idx "[b]Scripts:[b]"
+        foreach name [lsort [array names scripts]] {
+            set scriptList [list]
+            foreach {proc always} $scripts($name) {
+                lappend scriptList "$proc ([expr {$always ? {True} : {False}}])"
+            }
+
+            foreach {type name} $name {break}
+            putdcc $idx "$type $name - [JoinLiteral $scriptList]"
+        }
     } elseif {$event eq "REHASH" || $event eq "RELOAD"} {
         # Reload configuration file.
         InitMain
 
     } elseif {$event eq "TEST" || $event eq "TESTS"} {
-        variable scriptPath
         package require tcltest 2
 
         # The test suite will change the working directory.
