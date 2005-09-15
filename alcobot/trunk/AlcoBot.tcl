@@ -275,7 +275,6 @@ proc ::alcoholicz::CmdChannelProc {script user host handle channel text} {
                 }
             }
             user    {set result [string equal -nocase $value $user]}
-            default {continue}
         }
         if {$result} {
             if {!$enabled} {
@@ -1054,7 +1053,7 @@ proc ::alcoholicz::InitTheme {themeFile} {
     variable variables
     unset -nocomplain colours format theme
 
-    set themeFile [file join $scriptPath $themeFile]
+    set themeFile [file join $scriptPath "themes" $themeFile]
     set handle [ConfigOpen $themeFile]
     ConfigRead $handle
 
@@ -1129,8 +1128,12 @@ proc ::alcoholicz::InitVariables {varFiles} {
     variable variables
     unset -nocomplain events replace variables
 
+    # The "AlcoBot.vars" file enables users to define variables for third
+    # party scripts or to redefine existing variable definitions.
+    lappend varFiles [file join $scriptPath "AlcoBot.vars"]
+
     foreach filePath $varFiles {
-        set handle [ConfigOpen [file join $scriptPath $filePath]]
+        set handle [ConfigOpen [file join $scriptPath "vars" $filePath]]
         ConfigRead $handle
 
         foreach {name value} [ConfigGetEx $handle Events] {

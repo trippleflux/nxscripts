@@ -1,6 +1,7 @@
 AlcoBot v0.2.0 (XXX XX, 2005):
   NEW: Command-line style option parsing library.
   NEW: nxTools module for ioFTPD, to interact with nxTools' databases.
+  CHG: The varFiles and themeFile options use file names instead of relative paths.
   CHG: Moved to a less restrictive license (modified BSD).
   CHG: The section parameter to the !free command is now case-insensitive.
 
