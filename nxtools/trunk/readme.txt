@@ -198,9 +198,8 @@ wipe        = M1V
     Invalid:
     Default= 0 0 /*     (There should be a space before the equal sign: "Default = 0 0 /*")
 
- 5. You must download nxHelper and the TclSQLite v3.2 and MySQLTcl v3.01 extensions.
-    All of them must be installed to the ioFTPD\system\ directory. These libraries
-    are available at: http://www.ioftpd.com/scripts/script.php?id=167
+ 5. You must install the nxTools library package. This package is available
+    for download at: http://www.inicom.net/pages/en.ioftpd-scripts.php?id=78
 
  6. There are several optional scheduled events; these events must be added
     under the [Scheduler] section in the ioFTPD.ini file. Carefully read the
