@@ -20,20 +20,6 @@ namespace eval ::alcoholicz::Free {
 }
 
 ####
-# InList
-#
-# Searches a list for a given element (case-insensitively). The -nocase switch
-# was not added to lsearch until Tcl 8.5, so this function is provided for
-# backwards compatibility with Tcl 8.4.
-#
-proc ::alcoholicz::Free::InList {list element} {
-    foreach entry $list {
-        if {[string equal -nocase $entry $element]} {return 1}
-    }
-    return 0
-}
-
-####
 # Command
 #
 # Implements a channel command to display available drive space.

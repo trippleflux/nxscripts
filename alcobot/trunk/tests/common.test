@@ -147,6 +147,22 @@ test common-5.4 {PathParse: Windows style path separators} {
     PathParse "/Other/Something/CD1"
 } {CD1 Other/Something {Something (CD1)} Other}
 
+################################################################################
+# InList                                                                       #
+################################################################################
+
+test common-6.1 {InList: present} {
+    InList [list one two three] two
+} {1}
+
+test common-6.2 {InList: present, no case} {
+    InList [list one two three] TWO
+} {1}
+
+test common-6.3 {InList: not present} {
+    InList [list one two three] four
+} {0}
+
 
 ::tcltest::cleanupTests
 return

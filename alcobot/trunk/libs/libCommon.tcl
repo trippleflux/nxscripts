@@ -13,7 +13,8 @@
 #
 
 namespace eval ::alcoholicz {
-    namespace export ArgsToList JoinLiteral IsSubDir PathParse PathParseSection PathStrip \
+    namespace export ArgsToList JoinLiteral InList IsSubDir \
+        PathParse PathParseSection PathStrip \
         FormatDate FormatTime FormatDuration FormatDurationLong FormatSize FormatSpeed \
         VarFormat VarReplace VarReplaceBase VarReplaceCommon
 }
@@ -64,6 +65,20 @@ proc ::alcoholicz::JoinLiteral {list {word "and"}} {
         append literal ","
     }
     return [append literal " " $word " " [lindex $list end]]
+}
+
+####
+# InList
+#
+# Searches a list for a given element (case-insensitively). The -nocase switch
+# was not added to lsearch until Tcl 8.5, so this function is provided for
+# backwards compatibility with Tcl 8.4.
+#
+proc ::alcoholicz::InList {list element} {
+    foreach entry $list {
+        if {[string equal -nocase $entry $element]} {return 1}
+    }
+    return 0
 }
 
 ####
