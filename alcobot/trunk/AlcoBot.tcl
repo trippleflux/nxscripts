@@ -724,7 +724,7 @@ proc ::alcoholicz::GetSectionFromEvent {section event} {
     }
 
     # Check if the event is enabled in another channel-section. This allows users
-    # to redirect events without requiring another configuration option. For
+    # to redirect events without requiring additional configuration options. For
     # example, one could restrict the WIPE event in all path-sections, but allow
     # it in the STAFF channel-section.
     foreach section [array names chanSections] {
@@ -786,7 +786,6 @@ proc ::alcoholicz::SendSection {section text} {
         return
     }
 
-    set text [VarReplaceCommon $text $section]
     foreach channel $channels {
         putserv "PRIVMSG $channel :$text"
     }
@@ -802,11 +801,14 @@ proc ::alcoholicz::SendSection {section text} {
 proc ::alcoholicz::SendSectionTheme {section type {valueList ""}} {
     variable theme
     variable variables
+
     if {![info exists theme($type)] || ![info exists variables($type)]} {
         LogError SendSectionTheme "Missing theme or variable definition for \"$type\"."
         return
     }
-    SendSection $section [VarReplace $theme($type) $variables($type) $valueList]
+
+    set text [VarReplaceCommon $theme($type) $section]
+    SendSection $section [VarReplace $text $variables($type) $valueList]
 }
 
 ####
@@ -814,11 +816,8 @@ proc ::alcoholicz::SendSectionTheme {section type {valueList ""}} {
 #
 # Send text to the given target.
 #
-proc ::alcoholicz::SendTarget {target text {section ""}} {
-    if {$section eq ""} {
-        set section $::alcoholicz::defaultSection
-    }
-    putserv [append target " :" [VarReplaceCommon $text $section]]
+proc ::alcoholicz::SendTarget {target text} {
+    putserv [append target " :" $text]
 }
 
 ####
@@ -827,13 +826,23 @@ proc ::alcoholicz::SendTarget {target text {section ""}} {
 # Replace theme values and send the text to the given target.
 #
 proc ::alcoholicz::SendTargetTheme {target type {valueList ""} {section ""}} {
+    variable defaultSection
     variable theme
     variable variables
+
     if {![info exists theme($type)] || ![info exists variables($type)]} {
         LogError SendTargetTheme "Missing theme or variable definition for \"$type\"."
         return
     }
-    SendTarget $target [VarReplace $theme($type) $variables($type) $valueList] $section
+    if {$section eq ""} {
+        # Fall back to the default section.
+        set section $defaultSection
+    }
+
+    # Replace section colours and common items before the value list, in
+    # case the values introduce colour codes (e.g. a user named "[b]urn").
+    set text [VarReplaceCommon $theme($type) $section]
+    SendTarget $target [VarReplace $text $variables($type) $valueList]
 }
 
 ################################################################################
