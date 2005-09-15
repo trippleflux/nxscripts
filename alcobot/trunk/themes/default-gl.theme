@@ -153,3 +153,9 @@ affilsFoot  = Total: [b]%(groupCount)[b] affil(s) in [b]%(sectionCount)[b] secti
 bannedHead  = [b]Banned Groups:[b]
 bannedBody  = [b][[c1]%(section)[c]][b] %(groups)
 bannedFoot  = Total: [b]%(groupCount)[b] banned group(s) in [b]%(sectionCount)[b] section(s).
+
+# Module: help
+helpHead    = [b]Supported Commands:[b]
+helpType    = [u]%(type) Commands:[u]
+helpBody    = %(command) %(arguments) - %(description)
+helpFoot    =

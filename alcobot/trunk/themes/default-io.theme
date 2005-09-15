@@ -181,6 +181,12 @@ bannedHead  = [b]Banned Groups:[b]
 bannedBody  = [b][[c1]%(section)[c]][b] %(groups)
 bannedFoot  = Total: [b]%(groupCount)[b] banned group(s) in [b]%(sectionCount)[b] section(s).
 
+# Module: help
+helpHead    = [b]Supported Commands:[b]
+helpType    = [u]%(type) Commands:[u]
+helpBody    = %(command) %(arguments) - %(description)
+helpFoot    =
+
 # Module: nxtools
 approveHead = [b]Approved Releases:[b]
 approveBody = %02(num). [b]%(releaseName)[b] by [b]%(user)[b]/%(group).

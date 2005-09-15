@@ -1,0 +1,5 @@
+# Module Definition File
+desc=Command Help
+file=modHelp.tcl
+context=::alcoholicz::Help
+depends=

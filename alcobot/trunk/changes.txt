@@ -1,10 +1,12 @@
 AlcoBot v0.2.0 (XXX XX, 2005):
   NEW: Command-line style option parsing library.
+  NEW: Help module, to display support commands.
   NEW: nxTools module for ioFTPD, to interact with nxTools' databases.
   NEW: Variable and theme definitions for nxAutoNuke.
   CHG: The varFiles and themeFile options use file names instead of relative paths.
   CHG: Moved to a less restrictive license (modified BSD).
   CHG: The section parameter to the !free command is now case-insensitive.
+  FIX: The bot failed to load if auto_path was not set.
 
 AlcoBot v0.1.0 (Aug 29, 2005):
   CHG: Initial release.
