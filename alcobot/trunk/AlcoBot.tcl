@@ -22,9 +22,9 @@ namespace eval ::alcoholicz {
     namespace export b c u r o \
         LogDebug LogInfo LogError LogWarning GetFtpDaemon \
         CmdCreate CmdGetFlags CmdGetList CmdSetHelp CmdSendHelp CmdRemove \
+        FlagGetValue FlagExists FlagIsDisabled FlagIsEnabled FlagCheckEvent FlagCheckSection \
         ModuleFind ModuleHash ModuleInfo ModuleLoad ModuleUnload ModuleRead \
         ScriptExecute ScriptRegister ScriptUnregister \
-        FlagGetValue FlagExists FlagIsDisabled FlagIsEnabled FlagCheckEvent FlagCheckSection \
         GetSectionFromEvent GetSectionFromPath \
         SendSection SendSectionTheme SendTarget SendTargetTheme
 }
@@ -293,6 +293,115 @@ proc ::alcoholicz::CmdChannelProc {script user host handle channel text} {
         LogError CmdChannel "Error evaluating \"$script\":\n$::errorInfo"
     }
     return
+}
+
+################################################################################
+# Flags                                                                        #
+################################################################################
+
+####
+# FlagGetValue
+#
+# Retrieve a flag's value from a list of flags. If the flag and it's value are
+# present, the value is stored in the given variable and non-zero is returned.
+# If the flag is not listed or does not have a value, zero is returned.
+#
+proc ::alcoholicz::FlagGetValue {flagList flagName valueVar} {
+    upvar $valueVar value
+    foreach flag $flagList {
+        # Parse: +|-<name>=<value>
+        if {[regexp {^(?:\+|\-)(\w+)=(.+)$} $flag dummy name result] && $name eq $flagName} {
+            set value $result; return 1
+        }
+    }
+    return 0
+}
+
+####
+# FlagExists
+#
+# Check if the given flag exists.
+#
+proc ::alcoholicz::FlagExists {flagList flagName} {
+    foreach flag $flagList {
+        # Parse: +|-<name>[=<value>]
+        if {[regexp {^(?:\+|\-)(\w+)} $flag dummy name] && $name eq $flagName} {
+            return 1
+        }
+    }
+    return 0
+}
+
+####
+# FlagIsDisabled
+#
+# Check if the given flag exists and is disabled.
+#
+proc ::alcoholicz::FlagIsDisabled {flagList flagName} {
+    foreach flag $flagList {
+        # Parse: +|-<name>[=<value>]
+        if {![regexp {^(\+|\-)(\w+)} $flag dummy prefix name]} {continue}
+
+        if {$name eq "all" || $name eq $flagName} {
+            return [string equal $prefix "-"]
+        }
+    }
+    return 0
+}
+
+####
+# FlagIsEnabled
+#
+# Check if the given flag exists and is enabled.
+#
+proc ::alcoholicz::FlagIsEnabled {flagList flagName} {
+    foreach flag $flagList {
+        # Parse: +|-<name>[=<value>]
+        if {![regexp {^(\+|\-)(\w+)} $flag dummy prefix name]} {continue}
+
+        if {$name eq "all" || $name eq $flagName} {
+            return [string equal $prefix "+"]
+        }
+    }
+    return 0
+}
+
+####
+# FlagCheckEvent
+#
+# Check if the given event is enabled in the flag list.
+#
+proc ::alcoholicz::FlagCheckEvent {flagList event} {
+    variable events
+    foreach flag $flagList {
+        # Parse: +|-<name>[=<value>]
+        if {![regexp {^(\+|\-)(\w+)} $flag dummy prefix name]} {continue}
+
+        if {$name eq "all" || $name eq $event || ([info exists events($name)] &&
+            [lsearch -sorted $events($name) $event] != -1)} {
+            return [string equal $prefix "+"]
+        }
+    }
+    return 0
+}
+
+####
+# FlagCheckSection
+#
+# Check if the given event is enabled in a channel or path section.
+#
+proc ::alcoholicz::FlagCheckSection {section event} {
+    variable chanSections
+    variable pathSections
+
+    # Simple wrapper to make my lazy life easier.
+    if {[info exists chanSections($section)]} {
+        if {[FlagCheckEvent [lindex $chanSections($section) 1] $event]} {return 1}
+    }
+    if {[info exists pathSections($section)]} {
+        if {[FlagCheckEvent [lindex $pathSections($section) 2] $event]} {return 1}
+    }
+    return 0
 }
 
 ################################################################################
@@ -598,113 +707,8 @@ proc ::alcoholicz::ScriptUnregister {type event script} {
 }
 
 ################################################################################
-# Flags and Sections                                                           #
+# Sections                                                                     #
 ################################################################################
-
-####
-# FlagGetValue
-#
-# Retrieve a flag's value from a list of flags. If the flag and it's value are
-# present, the value is stored in the given variable and non-zero is returned.
-# If the flag is not listed or does not have a value, zero is returned.
-#
-proc ::alcoholicz::FlagGetValue {flagList flagName valueVar} {
-    upvar $valueVar value
-    foreach flag $flagList {
-        # Parse: +|-<name>=<value>
-        if {[regexp {^(?:\+|\-)(\w+)=(.+)$} $flag dummy name result] && $name eq $flagName} {
-            set value $result; return 1
-        }
-    }
-    return 0
-}
-
-####
-# FlagExists
-#
-# Check if the given flag exists.
-#
-proc ::alcoholicz::FlagExists {flagList flagName} {
-    foreach flag $flagList {
-        # Parse: +|-<name>[=<value>]
-        if {[regexp {^(?:\+|\-)(\w+)} $flag dummy name] && $name eq $flagName} {
-            return 1
-        }
-    }
-    return 0
-}
-
-####
-# FlagIsDisabled
-#
-# Check if the given flag exists and is disabled.
-#
-proc ::alcoholicz::FlagIsDisabled {flagList flagName} {
-    foreach flag $flagList {
-        # Parse: +|-<name>[=<value>]
-        if {![regexp {^(\+|\-)(\w+)} $flag dummy prefix name]} {continue}
-
-        if {$name eq "all" || $name eq $flagName} {
-            return [string equal $prefix "-"]
-        }
-    }
-    return 0
-}
-
-####
-# FlagIsEnabled
-#
-# Check if the given flag exists and is enabled.
-#
-proc ::alcoholicz::FlagIsEnabled {flagList flagName} {
-    foreach flag $flagList {
-        # Parse: +|-<name>[=<value>]
-        if {![regexp {^(\+|\-)(\w+)} $flag dummy prefix name]} {continue}
-
-        if {$name eq "all" || $name eq $flagName} {
-            return [string equal $prefix "+"]
-        }
-    }
-    return 0
-}
-
-####
-# FlagCheckEvent
-#
-# Check if the given event is enabled in the flag list.
-#
-proc ::alcoholicz::FlagCheckEvent {flagList event} {
-    variable events
-    foreach flag $flagList {
-        # Parse: +|-<name>[=<value>]
-        if {![regexp {^(\+|\-)(\w+)} $flag dummy prefix name]} {continue}
-
-        if {$name eq "all" || $name eq $event || ([info exists events($name)] &&
-            [lsearch -sorted $events($name) $event] != -1)} {
-            return [string equal $prefix "+"]
-        }
-    }
-    return 0
-}
-
-####
-# FlagCheckSection
-#
-# Check if the given event is enabled in a channel or path section.
-#
-proc ::alcoholicz::FlagCheckSection {section event} {
-    variable chanSections
-    variable pathSections
-
-    # Simple wrapper to make my lazy life easier.
-    if {[info exists chanSections($section)]} {
-        if {[FlagCheckEvent [lindex $chanSections($section) 1] $event]} {return 1}
-    }
-    if {[info exists pathSections($section)]} {
-        if {[FlagCheckEvent [lindex $pathSections($section) 2] $event]} {return 1}
-    }
-    return 0
-}
 
 ####
 # GetSectionFromEvent
