@@ -91,7 +91,7 @@ proc ::alcoholicz::NxTools::DbBusyHandler {tries} {
 ####
 # Approved
 #
-# Display approved releases.
+# Display approved releases, command: !approved.
 #
 proc ::alcoholicz::NxTools::Approved {user host handle channel target argc argv} {
     SendTargetTheme $target approveHead
@@ -115,11 +115,12 @@ proc ::alcoholicz::NxTools::Approved {user host handle channel target argc argv}
 ####
 # Latest
 #
-# Display recent releases .
+# Display recent releases, command: !new [-limit <num>] [section].
 #
 proc ::alcoholicz::NxTools::Latest {user host handle channel target argc argv} {
     variable defResults
     variable maxResults
+    upvar ::alcoholicz::pathSections pathSections
 
     # Parse command options.
     set option(limit) $defResults
@@ -130,10 +131,29 @@ proc ::alcoholicz::NxTools::Latest {user host handle channel target argc argv} {
     if {$option(limit) < 0 || $option(limit) > $maxResults} {
         set option(limit) $maxResults
     }
+
+    if {$section eq ""} {
+        set whereClause ""
+    } else {
+        # Validate the specified section name.
+        set names [lsort [array names pathSections]]
+        if {[catch {set section [GetElementFromList $names $section section]} message]} {
+            CmdSendHelp $channel channel $::lastbind $message
+            return
+        }
+        set sectionPath [lindex $pathSections($section) 0]
+        set whereClause "WHERE DirPath LIKE '[WildToLike $sectionPath]%' ESCAPE '\\'"
+    }
     SendTargetTheme $target latestHead
 
     set count 0
     if {[DbOpenFile "DupeDirs.db"]} {
+        db eval "SELECT * FROM DupeDirs $whereClause ORDER BY TimeStamp DESC LIMIT $option(limit)" values {
+            incr count
+            set age [expr {[clock seconds] - $values(TimeStamp)}]
+            set virtualPath [file join $values(DirPath) $values(DirName)]
+            SendTargetTheme $target latestBody [list $values(UserName) $values(GroupName) $virtualPath $values(TimeStamp) $age $count]
+        }
         db close
     }
 
@@ -145,15 +165,18 @@ proc ::alcoholicz::NxTools::Latest {user host handle channel target argc argv} {
 ####
 # Search
 #
-# Search for a release.
+# Search for a release, command: !dupe [-limit <num>] [-section <name>] <pattern>.
 #
 proc ::alcoholicz::NxTools::Search {user host handle channel target argc argv} {
     variable defResults
     variable maxResults
+    upvar ::alcoholicz::pathSections pathSections
 
     # Parse command options.
     set option(limit) $defResults
-    if {[catch {set pattern [GetOptions $argv {{limit integer} {section arg}} option]} message]} {
+    set optList [list {limit integer} [list section arg [lsort [array names pathSections]]]]
+
+    if {[catch {set pattern [GetOptions $argv $optList option]} message]} {
         CmdSendHelp $channel channel $::lastbind $message
         return
     } elseif {$pattern eq ""} {
@@ -166,15 +189,26 @@ proc ::alcoholicz::NxTools::Search {user host handle channel target argc argv} {
     SendTargetTheme $target searchHead
 
     if {[info exists option(section)]} {
+        set sectionPath [lindex $pathSections($option(section)) 0]
+        set whereClause "AND DirPath LIKE '[WildToLike $sectionPath]%' ESCAPE '\\'"
     } else {
+        set whereClause ""
     }
+    set pattern [FormatPattern $pattern]
 
     set count 0
     if {[DbOpenFile "DupeDirs.db"]} {
+        db eval "SELECT * FROM DupeDirs WHERE DirName LIKE '$pattern' ESCAPE '\\' \
+                $whereClause ORDER BY TimeStamp DESC LIMIT $option(limit)" values {
+            incr count
+            set age [expr {[clock seconds] - $values(TimeStamp)}]
+            set virtualPath [file join $values(DirPath) $values(DirName)]
+            SendTargetTheme $target searchBody [list $values(UserName) $values(GroupName) $virtualPath $values(TimeStamp) $age $count]
+        }
         db close
     }
 
-    if {!$count} {SendTargetTheme $target searchNone}
+    if {!$count} {SendTargetTheme $target searchNone [list $pattern]}
     SendTargetTheme $target searchFoot
     return
 }
@@ -182,7 +216,7 @@ proc ::alcoholicz::NxTools::Search {user host handle channel target argc argv} {
 ####
 # Nukes
 #
-# Display recent nukes.
+# Display recent nukes, command: !nukes [-limit <num>] [pattern].
 #
 proc ::alcoholicz::NxTools::Nukes {user host handle channel target argc argv} {
     variable defResults
@@ -201,6 +235,7 @@ proc ::alcoholicz::NxTools::Nukes {user host handle channel target argc argv} {
 
     set count 0
     if {[DbOpenFile "Nukes.db"]} {
+        # TODO
         db close
     }
 
@@ -212,7 +247,7 @@ proc ::alcoholicz::NxTools::Nukes {user host handle channel target argc argv} {
 ####
 # NukeTop
 #
-# Display top nuked users.
+# Display top nuked users, command: !nukes [-limit <num>] [group].
 #
 proc ::alcoholicz::NxTools::NukeTop {user host handle channel target argc argv} {
     variable defResults
@@ -231,6 +266,7 @@ proc ::alcoholicz::NxTools::NukeTop {user host handle channel target argc argv} 
 
     set count 0
     if {[DbOpenFile "Nukes.db"]} {
+        # TODO
         db close
     }
 
@@ -242,7 +278,7 @@ proc ::alcoholicz::NxTools::NukeTop {user host handle channel target argc argv} 
 ####
 # Unnukes
 #
-# Display recent unnukes.
+# Display recent unnukes, command: !unnukes [-limit <num>] [pattern].
 #
 proc ::alcoholicz::NxTools::Unnukes {user host handle channel target argc argv} {
     variable defResults
@@ -261,6 +297,7 @@ proc ::alcoholicz::NxTools::Unnukes {user host handle channel target argc argv} 
 
     set count 0
     if {[DbOpenFile "Nukes.db"]} {
+        # TODO
         db close
     }
 
@@ -272,7 +309,7 @@ proc ::alcoholicz::NxTools::Unnukes {user host handle channel target argc argv} 
 ####
 # OneLines
 #
-# Display recent one-lines.
+# Display recent one-lines, command: !onel.
 #
 proc ::alcoholicz::NxTools::OneLines {user host handle channel target argc argv} {
     variable oneLines
@@ -295,39 +332,9 @@ proc ::alcoholicz::NxTools::OneLines {user host handle channel target argc argv}
 }
 
 ####
-# PreStats
-#
-# Display group pre statistics.
-#
-proc ::alcoholicz::NxTools::PreStats {user host handle channel target argc argv} {
-    variable defResults
-    variable maxResults
-
-    # Parse command options.
-    set option(limit) $defResults
-    if {[catch {set group [GetOptions $argv {{limit integer}} option]} message]} {
-        CmdSendHelp $channel channel $::lastbind $message
-        return
-    }
-    if {$option(limit) < 0 || $option(limit) > $maxResults} {
-        set option(limit) $maxResults
-    }
-    SendTargetTheme $target preStatsHead
-
-    set count 0
-    if {[DbOpenFile "Pres.db"]} {
-        db close
-    }
-
-    if {!$count} {SendTargetTheme $target preStatsNone}
-    SendTargetTheme $target preStatsFoot
-    return
-}
-
-####
 # Requests
 #
-# Display current requests.
+# Display current requests, command: !requests.
 #
 proc ::alcoholicz::NxTools::Requests {user host handle channel target argc argv} {
     SendTargetTheme $target requestsHead
@@ -376,6 +383,7 @@ proc ::alcoholicz::NxTools::Undupe {user host handle channel target argc argv} {
 
     set count 0
     if {[DbOpenFile "${tableName}.db"]} {
+        # TODO
         db close
     }
 
@@ -452,8 +460,8 @@ proc ::alcoholicz::NxTools::Load {firstLoad} {
     CmdCreate channel ${prefix}new      [namespace current]::Latest \
         Stats "Display new releases." "\[-limit <num>\] \[section\]"
 
-    CmdCreate channel ${prefix}dupe     [namespace current]::Search
-    CmdCreate channel ${prefix}search   [namespace current]::Search \
+    CmdCreate channel ${prefix}search   [namespace current]::Search
+    CmdCreate channel ${prefix}dupe     [namespace current]::Search \
         Stats "Search for a release." "\[-limit <num>\] \[-section <name>\] <pattern>"
 
     CmdCreate channel ${prefix}undupe   [namespace current]::Undupe \
@@ -476,9 +484,6 @@ proc ::alcoholicz::NxTools::Load {firstLoad} {
     CmdCreate channel ${prefix}onelines [namespace current]::OneLines
     CmdCreate channel ${prefix}onel     [namespace current]::OneLines \
         General "Display recent one-lines."
-
-    CmdCreate channel ${prefix}prestats [namespace current]::PreStats \
-        Stats "Display pre statistics." "\[-limit <num>\] \[group\]"
 
     CmdCreate channel ${prefix}reqs     [namespace current]::Requests
     CmdCreate channel ${prefix}requests [namespace current]::Requests \

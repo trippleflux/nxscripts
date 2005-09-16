@@ -189,18 +189,18 @@ helpFoot    =
 
 # Module: nxtools
 approveHead = [b]Approved Releases:[b]
-approveBody = %02(num). [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
+approveBody = [%02(num)] [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
 approveNone = There are no approved releases.
 approveFoot =
 
 latestHead  = [b]Latest Releases:[b]
-latestBody  =
-latestNone  =
+latestBody  = [%02(num)] [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
+latestNone  = No relaeses found.
 latestFoot  =
 
 searchHead  = [b]Search:[b]
-searchBody  =
-searchNone  =
+searchBody  = [%02(num)] %(releaseDate) - [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
+searchNone  = No relaeses matching [b]%(pattern)[b] found.
 searchFoot  =
 
 nukesHead   = [b]Nukes:[b]
@@ -219,17 +219,12 @@ unnukesNone =
 unnukesFoot =
 
 oneLinesHead= [b]One Lines:[b]
-oneLinesBody= %(entryDate) [b]%(message)[b] by [b]%(user)[b]/%(group).
+oneLinesBody= [%(messageDate)] [b]%(message)[b] by [b]%(user)[b]/%(group).
 oneLinesNone= There are no one-lines.
 oneLinesFoot=
 
-preStatsHead= [b]Pre Stats:[b]
-preStatsBody=
-preStatsNone=
-preStatsFoot=
-
 requestsHead= [b]Requests:[b]
-requestsBody= %02(num). [b]%(request)[b] (ID #%(id)) by [b]%(user)[b]/%(group).
+requestsBody= [%02(num)] [b]%(request)[b] (ID #%(id)) by [b]%(user)[b]/%(group).
 requestsNone= There are no requests.
 requestsFoot=
 
