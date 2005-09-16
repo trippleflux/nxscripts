@@ -20,7 +20,21 @@ namespace eval ::alcoholicz {
         regexp -- {must be (.+)$} $charClasses dummy charClasses
         regsub -all -- {, (or )?} $charClasses { } charClasses
     }
-    namespace export GetIndexFromList GetOptions
+    namespace export GetElementFromList GetIndexFromList GetOptions
+}
+
+####
+# GetElementFromList
+#
+# Simple wrapper around GetIndexFromList, an error is thrown if no
+# match is found.
+#
+proc ::alcoholicz::GetElementFromList {list element {type "option"}} {
+    set index [GetIndexFromList $list $element]
+    if {$index == -1} {
+        error "invalid $type \"$element\", must be [JoinLiteral $list or]"
+    }
+    return [lindex $list $index]
 }
 
 ####
@@ -143,14 +157,7 @@ proc ::alcoholicz::GetOptions {argList optList resultVar} {
 
                 if {$optType eq "arg"} {
                     if {$optCount > 2} {
-                        set index [GetIndexFromList $optValues $value]
-                        if {$index == -1} {
-                            error "invalid value \"$value\", must be [JoinLiteral $optValues or]"
-                        }
-
-                        # In case a partial match was performed, update
-                        # the "value" variable to match the list element.
-                        set value [lindex $optValues $index]
+                        set value [GetElementFromList $optValues $value "value"]
                     }
                 } elseif {![string is $optType -strict $value]} {
                     error "the option \"$arg\" requires a $optType type value"
