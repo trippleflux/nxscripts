@@ -218,7 +218,7 @@ proc ::alcoholicz::NxTools::Search {user host handle channel target argc argv} {
         db close
     }
 
-    if {!$count} {SendTargetTheme $target searchNone}
+    if {!$count} {SendTargetTheme $target searchNone [list $pattern]}
     SendTargetTheme $target searchFoot
     return
 }
@@ -368,7 +368,7 @@ proc ::alcoholicz::NxTools::Requests {user host handle channel target argc argv}
 ####
 # Undupe
 #
-# Remove a file or directory from the dupe database.
+# Remove a file or directory from the dupe database, command: !undupe [-directory] <file/dir>.
 #
 proc ::alcoholicz::NxTools::Undupe {user host handle channel target argc argv} {
     variable undupeChars
@@ -378,10 +378,13 @@ proc ::alcoholicz::NxTools::Undupe {user host handle channel target argc argv} {
         CmdSendHelp $channel channel $::lastbind $message
         return
     } elseif {[regexp {[\*\?]} $pattern] && [regexp -all {[[:alnum:]]} $pattern] < $undupeChars} {
-        CmdSendHelp $channel channel $::lastbind "you must specify at least $undupeChars alphanumeric chars"
+        CmdSendHelp $channel channel $::lastbind "you must specify at least $undupeChars alphanumeric chars with wildcards"
+        return
+    } elseif {$pattern eq ""} {
+        CmdSendHelp $channel channel $::lastbind "you must specify a pattern"
         return
     }
-    SendTargetTheme $target undupeHead
+    SendTargetTheme $target undupeHead [list $pattern]
 
     if {[info exists option(directory)]} {
         set colName "DirName"
@@ -393,11 +396,18 @@ proc ::alcoholicz::NxTools::Undupe {user host handle channel target argc argv} {
 
     set count 0
     if {[DbOpenFile "${tableName}.db"]} {
-        # TODO
+        db eval {BEGIN}
+        db eval "SELECT $colName,rowid FROM $tableName WHERE $colName \
+                LIKE '[WildToLike $pattern]' ESCAPE '\\' ORDER BY $colName ASC" values {
+            incr count
+            SendTargetTheme $target undupeBody [list $values($colName) $count]
+            db eval "DELETE FROM $tableName WHERE rowid=$values(rowid)"
+        }
+        db eval {COMMIT}
         db close
     }
 
-    if {!$count} {SendTargetTheme $target undupeNone}
+    if {!$count} {SendTargetTheme $target undupeNone [list $pattern]}
     SendTargetTheme $target undupeFoot
     return
 }

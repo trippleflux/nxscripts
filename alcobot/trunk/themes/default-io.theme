@@ -190,45 +190,45 @@ helpFoot    =
 # Module: nxtools
 approveHead = [b]Approved Releases:[b]
 approveBody = [%02(num)] [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
-approveNone = No results found.
+approveNone = No releases found.
 approveFoot =
 
 latestHead  = [b]Latest Releases:[b]
 latestBody  = [%02(num)] [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
-latestNone  = No results found.
+latestNone  = No releases found.
 latestFoot  =
 
 searchHead  = [b]Search:[b]
 searchBody  = [%02(num)] %(releaseDate) - [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
-searchNone  = No results found.
+searchNone  = No releases found matching "%(pattern)".
 searchFoot  =
 
 nukesHead   = [b]Nukes:[b]
 nukesBody   =
-nukesNone   = No results found.
+nukesNone   = No releases found.
 nukesFoot   =
 
 nuketopHead = [b]Nuke Top:[b]
 nuketopBody =
-nuketopNone = No results found.
+nuketopNone = No users found.
 nuketopFoot =
 
 unnukesHead = [b]Unnukes:[b]
 unnukesBody =
-unnukesNone = No results found.
+unnukesNone = No releases found.
 unnukesFoot =
 
 oneLinesHead= [b]One Lines:[b]
 oneLinesBody= [%(messageDate)] [b]%(message)[b] by [b]%(user)[b]/%(group).
-oneLinesNone= No results found.
+oneLinesNone= No messages found.
 oneLinesFoot=
 
 requestsHead= [b]Requests:[b]
 requestsBody= [%02(num)] [b]%(request)[b] (ID #%(id)) by [b]%(user)[b]/%(group).
-requestsNone= No results found.
+requestsNone= No requests found.
 requestsFoot=
 
 undupeHead  = [b]Undupe:[b]
-undupeBody  =
-undupeNone  = No results found.
+undupeBody  = [%02(num)] [b]%(entry)[b] removed.
+undupeNone  = No entries found matching "%(pattern)".
 undupeFoot  =
