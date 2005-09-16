@@ -240,15 +240,15 @@ proc ::nxTools::Db::Main {argv} {
 
     if {!$result} {
         switch -- $event {
-            {CREATE} {
+            CREATE {
                 LinePuts "Creating [llength $dbList] database(s)."; LinePuts ""
                 set result [Create $dbList]
             }
-            {CHECK} {
+            CHECK {
                 LinePuts "Checking [llength $dbList] database(s)."; LinePuts ""
                 set result [Check $dbList]
             }
-            {OPTIMIZE} {
+            OPTIMIZE {
                 LinePuts "Optimizing [llength $dbList] database(s)."; LinePuts ""
                 set result [Optimize $dbList]
             }

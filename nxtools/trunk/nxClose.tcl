@@ -42,7 +42,7 @@ proc ::nxTools::Close::Main {argv} {
     set argList [ArgList $argv]
     set event [string toupper [lindex $argList 0]]
     switch -- $event {
-        {CLOSE} {
+        CLOSE {
             iputs ".-\[Close\]-----------------------------------------------------------------."
             if {[catch {set closeInfo [var get nxToolsClosed]}]} {
                 set reason [join [lrange $argList 1 end]]
@@ -80,14 +80,14 @@ proc ::nxTools::Close::Main {argv} {
             }
             iputs "'------------------------------------------------------------------------'"
         }
-        {LOGIN} {
+        LOGIN {
             if {![ExcemptCheck $user $group $flags] && ![catch {set closeInfo [var get nxToolsClosed]}]} {
                 set duration [expr {[clock seconds] - [lindex $closeInfo 0]}]
                 iputs -nobuffer "530 Server Closed: [lindex $closeInfo 1] (since [FormatDuration $duration] ago)"
                 set result 1
             }
         }
-        {OPEN} {
+        OPEN {
             iputs ".-\[Open\]-----------------------------------------------------------------."
             if {[catch {set closeInfo [var get nxToolsClosed]}]} {
                 LinePuts "Server is currently open, use \"SITE CLOSE \[reason\]\" to close it."

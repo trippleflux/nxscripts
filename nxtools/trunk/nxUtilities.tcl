@@ -380,10 +380,10 @@ proc ::nxTools::Utils::SiteCredits {event target amount section} {
     }
     set unitName [string toupper [string index $unit 0]]
     switch -- $unitName {
-        {G} {set multi 1048576}
-        {M} {set multi 1024}
-        {K} {set multi 1}
-        {}  {set multi 1024; set unitName "M"}
+        G  {set multi 1048576}
+        M  {set multi 1024}
+        K  {set multi 1}
+        "" {set multi 1024; set unitName "M"}
         default {ErrorReturn "The specified size unit \"$unit\" is invalid."}
     }
     append unitName "B"
@@ -720,10 +720,10 @@ proc ::nxTools::Utils::Main {argv} {
     set argLength [llength [set argList [ArgList $argv]]]
     set event [string toupper [lindex $argList 0]]
     switch -- $event {
-        {DRIVES} {
+        DRIVES {
             set result [SiteDrives]
         }
-        {ERRLOG} {
+        ERRLOG {
             if {$argLength > 1 && [GetOptions [lrange $argList 1 end] limit pattern]} {
                 iputs ".-\[ErrorLog\]-------------------------------------------------------------."
                 set result [SearchLog $log(Error) $limit $pattern]
@@ -731,7 +731,7 @@ proc ::nxTools::Utils::Main {argv} {
                 iputs "Syntax: SITE ERRLOG \[-max <limit>\] <pattern>"
             }
         }
-        {GINFO} {
+        GINFO {
             if {$argLength > 1 && [string is digit [lindex $argList 2]]} {
                 set result [SiteGroupInfo [lindex $argList 1] [lindex $argList 2]]
             } else {
@@ -739,7 +739,7 @@ proc ::nxTools::Utils::Main {argv} {
             }
             set result 1
         }
-        {GIVE} - {TAKE} {
+        GIVE - TAKE {
             foreach {target amount section} [lrange $argList 1 end] {break}
             if {$argLength > 2} {
                 set result [SiteCredits $event $target $amount $section]
@@ -747,7 +747,7 @@ proc ::nxTools::Utils::Main {argv} {
                 iputs "Syntax: SITE $event <username> <credits> \[credit section\]"
             }
         }
-        {INVITE} {
+        INVITE {
             if {$argLength == 2} {
                 iputs ".-\[Invite\]---------------------------------------------------------------."
                 set ircNick [lindex $argList 1]
@@ -758,30 +758,30 @@ proc ::nxTools::Utils::Main {argv} {
                 iputs "Syntax: SITE INVITE <irc nick>"
             }
         }
-        {NEWDATE} {
+        NEWDATE {
             set result [NewDate [lindex $argList 1]]
         }
-        {ONELINES} {
+        ONELINES {
             set result [OneLines [join [lrange $argList 1 end]]]
         }
-        {RESETSTATS} {
+        RESETSTATS {
             if {$argLength > 1} {
                 set result [SiteResetStats [join [lrange $argList 1 end]]]
             } else {
                 iputs "Syntax: SITE RESETSTATS <stats type(s)>"
             }
         }
-        {RESETUSER} {
+        RESETUSER {
             if {$argLength > 1} {
                 set result [SiteResetUser [lindex $argList 1]]
             } else {
                 iputs "Syntax: SITE RESETUSER <username>"
             }
         }
-        {ROTATE} {
+        ROTATE {
             set result [RotateLogs]
         }
-        {SIZE} {
+        SIZE {
             if {$argLength > 1} {
                 set virtualPath [GetPath $pwd [join [lrange $argList 1 end]]]
                 set result [SiteSize $virtualPath]
@@ -789,7 +789,7 @@ proc ::nxTools::Utils::Main {argv} {
                 iputs " Usage: SITE SIZE <file/directory>"
             }
         }
-        {SYSLOG} {
+        SYSLOG {
             if {$argLength > 1 && [GetOptions [lrange $argList 1 end] limit pattern]} {
                 iputs ".-\[SysopLog\]-------------------------------------------------------------."
                 set result [SearchLog $log(SysOp) $limit $pattern]
@@ -797,16 +797,16 @@ proc ::nxTools::Utils::Main {argv} {
                 iputs "Syntax: SITE SYSLOG \[-max <limit>\] <pattern>"
             }
         }
-        {TRAFFIC} {
+        TRAFFIC {
             set result [SiteTraffic [lindex $argList 1]]
         }
-        {WEEKLY} {
+        WEEKLY {
             set result [WeeklyCredits [lindex $argList 1] [lindex $argList 2]]
         }
-        {WEEKLYSET} {
+        WEEKLYSET {
             set result [WeeklySet]
         }
-        {WHO} {
+        WHO {
             set result [SiteWho]
         }
         default {

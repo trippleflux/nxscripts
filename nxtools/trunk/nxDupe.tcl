@@ -407,7 +407,7 @@ proc ::nxTools::Dupe::SiteApprove {event release} {
     }
     set release [file tail $release]
     switch -- $event {
-        {ADD} {
+        ADD {
             iputs ".-\[Approve\]--------------------------------------------------------------."
             if {![MatchFlags $approve(Flags) $flags]} {
                 LinePuts "Only siteops may approve releases."
@@ -435,7 +435,7 @@ proc ::nxTools::Dupe::SiteApprove {event release} {
             }
             iputs "'------------------------------------------------------------------------'"
         }
-        {DEL} {
+        DEL {
             iputs ".-\[Approve\]--------------------------------------------------------------."
             if {![MatchFlags $approve(Flags) $flags]} {
                 LinePuts "Only siteops may deleted approved releases."
@@ -453,7 +453,7 @@ proc ::nxTools::Dupe::SiteApprove {event release} {
             }
             iputs "'------------------------------------------------------------------------'"
         }
-        {LIST} {
+        LIST {
             foreach fileExt {Header Body None Footer} {
                 set template($fileExt) [ReadFile [file join $misc(Templates) "Approves.$fileExt"]]
             }
@@ -732,13 +732,13 @@ proc ::nxTools::Dupe::Main {argv} {
     set argLength [llength [set argList [ArgList $argv]]]
     set event [string toupper [lindex $argList 0]]
     switch -- $event {
-        {DUPELOG} {
+        DUPELOG {
             set virtualPath [GetPath $pwd [join [lrange $argList 2 end]]]
             if {[IsTrue $dupe(CheckDirs)] || [IsTrue $dupe(CheckFiles)]} {
                 set result [UpdateLog [lindex $argList 1] $virtualPath]
             }
         }
-        {POSTMKD} {
+        POSTMKD {
             set virtualPath [GetPath $pwd [join [lrange $argList 2 end]]]
             if {[IsTrue $dupe(CheckDirs)]} {
                 set result [UpdateLog [lindex $argList 1] $virtualPath]
@@ -748,7 +748,7 @@ proc ::nxTools::Dupe::Main {argv} {
             }
             if {[IsTrue $approve(CheckMkd)]} {ApproveCheck $virtualPath 1}
         }
-        {PREMKD} {
+        PREMKD {
             set virtualPath [GetPath $pwd [join [lrange $argList 2 end]]]
             if {!([IsTrue $approve(CheckMkd)] && [ApproveCheck $virtualPath 0])} {
                 if {[IsTrue $dupe(CheckDirs)]} {
@@ -759,7 +759,7 @@ proc ::nxTools::Dupe::Main {argv} {
                 }
             }
         }
-        {PRESTOR} {
+        PRESTOR {
             set virtualPath [GetPath $pwd [join [lrange $argList 2 end]]]
             if {[IsTrue $force(NfoFirst)] || [IsTrue $force(SfvFirst)] || [IsTrue $force(SampleFirst)]} {
                 set result [ForceCheck $virtualPath]
@@ -768,17 +768,17 @@ proc ::nxTools::Dupe::Main {argv} {
                 set result [CheckFiles $virtualPath]
             }
         }
-        {UPLOAD} {
+        UPLOAD {
             if {[IsTrue $dupe(CheckFiles)]} {
                 UpdateLog "UPLD" [lindex $argList 3]
             }
         }
-        {UPLOADERROR} {
+        UPLOADERROR {
             if {[IsTrue $dupe(CheckFiles)]} {
                 UpdateLog "DELE" [lindex $argList 3]
             }
         }
-        {APPROVE} {
+        APPROVE {
             array set params [list ADD 2 DEL 2 LIST 0]
             set subEvent [string toupper [lindex $argList 1]]
 
@@ -790,41 +790,41 @@ proc ::nxTools::Dupe::Main {argv} {
                 iputs "        SITE APPROVE LIST"
             }
         }
-        {CLEAN} {
+        CLEAN {
             set result [CleanDb]
         }
-        {DUPE} {
+        DUPE {
             if {$argLength > 1 && [GetOptions [lrange $argList 1 end] limit pattern]} {
                 set result [SiteDupe $limit $pattern]
             } else {
                 iputs "Syntax: SITE DUPE \[-max <limit>\] <release>"
             }
         }
-        {FDUPE} {
+        FDUPE {
             if {$argLength > 1 && [GetOptions [lrange $argList 1 end] limit pattern]} {
                 set result [SiteFileDupe $limit $pattern]
             } else {
                 iputs "Syntax: SITE FDUPE \[-max <limit>\] <filename>"
             }
         }
-        {NEW} {
+        NEW {
             if {[GetOptions [lrange $argList 1 end] limit sectionName]} {
                 set result [SiteNew $limit $sectionName]
             } else {
                 iputs "Syntax: SITE NEW \[-max <limit>\] \[section\]"
             }
         }
-        {PRETIME} {
+        PRETIME {
             if {$argLength > 1 && [GetOptions [lrange $argList 1 end] limit pattern]} {
                 set result [SitePreTime $limit $pattern]
             } else {
                 iputs "Syntax: SITE PRETIME \[-max <limit>\] <release>"
             }
         }
-        {REBUILD} {
+        REBUILD {
             set result [RebuildDb]
         }
-        {UNDUPE} {
+        UNDUPE {
             if {$argLength > 1} {
                 set result [SiteUndupe [lrange $argList 1 end]]
             } else {
@@ -832,7 +832,7 @@ proc ::nxTools::Dupe::Main {argv} {
                 iputs "        SITE UNDUPE -d <directory>"
             }
         }
-        {WIPE} {
+        WIPE {
             if {$argLength > 1} {
                 set virtualPath [GetPath $pwd [join [lrange $argList 1 end]]]
                 set result [SiteWipe $virtualPath]

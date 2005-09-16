@@ -78,8 +78,8 @@ proc ::nxTools::Req::UpdateDir {event request {userId 0} {groupId 0}} {
     set reqPath [file join $req(RequestPath) [string map $reMap $req(RequestTag)]]
 
     switch -- $event {
-        {ADD} {CreateTag $reqPath $userId $groupId 777}
-        {DEL} {
+        ADD {CreateTag $reqPath $userId $groupId 777}
+        DEL {
             if {[file isdirectory $reqPath]} {
                 KickUsers [file join $reqPath "*"] True
                 if {[catch {file delete -force -- $reqPath} error]} {
@@ -87,7 +87,7 @@ proc ::nxTools::Req::UpdateDir {event request {userId 0} {groupId 0}} {
                 }
             }
         }
-        {FILL} {
+        FILL {
             if {[file isdirectory $reqPath]} {
                 set fillPath [file join $req(RequestPath) [string map $reMap $req(FilledTag)]]
                 KickUsers [file join $reqPath "*"] True
@@ -270,22 +270,22 @@ proc ::nxTools::Req::Main {argv} {
     set event [string toupper [lindex $argList 0]]
     set request [join [lrange $argList 1 end]]
     switch -- $event {
-        {ADD} {
+        ADD {
             if {$argLength > 1} {
                 set result [Add $user $group $request]
             } else {
                 iputs "Syntax: SITE REQUEST <request>"
             }
         }
-        {DEL} - {FILL} {
+        DEL - FILL {
             if {$argLength > 1} {
                 set result [Update $event $user $group $request]
             } else {
                 iputs "Syntax: SITE REQ$event <id/request>"
             }
         }
-        {LIST} {set result [List]}
-        {WIPE} {set result [Wipe]}
+        LIST {set result [List]}
+        WIPE {set result [Wipe]}
         default {
             ErrorLog InvalidArgs "unknown event \"[info script] $event\": check your ioFTPD.ini for errors"
             set result 1

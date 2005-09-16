@@ -131,7 +131,7 @@ proc ::nxTools::Nuke::Main {argv} {
     set argList [ArgList $argv]
     set event [string toupper [lindex $argList 0]]
     switch -- $event {
-        {NUKE} - {UNNUKE} {
+        NUKE - UNNUKE {
             if {$event eq "NUKE"} {
                 iputs ".-\[Nuke\]-----------------------------------------------------------------."
                 foreach {dummy target multi reason} $argList {break}
@@ -369,7 +369,7 @@ proc ::nxTools::Nuke::Main {argv} {
             UpdateRecord [expr {$renameFail ? $realPath : $newPath}] "2|$nukeStatus|$nukeId|$user|$group|$multi|$reason"
             iputs "'------------------------------------------------------------------------'"
         }
-        {NUKES} - {UNNUKES} {
+        NUKES - UNNUKES {
             if {![GetOptions [lrange $argList 1 end] limit pattern]} {
                 iputs "Syntax: SITE $event \[-max <limit>\] \[release\]"
                 return 0
@@ -407,7 +407,7 @@ proc ::nxTools::Nuke::Main {argv} {
             }
             iputs "'------------------------------------------------------------------------'"
         }
-        {NUKETOP} {
+        NUKETOP {
             if {![GetOptions [lrange $argList 1 end] limit pattern]} {
                 iputs "Syntax: SITE NUKETOP \[-max <limit>\] \[group\]"
                 return 0
