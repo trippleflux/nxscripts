@@ -133,7 +133,7 @@ proc ::alcoholicz::NxTools::Latest {user host handle channel target argc argv} {
     }
 
     if {$section eq ""} {
-        set whereClause ""
+        set sectionQuery ""
     } else {
         # Validate the specified section name.
         set names [lsort [array names pathSections]]
@@ -141,18 +141,23 @@ proc ::alcoholicz::NxTools::Latest {user host handle channel target argc argv} {
             CmdSendHelp $channel channel $::lastbind $message
             return
         }
-        set sectionPath [lindex $pathSections($section) 0]
-        set whereClause "WHERE DirPath LIKE '[WildToLike $sectionPath]%' ESCAPE '\\'"
+        set matchPath [WildToLike [lindex $pathSections($section) 0]]
+        set sectionQuery "WHERE DirPath LIKE '${matchPath}%' ESCAPE '\\'"
     }
     SendTargetTheme $target latestHead
 
     set count 0
     if {[DbOpenFile "DupeDirs.db"]} {
-        db eval "SELECT * FROM DupeDirs $whereClause ORDER BY TimeStamp DESC LIMIT $option(limit)" values {
+        db eval "SELECT * FROM DupeDirs $sectionQuery ORDER BY TimeStamp DESC LIMIT $option(limit)" values {
+            # Retrieve the section name.
+            set virtualPath [file join $values(DirPath) $values(DirName)]
+            if {$sectionQuery eq "" && [set section [GetSectionFromPath $virtualPath]] eq ""} {
+                set section $::alcoholicz::defaultSection
+            }
+
             incr count
             set age [expr {[clock seconds] - $values(TimeStamp)}]
-            set virtualPath [file join $values(DirPath) $values(DirName)]
-            SendTargetTheme $target latestBody [list $values(UserName) $values(GroupName) $virtualPath $values(TimeStamp) $age $count]
+            SendTargetTheme $target latestBody [list $values(UserName) $values(GroupName) $section $virtualPath $values(TimeStamp) $age $count]
         }
         db close
     }
@@ -189,20 +194,26 @@ proc ::alcoholicz::NxTools::Search {user host handle channel target argc argv} {
     SendTargetTheme $target searchHead [list $pattern]
 
     if {[info exists option(section)]} {
-        set sectionPath [lindex $pathSections($option(section)) 0]
-        set whereClause "AND DirPath LIKE '[WildToLike $sectionPath]%' ESCAPE '\\'"
+        set section $option(section)
+        set matchPath [WildToLike [lindex $pathSections($section) 0]]
+        set sectionQuery "AND DirPath LIKE '${matchPath}%' ESCAPE '\\'"
     } else {
-        set whereClause ""
+        set sectionQuery ""
     }
 
     set count 0
     if {[DbOpenFile "DupeDirs.db"]} {
         db eval "SELECT * FROM DupeDirs WHERE DirName LIKE '[FormatPattern $pattern]' ESCAPE '\\' \
-                $whereClause ORDER BY TimeStamp DESC LIMIT $option(limit)" values {
+                $sectionQuery ORDER BY TimeStamp DESC LIMIT $option(limit)" values {
+            # Retrieve the section name.
+            set virtualPath [file join $values(DirPath) $values(DirName)]
+            if {$sectionQuery eq "" && [set section [GetSectionFromPath $virtualPath]] eq ""} {
+                set section $::alcoholicz::defaultSection
+            }
+
             incr count
             set age [expr {[clock seconds] - $values(TimeStamp)}]
-            set virtualPath [file join $values(DirPath) $values(DirName)]
-            SendTargetTheme $target searchBody [list $values(UserName) $values(GroupName) $virtualPath $values(TimeStamp) $age $count]
+            SendTargetTheme $target searchBody [list $values(UserName) $values(GroupName) $section $virtualPath $values(TimeStamp) $age $count]
         }
         db close
     }
@@ -455,13 +466,11 @@ proc ::alcoholicz::NxTools::Load {firstLoad} {
     }
 
     # Directory commands.
-    CmdCreate channel ${prefix}latest   [namespace current]::Latest
-    CmdCreate channel ${prefix}new      [namespace current]::Latest \
-        Stats "Display new releases." "\[-limit <num>\] \[section\]"
-
-    CmdCreate channel ${prefix}search   [namespace current]::Search
     CmdCreate channel ${prefix}dupe     [namespace current]::Search \
         Stats "Search for a release." "\[-limit <num>\] \[-section <name>\] <pattern>"
+
+    CmdCreate channel ${prefix}new      [namespace current]::Latest \
+        Stats "Display new releases." "\[-limit <num>\] \[section\]"
 
     CmdCreate channel ${prefix}undupe   [namespace current]::Undupe \
         Stats "Undupe files and directories." "\[-directory\] <pattern>"
@@ -480,11 +489,9 @@ proc ::alcoholicz::NxTools::Load {firstLoad} {
     CmdCreate channel ${prefix}approved [namespace current]::Approved \
         General "Display approved releases."
 
-    CmdCreate channel ${prefix}onelines [namespace current]::OneLines
     CmdCreate channel ${prefix}onel     [namespace current]::OneLines \
         General "Display recent one-lines."
 
-    CmdCreate channel ${prefix}reqs     [namespace current]::Requests
     CmdCreate channel ${prefix}requests [namespace current]::Requests \
         General "Display current requests."
 
