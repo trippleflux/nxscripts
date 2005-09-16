@@ -186,7 +186,7 @@ proc ::alcoholicz::NxTools::Search {user host handle channel target argc argv} {
     if {$option(limit) < 0 || $option(limit) > $maxResults} {
         set option(limit) $maxResults
     }
-    SendTargetTheme $target searchHead
+    SendTargetTheme $target searchHead [list $pattern]
 
     if {[info exists option(section)]} {
         set sectionPath [lindex $pathSections($option(section)) 0]
@@ -194,11 +194,10 @@ proc ::alcoholicz::NxTools::Search {user host handle channel target argc argv} {
     } else {
         set whereClause ""
     }
-    set pattern [FormatPattern $pattern]
 
     set count 0
     if {[DbOpenFile "DupeDirs.db"]} {
-        db eval "SELECT * FROM DupeDirs WHERE DirName LIKE '$pattern' ESCAPE '\\' \
+        db eval "SELECT * FROM DupeDirs WHERE DirName LIKE '[FormatPattern $pattern]' ESCAPE '\\' \
                 $whereClause ORDER BY TimeStamp DESC LIMIT $option(limit)" values {
             incr count
             set age [expr {[clock seconds] - $values(TimeStamp)}]
@@ -208,7 +207,7 @@ proc ::alcoholicz::NxTools::Search {user host handle channel target argc argv} {
         db close
     }
 
-    if {!$count} {SendTargetTheme $target searchNone [list $pattern]}
+    if {!$count} {SendTargetTheme $target searchNone}
     SendTargetTheme $target searchFoot
     return
 }
