@@ -433,7 +433,7 @@ proc ::nxTools::Nuke::Main {argv} {
                 NukeDb close
             } else {ErrorLog NukeTop $error}
 
-            if {!$count} {LinePuts "There are no nukees display."}
+            if {!$count} {LinePuts "There are no nukees to display."}
             iputs "'------------------------------------------------------------------------'"
         }
         default {
