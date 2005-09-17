@@ -101,8 +101,8 @@ proc ::alcoholicz::NxTools::Approved {user host handle channel target argc argv}
         db eval {SELECT * FROM Approves ORDER BY Release ASC} values {
             incr count
             set age [expr {[clock seconds] - $values(TimeStamp)}]
-            set items [list $values(UserName) $values(GroupName) $values(Release) $age $count]
-            SendTargetTheme $target approveBody $items
+            SendTargetTheme $target approveBody [list $values(UserName) \
+                $values(GroupName) $values(Release) $age $count]
         }
         db close
     }
@@ -157,7 +157,8 @@ proc ::alcoholicz::NxTools::Latest {user host handle channel target argc argv} {
 
             incr count
             set age [expr {[clock seconds] - $values(TimeStamp)}]
-            SendTargetTheme $target latestBody [list $values(UserName) $values(GroupName) $section $virtualPath $values(TimeStamp) $age $count]
+            SendTargetTheme $target latestBody [list $values(UserName) $values(GroupName) \
+                $section $virtualPath $values(TimeStamp) $age $count]
         }
         db close
     }
@@ -213,7 +214,8 @@ proc ::alcoholicz::NxTools::Search {user host handle channel target argc argv} {
 
             incr count
             set age [expr {[clock seconds] - $values(TimeStamp)}]
-            SendTargetTheme $target searchBody [list $values(UserName) $values(GroupName) $section $virtualPath $values(TimeStamp) $age $count]
+            SendTargetTheme $target searchBody [list $values(UserName) $values(GroupName) \
+                $section $virtualPath $values(TimeStamp) $age $count]
         }
         db close
     }
@@ -243,9 +245,22 @@ proc ::alcoholicz::NxTools::Nukes {user host handle channel target argc argv} {
     }
     SendTargetTheme $target nukesHead
 
+    if {$pattern eq ""} {
+        set matchQuery ""
+    } else {
+        set matchQuery "AND Release LIKE '[FormatPattern $pattern]' ESCAPE '\\'"
+    }
+
     set count 0
     if {[DbOpenFile "Nukes.db"]} {
-        # TODO
+        db eval "SELECT * FROM Nukes WHERE Status=0 $matchQuery \
+                ORDER BY TimeStamp DESC LIMIT $option(limit)" values {
+            incr count
+            set age [expr {[clock seconds] - $values(TimeStamp)}]
+            SendTargetTheme $target nukesBody [list $values(UserName) $values(GroupName) \
+                $values(Release) $values(TimeStamp) $values(Multi) $values(Reason) \
+                $values(Files) $values(Size) $age $count]
+        }
         db close
     }
 
@@ -274,9 +289,21 @@ proc ::alcoholicz::NxTools::NukeTop {user host handle channel target argc argv} 
     }
     SendTargetTheme $target nuketopHead
 
+    if {$group eq ""} {
+        set groupQuery ""
+    } else {
+        set groupQuery "GroupName='[EscapeSql $group]' AND"
+    }
+
     set count 0
     if {[DbOpenFile "Nukes.db"]} {
-        # TODO
+        db eval "SELECT UserName, GroupName, count(*) AS Nuked, sum(Amount) AS Credits FROM Users \
+                WHERE $groupQuery (SELECT count(*) FROM Nukes WHERE NukeId=Users.NukeId AND Status=0) \
+                GROUP BY UserName ORDER BY Nuked DESC LIMIT $option(limit)" values {
+            incr count
+            SendTargetTheme $target nuketopBody [list $values(UserName) \
+                $values(GroupName) $values(Credits) $values(Nuked) $count]
+        }
         db close
     }
 
@@ -305,9 +332,22 @@ proc ::alcoholicz::NxTools::Unnukes {user host handle channel target argc argv} 
     }
     SendTargetTheme $target unnukesHead
 
+    if {$pattern eq ""} {
+        set matchQuery ""
+    } else {
+        set matchQuery "AND Release LIKE '[FormatPattern $pattern]' ESCAPE '\\'"
+    }
+
     set count 0
     if {[DbOpenFile "Nukes.db"]} {
-        # TODO
+        db eval "SELECT * FROM Nukes WHERE Status=1 $matchQuery \
+                ORDER BY TimeStamp DESC LIMIT $option(limit)" values {
+            incr count
+            set age [expr {[clock seconds] - $values(TimeStamp)}]
+            SendTargetTheme $target unnukesBody [list $values(UserName) $values(GroupName) \
+                $values(Release) $values(TimeStamp) $values(Multi) $values(Reason) \
+                $values(Files) $values(Size) $age $count]
+        }
         db close
     }
 
@@ -330,8 +370,8 @@ proc ::alcoholicz::NxTools::OneLines {user host handle channel target argc argv}
         db eval {SELECT * FROM OneLines ORDER BY TimeStamp DESC LIMIT $oneLines} values {
             incr count
             set age [expr {[clock seconds] - $values(TimeStamp)}]
-            set items [list $values(UserName) $values(GroupName) $values(Message) $values(TimeStamp) $age $count]
-            SendTargetTheme $target oneLinesBody $items
+            SendTargetTheme $target oneLinesBody [list $values(UserName) \
+                $values(GroupName) $values(Message) $values(TimeStamp) $age $count]
         }
         db close
     }
@@ -354,8 +394,8 @@ proc ::alcoholicz::NxTools::Requests {user host handle channel target argc argv}
         db eval {SELECT * FROM Requests WHERE Status=0 ORDER BY RequestId DESC} values {
             incr count
             set age [expr {[clock seconds] - $values(TimeStamp)}]
-            set items [list $values(UserName) $values(GroupName) $values(Request) $values(RequestId) $age $count]
-            SendTargetTheme $target requestsBody $items
+            SendTargetTheme $target requestsBody [list $values(UserName) \
+                $values(GroupName) $values(Request) $values(RequestId) $age $count]
         }
         db close
     }
@@ -368,7 +408,7 @@ proc ::alcoholicz::NxTools::Requests {user host handle channel target argc argv}
 ####
 # Undupe
 #
-# Remove a file or directory from the dupe database, command: !undupe [-directory] <file/dir>.
+# Remove a file or directory from the dupe database, command: !undupe [-directory] <pattern>.
 #
 proc ::alcoholicz::NxTools::Undupe {user host handle channel target argc argv} {
     variable undupeChars

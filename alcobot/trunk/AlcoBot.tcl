@@ -160,7 +160,7 @@ proc ::alcoholicz::CmdGetFlags {command} {
 
     foreach pattern [array names cmdFlags] {
         if {[string match $pattern $command]} {
-            LogDebug CmdGetFlags "Matched command \"$command\" to pattern \"$pattern\"."
+            LogDebug CmdGetFlags "Matched pattern \"$pattern\" to command \"$command\"."
             return $cmdFlags($pattern)
         }
     }

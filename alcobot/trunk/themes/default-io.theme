@@ -117,14 +117,14 @@ CHGRPDEL    = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] removed [b]%(user)[b] from gr
 SYSOP       = [b][[c1]SysOp[c]][b] %(message)
 
 # nxAutoNuke events.
-ANUKEALLOWED = [b][[c1]%(section)[c]][b] %(releasePath)/[b]%(releaseName)[b] is not from an allowed group, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
-ANUKEBANNED  = [b][[c1]%(section)[c]][b] %(releasePath)/[b]%(releaseName)[b] is a banned release ([b]%(banned)[b]), it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
-ANUKEDISKS   = [b][[c1]%(section)[c]][b] %(releasePath)/[b]%(releaseName)[b] has [b]%(disks)[b] disks, exceeding the maximum of [b]%(maxDisks)[b] disks, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
-ANUKEEMPTY   = [b][[c1]%(section)[c]][b] %(releasePath)/[b]%(releaseName)[b] is still empty after %(age), it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
-ANUKEIMDB    = [b][[c1]%(section)[c]][b] %(releasePath)/[b]%(releaseName)[b] the IMDB %(type) [b]%(banned)[b] is banned, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
-ANUKEINC     = [b][[c1]%(section)[c]][b] %(releasePath)/[b]%(releaseName)[b] has been incomplete for %(age), it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
-ANUKEKEYWORD = [b][[c1]%(section)[c]][b] %(releasePath)/[b]%(releaseName)[b] is a banned type [b]%(banned)[b], it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
-ANUKEMP3     = [b][[c1]%(section)[c]][b] %(releasePath)/[b]%(releaseName)[b] the MP3 %(type) [b]%(banned)[b] is banned, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
+ANUKEALLOWED= [b][[c1]%(section)[c]][b] %(releasePath)/[b]%(releaseName)[b] is not from an allowed group, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
+ANUKEBANNED = [b][[c1]%(section)[c]][b] %(releasePath)/[b]%(releaseName)[b] is a banned release ([b]%(banned)[b]), it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
+ANUKEDISKS  = [b][[c1]%(section)[c]][b] %(releasePath)/[b]%(releaseName)[b] has [b]%(disks)[b] disks, exceeding the maximum of [b]%(maxDisks)[b] disks, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
+ANUKEEMPTY  = [b][[c1]%(section)[c]][b] %(releasePath)/[b]%(releaseName)[b] is still empty after %(age), it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
+ANUKEIMDB   = [b][[c1]%(section)[c]][b] %(releasePath)/[b]%(releaseName)[b] the IMDB %(type) [b]%(banned)[b] is banned, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
+ANUKEINC    = [b][[c1]%(section)[c]][b] %(releasePath)/[b]%(releaseName)[b] has been incomplete for %(age), it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
+ANUKEKEYWORD= [b][[c1]%(section)[c]][b] %(releasePath)/[b]%(releaseName)[b] is a banned type [b]%(banned)[b], it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
+ANUKEMP3    = [b][[c1]%(section)[c]][b] %(releasePath)/[b]%(releaseName)[b] the MP3 %(type) [b]%(banned)[b] is banned, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
 
 # nxTools events.
 APPROVE     = [b][[c1]%(section)[c]][b] %(releasePath)/[b]%(releaseName)[b] was approved by [b]%(user)[b]/%(group).
@@ -204,17 +204,17 @@ searchNone  = No releases found matching "%(pattern)".
 searchFoot  =
 
 nukesHead   = [b]Nukes:[b]
-nukesBody   =
+nukesBody   = [%02(num)] [b]%(releaseName)[b] nuked [b]%(multi)x[b] by [b]%(user)[b]/%(group) for [b]%(reason)[b].
 nukesNone   = No releases found.
 nukesFoot   =
 
 nuketopHead = [b]Nuke Top:[b]
-nuketopBody =
+nuketopBody = [%02(num)] [b]%(user)[b]/%(group) has been nuked [b]%(nuked)[b] time(s).
 nuketopNone = No users found.
 nuketopFoot =
 
 unnukesHead = [b]Unnukes:[b]
-unnukesBody =
+unnukesBody = [%02(num)] [b]%(releaseName)[b] unnuked [b]%(multi)x[b] by [b]%(user)[b]/%(group) for [b]%(reason)[b].
 unnukesNone = No releases found.
 unnukesFoot =
 
