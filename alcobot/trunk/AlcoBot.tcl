@@ -654,7 +654,7 @@ proc ::alcoholicz::ScriptExecute {type event args} {
         if {!$alwaysExec && !$result} {continue}
 
         if {[catch {set scriptResult [eval [list $script $event] $args]} message]} {
-            LogError ScriptExecute "Error evaluating callback \"$script\" for $type $event: $message"
+            LogError ScriptExecute "Error evaluating callback \"$script\" for $type $event: $::errorInfo"
 
         } elseif {[IsFalse $scriptResult]} {
             LogDebug ScriptExecute "The callback \"$script\" for $type $event returned false."
