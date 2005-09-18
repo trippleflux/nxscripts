@@ -218,6 +218,7 @@ proc ::alcoholicz::ReadLogs::Update {} {
             }
             set pathSection [GetSectionFromPath $path]
         } else {
+            set path ""
             set pathSection $::alcoholicz::defaultSection
         }
 
@@ -226,11 +227,11 @@ proc ::alcoholicz::ReadLogs::Update {} {
         # If a pre-command script returns false or the event is disabled,
         # skip the announce. The pre-command event must always be executed,
         # so the section check comes after.
-        if {![ScriptExecute pre $event $destSection $pathSection $line] || $destSection eq ""} {
+        if {![ScriptExecute pre $event $destSection $pathSection $path $line] || $destSection eq ""} {
             LogDebug ModReadLogs "Event disabled or callback returned false, skipping announce."
             continue
         }
-        SendSectionTheme $destSection $event $line
+        SendSectionTheme $destSection $event $path $line
 
         # Post-command scripts are only executed if the announce was successful.
         ScriptExecute post $event $destSection $pathSection $line
