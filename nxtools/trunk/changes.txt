@@ -3,6 +3,7 @@
 ################################################################################
 
 nxTools v0.9.14 (XXX XX, 2005):
+  CHG: The 'release' column of the pre-time table is now unique.
   FIX: Corrected the message shown on 'SITE NUKETOP' if there are no nukees.
   FIX: Corrected URL for the nxTools library package.
 

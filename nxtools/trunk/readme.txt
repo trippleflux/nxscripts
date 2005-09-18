@@ -717,7 +717,8 @@ CREATE TABLE `pretimes` (
   `nuked` tinyint(1) NOT NULL default '0',
   `nuketime` int(10) NOT NULL default '0',
   `reason` varchar(255) NOT NULL default '',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY (`release`)
 );
 
 
