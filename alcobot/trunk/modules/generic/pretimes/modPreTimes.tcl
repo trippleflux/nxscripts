@@ -1,0 +1,235 @@
+#
+# AlcoBot - Alcoholicz site bot.
+# Copyright (c) 2005 Alcoholicz Scripting Team
+#
+# Module Name:
+#   Pre Times Module
+#
+# Author:
+#   neoxed (neoxed@gmail.com) Sep 18, 2005
+#
+# Abstract:
+#   Implements a module to display and search for release pre times.
+#
+
+namespace eval ::alcoholicz::PreTimes {
+    if {![info exists defLimit]} {
+        variable dataSource ""
+        variable defLimit 5
+        variable timerId ""
+    }
+    namespace import -force ::alcoholicz::*
+}
+
+####
+# DbConnect
+#
+# Connect to the ODBC data source.
+#
+proc ::alcoholicz::PreTimes::DbConnect {} {
+    variable dataSource
+
+    # If the TclODBC 'object' already exists, return.
+    if {[llength [info commands [namespace current]::db]]} {
+        return 1
+    }
+
+    if {[catch {database connect [namespace current]::db "DSN=$dataSource"} message]} {
+        LogError ModPreTimes "Unable to connect to DSN $dataSource: [lindex $message 2] ([lindex $message 0])"
+        return 0
+    }
+
+    db set timeout 0
+    return 1
+}
+
+####
+# DbPing
+#
+# Ping the server every 5 minutes to prevent the session from timing out.
+#
+proc ::alcoholicz::PreTimes::DbPing {} {
+    variable timerId
+
+    # TODO: Is it necessary to ping the server to
+    # prevent the current session from timing out?
+
+    set timerId [timer 5 [namespace current]::DbPing]
+    return
+}
+
+####
+# EscapeSql
+#
+# Escape SQL quote characters with a backslash.
+#
+proc ::alcoholicz::PreTimes::EscapeSql {string} {
+    return [string map {\\ \\\\ ` \\` ' \\' \" \\\"} $string]
+}
+
+####
+# FormatPattern
+#
+# Prepend, append, and replace all spaces with wildcards then convert
+# standard wildcard characters to SQL LIKE characters.
+#
+proc ::alcoholicz::PreTimes::FormatPattern {pattern} {
+    set pattern "*$pattern*"
+    regsub -all {[\s\*]+} $pattern "*" pattern
+
+    # Map standard wildcard characters to SQL LIKE characters.
+    set pattern [string map {* % ? _} [string map {% \\% _ \\_} $pattern]]
+    return [EscapeSql $pattern]
+}
+
+####
+# LogHandler
+#
+# Handle NEWDIR and PRE log events.
+#
+proc ::alcoholicz::PreTimes::LogHandler {} {
+    # TODO
+    return
+}
+
+####
+# Search
+#
+# Search for a release, command: !pre [-limit <num>] [-section <name>] <pattern>.
+#
+proc ::alcoholicz::PreTimes::Search {user host handle channel target argc argv} {
+    # Parse command options.
+    set option(limit) -1
+    if {[catch {set pattern [GetOptions $argv {{limit integer} {section arg}} option]} message]} {
+        CmdSendHelp $channel channel $::lastbind $message
+        return
+    } elseif {$pattern eq ""} {
+        CmdSendHelp $channel channel $::lastbind "you must specify a pattern"
+        return
+    }
+    set option(limit) [GetResultLimit $option(limit)]
+
+    # Build SQL query.
+    set query "SELECT * FROM pretimes WHERE "
+    if {[info exists option(section)]} {
+        set section [EscapeSql [string tolower $option(section)]]
+        append query "LOWER(section)='$section' AND "
+    }
+    append query "release LIKE '[FormatPattern $pattern]' ORDER BY pretime DESC LIMIT $option(limit)"
+
+    set count 0; set multi 0
+    if {[DbConnect]} {
+        set result [db $query]
+
+        # If there's more than one entry, send the output to
+        # $target. Otherwise the output is sent to the channel.
+        if {[llength $result] > 1} {
+            SendTargetTheme $target preHead [list $pattern]
+            set multi 1
+        } else {
+            set target "PRIVMSG $channel"
+        }
+
+        # Display results.
+        foreach entry $result {
+            incr count
+            foreach {id preTime section release files size disks nuked nukeTime reason} $entry {break}
+            set age [expr {[clock seconds] - $preTime}]
+
+            if {$nuked} {
+                SendTargetTheme $target preNuke [list $preTime $section \
+                    $release $files $size $disks $age $nukeTime $reason $count]
+            } else {
+                SendTargetTheme $target preBody [list $preTime $section \
+                    $release $files $size $disks $age $count]
+            }
+        }
+    }
+
+    if {!$count} {
+        # Always send this message to the channel.
+        SendTargetTheme "PRIVMSG $channel" preNone [list $pattern]
+    }
+    if {$multi} {SendTargetTheme $target preFoot}
+    return
+}
+
+####
+# Load
+#
+# Module initialisation procedure, called when the module is loaded.
+#
+proc ::alcoholicz::PreTimes::Load {firstLoad} {
+    variable defLimit
+    variable dataSource
+    variable timerId
+    upvar ::alcoholicz::configHandle configHandle
+
+    if {$firstLoad} {
+        package require tclodbc
+    }
+
+    foreach option {addOnPre dataSource defLimit searchPres showOnNew} {
+        set $option [ConfigGet $configHandle Module::PreTimes $option]
+    }
+    if {![string is digit -strict $defLimit]} {
+        set defLimit 0
+    }
+
+    # Register event callbacks.
+    if {[IsTrue $addOnPre]} {
+        ScriptRegister   pre PRE [namespace current]::LogHandler True
+    } else {
+        ScriptUnregister pre PRE [namespace current]::LogHandler
+    }
+    if {[IsTrue $showOnNew]} {
+        ScriptRegister   pre NEWDIR [namespace current]::LogHandler True
+    } else {
+        ScriptUnregister pre NEWDIR [namespace current]::LogHandler
+    }
+
+    # Create channel commands.
+    if {[IsTrue $searchPres]} {
+        if {[ConfigExists $configHandle Module::PreTimes cmdPrefix]} {
+            set prefix [ConfigGet $configHandle Module::PreTimes cmdPrefix]
+        } else {
+            set prefix $::alcoholicz::cmdPrefix
+        }
+
+        CmdCreate channel ${prefix}pre [namespace current]::Search \
+            General "Search pre time database." "\[-limit <num>\] \[-section <name>\] <pattern>"
+    }
+
+    if {$firstLoad} {
+        # Ping the server every five minutes.
+        set timerId [timer 5 [namespace current]::DbPing]
+    } else {
+        # Reconnect to data-source.
+        catch {db disconnect}
+    }
+
+    DbConnect
+    return
+}
+
+####
+# Unload
+#
+# Module finalisation procedure, called before the module is unloaded.
+#
+proc ::alcoholicz::PreTimes::Unload {} {
+    variable timerId
+
+    # Remove event callbacks.
+    ScriptUnregister pre PRE    [namespace current]::LogHandler
+    ScriptUnregister pre NEWDIR [namespace current]::LogHandler
+
+    # Kill  checking timer.
+    if {$timerId ne ""} {
+        catch {killtimer $timerId}
+        set timerId ""
+    }
+
+    catch {db disconnect}
+    return
+}

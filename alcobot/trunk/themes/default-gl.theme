@@ -159,3 +159,10 @@ helpHead    = [b]Supported Commands:[b]
 helpType    = [u]%(type) Commands:[u]
 helpBody    = %(command) %(arguments) - %(description)
 helpFoot    =
+
+# Module: pretimes
+preHead     = [b]Pre Times:[b]
+preBody     = [b]%(release)[b] (%(size)/[b]%(files)[b]F) released %(age) ago (%(preDate) %(preTime))
+preNuke     = [b]%(release)[b] (%(size)/[b]%(files)[b]F) released %(age) ago (%(preDate) %(preTime)) nuked for [b]%(reason)[b]
+preNone     = No releases found matching "%(pattern)".
+preFoot     =

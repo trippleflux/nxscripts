@@ -232,3 +232,10 @@ undupeHead  = [b]Undupe:[b]
 undupeBody  = [%02(num)] [b]%(entry)[b] removed.
 undupeNone  = No entries found matching "%(pattern)".
 undupeFoot  =
+
+# Module: pretimes
+preHead     = [b]Pre Times:[b]
+preBody     = [b]%(release)[b] (%(size)/[b]%(files)[b]F) released %(age) ago (%(preDate) %(preTime))
+preNuke     = [b]%(release)[b] (%(size)/[b]%(files)[b]F) released %(age) ago (%(preDate) %(preTime)) nuked for [b]%(reason)[b]
+preNone     = No releases found matching "%(pattern)".
+preFoot     =

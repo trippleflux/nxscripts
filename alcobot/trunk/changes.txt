@@ -3,6 +3,7 @@ AlcoBot v0.2.0 (XXX XX, 2005):
   NEW: DCC command to dump the configuration, ".alcobot dump".
   NEW: Help module, to display support commands.
   NEW: nxTools module for ioFTPD, to interact with nxTools' databases.
+  NEW: Pre times module, to search and display release pre times.
   NEW: Variable and theme definitions for nxAutoNuke.
   CHG: The varFiles and themeFile options use file names instead of relative paths.
   CHG: Moved to a less restrictive license (modified BSD).

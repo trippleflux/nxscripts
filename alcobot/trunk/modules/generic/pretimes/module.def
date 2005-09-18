@@ -1,0 +1,5 @@
+# Module Definition File
+desc=Pre Times
+file=modPreTimes.tcl
+context=::alcoholicz::PreTimes
+depends=
