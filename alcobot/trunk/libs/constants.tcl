@@ -13,8 +13,12 @@
 #
 
 namespace eval ::alcoholicz {
+    # Default and maximum number of results for commands to return.
+    variable defaultResults 5
+    variable maximumResults 20
+
     # Default section name.
-    set defaultSection      "DEFAULT"
+    variable defaultSection "DEFAULT"
 
     # Divisor to move from one size unit to the next (usually 1000 or 1024).
     variable sizeDivisor    1024

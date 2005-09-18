@@ -13,7 +13,7 @@
 #
 
 namespace eval ::alcoholicz {
-    namespace export ArgsToList JoinLiteral InList IsSubDir \
+    namespace export ArgsToList GetResultLimit JoinLiteral InList IsSubDir \
         PathParse PathParseSection PathStrip \
         FormatDate FormatTime FormatDuration FormatDurationLong FormatSize FormatSpeed \
         VarFormat VarReplace VarReplaceBase VarReplaceCommon
@@ -49,6 +49,24 @@ proc ::alcoholicz::ArgsToList {argStr} {
         lappend argList [string range $argStr $startIndex [expr {$index - 1}]]
     }
     return $argList
+}
+
+####
+# GetResultLimit
+#
+# Checks the number of requested results.
+#
+proc ::alcoholicz::GetResultLimit {results} {
+    variable defaultResults
+    variable maximumResults
+
+    if {$results < 0} {
+        return $defaultResults
+    }
+    if {$results > $maximumResults} {
+        return $maximumResults
+    }
+    return $results
 }
 
 ####

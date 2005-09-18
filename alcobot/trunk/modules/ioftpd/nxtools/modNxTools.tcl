@@ -15,8 +15,6 @@
 namespace eval ::alcoholicz::NxTools {
     if {![info exists dataPath]} {
         variable dataPath ""
-        variable defResults 5
-        variable maxResults 15
         variable oneLines 5
         variable undupeChars 5
     }
@@ -118,19 +116,15 @@ proc ::alcoholicz::NxTools::Approved {user host handle channel target argc argv}
 # Display recent releases, command: !new [-limit <num>] [section].
 #
 proc ::alcoholicz::NxTools::Latest {user host handle channel target argc argv} {
-    variable defResults
-    variable maxResults
     upvar ::alcoholicz::pathSections pathSections
 
     # Parse command options.
-    set option(limit) $defResults
+    set option(limit) -1
     if {[catch {set section [GetOptions $argv {{limit integer}} option]} message]} {
         CmdSendHelp $channel channel $::lastbind $message
         return
     }
-    if {$option(limit) < 0 || $option(limit) > $maxResults} {
-        set option(limit) $maxResults
-    }
+    set option(limit) [GetResultLimit $option(limit)]
 
     if {$section eq ""} {
         set sectionQuery ""
@@ -174,12 +168,10 @@ proc ::alcoholicz::NxTools::Latest {user host handle channel target argc argv} {
 # Search for a release, command: !dupe [-limit <num>] [-section <name>] <pattern>.
 #
 proc ::alcoholicz::NxTools::Search {user host handle channel target argc argv} {
-    variable defResults
-    variable maxResults
     upvar ::alcoholicz::pathSections pathSections
 
     # Parse command options.
-    set option(limit) $defResults
+    set option(limit) -1
     set optList [list {limit integer} [list section arg [lsort [array names pathSections]]]]
 
     if {[catch {set pattern [GetOptions $argv $optList option]} message]} {
@@ -189,10 +181,7 @@ proc ::alcoholicz::NxTools::Search {user host handle channel target argc argv} {
         CmdSendHelp $channel channel $::lastbind "you must specify a pattern"
         return
     }
-    if {$option(limit) < 0 || $option(limit) > $maxResults} {
-        set option(limit) $maxResults
-    }
-    SendTargetTheme $target searchHead [list $pattern]
+    set option(limit) [GetResultLimit $option(limit)]
 
     if {[info exists option(section)]} {
         set section $option(section)
@@ -201,6 +190,7 @@ proc ::alcoholicz::NxTools::Search {user host handle channel target argc argv} {
     } else {
         set sectionQuery ""
     }
+    SendTargetTheme $target searchHead [list $pattern]
 
     set count 0
     if {[DbOpenFile "DupeDirs.db"]} {
@@ -231,25 +221,20 @@ proc ::alcoholicz::NxTools::Search {user host handle channel target argc argv} {
 # Display recent nukes, command: !nukes [-limit <num>] [pattern].
 #
 proc ::alcoholicz::NxTools::Nukes {user host handle channel target argc argv} {
-    variable defResults
-    variable maxResults
-
     # Parse command options.
-    set option(limit) $defResults
+    set option(limit) -1
     if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
         CmdSendHelp $channel channel $::lastbind $message
         return
     }
-    if {$option(limit) < 0 || $option(limit) > $maxResults} {
-        set option(limit) $maxResults
-    }
-    SendTargetTheme $target nukesHead
+    set option(limit) [GetResultLimit $option(limit)]
 
     if {$pattern eq ""} {
         set matchQuery ""
     } else {
         set matchQuery "AND Release LIKE '[FormatPattern $pattern]' ESCAPE '\\'"
     }
+    SendTargetTheme $target nukesHead
 
     set count 0
     if {[DbOpenFile "Nukes.db"]} {
@@ -275,25 +260,20 @@ proc ::alcoholicz::NxTools::Nukes {user host handle channel target argc argv} {
 # Display top nuked users, command: !nukes [-limit <num>] [group].
 #
 proc ::alcoholicz::NxTools::NukeTop {user host handle channel target argc argv} {
-    variable defResults
-    variable maxResults
-
     # Parse command options.
-    set option(limit) $defResults
+    set option(limit) -1
     if {[catch {set group [GetOptions $argv {{limit integer}} option]} message]} {
         CmdSendHelp $channel channel $::lastbind $message
         return
     }
-    if {$option(limit) < 0 || $option(limit) > $maxResults} {
-        set option(limit) $maxResults
-    }
-    SendTargetTheme $target nuketopHead
+    set option(limit) [GetResultLimit $option(limit)]
 
     if {$group eq ""} {
         set groupQuery ""
     } else {
         set groupQuery "GroupName='[EscapeSql $group]' AND"
     }
+    SendTargetTheme $target nuketopHead
 
     set count 0
     if {[DbOpenFile "Nukes.db"]} {
@@ -318,25 +298,20 @@ proc ::alcoholicz::NxTools::NukeTop {user host handle channel target argc argv} 
 # Display recent unnukes, command: !unnukes [-limit <num>] [pattern].
 #
 proc ::alcoholicz::NxTools::Unnukes {user host handle channel target argc argv} {
-    variable defResults
-    variable maxResults
-
     # Parse command options.
-    set option(limit) $defResults
+    set option(limit) -1
     if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
         CmdSendHelp $channel channel $::lastbind $message
         return
     }
-    if {$option(limit) < 0 || $option(limit) > $maxResults} {
-        set option(limit) $maxResults
-    }
-    SendTargetTheme $target unnukesHead
+    set option(limit) [GetResultLimit $option(limit)]
 
     if {$pattern eq ""} {
         set matchQuery ""
     } else {
         set matchQuery "AND Release LIKE '[FormatPattern $pattern]' ESCAPE '\\'"
     }
+    SendTargetTheme $target unnukesHead
 
     set count 0
     if {[DbOpenFile "Nukes.db"]} {
@@ -489,22 +464,19 @@ proc ::alcoholicz::NxTools::ReadConfig {configFile} {
 #
 proc ::alcoholicz::NxTools::Load {firstLoad} {
     variable dataPath
-    variable defResults
-    variable maxResults
     upvar ::alcoholicz::configHandle configHandle
 
     if {$firstLoad} {
         package require sqlite3
     }
 
-    foreach option {configFile dataPath defResults maxResults} {
-        set $option [ConfigGet $configHandle Module::NxTools $option]
-    }
-
     # Check defined file and directory paths.
+    set configFile [ConfigGet $configHandle Module::NxTools configFile]
     if {[catch {ReadConfig $configFile} message]} {
         LogError ModNxTools "Unable to read nxTools configuration: $message"
     }
+
+    set dataPath [ConfigGet $configHandle Module::NxTools dataPath]
     if {![file isdirectory $dataPath]} {
         LogError ModNxTools "The database directory \"$dataPath\" does not exist."
     }
