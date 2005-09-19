@@ -1,0 +1,472 @@
+#
+# AlcoBot - Alcoholicz site bot.
+# Copyright (c) 2005 Alcoholicz Scripting Team
+#
+# Module Name:
+#   Tree Tests
+#
+# Author:
+#   neoxed (neoxed@gmail.com) May 12, 2005
+#
+# Abstract:
+#   Implements regression tests for the tree data store library.
+#
+
+package require tcltest 2
+namespace import -force ::tcltest::*
+
+################################################################################
+# TreeCreate                                                                   #
+################################################################################
+
+test tree-1.1 {TreeCreate command} {
+    TreeCreate
+} {}
+
+test tree-1.2 {TreeCreate command} {
+    TreeCreate a b
+} {a b}
+
+test tree-1.3 {TreeCreate command} {
+    list [catch {TreeCreate a b c} msg] $msg
+} {1 {unbalanced list}}
+
+test tree-1.4 {TreeCreate command} {
+    TreeCreate c d a b
+} {c d a b}
+
+test tree-1.5 {TreeCreate command} {
+    TreeCreate some [TreeCreate flag 1] thing [TreeCreate flag 0] blah [TreeCreate flag 1]
+} {some {flag 1} thing {flag 0} blah {flag 1}}
+
+################################################################################
+# TreeExists                                                                   #
+################################################################################
+
+test tree-2.1 {TreeExists command} {
+    TreeExists {a b} a
+} 1
+
+test tree-2.2 {TreeExists command} {
+    TreeExists {a b} b
+} 0
+
+test tree-2.3 {TreeExists command} {
+    TreeExists {a {b c}} a b
+} 1
+
+test tree-2.4 {TreeExists command} {
+    TreeExists {a {b c}} a c
+} 0
+
+test tree-2.5 {TreeExists command} {
+    TreeExists {a {b c}} b c
+} 0
+
+test tree-2.6 {TreeExists command} {
+    list [catch {TreeExists} msg] $msg
+} {1 {wrong # args: should be "TreeExists tree key args"}}
+
+test tree-2.7 {TreeExists command} {
+    list [catch {TreeExists {}} msg] $msg
+} {1 {wrong # args: should be "TreeExists tree key args"}}
+
+################################################################################
+# TreeGet                                                                      #
+################################################################################
+
+test tree-3.1 {TreeGet command} {
+    TreeGet {a b} a
+} {b}
+
+test tree-3.2 {TreeGet command} {
+    TreeGet {a b c d} a
+} {b}
+
+test tree-3.3 {TreeGet command} {
+    TreeGet {a b c d} c
+} {d}
+
+test tree-3.4 {TreeGet command} {
+    list [catch {TreeGet {a b c d} b} msg] $msg
+} {1 {key "b" not known in tree}}
+
+test tree-3.5 {TreeGet command} {
+    TreeGet {a {p q r s} b {u v x y}} a p
+} {q}
+
+test tree-3.6 {TreeGet command} {
+    TreeGet {a {p q r s} b {u v x y}} a r
+} {s}
+
+test tree-3.7 {TreeGet command} {
+    TreeGet {a {p q r s} b {u v x y}} b u
+} {v}
+
+test tree-3.8 {TreeGet command} {
+    TreeGet {a {p q r s} b {u v x y}} b x
+} {y}
+
+test tree-3.9 {TreeGet command} {
+    list [catch {TreeGet {a {p q r s} b {u v x y}} a z} msg] $msg
+} {1 {key "z" not known in tree}}
+
+test tree-3.10 {TreeGet command} {
+    list [catch {TreeGet {a {p q r s} b {u v x y}} c z} msg] $msg
+} {1 {key "c" not known in tree}}
+
+test tree-3.11 {TreeGet command} {
+    TreeGet [TreeCreate a b c d] a
+} {b}
+
+test tree-3.12 {TreeGet command} {
+    list [catch {TreeGet} msg] $msg
+} {1 {wrong # args: should be "TreeGet tree key args"}}
+
+################################################################################
+# TreeGetNaive                                                                 #
+################################################################################
+
+test tree-3.1 {TreeGetNaive command} {
+    TreeGetNaive {a b} a
+} {b}
+
+test tree-3.2 {TreeGetNaive command} {
+    TreeGetNaive {a b c d} a
+} {b}
+
+test tree-3.3 {TreeGetNaive command} {
+    TreeGetNaive {a b c d} c
+} {d}
+
+test tree-3.4 {TreeGetNaive command} {
+    list [catch {TreeGetNaive {a b c d} b} msg] $msg
+} {0 {}}
+
+test tree-3.5 {TreeGetNaive command} {
+    TreeGetNaive {a {p q r s} b {u v x y}} a p
+} {q}
+
+test tree-3.6 {TreeGetNaive command} {
+    TreeGetNaive {a {p q r s} b {u v x y}} a r
+} {s}
+
+test tree-3.7 {TreeGetNaive command} {
+    TreeGetNaive {a {p q r s} b {u v x y}} b u
+} {v}
+
+test tree-3.8 {TreeGetNaive command} {
+    TreeGetNaive {a {p q r s} b {u v x y}} b x
+} {y}
+
+test tree-3.9 {TreeGetNaive command} {
+    list [catch {TreeGetNaive {a {p q r s} b {u v x y}} a z} msg] $msg
+} {0 {}}
+
+test tree-3.10 {TreeGetNaive command} {
+    list [catch {TreeGetNaive {a {p q r s} b {u v x y}} c z} msg] $msg
+} {0 {}}
+
+test tree-3.11 {TreeGetNaive command} {
+    TreeGetNaive [TreeCreate a b c d] a
+} {b}
+
+test tree-3.12 {TreeGetNaive command} {
+    list [catch {TreeGetNaive} msg] $msg
+} {1 {wrong # args: should be "TreeGetNaive tree key args"}}
+
+################################################################################
+# TreeKeys                                                                     #
+################################################################################
+
+test tree-4.1 {TreeKeys command} {
+    TreeKeys {a b}
+} {a}
+
+test tree-4.2 {TreeKeys command} {
+    TreeKeys {c d}
+} {c}
+
+test tree-4.3 {TreeKeys command} {
+    lsort [TreeKeys {a b c d}]
+} {a c}
+
+test tree-4.4 {TreeKeys command} {
+    TreeKeys {a b c d} a
+} {a}
+
+test tree-4.5 {TreeKeys command} {
+    TreeKeys {a b c d} c
+} {c}
+
+test tree-4.6 {TreeKeys command} {
+    TreeKeys {a b c d} e
+} {}
+
+test tree-4.7 {TreeKeys command} {
+    lsort [TreeKeys {a b c d ca da} c*]
+} {c ca}
+
+test tree-4.8 {TreeKeys command} {
+    list [catch {TreeKeys} msg] $msg
+} {1 {wrong # args: should be "TreeKeys tree ?pattern?"}}
+
+test tree-4.9 {TreeKeys command} {
+    list [catch {TreeKeys {} a b} msg] $msg
+} {1 {wrong # args: should be "TreeKeys tree ?pattern?"}}
+
+################################################################################
+# TreeValues                                                                   #
+################################################################################
+
+test tree-5.1 {TreeValues command} {
+    TreeValues {a b}
+} {b}
+
+test tree-5.2 {TreeValues command} {
+    TreeValues {c d}
+} {d}
+
+test tree-5.3 {TreeValues command} {
+    lsort [TreeValues {a b c d}]
+} {b d}
+
+test tree-5.4 {TreeValues command} {
+    TreeValues {a b c d} b
+} {b}
+
+test tree-5.5 {TreeValues command} {
+    TreeValues {a b c d} d
+} {d}
+
+test tree-5.6 {TreeValues command} {
+    TreeValues {a b c d} e
+} {}
+
+test tree-5.7 {TreeValues command} {
+    lsort [TreeValues {a b c d ca da} d*]
+} {d da}
+
+test tree-5.8 {TreeValues command} {
+    list [catch {TreeValues} msg] $msg
+} {1 {wrong # args: should be "TreeValues tree ?pattern?"}}
+
+test tree-5.9 {TreeValues command} {
+    list [catch {TreeValues {} a b} msg] $msg
+} {1 {wrong # args: should be "TreeValues tree ?pattern?"}}
+
+################################################################################
+# TreeFor                                                                      #
+################################################################################
+
+test tree-6.1 {TreeFor command: syntax} {
+    list [catch {TreeFor} msg] $msg
+} {1 {wrong # args: should be "TreeFor vars tree body"}}
+
+test tree-6.2 {TreeFor command: syntax} {
+    list [catch {TreeFor x} msg] $msg
+} {1 {wrong # args: should be "TreeFor vars tree body"}}
+
+test tree-6.3 {TreeFor command: syntax} {
+    list [catch {TreeFor x x} msg] $msg
+} {1 {wrong # args: should be "TreeFor vars tree body"}}
+
+test tree-6.4 {TreeFor command: syntax} {
+    list [catch {TreeFor x x x x} msg] $msg
+} {1 {wrong # args: should be "TreeFor vars tree body"}}
+
+test tree-6.5 {TreeFor command: syntax} {
+    list [catch {TreeFor x x x} msg] $msg
+} {1 {must have exactly two variable names}}
+
+test tree-6.6 {TreeFor command: syntax} {
+    list [catch {TreeFor {x x x} x x} msg] $msg
+} {1 {must have exactly two variable names}}
+
+test tree-6.7 {TreeFor command: syntax} {
+    list [catch {TreeFor "\{x" x x} msg] $msg
+} {1 {unmatched open brace in list}}
+
+test tree-6.8 {TreeFor command} {
+    # This test confirms that [TreeKeys], [TreeValues] and [TreeFor]
+    # all traverse a tree in the same order.
+    set treev {a A b B c C}
+    set keys {}
+    set values {}
+    TreeFor {k v} $treev {
+	    lappend keys $k
+	    lappend values $v
+    }
+    set result [expr {$keys eq [TreeKeys $treev] && $values eq [TreeValues $treev]}]
+    expr {$result ? "YES" : [list "NO" $treev $keys $values]}
+} {YES}
+
+test tree-6.9 {TreeFor command} {
+    TreeFor {k v} {} {
+	    error "unexpected execution of 'TreeFor' body"
+    }
+} {}
+
+test tree-6.10 {TreeFor command: script results} {
+    set times 0
+    TreeFor {k v} {a a b b} {
+    	incr times
+    	continue
+    	error "shouldn't get here"
+    }
+    set times
+} {2}
+
+test tree-6.11 {TreeFor command: script results} {
+    set times 0
+    TreeFor {k v} {a a b b} {
+    	incr times
+    	break
+    	error "shouldn't get here"
+    }
+    set times
+} 1
+
+test tree-6.12 {TreeFor command: handle representation loss} {
+    set treeVar {a b c d e f g h}
+    set keys {}
+    set values {}
+    TreeFor {k v} $treeVar {
+    	if {[llength $treeVar]} {
+    	    lappend keys $k
+    	    lappend values $v
+    	}
+    }
+    list [lsort $keys] [lsort $values]
+} {{a c e g} {b d f h}}
+
+test tree-6.13 {TreeFor command: keys are unique and iterated over once only} {
+    set treeVar {a1 a a2 b b1 c b2 d foo bar bar foo}
+    catch {unset accum}
+    array set accum {}
+    TreeFor {k v} $treeVar {
+	    append accum($k) $v,
+    }
+    set result [lsort [array names accum]]
+    lappend result :
+    foreach k $result {
+	    catch {lappend result $accum($k)}
+    }
+    catch {unset accum}
+    set result
+} {a1 a2 b1 b2 bar foo : a, b, c, d, foo, bar,}
+
+################################################################################
+# TreeSet                                                                      #
+################################################################################
+
+test tree-7.1 {TreeSet command} {
+    set treeVar {}
+    TreeSet treeVar a x
+} {a x}
+
+test tree-7.2 {TreeSet command} {
+    set treeVar {a {}}
+    TreeSet treeVar a b x
+} {a {b x}}
+
+test tree-7.3 {TreeSet command} {
+    set treeVar {a {b {}}}
+    TreeSet treeVar a b c x
+} {a {b {c x}}}
+
+test tree-7.4 {TreeSet command} {
+    set treeVar {a y}
+    TreeSet treeVar a x
+} {a x}
+
+test tree-7.5 {TreeSet command} {
+    set treeVar {a {b y}}
+    TreeSet treeVar a b x
+} {a {b x}}
+
+test tree-7.6 {TreeSet command} {
+    set treeVar {a {b {c y}}}
+    TreeSet treeVar a b c x
+} {a {b {c x}}}
+
+test tree-7.7 {TreeSet command: path creation} {
+    set treeVar {}
+    TreeSet treeVar a b x
+} {a {b x}}
+
+test tree-7.8 {TreeSet command: creates variables} {
+    catch {unset treeVar}
+    TreeSet treeVar a x
+    set treeVar
+} {a x}
+
+test tree-7.9 {TreeSet command: write failure} {
+    catch {unset treeVar}
+    set treeVar(block) {}
+    set result [list [catch {TreeSet treeVar a x} msg] $msg]
+    catch {unset treeVar}
+    set result
+} {1 {can't read "tree": variable is array}}
+
+test tree-7.10 {TreeSet command: syntax} {
+    list [catch {TreeSet} msg] $msg
+} {1 {wrong # args: should be "TreeSet treeVar key value args"}}
+
+test tree-7.11 {TreeSet command: syntax} {
+    list [catch {TreeSet a} msg] $msg
+} {1 {wrong # args: should be "TreeSet treeVar key value args"}}
+
+test tree-7.12 {TreeSet command: syntax} {
+    list [catch {TreeSet a a} msg] $msg
+} {1 {wrong # args: should be "TreeSet treeVar key value args"}}
+
+################################################################################
+# TreeUnset                                                                    #
+################################################################################
+
+test tree-8.1 {TreeUnset command} {
+    set treeVar {a b c d}
+    TreeUnset treeVar a
+} {c d}
+
+test tree-8.2 {TreeUnset command} {
+    set treeVar {a b c d}
+    TreeUnset treeVar c
+} {a b}
+
+test tree-8.3 {TreeUnset command} {
+    set treeVar {a b}
+    TreeUnset treeVar c
+} {a b}
+
+test tree-8.4 {TreeUnset command} {
+    set treeVar {a {b c d e}}
+    TreeUnset treeVar a b
+} {a {d e}}
+
+test tree-8.5 {TreeUnset command} {
+    set treeVar {a b}
+    list [catch {TreeUnset treeVar c d} msg] $msg
+} {0 {a b}}
+
+test tree-8.6 {TreeUnset command} {
+    catch {unset treeVar}
+    list [info exists treeVar] [TreeUnset treeVar a] [info exists treeVar]
+} {0 {} 0}
+
+test tree-8.7 {TreeUnset command} {
+    list [catch {TreeUnset treeVar} msg] $msg
+} {1 {wrong # args: should be "TreeUnset treeVar key args"}}
+
+test tree-8.8 {TreeUnset command: write failure} {
+    catch {unset treeVar}
+    set treeVar(block) {}
+    set result [list [catch {TreeUnset treeVar a} msg] $msg]
+    catch {unset treeVar}
+    set result
+} {1 {can't read "tree": variable is array}}
+
+
+::tcltest::cleanupTests
+return
