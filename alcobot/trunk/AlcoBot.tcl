@@ -25,7 +25,7 @@ namespace eval ::alcoholicz {
         FlagGetValue FlagExists FlagIsDisabled FlagIsEnabled FlagCheckEvent FlagCheckSection \
         ModuleFind ModuleHash ModuleInfo ModuleLoad ModuleUnload ModuleRead \
         ScriptExecute ScriptRegister ScriptUnregister \
-        GetSectionFromEvent GetSectionFromPath \
+        GetFlagsFromSection GetSectionFromEvent GetSectionFromPath \
         SendSection SendSectionTheme SendTarget SendTargetTheme
 }
 
@@ -391,17 +391,7 @@ proc ::alcoholicz::FlagCheckEvent {flagList event} {
 # Check if the given event is enabled in a channel or path section.
 #
 proc ::alcoholicz::FlagCheckSection {section event} {
-    variable chanSections
-    variable pathSections
-
-    # Simple wrapper to make my lazy life easier.
-    if {[info exists chanSections($section)]} {
-        if {[FlagCheckEvent [lindex $chanSections($section) 1] $event]} {return 1}
-    }
-    if {[info exists pathSections($section)]} {
-        if {[FlagCheckEvent [lindex $pathSections($section) 2] $event]} {return 1}
-    }
-    return 0
+    return [FlagCheckEvent [GetFlagsFromSection $section] $event]
 }
 
 ################################################################################
@@ -709,6 +699,24 @@ proc ::alcoholicz::ScriptUnregister {type event script} {
 ################################################################################
 # Sections                                                                     #
 ################################################################################
+
+####
+# GetFlagsFromSection
+#
+# Retrieve the flags from a channel or path section.
+#
+proc ::alcoholicz::GetFlagsFromSection {section} {
+    variable chanSections
+    variable pathSections
+
+    if {[info exists chanSections($section)]} {
+        return [lindex $chanSections($section) 1]
+    }
+    if {[info exists pathSections($section)]} {
+        return [lindex $pathSections($section) 2]
+    }
+    return [list]
+}
 
 ####
 # GetSectionFromEvent
