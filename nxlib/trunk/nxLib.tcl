@@ -151,8 +151,8 @@ proc ::nxLib::SqlEscape {string} {
 }
 
 proc ::nxLib::SqlWildToLike {pattern} {
-    set pattern [string map {* % ? _} [string map {% \\% _ \\_} $pattern]]
-    return [SqlEscape $pattern]
+    set pattern [SqlEscape $pattern]
+    return [string map {* % ? _} [string map {% \\% _ \\_} $pattern]]
 }
 
 # File and Directory Procedures
