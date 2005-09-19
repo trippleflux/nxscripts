@@ -1,4 +1,4 @@
-AlcoBot v0.2.0 (XXX XX, 2005):
+AlcoBot v0.2.0 (Sep 19, 2005):
   NEW: Added installation instructions for modules.
   NEW: Command-line style option parsing library.
   NEW: DCC command to dump the configuration, ".alcobot dump".
