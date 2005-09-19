@@ -1,11 +1,13 @@
 # Module Definition File
 #
 # desc    - Description of module.
-# file    - Tcl file to load.
 # context - Namespace context, without the trialing "::".
 # depends - Module dependencies, a list of required modules.
+# tclFile - Tcl file to load.
+# varFile - Variable definition file.
 #
 desc=Sample Module
-file=modSample.tcl
 context=::alcoholicz::Sample
 depends=
+tclFile=modSample.tcl
+varFile=

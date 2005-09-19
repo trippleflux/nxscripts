@@ -516,7 +516,7 @@ proc ::alcoholicz::ModuleLoadEx {modName modInfoList} {
     array set modInfo $modInfoList
 
     set firstLoad 1
-    set fileHash [ModuleHash $modInfo(file)]
+    set fileHash [ModuleHash $modInfo(tclFile)]
 
     if {[info exists modules($modName)]} {
         set currentHash [lindex $modules($modName) 4]
@@ -531,8 +531,8 @@ proc ::alcoholicz::ModuleLoadEx {modName modInfoList} {
         }
     }
 
-    if {[catch {source $modInfo(file)} message]} {
-        error "can't source file \"$modInfo(file)\": $message"
+    if {[catch {source $modInfo(tclFile)} message]} {
+        error "can't source file \"$modInfo(tclFile)\": $message"
     }
 
     # Remove trailing namespace identifiers from the context.
@@ -546,8 +546,8 @@ proc ::alcoholicz::ModuleLoadEx {modName modInfoList} {
         error "initialisation failed: $message"
     }
 
-    set modules($modName) [list $modInfo(desc) $modInfo(file) \
-        $modInfo(context) $modInfo(depends) $fileHash]
+    set modules($modName) [list $modInfo(desc) $modInfo(context) \
+        $modInfo(depends) $modInfo(tclFile) $modInfo(varFile) $fileHash]
 
     return
 }
@@ -564,13 +564,13 @@ proc ::alcoholicz::ModuleUnload {modName} {
         error "module not loaded"
     }
 
-    foreach {modDesc modFile modContext modDepends modHash} $modules($modName) {break}
-    set failed [catch {${modContext}::Unload} message]
+    foreach {desc context depends tclFile varFile hash} $modules($modName) {break}
+    set failed [catch {${context}::Unload} message]
 
     # The namespace context must only be deleted if it's
     # not the global namespace or the bot's namespace.
-    if {$modContext ne "" && $modContext ne [namespace current]} {
-        catch {namespace delete $modContext}
+    if {$context ne "" && $context ne [namespace current]} {
+        catch {namespace delete $context}
     }
 
     unset modules($modName)
@@ -589,9 +589,10 @@ proc ::alcoholicz::ModuleUnload {modName} {
 # information.
 #
 proc ::alcoholicz::ModuleRead {filePath} {
-    set handle [open $filePath r]
-    set required [list desc file context depends]
+    set dirPath [file dirname $filePath]
+    set required [list desc context depends tclFile varFile]
 
+    set handle [open $filePath r]
     foreach line [split [read -nonewline $handle] "\n"] {
         if {[string index $line 0] eq "#" || [set index [string first "=" $line]] == -1} {
             continue
@@ -617,9 +618,17 @@ proc ::alcoholicz::ModuleRead {filePath} {
     if {[llength $required]} {
         error "missing required module information: [JoinLiteral $required]"
     }
-    set modInfo(file) [file join [file dirname $filePath] $modInfo(file)]
-    if {![file isfile $modInfo(file)]} {
-        error "the file \"$modInfo(file)\" does not exist"
+
+    set modInfo(tclFile) [file join $dirPath $modInfo(tclFile)]
+    if {![file isfile $modInfo(tclFile)]} {
+        error "the source file \"$modInfo(tclFile)\" does not exist"
+    }
+
+    if {$modInfo(varFile) ne ""} {
+        set modInfo(varFile) [file join $dirPath $modInfo(varFile)]
+        if {![file isfile $modInfo(varFile)]} {
+            error "the variable file \"$modInfo(varFile)\" does not exist"
+        }
     }
 
     return [array get modInfo]
@@ -892,9 +901,8 @@ proc ::alcoholicz::DccAdmin {handle idx text} {
 
         putdcc $idx "[b]Modules:[b]"
         foreach name [lsort [array names modules]] {
-            foreach {desc file context depends hash} $modules($name) {break}
-            set file [file tail $file]
-            putdcc $idx "$name - [b]Info:[b] $desc [b]File:[b] $file [b]MD5:[b] [encode hex $hash]"
+            foreach {desc context depends tclFile varFile hash} $modules($name) {break}
+            putdcc $idx "$name - [b]Info:[b] $desc [b]Path:[b] [file dirname $tclFile] [b]MD5:[b] [encode hex $hash]"
         }
 
         putdcc $idx "[b]Sections:[b]"
@@ -1152,7 +1160,7 @@ proc ::alcoholicz::InitTheme {themeFile} {
     }
     if {[llength $known]} {
         foreach name $known {set format($name) ""}
-        LogWarning InitTheme "Missing required format entries: [JoinLiteral $known]."
+        LogWarning InitTheme "Missing format entries: [JoinLiteral $known]."
     }
 
     # Process theme entries.
@@ -1171,7 +1179,7 @@ proc ::alcoholicz::InitTheme {themeFile} {
     }
     if {[llength $known]} {
         foreach name $known {set theme($name) ""}
-        LogWarning InitTheme "Missing required theme entries: [JoinLiteral [lsort $known]]."
+        LogWarning InitTheme "Missing theme entries: [JoinLiteral [lsort $known]]."
     }
 
     ConfigClose $handle
@@ -1183,19 +1191,32 @@ proc ::alcoholicz::InitTheme {themeFile} {
 #
 # Read the given variable definition files.
 #
-proc ::alcoholicz::InitVariables {varFiles} {
+proc ::alcoholicz::InitVariables {fileNames} {
     variable events
+    variable modules
     variable replace
     variable scriptPath
     variable variables
     unset -nocomplain events replace variables
+
+    # Resolve file names to their full path.
+    set varFiles [list]
+    foreach fileName $fileNames {
+        lappend varFiles [file join $scriptPath "vars" $fileName]
+    }
+
+    # Retrieve module variable definitions.
+    foreach modName [array names modules] {
+        foreach {desc context depends tclFile varFile hash} $modules($modName) {break}
+        if {$varFile ne ""} {lappend varFiles $varFile}
+    }
 
     # The "AlcoBot.vars" file enables users to define variables for third
     # party scripts or to redefine existing variable definitions.
     lappend varFiles [file join $scriptPath "AlcoBot.vars"]
 
     foreach filePath $varFiles {
-        set handle [ConfigOpen [file join $scriptPath "vars" $filePath]]
+        set handle [ConfigOpen $filePath]
         ConfigRead $handle
 
         foreach {name value} [ConfigGetEx $handle Events] {
@@ -1248,7 +1269,7 @@ proc ::alcoholicz::InitMain {} {
         die
     }
 
-    foreach funct {InitVariables InitTheme InitModules} option {varFiles themeFile modules} {
+    foreach funct {InitModules InitVariables InitTheme} option {modules varFiles themeFile} {
         set value [ArgsToList [ConfigGet $configHandle General $option]]
         if {[catch {$funct $value} message]} {
             LogError [string range $funct 4 end] $message

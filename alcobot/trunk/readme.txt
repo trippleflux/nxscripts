@@ -5,8 +5,9 @@
 Topics:
  1. Information
  2. Installation
- 3. Bugs and Comments
- 4. License
+ 3. Modules
+ 4. Bugs and Comments
+ 5. License
 
 ################################################################################
 # 1. Information                                                               #
@@ -53,7 +54,14 @@ AlcoBot is a modular sitebot written in Tcl for ioFTPD and glFTPD.
 
 
 ################################################################################
-# 3. Bugs and Comments                                                         #
+# 3. Modules                                                                   #
+################################################################################
+
+TODO
+
+
+################################################################################
+# 4. Bugs and Comments                                                         #
 ################################################################################
 
    If you have any problems with this script; or you found a bug, spelling
@@ -71,7 +79,7 @@ http://www.alcoholicz.com
 
 
 ################################################################################
-# 4. License                                                                   #
+# 5. License                                                                   #
 ################################################################################
 
    See the "license.txt" file for details.
