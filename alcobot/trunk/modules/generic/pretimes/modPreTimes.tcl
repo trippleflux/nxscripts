@@ -59,30 +59,6 @@ proc ::alcoholicz::PreTimes::DbPing {} {
 }
 
 ####
-# EscapeSql
-#
-# Escape SQL quote characters with a backslash.
-#
-proc ::alcoholicz::PreTimes::EscapeSql {string} {
-    return [string map {\\ \\\\ ` \\` ' \\' \" \\\"} $string]
-}
-
-####
-# FormatPattern
-#
-# Prepend, append, and replace all spaces with wildcards then convert
-# standard wildcard characters to SQL LIKE characters.
-#
-proc ::alcoholicz::PreTimes::FormatPattern {pattern} {
-    set pattern "*$pattern*"
-    regsub -all {[\s\*]+} $pattern "*" pattern
-
-    # Map standard wildcard characters to SQL LIKE characters.
-    set pattern [string map {* % ? _} [string map {% \\% _ \\_} $pattern]]
-    return [EscapeSql $pattern]
-}
-
-####
 # LogHandler
 #
 # Handle NEWDIR and PRE log events.
@@ -96,7 +72,7 @@ proc ::alcoholicz::PreTimes::LogHandler {event destSection pathSection path data
 
     # Ignore sub-directories.
     if {[IsSubDir $path] || ![DbConnect]} {return 1}
-    set release [EscapeSql [file tail $path]]
+    set release [SqlEscape [file tail $path]]
 
     if {$event eq "NEWDIR"} {
         set flags [GetFlagsFromSection $destSection]
@@ -121,18 +97,18 @@ proc ::alcoholicz::PreTimes::LogHandler {event destSection pathSection path data
             return 0
         }
     } elseif {$event eq "PRE" || $event eq "PRE-MP3"} {
-        set section [EscapeSql $pathSection]
+        set section [SqlEscape $pathSection]
         set files 0; set kiloBytes 0; set disks 0
 
         # Retrieve the files, size, and disk count from the log data.
         if {[set index [lsearch -exact $variables($event) "files:n"]] != -1} {
-            set files [EscapeSql [lindex $data $index]]
+            set files [SqlEscape [lindex $data $index]]
         }
         if {[set index [lsearch -exact $variables($event) "size:k"]] != -1} {
-            set kiloBytes [EscapeSql [lindex $data $index]]
+            set kiloBytes [SqlEscape [lindex $data $index]]
         }
         if {[set index [lsearch -exact $variables($event) "disks:n"]] != -1} {
-            set disks [EscapeSql [lindex $data $index]]
+            set disks [SqlEscape [lindex $data $index]]
         }
 
         if {[catch {db "INSERT INTO pretimes(pretime,section,release,files,kbytes,disks) \
@@ -165,10 +141,10 @@ proc ::alcoholicz::PreTimes::Search {user host handle channel target argc argv} 
     # Build SQL query.
     set query "SELECT * FROM pretimes WHERE "
     if {[info exists option(section)]} {
-        set section [EscapeSql [string tolower $option(section)]]
+        set section [SqlEscape [string tolower $option(section)]]
         append query "LOWER(section)='$section' AND "
     }
-    append query "release LIKE '[FormatPattern $pattern]' ORDER BY pretime DESC LIMIT $option(limit)"
+    append query "release LIKE '[SqlGetPattern $pattern]' ORDER BY pretime DESC LIMIT $option(limit)"
 
     set count 0; set multi 0
     if {[DbConnect]} {

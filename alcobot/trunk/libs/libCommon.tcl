@@ -15,6 +15,7 @@
 namespace eval ::alcoholicz {
     namespace export ArgsToList GetResultLimit JoinLiteral InList IsSubDir \
         PathParse PathParseSection PathStrip \
+        SqlEscape SqlGetPattern SqlToLike \
         FormatDate FormatTime FormatDuration FormatDurationLong FormatSize FormatSpeed \
         VarFormat VarReplace VarReplaceBase VarReplaceCommon
 }
@@ -164,6 +165,42 @@ proc ::alcoholicz::PathParseSection {fullPath useSection} {
         }
     }
     return [PathParse $fullPath $basePath]
+}
+
+################################################################################
+# SQL Functions                                                                #
+################################################################################
+
+####
+# SqlEscape
+#
+# Escape SQL quote characters with a backslash.
+#
+proc ::alcoholicz::SqlEscape {string} {
+    return [string map {\\ \\\\ ` \\` ' \\' \" \\\"} $string]
+}
+
+####
+# SqlGetPattern
+#
+# Prepend, append, and replace all spaces with wildcards then convert
+# standard wildcard characters to SQL LIKE characters.
+#
+proc ::alcoholicz::SqlGetPattern {pattern} {
+    set pattern "*$pattern*"
+    regsub -all {[\s\*]+} $pattern "*" pattern
+    return [SqlToLike $pattern]
+}
+
+####
+# SqlToLike
+#
+# Convert standard wildcard characters to SQL LIKE characters.
+#
+proc ::alcoholicz::SqlToLike {pattern} {
+    # Map standard wildcard characters to SQL LIKE characters.
+    set pattern [string map {* % ? _} [string map {% \\% _ \\_} $pattern]]
+    return [SqlEscape $pattern]
 }
 
 ################################################################################

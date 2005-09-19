@@ -44,37 +44,6 @@ proc ::alcoholicz::NxTools::DbOpenFile {fileName} {
 }
 
 ####
-# EscapeSql
-#
-# Escape SQL quote characters with a backslash.
-#
-proc ::alcoholicz::NxTools::EscapeSql {string} {
-    return [string map {\\ \\\\ ` \\` ' \\' \" \\\"} $string]
-}
-
-####
-# FormatPattern
-#
-# Prepend, append, and replace all spaces with wildcards. For example,
-# "some thing" becomes "*some*thing*".
-#
-proc ::alcoholicz::NxTools::FormatPattern {pattern} {
-    set pattern "*$pattern*"
-    regsub -all {[\s\*]+} $pattern "*" pattern
-    return [WildToLike $pattern]
-}
-
-####
-# WildToLike
-#
-# Convert standard wildcard characters to SQL LIKE characters.
-#
-proc ::alcoholicz::NxTools::WildToLike {pattern} {
-    set pattern [string map {* % ? _} [string map {% \\% _ \\_} $pattern]]
-    return [EscapeSql $pattern]
-}
-
-####
 # DbBusyHandler
 #
 # Callback invoked by SQLite if it tries to open a locked database.
@@ -135,7 +104,7 @@ proc ::alcoholicz::NxTools::Latest {user host handle channel target argc argv} {
             CmdSendHelp $channel channel $::lastbind $message
             return
         }
-        set matchPath [WildToLike [lindex $pathSections($section) 0]]
+        set matchPath [SqlToLike [lindex $pathSections($section) 0]]
         set sectionQuery "WHERE DirPath LIKE '${matchPath}%' ESCAPE '\\'"
     }
     SendTargetTheme $target latestHead
@@ -185,7 +154,7 @@ proc ::alcoholicz::NxTools::Search {user host handle channel target argc argv} {
 
     if {[info exists option(section)]} {
         set section $option(section)
-        set matchPath [WildToLike [lindex $pathSections($section) 0]]
+        set matchPath [SqlToLike [lindex $pathSections($section) 0]]
         set sectionQuery "AND DirPath LIKE '${matchPath}%' ESCAPE '\\'"
     } else {
         set sectionQuery ""
@@ -194,7 +163,7 @@ proc ::alcoholicz::NxTools::Search {user host handle channel target argc argv} {
 
     set count 0
     if {[DbOpenFile "DupeDirs.db"]} {
-        db eval "SELECT * FROM DupeDirs WHERE DirName LIKE '[FormatPattern $pattern]' ESCAPE '\\' \
+        db eval "SELECT * FROM DupeDirs WHERE DirName LIKE '[SqlGetPattern $pattern]' ESCAPE '\\' \
                 $sectionQuery ORDER BY TimeStamp DESC LIMIT $option(limit)" values {
             # Retrieve the section name.
             set virtualPath [file join $values(DirPath) $values(DirName)]
@@ -232,7 +201,7 @@ proc ::alcoholicz::NxTools::Nukes {user host handle channel target argc argv} {
     if {$pattern eq ""} {
         set matchQuery ""
     } else {
-        set matchQuery "AND Release LIKE '[FormatPattern $pattern]' ESCAPE '\\'"
+        set matchQuery "AND Release LIKE '[SqlGetPattern $pattern]' ESCAPE '\\'"
     }
     SendTargetTheme $target nukesHead
 
@@ -271,7 +240,7 @@ proc ::alcoholicz::NxTools::NukeTop {user host handle channel target argc argv} 
     if {$group eq ""} {
         set groupQuery ""
     } else {
-        set groupQuery "GroupName='[EscapeSql $group]' AND"
+        set groupQuery "GroupName='[SqlEscape $group]' AND"
     }
     SendTargetTheme $target nuketopHead
 
@@ -309,7 +278,7 @@ proc ::alcoholicz::NxTools::Unnukes {user host handle channel target argc argv} 
     if {$pattern eq ""} {
         set matchQuery ""
     } else {
-        set matchQuery "AND Release LIKE '[FormatPattern $pattern]' ESCAPE '\\'"
+        set matchQuery "AND Release LIKE '[SqlGetPattern $pattern]' ESCAPE '\\'"
     }
     SendTargetTheme $target unnukesHead
 
@@ -413,7 +382,7 @@ proc ::alcoholicz::NxTools::Undupe {user host handle channel target argc argv} {
     if {[DbOpenFile "${tableName}.db"]} {
         db eval {BEGIN}
         db eval "SELECT $colName,rowid FROM $tableName WHERE $colName \
-                LIKE '[WildToLike $pattern]' ESCAPE '\\' ORDER BY $colName ASC" values {
+                LIKE '[SqlToLike $pattern]' ESCAPE '\\' ORDER BY $colName ASC" values {
             incr count
             SendTargetTheme $target undupeBody [list $values($colName) $count]
             db eval "DELETE FROM $tableName WHERE rowid=$values(rowid)"
