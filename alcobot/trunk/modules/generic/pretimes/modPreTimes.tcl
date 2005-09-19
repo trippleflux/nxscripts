@@ -16,7 +16,6 @@ namespace eval ::alcoholicz::PreTimes {
     if {![info exists defLimit]} {
         variable dataSource ""
         variable defLimit 5
-        variable timerId ""
     }
     namespace import -force ::alcoholicz::*
 }
@@ -41,21 +40,6 @@ proc ::alcoholicz::PreTimes::DbConnect {} {
 
     db set timeout 0
     return 1
-}
-
-####
-# DbPing
-#
-# Ping the server every 5 minutes to prevent the session from timing out.
-#
-proc ::alcoholicz::PreTimes::DbPing {} {
-    variable timerId
-
-    # TODO: Is it necessary to ping the server to
-    # prevent the current session from timing out?
-
-    set timerId [timer 5 [namespace current]::DbPing]
-    return
 }
 
 ####
@@ -191,7 +175,6 @@ proc ::alcoholicz::PreTimes::Search {user host handle channel target argc argv} 
 proc ::alcoholicz::PreTimes::Load {firstLoad} {
     variable defLimit
     variable dataSource
-    variable timerId
     upvar ::alcoholicz::configHandle configHandle
 
     if {$firstLoad} {
@@ -231,14 +214,10 @@ proc ::alcoholicz::PreTimes::Load {firstLoad} {
             General "Search pre time database." "\[-limit <num>\] \[-section <name>\] <pattern>"
     }
 
-    if {$firstLoad} {
-        # Ping the server every five minutes.
-        set timerId [timer 5 [namespace current]::DbPing]
-    } else {
+    if {!$firstLoad} {
         # Reconnect to data-source.
         catch {db disconnect}
     }
-
     DbConnect
     return
 }
@@ -249,18 +228,10 @@ proc ::alcoholicz::PreTimes::Load {firstLoad} {
 # Module finalisation procedure, called before the module is unloaded.
 #
 proc ::alcoholicz::PreTimes::Unload {} {
-    variable timerId
-
     # Remove event callbacks.
     ScriptUnregister pre PRE     [namespace current]::LogHandler
     ScriptUnregister pre PRE-MP3 [namespace current]::LogHandler
     ScriptUnregister pre NEWDIR  [namespace current]::LogHandler
-
-    # Kill  checking timer.
-    if {$timerId ne ""} {
-        catch {killtimer $timerId}
-        set timerId ""
-    }
 
     catch {db disconnect}
     return
