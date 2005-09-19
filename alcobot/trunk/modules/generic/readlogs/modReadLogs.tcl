@@ -231,10 +231,10 @@ proc ::alcoholicz::ReadLogs::Update {} {
             LogDebug ModReadLogs "Event disabled or callback returned false, skipping announce."
             continue
         }
-        SendSectionTheme $destSection $event $path $line
+        SendSectionTheme $destSection $event $line
 
         # Post-command scripts are only executed if the announce was successful.
-        ScriptExecute post $event $destSection $pathSection $line
+        ScriptExecute post $event $destSection $pathSection $path $line
     }
 
     return
