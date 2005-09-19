@@ -1,0 +1,446 @@
+#
+# AlcoExt - Alcoholicz Tcl extension.
+# Copyright (c) 2005 Alcoholicz Scripting Team
+#
+# Module Name:
+#   makefile.in
+#
+# Author:
+#   neoxed (neoxed@gmail.com) June 17, 2005
+#
+# Abstract:
+#   Makefile template.
+#
+
+#========================================================================
+# Package Settings
+#========================================================================
+
+PACKAGE_NAME    = @PACKAGE_NAME@
+PACKAGE_VERSION = @PACKAGE_VERSION@
+PKG_LIB_FILE    = @PKG_LIB_FILE@
+PKG_STUB_FILE   = @PKG_STUB_LIB_FILE@
+
+GENERIC_OBJS    = alcoCompress.o alcoCrypt.o alcoExt.o  alcoEncoding.o\
+    alcoUtil.o alcoVolume.o
+
+UNIX_OBJS       = alcoUnixGlFtpd.o alcoUnixVolume.o
+
+BZIP2_OBJS      = blocksort.o bzlib.o compress.o crctable.o decompress.o\
+    huffman.o randtable.o
+
+TOMCRYPT_OBJS   = aes.o anubis.o blowfish.o cast5.o des.o khazad.o noekeon.o\
+    rc2.o rc5.o rc6.o safer.o safer_tab.o saferp.o skipjack.o twofish.o xtea.o\
+    hash_memory.o md2.o md4.o md5.o rmd128.o rmd160.o sha1.o sha256.o sha512.o\
+    tiger.o whirl.o hmac.o omac.o pelican.o pmac.o base64_decode.o base64_encode.o\
+    pkcs_5_1.o pkcs_5_2.o crypt_cipher.o crypt_hash.o crypt_prng.o crypt_utils.o\
+    cbc.o cfb.o ctr.o ecb.o ofb.o fortuna.o rc4.o rng_get_bytes.o sober128.o\
+    sprng.o yarrow.o
+
+ZLIB_OBJS       = adler32.o crc32.o deflate.o inffast.o inflate.o inftrees.o\
+    trees.o zutil.o
+
+PKG_OBJECTS     = $(BZIP2_OBJS) $(TOMCRYPT_OBJS) $(ZLIB_OBJS) $(GENERIC_OBJS) $(UNIX_OBJS)
+PKG_STUB_SOURCES= @PKG_STUB_SOURCES@
+PKG_STUB_OBJECTS= @PKG_STUB_OBJECTS@
+
+#========================================================================
+# Installation
+#========================================================================
+
+# These variable names must be lower-case.
+prefix          = @prefix@
+exec_prefix     = @exec_prefix@
+
+BIN_DIR         = @bindir@
+DATA_DIR        = @datadir@
+INCLUDE_DIR     = @includedir@
+LIB_DIR         = @libdir@
+SRC_DIR         = @srcdir@
+
+DEST_DIR        =
+PKG_DIR         = $(PACKAGE_NAME)$(PACKAGE_VERSION)
+PKG_DATA_DIR    = $(DATA_DIR)/$(PKG_DIR)
+PKG_LIB_DIR     = $(LIB_DIR)/$(PKG_DIR)
+PKG_INCLUDE_DIR = $(INCLUDE_DIR)/$(PKG_DIR)
+
+INSTALL         = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA    = @INSTALL_DATA@
+INSTALL_SCRIPT  = @INSTALL_SCRIPT@
+
+#========================================================================
+# Locations
+#========================================================================
+
+BUILD_DIR       = .
+TOP_DIR         = ..
+GENERIC_DIR     = $(TOP_DIR)/generic
+UNIX_DIR        = $(SRC_DIR)
+BZIP2_DIR       = $(TOP_DIR)/libs/bzip2
+TOMCRYPT_DIR    = $(TOP_DIR)/libs/tomcrypt
+ZLIB_DIR        = $(TOP_DIR)/libs/zlib
+
+AR              = @AR@
+CC              = @CC@
+RANLIB          = @RANLIB@
+SHELL           = @SHELL@
+BINARIES        = $(PKG_LIB_FILE)
+
+#========================================================================
+# Flags
+#========================================================================
+
+CFLAGS          = @CFLAGS@
+CFLAGS_DEFAULT  = @CFLAGS_DEFAULT@
+CFLAGS_WARNING  = @CFLAGS_WARNING@
+CPPFLAGS        = @CPPFLAGS@
+EXEEXT          = @EXEEXT@
+OBJEXT          = @OBJEXT@
+
+MAKE_LIB        = @MAKE_LIB@
+MAKE_SHARED_LIB = @MAKE_SHARED_LIB@
+MAKE_STATIC_LIB = @MAKE_STATIC_LIB@
+MAKE_STUB_LIB   = @MAKE_STUB_LIB@
+RANLIB_STUB     = @RANLIB_STUB@
+
+LDFLAGS_DEFAULT = @LDFLAGS_DEFAULT@
+SHLIB_CFLAGS    = @SHLIB_CFLAGS@
+SHLIB_LD        = @SHLIB_LD@
+SHLIB_LD_LIBS   = @SHLIB_LD_LIBS@
+STLIB_LD        = @STLIB_LD@
+SHARED_BUILD    = @SHARED_BUILD@
+
+TCL_BIN_DIR     = @TCL_BIN_DIR@
+TCL_DEFS        = @TCL_DEFS@
+TCL_LIBS        = @TCL_LIBS@
+TCL_SRC_DIR     = @TCL_SRC_DIR@
+
+#========================================================================
+# TCLLIBPATH seeds the auto_path in Tcl's init.tcl so we can test our
+# package without installing.  The other environment variables allow us
+# to test against an uninstalled Tcl.  Add special env vars that you
+# require for testing here (like TCLX_LIBRARY).
+#========================================================================
+
+EXTRA_PATH      = $(BUILD_DIR):$(TCL_BIN_DIR)
+TCLLIBPATH      = $(BUILD_DIR)
+TCLSH_ENV       = TCL_LIBRARY=`@CYGPATH@ $(TCL_SRC_DIR)/library` \
+    @LD_LIBRARY_PATH_VAR@="$(EXTRA_PATH):$(@LD_LIBRARY_PATH_VAR@)" \
+    PATH="$(EXTRA_PATH):$(PATH)" TCLLIBPATH="$(TCLLIBPATH)"
+
+TCLSH_PROG      = @TCLSH_PROG@
+TCLSH           = $(TCLSH_ENV) $(TCLSH_PROG)
+
+DEFS            = @DEFS@ @PKG_CFLAGS@
+INCLUDES        = @PKG_INCLUDES@ @TCL_INCLUDES@
+LIBS            = @PKG_LIBS@ @LIBS@
+COMPILE         = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+
+#========================================================================
+# Targets
+#========================================================================
+
+all: binaries libraries
+
+binaries: $(BINARIES)
+
+libraries: binaries
+
+depend:
+
+install: install-binaries
+
+test: binaries libraries
+	$(TCLSH) `@CYGPATH@ $(TOP_DIR)/tests/all.tcl` $(TESTFLAGS)
+
+$(PKG_LIB_FILE): $(PKG_OBJECTS)
+	-rm -f $(PKG_LIB_FILE)
+	${MAKE_LIB}
+	$(RANLIB) $(PKG_LIB_FILE)
+
+$(PKG_STUB_FILE): $(PKG_STUB_OBJECTS)
+	-rm -f $(PKG_STUB_FILE)
+	${MAKE_STUB_LIB}
+	$(RANLIB_STUB) $(PKG_STUB_FILE)
+
+#========================================================================
+# Object targets.
+#========================================================================
+
+blocksort.o:
+	$(COMPILE) -c $(BZIP2_DIR)/source/blocksort.c
+
+bzlib.o:
+	$(COMPILE) -c $(BZIP2_DIR)/source/bzlib.c
+
+compress.o:
+	$(COMPILE) -c $(BZIP2_DIR)/source/compress.c
+
+crctable.o:
+	$(COMPILE) -c $(BZIP2_DIR)/source/crctable.c
+
+decompress.o:
+	$(COMPILE) -c $(BZIP2_DIR)/source/decompress.c
+
+huffman.o:
+	$(COMPILE) -c $(BZIP2_DIR)/source/huffman.c
+
+randtable.o:
+	$(COMPILE) -c $(BZIP2_DIR)/source/randtable.c
+
+aes.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/aes/aes.c
+
+anubis.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/anubis.c
+
+blowfish.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/blowfish.c
+
+cast5.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/cast5.c
+
+des.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/des.c
+
+khazad.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/khazad.c
+
+noekeon.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/noekeon.c
+
+rc2.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/rc2.c
+
+rc5.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/rc5.c
+
+rc6.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/rc6.c
+
+safer.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/safer/safer.c
+
+safer_tab.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/safer/safer_tab.c
+
+saferp.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/safer/saferp.c
+
+skipjack.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/skipjack.c
+
+twofish.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/twofish/twofish.c
+
+xtea.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/ciphers/xtea.c
+
+hash_memory.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/hashes/helper/hash_memory.c
+
+md2.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/hashes/md2.c
+
+md4.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/hashes/md4.c
+
+md5.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/hashes/md5.c
+
+rmd128.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/hashes/rmd128.c
+
+rmd160.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/hashes/rmd160.c
+
+sha1.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/hashes/sha1.c
+
+sha256.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/hashes/sha2/sha256.c
+
+sha512.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/hashes/sha2/sha512.c
+
+tiger.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/hashes/tiger.c
+
+whirl.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/hashes/whirl/whirl.c
+
+hmac.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/mac/hmac.c
+
+omac.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/mac/omac.c
+
+pelican.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/mac/pelican.c
+
+pmac.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/mac/pmac.c
+
+base64_decode.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/misc/base64/base64_decode.c
+
+base64_encode.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/misc/base64/base64_encode.c
+
+pkcs_5_1.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/misc/pkcs5/pkcs_5_1.c
+
+pkcs_5_2.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/misc/pkcs5/pkcs_5_2.c
+
+crypt_cipher.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/misc/crypt_cipher.c
+
+crypt_hash.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/misc/crypt_hash.c
+
+crypt_prng.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/misc/crypt_prng.c
+
+crypt_utils.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/misc/crypt_utils.c
+
+cbc.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/modes/cbc.c
+
+cfb.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/modes/cfb.c
+
+ctr.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/modes/ctr.c
+
+ecb.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/modes/ecb.c
+
+ofb.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/modes/ofb.c
+
+fortuna.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/prngs/fortuna.c
+
+rc4.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/prngs/rc4.c
+
+rng_get_bytes.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/prngs/rng_get_bytes.c
+
+sober128.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/prngs/sober128.c
+
+sprng.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/prngs/sprng.c
+
+yarrow.o:
+	$(COMPILE) -c $(TOMCRYPT_DIR)/prngs/yarrow.c
+
+adler32.o:
+	$(COMPILE) -c $(ZLIB_DIR)/source/adler32.c
+
+crc32.o:
+	$(COMPILE) -c $(ZLIB_DIR)/source/crc32.c
+
+deflate.o:
+	$(COMPILE) -c $(ZLIB_DIR)/source/deflate.c
+
+inffast.o:
+	$(COMPILE) -c $(ZLIB_DIR)/source/inffast.c
+
+inflate.o:
+	$(COMPILE) -c $(ZLIB_DIR)/source/inflate.c
+
+inftrees.o:
+	$(COMPILE) -c $(ZLIB_DIR)/source/inftrees.c
+
+trees.o:
+	$(COMPILE) -c $(ZLIB_DIR)/source/trees.c
+
+zutil.o:
+	$(COMPILE) -c $(ZLIB_DIR)/source/zutil.c
+
+alcoExt.o:
+	$(COMPILE) -c $(GENERIC_DIR)/alcoExt.c
+
+alcoCompress.o:
+	$(COMPILE) -c $(GENERIC_DIR)/alcoCompress.c
+
+alcoCrypt.o:
+	$(COMPILE) -c $(GENERIC_DIR)/alcoCrypt.c
+
+alcoEncoding.o:
+	$(COMPILE) -c $(GENERIC_DIR)/alcoEncoding.c
+
+alcoUtil.o:
+	$(COMPILE) -c $(GENERIC_DIR)/alcoUtil.c
+
+alcoVolume.o:
+	$(COMPILE) -c $(GENERIC_DIR)/alcoVolume.c
+
+alcoUnixGlFtpd.o:
+	$(COMPILE) -c $(UNIX_DIR)/alcoUnixGlFtpd.c
+
+alcoUnixVolume.o:
+	$(COMPILE) -c $(UNIX_DIR)/alcoUnixVolume.c
+
+#========================================================================
+# Install binaries and package index file.
+#========================================================================
+
+install-binaries: binaries
+	@mkdir -p $(DEST_DIR)$(PKG_LIB_DIR)
+	@list='$(BINARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    echo " $(INSTALL_PROGRAM) $$p $(DEST_DIR)$(PKG_LIB_DIR)/$$p"; \
+	    $(INSTALL_PROGRAM) $$p $(DEST_DIR)$(PKG_LIB_DIR)/$$p; \
+	    stub=`echo $$p|sed -e "s/.*\(stub\).*/\1/"`; \
+	    if test "x$$stub" = "xstub"; then \
+		echo " $(RANLIB_STUB) $(DEST_DIR)$(PKG_LIB_DIR)/$$p"; \
+		$(RANLIB_STUB) $(DEST_DIR)$(PKG_LIB_DIR)/$$p; \
+	    else \
+		echo " $(RANLIB) $(DEST_DIR)$(PKG_LIB_DIR)/$$p"; \
+		$(RANLIB) $(DEST_DIR)$(PKG_LIB_DIR)/$$p; \
+	    fi; \
+	    ext=`echo $$p|sed -e "s/.*\.//"`; \
+	    if test "x$$ext" = "xdll"; then \
+		lib=`basename $$p|sed -e 's/.[^.]*$$//'`.lib; \
+		if test -f $$lib; then \
+		    echo " $(INSTALL_DATA) $$lib $(DEST_DIR)$(PKG_LIB_DIR)/$$lib"; \
+	            $(INSTALL_DATA) $$lib $(DEST_DIR)$(PKG_LIB_DIR)/$$lib; \
+		fi; \
+	    fi; \
+	  fi; \
+	done
+	@list='$(PKG_TCL_SOURCES)'; for p in $$list; do \
+	  if test -f $(SRC_DIR)/$$p; then \
+	    destp=`basename $$p`; \
+	    echo " Install $$destp $(DEST_DIR)$(PKG_LIB_DIR)/$$destp"; \
+	    $(INSTALL_DATA) $(SRC_DIR)/$$p $(DEST_DIR)$(PKG_LIB_DIR)/$$destp; \
+	  fi; \
+	done
+	@if test "x$(SHARED_BUILD)" = "x1"; then \
+	    echo " Install pkgIndex.tcl $(DEST_DIR)$(PKG_LIB_DIR)"; \
+	    $(INSTALL_DATA) pkgIndex.tcl $(DEST_DIR)$(PKG_LIB_DIR); \
+	fi
+
+#========================================================================
+# Don't modify the file to clean here.
+#========================================================================
+
+clean:
+	-test -z "$(BINARIES)" || rm -f $(BINARIES)
+	-rm -f core *.o *.core
+
+distclean: clean
+	-rm -f config.cache config.log config.status
+	-rm -rf autom4te.cache
+
+.PHONY: all binaries clean depend distclean libraries install test
+
+# Tell versions [3.59,3.63) of GNU make to not export all variables.
+# Otherwise a system limit (for SysV at least) may be exceeded.
+.NOEXPORT:

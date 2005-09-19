@@ -1,0 +1,9 @@
+AlcoBot v0.2.0 (Sep 19, 2005):
+  NEW: Rewrote the PRNG interface as a Tcl channel driver.
+  CHG: Moved to a less restrictive license (modified BSD).
+  CHG: The memory address of a handle's data structure is now used in the handle's
+       identifier. This ensures that handle identifiers are always unique.
+  FIX: Possible out-of-bounds error in BzipSetError().
+
+AlcoExt v0.1.0 (Aug 29, 2005):
+  CHG: Initial release.
