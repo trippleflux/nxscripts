@@ -851,10 +851,6 @@ proc ::alcoholicz::SendTargetTheme {target type {valueList ""} {section ""}} {
         LogError SendTargetTheme "Missing theme or variable definition for \"$type\"."
         return
     }
-    if {$section eq ""} {
-        # Fall back to the default section.
-        set section $defaultSection
-    }
 
     # Replace section colours and common items before the value list, in
     # case the values introduce colour codes (e.g. a user named "[b]urn").
@@ -938,6 +934,11 @@ proc ::alcoholicz::DccAdmin {handle idx text} {
         # Configure test suite options.
         set testPath [file join $scriptPath "tests"]
         set logFile [file join $scriptPath "tests.log"]
+
+        if {![file isdirectory $testPath]} {
+            putdcc $idx "Test suite not found."
+            return
+        }
 
         if {[catch {
             ::tcltest::errorFile        $logFile

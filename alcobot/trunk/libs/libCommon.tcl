@@ -492,11 +492,22 @@ proc ::alcoholicz::VarReplaceBase {text {doPrefix 1}} {
 #
 proc ::alcoholicz::VarReplaceCommon {text section} {
     variable colours
-    set time [clock seconds]
+    variable defaultSection
+
+    set vars [list now:t]
+    set values [list [clock seconds]]
+    if {$section eq ""} {
+        # Fall back to the default section.
+        set section $defaultSection
+    } else {
+        lappend vars "section:z"
+        lappend values $section
+    }
+
     if {[info exists colours($section)]} {
         set text [string map $colours($section) $text]
     } else {
         LogDebug VarReplaceCommon "No section colours defined for \"$section\"."
     }
-    return [VarReplace $text {date:z time:z section:z} [list [FormatDate $time] [FormatTime $time] $section]]
+    return [VarReplace $text $vars $values]
 }
