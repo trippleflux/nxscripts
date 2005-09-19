@@ -87,9 +87,62 @@ proc ::alcoholicz::PreTimes::FormatPattern {pattern} {
 #
 # Handle NEWDIR and PRE log events.
 #
-proc ::alcoholicz::PreTimes::LogHandler {} {
-    # TODO
-    return
+proc ::alcoholicz::PreTimes::LogHandler {event destSection pathSection path data} {
+    variable defLimit
+    upvar ::alcoholicz::variables variables
+
+    # Record the time now for accuracy.
+    set now [clock seconds]
+
+    # Ignore sub-directories.
+    if {[IsSubDir $path] || ![DbConnect]} {return 1}
+    set release [EscapeSql [file tail $path]]
+
+    if {$event eq "NEWDIR"} {
+        set flags [GetFlagsFromSection $destSection]
+        if {[FlagIsDisabled $flags "pretime"]} {return 1}
+
+        set preTime [lindex [db "SELECT pretime FROM pretimes WHERE release='$release' LIMIT 1"] 0]
+        if {[string is digit -strict $preTime]} {
+            # Check for a section pre time.
+            if {![FlagGetValue $flags "pretime" limit]} {
+                set limit $defLimit
+            }
+
+            set age [expr {$now - $preTime}]
+            set limit [expr {$limit * 60}]
+            if {$age > $limit} {
+                set event "PRELATE"
+            } else {
+                set event "PREOK"
+            }
+
+            SendSectionTheme $destSection $event [lappend data $preTime $age $limit]
+            return 0
+        }
+    } elseif {$event eq "PRE" || $event eq "PRE-MP3"} {
+        set section [EscapeSql $pathSection]
+        set files 0; set kiloBytes 0; set disks 0
+
+        # Retrieve the files, size, and disk count from the log data.
+        if {[set index [lsearch -exact $variables($event) "files:n"]] != -1} {
+            set files [EscapeSql [lindex $data $index]]
+        }
+        if {[set index [lsearch -exact $variables($event) "size:k"]] != -1} {
+            set kiloBytes [EscapeSql [lindex $data $index]]
+        }
+        if {[set index [lsearch -exact $variables($event) "disks:n"]] != -1} {
+            set disks [EscapeSql [lindex $data $index]]
+        }
+
+        if {[catch {db "INSERT INTO pretimes(pretime,section,release,files,kbytes,disks) \
+                VALUES('$now','$section','$release','$files','$kiloBytes','$disks')"} message]} {
+            LogError ModPreTime $message
+        }
+    } else {
+        LogError ModPreTime "Unknown event \"$event\"."
+    }
+    return 1
 }
 
 ####
@@ -178,9 +231,11 @@ proc ::alcoholicz::PreTimes::Load {firstLoad} {
 
     # Register event callbacks.
     if {[IsTrue $addOnPre]} {
-        ScriptRegister   pre PRE [namespace current]::LogHandler True
+        ScriptRegister   pre PRE     [namespace current]::LogHandler True
+        ScriptRegister   pre PRE-MP3 [namespace current]::LogHandler True
     } else {
-        ScriptUnregister pre PRE [namespace current]::LogHandler
+        ScriptUnregister pre PRE     [namespace current]::LogHandler
+        ScriptUnregister pre PRE-MP3 [namespace current]::LogHandler
     }
     if {[IsTrue $showOnNew]} {
         ScriptRegister   pre NEWDIR [namespace current]::LogHandler True
@@ -221,8 +276,9 @@ proc ::alcoholicz::PreTimes::Unload {} {
     variable timerId
 
     # Remove event callbacks.
-    ScriptUnregister pre PRE    [namespace current]::LogHandler
-    ScriptUnregister pre NEWDIR [namespace current]::LogHandler
+    ScriptUnregister pre PRE     [namespace current]::LogHandler
+    ScriptUnregister pre PRE-MP3 [namespace current]::LogHandler
+    ScriptUnregister pre NEWDIR  [namespace current]::LogHandler
 
     # Kill  checking timer.
     if {$timerId ne ""} {

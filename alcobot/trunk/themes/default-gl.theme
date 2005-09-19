@@ -99,11 +99,14 @@ NUKE        = [b][[c1]%(section)[c]][b] %(releasePath)/[b]%(releaseName)[b] was 
 UNNUKE      = [b][[c1]%(section)[c]][b] %(releasePath)/[b]%(releaseName)[b] was unnuked [b]%(multi)x[b] by [b]%(user)[b] for [b]%(reason)[b]. Nukees: %(nukees)
 NUKEES      = [b]%(user)[b] (%(stats))
 NUKEES_JOIN = ", "
+REQUEST     = [b][[c1]Request[c]][b] [b]%(request)[b] deleted by [b]%(user)[b]/%(group).
+REQFILLED   = [b][[c1]Request[c]][b] [b]%(request)[b] filled by [b]%(user)[b]/%(group) for [b]%(reqUser)[b].
 WIPE        = [b][[c1]%(section)[c]][b] Wiped: [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
 WIPE-r      = [b][[c1]%(section)[c]][b] Wiped: [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
 
-REQUEST     = [b][[c1]Request[c]][b] [b]%(request)[b] deleted by [b]%(user)[b]/%(group).
-REQFILLED   = [b][[c1]Request[c]][b] [b]%(request)[b] filled by [b]%(user)[b]/%(group) for [b]%(reqUser)[b].
+# ModPreTimes events
+PREOK       = [b][[c1]%(section)[c]][b] New Release: [b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago.
+PRELATE     = [b][[c1]%(section)[c]][b] New Release: [b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago, older than the %(limit) limit.
 
 # Error events.
 ERROR       = [b][[c1]Error[c]][b] %(message)
