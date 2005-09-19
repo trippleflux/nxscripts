@@ -37,8 +37,14 @@ proc ::alcoholicz::PreTimes::DbConnect {} {
         LogError ModPreTimes "Unable to connect to DSN $dataSource: [lindex $message 2] ([lindex $message 0])"
         return 0
     }
-
     db set timeout 0
+
+    # Check if the required table exists.
+    if {![llength [db tables "pretimes"]]} {
+        LogError ModInvite "The DSN \"$dataSource\" is missing the \"pretimes\" table."
+        db disconnect
+        return 0
+    }
     return 1
 }
 
