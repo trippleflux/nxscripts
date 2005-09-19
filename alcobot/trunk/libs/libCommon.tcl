@@ -198,9 +198,8 @@ proc ::alcoholicz::SqlGetPattern {pattern} {
 # Convert standard wildcard characters to SQL LIKE characters.
 #
 proc ::alcoholicz::SqlToLike {pattern} {
-    # Map standard wildcard characters to SQL LIKE characters.
-    set pattern [string map {* % ? _} [string map {% \\% _ \\_} $pattern]]
-    return [SqlEscape $pattern]
+    set pattern [SqlEscape $pattern]
+    return [string map {* % ? _} [string map {% \\% _ \\_} $pattern]]
 }
 
 ################################################################################
