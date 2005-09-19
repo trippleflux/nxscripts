@@ -99,7 +99,7 @@ LOGIN       = [b][[c1]Login[c]][b] [b]%(user)[b]/%(group) has logged in.
 LOGOUT      = [b][[c1]Logout[c]][b] [b]%(user)[b]/%(group) has logged out.
 
 # ModPreTimes events
-PREOK       = [b][[c1]%(section)[c]][b] New Release: [b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago.
+PRENEW      = [b][[c1]%(section)[c]][b] New Release: [b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago.
 PRELATE     = [b][[c1]%(section)[c]][b] New Release: [b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago, older than the %(limit) limit.
 
 # Error events.

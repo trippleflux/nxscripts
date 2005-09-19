@@ -80,7 +80,7 @@ proc ::alcoholicz::PreTimes::LogHandler {event destSection pathSection path data
             if {$age > $limit} {
                 set event "PRELATE"
             } else {
-                set event "PREOK"
+                set event "PRENEW"
             }
 
             SendSectionTheme $destSection $event [lappend data $preTime $age $limit]

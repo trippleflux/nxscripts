@@ -105,7 +105,7 @@ WIPE        = [b][[c1]%(section)[c]][b] Wiped: [b]%(releaseName)[b] by [b]%(user
 WIPE-r      = [b][[c1]%(section)[c]][b] Wiped: [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
 
 # ModPreTimes events
-PREOK       = [b][[c1]%(section)[c]][b] New Release: [b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago.
+PRENEW      = [b][[c1]%(section)[c]][b] New Release: [b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago.
 PRELATE     = [b][[c1]%(section)[c]][b] New Release: [b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago, older than the %(limit) limit.
 
 # Error events.
