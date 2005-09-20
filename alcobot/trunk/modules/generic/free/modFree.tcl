@@ -3,7 +3,7 @@
 # Copyright (c) 2005 Alcoholicz Scripting Team
 #
 # Module Name:
-#   Free Space Module
+#   Free Module
 #
 # Author:
 #   neoxed (neoxed@gmail.com) Aug 25, 2005
