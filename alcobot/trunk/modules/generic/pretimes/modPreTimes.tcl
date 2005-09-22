@@ -221,7 +221,7 @@ proc ::alcoholicz::PreTimes::Load {firstLoad} {
     }
 
     if {!$firstLoad} {
-        # Reconnect to data-source.
+        # Reconnect to the data source on reload.
         catch {db disconnect}
     }
     DbConnect
