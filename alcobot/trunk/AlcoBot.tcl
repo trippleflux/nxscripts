@@ -140,6 +140,9 @@ proc ::alcoholicz::CmdCreate {type name script {category ""} {cmdDesc ""} {argDe
         channel {
             bind pub -|- $name [list [namespace current]::CmdChannelProc $script]
         }
+        message {
+            bind msg -|- $name [list [namespace current]::CmdMessageProc $script]
+        }
         default {
             # Support for other command types will come later.
             error "invalid command type \"$type\""
@@ -240,6 +243,9 @@ proc ::alcoholicz::CmdRemove {type name} {
         channel {
             unbind pub -|- $name [list [namespace current]::CmdChannelProc $script]
         }
+        message {
+            unbind msg -|- $name [list [namespace current]::CmdMessageProc $script]
+        }
         default {
             # Support for other command types will come later.
             error "invalid command type \"$type\""
@@ -284,13 +290,48 @@ proc ::alcoholicz::CmdChannelProc {script user host handle channel text} {
             break
         }
     }
-
     set argv [ArgsToList $text]
 
     # Eval is used to expand arguments to the callback procedure,
     # e.g. "CmdCreate channel !foo [list ChanFooCmd abc 123]".
     if {[catch {eval $script [list $user $host $handle $channel $target [llength $argv] $argv]} message]} {
         LogError CmdChannel "Error evaluating \"$script\":\n$::errorInfo"
+    }
+    return
+}
+
+####
+# CmdMessageProc
+#
+# Wrapper for Eggdrop "bind msg" commands. Parses the text argument into a
+# Tcl list and provides more information when a command evaluation fails.
+#
+proc ::alcoholicz::CmdMessageProc {script user host handle text} {
+    global lastbind
+
+    foreach {enabled name value} [CmdGetFlags $lastbind] {
+        set result 0
+        switch -- $name {
+            all   {set result 1}
+            flags {set result [matchattr $user $value]}
+            host  {set result [string match -nocase $value $host]}
+            user  {set result [string equal -nocase $value $user]}
+        }
+        if {$result} {
+            if {!$enabled} {
+                LogDebug CmdMessage "Matched negation for command \"$lastbind\" on \"$name\", returning."
+                return
+            }
+            break
+        }
+    }
+    set argv [ArgsToList $text]
+    set target "PRIVMSG $user"
+
+    # Eval is used to expand arguments to the callback procedure,
+    # e.g. "CmdCreate message !foo [list MessageFooCmd abc 123]".
+    if {[catch {eval $script [list $user $host $handle $target [llength $argv] $argv]} message]} {
+        LogError CmdMessage "Error evaluating \"$script\":\n$::errorInfo"
     }
     return
 }
