@@ -1,0 +1,6 @@
+# Module Definition File
+desc=Invite Users
+context=::alcoholicz::Invite
+depends=
+tclFile=modInvite.tcl
+varFile=modInvite.vars
