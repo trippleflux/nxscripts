@@ -101,6 +101,10 @@ proc ::alcoholicz::InList {list element} {
     return 0
 }
 
+################################################################################
+# Path Parsing                                                                 #
+################################################################################
+
 ####
 # IsSubDir
 #
@@ -114,10 +118,6 @@ proc ::alcoholicz::IsSubDir {path} {
     }
     return 0
 }
-
-################################################################################
-# Path Parsing                                                                 #
-################################################################################
 
 ####
 # PathStrip
@@ -179,8 +179,8 @@ proc ::alcoholicz::PathParseSection {fullPath useSection} {
 ####
 # PermCheck
 #
-# FTPD style permissions checks: -user, =group, flags, and an exclamation
-# character is used for negations.
+# FTPD style permissions checks: -user, =group, flags, and an
+# exclamation character is used for negations.
 #
 proc ::alcoholicz::PermCheck {rightsList userName groupList flags} {
     foreach right $rightsList {

@@ -88,148 +88,20 @@ test common-2.8 {JoinLiteral: four elements, or} {
 } {one, two, three, or four}
 
 ################################################################################
-# IsSubDir                                                                     #
-################################################################################
-
-test common-3.1 {IsSubDir: CD} {
-    IsSubDir CD
-} {0}
-
-test common-3.2 {IsSubDir: CD2} {
-    IsSubDir CD2
-} {1}
-
-test common-3.3 {IsSubDir: DVD} {
-    IsSubDir DVD
-} {0}
-
-test common-3.4 {IsSubDir: DVD4} {
-    IsSubDir DVD4
-} {1}
-
-################################################################################
-# PathStrip                                                                    #
-################################################################################
-
-test common-4.1 {PathStrip: nothing} {
-    PathStrip ""
-} {}
-
-test common-4.2 {PathStrip: leading/trailing path separators} {
-    PathStrip "//one/two/three///"
-} {one/two/three}
-
-test common-4.3 {PathStrip: several path separators} {
-    PathStrip "//two/////six///"
-} {two/six}
-
-test common-4.4 {PathStrip: Windows style path separators} {
-    PathStrip "//twelve\\pack///\\"
-} {twelve/pack}
-
-################################################################################
-# PathParse                                                                    #
-################################################################################
-
-test common-5.1 {PathParse: nothing} {
-    PathParse ""
-} {{} {} {} {}}
-
-test common-5.2 {PathParse: leading/trailing path separators} {
-    PathParse "/Other"
-} {Other {} Other {}}
-
-test common-5.3 {PathParse: several path separators} {
-    PathParse "/Other/Something"
-} {Something Other Something Other}
-
-test common-5.4 {PathParse: Windows style path separators} {
-    PathParse "/Other/Something/CD1"
-} {CD1 Other/Something {Something (CD1)} Other}
-
-################################################################################
 # InList                                                                       #
 ################################################################################
 
-test common-6.1 {InList: present} {
+test common-3.1 {InList: present} {
     InList [list one two three] two
 } {1}
 
-test common-6.2 {InList: present, no case} {
+test common-3.2 {InList: present, no case} {
     InList [list one two three] TWO
 } {1}
 
-test common-6.3 {InList: not present} {
+test common-3.3 {InList: not present} {
     InList [list one two three] four
 } {0}
-
-################################################################################
-# PermCheck                                                                    #
-################################################################################
-
-test common-7.1 {PermCheck: noone} {
-    PermCheck "!*" neoxed STAFF 13ABC
-} {0}
-
-test common-7.2 {PermCheck: everyone} {
-    PermCheck "*" neoxed STAFF 13ABC
-} {1}
-
-test common-7.3 {PermCheck: user check} {
-    PermCheck "-neoxed !*" neoxed STAFF 13ABC
-} {1}
-
-test common-7.4 {PermCheck: user check, partial} {
-    PermCheck "-n* !*" neoxed STAFF 13ABC
-} {1}
-
-test common-7.5 {PermCheck: user check, negation} {
-    PermCheck "!-neoxed *" neoxed STAFF 13ABC
-} {0}
-
-test common-7.6 {PermCheck: group check} {
-    PermCheck "=STAFF !*" neoxed STAFF 13ABC
-} {1}
-
-test common-7.7 {PermCheck: group check, partial} {
-    PermCheck "=S* !*" neoxed STAFF 13ABC
-} {1}
-
-test common-7.8 {PermCheck: group check, several groups} {
-    PermCheck "=DEF !*" neoxed [list ABC DEF STAFF] 13ABC
-} {1}
-
-test common-7.9 {PermCheck: group check, negation} {
-    PermCheck "!=STAFF *" neoxed STAFF 13ABC
-} {0}
-
-test common-7.10 {PermCheck: flag check} {
-    PermCheck "1 !*" neoxed STAFF 13ABC
-} {1}
-
-test common-7.11 {PermCheck: flag check, negation} {
-    PermCheck "!A *" neoxed STAFF 13ABC
-} {0}
-
-################################################################################
-# PermMatchFlags                                                               #
-################################################################################
-
-test common-8.1 {PermMatchFlags: present} {
-    PermMatchFlags "ABCDEF" "D"
-} {1}
-
-test common-8.2 {PermMatchFlags: present} {
-    PermMatchFlags "ABCDEF" "ZXYABC"
-} {1}
-
-test common-8.3 {PermMatchFlags: not present} {
-    PermMatchFlags "ABCDEF" "ZXY"
-} {0}
-
-test common-8.4 {PermMatchFlags: any flag} {
-    PermMatchFlags "ABCDEF" "*"
-} {1}
 
 
 ::tcltest::cleanupTests
