@@ -3,13 +3,13 @@
 # Copyright (c) 2005 Alcoholicz Scripting Team
 #
 # Module Name:
-#   Path Parsing Tests
+#   Permission Tests
 #
 # Author:
 #   neoxed (neoxed@gmail.com) Sep 24, 2005
 #
 # Abstract:
-#   Implements regression tests for path parsing functions.
+#   Implements regression tests for permission functions.
 #
 
 package require tcltest 2
