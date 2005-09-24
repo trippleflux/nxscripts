@@ -835,7 +835,6 @@ proc ::alcoholicz::SendSection {section text} {
     variable chanSections
     variable pathSections
 
-    if {$text eq ""} {return}
     if {[info exists chanSections($section)]} {
         set channels [lindex $chanSections($section) 0]
     } elseif {[info exists pathSections($section)]} {
@@ -845,8 +844,10 @@ proc ::alcoholicz::SendSection {section text} {
         return
     }
 
-    foreach channel $channels {
-        putserv "PRIVMSG $channel :$text"
+    foreach line [split $text "\n"] {
+        foreach channel $channels {
+            putserv "PRIVMSG $channel :$line"
+        }
     }
     return
 }
@@ -876,8 +877,8 @@ proc ::alcoholicz::SendSectionTheme {section type {valueList ""}} {
 # Send text to the given target.
 #
 proc ::alcoholicz::SendTarget {target text} {
-    if {$text ne ""} {
-        putserv [append target " :" $text]
+    foreach line [split $text "\n"] {
+        putserv "$target :$line"
     }
 }
 

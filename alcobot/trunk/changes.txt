@@ -1,6 +1,7 @@
 AlcoBot v0.3.0 (XXX XX, 2005):
-  NEW: Support for "message" commands.
   NEW: Invite module, allows users to join the site channel.
+  NEW: Multi-line messages, use "\n" to split announcements onto separate lines.
+  NEW: Support for "message" commands.
   FIX: Blank lines are no longer sent when a theme entry is disabled.
 
 AlcoBot v0.2.0 (Sep 19, 2005):
