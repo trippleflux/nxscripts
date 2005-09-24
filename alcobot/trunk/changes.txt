@@ -1,3 +1,8 @@
+AlcoBot v0.3.0 (XXX XX, 2005):
+  NEW: Support for "message" commands.
+  NEW: Invite module, allows users to join the site channel.
+  FIX: Blank lines are no longer sent when a theme entry is disabled.
+
 AlcoBot v0.2.0 (Sep 19, 2005):
   NEW: Added installation instructions for modules.
   NEW: Command-line style option parsing library.
