@@ -34,14 +34,14 @@ proc ::alcoholicz::PreTimes::DbConnect {} {
     }
 
     if {[catch {database connect [namespace current]::db "DSN=$dataSource"} message]} {
-        LogError ModPreTimes "Unable to connect to DSN $dataSource: [lindex $message 2] ([lindex $message 0])"
+        LogError ModPreTimes "Unable to connect to database \"$dataSource\": [lindex $message 2] ([lindex $message 0])"
         return 0
     }
     db set timeout 0
 
     # Check if the required table exists.
     if {![llength [db tables "pretimes"]]} {
-        LogError ModInvite "The DSN \"$dataSource\" is missing the \"pretimes\" table."
+        LogError ModInvite "The database \"$dataSource\" is missing the \"pretimes\" table."
         db disconnect
         return 0
     }
@@ -131,8 +131,8 @@ proc ::alcoholicz::PreTimes::Search {user host handle channel target argc argv} 
     # Build SQL query.
     set query "SELECT * FROM pretimes WHERE "
     if {[info exists option(section)]} {
-        set section [SqlEscape [string tolower $option(section)]]
-        append query "LOWER(section)='$section' AND "
+        set section [SqlEscape $option(section)]
+        append query "UPPER(section)=UPPER('$section') AND "
     }
     append query "release LIKE '[SqlGetPattern $pattern]' ORDER BY pretime DESC LIMIT $option(limit)"
 
