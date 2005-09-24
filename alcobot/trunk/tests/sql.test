@@ -1,0 +1,76 @@
+#
+# AlcoBot - Alcoholicz site bot.
+# Copyright (c) 2005 Alcoholicz Scripting Team
+#
+# Module Name:
+#   SQL Tests
+#
+# Author:
+#   neoxed (neoxed@gmail.com) Sep 24, 2005
+#
+# Abstract:
+#   Implements regression tests for SQL string functions.
+#
+
+package require tcltest 2
+namespace import -force ::tcltest::*
+
+################################################################################
+# SqlEscape                                                                    #
+################################################################################
+
+test sql-1.1 {SqlEscape: string} {
+    SqlEscape {str'ing}
+} {str\'ing}
+
+test sql-1.2 {SqlEscape: string} {
+    SqlEscape {'str`ing'}
+} {\'str\`ing\'}
+
+test sql-1.3 {SqlEscape: string} {
+    SqlEscape {some\thing}
+} {some\\thing}
+
+################################################################################
+# SqlGetPattern                                                                #
+################################################################################
+
+test sql-2.1 {SqlGetPattern: plain} {
+    SqlGetPattern {something}
+} {%something%}
+
+test sql-2.2 {SqlGetPattern: spaces} {
+    SqlGetPattern {some thing}
+} {%some%thing%}
+
+test sql-2.3 {SqlGetPattern: leading/trailing wildcard and spaces} {
+    SqlGetPattern {*some thing*}
+} {%some%thing%}
+
+test sql-2.4 {SqlGetPattern: execessive wildcards} {
+    SqlGetPattern {***s?me****thing****}
+} {%s_me%thing%}
+
+################################################################################
+# SqlToLike                                                                    #
+################################################################################
+
+test sql-3.1 {SqlToLike: plain} {
+    SqlToLike {something}
+} {something}
+
+test sql-3.2 {SqlToLike: greedy wildcard} {
+    SqlToLike {some*thing}
+} {some%thing}
+
+test sql-3.3 {SqlToLike: single char wildcard} {
+    SqlToLike {some?thing}
+} {some_thing}
+
+test sql-3.4 {SqlToLike: escape like chars} {
+    SqlToLike {some_directory_name-*}
+} {some\_directory\_name-%}
+
+
+::tcltest::cleanupTests
+return
