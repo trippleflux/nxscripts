@@ -90,6 +90,20 @@ proc ::alcoholicz::Invite::MakeHash {password} {
 }
 
 ####
+# OnChannels
+#
+# Checks if the specified user is on an invite channel.
+#
+proc ::alcoholicz::Invite::OnChannels {ircUser {ignoreChannel ""}} {
+    variable channels
+    foreach channel [array names channels] {
+        if {[string equal -nocase $ignoreChannel $channel]} {continue}
+        if {[validchan $channel] && [onchan $ircUser $channel]} {return 1}
+    }
+    return 0
+}
+
+####
 # Process
 #
 # Processes an invite request, performs IRC name and host checks
@@ -124,12 +138,59 @@ proc ::alcoholicz::Invite::Command {user host handle target argc argv} {
     return
 }
 
+
 ####
-# LogHandler
+# ChanEvent
+#
+# Updates the online status of IRC users.
+#
+proc ::alcoholicz::Invite::ChanEvent {event args} {
+    variable channels
+
+    set time [clock seconds]
+    switch -- $event {
+        JOIN {
+            foreach {user host handle channel} $args {break}
+            set online 1
+        }
+        KICK {
+            foreach {kicker host handle channel user reason} $args {break}
+            set online [OnChannels $user $channel]
+        }
+        NICK {
+            foreach {user host handle channel newUser} $args {break}
+            set online 0
+        }
+        PART - QUIT {
+            foreach {user host handle channel message} $args {break}
+            set online [OnChannels $user $channel]
+        }
+        default {
+            LogError ModInvite "Unknown channel event \"$event\"."
+            return
+        }
+    }
+
+    # Only monitor invite channels for user activities.
+    set valid 0
+    foreach entry [array names channels] {
+        if {[string equal -nocase $entry $channel]} {
+            set valid 1; break
+        }
+    }
+    if {$valid && [DbConnect]} {
+        set user [SqlEscape $user]
+        db "UPDATE invite_users SET online='$online', time='$time' WHERE UPPER(irc_user)=UPPER('$user')"
+    }
+    return
+}
+
+####
+# LogEvent
 #
 # Handle "INVITE" log events.
 #
-proc ::alcoholicz::Invite::LogHandler {event destSection pathSection path data} {
+proc ::alcoholicz::Invite::LogEvent {event destSection pathSection path data} {
     variable hostCheck
 
     if {[llength $data] != 5} {
@@ -180,7 +241,7 @@ proc ::alcoholicz::Invite::Whois {server code text} {
 # Module initialisation procedure, called when the module is loaded.
 #
 proc ::alcoholicz::Invite::Load {firstLoad} {
-    variable channel
+    variable channels
     variable dataSource
     variable hostCheck
     variable userCheck
@@ -191,14 +252,14 @@ proc ::alcoholicz::Invite::Load {firstLoad} {
         package require tclodbc
     }
 
-    foreach option {channels dataSource hostCheck userCheck warnSection} {
+    foreach option {dataSource hostCheck userCheck warnSection} {
         set $option [ConfigGet $configHandle Module::Invite $option]
     }
     set hostCheck [IsTrue $hostCheck]
     set userCheck [IsTrue $userCheck]
 
-    unset -nocomplain channel
-    foreach entry [ArgsToList $channels] {
+    unset -nocomplain channels
+    foreach entry [ArgsToList [ConfigGet $configHandle Module::Invite channels]] {
         set entry [split $entry]
         if {![llength $entry]} {
             LogError ModInvite "Invalid channel definition \"[join $entry]\"."
@@ -208,9 +269,9 @@ proc ::alcoholicz::Invite::Load {firstLoad} {
         # If no channel permissions are defined,
         # assume the channel is available to everyone.
         if {[llength $entry] == 1} {
-            set channel([lindex $entry 0]) "*"
+            set channels([lindex $entry 0]) "*"
         } else {
-            set channel([lindex $entry 0]) [lrange $entry 1 end]
+            set channels([lindex $entry 0]) [lrange $entry 1 end]
         }
     }
 
@@ -218,8 +279,13 @@ proc ::alcoholicz::Invite::Load {firstLoad} {
         "Invite yourself into the channel." "<FTP user> <invite password>"
 
     # Register event callbacks.
-    bind raw 311 - [namespace current]::Whois
-    ScriptRegister pre INVITE [namespace current]::LogHandler True
+    bind raw  311  -  [namespace current]::Whois
+    bind join -|- "*" [list [namespace current]::ChanEvent JOIN]
+    bind kick -|- "*" [list [namespace current]::ChanEvent KICK]
+    bind nick -|- "*" [list [namespace current]::ChanEvent NICK]
+    bind part -|- "*" [list [namespace current]::ChanEvent PART]
+    bind sign -|- "*" [list [namespace current]::ChanEvent QUIT]
+    ScriptRegister pre INVITE [namespace current]::LogEvent True
 
     if {!$firstLoad} {
         # Reconnect to the data source on reload.
@@ -236,8 +302,13 @@ proc ::alcoholicz::Invite::Load {firstLoad} {
 #
 proc ::alcoholicz::Invite::Unload {} {
     # Remove event callbacks.
-    unbind raw 311 - [namespace current]::Whois
-    ScriptUnregister pre INVITE [namespace current]::LogHandler
+    unbind raw  311  -  [namespace current]::Whois
+    unbind join -|- "*" [list [namespace current]::ChanEvent JOIN]
+    unbind kick -|- "*" [list [namespace current]::ChanEvent KICK]
+    unbind nick -|- "*" [list [namespace current]::ChanEvent NICK]
+    unbind part -|- "*" [list [namespace current]::ChanEvent PART]
+    unbind sign -|- "*" [list [namespace current]::ChanEvent QUIT]
+    ScriptUnregister pre INVITE [namespace current]::LogEvent
 
     catch {db disconnect}
     return
