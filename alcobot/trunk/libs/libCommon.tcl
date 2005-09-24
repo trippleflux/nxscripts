@@ -15,6 +15,7 @@
 namespace eval ::alcoholicz {
     namespace export ArgsToList GetResultLimit JoinLiteral InList IsSubDir \
         PathParse PathParseSection PathStrip \
+        PermCheck PermMatchFlags \
         SqlEscape SqlGetPattern SqlToLike \
         FormatDate FormatTime FormatDuration FormatDurationLong FormatSize FormatSpeed \
         VarFormat VarReplace VarReplaceBase VarReplaceCommon
@@ -114,6 +115,10 @@ proc ::alcoholicz::IsSubDir {path} {
     return 0
 }
 
+################################################################################
+# Path Parsing                                                                 #
+################################################################################
+
 ####
 # PathStrip
 #
@@ -165,6 +170,44 @@ proc ::alcoholicz::PathParseSection {fullPath useSection} {
         }
     }
     return [PathParse $fullPath $basePath]
+}
+
+################################################################################
+# Permissions (FTP Style)                                                      #
+################################################################################
+
+####
+# PermCheck
+#
+# FTPD style permissions checks: -user, =group, flags, and an exclamation
+# character is used for negations.
+#
+proc ::alcoholicz::PermCheck {rightsList userName groupList flags} {
+    foreach right $rightsList {
+        regexp {^(!?[=-]?)(.+)} $right result prefix right
+        switch -- $prefix {
+            {!-} {if {[string match $right $userName]} {return 0}}
+            {!=} {if {[lsearch -glob $groupList $right] != -1} {return 0}}
+            {!}  {if {[PermMatchFlags $flags $right]} {return 0}}
+            {-}  {if {[string match $right $userName]} {return 1}}
+            {=}  {if {[lsearch -glob $groupList $right] != -1} {return 1}}
+            default {if {[PermMatchFlags $flags $right]} {return 1}}
+        }
+    }
+    return 0
+}
+
+####
+# PermMatchFlags
+#
+# Check if any of the required flags are present in the current flags.
+#
+proc ::alcoholicz::PermMatchFlags {currentFlags needFlags} {
+    set currentFlags [split $currentFlags {}]
+    foreach flag [split $needFlags {}] {
+        if {[lsearch -glob $currentFlags $flag] != -1} {return 1}
+    }
+    return 0
 }
 
 ################################################################################

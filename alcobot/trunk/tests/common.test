@@ -163,6 +163,74 @@ test common-6.3 {InList: not present} {
     InList [list one two three] four
 } {0}
 
+################################################################################
+# PermCheck                                                                    #
+################################################################################
+
+test common-7.1 {PermCheck: noone} {
+    PermCheck "!*" neoxed STAFF 13ABC
+} {0}
+
+test common-7.2 {PermCheck: everyone} {
+    PermCheck "*" neoxed STAFF 13ABC
+} {1}
+
+test common-7.3 {PermCheck: user check} {
+    PermCheck "-neoxed !*" neoxed STAFF 13ABC
+} {1}
+
+test common-7.4 {PermCheck: user check, partial} {
+    PermCheck "-n* !*" neoxed STAFF 13ABC
+} {1}
+
+test common-7.5 {PermCheck: user check, negation} {
+    PermCheck "!-neoxed *" neoxed STAFF 13ABC
+} {0}
+
+test common-7.6 {PermCheck: group check} {
+    PermCheck "=STAFF !*" neoxed STAFF 13ABC
+} {1}
+
+test common-7.7 {PermCheck: group check, partial} {
+    PermCheck "=S* !*" neoxed STAFF 13ABC
+} {1}
+
+test common-7.8 {PermCheck: group check, several groups} {
+    PermCheck "=DEF !*" neoxed [list ABC DEF STAFF] 13ABC
+} {1}
+
+test common-7.9 {PermCheck: group check, negation} {
+    PermCheck "!=STAFF *" neoxed STAFF 13ABC
+} {0}
+
+test common-7.10 {PermCheck: flag check} {
+    PermCheck "1 !*" neoxed STAFF 13ABC
+} {1}
+
+test common-7.11 {PermCheck: flag check, negation} {
+    PermCheck "!A *" neoxed STAFF 13ABC
+} {0}
+
+################################################################################
+# PermMatchFlags                                                               #
+################################################################################
+
+test common-8.1 {PermMatchFlags: present} {
+    PermMatchFlags "ABCDEF" "D"
+} {1}
+
+test common-8.2 {PermMatchFlags: present} {
+    PermMatchFlags "ABCDEF" "ZXYABC"
+} {1}
+
+test common-8.3 {PermMatchFlags: not present} {
+    PermMatchFlags "ABCDEF" "ZXY"
+} {0}
+
+test common-8.4 {PermMatchFlags: any flag} {
+    PermMatchFlags "ABCDEF" "*"
+} {1}
+
 
 ::tcltest::cleanupTests
 return
