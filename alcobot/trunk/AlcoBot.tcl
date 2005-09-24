@@ -897,7 +897,8 @@ proc ::alcoholicz::SendTargetTheme {target type {valueList ""} {section ""}} {
     }
 
     # Replace section colours and common items before the value list, in
-    # case the values introduce colour codes (e.g. a user named "[b]urn").
+    # case the values introduce colour codes (e.g. a user named "[b]ill",
+    # since "[b]" is a bold code).
     set text [VarReplaceCommon $theme($type) $section]
     SendTarget $target [VarReplace $text $variables($type) $valueList]
 }
@@ -1024,7 +1025,6 @@ proc ::alcoholicz::InitConfig {filePath} {
     variable defaultSection
     variable chanSections
     variable pathSections
-
     unset -nocomplain cmdFlags chanSections pathSections
 
     # Update configuration path before reading the file.
