@@ -139,19 +139,11 @@ proc ::alcoholicz::Invite::Process {ircUser ircHost ftpUser ftpGroup ftpGroupLis
     }
 
     set ftpUserEsc [SqlEscape $ftpUser]
-    if {$userCheck} {
-        # Validate IRC username.
-        set result [db "SELECT irc_user FROM invite_users WHERE ftp_user='$ftpUserEsc'"]
-        if {![string equal -nocase [lindex $result 0 0] $ircUser]} {
-            SendTheme $ircUser inviteBadUser [list $ftpUser $ircUser $ircHost]
-            return
-        }
-    }
     if {$hostCheck} {
         # Validate IRC host.
         set valid 0
-        foreach result [db "SELECT hostmask FROM invite_hosts WHERE ftp_user='$ftpUserEsc'"] {
-            if {[string match -nocase [lindex $result 0] $ircHost]} {
+        foreach row [db "SELECT hostmask FROM invite_hosts WHERE ftp_user='$ftpUserEsc'"] {
+            if {[string match -nocase [lindex $row 0] $ircHost]} {
                 set valid 1; break
             }
         }
@@ -196,6 +188,8 @@ proc ::alcoholicz::Invite::Process {ircUser ircHost ftpUser ftpGroup ftpGroupLis
 # Private message command, !invite <FTP user> <password>.
 #
 proc ::alcoholicz::Invite::Command {user host handle target argc argv} {
+    variable userCheck
+
     if {$argc != 2} {
         CmdSendHelp $user message $::lastbind
         return
@@ -204,10 +198,18 @@ proc ::alcoholicz::Invite::Command {user host handle target argc argv} {
     set password [lindex $argv 1]
 
     if {[DbConnect]} {
+        set result [db "SELECT irc_user, password FROM invite_users WHERE ftp_user='[SqlEscape $ftpUser]'"]
+        set result [lindex $result 0]
+
         # Validate password.
-        set result [db "SELECT password FROM invite_users WHERE ftp_user='[SqlEscape $ftpUser]'"]
-        if {![llength $result] || ![CheckHash [lindex $result 0 0] $password]} {
+        if {![llength $result] || ![CheckHash [lindex $result 1] $password]} {
             SendTheme $user inviteBadPass [list $ftpUser $user $host]
+            return
+        }
+
+        # Validate IRC username.
+        if {$userCheck && ![string equal -nocase [lindex $result 0] $user]} {
+            SendTheme $user inviteBadUser [list $ftpUser $user $host]
             return
         }
 
@@ -372,7 +374,7 @@ proc ::alcoholicz::Invite::Load {firstLoad} {
         "Invite yourself into the channel." "<FTP user> <invite password>"
 
     # Register event callbacks.
-    bind raw  311  -  [namespace current]::Whois
+    bind raw  -|- 311 [namespace current]::Whois
     bind join -|- "*" [list [namespace current]::ChanEvent JOIN]
     bind kick -|- "*" [list [namespace current]::ChanEvent KICK]
     bind nick -|- "*" [list [namespace current]::ChanEvent NICK]
@@ -395,7 +397,7 @@ proc ::alcoholicz::Invite::Load {firstLoad} {
 #
 proc ::alcoholicz::Invite::Unload {} {
     # Remove event callbacks.
-    unbind raw  311  -  [namespace current]::Whois
+    unbind raw  -|- 311 [namespace current]::Whois
     unbind join -|- "*" [list [namespace current]::ChanEvent JOIN]
     unbind kick -|- "*" [list [namespace current]::ChanEvent KICK]
     unbind nick -|- "*" [list [namespace current]::ChanEvent NICK]

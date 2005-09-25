@@ -216,7 +216,7 @@ proc ::siteInvite::Admin {argList} {
             LinePuts "Set IRC User:"
             if {[IsTrue $userCheck]} {
                 LinePuts "- SITE INVADMIN USER <user> <nick>"
-           } else {
+            } else {
                 LinePuts "- Username checking is disabled."
             }
 
@@ -242,15 +242,41 @@ proc ::siteInvite::Invite {argList} {
         LinePuts "Usage: SITE INVITE <nick>"
         return 1
     }
+    set ftpUserEsc [SqlEscape $user]
     set ircUser [lindex $argList 0]
 
-    if {$userCheck} {
-        # TODO: Check IRC user.
-    }
-    if {$hostCheck} {
-        # TODO: Check if there hosts and list them.
+    # Check if the user has an invite record.
+    set result [db "SELECT irc_user, password FROM invite_users WHERE ftp_user='$ftpUserEsc'"]
+    set result [lindex $result 0]
+    if {![llength $result] || [lindex $result 1] eq ""} {
+        LinePuts "No invite password found for your FTP account."
+        LinePuts "Please set a password using \"SITE INVPASSWD <password>\"."
+        return 1
     }
 
+    # Validate IRC user-name.
+    if {$userCheck} {
+        set required [lindex $result 0]
+        if {$required eq ""} {
+            LinePuts "Your account does not have an IRC nick-name defined."
+            LinePuts "Ask a siteop to set your IRC nick-name."
+            return 1
+        }
+        if {![string equal -nocase $required $ircUser]} {
+            LinePuts "Invalid IRC nick-name \"$ircUser\"."
+            LinePuts "You must invite yourself using the nick-name \"$required\"."
+            return 1
+        }
+    }
+
+    # Check if the user has any IRC hosts added.
+    if {$hostCheck && ![db "SELECT count(*) FROM invite_hosts WHERE ftp_user='$ftpUserEsc'"]} {
+        LinePuts "Your account does not have any IRC hosts added."
+        LinePuts "Ask a siteop to add your IRC host-mask."
+        return 1
+    }
+
+    LinePuts "Inviting the IRC nick-name \"$ircUser\"."
     putlog "INVITE: \"$user\" \"$group\" \"$groups\" \"$flags\" \"$ircUser\""
     return 0
 }
