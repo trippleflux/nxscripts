@@ -7,7 +7,7 @@ Module Name:
     alcoCompress.c
 
 Author:
-    neoxed (neoxed@gmail.com) August 20, 2005
+    neoxed (neoxed@gmail.com) Aug 20, 2005
 
 Abstract:
     This module implements an interface to Bzip2 and Zlib.

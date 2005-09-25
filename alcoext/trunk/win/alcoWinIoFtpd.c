@@ -7,7 +7,7 @@ Module Name:
     alcoWinIoFtpd.c
 
 Author:
-    neoxed (neoxed@gmail.com) April 16, 2005
+    neoxed (neoxed@gmail.com) Apr 16, 2005
 
 Abstract:
     Implements a Tcl command-based interface for interaction with ioFTPD.
@@ -190,7 +190,7 @@ IoKillCmd(
     )
 {
     if (objc != 4) {
-        Tcl_WrongNumArgs(interp, 2, objv, "msgWindow uid");
+        Tcl_WrongNumArgs(interp, 2, objv, "msgWindow cid");
         return TCL_ERROR;
     }
 

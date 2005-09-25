@@ -7,7 +7,7 @@ Module Name:
     alcoWinIoFtpd.h
 
 Author:
-    neoxed (neoxed@gmail.com) April 23, 2005
+    neoxed (neoxed@gmail.com) Apr 23, 2005
 
 Abstract:
     ioFTPD command definitions.

@@ -7,7 +7,7 @@ Module Name:
     alcoExt.c
 
 Author:
-    neoxed (neoxed@gmail.com) April 16, 2005
+    neoxed (neoxed@gmail.com) Apr 16, 2005
 
 Abstract:
     This module implements the Tcl extension entry point, called when the

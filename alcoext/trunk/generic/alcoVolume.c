@@ -7,7 +7,7 @@ Module Name:
     alcoVolume.c
 
 Author:
-    neoxed (neoxed@gmail.com) June 2, 2005
+    neoxed (neoxed@gmail.com) Jun 2, 2005
 
 Abstract:
     This module implements a interface to list and query volumes.

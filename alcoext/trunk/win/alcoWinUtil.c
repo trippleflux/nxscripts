@@ -7,7 +7,7 @@ Module Name:
     alcoWinUtil.c
 
 Author:
-    neoxed (neoxed@gmail.com) April 16, 2005
+    neoxed (neoxed@gmail.com) Apr 16, 2005
 
 Abstract:
     Miscellaneous Windows specific utilities.

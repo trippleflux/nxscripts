@@ -7,7 +7,7 @@ Module Name:
     alcoUnixVolume.c
 
 Author:
-    neoxed (neoxed@gmail.com) June 2, 2005
+    neoxed (neoxed@gmail.com) Jun 2, 2005
 
 Abstract:
     Retrieve mount point information.

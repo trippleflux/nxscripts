@@ -7,7 +7,7 @@ Module Name:
     alcoVolume.h
 
 Author:
-    neoxed (neoxed@gmail.com) June 2, 2005
+    neoxed (neoxed@gmail.com) Jun 2, 2005
 
 Abstract:
     Volume command definitions.

@@ -7,7 +7,7 @@ Module Name:
     alcoUnixGlFtpd.h
 
 Author:
-    neoxed (neoxed@gmail.com) April 22, 2005
+    neoxed (neoxed@gmail.com) Apr 22, 2005
 
 Abstract:
     glFTPD command definitions.

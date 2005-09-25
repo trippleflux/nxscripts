@@ -7,7 +7,7 @@ Module Name:
     alcoUnixGlFtpd.c
 
 Author:
-    neoxed (neoxed@gmail.com) April 16, 2005
+    neoxed (neoxed@gmail.com) Apr 16, 2005
 
 Abstract:
     Implements a Tcl command-based interface for interaction with glFTPD.
