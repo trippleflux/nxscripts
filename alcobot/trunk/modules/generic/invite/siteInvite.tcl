@@ -225,8 +225,8 @@ proc ::siteInvite::Admin {argList} {
                 LinePuts "Invalid hostmask, must be \"ident@host\"."
                 return 1
             }
-            set hostEsc [SqlEscape $hostMask]
-            db "REPLACE INTO invite_hosts(ftp_user,hostmask) VALUES('$ftpUserEsc','$hostEsc')"
+
+            db "REPLACE INTO invite_hosts(ftp_user,hostmask) VALUES('$ftpUserEsc','[SqlEscape $hostMask]')"
             LinePuts "Added host-mask \"$hostMask\" to user \"$ftpUser\"."
         }
         DELHOST - DELIP {
@@ -235,9 +235,8 @@ proc ::siteInvite::Admin {argList} {
                 return 0
             }
             set hostMask [lindex $argList 2]
-            set hostEsc [SqlEscape $hostMask]
 
-            if {[db "DELETE FROM invite_hosts WHERE ftp_user='$ftpUserEsc' AND hostmask='$hostEsc'"]} {
+            if {[db "DELETE FROM invite_hosts WHERE ftp_user='$ftpUserEsc' AND hostmask='[SqlEscape $hostMask]'"]} {
                 LinePuts "Deleted host-mask \"$hostMask\" from user \"$ftpUser\"."
             } else {
                 LinePuts "Invalid host-mask \"$hostMask\" for user \"$ftpUser\"."
@@ -288,7 +287,7 @@ proc ::siteInvite::Admin {argList} {
         }
         USER - NICK {
             if {![IsTrue $userCheck]} {
-                LinePuts "Host checking is disabled."
+                LinePuts "User name checking is disabled."
                 return 0
             }
             set ircUser [lindex $argList 2]

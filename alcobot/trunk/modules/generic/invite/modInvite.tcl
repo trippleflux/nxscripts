@@ -213,7 +213,10 @@ proc ::alcoholicz::Invite::Command {user host handle target argc argv} {
             return
         }
 
-        # TODO: Retrieve the user's group list and flags.
+        # TODO:
+        # - Check if user is deleted, if so remove invite record.
+        # - Retrieve the user's group list and flags.
+
         Process $user $host $ftpUser TODO TODO TODO
     } else {
         SendTheme $user inviteDbDown [list $ftpUser $user]
@@ -279,18 +282,29 @@ proc ::alcoholicz::Invite::ChanEvent {event args} {
 proc ::alcoholicz::Invite::LogEvent {event destSection pathSection path data} {
     variable hostCheck
 
-    if {[llength $data] != 5} {
-        LogError ModInvite "Invalid number of items in log data \"$data\"."
-        return 1
-    }
-    foreach {ftpUser ftpGroup ftpGroupList ftpFlags ircUser} $data {break}
+    if {$event eq "INVITE"} {
+        if {[llength $data] != 5} {
+            LogError ModInvite "Invalid number of items in log data \"$data\"."
+            return 1
+        }
+        foreach {ftpUser ftpGroup ftpGroupList ftpFlags ircUser} $data {break}
 
-    if {$hostCheck} {
-        variable whois
-        set whois($ircUser) [list $ftpUser $ftpGroup $ftpGroupList $ftpFlags]
-        putquick "WHOIS $ircUser"
+        if {$hostCheck} {
+            variable whois
+            set whois($ircUser) [list $ftpUser $ftpGroup $ftpGroupList $ftpFlags]
+            putquick "WHOIS $ircUser"
+        } else {
+            Process $ircUser "disabled@disabled" $ftpUser $ftpGroup $ftpGroupList $ftpFlags
+        }
+    } elseif {$event eq "DELUSER" || $event eq "PURGED"} {
+        # Remove invite record when a user is deleted or purged.
+        set ftpUserEsc [SqlEscape [lindex $data 1]]
+        if {[DbConnect]} {
+            db "DELETE FROM invite_users WHERE ftp_user='$ftpUserEsc'"
+            db "DELETE FROM invite_hosts WHERE ftp_user='$ftpUserEsc'"
+        }
     } else {
-        Process $ircUser "disabled@disabled" $ftpUser $ftpGroup $ftpGroupList $ftpFlags
+        LogError ModInvite "Unknown log event \"$event\"."
     }
     return 0
 }
@@ -380,7 +394,9 @@ proc ::alcoholicz::Invite::Load {firstLoad} {
     bind nick -|- "*" [list [namespace current]::ChanEvent NICK]
     bind part -|- "*" [list [namespace current]::ChanEvent PART]
     bind sign -|- "*" [list [namespace current]::ChanEvent QUIT]
-    ScriptRegister pre INVITE [namespace current]::LogEvent True
+    ScriptRegister pre INVITE  [namespace current]::LogEvent True
+    ScriptRegister pre DELUSER [namespace current]::LogEvent True
+    ScriptRegister pre PURGED  [namespace current]::LogEvent True
 
     if {!$firstLoad} {
         # Reconnect to the data source on reload.
@@ -403,7 +419,9 @@ proc ::alcoholicz::Invite::Unload {} {
     unbind nick -|- "*" [list [namespace current]::ChanEvent NICK]
     unbind part -|- "*" [list [namespace current]::ChanEvent PART]
     unbind sign -|- "*" [list [namespace current]::ChanEvent QUIT]
-    ScriptUnregister pre INVITE [namespace current]::LogEvent
+    ScriptUnregister pre INVITE  [namespace current]::LogEvent True
+    ScriptUnregister pre DELUSER [namespace current]::LogEvent True
+    ScriptUnregister pre PURGED  [namespace current]::LogEvent True
 
     catch {db disconnect}
     return
