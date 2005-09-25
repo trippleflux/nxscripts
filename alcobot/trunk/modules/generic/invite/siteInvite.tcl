@@ -156,14 +156,44 @@ proc ::siteInvite::SqlEscape {string} {
 }
 
 ####
+# SetIrcUser
+#
+# Set the IRC nick-name for a user.
+#
+proc ::siteInvite::SetIrcUser {ftpUser ircUser} {
+    set ftpUser [SqlEscape $ftpUser]
+    set ircUser [SqlEscape $ircUser]
+
+    # Probably the most portable way to do this.
+    if {![db "UPDATE invite_users SET irc_user='$ircUser' WHERE ftp_user='$ftpUser'"]} {
+        db "INSERT INTO invite_users(ftp_user,irc_user) VALUES('$ftpUser','$ircUser')"
+    }
+    return
+}
+
+####
+# SetPassword
+#
+# Set the invite password for a user.
+#
+proc ::siteInvite::SetPassword {ftpUser password} {
+    set ftpUser [SqlEscape $ftpUser]
+    set hash [SqlEscape [MakeHash $password]]
+
+    # Probably the most portable way to do this.
+    if {![db "UPDATE invite_users SET password='$hash' WHERE ftp_user='$ftpUser'"]} {
+        db "INSERT INTO invite_users(ftp_user,password) VALUES('$ftpUser','$hash')"
+    }
+    return
+}
+
+####
 # Admin
 #
 # Change and update IRC invite user options.
 #
 proc ::siteInvite::Admin {argList} {
-    global user flags
     variable hostCheck
-    variable hostFields
     variable userCheck
 
     # Check parameters and event names.
@@ -172,6 +202,8 @@ proc ::siteInvite::Admin {argList} {
         ADDHOST  3 ADDIP  3
         DELHOST  3 DELIP  3
         HOSTS    2
+        DELUSER  2
+        LIST     1 USERS 1
         NICK     3 USER   3
         PASS     3 PASSWD 3
         PASSWORD 3
@@ -180,40 +212,101 @@ proc ::siteInvite::Admin {argList} {
         set event HELP
     }
 
+    set ftpUser [lindex $argList 1]
+    set ftpUserEsc [SqlEscape $ftpUser]
     switch -- $event {
         ADDHOST - ADDIP {
             if {![IsTrue $hostCheck]} {
                 LinePuts "Host checking is disabled."
+                return 0
+            }
+            set hostMask [lindex $argList 2]
+            if {![regexp {^.+@.+$} $hostMask]} {
+                LinePuts "Invalid hostmask, must be \"ident@host\"."
                 return 1
             }
-            # TODO
+            set hostEsc [SqlEscape $hostMask]
+            db "REPLACE INTO invite_hosts(ftp_user,hostmask) VALUES('$ftpUserEsc','$hostEsc')"
+            LinePuts "Added host-mask \"$hostMask\" to user \"$ftpUser\"."
         }
         DELHOST - DELIP {
             if {![IsTrue $hostCheck]} {
                 LinePuts "Host checking is disabled."
+                return 0
+            }
+            set hostMask [lindex $argList 2]
+            set hostEsc [SqlEscape $hostMask]
+
+            if {[db "DELETE FROM invite_hosts WHERE ftp_user='$ftpUserEsc' AND hostmask='$hostEsc'"]} {
+                LinePuts "Deleted host-mask \"$hostMask\" from user \"$ftpUser\"."
+            } else {
+                LinePuts "Invalid host-mask \"$hostMask\" for user \"$ftpUser\"."
                 return 1
             }
-            # TODO
         }
         HOSTS {
             if {![IsTrue $hostCheck]} {
                 LinePuts "Host checking is disabled."
+                return 0
+            }
+            LinePuts "Hosts for user \"$ftpUser\":"
+            set count 0
+
+            foreach row [db "SELECT hostmask FROM invite_hosts WHERE ftp_user='$ftpUserEsc' ORDER BY hostmask ASC"] {
+                incr count
+                LinePuts "- [lindex $row 0]"
+            }
+            if {!$count} {LinePuts "- No hosts found."}
+        }
+        DELUSER {
+            if {[db "DELETE FROM invite_users WHERE ftp_user='$ftpUserEsc'"]} {
+                db "DELETE FROM invite_hosts WHERE ftp_user='$ftpUserEsc'"
+                LinePuts "Deleted user \"$ftpUser\"."
+            } else {
+                LinePuts "Invalid user \"$ftpUser\", check \"SITE INVADMIN USERS\"."
                 return 1
             }
-            # TODO
         }
-        NICK - USER {
+        LIST - USERS {
+            iputs "| FTP User       | IRC User       | Last Online                |"
+            iputs "|--------------------------------------------------------------|"
+            set count 0
+
+            foreach row [db "SELECT ftp_user,irc_user,online,time FROM invite_users ORDER BY ftp_user ASC"] {
+                incr count
+                foreach {ftpUser ircUser online time} $row {break}
+                if {!$time} {
+                    set online "Never"
+                } elseif {$online} {
+                    set online "Now"
+                } else {
+                    set online [clock format $time -format "%b %d, %Y %H:%M:%S"]
+                }
+                iputs [format "| %-14s | %-14s | %-26s |" $ftpUser $ircUser $online]
+            }
+            if {!$count} {LinePuts "No users found."}
+        }
+        USER - NICK {
             if {![IsTrue $userCheck]} {
                 LinePuts "Host checking is disabled."
-                return 1
+                return 0
             }
-            # TODO
+            set ircUser [lindex $argList 2]
+            SetIrcUser $ftpUser $ircUser
+            LinePuts "IRC nick-name for user \"$ftpUser\" set to \"$ircUser\"."
         }
         PASS - PASSWD - PASSWORD {
-            # TODO
+            set password [lindex $argList 2]
+            SetPassword $ftpUser $password
+            LinePuts "Password for user \"$ftpUser\" set to \"$password\"."
         }
         default {
             LinePuts "Invite Admin Commands"
+
+            LinePuts ""
+            LinePuts "Manage Users:"
+            LinePuts "- SITE INVADMIN DELUSER <user>"
+            LinePuts "- SITE INVADMIN USERS"
 
             LinePuts ""
             LinePuts "Manage Hosts:"
@@ -230,7 +323,7 @@ proc ::siteInvite::Admin {argList} {
             if {[IsTrue $userCheck]} {
                 LinePuts "- SITE INVADMIN USER <user> <nick>"
             } else {
-                LinePuts "- Username checking is disabled."
+                LinePuts "- User name checking is disabled."
             }
 
             LinePuts ""
@@ -268,7 +361,7 @@ proc ::siteInvite::Invite {argList} {
     }
 
     # Validate IRC user-name.
-    if {$userCheck} {
+    if {[IsTrue $userCheck]} {
         set required [lindex $result 0]
         if {$required eq ""} {
             LinePuts "Your account does not have an IRC nick-name defined."
@@ -283,7 +376,7 @@ proc ::siteInvite::Invite {argList} {
     }
 
     # Check if the user has any IRC hosts added.
-    if {$hostCheck && ![db "SELECT count(*) FROM invite_hosts WHERE ftp_user='$ftpUserEsc'"]} {
+    if {[IsTrue $hostCheck] && ![db "SELECT count(*) FROM invite_hosts WHERE ftp_user='$ftpUserEsc'"]} {
         LinePuts "Your account does not have any IRC hosts added."
         LinePuts "Ask a siteop to add your IRC host-mask."
         return 1
@@ -334,13 +427,8 @@ proc ::siteInvite::Passwd {argList} {
             return 1
         }
     }
-    set hashEsc [SqlEscape [MakeHash $password]]
-    set userEsc [SqlEscape $user]
 
-    # Probably the most portable way to do this.
-    if {![db "UPDATE invite_users SET password='$hashEsc' WHERE ftp_user='$userEsc'"]} {
-        db "INSERT INTO invite_users(ftp_user,password) VALUES('$userEsc','$hashEsc')"
-    }
+    SetPassword $user $password
     LinePuts "Invite password set to \"$password\"."
     return 0
 }
