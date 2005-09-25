@@ -6,7 +6,7 @@
 #   Groups Module
 #
 # Author:
-#   neoxed (neoxed@gmail.com) June 14, 2005
+#   neoxed (neoxed@gmail.com) Jun 14, 2005
 #
 # Abstract:
 #   Implements a module to manage affiliated and banned groups.

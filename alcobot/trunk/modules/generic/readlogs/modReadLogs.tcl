@@ -6,7 +6,7 @@
 #   Log Reading Module
 #
 # Author:
-#   neoxed (neoxed@gmail.com) Auguest 22, 2005
+#   neoxed (neoxed@gmail.com) Aug 22, 2005
 #
 # Abstract:
 #   Implements a module to manage affiliated and banned groups.

@@ -6,7 +6,7 @@
 #   Constants
 #
 # Author:
-#   neoxed (neoxed@gmail.com) June 3, 2005
+#   neoxed (neoxed@gmail.com) Jun 3, 2005
 #
 # Abstract:
 #   Variable constants; options that would not be modified in most cases.

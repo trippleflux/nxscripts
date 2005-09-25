@@ -6,7 +6,7 @@
 #   Sample Module
 #
 # Author:
-#   neoxed (neoxed@gmail.com) April 16, 2005
+#   neoxed (neoxed@gmail.com) Apr 16, 2005
 #
 # Abstract:
 #   Implements a example module to give developers a starting point.

@@ -6,7 +6,7 @@
 #   Bot Core
 #
 # Author:
-#   neoxed (neoxed@gmail.com) April 16, 2005
+#   neoxed (neoxed@gmail.com) Apr 16, 2005
 #
 # Abstract:
 #   Implements the event handler, module system, and initialisation procedures.
