@@ -1,3 +1,4 @@
+#!/bin/tclsh
 #
 # AlcoBot - Alcoholicz site bot.
 # Copyright (c) 2005 Alcoholicz Scripting Team
@@ -10,6 +11,38 @@
 #
 # Abstract:
 #   Implements a SITE command to manage invite options.
+#
+# ioFTPD Installation:
+#   1. Copy the siteInvite.tcl file to x:\ioFTPD\scripts\.
+#   2. Configure the script, uncomment the two options for ioFTPD.
+#   3. Add the following to your ioFTPD.ini:
+#
+#   [FTP_Custom_Commands]
+#   invite    = TCL ..\scripts\siteInvite.tcl INVITE
+#   invadmin  = TCL ..\scripts\siteInvite.tcl ADMIN
+#   invpasswd = TCL ..\scripts\siteInvite.tcl PASSWD
+#
+#   [FTP_SITE_Permissions]
+#   invite    = !A *
+#   invadmin  = 1M
+#   invpasswd = !A *
+#
+#   4. Rehash or restart ioFTPD for the changes to take effect.
+#
+# glFTPD Installation:
+#   1. Copy the siteInvite.tcl file to /glftpd/bin/.
+#   2. Configure the script, uncomment the two options for glFTPD.
+#   3. Add the following to your glftpd.conf:
+#
+#   site_cmd INVITE    EXEC /bin/siteInvite.tcl[:space:]INVITE
+#   site_cmd INVADMIN  EXEC /bin/siteInvite.tcl[:space:]ADMIN
+#   site_cmd INVPASSWD EXEC /bin/siteInvite.tcl[:space:]PASSWD
+#
+#   custom-invite    !8 *
+#   custom-invadmin  1
+#   custom-invpasswd !8 *
+#
+#   4. Rehash or restart ioFTPD for the changes to take effect.
 #
 
 namespace eval ::siteInvite {
@@ -27,14 +60,10 @@ namespace eval ::siteInvite {
     #variable tclODBC "/usr/lib/tclodbc25.so"
 
     # hostCheck    - Check a user's IRC host before inviting them into the channel.
-    # hostFields   - Number of fields in the hostmask that are not wildcards.
-    # requireIdent - Require a valid ident in the hostmask.
     # userCheck    - Check a user's IRC name before inviting them into the channel,
     #                this only effective on networks that allow you register usernames.
-    variable hostCheck    True
-    variable hostFields   2
-    variable requireIdent False
-    variable userCheck    True
+    variable hostCheck True
+    variable userCheck True
 }
 
 interp alias {} IsTrue {} string is true -strict
@@ -161,6 +190,92 @@ proc ::siteInvite::LogMain {text} {
 }
 
 ####
+# Admin
+#
+# Change and update IRC invite user options.
+#
+proc ::siteInvite::Admin {argList} {
+    global user flags
+    variable hostCheck
+    variable hostFields
+    variable userCheck
+
+    # Check parameters and event names.
+    set event [string toupper [lindex $argList 0]]
+    array set params {
+        ADDHOST  3 ADDIP  3
+        DELHOST  3 DELIP  3
+        HOSTS    2
+        NICK     3 USER   3
+        PASS     3 PASSWD 3
+        PASSWORD 3
+    }
+    if {![info exists params($event)] || [llength $argList] != $params($event)} {
+        set event HELP
+    }
+
+    switch -- $event {
+        ADDHOST - ADDIP {
+            if {![IsTrue $hostCheck]} {
+                LinePuts "Host checking is disabled."
+                return 1
+            }
+            # TODO
+        }
+        DELHOST - DELIP {
+            if {![IsTrue $hostCheck]} {
+                LinePuts "Host checking is disabled."
+                return 1
+            }
+            # TODO
+        }
+        HOSTS {
+            if {![IsTrue $hostCheck]} {
+                LinePuts "Host checking is disabled."
+                return 1
+            }
+            # TODO
+        }
+        NICK - USER {
+            if {![IsTrue $userCheck]} {
+                LinePuts "Host checking is disabled."
+                return 1
+            }
+            # TODO
+        }
+        PASS - PASSWD - PASSWORD {
+            # TODO
+        }
+        default {
+            LinePuts "Invite Admin Commands"
+
+            LinePuts ""
+            LinePuts "Manage Hosts:"
+            if {[IsTrue $hostCheck]} {
+                LinePuts "- SITE INVADMIN ADDHOST <user> <host>"
+                LinePuts "- SITE INVADMIN DELHOST <user> <host>"
+                LinePuts "- SITE INVADMIN HOSTS   <user>"
+            } else {
+                LinePuts "- Host checking is disabled."
+            }
+
+            LinePuts ""
+            LinePuts "Set IRC User:"
+            if {[IsTrue $userCheck]} {
+                LinePuts "- SITE INVADMIN USER <user> <nick>"
+           } else {
+                LinePuts "- Username checking is disabled."
+            }
+
+            LinePuts ""
+            LinePuts "Set Password:"
+            LinePuts "- SITE INVADMIN PASSWD <user> <password>"
+        }
+    }
+    return 0
+}
+
+####
 # Invite
 #
 # Invites a user into the IRC channels.
@@ -171,7 +286,7 @@ proc ::siteInvite::Invite {argList} {
     variable userCheck
 
     if {[llength $argList] != 1} {
-        LinePuts "Usage: SITE INVITE <IRC user>"
+        LinePuts "Usage: SITE INVITE <nick>"
         return 1
     }
     # TODO
@@ -179,103 +294,17 @@ proc ::siteInvite::Invite {argList} {
 }
 
 ####
-# Update
+# Passwd
 #
-# Change and update IRC invite user options.
+# Allows a user to set his or her own password.
 #
-proc ::siteInvite::Update {argList} {
-    global user flags
-    variable hostCheck
-    variable hostFields
-    variable requireIdent
-    variable userCheck
-
-    set argLength [llength $argList]
-    set event [string toupper [lindex $argList 0]]
-    switch -- $event {
-        ADDHOST - ADDIP {
-            # Add an IRC host.
-            if {![IsTrue $hostCheck]} {
-                LinePuts "Host checking is disabled."
-                return 1
-            }
-            if {$argLength != 2} {
-                LinePuts "Usage: SITE IRCINVITE $event <host>"
-                return 1
-            }
-
-            # TODO
-        }
-        DELHOST - DELIP {
-            # Remove an IRC host.
-            if {![IsTrue $hostCheck]} {
-                LinePuts "Host checking is disabled."
-                return 1
-            }
-            if {$argLength != 2} {
-                LinePuts "Usage: SITE IRCINVITE $event <host>"
-                return 1
-            }
-
-            # TODO
-        }
-        HOSTS {
-            # List IRC hosts.
-            if {![IsTrue $hostCheck]} {
-                LinePuts "Host checking is disabled."
-                return 1
-            }
-
-            # TODO
-        }
-        NICK - USER {
-            # Set IRC username.
-            if {![IsTrue $userCheck]} {
-                LinePuts "Host checking is disabled."
-                return 1
-            }
-            if {$argLength != 2} {
-                LinePuts "Usage: SITE IRCINVITE $event <IRC user>"
-                return 1
-            }
-
-            # TODO
-        }
-        PASS - PASSWD - PASSWORD {
-            # Set IRC invite password.
-            if {$argLength != 2} {
-                LinePuts "Usage: SITE IRCINVITE $event <password>"
-                return 1
-            }
-
-            # TODO
-        }
-        default {
-            LinePuts "IRC invite command help."
-
-            LinePuts ""
-            LinePuts "Manage Hosts:"
-            if {[IsTrue $hostCheck]} {
-                LinePuts "- SITE IRCINVITE ADDHOST <host>"
-                LinePuts "- SITE IRCINVITE DELHOST <host>"
-                LinePuts "- SITE IRCINVITE HOSTS"
-            } else {
-                LinePuts "- Host checking is disabled."
-            }
-
-            LinePuts ""
-            LinePuts "Set IRC User:"
-            if {[IsTrue $userCheck]} {
-                LinePuts "- SITE IRCINVITE USER <IRC user>"
-           } else {
-                LinePuts "- Username checking is disabled."
-            }
-
-            LinePuts ""
-            LinePuts "Set Password:"
-            LinePuts "- SITE IRCINVITE PASS <password>"
-        }
+proc ::siteInvite::Passwd {argList} {
+    global user
+    if {[llength $argList] != 1} {
+        LinePuts "Usage: SITE INVPASSWD <password>"
+        return 1
     }
+    # TODO
     return 0
 }
 
@@ -317,11 +346,14 @@ proc ::siteInvite::Main {} {
 
     } elseif {[DbConnect]} {
         set event [string toupper [lindex $argList 0]]
+        set argList [lrange $argList 1 end]
 
-        if {$event eq "INVITE"} {
-            set result [Invite [lrange $argList 1 end]]
-        } elseif {$event eq "UPDATE"} {
-            set result [Update [lrange $argList 1 end]]
+        if {$event eq "ADMIN"} {
+            set result [Admin $argList]
+        } elseif {$event eq "INVITE"} {
+            set result [Invite $argList]
+        } elseif {$event eq "PASSWD"} {
+            set result [Passwd $argList]
         } else {
             LinePuts "Unknown event \"$event\"."
         }
