@@ -14,8 +14,10 @@
 #
 # ioFTPD Installation:
 #   1. Copy the siteInvite.tcl file to x:\ioFTPD\scripts\.
-#   2. Configure the script, uncomment the two options for ioFTPD.
-#   3. Add the following to your ioFTPD.ini:
+#   2. Copy the AlcoExt0.x and tclodbc2.x directories from
+#      Eggdrop\AlcoBot\libs\ to x:\ioFTPD\lib\.
+#   3. Configure the script and uncomment the logPath option for ioFTPD.
+#   4. Add the following to your ioFTPD.ini:
 #
 #   [FTP_Custom_Commands]
 #   invite    = TCL ..\scripts\siteInvite.tcl INVITE
@@ -27,11 +29,11 @@
 #   invadmin  = 1M
 #   invpasswd = !A *
 #
-#   4. Rehash or restart ioFTPD for the changes to take effect.
+#   5. Rehash or restart ioFTPD for the changes to take effect.
 #
 # glFTPD Installation:
 #   1. Copy the siteInvite.tcl file to /glftpd/bin/.
-#   2. Configure the script, uncomment the two options for glFTPD.
+#   2. Configure the script and uncomment the logPath option for glFTPD.
 #   3. Add the following to your glftpd.conf:
 #
 #   site_cmd INVITE    EXEC /bin/siteInvite.tcl[:space:]INVITE
@@ -48,16 +50,11 @@
 namespace eval ::siteInvite {
     # dataSource - Name of the ODBC data source.
     # logPath    - Path to the FTP daemon's log directory.
-    # tclODBC    - Path to the TclODBC library extension.
     variable dataSource "Alcoholicz"
 
-    # Uncomment the following lines for ioFTPD:
+    # Uncomment the following line for your FTPD:
     #variable logPath   "../logs/"
-    #variable tclODBC   "./tclodbc25.dll"
-
-    # Uncomment the following lines for glFTPD:
     #variable logPath   "/glftpd/ftp-data/logs/"
-    #variable tclODBC   "/usr/lib/tclodbc25.so"
 
     # hostCheck - Check a user's IRC host before inviting them into the channel.
     # userCheck - Check a user's IRC name before inviting them into the channel,
@@ -103,12 +100,7 @@ proc ::siteInvite::ArgsToList {argStr} {
 #
 proc ::siteInvite::DbConnect {} {
     variable dataSource
-    variable tclODBC
 
-    if {[catch {load $tclODBC} message]} {
-        LinePuts "Unable to load TclODBC: $message"
-        return 0
-    }
     if {[catch {database connect [namespace current]::db "DSN=$dataSource"} message]} {
         LinePuts "Unable to connect to database \"$dataSource\"."
         return 0
@@ -304,7 +296,6 @@ proc ::siteInvite::Passwd {argList} {
 proc ::siteInvite::Main {} {
     variable isWindows
     variable logPath
-    variable tclODBC
 
     if {$::tcl_platform(platform) eq "windows"} {
         set isWindows 1
@@ -337,8 +328,11 @@ proc ::siteInvite::Main {} {
     if {![info exists logPath] || ![file exists $logPath]} {
         LinePuts "Invalid log path, check configuration."
 
-    } elseif {![info exists tclODBC] || ![file exists $tclODBC]} {
-        LinePuts "Invalid path to the TclODBC library, check configuration."
+    } elseif {[catch {package require AlcoExt} message]} {
+        LinePuts $message
+
+    } elseif {[catch {package require tclodbc} message]} {
+        LinePuts $message
 
     } elseif {[DbConnect]} {
         set event [string toupper [lindex $argList 0]]
