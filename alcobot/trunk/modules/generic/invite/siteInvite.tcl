@@ -68,7 +68,7 @@ namespace eval ::siteInvite {
     #  N - Numbers in the password.
     #  S - Special characters in the password: !@#$%^&*()_+|-=`{}[]:";'<>?,.
     #  U - FTP user name must NOT be in the password.
-    variable passLength 5
+    variable passLength 6
     variable passFlags  "ANU"
 }
 
@@ -203,10 +203,9 @@ proc ::siteInvite::Admin {argList} {
         DELHOST  3 DELIP  3
         HOSTS    2
         DELUSER  2
-        LIST     1 USERS 1
+        LIST     1 USERS  1
         NICK     3 USER   3
-        PASS     3 PASSWD 3
-        PASSWORD 3
+        PASS     3 PASSWD 3 PASSWORD 3
     }
     if {![info exists params($event)] || [llength $argList] != $params($event)} {
         set event HELP
@@ -221,11 +220,11 @@ proc ::siteInvite::Admin {argList} {
                 return 0
             }
             set hostMask [lindex $argList 2]
-            if {![regexp {^.+@.+$} $hostMask]} {
-                LinePuts "Invalid hostmask, must be \"ident@host\"."
+
+            if {![string match "*?@?*" $hostMask]} {
+                LinePuts "Invalid host-mask, must be \"ident@host\"."
                 return 1
             }
-
             db "REPLACE INTO invite_hosts(ftp_user,hostmask) VALUES('$ftpUserEsc','[SqlEscape $hostMask]')"
             LinePuts "Added host-mask \"$hostMask\" to user \"$ftpUser\"."
         }
@@ -279,7 +278,7 @@ proc ::siteInvite::Admin {argList} {
                 } elseif {$online} {
                     set online "Now"
                 } else {
-                    set online [clock format $time -format "%b %d, %Y %H:%M:%S"]
+                    set online [clock format $time -format "%b %d, %Y %H:%M:%S GMT" -gmt 1]
                 }
                 iputs [format "| %-14s | %-14s | %-26s |" $ftpUser $ircUser $online]
             }
@@ -459,7 +458,7 @@ proc ::siteInvite::Main {} {
         proc iputs {text} {puts stdout $text}
         proc putlog {text} {
             set filePath [file join $::siteInvite::logPath "glftpd.log"]
-            set timeStamp [clock format [clock seconds] -format "%a %b %d %T %Y"]
+            set timeStamp [clock format [clock seconds] -format "%a %b %d %T %Y" -gmt 0]
             if {![catch {set handle [open $filePath a]} error]} {
                 puts $handle [format "%.24s %s" $timeStamp $text]
                 close $handle
