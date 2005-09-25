@@ -49,11 +49,11 @@ proc ::alcoholicz::PreTimes::DbConnect {} {
 }
 
 ####
-# LogHandler
+# LogEvent
 #
 # Handle NEWDIR and PRE log events.
 #
-proc ::alcoholicz::PreTimes::LogHandler {event destSection pathSection path data} {
+proc ::alcoholicz::PreTimes::LogEvent {event destSection pathSection path data} {
     variable defLimit
     upvar ::alcoholicz::variables variables
 
@@ -107,7 +107,7 @@ proc ::alcoholicz::PreTimes::LogHandler {event destSection pathSection path data
             LogError ModPreTime $message
         }
     } else {
-        LogError ModPreTime "Unknown event \"$event\"."
+        LogError ModPreTime "Unknown log event \"$event\"."
     }
     return 1
 }
@@ -197,16 +197,16 @@ proc ::alcoholicz::PreTimes::Load {firstLoad} {
 
     # Register event callbacks.
     if {[IsTrue $addOnPre]} {
-        ScriptRegister   pre PRE     [namespace current]::LogHandler True
-        ScriptRegister   pre PRE-MP3 [namespace current]::LogHandler True
+        ScriptRegister   pre PRE     [namespace current]::LogEvent True
+        ScriptRegister   pre PRE-MP3 [namespace current]::LogEvent True
     } else {
-        ScriptUnregister pre PRE     [namespace current]::LogHandler
-        ScriptUnregister pre PRE-MP3 [namespace current]::LogHandler
+        ScriptUnregister pre PRE     [namespace current]::LogEvent
+        ScriptUnregister pre PRE-MP3 [namespace current]::LogEvent
     }
     if {[IsTrue $showOnNew]} {
-        ScriptRegister   pre NEWDIR [namespace current]::LogHandler True
+        ScriptRegister   pre NEWDIR [namespace current]::LogEvent True
     } else {
-        ScriptUnregister pre NEWDIR [namespace current]::LogHandler
+        ScriptUnregister pre NEWDIR [namespace current]::LogEvent
     }
 
     # Create channel commands.
@@ -236,9 +236,9 @@ proc ::alcoholicz::PreTimes::Load {firstLoad} {
 #
 proc ::alcoholicz::PreTimes::Unload {} {
     # Remove event callbacks.
-    ScriptUnregister pre PRE     [namespace current]::LogHandler
-    ScriptUnregister pre PRE-MP3 [namespace current]::LogHandler
-    ScriptUnregister pre NEWDIR  [namespace current]::LogHandler
+    ScriptUnregister pre PRE     [namespace current]::LogEvent
+    ScriptUnregister pre PRE-MP3 [namespace current]::LogEvent
+    ScriptUnregister pre NEWDIR  [namespace current]::LogEvent
 
     catch {db disconnect}
     return
