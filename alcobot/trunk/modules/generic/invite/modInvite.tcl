@@ -104,20 +104,84 @@ proc ::alcoholicz::Invite::OnChannels {ircUser {ignoreChannel ""}} {
 }
 
 ####
+# SendTheme
+#
+# Send a themed message to the user and warning section.
+#
+proc ::alcoholicz::Invite::SendTheme {user type {valueList ""}} {
+    variable warnSection
+
+    if {$warnSection ne ""} {
+        SendSectionTheme $warnSection $type $valueList
+    }
+    if {[string equal -length 9 "inviteBad" $type]} {
+        # Display a less verbose message to the possible intruder.
+        set type "inviteBad"
+    }
+    SendTargetTheme "PRIVMSG $user" $type $valueList
+}
+
+####
 # Process
 #
 # Processes an invite request, performs IRC name and host checks
 # if enabled before inviting the specified IRC user.
 #
-proc ::alcoholicz::Invite::Process {ircUser ircHost ftpUser group groupList flags} {
-    # TODO:
-    # - If IRC name checking is enabled, validate the users name.
-    # - If host checking is enabled, validate the users host.
-    # - Invite user to the defined channels:
-    #   1) Skip channels they do not have access to it (permissions).
-    #   2) Log a partyline error if the bot is not opped or in a channel.
-    #   3) Announce the user before inviting them.
-    #   4) Finally, send the /INVITE command.
+proc ::alcoholicz::Invite::Process {ircUser ircHost ftpUser ftpGroup ftpGroupList ftpFlags} {
+    variable channels
+    variable hostCheck
+    variable userCheck
+
+    set time [clock seconds]
+    if {![DbConnect]} {
+        SendTheme $ircUser inviteDbDown [list $ftpUser $ircUser]
+        return
+    }
+
+    set ftpUserEsc [SqlEscape $ftpUser]
+    if {$userCheck} {
+        # Validate IRC username.
+        set result [db "SELECT irc_user FROM invite_users WHERE ftp_user='$ftpUserEsc'"]
+        if {![string equal -nocase [lindex $result 0 0] $ircUser]} {
+            SendTheme $ircUser inviteBadUser [list $ftpUser $ircUser $ircHost]
+            return
+        }
+    }
+    if {$hostCheck} {
+        # Validate IRC host.
+        set valid 0
+        foreach result [db "SELECT hostmask FROM invite_hosts WHERE ftp_user='$ftpUserEsc'"] {
+            if {[string match -nocase [lindex $result 0] $ircHost]} {
+                set valid 1; break
+            }
+        }
+        if {!$valid} {
+            SendTheme $ircUser inviteBadHost [list $ftpUser $ircUser $ircHost]
+            return
+        }
+    }
+
+    # Update the user's online status and time stamp.
+    set online [OnChannels $ircUser]
+    db "UPDATE invite_users SET online='$online', time='$time' WHERE ftp_user='$ftpUserEsc'"
+
+    set failed [list]
+    foreach channel [lsort [array names channels]] {
+        if {![PermCheck $channels($channel) $ftpUser $ftpGroupList $ftpFlags]} {continue}
+
+        # Make sure the bot is opped in the channel.
+        if {![validchan $channel] || ![botonchan $channel] || ![botisop $channel]} {
+            lappend failed $channel
+        } else {
+            SendTargetTheme "PRIVMSG $channel" INVITE [list $ftpUser $ftpGroup $ircUser]
+            putquick "INVITE $ircUser $channel"
+        }
+    }
+
+    if {[llength $failed]} {
+        set failed [JoinLiteral [lsort $failed]]
+        SendTheme $ircUser inviteFailed [list $ftpUser $ircUser $failed]
+    }
     return
 }
 
@@ -131,13 +195,24 @@ proc ::alcoholicz::Invite::Command {user host handle target argc argv} {
         CmdSendHelp $user message $::lastbind
         return
     }
-    # TODO:
-    # - Lookup the user's DB record, return if they don't exist.
-    # - Validate the password, return if invalid.
-    # - Get group list and flags for the user.
+    set ftpUser [lindex $argv 0]
+    set password [lindex $argv 1]
+
+    if {[DbConnect]} {
+        # Validate password.
+        set result [db "SELECT password FROM invite_users WHERE ftp_user='[SqlEscape $ftpUser]'"]
+        if {![llength $result] || ![CheckHash [lindex $result 0 0] $password]} {
+            SendTheme $user inviteBadPass [list $ftpUser $user $host]
+            return
+        }
+
+        # TODO: Retrieve the user's group list and flags.
+        Process $user $host $ftpUser TODO TODO TODO
+    } else {
+        SendTheme $user inviteDbDown [list $ftpUser $user]
+    }
     return
 }
-
 
 ####
 # ChanEvent
@@ -159,6 +234,10 @@ proc ::alcoholicz::Invite::ChanEvent {event args} {
         }
         NICK {
             foreach {user host handle channel newUser} $args {break}
+            # When an IRC user changes their nickname, their online status is
+            # set to offline instead of updating the nickname. This is done to
+            # prevent an exploit and race condition introduced when multiple
+            # bots attempt to change a user's IRC nickname.
             set online 0
         }
         PART - QUIT {
@@ -197,14 +276,14 @@ proc ::alcoholicz::Invite::LogEvent {event destSection pathSection path data} {
         LogError ModInvite "Invalid number of items in log data \"$data\"."
         return 1
     }
-    foreach {user group ircUser groupList flags} $data {break}
+    foreach {ftpUser ftpGroup ftpGroupList ftpFlags ircUser} $data {break}
 
     if {$hostCheck} {
         variable whois
-        set whois($ircUser) [list $user $group $groupList $flags]
+        set whois($ircUser) [list $ftpUser $ftpGroup $ftpGroupList $ftpFlags]
         putquick "WHOIS $ircUser"
     } else {
-        Process $ircUser "not@used" $user $group $groupList $flags
+        Process $ircUser "disabled@disabled" $ftpUser $ftpGroup $ftpGroupList $ftpFlags
     }
     return 0
 }
@@ -228,9 +307,9 @@ proc ::alcoholicz::Invite::Whois {server code text} {
 
     # Only proceed if we performed the WHOIS on this user.
     if {[info exists whois($ircUser)]} {
-        foreach {user group groupList flags} $whois($ircUser) {break}
+        foreach {ftpUser ftpGroup ftpGroupList ftpFlags} $whois($ircUser) {break}
         unset whois($ircUser)
-        Process $ircUser "$ident@$host" $user $group $groupList $flags
+        Process $ircUser "$ident@$host" $ftpUser $ftpGroup $ftpGroupList $ftpFlags
     }
     return
 }
@@ -247,6 +326,8 @@ proc ::alcoholicz::Invite::Load {firstLoad} {
     variable userCheck
     variable warnSection
     upvar ::alcoholicz::configHandle configHandle
+    upvar ::alcoholicz::chanSections chanSections
+    upvar ::alcoholicz::pathSections pathSections
 
     if {$firstLoad} {
         package require tclodbc
@@ -258,6 +339,13 @@ proc ::alcoholicz::Invite::Load {firstLoad} {
     set hostCheck [IsTrue $hostCheck]
     set userCheck [IsTrue $userCheck]
 
+    # Check if the defined section exists.
+    if {$warnSection ne "" && ![info exists chanSections($warnSection)] && ![info exists pathSections($warnSection)]} {
+        LogError ModInvite "Invalid channel section \"$warnSection\"."
+        set warnSection ""
+    }
+
+    # Parse invite channels.
     unset -nocomplain channels
     foreach entry [ArgsToList [ConfigGet $configHandle Module::Invite channels]] {
         set entry [split $entry]
