@@ -7,7 +7,7 @@ Module Name:
     tcldUnixMain.c
 
 Author:
-    neoxed (neoxed@gmail.com) July 20, 2005
+    neoxed (neoxed@gmail.com) Jul 20, 2005
 
 Abstract:
     BSD/Linux/UNIX application entry point.

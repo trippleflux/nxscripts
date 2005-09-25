@@ -7,7 +7,7 @@ Module Name:
     tcldWin.h
 
 Author:
-    neoxed (neoxed@gmail.com) July 17, 2005
+    neoxed (neoxed@gmail.com) Jul 17, 2005
 
 Abstract:
     Windows specific includes and defintions.

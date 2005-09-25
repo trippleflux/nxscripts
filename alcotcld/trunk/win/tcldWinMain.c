@@ -7,7 +7,7 @@ Module Name:
     tcldWinMain.c
 
 Author:
-    neoxed (neoxed@gmail.com) July 19, 2005
+    neoxed (neoxed@gmail.com) Jul 19, 2005
 
 Abstract:
     Windows application entry point.
