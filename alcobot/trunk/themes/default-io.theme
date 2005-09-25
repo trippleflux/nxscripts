@@ -150,7 +150,6 @@ CLOSE       = [b][[c1]Close[c]][b] [b]%(user)[b]/%(group) has closed the server 
 OPEN        = [b][[c1]Open[c]][b] [b]%(user)[b]/%(group) has opened the server, closed for %(duration).
 GIVE        = [b][[c1]Give[c]][b] [b]%(user)[b]/%(group) gave %(credits) of credits to [b]%(target)[b].
 TAKE        = [b][[c1]Take[c]][b] [b]%(user)[b]/%(group) took %(credits) of credits from [b]%(target)[b].
-INVITE      = [b][[c1]Invite[c]][b] [b]%(user)[b]/%(group) invited himself as [b]%(nick)[b].
 REQUEST     = [b][[c1]Request[c]][b] [b]%(request)[b] (ID #%(id)) added by [b]%(user)[b]/%(group).
 REQDEL      = [b][[c1]Request[c]][b] [b]%(request)[b] (ID #%(id)) deleted by [b]%(user)[b]/%(group) after %(age).
 REQFILL     = [b][[c1]Request[c]][b] [b]%(request)[b] (ID #%(id)) filled by [b]%(user)[b]/%(group) after %(age).
@@ -190,6 +189,15 @@ helpHead    = [b]Supported Commands:[b]
 helpType    = [u]%(type) Commands:[u]
 helpBody    = %(command) %(arguments) - %(description)
 helpFoot    =
+
+# Module: invite
+inviteBad     = [b][[c1]Invite[c]][b] Incorrect username, password, or IRC host.
+inviteBadHost = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) using an unknown IRC host.
+inviteBadPass = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) used an incorrect account or password.
+inviteBadUser = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) used the wrong IRC nickname.
+inviteDbDown  = [b][[c1]Invite[c]][b] Database offline, unable to invite [b]%(nick)[b].
+inviteFailed  = [b][[c1]Invite[c]][b] I need ops in [b]%(channels)[b] to invite [b]%(nick)[b].
+inviteSuccess = [b][[c1]Invite[c]][b] [b]%(user)[b]/%(group) invited himself as [b]%(nick)[b].
 
 # Module: nxtools
 approveHead = [b]Approved Releases:[b]

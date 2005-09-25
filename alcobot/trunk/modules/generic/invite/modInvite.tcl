@@ -161,9 +161,14 @@ proc ::alcoholicz::Invite::Process {ircUser ircHost ftpUser ftpGroup ftpGroupLis
         }
     }
 
-    # Update the user's online status and time stamp.
+    # Update the user's IRC user name, online status, and time stamp.
     set online [OnChannels $ircUser]
-    db "UPDATE invite_users SET online='$online', time='$time' WHERE ftp_user='$ftpUserEsc'"
+    set query "UPDATE invite_users SET "
+    if {!$userCheck} {
+        append query "irc_user='[SqlEscape $ircUser]', "
+    }
+    append query "online='$online', time='$time' WHERE ftp_user='$ftpUserEsc'"
+    db $query
 
     set failed [list]
     foreach channel [lsort [array names channels]] {
@@ -173,7 +178,7 @@ proc ::alcoholicz::Invite::Process {ircUser ircHost ftpUser ftpGroup ftpGroupLis
         if {![validchan $channel] || ![botonchan $channel] || ![botisop $channel]} {
             lappend failed $channel
         } else {
-            SendTargetTheme "PRIVMSG $channel" INVITE [list $ftpUser $ftpGroup $ircUser]
+            SendTargetTheme "PRIVMSG $channel" inviteSuccess [list $ftpUser $ftpGroup $ircUser]
             putquick "INVITE $ircUser $channel"
         }
     }
