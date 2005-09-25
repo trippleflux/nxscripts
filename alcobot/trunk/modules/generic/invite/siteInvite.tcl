@@ -49,25 +49,24 @@ namespace eval ::siteInvite {
     # dataSource - Name of the ODBC data source.
     # logPath    - Path to the FTP daemon's log directory.
     # tclODBC    - Path to the TclODBC library extension.
-    variable dataSource   "Alcoholicz"
+    variable dataSource "Alcoholicz"
 
     # Uncomment the following lines for ioFTPD:
-    #variable logPath "../logs/"
-    #variable tclODBC "./tclodbc25.dll"
+    #variable logPath   "../logs/"
+    #variable tclODBC   "./tclodbc25.dll"
 
     # Uncomment the following lines for glFTPD:
-    #variable logPath "/glftpd/ftp-data/logs/"
-    #variable tclODBC "/usr/lib/tclodbc25.so"
+    #variable logPath   "/glftpd/ftp-data/logs/"
+    #variable tclODBC   "/usr/lib/tclodbc25.so"
 
-    # hostCheck    - Check a user's IRC host before inviting them into the channel.
-    # userCheck    - Check a user's IRC name before inviting them into the channel,
-    #                this only effective on networks that allow you register usernames.
-    variable hostCheck True
-    variable userCheck True
+    # hostCheck - Check a user's IRC host before inviting them into the channel.
+    # userCheck - Check a user's IRC name before inviting them into the channel,
+    #             this only effective on networks that allow you register usernames.
+    variable hostCheck  True
+    variable userCheck  True
 }
 
 interp alias {} IsTrue {} string is true -strict
-interp alias {} IsFalse {} string is false -strict
 
 ####
 # ArgsToList
@@ -141,52 +140,6 @@ proc ::siteInvite::SqlEscape {string} {
 #
 proc ::siteInvite::LinePuts {text} {
     iputs [format "| %-60s |" $text]
-}
-
-####
-# LogError
-#
-# Write a message to Error.log.
-#
-proc ::siteInvite::LogError {text} {
-    variable isWindows
-    variable logPath
-
-    if {$isWindows} {
-        set filePath [file join $logPath "Error.log"]
-        set timeStamp [clock format [clock seconds] -format "%m-%d-%Y %H:%M:%S"]
-    } else {
-        set filePath [file join $logPath "error.log"]
-        set timeStamp [clock format [clock seconds] -format "%a %b %d %T %Y"]
-        set timeStamp [format "%.24s \[%-8d\]" $timeStamp [pid]]
-    }
-
-    if {![catch {set handle [open $filePath a]} error]} {
-        puts $handle "$timeStamp $text"
-        close $handle
-    } else {iputs $error}
-}
-
-####
-# LogMain
-#
-# Write a message to ioFTPD.log or glftpd.log.
-#
-proc ::siteInvite::LogMain {text} {
-    variable isWindows
-    variable logPath
-
-    if {$isWindows} {
-        putlog $text
-    } else {
-        set filePath [file join $logPath "glftpd.log"]
-        set timeStamp [clock format [clock seconds] -format "%a %b %d %T %Y"]
-
-        if {![catch {set handle [open $filePath a]} error]} {
-            puts $handle [format "%.24s %s" $timeStamp $text]
-            close $handle
-        } else {iputs $error}
-    }
 }
 
 ####
@@ -289,7 +242,16 @@ proc ::siteInvite::Invite {argList} {
         LinePuts "Usage: SITE INVITE <nick>"
         return 1
     }
-    # TODO
+    set ircUser [lindex $argList 0]
+
+    if {$userCheck} {
+        # TODO: Check IRC user.
+    }
+    if {$hostCheck} {
+        # TODO: Check if there hosts and list them.
+    }
+
+    putlog "INVITE: \"$user\" \"$group\" \"$groups\" \"$flags\" \"$ircUser\""
     return 0
 }
 
@@ -333,7 +295,15 @@ proc ::siteInvite::Main {} {
         set flags   $env(FLAGS)
 
         # Emulate ioFTPD's Tcl commands.
-        proc ::iputs {text} {puts stdout $text}
+        proc iputs {text} {puts stdout $text}
+        proc putlog {text} {
+            set filePath [file join $::siteInvite::logPath "glftpd.log"]
+            set timeStamp [clock format [clock seconds] -format "%a %b %d %T %Y"]
+            if {![catch {set handle [open $filePath a]} error]} {
+                puts $handle [format "%.24s %s" $timeStamp $text]
+                close $handle
+            } else {iputs $error}
+        }
     }
 
     iputs ".-\[Invite\]----------------------------------------------------."

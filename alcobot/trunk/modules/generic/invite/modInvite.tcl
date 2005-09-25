@@ -178,7 +178,7 @@ proc ::alcoholicz::Invite::Process {ircUser ircHost ftpUser ftpGroup ftpGroupLis
         if {![validchan $channel] || ![botonchan $channel] || ![botisop $channel]} {
             lappend failed $channel
         } else {
-            SendTargetTheme "PRIVMSG $channel" inviteSuccess [list $ftpUser $ftpGroup $ircUser]
+            SendTargetTheme "PRIVMSG $channel" INVITE [list $ftpUser $ftpGroup $ircUser]
             putquick "INVITE $ircUser $channel"
         }
     }

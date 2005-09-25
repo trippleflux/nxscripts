@@ -170,7 +170,7 @@ inviteBadPass = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) us
 inviteBadUser = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) used the wrong IRC nickname.
 inviteDbDown  = [b][[c1]Invite[c]][b] Database offline, unable to invite [b]%(nick)[b].
 inviteFailed  = [b][[c1]Invite[c]][b] I need ops in [b]%(channels)[b] to invite [b]%(nick)[b].
-inviteSuccess = [b][[c1]Invite[c]][b] [b]%(user)[b]/%(group) invited himself as [b]%(nick)[b].
+INVITE        = [b][[c1]Invite[c]][b] [b]%(user)[b]/%(group) invited himself as [b]%(nick)[b].
 
 # Module: pretimes
 preHead     = [b]Pre Times:[b]
