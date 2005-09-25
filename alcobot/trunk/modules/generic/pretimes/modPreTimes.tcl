@@ -141,7 +141,7 @@ proc ::alcoholicz::PreTimes::Search {user host handle channel target argc argv} 
     if {[DbConnect]} {
         set result [db $query]
 
-        # If there's more than one entry, send the output to
+        # If there's more than one row, send the output to
         # $target. Otherwise the output is sent to the channel.
         if {[llength $result] > 1} {
             SendTargetTheme $target preHead [list $pattern]
@@ -151,9 +151,9 @@ proc ::alcoholicz::PreTimes::Search {user host handle channel target argc argv} 
         }
 
         # Display results.
-        foreach entry $result {
+        foreach row $result {
             incr count
-            foreach {id preTime section release files size disks nuked nukeTime reason} $entry {break}
+            foreach {id preTime section release files size disks nuked nukeTime reason} $row {break}
             set age [expr {[clock seconds] - $preTime}]
 
             if {$nuked} {
