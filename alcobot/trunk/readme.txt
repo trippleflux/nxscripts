@@ -97,6 +97,22 @@ Path: modules/generic/help
 2. Reload AlcoBot by entering the command ".alcobot reload" in DCC chat.
 
 ############################################################
+# invite                                                   #
+############################################################
+
+FTPD: All
+Info: Invite users into selected IRC channel(s).
+Path: modules/generic/invite
+
+1. Add "invite" to the module list in AlcoBot.conf.
+2. Create an ODBC DSN connection to your database. Use the table schema
+   provided in invite.sql, which is located in the module's directory.
+3. Configure the [Module::Invite] section in AlcoBot.conf.
+4. Reload AlcoBot by entering the command ".alcobot reload" in DCC chat.
+5. Install the related SITE commands by following the directions
+   in siteInvite.tcl, also located in the module's directory.
+
+############################################################
 # nxtools                                                  #
 ############################################################
 
