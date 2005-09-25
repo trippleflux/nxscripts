@@ -61,6 +61,15 @@ namespace eval ::siteInvite {
     #             this only effective on networks that allow you register usernames.
     variable hostCheck  True
     variable userCheck  True
+
+    # passLength - Minimum length of a password, in characters.
+    # passFlags  - Password security checks, these only apply to the "SITE INVPASSWD" command.
+    #  A - Alphanumeric characters in the password (e.g. a-z or A-Z).
+    #  N - Numbers in the password.
+    #  S - Special characters in the password: !@#$%^&*()_+|-=`{}[]:";'<>?,.
+    #  U - FTP user name must NOT be in the password.
+    variable passLength 5
+    variable passFlags  "ANU"
 }
 
 interp alias {} IsTrue {} string is true -strict
@@ -117,21 +126,33 @@ proc ::siteInvite::DbConnect {} {
 }
 
 ####
-# SqlEscape
-#
-# Escape SQL quote characters with a backslash.
-#
-proc ::siteInvite::SqlEscape {string} {
-    return [string map {\\ \\\\ ` \\` ' \\' \" \\\"} $string]
-}
-
-####
 # LinePuts
 #
 # Write a formatted line to the client's FTP control channel.
 #
 proc ::siteInvite::LinePuts {text} {
     iputs [format "| %-60s |" $text]
+}
+
+####
+# MakeHash
+#
+# Creates a PKCS #5 v2 hash with a 4 byte salt and hashed 100 rounds with SHA-256.
+# Format: <hex encoded salt>$<hex encoded hash>
+#
+proc ::siteInvite::MakeHash {password} {
+    set salt [::alcoholicz::crypt rand 4]
+    set hash [::alcoholicz::crypt pkcs5 -v2 -rounds 100 sha256 $salt $password]
+    return [join [list [::alcoholicz::encode hex $salt] [::alcoholicz::encode hex $hash]] "$"]
+}
+
+####
+# SqlEscape
+#
+# Escape SQL quote characters with a backslash.
+#
+proc ::siteInvite::SqlEscape {string} {
+    return [string map {\\ \\\\ ` \\` ' \\' \" \\\"} $string]
 }
 
 ####
@@ -280,11 +301,47 @@ proc ::siteInvite::Invite {argList} {
 #
 proc ::siteInvite::Passwd {argList} {
     global user
+    variable passLength
+    variable passFlags
+
     if {[llength $argList] != 1} {
         LinePuts "Usage: SITE INVPASSWD <password>"
         return 1
     }
-    # TODO
+    set password [lindex $argList 0]
+
+    if {[string length $password] < $passLength} {
+        LinePuts "The password must be at least $passLength character(s)."
+        return 1
+    }
+
+    # Security flag checks (hackish, but better than nothing).
+    if {[string first "A" $passFlags] != -1 && ![regexp -all {\w} $password]} {
+        LinePuts "Your password must contain alphanumeric characters."
+        return 1
+    }
+    if {[string first "N" $passFlags] != -1 && ![regexp -all {\d} $password]} {
+        LinePuts "Your password must contain numbers (e.g. 0-9)."
+        return 1
+    }
+    if {[string first "S" $passFlags] != -1 && ![regexp -all {\W} $password]} {
+        LinePuts "Your password must contain special characters."
+        return 1
+    }
+    if {[string first "U" $passFlags] != -1} {
+        if {[string first [string toupper $user] [string toupper $password]] != -1} {
+            LinePuts "Your FTP user name must not be present in the password."
+            return 1
+        }
+    }
+    set hashEsc [SqlEscape [MakeHash $password]]
+    set userEsc [SqlEscape $user]
+
+    # Probably the most portable way to do this.
+    if {![db "UPDATE invite_users SET password='$hashEsc' WHERE ftp_user='$userEsc'"]} {
+        db "INSERT INTO invite_users(ftp_user,password) VALUES('$userEsc','$hashEsc')"
+    }
+    LinePuts "Invite password set to \"$password\"."
     return 0
 }
 
@@ -323,7 +380,7 @@ proc ::siteInvite::Main {} {
         }
     }
 
-    iputs ".-\[Invite\]----------------------------------------------------."
+    iputs ".-\[Invite\]-----------------------------------------------------."
     set result 1
     if {![info exists logPath] || ![file exists $logPath]} {
         LinePuts "Invalid log path, check configuration."
@@ -350,7 +407,7 @@ proc ::siteInvite::Main {} {
         db disconnect
     }
 
-    iputs "'-------------------------------------------------------------'"
+    iputs "'--------------------------------------------------------------'"
     return $result
 }
 
