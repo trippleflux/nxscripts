@@ -69,21 +69,21 @@ proc ::alcoholicz::PreTimes::LogHandler {event destSection pathSection path data
         if {[FlagIsDisabled $flags "pretime"]} {return 1}
 
         set result [db "SELECT pretime FROM pretimes WHERE release='$release' LIMIT 1"]
-        set preTime [lindex $result 0 0]
-        if {[string is digit -strict $preTime]} {
-            # Check for a section pre time.
+        if {[llength $result]} {
+            set preTime [lindex $result 0 0]
+
+            # Check for a section time limit.
             if {![FlagGetValue $flags "pretime" limit]} {
                 set limit $defLimit
             }
+            set limit [expr {$limit * 60}]
 
             set age [expr {$now - $preTime}]
-            set limit [expr {$limit * 60}]
             if {$age > $limit} {
                 set event "PRELATE"
             } else {
                 set event "PRENEW"
             }
-
             SendSectionTheme $destSection $event [lappend data $preTime $age $limit]
             return 0
         }
