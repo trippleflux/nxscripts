@@ -502,9 +502,9 @@ proc ::alcoholicz::ModuleInfo {option args} {
             return [info exists modules([lindex $args 0])]
         }
         list {
-            if {$argc == 1} {
+            if {$argc == 0} {
                 return [array names modules]
-            } elseif {$argc == 2} {
+            } elseif {$argc == 1} {
                 return [array names modules [lindex $args 0]]
             } else {
                 error "wrong # args: must be \"ModuleInfo list ?pattern?\""
@@ -531,6 +531,8 @@ proc ::alcoholicz::ModuleInfo {option args} {
 # cannot be found or an unexpected error occurs while loading it.
 #
 proc ::alcoholicz::ModuleLoad {modName} {
+    variable modules
+
     # Locate the module and read its definition file.
     set modPath [ModuleFind $modName]
     array set modInfo [ModuleRead [file join $modPath "module.def"]]
