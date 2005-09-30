@@ -20,6 +20,7 @@ namespace eval ::alcoholicz::Invite {
         variable warnSection ""
     }
     namespace import -force ::alcoholicz::*
+    namespace import -force ::alcoholicz::FtpDaemon::*
 }
 
 ####
@@ -213,11 +214,21 @@ proc ::alcoholicz::Invite::Command {user host handle target argc argv} {
             return
         }
 
-        # TODO:
-        # - Check if user is deleted, if so remove invite record.
-        # - Retrieve the user's group list and flags.
+        # Look-up the users groups and flags.
+        if {[UserInfo $ftpUser uinfo]} {
+            GetFlagTypes type
 
-        Process $user $host $ftpUser TODO TODO TODO
+            if {[PermMatchFlags $uinfo(flags) $type(deleted)]} {
+                # Remove the user's invite record if they are deleted.
+                db "DELETE FROM invite_users WHERE ftp_user='$ftpUserEsc'"
+                db "DELETE FROM invite_hosts WHERE ftp_user='$ftpUserEsc'"
+
+                SendTheme $user inviteBadUser [list $ftpUser $user $host]
+            } else {
+                set ftpGroup [lindex $uinfo(groups) 0]
+                Process $user $host $ftpUser $ftpGroup $uinfo(groups) $uinfo(flags)
+            }
+        }
     } else {
         SendTheme $user inviteDbDown [list $ftpUser $user]
     }
