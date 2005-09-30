@@ -13,11 +13,14 @@
 #
 
 namespace eval ::alcoholicz::FtpDaemon {
-    if {![info exists rootPath]} {
+    if {![info exists deleteFlag]} {
+        variable deleteFlag ""
         variable rootPath ""
     }
     namespace import -force ::alcoholicz::*
-    namespace export UserExists UserList UserInfo GroupExists GroupList GroupInfo
+    namespace export GetFlagTypes \
+        UserExists UserList UserInfo \
+        GroupExists GroupList GroupInfo
 }
 
 ####
@@ -95,6 +98,18 @@ proc ::alcoholicz::FtpDaemon::UpdateGroups {} {
         close $handle
     }
     return
+}
+
+####
+# GetFlagTypes
+#
+# Retrieves flag types, results are saved to the given variable name.
+#
+proc ::alcoholicz::FtpDaemon::GetFlagTypes {varName} {
+    variable deleteFlag
+
+    upvar $varName flags
+    array set flags [list deleted $deleteFlag gadmin "G2" siteop "M1"]
 }
 
 ####
@@ -177,7 +192,7 @@ proc ::alcoholicz::FtpDaemon::UserInfo {userName varName} {
 
     # TODO: Parse user file.
 
-    return 0
+    return 1
 }
 
 ####
@@ -243,8 +258,14 @@ proc ::alcoholicz::FtpDaemon::GroupInfo {groupName varName} {
 #
 proc ::alcoholicz::FtpDaemon::Load {firstLoad} {
     variable change
+    variable deleteFlag
     variable rootPath
     upvar ::alcoholicz::configHandle configHandle
+
+    set deleteFlag [ConfigGet $configHandle IoFtpd deleteFlag]
+    if {[string length $deleteFlag] != 1} {
+        error "invalid flag \"$deleteFlag\": must be one character"
+    }
 
     set rootPath [ConfigGet $configHandle IoFtpd rootPath]
     if {![file isdirectory $rootPath]} {

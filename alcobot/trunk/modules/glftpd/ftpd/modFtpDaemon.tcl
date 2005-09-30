@@ -18,7 +18,9 @@ namespace eval ::alcoholicz::FtpDaemon {
         variable rootPath ""
     }
     namespace import -force ::alcoholicz::*
-    namespace export UserExists UserList UserInfo GroupExists GroupList GroupInfo
+    namespace export GetFlagTypes \
+        UserExists UserList UserInfo \
+        GroupExists GroupList GroupInfo
 }
 
 ####
@@ -96,6 +98,16 @@ proc ::alcoholicz::FtpDaemon::UpdateGroups {} {
         close $handle
     }
     return
+}
+
+####
+# GetFlagTypes
+#
+# Retrieves flag types, results are saved to the given variable name.
+#
+proc ::alcoholicz::FtpDaemon::GetFlagTypes {varName} {
+    upvar $varName flags
+    array set flags [list deleted "6" gadmin "2" siteop "1"]
 }
 
 ####
@@ -177,7 +189,7 @@ proc ::alcoholicz::FtpDaemon::UserInfo {userName varName} {
 
     # TODO: Parse user file.
 
-    return 0
+    return 1
 }
 
 ####
@@ -267,6 +279,6 @@ proc ::alcoholicz::FtpDaemon::Load {firstLoad} {
 #
 # Module finalisation procedure, called before the module is unloaded.
 #
-proc ::alcoholicz::FtpDaemon::Unload "" {
+proc ::alcoholicz::FtpDaemon::Unload {} {
     return
 }
