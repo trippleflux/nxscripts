@@ -1,8 +1,13 @@
 AlcoBot v0.3.0 (XXX XX, 2005):
+  NEW: FTP commands for the invite module: SITE INVITE/INVPASSWD/INVADMIN.
   NEW: Invite module, allows users to join the site channel.
   NEW: Multi-line messages, use "\n" to split announcements onto separate lines.
   NEW: Support for "message" commands.
+  NEW: Uniform FTP daemon API for access to user and group files.
   FIX: Blank lines are no longer sent when a theme entry is disabled.
+  FIX: Module dependency checks always failed.
+  FIX: Use lower/upper case string functions provided by the SQL server, since
+       not all DBMS engines support Unicode characters as well as Tcl.
 
 AlcoBot v0.2.0 (Sep 19, 2005):
   NEW: Added installation instructions for modules.
