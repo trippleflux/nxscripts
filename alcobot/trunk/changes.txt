@@ -1,4 +1,4 @@
-AlcoBot v0.3.0 (XXX XX, 2005):
+AlcoBot v0.3.0 (Oct 1, 2005):
   NEW: FTP commands for the invite module: SITE INVITE/INVPASSWD/INVADMIN.
   NEW: Invite module, allows users to join the site channel.
   NEW: Multi-line messages, use "\n" to split announcements onto separate lines.
