@@ -73,6 +73,20 @@ proc ::alcoholicz::FtpDaemon::UpdateUsers {} {
 }
 
 ####
+# UserIdToName
+#
+# Resolve the given group ID to it's group name.
+#
+proc ::alcoholicz::FtpDaemon::UserIdToName {userId} {
+    variable users
+
+    foreach name [array names users] {
+        if {$userId == $users($name)} {return $name}
+    }
+    return ""
+}
+
+####
 # UpdateGroups
 #
 # Updates internal group list.
@@ -98,6 +112,20 @@ proc ::alcoholicz::FtpDaemon::UpdateGroups {} {
         close $handle
     }
     return
+}
+
+####
+# GroupIdToName
+#
+# Resolve the given group ID to it's group name.
+#
+proc ::alcoholicz::FtpDaemon::GroupIdToName {groupId} {
+    variable groups
+
+    foreach name [array names groups] {
+        if {$groupId == $groups($name)} {return $name}
+    }
+    return ""
 }
 
 ####
@@ -166,13 +194,18 @@ proc ::alcoholicz::FtpDaemon::UserExists {userName} {
 #
 proc ::alcoholicz::FtpDaemon::UserInfo {userName varName} {
     variable users
-    variable groups
+    variable rootPath
     upvar $varName dest
 
     if {[catch {UpdateUsers; UpdateGroups} message]} {
         LogError UserInfo $message; return 0
     }
     if {![info exists users($userName)]} {return 0}
+
+    set filePath [file join $rootPath "users" $users($userName)]
+    if {[catch {set handle [open $filePath r]} message]} {
+        LogError UserInfo $message; return 0
+    }
 
     # Set default values.
     array set dest [list               \
@@ -192,8 +225,51 @@ proc ::alcoholicz::FtpDaemon::UserInfo {userName varName} {
         set dest($type) {0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0}
     }
 
-    # TODO: Parse user file.
+    # Parse user file.
+    set data [read -nonewline $handle]
+    foreach line [split $data "\n"] {
+        set line [split [string trim $line]]
 
+        set type [string tolower [lindex $line 0]]
+        switch -- $type {
+            alldn - allup -
+            daydn - dayup -
+            monthdn - monthup -
+            wkdn - wkup {
+                set dest($type) [lrange $line 1 30]
+            }
+            admingroups {
+                foreach groupId [lrange $line 1 end] {
+                    lappend dest(admin) [GroupIdToName $groupId]
+                }
+            }
+            credits - ratio {
+                set dest($type) [lrange $line 1 10]
+            }
+            flags {
+                set dest(flags) [lindex $line 1]
+            }
+            groups {
+                foreach groupId [lrange $line 1 end] {
+                    lappend dest(groups) [GroupIdToName $groupId]
+                }
+            }
+            ips {
+                set dest(ips) [lrange $line 1 end]
+            }
+            limits {
+                set dest(logins) [lindex $line 4]
+                set dest(speed)  [lrange $line 1 2]
+            }
+            password {
+                set dest(password) [lindex $line 1]
+            }
+            tagline {
+                set dest(tagline) [join [lrange $line 1 end]]
+            }
+        }
+    }
+    close $handle
     return 1
 }
 
@@ -236,12 +312,18 @@ proc ::alcoholicz::FtpDaemon::GroupExists {groupName} {
 #
 proc ::alcoholicz::FtpDaemon::GroupInfo {groupName varName} {
     variable groups
+    variable rootPath
     upvar $varName dest
 
     if {[catch {UpdateGroups} message]} {
         LogError GroupInfo $message; return 0
     }
     if {![info exists groups($groupName)]} {return 0}
+
+    set filePath [file join $rootPath "groups" $groups($groupName)]
+    if {[catch {set handle [open $filePath r]} message]} {
+        LogError UserInfo $message; return 0
+    }
 
     # Set default values.
     array set dest [list          \
@@ -251,8 +333,20 @@ proc ::alcoholicz::FtpDaemon::GroupInfo {groupName varName} {
         ratio 0                   \
     ]
 
-    # TODO: Parse group file.
+    # Parse group file.
+    set data [read -nonewline $handle]
+    foreach line [split $data "\n"] {
+        set line [split [string trim $line]]
 
+        set type [string tolower [lindex $line 0]]
+        if {$type eq "description"} {
+            set dest(desc) [join [lrange $line 1 end]]
+        } elseif {$type eq "slots"} {
+            set dest(ratio) [lindex $line 1]
+            set dest(leech) [lindex $line 2]
+        }
+    }
+    close $handle
     return 1
 }
 
