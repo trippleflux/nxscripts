@@ -161,8 +161,8 @@ proc ::alcoholicz::FtpDaemon::UserExists {userName} {
 #  - speed    <max down> <max up>
 #  - tagline  <tagline>
 #  - uid      <user ID>
-#  - weekdn   <30 ints>
-#  - weekup   <30 ints>
+#  - wkdn     <30 ints>
+#  - wkup     <30 ints>
 #
 proc ::alcoholicz::FtpDaemon::UserInfo {userName varName} {
     variable users
@@ -174,21 +174,21 @@ proc ::alcoholicz::FtpDaemon::UserInfo {userName varName} {
     }
     if {![info exists users($userName)]} {return 0}
 
-    array set dest {
-        admin    ""
-        credits  {0 0 0 0 0 0 0 0 0 0}
-        flags    ""
-        groups   ""
-        home     ""
-        ips      ""
-        logins   0
-        password ""
-        ratio    {0 0 0 0 0 0 0 0 0 0}
-        speed    {0 0}
-        tagline  ""
-        uid      0
-    }
-    foreach type {alldn allup daydn dayup monthdn monthup weekdn weekup} {
+    # Set default values.
+    array set dest [list               \
+        admin    ""                    \
+        credits  {0 0 0 0 0 0 0 0 0 0} \
+        flags    ""                    \
+        groups   ""                    \
+        ips      ""                    \
+        logins   0                     \
+        password ""                    \
+        ratio    {0 0 0 0 0 0 0 0 0 0} \
+        speed    {0 0}                 \
+        tagline  ""                    \
+        uid      $users($userName)     \
+    ]
+    foreach type {alldn allup daydn dayup monthdn monthup wkdn wkup} {
         set dest($type) {0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0}
     }
 
@@ -243,12 +243,13 @@ proc ::alcoholicz::FtpDaemon::GroupInfo {groupName varName} {
     }
     if {![info exists groups($groupName)]} {return 0}
 
-    array set dest {
-        desc  ""
-        gid   0
-        leech 0
-        ratio 0
-    }
+    # Set default values.
+    array set dest [list          \
+        desc  ""                  \
+        gid   $groups($groupName) \
+        leech 0                   \
+        ratio 0                   \
+    ]
 
     # TODO: Parse group file.
 

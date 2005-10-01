@@ -63,7 +63,7 @@ proc ::alcoholicz::FtpDaemon::UpdateUsers {} {
         foreach line [split $data "\n"] {
             set line [split [string trim $line] ":"]
             # User:Password:UID:GID:CreationDate:HomeDir:NotUsed
-            if {[llength $line] == 7} {
+            if {[llength $line] == 7 && [string index [lindex $line 0] 0] ne "#"} {
                 set users([lindex $line 0]) [lrange $line 1 5]
             }
         }
@@ -91,7 +91,7 @@ proc ::alcoholicz::FtpDaemon::UpdateGroups {} {
         foreach line [split $data "\n"] {
             set line [split [string trim $line] ":"]
             # Group:Description:GID:NotUsed
-            if {[llength $line] == 4} {
+            if {[llength $line] == 4 && [string index [lindex $line 0] 0] ne "#"} {
                 set groups([lindex $line 0]) [lrange $line 1 2]
             }
         }
@@ -159,8 +159,8 @@ proc ::alcoholicz::FtpDaemon::UserExists {userName} {
 #  - speed    <max down> <max up>
 #  - tagline  <tagline>
 #  - uid      <user ID>
-#  - weekdn   <30 ints>
-#  - weekup   <30 ints>
+#  - wkdn     <30 ints>
+#  - wkup     <30 ints>
 #
 proc ::alcoholicz::FtpDaemon::UserInfo {userName varName} {
     variable dataPath
@@ -172,12 +172,17 @@ proc ::alcoholicz::FtpDaemon::UserInfo {userName varName} {
     }
     if {![info exists users($userName)]} {return 0}
 
+    set filePath [file join $dataPath "users" $userName]
+    if {[catch {set handle [open $filePath r]} message]} {
+        LogError UserInfo $message; return 0
+    }
+
+    # Set default values.
     array set dest [list                      \
         admin    ""                           \
         credits  {0 0 0 0 0 0 0 0 0 0}        \
         flags    ""                           \
         groups   ""                           \
-        home     ""                           \
         ips      ""                           \
         logins   0                            \
         password [lindex $users($userName) 0] \
@@ -186,14 +191,43 @@ proc ::alcoholicz::FtpDaemon::UserInfo {userName varName} {
         tagline  ""                           \
         uid      [lindex $users($userName) 1] \
     ]
-    foreach type {alldn allup daydn dayup monthdn monthup weekdn weekup} {
+    foreach type {alldn allup daydn dayup monthdn monthup wkdn wkup} {
         set dest($type) {0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0}
     }
 
-    # TODO: Parse user file.
+    # Parse user file.
+    set data [read -nonewline $handle]; set i -1
+    foreach line [split $data "\n"] {
+        set line [split [string trim $line]]
 
-    set filePath [file join $dataPath "users" $groupName]
-
+        set type [string tolower [lindex $line 0]]
+        switch -- $type {
+            alldn - allup -
+            daydn - dayup -
+            monthdn - monthup -
+            wkdn - wkup {
+                foreach {files amount time} [lrange $line 1 end] {break}
+                set dest($type) [lreplace $dest($type) $i [expr {$i + 2}] $files $amount $time]
+            }
+            credits {
+                incr i
+                set dest(credits) [lreplace $dest(credits) $i $i [lindex $line 1]]
+            }
+            flags   {set dest(flags) [lindex $line 1]}
+            general {set dest(speed) [lrange $line 3 4]}
+            group   {
+                if {[lindex $line 2] == 1} {
+                    lappend dest(admin) [lindex $line 1]
+                }
+                lappend dest(groups) [lindex $line 1]
+            }
+            ip      {lappend dest(ips) [lindex $line 1]}
+            logins  {set dest(logins)  [lindex $line 1]}
+            ratio   {set dest(ratio)   [lreplace $dest(ratio) $i $i [lindex $line 1]]}
+            tagline {set dest(tagline) [join [lrange $line 1 end]]}
+        }
+    }
+    close $handle
     return 1
 }
 
@@ -244,6 +278,12 @@ proc ::alcoholicz::FtpDaemon::GroupInfo {groupName varName} {
     }
     if {![info exists groups($groupName)]} {return 0}
 
+    set filePath [file join $dataPath "groups" $groupName]
+    if {[catch {set handle [open $filePath r]} message]} {
+        LogError UserInfo $message; return 0
+    }
+
+    # Set default values.
     array set dest [list                     \
         desc  [lindex $groups($groupName) 0] \
         gid   [lindex $groups($groupName) 1] \
@@ -251,10 +291,19 @@ proc ::alcoholicz::FtpDaemon::GroupInfo {groupName varName} {
         ratio 0                              \
     ]
 
-    # TODO: Parse group file.
+    # Parse group file.
+    set data [read -nonewline $handle]
+    foreach line [split $data "\n"] {
+        set line [split [string trim $line]]
 
-    set filePath [file join $dataPath "groups" $groupName]
-
+        if {[string equal -nocase "slots" [lindex $line 0]]} {
+            # SLOTS <ratio> <leech> <weekly allotment> <max allotment size>
+            set dest(ratio) [lindex $line 1]
+            set dest(leech) [lindex $line 2]
+            break
+        }
+    }
+    close $handle
     return 1
 }
 
