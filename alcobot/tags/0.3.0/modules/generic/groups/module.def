@@ -1,0 +1,6 @@
+# Module Definition File
+desc=Group List
+context=::alcoholicz::Groups
+depends=
+tclFile=modGroups.tcl
+varFile=modGroups.vars

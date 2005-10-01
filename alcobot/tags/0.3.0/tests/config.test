@@ -1,0 +1,605 @@
+#
+# AlcoBot - Alcoholicz site bot.
+# Copyright (c) 2005 Alcoholicz Scripting Team
+#
+# Module Name:
+#   Config Tests
+#
+# Author:
+#   neoxed (neoxed@gmail.com) May 15, 2005
+#
+# Abstract:
+#   Implements regression tests for the configuration file library.
+#
+
+package require tcltest 2
+namespace import -force ::tcltest::*
+
+################################################################################
+# ConfigOpen                                                                   #
+################################################################################
+
+test config-1.1 {ConfigOpen: no switches} {
+    -match regexp
+    -body {
+        set handle [ConfigOpen test.conf]
+        ConfigClose $handle
+        set handle
+    }
+    -result {config\d+}
+}
+
+test config-1.2 {ConfigOpen: all switches} {
+    -match regexp
+    -body {
+        set handle [ConfigOpen test.conf -align 2 -comment {;}]
+        ConfigClose $handle
+        set handle
+    }
+    -result {config\d+}
+}
+
+test config-1.3 {ConfigOpen: no args} {
+    list [catch {ConfigOpen} msg] $msg
+} {1 {wrong # args: should be "ConfigOpen filePath args"}}
+
+test config-1.4 {ConfigOpen: invalid switches} {
+    list [catch {ConfigOpen test.conf -fake switch} msg] $msg
+} {1 {invalid switch "-fake": must be -align or -comment}}
+
+test config-1.5 {ConfigOpen: -align switch} {
+    list [catch {ConfigOpen test.conf -align a} msg] $msg
+} {1 {expected digit but got "a"}}
+
+test config-1.6 {ConfigOpen: -align switch} {
+    list [catch {ConfigOpen test.conf -align -1} msg] $msg
+} {1 {expected digit but got "-1"}}
+
+test config-1.7 {ConfigOpen: -comment switch} {
+    list [catch {ConfigOpen test.conf -comment test} msg] $msg
+} {1 {invalid comment "test": must be one character}}
+
+test config-1.8 {ConfigOpen: -comment switch} {
+    list [catch {ConfigOpen test.conf -comment ""} msg] $msg
+} {1 {invalid comment "": must be one character}}
+
+################################################################################
+# ConfigChange                                                                 #
+################################################################################
+
+test config-2.1 {ConfigChange: no args} {
+    list [catch {ConfigChange} msg] $msg
+} {1 {wrong # args: should be "ConfigChange handle option args"}}
+
+test config-2.2 {ConfigChange: invalid handle} {
+    list [catch {ConfigChange {} a} msg] $msg
+} {1 {invalid config handle ""}}
+
+test config-2.3 {ConfigChange: invalid handle} {
+    list [catch {ConfigChange configTEST a} msg] $msg
+} {1 {invalid config handle "configTEST"}}
+
+test config-2.4 {ConfigChange: invalid switch} {
+    set handle [ConfigOpen test.conf]
+    set result [list [catch {ConfigChange $handle -fake 0} msg] $msg]
+    ConfigClose $handle
+    set result
+} {1 {invalid switch "-fake": must be -align, -comment, or -path}}
+
+test config-2.5 {ConfigChange: invalid switch, no value} {
+    set handle [ConfigOpen test.conf]
+    set result [list [catch {ConfigChange $handle -fake} msg] $msg]
+    ConfigClose $handle
+    set result
+} {1 {invalid switch "-fake": must be -align, -comment, or -path}}
+
+test config-2.6 {ConfigChange: too many args} {
+    set handle [ConfigOpen test.conf]
+    set result [list [catch {ConfigChange $handle -align a b} msg] $msg]
+    ConfigClose $handle
+    set result
+} {1 {wrong # args: must be "ConfigChange handle option ?value?"}}
+
+test config-2.7 {ConfigChange: get -align} {
+    set handle [ConfigOpen test.conf -align 2]
+    set result [ConfigChange $handle -align]
+    ConfigClose $handle
+    set result
+} {2}
+
+test config-2.8 {ConfigChange: set -align} {
+    set handle [ConfigOpen test.conf -align 1]
+    ConfigChange $handle -align 0
+    set result [ConfigChange $handle -align]
+    ConfigClose $handle
+    set result
+} {0}
+
+test config-2.9 {ConfigChange: set -align, invalid} {
+    set handle [ConfigOpen test.conf -align 1]
+    set result [list [catch {ConfigChange $handle -align -1} msg] $msg]
+    ConfigClose $handle
+    set result
+} {1 {expected digit but got "-1"}}
+
+test config-2.10 {ConfigChange: get -comment} {
+    set handle [ConfigOpen test.conf -comment {;}]
+    set result [ConfigChange $handle -comment]
+    ConfigClose $handle
+    set result
+} {;}
+
+test config-2.11 {ConfigChange: set -comment} {
+    set handle [ConfigOpen test.conf -comment {;}]
+    ConfigChange $handle -comment {#}
+    set result [ConfigChange $handle -comment]
+    ConfigClose $handle
+    set result
+} {#}
+
+test config-2.12 {ConfigChange: set -comment, invalid} {
+    set handle [ConfigOpen test.conf -comment {;}]
+    set result [list [catch {ConfigChange $handle -comment ""} msg] $msg]
+    ConfigClose $handle
+    set result
+} {1 {invalid comment "": must be one character}}
+
+test config-2.13 {ConfigChange: get -path} {
+    set handle [ConfigOpen other.conf]
+    set result [ConfigChange $handle -path]
+    ConfigClose $handle
+    set result
+} {other.conf}
+
+test config-2.14 {ConfigChange: set -path} {
+    set handle [ConfigOpen test.conf]
+    ConfigChange $handle -path other.conf
+    set result [ConfigChange $handle -path]
+    ConfigClose $handle
+    set result
+} {other.conf}
+
+################################################################################
+# ConfigClose                                                                  #
+################################################################################
+
+test config-3.1 {ConfigClose: no args} {
+    list [catch {ConfigClose} msg] $msg
+} {1 {wrong # args: should be "ConfigClose handle"}}
+
+test config-3.2 {ConfigClose: invalid handle} {
+    list [catch {ConfigClose {}} msg] $msg
+} {1 {invalid config handle ""}}
+
+test config-3.3 {ConfigClose: invalid handle} {
+    list [catch {ConfigClose configTEST} msg] $msg
+} {1 {invalid config handle "configTEST"}}
+
+test config-3.4 {ConfigClose: closed handle} {
+    -match regexp
+    -body {
+        set handle [ConfigOpen test.conf]
+        ConfigClose $handle
+        list [catch {ConfigClose $handle} msg] $msg
+    }
+    -result {1 {invalid config handle "config\d+"}}
+}
+
+################################################################################
+# ConfigRead                                                                   #
+################################################################################
+
+test config-4.2 {ConfigRead: no args} {
+    list [catch {ConfigRead} msg] $msg
+} {1 {wrong # args: should be "ConfigRead handle"}}
+
+test config-4.3 {ConfigRead: invalid handle} {
+    list [catch {ConfigRead {}} msg] $msg
+} {1 {invalid config handle ""}}
+
+test config-4.4 {ConfigRead: invalid handle} {
+    list [catch {ConfigRead configTEST} msg] $msg
+} {1 {invalid config handle "configTEST"}}
+
+test config-4.5 {ConfigRead: invalid file} {
+    set handle [ConfigOpen invalidFile.conf]
+    set result [list [catch {ConfigRead $handle} msg] $msg]
+    ConfigClose $handle
+    set result
+} {1 {couldn't open "invalidFile.conf": no such file or directory}}
+
+test config-4.6 {ConfigRead: read file} {
+    set handle [ConfigOpen test.conf]
+    set result [ConfigRead $handle]
+    ConfigClose $handle
+    set result
+} {}
+
+################################################################################
+# ConfigWrite                                                                  #
+################################################################################
+
+test config-5.1 {ConfigWrite: no args} {
+    list [catch {ConfigWrite} msg] $msg
+} {1 {wrong # args: should be "ConfigWrite handle"}}
+
+test config-5.2 {ConfigWrite: invalid handle} {
+    list [catch {ConfigWrite {}} msg] $msg
+} {1 {invalid config handle ""}}
+
+test config-5.3 {ConfigWrite: invalid handle} {
+    list [catch {ConfigWrite configTEST} msg] $msg
+} {1 {invalid config handle "configTEST"}}
+
+test config-5.4 {ConfigWrite: verify write} {
+    -setup {set tempFile [makeFile {} temp.conf]}
+    -body {
+        set origHandle [ConfigOpen test.conf]
+        ConfigRead $origHandle
+        ConfigChange $origHandle -path $tempFile
+        ConfigWrite $origHandle
+
+        set tempHandle [ConfigOpen $tempFile]
+        ConfigRead $tempHandle
+        foreach section [ConfigSections $origHandle] {
+            ## Verify sections.
+            if {![ConfigExists $tempHandle $section]} {
+                error "missing section \"$section\""
+            }
+
+            ## Verify keys and values.
+            foreach {key value} [ConfigGetEx $origHandle $section] {
+                if {![ConfigExists $tempHandle $section $key]} {
+                    error "missing key \"$key\""
+                }
+
+                set tempValue [ConfigGet $tempHandle $section $key]
+                if {$value ne $tempValue} {
+                    error "key \"$key\" value \"$value\" does not match \"$tempValue\""
+                }
+            }
+        }
+
+        ConfigClose $origHandle
+        ConfigClose $tempHandle
+    }
+    -cleanup {removeFile $tempFile}
+}
+
+################################################################################
+# ConfigKeys                                                                   #
+################################################################################
+
+test config-6.1 {ConfigKeys: no args} {
+    list [catch {ConfigKeys} msg] $msg
+} {1 {wrong # args: should be "ConfigKeys handle section ?pattern?"}}
+
+test config-6.2 {ConfigKeys: invalid handle} {
+    list [catch {ConfigKeys {} {}} msg] $msg
+} {1 {invalid config handle ""}}
+
+test config-6.3 {ConfigKeys: invalid handle} {
+    list [catch {ConfigKeys configTEST {}} msg] $msg
+} {1 {invalid config handle "configTEST"}}
+
+test config-6.4 {ConfigKeys: verify order} {
+    set handle [ConfigOpen test.conf]
+    ConfigRead $handle
+    set result [ConfigKeys $handle sectionOne]
+    ConfigClose $handle
+    set result
+} {something empty multiple}
+
+test config-6.5 {ConfigKeys: pattern "s*"} {
+    set handle [ConfigOpen test.conf]
+    ConfigRead $handle
+    set result [ConfigKeys $handle sectionOne s*]
+    ConfigClose $handle
+    set result
+} {something}
+
+test config-6.6 {ConfigKeys: invalid section} {
+    set handle [ConfigOpen test.conf]
+    ConfigRead $handle
+    set result [ConfigKeys $handle unknownSection]
+    ConfigClose $handle
+    set result
+} {}
+
+################################################################################
+# ConfigSections                                                               #
+################################################################################
+
+test config-7.1 {ConfigSections: no args} {
+    list [catch {ConfigSections} msg] $msg
+} {1 {wrong # args: should be "ConfigSections handle ?pattern?"}}
+
+test config-7.2 {ConfigSections: invalid handle} {
+    list [catch {ConfigSections {}} msg] $msg
+} {1 {invalid config handle ""}}
+
+test config-7.3 {ConfigSections: invalid handle} {
+    list [catch {ConfigSections configTEST} msg] $msg
+} {1 {invalid config handle "configTEST"}}
+
+test config-7.4 {ConfigSections: verify order} {
+    set handle [ConfigOpen test.conf]
+    ConfigRead $handle
+    set result [ConfigSections $handle]
+    ConfigClose $handle
+    set result
+} {sectionOne sectionTwo \{sectionThree section\ Four\}}
+
+test config-7.5 {ConfigSections: pattern "*Two"} {
+    set handle [ConfigOpen test.conf]
+    ConfigRead $handle
+    set result [ConfigSections $handle *Two]
+    ConfigClose $handle
+    set result
+} {sectionTwo}
+
+test config-7.6 {ConfigSections: invalid section} {
+    set handle [ConfigOpen test.conf]
+    ConfigRead $handle
+    set result [ConfigSections $handle unknownSection]
+    ConfigClose $handle
+    set result
+} {}
+
+################################################################################
+# ConfigExists                                                                 #
+################################################################################
+
+test config-8.1 {ConfigExists: no args} {
+    list [catch {ConfigExists} msg] $msg
+} {1 {wrong # args: should be "ConfigExists handle section ?key?"}}
+
+test config-8.2 {ConfigExists: invalid handle} {
+    list [catch {ConfigExists {} a} msg] $msg
+} {1 {invalid config handle ""}}
+
+test config-8.3 {ConfigExists: invalid handle} {
+    list [catch {ConfigExists configTEST a} msg] $msg
+} {1 {invalid config handle "configTEST"}}
+
+test config-8.4 {ConfigExists: valid section} {
+    set handle [ConfigOpen test.conf]
+    ConfigRead $handle
+    set result [ConfigExists $handle sectionOne]
+    ConfigClose $handle
+    set result
+} {1}
+
+test config-8.5 {ConfigExists: valid section, valid key} {
+    set handle [ConfigOpen test.conf]
+    ConfigRead $handle
+    set result [ConfigExists $handle sectionOne something]
+    ConfigClose $handle
+    set result
+} {1}
+
+test config-8.6 {ConfigExists: invalid section} {
+    set handle [ConfigOpen test.conf]
+    ConfigRead $handle
+    set result [ConfigExists $handle unknownSection]
+    ConfigClose $handle
+    set result
+} {0}
+
+test config-8.7 {ConfigExists: valid section, invalid key} {
+    set handle [ConfigOpen test.conf]
+    ConfigRead $handle
+    set result [ConfigExists $handle sectionOne unknownKey]
+    ConfigClose $handle
+    set result
+} {0}
+
+################################################################################
+# ConfigGet                                                                    #
+################################################################################
+
+test config-9.1 {ConfigGet: no args} {
+    list [catch {ConfigGet} msg] $msg
+} {1 {wrong # args: should be "ConfigGet handle section key"}}
+
+test config-9.2 {ConfigGet: invalid handle} {
+    list [catch {ConfigGet {} a b} msg] $msg
+} {1 {invalid config handle ""}}
+
+test config-9.3 {ConfigGet: invalid handle} {
+    list [catch {ConfigGet configTEST a b} msg] $msg
+} {1 {invalid config handle "configTEST"}}
+
+test config-9.4 {ConfigGet: valid section and valid key} {
+    set handle [ConfigOpen test.conf]
+    ConfigRead $handle
+    set result [ConfigGet $handle sectionOne something]
+    ConfigClose $handle
+    set result
+} {true}
+
+test config-9.5 {ConfigGet: valid section, valid key (empty)} {
+    set handle [ConfigOpen test.conf]
+    ConfigRead $handle
+    set result [ConfigGet $handle sectionOne empty]
+    ConfigClose $handle
+    set result
+} {}
+
+test config-9.6 {ConfigGet: valid section, invalid key} {
+    set handle [ConfigOpen test.conf]
+    ConfigRead $handle
+    set result [ConfigGet $handle sectionOne unknownKey]
+    ConfigClose $handle
+    set result
+} {}
+
+test config-9.7 {ConfigGet: invalid section, invalid key} {
+    set handle [ConfigOpen test.conf]
+    ConfigRead $handle
+    set result [ConfigGet $handle unknownSection unknownKey]
+    ConfigClose $handle
+    set result
+} {}
+
+################################################################################
+# ConfigGetEx                                                                  #
+################################################################################
+
+test config-10.1 {ConfigGetEx: no args} {
+    list [catch {ConfigGetEx} msg] $msg
+} {1 {wrong # args: should be "ConfigGetEx handle section ?pattern?"}}
+
+test config-10.2 {ConfigGetEx: invalid handle} {
+    list [catch {ConfigGetEx {} a b} msg] $msg
+} {1 {invalid config handle ""}}
+
+test config-10.3 {ConfigGetEx: invalid handle} {
+    list [catch {ConfigGetEx configTEST a b} msg] $msg
+} {1 {invalid config handle "configTEST"}}
+
+test config-10.4 {ConfigGetEx: valid section} {
+    set handle [ConfigOpen test.conf]
+    ConfigRead $handle
+    set result [ConfigGetEx $handle sectionOne]
+    ConfigClose $handle
+    set result
+} {something true empty {} multiple true}
+
+test config-10.5 {ConfigGetEx: valid section, pattern "e*"} {
+    set handle [ConfigOpen test.conf]
+    ConfigRead $handle
+    set result [ConfigGetEx $handle sectionOne e*]
+    ConfigClose $handle
+    set result
+} {empty {}}
+
+test config-10.6 {ConfigGetEx: invalid section} {
+    set handle [ConfigOpen test.conf]
+    ConfigRead $handle
+    set result [ConfigGetEx $handle unknownSection]
+    ConfigClose $handle
+    set result
+} {}
+
+################################################################################
+# ConfigSet                                                                    #
+################################################################################
+
+test config-11.1 {ConfigSet: no args} {
+    list [catch {ConfigSet} msg] $msg
+} {1 {wrong # args: should be "ConfigSet handle section args"}}
+
+test config-11.2 {ConfigSet: invalid handle} {
+    list [catch {ConfigSet {} a b c} msg] $msg
+} {1 {invalid config handle ""}}
+
+test config-11.3 {ConfigSet: invalid handle} {
+    list [catch {ConfigSet configTEST a b c} msg] $msg
+} {1 {invalid config handle "configTEST"}}
+
+test config-11.4 {ConfigSet: arg handling} {
+    set handle [ConfigOpen test.conf]
+    set result [list [catch {ConfigSet $handle a b} msg] $msg]
+    ConfigClose $handle
+    set result
+} {1 {wrong # args: must be "ConfigSet handle section ?key value?"}}
+
+test config-11.5 {ConfigSet: arg handling} {
+    set handle [ConfigOpen test.conf]
+    set result [list [catch {ConfigSet $handle a b c d} msg] $msg]
+    ConfigClose $handle
+    set result
+} {1 {wrong # args: must be "ConfigSet handle section ?key value?"}}
+
+test config-11.6 {ConfigSet: change existing key} {
+    set handle [ConfigOpen test.conf]
+    ConfigRead $handle
+    set result [list [ConfigSet $handle sectionOne something false]]
+    lappend result [ConfigExists $handle sectionOne something]
+    ConfigClose $handle
+    set result
+} {false 1}
+
+test config-11.7 {ConfigSet: existing section, new key} {
+    set handle [ConfigOpen test.conf]
+    ConfigRead $handle
+    set result [list [ConfigSet $handle sectionOne reallyReallyReallyLongKeyName newValue]]
+    lappend result [ConfigExists $handle sectionOne reallyReallyReallyLongKeyName]
+    ConfigClose $handle
+    set result
+} {newValue 1}
+
+test config-11.8 {ConfigSet: new section} {
+    set handle [ConfigOpen test.conf]
+    ConfigRead $handle
+    set result [list [ConfigSet $handle newSection]]
+    lappend result [ConfigExists $handle newSection]
+    ConfigClose $handle
+    set result
+} {{} 1}
+
+test config-11.9 {ConfigSet: new section, new key} {
+    set handle [ConfigOpen test.conf]
+    ConfigRead $handle
+    set result [list [ConfigSet $handle newSection newKey newValue]]
+    lappend result [ConfigExists $handle newSection newKey]
+    ConfigClose $handle
+    set result
+} {newValue 1}
+
+################################################################################
+# ConfigUnset                                                                  #
+################################################################################
+
+test config-12.1 {ConfigUnset: no args} {
+    list [catch {ConfigUnset} msg] $msg
+} {1 {wrong # args: should be "ConfigUnset handle section ?key?"}}
+
+test config-12.2 {ConfigUnset: invalid handle} {
+    list [catch {ConfigUnset {} a b} msg] $msg
+} {1 {invalid config handle ""}}
+
+test config-12.3 {ConfigUnset: invalid handle} {
+    list [catch {ConfigUnset configTEST a b} msg] $msg
+} {1 {invalid config handle "configTEST"}}
+
+test config-12.4 {ConfigUnset: remove valid section} {
+    set handle [ConfigOpen test.conf]
+    ConfigRead $handle
+    ConfigUnset $handle sectionOne
+    set result [ConfigExists $handle sectionOne]
+    ConfigClose $handle
+    set result
+} {0}
+
+test config-12.5 {ConfigUnset: remove invalid section} {
+    set handle [ConfigOpen test.conf]
+    ConfigRead $handle
+    ConfigUnset $handle unknownSection
+    set result [ConfigExists $handle unknownSection]
+    ConfigClose $handle
+    set result
+} {0}
+
+test config-12.6 {ConfigUnset: remove valid key} {
+    set handle [ConfigOpen test.conf]
+    ConfigRead $handle
+    ConfigUnset $handle sectionOne something
+    set result [ConfigExists $handle sectionOne something]
+    ConfigClose $handle
+    set result
+} {0}
+
+test config-12.7 {ConfigUnset: remove invalid key} {
+    set handle [ConfigOpen test.conf]
+    ConfigRead $handle
+    ConfigUnset $handle sectionOne unknownKey
+    set result [ConfigExists $handle sectionOne unknownKey]
+    ConfigClose $handle
+    set result
+} {0}
+
+
+::tcltest::cleanupTests
+return
