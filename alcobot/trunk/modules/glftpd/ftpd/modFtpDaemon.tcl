@@ -142,26 +142,28 @@ proc ::alcoholicz::FtpDaemon::UserExists {userName} {
 # UserInfo
 #
 # Retrieve information about a user, results are saved to the given variable name.
-#  - admin    {group list}
-#  - alldn    {30 ints}
-#  - allup    {30 ints}
-#  - credits  {10 ints}
-#  - daydn    {30 ints}
-#  - dayup    {30 ints}
-#  - flags    {flags}
-#  - groups   {group list}
-#  - ips      {ip list}
-#  - logins   {maxLogins}
-#  - monthdn  {30 ints}
-#  - monthup  {30 ints}
-#  - password {hash}
-#  - ratio    {10 ints}
-#  - speed    {maxDown maxUp}
-#  - tagline  {tagline}
-#  - weekdn   {30 ints}
-#  - weekup   {30 ints}
+#  - admin    <group list>
+#  - alldn    <30 ints>
+#  - allup    <30 ints>
+#  - credits  <10 ints>
+#  - daydn    <30 ints>
+#  - dayup    <30 ints>
+#  - flags    <flags>
+#  - groups   <group list>
+#  - ips      <IP list>
+#  - logins   <max logins>
+#  - monthdn  <30 ints>
+#  - monthup  <30 ints>
+#  - password <hash>
+#  - ratio    <10 ints>
+#  - speed    <max down> <max up>
+#  - tagline  <tagline>
+#  - uid      <user ID>
+#  - weekdn   <30 ints>
+#  - weekup   <30 ints>
 #
 proc ::alcoholicz::FtpDaemon::UserInfo {userName varName} {
+    variable dataPath
     variable users
     upvar $varName dest
 
@@ -170,24 +172,27 @@ proc ::alcoholicz::FtpDaemon::UserInfo {userName varName} {
     }
     if {![info exists users($userName)]} {return 0}
 
-    array set dest {
-        admin    ""
-        credits  {0 0 0 0 0 0 0 0 0 0}
-        flags    ""
-        groups   ""
-        home     ""
-        ips      ""
-        logins   0
-        password ""
-        ratio    {0 0 0 0 0 0 0 0 0 0}
-        speed    {0 0}
-        tagline  ""
-    }
+    array set dest [list                      \
+        admin    ""                           \
+        credits  {0 0 0 0 0 0 0 0 0 0}        \
+        flags    ""                           \
+        groups   ""                           \
+        home     ""                           \
+        ips      ""                           \
+        logins   0                            \
+        password [lindex $users($userName) 0] \
+        ratio    {0 0 0 0 0 0 0 0 0 0}        \
+        speed    {0 0}                        \
+        tagline  ""                           \
+        uid      [lindex $users($userName) 1] \
+    ]
     foreach type {alldn allup daydn dayup monthdn monthup weekdn weekup} {
         set dest($type) {0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0}
     }
 
     # TODO: Parse user file.
+
+    set filePath [file join $dataPath "users" $groupName]
 
     return 1
 }
@@ -224,11 +229,13 @@ proc ::alcoholicz::FtpDaemon::GroupExists {groupName} {
 # GroupInfo
 #
 # Retrieve information about a group, results are saved to the given variable name.
-#  - desc  {description}
-#  - leech {leechSlots}
-#  - ratio {ratioSlots}
+#  - desc  <description>
+#  - gid   <group ID>
+#  - leech <leech slots>
+#  - ratio <ratio slots>
 #
 proc ::alcoholicz::FtpDaemon::GroupInfo {groupName varName} {
+    variable dataPath
     variable groups
     upvar $varName dest
 
@@ -237,13 +244,16 @@ proc ::alcoholicz::FtpDaemon::GroupInfo {groupName varName} {
     }
     if {![info exists groups($groupName)]} {return 0}
 
-    array set dest {
-        desc  ""
-        leech 0
-        ratio 0
-    }
+    array set dest [list                     \
+        desc  [lindex $groups($groupName) 0] \
+        gid   [lindex $groups($groupName) 1] \
+        leech 0                              \
+        ratio 0                              \
+    ]
 
     # TODO: Parse group file.
+
+    set filePath [file join $dataPath "groups" $groupName]
 
     return 1
 }

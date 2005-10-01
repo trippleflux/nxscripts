@@ -144,24 +144,25 @@ proc ::alcoholicz::FtpDaemon::UserExists {userName} {
 # UserInfo
 #
 # Retrieve information about a user, results are saved to the given variable name.
-#  - admin    {group list}
-#  - alldn    {30 ints}
-#  - allup    {30 ints}
-#  - credits  {10 ints}
-#  - daydn    {30 ints}
-#  - dayup    {30 ints}
-#  - flags    {flags}
-#  - groups   {group list}
-#  - ips      {ip list}
-#  - logins   {maxLogins}
-#  - monthdn  {30 ints}
-#  - monthup  {30 ints}
-#  - password {hash}
-#  - ratio    {10 ints}
-#  - speed    {maxDown maxUp}
-#  - tagline  {tagline}
-#  - weekdn   {30 ints}
-#  - weekup   {30 ints}
+#  - admin    <group list>
+#  - alldn    <30 ints>
+#  - allup    <30 ints>
+#  - credits  <10 ints>
+#  - daydn    <30 ints>
+#  - dayup    <30 ints>
+#  - flags    <flags>
+#  - groups   <group list>
+#  - ips      <IP list>
+#  - logins   <max logins>
+#  - monthdn  <30 ints>
+#  - monthup  <30 ints>
+#  - password <hash>
+#  - ratio    <10 ints>
+#  - speed    <max down> <max up>
+#  - tagline  <tagline>
+#  - uid      <user ID>
+#  - weekdn   <30 ints>
+#  - weekup   <30 ints>
 #
 proc ::alcoholicz::FtpDaemon::UserInfo {userName varName} {
     variable users
@@ -185,6 +186,7 @@ proc ::alcoholicz::FtpDaemon::UserInfo {userName varName} {
         ratio    {0 0 0 0 0 0 0 0 0 0}
         speed    {0 0}
         tagline  ""
+        uid      0
     }
     foreach type {alldn allup daydn dayup monthdn monthup weekdn weekup} {
         set dest($type) {0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0}
@@ -227,9 +229,10 @@ proc ::alcoholicz::FtpDaemon::GroupExists {groupName} {
 # GroupInfo
 #
 # Retrieve information about a group, results are saved to the given variable name.
-#  - desc  {description}
-#  - leech {leechSlots}
-#  - ratio {ratioSlots}
+#  - desc  <description>
+#  - gid   <group ID>
+#  - leech <leech slots>
+#  - ratio <ratio slots>
 #
 proc ::alcoholicz::FtpDaemon::GroupInfo {groupName varName} {
     variable groups
@@ -242,6 +245,7 @@ proc ::alcoholicz::FtpDaemon::GroupInfo {groupName varName} {
 
     array set dest {
         desc  ""
+        gid   0
         leech 0
         ratio 0
     }
