@@ -109,8 +109,8 @@ Path: modules/generic/invite
    provided in invite.sql, which is located in the module's directory.
 3. Configure the [Module::Invite] section in AlcoBot.conf.
 4. Reload AlcoBot by entering the command ".alcobot reload" in DCC chat.
-5. Install the related SITE commands by following the directions
-   in siteInvite.tcl, also located in the module's directory.
+5. Instructions for installing the SITE commands are in the top of the
+   siteInvite.tcl file, which is located in the module's directory.
 
 ############################################################
 # nxtools                                                  #
