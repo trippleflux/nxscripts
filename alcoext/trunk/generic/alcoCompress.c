@@ -35,6 +35,8 @@ Abstract:
 --*/
 
 #include <alcoExt.h>
+#include <bzlib.h>
+#include <zlib.h>
 
 //
 // Bzip function prototypes.

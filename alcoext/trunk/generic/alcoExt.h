@@ -52,9 +52,7 @@ typedef struct StateList {
     struct StateList *prev;
 } StateList;
 
-#include <bzlib.h>
 #include <tomcrypt.h>
-#include <zlib.h>
 
 #include "alcoCompress.h"
 #include "alcoCrypt.h"
