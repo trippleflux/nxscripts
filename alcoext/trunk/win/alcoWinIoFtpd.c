@@ -27,7 +27,7 @@ Abstract:
     ioftpd group name   <msgWindow> <gid>             - Resolve a GID to its group name.
 
     Online Data Commands:
-    ioftpd info         <msgWindow> <varName>         - Query the ioFTPD process.
+    ioftpd info         <msgWindow> <varName>         - Query the ioFTPD message window.
     ioftpd kick         <msgWindow> <user>            - Kick a user.
     ioftpd kill         <msgWindow> <cid>             - Kick a connection ID.
     ioftpd who          <msgWindow> <fields>          - Query online users.
@@ -35,6 +35,17 @@ Abstract:
 --*/
 
 #include <alcoExt.h>
+
+// Relevant ioFTPD headers.
+#include "ioftpd\ServerLimits.h"
+#include "ioftpd\UserFile.h"
+#include "ioftpd\GroupFile.h"
+#include "ioftpd\WinMessages.h"
+#include "ioftpd\DataCopy.h"
+
+//
+// Tcl command functions.
+//
 
 static int
 IoGroupCmd(
@@ -78,11 +89,61 @@ IoWhoCmd(
     Tcl_Obj *CONST objv[]
     );
 
-
-// TODO: Add user, gid, and group fields (not available in struct).
+//
+// Shared memory structures and functions.
+//
+
+typedef struct {
+    HWND  daemonWnd;        // Handle to ioFTPD's message window.
+    DWORD processId;        // Current process ID.
+} ShmSession;
+
+typedef struct {
+    DC_MESSAGE *message;    // Data-copy message structure.
+    void       *block;      // Allocated memory block.
+    void       *remote;     // ???
+    HANDLE     event;       // Event handle.
+    HANDLE     memMap;      // Memory mapping handle.
+    DWORD      bytes;       // Size of the memory block, in bytes.
+} ShmMemory;
+
+static int
+ShmInit(
+    ShmSession *session,
+    Tcl_Interp *interp,
+    const char *msgWindow
+    );
+
+static ShmMemory *
+ShmAlloc(
+    ShmSession *session,
+    BOOL createEvent,
+    DWORD bytes
+    );
+
+static void
+ShmFree(
+    ShmSession *session,
+    ShmMemory *memory
+    );
+
+static DWORD
+ShmQuery(
+    ShmSession *session,
+    ShmMemory *memory,
+    DWORD queryType,
+    DWORD timeOut
+    );
+
+//
+// Who fields.
+//
+
 static const char *whoFields[] = {
     "action",
     "cid",
+    "gid",      // Note, not part of ONLINEDATA.
+    "group",    // Note, not part of ONLINEDATA.
     "host",
     "ident",
     "idletime",
@@ -94,6 +155,7 @@ static const char *whoFields[] = {
     "speed",
     "status",
     "uid",
+    "user",     // Note, not part of ONLINEDATA.
     "vdatapath",
     "vpath",
     NULL
@@ -118,6 +180,223 @@ enum {
 };
 
 
+/*++
+
+ShmInit
+
+    Initialise a shared memory session.
+
+Arguments:
+    session     - Pointer to the ShmSession structure to be initialised.
+
+    interp      - Interpreter to use for error reporting.
+
+    msgWindow   - Name of ioFTPD's message window.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
+static int
+ShmInit(
+    ShmSession *session,
+    Tcl_Interp *interp,
+    const char *msgWindow
+    )
+{
+    session->processId = GetCurrentProcessId();
+    session->daemonWnd = FindWindowA(msgWindow, NULL);
+
+    if (session->daemonWnd == NULL) {
+        Tcl_ResetResult(interp);
+        Tcl_AppendResult(interp, "unable to find window \"", msgWindow,
+            "\": ", TclSetWinError(interp, GetLastError()));
+        return TCL_ERROR;
+    }
+
+    return TCL_OK;
+}
+
+/*++
+
+ShmAlloc
+
+    Allocates shared memory.
+
+Arguments:
+    session     - Pointer to an initialised ShmSession structure.
+
+    createEvent - Create an event to signal.
+
+    bytes       - Number of bytes to be allocated.
+
+Return Value:
+    If the function succeeds, the return value is a pointer to a ShmMemory
+    structure. This structure should be freed by the ShmFree function when
+    it is no longer needed. If the function fails, the return value is NULL.
+
+--*/
+static ShmMemory *
+ShmAlloc(
+    ShmSession *session,
+    BOOL createEvent,
+    DWORD bytes
+    )
+{
+    DC_MESSAGE *message = NULL;
+    ShmMemory  *memory;
+    BOOL   error  = TRUE;
+    HANDLE event  = NULL;
+    HANDLE memMap = NULL;
+    void   *remote;
+
+    if (createEvent && !(event = CreateEvent(NULL, FALSE, FALSE, NULL))) {
+        return NULL;
+    }
+
+    memory = (ShmMemory *) attemptckalloc(sizeof(ShmMemory));
+    if (memory == NULL) {
+        if (event != NULL) {
+            CloseHandle(event);
+        }
+        return NULL;
+    }
+
+    bytes += sizeof(DC_MESSAGE);
+
+    // Allocate memory in local process.
+    memMap = CreateFileMapping(INVALID_HANDLE_VALUE, NULL,
+        PAGE_READWRITE|SEC_COMMIT, 0, bytes, NULL);
+
+    if (memMap != NULL) {
+        message = (DC_MESSAGE *) MapViewOfFile(memMap,
+            FILE_MAP_READ|FILE_MAP_WRITE, 0, 0, bytes);
+    }
+
+    if (message != NULL) {
+        // Initialise data-copy message structure.
+        message->hEvent       = event;
+        message->hObject      = NULL;
+        message->dwIdentifier = 0;
+        message->dwReturn     = 0;
+        message->lpMemoryBase = (void *) message;
+        message->lpContext    = &message[1];
+
+        SetLastError(ERROR_SUCCESS);
+        remote = (void *) SendMessage(session->daemonWnd, WM_DATACOPY_FILEMAP,
+            (WPARAM) session->processId, (LPARAM) memMap);
+
+        if (remote != NULL && GetLastError() == ERROR_SUCCESS) {
+            error = FALSE;
+        }
+    }
+
+    if (error) {
+        // Free objects and resources.
+        if (message != NULL) {
+            UnmapViewOfFile(message);
+        }
+        if (memMap != NULL) {
+            CloseHandle(memMap);
+        }
+        if (event != NULL) {
+            CloseHandle(event);
+        }
+
+        ckfree((char *) memory);
+        memory = NULL;
+    } else {
+        // Update memory structure.
+        memory->message = message;
+        memory->block   = &message[1];
+        memory->remote  = remote;
+        memory->event   = event;
+        memory->memMap  = memMap;
+        memory->bytes   = bytes - sizeof(DC_MESSAGE);
+    }
+
+    return memory;
+}
+
+/*++
+
+ShmFree
+
+    Frees shared memory.
+
+Arguments:
+    session - Pointer to an initialised ShmSession structure.
+
+    memory  - Pointer to an ShmMemory structure allocated by the
+              ShmAlloc function.
+
+Return Value:
+    None.
+
+--*/
+static void
+ShmFree(
+    ShmSession *session,
+    ShmMemory *memory
+    )
+{
+    // Free resources and objects.
+    UnmapViewOfFile(memory->message);
+
+    if (memory->event != NULL) {
+        CloseHandle(memory->event);
+    }
+    if (memory->memMap != NULL) {
+        CloseHandle(memory->memMap);
+    }
+
+    SendMessage(session->daemonWnd, WM_DATACOPY_FREE, 0, (LPARAM) memory->remote);
+    ckfree((char *) memory);
+}
+
+/*++
+
+ShmQuery
+
+    Queries the ioFTPD daemon.
+
+Arguments:
+    session     - Pointer to an initialised ShmSession structure.
+
+    memory      - Pointer to an ShmMemory structure allocated by the
+                  ShmAlloc function.
+
+    queryType   - Query identifier, defined in DataCopy.h.
+
+    timeOut     - Time-out interval, in milliseconds.
+
+Return Value:
+    If the function succeeds, the return value is zero. If the function
+    fails, the return value is non-zero.
+
+--*/
+static DWORD
+ShmQuery(
+    ShmSession *session,
+    ShmMemory *memory,
+    DWORD queryType,
+    DWORD timeOut
+    )
+{
+    memory->message->dwIdentifier = queryType;
+    PostMessage(session->daemonWnd, WM_SHMEM, 0, (LPARAM) memory->remote);
+
+    if (timeOut && memory->event != NULL) {
+        if (WaitForSingleObject(memory->event, timeOut) == WAIT_TIMEOUT) {
+            return (DWORD)-1;
+        }
+        return memory->message->dwReturn;
+    }
+
+    //  No timeout or event, return value cannot be checked.
+    return (DWORD)-1;
+}
+
 /*++
 
 IoGroupCmd
@@ -418,7 +697,7 @@ IoWhoCmd(
 
 IoFtpdObjCmd
 
-  	This function provides the "ioftpd" Tcl command.
+    This function provides the "ioftpd" Tcl command.
 
 Arguments:
     dummy  - Not used.
