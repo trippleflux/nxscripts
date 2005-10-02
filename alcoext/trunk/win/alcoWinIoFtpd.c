@@ -164,6 +164,8 @@ static const char *whoFields[] = {
 enum {
     WHO_ACTION = 0,
     WHO_CID,
+    WHO_GID,
+    WHO_GROUP,
     WHO_HOST,
     WHO_IDENT,
     WHO_IDLETIME,
@@ -175,8 +177,9 @@ enum {
     WHO_SPEED,
     WHO_STATUS,
     WHO_UID,
+    WHO_USER,
     WHO_VDATAPATH,
-    WHO_VPATH,
+    WHO_VPATH
 };
 
 
