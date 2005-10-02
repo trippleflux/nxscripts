@@ -12,9 +12,36 @@ Author:
 Abstract:
     Implements a Tcl command-based interface for interaction with ioFTPD.
 
+    User Commands:
+    ioftpd user exists  <msgWindow> <user>            - Check if a user exists.
+    ioftpd user get     <msgWindow> <user> <varName>  - Query a user.
+    ioftpd user id      <msgWindow> <user>            - Resolve a user name to its UID.
+    ioftpd user list    <msgWindow> [-id] [-name]     - List users and/or UIDs.
+    ioftpd user name    <msgWindow> <uid>             - Resolve a UID to its user name.
+
+    Group Commands:
+    ioftpd group exists <msgWindow> <group>           - Check if a group exists.
+    ioftpd group get    <msgWindow> <group> <varName> - Query a group.
+    ioftpd group id     <msgWindow> <group>           - Resolve a group name to its GID.
+    ioftpd group list   <msgWindow> [-id] [-name]     - List groups and/or GIDs.
+    ioftpd group name   <msgWindow> <gid>             - Resolve a GID to its group name.
+
+    Online Data Commands:
+    ioftpd info         <msgWindow> <varName>         - Query the ioFTPD process.
+    ioftpd kick         <msgWindow> <user>            - Kick a user.
+    ioftpd kill         <msgWindow> <cid>             - Kick a connection ID.
+    ioftpd who          <msgWindow> <fields>          - Query online users.
+
 --*/
 
 #include <alcoExt.h>
+
+static int
+IoGroupCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[]
+    );
 
 static int
 IoInfoCmd(
@@ -38,7 +65,7 @@ IoKillCmd(
     );
 
 static int
-IoResolveCmd(
+IoUserCmd(
     Tcl_Interp *interp,
     int objc,
     Tcl_Obj *CONST objv[]
@@ -91,6 +118,70 @@ enum {
 };
 
 
+/*++
+
+IoGroupCmd
+
+    List, query, and resolve ioFTPD groups.
+
+Arguments:
+    interp - Current interpreter.
+
+    objc   - Number of arguments.
+
+    objv   - Argument objects.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
+static int
+IoGroupCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[]
+    )
+{
+    int index;
+    static const char *options[] = {
+        "exists", "get", "id", "list", "name", NULL
+    };
+    enum options {
+        GROUP_EXISTS, GROUP_GET, GROUP_ID, GROUP_LIST, GROUP_NAME
+    };
+
+    if (objc < 4) {
+        Tcl_WrongNumArgs(interp, 2, objv, "option msgWindow ?arg ...?");
+        return TCL_ERROR;
+    }
+
+    if (Tcl_GetIndexFromObj(interp, objv[2], options, "option", 0, &index) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    switch ((enum options) index) {
+        case GROUP_EXISTS: {
+            break;
+        }
+        case GROUP_GET: {
+            break;
+        }
+        case GROUP_ID: {
+            break;
+        }
+        case GROUP_LIST: {
+            break;
+        }
+        case GROUP_NAME: {
+            break;
+        }
+    }
+
+    // TODO: IPC stuff.
+
+    return TCL_OK;
+}
+
 /*++
 
 IoInfoCmd
@@ -201,9 +292,9 @@ IoKillCmd(
 
 /*++
 
-IoResolveCmd
+IoUserCmd
 
-    Resolves names and IDs for users and groups.
+    List, query, and resolve ioFTPD users.
 
 Arguments:
     interp - Current interpreter.
@@ -217,18 +308,22 @@ Return Value:
 
 --*/
 static int
-IoResolveCmd(
+IoUserCmd(
     Tcl_Interp *interp,
     int objc,
     Tcl_Obj *CONST objv[]
     )
 {
     int index;
-    static const char *options[] = {"gid", "group", "uid", "user", NULL};
-    enum options {OPTION_GID, OPTION_GROUP, OPTION_UID, OPTION_USER};
+    static const char *options[] = {
+        "exists", "get", "id", "list", "name", NULL
+    };
+    enum options {
+        USER_EXISTS, USER_GET, USER_ID, USER_LIST, USER_NAME
+    };
 
-    if (objc != 5) {
-        Tcl_WrongNumArgs(interp, 2, objv, "option msgWindow value");
+    if (objc < 4) {
+        Tcl_WrongNumArgs(interp, 2, objv, "option msgWindow ?arg ...?");
         return TCL_ERROR;
     }
 
@@ -237,20 +332,19 @@ IoResolveCmd(
     }
 
     switch ((enum options) index) {
-        case OPTION_GID: {
-            // Group ID to group name.
+        case USER_EXISTS: {
             break;
         }
-        case OPTION_GROUP: {
-            // Group name to group ID.
+        case USER_GET: {
             break;
         }
-        case OPTION_UID: {
-            // User ID to user name.
+        case USER_ID: {
             break;
         }
-        case OPTION_USER: {
-            // User name to user ID.
+        case USER_LIST: {
+            break;
+        }
+        case USER_NAME: {
             break;
         }
     }
@@ -349,10 +443,10 @@ IoFtpdObjCmd(
 {
     int index;
     static const char *options[] = {
-        "info", "kick", "kill", "resolve", "who", NULL
+        "group", "info", "kick", "kill", "user", "who", NULL
     };
     enum options {
-        OPTION_INFO, OPTION_KICK, OPTION_KILL, OPTION_RESOLVE, OPTION_WHO
+        OPTION_GROUP, OPTION_INFO, OPTION_KICK, OPTION_KILL, OPTION_USER, OPTION_WHO
     };
 
     if (objc < 2) {
@@ -365,11 +459,12 @@ IoFtpdObjCmd(
     }
 
     switch ((enum options) index) {
-        case OPTION_INFO:    return IoInfoCmd(interp, objc, objv);
-        case OPTION_KICK:    return IoKickCmd(interp, objc, objv);
-        case OPTION_KILL:    return IoKillCmd(interp, objc, objv);
-        case OPTION_RESOLVE: return IoResolveCmd(interp, objc, objv);
-        case OPTION_WHO:     return IoWhoCmd(interp, objc, objv);
+        case OPTION_GROUP: return IoGroupCmd(interp, objc, objv);
+        case OPTION_INFO:  return IoInfoCmd(interp, objc, objv);
+        case OPTION_KICK:  return IoKickCmd(interp, objc, objv);
+        case OPTION_KILL:  return IoKillCmd(interp, objc, objv);
+        case OPTION_USER:  return IoUserCmd(interp, objc, objv);
+        case OPTION_WHO:   return IoWhoCmd(interp, objc, objv);
     }
 
     // This point should never be reached.
