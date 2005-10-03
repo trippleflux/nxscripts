@@ -43,6 +43,8 @@ Abstract:
 #include "ioftpd\WinMessages.h"
 #include "ioftpd\DataCopy.h"
 
+#pragma warning(push,4)
+
 //
 // Tcl command functions.
 //
@@ -136,15 +138,20 @@ ShmQuery(
     );
 
 //
-// Misc. functions.
+// Helper functions.
 //
+
+// Flags for GetOnlineFields
+#define ONLINE_GET_GROUPID  0x0001
+#define ONLINE_GET_USERNAME 0x0002
 
 static int
 GetOnlineFields(
     ShmSession *session,
     Tcl_Interp *interp,
     unsigned char *fields,
-    int fieldCount
+    int fieldCount,
+    unsigned short flags
     );
 
 //
@@ -251,6 +258,7 @@ Return Value:
     If the function succeeds, the return value is a pointer to a ShmMemory
     structure. This structure should be freed by the ShmFree function when
     it is no longer needed. If the function fails, the return value is NULL.
+    To get extended error information, call GetLastError.
 
 --*/
 static ShmMemory *
@@ -262,7 +270,7 @@ ShmAlloc(
 {
     DC_MESSAGE *message = NULL;
     ShmMemory  *memory;
-    BOOL   error  = TRUE;
+    DWORD  error  = ERROR_SUCCESS;
     HANDLE event  = NULL;
     HANDLE memMap = NULL;
     void   *remote;
@@ -271,44 +279,43 @@ ShmAlloc(
         return NULL;
     }
 
-    memory = (ShmMemory *) attemptckalloc(sizeof(ShmMemory));
-    if (memory == NULL) {
-        if (event != NULL) {
-            CloseHandle(event);
-        }
-        return NULL;
-    }
-
+    memory = (ShmMemory *) ckalloc(sizeof(ShmMemory));
     bytes += sizeof(DC_MESSAGE);
 
     // Allocate memory in local process.
     memMap = CreateFileMapping(INVALID_HANDLE_VALUE, NULL,
         PAGE_READWRITE|SEC_COMMIT, 0, bytes, NULL);
 
-    if (memMap != NULL) {
+    if (memMap == NULL) {
+        error = GetLastError();
+    } else {
         message = (DC_MESSAGE *) MapViewOfFile(memMap,
             FILE_MAP_READ|FILE_MAP_WRITE, 0, 0, bytes);
-    }
 
-    if (message != NULL) {
-        // Initialise data-copy message structure.
-        message->hEvent       = event;
-        message->hObject      = NULL;
-        message->dwIdentifier = 0;
-        message->dwReturn     = 0;
-        message->lpMemoryBase = (void *) message;
-        message->lpContext    = &message[1];
+        if (message == NULL) {
+            error = GetLastError();
+        } else {
+            // Initialise data-copy message structure.
+            message->hEvent       = event;
+            message->hObject      = NULL;
+            message->dwIdentifier = 0;
+            message->dwReturn     = 0;
+            message->lpMemoryBase = (void *) message;
+            message->lpContext    = &message[1];
 
-        SetLastError(ERROR_SUCCESS);
-        remote = (void *) SendMessage(session->messageWnd, WM_DATACOPY_FILEMAP,
-            (WPARAM) session->processId, (LPARAM) memMap);
+            SetLastError(ERROR_SUCCESS);
+            remote = (void *) SendMessage(session->messageWnd, WM_DATACOPY_FILEMAP,
+                (WPARAM) session->processId, (LPARAM) memMap);
 
-        if (remote != NULL && GetLastError() == ERROR_SUCCESS) {
-            error = FALSE;
+            error = GetLastError();
+            if (remote == NULL && error == ERROR_SUCCESS) {
+                // Not sure if SendMessage updates the error code on failure.
+                error = ERROR_INVALID_PARAMETER;
+            }
         }
     }
 
-    if (error) {
+    if (error != ERROR_SUCCESS) {
         // Free objects and resources.
         if (message != NULL) {
             UnmapViewOfFile(message);
@@ -322,6 +329,10 @@ ShmAlloc(
 
         ckfree((char *) memory);
         memory = NULL;
+
+        // Restore the previous error code, since the UnmapViewOfFile
+        // or CloseHandle function could change it.
+        SetLastError(error);
     } else {
         // Update memory structure.
         memory->message = message;
@@ -367,7 +378,7 @@ ShmFree(
         CloseHandle(memory->memMap);
     }
 
-    SendMessage(session->messageWnd, WM_DATACOPY_FREE, 0, (LPARAM) memory->remote);
+    PostMessage(session->messageWnd, WM_DATACOPY_FREE, 0, (LPARAM) memory->remote);
     ckfree((char *) memory);
 }
 
@@ -430,6 +441,8 @@ Arguments:
 
     fieldCount  - Number of fields given for the 'fields' parameter.
 
+    flags       - Bit mask of ONLINE_GET_GROUPID and/or ONLINE_GET_USERNAME.
+
 Return Value:
     A standard Tcl result.
 
@@ -443,7 +456,8 @@ GetOnlineFields(
     ShmSession *session,
     Tcl_Interp *interp,
     unsigned char *fields,
-    int fieldCount
+    int fieldCount,
+    unsigned short flags
     )
 {
     DWORD result;
@@ -456,8 +470,13 @@ GetOnlineFields(
 
     memory = ShmAlloc(session, TRUE, sizeof(DC_ONLINEDATA) + _MAX_PATH * 2);
     if (memory == NULL) {
-        Tcl_SetResult(interp, "unable to retrieve online data: insufficient memory", TCL_STATIC);
+        Tcl_AppendResult(interp, "unable to retrieve online data: ",
+            TclSetWinError(interp, GetLastError()), NULL);
         return TCL_ERROR;
+    }
+
+    if (flags & ONLINE_GET_GROUPID || flags & ONLINE_GET_USERNAME) {
+        // TODO: Allocate a buffer for the DC_NAMEID/USERFILE struct.
     }
 
     // Initialise the data-copy online structure.
@@ -471,7 +490,7 @@ GetOnlineFields(
     //
     resultObj = Tcl_GetObjResult(interp);
 
-    while (1) {
+    for (;;) {
         result = ShmQuery(session, memory, DC_GET_ONLINEDATA, 5000);
         if (result != 0) {
             if (result == (DWORD)-1) {
@@ -484,6 +503,10 @@ GetOnlineFields(
             continue;
         }
         userObj = Tcl_NewObj();
+
+        if (flags & ONLINE_GET_GROUPID) {
+            // TODO: Get the primary group ID.
+        }
 
         for (i = 0; i < fieldCount; i++) {
             fieldObj = NULL;
@@ -571,6 +594,10 @@ GetOnlineFields(
                     break;
                 }
                 case WHO_STATUS: {
+                    // 0 - Idle
+                    // 1 - Upload
+                    // 2 - Download
+                    // 3 - List
                     fieldObj = Tcl_NewLongObj((long) dcOnlineData->OnlineData.bTransferStatus);
                     break;
                 }
@@ -603,7 +630,6 @@ GetOnlineFields(
     ShmFree(session, memory);
     return TCL_OK;
 }
-
 
 
 /*++
@@ -925,6 +951,7 @@ IoWhoCmd(
     int i;
     int result = TCL_ERROR;
     unsigned char *fields;
+    unsigned short flags = 0;
     ShmSession session;
     Tcl_Obj **elementPtrs;
 
@@ -950,10 +977,20 @@ IoWhoCmd(
             goto end;
         }
 
+        switch (fieldIndex) {
+            case WHO_GID:
+            case WHO_GROUP: {
+                flags |= ONLINE_GET_GROUPID;
+            }
+            case WHO_USER: {
+                flags |= ONLINE_GET_USERNAME;
+            }
+        }
+
         fields[i] = (unsigned char) fieldIndex;
     }
 
-    result = GetOnlineFields(&session, interp, fields, elementCount);
+    result = GetOnlineFields(&session, interp, fields, elementCount, flags);
 
     end:
     ckfree((char *) fields);

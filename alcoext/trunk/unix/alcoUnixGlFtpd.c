@@ -1433,9 +1433,9 @@ GetOnlineFields(
 
                     if (strncasecmp(onlineData[i]->status, "STOR ", 5) == 0 ||
                         strncasecmp(onlineData[i]->status, "APPE ", 5) == 0) {
-                        status = 1; // Uploading
+                        status = 1; // Upload
                     } else if (strncasecmp(onlineData[i]->status, "RETR ", 5) == 0) {
-                        status = 2; // Downloading
+                        status = 2; // Download
                     }
 
                     fieldObj = Tcl_NewLongObj(status);
