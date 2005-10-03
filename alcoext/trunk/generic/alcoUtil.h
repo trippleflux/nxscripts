@@ -18,10 +18,18 @@ Abstract:
 #define _ALCOUTIL_H_
 
 #undef ARRAYSIZE
+#undef MAX
+#undef MIN
 #undef ROUNDUP
 
 // ARRAYSIZE - Returns the number of entries in an array.
 #define ARRAYSIZE(a)    (sizeof(a) / sizeof(a[0]))
+
+// MAX - Returns the maximum of two numeric values.
+#define MAX(a, b)       (((a) > (b)) ? (a) : (b))
+
+// MIN - Returns the minimum of two numeric values.
+#define MIN(a, b)       (((a) < (b)) ? (a) : (b))
 
 // ROUNDUP - Round 'a' up to a multiple of 'b'.
 #define ROUNDUP(a,b)    ((((a) + ((b) - 1)) / (b)) * (b))

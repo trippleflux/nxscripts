@@ -43,8 +43,6 @@ Abstract:
 #include "ioftpd\WinMessages.h"
 #include "ioftpd\DataCopy.h"
 
-#pragma warning(push,4)
-
 //
 // Tcl command functions.
 //
@@ -140,6 +138,38 @@ ShmQuery(
 //
 // Helper functions.
 //
+
+static int
+GroupIdToName(
+    ShmSession *session,
+    ShmMemory *memory,
+    int groupId,
+    char *groupName
+    );
+
+static int
+GroupNameToId(
+    ShmSession *session,
+    ShmMemory *memory,
+    const char *groupName,
+    int *groupId
+    );
+
+static int
+UserIdToName(
+    ShmSession *session,
+    ShmMemory *memory,
+    int userId,
+    char *userName
+    );
+
+static int
+UserNameToId(
+    ShmSession *session,
+    ShmMemory *memory,
+    const char *userName,
+    int *userId
+    );
 
 // Flags for GetOnlineFields
 #define ONLINE_GET_GROUPID  0x0001
@@ -286,15 +316,11 @@ ShmAlloc(
     memMap = CreateFileMapping(INVALID_HANDLE_VALUE, NULL,
         PAGE_READWRITE|SEC_COMMIT, 0, bytes, NULL);
 
-    if (memMap == NULL) {
-        error = GetLastError();
-    } else {
+    if (memMap != NULL) {
         message = (DC_MESSAGE *) MapViewOfFile(memMap,
             FILE_MAP_READ|FILE_MAP_WRITE, 0, 0, bytes);
 
-        if (message == NULL) {
-            error = GetLastError();
-        } else {
+        if (message != NULL) {
             // Initialise data-copy message structure.
             message->hEvent       = event;
             message->hObject      = NULL;
@@ -312,10 +338,22 @@ ShmAlloc(
                 // Not sure if SendMessage updates the error code on failure.
                 error = ERROR_INVALID_PARAMETER;
             }
+        } else {
+            error = GetLastError();
         }
+    } else {
+        error = GetLastError();
     }
 
-    if (error != ERROR_SUCCESS) {
+    if (error == ERROR_SUCCESS) {
+        // Update memory allocation structure.
+        memory->message = message;
+        memory->block   = &message[1];
+        memory->remote  = remote;
+        memory->event   = event;
+        memory->memMap  = memMap;
+        memory->bytes   = bytes - sizeof(DC_MESSAGE);
+    } else {
         // Free objects and resources.
         if (message != NULL) {
             UnmapViewOfFile(message);
@@ -333,14 +371,6 @@ ShmAlloc(
         // Restore the previous error code, since the UnmapViewOfFile
         // or CloseHandle function could change it.
         SetLastError(error);
-    } else {
-        // Update memory structure.
-        memory->message = message;
-        memory->block   = &message[1];
-        memory->remote  = remote;
-        memory->event   = event;
-        memory->memMap  = memMap;
-        memory->bytes   = bytes - sizeof(DC_MESSAGE);
     }
 
     return memory;
@@ -368,7 +398,7 @@ ShmFree(
     ShmMemory *memory
     )
 {
-    // Free resources and objects.
+    // Free objects and resources.
     UnmapViewOfFile(memory->message);
 
     if (memory->event != NULL) {
@@ -428,6 +458,198 @@ ShmQuery(
 
 /*++
 
+GroupIdToName
+
+    Resolve a group ID to its corresponding group name.
+
+Arguments:
+    session     - Pointer to an initialised ShmSession structure.
+
+    memory      - Pointer to an ShmMemory structure allocated by the ShmAlloc
+                  function. Must be large enough to hold the DC_NAMEID structure.
+
+    groupId     - The group ID to resolve.
+
+    groupName   - Pointer to a buffer to receive the user name. The
+                  buffer must be able to hold _MAX_NAME+1 characters.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
+static int
+GroupIdToName(
+    ShmSession *session,
+    ShmMemory *memory,
+    int groupId,
+    char *groupName
+    )
+{
+    DC_NAMEID *nameId;
+
+    assert(memory->bytes >= sizeof(DC_NAMEID));
+    assert(groupName != NULL);
+
+    // Initialise the DC_NAMEID structure.
+    nameId = (DC_NAMEID *) memory->message->lpContext;
+    nameId->Id			= groupId;
+    nameId->tszName[0]	= '\0';
+
+    if (!ShmQuery(session, memory, DC_GID_TO_GROUP, 5000)) {
+        StringCchCopyA(nameId->tszName, _MAX_NAME+1, groupName);
+        return TCL_OK;
+    }
+
+    groupName[0] = '\0';
+    return TCL_ERROR;
+}
+
+/*++
+
+GroupNameToId
+
+    Resolve a group name to its corresponding group ID.
+
+Arguments:
+    session     - Pointer to an initialised ShmSession structure.
+
+    memory      - Pointer to an ShmMemory structure allocated by the ShmAlloc
+                  function. Must be large enough to hold the DC_NAMEID structure.
+
+    groupName   - The group name to resolve.
+
+    groupId     - Location to store the group ID.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
+static int
+GroupNameToId(
+    ShmSession *session,
+    ShmMemory *memory,
+    const char *groupName,
+    int *groupId
+    )
+{
+    DC_NAMEID *nameId;
+
+    assert(memory->bytes >= sizeof(DC_NAMEID));
+    assert(groupName != NULL);
+    assert(groupId   != NULL);
+
+    // Initialise the DC_NAMEID structure.
+    nameId = (DC_NAMEID *) memory->message->lpContext;
+    nameId->Id			= -1;
+    StringCchCopyA(nameId->tszName, ARRAYSIZE(nameId->tszName), groupName);
+
+    if (!ShmQuery(session, memory, DC_GROUP_TO_GID, 5000)) {
+        *groupId = nameId->Id;
+        return TCL_OK;
+    }
+
+    *groupId = -1;
+    return TCL_OK;
+}
+
+/*++
+
+UserIdToName
+
+    Resolve a user ID to its corresponding user name.
+
+Arguments:
+    session     - Pointer to an initialised ShmSession structure.
+
+    memory      - Pointer to an ShmMemory structure allocated by the ShmAlloc
+                  function. Must be large enough to hold the DC_NAMEID structure.
+
+    userId      - The user ID to resolve.
+
+    userName    - Pointer to a buffer to receive the user name. The
+                  buffer must be able to hold _MAX_NAME+1 characters.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
+static int
+UserIdToName(
+    ShmSession *session,
+    ShmMemory *memory,
+    int userId,
+    char *userName
+    )
+{
+    DC_NAMEID *nameId;
+
+    assert(memory->bytes >= sizeof(DC_NAMEID));
+    assert(userName != NULL);
+
+    // Initialise the DC_NAMEID structure.
+    nameId = (DC_NAMEID *) memory->message->lpContext;
+    nameId->Id			= userId;
+    nameId->tszName[0]	= '\0';
+
+    if (!ShmQuery(session, memory, DC_UID_TO_USER, 5000)) {
+        StringCchCopyA(nameId->tszName, _MAX_NAME+1, userName);
+        return TCL_OK;
+    }
+
+    userName[0] = '\0';
+    return TCL_OK;
+}
+
+/*++
+
+UserNameToId
+
+    Resolve a user name to its corresponding user ID.
+
+Arguments:
+    session     - Pointer to an initialised ShmSession structure.
+
+    memory      - Pointer to an ShmMemory structure allocated by the ShmAlloc
+                  function. Must be large enough to hold the DC_NAMEID structure.
+
+    userName    - The user name to resolve.
+
+    userId      - Location to store the user ID.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
+static int
+UserNameToId(
+    ShmSession *session,
+    ShmMemory *memory,
+    const char *userName,
+    int *userId
+    )
+{
+    DC_NAMEID *nameId;
+
+    assert(memory->bytes >= sizeof(DC_NAMEID));
+    assert(userName != NULL);
+    assert(userId   != NULL);
+
+    // Initialise the DC_NAMEID structure.
+    nameId = (DC_NAMEID *) memory->message->lpContext;
+    nameId->Id			= -1;
+    StringCchCopyA(nameId->tszName, ARRAYSIZE(nameId->tszName), userName);
+
+    if (!ShmQuery(session, memory, DC_USER_TO_UID, 5000)) {
+        *userId = nameId->Id;
+        return TCL_OK;
+    }
+
+    *userId = -1;
+    return TCL_OK;
+}
+
+/*++
+
 GetOnlineFields
 
     Retrieve a list of online users and the requested fields.
@@ -463,26 +685,35 @@ GetOnlineFields(
     DWORD result;
     int i;
     DC_ONLINEDATA *dcOnlineData;
-    ShmMemory *memory;
+    ShmMemory *memOnline;
+    ShmMemory *memUser = NULL;
     Tcl_Obj *fieldObj;
     Tcl_Obj *resultObj;
     Tcl_Obj *userObj;
 
-    memory = ShmAlloc(session, TRUE, sizeof(DC_ONLINEDATA) + _MAX_PATH * 2);
-    if (memory == NULL) {
+    memOnline = ShmAlloc(session, TRUE, sizeof(DC_ONLINEDATA) + _MAX_PATH * 2);
+    if (memOnline == NULL) {
         Tcl_AppendResult(interp, "unable to retrieve online data: ",
             TclSetWinError(interp, GetLastError()), NULL);
         return TCL_ERROR;
     }
 
     if (flags & ONLINE_GET_GROUPID || flags & ONLINE_GET_USERNAME) {
-        // TODO: Allocate a buffer for the DC_NAMEID/USERFILE struct.
+        // Allocate a buffer large enough to hold a DC_NAMEID or USERFILE structure.
+        memUser = ShmAlloc(session, TRUE, MAX(sizeof(USERFILE), sizeof(DC_NAMEID)));
+
+        if (memUser == NULL) {
+            ShmFree(session, memOnline);
+            Tcl_AppendResult(interp, "unable to retrieve online data: ",
+                TclSetWinError(interp, GetLastError()), NULL);
+            return TCL_ERROR;
+        }
     }
 
     // Initialise the data-copy online structure.
-    dcOnlineData = (DC_ONLINEDATA *) memory->block;
-    dcOnlineData->iOffset            = 0;
-    dcOnlineData->dwSharedMemorySize = memory->bytes;
+    dcOnlineData          = (DC_ONLINEDATA *) memOnline->block;
+    dcOnlineData->iOffset = 0;
+    dcOnlineData->dwSharedMemorySize = memOnline->bytes;
 
     //
     // Create a nested list of users and requested fields.
@@ -491,7 +722,7 @@ GetOnlineFields(
     resultObj = Tcl_GetObjResult(interp);
 
     for (;;) {
-        result = ShmQuery(session, memory, DC_GET_ONLINEDATA, 5000);
+        result = ShmQuery(session, memOnline, DC_GET_ONLINEDATA, 5000);
         if (result != 0) {
             if (result == (DWORD)-1) {
                 // An error occured.
@@ -540,20 +771,16 @@ GetOnlineFields(
                     break;
                 }
                 case WHO_IDLETIME: {
-                    fieldObj = Tcl_NewLongObj((long) dcOnlineData->OnlineData.dwIdleTickCount);
+                    fieldObj = Tcl_NewLongObj((long) (GetTickCount() -
+                        dcOnlineData->OnlineData.dwIdleTickCount) / 1000);
                     break;
                 }
                 case WHO_IP: {
                     char clientIp[16];
-                    BYTE *dataIp = (BYTE *) &dcOnlineData->OnlineData.ulDataClientIp;
+                    BYTE *data = (BYTE *) &dcOnlineData->OnlineData.ulClientIp;
 
-                    //
-                    // ioFTPD does not update the data IP structure
-                    // member, so it's always 0.0.0.0.
-                    //
                     StringCchPrintfA(clientIp, ARRAYSIZE(clientIp), "%d.%d.%d.%d",
-                        dataIp[0] & 0xFF, dataIp[1] & 0xFF,
-                        dataIp[2] & 0xFF, dataIp[3] & 0xFF);
+                        data[0] & 0xFF, data[1] & 0xFF, data[2] & 0xFF, data[3] & 0xFF);
 
                     fieldObj = Tcl_NewStringObj(clientIp, -1);
                     break;
@@ -588,8 +815,12 @@ GetOnlineFields(
                     break;
                 }
                 case WHO_SPEED: {
-                    double speed = ((double)dcOnlineData->OnlineData.dwBytesTransfered) /
-                        (((double)dcOnlineData->OnlineData.dwIntervalLength) / 1000.0);
+                    double speed = 0.0;
+                    if (dcOnlineData->OnlineData.dwIntervalLength > 0) {
+                        // Kilobytes per second.
+                        speed = (double)dcOnlineData->OnlineData.dwBytesTransfered /
+                            (double)dcOnlineData->OnlineData.dwIntervalLength;
+                    }
                     fieldObj = Tcl_NewDoubleObj(speed);
                     break;
                 }
@@ -606,8 +837,9 @@ GetOnlineFields(
                     break;
                 }
                 case WHO_USER: {
-                    // TODO: User file crap.
-                    fieldObj = Tcl_NewStringObj("TODO", -1);
+                    char userName[_MAX_NAME+1];
+                    UserIdToName(session, memUser, dcOnlineData->OnlineData.Uid, userName);
+                    fieldObj = Tcl_NewStringObj(userName, -1);
                     break;
                 }
                 case WHO_VDATAPATH: {
@@ -627,7 +859,10 @@ GetOnlineFields(
         Tcl_ListObjAppendElement(NULL, resultObj, userObj);
     }
 
-    ShmFree(session, memory);
+    ShmFree(session, memOnline);
+    if (memUser != NULL) {
+        ShmFree(session, memUser);
+    }
     return TCL_OK;
 }
 
