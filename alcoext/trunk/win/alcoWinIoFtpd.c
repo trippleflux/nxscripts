@@ -136,26 +136,39 @@ ShmQuery(
     );
 
 //
+// Misc. functions.
+//
+
+static int
+GetOnlineFields(
+    ShmSession *session,
+    Tcl_Interp *interp,
+    unsigned char *fields,
+    int fieldCount
+    );
+
+//
 // Who fields.
 //
 
 static const char *whoFields[] = {
     "action",
     "cid",
-    "gid",      // Note, not part of ONLINEDATA.
-    "group",    // Note, not part of ONLINEDATA.
+    "gid",
+    "group",
     "host",
     "ident",
     "idletime",
     "ip",
     "logintime",
+    "port",
     "realdatapath",
     "realpath",
     "size",
     "speed",
     "status",
     "uid",
-    "user",     // Note, not part of ONLINEDATA.
+    "user",
     "vdatapath",
     "vpath",
     NULL
@@ -171,6 +184,7 @@ enum {
     WHO_IDLETIME,
     WHO_IP,
     WHO_LOGINTIME,
+    WHO_PORT,
     WHO_REALDATAPATH,
     WHO_REALPATH,
     WHO_SIZE,
@@ -400,6 +414,198 @@ ShmQuery(
     return (DWORD)-1;
 }
 
+
+/*++
+
+GetOnlineFields
+
+    Retrieve a list of online users and the requested fields.
+
+Arguments:
+    session     - Pointer to an initialised ShmSession structure.
+
+    interp      - Current interpreter.
+
+    fields      - Array of fields to retrieve.
+
+    fieldCount  - Number of fields given for the 'fields' parameter.
+
+Return Value:
+    A standard Tcl result.
+
+Remarks:
+    If the function succeeds, the online list is left in the interpreter's
+    result. If the function fails, an error message is left instead.
+
+--*/
+static int
+GetOnlineFields(
+    ShmSession *session,
+    Tcl_Interp *interp,
+    unsigned char *fields,
+    int fieldCount
+    )
+{
+    DWORD result;
+    int i;
+    DC_ONLINEDATA *dcOnlineData;
+    ShmMemory *memory;
+    Tcl_Obj *fieldObj;
+    Tcl_Obj *resultObj;
+    Tcl_Obj *userObj;
+
+    memory = ShmAlloc(session, TRUE, sizeof(DC_ONLINEDATA) + _MAX_PATH * 2);
+    if (memory == NULL) {
+        Tcl_SetResult(interp, "unable to retrieve online data: insufficient memory", TCL_STATIC);
+        return TCL_ERROR;
+    }
+
+    // Initialise the data-copy online structure.
+    dcOnlineData = (DC_ONLINEDATA *) memory->block;
+    dcOnlineData->iOffset            = 0;
+    dcOnlineData->dwSharedMemorySize = memory->bytes;
+
+    //
+    // Create a nested list of users and requested fields.
+    // Ex: {fieldOne fieldTwo ...} {fieldOne fieldTwo ...} {fieldOne fieldTwo ...}
+    //
+    resultObj = Tcl_GetObjResult(interp);
+
+    while (1) {
+        result = ShmQuery(session, memory, DC_GET_ONLINEDATA, 5000);
+        if (result != 0) {
+            if (result == (DWORD)-1) {
+                // An error occured.
+                break;
+            }
+
+            // Skip user.
+            dcOnlineData->iOffset++;
+            continue;
+        }
+        userObj = Tcl_NewObj();
+
+        for (i = 0; i < fieldCount; i++) {
+            fieldObj = NULL;
+
+            switch ((int) fields[i]) {
+                case WHO_ACTION: {
+                    fieldObj = Tcl_NewStringObj(dcOnlineData->OnlineData.tszAction, -1);
+                    break;
+                }
+                case WHO_CID: {
+                    // The connection ID is one lower than the offset.
+                    fieldObj = Tcl_NewLongObj((long) dcOnlineData->iOffset-1);
+                    break;
+                }
+                case WHO_GID: {
+                    // TODO: User file crap.
+                    fieldObj = Tcl_NewLongObj(-1);
+                    break;
+                }
+                case WHO_GROUP: {
+                    // TODO: User file crap.
+                    fieldObj = Tcl_NewStringObj("TODO", -1);
+                    break;
+                }
+                case WHO_HOST: {
+                    fieldObj = Tcl_NewStringObj(dcOnlineData->OnlineData.szHostName, -1);
+                    break;
+                }
+                case WHO_IDENT: {
+                    fieldObj = Tcl_NewStringObj(dcOnlineData->OnlineData.szIdent, -1);
+                    break;
+                }
+                case WHO_IDLETIME: {
+                    fieldObj = Tcl_NewLongObj((long) dcOnlineData->OnlineData.dwIdleTickCount);
+                    break;
+                }
+                case WHO_IP: {
+                    char clientIp[16];
+                    BYTE *dataIp = (BYTE *) &dcOnlineData->OnlineData.ulDataClientIp;
+
+                    //
+                    // ioFTPD does not update the data IP structure
+                    // member, so it's always 0.0.0.0.
+                    //
+                    StringCchPrintfA(clientIp, ARRAYSIZE(clientIp), "%d.%d.%d.%d",
+                        dataIp[0] & 0xFF, dataIp[1] & 0xFF,
+                        dataIp[2] & 0xFF, dataIp[3] & 0xFF);
+
+                    fieldObj = Tcl_NewStringObj(clientIp, -1);
+                    break;
+                }
+                case WHO_LOGINTIME: {
+                    fieldObj = Tcl_NewLongObj((long) dcOnlineData->OnlineData.tLoginTime);
+                    break;
+                }
+                case WHO_PORT: {
+                    fieldObj = Tcl_NewLongObj((long) dcOnlineData->OnlineData.usClientPort);
+                    break;
+                }
+                case WHO_REALDATAPATH: {
+                    if (dcOnlineData->OnlineData.tszRealDataPath == NULL) {
+                        fieldObj = Tcl_NewStringObj("", 0);
+                    } else {
+                        fieldObj = Tcl_NewStringObj(dcOnlineData->OnlineData.tszRealDataPath, -1);
+                    }
+                    break;
+                }
+                case WHO_REALPATH: {
+                    if (dcOnlineData->OnlineData.tszRealPath == NULL) {
+                        fieldObj = Tcl_NewStringObj("", 0);
+                    } else {
+                        fieldObj = Tcl_NewStringObj(dcOnlineData->OnlineData.tszRealPath, -1);
+                    }
+                    break;
+                }
+                case WHO_SIZE: {
+                    fieldObj = Tcl_NewWideIntObj((Tcl_WideInt)
+                        dcOnlineData->OnlineData.i64TotalBytesTransfered);
+                    break;
+                }
+                case WHO_SPEED: {
+                    double speed = ((double)dcOnlineData->OnlineData.dwBytesTransfered) /
+                        (((double)dcOnlineData->OnlineData.dwIntervalLength) / 1000.0);
+                    fieldObj = Tcl_NewDoubleObj(speed);
+                    break;
+                }
+                case WHO_STATUS: {
+                    fieldObj = Tcl_NewLongObj((long) dcOnlineData->OnlineData.bTransferStatus);
+                    break;
+                }
+                case WHO_UID: {
+                    fieldObj = Tcl_NewLongObj((long) dcOnlineData->OnlineData.Uid);
+                    break;
+                }
+                case WHO_USER: {
+                    // TODO: User file crap.
+                    fieldObj = Tcl_NewStringObj("TODO", -1);
+                    break;
+                }
+                case WHO_VDATAPATH: {
+                    fieldObj = Tcl_NewStringObj(dcOnlineData->OnlineData.tszVirtualDataPath, -1);
+                    break;
+                }
+                case WHO_VPATH: {
+                    fieldObj = Tcl_NewStringObj(dcOnlineData->OnlineData.tszVirtualPath, -1);
+                    break;
+                }
+            }
+
+            assert(fieldObj != NULL);
+            Tcl_ListObjAppendElement(NULL, userObj, fieldObj);
+        }
+
+        Tcl_ListObjAppendElement(NULL, resultObj, userObj);
+    }
+
+    ShmFree(session, memory);
+    return TCL_OK;
+}
+
+
+
 /*++
 
 IoGroupCmd
@@ -525,13 +731,13 @@ IoInfoCmd(
         processTime = 0;
     }
 
-	// Find the process image path.
-	processPath[0] = '\0';
-	if (EnumProcessModules(processHandle, &module, sizeof(module), &needed)) {
-		GetModuleFileNameEx(processHandle, module, processPath, MAX_PATH);
-	}
+    // Find the process image path.
+    processPath[0] = '\0';
+    if (EnumProcessModules(processHandle, &module, sizeof(module), &needed)) {
+        GetModuleFileNameEx(processHandle, module, processPath, MAX_PATH);
+    }
 
-	CloseHandle(processHandle);
+    CloseHandle(processHandle);
 
     //
     // Tcl_ObjSetVar2() won't create a copy of the field object,
@@ -541,13 +747,13 @@ IoInfoCmd(
     Tcl_IncrRefCount(fieldObj);
 
 // Easier than repeating this...
-#define TCL_STORE_ARRAY(name, value)                                                        \
-    valueObj = (value);                                                                     \
-    Tcl_SetStringObj(fieldObj, (name), -1);                                                 \
-    if (Tcl_ObjSetVar2(interp, objv[3], fieldObj, valueObj, TCL_LEAVE_ERR_MSG) == NULL) {   \
-        Tcl_DecrRefCount(fieldObj);                                                         \
-        Tcl_DecrRefCount(valueObj);                                                         \
-        return TCL_ERROR;                                                                   \
+#define TCL_STORE_ARRAY(name, value)                                                      \
+    valueObj = (value);                                                                   \
+    Tcl_SetStringObj(fieldObj, (name), -1);                                               \
+    if (Tcl_ObjSetVar2(interp, objv[3], fieldObj, valueObj, TCL_LEAVE_ERR_MSG) == NULL) { \
+        Tcl_DecrRefCount(fieldObj);                                                       \
+        Tcl_DecrRefCount(valueObj);                                                       \
+        return TCL_ERROR;                                                                 \
     }
 
     TCL_STORE_ARRAY("path", Tcl_NewStringObj(processPath, -1));
@@ -719,6 +925,7 @@ IoWhoCmd(
     int i;
     int result = TCL_ERROR;
     unsigned char *fields;
+    ShmSession session;
     Tcl_Obj **elementPtrs;
 
     if (objc != 4) {
@@ -726,24 +933,27 @@ IoWhoCmd(
         return TCL_ERROR;
     }
 
+    if (ShmInit(&session, interp, Tcl_GetString(objv[2])) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
     if (Tcl_ListObjGetElements(interp, objv[3], &elementCount, &elementPtrs) != TCL_OK) {
         return TCL_ERROR;
     }
 
-    fields = (unsigned char *)ckalloc(elementCount * sizeof(unsigned char));
+    fields = (unsigned char *) ckalloc(elementCount * sizeof(unsigned char));
 
     // Create an array of indices from 'whoFields'.
     for (i = 0; i < elementCount; i++) {
-        if (Tcl_GetIndexFromObj(interp, elementPtrs[i], whoFields, "field", 0,
-            &fieldIndex) != TCL_OK) {
+        if (Tcl_GetIndexFromObj(interp, elementPtrs[i], whoFields,
+                "field", 0, &fieldIndex) != TCL_OK) {
             goto end;
         }
 
-        fields[i] = (unsigned char)fieldIndex;
+        fields[i] = (unsigned char) fieldIndex;
     }
 
-    // TODO: IPC stuff.
-    result = TCL_OK;
+    result = GetOnlineFields(&session, interp, fields, elementCount);
 
     end:
     ckfree((char *) fields);
