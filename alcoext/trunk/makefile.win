@@ -332,7 +332,7 @@ OBJECT_FILES=\
 # -------------------------------------------------------------------------
 
 CFLAGS  = $(cdebug) $(cflags) $(cvarsmt) $(PKG_CFLAGS) $(MISC_CFLAGS) $(INCLUDE_DIRS)
-LFLAGS  = $(ldebug) $(dlllflags) $(conlibsmt) $(PKG_LFLAGS) $(TCL_STUBLIB)
+LFLAGS  = $(ldebug) $(dlllflags) $(conlibsmt) user32.lib psapi.lib $(PKG_LFLAGS) $(TCL_STUBLIB)
 RFLAGS  = $(rcflags) $(rcvars) $(PKG_CFLAGS)
 
 .c.obj::

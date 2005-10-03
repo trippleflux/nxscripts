@@ -68,6 +68,17 @@ IsFeatureAvailable(
     unsigned long features
     );
 
+long
+FileTimeToEpoch(
+    const FILETIME *fileTime
+    );
+
+void
+EpochToFileTime(
+    long epochTime,
+    FILETIME *fileTime
+    );
+
 char *
 TclSetWinError(
     Tcl_Interp *interp,

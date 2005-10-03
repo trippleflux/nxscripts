@@ -13,24 +13,24 @@ Abstract:
     Implements a Tcl command-based interface for interaction with ioFTPD.
 
     User Commands:
-    ioftpd user exists  <msgWindow> <user>            - Check if a user exists.
-    ioftpd user get     <msgWindow> <user> <varName>  - Query a user.
-    ioftpd user id      <msgWindow> <user>            - Resolve a user name to its UID.
-    ioftpd user list    <msgWindow> [-id] [-name]     - List users and/or UIDs.
-    ioftpd user name    <msgWindow> <uid>             - Resolve a UID to its user name.
+    ioftpd user exists  <msgWindow> <user>        - Check if a user exists.
+    ioftpd user get     <msgWindow> <user>        - Query a user.
+    ioftpd user id      <msgWindow> <user>        - Resolve a user name to its UID.
+    ioftpd user list    <msgWindow> [-id] [-name] - List users and/or UIDs.
+    ioftpd user name    <msgWindow> <uid>         - Resolve a UID to its user name.
 
     Group Commands:
-    ioftpd group exists <msgWindow> <group>           - Check if a group exists.
-    ioftpd group get    <msgWindow> <group> <varName> - Query a group.
-    ioftpd group id     <msgWindow> <group>           - Resolve a group name to its GID.
-    ioftpd group list   <msgWindow> [-id] [-name]     - List groups and/or GIDs.
-    ioftpd group name   <msgWindow> <gid>             - Resolve a GID to its group name.
+    ioftpd group exists <msgWindow> <group>       - Check if a group exists.
+    ioftpd group get    <msgWindow> <group>       - Query a group.
+    ioftpd group id     <msgWindow> <group>       - Resolve a group name to its GID.
+    ioftpd group list   <msgWindow> [-id] [-name] - List groups and/or GIDs.
+    ioftpd group name   <msgWindow> <gid>         - Resolve a GID to its group name.
 
     Online Data Commands:
-    ioftpd info         <msgWindow> <varName>         - Query the ioFTPD message window.
-    ioftpd kick         <msgWindow> <user>            - Kick a user.
-    ioftpd kill         <msgWindow> <cid>             - Kick a connection ID.
-    ioftpd who          <msgWindow> <fields>          - Query online users.
+    ioftpd info         <msgWindow> <varName>     - Query the ioFTPD message window.
+    ioftpd kick         <msgWindow> <user>        - Kick a user.
+    ioftpd kill         <msgWindow> <cid>         - Kick a connection ID.
+    ioftpd who          <msgWindow> <fields>      - Query online users.
 
 --*/
 
@@ -94,7 +94,7 @@ IoWhoCmd(
 //
 
 typedef struct {
-    HWND  daemonWnd;        // Handle to ioFTPD's message window.
+    HWND  messageWnd;       // Handle to ioFTPD's message window.
     DWORD processId;        // Current process ID.
 } ShmSession;
 
@@ -111,7 +111,7 @@ static int
 ShmInit(
     ShmSession *session,
     Tcl_Interp *interp,
-    const char *msgWindow
+    const char *windowName
     );
 
 static ShmMemory *
@@ -194,7 +194,7 @@ Arguments:
 
     interp      - Interpreter to use for error reporting.
 
-    msgWindow   - Name of ioFTPD's message window.
+    windowName  - Name of ioFTPD's message window.
 
 Return Value:
     A standard Tcl result.
@@ -204,16 +204,16 @@ static int
 ShmInit(
     ShmSession *session,
     Tcl_Interp *interp,
-    const char *msgWindow
+    const char *windowName
     )
 {
-    session->processId = GetCurrentProcessId();
-    session->daemonWnd = FindWindowA(msgWindow, NULL);
+    session->messageWnd = FindWindowA(windowName, NULL);
+    session->processId  = GetCurrentProcessId();
 
-    if (session->daemonWnd == NULL) {
+    if (session->messageWnd == NULL) {
         Tcl_ResetResult(interp);
-        Tcl_AppendResult(interp, "unable to find window \"", msgWindow,
-            "\": ", TclSetWinError(interp, GetLastError()));
+        Tcl_AppendResult(interp, "unable to find window \"", windowName,
+            "\": ", TclSetWinError(interp, GetLastError()), NULL);
         return TCL_ERROR;
     }
 
@@ -286,7 +286,7 @@ ShmAlloc(
         message->lpContext    = &message[1];
 
         SetLastError(ERROR_SUCCESS);
-        remote = (void *) SendMessage(session->daemonWnd, WM_DATACOPY_FILEMAP,
+        remote = (void *) SendMessage(session->messageWnd, WM_DATACOPY_FILEMAP,
             (WPARAM) session->processId, (LPARAM) memMap);
 
         if (remote != NULL && GetLastError() == ERROR_SUCCESS) {
@@ -353,7 +353,7 @@ ShmFree(
         CloseHandle(memory->memMap);
     }
 
-    SendMessage(session->daemonWnd, WM_DATACOPY_FREE, 0, (LPARAM) memory->remote);
+    SendMessage(session->messageWnd, WM_DATACOPY_FREE, 0, (LPARAM) memory->remote);
     ckfree((char *) memory);
 }
 
@@ -387,7 +387,7 @@ ShmQuery(
     )
 {
     memory->message->dwIdentifier = queryType;
-    PostMessage(session->daemonWnd, WM_SHMEM, 0, (LPARAM) memory->remote);
+    PostMessage(session->messageWnd, WM_SHMEM, 0, (LPARAM) memory->remote);
 
     if (timeOut && memory->event != NULL) {
         if (WaitForSingleObject(memory->event, timeOut) == WAIT_TIMEOUT) {
@@ -488,19 +488,73 @@ IoInfoCmd(
     Tcl_Obj *CONST objv[]
     )
 {
+    char   processPath[MAX_PATH];
+    DWORD  processId;
+    HANDLE processHandle;
+    long   processTime;
+    DWORD  needed;
+    HMODULE module;
+    FILETIME creationTime;
+    FILETIME dummy;
+    ShmSession session;
+    Tcl_Obj *fieldObj;
+    Tcl_Obj *valueObj;
+
     if (objc != 4) {
         Tcl_WrongNumArgs(interp, 2, objv, "msgWindow varName");
         return TCL_ERROR;
     }
 
-    // TODO: Process stuff.
+    if (ShmInit(&session, interp, Tcl_GetString(objv[2])) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    // Retrieve the message windows's process ID and attempt to open it.
+    GetWindowThreadProcessId(session.messageWnd, &processId);
+    processHandle = OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ, FALSE, processId);
+    if (processHandle == NULL) {
+        Tcl_AppendResult(interp, "unable to open process: ",
+            TclSetWinError(interp, GetLastError()));
+        return TCL_ERROR;
+    }
+
+    // The exit time, kernel time, and user time parameters cannot be NULL.
+    if (GetProcessTimes(processHandle, &creationTime, &dummy, &dummy, &dummy)) {
+        processTime = FileTimeToEpoch(&creationTime);
+    } else {
+        processTime = 0;
+    }
+
+	// Find the process image path.
+	processPath[0] = '\0';
+	if (EnumProcessModules(processHandle, &module, sizeof(module), &needed)) {
+		GetModuleFileNameEx(processHandle, module, processPath, MAX_PATH);
+	}
+
+	CloseHandle(processHandle);
 
     //
-    // path - ioFTPD image path (C:\ioFTPD\system\ioFTPD.exe).
-    // pid  - Process ID.
-    // time - Start time, seconds since epoch.
+    // Tcl_ObjSetVar2() won't create a copy of the field object,
+    // so the caller must free the object once finished with it.
     //
+    fieldObj = Tcl_NewObj();
+    Tcl_IncrRefCount(fieldObj);
 
+// Easier than repeating this...
+#define TCL_STORE_ARRAY(name, value)                                                        \
+    valueObj = (value);                                                                     \
+    Tcl_SetStringObj(fieldObj, (name), -1);                                                 \
+    if (Tcl_ObjSetVar2(interp, objv[3], fieldObj, valueObj, TCL_LEAVE_ERR_MSG) == NULL) {   \
+        Tcl_DecrRefCount(fieldObj);                                                         \
+        Tcl_DecrRefCount(valueObj);                                                         \
+        return TCL_ERROR;                                                                   \
+    }
+
+    TCL_STORE_ARRAY("path", Tcl_NewStringObj(processPath, -1));
+    TCL_STORE_ARRAY("pid",  Tcl_NewLongObj((long) processId));
+    TCL_STORE_ARRAY("time", Tcl_NewLongObj((long) processTime));
+
+    Tcl_DecrRefCount(fieldObj);
     return TCL_OK;
 }
 

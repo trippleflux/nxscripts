@@ -108,3 +108,52 @@ IsFeatureAvailable(
 
     return 1;
 }
+
+/*++
+
+FileTimeToEpoch
+
+    Convert a FILETIME structure to a POSIX epoch time.
+
+Arguments:
+    fileTime    - Pointer to a FILETIME structure.
+
+Return Value:
+    The POSIX epoch time.
+
+--*/
+long
+FileTimeToEpoch(
+    const FILETIME *fileTime
+    )
+{
+    ULONGLONG epochTime = ((ULONGLONG)fileTime->dwHighDateTime << 32) + fileTime->dwLowDateTime;
+    return (long)((epochTime - 116444736000000000) / 10000000);
+}
+
+
+/*++
+
+EpochToFileTime
+
+    Convert a POSIX epoch time to a FILETIME structure.
+
+Arguments:
+    epochTime   - POSIX epoch time.
+
+    fileTime    - Pointer to a FILETIME structure.
+
+Return Value:
+    None.
+
+--*/
+void
+EpochToFileTime(
+    long epochTime,
+    FILETIME *fileTime
+    )
+{
+    ULONGLONG timeNs = UInt32x32To64(epochTime, 10000000) + 116444736000000000;
+    fileTime->dwLowDateTime = (DWORD)timeNs;
+    fileTime->dwHighDateTime = (DWORD)(timeNs >> 32);
+}

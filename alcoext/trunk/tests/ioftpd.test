@@ -31,6 +31,14 @@ namespace import -force ::alcoholicz::*
 # ioFTPD settings (box specific).
 set msgWindow "ioFTPD::MessageWindow"
 
+# Check if the message window exists.
+if {[catch {ioftpd info $msgWindow io}]} {
+    testConstraint msgWindow 0
+} else {
+    testConstraint msgWindow 1
+}
+unset -nocomplain io
+
 ################################################################################
 # ioftpd                                                                       #
 ################################################################################
@@ -70,6 +78,21 @@ test ioftpd-3.1 {ioftpd info: no args} {win} {
 test ioftpd-3.2 {ioftpd info: too many args} {win} {
     list [catch {ioftpd info a b c} msg] $msg
 } {1 {wrong # args: should be "ioftpd info msgWindow varName"}}
+
+
+test ioftpd-3.3 {ioftpd info: array elements} {msgWindow win} {
+    ioftpd info $msgWindow io
+    set names [lsort [array names io]]
+    unset -nocomplain io
+    set names
+} {path pid time}
+
+test ioftpd-3.4 {ioftpd info: varName isn't an array} {msgWindow win} {
+    unset -nocomplain test; set test 1
+    set result [list [catch {ioftpd info $msgWindow test} msg] $msg]
+    unset test
+    set result
+} {1 {can't set "test(path)": variable isn't array}}
 
 ################################################################################
 # ioftpd kick                                                                  #
