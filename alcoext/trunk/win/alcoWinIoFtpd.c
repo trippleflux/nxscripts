@@ -258,6 +258,10 @@ ShmInit(
     const char *windowName
     )
 {
+    assert(session    != NULL);
+    assert(interp     != NULL);
+    assert(windowName != NULL);
+
     session->messageWnd = FindWindowA(windowName, NULL);
     session->processId  = GetCurrentProcessId();
 
@@ -304,6 +308,9 @@ ShmAlloc(
     HANDLE event  = NULL;
     HANDLE memMap = NULL;
     void   *remote;
+
+    assert(session != NULL);
+    assert(bytes > 0);
 
     if (createEvent && !(event = CreateEvent(NULL, FALSE, FALSE, NULL))) {
         return NULL;
@@ -398,6 +405,9 @@ ShmFree(
     ShmMemory *memory
     )
 {
+    assert(session != NULL);
+    assert(memory  != NULL);
+
     // Free objects and resources.
     UnmapViewOfFile(memory->message);
 
@@ -441,6 +451,9 @@ ShmQuery(
     DWORD timeOut
     )
 {
+    assert(session != NULL);
+    assert(memory  != NULL);
+
     memory->message->dwIdentifier = queryType;
     PostMessage(session->messageWnd, WM_SHMEM, 0, (LPARAM) memory->remote);
 
@@ -491,9 +504,9 @@ GroupIdToName(
     assert(groupName != NULL);
 
     // Initialise the DC_NAMEID structure.
-    nameId = (DC_NAMEID *) memory->message->lpContext;
-    nameId->Id			= groupId;
-    nameId->tszName[0]	= '\0';
+    nameId     = (DC_NAMEID *) memory->message->lpContext;
+    nameId->Id = groupId;
+    nameId->tszName[0] = '\0';
 
     if (!ShmQuery(session, memory, DC_GID_TO_GROUP, 5000)) {
         StringCchCopyA(nameId->tszName, _MAX_NAME+1, groupName);
@@ -539,8 +552,8 @@ GroupNameToId(
     assert(groupId   != NULL);
 
     // Initialise the DC_NAMEID structure.
-    nameId = (DC_NAMEID *) memory->message->lpContext;
-    nameId->Id			= -1;
+    nameId     = (DC_NAMEID *) memory->message->lpContext;
+    nameId->Id = -1;
     StringCchCopyA(nameId->tszName, ARRAYSIZE(nameId->tszName), groupName);
 
     if (!ShmQuery(session, memory, DC_GROUP_TO_GID, 5000)) {
@@ -587,9 +600,9 @@ UserIdToName(
     assert(userName != NULL);
 
     // Initialise the DC_NAMEID structure.
-    nameId = (DC_NAMEID *) memory->message->lpContext;
-    nameId->Id			= userId;
-    nameId->tszName[0]	= '\0';
+    nameId     = (DC_NAMEID *) memory->message->lpContext;
+    nameId->Id = userId;
+    nameId->tszName[0] = '\0';
 
     if (!ShmQuery(session, memory, DC_UID_TO_USER, 5000)) {
         StringCchCopyA(nameId->tszName, _MAX_NAME+1, userName);
@@ -635,8 +648,8 @@ UserNameToId(
     assert(userId   != NULL);
 
     // Initialise the DC_NAMEID structure.
-    nameId = (DC_NAMEID *) memory->message->lpContext;
-    nameId->Id			= -1;
+    nameId     = (DC_NAMEID *) memory->message->lpContext;
+    nameId->Id = -1;
     StringCchCopyA(nameId->tszName, ARRAYSIZE(nameId->tszName), userName);
 
     if (!ShmQuery(session, memory, DC_USER_TO_UID, 5000)) {
