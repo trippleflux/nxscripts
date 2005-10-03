@@ -1273,21 +1273,21 @@ GlWhoCmd(
 
     // Create an array of indices from 'whoFields'.
     for (i = 0; i < elementCount; i++) {
-        if (Tcl_GetIndexFromObj(interp, elementPtrs[i], whoFields, "field", 0,
-            &fieldIndex) != TCL_OK) {
+        if (Tcl_GetIndexFromObj(interp, elementPtrs[i], whoFields,
+                "field", 0, &fieldIndex) != TCL_OK) {
             goto end;
         }
 
         if (fieldIndex == WHO_GROUP) {
             // Read '/glftpd/etc/group' for group ID to group name resolving.
-            if (groupListPtr == NULL && GetGroupList(interp, handlePtr->etcPath,
-                &groupListPtr) != TCL_OK) {
+            if (groupListPtr == NULL && GetGroupList(interp,
+                    handlePtr->etcPath, &groupListPtr) != TCL_OK) {
                 goto end;
             }
         } else if (fieldIndex == WHO_UID) {
             // Read '/glftpd/etc/passwd' for user name to user ID resolving.
-            if (userListPtr == NULL && GetUserList(interp, handlePtr->etcPath,
-                &userListPtr) != TCL_OK) {
+            if (userListPtr == NULL && GetUserList(interp,
+                    handlePtr->etcPath, &userListPtr) != TCL_OK) {
                 goto end;
             }
         }
@@ -1335,7 +1335,7 @@ Return Value:
     A standard Tcl result.
 
 Remarks:
-    If the function succeeds, the user list is left in the interpreter's
+    If the function succeeds, the online list is left in the interpreter's
     result. If the function fails, an error message is left instead.
 
 --*/
@@ -1354,7 +1354,7 @@ GetOnlineFields(
     int maxUsers;
     struct timeval timeNow;
     GlOnlineGeneric **onlineData;
-    Tcl_Obj *elementObj;
+    Tcl_Obj *fieldObj;
     Tcl_Obj *resultObj;
     Tcl_Obj *userObj;
 
@@ -1376,44 +1376,44 @@ GetOnlineFields(
         userObj = Tcl_NewObj();
 
         for (j = 0; j < fieldCount; j++) {
-            elementObj = NULL;
+            fieldObj = NULL;
 
             switch ((int) fields[j]) {
                 case WHO_ACTION: {
-                    elementObj = Tcl_NewStringObj(onlineData[i]->status, -1);
+                    fieldObj = Tcl_NewStringObj(onlineData[i]->status, -1);
                     break;
                 }
                 case WHO_GID: {
-                    elementObj = Tcl_NewLongObj(onlineData[i]->groupid);
+                    fieldObj = Tcl_NewLongObj(onlineData[i]->groupid);
                     break;
                 }
                 case WHO_GROUP: {
-                    elementObj = Tcl_NewStringObj(GetGroupNameFromId(groupListPtr,
+                    fieldObj = Tcl_NewStringObj(GetGroupNameFromId(groupListPtr,
                         onlineData[i]->groupid), -1);
                     break;
                 }
                 case WHO_HOST: {
-                    elementObj = Tcl_NewStringObj(onlineData[i]->host, -1);
+                    fieldObj = Tcl_NewStringObj(onlineData[i]->host, -1);
                     break;
                 }
                 case WHO_IDLETIME: {
-                    elementObj = Tcl_NewLongObj((long) (timeNow.tv_sec - onlineData[i]->tstart.tv_sec));
+                    fieldObj = Tcl_NewLongObj((long) (timeNow.tv_sec - onlineData[i]->tstart.tv_sec));
                     break;
                 }
                 case WHO_LOGINTIME: {
-                    elementObj = Tcl_NewLongObj((long) onlineData[i]->login_time);
+                    fieldObj = Tcl_NewLongObj((long) onlineData[i]->login_time);
                     break;
                 }
                 case WHO_PATH: {
-                    elementObj = Tcl_NewStringObj(onlineData[i]->currentdir, -1);
+                    fieldObj = Tcl_NewStringObj(onlineData[i]->currentdir, -1);
                     break;
                 }
                 case WHO_PID: {
-                    elementObj = Tcl_NewLongObj((long) onlineData[i]->procid);
+                    fieldObj = Tcl_NewLongObj((long) onlineData[i]->procid);
                     break;
                 }
                 case WHO_SIZE: {
-                    elementObj = Tcl_NewWideIntObj((Tcl_WideInt) onlineData[i]->bytes_xfer);
+                    fieldObj = Tcl_NewWideIntObj((Tcl_WideInt) onlineData[i]->bytes_xfer);
                     break;
                 }
                 case WHO_SPEED: {
@@ -1421,11 +1421,11 @@ GetOnlineFields(
                         ((timeNow.tv_sec - onlineData[i]->tstart.tv_sec) * 1.0 +
                         (timeNow.tv_usec - onlineData[i]->tstart.tv_usec) / 1000000.0);
 
-                    elementObj = Tcl_NewDoubleObj(speed);
+                    fieldObj = Tcl_NewDoubleObj(speed);
                     break;
                 }
                 case WHO_SSL: {
-                    elementObj = Tcl_NewLongObj((long) onlineData[i]->ssl_flag);
+                    fieldObj = Tcl_NewLongObj((long) onlineData[i]->ssl_flag);
                     break;
                 }
                 case WHO_STATUS: {
@@ -1438,26 +1438,26 @@ GetOnlineFields(
                         status = 2; // Downloading
                     }
 
-                    elementObj = Tcl_NewLongObj(status);
+                    fieldObj = Tcl_NewLongObj(status);
                     break;
                 }
                 case WHO_TAGLINE: {
-                    elementObj = Tcl_NewStringObj(onlineData[i]->tagline, -1);
+                    fieldObj = Tcl_NewStringObj(onlineData[i]->tagline, -1);
                     break;
                 }
                 case WHO_UID: {
-                    elementObj = Tcl_NewLongObj(GetUserIdFromName(userListPtr,
+                    fieldObj = Tcl_NewLongObj(GetUserIdFromName(userListPtr,
                         onlineData[i]->username));
                     break;
                 }
                 case WHO_USER: {
-                    elementObj = Tcl_NewStringObj(onlineData[i]->username, -1);
+                    fieldObj = Tcl_NewStringObj(onlineData[i]->username, -1);
                     break;
                 }
             }
 
-            assert(elementObj != NULL);
-            Tcl_ListObjAppendElement(NULL, userObj, elementObj);
+            assert(fieldObj != NULL);
+            Tcl_ListObjAppendElement(NULL, userObj, fieldObj);
         }
 
         Tcl_ListObjAppendElement(NULL, resultObj, userObj);
