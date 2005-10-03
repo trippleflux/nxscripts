@@ -951,7 +951,7 @@ CryptStartCmd(
         return TCL_ERROR;
     }
 
-    handlePtr = (CryptHandle *) ckalloc(sizeof(CryptHandle));
+    handlePtr = (CryptHandle *)ckalloc(sizeof(CryptHandle));
     handlePtr->descIndex = index;
     handlePtr->type = type;
 
@@ -984,7 +984,7 @@ CryptStartCmd(
     }
 
     if (status != CRYPT_OK) {
-        ckfree((char *) handlePtr);
+        ckfree((char *)handlePtr);
         Tcl_AppendResult(interp, "unable to initialise hash: ",
             error_to_string(status), NULL);
         return TCL_ERROR;
@@ -1002,7 +1002,7 @@ CryptStartCmd(
     if (newEntry == 0) {
         Tcl_Panic("Duplicate crypt hash table entries.");
     }
-    Tcl_SetHashValue(hashEntryPtr, (ClientData) handlePtr);
+    Tcl_SetHashValue(hashEntryPtr, (ClientData)handlePtr);
 
     Tcl_SetStringObj(Tcl_GetObjResult(interp), handleName, -1);
     return TCL_OK;
@@ -1050,7 +1050,7 @@ CryptUpdateCmd(
     if (hashEntryPtr == NULL) {
         return TCL_ERROR;
     }
-    handlePtr = (CryptHandle *) Tcl_GetHashValue(hashEntryPtr);
+    handlePtr = (CryptHandle *)Tcl_GetHashValue(hashEntryPtr);
 
     data = Tcl_GetByteArrayFromObj(objv[3], &dataLength);
 
@@ -1134,7 +1134,7 @@ CryptEndCmd(
     if (hashEntryPtr == NULL) {
         return TCL_ERROR;
     }
-    handlePtr = (CryptHandle *) Tcl_GetHashValue(hashEntryPtr);
+    handlePtr = (CryptHandle *)Tcl_GetHashValue(hashEntryPtr);
 
     // Create a byte object to hold the hash digest.
     destLength = MAXBLOCKSIZE;
@@ -1166,7 +1166,7 @@ CryptEndCmd(
     }
 
     // Free handle structure and remove the hash table entry.
-    ckfree((char *) handlePtr);
+    ckfree((char *)handlePtr);
     Tcl_DeleteHashEntry(hashEntryPtr);
 
     if (status != CRYPT_OK) {
@@ -1207,7 +1207,7 @@ CryptCloseHandles(
         entryPtr != NULL;
         entryPtr = Tcl_NextHashEntry(&search)) {
 
-        ckfree((char *) Tcl_GetHashValue(entryPtr));
+        ckfree((char *)Tcl_GetHashValue(entryPtr));
         Tcl_DeleteHashEntry(entryPtr);
     }
 }
@@ -1468,13 +1468,13 @@ CryptPrngCmd(
     }
 
     // Initialise the PRNG.
-    handlePtr = (PrngHandle *) ckalloc(sizeof(PrngHandle));
+    handlePtr = (PrngHandle *)ckalloc(sizeof(PrngHandle));
     handlePtr->descIndex = index;
     handlePtr->ready = 0;
 
     status = prng_descriptor[index].start(&handlePtr->state);
     if (status != CRYPT_OK) {
-        ckfree((char *) handlePtr);
+        ckfree((char *)handlePtr);
         Tcl_AppendResult(interp, "unable to initialise PRNG: ",
             error_to_string(status), NULL);
         return TCL_ERROR;
@@ -1488,7 +1488,7 @@ CryptPrngCmd(
 #endif // _WINDOWS
 
     handlePtr->channel = Tcl_CreateChannel(&prngChannelType, channelName,
-	    (ClientData) handlePtr, TCL_READABLE | TCL_WRITABLE);
+	    (ClientData)handlePtr, TCL_READABLE | TCL_WRITABLE);
 
     // Set default channel options.
     Tcl_SetChannelOption(NULL, handlePtr->channel, "-buffering",   "none");
@@ -1602,11 +1602,11 @@ PrngClose(
     Tcl_Interp *interp
     )
 {
-    PrngHandle *handlePtr = (PrngHandle *) instanceData;
+    PrngHandle *handlePtr = (PrngHandle *)instanceData;
 
     // Finalise the PRNG state and free resources.
     prng_descriptor[handlePtr->descIndex].done(&handlePtr->state);
-    ckfree((char *) handlePtr);
+    ckfree((char *)handlePtr);
 
     return 0;
 }
@@ -1638,7 +1638,7 @@ PrngInput(
     int *errorCodePtr
     )
 {
-    PrngHandle *handlePtr = (PrngHandle *) instanceData;
+    PrngHandle *handlePtr = (PrngHandle *)instanceData;
 
     //
     // Not all PRNGs (i.e. the SPRNG) require the caller to mark it as ready
@@ -1650,8 +1650,8 @@ PrngInput(
     }
 
     *errorCodePtr = 0;
-    return (int) prng_descriptor[handlePtr->descIndex].read(
-        (unsigned char *) dest, (unsigned long) destLength, &handlePtr->state);
+    return (int)prng_descriptor[handlePtr->descIndex].read(
+        (unsigned char *)dest, (unsigned long)destLength, &handlePtr->state);
 }
 
 /*++
@@ -1682,11 +1682,11 @@ PrngOutput(
     )
 {
     int status;
-    PrngHandle *handlePtr = (PrngHandle *) instanceData;
+    PrngHandle *handlePtr = (PrngHandle *)instanceData;
 
     // Add entropy to the PRNG.
     status = prng_descriptor[handlePtr->descIndex].add_entropy(
-        (unsigned char *) source, (unsigned long) sourceLength, &handlePtr->state);
+        (unsigned char *)source, (unsigned long)sourceLength, &handlePtr->state);
 
     if (status != CRYPT_OK) {
         // Try to map the LibTomCrypt status code to an errno value.
@@ -1741,7 +1741,7 @@ PrngGetOption(
     )
 {
     size_t length = 0;
-    PrngHandle *handlePtr = (PrngHandle *) instanceData;
+    PrngHandle *handlePtr = (PrngHandle *)instanceData;
 
     //
     // The option name will be NULL if all options were
@@ -1794,7 +1794,7 @@ PrngSetOption(
 {
     int ready;
     size_t length;
-    PrngHandle *handlePtr = (PrngHandle *) instanceData;
+    PrngHandle *handlePtr = (PrngHandle *)instanceData;
 
     length = strlen(optionName);
 
@@ -1884,7 +1884,7 @@ CryptObjCmd(
     Tcl_Obj *CONST objv[]
     )
 {
-    ExtState *statePtr = (ExtState *) clientData;
+    ExtState *statePtr = (ExtState *)clientData;
     int index;
     static const char *options[] = {
         "decrypt", "encrypt", "end", "hash", "info",

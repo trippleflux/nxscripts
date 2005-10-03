@@ -316,7 +316,7 @@ ShmAlloc(
         return NULL;
     }
 
-    memory = (ShmMemory *) ckalloc(sizeof(ShmMemory));
+    memory = (ShmMemory *)ckalloc(sizeof(ShmMemory));
     bytes += sizeof(DC_MESSAGE);
 
     // Allocate memory in local process.
@@ -324,7 +324,7 @@ ShmAlloc(
         PAGE_READWRITE|SEC_COMMIT, 0, bytes, NULL);
 
     if (memMap != NULL) {
-        message = (DC_MESSAGE *) MapViewOfFile(memMap,
+        message = (DC_MESSAGE *)MapViewOfFile(memMap,
             FILE_MAP_READ|FILE_MAP_WRITE, 0, 0, bytes);
 
         if (message != NULL) {
@@ -333,12 +333,12 @@ ShmAlloc(
             message->hObject      = NULL;
             message->dwIdentifier = 0;
             message->dwReturn     = 0;
-            message->lpMemoryBase = (void *) message;
+            message->lpMemoryBase = (void *)message;
             message->lpContext    = &message[1];
 
             SetLastError(ERROR_SUCCESS);
-            remote = (void *) SendMessage(session->messageWnd, WM_DATACOPY_FILEMAP,
-                (WPARAM) session->processId, (LPARAM) memMap);
+            remote = (void *)SendMessage(session->messageWnd, WM_DATACOPY_FILEMAP,
+                (WPARAM)session->processId, (LPARAM)memMap);
 
             error = GetLastError();
             if (remote == NULL && error == ERROR_SUCCESS) {
@@ -372,7 +372,7 @@ ShmAlloc(
             CloseHandle(event);
         }
 
-        ckfree((char *) memory);
+        ckfree((char *)memory);
         memory = NULL;
 
         // Restore the previous error code, since the UnmapViewOfFile
@@ -418,8 +418,8 @@ ShmFree(
         CloseHandle(memory->memMap);
     }
 
-    PostMessage(session->messageWnd, WM_DATACOPY_FREE, 0, (LPARAM) memory->remote);
-    ckfree((char *) memory);
+    PostMessage(session->messageWnd, WM_DATACOPY_FREE, 0, (LPARAM)memory->remote);
+    ckfree((char *)memory);
 }
 
 /*++
@@ -455,7 +455,7 @@ ShmQuery(
     assert(memory  != NULL);
 
     memory->message->dwIdentifier = queryType;
-    PostMessage(session->messageWnd, WM_SHMEM, 0, (LPARAM) memory->remote);
+    PostMessage(session->messageWnd, WM_SHMEM, 0, (LPARAM)memory->remote);
 
     if (timeOut && memory->event != NULL) {
         if (WaitForSingleObject(memory->event, timeOut) == WAIT_TIMEOUT) {
@@ -504,7 +504,7 @@ GroupIdToName(
     assert(groupName != NULL);
 
     // Initialise the DC_NAMEID structure.
-    nameId     = (DC_NAMEID *) memory->message->lpContext;
+    nameId     = (DC_NAMEID *)memory->message->lpContext;
     nameId->Id = groupId;
     nameId->tszName[0] = '\0';
 
@@ -552,7 +552,7 @@ GroupNameToId(
     assert(groupId   != NULL);
 
     // Initialise the DC_NAMEID structure.
-    nameId     = (DC_NAMEID *) memory->message->lpContext;
+    nameId     = (DC_NAMEID *)memory->message->lpContext;
     nameId->Id = -1;
     StringCchCopyA(nameId->tszName, ARRAYSIZE(nameId->tszName), groupName);
 
@@ -600,7 +600,7 @@ UserIdToName(
     assert(userName != NULL);
 
     // Initialise the DC_NAMEID structure.
-    nameId     = (DC_NAMEID *) memory->message->lpContext;
+    nameId     = (DC_NAMEID *)memory->message->lpContext;
     nameId->Id = userId;
     nameId->tszName[0] = '\0';
 
@@ -648,7 +648,7 @@ UserNameToId(
     assert(userId   != NULL);
 
     // Initialise the DC_NAMEID structure.
-    nameId     = (DC_NAMEID *) memory->message->lpContext;
+    nameId     = (DC_NAMEID *)memory->message->lpContext;
     nameId->Id = -1;
     StringCchCopyA(nameId->tszName, ARRAYSIZE(nameId->tszName), userName);
 
@@ -724,7 +724,7 @@ GetOnlineFields(
     }
 
     // Initialise the data-copy online structure.
-    dcOnlineData          = (DC_ONLINEDATA *) memOnline->block;
+    dcOnlineData          = (DC_ONLINEDATA *)memOnline->block;
     dcOnlineData->iOffset = 0;
     dcOnlineData->dwSharedMemorySize = memOnline->bytes;
 
@@ -755,14 +755,14 @@ GetOnlineFields(
         for (i = 0; i < fieldCount; i++) {
             fieldObj = NULL;
 
-            switch ((int) fields[i]) {
+            switch ((int)fields[i]) {
                 case WHO_ACTION: {
                     fieldObj = Tcl_NewStringObj(dcOnlineData->OnlineData.tszAction, -1);
                     break;
                 }
                 case WHO_CID: {
                     // The connection ID is one lower than the offset.
-                    fieldObj = Tcl_NewLongObj((long) dcOnlineData->iOffset-1);
+                    fieldObj = Tcl_NewLongObj((long)dcOnlineData->iOffset-1);
                     break;
                 }
                 case WHO_GID: {
@@ -790,7 +790,7 @@ GetOnlineFields(
                 }
                 case WHO_IP: {
                     char clientIp[16];
-                    BYTE *data = (BYTE *) &dcOnlineData->OnlineData.ulClientIp;
+                    BYTE *data = (BYTE *)&dcOnlineData->OnlineData.ulClientIp;
 
                     StringCchPrintfA(clientIp, ARRAYSIZE(clientIp), "%d.%d.%d.%d",
                         data[0] & 0xFF, data[1] & 0xFF, data[2] & 0xFF, data[3] & 0xFF);
@@ -799,11 +799,11 @@ GetOnlineFields(
                     break;
                 }
                 case WHO_LOGINTIME: {
-                    fieldObj = Tcl_NewLongObj((long) dcOnlineData->OnlineData.tLoginTime);
+                    fieldObj = Tcl_NewLongObj((long)dcOnlineData->OnlineData.tLoginTime);
                     break;
                 }
                 case WHO_PORT: {
-                    fieldObj = Tcl_NewLongObj((long) dcOnlineData->OnlineData.usClientPort);
+                    fieldObj = Tcl_NewLongObj((long)dcOnlineData->OnlineData.usClientPort);
                     break;
                 }
                 case WHO_REALDATAPATH: {
@@ -842,11 +842,11 @@ GetOnlineFields(
                     // 1 - Upload
                     // 2 - Download
                     // 3 - List
-                    fieldObj = Tcl_NewLongObj((long) dcOnlineData->OnlineData.bTransferStatus);
+                    fieldObj = Tcl_NewLongObj((long)dcOnlineData->OnlineData.bTransferStatus);
                     break;
                 }
                 case WHO_UID: {
-                    fieldObj = Tcl_NewLongObj((long) dcOnlineData->OnlineData.Uid);
+                    fieldObj = Tcl_NewLongObj((long)dcOnlineData->OnlineData.Uid);
                     break;
                 }
                 case WHO_USER: {
@@ -1031,8 +1031,8 @@ IoInfoCmd(
     }
 
     TCL_STORE_ARRAY("path", Tcl_NewStringObj(processPath, -1));
-    TCL_STORE_ARRAY("pid",  Tcl_NewLongObj((long) processId));
-    TCL_STORE_ARRAY("time", Tcl_NewLongObj((long) processTime));
+    TCL_STORE_ARRAY("pid",  Tcl_NewLongObj((long)processId));
+    TCL_STORE_ARRAY("time", Tcl_NewLongObj((long)processTime));
 
     Tcl_DecrRefCount(fieldObj);
     return TCL_OK;
@@ -1216,7 +1216,7 @@ IoWhoCmd(
         return TCL_ERROR;
     }
 
-    fields = (unsigned char *) ckalloc(elementCount * sizeof(unsigned char));
+    fields = (unsigned char *)ckalloc(elementCount * sizeof(unsigned char));
 
     // Create an array of indices from 'whoFields'.
     for (i = 0; i < elementCount; i++) {
@@ -1241,7 +1241,7 @@ IoWhoCmd(
     result = GetOnlineFields(&session, interp, fields, elementCount, flags);
 
     end:
-    ckfree((char *) fields);
+    ckfree((char *)fields);
     return result;
 }
 

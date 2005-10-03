@@ -243,7 +243,7 @@ EncodingObjCmd(
         return TCL_ERROR;
     }
 
-    functTable = (EncodingFuncts *) clientData;
+    functTable = (EncodingFuncts *)clientData;
     assert(functTable == decodeFuncts || functTable == encodeFuncts);
 
     if (Tcl_GetIndexFromObjStruct(interp, objv[1], functTable,

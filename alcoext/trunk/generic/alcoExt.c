@@ -166,14 +166,14 @@ Alcoext_Init(
     Tcl_MutexUnlock(&initMutex);
 
     // Allocate state structures.
-    stateListPtr = (StateList *) ckalloc(sizeof(StateList));
-    statePtr = (ExtState *) ckalloc(sizeof(ExtState));
+    stateListPtr = (StateList *)ckalloc(sizeof(StateList));
+    statePtr = (ExtState *)ckalloc(sizeof(ExtState));
 
-    statePtr->cryptTable = (Tcl_HashTable *) ckalloc(sizeof(Tcl_HashTable));
+    statePtr->cryptTable = (Tcl_HashTable *)ckalloc(sizeof(Tcl_HashTable));
     Tcl_InitHashTable(statePtr->cryptTable, TCL_STRING_KEYS);
 
 #ifndef _WINDOWS
-    statePtr->glftpdTable = (Tcl_HashTable *) ckalloc(sizeof(Tcl_HashTable));
+    statePtr->glftpdTable = (Tcl_HashTable *)ckalloc(sizeof(Tcl_HashTable));
     Tcl_InitHashTable(statePtr->glftpdTable, TCL_STRING_KEYS);
 #endif // !_WINDOWS
 
@@ -200,20 +200,20 @@ Alcoext_Init(
     Tcl_MutexUnlock(&stateMutex);
 
     // Clean up state on interpreter deletion.
-    Tcl_CallWhenDeleted(interp, InterpDeleteHandler, (ClientData) statePtr);
+    Tcl_CallWhenDeleted(interp, InterpDeleteHandler, (ClientData)statePtr);
 
     // Create Tcl commands.
     Tcl_CreateObjCommand(interp, "::alcoholicz::compress", CompressObjCmd,
-        (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
+        (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
 
     Tcl_CreateObjCommand(interp, "::alcoholicz::crypt", CryptObjCmd,
-        (ClientData) statePtr, (Tcl_CmdDeleteProc *) NULL);
+        (ClientData)statePtr, (Tcl_CmdDeleteProc *)NULL);
 
     Tcl_CreateObjCommand(interp, "::alcoholicz::decode", EncodingObjCmd,
-        (ClientData) decodeFuncts, (Tcl_CmdDeleteProc *) NULL);
+        (ClientData)decodeFuncts, (Tcl_CmdDeleteProc *)NULL);
 
     Tcl_CreateObjCommand(interp, "::alcoholicz::encode", EncodingObjCmd,
-        (ClientData) encodeFuncts, (Tcl_CmdDeleteProc *) NULL);
+        (ClientData)encodeFuncts, (Tcl_CmdDeleteProc *)NULL);
 
     //
     // These commands are not created for safe interpreters because
@@ -221,14 +221,14 @@ Alcoext_Init(
     //
     if (!Tcl_IsSafe(interp)) {
         Tcl_CreateObjCommand(interp, "::alcoholicz::volume", VolumeObjCmd,
-            (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
+            (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
 
 #ifdef _WINDOWS
         Tcl_CreateObjCommand(interp, "::alcoholicz::ioftpd", IoFtpdObjCmd,
-            (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
+            (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
 #else // _WINDOWS
         Tcl_CreateObjCommand(interp, "::alcoholicz::glftpd", GlFtpdObjCmd,
-            (ClientData) statePtr, (Tcl_CmdDeleteProc *) NULL);
+            (ClientData)statePtr, (Tcl_CmdDeleteProc *)NULL);
 #endif // _WINDOWS
     }
 
@@ -307,7 +307,7 @@ Alcoext_Unload(
                 }
 
                 FreeState(stateListPtr->state);
-                ckfree((char *) stateListPtr);
+                ckfree((char *)stateListPtr);
                 break;
             }
         }
@@ -368,15 +368,15 @@ FreeState(
     if (statePtr != NULL) {
         CryptCloseHandles(statePtr->cryptTable);
         Tcl_DeleteHashTable(statePtr->cryptTable);
-        ckfree((char *) statePtr->cryptTable);
+        ckfree((char *)statePtr->cryptTable);
 
 #ifndef _WINDOWS
         GlCloseHandles(statePtr->glftpdTable);
         Tcl_DeleteHashTable(statePtr->glftpdTable);
-        ckfree((char *) statePtr->glftpdTable);
+        ckfree((char *)statePtr->glftpdTable);
 #endif // !_WINDOWS
 
-        ckfree((char *) statePtr);
+        ckfree((char *)statePtr);
         statePtr = NULL;
     }
 }
@@ -421,7 +421,7 @@ ExitHandler(
             nextStateListPtr = stateListPtr->next;
 
             FreeState(stateListPtr->state);
-            ckfree((char *) stateListPtr);
+            ckfree((char *)stateListPtr);
         }
         stateListHead = NULL;
     }
@@ -453,7 +453,7 @@ InterpDeleteHandler(
     Tcl_Interp *interp
     )
 {
-    ExtState *statePtr = (ExtState *) clientData;
+    ExtState *statePtr = (ExtState *)clientData;
     StateList *stateListPtr;
 
     if (statePtr == NULL) {
@@ -477,7 +477,7 @@ InterpDeleteHandler(
                 stateListPtr->next->prev = stateListPtr->prev;
             }
 
-            ckfree((char *) stateListPtr);
+            ckfree((char *)stateListPtr);
             break;
         }
     }

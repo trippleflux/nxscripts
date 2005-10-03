@@ -266,7 +266,7 @@ BzipCompressObj(
         return status;
     }
 
-    stream.next_in = (char *)Tcl_GetByteArrayFromObj(sourceObj, (int*)&stream.avail_in);
+    stream.next_in = (char *)Tcl_GetByteArrayFromObj(sourceObj, (int *)&stream.avail_in);
 
     //
     // According to the Bzip2 documentation, the recommended buffer size

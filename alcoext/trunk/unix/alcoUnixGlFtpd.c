@@ -259,7 +259,7 @@ ParseFields(
     long *idPtr
     )
 {
-    char *p = (char *) line;
+    char *p = (char *)line;
     int i;
 
     *lengthPtr = 0;
@@ -341,7 +341,7 @@ GetUserList(
         // A 'passwd' entry has 6 delimiters for 7 fields.
         // Format: User:Password:UID:GID:Date:HomeDir:Irrelevant
         if (ParseFields(p, 6, &nameLength, &userId) == TCL_OK) {
-            GlUser *userPtr = (GlUser *) ckalloc(sizeof(GlUser));
+            GlUser *userPtr = (GlUser *)ckalloc(sizeof(GlUser));
 
             if (nameLength >= GL_USER_LENGTH) {
                 nameLength = GL_USER_LENGTH;
@@ -479,7 +479,7 @@ GetGroupList(
         // A 'passwd' entry has 3 delimiters for 4 fields.
         // Format: Group:Description:GID:Irrelevant
         if (ParseFields(p, 3, &nameLength, &userId) == TCL_OK) {
-            GlGroup *groupPtr = (GlGroup *) ckalloc(sizeof(GlUser));
+            GlGroup *groupPtr = (GlGroup *)ckalloc(sizeof(GlUser));
 
             if (nameLength >= GL_GROUP_LENGTH) {
                 nameLength = GL_GROUP_LENGTH;
@@ -637,14 +637,14 @@ GetOnlineData(
     }
 
     // Copy data into the generic online structure.
-    *onlineDataPtr = (GlOnlineGeneric **) ckalloc(sizeof(GlOnlineGeneric *) * (*maxUsers));
+    *onlineDataPtr = (GlOnlineGeneric **)ckalloc(sizeof(GlOnlineGeneric *) * (*maxUsers));
 
     switch (version) {
         case GLFTPD_130: {
-            GlOnline130 *glData = (GlOnline130 *) shmData;
+            GlOnline130 *glData = (GlOnline130 *)shmData;
 
             for (i = 0; i < *maxUsers; i++) {
-                entry = (GlOnlineGeneric *) ckalloc(sizeof(GlOnlineGeneric));
+                entry = (GlOnlineGeneric *)ckalloc(sizeof(GlOnlineGeneric));
 
                 memcpy(entry->tagline  ,  glData[i].tagline,    sizeof(glData[i].tagline));
                 memcpy(entry->username,   glData[i].username,   sizeof(glData[i].username));
@@ -663,10 +663,10 @@ GetOnlineData(
             }
         }
         case GLFTPD_200: {
-            GlOnline200 *glData = (GlOnline200 *) shmData;
+            GlOnline200 *glData = (GlOnline200 *)shmData;
 
             for (i = 0; i < *maxUsers; i++) {
-                entry = (GlOnlineGeneric *) ckalloc(sizeof(GlOnlineGeneric));
+                entry = (GlOnlineGeneric *)ckalloc(sizeof(GlOnlineGeneric));
 
                 memcpy(entry->tagline  ,  glData[i].tagline,    sizeof(glData[i].tagline));
                 memcpy(entry->username,   glData[i].username,   sizeof(glData[i].username));
@@ -692,7 +692,7 @@ GetOnlineData(
             assert(sizeof(GlOnlineGeneric) == sizeof(GlOnline201));
 
             for (i = 0; i < *maxUsers; i++) {
-                entry = (GlOnlineGeneric *) ckalloc(sizeof(GlOnlineGeneric));
+                entry = (GlOnlineGeneric *)ckalloc(sizeof(GlOnlineGeneric));
                 memcpy(entry, shmData + (i * sizeof(GlOnline201)), sizeof(GlOnline201));
                 (*onlineDataPtr)[i] = entry;
             }
@@ -725,9 +725,9 @@ FreeOnlineData(
 {
     int i;
     for (i = 0; i < maxUsers; i++) {
-        ckfree((char *) onlineDataPtr[i]);
+        ckfree((char *)onlineDataPtr[i]);
     }
-    ckfree((char *) onlineDataPtr);
+    ckfree((char *)onlineDataPtr);
 }
 
 /*++
@@ -774,7 +774,7 @@ GlOpenCmd(
         return TCL_ERROR;
     }
 
-    handlePtr = (GlHandle *) ckalloc(sizeof(GlHandle));
+    handlePtr = (GlHandle *)ckalloc(sizeof(GlHandle));
 
     etcPath   = GLFTPD_ETC_PATH;
     etcLength = strlen(etcPath) + 1;
@@ -794,7 +794,7 @@ GlOpenCmd(
     if (newEntry == 0) {
         Tcl_Panic("Duplicate glftpd hash table entries.");
     }
-    Tcl_SetHashValue(hashEntryPtr, (ClientData) handlePtr);
+    Tcl_SetHashValue(hashEntryPtr, (ClientData)handlePtr);
 
     Tcl_SetStringObj(Tcl_GetObjResult(interp), handleName, -1);
     return TCL_OK;
@@ -843,7 +843,7 @@ GlConfigCmd(
     if (hashEntryPtr == NULL) {
         return TCL_ERROR;
     }
-    handlePtr = (GlHandle *) Tcl_GetHashValue(hashEntryPtr);
+    handlePtr = (GlHandle *)Tcl_GetHashValue(hashEntryPtr);
 
     //
     // List all options and their corresponding values.
@@ -863,7 +863,7 @@ GlConfigCmd(
                 }
                 case SWITCH_KEY: {
                     Tcl_ListObjAppendElement(NULL, resultPtr,
-                        Tcl_NewLongObj((long) handlePtr->shmKey));
+                        Tcl_NewLongObj((long)handlePtr->shmKey));
                     break;
                 }
                 case SWITCH_VERSION: {
@@ -892,7 +892,7 @@ GlConfigCmd(
                 break;
             }
             case SWITCH_KEY: {
-                Tcl_SetLongObj(Tcl_GetObjResult(interp), (long) handlePtr->shmKey);
+                Tcl_SetLongObj(Tcl_GetObjResult(interp), (long)handlePtr->shmKey);
                 break;
             }
             case SWITCH_VERSION: {
@@ -999,11 +999,11 @@ GlCloseCmd(
     if (hashEntryPtr == NULL) {
         return TCL_ERROR;
     }
-    handlePtr = (GlHandle *) Tcl_GetHashValue(hashEntryPtr);
+    handlePtr = (GlHandle *)Tcl_GetHashValue(hashEntryPtr);
 
     // Free the handle structure and remove the hash table entry.
     ckfree(handlePtr->etcPath);
-    ckfree((char *) handlePtr);
+    ckfree((char *)handlePtr);
     Tcl_DeleteHashEntry(hashEntryPtr);
 
     return TCL_OK;
@@ -1035,9 +1035,9 @@ GlCloseHandles(
         entryPtr != NULL;
         entryPtr = Tcl_NextHashEntry(&search)) {
 
-        handlePtr = (GlHandle *) Tcl_GetHashValue(entryPtr);
+        handlePtr = (GlHandle *)Tcl_GetHashValue(entryPtr);
         ckfree(handlePtr->etcPath);
-        ckfree((char *) handlePtr);
+        ckfree((char *)handlePtr);
         Tcl_DeleteHashEntry(entryPtr);
     }
 }
@@ -1120,13 +1120,13 @@ GlInfoCmd(
             if (hashEntryPtr == NULL) {
                 return TCL_ERROR;
             }
-            handlePtr = (GlHandle *) Tcl_GetHashValue(hashEntryPtr);
+            handlePtr = (GlHandle *)Tcl_GetHashValue(hashEntryPtr);
 
             if (GetOnlineData(interp, handlePtr->shmKey, handlePtr->version, &maxUsers, NULL) != TCL_OK) {
                 return TCL_ERROR;
             }
 
-            Tcl_SetLongObj(resultPtr, (long) maxUsers);
+            Tcl_SetLongObj(resultPtr, (long)maxUsers);
             return TCL_OK;
         }
     }
@@ -1180,7 +1180,7 @@ GlKillCmd(
     if (hashEntryPtr == NULL) {
         return TCL_ERROR;
     }
-    handlePtr = (GlHandle *) Tcl_GetHashValue(hashEntryPtr);
+    handlePtr = (GlHandle *)Tcl_GetHashValue(hashEntryPtr);
 
     if (Tcl_GetLongFromObj(interp, objv[3], &procId) != TCL_OK) {
         return TCL_ERROR;
@@ -1262,14 +1262,14 @@ GlWhoCmd(
     if (hashEntryPtr == NULL) {
         return TCL_ERROR;
     }
-    handlePtr = (GlHandle *) Tcl_GetHashValue(hashEntryPtr);
+    handlePtr = (GlHandle *)Tcl_GetHashValue(hashEntryPtr);
 
     if (Tcl_ListObjGetElements(interp, objv[3], &elementCount, &elementPtrs) != TCL_OK) {
         return TCL_ERROR;
     }
 
     // Never make assumptions on type sizes.
-    fields = (unsigned char *) ckalloc(elementCount * sizeof(unsigned char));
+    fields = (unsigned char *)ckalloc(elementCount * sizeof(unsigned char));
 
     // Create an array of indices from 'whoFields'.
     for (i = 0; i < elementCount; i++) {
@@ -1306,7 +1306,7 @@ GlWhoCmd(
         FreeGroupList(&groupListPtr);
     }
 
-    ckfree((char *) fields);
+    ckfree((char *)fields);
     return result;
 }
 
@@ -1378,7 +1378,7 @@ GetOnlineFields(
         for (j = 0; j < fieldCount; j++) {
             fieldObj = NULL;
 
-            switch ((int) fields[j]) {
+            switch ((int)fields[j]) {
                 case WHO_ACTION: {
                     fieldObj = Tcl_NewStringObj(onlineData[i]->status, -1);
                     break;
@@ -1401,7 +1401,7 @@ GetOnlineFields(
                     break;
                 }
                 case WHO_LOGINTIME: {
-                    fieldObj = Tcl_NewLongObj((long) onlineData[i]->login_time);
+                    fieldObj = Tcl_NewLongObj((long)onlineData[i]->login_time);
                     break;
                 }
                 case WHO_PATH: {
@@ -1409,7 +1409,7 @@ GetOnlineFields(
                     break;
                 }
                 case WHO_PID: {
-                    fieldObj = Tcl_NewLongObj((long) onlineData[i]->procid);
+                    fieldObj = Tcl_NewLongObj((long)onlineData[i]->procid);
                     break;
                 }
                 case WHO_SIZE: {
@@ -1425,7 +1425,7 @@ GetOnlineFields(
                     break;
                 }
                 case WHO_SSL: {
-                    fieldObj = Tcl_NewLongObj((long) onlineData[i]->ssl_flag);
+                    fieldObj = Tcl_NewLongObj((long)onlineData[i]->ssl_flag);
                     break;
                 }
                 case WHO_STATUS: {
@@ -1495,7 +1495,7 @@ GlFtpdObjCmd(
     Tcl_Obj *CONST objv[]
     )
 {
-    ExtState *statePtr = (ExtState *) clientData;
+    ExtState *statePtr = (ExtState *)clientData;
     int index;
     static const char *options[] = {
         "close", "config", "info",

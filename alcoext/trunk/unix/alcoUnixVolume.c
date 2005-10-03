@@ -166,9 +166,9 @@ GetVolumeInfo(
     volumeInfo->free  = (Tcl_WideUInt)fsInfo.f_bsize * (Tcl_WideUInt)fsInfo.f_bfree;
     volumeInfo->total = (Tcl_WideUInt)fsInfo.f_bsize * (Tcl_WideUInt)fsInfo.f_blocks;
 
-    volumeInfo->id     = (unsigned long) F_FSID(fsInfo);
-    volumeInfo->flags  = (unsigned long) F_FLAGS(fsInfo);
-    volumeInfo->length = (unsigned long) F_NAMELEN(fsInfo);
+    volumeInfo->id     = (unsigned long)F_FSID(fsInfo);
+    volumeInfo->flags  = (unsigned long)F_FLAGS(fsInfo);
+    volumeInfo->length = (unsigned long)F_NAMELEN(fsInfo);
 
     // Not supported.
     volumeInfo->name[0] = '\0';
