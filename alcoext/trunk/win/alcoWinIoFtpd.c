@@ -140,6 +140,14 @@ ShmQuery(
 //
 
 static int
+GetGroupFile(
+    ShmSession *session,
+    ShmMemory *memory,
+    int groupId,
+    GROUPFILE *groupFile
+    );
+
+static int
 GroupIdToName(
     ShmSession *session,
     ShmMemory *memory,
@@ -153,6 +161,14 @@ GroupNameToId(
     ShmMemory *memory,
     const char *groupName,
     int *groupId
+    );
+
+static int
+GetUserFile(
+    ShmSession *session,
+    ShmMemory *memory,
+    int userId,
+    USERFILE *userFile
     );
 
 static int
@@ -474,6 +490,58 @@ ShmQuery(
 
 /*++
 
+GetGroupFile
+
+    Retrieve the GROUPFILE structure for a given a group ID.
+
+Arguments:
+    session     - Pointer to an initialised ShmSession structure.
+
+    memory      - Pointer to an ShmMemory structure allocated by the ShmAlloc
+                  function. Must be large enough to hold the GROUPFILE structure.
+
+    groupId     - The group ID to look up.
+
+    groupFile   - Pointer to a buffer to receive the GROUPFILE structure.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
+static int
+GetGroupFile(
+    ShmSession *session,
+    ShmMemory *memory,
+    int groupId,
+    GROUPFILE *groupFile
+    )
+{
+    DebugPrint("GetGroupFile: START\n");
+    assert(session  != NULL);
+    assert(memory   != NULL);
+    assert(memory->bytes >= sizeof(GROUPFILE));
+    assert(groupFile != NULL);
+
+    // Set the requested group ID.
+    ((GROUPFILE *)memory->block)->Gid = groupId;
+
+    if (!ShmQuery(session, memory, DC_GROUPFILE_OPEN, 5000)) {
+        CopyMemory(groupFile, memory->block, sizeof(GROUPFILE));
+
+        // Close the group-file before returning.
+        ShmQuery(session, memory, DC_GROUPFILE_CLOSE, 5000);
+
+        DebugPrint("GetGroupFile: OKAY\n");
+        return TCL_OK;
+    }
+
+    ZeroMemory(groupFile, sizeof(GROUPFILE));
+    DebugPrint("GetGroupFile: FAIL\n");
+    return TCL_ERROR;
+}
+
+/*++
+
 GroupIdToName
 
     Resolve a group ID to its corresponding group name.
@@ -503,6 +571,7 @@ GroupIdToName(
 {
     DC_NAMEID *nameId;
 
+    DebugPrint("GroupIdToName: START\n");
     assert(session   != NULL);
     assert(memory    != NULL);
     assert(memory->bytes >= sizeof(DC_NAMEID));
@@ -511,14 +580,16 @@ GroupIdToName(
     // Initialise the DC_NAMEID structure.
     nameId     = (DC_NAMEID *)memory->block;
     nameId->Id = groupId;
-    nameId->tszName[0] = '\0';
 
     if (!ShmQuery(session, memory, DC_GID_TO_GROUP, 5000)) {
         StringCchCopyA(nameId->tszName, _MAX_NAME+1, groupName);
+
+        DebugPrint("GroupIdToName: OKAY\n");
         return TCL_OK;
     }
 
     groupName[0] = '\0';
+    DebugPrint("GroupIdToName: FAIL\n");
     return TCL_ERROR;
 }
 
@@ -552,6 +623,7 @@ GroupNameToId(
 {
     DC_NAMEID *nameId;
 
+    DebugPrint("GroupNameToId: START\n");
     assert(session   != NULL);
     assert(memory    != NULL);
     assert(memory->bytes >= sizeof(DC_NAMEID));
@@ -559,16 +631,70 @@ GroupNameToId(
     assert(groupId   != NULL);
 
     // Initialise the DC_NAMEID structure.
-    nameId     = (DC_NAMEID *)memory->block;
-    nameId->Id = -1;
+    nameId = (DC_NAMEID *)memory->block;
     StringCchCopyA(nameId->tszName, ARRAYSIZE(nameId->tszName), groupName);
 
     if (!ShmQuery(session, memory, DC_GROUP_TO_GID, 5000)) {
         *groupId = nameId->Id;
+
+        DebugPrint("GroupNameToId: OKAY\n");
         return TCL_OK;
     }
 
     *groupId = -1;
+    DebugPrint("GroupNameToId: FAIL\n");
+    return TCL_ERROR;
+}
+
+/*++
+
+GetUserFile
+
+    Retrieve the USERFILE structure for a given a user ID.
+
+Arguments:
+    session     - Pointer to an initialised ShmSession structure.
+
+    memory      - Pointer to an ShmMemory structure allocated by the ShmAlloc
+                  function. Must be large enough to hold the USERFILE structure.
+
+    userId      - The user ID to look up.
+
+    userFile    - Pointer to a buffer to receive the USERFILE structure.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
+static int
+GetUserFile(
+    ShmSession *session,
+    ShmMemory *memory,
+    int userId,
+    USERFILE *userFile
+    )
+{
+    DebugPrint("GetUserFile: START\n");
+    assert(session  != NULL);
+    assert(memory   != NULL);
+    assert(memory->bytes >= sizeof(USERFILE));
+    assert(userFile != NULL);
+
+    // Set the requested user ID.
+    ((USERFILE *)memory->block)->Uid = userId;
+
+    if (!ShmQuery(session, memory, DC_USERFILE_OPEN, 5000)) {
+        CopyMemory(userFile, memory->block, sizeof(USERFILE));
+
+        // Close the user-file before returning.
+        ShmQuery(session, memory, DC_USERFILE_CLOSE, 5000);
+
+        DebugPrint("GetUserFile: OKAY\n");
+        return TCL_OK;
+    }
+
+    ZeroMemory(userFile, sizeof(USERFILE));
+    DebugPrint("GetUserFile: FAIL\n");
     return TCL_ERROR;
 }
 
@@ -603,6 +729,7 @@ UserIdToName(
 {
     DC_NAMEID *nameId;
 
+    DebugPrint("UserIdToName: START\n");
     assert(session  != NULL);
     assert(memory   != NULL);
     assert(memory->bytes >= sizeof(DC_NAMEID));
@@ -611,14 +738,16 @@ UserIdToName(
     // Initialise the DC_NAMEID structure.
     nameId     = (DC_NAMEID *)memory->block;
     nameId->Id = userId;
-    nameId->tszName[0] = '\0';
 
     if (!ShmQuery(session, memory, DC_UID_TO_USER, 5000)) {
         StringCchCopyA(nameId->tszName, _MAX_NAME+1, userName);
+
+        DebugPrint("UserIdToName: OKAY\n");
         return TCL_OK;
     }
 
     userName[0] = '\0';
+    DebugPrint("UserIdToName: FAIL\n");
     return TCL_ERROR;
 }
 
@@ -652,6 +781,7 @@ UserNameToId(
 {
     DC_NAMEID *nameId;
 
+    DebugPrint("UserNameToId: START\n");
     assert(session  != NULL);
     assert(memory   != NULL);
     assert(memory->bytes >= sizeof(DC_NAMEID));
@@ -659,16 +789,18 @@ UserNameToId(
     assert(userId   != NULL);
 
     // Initialise the DC_NAMEID structure.
-    nameId     = (DC_NAMEID *)memory->block;
-    nameId->Id = -1;
+    nameId = (DC_NAMEID *)memory->block;
     StringCchCopyA(nameId->tszName, ARRAYSIZE(nameId->tszName), userName);
 
     if (!ShmQuery(session, memory, DC_USER_TO_UID, 5000)) {
         *userId = nameId->Id;
+
+        DebugPrint("UserNameToId: OKAY\n");
         return TCL_OK;
     }
 
     *userId = -1;
+    DebugPrint("UserNameToId: FAIL\n");
     return TCL_ERROR;
 }
 
@@ -707,6 +839,7 @@ GetOnlineFields(
     )
 {
     DWORD result;
+    int groupId;
     int i;
     DC_ONLINEDATA *dcOnlineData;
     ShmMemory *memOnline;
@@ -760,7 +893,12 @@ GetOnlineFields(
         userObj = Tcl_NewObj();
 
         if (flags & ONLINE_GET_GROUPID) {
-            // TODO: Get the primary group ID.
+            GROUPFILE groupFile;
+
+            // Retrieve the group ID now in case both the
+            // "gid" and "group" field were requested.
+            GetGroupFile(session, memUser, dcOnlineData->OnlineData.Uid, &groupFile);
+            groupId = groupFile.Gid;
         }
 
         for (i = 0; i < fieldCount; i++) {
@@ -777,13 +915,15 @@ GetOnlineFields(
                     break;
                 }
                 case WHO_GID: {
-                    // TODO: User file crap.
-                    fieldObj = Tcl_NewLongObj(-1);
+                    // TODO: broken!
+                    fieldObj = Tcl_NewLongObj((long)groupId);
                     break;
                 }
                 case WHO_GROUP: {
-                    // TODO: User file crap.
-                    fieldObj = Tcl_NewStringObj("TODO", -1);
+                    // TODO: broken!
+                    char groupName[_MAX_NAME+1];
+                    GroupIdToName(session, memUser, groupId, groupName);
+                    fieldObj = Tcl_NewStringObj(groupName, -1);
                     break;
                 }
                 case WHO_HOST: {
@@ -850,8 +990,8 @@ GetOnlineFields(
                 }
                 case WHO_STATUS: {
                     // 0 - Idle
-                    // 1 - Upload
-                    // 2 - Download
+                    // 1 - Download
+                    // 2 - Upload
                     // 3 - List
                     fieldObj = Tcl_NewLongObj((long)dcOnlineData->OnlineData.bTransferStatus);
                     break;
@@ -861,6 +1001,7 @@ GetOnlineFields(
                     break;
                 }
                 case WHO_USER: {
+                    // TODO: broken!
                     char userName[_MAX_NAME+1];
                     UserIdToName(session, memUser, dcOnlineData->OnlineData.Uid, userName);
                     fieldObj = Tcl_NewStringObj(userName, -1);
@@ -1271,14 +1412,10 @@ IoWhoCmd(
             goto end;
         }
 
-        switch (fieldIndex) {
-            case WHO_GID:
-            case WHO_GROUP: {
-                flags |= ONLINE_GET_GROUPID;
-            }
-            case WHO_USER: {
-                flags |= ONLINE_GET_USERNAME;
-            }
+        if (fieldIndex == WHO_GID || fieldIndex == WHO_GROUP) {
+            flags |= ONLINE_GET_GROUPID;
+        } else if (fieldIndex == WHO_USER) {
+            flags |= ONLINE_GET_USERNAME;
         }
 
         fields[i] = (unsigned char) fieldIndex;

@@ -34,6 +34,13 @@ Abstract:
 // ROUNDUP - Round 'a' up to a multiple of 'b'.
 #define ROUNDUP(a,b)    ((((a) + ((b) - 1)) / (b)) * (b))
 
+// DebugPrint - Display debugging information to stdout.
+#if defined(DEBUG) && !defined(NDEBUG)
+#   define DebugPrint printf
+#else
+#   define DebugPrint
+#endif
+
 
 Tcl_HashEntry *
 GetHandleTableEntry(
