@@ -1445,15 +1445,17 @@ GetOnlineFields(
                     break;
                 }
                 case WHO_STATUS: {
-                    long status = 0; // Idle
+                    // 0 - Idle
+                    // 1 - Download
+                    // 2 - Upload
+                    long status = 0;
 
-                    if (strncasecmp(onlineData[i]->status, "STOR ", 5) == 0 ||
+                    if (strncasecmp(onlineData[i]->status, "RETR ", 5) == 0) {
+                        status = 1;
+                    } else if (strncasecmp(onlineData[i]->status, "STOR ", 5) == 0 ||
                         strncasecmp(onlineData[i]->status, "APPE ", 5) == 0) {
-                        status = 1; // Upload
-                    } else if (strncasecmp(onlineData[i]->status, "RETR ", 5) == 0) {
-                        status = 2; // Download
+                        status = 2;
                     }
-
                     fieldObj = Tcl_NewLongObj(status);
                     break;
                 }
