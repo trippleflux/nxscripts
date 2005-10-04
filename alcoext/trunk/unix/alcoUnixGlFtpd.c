@@ -1268,10 +1268,26 @@ GlWhoCmd(
         return TCL_ERROR;
     }
 
-    // Never make assumptions on type sizes.
+    // Validate "whoFields" indices.
+    assert(!strcmp("action",    whoFields[WHO_ACTION]));
+    assert(!strcmp("gid",       whoFields[WHO_GID]));
+    assert(!strcmp("group",     whoFields[WHO_GROUP]));
+    assert(!strcmp("host",      whoFields[WHO_HOST]));
+    assert(!strcmp("idletime",  whoFields[WHO_IDLETIME]));
+    assert(!strcmp("logintime", whoFields[WHO_LOGINTIME]));
+    assert(!strcmp("path",      whoFields[WHO_PATH]));
+    assert(!strcmp("pid",       whoFields[WHO_PID]));
+    assert(!strcmp("size",      whoFields[WHO_SIZE]));
+    assert(!strcmp("speed",     whoFields[WHO_SPEED]));
+    assert(!strcmp("ssl",       whoFields[WHO_SSL]));
+    assert(!strcmp("status",    whoFields[WHO_STATUS]));
+    assert(!strcmp("tagline",   whoFields[WHO_TAGLINE]));
+    assert(!strcmp("uid",       whoFields[WHO_UID]));
+    assert(!strcmp("user",      whoFields[WHO_USER]));
+
+    // Create an array of indices from "whoFields".
     fields = (unsigned char *)ckalloc(elementCount * sizeof(unsigned char));
 
-    // Create an array of indices from 'whoFields'.
     for (i = 0; i < elementCount; i++) {
         if (Tcl_GetIndexFromObj(interp, elementPtrs[i], whoFields,
                 "field", 0, &fieldIndex) != TCL_OK) {

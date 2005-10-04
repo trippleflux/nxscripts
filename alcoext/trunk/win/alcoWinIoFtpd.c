@@ -1241,9 +1241,30 @@ IoWhoCmd(
         return TCL_ERROR;
     }
 
+    // Validate "whoFields" indices.
+    assert(!strcmp("action",       whoFields[WHO_ACTION]));
+    assert(!strcmp("cid",          whoFields[WHO_CID]));
+    assert(!strcmp("gid",          whoFields[WHO_GID]));
+    assert(!strcmp("group",        whoFields[WHO_GROUP]));
+    assert(!strcmp("host",         whoFields[WHO_HOST]));
+    assert(!strcmp("ident",        whoFields[WHO_IDENT]));
+    assert(!strcmp("idletime",     whoFields[WHO_IDLETIME]));
+    assert(!strcmp("ip",           whoFields[WHO_IP]));
+    assert(!strcmp("logintime",    whoFields[WHO_LOGINTIME]));
+    assert(!strcmp("port",         whoFields[WHO_PORT]));
+    assert(!strcmp("realdatapath", whoFields[WHO_REALDATAPATH]));
+    assert(!strcmp("realpath",     whoFields[WHO_REALPATH]));
+    assert(!strcmp("size",         whoFields[WHO_SIZE]));
+    assert(!strcmp("speed",        whoFields[WHO_SPEED]));
+    assert(!strcmp("status",       whoFields[WHO_STATUS]));
+    assert(!strcmp("uid",          whoFields[WHO_UID]));
+    assert(!strcmp("user",         whoFields[WHO_USER]));
+    assert(!strcmp("vdatapath",    whoFields[WHO_VDATAPATH]));
+    assert(!strcmp("vpath",        whoFields[WHO_VPATH]));
+
+    // Create an array of indices from "whoFields".
     fields = (unsigned char *)ckalloc(elementCount * sizeof(unsigned char));
 
-    // Create an array of indices from 'whoFields'.
     for (i = 0; i < elementCount; i++) {
         if (Tcl_GetIndexFromObj(interp, elementPtrs[i], whoFields,
                 "field", 0, &fieldIndex) != TCL_OK) {
