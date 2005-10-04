@@ -79,7 +79,6 @@ test ioftpd-3.2 {ioftpd info: too many args} {win} {
     list [catch {ioftpd info a b c} msg] $msg
 } {1 {wrong # args: should be "ioftpd info msgWindow varName"}}
 
-
 test ioftpd-3.3 {ioftpd info: array elements} {win msgWndExists} {
     ioftpd info $msgWindow io
     set names [lsort [array names io]]
@@ -100,11 +99,19 @@ test ioftpd-3.4 {ioftpd info: varName isn't an array} {win msgWndExists} {
 
 test ioftpd-4.1 {ioftpd kick: no args} {win} {
     list [catch {ioftpd kick} msg] $msg
-} {1 {wrong # args: should be "ioftpd kick msgWindow user"}}
+} {1 {wrong # args: should be "ioftpd kick msgWindow uid"}}
 
 test ioftpd-4.2 {ioftpd kick: too many args} {win} {
     list [catch {ioftpd kick a b c} msg] $msg
-} {1 {wrong # args: should be "ioftpd kick msgWindow user"}}
+} {1 {wrong # args: should be "ioftpd kick msgWindow uid"}}
+
+test ioftpd-4.3 {ioftpd kick: invalid int} {win msgWndExists} {
+    list [catch {ioftpd kick $msgWindow .} msg] $msg
+} {1 {expected integer but got "."}}
+
+test ioftpd-4.4 {ioftpd kick: invalid int} {win msgWndExists} {
+    ioftpd kick $msgWindow 0
+} {}
 
 ################################################################################
 # ioftpd kill                                                                  #
@@ -117,6 +124,14 @@ test ioftpd-5.1 {ioftpd kill: no args} {win} {
 test ioftpd-5.2 {ioftpd kill: too many args} {win} {
     list [catch {ioftpd kill a b c} msg] $msg
 } {1 {wrong # args: should be "ioftpd kill msgWindow cid"}}
+
+test ioftpd-5.3 {ioftpd kill: invalid int} {win msgWndExists} {
+    list [catch {ioftpd kill $msgWindow .} msg] $msg
+} {1 {expected integer but got "."}}
+
+test ioftpd-5.4 {ioftpd kill: invalid int} {win msgWndExists} {
+    ioftpd kill $msgWindow 0
+} {}
 
 ################################################################################
 # ioftpd user                                                                  #
