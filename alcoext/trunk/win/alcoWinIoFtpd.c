@@ -481,12 +481,16 @@ ShmQuery(
 
     if (timeOut && memory->event != NULL) {
         if (WaitForSingleObject(memory->event, timeOut) == WAIT_TIMEOUT) {
+            DebugPrint("ShmQuery: Timed out (%lu)\n", GetLastError());
             return (DWORD)-1;
         }
+
+        DebugPrint("ShmQuery: Return=%lu\n", memory->message->dwReturn);
         return memory->message->dwReturn;
     }
 
     //  No timeout or event, return value cannot be checked.
+    DebugPrint("ShmQuery: No event or time out!\n");
     return (DWORD)-1;
 }
 
@@ -519,7 +523,7 @@ GetGroupFile(
     GROUPFILE *groupFile
     )
 {
-    DebugPrint("GetGroupFile: START\n");
+    DebugPrint("GetGroupFile: groupId=%d groupFile=0x%p\n", groupId, groupFile);
     assert(session  != NULL);
     assert(memory   != NULL);
     assert(memory->bytes >= sizeof(GROUPFILE));
@@ -577,7 +581,7 @@ GroupIdToName(
 {
     DC_NAMEID *nameId;
 
-    DebugPrint("GroupIdToName: START\n");
+    DebugPrint("GroupIdToName: groupId=%d groupName=0x%p\n", groupId, groupName);
     assert(session   != NULL);
     assert(memory    != NULL);
     assert(memory->bytes >= sizeof(DC_NAMEID));
@@ -629,7 +633,7 @@ GroupNameToId(
 {
     DC_NAMEID *nameId;
 
-    DebugPrint("GroupNameToId: START\n");
+    DebugPrint("GroupNameToId: groupName=%s groupId=0x%p\n", groupName, groupId);
     assert(session   != NULL);
     assert(memory    != NULL);
     assert(memory->bytes >= sizeof(DC_NAMEID));
@@ -680,7 +684,7 @@ GetUserFile(
     USERFILE *userFile
     )
 {
-    DebugPrint("GetUserFile: START\n");
+    DebugPrint("GetUserFile: userId=%d userFile=0x%p\n", userId, userFile);
     assert(session  != NULL);
     assert(memory   != NULL);
     assert(memory->bytes >= sizeof(USERFILE));
@@ -739,7 +743,7 @@ UserIdToName(
 {
     DC_NAMEID *nameId;
 
-    DebugPrint("UserIdToName: START\n");
+    DebugPrint("UserIdToName: userId=%d userName=0x%p\n", userId, userName);
     assert(session  != NULL);
     assert(memory   != NULL);
     assert(memory->bytes >= sizeof(DC_NAMEID));
@@ -791,7 +795,7 @@ UserNameToId(
 {
     DC_NAMEID *nameId;
 
-    DebugPrint("UserNameToId: START\n");
+    DebugPrint("UserNameToId: userName=%s userId=0x%p\n", userName, userId);
     assert(session  != NULL);
     assert(memory   != NULL);
     assert(memory->bytes >= sizeof(DC_NAMEID));
