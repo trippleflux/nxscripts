@@ -111,7 +111,7 @@ static int
 ShmInit(
     ShmSession *session,
     Tcl_Interp *interp,
-    const char *windowName
+    Tcl_Obj *windowObj
     );
 
 static ShmMemory *
@@ -245,7 +245,7 @@ Arguments:
 
     interp      - Interpreter to use for error reporting.
 
-    windowName  - Name of ioFTPD's message window.
+    windowObj   - Object containing the name of ioFTPD's message window.
 
 Return Value:
     A standard Tcl result.
@@ -255,13 +255,16 @@ static int
 ShmInit(
     ShmSession *session,
     Tcl_Interp *interp,
-    const char *windowName
+    Tcl_Obj *windowObj
     )
 {
+    char *windowName;
+
     assert(session    != NULL);
     assert(interp     != NULL);
-    assert(windowName != NULL);
+    assert(windowObj  != NULL);
 
+    windowName = Tcl_GetString(windowObj);
     session->messageWnd = FindWindowA(windowName, NULL);
     session->processId  = GetCurrentProcessId();
 
@@ -504,7 +507,7 @@ GroupIdToName(
     assert(groupName != NULL);
 
     // Initialise the DC_NAMEID structure.
-    nameId     = (DC_NAMEID *)memory->message->lpContext;
+    nameId     = (DC_NAMEID *)memory->block;
     nameId->Id = groupId;
     nameId->tszName[0] = '\0';
 
@@ -552,7 +555,7 @@ GroupNameToId(
     assert(groupId   != NULL);
 
     // Initialise the DC_NAMEID structure.
-    nameId     = (DC_NAMEID *)memory->message->lpContext;
+    nameId     = (DC_NAMEID *)memory->block;
     nameId->Id = -1;
     StringCchCopyA(nameId->tszName, ARRAYSIZE(nameId->tszName), groupName);
 
@@ -600,7 +603,7 @@ UserIdToName(
     assert(userName != NULL);
 
     // Initialise the DC_NAMEID structure.
-    nameId     = (DC_NAMEID *)memory->message->lpContext;
+    nameId     = (DC_NAMEID *)memory->block;
     nameId->Id = userId;
     nameId->tszName[0] = '\0';
 
@@ -648,7 +651,7 @@ UserNameToId(
     assert(userId   != NULL);
 
     // Initialise the DC_NAMEID structure.
-    nameId     = (DC_NAMEID *)memory->message->lpContext;
+    nameId     = (DC_NAMEID *)memory->block;
     nameId->Id = -1;
     StringCchCopyA(nameId->tszName, ARRAYSIZE(nameId->tszName), userName);
 
@@ -704,7 +707,7 @@ GetOnlineFields(
     Tcl_Obj *resultObj;
     Tcl_Obj *userObj;
 
-    memOnline = ShmAlloc(session, TRUE, sizeof(DC_ONLINEDATA) + _MAX_PATH * 2);
+    memOnline = ShmAlloc(session, TRUE, sizeof(DC_ONLINEDATA) + (MAX_PATH+1) * 2);
     if (memOnline == NULL) {
         Tcl_AppendResult(interp, "unable to retrieve online data: ",
             TclSetWinError(interp, GetLastError()), NULL);
@@ -985,7 +988,7 @@ IoInfoCmd(
         return TCL_ERROR;
     }
 
-    if (ShmInit(&session, interp, Tcl_GetString(objv[2])) != TCL_OK) {
+    if (ShmInit(&session, interp, objv[2]) != TCL_OK) {
         return TCL_ERROR;
     }
 
@@ -1062,13 +1065,20 @@ IoKickCmd(
     Tcl_Obj *CONST objv[]
     )
 {
+    int userId;
+    ShmSession session;
+
     if (objc != 4) {
-        Tcl_WrongNumArgs(interp, 2, objv, "msgWindow user");
+        Tcl_WrongNumArgs(interp, 2, objv, "msgWindow uid");
         return TCL_ERROR;
     }
 
-    // TODO: IPC stuff.
+    if (ShmInit(&session, interp, objv[2]) != TCL_OK ||
+            Tcl_GetIntFromObj(interp, objv[3], &userId) != TCL_OK) {
+        return TCL_ERROR;
+    }
 
+    PostMessage(session.messageWnd, WM_KICK, (WPARAM)userId, 0);
     return TCL_OK;
 }
 
@@ -1096,13 +1106,20 @@ IoKillCmd(
     Tcl_Obj *CONST objv[]
     )
 {
+    int connId;
+    ShmSession session;
+
     if (objc != 4) {
         Tcl_WrongNumArgs(interp, 2, objv, "msgWindow cid");
         return TCL_ERROR;
     }
 
-    // TODO: IPC stuff.
+    if (ShmInit(&session, interp, objv[2]) != TCL_OK ||
+            Tcl_GetIntFromObj(interp, objv[3], &connId) != TCL_OK) {
+        return TCL_ERROR;
+    }
 
+    PostMessage(session.messageWnd, WM_KILL, (WPARAM)connId, 0);
     return TCL_OK;
 }
 
@@ -1208,7 +1225,7 @@ IoWhoCmd(
         return TCL_ERROR;
     }
 
-    if (ShmInit(&session, interp, Tcl_GetString(objv[2])) != TCL_OK) {
+    if (ShmInit(&session, interp, objv[2]) != TCL_OK) {
         return TCL_ERROR;
     }
 
