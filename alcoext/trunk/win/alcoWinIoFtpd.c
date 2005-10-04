@@ -1057,6 +1057,8 @@ IoGroupCmd(
     )
 {
     int index;
+    ShmSession session;
+    Tcl_Obj *resultObj;
     static const char *options[] = {
         "exists", "get", "id", "list", "name", NULL
     };
@@ -1065,35 +1067,53 @@ IoGroupCmd(
     };
 
     if (objc < 4) {
-        Tcl_WrongNumArgs(interp, 2, objv, "option msgWindow ?arg ...?");
+        Tcl_WrongNumArgs(interp, 2, objv, "option arg ?arg ...?");
         return TCL_ERROR;
     }
 
-    if (Tcl_GetIndexFromObj(interp, objv[2], options, "option", 0, &index) != TCL_OK) {
+    if (Tcl_GetIndexFromObj(interp, objv[2], options, "option", 0, &index) != TCL_OK ||
+            ShmInit(&session, interp, objv[3]) != TCL_OK) {
         return TCL_ERROR;
     }
 
+    resultObj = Tcl_GetObjResult(interp);
     switch ((enum options) index) {
         case GROUP_EXISTS: {
-            break;
+            if (objc != 5) {
+                Tcl_WrongNumArgs(interp, 3, objv, "msgWindow group");
+                return TCL_ERROR;
+            }
+            return TCL_OK;
         }
         case GROUP_GET: {
-            break;
+            if (objc != 5) {
+                Tcl_WrongNumArgs(interp, 3, objv, "msgWindow group");
+                return TCL_ERROR;
+            }
+            return TCL_OK;
         }
         case GROUP_ID: {
-            break;
+            if (objc != 5) {
+                Tcl_WrongNumArgs(interp, 3, objv, "msgWindow group");
+                return TCL_ERROR;
+            }
+            return TCL_OK;
         }
         case GROUP_LIST: {
-            break;
+            return TCL_OK;
         }
         case GROUP_NAME: {
-            break;
+            if (objc != 5) {
+                Tcl_WrongNumArgs(interp, 3, objv, "msgWindow gid");
+                return TCL_ERROR;
+            }
+            return TCL_OK;
         }
     }
 
-    // TODO: IPC stuff.
-
-    return TCL_OK;
+    // This point should never be reached.
+    Tcl_Panic("unexpected fallthrough");
+    return TCL_ERROR;
 }
 
 /*++
@@ -1297,6 +1317,8 @@ IoUserCmd(
     )
 {
     int index;
+    ShmSession session;
+    Tcl_Obj *resultObj;
     static const char *options[] = {
         "exists", "get", "id", "list", "name", NULL
     };
@@ -1305,35 +1327,53 @@ IoUserCmd(
     };
 
     if (objc < 4) {
-        Tcl_WrongNumArgs(interp, 2, objv, "option msgWindow ?arg ...?");
+        Tcl_WrongNumArgs(interp, 2, objv, "option arg ?arg ...?");
         return TCL_ERROR;
     }
 
-    if (Tcl_GetIndexFromObj(interp, objv[2], options, "option", 0, &index) != TCL_OK) {
+    if (Tcl_GetIndexFromObj(interp, objv[2], options, "option", 0, &index) != TCL_OK ||
+            ShmInit(&session, interp, objv[3]) != TCL_OK) {
         return TCL_ERROR;
     }
 
+    resultObj = Tcl_GetObjResult(interp);
     switch ((enum options) index) {
         case USER_EXISTS: {
-            break;
+            if (objc != 5) {
+                Tcl_WrongNumArgs(interp, 3, objv, "msgWindow user");
+                return TCL_ERROR;
+            }
+            return TCL_OK;
         }
         case USER_GET: {
-            break;
+            if (objc != 5) {
+                Tcl_WrongNumArgs(interp, 3, objv, "msgWindow user");
+                return TCL_ERROR;
+            }
+            return TCL_OK;
         }
         case USER_ID: {
-            break;
+            if (objc != 5) {
+                Tcl_WrongNumArgs(interp, 3, objv, "msgWindow user");
+                return TCL_ERROR;
+            }
+            return TCL_OK;
         }
         case USER_LIST: {
-            break;
+            return TCL_OK;
         }
         case USER_NAME: {
-            break;
+            if (objc != 5) {
+                Tcl_WrongNumArgs(interp, 3, objv, "msgWindow uid");
+                return TCL_ERROR;
+            }
+            return TCL_OK;
         }
     }
 
-    // TODO: IPC stuff.
-
-    return TCL_OK;
+    // This point should never be reached.
+    Tcl_Panic("unexpected fallthrough");
+    return TCL_ERROR;
 }
 
 /*++
