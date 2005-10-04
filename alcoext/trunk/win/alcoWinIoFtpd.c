@@ -584,7 +584,7 @@ GroupIdToName(
     assert(groupName != NULL);
 
     // Initialise the DC_NAMEID structure.
-    nameId     = (DC_NAMEID *)memory->block;
+    nameId = (DC_NAMEID *)memory->block;
     nameId->Id = groupId;
 
     if (!ShmQuery(session, memory, DC_GID_TO_GROUP, 5000)) {
@@ -746,7 +746,7 @@ UserIdToName(
     assert(userName != NULL);
 
     // Initialise the DC_NAMEID structure.
-    nameId     = (DC_NAMEID *)memory->block;
+    nameId = (DC_NAMEID *)memory->block;
     nameId->Id = userId;
 
     if (!ShmQuery(session, memory, DC_UID_TO_USER, 5000)) {
@@ -865,7 +865,7 @@ GetOnlineFields(
 
     if (flags & ONLINE_GET_GROUPID || flags & ONLINE_GET_USERNAME) {
         // Allocate a buffer large enough to hold a DC_NAMEID or USERFILE structure.
-        memUser = ShmAlloc(session, interp, MAX(sizeof(USERFILE), sizeof(DC_NAMEID)));
+        memUser = ShmAlloc(session, interp, MAX(sizeof(DC_NAMEID), sizeof(USERFILE)));
 
         if (memUser == NULL) {
             ShmFree(session, memOnline);
@@ -874,7 +874,7 @@ GetOnlineFields(
     }
 
     // Initialise the data-copy online structure.
-    dcOnlineData          = (DC_ONLINEDATA *)memOnline->block;
+    dcOnlineData = (DC_ONLINEDATA *)memOnline->block;
     dcOnlineData->iOffset = 0;
     dcOnlineData->dwSharedMemorySize = memOnline->bytes;
 
@@ -1200,7 +1200,7 @@ IoInfoCmd(
     processHandle = OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ, FALSE, processId);
     if (processHandle == NULL) {
         Tcl_AppendResult(interp, "unable to open process: ",
-            TclSetWinError(interp, GetLastError()));
+            TclSetWinError(interp, GetLastError()), NULL);
         return TCL_ERROR;
     }
 
