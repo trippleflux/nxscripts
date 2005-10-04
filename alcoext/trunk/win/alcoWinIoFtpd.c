@@ -503,6 +503,8 @@ GroupIdToName(
 {
     DC_NAMEID *nameId;
 
+    assert(session   != NULL);
+    assert(memory    != NULL);
     assert(memory->bytes >= sizeof(DC_NAMEID));
     assert(groupName != NULL);
 
@@ -550,6 +552,8 @@ GroupNameToId(
 {
     DC_NAMEID *nameId;
 
+    assert(session   != NULL);
+    assert(memory    != NULL);
     assert(memory->bytes >= sizeof(DC_NAMEID));
     assert(groupName != NULL);
     assert(groupId   != NULL);
@@ -565,7 +569,7 @@ GroupNameToId(
     }
 
     *groupId = -1;
-    return TCL_OK;
+    return TCL_ERROR;
 }
 
 /*++
@@ -599,6 +603,8 @@ UserIdToName(
 {
     DC_NAMEID *nameId;
 
+    assert(session  != NULL);
+    assert(memory   != NULL);
     assert(memory->bytes >= sizeof(DC_NAMEID));
     assert(userName != NULL);
 
@@ -613,7 +619,7 @@ UserIdToName(
     }
 
     userName[0] = '\0';
-    return TCL_OK;
+    return TCL_ERROR;
 }
 
 /*++
@@ -646,6 +652,8 @@ UserNameToId(
 {
     DC_NAMEID *nameId;
 
+    assert(session  != NULL);
+    assert(memory   != NULL);
     assert(memory->bytes >= sizeof(DC_NAMEID));
     assert(userName != NULL);
     assert(userId   != NULL);
@@ -661,7 +669,7 @@ UserNameToId(
     }
 
     *userId = -1;
-    return TCL_OK;
+    return TCL_ERROR;
 }
 
 /*++
