@@ -14,23 +14,23 @@ Abstract:
 
     User Commands:
     ioftpd user exists  <msgWindow> <user>        - Check if a user exists.
-    ioftpd user get     <msgWindow> <user>        - Query a user.
-    ioftpd user list    <msgWindow> [-id] [-name] - List users and/or UIDs.
+    ioftpd user get     <msgWindow> <user>        - Get user information.
+    ioftpd user set     <msgWindow> <user> <data> - Set user information.
     ioftpd user toid    <msgWindow> <user>        - User name to UID.
     ioftpd user toname  <msgWindow> <uid>         - UID to user name.
 
     Group Commands:
-    ioftpd group exists <msgWindow> <group>       - Check if a group exists.
-    ioftpd group get    <msgWindow> <group>       - Query a group.
-    ioftpd group list   <msgWindow> [-id] [-name] - List groups and/or GIDs.
-    ioftpd group toid   <msgWindow> <group>       - Group name to GID.
-    ioftpd group toname <msgWindow> <gid>         - GID to group name.
+    ioftpd group exists <msgWindow> <group>        - Check if a group exists.
+    ioftpd group get    <msgWindow> <group>        - Get group information.
+    ioftpd group set    <msgWindow> <group> <data> - Set group information.
+    ioftpd group toid   <msgWindow> <group>        - Group name to GID.
+    ioftpd group toname <msgWindow> <gid>          - GID to group name.
 
     Online Data Commands:
-    ioftpd info         <msgWindow> <varName>     - Query the ioFTPD message window.
-    ioftpd kick         <msgWindow> <user>        - Kick a user.
-    ioftpd kill         <msgWindow> <cid>         - Kick a connection ID.
-    ioftpd who          <msgWindow> <fields>      - Query online users.
+    ioftpd info         <msgWindow> <varName>      - Query the ioFTPD message window.
+    ioftpd kick         <msgWindow> <user>         - Kick a user.
+    ioftpd kill         <msgWindow> <cid>          - Kick a connection ID.
+    ioftpd who          <msgWindow> <fields>       - Query online users.
 
 --*/
 
@@ -916,11 +916,11 @@ GetOnlineFields(
                 }
                 case WHO_CID: {
                     // The connection ID is one lower than the offset.
-                    fieldObj = Tcl_NewLongObj((long)dcOnlineData->iOffset-1);
+                    fieldObj = Tcl_NewIntObj(dcOnlineData->iOffset-1);
                     break;
                 }
                 case WHO_GID: {
-                    fieldObj = Tcl_NewLongObj((long)groupId);
+                    fieldObj = Tcl_NewIntObj(groupId);
                     break;
                 }
                 case WHO_GROUP: {
@@ -1000,7 +1000,7 @@ GetOnlineFields(
                     break;
                 }
                 case WHO_UID: {
-                    fieldObj = Tcl_NewLongObj((long)dcOnlineData->OnlineData.Uid);
+                    fieldObj = Tcl_NewIntObj(dcOnlineData->OnlineData.Uid);
                     break;
                 }
                 case WHO_USER: {
@@ -1063,10 +1063,10 @@ IoGroupCmd(
     ShmSession session;
     Tcl_Obj *resultObj;
     static const char *options[] = {
-        "exists", "get", "list", "toid", "toname", NULL
+        "exists", "get", "set", "toid", "toname", NULL
     };
     enum options {
-        GROUP_EXISTS, GROUP_GET, GROUP_LIST, GROUP_TO_ID, GROUP_TO_NAME
+        GROUP_EXISTS, GROUP_GET, GROUP_SET, GROUP_TO_ID, GROUP_TO_NAME
     };
 
     if (objc < 4) {
@@ -1082,10 +1082,23 @@ IoGroupCmd(
     resultObj = Tcl_GetObjResult(interp);
     switch ((enum options) index) {
         case GROUP_EXISTS: {
+            int groupId;
+            int result;
+
             if (objc != 5) {
                 Tcl_WrongNumArgs(interp, 3, objv, "msgWindow group");
                 return TCL_ERROR;
             }
+
+            // Check the group name resolves successfully.
+            memory = ShmAlloc(&session, interp, sizeof(DC_NAMEID));
+            if (memory == NULL) {
+                return TCL_ERROR;
+            }
+            result = GroupNameToId(&session, memory, Tcl_GetString(objv[4]), &groupId);
+            ShmFree(&session, memory);
+
+            Tcl_SetBooleanObj(resultObj, result == TCL_OK);
             return TCL_OK;
         }
         case GROUP_GET: {
@@ -1095,8 +1108,13 @@ IoGroupCmd(
             }
             return TCL_OK;
         }
-        case GROUP_LIST: {
-            return TCL_OK;
+        case GROUP_SET: {
+            if (objc != 6) {
+                Tcl_WrongNumArgs(interp, 3, objv, "msgWindow group data");
+                return TCL_ERROR;
+            }
+            Tcl_SetResult(interp, "not implemented", TCL_STATIC);
+            return TCL_ERROR;
         }
         case GROUP_TO_ID: {
             int groupId;
@@ -1353,10 +1371,10 @@ IoUserCmd(
     ShmSession session;
     Tcl_Obj *resultObj;
     static const char *options[] = {
-        "exists", "get", "list", "toid", "toname", NULL
+        "exists", "get", "set", "toid", "toname", NULL
     };
     enum options {
-        USER_EXISTS, USER_GET, USER_LIST, USER_TO_ID, USER_TO_NAME
+        USER_EXISTS, USER_GET, USER_SET, USER_TO_ID, USER_TO_NAME
     };
 
     if (objc < 4) {
@@ -1372,10 +1390,23 @@ IoUserCmd(
     resultObj = Tcl_GetObjResult(interp);
     switch ((enum options) index) {
         case USER_EXISTS: {
+            int userId;
+            int result;
+
             if (objc != 5) {
                 Tcl_WrongNumArgs(interp, 3, objv, "msgWindow user");
                 return TCL_ERROR;
             }
+
+            // Check the user name resolves successfully.
+            memory = ShmAlloc(&session, interp, sizeof(DC_NAMEID));
+            if (memory == NULL) {
+                return TCL_ERROR;
+            }
+            result = UserNameToId(&session, memory, Tcl_GetString(objv[4]), &userId);
+            ShmFree(&session, memory);
+
+            Tcl_SetBooleanObj(resultObj, result == TCL_OK);
             return TCL_OK;
         }
         case USER_GET: {
@@ -1385,8 +1416,13 @@ IoUserCmd(
             }
             return TCL_OK;
         }
-        case USER_LIST: {
-            return TCL_OK;
+        case USER_SET: {
+            if (objc != 6) {
+                Tcl_WrongNumArgs(interp, 3, objv, "msgWindow user data");
+                return TCL_ERROR;
+            }
+            Tcl_SetResult(interp, "not implemented", TCL_STATIC);
+            return TCL_ERROR;
         }
         case USER_TO_ID: {
             int userId;
