@@ -1081,26 +1081,6 @@ IoGroupCmd(
 
     resultObj = Tcl_GetObjResult(interp);
     switch ((enum options) index) {
-        case GROUP_EXISTS: {
-            int groupId;
-            int result;
-
-            if (objc != 5) {
-                Tcl_WrongNumArgs(interp, 3, objv, "msgWindow group");
-                return TCL_ERROR;
-            }
-
-            // Check the group name resolves successfully.
-            memory = ShmAlloc(&session, interp, sizeof(DC_NAMEID));
-            if (memory == NULL) {
-                return TCL_ERROR;
-            }
-            result = GroupNameToId(&session, memory, Tcl_GetString(objv[4]), &groupId);
-            ShmFree(&session, memory);
-
-            Tcl_SetBooleanObj(resultObj, result == TCL_OK);
-            return TCL_OK;
-        }
         case GROUP_GET: {
             if (objc != 5) {
                 Tcl_WrongNumArgs(interp, 3, objv, "msgWindow group");
@@ -1113,11 +1093,15 @@ IoGroupCmd(
                 Tcl_WrongNumArgs(interp, 3, objv, "msgWindow group data");
                 return TCL_ERROR;
             }
+
+            // TODO: Implement this sub-command later.
             Tcl_SetResult(interp, "not implemented", TCL_STATIC);
             return TCL_ERROR;
         }
+        case GROUP_EXISTS:
         case GROUP_TO_ID: {
             int groupId;
+            int result;
 
             if (objc != 5) {
                 Tcl_WrongNumArgs(interp, 3, objv, "msgWindow group");
@@ -1129,10 +1113,14 @@ IoGroupCmd(
             if (memory == NULL) {
                 return TCL_ERROR;
             }
-            GroupNameToId(&session, memory, Tcl_GetString(objv[4]), &groupId);
+            result = GroupNameToId(&session, memory, Tcl_GetString(objv[4]), &groupId);
             ShmFree(&session, memory);
 
-            Tcl_SetIntObj(resultObj, groupId);
+            if (index == GROUP_EXISTS) {
+                Tcl_SetBooleanObj(resultObj, result == TCL_OK);
+            } else {
+                Tcl_SetIntObj(resultObj, groupId);
+            }
             return TCL_OK;
         }
         case GROUP_TO_NAME: {
@@ -1389,26 +1377,6 @@ IoUserCmd(
 
     resultObj = Tcl_GetObjResult(interp);
     switch ((enum options) index) {
-        case USER_EXISTS: {
-            int userId;
-            int result;
-
-            if (objc != 5) {
-                Tcl_WrongNumArgs(interp, 3, objv, "msgWindow user");
-                return TCL_ERROR;
-            }
-
-            // Check the user name resolves successfully.
-            memory = ShmAlloc(&session, interp, sizeof(DC_NAMEID));
-            if (memory == NULL) {
-                return TCL_ERROR;
-            }
-            result = UserNameToId(&session, memory, Tcl_GetString(objv[4]), &userId);
-            ShmFree(&session, memory);
-
-            Tcl_SetBooleanObj(resultObj, result == TCL_OK);
-            return TCL_OK;
-        }
         case USER_GET: {
             if (objc != 5) {
                 Tcl_WrongNumArgs(interp, 3, objv, "msgWindow user");
@@ -1421,11 +1389,15 @@ IoUserCmd(
                 Tcl_WrongNumArgs(interp, 3, objv, "msgWindow user data");
                 return TCL_ERROR;
             }
+
+            // TODO: Implement this sub-command later.
             Tcl_SetResult(interp, "not implemented", TCL_STATIC);
             return TCL_ERROR;
         }
+        case USER_EXISTS:
         case USER_TO_ID: {
             int userId;
+            int result;
 
             if (objc != 5) {
                 Tcl_WrongNumArgs(interp, 3, objv, "msgWindow user");
@@ -1437,10 +1409,14 @@ IoUserCmd(
             if (memory == NULL) {
                 return TCL_ERROR;
             }
-            UserNameToId(&session, memory, Tcl_GetString(objv[4]), &userId);
+            result = UserNameToId(&session, memory, Tcl_GetString(objv[4]), &userId);
             ShmFree(&session, memory);
 
-            Tcl_SetIntObj(resultObj, userId);
+            if (index == USER_EXISTS) {
+                Tcl_SetBooleanObj(resultObj, result == TCL_OK);
+            } else {
+                Tcl_SetIntObj(resultObj, userId);
+            }
             return TCL_OK;
         }
         case USER_TO_NAME: {
