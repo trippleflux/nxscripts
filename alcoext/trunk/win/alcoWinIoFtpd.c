@@ -588,7 +588,7 @@ GroupIdToName(
     nameId->Id = groupId;
 
     if (!ShmQuery(session, memory, DC_GID_TO_GROUP, 5000)) {
-        StringCchCopyA(nameId->tszName, _MAX_NAME+1, groupName);
+        StringCchCopyA(groupName, _MAX_NAME+1, nameId->tszName);
 
         DebugPrint("GroupIdToName: OKAY\n");
         return TCL_OK;
@@ -750,7 +750,7 @@ UserIdToName(
     nameId->Id = userId;
 
     if (!ShmQuery(session, memory, DC_UID_TO_USER, 5000)) {
-        StringCchCopyA(nameId->tszName, _MAX_NAME+1, userName);
+        StringCchCopyA(userName, _MAX_NAME+1, nameId->tszName);
 
         DebugPrint("UserIdToName: OKAY\n");
         return TCL_OK;
@@ -924,7 +924,6 @@ GetOnlineFields(
                     break;
                 }
                 case WHO_GROUP: {
-                    // TODO: broken!
                     char groupName[_MAX_NAME+1];
                     GroupIdToName(session, memUser, groupId, groupName);
                     fieldObj = Tcl_NewStringObj(groupName, -1);
@@ -1005,7 +1004,6 @@ GetOnlineFields(
                     break;
                 }
                 case WHO_USER: {
-                    // TODO: broken!
                     char userName[_MAX_NAME+1];
                     UserIdToName(session, memUser, dcOnlineData->OnlineData.Uid, userName);
                     fieldObj = Tcl_NewStringObj(userName, -1);
