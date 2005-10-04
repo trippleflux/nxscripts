@@ -15,16 +15,16 @@ Abstract:
     User Commands:
     ioftpd user exists  <msgWindow> <user>        - Check if a user exists.
     ioftpd user get     <msgWindow> <user>        - Query a user.
-    ioftpd user id      <msgWindow> <user>        - Resolve a user name to its UID.
     ioftpd user list    <msgWindow> [-id] [-name] - List users and/or UIDs.
-    ioftpd user name    <msgWindow> <uid>         - Resolve a UID to its user name.
+    ioftpd user toid    <msgWindow> <user>        - User name to UID.
+    ioftpd user toname  <msgWindow> <uid>         - UID to user name.
 
     Group Commands:
     ioftpd group exists <msgWindow> <group>       - Check if a group exists.
     ioftpd group get    <msgWindow> <group>       - Query a group.
-    ioftpd group id     <msgWindow> <group>       - Resolve a group name to its GID.
     ioftpd group list   <msgWindow> [-id] [-name] - List groups and/or GIDs.
-    ioftpd group name   <msgWindow> <gid>         - Resolve a GID to its group name.
+    ioftpd group toid   <msgWindow> <group>       - Group name to GID.
+    ioftpd group toname <msgWindow> <gid>         - GID to group name.
 
     Online Data Commands:
     ioftpd info         <msgWindow> <varName>     - Query the ioFTPD message window.
@@ -117,7 +117,7 @@ ShmInit(
 static ShmMemory *
 ShmAlloc(
     ShmSession *session,
-    BOOL createEvent,
+    Tcl_Interp *interp,
     DWORD bytes
     );
 
@@ -303,7 +303,7 @@ ShmAlloc
 Arguments:
     session     - Pointer to an initialised ShmSession structure.
 
-    createEvent - Create an event to signal.
+    interp      - Interpreter to use for error reporting.
 
     bytes       - Number of bytes to be allocated.
 
@@ -311,27 +311,30 @@ Return Value:
     If the function succeeds, the return value is a pointer to a ShmMemory
     structure. This structure should be freed by the ShmFree function when
     it is no longer needed. If the function fails, the return value is NULL.
-    To get extended error information, call GetLastError.
 
 --*/
 static ShmMemory *
 ShmAlloc(
     ShmSession *session,
-    BOOL createEvent,
+    Tcl_Interp *interp,
     DWORD bytes
     )
 {
     DC_MESSAGE *message = NULL;
-    ShmMemory  *memory;
-    DWORD  error  = ERROR_SUCCESS;
+    ShmMemory *memory;
+    BOOL success = FALSE;
     HANDLE event  = NULL;
     HANDLE memMap = NULL;
-    void   *remote;
+    void *remote;
 
     assert(session != NULL);
     assert(bytes > 0);
 
-    if (createEvent && !(event = CreateEvent(NULL, FALSE, FALSE, NULL))) {
+    event = CreateEvent(NULL, FALSE, FALSE, NULL);
+    if (event == NULL) {
+        Tcl_ResetResult(interp);
+        Tcl_AppendResult(interp, "unable to create event: ",
+            TclSetWinError(interp, GetLastError()), NULL);
         return NULL;
     }
 
@@ -359,19 +362,18 @@ ShmAlloc(
             remote = (void *)SendMessage(session->messageWnd, WM_DATACOPY_FILEMAP,
                 (WPARAM)session->processId, (LPARAM)memMap);
 
-            error = GetLastError();
-            if (remote == NULL && error == ERROR_SUCCESS) {
-                // Not sure if SendMessage updates the error code on failure.
-                error = ERROR_INVALID_PARAMETER;
+            if (remote != NULL) {
+                success = TRUE;
+            } else if (GetLastError() == ERROR_SUCCESS) {
+                // I'm not sure if the SendMessage function updates the
+                // system error code on failure, since MSDN does not mention
+                // this behaviour. So this bullshit error will suffice.
+                SetLastError(ERROR_INVALID_PARAMETER);
             }
-        } else {
-            error = GetLastError();
         }
-    } else {
-        error = GetLastError();
     }
 
-    if (error == ERROR_SUCCESS) {
+    if (success) {
         // Update memory allocation structure.
         memory->message = message;
         memory->block   = &message[1];
@@ -380,6 +382,11 @@ ShmAlloc(
         memory->memMap  = memMap;
         memory->bytes   = bytes - sizeof(DC_MESSAGE);
     } else {
+        // Leave an error message in the interpreter's result.
+        Tcl_ResetResult(interp);
+        Tcl_AppendResult(interp, "unable to map memory: ",
+            TclSetWinError(interp, GetLastError()), NULL);
+
         // Free objects and resources.
         if (message != NULL) {
             UnmapViewOfFile(message);
@@ -393,10 +400,6 @@ ShmAlloc(
 
         ckfree((char *)memory);
         memory = NULL;
-
-        // Restore the previous error code, since the UnmapViewOfFile
-        // or CloseHandle function could change it.
-        SetLastError(error);
     }
 
     return memory;
@@ -855,21 +858,17 @@ GetOnlineFields(
     Tcl_Obj *resultObj;
     Tcl_Obj *userObj;
 
-    memOnline = ShmAlloc(session, TRUE, sizeof(DC_ONLINEDATA) + (MAX_PATH+1) * 2);
+    memOnline = ShmAlloc(session, interp, sizeof(DC_ONLINEDATA) + (MAX_PATH+1) * 2);
     if (memOnline == NULL) {
-        Tcl_AppendResult(interp, "unable to retrieve online data: ",
-            TclSetWinError(interp, GetLastError()), NULL);
         return TCL_ERROR;
     }
 
     if (flags & ONLINE_GET_GROUPID || flags & ONLINE_GET_USERNAME) {
         // Allocate a buffer large enough to hold a DC_NAMEID or USERFILE structure.
-        memUser = ShmAlloc(session, TRUE, MAX(sizeof(USERFILE), sizeof(DC_NAMEID)));
+        memUser = ShmAlloc(session, interp, MAX(sizeof(USERFILE), sizeof(DC_NAMEID)));
 
         if (memUser == NULL) {
             ShmFree(session, memOnline);
-            Tcl_AppendResult(interp, "unable to retrieve online data: ",
-                TclSetWinError(interp, GetLastError()), NULL);
             return TCL_ERROR;
         }
     }
@@ -1062,13 +1061,14 @@ IoGroupCmd(
     )
 {
     int index;
+    ShmMemory *memory;
     ShmSession session;
     Tcl_Obj *resultObj;
     static const char *options[] = {
-        "exists", "get", "id", "list", "name", NULL
+        "exists", "get", "list", "toid", "toname", NULL
     };
     enum options {
-        GROUP_EXISTS, GROUP_GET, GROUP_ID, GROUP_LIST, GROUP_NAME
+        GROUP_EXISTS, GROUP_GET, GROUP_LIST, GROUP_TO_ID, GROUP_TO_NAME
     };
 
     if (objc < 4) {
@@ -1097,21 +1097,50 @@ IoGroupCmd(
             }
             return TCL_OK;
         }
-        case GROUP_ID: {
+        case GROUP_LIST: {
+            return TCL_OK;
+        }
+        case GROUP_TO_ID: {
+            int groupId;
+
             if (objc != 5) {
                 Tcl_WrongNumArgs(interp, 3, objv, "msgWindow group");
                 return TCL_ERROR;
             }
+
+            // Group name to group ID.
+            memory = ShmAlloc(&session, interp, sizeof(DC_NAMEID));
+            if (memory == NULL) {
+                return TCL_ERROR;
+            }
+            GroupNameToId(&session, memory, Tcl_GetString(objv[4]), &groupId);
+            ShmFree(&session, memory);
+
+            Tcl_SetIntObj(resultObj, groupId);
             return TCL_OK;
         }
-        case GROUP_LIST: {
-            return TCL_OK;
-        }
-        case GROUP_NAME: {
+        case GROUP_TO_NAME: {
+            int groupId;
+            char groupName[_MAX_NAME+1];
+
             if (objc != 5) {
                 Tcl_WrongNumArgs(interp, 3, objv, "msgWindow gid");
                 return TCL_ERROR;
             }
+
+            if (Tcl_GetIntFromObj(interp, objv[4], &groupId) != TCL_OK) {
+                return TCL_ERROR;
+            }
+
+            // Group ID to group name.
+            memory = ShmAlloc(&session, interp, sizeof(DC_NAMEID));
+            if (memory == NULL) {
+                return TCL_ERROR;
+            }
+            GroupIdToName(&session, memory, groupId, groupName);
+            ShmFree(&session, memory);
+
+            Tcl_SetStringObj(resultObj, groupName, -1);
             return TCL_OK;
         }
     }
@@ -1322,13 +1351,14 @@ IoUserCmd(
     )
 {
     int index;
+    ShmMemory *memory;
     ShmSession session;
     Tcl_Obj *resultObj;
     static const char *options[] = {
-        "exists", "get", "id", "list", "name", NULL
+        "exists", "get", "list", "toid", "toname", NULL
     };
     enum options {
-        USER_EXISTS, USER_GET, USER_ID, USER_LIST, USER_NAME
+        USER_EXISTS, USER_GET, USER_LIST, USER_TO_ID, USER_TO_NAME
     };
 
     if (objc < 4) {
@@ -1357,21 +1387,50 @@ IoUserCmd(
             }
             return TCL_OK;
         }
-        case USER_ID: {
+        case USER_LIST: {
+            return TCL_OK;
+        }
+        case USER_TO_ID: {
+            int userId;
+
             if (objc != 5) {
                 Tcl_WrongNumArgs(interp, 3, objv, "msgWindow user");
                 return TCL_ERROR;
             }
+
+            // User name to user ID.
+            memory = ShmAlloc(&session, interp, sizeof(DC_NAMEID));
+            if (memory == NULL) {
+                return TCL_ERROR;
+            }
+            UserNameToId(&session, memory, Tcl_GetString(objv[4]), &userId);
+            ShmFree(&session, memory);
+
+            Tcl_SetIntObj(resultObj, userId);
             return TCL_OK;
         }
-        case USER_LIST: {
-            return TCL_OK;
-        }
-        case USER_NAME: {
+        case USER_TO_NAME: {
+            int userId;
+            char userName[_MAX_NAME+1];
+
             if (objc != 5) {
                 Tcl_WrongNumArgs(interp, 3, objv, "msgWindow uid");
                 return TCL_ERROR;
             }
+
+            if (Tcl_GetIntFromObj(interp, objv[4], &userId) != TCL_OK) {
+                return TCL_ERROR;
+            }
+
+            // User ID to user name.
+            memory = ShmAlloc(&session, interp, sizeof(DC_NAMEID));
+            if (memory == NULL) {
+                return TCL_ERROR;
+            }
+            UserIdToName(&session, memory, userId, userName);
+            ShmFree(&session, memory);
+
+            Tcl_SetStringObj(resultObj, userName, -1);
             return TCL_OK;
         }
     }

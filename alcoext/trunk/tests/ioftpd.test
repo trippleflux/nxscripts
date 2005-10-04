@@ -61,11 +61,11 @@ test ioftpd-1.3 {ioftpd: invalid option} {win} {
 
 test ioftpd-2.1 {ioftpd group: no args} {win} {
     list [catch {ioftpd group} msg] $msg
-} {1 {wrong # args: should be "ioftpd group option msgWindow ?arg ...?"}}
+} {1 {wrong # args: should be "ioftpd group option arg ?arg ...?"}}
 
 test ioftpd-2.2 {ioftpd group: invalid sub-option} {win} {
     list [catch {ioftpd group . a b} msg] $msg
-} {1 {bad option ".": must be exists, get, id, list, or name}}
+} {1 {bad option ".": must be exists, get, list, toid, or toname}}
 
 ################################################################################
 # ioftpd info                                                                  #
@@ -139,11 +139,11 @@ test ioftpd-5.4 {ioftpd kill: invalid int} {win msgWndExists} {
 
 test ioftpd-6.1 {ioftpd user: no args} {win} {
     list [catch {ioftpd user} msg] $msg
-} {1 {wrong # args: should be "ioftpd user option msgWindow ?arg ...?"}}
+} {1 {wrong # args: should be "ioftpd user option arg ?arg ...?"}}
 
 test ioftpd-6.2 {ioftpd user: invalid sub-option} {win} {
     list [catch {ioftpd user . a b} msg] $msg
-} {1 {bad option ".": must be exists, get, id, list, or name}}
+} {1 {bad option ".": must be exists, get, list, toid, or toname}}
 
 ################################################################################
 # ioftpd who                                                                   #
