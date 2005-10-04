@@ -535,7 +535,10 @@ GetGroupFile(
         return TCL_OK;
     }
 
+    // Clear the group-file on failure.
     ZeroMemory(groupFile, sizeof(GROUPFILE));
+    groupFile->Gid = -1;
+
     DebugPrint("GetGroupFile: FAIL\n");
     return TCL_ERROR;
 }
@@ -693,7 +696,11 @@ GetUserFile(
         return TCL_OK;
     }
 
+    // Clear the user-file on failure.
     ZeroMemory(userFile, sizeof(USERFILE));
+    userFile->Uid = -1;
+    userFile->Gid = -1;
+
     DebugPrint("GetUserFile: FAIL\n");
     return TCL_ERROR;
 }
@@ -893,12 +900,11 @@ GetOnlineFields(
         userObj = Tcl_NewObj();
 
         if (flags & ONLINE_GET_GROUPID) {
-            GROUPFILE groupFile;
+            USERFILE userFile;
 
-            // Retrieve the group ID now in case both the
-            // "gid" and "group" field were requested.
-            GetGroupFile(session, memUser, dcOnlineData->OnlineData.Uid, &groupFile);
-            groupId = groupFile.Gid;
+            // Retrieve the group ID from the user-file.
+            GetUserFile(session, memUser, dcOnlineData->OnlineData.Uid, &userFile);
+            groupId = userFile.Gid;
         }
 
         for (i = 0; i < fieldCount; i++) {
@@ -915,7 +921,6 @@ GetOnlineFields(
                     break;
                 }
                 case WHO_GID: {
-                    // TODO: broken!
                     fieldObj = Tcl_NewLongObj((long)groupId);
                     break;
                 }
