@@ -140,18 +140,18 @@ ShmQuery(
 //
 
 enum {
-    TYPE_BIN = 0,   // Binary (expressed as hex)
-    TYPE_STR,       // String
+    TYPE_BIN = 0,   // Binary
     TYPE_I32,       // 32-bit Integer
-    TYPE_I64        // 64-bit Integer
+    TYPE_I64,       // 64-bit Integer
+    TYPE_STR        // String
 };
 
 typedef struct {
     char *name;     // Name of the row.
     int offset;     // Offset in the data structure.
     int type;       // Type of data contained in the row.
-    int args;       // Number of required arguments.
-    int length;     // Maximum length of each argument (string types only).
+    int values;     // Number of required values.
+    int bytes;      // Size of each value, in bytes.
 } RowData;
 
 static int
@@ -170,33 +170,33 @@ RowDataSet(
     );
 
 static const RowData userRowDef[] = {
-    {"admingroups", offsetof(USERFILE, AdminGroups), TYPE_I32, MAX_GROUPS,      0},
-    {"alldn",       offsetof(USERFILE, AllDn),       TYPE_I64, MAX_SECTIONS*3,  0},
-    {"allup",       offsetof(USERFILE, AllUp),       TYPE_I64, MAX_SECTIONS*3,  0},
-    {"credits",     offsetof(USERFILE, Credits),     TYPE_I64, MAX_SECTIONS,    0},
-    {"daydn",       offsetof(USERFILE, DayDn),       TYPE_I64, MAX_SECTIONS*3,  0},
-    {"dayup",       offsetof(USERFILE, DayUp),       TYPE_I64, MAX_SECTIONS*3,  0},
-    {"flags",       offsetof(USERFILE, Flags),       TYPE_STR, 1,               32},
-    {"groups",      offsetof(USERFILE, Groups),      TYPE_I32, MAX_GROUPS,      0},
-    {"home",        offsetof(USERFILE, Home),        TYPE_STR, 1,               _MAX_PATH},
-    {"ips",         offsetof(USERFILE, Ip),          TYPE_STR, MAX_IPS,         _IP_LINE_LENGTH},
-    {"limits",      offsetof(USERFILE, Limits),      TYPE_I32, 5,               0},
-    {"monthdn",     offsetof(USERFILE, MonthDn),     TYPE_I64, MAX_SECTIONS*3,  0},
-    {"monthup",     offsetof(USERFILE, MonthUp),     TYPE_I64, MAX_SECTIONS*3,  0},
-    {"password",    offsetof(USERFILE, Password),    TYPE_BIN, 1,               20},
-    {"ratio",       offsetof(USERFILE, Ratio),       TYPE_I32, MAX_SECTIONS,    0},
-    {"tagline",     offsetof(USERFILE, Tagline),     TYPE_STR, 1,               128},
-    {"vfsfile",     offsetof(USERFILE, MountFile),   TYPE_STR, 1,               _MAX_PATH},
-    {"wkdn",        offsetof(USERFILE, WkDn),        TYPE_I64, MAX_SECTIONS*3,  0},
-    {"wkup",        offsetof(USERFILE, WkUp),        TYPE_I64, MAX_SECTIONS*3,  0},
+    {"admingroups", offsetof(USERFILE, AdminGroups), TYPE_I32, MAX_GROUPS,      sizeof(int)},
+    {"alldn",       offsetof(USERFILE, AllDn),       TYPE_I64, MAX_SECTIONS*3,  sizeof(INT64)},
+    {"allup",       offsetof(USERFILE, AllUp),       TYPE_I64, MAX_SECTIONS*3,  sizeof(INT64)},
+    {"credits",     offsetof(USERFILE, Credits),     TYPE_I64, MAX_SECTIONS,    sizeof(INT64)},
+    {"daydn",       offsetof(USERFILE, DayDn),       TYPE_I64, MAX_SECTIONS*3,  sizeof(INT64)},
+    {"dayup",       offsetof(USERFILE, DayUp),       TYPE_I64, MAX_SECTIONS*3,  sizeof(INT64)},
+    {"flags",       offsetof(USERFILE, Flags),       TYPE_STR, 1,               sizeof(char) * (32 + 1)},
+    {"groups",      offsetof(USERFILE, Groups),      TYPE_I32, MAX_GROUPS,      sizeof(int)},
+    {"home",        offsetof(USERFILE, Home),        TYPE_STR, 1,               sizeof(char) * (_MAX_PATH + 1)},
+    {"ips",         offsetof(USERFILE, Ip),          TYPE_STR, MAX_IPS,         sizeof(char) * (_IP_LINE_LENGTH + 1)},
+    {"limits",      offsetof(USERFILE, Limits),      TYPE_I32, 5,               sizeof(int)},
+    {"monthdn",     offsetof(USERFILE, MonthDn),     TYPE_I64, MAX_SECTIONS*3,  sizeof(INT64)},
+    {"monthup",     offsetof(USERFILE, MonthUp),     TYPE_I64, MAX_SECTIONS*3,  sizeof(INT64)},
+    {"password",    offsetof(USERFILE, Password),    TYPE_BIN, 1,               sizeof(BYTE) * (20 + 1)},
+    {"ratio",       offsetof(USERFILE, Ratio),       TYPE_I32, MAX_SECTIONS,    sizeof(int)},
+    {"tagline",     offsetof(USERFILE, Tagline),     TYPE_STR, 1,               sizeof(char) * (128 + 1)},
+    {"vfsfile",     offsetof(USERFILE, MountFile),   TYPE_STR, 1,               sizeof(char) * (_MAX_PATH + 1)},
+    {"wkdn",        offsetof(USERFILE, WkDn),        TYPE_I64, MAX_SECTIONS*3,  sizeof(INT64)},
+    {"wkup",        offsetof(USERFILE, WkUp),        TYPE_I64, MAX_SECTIONS*3,  sizeof(INT64)},
     {NULL} // Must end with a NULL for use with Tcl_GetIndexFromObjStruct.
 };
 
 static const RowData groupRowDef[] = {
-    {"desc",        offsetof(GROUPFILE, szDescription), TYPE_STR, 1, 128},
-    {"slots",       offsetof(GROUPFILE, Slots),         TYPE_I32, 2, 0},
-    {"users",       offsetof(GROUPFILE, Users),         TYPE_I32, 1, 0},
-    {"vfsfile",     offsetof(GROUPFILE, szVfsFile),     TYPE_STR, 1, _MAX_PATH},
+    {"desc",        offsetof(GROUPFILE, szDescription), TYPE_STR, 1, sizeof(char) * (128 + 1)},
+    {"slots",       offsetof(GROUPFILE, Slots),         TYPE_I32, 2, sizeof(int)},
+    {"users",       offsetof(GROUPFILE, Users),         TYPE_I32, 1, sizeof(int)},
+    {"vfsfile",     offsetof(GROUPFILE, szVfsFile),     TYPE_STR, 1, sizeof(char) * (_MAX_PATH + 1)},
     {NULL} // Must end with a NULL for use with Tcl_GetIndexFromObjStruct.
 };
 
@@ -585,11 +585,71 @@ RowDataGet(
     Tcl_Obj *listObj
     )
 {
+    int i;
+    int j;
+    void *dataOffset;
+    Tcl_Obj *rowObj;
+    Tcl_Obj *valueObj;
+
     assert(rowData == userRowDef || rowData == groupRowDef);
     assert(data    != NULL);
     assert(listObj != NULL);
 
-    // TODO
+    // Process each row.
+    for (i = 0; rowData[i].name != NULL; i++) {
+        assert(rowData[i].type == TYPE_BIN ||
+               rowData[i].type == TYPE_I32 ||
+               rowData[i].type == TYPE_I64 ||
+               rowData[i].type == TYPE_STR);
+        assert(rowData[i].values > 0);
+        assert(rowData[i].bytes > 0);
+
+        Tcl_ListObjAppendElement(NULL, listObj, Tcl_NewStringObj(rowData[i].name, -1));
+
+        // Create a nested list if there's more than one value.
+        if (rowData[i].values > 1) {
+            rowObj = Tcl_NewObj();
+        } else {
+            rowObj = NULL;
+        }
+
+        // Process each value in the row.
+        for (j = 0; j < rowData[i].values; j++) {
+            valueObj = NULL;
+            dataOffset = (BYTE *)data + rowData[i].offset + (j * rowData[i].bytes);
+
+            switch (rowData[i].type) {
+                case TYPE_BIN: {
+                    valueObj = Tcl_NewByteArrayObj((BYTE *)dataOffset, rowData[i].bytes);
+                    break;
+                }
+                case TYPE_I32: { // TODO: broken
+                    valueObj = Tcl_NewIntObj((int)dataOffset);
+                    break;
+                }
+                case TYPE_I64: {
+                    valueObj = Tcl_NewWideIntObj((Tcl_WideInt)dataOffset);
+                    break;
+                }
+                case TYPE_STR: {
+                    valueObj = Tcl_NewStringObj((char *)dataOffset, -1);
+                    break;
+                }
+            }
+            assert(valueObj != NULL);
+
+            if (rowData[i].values > 1) {
+                assert(rowObj != NULL);
+                Tcl_ListObjAppendElement(NULL, rowObj, valueObj);
+            } else {
+                rowObj = valueObj;
+            }
+        }
+
+        assert(rowObj != NULL);
+        Tcl_ListObjAppendElement(NULL, listObj, rowObj);
+    }
+
     return TCL_OK;
 }
 
