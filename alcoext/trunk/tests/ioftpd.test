@@ -125,8 +125,12 @@ test ioftpd-2.4 {ioftpd group: exists, invalid group} {win msgWndExists} {
 
 test ioftpd-2.5 {ioftpd group: get, valid group} {win msgWndExists} {
     UpdateGroups
-    ioftpd group get $msgWindow [lindex [array names groups] 0]
-} {}
+    unset -nocomplain test
+    array set test [ioftpd group get $msgWindow [lindex [array names groups] 0]]
+    set names [lsort [array names test]]
+    unset -nocomplain test
+    set names
+} {desc slots users vfsfile}
 
 test ioftpd-2.6 {ioftpd group: get, invalid group} {win msgWndExists} {
     list [catch {ioftpd group get $msgWindow ""} msg] $msg
@@ -256,23 +260,27 @@ test ioftpd-6.4 {ioftpd user: exists, invalid user} {win msgWndExists} {
     ioftpd user exists $msgWindow ""
 } {0}
 
-test ioftpd-6.5 {ioftpd group: get, valid group} {win msgWndExists} {
-    UpdateGroups
-    ioftpd group get $msgWindow [lindex [array names groups] 0]
-} {}
+test ioftpd-6.5 {ioftpd user: get, valid user} {win msgWndExists} {
+    UpdateUsers
+    unset -nocomplain test
+    array set test [ioftpd user get $msgWindow [lindex [array names users] 0]]
+    set names [lsort [array names test]]
+    unset -nocomplain test
+    set names
+} {admingroups alldn allup credits daydn dayup flags groups home ips limits monthdn monthup password ratio tagline vfsfile wkdn wkup}
 
-test ioftpd-6.6 {ioftpd group: get, invalid group} {win msgWndExists} {
-    list [catch {ioftpd group get $msgWindow ""} msg] $msg
-} {1 {invalid group name ""}}
+test ioftpd-6.6 {ioftpd user: get, invalid user} {win msgWndExists} {
+    list [catch {ioftpd user get $msgWindow ""} msg] $msg
+} {1 {invalid user name ""}}
 
-test ioftpd-6.7 {ioftpd group: set, valid group} {win msgWndExists} {
-    UpdateGroups
-    list [catch {ioftpd group set $msgWindow [lindex [array names groups] 0] ""} msg] $msg
+test ioftpd-6.7 {ioftpd user: set, valid user} {win msgWndExists} {
+    UpdateUsers
+    list [catch {ioftpd user set $msgWindow [lindex [array names users] 0] ""} msg] $msg
 } {1 {not implemented}}
 
-test ioftpd-6.8 {ioftpd group: set, invalid group} {win msgWndExists} {
-    list [catch {ioftpd group set $msgWindow "" ""} msg] $msg
-} {1 {invalid group name ""}}
+test ioftpd-6.8 {ioftpd user: set, invalid user} {win msgWndExists} {
+    list [catch {ioftpd user set $msgWindow "" ""} msg] $msg
+} {1 {invalid user name ""}}
 
 test ioftpd-6.9 {ioftpd user: toid, valid users} {win msgWndExists} {
     UpdateUsers
