@@ -28,7 +28,7 @@ Abstract:
 
     Online Data Commands:
     ioftpd info         <msgWindow> <varName>      - Query the ioFTPD message window.
-    ioftpd kick         <msgWindow> <user>         - Kick a user.
+    ioftpd kick         <msgWindow> <user>         - Kick a user ID.
     ioftpd kill         <msgWindow> <cid>          - Kick a connection ID.
     ioftpd who          <msgWindow> <fields>       - Query online users.
 
@@ -769,6 +769,7 @@ GroupNameToId(
     )
 {
     DC_NAMEID *nameId;
+    DWORD result;
 
     DebugPrint("GroupNameToId: groupName=%s groupId=0x%p\n", groupName, groupId);
     assert(session   != NULL);
@@ -781,9 +782,14 @@ GroupNameToId(
     nameId = (DC_NAMEID *)memory->block;
     StringCchCopyA(nameId->tszName, ARRAYSIZE(nameId->tszName), groupName);
 
-    // TODO: broken!
-    if (!ShmQuery(session, memory, DC_GROUP_TO_GID, 5000)) {
-        *groupId = nameId->Id;
+    //
+    // The DC_NAMEID structure is not updated with the group ID,
+    // instead the group ID is the return value (DC_MESSAGE::dwReturn).
+    // So much for consistency...
+    //
+    result = ShmQuery(session, memory, DC_GROUP_TO_GID, 5000);
+    if (result != (DWORD)-1) {
+        *groupId = (int)result;
 
         DebugPrint("GroupNameToId: OKAY\n");
         return TCL_OK;
@@ -932,6 +938,7 @@ UserNameToId(
     )
 {
     DC_NAMEID *nameId;
+    DWORD result;
 
     DebugPrint("UserNameToId: userName=%s userId=0x%p\n", userName, userId);
     assert(session  != NULL);
@@ -944,9 +951,14 @@ UserNameToId(
     nameId = (DC_NAMEID *)memory->block;
     StringCchCopyA(nameId->tszName, ARRAYSIZE(nameId->tszName), userName);
 
-    // TODO: broken!
-    if (!ShmQuery(session, memory, DC_USER_TO_UID, 5000)) {
-        *userId = nameId->Id;
+    //
+    // The DC_NAMEID structure is not updated with the user ID,
+    // instead the user ID is the return value (DC_MESSAGE::dwReturn).
+    // So much for consistency...
+    //
+    result = ShmQuery(session, memory, DC_USER_TO_UID, 5000);
+    if (result != (DWORD)-1) {
+        *userId = (int)result;
 
         DebugPrint("UserNameToId: OKAY\n");
         return TCL_OK;

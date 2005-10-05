@@ -135,7 +135,7 @@ test ioftpd-2.6 {ioftpd group: get, invalid group} {win msgWndExists} {
 test ioftpd-2.7 {ioftpd group: set, valid group} {win msgWndExists} {
     UpdateGroups
     list [catch {ioftpd group set $msgWindow [lindex [array names groups] 0] ""} msg] $msg
-} {}
+} {1 {not implemented}}
 
 test ioftpd-2.8 {ioftpd group: set, invalid group} {win msgWndExists} {
     list [catch {ioftpd group set $msgWindow "" ""} msg] $msg
@@ -268,7 +268,7 @@ test ioftpd-6.6 {ioftpd group: get, invalid group} {win msgWndExists} {
 test ioftpd-6.7 {ioftpd group: set, valid group} {win msgWndExists} {
     UpdateGroups
     list [catch {ioftpd group set $msgWindow [lindex [array names groups] 0] ""} msg] $msg
-} {}
+} {1 {not implemented}}
 
 test ioftpd-6.8 {ioftpd group: set, invalid group} {win msgWndExists} {
     list [catch {ioftpd group set $msgWindow "" ""} msg] $msg
