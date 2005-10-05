@@ -1,4 +1,6 @@
 AlcoExt v0.4.0 (XXX XX, 2005):
+  NEW: Support for alternative user/group stores (e.g. ioShareDb). Access
+       to ioFTPD's user and group files is now done using shared memory.
 
 AlcoBot v0.3.0 (Oct 1, 2005):
   NEW: FTP commands for the invite module: SITE INVITE/INVPASSWD/INVADMIN.

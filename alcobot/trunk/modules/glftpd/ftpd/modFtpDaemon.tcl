@@ -246,7 +246,7 @@ proc ::alcoholicz::FtpDaemon::GroupList {} {
 }
 
 ####
-# UserExists
+# GroupExists
 #
 # Checks if the given group exists.
 #

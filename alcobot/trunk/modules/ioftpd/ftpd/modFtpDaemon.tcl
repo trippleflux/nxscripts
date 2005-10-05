@@ -15,7 +15,8 @@
 namespace eval ::alcoholicz::FtpDaemon {
     if {![info exists deleteFlag]} {
         variable deleteFlag ""
-        variable rootPath ""
+        variable etcPath ""
+        variable msgWindow ""
     }
     namespace import -force ::alcoholicz::*
     namespace export GetFlagTypes \
@@ -24,108 +25,18 @@ namespace eval ::alcoholicz::FtpDaemon {
 }
 
 ####
-# FileChanged
+# ResolveGIDs
 #
-# Checks if the size or modification time of a file has changed.
+# Resolve a list of group IDs to their group names.
 #
-proc ::alcoholicz::FtpDaemon::FileChanged {filePath} {
-    variable change
+proc ::alcoholicz::FtpDaemon::ResolveGIDs {idList} {
+    variable msgWindow
 
-    file stat $filePath stat
-    if {[info exists change($filePath)] &&
-            [lindex $change($filePath) 0] == $stat(size) &&
-            [lindex $change($filePath) 1] == $stat(mtime)} {
-        set result 0
-    } else {
-        set result 1
+    set nameList [list]
+    foreach groupId $idList {
+        lappend nameList [ioftpd group toname $msgWindow $groupId]
     }
-
-    set change($filePath) [list $stat(size) $stat(mtime)]
-    return $result
-}
-
-####
-# UpdateUsers
-#
-# Updates internal user list.
-#
-proc ::alcoholicz::FtpDaemon::UpdateUsers {} {
-    variable users
-    variable rootPath
-
-    set filePath [file join $rootPath "etc" "UserIdTable"]
-    if {[FileChanged $filePath]} {
-        unset -nocomplain users
-
-        set handle [open $filePath r]
-        set data [read -nonewline $handle]
-
-        foreach line [split $data "\n"] {
-            set line [split [string trim $line] ":"]
-            # User:UID:Module
-            if {[llength $line] == 3} {
-                set users([lindex $line 0]) [lindex $line 1]
-            }
-        }
-        close $handle
-    }
-    return
-}
-
-####
-# UserIdToName
-#
-# Resolve the given group ID to it's group name.
-#
-proc ::alcoholicz::FtpDaemon::UserIdToName {userId} {
-    variable users
-
-    foreach name [array names users] {
-        if {$userId == $users($name)} {return $name}
-    }
-    return ""
-}
-
-####
-# UpdateGroups
-#
-# Updates internal group list.
-#
-proc ::alcoholicz::FtpDaemon::UpdateGroups {} {
-    variable groups
-    variable rootPath
-
-    set filePath [file join $rootPath "etc" "GroupIdTable"]
-    if {[FileChanged $filePath]} {
-        unset -nocomplain groups
-
-        set handle [open $filePath r]
-        set data [read -nonewline $handle]
-
-        foreach line [split $data "\n"] {
-            set line [split [string trim $line] ":"]
-            # Group:GID:Module
-            if {[llength $line] == 3} {
-                set groups([lindex $line 0]) [lindex $line 1]
-            }
-        }
-        close $handle
-    }
-    return
-}
-
-####
-# GroupIdToName
-#
-# Resolve the given group ID to it's group name.
-#
-proc ::alcoholicz::FtpDaemon::GroupIdToName {groupId} {
-    variable groups
-
-    foreach name [array names groups] {
-        if {$groupId == $groups($name)} {return $name}
-    }
-    return ""
+    return $nameList
 }
 
 ####
@@ -146,12 +57,25 @@ proc ::alcoholicz::FtpDaemon::GetFlagTypes {varName} {
 # Retrieves a list of users.
 #
 proc ::alcoholicz::FtpDaemon::UserList {} {
-    variable users
+    variable etcPath
 
-    if {[catch {UpdateUsers} message]} {
-        LogError UserList $message; return [list]
+    set filePath [file join $etcPath "UserIdTable"]
+    if {[catch {set handle [open $filePath r]} message]} {
+        LogError UserList $message
+        return [list]
     }
-    return [lsort [array names users]]
+    set data [read -nonewline $handle]
+    set userList [list]
+
+    foreach line [split $data "\n"] {
+        set line [split [string trim $line] ":"]
+        # User:UID:Module
+        if {[llength $line] == 3} {
+            lappend userList [lindex $line 0]
+        }
+    }
+    close $handle
+    return $userList
 }
 
 ####
@@ -160,12 +84,13 @@ proc ::alcoholicz::FtpDaemon::UserList {} {
 # Checks if the given user exists.
 #
 proc ::alcoholicz::FtpDaemon::UserExists {userName} {
-    variable users
+    variable msgWindow
 
-    if {[catch {UpdateUsers} message]} {
-        LogError UserExists $message; return 0
+    if {[catch {set exists [ioftpd user exists $msgWindow $userName]} message]} {
+        LogError UserExists $message
+        return 0
     }
-    return [info exists users($userName)]
+    return $exists
 }
 
 ####
@@ -193,83 +118,21 @@ proc ::alcoholicz::FtpDaemon::UserExists {userName} {
 #  - wkup     <30 ints>
 #
 proc ::alcoholicz::FtpDaemon::UserInfo {userName varName} {
-    variable users
-    variable rootPath
-    upvar $varName dest
+    variable msgWindow
+    upvar $varName user
 
-    if {[catch {UpdateUsers; UpdateGroups} message]} {
-        LogError UserInfo $message; return 0
-    }
-    if {![info exists users($userName)]} {return 0}
-
-    set filePath [file join $rootPath "users" $users($userName)]
-    if {[catch {set handle [open $filePath r]} message]} {
+    if {[catch {array set user [ioftpd user get $msgWindow $userName]} message]} {
         LogError UserInfo $message; return 0
     }
 
-    # Set default values.
-    array set dest [list               \
-        admin    ""                    \
-        credits  {0 0 0 0 0 0 0 0 0 0} \
-        flags    ""                    \
-        groups   ""                    \
-        ips      ""                    \
-        logins   0                     \
-        password ""                    \
-        ratio    {0 0 0 0 0 0 0 0 0 0} \
-        speed    {0 0}                 \
-        tagline  ""                    \
-        uid      $users($userName)     \
-    ]
-    foreach type {alldn allup daydn dayup monthdn monthup wkdn wkup} {
-        set dest($type) {0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0}
-    }
+    set user(admin)    [ResolveGIDs $user(admingroups)]
+    set user(groups)   [ResolveGIDs $user(groups)]
+    set user(logins)   [lindex $user(limits) 4]
+    set user(password) [encode hex $user(password)]
+    set user(speed)    [lrange $user(limits) 1 2]
+    set user(uid)      [ioftpd user toid $msgWindow $userName]
 
-    # Parse user file.
-    set data [read -nonewline $handle]
-    foreach line [split $data "\n"] {
-        set line [split [string trim $line]]
-
-        set type [string tolower [lindex $line 0]]
-        switch -- $type {
-            alldn - allup -
-            daydn - dayup -
-            monthdn - monthup -
-            wkdn - wkup {
-                set dest($type) [lrange $line 1 30]
-            }
-            admingroups {
-                foreach groupId [lrange $line 1 end] {
-                    lappend dest(admin) [GroupIdToName $groupId]
-                }
-            }
-            credits - ratio {
-                set dest($type) [lrange $line 1 10]
-            }
-            flags {
-                set dest(flags) [lindex $line 1]
-            }
-            groups {
-                foreach groupId [lrange $line 1 end] {
-                    lappend dest(groups) [GroupIdToName $groupId]
-                }
-            }
-            ips {
-                set dest(ips) [lrange $line 1 end]
-            }
-            limits {
-                set dest(logins) [lindex $line 4]
-                set dest(speed)  [lrange $line 1 2]
-            }
-            password {
-                set dest(password) [lindex $line 1]
-            }
-            tagline {
-                set dest(tagline) [join [lrange $line 1 end]]
-            }
-        }
-    }
-    close $handle
+    unset user(admingroups) user(limits) user(vfsfile)
     return 1
 }
 
@@ -279,26 +142,40 @@ proc ::alcoholicz::FtpDaemon::UserInfo {userName varName} {
 # Retrieves a list of groups.
 #
 proc ::alcoholicz::FtpDaemon::GroupList {} {
-    variable groups
+    variable etcPath
 
-    if {[catch {UpdateGroups} message]} {
-        LogError GroupList $message; return [list]
+    set filePath [file join $etcPath "GroupIdTable"]
+    if {[catch {set handle [open $filePath r]} message]} {
+        LogError GroupList $message
+        return [list]
     }
-    return [lsort [array names groups]]
+    set data [read -nonewline $handle]
+    set groupList [list]
+
+    foreach line [split $data "\n"] {
+        set line [split [string trim $line] ":"]
+        # Group:GID:Module
+        if {[llength $line] == 3} {
+            lappend groupList [lindex $line 0]
+        }
+    }
+    close $handle
+    return $groupList
 }
 
 ####
-# UserExists
+# GroupExists
 #
 # Checks if the given group exists.
 #
 proc ::alcoholicz::FtpDaemon::GroupExists {groupName} {
-    variable groups
+    variable msgWindow
 
-    if {[catch {UpdateGroups} message]} {
-        LogError GroupExists $message; return 0
+    if {[catch {set exists [ioftpd group exists $msgWindow $groupName]} message]} {
+        LogError GroupExists $message
+        return 0
     }
-    return [info exists groups($groupName)]
+    return $exists
 }
 
 ####
@@ -311,42 +188,18 @@ proc ::alcoholicz::FtpDaemon::GroupExists {groupName} {
 #  - ratio <ratio slots>
 #
 proc ::alcoholicz::FtpDaemon::GroupInfo {groupName varName} {
-    variable groups
-    variable rootPath
-    upvar $varName dest
+    variable msgWindow
+    upvar $varName group
 
-    if {[catch {UpdateGroups} message]} {
+    if {[catch {array set group [ioftpd group get $msgWindow $groupName]} message]} {
         LogError GroupInfo $message; return 0
     }
-    if {![info exists groups($groupName)]} {return 0}
 
-    set filePath [file join $rootPath "groups" $groups($groupName)]
-    if {[catch {set handle [open $filePath r]} message]} {
-        LogError UserInfo $message; return 0
-    }
+    set group(gid)   [ioftpd group toid $msgWindow $groupName]
+    set group(leech) [lindex $group(slots) 1]
+    set group(ratio) [lindex $group(slots) 0]
 
-    # Set default values.
-    array set dest [list          \
-        desc  ""                  \
-        gid   $groups($groupName) \
-        leech 0                   \
-        ratio 0                   \
-    ]
-
-    # Parse group file.
-    set data [read -nonewline $handle]
-    foreach line [split $data "\n"] {
-        set line [split [string trim $line]]
-
-        set type [string tolower [lindex $line 0]]
-        if {$type eq "description"} {
-            set dest(desc) [join [lrange $line 1 end]]
-        } elseif {$type eq "slots"} {
-            set dest(ratio) [lindex $line 1]
-            set dest(leech) [lindex $line 2]
-        }
-    }
-    close $handle
+    unset group(slots) group(vfsfile)
     return 1
 }
 
@@ -356,9 +209,9 @@ proc ::alcoholicz::FtpDaemon::GroupInfo {groupName varName} {
 # Module initialisation procedure, called when the module is loaded.
 #
 proc ::alcoholicz::FtpDaemon::Load {firstLoad} {
-    variable change
     variable deleteFlag
-    variable rootPath
+    variable etcPath
+    variable msgWindow
     upvar ::alcoholicz::configHandle configHandle
 
     set deleteFlag [ConfigGet $configHandle IoFtpd deleteFlag]
@@ -366,13 +219,15 @@ proc ::alcoholicz::FtpDaemon::Load {firstLoad} {
         error "invalid flag \"$deleteFlag\": must be one character"
     }
 
-    set rootPath [ConfigGet $configHandle IoFtpd rootPath]
-    if {![file isdirectory $rootPath]} {
-        error "the directory \"$rootPath\" does not exist"
+    set msgWindow [ConfigGet $configHandle IoFtpd msgWindow]
+    ioftpd info $msgWindow io
+
+    set rootPath [file dirname [file dirname $io(path)]]
+    set etcPath [file join $rootPath "etc"]
+    if {![file isdirectory $etcPath]} {
+        error "the directory \"$etcPath\" does not exist"
     }
 
-    # Force a reload on all files.
-    unset -nocomplain change
     return
 }
 

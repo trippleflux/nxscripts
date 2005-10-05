@@ -1104,7 +1104,7 @@ proc ::alcoholicz::InitLibraries {rootPath} {
     }
 
     # Load the Alcoholicz Tcl extension.
-    package require AlcoExt 0.2
+    package require AlcoExt 0.3
     return
 }
 
