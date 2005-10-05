@@ -39,14 +39,6 @@ if {[catch {ioftpd info $msgWindow io}]} {
 }
 unset -nocomplain io
 
-proc GetUniqueString {list} {
-    # Loop until a string that is not in $list is found.
-    while {1} {
-        set rnd [expr {rand() * [clock clicks]}]
-        if {[lsearch -exact $list $rnd] == -1} {return $rnd}
-    }
-}
-
 proc GetEtcPath {} {
     global msgWindow
     ioftpd info $msgWindow io
@@ -118,7 +110,7 @@ test ioftpd-2.2 {ioftpd group: invalid sub-option} {win} {
     list [catch {ioftpd group . a b} msg] $msg
 } {1 {bad option ".": must be exists, get, set, toid, or toname}}
 
-test ioftpd-2.3 {ioftpd group: exists, known groups} {win msgWndExists} {
+test ioftpd-2.3 {ioftpd group: exists, valid groups} {win msgWndExists} {
     UpdateGroups
     foreach name [array names groups] {
         if {![ioftpd group exists $msgWindow $name]} {
@@ -127,19 +119,29 @@ test ioftpd-2.3 {ioftpd group: exists, known groups} {win msgWndExists} {
     }
 } {}
 
-test ioftpd-2.4 {ioftpd group: exists, unknown group} {win msgWndExists} {
-    UpdateGroups
-    set unknown [GetUniqueString [array names groups]]
-    ioftpd group exists $msgWindow $unknown
+test ioftpd-2.4 {ioftpd group: exists, invalid group} {win msgWndExists} {
+    ioftpd group exists $msgWindow ""
 } {0}
 
-# TODO get
+test ioftpd-2.5 {ioftpd group: get, valid group} {win msgWndExists} {
+    UpdateGroups
+    ioftpd group get $msgWindow [lindex [array names groups] 0]
+} {}
 
-test ioftpd-2.5 {ioftpd group: set, not implemented yet} {win} {
-    list [catch {ioftpd group set $msgWindow a b} msg] $msg
-} {1 {not implemented}}
+test ioftpd-2.6 {ioftpd group: get, invalid group} {win msgWndExists} {
+    list [catch {ioftpd group get $msgWindow ""} msg] $msg
+} {1 {invalid group name ""}}
 
-test ioftpd-2.6 {ioftpd group: toid, known groups} {win msgWndExists} {
+test ioftpd-2.7 {ioftpd group: set, valid group} {win msgWndExists} {
+    UpdateGroups
+    list [catch {ioftpd group set $msgWindow [lindex [array names groups] 0] ""} msg] $msg
+} {}
+
+test ioftpd-2.8 {ioftpd group: set, invalid group} {win msgWndExists} {
+    list [catch {ioftpd group set $msgWindow "" ""} msg] $msg
+} {1 {invalid group name ""}}
+
+test ioftpd-2.9 {ioftpd group: toid, valid groups} {win msgWndExists} {
     UpdateGroups
     foreach name [array names groups] {
         set result [ioftpd group toid $msgWindow $name]
@@ -149,18 +151,15 @@ test ioftpd-2.6 {ioftpd group: toid, known groups} {win msgWndExists} {
     }
 } {}
 
-test ioftpd-2.7 {ioftpd group: toid, unknown group} {win msgWndExists} {
-    UpdateGroups
-    set unknown [GetUniqueString [array names groups]]
-    ioftpd group toid $msgWindow $unknown
+test ioftpd-2.10 {ioftpd group: toid, invalid group} {win msgWndExists} {
+    ioftpd group toid $msgWindow ""
 } {-1}
 
-
-test ioftpd-2.8 {ioftpd group: toname, invalid int} {win msgWndExists} {
+test ioftpd-2.11 {ioftpd group: toname, invalid int} {win msgWndExists} {
     list [catch {ioftpd group toname $msgWindow .} msg] $msg
 } {1 {expected integer but got "."}}
 
-test ioftpd-2.9 {ioftpd group: toname, known groups} {win msgWndExists} {
+test ioftpd-2.12 {ioftpd group: toname, valid groups} {win msgWndExists} {
     UpdateGroups
     foreach name [array names groups] {
         set result [ioftpd group toname $msgWindow $groups($name)]
@@ -170,7 +169,7 @@ test ioftpd-2.9 {ioftpd group: toname, known groups} {win msgWndExists} {
     }
 } {}
 
-test ioftpd-2.10 {ioftpd group: toname, unknown group} {win msgWndExists} {
+test ioftpd-2.13 {ioftpd group: toname, invalid group} {win msgWndExists} {
     ioftpd group toname $msgWindow -1
 } {}
 
@@ -244,7 +243,7 @@ test ioftpd-6.2 {ioftpd user: invalid sub-option} {win} {
     list [catch {ioftpd user . a b} msg] $msg
 } {1 {bad option ".": must be exists, get, set, toid, or toname}}
 
-test ioftpd-6.3 {ioftpd user: exists, known users} {win msgWndExists} {
+test ioftpd-6.3 {ioftpd user: exists, valid users} {win msgWndExists} {
     UpdateUsers
     foreach name [array names users] {
         if {![ioftpd user exists $msgWindow $name]} {
@@ -253,19 +252,29 @@ test ioftpd-6.3 {ioftpd user: exists, known users} {win msgWndExists} {
     }
 } {}
 
-test ioftpd-6.4 {ioftpd user: exists, unknown user} {win msgWndExists} {
-    UpdateUsers
-    set unknown [GetUniqueString [array names users]]
-    ioftpd user exists $msgWindow $unknown
+test ioftpd-6.4 {ioftpd user: exists, invalid user} {win msgWndExists} {
+    ioftpd user exists $msgWindow ""
 } {0}
 
-# TODO get
+test ioftpd-6.5 {ioftpd group: get, valid group} {win msgWndExists} {
+    UpdateGroups
+    ioftpd group get $msgWindow [lindex [array names groups] 0]
+} {}
 
-test ioftpd-6.5 {ioftpd user: set, not implemented yet} {win} {
-    list [catch {ioftpd user set $msgWindow a b} msg] $msg
-} {1 {not implemented}}
+test ioftpd-6.6 {ioftpd group: get, invalid group} {win msgWndExists} {
+    list [catch {ioftpd group get $msgWindow ""} msg] $msg
+} {1 {invalid group name ""}}
 
-test ioftpd-6.6 {ioftpd user: toid, known users} {win msgWndExists} {
+test ioftpd-6.7 {ioftpd group: set, valid group} {win msgWndExists} {
+    UpdateGroups
+    list [catch {ioftpd group set $msgWindow [lindex [array names groups] 0] ""} msg] $msg
+} {}
+
+test ioftpd-6.8 {ioftpd group: set, invalid group} {win msgWndExists} {
+    list [catch {ioftpd group set $msgWindow "" ""} msg] $msg
+} {1 {invalid group name ""}}
+
+test ioftpd-6.9 {ioftpd user: toid, valid users} {win msgWndExists} {
     UpdateUsers
     foreach name [array names users] {
         set result [ioftpd user toid $msgWindow $name]
@@ -275,18 +284,15 @@ test ioftpd-6.6 {ioftpd user: toid, known users} {win msgWndExists} {
     }
 } {}
 
-test ioftpd-6.7 {ioftpd user: toid, unknown user} {win msgWndExists} {
-    UpdateUsers
-    set unknown [GetUniqueString [array names users]]
-    ioftpd user toid $msgWindow $unknown
+test ioftpd-6.10 {ioftpd user: toid, invalid user} {win msgWndExists} {
+    ioftpd user toid $msgWindow ""
 } {-1}
 
-
-test ioftpd-6.8 {ioftpd user: toname, invalid int} {win msgWndExists} {
+test ioftpd-6.11 {ioftpd user: toname, invalid int} {win msgWndExists} {
     list [catch {ioftpd user toname $msgWindow .} msg] $msg
 } {1 {expected integer but got "."}}
 
-test ioftpd-6.9 {ioftpd user: toname, known users} {win msgWndExists} {
+test ioftpd-6.12 {ioftpd user: toname, valid users} {win msgWndExists} {
     UpdateUsers
     foreach name [array names users] {
         set result [ioftpd user toname $msgWindow $users($name)]
@@ -296,7 +302,7 @@ test ioftpd-6.9 {ioftpd user: toname, known users} {win msgWndExists} {
     }
 } {}
 
-test ioftpd-6.10 {ioftpd user: toname, unknown user} {win msgWndExists} {
+test ioftpd-6.13 {ioftpd user: toname, invalid user} {win msgWndExists} {
     ioftpd user toname $msgWindow -1
 } {}
 
@@ -312,7 +318,7 @@ test ioftpd-7.2 {ioftpd who: too many args} {win} {
     list [catch {ioftpd who a b c} msg] $msg
 } {1 {wrong # args: should be "ioftpd who msgWindow fields"}}
 
-test ioftpd-7.3 {ioftpd who: invalid field} {win} {
+test ioftpd-7.3 {ioftpd who: invalid field} {win msgWndExists} {
     list [catch {ioftpd who $msgWindow .} msg] $msg
 } {1 {bad field ".": must be action, cid, gid, group, host, ident, idletime, ip, logintime, port, realdatapath, realpath, size, speed, status, uid, user, vdatapath, or vpath}}
 

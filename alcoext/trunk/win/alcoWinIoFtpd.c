@@ -109,15 +109,15 @@ typedef struct {
 
 static int
 ShmInit(
-    ShmSession *session,
     Tcl_Interp *interp,
-    Tcl_Obj *windowObj
+    Tcl_Obj *windowObj,
+    ShmSession *session
     );
 
 static ShmMemory *
 ShmAlloc(
-    ShmSession *session,
     Tcl_Interp *interp,
+    ShmSession *session,
     DWORD bytes
     );
 
@@ -134,6 +134,71 @@ ShmQuery(
     DWORD queryType,
     DWORD timeOut
     );
+
+//
+// Row data parsing functions.
+//
+
+enum {
+    TYPE_BIN = 0,   // Binary (expressed as hex)
+    TYPE_STR,       // String
+    TYPE_I32,       // 32-bit Integer
+    TYPE_I64        // 64-bit Integer
+};
+
+typedef struct {
+    char *name;     // Name of the row.
+    int offset;     // Offset in the data structure.
+    int type;       // Type of data contained in the row.
+    int args;       // Number of required arguments.
+    int length;     // Maximum length of each argument (string types only).
+} RowData;
+
+static int
+RowDataGet(
+    const RowData *rowData,
+    const void *data,
+    Tcl_Obj *listObj
+    );
+
+static int
+RowDataSet(
+    Tcl_Interp *interp,
+    Tcl_Obj *listObj,
+    const RowData *rowData,
+    void *data
+    );
+
+static const RowData userRowDef[] = {
+    {"admingroups", offsetof(USERFILE, AdminGroups), TYPE_I32, MAX_GROUPS,      0},
+    {"alldn",       offsetof(USERFILE, AllDn),       TYPE_I64, MAX_SECTIONS*3,  0},
+    {"allup",       offsetof(USERFILE, AllUp),       TYPE_I64, MAX_SECTIONS*3,  0},
+    {"credits",     offsetof(USERFILE, Credits),     TYPE_I64, MAX_SECTIONS,    0},
+    {"daydn",       offsetof(USERFILE, DayDn),       TYPE_I64, MAX_SECTIONS*3,  0},
+    {"dayup",       offsetof(USERFILE, DayUp),       TYPE_I64, MAX_SECTIONS*3,  0},
+    {"flags",       offsetof(USERFILE, Flags),       TYPE_STR, 1,               32},
+    {"groups",      offsetof(USERFILE, Groups),      TYPE_I32, MAX_GROUPS,      0},
+    {"home",        offsetof(USERFILE, Home),        TYPE_STR, 1,               _MAX_PATH},
+    {"ips",         offsetof(USERFILE, Ip),          TYPE_STR, MAX_IPS,         _IP_LINE_LENGTH},
+    {"limits",      offsetof(USERFILE, Limits),      TYPE_I32, 5,               0},
+    {"monthdn",     offsetof(USERFILE, MonthDn),     TYPE_I64, MAX_SECTIONS*3,  0},
+    {"monthup",     offsetof(USERFILE, MonthUp),     TYPE_I64, MAX_SECTIONS*3,  0},
+    {"password",    offsetof(USERFILE, Password),    TYPE_BIN, 1,               20},
+    {"ratio",       offsetof(USERFILE, Ratio),       TYPE_I32, MAX_SECTIONS,    0},
+    {"tagline",     offsetof(USERFILE, Tagline),     TYPE_STR, 1,               128},
+    {"vfsfile",     offsetof(USERFILE, MountFile),   TYPE_STR, 1,               _MAX_PATH},
+    {"wkdn",        offsetof(USERFILE, WkDn),        TYPE_I64, MAX_SECTIONS*3,  0},
+    {"wkup",        offsetof(USERFILE, WkUp),        TYPE_I64, MAX_SECTIONS*3,  0},
+    {NULL} // Must end with a NULL for use with Tcl_GetIndexFromObjStruct.
+};
+
+static const RowData groupRowDef[] = {
+    {"desc",        offsetof(GROUPFILE, szDescription), TYPE_STR, 1, 128},
+    {"slots",       offsetof(GROUPFILE, Slots),         TYPE_I32, 2, 0},
+    {"users",       offsetof(GROUPFILE, Users),         TYPE_I32, 1, 0},
+    {"vfsfile",     offsetof(GROUPFILE, szVfsFile),     TYPE_STR, 1, _MAX_PATH},
+    {NULL} // Must end with a NULL for use with Tcl_GetIndexFromObjStruct.
+};
 
 //
 // Helper functions.
@@ -257,11 +322,11 @@ ShmInit
     Initialise a shared memory session.
 
 Arguments:
-    session     - Pointer to the ShmSession structure to be initialised.
-
     interp      - Interpreter to use for error reporting.
 
     windowObj   - Object containing the name of ioFTPD's message window.
+
+    session     - Pointer to the ShmSession structure to be initialised.
 
 Return Value:
     A standard Tcl result.
@@ -269,16 +334,16 @@ Return Value:
 --*/
 static int
 ShmInit(
-    ShmSession *session,
     Tcl_Interp *interp,
-    Tcl_Obj *windowObj
+    Tcl_Obj *windowObj,
+    ShmSession *session
     )
 {
     char *windowName;
 
-    assert(session    != NULL);
-    assert(interp     != NULL);
-    assert(windowObj  != NULL);
+    assert(session   != NULL);
+    assert(interp    != NULL);
+    assert(windowObj != NULL);
 
     windowName = Tcl_GetString(windowObj);
     session->messageWnd = FindWindowA(windowName, NULL);
@@ -301,9 +366,9 @@ ShmAlloc
     Allocates shared memory.
 
 Arguments:
-    session     - Pointer to an initialised ShmSession structure.
-
     interp      - Interpreter to use for error reporting.
+
+    session     - Pointer to an initialised ShmSession structure.
 
     bytes       - Number of bytes to be allocated.
 
@@ -315,8 +380,8 @@ Return Value:
 --*/
 static ShmMemory *
 ShmAlloc(
-    ShmSession *session,
     Tcl_Interp *interp,
+    ShmSession *session,
     DWORD bytes
     )
 {
@@ -489,9 +554,81 @@ ShmQuery(
         return memory->message->dwReturn;
     }
 
-    //  No timeout or event, return value cannot be checked.
+    // No timeout or event, return value cannot be checked.
     DebugPrint("ShmQuery: No event or time out!\n");
     return (DWORD)-1;
+}
+
+
+/*++
+
+RowDataGet
+
+    Parses row data from a data structure into a Tcl list.
+
+Arguments:
+    rowData     - Pointer to the row definition structure.
+
+    data        - Pointer to a buffer (usually a data structure) containing
+                  the data to be parsed.
+
+    listObj     - Pointer to a Tcl object which receives the parsed data as a list.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
+static int
+RowDataGet(
+    const RowData *rowData,
+    const void *data,
+    Tcl_Obj *listObj
+    )
+{
+    assert(rowData == userRowDef || rowData == groupRowDef);
+    assert(data    != NULL);
+    assert(listObj != NULL);
+
+    // TODO
+    return TCL_OK;
+}
+
+/*++
+
+RowDataSet
+
+    Parses row data from a Tcl list into a data structure.
+
+Arguments:
+    interp      - Interpreter to use for error reporting.
+
+    listObj     - Pointer to a Tcl object containing the list to be parsed.
+
+    rowData     - Pointer to the row definition structure.
+
+    data        - Pointer to a buffer (usually a data structure) which
+                  receives the parsed data as a list.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
+static int
+RowDataSet(
+    Tcl_Interp *interp,
+    Tcl_Obj *listObj,
+    const RowData *rowData,
+    void *data
+    )
+{
+    assert(interp  != NULL);
+    assert(listObj != NULL);
+    assert(rowData == userRowDef || rowData == groupRowDef);
+    assert(data    != NULL);
+
+    // TODO
+    Tcl_SetResult(interp, "not implemented", TCL_STATIC);
+    return TCL_ERROR;
 }
 
 
@@ -644,6 +781,7 @@ GroupNameToId(
     nameId = (DC_NAMEID *)memory->block;
     StringCchCopyA(nameId->tszName, ARRAYSIZE(nameId->tszName), groupName);
 
+    // TODO: broken!
     if (!ShmQuery(session, memory, DC_GROUP_TO_GID, 5000)) {
         *groupId = nameId->Id;
 
@@ -806,6 +944,7 @@ UserNameToId(
     nameId = (DC_NAMEID *)memory->block;
     StringCchCopyA(nameId->tszName, ARRAYSIZE(nameId->tszName), userName);
 
+    // TODO: broken!
     if (!ShmQuery(session, memory, DC_USER_TO_UID, 5000)) {
         *userId = nameId->Id;
 
@@ -862,14 +1001,14 @@ GetOnlineFields(
     Tcl_Obj *resultObj;
     Tcl_Obj *userObj;
 
-    memOnline = ShmAlloc(session, interp, sizeof(DC_ONLINEDATA) + (MAX_PATH+1) * 2);
+    memOnline = ShmAlloc(interp, session, sizeof(DC_ONLINEDATA) + (MAX_PATH+1) * 2);
     if (memOnline == NULL) {
         return TCL_ERROR;
     }
 
     if (flags & ONLINE_GET_GROUPID || flags & ONLINE_GET_USERNAME) {
         // Allocate a buffer large enough to hold a DC_NAMEID or USERFILE structure.
-        memUser = ShmAlloc(session, interp, MAX(sizeof(DC_NAMEID), sizeof(USERFILE)));
+        memUser = ShmAlloc(interp, session, MAX(sizeof(DC_NAMEID), sizeof(USERFILE)));
 
         if (memUser == NULL) {
             ShmFree(session, memOnline);
@@ -1079,28 +1218,60 @@ IoGroupCmd(
     }
 
     if (Tcl_GetIndexFromObj(interp, objv[2], options, "option", 0, &index) != TCL_OK ||
-            ShmInit(&session, interp, objv[3]) != TCL_OK) {
+            ShmInit(interp, objv[3], &session) != TCL_OK) {
         return TCL_ERROR;
     }
 
     resultObj = Tcl_GetObjResult(interp);
     switch ((enum options) index) {
-        case GROUP_GET: {
-            if (objc != 5) {
+        case GROUP_GET:
+        case GROUP_SET: {
+            char *groupName;
+            int groupId;
+            int result;
+            GROUPFILE groupFile;
+
+            if (index == GROUP_GET && objc != 5) {
                 Tcl_WrongNumArgs(interp, 3, objv, "msgWindow group");
                 return TCL_ERROR;
-            }
-            return TCL_OK;
-        }
-        case GROUP_SET: {
-            if (objc != 6) {
+            } else if (index == GROUP_SET && objc != 6) {
                 Tcl_WrongNumArgs(interp, 3, objv, "msgWindow group data");
                 return TCL_ERROR;
             }
 
-            // TODO: Implement this sub-command later.
-            Tcl_SetResult(interp, "not implemented", TCL_STATIC);
-            return TCL_ERROR;
+            memory = ShmAlloc(interp, &session, MAX(sizeof(DC_NAMEID), sizeof(USERFILE)));
+            if (memory == NULL) {
+                return TCL_ERROR;
+            }
+
+            // Group name to group ID.
+            groupName = Tcl_GetString(objv[4]);
+            if (GroupNameToId(&session, memory, groupName, &groupId) != TCL_OK) {
+                ShmFree(&session, memory);
+
+                Tcl_AppendResult(interp, "invalid group name \"",
+                    groupName, "\"", NULL);
+                return TCL_ERROR;
+            }
+
+            // Retrieve the group file.
+            if (GetGroupFile(&session, memory, groupId, &groupFile) != TCL_OK) {
+                ShmFree(&session, memory);
+
+                Tcl_AppendResult(interp, "unable to retrieve group file for \"",
+                    groupName, "\"", NULL);
+                return TCL_ERROR;
+            }
+
+            if (index == GROUP_GET) {
+                result = RowDataGet(groupRowDef, &groupFile, resultObj);
+            } else {
+                result = RowDataSet(interp, objv[5], groupRowDef, &groupFile);
+                // TODO: if (result == TCL_OK) SetGroupFile(...);
+            }
+
+            ShmFree(&session, memory);
+            return result;
         }
         case GROUP_EXISTS:
         case GROUP_TO_ID: {
@@ -1113,7 +1284,7 @@ IoGroupCmd(
             }
 
             // Group name to group ID.
-            memory = ShmAlloc(&session, interp, sizeof(DC_NAMEID));
+            memory = ShmAlloc(interp, &session, sizeof(DC_NAMEID));
             if (memory == NULL) {
                 return TCL_ERROR;
             }
@@ -1141,7 +1312,7 @@ IoGroupCmd(
             }
 
             // Group ID to group name.
-            memory = ShmAlloc(&session, interp, sizeof(DC_NAMEID));
+            memory = ShmAlloc(interp, &session, sizeof(DC_NAMEID));
             if (memory == NULL) {
                 return TCL_ERROR;
             }
@@ -1199,7 +1370,7 @@ IoInfoCmd(
         return TCL_ERROR;
     }
 
-    if (ShmInit(&session, interp, objv[2]) != TCL_OK) {
+    if (ShmInit(interp, objv[2], &session) != TCL_OK) {
         return TCL_ERROR;
     }
 
@@ -1284,7 +1455,7 @@ IoKickCmd(
         return TCL_ERROR;
     }
 
-    if (ShmInit(&session, interp, objv[2]) != TCL_OK ||
+    if (ShmInit(interp, objv[2], &session) != TCL_OK ||
             Tcl_GetIntFromObj(interp, objv[3], &userId) != TCL_OK) {
         return TCL_ERROR;
     }
@@ -1325,7 +1496,7 @@ IoKillCmd(
         return TCL_ERROR;
     }
 
-    if (ShmInit(&session, interp, objv[2]) != TCL_OK ||
+    if (ShmInit(interp, objv[2], &session) != TCL_OK ||
             Tcl_GetIntFromObj(interp, objv[3], &connId) != TCL_OK) {
         return TCL_ERROR;
     }
@@ -1375,28 +1546,60 @@ IoUserCmd(
     }
 
     if (Tcl_GetIndexFromObj(interp, objv[2], options, "option", 0, &index) != TCL_OK ||
-            ShmInit(&session, interp, objv[3]) != TCL_OK) {
+            ShmInit(interp, objv[3], &session) != TCL_OK) {
         return TCL_ERROR;
     }
 
     resultObj = Tcl_GetObjResult(interp);
     switch ((enum options) index) {
-        case USER_GET: {
-            if (objc != 5) {
+        case USER_GET:
+        case USER_SET: {
+            char *userName;
+            int userId;
+            int result;
+            USERFILE userFile;
+
+            if (index == USER_GET && objc != 5) {
                 Tcl_WrongNumArgs(interp, 3, objv, "msgWindow user");
                 return TCL_ERROR;
-            }
-            return TCL_OK;
-        }
-        case USER_SET: {
-            if (objc != 6) {
+            } else if (index == USER_SET && objc != 6) {
                 Tcl_WrongNumArgs(interp, 3, objv, "msgWindow user data");
                 return TCL_ERROR;
             }
 
-            // TODO: Implement this sub-command later.
-            Tcl_SetResult(interp, "not implemented", TCL_STATIC);
-            return TCL_ERROR;
+            memory = ShmAlloc(interp, &session, MAX(sizeof(DC_NAMEID), sizeof(USERFILE)));
+            if (memory == NULL) {
+                return TCL_ERROR;
+            }
+
+            // User name to user ID.
+            userName = Tcl_GetString(objv[4]);
+            if (UserNameToId(&session, memory, userName, &userId) != TCL_OK) {
+                ShmFree(&session, memory);
+
+                Tcl_AppendResult(interp, "invalid user name \"",
+                    userName, "\"", NULL);
+                return TCL_ERROR;
+            }
+
+            // Retrieve the user file.
+            if (GetUserFile(&session, memory, userId, &userFile) != TCL_OK) {
+                ShmFree(&session, memory);
+
+                Tcl_AppendResult(interp, "unable to retrieve user file for \"",
+                    userName, "\"", NULL);
+                return TCL_ERROR;
+            }
+
+            if (index == USER_GET) {
+                result = RowDataGet(userRowDef, &userFile, resultObj);
+            } else {
+                result = RowDataSet(interp, objv[5], userRowDef, &userFile);
+                // TODO: if (result == TCL_OK) SetUserFile(...);
+            }
+
+            ShmFree(&session, memory);
+            return result;
         }
         case USER_EXISTS:
         case USER_TO_ID: {
@@ -1409,7 +1612,7 @@ IoUserCmd(
             }
 
             // User name to user ID.
-            memory = ShmAlloc(&session, interp, sizeof(DC_NAMEID));
+            memory = ShmAlloc(interp, &session, sizeof(DC_NAMEID));
             if (memory == NULL) {
                 return TCL_ERROR;
             }
@@ -1437,7 +1640,7 @@ IoUserCmd(
             }
 
             // User ID to user name.
-            memory = ShmAlloc(&session, interp, sizeof(DC_NAMEID));
+            memory = ShmAlloc(interp, &session, sizeof(DC_NAMEID));
             if (memory == NULL) {
                 return TCL_ERROR;
             }
@@ -1492,7 +1695,7 @@ IoWhoCmd(
         return TCL_ERROR;
     }
 
-    if (ShmInit(&session, interp, objv[2]) != TCL_OK) {
+    if (ShmInit(interp, objv[2], &session) != TCL_OK) {
         return TCL_ERROR;
     }
 
