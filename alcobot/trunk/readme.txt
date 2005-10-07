@@ -125,6 +125,18 @@ Path: modules/generic/nxtools
 3. Reload AlcoBot by entering the command ".alcobot reload" in DCC chat.
 
 ############################################################
+# online                                                   #
+############################################################
+
+FTPD: glFTPD/ioFTPD
+Info: Display online statistics.
+Path: modules/*ftpd/online
+
+1. Add "online" to the module list in AlcoBot.conf.
+2. Configure the [Module::Online] section in AlcoBot.conf.
+3. Reload AlcoBot by entering the command ".alcobot reload" in DCC chat.
+
+############################################################
 # pretimes                                                 #
 ############################################################
 
