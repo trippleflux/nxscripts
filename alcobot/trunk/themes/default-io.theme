@@ -245,6 +245,37 @@ undupeBody  = [%02(num)] [b]%(entry)[b] removed.
 undupeNone  = No entries found matching "%(pattern)".
 undupeFoot  =
 
+# Module: online
+bandwidth     = [b][[c1]Bandwidth[c]][b] Leechers: [b]%(usersDn)[b] at %(speedDn) - Uploaders: [b]%(usersUp)[b] at %(speedUp) - Idlers: [b]%(usersIdle)[b] - Total: %(speedTotal) with [b]%(usersTotal)[b] online.
+bandwidthDn   = [b][[c1]Bandwidth[c]][b] [b]%(usersDn)[b] download(s) at %(speedDn).
+bandwidthUp   = [b][[c1]Bandwidth[c]][b] [b]%(usersUp)[b] upload(s) at %(speedUp).
+
+idleHead      =
+idleBody      = [b][[c1]Idle[c]][b] [b]%(user)[b]/%(group) has been idle for %(idle).
+idleFoot      = [b][[c1]Idle[c]][b] Total: [b]%(users)[b] user(s).
+
+downloadHead  =
+downloadBody  = [b][[c1]Leech[c]][b] [b]%(user)[b]/%(group) is downloading [b]%(file)[b] at %(speed) (%(size) done).
+downloadFoot  = [b][[c1]Leech[c]][b] Total: [b]%(users)[b] user(s) at %(speed).
+
+uploadHead    =
+uploadBody    = [b][[c1]Upload[c]][b] [b]%(user)[b]/%(group) is uploading [b]%(file)[b] at %(speed) (%(size) done).
+uploadFoot    = [b][[c1]Upload[c]][b] Total: [b]%(users)[b] user(s) at %(speed).
+
+speedHead     =
+speedIdle     = [b][[c1]Speed[c]][b] [b]%(user)[b]/%(group) has been idle for %(idle).
+speedDownload = [b][[c1]Speed[c]][b] [b]%(user)[b]/%(group) is downloading [b]%(file)[b] at %(speed) (%(size) done).
+speedUpload   = [b][[c1]Speed[c]][b] [b]%(user)[b]/%(group) is uploading [b]%(file)[b] at %(speed) (%(size) done).
+speedNone     = [b][[c1]Speed[c]][b] The specified user is not online.
+speedFoot     =
+
+whoHead       = [b]Who's Online:[b]
+whoIdle       = [b]%(user)[b]/%(group) has been idle for %(idle).
+whoDownload   = [b]%(user)[b]/%(group) is downloading [b]%(file)[b] at %(speed) (%(size) done.
+whoUpload     = [b]%(user)[b]/%(group) is uploading [b]%(file)[b] at %(speed) (%(size) done).
+whoNone       = There is no one online.
+whoFoot       =
+
 # Module: pretimes
 preHead     = [b]Pre Times:[b]
 preBody     = [b]%(release)[b] (%(size)/[b]%(files)[b]F) released %(age) ago (%(preDate) %(preTime))
