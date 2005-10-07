@@ -167,8 +167,8 @@ UPDATE        = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] %(message)
 WARN          = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] %(message)
 
 # Command argument help.
-commandHelp   = [b]Usage:[b] %(command) %(arguments) - %(message)
-commandUsage  = [b]Usage:[b] %(command) %(arguments)
+commandHelp   = [b][[c1]Usage[c]][b] %(command) %(arguments) - %(message)
+commandUsage  = [b][[c1]Usage[c]][b] %(command) %(arguments)
 
 # Module: free
 freeHead      = [b][[c1]Free[c]][b] Total Space:
@@ -270,15 +270,15 @@ speedNone     = [b][[c1]Speed[c]][b] The specified user is not online.
 speedFoot     =
 
 whoHead       = [b]Who's Online:[b]
-whoIdle       = [b]%(user)[b]/%(group) has been idle for %(idle).
-whoDownload   = [b]%(user)[b]/%(group) is downloading [b]%(file)[b] at %(speed) (%(size) done.
-whoUpload     = [b]%(user)[b]/%(group) is uploading [b]%(file)[b] at %(speed) (%(size) done).
-whoNone       = There is no one online.
+whoIdle       = [b]-[b] [b]%(user)[b]/%(group) has been idle for %(idle).
+whoDownload   = [b]-[b] [b]%(user)[b]/%(group) is downloading [b]%(file)[b] at %(speed) (%(size) done.
+whoUpload     = [b]-[b] [b]%(user)[b]/%(group) is uploading [b]%(file)[b] at %(speed) (%(size) done).
+whoNone       = [b]-[b] There is no one online.
 whoFoot       =
 
 # Module: pretimes
-preHead       = [b]Pre Times:[b]
-preBody       = [b]%(release)[b] (%(size)/[b]%(files)[b]F) released %(age) ago (%(preDate) %(preTime))
-preNuke       = [b]%(release)[b] (%(size)/[b]%(files)[b]F) released %(age) ago (%(preDate) %(preTime)) nuked for [b]%(reason)[b]
-preNone       = No releases found matching "%(pattern)".
+preHead       =
+preBody       = [b][[c1]Pre[c]][b] [b]%(release)[b] (%(size)/[b]%(files)[b]F) released %(age) ago (%(preDate) %(preTime))
+preNuke       = [b][[c1]Pre[c]][b] [b]%(release)[b] (%(size)/[b]%(files)[b]F) released %(age) ago (%(preDate) %(preTime)) nuked for [b]%(reason)[b]
+preNone       = [b][[c1]Pre[c]][b] No releases found matching "%(pattern)".
 preFoot       =

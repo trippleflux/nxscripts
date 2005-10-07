@@ -140,13 +140,13 @@ GIVE          = [b][[c1]Give[c]][b] [b]%(user)[b] gave %(credits) of credits to 
 TAKE          = [b][[c1]Take[c]][b] [b]%(user)[b] took %(credits) of credits from [b]%(target)[b].
 
 # Command argument help.
-commandHelp   = [b]Usage:[b] %(command) %(arguments) - %(message)
-commandUsage  = [b]Usage:[b] %(command) %(arguments)
+commandHelp   = [b][[c1]Usage[c]][b] %(command) %(arguments) - %(message)
+commandUsage  = [b][[c1]Usage[c]][b] %(command) %(arguments)
 
 # Module: free
 freeHead      = [b][[c1]Free[c]][b] Total Space:
-freeBody      = [b][[c1]Free[c]][b] %(sections): %(free) of %(total)
-freeFoot      = [b][[c1]Free[c]][b] TOTAL: %(free) of %(total)
+freeBody      = [b][[c1]Free[c]][b] %(sections): %(free) free of %(total)
+freeFoot      = [b][[c1]Free[c]][b] TOTAL: %(free) free of %(total)
 
 # Module: groups
 affilsHead    = [b]Affiliated Groups:[b]
@@ -163,18 +163,40 @@ helpType      = [u]%(type) Commands:[u]
 helpBody      = %(command) %(arguments) - %(description)
 helpFoot      =
 
-# Module: invite
-inviteBad     = [b][[c1]Invite[c]][b] Incorrect username, password, or IRC host.
-inviteBadHost = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) using an unknown IRC host.
-inviteBadPass = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) used an incorrect account or password.
-inviteBadUser = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) used the wrong IRC nickname.
-inviteDbDown  = [b][[c1]Invite[c]][b] Database offline, unable to invite [b]%(nick)[b].
-inviteFailed  = [b][[c1]Invite[c]][b] I need ops in [b]%(channels)[b] to invite [b]%(nick)[b].
-INVITE        = [b][[c1]Invite[c]][b] [b]%(user)[b]/%(group) invited himself as [b]%(nick)[b].
+# Module: online
+bandwidth     = [b][[c1]Bandwidth[c]][b] Leechers: [b]%(usersDn)[b] at %(speedDn) - Uploaders: [b]%(usersUp)[b] at %(speedUp) - Idlers: [b]%(usersIdle)[b] - Total: %(speedTotal) with [b]%(usersTotal)[b]/[b]%(usersMax)[b] online.
+bandwidthDn   = [b][[c1]Bandwidth[c]][b] [b]%(usersDn)[b] download(s) at %(speedDn).
+bandwidthUp   = [b][[c1]Bandwidth[c]][b] [b]%(usersUp)[b] upload(s) at %(speedUp).
+
+idleHead      =
+idleBody      = [b][[c1]Idle[c]][b] [b]%(user)[b]/%(group) has been idle for %(idle).
+idleFoot      = [b][[c1]Idle[c]][b] Total: [b]%(users)[b] user(s).
+
+downloadHead  =
+downloadBody  = [b][[c1]Leech[c]][b] [b]%(user)[b]/%(group) is downloading [b]%(file)[b] at %(speed) (%(size) done).
+downloadFoot  = [b][[c1]Leech[c]][b] Total: [b]%(users)[b] user(s) at %(speed).
+
+uploadHead    =
+uploadBody    = [b][[c1]Upload[c]][b] [b]%(user)[b]/%(group) is uploading [b]%(file)[b] at %(speed) (%(size) done).
+uploadFoot    = [b][[c1]Upload[c]][b] Total: [b]%(users)[b] user(s) at %(speed).
+
+speedHead     =
+speedIdle     = [b][[c1]Speed[c]][b] [b]%(user)[b]/%(group) has been idle for %(idle).
+speedDownload = [b][[c1]Speed[c]][b] [b]%(user)[b]/%(group) is downloading [b]%(file)[b] at %(speed) (%(size) done).
+speedUpload   = [b][[c1]Speed[c]][b] [b]%(user)[b]/%(group) is uploading [b]%(file)[b] at %(speed) (%(size) done).
+speedNone     = [b][[c1]Speed[c]][b] The specified user is not online.
+speedFoot     =
+
+whoHead       = [b]Who's Online:[b]
+whoIdle       = [b]-[b] [b]%(user)[b]/%(group) has been idle for %(idle).
+whoDownload   = [b]-[b] [b]%(user)[b]/%(group) is downloading [b]%(file)[b] at %(speed) (%(size) done.
+whoUpload     = [b]-[b] [b]%(user)[b]/%(group) is uploading [b]%(file)[b] at %(speed) (%(size) done).
+whoNone       = [b]-[b] There is no one online.
+whoFoot       =
 
 # Module: pretimes
-preHead       = [b]Pre Times:[b]
-preBody       = [b]%(release)[b] (%(size)/[b]%(files)[b]F) released %(age) ago (%(preDate) %(preTime))
-preNuke       = [b]%(release)[b] (%(size)/[b]%(files)[b]F) released %(age) ago (%(preDate) %(preTime)) nuked for [b]%(reason)[b]
-preNone       = No releases found matching "%(pattern)".
+preHead       =
+preBody       = [b][[c1]Pre[c]][b] [b]%(release)[b] (%(size)/[b]%(files)[b]F) released %(age) ago (%(preDate) %(preTime))
+preNuke       = [b][[c1]Pre[c]][b] [b]%(release)[b] (%(size)/[b]%(files)[b]F) released %(age) ago (%(preDate) %(preTime)) nuked for [b]%(reason)[b]
+preNone       = [b][[c1]Pre[c]][b] No releases found matching "%(pattern)".
 preFoot       =

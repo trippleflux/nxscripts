@@ -69,7 +69,7 @@ proc ::alcoholicz::Online::Bandwidth {event user host handle channel target argc
             # 0 - Idle
             # 1 - Download
             # 2 - Upload
-            # 3 - List
+            # 3 - Listing
             switch -- [lindex $entry 1] {
                 0 - 3 {incr usersIdle}
                 1 {
