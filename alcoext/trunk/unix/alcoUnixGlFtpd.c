@@ -1448,15 +1448,20 @@ GetOnlineFields(
                     // 0 - Idle
                     // 1 - Download
                     // 2 - Upload
-                    long status = 0;
+                    // 3 - Listing
+                    int status = 0;
 
                     if (strncasecmp(onlineData[i]->status, "RETR ", 5) == 0) {
                         status = 1;
                     } else if (strncasecmp(onlineData[i]->status, "STOR ", 5) == 0 ||
-                        strncasecmp(onlineData[i]->status, "APPE ", 5) == 0) {
+                               strncasecmp(onlineData[i]->status, "APPE ", 5) == 0) {
                         status = 2;
+                    } else if (strncasecmp(onlineData[i]->status, "LIST ", 5) == 0 ||
+                               strncasecmp(onlineData[i]->status, "NLST ", 5) == 0 ||
+                               strncasecmp(onlineData[i]->status, "STAT ", 5) == 0) {
+                        status = 3;
                     }
-                    fieldObj = Tcl_NewLongObj(status);
+                    fieldObj = Tcl_NewIntObj(status);
                     break;
                 }
                 case WHO_TAGLINE: {
