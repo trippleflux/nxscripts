@@ -21,7 +21,7 @@ namespace eval ::alcoholicz {
 
     namespace export b c u r o \
         LogDebug LogInfo LogError LogWarning GetFtpDaemon \
-        CmdCreate CmdGetFlags CmdGetList CmdSetHelp CmdSendHelp CmdRemove \
+        CmdCreate CmdGetFlags CmdGetList CmdSendHelp CmdRemove \
         FlagGetValue FlagExists FlagIsDisabled FlagIsEnabled FlagCheckEvent FlagCheckSection \
         ModuleFind ModuleHash ModuleInfo ModuleLoad ModuleUnload ModuleRead \
         ScriptExecute ScriptRegister ScriptUnregister \
@@ -133,23 +133,50 @@ proc ::alcoholicz::SetFtpDaemon {name} {
 #
 # Create a channel command.
 #
-proc ::alcoholicz::CmdCreate {type name script {category ""} {cmdDesc ""} {argDesc ""}} {
+proc ::alcoholicz::CmdCreate {type name script args} {
     variable cmdNames
+    variable cmdPrefix
 
-    switch -- $type {
-        channel {
-            bind pub -|- $name [list [namespace current]::CmdChannelProc $script]
-        }
-        message {
-            bind msg -|- $name [list [namespace current]::CmdMessageProc $script]
-        }
-        default {
-            # Support for other command types will come later.
-            error "invalid command type \"$type\""
+    # Check arguments.
+    if {$type ne "channel" && $type ne "message"} {
+        error "invalid command type \"$type\""
+    }
+    if {[info exists cmdNames([list $type $name])]} {
+        error "the $type command \"$name\" already exists"
+    }
+
+    set argDesc  ""
+    set cmdDesc  ""
+    set category ""
+    set names  [list $name]
+    set prefix $cmdPrefix
+
+    foreach {option value} $args {
+        switch -- $option {
+            -aliases  {eval lappend names $value}
+            -args     {set argDesc $value}
+            -category {set category $value}
+            -desc     {set cmdDesc $value}
+            -prefix   {set prefix $value}
+            default   {error "invalid option \"$option\""}
         }
     }
 
-    set cmdNames([list $type $name]) [list $script $category $argDesc $cmdDesc]
+    # Bind the command and its aliases.
+    set binds [list]
+    foreach command $names {
+        set command [string tolower "$prefix$command"]
+
+        if {$type eq "channel"} {
+            bind pub -|- $command [list [namespace current]::CmdChannelProc $name]
+        } elseif {$type eq "message"} {
+            bind msg -|- $command [list [namespace current]::CmdMessageProc $name]
+        }
+        lappend binds $command
+    }
+
+    # List: argDesc cmdDesc category binds script
+    set cmdNames([list $type $name]) [list $argDesc $cmdDesc $category $binds $script]
     return
 }
 
@@ -160,45 +187,21 @@ proc ::alcoholicz::CmdCreate {type name script {category ""} {cmdDesc ""} {argDe
 #
 proc ::alcoholicz::CmdGetFlags {command} {
     variable cmdFlags
-
-    foreach pattern [array names cmdFlags] {
-        if {[string match $pattern $command]} {
-            LogDebug CmdGetFlags "Matched pattern \"$pattern\" to command \"$command\"."
-            return $cmdFlags($pattern)
-        }
+    if {[info exists cmdFlags($command)]} {
+        return $cmdFlags($command)
     }
-    return {}
+    return [list]
 }
 
 ####
 # CmdGetList
 #
 # Retrieve a list of commands created with "CmdCreate".
-# List: {type command} {script category argDesc cmdDesc} ...
+# List: {type command} {argDesc cmdDesc category binds script} ...
 #
 proc ::alcoholicz::CmdGetList {typePattern namePattern} {
     variable cmdNames
     return [array get cmdNames [list $typePattern $namePattern]]
-}
-
-####
-# CmdSetHelp
-#
-# Set the argument list and description for a command.
-#
-proc ::alcoholicz::CmdSetHelp {type name {category ""} {cmdDesc ""} {argDesc ""}} {
-    variable cmdNames
-
-    if {![info exists cmdNames([list $type $name])]} {
-        # The caller could have specified an invalid command type, a
-        # command name that was already removed, or a command name that
-        # was not created with "CmdCreate".
-        error "invalid command type \"$type\" or name \"$name\""
-    }
-
-    set script [lindex $cmdNames([list $type $name]) 0]
-    set cmdNames([list $type $name]) [list $script $category $argDesc $cmdDesc]
-    return
 }
 
 ####
@@ -213,7 +216,7 @@ proc ::alcoholicz::CmdSendHelp {target type name {message ""}} {
         error "invalid command type \"$type\" or name \"$name\""
     }
 
-    set argDesc [lindex $cmdNames([list $type $name]) 2]
+    set argDesc [lindex $cmdNames([list $type $name]) 0]
     if {$message ne ""} {
         SendTargetTheme "PRIVMSG $target" commandHelp  [list $argDesc $name $message]
     } else {
@@ -237,18 +240,13 @@ proc ::alcoholicz::CmdRemove {type name} {
         error "invalid command type \"$type\" or name \"$name\""
     }
 
-    set script [lindex $cmdNames([list $type $name]) 0]
-
-    switch -- $type {
-        channel {
-            unbind pub -|- $name [list [namespace current]::CmdChannelProc $script]
-        }
-        message {
-            unbind msg -|- $name [list [namespace current]::CmdMessageProc $script]
-        }
-        default {
-            # Support for other command types will come later.
-            error "invalid command type \"$type\""
+    # Remove the command bindings.
+    set binds [lindex $cmdNames([list $type $name]) 3]
+    foreach command $binds {
+        if {$type eq "channel"} {
+            catch {unbind pub -|- $command [list [namespace current]::CmdChannelProc $name]}
+        } elseif {$type eq "message"} {
+            catch {unbind msg -|- $command [list [namespace current]::CmdMessageProc $name]}
         }
     }
 
@@ -262,11 +260,12 @@ proc ::alcoholicz::CmdRemove {type name} {
 # Wrapper for Eggdrop "bind pub" commands. Parses the text argument into a
 # Tcl list and provides more information when a command evaluation fails.
 #
-proc ::alcoholicz::CmdChannelProc {script user host handle channel text} {
-    global lastbind
+proc ::alcoholicz::CmdChannelProc {command user host handle channel text} {
+    variable cmdFlags
+    variable cmdNames
     set target "PRIVMSG $channel"
 
-    foreach {enabled name value} [CmdGetFlags $lastbind] {
+    foreach {enabled name value} [CmdGetFlags $command] {
         set result 0
         switch -- $name {
             all     {set result 1}
@@ -284,7 +283,7 @@ proc ::alcoholicz::CmdChannelProc {script user host handle channel text} {
         }
         if {$result} {
             if {!$enabled} {
-                LogDebug CmdChannel "Matched negation for command \"$lastbind\" on \"$name\", returning."
+                LogDebug CmdChannel "Matched negation flag \"$name\" for command \"$::lastbind\", returning."
                 return
             }
             break
@@ -294,7 +293,9 @@ proc ::alcoholicz::CmdChannelProc {script user host handle channel text} {
 
     # Eval is used to expand arguments to the callback procedure,
     # e.g. "CmdCreate channel !foo [list ChanFooCmd abc 123]".
-    if {[catch {eval $script [list $user $host $handle $channel $target [llength $argv] $argv]} message]} {
+    set script [lindex $cmdNames([list "channel" $command]) 4]
+
+    if {[catch {eval $script [list $command $target $user $host $handle $channel $argv]} message]} {
         LogError CmdChannel "Error evaluating \"$script\":\n$::errorInfo"
     }
     return
@@ -306,10 +307,11 @@ proc ::alcoholicz::CmdChannelProc {script user host handle channel text} {
 # Wrapper for Eggdrop "bind msg" commands. Parses the text argument into a
 # Tcl list and provides more information when a command evaluation fails.
 #
-proc ::alcoholicz::CmdMessageProc {script user host handle text} {
-    global lastbind
+proc ::alcoholicz::CmdMessageProc {command user host handle text} {
+    variable cmdFlags
+    variable cmdNames
 
-    foreach {enabled name value} [CmdGetFlags $lastbind] {
+    foreach {enabled name value} [CmdGetFlags $command] {
         set result 0
         switch -- $name {
             all   {set result 1}
@@ -319,7 +321,7 @@ proc ::alcoholicz::CmdMessageProc {script user host handle text} {
         }
         if {$result} {
             if {!$enabled} {
-                LogDebug CmdMessage "Matched negation for command \"$lastbind\" on \"$name\", returning."
+                LogDebug CmdMessage "Matched negation flag \"$name\" for command \"$::lastbind\", returning."
                 return
             }
             break
@@ -330,7 +332,9 @@ proc ::alcoholicz::CmdMessageProc {script user host handle text} {
 
     # Eval is used to expand arguments to the callback procedure,
     # e.g. "CmdCreate message !foo [list MessageFooCmd abc 123]".
-    if {[catch {eval $script [list $user $host $handle $target [llength $argv] $argv]} message]} {
+    set script [lindex $cmdNames([list "message" $command]) 4]
+
+    if {[catch {eval $script [list $command $target $user $host $handle $argv]} message]} {
         LogError CmdMessage "Error evaluating \"$script\":\n$::errorInfo"
     }
     return

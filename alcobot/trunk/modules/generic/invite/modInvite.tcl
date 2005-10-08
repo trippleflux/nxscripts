@@ -188,11 +188,11 @@ proc ::alcoholicz::Invite::Process {ircUser ircHost ftpUser ftpGroup ftpGroupLis
 #
 # Private message command, !invite <FTP user> <password>.
 #
-proc ::alcoholicz::Invite::Command {user host handle target argc argv} {
+proc ::alcoholicz::Invite::Command {command target user host handle argv} {
     variable userCheck
 
-    if {$argc != 2} {
-        CmdSendHelp $user message $::lastbind
+    if {[llength $argv] != 2} {
+        CmdSendHelp $user message $command
         return
     }
     set ftpUser [lindex $argv 0]
@@ -395,8 +395,9 @@ proc ::alcoholicz::Invite::Load {firstLoad} {
         }
     }
 
-    CmdCreate message "!invite" [namespace current]::Command General \
-        "Invite yourself into the channel." "<FTP user> <invite password>"
+    CmdCreate message invite [namespace current]::Command \
+        -category "General" -args "<FTP user> <invite password>" \
+        -prefix   "!"       -desc "Invite yourself into the channel."
 
     # Register event callbacks.
     bind raw  -|- 311 [namespace current]::Whois

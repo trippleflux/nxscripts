@@ -117,14 +117,14 @@ proc ::alcoholicz::PreTimes::LogEvent {event destSection pathSection path data} 
 #
 # Search for a release, command: !pre [-limit <num>] [-section <name>] <pattern>.
 #
-proc ::alcoholicz::PreTimes::Search {user host handle channel target argc argv} {
+proc ::alcoholicz::PreTimes::Search {command target user host handle channel argv} {
     # Parse command options.
     set option(limit) -1
     if {[catch {set pattern [GetOptions $argv {{limit integer} {section arg}} option]} message]} {
-        CmdSendHelp $channel channel $::lastbind $message
+        CmdSendHelp $channel channel $command $message
         return
     } elseif {$pattern eq ""} {
-        CmdSendHelp $channel channel $::lastbind "you must specify a pattern"
+        CmdSendHelp $channel channel $command "you must specify a pattern"
         return
     }
     set option(limit) [GetResultLimit $option(limit)]
@@ -217,8 +217,9 @@ proc ::alcoholicz::PreTimes::Load {firstLoad} {
             set prefix $::alcoholicz::cmdPrefix
         }
 
-        CmdCreate channel ${prefix}pre [namespace current]::Search \
-            General "Search pre time database." "\[-limit <num>\] \[-section <name>\] <pattern>"
+        CmdCreate channel pre [namespace current]::Search \
+            -category "General" -args "\[-limit <num>\] \[-section <name>\] <pattern>" \
+            -prefix   $prefix   -desc "Search pre time database."
     }
 
     if {!$firstLoad} {

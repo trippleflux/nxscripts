@@ -46,7 +46,7 @@ proc ::alcoholicz::Online::IsHidden {user group path} {
 #
 # Implements a channel command to display current site bandwidth.
 #
-proc ::alcoholicz::Online::Bandwidth {event user host handle channel target argc argv} {
+proc ::alcoholicz::Online::Bandwidth {event command target user host handle channel argv} {
     variable session
 
     switch -- $event {
@@ -100,7 +100,7 @@ proc ::alcoholicz::Online::Bandwidth {event user host handle channel target argc
 #
 # Implements a channel command to display the status of current users.
 #
-proc ::alcoholicz::Online::Status {event user host handle channel target argc argv} {
+proc ::alcoholicz::Online::Status {event command target user host handle channel argv} {
     variable session
 
     switch -- $event {
@@ -154,12 +154,12 @@ proc ::alcoholicz::Online::Status {event user host handle channel target argc ar
 #
 # Implements a channel command to display current users.
 #
-proc ::alcoholicz::Online::Users {event user host handle channel target argc argv} {
+proc ::alcoholicz::Online::Users {event command target user host handle channel argv} {
     variable session
 
     if {$event eq "SPEED"} {
-        if {$argc != 1} {
-            CmdSendHelp $channel channel $::lastbind
+        if {[llength $argv] != 1} {
+            CmdSendHelp $channel channel $command
             return
         }
         SendTargetTheme $target speedHead $argv
@@ -251,36 +251,42 @@ proc ::alcoholicz::Online::Load {firstLoad} {
     }
     glftpd config $session -etc $etcPath -version $version
 
-    # Create related commands.
     if {[ConfigExists $configHandle Module::Online cmdPrefix]} {
         set prefix [ConfigGet $configHandle Module::Online cmdPrefix]
     } else {
         set prefix $::alcoholicz::cmdPrefix
     }
 
-    CmdCreate channel ${prefix}bw   [list [namespace current]::Bandwidth ALL] \
-        Online "Total bandwidth usage."
+    # Bandwidth commands.
+    CmdCreate channel bw   [list [namespace current]::Bandwidth ALL] \
+        -category "Online" -prefix $prefix -desc "Total bandwidth usage."
 
-    CmdCreate channel ${prefix}bwdn [list [namespace current]::Bandwidth DN] \
-        Online "Outgoing bandwidth usage."
+    CmdCreate channel bwdn [list [namespace current]::Bandwidth DN] \
+        -category "Online" -prefix $prefix -desc "Outgoing bandwidth usage."
 
-    CmdCreate channel ${prefix}bwup [list [namespace current]::Bandwidth UP] \
-        Online "Incoming bandwidth usage."
+    CmdCreate channel bwup [list [namespace current]::Bandwidth UP] \
+        -category "Online" -prefix $prefix -desc "Incoming bandwidth usage."
 
-    CmdCreate channel ${prefix}idlers    [list [namespace current]::Status ID] \
-        Online "Users currently idling."
+    # Status commands.
+    CmdCreate channel idlers    [list [namespace current]::Status ID] \
+        -aliases "idle" -category "Online" -prefix $prefix \
+        -desc    "Users currently idling."
 
-    CmdCreate channel ${prefix}leechers  [list [namespace current]::Status DN] \
-        Online "Users currently downloading."
+    CmdCreate channel leechers  [list [namespace current]::Status DN] \
+        -aliases "dn" -category "Online" -prefix $prefix \
+        -desc    "Users currently downloading."
 
-    CmdCreate channel ${prefix}uploaders [list [namespace current]::Status UP] \
-        Online "Users currently uploading."
+    CmdCreate channel uploaders [list [namespace current]::Status UP] \
+        -aliases "up" -category "Online" -prefix $prefix \
+        -desc    "Users currently uploading."
 
-    CmdCreate channel ${prefix}speed     [list [namespace current]::Users SPEED] \
-        Online "Status of a given user." "<user>"
+    # User list commands.
+    CmdCreate channel speed [list [namespace current]::Users SPEED] \
+        -category "Online" -args "<user>" -prefix $prefix \
+        -desc     "Status of a given user."
 
-    CmdCreate channel ${prefix}who       [list [namespace current]::Users WHO] \
-        Online "Who is online."
+    CmdCreate channel who   [list [namespace current]::Users WHO] \
+        -category "Online" -prefix $prefix -desc "Who is online."
 
     return
 }

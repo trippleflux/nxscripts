@@ -24,13 +24,14 @@ namespace eval ::alcoholicz::Free {
 #
 # Implements a channel command to display available drive space.
 #
-proc ::alcoholicz::Free::Command {user host handle channel target argc argv} {
+proc ::alcoholicz::Free::Command {command target user host handle channel argv} {
     variable volumeList
+    set argc [llength $argv]
 
     if {$argc > 1} {
         # Channel commands should display the usage message in the
         # channel they were invoked from, not the output target.
-        CmdSendHelp $channel channel $::lastbind
+        CmdSendHelp $channel channel $command
         return
     }
 
@@ -41,14 +42,16 @@ proc ::alcoholicz::Free::Command {user host handle channel target argc argv} {
 
     set count 0; set free 0; set used 0; set total 0
     foreach {volume sections} $volumeList {
-        if {$argc == 1 && ![InList $sections [lindex $argv 0]]} {continue}
+        if {$argc && ![InList $sections [lindex $argv 0]]} {continue}
 
         if {[catch {volume info $volume info} message]} {
             LogError ModFree $message; continue
         }
         set percentFree [expr {(double($info(free)) / double($info(total))) * 100}]
         set percentUsed [expr {(double($info(used)) / double($info(total))) * 100}]
-        SendTargetTheme $target freeBody [list $info(free) $info(used) $info(total) $percentFree $percentUsed [join $sections]]
+
+        SendTargetTheme $target freeBody [list $info(free) $info(used) $info(total) \
+            $percentFree $percentUsed [join $sections]]
 
         # Update volume totals.
         incr count
@@ -81,24 +84,12 @@ proc ::alcoholicz::Free::Load {firstLoad} {
 
     set volumeList [list]
     foreach {name value} [ConfigGetEx $configHandle Module::Free] {
-        # Ignore other options.
-        if {$name ne "cmdPrefix"} {
-            lappend volumeList $name $value
-        }
+        lappend volumeList $name $value
     }
 
-    # Create related commands.
-    if {[ConfigExists $configHandle Module::Free cmdPrefix]} {
-        set prefix [ConfigGet $configHandle Module::Free cmdPrefix]
-    } else {
-        set prefix $::alcoholicz::cmdPrefix
-    }
-
-    # Alias for "!free".
-    CmdCreate channel ${prefix}df   [namespace current]::Command
-
-    CmdCreate channel ${prefix}free [namespace current]::Command \
-        General "Display free disk space." "\[section\]"
+    CmdCreate channel free [namespace current]::Command \
+        -aliases "df"       -args "\[section\]" \
+        -category "General" -desc "Display free disk space."
 
     return
 }

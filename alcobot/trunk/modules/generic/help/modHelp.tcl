@@ -21,21 +21,21 @@ namespace eval ::alcoholicz::Help {
 #
 # Implements a channel command to display supported commands.
 #
-proc ::alcoholicz::Help::Command {user host handle channel target argc argv} {
+proc ::alcoholicz::Help::Command {command target user host handle channel argv} {
     SendTargetTheme $target helpHead
 
     foreach {name value} [CmdGetList channel *] {
-        foreach {script category argDesc cmdDesc} $value {break}
+        foreach {argDesc cmdDesc category binds script} $value {break}
 
         # Check if this command is present in the listed catagories.
-        if {$cmdDesc eq "" || ($argc > 0 && ![InList $argv $category])} {
+        if {$cmdDesc eq "" || ([llength $argv] && ![InList $argv $category])} {
             continue
         }
-        set command [lindex $name 1]
+        set command [lindex $binds 0]
 
         # Check if the user has access to the command.
         set display 1
-        foreach {enabled name value} [CmdGetFlags $command] {
+        foreach {enabled name value} [CmdGetFlags [lindex $name 1]] {
             set result 0
             switch -- $name {
                 all     {set result 1}
@@ -60,8 +60,7 @@ proc ::alcoholicz::Help::Command {user host handle channel target argc argv} {
         SendTargetTheme $target helpType [list $category]
 
         foreach value [lsort -index 0 $output($category)] {
-            foreach {command argDesc cmdDesc} $value {break}
-            SendTargetTheme $target helpBody [list $argDesc $command $cmdDesc]
+            SendTargetTheme $target helpBody $value
         }
     }
 
@@ -75,11 +74,8 @@ proc ::alcoholicz::Help::Command {user host handle channel target argc argv} {
 # Module initialisation procedure, called when the module is loaded.
 #
 proc ::alcoholicz::Help::Load {firstLoad} {
-
-    # Create related commands.
-    CmdCreate channel ${::alcoholicz::cmdPrefix}help [namespace current]::Command \
-        General "Display a command list." "\[category\] \[category\] ..."
-
+    CmdCreate channel help [namespace current]::Command -category "General" \
+        -desc "Display a command list." -args "\[category\] \[category\] ..."
     return
 }
 

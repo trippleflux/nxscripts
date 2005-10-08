@@ -21,12 +21,12 @@ namespace eval ::alcoholicz::Groups {
 #
 # Implements a channel command to add or remove affiliated groups.
 #
-proc ::alcoholicz::Groups::ChangeAffils {event user host handle channel target argc argv} {
+proc ::alcoholicz::Groups::ChangeAffils {event command target user host handle channel argv} {
     variable groupsHandle
-    if {$argc != 2} {
+    if {[llength $argv] != 2} {
         # Channel commands should display the usage message in the
         # channel they were invoked from, not the output target.
-        CmdSendHelp $channel channel $::lastbind
+        CmdSendHelp $channel channel $command
         return
     }
     ConfigRead $groupsHandle
@@ -73,10 +73,10 @@ proc ::alcoholicz::Groups::ChangeAffils {event user host handle channel target a
 #
 # Implements a channel command to add or remove banned groups.
 #
-proc ::alcoholicz::Groups::ChangeBanned {event user host handle channel target argc argv} {
+proc ::alcoholicz::Groups::ChangeBanned {event command target user host handle channel argv} {
     variable groupsHandle
-    if {$argc != 2} {
-        CmdSendHelp $channel channel $::lastbind
+    if {[llength $argv] != 2} {
+        CmdSendHelp $channel channel $command
         return
     }
     ConfigRead $groupsHandle
@@ -123,7 +123,7 @@ proc ::alcoholicz::Groups::ChangeBanned {event user host handle channel target a
 #
 # Implements a channel command to display affiliated groups.
 #
-proc ::alcoholicz::Groups::ListAffils {user host handle channel target argc argv} {
+proc ::alcoholicz::Groups::ListAffils {command target user host handle channel argv} {
     variable groupsHandle
     ConfigRead $groupsHandle
     set sections [lsort [ConfigKeys $groupsHandle Affils]]
@@ -146,7 +146,7 @@ proc ::alcoholicz::Groups::ListAffils {user host handle channel target argc argv
 #
 # Implements a channel command to display banned groups.
 #
-proc ::alcoholicz::Groups::ListBanned {user host handle channel target argc argv} {
+proc ::alcoholicz::Groups::ListBanned {command target user host handle channel argv} {
     variable groupsHandle
     ConfigRead $groupsHandle
     set sections [lsort [ConfigKeys $groupsHandle Banned]]
@@ -195,24 +195,28 @@ proc ::alcoholicz::Groups::Load {firstLoad} {
     }
 
     # User commands (list groups).
-    CmdCreate channel ${prefix}affils  [namespace current]::ListAffils \
-        General "List affiliated groups."
+    CmdCreate channel affils [namespace current]::ListAffils \
+        -category "General" -desc "List affiliated groups." -prefix $prefix
 
-    CmdCreate channel ${prefix}banned  [namespace current]::ListBanned \
-        General "List banned groups."
+    CmdCreate channel banned [namespace current]::ListBanned \
+        -category "General" -desc "List banned groups." -prefix $prefix
 
     # Administration commands (add/remove groups).
-    CmdCreate channel ${prefix}addaffil [list [namespace current]::ChangeAffils ADD] \
-        Admin "Add an affiliated group." "<section> <group>"
+    CmdCreate channel addaffil [list [namespace current]::ChangeAffils ADD] \
+        -category "Admin" -args "<section> <group>" \
+        -prefix   $prefix -desc "Add an affiliated group."
 
-    CmdCreate channel ${prefix}delaffil [list [namespace current]::ChangeAffils DEL] \
-        Admin "Removed an affiliated group." "<section> <group>"
+    CmdCreate channel delaffil [list [namespace current]::ChangeAffils DEL] \
+        -category "Admin" -args "<section> <group>" \
+        -prefix   $prefix -desc "Removed an affiliated group."
 
-    CmdCreate channel ${prefix}addban   [list [namespace current]::ChangeBanned ADD] \
-        Admin "Add a banned group." "<section> <group>"
+    CmdCreate channel addban   [list [namespace current]::ChangeBanned ADD] \
+        -category "Admin" -args "<section> <group>" \
+        -prefix   $prefix -desc "Add a banned group."
 
-    CmdCreate channel ${prefix}delban   [list [namespace current]::ChangeBanned DEL] \
-        Admin "Removed a banned group." "<section> <group>"
+    CmdCreate channel delban   [list [namespace current]::ChangeBanned DEL] \
+        -category "Admin" -args "<section> <group>" \
+        -prefix   $prefix -desc "Removed a banned group."
 
     return
 }

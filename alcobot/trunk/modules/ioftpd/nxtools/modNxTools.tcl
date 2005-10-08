@@ -60,7 +60,7 @@ proc ::alcoholicz::NxTools::DbBusyHandler {tries} {
 #
 # Display approved releases, command: !approved.
 #
-proc ::alcoholicz::NxTools::Approved {user host handle channel target argc argv} {
+proc ::alcoholicz::NxTools::Approved {command target user host handle channel argv} {
     SendTargetTheme $target approveHead
 
     set count 0
@@ -84,13 +84,13 @@ proc ::alcoholicz::NxTools::Approved {user host handle channel target argc argv}
 #
 # Display recent releases, command: !new [-limit <num>] [section].
 #
-proc ::alcoholicz::NxTools::Latest {user host handle channel target argc argv} {
+proc ::alcoholicz::NxTools::Latest {command target user host handle channel argv} {
     upvar ::alcoholicz::pathSections pathSections
 
     # Parse command options.
     set option(limit) -1
     if {[catch {set section [GetOptions $argv {{limit integer}} option]} message]} {
-        CmdSendHelp $channel channel $::lastbind $message
+        CmdSendHelp $channel channel $command $message
         return
     }
     set option(limit) [GetResultLimit $option(limit)]
@@ -101,7 +101,7 @@ proc ::alcoholicz::NxTools::Latest {user host handle channel target argc argv} {
         # Validate the specified section name.
         set names [lsort [array names pathSections]]
         if {[catch {set section [GetElementFromList $names $section section]} message]} {
-            CmdSendHelp $channel channel $::lastbind $message
+            CmdSendHelp $channel channel $command $message
             return
         }
         set matchPath [SqlToLike [lindex $pathSections($section) 0]]
@@ -136,7 +136,7 @@ proc ::alcoholicz::NxTools::Latest {user host handle channel target argc argv} {
 #
 # Search for a release, command: !dupe [-limit <num>] [-section <name>] <pattern>.
 #
-proc ::alcoholicz::NxTools::Search {user host handle channel target argc argv} {
+proc ::alcoholicz::NxTools::Search {command target user host handle channel argv} {
     upvar ::alcoholicz::pathSections pathSections
 
     # Parse command options.
@@ -144,10 +144,10 @@ proc ::alcoholicz::NxTools::Search {user host handle channel target argc argv} {
     set optList [list {limit integer} [list section arg [lsort [array names pathSections]]]]
 
     if {[catch {set pattern [GetOptions $argv $optList option]} message]} {
-        CmdSendHelp $channel channel $::lastbind $message
+        CmdSendHelp $channel channel $command $message
         return
     } elseif {$pattern eq ""} {
-        CmdSendHelp $channel channel $::lastbind "you must specify a pattern"
+        CmdSendHelp $channel channel $command "you must specify a pattern"
         return
     }
     set option(limit) [GetResultLimit $option(limit)]
@@ -189,11 +189,11 @@ proc ::alcoholicz::NxTools::Search {user host handle channel target argc argv} {
 #
 # Display recent nukes, command: !nukes [-limit <num>] [pattern].
 #
-proc ::alcoholicz::NxTools::Nukes {user host handle channel target argc argv} {
+proc ::alcoholicz::NxTools::Nukes {command target user host handle channel argv} {
     # Parse command options.
     set option(limit) -1
     if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
-        CmdSendHelp $channel channel $::lastbind $message
+        CmdSendHelp $channel channel $command $message
         return
     }
     set option(limit) [GetResultLimit $option(limit)]
@@ -228,11 +228,11 @@ proc ::alcoholicz::NxTools::Nukes {user host handle channel target argc argv} {
 #
 # Display top nuked users, command: !nukes [-limit <num>] [group].
 #
-proc ::alcoholicz::NxTools::NukeTop {user host handle channel target argc argv} {
+proc ::alcoholicz::NxTools::NukeTop {command target user host handle channel argv} {
     # Parse command options.
     set option(limit) -1
     if {[catch {set group [GetOptions $argv {{limit integer}} option]} message]} {
-        CmdSendHelp $channel channel $::lastbind $message
+        CmdSendHelp $channel channel $command $message
         return
     }
     set option(limit) [GetResultLimit $option(limit)]
@@ -266,11 +266,11 @@ proc ::alcoholicz::NxTools::NukeTop {user host handle channel target argc argv} 
 #
 # Display recent unnukes, command: !unnukes [-limit <num>] [pattern].
 #
-proc ::alcoholicz::NxTools::Unnukes {user host handle channel target argc argv} {
+proc ::alcoholicz::NxTools::Unnukes {command target user host handle channel argv} {
     # Parse command options.
     set option(limit) -1
     if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
-        CmdSendHelp $channel channel $::lastbind $message
+        CmdSendHelp $channel channel $command $message
         return
     }
     set option(limit) [GetResultLimit $option(limit)]
@@ -305,7 +305,7 @@ proc ::alcoholicz::NxTools::Unnukes {user host handle channel target argc argv} 
 #
 # Display recent one-lines, command: !onel.
 #
-proc ::alcoholicz::NxTools::OneLines {user host handle channel target argc argv} {
+proc ::alcoholicz::NxTools::OneLines {command target user host handle channel argv} {
     variable oneLines
     SendTargetTheme $target oneLinesHead
 
@@ -330,7 +330,7 @@ proc ::alcoholicz::NxTools::OneLines {user host handle channel target argc argv}
 #
 # Display current requests, command: !requests.
 #
-proc ::alcoholicz::NxTools::Requests {user host handle channel target argc argv} {
+proc ::alcoholicz::NxTools::Requests {command target user host handle channel argv} {
     SendTargetTheme $target requestsHead
 
     set count 0
@@ -354,18 +354,18 @@ proc ::alcoholicz::NxTools::Requests {user host handle channel target argc argv}
 #
 # Remove a file or directory from the dupe database, command: !undupe [-directory] <pattern>.
 #
-proc ::alcoholicz::NxTools::Undupe {user host handle channel target argc argv} {
+proc ::alcoholicz::NxTools::Undupe {command target user host handle channel argv} {
     variable undupeChars
 
     # Parse command options.
     if {[catch {set pattern [GetOptions $argv {directory} option]} message]} {
-        CmdSendHelp $channel channel $::lastbind $message
+        CmdSendHelp $channel channel $command $message
         return
     } elseif {[regexp {[\*\?]} $pattern] && [regexp -all {[[:alnum:]]} $pattern] < $undupeChars} {
-        CmdSendHelp $channel channel $::lastbind "you must specify at least $undupeChars alphanumeric chars with wildcards"
+        CmdSendHelp $channel channel $command "you must specify at least $undupeChars alphanumeric chars with wildcards"
         return
     } elseif {$pattern eq ""} {
-        CmdSendHelp $channel channel $::lastbind "you must specify a pattern"
+        CmdSendHelp $channel channel $command "you must specify a pattern"
         return
     }
     SendTargetTheme $target undupeHead [list $pattern]
@@ -457,34 +457,40 @@ proc ::alcoholicz::NxTools::Load {firstLoad} {
     }
 
     # Directory commands.
-    CmdCreate channel ${prefix}dupe     [namespace current]::Search \
-        Stats "Search for a release." "\[-limit <num>\] \[-section <name>\] <pattern>"
+    CmdCreate channel dupe   [namespace current]::Search \
+        -category "Stats" -args "\[-limit <num>\] \[-section <name>\] <pattern>" \
+        -prefix   $prefix -desc "Search for a release."
 
-    CmdCreate channel ${prefix}new      [namespace current]::Latest \
-        Stats "Display new releases." "\[-limit <num>\] \[section\]"
+    CmdCreate channel new    [namespace current]::Latest \
+        -category "Stats" -args "\[-limit <num>\] \[section\]" \
+        -prefix   $prefix -desc "Display new releases."
 
-    CmdCreate channel ${prefix}undupe   [namespace current]::Undupe \
-        Stats "Undupe files and directories." "\[-directory\] <pattern>"
+    CmdCreate channel undupe [namespace current]::Undupe \
+        -category "Stats" -args "\[-directory\] <pattern>" \
+        -prefix   $prefix -desc "Undupe files and directories."
 
     # Nuke commands.
-    CmdCreate channel ${prefix}nukes    [namespace current]::Nukes \
-        Stats "Display recent nukes." "\[-limit <num>\] \[pattern\]"
+    CmdCreate channel nukes   [namespace current]::Nukes \
+        -category "Stats" -args "\[-limit <num>\] \[pattern\]" \
+        -prefix   $prefix -desc "Display recent nukes."
 
-    CmdCreate channel ${prefix}nuketop  [namespace current]::NukeTop \
-        Stats "Display top nuked users." "\[-limit <num>\] \[group\]"
+    CmdCreate channel nuketop [namespace current]::NukeTop \
+        -category "Stats" -args "\[-limit <num>\] \[group\]" \
+        -prefix   $prefix -desc "Display top nuked users."
 
-    CmdCreate channel ${prefix}unnukes  [namespace current]::Unnukes \
-        Stats "Display recent unnukes." "\[-limit <num>\] \[pattern\]"
+    CmdCreate channel unnukes [namespace current]::Unnukes \
+        -category "Stats" -args "\[-limit <num>\] \[pattern\]" \
+        -prefix   $prefix -desc "Display recent unnukes."
 
     # Other commands.
-    CmdCreate channel ${prefix}approved [namespace current]::Approved \
-        General "Display approved releases."
+    CmdCreate channel approved [namespace current]::Approved \
+        -category "General" -desc "Display approved releases." -prefix $prefix
 
-    CmdCreate channel ${prefix}onel     [namespace current]::OneLines \
-        General "Display recent one-lines."
+    CmdCreate channel onel     [namespace current]::OneLines \
+        -category "General" -desc "Display recent one-lines." -prefix $prefix
 
-    CmdCreate channel ${prefix}requests [namespace current]::Requests \
-        General "Display current requests."
+    CmdCreate channel requests [namespace current]::Requests \
+        -category "General" -desc "Display current requests." -prefix $prefix
 
     return
 }
