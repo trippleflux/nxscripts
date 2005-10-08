@@ -721,6 +721,13 @@ CompressObjCmd(
         OPTION_ADLER32, OPTION_COMPACT, OPTION_CRC32, OPTION_EXPAND, OPTION_STREAM
     };
 
+    // Validate "compressionFormats" indices.
+    assert(!strcmp("bzip2",    compressionFormats[TYPE_BZIP2].name));
+    assert(!strcmp("gzip",     compressionFormats[TYPE_GZIP].name));
+    assert(!strcmp("zlib",     compressionFormats[TYPE_ZLIB].name));
+    assert(!strcmp("zlib-raw", compressionFormats[TYPE_ZLIBRAW].name));
+
+    // Check arguments.
     if (objc < 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "option arg ?arg ...?");
         return TCL_ERROR;

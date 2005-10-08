@@ -1204,8 +1204,8 @@ CryptCloseHandles(
     Tcl_HashEntry *entryPtr;
 
     for (entryPtr = Tcl_FirstHashEntry(tablePtr, &search);
-        entryPtr != NULL;
-        entryPtr = Tcl_NextHashEntry(&search)) {
+            entryPtr != NULL;
+            entryPtr = Tcl_NextHashEntry(&search)) {
 
         ckfree((char *)Tcl_GetHashValue(entryPtr));
         Tcl_DeleteHashEntry(entryPtr);
@@ -1275,8 +1275,8 @@ CryptInfoCmd(
 
             // Create a list of open crypt handles.
             for (hashEntryPtr = Tcl_FirstHashEntry(statePtr->cryptTable, &hashSearch);
-                hashEntryPtr != NULL;
-                hashEntryPtr = Tcl_NextHashEntry(&hashSearch)) {
+                    hashEntryPtr != NULL;
+                    hashEntryPtr = Tcl_NextHashEntry(&hashSearch)) {
 
                 name = Tcl_GetHashKey(statePtr->cryptTable, hashEntryPtr);
                 Tcl_ListObjAppendElement(NULL, resultPtr, Tcl_NewStringObj(name, -1));
@@ -1895,6 +1895,13 @@ CryptObjCmd(
         OPTION_PKCS5, OPTION_PRNG, OPTION_RAND, OPTION_START, OPTION_UPDATE
     };
 
+    // Validate "macSwitches" indices.
+    assert(!strcmp("-hmac",    macSwitches[CRYPT_HMAC]));
+    assert(!strcmp("-omac",    macSwitches[CRYPT_OMAC]));
+    assert(!strcmp("-pelican", macSwitches[CRYPT_PELICAN]));
+    assert(!strcmp("-pmac",    macSwitches[CRYPT_PMAC]));
+
+    // Check arguments.
     if (objc < 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "option arg ?arg ...?");
         return TCL_ERROR;

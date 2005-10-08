@@ -651,14 +651,14 @@ GetOnlineData(
                 memcpy(entry->status,     glData[i].status,     sizeof(glData[i].status));
                 memcpy(entry->host,       glData[i].host,       sizeof(glData[i].host));
                 memcpy(entry->currentdir, glData[i].currentdir, sizeof(glData[i].currentdir));
-                entry->ssl_flag      = -1;      // Not present in glFTPD 1.3x.
+                entry->ssl_flag      = -1; // Not present in glFTPD 1.3x.
                 entry->groupid       = glData[i].groupid;
                 entry->login_time    = glData[i].login_time;
                 entry->tstart        = glData[i].tstart;
                 entry->txfer.tv_sec  = 0; // Not present in glFTPD 1.3x.
                 entry->txfer.tv_usec = 0;
                 entry->bytes_xfer    = glData[i].bytes_xfer;
-                entry->bytes_txfer   = 0;       // Not present in glFTPD 1.3x.
+                entry->bytes_txfer   = 0; // Not present in glFTPD 1.3x.
                 entry->procid        = glData[i].procid;
                 (*onlineDataPtr)[i]  = entry;
             }
@@ -949,7 +949,7 @@ GlConfigCmd(
                 int version;
 
                 if (Tcl_GetIndexFromObjStruct(interp, objv[i], versions,
-                    sizeof(GlVersion), "version", TCL_EXACT, &version) != TCL_OK) {
+                        sizeof(GlVersion), "version", TCL_EXACT, &version) != TCL_OK) {
                     return TCL_ERROR;
                 }
                 handlePtr->version = version;
@@ -1033,8 +1033,8 @@ GlCloseHandles(
     Tcl_HashEntry *entryPtr;
 
     for (entryPtr = Tcl_FirstHashEntry(tablePtr, &search);
-        entryPtr != NULL;
-        entryPtr = Tcl_NextHashEntry(&search)) {
+            entryPtr != NULL;
+            entryPtr = Tcl_NextHashEntry(&search)) {
 
         handlePtr = (GlHandle *)Tcl_GetHashValue(entryPtr);
         ckfree(handlePtr->etcPath);
@@ -1099,8 +1099,8 @@ GlInfoCmd(
 
             // Create a list of open glFTPD handles.
             for (hashEntryPtr = Tcl_FirstHashEntry(statePtr->glftpdTable, &hashSearch);
-                hashEntryPtr != NULL;
-                hashEntryPtr = Tcl_NextHashEntry(&hashSearch)) {
+                    hashEntryPtr != NULL;
+                    hashEntryPtr = Tcl_NextHashEntry(&hashSearch)) {
 
                 name = Tcl_GetHashKey(statePtr->glftpdTable, hashEntryPtr);
                 Tcl_ListObjAppendElement(NULL, resultPtr, Tcl_NewStringObj(name, -1));
@@ -1268,23 +1268,6 @@ GlWhoCmd(
     if (Tcl_ListObjGetElements(interp, objv[3], &elementCount, &elementPtrs) != TCL_OK) {
         return TCL_ERROR;
     }
-
-    // Validate "whoFields" indices.
-    assert(!strcmp("action",    whoFields[WHO_ACTION]));
-    assert(!strcmp("gid",       whoFields[WHO_GID]));
-    assert(!strcmp("group",     whoFields[WHO_GROUP]));
-    assert(!strcmp("host",      whoFields[WHO_HOST]));
-    assert(!strcmp("idletime",  whoFields[WHO_IDLETIME]));
-    assert(!strcmp("logintime", whoFields[WHO_LOGINTIME]));
-    assert(!strcmp("path",      whoFields[WHO_PATH]));
-    assert(!strcmp("pid",       whoFields[WHO_PID]));
-    assert(!strcmp("size",      whoFields[WHO_SIZE]));
-    assert(!strcmp("speed",     whoFields[WHO_SPEED]));
-    assert(!strcmp("ssl",       whoFields[WHO_SSL]));
-    assert(!strcmp("status",    whoFields[WHO_STATUS]));
-    assert(!strcmp("tagline",   whoFields[WHO_TAGLINE]));
-    assert(!strcmp("uid",       whoFields[WHO_UID]));
-    assert(!strcmp("user",      whoFields[WHO_USER]));
 
     // Create an array of indices from "whoFields".
     fields = (unsigned char *)ckalloc(elementCount * sizeof(unsigned char));
@@ -1530,6 +1513,29 @@ GlFtpdObjCmd(
         OPTION_KILL, OPTION_OPEN, OPTION_WHO
     };
 
+    // Validate "versions" indices.
+    assert(!strcmp("1.3",  versions[GLFTPD_130].name));
+    assert(!strcmp("2.00", versions[GLFTPD_200].name));
+    assert(!strcmp("2.01", versions[GLFTPD_201].name));
+
+    // Validate "whoFields" indices.
+    assert(!strcmp("action",    whoFields[WHO_ACTION]));
+    assert(!strcmp("gid",       whoFields[WHO_GID]));
+    assert(!strcmp("group",     whoFields[WHO_GROUP]));
+    assert(!strcmp("host",      whoFields[WHO_HOST]));
+    assert(!strcmp("idletime",  whoFields[WHO_IDLETIME]));
+    assert(!strcmp("logintime", whoFields[WHO_LOGINTIME]));
+    assert(!strcmp("path",      whoFields[WHO_PATH]));
+    assert(!strcmp("pid",       whoFields[WHO_PID]));
+    assert(!strcmp("size",      whoFields[WHO_SIZE]));
+    assert(!strcmp("speed",     whoFields[WHO_SPEED]));
+    assert(!strcmp("ssl",       whoFields[WHO_SSL]));
+    assert(!strcmp("status",    whoFields[WHO_STATUS]));
+    assert(!strcmp("tagline",   whoFields[WHO_TAGLINE]));
+    assert(!strcmp("uid",       whoFields[WHO_UID]));
+    assert(!strcmp("user",      whoFields[WHO_USER]));
+
+    // Check arguments.
     if (objc < 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "option arg ?arg ...?");
         return TCL_ERROR;
