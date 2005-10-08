@@ -284,6 +284,7 @@ static const char *whoFields[] = {
     "port",
     "realdatapath",
     "realpath",
+    "service",
     "size",
     "speed",
     "status",
@@ -307,6 +308,7 @@ enum {
     WHO_PORT,
     WHO_REALDATAPATH,
     WHO_REALPATH,
+    WHO_SERVICE,
     WHO_SIZE,
     WHO_SPEED,
     WHO_STATUS,
@@ -1207,6 +1209,10 @@ GetOnlineFields(
                     }
                     break;
                 }
+                case WHO_SERVICE: {
+                    fieldObj = Tcl_NewStringObj(dcOnlineData->OnlineData.tszServiceName, -1);
+                    break;
+                }
                 case WHO_SIZE: {
                     fieldObj = Tcl_NewWideIntObj((Tcl_WideInt)
                         dcOnlineData->OnlineData.i64TotalBytesTransfered);
@@ -1866,6 +1872,7 @@ IoFtpdObjCmd(
     assert(!strcmp("port",         whoFields[WHO_PORT]));
     assert(!strcmp("realdatapath", whoFields[WHO_REALDATAPATH]));
     assert(!strcmp("realpath",     whoFields[WHO_REALPATH]));
+    assert(!strcmp("service",      whoFields[WHO_SERVICE]));
     assert(!strcmp("size",         whoFields[WHO_SIZE]));
     assert(!strcmp("speed",        whoFields[WHO_SPEED]));
     assert(!strcmp("status",       whoFields[WHO_STATUS]));

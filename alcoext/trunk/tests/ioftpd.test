@@ -328,10 +328,10 @@ test ioftpd-7.2 {ioftpd who: too many args} {win} {
 
 test ioftpd-7.3 {ioftpd who: invalid field} {win msgWndExists} {
     list [catch {ioftpd who $msgWindow .} msg] $msg
-} {1 {bad field ".": must be action, cid, gid, group, host, ident, idletime, ip, logintime, port, realdatapath, realpath, size, speed, status, uid, user, vdatapath, or vpath}}
+} {1 {bad field ".": must be action, cid, gid, group, host, ident, idletime, ip, logintime, port, realdatapath, realpath, service, size, speed, status, uid, user, vdatapath, or vpath}}
 
 test ioftpd-7.4 {ioftpd who: check fields} {win msgWndExists} {
-    set fields {action cid gid group host ident idletime ip logintime port realdatapath realpath size speed status uid user vdatapath vpath}
+    set fields {action cid gid group host ident idletime ip logintime port realdatapath realpath service size speed status uid user vdatapath vpath}
     set fieldCount [llength $fields]
     set result ""
 

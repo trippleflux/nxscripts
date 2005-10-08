@@ -1,6 +1,7 @@
 AlcoExt v0.4.0 (not released):
-  FIX: The "status" field for glFTPD did not change until another FTP command
-       was issued after a file transfer.
+  NEW: Added the "service" field to "ioftpd who".
+  FIX: The "status" field for "glftpd who" did not change until another FTP
+       command was issued after a file transfer.
 
 AlcoExt v0.3.0 (Oct 7, 2005):
   NEW: External interface to ioFTPD, uses shared memory to communicate with ioFTPD.
