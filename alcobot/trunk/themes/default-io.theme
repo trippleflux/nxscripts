@@ -155,7 +155,7 @@ REQDEL        = [b][[c1]Request[c]][b] [b]%(request)[b] (ID #%(id)) deleted by [
 REQFILL       = [b][[c1]Request[c]][b] [b]%(request)[b] (ID #%(id)) filled by [b]%(user)[b]/%(group) after %(age).
 REQWIPE       = [b][[c1]Request[c]][b] [b]%(request)[b] was auto-wiped since it's older than %(maxAge).
 
-# ioZS event  s.
+# ioSFV, ioZS, and Project-ZS events.
 COMPLETE      = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] %(message)
 HALFWAY       = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] %(message)
 INCOMPLETE    = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] %(message)

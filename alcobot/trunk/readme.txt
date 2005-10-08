@@ -5,9 +5,10 @@
 Topics:
  1. Information
  2. Installation
- 3. Modules
- 4. Bugs and Comments
- 5. License
+ 3. Zipscript
+ 4. Modules
+ 5. Bugs and Comments
+ 6. License
 
 ################################################################################
 # 1. Information                                                               #
@@ -56,7 +57,28 @@ AlcoBot is a modular sitebot written in Tcl for ioFTPD and glFTPD.
 
 
 ################################################################################
-# 3. Modules                                                                   #
+# 3. Zipscript                                                                 #
+################################################################################
+
+AlcoBot supports multiple zipscripts, but you must load the appropriate
+variable definition file. Select your desired zipscript, and add the .vars
+file name to "varFiles", under [General], in the AlcoBot configuration file.
+
+    iozs.vars   - ioZS for ioFTPD, written by StarDog.
+                - URL: http://www.iozs.com
+
+    iosfv.vars  - ioSFV for ioFTPD, written by _tUFF.
+                - URL: http://www.inicom.net/pages/en.ioftpd-scripts.php?id=41
+
+    pzs.vars    - Project-ZS for ioFTPD, written by Caladan and esmandil.
+                - URL: http://www.inicom.net/pages/en.ioftpd-scripts.php?id=98
+
+    pzs-ng.vars - Project-ZS-NG for glFTPD, written by the PZS-NG team.
+                - URL: http://www.pzs-ng.com
+
+
+################################################################################
+# 4. Modules                                                                   #
 ################################################################################
 
 ############################################################
@@ -164,7 +186,7 @@ Path: modules/generic/readlogs
 
 
 ################################################################################
-# 4. Bugs and Comments                                                         #
+# 5. Bugs and Comments                                                         #
 ################################################################################
 
    If you have any problems with this script, whether it is a bug, spelling
@@ -182,7 +204,7 @@ http://www.alcoholicz.com
 
 
 ################################################################################
-# 5. License                                                                   #
+# 6. License                                                                   #
 ################################################################################
 
    See the "license.txt" file for details.
