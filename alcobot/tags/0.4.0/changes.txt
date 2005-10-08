@@ -1,0 +1,37 @@
+AlcoExt v0.4.0 (Oct 7, 2005):
+  NEW: Online stats module, to view bandwidth usage and user activity.
+  NEW: Support for alternative user/group stores (e.g. ioShareDb). Access
+       to ioFTPD's user and group files is now done using shared memory.
+  NEW: Tcl version check, to ensure Tcl v8.4, or newer, is present.
+  CHG: The ioFTPD directory is now found automatically using the message window,
+       so the "rootPath" ioFTPD configuration option is no longer necessary.
+  FIX: Login/logout announce for glFTPD when users do not have a tagline.
+
+AlcoBot v0.3.0 (Oct 1, 2005):
+  NEW: FTP commands for the invite module: SITE INVITE/INVPASSWD/INVADMIN.
+  NEW: Invite module, allows users to join the site channel.
+  NEW: Multi-line messages, use "\n" to split announcements onto separate lines.
+  NEW: Support for "message" commands.
+  NEW: Uniform FTP daemon API for access to user and group files.
+  FIX: Blank lines are no longer sent when a theme entry is disabled.
+  FIX: Module dependency checks always failed.
+  FIX: Use lower/upper case string functions provided by the SQL server, since
+       not all DBMS engines support Unicode characters as well as Tcl.
+
+AlcoBot v0.2.0 (Sep 19, 2005):
+  NEW: Added installation instructions for modules.
+  NEW: Command-line style option parsing library.
+  NEW: DCC command to dump the configuration, ".alcobot dump".
+  NEW: Help module, to display support commands.
+  NEW: nxTools module for ioFTPD, to interact with nxTools' databases.
+  NEW: Pre times module, to search and display release pre times.
+  NEW: Variable and theme definitions for nxAutoNuke.
+  CHG: Modules now have separate variable definition files.
+  CHG: Moved to a less restrictive license (modified BSD).
+  CHG: The section parameter to the !free command is now case-insensitive.
+  CHG: The varFiles and themeFile options use file names instead of relative paths.
+  FIX: The bot failed to load if auto_path was not set.
+  FIX: The DCC command list did not display the full command names.
+
+AlcoBot v0.1.0 (Aug 29, 2005):
+  CHG: Initial release.

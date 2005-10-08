@@ -1,0 +1,88 @@
+#
+# AlcoBot - Alcoholicz site bot.
+# Copyright (c) 2005 Alcoholicz Scripting Team
+#
+# Module Name:
+#   Permission Tests
+#
+# Author:
+#   neoxed (neoxed@gmail.com) Sep 24, 2005
+#
+# Abstract:
+#   Implements regression tests for permission functions.
+#
+
+package require tcltest 2
+namespace import -force ::tcltest::*
+
+################################################################################
+# PermCheck                                                                    #
+################################################################################
+
+test permission-1.1 {PermCheck: noone} {
+    PermCheck "!*" neoxed STAFF 13ABC
+} {0}
+
+test permission-1.2 {PermCheck: everyone} {
+    PermCheck "*" neoxed STAFF 13ABC
+} {1}
+
+test permission-1.3 {PermCheck: user check} {
+    PermCheck "-neoxed !*" neoxed STAFF 13ABC
+} {1}
+
+test permission-1.4 {PermCheck: user check, partial} {
+    PermCheck "-n* !*" neoxed STAFF 13ABC
+} {1}
+
+test permission-1.5 {PermCheck: user check, negation} {
+    PermCheck "!-neoxed *" neoxed STAFF 13ABC
+} {0}
+
+test permission-1.6 {PermCheck: group check} {
+    PermCheck "=STAFF !*" neoxed STAFF 13ABC
+} {1}
+
+test permission-1.7 {PermCheck: group check, partial} {
+    PermCheck "=S* !*" neoxed STAFF 13ABC
+} {1}
+
+test permission-1.8 {PermCheck: group check, several groups} {
+    PermCheck "=DEF !*" neoxed [list ABC DEF STAFF] 13ABC
+} {1}
+
+test permission-1.9 {PermCheck: group check, negation} {
+    PermCheck "!=STAFF *" neoxed STAFF 13ABC
+} {0}
+
+test permission-1.10 {PermCheck: flag check} {
+    PermCheck "1 !*" neoxed STAFF 13ABC
+} {1}
+
+test permission-1.11 {PermCheck: flag check, negation} {
+    PermCheck "!A *" neoxed STAFF 13ABC
+} {0}
+
+################################################################################
+# PermMatchFlags                                                               #
+################################################################################
+
+test permission-2.1 {PermMatchFlags: present} {
+    PermMatchFlags "ABCDEF" "D"
+} {1}
+
+test permission-2.2 {PermMatchFlags: present} {
+    PermMatchFlags "ABCDEF" "ZXYABC"
+} {1}
+
+test permission-2.3 {PermMatchFlags: not present} {
+    PermMatchFlags "ABCDEF" "ZXY"
+} {0}
+
+test permission-2.4 {PermMatchFlags: any flag} {
+    PermMatchFlags "ABCDEF" "*"
+} {1}
+
+
+::tcltest::cleanupTests
+return
