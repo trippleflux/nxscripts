@@ -1435,11 +1435,17 @@ GetOnlineFields(
                     // 3 - Listing
                     int status = 0;
 
-                    if (strncasecmp(onlineData[i]->status, "RETR ", 5) == 0) {
-                        status = 1;
-                    } else if (strncasecmp(onlineData[i]->status, "STOR ", 5) == 0 ||
-                               strncasecmp(onlineData[i]->status, "APPE ", 5) == 0) {
-                        status = 2;
+                    if (onlineData[i].bytes_xfer > 0) {
+                        // If a transfer completes and the user does not issue
+                        // another command, the "status" field still contains
+                        // RETR/STOR/APPE. In order to prevent this lingering
+                        // effect, we check if any data has been transferred.
+                        if (strncasecmp(onlineData[i]->status, "RETR ", 5) == 0) {
+                            status = 1;
+                        } else if (strncasecmp(onlineData[i]->status, "STOR ", 5) == 0 ||
+                                   strncasecmp(onlineData[i]->status, "APPE ", 5) == 0) {
+                            status = 2;
+                        }
                     } else if (strncasecmp(onlineData[i]->status, "LIST ", 5) == 0 ||
                                strncasecmp(onlineData[i]->status, "NLST ", 5) == 0 ||
                                strncasecmp(onlineData[i]->status, "STAT ", 5) == 0) {
