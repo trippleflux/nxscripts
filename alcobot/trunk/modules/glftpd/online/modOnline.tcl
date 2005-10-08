@@ -17,7 +17,7 @@ namespace eval ::alcoholicz::Online {
         variable hideUsers  [list]
         variable hideGroups [list]
         variable hidePaths  [list]
-        variable msgWindow  ""
+        variable session ""
     }
     namespace import -force ::alcoholicz::*
 }
@@ -27,7 +27,7 @@ namespace eval ::alcoholicz::Online {
 #
 # Checks if the given user's name, group, or current path are hidden.
 #
-proc ::alcoholicz::Online::IsHidden {user group vpath} {
+proc ::alcoholicz::Online::IsHidden {user group path} {
     variable hideUsers
     variable hideGroups
     variable hidePaths
@@ -36,7 +36,7 @@ proc ::alcoholicz::Online::IsHidden {user group vpath} {
         return 1
     }
     foreach pattern $hidePaths {
-        if {[string match -nocase $pattern $vpath]} {return 1}
+        if {[string match -nocase $pattern $path]} {return 1}
     }
     return 0
 }
@@ -47,7 +47,7 @@ proc ::alcoholicz::Online::IsHidden {user group vpath} {
 # Implements a channel command to display current site bandwidth.
 #
 proc ::alcoholicz::Online::Bandwidth {event user host handle channel target argc argv} {
-    variable msgWindow
+    variable session
 
     switch -- $event {
         ALL {set theme "bandwidth"}
@@ -61,7 +61,7 @@ proc ::alcoholicz::Online::Bandwidth {event user host handle channel target argc
     set speedDn 0.0; set speedUp 0.0
     set usersDn 0; set usersUp 0; set usersIdle 0
 
-    if {![catch {set online [ioftpd who $msgWindow "speed status"]} message]} {
+    if {![catch {set online [glftpd who $session "speed status"]} message]} {
         foreach entry $online {
             set speed [lindex $entry 0]
 
@@ -82,14 +82,16 @@ proc ::alcoholicz::Online::Bandwidth {event user host handle channel target argc
                 }
             }
         }
+        set usersMax [glftpd info maxusers $session]
     } else {
         LogError ModOnline $message
+        set usersMax 0
     }
     set speedTotal [expr {$speedDn + $speedUp}]
     set usersTotal [expr {$usersDn + $usersUp + $usersIdle}]
 
     SendTargetTheme $target $theme [list $speedDn $speedUp $speedTotal \
-        $usersDn $usersUp $usersIdle $usersTotal]
+        $usersDn $usersUp $usersIdle $usersTotal $usersMax]
     return
 }
 
@@ -99,7 +101,7 @@ proc ::alcoholicz::Online::Bandwidth {event user host handle channel target argc
 # Implements a channel command to display the status of current users.
 #
 proc ::alcoholicz::Online::Status {event user host handle channel target argc argv} {
-    variable msgWindow
+    variable session
 
     switch -- $event {
         DN {
@@ -122,20 +124,20 @@ proc ::alcoholicz::Online::Status {event user host handle channel target argc ar
     SendTargetTheme $target ${theme}Head
     set total 0.0; set users 0
 
-    if {![catch {set online [ioftpd who $msgWindow "status user group idletime size speed vpath realdatapath"]} message]} {
+    if {![catch {set online [glftpd who $session "status user group idletime size speed path"]} message]} {
         foreach entry [lsort -index 1 $online] {
-            foreach {status user group idle size speed vpath dataPath} $entry {break}
-            if {![eval $filter] || [IsHidden $user $group $vpath]} {continue}
+            foreach {status user group idle size speed path} $entry {break}
+            if {![eval $filter] || [IsHidden $user $group $path]} {continue}
 
             incr users
             switch -- $status {
                 0 - 3 {
-                    SendTargetTheme $target ${theme}Body [list $user $group $idle $vpath]
+                    SendTargetTheme $target ${theme}Body [list $user $group $idle $path]
                 }
                 1 - 2 {
                     set total [expr {$total + $speed}]
                     SendTargetTheme $target ${theme}Body [list $user $group \
-                        $size $speed $vpath [file tail $dataPath]]
+                        $size $speed [file dirname $path] [file tail $path]]
                 }
             }
         }
@@ -153,7 +155,7 @@ proc ::alcoholicz::Online::Status {event user host handle channel target argc ar
 # Implements a channel command to display current users.
 #
 proc ::alcoholicz::Online::Users {event user host handle channel target argc argv} {
-    variable msgWindow
+    variable session
 
     if {$event eq "SPEED"} {
         if {$argc != 1} {
@@ -171,39 +173,41 @@ proc ::alcoholicz::Online::Users {event user host handle channel target argc arg
     set usersDn 0; set usersUp 0; set usersIdle 0
     set theme [string tolower $event]
 
-    if {![catch {set online [ioftpd who $msgWindow "status user group idletime size speed vpath realdatapath"]} message]} {
+    if {![catch {set online [glftpd who $session "status user group idletime size speed path"]} message]} {
         foreach entry [lsort -index 1 $online] {
-            foreach {status user group idle size speed vpath dataPath} $entry {break}
-            if {($event eq "SPEED" && $user ne [lindex $argv 0]) || [IsHidden $user $group $vpath]} {continue}
+            foreach {status user group idle size speed path} $entry {break}
+            if {($event eq "SPEED" && $user ne [lindex $argv 0]) || [IsHidden $user $group $path]} {continue}
 
             switch -- $status {
                 0 - 3 {
                     incr usersIdle
-                    SendTargetTheme $target ${theme}Idle [list $user $group $idle $vpath]
+                    SendTargetTheme $target ${theme}Idle [list $user $group $idle $path]
                 }
                 1 {
                     incr usersDn
                     set speedDn [expr {$speedDn + $speed}]
                     SendTargetTheme $target ${theme}Download [list $user $group \
-                        $size $speed $vpath [file tail $dataPath]]
+                        $size $speed [file dirname $path] [file tail $path]]
                 }
                 2 {
                     incr usersUp
                     set speedUp [expr {$speedUp + $speed}]
                     SendTargetTheme $target ${theme}Upload [list $user $group \
-                        $size $speed $vpath [file tail $dataPath]]
+                        $size $speed [file dirname $path] [file tail $path]]
                 }
             }
         }
+        set usersMax [glftpd info maxusers $session]
     } else {
         LogError ModOnline $message
+        set usersMax 0
     }
     set speedTotal [expr {$speedDn + $speedUp}]
     set usersTotal [expr {$usersDn + $usersUp + $usersIdle}]
 
     if {$usersTotal} {
         SendTargetTheme $target ${theme}Foot [list $speedDn $speedUp $speedTotal \
-            $usersDn $usersUp $usersIdle $usersTotal]
+            $usersDn $usersUp $usersIdle $usersTotal $usersMax]
     } else {
         SendTargetTheme $target ${theme}None
     }
@@ -216,18 +220,36 @@ proc ::alcoholicz::Online::Users {event user host handle channel target argc arg
 # Module initialisation procedure, called when the module is loaded.
 #
 proc ::alcoholicz::Online::Load {firstLoad} {
+    variable session
     variable hideUsers
     variable hideGroups
     variable hidePaths
-    variable msgWindow
     upvar ::alcoholicz::configHandle configHandle
 
-    set msgWindow [ConfigGet $configHandle IoFtpd msgWindow]
-    ioftpd info $msgWindow io
-
+    # Retrieve configuration options.
+    foreach option {rootPath shmKey version} {
+        set $option [ConfigGet $configHandle GlFtpd $option]
+    }
     foreach option {hideUsers hideGroups hidePaths} {
         set $option [ArgsToList [ConfigGet $configHandle Module::Online $option]]
     }
+
+    set etcPath [file join $rootPath "etc"]
+    if {![file isdirectory $etcPath]} {
+        error "the directory \"$etcPath\" does not exist"
+    }
+
+    if {![scan $shmKey "%lx" shmKey]} {
+        error "invalid shared memory key \"$shmKey\""
+    }
+
+    # Open a glFTPD session handle.
+    if {$session eq ""} {
+        set session [glftpd open $shmKey]
+    } else {
+        glftpd config $session -key $shmKey
+    }
+    glftpd config $session -etc $etcPath -version $version
 
     # Create related commands.
     if {[ConfigExists $configHandle Module::Online cmdPrefix]} {
@@ -269,5 +291,11 @@ proc ::alcoholicz::Online::Load {firstLoad} {
 # Module finalisation procedure, called before the module is unloaded.
 #
 proc ::alcoholicz::Online::Unload {} {
+    variable session
+
+    if {$session ne ""} {
+        glftpd close $session
+        set session ""
+    }
     return
 }
