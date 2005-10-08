@@ -1437,7 +1437,7 @@ GetOnlineFields(
                     // In order to prevent this lingering effect, we check if any
                     // data has been transferred first.
                     //
-                    if (onlineData[i].bytes_xfer > 0) {
+                    if (onlineData[i]->bytes_xfer > 0) {
                         if (strncasecmp(onlineData[i]->status, "RETR ", 5) == 0) {
                             status = 1;
                         } else if (strncasecmp(onlineData[i]->status, "STOR ", 5) == 0 ||
