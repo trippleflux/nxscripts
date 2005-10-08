@@ -13,7 +13,7 @@
 #   Implements a script to generate a listing of all available variables.
 #
 
-puts "\tVariable Index Generator\n\n"
+puts "\n\tVariable Index Generator\n\n"
 
 puts -nonewline "Path to the AlcoBot directory \[..\]: "
 flush stdout
