@@ -655,7 +655,8 @@ GetOnlineData(
                 entry->groupid       = glData[i].groupid;
                 entry->login_time    = glData[i].login_time;
                 entry->tstart        = glData[i].tstart;
-                entry->txfer         = {0, 0};  // Not present in glFTPD 1.3x.
+                entry->txfer.tv_sec  = 0; // Not present in glFTPD 1.3x.
+                entry->txfer.tv_usec = 0;
                 entry->bytes_xfer    = glData[i].bytes_xfer;
                 entry->bytes_txfer   = 0;       // Not present in glFTPD 1.3x.
                 entry->procid        = glData[i].procid;

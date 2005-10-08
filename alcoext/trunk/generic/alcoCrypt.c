@@ -1484,7 +1484,7 @@ CryptPrngCmd(
     StringCchPrintfA(channelName, ARRAYSIZE(channelName), "prng%p", handlePtr);
 #else // _WINDOWS
     snprintf(channelName, ARRAYSIZE(channelName), "prng%p", handlePtr);
-    handleName[ARRAYSIZE(channelName)-1] = '\0';
+    channelName[ARRAYSIZE(channelName)-1] = '\0';
 #endif // _WINDOWS
 
     handlePtr->channel = Tcl_CreateChannel(&prngChannelType, channelName,
