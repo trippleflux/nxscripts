@@ -1,6 +1,8 @@
 AlcoExt v0.3.0 (XXX XX, 2005):
   NEW: External interface to ioFTPD, uses shared memory to communicate with ioFTPD.
   CHG: Changed the values of the "status" field for the "glftpd who" command.
+  CHG: Updated the TEA autoconf scripts.
+  FIX: The template pkgIndex.tcl file had the wrong package name.
 
 AlcoExt v0.2.0 (Sep 19, 2005):
   NEW: Rewrote the PRNG interface as a Tcl channel driver.
