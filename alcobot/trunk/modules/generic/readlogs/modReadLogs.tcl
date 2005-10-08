@@ -76,8 +76,8 @@ proc ::alcoholicz::ReadLogs::ParseLogin {line eventVar dataVar} {
     # Note: In some glFTPD versions there is an extra space before
     # the host in BADPASSWORD, a typo by their developers I suppose.
     array set reLogin {
-        LOGIN       {LOGOUT: (\S+)@(\S+) \((\S+)\) "(\S+)" "(\S*)" "(.*)"$}
-        LOGOUT      {LOGIN: (\S+)@(\S+) \((\S+)\) \S+ "(\S+)" "(\S*)" "(.*)"$}
+        LOGIN       {LOGIN: (\S+)@(\S+) \((\S+)\) \S+ "(\S+)" "(\S*)" "(.*)"$}
+        LOGOUT      {LOGOUT: (\S+)@(\S+) \((\S+)\) "(\S+)" "(\S*)" "(.*)"$}
         TIMEOUT     {TIMEOUT: (\S+) \((\S+)@(\S+)\) timed out after being idle (\d+) seconds\.$}
         KILLGHOST   {^'(\S+)' killed a ghost with PID (\d+)\.$}
         BADHOSTMASK {^(\S+): (\S+)@(\S+) \((\S+)\): Bad user@host\.$}
