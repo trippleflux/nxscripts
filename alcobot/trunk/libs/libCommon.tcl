@@ -358,8 +358,9 @@ proc ::alcoholicz::VarFormat {valueVar name type width precision} {
     # for all types because of the performance implications in doing so.
     switch -- $type {
         b {set value [FormatSize [expr {double($value) / 1024.0}]]}
-        k {set value [FormatSize $value]}
         d {set value [FormatDuration $value]}
+        e {set value [subst -nocommands -novariables $value]}
+        k {set value [FormatSize $value]}
         s {set value [FormatSpeed $value]}
         p -
         P -
