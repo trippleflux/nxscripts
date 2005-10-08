@@ -1429,17 +1429,15 @@ GetOnlineFields(
                     break;
                 }
                 case WHO_STATUS: {
-                    // 0 - Idle
-                    // 1 - Download
-                    // 2 - Upload
-                    // 3 - Listing
                     int status = 0;
 
+                    //
+                    // If a transfer completes and the user does not issue another
+                    // command, the "status" field still contains RETR/STOR/APPE.
+                    // In order to prevent this lingering effect, we check if any
+                    // data has been transferred first.
+                    //
                     if (onlineData[i].bytes_xfer > 0) {
-                        // If a transfer completes and the user does not issue
-                        // another command, the "status" field still contains
-                        // RETR/STOR/APPE. In order to prevent this lingering
-                        // effect, we check if any data has been transferred.
                         if (strncasecmp(onlineData[i]->status, "RETR ", 5) == 0) {
                             status = 1;
                         } else if (strncasecmp(onlineData[i]->status, "STOR ", 5) == 0 ||
@@ -1451,6 +1449,13 @@ GetOnlineFields(
                                strncasecmp(onlineData[i]->status, "STAT ", 5) == 0) {
                         status = 3;
                     }
+
+                    //
+                    // 0 - Idle
+                    // 1 - Download
+                    // 2 - Upload
+                    // 3 - Listing
+                    //
                     fieldObj = Tcl_NewIntObj(status);
                     break;
                 }

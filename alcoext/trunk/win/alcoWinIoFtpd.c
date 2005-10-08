@@ -1223,10 +1223,12 @@ GetOnlineFields(
                     break;
                 }
                 case WHO_STATUS: {
+                    //
                     // 0 - Idle
                     // 1 - Download
                     // 2 - Upload
                     // 3 - List
+                    //
                     fieldObj = Tcl_NewLongObj((long)dcOnlineData->OnlineData.bTransferStatus);
                     break;
                 }
