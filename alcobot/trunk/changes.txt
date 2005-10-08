@@ -5,6 +5,7 @@ AlcoExt v0.4.0 (XXX XX, 2005):
   NEW: Tcl version check, to ensure Tcl v8.4, or newer, is present.
   CHG: The ioFTPD directory is now found automatically using the message window,
        so the "rootPath" ioFTPD configuration option is no longer necessary.
+  FIX: Login/logout announce for glFTPD when users do not have a tagline.
 
 AlcoBot v0.3.0 (Oct 1, 2005):
   NEW: FTP commands for the invite module: SITE INVITE/INVPASSWD/INVADMIN.
