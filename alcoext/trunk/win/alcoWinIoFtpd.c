@@ -343,8 +343,8 @@ ShmInit(
 {
     char *windowName;
 
-    assert(session   != NULL);
     assert(interp    != NULL);
+    assert(session   != NULL);
     assert(windowObj != NULL);
 
     windowName = Tcl_GetString(windowObj);
@@ -394,6 +394,7 @@ ShmAlloc(
     HANDLE memMap = NULL;
     void *remote;
 
+    assert(interp  != NULL);
     assert(session != NULL);
     assert(bytes > 0);
 
@@ -736,8 +737,8 @@ GetGroupFile(
     )
 {
     DebugPrint("GetGroupFile: groupId=%d groupFile=0x%p\n", groupId, groupFile);
-    assert(session  != NULL);
-    assert(memory   != NULL);
+    assert(session   != NULL);
+    assert(memory    != NULL);
     assert(memory->bytes >= sizeof(GROUPFILE));
     assert(groupFile != NULL);
 
@@ -1790,27 +1791,6 @@ IoWhoCmd(
         return TCL_ERROR;
     }
 
-    // Validate "whoFields" indices.
-    assert(!strcmp("action",       whoFields[WHO_ACTION]));
-    assert(!strcmp("cid",          whoFields[WHO_CID]));
-    assert(!strcmp("gid",          whoFields[WHO_GID]));
-    assert(!strcmp("group",        whoFields[WHO_GROUP]));
-    assert(!strcmp("host",         whoFields[WHO_HOST]));
-    assert(!strcmp("ident",        whoFields[WHO_IDENT]));
-    assert(!strcmp("idletime",     whoFields[WHO_IDLETIME]));
-    assert(!strcmp("ip",           whoFields[WHO_IP]));
-    assert(!strcmp("logintime",    whoFields[WHO_LOGINTIME]));
-    assert(!strcmp("port",         whoFields[WHO_PORT]));
-    assert(!strcmp("realdatapath", whoFields[WHO_REALDATAPATH]));
-    assert(!strcmp("realpath",     whoFields[WHO_REALPATH]));
-    assert(!strcmp("size",         whoFields[WHO_SIZE]));
-    assert(!strcmp("speed",        whoFields[WHO_SPEED]));
-    assert(!strcmp("status",       whoFields[WHO_STATUS]));
-    assert(!strcmp("uid",          whoFields[WHO_UID]));
-    assert(!strcmp("user",         whoFields[WHO_USER]));
-    assert(!strcmp("vdatapath",    whoFields[WHO_VDATAPATH]));
-    assert(!strcmp("vpath",        whoFields[WHO_VPATH]));
-
     // Create an array of indices from "whoFields".
     fields = (unsigned char *)ckalloc(elementCount * sizeof(unsigned char));
 
@@ -1871,6 +1851,28 @@ IoFtpdObjCmd(
         OPTION_GROUP, OPTION_INFO, OPTION_KICK, OPTION_KILL, OPTION_USER, OPTION_WHO
     };
 
+    // Validate "whoFields" indices.
+    assert(!strcmp("action",       whoFields[WHO_ACTION]));
+    assert(!strcmp("cid",          whoFields[WHO_CID]));
+    assert(!strcmp("gid",          whoFields[WHO_GID]));
+    assert(!strcmp("group",        whoFields[WHO_GROUP]));
+    assert(!strcmp("host",         whoFields[WHO_HOST]));
+    assert(!strcmp("ident",        whoFields[WHO_IDENT]));
+    assert(!strcmp("idletime",     whoFields[WHO_IDLETIME]));
+    assert(!strcmp("ip",           whoFields[WHO_IP]));
+    assert(!strcmp("logintime",    whoFields[WHO_LOGINTIME]));
+    assert(!strcmp("port",         whoFields[WHO_PORT]));
+    assert(!strcmp("realdatapath", whoFields[WHO_REALDATAPATH]));
+    assert(!strcmp("realpath",     whoFields[WHO_REALPATH]));
+    assert(!strcmp("size",         whoFields[WHO_SIZE]));
+    assert(!strcmp("speed",        whoFields[WHO_SPEED]));
+    assert(!strcmp("status",       whoFields[WHO_STATUS]));
+    assert(!strcmp("uid",          whoFields[WHO_UID]));
+    assert(!strcmp("user",         whoFields[WHO_USER]));
+    assert(!strcmp("vdatapath",    whoFields[WHO_VDATAPATH]));
+    assert(!strcmp("vpath",        whoFields[WHO_VPATH]));
+
+    // Check arguments.
     if (objc < 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "option arg ?arg ...?");
         return TCL_ERROR;
