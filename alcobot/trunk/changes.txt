@@ -2,6 +2,7 @@ AlcoExt v0.4.0 (XXX XX, 2005):
   NEW: Online stats module, to view bandwidth usage and user activity.
   NEW: Support for alternative user/group stores (e.g. ioShareDb). Access
        to ioFTPD's user and group files is now done using shared memory.
+  NEW: Tcl version check, to ensure Tcl v8.4, or newer, is present.
   CHG: The ioFTPD directory is now found automatically using the message window,
        so the "rootPath" ioFTPD configuration option is no longer necessary.
 

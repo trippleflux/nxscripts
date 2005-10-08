@@ -1330,4 +1330,13 @@ proc ::alcoholicz::InitMain {} {
     return
 }
 
+# This Tcl version check is here for a reason - do not remove it. If you
+# think removing this check in order for AlcoBot to work on an older Tcl is
+# clever, it's not. In fact, you are a moron. AlcoBot uses several features
+# which are specific to Tcl 8.4.
+if {[catch {package require Tcl 8.4} error]} {
+    LogError TclVersion "You must be using Tcl v8.4, or newer."
+    die
+}
+
 ::alcoholicz::InitMain
