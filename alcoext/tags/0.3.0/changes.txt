@@ -1,0 +1,16 @@
+AlcoExt v0.3.0 (Oct 7, 2005):
+  NEW: External interface to ioFTPD, uses shared memory to communicate with ioFTPD.
+  CHG: Changed the values of the "status" field for the "glftpd who" command.
+  CHG: Updated the TEA autoconf scripts.
+  FIX: Build issues on BSD/Linux systems.
+  FIX: The template pkgIndex.tcl file had the wrong package name.
+
+AlcoExt v0.2.0 (Sep 19, 2005):
+  NEW: Rewrote the PRNG interface as a Tcl channel driver.
+  CHG: Moved to a less restrictive license (modified BSD).
+  CHG: The memory address of a handle's data structure is now used in the handle's
+       identifier. This ensures that handle identifiers are always unique.
+  FIX: Possible out-of-bounds error in BzipSetError().
+
+AlcoExt v0.1.0 (Aug 29, 2005):
+  CHG: Initial release.
