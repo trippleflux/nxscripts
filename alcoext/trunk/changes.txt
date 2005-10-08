@@ -1,4 +1,4 @@
-AlcoExt v0.3.0 (XXX XX, 2005):
+AlcoExt v0.3.0 (Oct 7, 2005):
   NEW: External interface to ioFTPD, uses shared memory to communicate with ioFTPD.
   CHG: Changed the values of the "status" field for the "glftpd who" command.
   CHG: Updated the TEA autoconf scripts.
