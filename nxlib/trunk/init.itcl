@@ -20,7 +20,6 @@ set TclFiles {
 
 set LibFiles {
   {nxHelper.dll}
-  {mysqltcl.dll}
   {tclsqlite3.dll}
 }
 

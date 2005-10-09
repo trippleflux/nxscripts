@@ -117,29 +117,6 @@ proc ::nxLib::DbBusyHandler {tries} {
     return 0
 }
 
-proc ::nxLib::MySqlConnect {} {
-    global mysql
-    if {[catch {set mysql(ConnHandle) [::mysql::connect -host $mysql(Host) -user $mysql(Username) -password $mysql(Password) -port $mysql(Port) -db $mysql(DataBase)]} error]} {
-        ErrorLog MySqlConnect $error
-    } elseif {[lsearch -exact [::mysql::info $mysql(ConnHandle) tables] $mysql(TableName)] != -1} {
-        return 1
-    } else {
-        ErrorLog MySqlConnect "the table \"$mysql(TableName)\" does not exist in the database \"$mysql(DataBase)\""
-        MySqlClose
-    }
-    set mysql(ConnHandle) -1
-    return 0
-}
-
-proc ::nxLib::MySqlClose {} {
-    global mysql
-    if {$mysql(ConnHandle) != -1} {
-        catch {::mysql::close $mysql(ConnHandle)}
-        set mysql(ConnHandle) -1
-    }
-    return
-}
-
 proc ::nxLib::SqlGetPattern {pattern} {
     set pattern "*$pattern*"
     regsub -all {[\s\*]+} $pattern "*" pattern
