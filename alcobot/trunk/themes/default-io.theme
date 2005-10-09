@@ -156,15 +156,15 @@ REQFILL       = [b][[c1]Request[c]][b] [b]%(request)[b] (ID #%(id)) filled by [b
 REQWIPE       = [b][[c1]Request[c]][b] [b]%(request)[b] was auto-wiped since it's older than %(maxAge).
 
 # ioSFV, ioZS, and Project-ZS events.
-COMPLETE      = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] %(message)
-HALFWAY       = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] %(message)
-INCOMPLETE    = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] %(message)
-NEWLEADER     = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] %(message)
-RACE          = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] %(message)
-SFV           = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] %(message)
-STATS         = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] %(message)
-UPDATE        = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] %(message)
-WARN          = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] %(message)
+COMPLETE      = [b][[c1]%(section)[c]][b] %(message)
+HALFWAY       = [b][[c1]%(section)[c]][b] %(message)
+INCOMPLETE    = [b][[c1]%(section)[c]][b] %(message)
+NEWLEADER     = [b][[c1]%(section)[c]][b] %(message)
+RACE          = [b][[c1]%(section)[c]][b] %(message)
+SFV           = [b][[c1]%(section)[c]][b] %(message)
+STATS         = [b][[c1]%(section)[c]][b] %(message)
+UPDATE        = [b][[c1]%(section)[c]][b] %(message)
+WARN          = [b][[c1]%(section)[c]][b] %(message)
 
 # Command argument help.
 commandHelp   = [b][[c1]Usage[c]][b] %(command) %(arguments) - %(message)
