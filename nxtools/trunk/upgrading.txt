@@ -2,6 +2,10 @@
 #                             nxTools - Upgrading                              #
 ################################################################################
 
+0.9.13 -> 0.9.14
+ - Replace /scripts/nxLib.tcl and all files located in /scripts/nxTools/.
+ - Repeat step 3 in the installation manual.
+
 0.9.12 -> 0.9.13
  - Replace /scripts/nxLib.tcl and all files located in /scripts/nxTools/.
  - Remove config options: misc(SiteBot) and new(Exempts).
@@ -31,7 +35,7 @@
    pretime(CheckPaths).
  - Renamed config options: misc(UTC_Time) to misc(UtcTime) and pre(ChownUID) to
    pre(ChownUserId).
- - Repeat steps 1 to 3 in the installation section.
+ - Repeat step 3 in the installation manual.
 
 0.9.7 -> 0.9.8
  - Replace all .itcl files located in /scripts/nxTools/.

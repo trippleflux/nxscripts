@@ -137,7 +137,7 @@ proc ::nxTools::Req::Add {userName groupName request} {
             set requestId [format "%03s" $requestId]
             putlog "REQUEST: \"$userName\" \"$groupName\" \"$request\" \"$requestId\""
             LinePuts "Added your request of $request (#$requestId)."
-            UpdateDir ADD $request
+            UpdateDir ADD $request [resolve user $userName] [resolve group $groupName]
         }
     }
 
@@ -145,8 +145,8 @@ proc ::nxTools::Req::Add {userName groupName request} {
     return $result
 }
 
-proc ::nxTools::Req::Update {event userName groupName request} {
-    global misc req flags
+proc ::nxTools::Req::Update {event userName groupName flags request} {
+    global misc req
     iputs ".-\[Request\]--------------------------------------------------------------."
     set exists 0
     set result 0
@@ -167,7 +167,6 @@ proc ::nxTools::Req::Update {event userName groupName request} {
             ReqDb eval {UPDATE Requests SET Status=1 WHERE rowid=$values(rowid)}
             LinePuts "Filled request $values(Request) for $values(UserName)/$values(GroupName)."
             set logType "REQFILL"
-
         } elseif {$event eq "DEL"} {
             # Only siteops or the owner may delete a request.
             if {$userName ne $values(UserName) && ![MatchFlags $misc(SiteopFlags) $flags]} {
@@ -256,7 +255,7 @@ proc ::nxTools::Req::Wipe {} {
 ######################################################################
 
 proc ::nxTools::Req::Main {argv} {
-    global misc ioerror group user
+    global misc ioerror group user flags
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     set result 0
 
@@ -269,6 +268,27 @@ proc ::nxTools::Req::Main {argv} {
     set argLength [llength [set argList [ArgList $argv]]]
     set event [string toupper [lindex $argList 0]]
     set request [join [lrange $argList 1 end]]
+
+    if {$event eq "BOT"} {
+        if {$argLength != 5} {
+            iputs "Syntax: SITE REQBOT <event> <user> <group> <request>"
+        } else {
+            foreach {event user group request} [lrange $argList 1 end] {break}
+
+            # Look up the user's flags.
+            set flags ""
+            if {[userfile open $user] == 0} {
+                set userFile [userfile bin2ascii]
+                foreach line [split $userFile "\r\n"] {
+                    if {[string equal -nocase "flags" [lindex $line 0]]} {
+                        set flags [lindex $line 1]; break
+                    }
+                }
+            }
+            set event [string toupper $event]
+        }
+    }
+
     switch -- $event {
         ADD {
             if {$argLength > 1} {
@@ -277,9 +297,10 @@ proc ::nxTools::Req::Main {argv} {
                 iputs "Syntax: SITE REQUEST <request>"
             }
         }
+        BOT {}
         DEL - FILL {
             if {$argLength > 1} {
-                set result [Update $event $user $group $request]
+                set result [Update $event $user $group $flags $request]
             } else {
                 iputs "Syntax: SITE REQ$event <id/request>"
             }

@@ -3,9 +3,11 @@
 ################################################################################
 
 nxTools v0.9.14 (XXX XX, 2005):
+  NEW: SITE REQBOT, for IRC request support.
   CHG: The 'release' column of the pre-time table is now unique.
   FIX: Corrected the message shown on 'SITE NUKETOP' if there are no nukees.
   FIX: Corrected URL for the nxTools library package.
+  FIX: User ownership is now properly set on request tags.
 
 nxTools v0.9.13 (Sep 10, 2005):
   NEW: Moved to the modified BSD license.
