@@ -1,3 +1,0 @@
-| - %-48(release) Area: %-13.13(section) |
-| Pre'd: %02(month)/%02(day)/%02(year2) %02(hour):%02(min):%02(sec)    Age: %-17(age) Info: %3(files)F/%-8(size) |
-| Nuked: %02(nukemonth)/%02(nukeday)/%02(nukeyear2) %02(nukehour):%02(nukemin):%02(nukesec)    Reason: %-34(reason) |

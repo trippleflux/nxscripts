@@ -5,6 +5,7 @@
 0.9.13 -> 0.9.14
  - Replace /scripts/nxLib.tcl and all files located in /scripts/nxTools/.
  - Repeat step 3 in the installation manual.
+ - Remove config sections: "Pre Time Checking" and "MySQL Server".
 
 0.9.12 -> 0.9.13
  - Replace /scripts/nxLib.tcl and all files located in /scripts/nxTools/.

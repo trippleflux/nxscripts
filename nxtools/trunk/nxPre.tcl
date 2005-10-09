@@ -526,7 +526,7 @@ proc ::nxTools::Pre::Stats {argList} {
 }
 
 proc ::nxTools::Pre::Release {argList} {
-    global dupe latest misc mysql pre pretime group groups pwd user
+    global dupe latest misc pre group groups pwd user
     if {![ConfigRead $pre(ConfigFile)]} {return 1}
     set area [string toupper [lindex $argList 0]]
     set target [lindex $argList 1]
@@ -749,15 +749,6 @@ proc ::nxTools::Pre::Release {argList} {
                 VALUES($preTime,$logUser,$preGroup,$logPath,$release)}
             DirDb close
         } else {ErrorLog PreDupeDb $error}
-    }
-
-    if {[IsTrue $pretime(AddOnPre)] && [MySqlConnect]} {
-        set area [::mysql::escape $area]
-        set release [::mysql::escape $release]
-        if {[catch {::mysql::exec $mysql(ConnHandle) "INSERT INTO $mysql(TableName) (pretime,section,release,files,kbytes,disks) VALUES('$preTime','$area','$release','$files','$totalSize','$diskCount')"} error]} {
-            if {[string first "Duplicate entry" $error] == -1} {ErrorLog PreAddToDb $error}
-        }
-        MySqlClose
     }
 
     # Create latest pre symlinks.

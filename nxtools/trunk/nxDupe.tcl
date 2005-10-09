@@ -306,60 +306,6 @@ proc ::nxTools::Dupe::ForceCheck {virtualPath} {
     return 0
 }
 
-proc ::nxTools::Dupe::PreTimeCheck {virtualPath} {
-    global misc mysql pretime
-    if {[ListMatchI $pretime(Ignores) $virtualPath]} {return 0}
-    set check 0; set result 0
-
-    foreach preCheck $pretime(CheckPaths) {
-        if {[llength $preCheck] != 4} {
-            ErrorLog PreTimeCheck "wrong number of parameters in line: \"$preCheck\""; continue
-        }
-        foreach {checkPath denyLate logInfo lateMins} $preCheck {break}
-        if {[string match $checkPath $virtualPath]} {set check 1; break}
-    }
-
-    if {$check && [MySqlConnect]} {
-        set releaseName [::mysql::escape [file tail $virtualPath]]
-        set timeStamp [::mysql::sel $mysql(ConnHandle) "SELECT pretime FROM $mysql(TableName) WHERE release='$releaseName' LIMIT 1" -flatlist]
-
-        if {[string is digit -strict $timeStamp]} {
-            if {[set releaseAge [expr {[clock seconds] - $timeStamp}]] > [set lateSecs [expr {$lateMins * 60}]]} {
-                if {[IsTrue $denyLate]} {
-                    set code 553
-                    set logType "DENYPRE"
-                    set message "Release not allowed by pre rules, older than [FormatDurationLong $lateSecs]."
-                    set result 1
-                } else {
-                    set code 257
-                    set logType "WARNPRE"
-                    set message "Release older than [FormatDurationLong $lateSecs], possible nuke."
-                }
-                iputs -noprefix "${code}-.-\[PreCheck\]--------------------------------------------------."
-                iputs -noprefix "${code}-| [format %-59s $message] |"
-                iputs -noprefix "${code}-| [format %-59s "Pre'd [FormatDurationLong $releaseAge] ago."] |"
-                iputs -noprefix "${code} '-------------------------------------------------------------'"
-                if {[IsTrue $logInfo]} {
-                    if {[IsTrue $misc(dZSbotLogging)]} {
-                        set lateSecs $lateMins
-                        set releaseAge [FormatDuration $releaseAge]
-                        set timeStamp [clock format $timeStamp -format "%m/%d/%y %H:%M:%S" -gmt 1]
-                    }
-                    putlog "${logType}: \"$virtualPath\" \"$lateSecs\" \"$releaseAge\" \"$timeStamp\""
-                }
-            } elseif {[IsTrue $logInfo]} {
-                if {[IsTrue $misc(dZSbotLogging)]} {
-                    set releaseAge [FormatDuration $releaseAge]
-                    set timeStamp [clock format $timeStamp -format "%m/%d/%y %H:%M:%S" -gmt 1]
-                }
-                putlog "PRETIME: \"$virtualPath\" \"$releaseAge\" \"$timeStamp\""
-            }
-        }
-        MySqlClose
-    }
-    return $result
-}
-
 proc ::nxTools::Dupe::RaceLinks {virtualPath} {
     global latest
     if {[ListMatch $latest(Exempts) $virtualPath] || [ListMatchI $latest(Ignores) $virtualPath]} {
@@ -602,41 +548,6 @@ proc ::nxTools::Dupe::SiteNew {limit showSection} {
     return 0
 }
 
-proc ::nxTools::Dupe::SitePreTime {limit pattern} {
-    global misc mysql
-    foreach fileExt {Header Body BodyInfo BodyNuke None Footer} {
-        set template($fileExt) [ReadFile [file join $misc(Templates) "PreTime.$fileExt"]]
-    }
-    OutputText $template(Header)
-    set count 0
-    set pattern [SqlGetPattern $pattern]
-
-    if {[MySqlConnect]} {
-        set queryResults [::mysql::sel $mysql(ConnHandle) "SELECT * FROM $mysql(TableName) WHERE release LIKE '$pattern' ORDER BY pretime DESC LIMIT $limit" -list]
-        set singleResult [expr {[llength $queryResults] == 1}]
-        set timeNow [clock seconds]
-
-        foreach queryLine $queryResults {
-            foreach {preId preTime section release files kiloBytes disks isNuked nukeTime nukeReason} $queryLine {break}
-            incr count
-            set bodyTemplate [expr {$singleResult ? ($isNuked != 0 ? $template(BodyNuke) : $template(BodyInfo)) : $template(Body)}]
-            set age [FormatDuration [expr {$timeNow - $preTime}]]
-
-            # The pre time should always been in UTC (GMT).
-            set valueList [clock format $preTime -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 1]
-            eval lappend valueList [clock format $nukeTime -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt 1]
-            lappend valueList $age $count $section $release $files [FormatSize $kiloBytes] $disks $nukeReason
-            OutputText [ParseCookies $bodyTemplate $valueList {sec min hour day month year2 year4 nukesec nukemin nukehour nukeday nukemonth nukeyear2 nukeyear4 age num section release files size disks reason}]
-
-        }
-        MySqlClose
-    }
-
-    if {!$count} {OutputText $template(None)}
-    OutputText $template(Footer)
-    return 0
-}
-
 proc ::nxTools::Dupe::SiteUndupe {argList} {
     global dupe misc
     iputs ".-\[Undupe\]---------------------------------------------------------------."
@@ -725,7 +636,7 @@ proc ::nxTools::Dupe::SiteWipe {virtualPath} {
 ######################################################################
 
 proc ::nxTools::Dupe::Main {argv} {
-    global approve dupe force latest misc pretime group ioerror pwd user
+    global approve dupe force latest misc group ioerror pwd user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     set result 0
 
@@ -753,9 +664,6 @@ proc ::nxTools::Dupe::Main {argv} {
             if {!([IsTrue $approve(CheckMkd)] && [ApproveCheck $virtualPath 0])} {
                 if {[IsTrue $dupe(CheckDirs)]} {
                     set result [CheckDirs $virtualPath]
-                }
-                if {$result == 0 && [IsTrue $pretime(CheckMkd)]} {
-                    set result [PreTimeCheck $virtualPath]
                 }
             }
         }
@@ -812,13 +720,6 @@ proc ::nxTools::Dupe::Main {argv} {
                 set result [SiteNew $limit $sectionName]
             } else {
                 iputs "Syntax: SITE NEW \[-max <limit>\] \[section\]"
-            }
-        }
-        PRETIME {
-            if {$argLength > 1 && [GetOptions [lrange $argList 1 end] limit pattern]} {
-                set result [SitePreTime $limit $pattern]
-            } else {
-                iputs "Syntax: SITE PRETIME \[-max <limit>\] <release>"
             }
         }
         REBUILD {

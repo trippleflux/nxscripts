@@ -104,7 +104,6 @@ clean       = TCL ..\scripts\nxTools\nxDupe.tcl CLEAN
 dupe        = TCL ..\scripts\nxTools\nxDupe.tcl DUPE
 fdupe       = TCL ..\scripts\nxTools\nxDupe.tcl FDUPE
 new         = TCL ..\scripts\nxTools\nxDupe.tcl NEW
-pretime     = TCL ..\scripts\nxTools\nxDupe.tcl PRETIME
 rebuild     = TCL ..\scripts\nxTools\nxDupe.tcl REBUILD
 undupe      = TCL ..\scripts\nxTools\nxDupe.tcl UNDUPE
 wipe        = TCL ..\scripts\nxTools\nxDupe.tcl WIPE
@@ -161,7 +160,6 @@ nuketop     = !A *
 onel        = !A *
 open        = M1
 pre         = !A *
-pretime     = !A *
 rebuild     = M1
 reqbot      = M1
 reqdel      = !A *
@@ -273,7 +271,7 @@ nxWeekly = 0 0 * 6 TCL ..\scripts\nxTools\nxUtilities.tcl WEEKLYSET
 
     In your dZSbot.tcl file, make sure the following entries exist:
 
-set msgtypes(RACE)    - APPROVE NEWDATE PRE PREMP3 PRETIME DENYPRE WARNPRE WIPE
+set msgtypes(RACE)    - APPROVE NEWDATE PRE PREMP3 WIPE
 set msgtypes(DEFAULT) - APPROVEADD APPROVEDEL OPEN CLOSE GIVE TAKE INVITE REQUEST REQDEL REQFILL REQWIPE
 
     Add or replace the following:
@@ -282,20 +280,17 @@ set disable(APPROVE)        0
 set disable(APPROVEADD)     0
 set disable(APPROVEDEL)     0
 set disable(CLOSE)          0
-set disable(DENYPRE)        0
 set disable(GIVE)           0
 set disable(INVITE)         0
 set disable(NEWDATE)        0
 set disable(OPEN)           0
 set disable(PRE)            0
 set disable(PREMP3)         0
-set disable(PRETIME)        0
 set disable(REQDEL)         0
 set disable(REQFILL)        0
 set disable(REQUEST)        0
 set disable(REQWIPE)        0
 set disable(TAKE)           0
-set disable(WARNPRE)        0
 set disable(WIPE)           0
 
 set variables(APPROVEADD)   "%user %group %release"
@@ -313,9 +308,6 @@ set variables(APPROVE)      "%pf %user %group"
 set variables(NEWDATE)      "%pf %area %desc"
 set variables(PRE)          "%pf %pregroup %user %group %area %files %mbytes %disks"
 set variables(PREMP3)       "%pf %pregroup %user %group %area %files %mbytes %disks %genre %kbit %year"
-set variables(PRETIME)      "%pf %preage %pretime"
-set variables(DENYPRE)      "%pf %rulemins %preage %pretime"
-set variables(WARNPRE)      "%pf %rulemins %preage %pretime"
 set variables(WIPE)         "%pf %user %group %dirs %files %mbytes"
 
 set announce(APPROVEADD)    "-%sitename- \[APPROVE ADD\] + %bold%user%bold@%group approved %bold%release%bold."
@@ -333,9 +325,6 @@ set announce(APPROVE)       "-%sitename- \[%section\] + %path/%bold%release%bold
 set announce(NEWDATE)       "-%sitename- \[%section\] + A new day has come, change your current %bold%path%bold dir to %bold%release%bold"
 set announce(PRE)           "-%sitename- \[%section\] + %bold%pregroup%bold launches %bold%release%bold (%bold%mbytes%boldMB in %bold%files%boldF with %bold%disks%bold Disks)"
 set announce(PREMP3)        "-%sitename- \[%section\] + %bold%pregroup%bold launches %bold%release%bold (%bold%mbytes%boldMB in %bold%files%boldF - %bold%genre%bold - %bold%kbit%boldkbits - %bold%year%bold)"
-set announce(PRETIME)       "-%sitename- \[%section\] + %path/%bold%release%bold was pre'd at %pretime, %bold%preage%bold ago"
-set announce(DENYPRE)       "-%sitename- \[%section\] + %path/%bold%release%bold was denied because it's older than the %bold%rulemins%boldmin limit (pre'd %bold%preage%bold ago)"
-set announce(WARNPRE)       "-%sitename- \[%section\] + %path/%bold%release%bold is older than the %bold%rulemins%boldmin limit (pre'd %bold%preage%bold ago), possible nuke!"
 set announce(WIPE)          "-%sitename- \[%section\] + %bold%user%bold@%group wiped %path/%bold%release%bold %bold%mbytes%boldMB (%bold%files%bold files, %bold%dirs%bold dirs)"
 
 12. Finished, for now at least. Be sure to keep your nxTools version up-to-date!
@@ -697,33 +686,6 @@ A: Check the file /logs/nxError.log for details. If there is any errors in the
 # 7. Technical Notes                                                           #
 ################################################################################
 
-MySQL Pre Times Table:
-
-- If you want to use the pre times functionality of nxTools, you must use this
-  MySQL table format for your pre times database.
-
-- However, if you have already have a pre times database and wish to use it, you
-  will have to modify nxTools to support it. I will provide absolutely no help or
-  support if you choose to do so.
-
-- Tested on MySQL Server v4.1.
-
-CREATE TABLE `pretimes` (
-  `id` int unsigned NOT NULL auto_increment,
-  `pretime` int(10) NOT NULL default '0',
-  `section` varchar(20) NOT NULL default '',
-  `release` varchar(255) NOT NULL default '',
-  `files` smallint unsigned NOT NULL default '0',
-  `kbytes` int unsigned NOT NULL default '0',
-  `disks` tinyint unsigned NOT NULL default '0',
-  `nuked` tinyint(1) NOT NULL default '0',
-  `nuketime` int(10) NOT NULL default '0',
-  `reason` varchar(255) NOT NULL default '',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY (`release`)
-);
-
-
 Text Templates:
 
 - In the 0.9x versions, the template parser was extended to a few portions of
@@ -760,15 +722,6 @@ Text Templates:
       OneLines.Body    : %(sec) %(min) %(hour) %(day) %(month) %(year2) %(year4) %(user) %(group) %(message)
       OneLines.None    : N/A
       OneLines.Footer  : N/A
-
-  - Search Pre Times (SITE PRETIME)
-      PreTime.Header   : N/A
-      PreTime.Body, PreTime.BodyInfo, PreTime.BodyNuke:
-                        %(sec) %(min) %(hour) %(day) %(month) %(year2) %(year4)
-                        %(nukesec) %(nukemin) %(nukehour) %(nukeday) %(nukemonth) %(nukeyear2) %(nukeyear4)
-                        %(age) %(num) %(section) %(release) %(files) %(size) %(disks) %(reason)
-      PreTime.None     : N/A
-      PreTime.Footer   : N/A
 
   - Viewing Requests (SITE REQUESTS)
       Requests.Header  : N/A
