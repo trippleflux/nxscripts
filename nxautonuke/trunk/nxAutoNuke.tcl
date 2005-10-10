@@ -218,14 +218,7 @@ proc ::nxAutoNuke::Nuke {realPath virtualPath nukerUser nukerGroup multi reason}
         catch {vfs write $entry $userId $groupId 555}
     }
     catch {vfs flush $parentPath}
-    if {[IsTrue $misc(dZSbotLogging)]} {
-        foreach {nukeeUser nukeeGroup nukeeCredits nukeeStats} $nukeeLog {
-            set nukeeStats [format "%.2f" [expr {double($nukeeStats) / 1024.0}]]
-            putlog "NUKE: \"$virtualPath\" \"$nukerUser@$nukerGroup\" \"$nukeeUser@$nukeeGroup\" \"$multi $nukeeStats\" \"$reason\""
-        }
-    } else {
-        putlog "NUKE: \"$virtualPath\" \"$nukerUser\" \"$nukerGroup\" \"$multi\" \"$reason\" \"$files\" \"$totalSize\" \"$diskCount\" \"$nukeeLog\""
-    }
+    putlog "NUKE: \"$virtualPath\" \"$nukerUser\" \"$nukerGroup\" \"$multi\" \"$reason\" \"$files\" \"$totalSize\" \"$diskCount\" \"$nukeeLog\""
 
     if {![catch {DbOpenFile [namespace current]::NukeDb "Nukes.db"} error]} {
         # To pass a NULL value to TclSQLite, the variable must be unset.
@@ -449,7 +442,7 @@ proc ::nxAutoNuke::SplitSettings {settings} {
 }
 
 proc ::nxAutoNuke::NukeCheck {realPath virtualPath dirAge} {
-    global anuke misc
+    global anuke
     variable check
     variable nukedList
     variable warnedList
@@ -490,12 +483,7 @@ proc ::nxAutoNuke::NukeCheck {realPath virtualPath dirAge} {
         set check(Reason) [StripChars [string map $check(Cookies) $check(Reason)]]
 
         LinePuts "- Warning: [GetName $virtualPath] - $check(Reason)"
-        if {[IsTrue $misc(dZSbotLogging)]} {
-            set dirAge [expr {$dirAge / 60}]
-            putlog "$check(WarnType): \"$virtualPath\" $check(WarnData)\"$dirAge\" \"[expr {$check(NukeMins) - $dirAge}]\" \"$check(NukeMins)\" \"$check(Multi)\" \"$userList\""
-        } else {
-            putlog "$check(WarnType): \"$virtualPath\" $check(WarnData)\"$dirAge\" \"[expr {$nukeSecs - $dirAge}]\" \"$nukeSecs\" \"$check(Multi)\" \"$userList\""
-        }
+        putlog "$check(WarnType): \"$virtualPath\" $check(WarnData)\"$dirAge\" \"[expr {$nukeSecs - $dirAge}]\" \"$nukeSecs\" \"$check(Multi)\" \"$userList\""
         lappend warnedList $checkPath
     }
     return
