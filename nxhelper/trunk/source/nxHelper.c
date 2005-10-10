@@ -101,10 +101,6 @@ Nxhelper_Init(Tcl_Interp *interp)
     }
     Tcl_MutexUnlock(&initMutex);
 
-    if (Tcl_PkgProvide(interp, PACKAGE_NAME, PACKAGE_VERSION) != TCL_OK) {
-        return TCL_ERROR;
-    }
-
     Tcl_CreateObjCommand(interp, "::nx::base64", Base64ObjCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::nx::mp3",    Mp3ObjCmd,    NULL, NULL);
     Tcl_CreateObjCommand(interp, "::nx::sleep",  SleepObjCmd,   NULL, NULL);
