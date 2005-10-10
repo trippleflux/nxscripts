@@ -9,7 +9,7 @@
 #   neoxed (neoxed@gmail.com)
 #
 # Abstract:
-#   Implements an auto-nuker for ioA and ioBanana.
+#   Implements an auto-nuker using ioA.
 #
 
 if {[catch {source "../scripts/init.itcl"} error]} {

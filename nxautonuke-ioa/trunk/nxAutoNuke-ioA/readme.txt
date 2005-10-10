@@ -9,6 +9,7 @@ Topics:
  3. ioA and ioBanana Installation
  4. Todo List
  5. Bugs and Comments
+ 6. License
 
 ################################################################################
 # 1. Information                                                               #
@@ -20,8 +21,6 @@ MP3 genres and years; IMDB genres, ratings, and years; maximum CD/DVD/Disk
 rules; empty directories; incomplete releases; banned keywords; and allowed
 groups. Nuke reasons are customizable using cookies.
 
-  Thanks to Harm for ioAUTONUKE, which showed me how I was able to use
-ioA as an external nuker. ioA support is credited towards him. :)
 
 ################################################################################
 # 2. ioA and dZSbot Installation                                               #
@@ -89,6 +88,7 @@ set msgtypes(RACE) "ANUKEALLOWED ANUKEBANNED ANUKEDISKS ANUKEEMPTY ANUKEIMDB ANU
 
 7. Rehash or restart Windrop.
 
+
 ################################################################################
 # 3. ioA and ioBanana Installation                                             #
 ################################################################################
@@ -150,12 +150,14 @@ set announce(ANUKEMP3)     "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] th
 
 7. Rehash or restart Windrop.
 
+
 ################################################################################
 # 4. Todo List                                                                 #
 ################################################################################
 
 - RiA release name checks will only be added if someone can provide
   me with an original copy of the RiA standards/rules.
+
 
 ################################################################################
 # 5. Bugs and Comments                                                         #
@@ -167,3 +169,10 @@ be sure you can reproduce the problem, so I can find a solution.
 
 IRC  : neoxed <#ioFTPD at EFnet>
 Email: neoxed@gmail.com
+
+
+################################################################################
+# 6. License                                                                   #
+################################################################################
+
+   See the "license.txt" file for details.
