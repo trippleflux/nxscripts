@@ -40,7 +40,7 @@ namespace eval ::alcoholicz {
 # ConfigAcquire
 #
 # Validate and acquire a configuration handle. This procedure is for internal
-# use only, hence why it's not exported.
+# use only, hence why it is not exported.
 #
 proc ::alcoholicz::ConfigAcquire {handle {handleVar "config"}} {
     if {![regexp -- {config\d+} $handle] || ![array exists [namespace current]::$handle]} {
@@ -53,7 +53,7 @@ proc ::alcoholicz::ConfigAcquire {handle {handleVar "config"}} {
 # ConfigOpen
 #
 # Create a new configuration library handle. This handle is used by every config
-# procedure and can be closed by ConfigClose. The "-align int" switch determines
+# procedure and must be closed by ConfigClose. The "-align int" switch determines
 # whether values will be aligned when writing the configuration file. If -align
 # is greater than one, additional padding is used (n-1). The "-comment char"
 # switch sets the comment character, "#" by default.
