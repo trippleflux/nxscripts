@@ -375,6 +375,8 @@ proc ::nxTools::Utils::SiteCredits {event target amount section} {
     if {[resolve user $target] == -1} {
         ErrorReturn "The specified user does not exist."
     }
+    if {![string is digit -strict $section] || $section > 9} {set section 0}
+
     if {![regexp {^(\d+)(.*)$} $amount result amount unit]} {
         ErrorReturn "The specified amount \"$amount\" is invalid."
     }
@@ -387,10 +389,7 @@ proc ::nxTools::Utils::SiteCredits {event target amount section} {
         default {ErrorReturn "The specified size unit \"$unit\" is invalid."}
     }
     append unitName "B"
-
-    if {![string is digit -strict $section] || $section > 9} {set section 0}
     set amountKB [expr {wide($amount) * $multi}]
-    set amountMB [expr {wide($amountKB) / 1024}]
 
     if {$event eq "GIVE"} {
         ChangeCredits $target "+$amountKB" $section
@@ -401,8 +400,8 @@ proc ::nxTools::Utils::SiteCredits {event target amount section} {
     } else {
         ErrorLog SiteCredits "unknown event \"$event\""
     }
-    putlog "${event}: \"$user\" \"$group\" \"$amountKB\" \"$target\""
 
+    putlog "${event}: \"$user\" \"$group\" \"$amountKB\" \"$target\""
     iputs "'------------------------------------------------------------------------'"
     return 0
 }
