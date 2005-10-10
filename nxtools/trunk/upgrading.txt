@@ -3,8 +3,9 @@
 ################################################################################
 
 0.9.13 -> 0.9.14
- - Replace \scripts\nxLib.tcl and all files located in \scripts\nxTools\.
  - Repeat step 3 in the installation manual.
+ - Replace ioFTPD\scripts\nxLib.tcl and all files in ioFTPD\scripts\nxTools\.
+ - Replace the nxHelper.dll and tclsqlite3.dll files in ioFTPD\system\.
  - Remove config options: misc(dZSbotLogging), mysql(DataBase), mysql(Host),
    mysql(Password), mysql(Port), mysql(TableName), mysql(Username),
    pretime(AddOnPre), pretime(CheckMkd), pretime(CheckPaths), and pretime(Ignores).
