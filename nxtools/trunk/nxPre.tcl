@@ -719,15 +719,9 @@ proc ::nxTools::Pre::Release {argList} {
             iputs [format "| %-10s | %-10s | %10s | %7d\F | %8s | %9s |" $userName $groupName $ratio $prefiles($userName) [FormatSize $uploadAmount] [FormatSize $creditsDiff]]
         }
     }
-    if {[IsTrue $misc(dZSbotLogging)]} {
-        set totalMB [format "%.2f" [expr {double($totalSize) / 1024.0}]]
-        set line "PRE: \"$destVirtualPath\" \"$preGroup\" \"$user\" \"$group\" \"$area\" \"$files\" \"$totalMB\" \"$diskCount\""
-        if {$isMP3} {append line " \"$mp3(genre)\" \"$mp3(bitrate)\" \"$mp3(year)\""}
-    } else {
-        set line [expr {$isMP3 ? "PRE-MP3" : "PRE"}]
-        append line ": \"$destVirtualPath\" \"$preGroup\" \"$user\" \"$group\" \"$area\" \"$files\" \"$totalSize\" \"$diskCount\""
-        if {$isMP3} {append line " \"$mp3(artist)\" \"$mp3(album)\" \"$mp3(genre)\" \"$mp3(year)\" \"$mp3(bitrate)\" \"$mp3(type)\""}
-    }
+    set line [expr {$isMP3 ? "PRE-MP3" : "PRE"}]
+    append line ": \"$destVirtualPath\" \"$preGroup\" \"$user\" \"$group\" \"$area\" \"$files\" \"$totalSize\" \"$diskCount\""
+    if {$isMP3} {append line " \"$mp3(artist)\" \"$mp3(album)\" \"$mp3(genre)\" \"$mp3(year)\" \"$mp3(bitrate)\" \"$mp3(type)\""}
     putlog $line
 
     if {![catch {DbOpenFile [namespace current]::PreDb "Pres.db"} error]} {

@@ -94,9 +94,6 @@ proc ::nxTools::Close::Main {argv} {
             } else {
                 set duration [expr {[clock seconds] - [lindex $closeInfo 0]}]
                 LinePuts "Server is now open, closed for [FormatDuration $duration]."
-                if {[IsTrue $misc(dZSbotLogging)]} {
-                    set duration [FormatDuration $duration]
-                }
                 putlog "OPEN: \"$user\" \"$group\" \"$duration\" \"[lindex $closeInfo 1]\""
                 catch {var unset nxToolsClosed}
             }

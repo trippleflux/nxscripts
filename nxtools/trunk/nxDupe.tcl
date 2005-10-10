@@ -619,9 +619,6 @@ proc ::nxTools::Dupe::SiteWipe {virtualPath} {
     # Update the file and directory databases.
     if {$isDir} {
         RemoveParentLinks $realPath $virtualPath
-        if {[IsTrue $misc(dZSbotLogging)]} {
-            set stats(TotalSize) [expr {wide($stats(TotalSize)) / 1024}]
-        }
         putlog "WIPE: \"$virtualPath\" \"$user\" \"$group\" \"$stats(DirCount)\" \"$stats(FileCount)\" \"$stats(TotalSize)\""
         if {[IsTrue $dupe(CheckDirs)]} {
             UpdateLog "WIPE" $virtualPath

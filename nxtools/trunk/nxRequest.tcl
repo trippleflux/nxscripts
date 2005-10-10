@@ -181,9 +181,6 @@ proc ::nxTools::Req::Update {event userName groupName flags request} {
 
         set requestAge [expr {[clock seconds] - $values(TimeStamp)}]
         set requestId [format "%03s" $values(RequestId)]
-        if {[IsTrue $misc(dZSbotLogging)]} {
-            set requestAge [FormatDuration $requestAge]
-        }
         putlog "${logType}: \"$userName\" \"$groupName\" \"$values(Request)\" \"$values(UserName)\" \"$values(GroupName)\" \"$requestId\" \"$requestAge\""
         UpdateDir $event $values(Request)
     }
@@ -237,9 +234,6 @@ proc ::nxTools::Req::Wipe {} {
                     ErrorLog ReqWipe $error
                 }
                 LinePuts "Wiped: $values(Request) by $values(UserName)/$values(GroupName) (#$requestId)."
-                if {[IsTrue $misc(dZSbotLogging)]} {
-                    set requestAge [FormatDuration $requestAge]
-                }
                 putlog "REQWIPE: \"$values(UserName)\" \"$values(GroupName)\" \"$values(Request)\" \"$requestId\" \"$requestAge\" \"$req(MaximumAge)\""
             }
             ReqDb eval {UPDATE Requests SET Status=2 WHERE rowid=$values(rowid)}

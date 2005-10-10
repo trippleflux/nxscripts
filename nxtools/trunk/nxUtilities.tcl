@@ -401,10 +401,6 @@ proc ::nxTools::Utils::SiteCredits {event target amount section} {
     } else {
         ErrorLog SiteCredits "unknown event \"$event\""
     }
-
-    if {[IsTrue $misc(dZSbotLogging)]} {
-        set amountKB $amountMB
-    }
     putlog "${event}: \"$user\" \"$group\" \"$amountKB\" \"$target\""
 
     iputs "'------------------------------------------------------------------------'"

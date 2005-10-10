@@ -335,14 +335,7 @@ proc ::nxTools::Nuke::Main {argv} {
                 catch {vfs write $entry $userId $groupId $dirChmod}
             }
             catch {vfs flush $parentPath}
-            if {[IsTrue $misc(dZSbotLogging)]} {
-                foreach {nukeeUser nukeeGroup nukeeCredits nukeeStats} $nukeeLog {
-                    set nukeeStats [format "%.2f" [expr {double($nukeeStats) / 1024.0}]]
-                    putlog "${logType}: \"$virtualPath\" \"$user@$group\" \"$nukeeUser@$nukeeGroup\" \"$multi $nukeeStats\" \"$reason\""
-                }
-            } else {
-                putlog "${logType}: \"$virtualPath\" \"$user\" \"$group\" \"$multi\" \"$reason\" \"$files\" \"$totalSize\" \"$diskCount\" \"$nukeeLog\""
-            }
+            putlog "${logType}: \"$virtualPath\" \"$user\" \"$group\" \"$multi\" \"$reason\" \"$files\" \"$totalSize\" \"$diskCount\" \"$nukeeLog\""
 
             if {![catch {DbOpenFile [namespace current]::NukeDb "Nukes.db"} error]} {
                 # To pass a NULL value to TclSQLite, the variable must be unset.
