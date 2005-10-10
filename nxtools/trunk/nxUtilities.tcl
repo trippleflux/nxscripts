@@ -179,15 +179,15 @@ proc ::nxTools::Utils::RotateLogs {} {
     set doRotate 0
     set timeNow [clock seconds]
     switch -- [string tolower $log(Frequency)] {
-        {month} - {monthly} {
+        month - monthly {
             set dateFormat "%Y-%m"
             if {[clock format $timeNow -format "%d"] eq "01"} {set doRotate 1}
         }
-        {week} - {weekly} {
+        week - weekly {
             set dateFormat "%Y-Week%W"
             if {[clock format $timeNow -format "%w"] eq "0"} {set doRotate 1}
         }
-        {day} - {daily} {
+        day - daily {
             set dateFormat "%Y-%m-%d"
             set doRotate 1
         }
@@ -467,13 +467,13 @@ proc ::nxTools::Utils::SiteGroupInfo {groupName section} {
             foreach line [split $userFile "\r\n"] {
                 set type [string tolower [lindex $line 0]]
                 switch -- $type {
-                    {admingroups} {set uinfo(AdminGroups) [lrange $line 1 end]}
-                    {alldn} - {allup} {
+                    admingroups {set uinfo(AdminGroups) [lrange $line 1 end]}
+                    alldn - allup {
                         MergeStats [lrange $line 1 end] file($type) uinfo($type) time($type)
                         set size($type) [expr {wide($uinfo($type)) + wide($size($type))}]
                     }
-                    {flags} {set uinfo(Flags) [lindex $line 1]}
-                    {ratio} {set uinfo(Ratio) [lindex $line $section]}
+                    flags {set uinfo(Flags) [lindex $line 1]}
+                    ratio {set uinfo(Ratio) [lindex $line $section]}
                 }
             }
         }
@@ -526,12 +526,12 @@ proc ::nxTools::Utils::SiteResetStats {argList} {
     foreach arg $argList {
         set arg [string tolower $arg]
         switch -- $arg {
-            {-all}  {set resetStats $statTypes; break}
-            {all}   {lappend resetStats "alldn" "allup"}
-            {month} {lappend resetStats "monthdn" "monthup"}
-            {wk} -
-            {week}  {lappend resetStats "wkdn" "wkup"}
-            {day}   {lappend resetStats "daydn" "dayup"}
+            -all  {set resetStats $statTypes; break}
+            all   {lappend resetStats "alldn" "allup"}
+            month {lappend resetStats "monthdn" "monthup"}
+            wk -
+            week  {lappend resetStats "wkdn" "wkup"}
+            day   {lappend resetStats "daydn" "dayup"}
             default {
                 if {[lsearch -exact $statTypes $arg]} {lappend resetStats $arg}
             }

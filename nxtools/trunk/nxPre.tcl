@@ -231,7 +231,7 @@ proc ::nxTools::Pre::Edit {argList} {
     set success 0
 
     switch -- $option {
-        {addarea} {
+        addarea {
             if {![string length $target]} {
                 LinePuts "Invalid area, you must specify an area to add."
             } elseif {[info exists preArea($area)]} {
@@ -262,7 +262,7 @@ proc ::nxTools::Pre::Edit {argList} {
                 set success [ConfigWrite $pre(ConfigFile)]
             }
         }
-        {delarea} {
+        delarea {
             if {![string length $target] || ![info exists preArea($area)]} {
                 LinePuts "Invalid area, try \"SITE EDITPRE HELP\" to view available areas."
             } else {
@@ -271,7 +271,7 @@ proc ::nxTools::Pre::Edit {argList} {
                 set success [ConfigWrite $pre(ConfigFile)]
             }
         }
-        {addgrp} {
+        addgrp {
             if {![string length $target] || ![info exists preArea($area)]} {
                 LinePuts "Invalid area, try \"SITE EDITPRE HELP\" to view available areas."
             } elseif {![string length $value]} {
@@ -290,7 +290,7 @@ proc ::nxTools::Pre::Edit {argList} {
                 set success [ConfigWrite $pre(ConfigFile)]
             }
         }
-        {delgrp} {
+        delgrp {
             if {![string length $target] || ![info exists preArea($area)]} {
                 LinePuts "Invalid area, try \"SITE EDITPRE HELP\" to view available areas."
             } elseif {![string length $value]} {
@@ -314,7 +314,7 @@ proc ::nxTools::Pre::Edit {argList} {
                 }
             }
         }
-        {addpath} {
+        addpath {
             if {![string length $target]} {
                 LinePuts "Invalid group, try \"SITE EDITPRE HELP ADDPATH\" for help."
             } elseif {![string length $value]} {
@@ -342,7 +342,7 @@ proc ::nxTools::Pre::Edit {argList} {
                 set success [ConfigWrite $pre(ConfigFile)]
             }
         }
-        {delpath} {
+        delpath {
             if {![string length $target]} {
                 LinePuts "Invalid group, try \"SITE EDITPRE HELP DELPATH\" for help."
             } elseif {![string length $value]} {
@@ -368,7 +368,7 @@ proc ::nxTools::Pre::Edit {argList} {
                 }
             }
         }
-        {hidepath} - {hidepaths} {
+        hidepath - hidepaths {
             if {$target ne "" && ![info exists prePath($target)]} {
                 LinePuts "Invalid group, try \"SITE EDITPRE HELP HIDEPATH\" for help."
             } else {
@@ -389,7 +389,7 @@ proc ::nxTools::Pre::Edit {argList} {
                 set success 1
             }
         }
-        {view} {
+        view {
             LinePuts "Areas:"
             foreach name [lsort -ascii [array names preArea]] {
                 LinePuts [format "%-10s - %s" $name $preArea($name)]
@@ -407,7 +407,7 @@ proc ::nxTools::Pre::Edit {argList} {
         default {
             set option [string tolower $target]
             switch -- $option {
-                {addarea} {
+                addarea {
                     LinePuts "Description:"
                     LinePuts " - Create a pre area and destination path."
                     LinePuts " - Date cookies can be given for dated dirs."
@@ -419,37 +419,37 @@ proc ::nxTools::Pre::Edit {argList} {
                     LinePuts "Syntax : SITE EDITPRE ADDAREA <area> <path> \[date cookie(s)\]"
                     LinePuts "Example: SITE EDITPRE ADDAREA 0DAY /0DAY/ %m%d"
                 }
-                {delarea} {
+                delarea {
                     LinePuts "Description:"
                     LinePuts " - Delete a pre area and related settings."
                     LinePuts "Syntax : SITE EDITPRE DELAREA <area>"
                     LinePuts "Example: SITE EDITPRE DELAREA 0DAY"
                 }
-                {addgrp} {
+                addgrp {
                     LinePuts "Description:"
                     LinePuts " - Allow a group to pre to the specified area."
                     LinePuts "Syntax : SITE EDITPRE ADDGRP <area> <group>"
                     LinePuts "Example: SITE EDITPRE ADDGRP 0DAY NX"
                 }
-                {delgrp} {
+                delgrp {
                     LinePuts "Description:"
                     LinePuts " - Disallow a group to pre to the specified area."
                     LinePuts "Syntax : SITE EDITPRE DELGRP <area> <group>"
                     LinePuts "Example: SITE EDITPRE DELGRP 0DAY NX"
                 }
-                {addpath} {
+                addpath {
                     LinePuts "Description:"
                     LinePuts " - Add a path to be used as a pre area for the specified group."
                     LinePuts "Syntax : SITE EDITPRE ADDPATH <group> <path>"
                     LinePuts "Example: SITE EDITPRE ADDPATH NX /GROUPS/NX/"
                 }
-                {delpath} {
+                delpath {
                     LinePuts "Description:"
                     LinePuts " - Remove a path from the specified group."
                     LinePuts "Syntax : SITE EDITPRE DELPATH <group> <path>"
                     LinePuts "Example: SITE EDITPRE DELPATH NX /GROUPS/NX/"
                 }
-                {hidepath} - {hidepaths} {
+                hidepath - hidepaths {
                     LinePuts "Description:"
                     LinePuts " - Re-hides all group pre paths using private paths (chattr +h)."
                     LinePuts " - Useful for when the chattr value is accidentally removed."
