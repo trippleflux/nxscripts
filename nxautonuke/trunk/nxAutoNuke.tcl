@@ -321,13 +321,13 @@ proc ::nxAutoNuke::CheckImdb {checkList realPath} {
     foreach {type value} $checkList {
         set nuke 0
         switch -- $type {
-            {genre} {
+            genre {
                 if {[string match -nocase $value $genre]} {set nuke 1}
             }
-            {rating} {
+            rating {
                 if {[string is double -strict $rating] && $rating < $value} {set nuke 1}
             }
-            {year} {
+            year {
                 if {![string match -nocase $value $year]} {set nuke 1}
             }
         }
@@ -376,10 +376,10 @@ proc ::nxAutoNuke::CheckMP3 {checkList realPath} {
     foreach {type value} $checkList {
         set nuke 0
         switch -- $type {
-            {genre} {
+            genre {
                 if {[string match -nocase $value $genre]} {set nuke 1}
             }
-            {year} {
+            year {
                 if {![string match -nocase $value $year]} {set nuke 1}
             }
         }
