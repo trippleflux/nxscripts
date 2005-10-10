@@ -759,7 +759,7 @@ GlOpenCmd(
     )
 {
     char *etcPath;
-    char handleName[6 + (sizeof(void*) * 2) + 1]; // Handle name, pointer in hex, and a NULL.
+    char handleName[6 + (sizeof(void*) * 2) + 3]; // Handle name, pointer in hex, and a NULL.
     int etcLength;
     int newEntry;
     long shmKey;
