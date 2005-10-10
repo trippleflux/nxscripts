@@ -4,15 +4,14 @@
 ################################################################################
 
 Topics:
-  1. Information
-  2. Thank You's
-  3. Requirements
-  4. Installation
-  5. Commands
-  6. Troubleshooting
-  7. Technical Notes
-  8. Todo List
-  9. Bugs and Comments
+ 1. Information
+ 2. Requirements
+ 3. Installation
+ 4. Commands
+ 5. Text Templates
+ 6. Todo List
+ 7. Bugs and Comments
+ 8. License
 
 ################################################################################
 # 1. Information                                                               #
@@ -23,20 +22,9 @@ checker, nuker, pre script, request script, sitebot, and various other tools
 and statistic commands. Written in Tcl, which offers fast processing speed
 and easily customizable output.
 
-################################################################################
-# 2. Thank You's                                                               #
-################################################################################
-
-- Thanks to dark0n3 for such a great FTPD.
-- Thanks to GOD-EMPEROR for SiteStat and its supporting scripts. They were
-  used as a foundation for the pre and request scripts in nxTools.
-- Thanks to both Mouton and Harm for their work on ioBanana.
-- Thanks to WarC for ioA and especially ZR-Tools (my favourite script!).
-- Several features of nxTools derived from ioA and ioBanana, so a second thank
-  you to their authors.
 
 ################################################################################
-# 3. Requirements                                                              #
+# 2. Requirements                                                              #
 ################################################################################
 
    nxTools should only be installed on Windows NT/2000/XP/2003 any other
@@ -44,12 +32,12 @@ operating system is unsupported. This script was tested on v5.8.5r so I cannot
 guarantee it will work on any other versions of ioFTPD. nxTools is updated
 frequently, so be sure you are always using the latest version.
 
+
 ################################################################################
-# 4. Installation                                                              #
+# 3. Installation                                                              #
 ################################################################################
 
- 1. UnRAR and copy all files and directories, maintaining the original directory
-    structure, to ioFTPD\scripts\. The files must be placed as follows:
+ 1. UnRAR and copy all files and directories, and place the files as follows:
 
     ioFTPD\scripts\init.itcl
     ioFTPD\scripts\nxTools.cfg
@@ -68,12 +56,14 @@ frequently, so be sure you are always using the latest version.
     ioFTPD\scripts\nxTools\nxRules.tcl
     ioFTPD\scripts\nxTools\nxUtilities.tcl
     ioFTPD\scripts\nxTools\nxWeekly.cfg
+    ioFTPD\system\nxHelper.dll
+    ioFTPD\system\tclsqlite3.dll
 
  2. Modify the configuration files to your liking.
 
     nxTools.cfg  - Main nxTools configuration.
     nxPre.cfg    - Pre areas and groups, managed by "SITE EDITPRE".
-    nxRules.cfg  - Rules to by displayed by "SITE RULES".
+    nxRules.cfg  - Rules displayed on "SITE RULES".
     nxWeekly.cfg - Weekly user and group credits, managed by "SITE WEEKLY".
 
  3. Add the following to your ioFTPD.ini
@@ -198,10 +188,7 @@ wipe        = M1V
     Invalid:
     Default= 0 0 /*     (There should be a space before the equal sign: "Default = 0 0 /*")
 
- 5. You must install the nxTools library package. This package is available
-    for download at: http://www.inicom.net/pages/en.ioftpd-scripts.php?id=78
-
- 6. There are several optional scheduled events; these events must be added
+ 5. There are several optional scheduled events; these events must be added
     under the [Scheduler] section in the ioFTPD.ini file. Carefully read the
     explanation of each scheduler event, or you may regret using it!
 
@@ -229,16 +216,16 @@ nxReqWipe = 0 * * * TCL ..\scripts\nxTools\nxRequest.tcl WIPE
     allotments (i.e. daily or bi-monthly) schedule it accordingly.
 nxWeekly = 0 0 * 6 TCL ..\scripts\nxTools\nxUtilities.tcl WEEKLYSET
 
- 7. Restart ioFTPD for the changes to take effect, rehash will NOT work.
+ 6. Restart ioFTPD for the changes to take effect, rehash will NOT work.
 
- 8. Connect to your ioFTPD server and type "SITE DB CREATE" to create the SQLite
+ 7. Connect to your ioFTPD server and type "SITE DB CREATE" to create the SQLite
     databases used by nxTools.
 
- 9. You can customize the display of several commands by editing the text
+ 8. You can customize the display of several commands by editing the text
     templates in the scripts\nxTools\text\ directory. The available cookies are
-    explained in section 7 of this manual, "Technical Notes".
+    explained in section 5 of this manual, "Text Templates".
 
-10. Several scripts can be executed from message files using ioFTPD's %[execute]
+ 9. Several scripts can be executed from message files using ioFTPD's %[execute]
     cookie. You may add these cookies to any .ioFTPD.message or ioFTPD\text\
     files you please.
 
@@ -266,71 +253,11 @@ nxWeekly = 0 0 * 6 TCL ..\scripts\nxTools\nxUtilities.tcl WEEKLYSET
     Display 5 latest APPS releases:
     %[execute(TCL ..\scripts\nxTools\nxDupe.tcl)(NEW -max 5 APPS)]
 
-11. If you use dZSbot, you must enable the misc(dZSbotLogging) option in the
-    nxTools configuration file.
+10. Finished, for now at least. Be sure to keep your nxTools version up-to-date!
 
-    In your dZSbot.tcl file, make sure the following entries exist:
-
-set msgtypes(RACE)    - APPROVE NEWDATE PRE PREMP3 WIPE
-set msgtypes(DEFAULT) - APPROVEADD APPROVEDEL OPEN CLOSE GIVE TAKE INVITE REQUEST REQDEL REQFILL REQWIPE
-
-    Add or replace the following:
-
-set disable(APPROVE)        0
-set disable(APPROVEADD)     0
-set disable(APPROVEDEL)     0
-set disable(CLOSE)          0
-set disable(GIVE)           0
-set disable(INVITE)         0
-set disable(NEWDATE)        0
-set disable(OPEN)           0
-set disable(PRE)            0
-set disable(PREMP3)         0
-set disable(REQDEL)         0
-set disable(REQFILL)        0
-set disable(REQUEST)        0
-set disable(REQWIPE)        0
-set disable(TAKE)           0
-set disable(WIPE)           0
-
-set variables(APPROVEADD)   "%user %group %release"
-set variables(APPROVEDEL)   "%user %group %release"
-set variables(CLOSE)        "%user %group %reason"
-set variables(OPEN)         "%user %group %duration %reason"
-set variables(GIVE)         "%user %group %mbytes %target"
-set variables(TAKE)         "%user %group %mbytes %target"
-set variables(INVITE)       "%user %group %ircnick"
-set variables(REQUEST)      "%user %group %request %id"
-set variables(REQDEL)       "%user %group %request %requser %reqgroup %id %age"
-set variables(REQFILL)      "%user %group %request %requser %reqgroup %id %age"
-set variables(REQWIPE)      "%user %group %request %id %age %maxdays"
-set variables(APPROVE)      "%pf %user %group"
-set variables(NEWDATE)      "%pf %area %desc"
-set variables(PRE)          "%pf %pregroup %user %group %area %files %mbytes %disks"
-set variables(PREMP3)       "%pf %pregroup %user %group %area %files %mbytes %disks %genre %kbit %year"
-set variables(WIPE)         "%pf %user %group %dirs %files %mbytes"
-
-set announce(APPROVEADD)    "-%sitename- \[APPROVE ADD\] + %bold%user%bold@%group approved %bold%release%bold."
-set announce(APPROVEDEL)    "-%sitename- \[APPROVE DEL\] + %bold%user%bold@%group deleted %bold%release%bold."
-set announce(CLOSE)         "-%sitename- \[CLOSE\] + %bold%user%bold@%group has closed the server. Reason: %reason"
-set announce(OPEN)          "-%sitename- \[OPEN\] + %bold%user%bold@%group has opened the server, closed for %bold%duration%bold"
-set announce(GIVE)          "-%sitename- \[GIVE\] + %bold%user%bold@%group gave %bold%mbytes%boldMB of credits to %bold%target%bold"
-set announce(TAKE)          "-%sitename- \[TAKE\] + %bold%user%bold@%group took %bold%mbytes%boldMB of credits from %bold%target%bold"
-set announce(INVITE)        "-%sitename- \[INVITE\] + %bold%user%bold@%group invited himself as %bold%ircnick%bold"
-set announce(REQUEST)       "-%sitename- \[REQUEST\] + %bold%request%bold (#%id) added by %bold%user%bold@%group"
-set announce(REQDEL)        "-%sitename- \[REQDEL\] + %bold%request%bold (%bold%age%bold old) deleted by %bold%user%bold@%group"
-set announce(REQFILL)       "-%sitename- \[REQFILL\] + %bold%request%bold (%bold%age%bold old) filled by %bold%user%bold@%group"
-set announce(REQWIPE)       "-%sitename- \[REQWIPE\] + %bold%request%bold was auto-wiped since it's older than %bold%maxdays%bold days."
-set announce(APPROVE)       "-%sitename- \[%section\] + %path/%bold%release%bold was approved by %bold%user%bold@%group."
-set announce(NEWDATE)       "-%sitename- \[%section\] + A new day has come, change your current %bold%path%bold dir to %bold%release%bold"
-set announce(PRE)           "-%sitename- \[%section\] + %bold%pregroup%bold launches %bold%release%bold (%bold%mbytes%boldMB in %bold%files%boldF with %bold%disks%bold Disks)"
-set announce(PREMP3)        "-%sitename- \[%section\] + %bold%pregroup%bold launches %bold%release%bold (%bold%mbytes%boldMB in %bold%files%boldF - %bold%genre%bold - %bold%kbit%boldkbits - %bold%year%bold)"
-set announce(WIPE)          "-%sitename- \[%section\] + %bold%user%bold@%group wiped %path/%bold%release%bold %bold%mbytes%boldMB (%bold%files%bold files, %bold%dirs%bold dirs)"
-
-12. Finished, for now at least. Be sure to keep your nxTools version up-to-date!
 
 ################################################################################
-# 5. Commands                                                                  #
+# 4. Commands                                                                  #
 ################################################################################
 
 Legend:
@@ -379,8 +306,8 @@ Legend:
 
 - SITE DRIVES
     Description:
-     - Displays all fixed and network drives; including the volume name, free,
-       and total space.
+     - Displays all fixed and network drives; including the volume name,
+       free space, and total space.
     Examples:
      - SITE DRIVES
 
@@ -671,26 +598,14 @@ Legend:
      - SITE WIPE some.old.rar
      - SITE WIPE Something.Very.Old-NX
 
-################################################################################
-# 6. Troubleshooting                                                           #
-################################################################################
-
-Q: Just started using ioFTPD?
-A: Don't use this script.
-
-Q: Encountering problems with the script?
-A: Check the file /logs/nxError.log for details. If there is any errors in the
-   file /logs/SystemError.log, please report them to me.
 
 ################################################################################
-# 7. Technical Notes                                                           #
+# 5. Text Templates                                                            #
 ################################################################################
 
-Text Templates:
-
-- In the 0.9x versions, the template parser was extended to a few portions of
-  nxTools to allow the user to easily customize the script's output. So far the
-  only customizable site commands, and their available cookies, are:
+   The template parser was added to a few portions of nxTools to allow users
+to customize the script's output. So far the only customizable SITE commands,
+and their available cookies are:
 
   - Viewing Approved Releases (SITE APPROVE LIST)
       New.Header       : N/A
@@ -739,8 +654,9 @@ Text Templates:
       Rules.MultiLine  : %(num) %(punishment) %(rule) %(section)
       Rules.Footer     : %(sections)
 
+
 ################################################################################
-# 8. Todo List                                                                 #
+# 6. Todo List                                                                 #
 ################################################################################
 
 - Rewrite nuker to use the nukees stored in Nukes.db, fall back to read.
@@ -751,11 +667,9 @@ Text Templates:
 
 - Make SITE GINFO and SITE WHO customizable.
 
-- Convert this manual to a cleanly formatted HTML file. Similar to what WarC
-  and Harm have done with ioA and ioBanana, respectively.
 
 ################################################################################
-# 9. Bugs and Comments                                                         #
+# 7. Bugs and Comments                                                         #
 ################################################################################
 
    If you have any problems with this script; or you found a bug, spelling
@@ -764,3 +678,10 @@ be sure you can reproduce the problem, so I can find a solution.
 
 IRC  : neoxed <#ioFTPD at EFnet>
 Email: neoxed@gmail.com
+
+
+################################################################################
+# 8. License                                                                   #
+################################################################################
+
+   See the "license.txt" file for details.
