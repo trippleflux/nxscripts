@@ -221,10 +221,15 @@ proc ::siteInvite::Admin {argList} {
             }
             set hostMask [lindex $argList 2]
 
+            if {[string match "*!*@*" $hostMask]} {
+                LinePuts "Invalid host-mask, must be \"ident@host\" NOT \"nick!ident@host\"."
+                return 1
+            }
             if {![string match "*?@?*" $hostMask]} {
                 LinePuts "Invalid host-mask, must be \"ident@host\"."
                 return 1
             }
+
             db "REPLACE INTO invite_hosts(ftp_user,hostmask) VALUES('$ftpUserEsc','[SqlEscape $hostMask]')"
             LinePuts "Added host-mask \"$hostMask\" to user \"$ftpUser\"."
         }
