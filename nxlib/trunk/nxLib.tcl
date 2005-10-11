@@ -459,6 +459,18 @@ proc ::nxLib::GetUserList {} {
     return [lsort -ascii $userList]
 }
 
+proc ::nxLib::GetUserFlags {userName} {
+    if {[userfile open $userName] == 0} {
+        set userFile [userfile bin2ascii]
+        foreach line [split $userFile "\r\n"] {
+            if {[string equal -nocase "flags" [lindex $line 0]]} {
+                return [lindex $line 1]
+            }
+        }
+    }
+    return ""
+}
+
 proc ::nxLib::GetGroupList {} {
     set groupList [list]
     foreach groupId [group list] {lappend groupList [resolve gid $groupId]}
