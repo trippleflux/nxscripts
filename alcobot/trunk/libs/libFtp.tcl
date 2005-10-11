@@ -119,9 +119,7 @@ proc ::alcoholicz::FtpOpen {host port user passwd args} {
 #
 proc ::alcoholicz::FtpClose {handle} {
     FtpAcquire $handle
-    if {$ftp(status) != 0} {
-        error "disconnect before closing the handle"
-    }
+    FtpShutdown $handle
     unset -nocomplain ftp
     return
 }
@@ -175,12 +173,7 @@ proc ::alcoholicz::FtpConnect {handle} {
 #
 proc ::alcoholicz::FtpDisconnect {handle} {
     FtpAcquire $handle
-
-    # TODO: Sent QUIT
-
-    catch {close $ftp(sock)}
-    set ftp(sock) ""
-    set ftp(status) 0
+    FtpShutdown $handle
     return
 }
 
@@ -194,6 +187,20 @@ proc ::alcoholicz::FtpCommand {handle command {callback ""}} {
 
     # TODO: Queue command.
     return
+}
+
+####
+# FtpShutdown
+#
+# Shuts down the FTP connection.
+#
+proc ::alcoholicz::FtpShutdown {handle} {
+    upvar [namespace current]::$handle ftp
+    if {[info exists ftp]} {
+        catch {close $ftp(sock)}
+        set ftp(sock) ""
+        set ftp(status) 0
+    }
 }
 
 ####
@@ -215,10 +222,7 @@ proc ::alcoholicz::FtpVerify {handle} {
     set ftp(error) [fconfigure $ftp(sock) -error]
     if {$ftp(error) ne ""} {
         LogDebug FtpVerify "Unable to connect to $ftp(host):$ftp(port) ($handle): $ftp(error)"
-
-        catch {close $ftp(sock)}
-        set ftp(sock) ""
-        set ftp(status) 0
+        FtpShutdown $handle
         return
     }
     set ftp(status) 2
