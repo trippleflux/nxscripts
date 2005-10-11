@@ -12,12 +12,13 @@
 #   Implements a FTP client library to interact with FTP servers.
 #
 #   Exported Procedures:
-#     FtpOpen        <host> <port> <user> <passwd> [secure]
-#     FtpClose       <handle>
-#     FtpGetError    <handle>
-#     FtpConnect     <handle>
-#     FtpDisconnect  <handle>
-#     FtpIsConnected <handle>
+#     FtpOpen       <host> <port> <user> <passwd> [-secure <type>]
+#     FtpClose      <handle>
+#     FtpGetError   <handle>
+#     FtpGetStatus  <handle>
+#     FtpConnect    <handle>
+#     FtpDisconnect <handle>
+#     FtpCommand    <handle> <command> [callback]
 #
 
 namespace eval ::alcoholicz {
@@ -25,17 +26,8 @@ namespace eval ::alcoholicz {
         variable ftpNextHandle 0
     }
     catch {package require tls 1.5}
-    namespace export FtpOpen FtpClose FtpGetError \
-        FtpConnect FtpDisconnect FtpIsConnected
-}
-
-####
-# bgerror
-#
-# Display background errors.
-#
-proc bgerror {message} {
-    ::alcoholicz::LogDebug BgError $message
+    namespace export FtpOpen FtpClose FtpGetError FtpGetStatus \
+        FtpConnect FtpDisconnect FtpCommand
 }
 
 ####
@@ -63,24 +55,47 @@ proc ::alcoholicz::FtpAcquire {handle {handleVar "ftp"}} {
 # ssl      - Explicit SSL connection (AUTH SSL).
 # tls      - Explicit TLS connection (AUTH TLS).
 #
-proc ::alcoholicz::FtpOpen {host port user passwd {secure "none"}} {
+proc ::alcoholicz::FtpOpen {host port user passwd args} {
     variable ftpNextHandle
 
-    switch -- $secure {
-        {} {}
-        none {set secure ""}
-        implicit - ssl - tls {
-            # Make sure the TLS package is present (http://tls.sourceforge.net).
-            package present tls
-        }
-        default {
-            error "invalid secure option \"$secure\": must be none, implicit, ssl, or tls"
+    set secure ""
+    foreach {option value} $args {
+        if {$option eq "-secure"} {
+            switch -- $value {
+                none {}
+                implicit - ssl - tls {
+                    # Make sure the TLS package is present (http://tls.sourceforge.net).
+                    package present tls
+                }
+                default {
+                    error "invalid value \"$value\": must be none, implicit, ssl, or tls"
+                }
+            }
+            set secure $value
+        } elseif {$option eq "-timeout"} {
+            # TODO: connection timeout
+            error "not implemented"
+        } else {
+            error "invalid switch \"$option\": must be -secure"
         }
     }
 
     set handle "ftp$ftpNextHandle"
     upvar [namespace current]::$handle ftp
 
+    #
+    # FTP Handle Contents
+    #
+    # ftp(host)   - Remote servet host.
+    # ftp(port)   - Remote servet port.
+    # ftp(user)   - Client user name.
+    # ftp(passwd) - Client password.
+    # ftp(secure) -
+    # ftp(event)  - Event handler state.
+    # ftp(error)  - Last error message.
+    # ftp(sock)   - Socket channel.
+    # ftp(status) - Connection status (0=disconnected, 1=connecting, 2=connected).
+    #
     array set ftp [list \
         host   $host    \
         port   $port    \
@@ -88,7 +103,9 @@ proc ::alcoholicz::FtpOpen {host port user passwd {secure "none"}} {
         passwd $passwd  \
         secure $secure  \
         error  ""       \
+        event  ""       \
         sock   ""       \
+        status 0        \
     ]
 
     incr ftpNextHandle
@@ -102,6 +119,9 @@ proc ::alcoholicz::FtpOpen {host port user passwd {secure "none"}} {
 #
 proc ::alcoholicz::FtpClose {handle} {
     FtpAcquire $handle
+    if {$ftp(status) != 0} {
+        error "disconnect before closing the handle"
+    }
     unset -nocomplain ftp
     return
 }
@@ -117,6 +137,16 @@ proc ::alcoholicz::FtpGetError {handle} {
 }
 
 ####
+# FtpGetStatus
+#
+# Returns the connection status.
+#
+proc ::alcoholicz::FtpGetStatus {handle} {
+    FtpAcquire $handle
+    return $ftp(status)
+}
+
+####
 # FtpConnect
 #
 # Connect to the FTP server.
@@ -125,8 +155,9 @@ proc ::alcoholicz::FtpConnect {handle} {
     FtpAcquire $handle
 
     if {$ftp(sock) ne ""} {
-        error "ftp connection already open, disconnect first"
+        error "ftp connection open, disconnect first"
     }
+    set ftp(status) 1
 
     # Asynchronous sockets in Tcl are created immediately but may not be
     # connected yet. The writable channel event callback is executed when
@@ -134,6 +165,34 @@ proc ::alcoholicz::FtpConnect {handle} {
     set ftp(sock) [socket -async $ftp(host) $ftp(port)]
 
     fileevent $ftp(sock) writable [list [namespace current]::FtpVerify $handle]
+    return
+}
+
+####
+# FtpDisconnect
+#
+# Disconnects from the FTP server.
+#
+proc ::alcoholicz::FtpDisconnect {handle} {
+    FtpAcquire $handle
+
+    # TODO: Sent QUIT
+
+    catch {close $ftp(sock)}
+    set ftp(sock) ""
+    set ftp(status) 0
+    return
+}
+
+####
+# FtpCommand
+#
+# Sends a command to the FTP server.
+#
+proc ::alcoholicz::FtpCommand {handle command {callback ""}} {
+    FtpAcquire $handle
+
+    # TODO: Queue command.
     return
 }
 
@@ -146,7 +205,7 @@ proc ::alcoholicz::FtpConnect {handle} {
 proc ::alcoholicz::FtpVerify {handle} {
     upvar [namespace current]::$handle ftp
     if {![info exists ftp]} {
-        LogDebug FtpVerify "Handle \"$handle\" closed before connection succeeded."
+        LogDebug FtpVerify "Handle \"$handle\" does not exist."
         return
     }
 
@@ -157,12 +216,12 @@ proc ::alcoholicz::FtpVerify {handle} {
     if {$ftp(error) ne ""} {
         LogDebug FtpVerify "Unable to connect to $ftp(host):$ftp(port) ($handle): $ftp(error)"
 
-        # The socket must be closed and set to an empty string
-        # in order for FtpIsConnected to return false.
         catch {close $ftp(sock)}
         set ftp(sock) ""
+        set ftp(status) 0
         return
     }
+    set ftp(status) 2
 
     set peer [fconfigure $ftp(sock) -peername]
     LogDebug FtpVerify "Connected to [lindex $peer 0]:[lindex $peer 2] ($handle)."
@@ -174,31 +233,23 @@ proc ::alcoholicz::FtpVerify {handle} {
 
     # Set socket options and event handlers.
     fconfigure $ftp(sock) -buffering line -blocking 0 -translation {auto crlf}
-    # TODO: State handler.
-    #fileevent $ftp(sock) readable [list [namespace current]::FtpHandler $handle]
+    fileevent $ftp(sock) readable [list [namespace current]::FtpHandler $handle]
     return
 }
 
 ####
-# FtpDisconnect
+# FtpHandler
 #
-# Disconnects from the FTP server.
+# FTP client event handler.
 #
-proc ::alcoholicz::FtpDisconnect {handle} {
-    FtpAcquire $handle
+proc ::alcoholicz::FtpHandler {handle} {
+    upvar [namespace current]::$handle ftp
+    if {![info exists ftp]} {
+        LogDebug FtpHandler "Handle \"$handle\" does not exist."
+        return
+    }
 
-    # TODO: Send QUIT
-    catch {close $ftp(sock)}
-    set ftp(sock) ""
+    # TODO: everything
+
     return
-}
-
-####
-# FtpIsConnected
-#
-# Checks if the current handle is connected.
-#
-proc ::alcoholicz::FtpIsConnected {handle} {
-    FtpAcquire $handle
-    return [expr {$ftp(sock) ne ""}]
 }
