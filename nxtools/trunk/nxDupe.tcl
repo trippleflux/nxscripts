@@ -345,8 +345,22 @@ proc ::nxTools::Dupe::RaceLinks {virtualPath} {
 # Site Commands
 ######################################################################
 
-proc ::nxTools::Dupe::SiteApprove {event release} {
+proc ::nxTools::Dupe::SiteApprove {event argList} {
     global approve misc flags group user
+
+    if {$event eq "BOT"} {
+        if {![MatchFlags $misc(SiteopFlags) $flags]} {
+            iputs "You do not have access to this command."
+            return 1
+        }
+        foreach {event user group} $argList {break}
+        set event [string toupper $event]
+        set flags [GetUserFlags $user]
+        set release [join [lrange $argList 3 end]]
+    } else {
+        set release [join $argList]
+    }
+
     if {[catch {DbOpenFile [namespace current]::ApproveDb "Approves.db"} error]} {
         ErrorLog SiteApprove $error
         return 1
@@ -684,11 +698,11 @@ proc ::nxTools::Dupe::Main {argv} {
             }
         }
         APPROVE {
-            array set params [list ADD 2 DEL 2 LIST 0]
+            array set params [list ADD 3 BOT 6 DEL 3 LIST 2]
             set subEvent [string toupper [lindex $argList 1]]
 
-            if {[info exists params($subEvent)] && $argLength > $params($subEvent)} {
-                set result [SiteApprove $subEvent [join [lrange $argList 2 end]]]
+            if {[info exists params($subEvent)] && $argLength == $params($subEvent)} {
+                set result [SiteApprove $subEvent [lrange $argList 2 end]]
             } else {
                 iputs "Syntax: SITE APPROVE ADD <release>"
                 iputs "        SITE APPROVE DEL <release>"

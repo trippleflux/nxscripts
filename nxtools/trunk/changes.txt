@@ -3,6 +3,7 @@
 ################################################################################
 
 nxTools v0.9.14 (XXX XX, 2005):
+  NEW: SITE APPROVE BOT, for IRC approve support.
   NEW: SITE REQBOT, for IRC request support.
   CHG: Removed dZSbot support, only AlcoBot is supported now.
   CHG: Removed pre-time functionality, since duplicated in AlcoBot.

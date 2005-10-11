@@ -268,18 +268,8 @@ proc ::nxTools::Req::Main {argv} {
             iputs "Syntax: SITE REQBOT <event> <user> <group> <request>"
         } else {
             foreach {event user group request} [lrange $argList 1 end] {break}
-
-            # Look up the user's flags.
-            set flags ""
-            if {[userfile open $user] == 0} {
-                set userFile [userfile bin2ascii]
-                foreach line [split $userFile "\r\n"] {
-                    if {[string equal -nocase "flags" [lindex $line 0]]} {
-                        set flags [lindex $line 1]; break
-                    }
-                }
-            }
             set event [string toupper $event]
+            set flags [GetUserFlags $user]
         }
     }
 
