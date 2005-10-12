@@ -414,6 +414,8 @@ proc ::alcoholicz::VarReplace {input varList valueList} {
         } elseif {[llength $varName] > 1} {
             variable theme
             variable variables
+
+            set value [ArgsToList $value]
             foreach {varName loopName} $varName {
                 set joinName "${loopName}_JOIN"
                 if {![info exists theme($loopName)] || ![info exists theme($joinName)]} {
