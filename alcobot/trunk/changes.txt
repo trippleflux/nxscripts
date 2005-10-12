@@ -7,6 +7,7 @@ AlcoBot v0.5.0 (not released):
   NEW: Rewrote the command interface, proper support for aliases and flag checking.
   NEW: The "ftpd" module now maintains a connection to the FTP server.
   CHG: Removed the "cmdPrefix" option from [Module::Free].
+  CHG: Removed the pre time announces from nxTools.
   CHG: The option names in [Commands] are the base names of commands instead of a pattern.
   FIX: Fixed ioZS support, the escape sequences are now properly substituted.
 
