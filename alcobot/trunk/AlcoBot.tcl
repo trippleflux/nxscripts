@@ -947,6 +947,12 @@ proc ::alcoholicz::DccAdmin {handle idx text} {
         putdcc $idx "FTP Daemon: [GetFtpDaemon]"
         putdcc $idx "Script Path: $scriptPath"
 
+        putdcc $idx "[b]Commands:[b]"
+        foreach name [lsort [array names cmdNames]] {
+            foreach {argDesc cmdDesc category binds script} $cmdNames($name) {break}
+            putdcc $idx "[join $name { }] - [b]Binds:[b] [join $binds {, }] [b]Category:[b] $category"
+        }
+
         putdcc $idx "[b]Modules:[b]"
         foreach name [lsort [array names modules]] {
             foreach {desc context depends tclFile varFile hash} $modules($name) {break}
