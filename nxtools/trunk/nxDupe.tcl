@@ -353,10 +353,10 @@ proc ::nxTools::Dupe::SiteApprove {event argList} {
             iputs "You do not have access to this command."
             return 1
         }
-        foreach {event user group} $argList {break}
-        set event [string toupper $event]
-        set flags [GetUserFlags $user]
-        set release [join [lrange $argList 3 end]]
+        set event [string toupper [lindex $argList 0]]
+        set user [lindex $argList 1]
+        set release [join [lrange $argList 2 end]]
+        GetUserInfo $user group flags
     } else {
         set release [join $argList]
     }
@@ -698,7 +698,7 @@ proc ::nxTools::Dupe::Main {argv} {
             }
         }
         APPROVE {
-            array set params [list ADD 3 BOT 6 DEL 3 LIST 2]
+            array set params [list ADD 3 BOT 5 DEL 3 LIST 2]
             set subEvent [string toupper [lindex $argList 1]]
 
             if {[info exists params($subEvent)] && $argLength == $params($subEvent)} {

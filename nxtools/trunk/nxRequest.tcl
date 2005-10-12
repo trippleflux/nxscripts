@@ -264,12 +264,12 @@ proc ::nxTools::Req::Main {argv} {
     set request [join [lrange $argList 1 end]]
 
     if {$event eq "BOT"} {
-        if {$argLength != 5} {
-            iputs "Syntax: SITE REQBOT <event> <user> <group> <request>"
+        if {$argLength != 4} {
+            iputs "Syntax: SITE REQBOT <event> <user> <request>"
         } else {
-            foreach {event user group request} [lrange $argList 1 end] {break}
+            foreach {event user request} [lrange $argList 1 end] {break}
             set event [string toupper $event]
-            set flags [GetUserFlags $user]
+            GetUserInfo $user group flags
         }
     }
 

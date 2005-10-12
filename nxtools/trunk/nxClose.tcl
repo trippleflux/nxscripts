@@ -57,19 +57,8 @@ proc ::nxTools::Close::Main {argv} {
                 if {[IsTrue $close(KickOnClose)] && [client who init "CID" "UID"] == 0} {
                     while {[set whoData [client who fetch]] ne ""} {
                         set userName [resolve uid [lindex $whoData 1]]
-                        set groupName "NoGroup"; set flags ""
+                        GetUserInfo $userName groupName flags
 
-                        if {[userfile open $userName] == 0} {
-                            set userFile [userfile bin2ascii]
-                            foreach line [split $userFile "\r\n"] {
-                                set type [string tolower [lindex $line 0]]
-                                if {$type eq "groups"} {
-                                    set groupName [GetGroupName [lindex $line 1]]
-                                } elseif {$type eq "flags"} {
-                                    set flags [lindex $line 1]
-                                }
-                            }
-                        }
                         if {![ExcemptCheck $userName $groupName $flags]} {
                             catch {client kill clientid [lindex $whoData 0]}
                         }
