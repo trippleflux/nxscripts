@@ -62,7 +62,8 @@ proc ::alcoholicz::FtpOpen {host port user passwd args} {
     foreach {option value} $args {
         if {$option eq "-secure"} {
             switch -- $value {
-                none {}
+                {} {}
+                none {set value ""}
                 implicit - ssl - tls {
                     # Make sure the TLS package (http://tls.sf.net) is present.
                     package present tls
@@ -76,7 +77,7 @@ proc ::alcoholicz::FtpOpen {host port user passwd args} {
             # TODO: connection timeout
             error "not implemented"
         } else {
-            error "invalid switch \"$option\": must be -secure"
+            error "invalid switch \"$option\": must be -secure or -timeout"
         }
     }
 
