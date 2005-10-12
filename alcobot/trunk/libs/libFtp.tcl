@@ -281,6 +281,7 @@ proc ::alcoholicz::FtpVerify {handle} {
     LogDebug FtpVerify "Connected to [lindex $peer 0]:[lindex $peer 2] ($handle)."
 
     # Perform SSL negotiation for FTP servers using implicit SSL.
+    # TODO: Implicit is broken.
     if {$ftp(secure) eq "implicit" && [catch {tls::import $ftp(sock) -ssl2 1 -ssl3 1 -tls1 1} message]} {
         FtpShutdown $handle "SSL negotiation failed - $message"
         return
@@ -356,7 +357,7 @@ proc ::alcoholicz::FtpHandler {handle {direct 0}} {
         FtpShutdown $handle "server closed connection"
         return
     } elseif {!$direct} {
-        # No response from the server. Return only if the handler was not
+        # No response from the server. Return if the handler was not
         # invoked directly (i.e. not by a channel writable event).
         return
     }
@@ -379,7 +380,7 @@ proc ::alcoholicz::FtpHandler {handle {direct 0}} {
         set event [lindex $ftp(queue) 0]
         set eventName [lindex $event 0]
 
-        # Pop the event from the queue.
+        # Pop the event from queue.
         set ftp(queue) [lrange $ftp(queue) 1 end]
 
         LogDebug FtpHandler "Event: $eventName ($handle)"
@@ -401,7 +402,7 @@ proc ::alcoholicz::FtpHandler {handle {direct 0}} {
                         FtpShutdown $handle "SSL negotiation failed - $message"
                         return
                     }
-                    # Reset channel options, in case the TLS module changes them.
+                    # Set channel options again, in case the TLS module changes them.
                     fconfigure $ftp(sock) -buffering line -blocking 0 -translation {auto crlf}
 
                     FtpSend $handle "PBSZ 0"
