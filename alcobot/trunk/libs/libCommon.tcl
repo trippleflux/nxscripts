@@ -18,7 +18,7 @@ namespace eval ::alcoholicz {
         PermCheck PermMatchFlags \
         SqlEscape SqlGetPattern SqlToLike \
         FormatDate FormatTime FormatDuration FormatDurationLong FormatSize FormatSpeed \
-        VarFormat VarReplace VarReplaceBase VarReplaceCommon
+        VarReplace VarReplaceBase VarReplaceCommon
 }
 
 ################################################################################

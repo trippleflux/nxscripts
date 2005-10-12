@@ -147,7 +147,7 @@ proc ::alcoholicz::FtpGetStatus {handle} {
 ####
 # FtpConnect
 #
-# Connect to the FTP server.
+# Connects to the FTP server.
 #
 proc ::alcoholicz::FtpConnect {handle} {
     FtpAcquire $handle ftp
