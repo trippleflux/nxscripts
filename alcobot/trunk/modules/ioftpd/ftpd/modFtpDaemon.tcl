@@ -11,17 +11,66 @@
 # Abstract:
 #   Uniform FTPD API, for ioFTPD.
 #
+# Exported Procedures:
+#   GetFtpConnection
+#   GetFlagTypes     <varName>
+#   UserList
+#   UserExists       <userName>
+#   UserInfo         <userName> <varName>
+#   GroupList
+#   GroupExists      <groupName>
+#   GroupInfo        <groupName> <varName>
+#
 
 namespace eval ::alcoholicz::FtpDaemon {
-    if {![info exists deleteFlag]} {
+    if {![info exists connection]} {
+        variable connection ""
         variable deleteFlag ""
         variable etcPath ""
         variable msgWindow ""
+        variable timerId ""
     }
     namespace import -force ::alcoholicz::*
-    namespace export GetFlagTypes \
+    namespace export GetFtpConnection GetFlagTypes \
         UserExists UserList UserInfo \
         GroupExists GroupList GroupInfo
+}
+
+####
+# GetFtpConnection
+#
+# Retrieves the main FTP connection handle.
+#
+proc ::alcoholicz::FtpDaemon::GetFtpConnection {} {
+    variable connection
+    return $connection
+}
+
+####
+# FtpTimer
+#
+# Checks the status of the FTP connection every minute.
+#
+proc ::alcoholicz::FtpDaemon::FtpTimer {} {
+    variable connection
+    variable timerId
+
+    # Wrap the FTP connection code in a catch statement in case the FTP
+    # library throws an error. The Eggdrop timer must be recreated.
+    if {[catch {
+        if {[FtpGetStatus $connection] == 2} {
+            FtpCommand $connection "NOOP"
+        } else {
+            set message [FtpGetError $connection]
+            LogError FtpServer "FTP handle not connected ($message), attemping to reconnect."
+            FtpConnect $connection
+        }
+    } message]} {
+        LogError FtpTimer $message
+    }
+
+    set timerId [timer 1 [namespace current]::FtpTimer]
+    return
 }
 
 ####
@@ -209,25 +258,36 @@ proc ::alcoholicz::FtpDaemon::GroupInfo {groupName varName} {
 # Module initialisation procedure, called when the module is loaded.
 #
 proc ::alcoholicz::FtpDaemon::Load {firstLoad} {
+    variable connection
     variable deleteFlag
     variable etcPath
     variable msgWindow
+    variable timerId
     upvar ::alcoholicz::configHandle configHandle
 
-    set deleteFlag [ConfigGet $configHandle IoFtpd deleteFlag]
+    # Retrieve configuration options.
+    foreach option {deleteFlag msgWindow host port user passwd secure} {
+        set $option [ConfigGet $configHandle IoFtpd $option]
+    }
     if {[string length $deleteFlag] != 1} {
         error "invalid flag \"$deleteFlag\": must be one character"
     }
 
-    set msgWindow [ConfigGet $configHandle IoFtpd msgWindow]
+    # Locate ioFTPD's "etc" directory.
     ioftpd info $msgWindow io
-
-    set rootPath [file dirname [file dirname $io(path)]]
-    set etcPath [file join $rootPath "etc"]
+    set etcPath [file join [file dirname [file dirname $io(path)]] "etc"]
     if {![file isdirectory $etcPath]} {
         error "the directory \"$etcPath\" does not exist"
     }
 
+    # Open a connection to the FTP server.
+    if {$firstLoad} {
+        set timerId [timer 1 [namespace current]::FtpTimer]
+    } else {
+        FtpClose $connection
+    }
+    set connection [FtpOpen $host $port $user $passwd -secure $secure]
+    FtpConnect $connection
     return
 }
 
@@ -237,5 +297,16 @@ proc ::alcoholicz::FtpDaemon::Load {firstLoad} {
 # Module finalisation procedure, called before the module is unloaded.
 #
 proc ::alcoholicz::FtpDaemon::Unload {} {
+    variable connection
+    variable timerId
+
+    if {$connection ne ""} {
+        FtpClose $connection
+        set connection ""
+    }
+    if {$timerId ne ""} {
+        catch {killtimer $timerId}
+        set timerId ""
+    }
     return
 }

@@ -11,16 +11,65 @@
 # Abstract:
 #   Uniform FTPD API, for glFTPD.
 #
+# Exported Procedures:
+#   GetFtpConnection
+#   GetFlagTypes     <varName>
+#   UserList
+#   UserExists       <userName>
+#   UserInfo         <userName> <varName>
+#   GroupList
+#   GroupExists      <groupName>
+#   GroupInfo        <groupName> <varName>
+#
 
 namespace eval ::alcoholicz::FtpDaemon {
-    if {![info exists dataPath]} {
+    if {![info exists connection]} {
+        variable connection ""
         variable dataPath ""
         variable rootPath ""
+        variable timerId ""
     }
     namespace import -force ::alcoholicz::*
-    namespace export GetFlagTypes \
+    namespace export GetFtpConnection GetFlagTypes \
         UserExists UserList UserInfo \
         GroupExists GroupList GroupInfo
+}
+
+####
+# GetFtpConnection
+#
+# Retrieves the main FTP connection handle.
+#
+proc ::alcoholicz::FtpDaemon::GetFtpConnection {} {
+    variable connection
+    return $connection
+}
+
+####
+# FtpTimer
+#
+# Checks the status of the FTP connection every minute.
+#
+proc ::alcoholicz::FtpDaemon::FtpTimer {} {
+    variable connection
+    variable timerId
+
+    # Wrap the FTP connection code in a catch statement in case the FTP
+    # library throws an error. The Eggdrop timer must be recreated.
+    if {[catch {
+        if {[FtpGetStatus $connection] == 2} {
+            FtpCommand $connection "NOOP"
+        } else {
+            set message [FtpGetError $connection]
+            LogError FtpServer "FTP handle not connected ($message), attemping to reconnect."
+            FtpConnect $connection
+        }
+    } message]} {
+        LogError FtpTimer $message
+    }
+
+    set timerId [timer 1 [namespace current]::FtpTimer]
+    return
 }
 
 ####
@@ -314,21 +363,33 @@ proc ::alcoholicz::FtpDaemon::GroupInfo {groupName varName} {
 #
 proc ::alcoholicz::FtpDaemon::Load {firstLoad} {
     variable change
+    variable connection
     variable dataPath
     variable rootPath
+    variable timerId
     upvar ::alcoholicz::configHandle configHandle
 
-    set dataPath [ConfigGet $configHandle GlFtpd dataPath]
+    # Retrieve configuration options.
+    foreach option {dataPath rootPath host port user passwd secure} {
+        set $option [ConfigGet $configHandle GlFtpd $option]
+    }
     if {![file isdirectory $dataPath]} {
         error "the directory \"$dataPath\" does not exist"
     }
-
-    set rootPath [ConfigGet $configHandle GlFtpd rootPath]
     if {![file isdirectory $rootPath]} {
         error "the directory \"$rootPath\" does not exist"
     }
 
-    # Force a reload on all files.
+    # Open a connection to the FTP server.
+    if {$firstLoad} {
+        set timerId [timer 1 [namespace current]::FtpTimer]
+    } else {
+        FtpClose $connection
+    }
+    set connection [FtpOpen $host $port $user $passwd -secure $secure]
+    FtpConnect $connection
+
+    # Force a reload on all cached files.
     unset -nocomplain change
     return
 }
@@ -339,5 +400,16 @@ proc ::alcoholicz::FtpDaemon::Load {firstLoad} {
 # Module finalisation procedure, called before the module is unloaded.
 #
 proc ::alcoholicz::FtpDaemon::Unload {} {
+    variable connection
+    variable timerId
+
+    if {$connection ne ""} {
+        FtpClose $connection
+        set connection ""
+    }
+    if {$timerId ne ""} {
+        catch {killtimer $timerId}
+        set timerId ""
+    }
     return
 }
