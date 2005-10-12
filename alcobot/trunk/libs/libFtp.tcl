@@ -310,7 +310,6 @@ proc ::alcoholicz::FtpHandler {handle {direct 0}} {
         LogDebug FtpHandler "Handle \"$handle\" does not exist."
         return
     }
-
     set replyCode 0
     set replyBase 0
     set buffer [list]
@@ -326,11 +325,11 @@ proc ::alcoholicz::FtpHandler {handle {direct 0}} {
         # 200-blah
         # 200 Command successful.
         #
-        if {[regexp -- {^([0-9]+)( |-)?(.*)$} $line result replyCode multiLine message]} {
+        if {[regexp -- {^([0-9]+)( |-)?(.*)$} $line result replyCode multi message]} {
             lappend buffer $replyCode $message
         } else {
             LogDebug FtpHandler "Invalid server response \"$line\"."
-            set multiLine ""
+            set multi ""
         }
 
         #
@@ -348,9 +347,9 @@ proc ::alcoholicz::FtpHandler {handle {direct 0}} {
         # Because of this, the line is appended to the response buffer
         # regardless of whether or not it matches the regular expression.
         #
-        while {$multiLine eq "-" && [gets $ftp(sock) line] > 0} {
-            regexp -- {^([0-9]+)( |-)?(.*)$} $line result replyCode multiLine replyText
-            lappend buffer $replyCode $replyText
+        while {$multi eq "-" && [gets $ftp(sock) line] > 0} {
+            regexp -- {^([0-9]+)( |-)?(.*)$} $line result replyCode multi line
+            lappend buffer $replyCode $line
         }
     } elseif {[eof $ftp(sock)]} {
         # The remote server has closed the control connection.
