@@ -11,14 +11,14 @@
 # Abstract:
 #   Implements a FTP client library to interact with FTP servers.
 #
-#   Exported Procedures:
-#     FtpOpen       <host> <port> <user> <passwd> [-secure <type>]
-#     FtpClose      <handle>
-#     FtpGetError   <handle>
-#     FtpGetStatus  <handle>
-#     FtpConnect    <handle>
-#     FtpDisconnect <handle>
-#     FtpCommand    <handle> <command> [callback]
+# Exported Procedures:
+#   FtpOpen       <host> <port> <user> <passwd> [-secure <type>]
+#   FtpClose      <handle>
+#   FtpGetError   <handle>
+#   FtpGetStatus  <handle>
+#   FtpConnect    <handle>
+#   FtpDisconnect <handle>
+#   FtpCommand    <handle> <command> [callback]
 #
 
 namespace eval ::alcoholicz {

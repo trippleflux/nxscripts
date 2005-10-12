@@ -11,10 +11,10 @@
 # Abstract:
 #   Implements a command-line option parser.
 #
-#   Exported Procedures:
-#     GetElementFromList <list> <element> [type]
-#     GetIndexFromList   <list> <element>
-#     GetOptions         <argList> <optList> <resultVar>
+# Exported Procedures:
+#   GetElementFromList <list> <element> [type]
+#   GetIndexFromList   <list> <element>
+#   GetOptions         <argList> <optList> <resultVar>
 #
 
 namespace eval ::alcoholicz {

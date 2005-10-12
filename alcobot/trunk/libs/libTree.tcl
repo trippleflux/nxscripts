@@ -13,16 +13,16 @@
 #   Tcl's arrays and dictionaries, this method retains the natural order of
 #   its keys and nodes.
 #
-#   Exported Procedures:
-#     TreeCreate   [<key> <value> ...]
-#     TreeExists   <tree> <key> [<key> ...]
-#     TreeFor      {keyVar valueVar} <tree> <body>
-#     TreeKeys     <tree> [pattern]
-#     TreeValues   <tree> [pattern]
-#     TreeGet      <tree> <key> [<key> ...]
-#     TreeGetNaive <tree> <key> [<key> ...]
-#     TreeSet      <tree> <key> [<key> ...] <value>
-#     TreeUnset    <tree> <key> [<key> ...]
+# Exported Procedures:
+#   TreeCreate   [<key> <value> ...]
+#   TreeExists   <tree> <key> [<key> ...]
+#   TreeFor      {keyVar valueVar} <tree> <body>
+#   TreeKeys     <tree> [pattern]
+#   TreeValues   <tree> [pattern]
+#   TreeGet      <tree> <key> [<key> ...]
+#   TreeGetNaive <tree> <key> [<key> ...]
+#   TreeSet      <tree> <key> [<key> ...] <value>
+#   TreeUnset    <tree> <key> [<key> ...]
 #
 
 namespace eval ::alcoholicz {

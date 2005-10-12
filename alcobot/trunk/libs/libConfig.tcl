@@ -12,20 +12,20 @@
 #   Implements a configuration file library to read from and write to
 #   INI-style configuration files.
 #
-#   Exported Procedures:
-#     ConfigOpen     <filePath> [-align <int>] [-comment <char>]
-#     ConfigChange   <handle> <-align | -comment | -path> [value]
-#     ConfigClose    <handle>
-#     ConfigFree     <handle>
-#     ConfigRead     <handle>
-#     ConfigWrite    <handle>
-#     ConfigKeys     <handle> [pattern]
-#     ConfigSections <handle> <section> [pattern]
-#     ConfigExists   <handle> <section> [key]
-#     ConfigGet      <handle> <section> <key>
-#     ConfigGetEx    <handle> <section> [pattern]
-#     ConfigSet      <handle> <section> [<key> <value>]
-#     ConfigUnset    <handle> <section> [key]
+# Exported Procedures:
+#   ConfigOpen     <filePath> [-align <int>] [-comment <char>]
+#   ConfigChange   <handle> <-align | -comment | -path> [value]
+#   ConfigClose    <handle>
+#   ConfigFree     <handle>
+#   ConfigRead     <handle>
+#   ConfigWrite    <handle>
+#   ConfigKeys     <handle> [pattern]
+#   ConfigSections <handle> <section> [pattern]
+#   ConfigExists   <handle> <section> [key]
+#   ConfigGet      <handle> <section> <key>
+#   ConfigGetEx    <handle> <section> [pattern]
+#   ConfigSet      <handle> <section> [<key> <value>]
+#   ConfigUnset    <handle> <section> [key]
 #
 
 namespace eval ::alcoholicz {
