@@ -119,7 +119,7 @@ proc ::nxLib::DbBusyHandler {tries} {
 
 proc ::nxLib::SqlGetPattern {pattern} {
     set pattern "*$pattern*"
-    regsub -all {[\s\*]+} $pattern "*" pattern
+    regsub -all -- {[\s\*]+} $pattern "*" pattern
     return [SqlWildToLike $pattern]
 }
 
@@ -234,7 +234,7 @@ proc ::nxLib::GetPath {currentPath path} {
 
 proc ::nxLib::IsDiskPath {path} {
     set path [string tolower [file tail $path]]
-    return [regexp {^(cd|dis[ck]|dvd)\d{1,2}$} $path]
+    return [regexp -- {^(cd|dis[ck]|dvd)\d{1,2}$} $path]
 }
 
 proc ::nxLib::RemoveParentLinks {realPath virtualPath} {
@@ -497,7 +497,7 @@ proc ::nxLib::GetGroupUsers {groupId} {
     foreach userName [GetUserList] {
         if {[userfile open $userName] != 0} {continue}
         set userFile [userfile bin2ascii]
-        if {[regexp -nocase {groups ([\s\d]+)} $userFile result groupIdList]} {
+        if {[regexp -nocase -- {groups ([\s\d]+)} $userFile result groupIdList]} {
             if {[lsearch -exact $groupIdList $groupId] != -1} {lappend userList $userName}
         }
     }
@@ -594,7 +594,7 @@ proc ::nxLib::ParseCookies {input valueList cookieList} {
                 # Type of cookie substitution to perform.
                 if {[string is integer -strict $value]} {
                     append output [format "%${rightPos}i" $value]
-                } elseif {[regexp {^-?[0-9]+\.[0-9]+$} $value]} {
+                } elseif {[regexp -- {^-?[0-9]+\.[0-9]+$} $value]} {
                     append output [format "%${rightPos}.${leftPos}f" $value]
                 } else {
                     append output [format "%${rightPos}.${leftPos}s" $value]
