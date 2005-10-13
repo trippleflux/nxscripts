@@ -431,7 +431,7 @@ proc ::nxTools::Dupe::SiteApprove {event argList} {
             OutputText $template(Footer)
         }
         default {
-            ErrorLog SiteApprove "unknown event name \"$event\""
+            ErrorLog SiteApprove "unknown event \"$event\""
         }
     }
     ApproveDb close
