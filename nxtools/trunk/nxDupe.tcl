@@ -349,6 +349,7 @@ proc ::nxTools::Dupe::SiteApprove {event argList} {
     global approve misc flags group user
 
     if {$event eq "BOT"} {
+        # Make sure the user (or bot) has siteop flags.
         if {![MatchFlags $misc(SiteopFlags) $flags]} {
             iputs "You do not have access to this command."
             return 1
