@@ -112,7 +112,7 @@ proc ::nxTools::Req::Add {userName groupName request} {
     iputs ".-\[Request\]--------------------------------------------------------------."
     set result 0
 
-    if {[IsTrue $req(ReleaseNames)] && ![regexp {^[\w\.\-\(\)]+\-\w+$} $request]} {
+    if {[IsTrue $req(ReleaseNames)] && ![regexp -- {^[\w\.\-\(\)]+\-\w+$} $request]} {
         LinePuts "Invalid release format, must be: \"Release.Name-Group\"."
         set result 1
     } else {

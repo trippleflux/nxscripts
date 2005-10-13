@@ -430,6 +430,9 @@ proc ::nxTools::Dupe::SiteApprove {event argList} {
             if {!$count} {OutputText $template(None)}
             OutputText $template(Footer)
         }
+        default {
+            ErrorLog SiteApprove "unknown event name \"$event\""
+        }
     }
     ApproveDb close
     return 0
@@ -575,7 +578,7 @@ proc ::nxTools::Dupe::SiteUndupe {argList} {
         set pattern [join [lrange $argList 0 end]]
     }
 
-    if {[regexp {[\*\?]} $pattern] && [regexp -all {[[:alnum:]]} $pattern] < $dupe(AlphaNumChars)} {
+    if {[regexp {[\*\?]} $pattern] && [regexp -all -- {[[:alnum:]]} $pattern] < $dupe(AlphaNumChars)} {
         ErrorReturn "There must be at $dupe(AlphaNumChars) least alphanumeric chars when wildcards are used."
         return 1
     }

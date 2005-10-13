@@ -26,7 +26,7 @@ namespace eval ::nxTools::Utils {
 
 proc ::nxTools::Utils::ChangeCredits {userName change {section 0}} {
     incr section
-    if {[regexp {^(\+|\-)?(\d+)$} $change result method amount] && [userfile open $userName] == 0} {
+    if {[regexp -- {^(\+|\-)?(\d+)$} $change result method amount] && [userfile open $userName] == 0} {
         set newUserFile ""
         userfile lock
         set userFile [userfile bin2ascii]
@@ -63,7 +63,7 @@ proc ::nxTools::Utils::IsGroupAdmin {userName flags groupId} {
         return 1
     } elseif {[userfile open $userName] == 0} {
         set userFile [userfile bin2ascii]
-        if {[regexp -nocase {admingroups ([\s\d]+)} $userFile result groupIdList]} {
+        if {[regexp -nocase -- {admingroups ([\s\d]+)} $userFile result groupIdList]} {
             if {[lsearch -exact $groupIdList $groupId] != -1} {return 1}
         }
     }
@@ -269,7 +269,7 @@ proc ::nxTools::Utils::WeeklyCredits {wkTarget wkAmount} {
         } else {
             LinePuts "There are currently no weekly credit targets."
         }
-    } elseif {[regexp {^(\d),((\+|\-)?\d+)$} $wkAmount result section credits]} {
+    } elseif {[regexp -- {^(\d),((\+|\-)?\d+)$} $wkAmount result section credits]} {
         # Add or remove weekly credit targets.
         set deleted 0; set index 0
         set creditsKB [expr {wide($credits) * 1024}]
@@ -377,7 +377,7 @@ proc ::nxTools::Utils::SiteCredits {event target amount section} {
     }
     if {![string is digit -strict $section] || $section > 9} {set section 0}
 
-    if {![regexp {^(\d+)(.*)$} $amount result amount unit]} {
+    if {![regexp -- {^(\d+)(.*)$} $amount result amount unit]} {
         ErrorReturn "The specified amount \"$amount\" is invalid."
     }
     set unitName [string toupper [string index $unit 0]]
