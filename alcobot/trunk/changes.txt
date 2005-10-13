@@ -12,6 +12,7 @@ AlcoBot v0.5.0 (not released):
   CHG: Removed the pre time announces from nxTools.
   CHG: The option names in [Commands] are the base names of commands instead of a pattern.
   FIX: ioZS support, the escape sequences are now properly substituted.
+  FIX: Handling of patterns with reserved characters (!dupe, !new, !nukes, !unnukes, !pre).
   FIX: Parsing sub-list (loop) values with reserved characters.
 
 AlcoBot v0.4.0 (Oct 7, 2005):

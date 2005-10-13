@@ -97,7 +97,7 @@ proc ::alcoholicz::NxTools::Latest {command target user host handle channel argv
     }
     set option(limit) [GetResultLimit $option(limit)]
 
-    if {$section eq ""} {
+    if {[set section [join $section]] eq ""} {
         set sectionQuery ""
     } else {
         # Validate the specified section name.
@@ -148,7 +148,8 @@ proc ::alcoholicz::NxTools::Search {command target user host handle channel argv
     if {[catch {set pattern [GetOptions $argv $optList option]} message]} {
         CmdSendHelp $channel channel $command $message
         return
-    } elseif {$pattern eq ""} {
+    }
+    if {[set pattern [join $pattern]] eq ""} {
         CmdSendHelp $channel channel $command "you must specify a pattern"
         return
     }
@@ -200,7 +201,7 @@ proc ::alcoholicz::NxTools::Nukes {command target user host handle channel argv}
     }
     set option(limit) [GetResultLimit $option(limit)]
 
-    if {$pattern eq ""} {
+    if {[set pattern [join $pattern]] eq ""} {
         set matchQuery ""
     } else {
         set matchQuery "AND Release LIKE '[SqlGetPattern $pattern]' ESCAPE '\\'"
@@ -239,7 +240,7 @@ proc ::alcoholicz::NxTools::NukeTop {command target user host handle channel arg
     }
     set option(limit) [GetResultLimit $option(limit)]
 
-    if {$group eq ""} {
+    if {[set group [join $group]] eq ""} {
         set groupQuery ""
     } else {
         set groupQuery "GroupName='[SqlEscape $group]' AND"
@@ -277,7 +278,7 @@ proc ::alcoholicz::NxTools::Unnukes {command target user host handle channel arg
     }
     set option(limit) [GetResultLimit $option(limit)]
 
-    if {$pattern eq ""} {
+    if {[set pattern [join $pattern]] eq ""} {
         set matchQuery ""
     } else {
         set matchQuery "AND Release LIKE '[SqlGetPattern $pattern]' ESCAPE '\\'"
@@ -363,10 +364,13 @@ proc ::alcoholicz::NxTools::Undupe {command target user host handle channel argv
     if {[catch {set pattern [GetOptions $argv {directory} option]} message]} {
         CmdSendHelp $channel channel $command $message
         return
-    } elseif {[regexp {[\*\?]} $pattern] && [regexp -all {[[:alnum:]]} $pattern] < $undupeChars} {
+    }
+    set pattern [join $pattern]
+    if {[regexp {[\*\?]} $pattern] && [regexp -all {[[:alnum:]]} $pattern] < $undupeChars} {
         CmdSendHelp $channel channel $command "you must specify at least $undupeChars alphanumeric chars with wildcards"
         return
-    } elseif {$pattern eq ""} {
+    }
+    if {$pattern eq ""} {
         CmdSendHelp $channel channel $command "you must specify a pattern"
         return
     }

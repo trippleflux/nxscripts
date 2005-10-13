@@ -123,7 +123,8 @@ proc ::alcoholicz::PreTimes::Search {command target user host handle channel arg
     if {[catch {set pattern [GetOptions $argv {{limit integer} {section arg}} option]} message]} {
         CmdSendHelp $channel channel $command $message
         return
-    } elseif {$pattern eq ""} {
+    }
+    if {[set pattern [join $pattern]] eq ""} {
         CmdSendHelp $channel channel $command "you must specify a pattern"
         return
     }
