@@ -2,7 +2,7 @@
 #                           nxAutoNuke - Change Log                            #
 ################################################################################
 
-nxAutoNuke v2.2.0 (XXX XX, 2005):
+nxAutoNuke v2.2.0 (Oct 12, 2005):
   NEW: Moved to the modified BSD license.
   NEW: Included a custom init.itcl without the nxTools libraries.
   FIX: The script failed if a section had the wrong number of options.
