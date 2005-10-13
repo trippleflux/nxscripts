@@ -382,7 +382,7 @@ proc ::nxAutoNuke::Main {} {
         # Sort the check settings so the earliest nuke time is processed first.
         if {[catch {llength $check(SettingsList)} error] || \
             [catch {set check(SettingsList) [lsort -increasing -integer -index 4 $check(SettingsList)]} error]} {
-            ErrorLog AutoNuke "invalid check settings for \"$virtualPath\": $error"
+            ErrorLog AutoNuke "invalid check settings for \"$check(VirtualPath)\": $error"
             continue
         }
 
