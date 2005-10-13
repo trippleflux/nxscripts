@@ -219,6 +219,7 @@ proc ::alcoholicz::FtpCommand {handle command {callback ""}} {
 #
 proc ::alcoholicz::FtpSend {handle command} {
     upvar [namespace current]::$handle ftp
+    LogDebug FtpSend "Sending command \"$command\" ($handle)."
 
     if {[info exists ftp]} {
         if {[catch {puts $ftp(sock) $command} message]} {

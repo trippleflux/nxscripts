@@ -334,6 +334,7 @@ proc ::alcoholicz::ReadLogs::Load {firstLoad} {
 #
 proc ::alcoholicz::ReadLogs::Unload {} {
     variable timerId
+
     if {$timerId ne ""} {
         catch {killutimer $timerId}
         set timerId ""
