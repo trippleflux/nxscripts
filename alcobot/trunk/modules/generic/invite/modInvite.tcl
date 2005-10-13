@@ -11,7 +11,10 @@
 # Abstract:
 #   Implements a module to invite users into selected IRC channel(s).
 #
-
+# Exported Procedures:
+#   GetFtpUser <ircUser>
+#   GetIrcUser <ftpUser>
+#
 namespace eval ::alcoholicz::Invite {
     if {![info exists dataSource]} {
         variable dataSource ""
@@ -21,6 +24,7 @@ namespace eval ::alcoholicz::Invite {
     }
     namespace import -force ::alcoholicz::*
     namespace import -force ::alcoholicz::FtpDaemon::*
+    namespace export GetFtpUser GetIrcUser
 }
 
 ####
@@ -49,6 +53,50 @@ proc ::alcoholicz::Invite::DbConnect {} {
         return 0
     }
     return 1
+}
+
+####
+# GetFtpUser
+#
+# Looks up the FTP user-name for the given IRC nick-name.
+#
+proc ::alcoholicz::Invite::GetFtpUser {ircUser} {
+    if {![DbConnect]} {
+        error "invite database is offline"
+    }
+
+    # IRC nick-names are NOT case-senstive.
+    set result [db "SELECT ftp_user FROM invite_users WHERE online='1' \
+        AND UPPER(irc_user)=UPPER('[SqlEscape $ircUser]') LIMIT 1"]
+
+    if {[llength $result]} {
+        # First row and first column.
+        return [lindex $result 0 0]
+    } else {
+        error "unknown IRC user, please re-invite yourself"
+    }
+}
+
+####
+# GetIrcUser
+#
+# Looks up the IRC nick-name for the given FTP user-name.
+#
+proc ::alcoholicz::Invite::GetIrcUser {ftpUser} {
+    if {![DbConnect]} {
+        error "invite database is offline"
+    }
+
+    # FTP user-names are case-senstive.
+    set result [db "SELECT irc_user FROM invite_users WHERE online='1' \
+        AND ftp_user='[SqlEscape $ftpUser]' LIMIT 1"]
+
+    if {[llength $result]} {
+        # First row and first column.
+        return [lindex $result 0 0]
+    } else {
+        error "unknown FTP user, please re-invite yourself"
+    }
 }
 
 ####
