@@ -1,0 +1,31 @@
+### Package
+#
+# - Name and description of package.
+#
+PKG_NAME    = AlcoBot
+PKG_DESC    = Alcoholicz Site Bot
+
+### Package Version
+#
+# - Define package version.
+# - Ex. <major>.<minor>.<patch>
+#
+PKG_MAJOR   = 0
+PKG_MINOR   = 5
+PKG_PATCH   = 0
+
+### Package Status
+#
+# 0 = Alpha
+# 1 = Beta
+# 2 = Release Candidate
+# 3 = Final
+#
+PKG_STATUS  = 0
+
+### Release Number
+#
+# - Increments for each alpha, beta, and RC release.
+# - The release number is disregarded for finals.
+#
+PKG_RELEASE = 0
