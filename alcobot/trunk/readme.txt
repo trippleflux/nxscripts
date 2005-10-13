@@ -60,21 +60,24 @@ AlcoBot is a modular sitebot written in Tcl for ioFTPD and glFTPD.
 # 3. Zipscript                                                                 #
 ################################################################################
 
-AlcoBot supports multiple zipscripts, but you must load the appropriate
+    AlcoBot supports multiple zipscripts, but you must load the appropriate
 variable definition file. Select your desired zipscript, and add the .vars
 file name to "varFiles", under [General], in the AlcoBot configuration file.
 
-    iozs.vars   - ioZS for ioFTPD, written by StarDog.
-                - URL: http://www.iozs.com
+    iozs.vars     - ioZS for ioFTPD, written by StarDog.
+                  - URL: http://www.iozs.com
 
-    iosfv.vars  - ioSFV for ioFTPD, written by _tUFF.
-                - URL: http://www.inicom.net/pages/en.ioftpd-scripts.php?id=41
+    iosfv.vars    - ioSFV for ioFTPD, written by _tUFF.
+                  - URL: http://www.inicom.net/pages/en.ioftpd-scripts.php?id=41
 
-    pzs.vars    - Project-ZS for ioFTPD, written by Caladan and esmandil.
-                - URL: http://www.inicom.net/pages/en.ioftpd-scripts.php?id=98
+    php_psio.vars - php_psio for ioFTPD, written by SnypeTEST.
+                  - URL: http://www.inicom.net/pages/en.ioftpd-scripts.php?id=49
 
-    pzs-ng.vars - Project-ZS-NG for glFTPD, written by the PZS-NG team.
-                - URL: http://www.pzs-ng.com
+    pzs.vars      - Project-ZS for ioFTPD, written by Caladan and esmandil.
+                  - URL: http://www.inicom.net/pages/en.ioftpd-scripts.php?id=98
+
+    pzs-ng.vars   - Project-ZS-NG for glFTPD, written by the PZS-NG team.
+                  - URL: http://www.pzs-ng.com
 
 
 ################################################################################
