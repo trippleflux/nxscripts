@@ -67,6 +67,9 @@ file name to "varFiles", under [General], in the AlcoBot configuration file.
     iozs.vars     - ioZS for ioFTPD, written by StarDog.
                   - URL: http://www.iozs.com
 
+    iojzs.vars    - iojZS for ioFTPD, written by jeza.
+                  - URL: http://www.inicom.net/pages/en.ioftpd-scripts.php?id=20
+
     iosfv.vars    - ioSFV for ioFTPD, written by _tUFF.
                   - URL: http://www.inicom.net/pages/en.ioftpd-scripts.php?id=41
 
