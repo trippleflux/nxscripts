@@ -591,8 +591,10 @@ proc ::nxAutoNuke::Main {} {
                 set release(Name) [file tail $release(RealPath)]
 
                 # Ignore exempted, approved, and old releases.
-                if {[ListMatchI $anuke(Exempts) $release(Name)] || [llength [FindTags $release(RealPath) $anuke(ApproveTag)]] || \
-                    [catch {file stat $release(RealPath) stat}] || [set release(Age) [expr {[clock seconds] - $stat(ctime)}]] > $maxAge} {
+                if {[ListMatchI $anuke(Exempts) $release(Name)] || \
+                        [llength [FindTags $release(RealPath) $anuke(ApproveTag)]] || \
+                        [catch {file stat $release(RealPath) stat}] || \
+                        [set release(Age) [expr {[clock seconds] - $stat(ctime)}]] > $maxAge} {
                     continue
                 }
 
