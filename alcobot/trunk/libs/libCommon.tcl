@@ -543,11 +543,17 @@ proc ::alcoholicz::VarReplaceCommon {text section} {
     set vars [list now:t]
     set values [list [clock seconds]]
     if {$section eq ""} {
-        # Fall back to the default section.
+        # If no section is specified, use the default section.
         set section $defaultSection
     } else {
         lappend vars "section:z"
         lappend values $section
+
+        if {![info exists colours($section)]} {
+            # If there are no colours available for the current
+            # section, use the default section's colours.
+            set section $defaultSection
+        }
     }
 
     if {[info exists colours($section)]} {
