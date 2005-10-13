@@ -19,6 +19,8 @@ namespace eval ::alcoholicz::NxTools {
         variable undupeChars 5
     }
     namespace import -force ::alcoholicz::*
+    namespace import -force ::alcoholicz::FtpDaemon::GetFtpConnection
+    namespace import -force ::alcoholicz::Invite::GetFtpUser
 }
 
 ####
@@ -397,6 +399,67 @@ proc ::alcoholicz::NxTools::Undupe {command target user host handle channel argv
 }
 
 ####
+# SiteCmd
+#
+# Send SITE commands to the FTP server and display the response.
+#
+proc ::alcoholicz::NxTools::SiteCmd {event command target user host handle channel argv} {
+    if {[llength $argv] != 1} {
+        CmdSendHelp $channel channel $command
+        return
+    }
+    switch -- $event {
+        APPROVE {
+            set command "SITE APPROVE BOT ADD"
+            set theme "approveAdd"
+        }
+        REQADD {
+            set command "SITE REQBOT ADD"
+            set theme "requestAdd"
+        }
+        REQDEL {
+            set command "SITE REQBOT DEL"
+            set theme "requestDel"
+        }
+        REQFILL {
+            set command "SITE REQBOT FILL"
+            set theme "requestFill"
+        }
+        default {
+            LogError ModNxTools "Unknown status event \"$event\"."
+            return
+        }
+    }
+    if {[catch {set ftpUser [GetFtpUser $user]} message]} {
+        SendTargetTheme $target $theme [list $message]
+        return
+    }
+    append command " $ftpUser \"[lindex $argv 0]\""
+
+    # Send the SITE command.
+    set connection [GetFtpConnection]
+    if {[FtpGetStatus $connection] == 2} {
+        FtpCommand $connection $command [list [namespace current]::SiteCallback $target $theme]
+    } else {
+        SendTargetTheme $target $theme [list "Not connected to the FTP server."]
+    }
+    return
+}
+
+####
+# SiteCallback
+#
+# SITE command callback, display the server's response.
+#
+proc ::alcoholicz::NxTools::SiteCallback {target theme buffer} {
+    # Ignore the header, foot, and the "command successful" message.
+    foreach {code message} [lrange $buffer 2 end-4] {
+        set message [string trim $message "| \t"]
+        SendTargetTheme $target $theme [list $message]
+    }
+}
+
+####
 # ReadConfig
 #
 # Reads required options from the nxTools configuration file.
@@ -412,7 +475,7 @@ proc ::alcoholicz::NxTools::ReadConfig {configFile} {
     # Evaluate the source file in a slave interpreter
     # to retrieve the required configuration options.
     set slave [interp create -safe]
-    interp invokehidden $slave source $configFile
+    interp invokehidden $slave source [list $configFile]
 
     foreach varName {oneLines undupeChars} option {misc(OneLines) dupe(AlphaNumChars)} {
         if {[$slave eval info exists $option]} {
@@ -482,15 +545,32 @@ proc ::alcoholicz::NxTools::Load {firstLoad} {
         -category "Stats" -args "\[-limit <num>\] \[pattern\]" \
         -prefix   $prefix -desc "Display recent unnukes."
 
+    # Request commands.
+    CmdCreate channel requests [namespace current]::Requests \
+        -category "Request" -desc "Display current requests." -prefix $prefix
+
+    CmdCreate channel request [list [namespace current]::SiteCmd REQADD] \
+        -category "Request" -args "<request/id>" \
+        -prefix $prefix     -desc "Add a request."
+
+    CmdCreate channel reqdel  [list [namespace current]::SiteCmd REQDEL] \
+        -category "Request" -args "<request/id>" \
+        -prefix $prefix     -desc "Remove a request."
+
+    CmdCreate channel reqfill [list [namespace current]::SiteCmd REQFILL] \
+        -category "Request" -args "<request/id>" \
+        -prefix $prefix     -desc "Mark a request as filled."
+
     # Other commands.
+    CmdCreate channel approve [list [namespace current]::SiteCmd APPROVE] \
+        -category "General" -args "<release>" \
+        -prefix $prefix     -desc "Approve a release."
+
     CmdCreate channel approved [namespace current]::Approved \
         -category "General" -desc "Display approved releases." -prefix $prefix
 
     CmdCreate channel onel     [namespace current]::OneLines \
         -category "General" -desc "Display recent one-lines." -prefix $prefix
-
-    CmdCreate channel requests [namespace current]::Requests \
-        -category "General" -desc "Display current requests." -prefix $prefix
 
     return
 }

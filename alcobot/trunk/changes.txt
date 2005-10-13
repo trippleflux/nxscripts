@@ -1,5 +1,7 @@
 AlcoBot v0.5.0 (not released):
+  NEW: Add, fill, or remove requests from IRC with the !request, !reqfill, and !reqdel commands.
   NEW: Added command aliases !dn and !up for !leechers and !uploaders, respectively.
+  NEW: Approve releases from IRC with the !approve command.
   NEW: Asynchronous FTP client library with SSL and TLS support.
   NEW: Expanded zipscript support to include ioSFV (_tUFF) and Project-ZS (Caladan/esmandil).
   NEW: File containing all available variables (variables.txt).

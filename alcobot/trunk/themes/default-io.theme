@@ -197,6 +197,11 @@ inviteFailed  = [b][[c1]Invite[c]][b] I need ops in [b]%(channels)[b] to invite 
 INVITE        = [b][[c1]Invite[c]][b] [b]%(user)[b]/%(group) invited himself as [b]%(nick)[b].
 
 # Module: nxtools
+approveAdd    = [b][[c1]Approve[c]][b] %(message)
+requestAdd    = [b][[c1]Request[c]][b] %(message)
+requestDel    = [b][[c1]Request[c]][b] %(message)
+requestFill   = [b][[c1]Request[c]][b] %(message)
+
 approveHead   = [b]Approved Releases:[b]
 approveBody   = [%02(num)] [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
 approveNone   = No releases found.
