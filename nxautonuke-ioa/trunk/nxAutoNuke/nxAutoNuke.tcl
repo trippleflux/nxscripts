@@ -218,7 +218,7 @@ proc ::nxAutoNuke::Nuke {realPath virtualPath nukerUser nukerGroup multi reason}
         catch {vfs write $entry $userId $groupId 555}
     }
     catch {vfs flush $parentPath}
-    putlog "NUKE: \"$virtualPath\" \"$nukerUser\" \"$nukerGroup\" \"$multi\" \"$reason\" \"$files\" \"$totalSize\" \"$diskCount\" \"$nukeeLog\""
+    putlog "NUKE: \"$virtualPath\" \"$nukerUser\" \"$nukerGroup\" \"$multi\" \"$reason\" \"$files\" \"$totalSize\" \"$diskCount\" \"[join $nukeeLog]\""
 
     if {![catch {DbOpenFile [namespace current]::NukeDb "Nukes.db"} error]} {
         # To pass a NULL value to TclSQLite, the variable must be unset.
