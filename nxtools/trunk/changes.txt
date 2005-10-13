@@ -8,6 +8,7 @@ nxTools v0.9.14 (XXX XX, 2005):
   CHG: Removed dZSbot support, only AlcoBot is supported now.
   CHG: Removed pre-time functionality, since duplicated in AlcoBot.
   CHG: Tcl extensions are now bundled in the nxTools package.
+  FIX: Convert the list of nuked users into a string when logging them.
   FIX: Corrected the message shown on 'SITE NUKETOP' if there are no nukees.
   FIX: Updated nxHelper to v2.2.1, which fixes a bug in the extension loader.
   FIX: User ownership is now properly set on request tags.
