@@ -2,7 +2,7 @@
 #                           nxAutoNuke - Change Log                            #
 ################################################################################
 
-nxAutoNuke v2.2.0 (XXX XX, 2005):
+nxAutoNuke v2.2.0 (Oct 12, 2005):
   NEW: Moved to the modified BSD license.
   CHG: Removed dZSbot support, only AlcoBot is supported now.
   FIX: Convert the list of nuked users into a string when logging them.
