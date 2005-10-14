@@ -9,9 +9,15 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: tcl.m4,v 1.72 2005/09/13 22:05:43 hobbs Exp $
+# RCS: @(#) $Id: tcl.m4,v 1.74 2005/10/07 23:32:26 hobbs Exp $
 
 AC_PREREQ(2.50)
+
+# Possible values for key variables defined:
+#
+# TEA_WINDOWINGSYSTEM - win32 aqua x11 (mirrors 'tk windowingsystem')
+# TEA_PLATFORM        - windows unix
+#
 
 #------------------------------------------------------------------------
 # TEA_PATH_TCLCONFIG --
@@ -563,13 +569,14 @@ AC_DEFUN(TEA_ENABLE_THREADS, [
 		fi
 	    fi
 
-	    # Does the pthread-implementation provide
-	    # 'pthread_attr_setstacksize' ?
-
-	    ac_saved_libs=$LIBS
-	    LIBS="$LIBS $THREADS_LIBS"
-	    AC_CHECK_FUNCS(pthread_attr_setstacksize)
-	    LIBS=$ac_saved_libs
+dnl	    # Not needed in TEA
+dnl	    # Does the pthread-implementation provide
+dnl	    # 'pthread_attr_setstacksize' ?
+dnl
+dnl	    ac_saved_libs=$LIBS
+dnl	    LIBS="$LIBS $THREADS_LIBS"
+dnl	    AC_CHECK_FUNCS(pthread_attr_setstacksize)
+dnl	    LIBS=$ac_saved_libs
 	fi
     else
 	TCL_THREADS=0
@@ -1646,7 +1653,8 @@ dnl AC_CHECK_TOOL(AR, ar, :)
 	    UNSHARED_LIB_SUFFIX='${TCL_TRIM_DOTS}.a'
 	    TCL_LIB_VERSIONS_OK=nodots
 	    ;;
-	SunOS-5.[[0-6]]*)
+	SunOS-5.[[0-6]])
+	    # Careful to not let 5.10+ fall into this case
 
 	    # Note: If _REENTRANT isn't defined, then Solaris
 	    # won't define thread-safe library routines.
@@ -1705,9 +1713,19 @@ dnl AC_CHECK_TOOL(AR, ar, :)
 				CFLAGS="$CFLAGS -xarch=v9"
 			    	LDFLAGS="$LDFLAGS -xarch=v9"
 			    fi
+			    # Solaris 64 uses this as well
+			    #LD_LIBRARY_PATH_VAR="LD_LIBRARY_PATH_64"
 			fi
+		elif test "$arch" = "amd64 i386" ; then
+		    if test "$GCC" = "yes" ; then
+			AC_MSG_WARN([64bit mode not supported with GCC on $system])
+		    else
+			do64bit_ok=yes
+			CFLAGS="$CFLAGS -xarch=amd64"
+			LDFLAGS="$LDFLAGS -xarch=amd64"
+		    fi
 		else
-		    AC_MSG_WARN("64bit mode only supported sparcv9 system")
+		    AC_MSG_WARN([64bit mode not supported for $arch])
 		fi
 	    fi
 
@@ -1770,7 +1788,7 @@ dnl AC_CHECK_TOOL(AR, ar, :)
     esac
 
     if test "$do64bit" = "yes" -a "$do64bit_ok" = "no" ; then
-    AC_MSG_WARN("64bit support being disabled -- don\'t know magic for this platform")
+	AC_MSG_WARN([64bit support being disabled -- don't know magic for this platform])
     fi
 
     # Step 4: If pseudo-static linking is in use (see K. B. Kenny, "Dynamic
@@ -3304,7 +3322,7 @@ AC_DEFUN(TEA_PRIVATE_TCL_HEADERS, [
 	    *TCL_FRAMEWORK*)
 	        if test -d "${TCL_BIN_DIR}/Headers" -a -d "${TCL_BIN_DIR}/PrivateHeaders"; then
 	        TCL_INCLUDES="-I\"${TCL_BIN_DIR}/Headers\" -I\"${TCL_BIN_DIR}/PrivateHeaders\" ${TCL_INCLUDES}"; else
-	        TCL_INCLUDES="${TCL_INCLUDES} ${TCL_INCLUDE_SPEC} `echo "${TCL_INCLUDE_SPEC}" | sed -e 's/Headers/PrivateHeaders'`"; fi
+	        TCL_INCLUDES="${TCL_INCLUDES} ${TCL_INCLUDE_SPEC} `echo "${TCL_INCLUDE_SPEC}" | sed -e 's/Headers/PrivateHeaders/'`"; fi
 	        ;;
 	esac
     fi
