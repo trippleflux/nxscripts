@@ -38,14 +38,6 @@ proc ::nxAutoNuke::Nuke {realPath virtualPath userName groupName multi reason} {
     # Find credit and stats section
     foreach {creditSection statSection} [GetCreditStatSections $virtualPath] {break}
 
-    # Borrowed this portion from Harm's ioAUTONUKE, since
-    # these features are undocumented for ioA and ioBanana.
-    if {[string length $misc(IoBPath)]} {
-        set parentVirtual [file dirname $virtualPath]
-        set parentReal [string map {/ \\} [file dirname $realPath]]
-        catch {exec $misc(IoBPath) KICKNUKE NUKE [file tail $virtualPath] $parentVirtual $parentReal [resolve user $userName]}
-    }
-
     set realPath [string map {/ \\} $realPath]
     if {[catch {exec $misc(IoAPath) NUKE $realPath $virtualPath $multi $statSection $creditSection $userName $groupName $reason} output]} {
         ErrorLog AutoNuke "ioA Output:\n$output"
@@ -321,11 +313,6 @@ proc ::nxAutoNuke::Main {} {
         ErrorLog AutoNuke "invalid path to ioA \"$misc(IoAPath)\": the file does not exist"
         ErrorReturn "Invalid path to the ioA executable, check your configuration."
     }
-    if {[string length $misc(IoBPath)] && ![file isfile $misc(IoBPath)]} {
-        ErrorLog AutoNuke "invalid path to ioBanana \"$misc(IoBPath)\": the file does not exist"
-        ErrorReturn "Invalid path to the ioBanana executable, check your configuration."
-    }
-
     LinePuts "Checking [expr {[llength $anuke(Sections)] / 3}] auto-nuke sections."
 
     variable check

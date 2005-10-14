@@ -137,7 +137,7 @@ set variables(ANUKEINC)     "%pf %age %timeleft %nuketime %multi %uploaders"
 set variables(ANUKEKEYWORD) "%pf %banned %age %timeleft %nuketime %multi %uploaders"
 set variables(ANUKEMP3)     "%pf %type %banned %age %timeleft %nuketime %multi %uploaders"
 
-6. Add the following to your ioBanana skin (i.e. ioB_defaul.skin):
+6. Add the following to your ioBanana skin (e.g. ioB_default.skin):
 
 set announce(ANUKEALLOWED) "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] is not from an allowed group, it will be nuked [b]%multi[b]x in [b]%timeleft[b]mins. Uploaders: %uploaders"
 set announce(ANUKEBANNED)  "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] is a banned release ([b]%banned[b]), it will be nuked [b]%multi[b]x in [b]%timeleft[b]mins. Uploaders: %uploaders"
