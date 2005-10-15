@@ -42,7 +42,7 @@ namespace eval ::alcoholicz {
 # Validate and acquire a configuration handle. This procedure is for internal
 # use only, hence why it is not exported.
 #
-proc ::alcoholicz::ConfigAcquire {handle {handleVar "config"}} {
+proc ::alcoholicz::ConfigAcquire {handle handleVar} {
     if {![regexp -- {config\d+} $handle] || ![array exists [namespace current]::$handle]} {
         error "invalid config handle \"$handle\""
     }
@@ -100,7 +100,7 @@ proc ::alcoholicz::ConfigOpen {filePath args} {
 # Retrieve and modify options for a given configuration handle.
 #
 proc ::alcoholicz::ConfigChange {handle option args} {
-    ConfigAcquire $handle
+    ConfigAcquire $handle config
     if {[lsearch -exact {-align -comment -path} $option] == -1} {
         error "invalid switch \"$option\": must be -align, -comment, or -path"
     }
@@ -139,7 +139,7 @@ proc ::alcoholicz::ConfigChange {handle option args} {
 # Closes and invalidates the specified handle.
 #
 proc ::alcoholicz::ConfigClose {handle} {
-    ConfigAcquire $handle
+    ConfigAcquire $handle config
     unset -nocomplain config
     return
 }
@@ -150,7 +150,7 @@ proc ::alcoholicz::ConfigClose {handle} {
 # Clears the internal tree structure, which contains all configuration data.
 #
 proc ::alcoholicz::ConfigFree {handle} {
-    ConfigAcquire $handle
+    ConfigAcquire $handle config
     set config(tree) [TreeCreate]
     return
 }
@@ -162,7 +162,7 @@ proc ::alcoholicz::ConfigFree {handle} {
 # cannot be opened for reading.
 #
 proc ::alcoholicz::ConfigRead {handle} {
-    ConfigAcquire $handle
+    ConfigAcquire $handle config
     set fileHandle [open $config(path) r]
 
     # Clear the tree structure before reading new data.
@@ -222,7 +222,7 @@ proc ::alcoholicz::ConfigRead {handle} {
 # cannot be opened for writing.
 #
 proc ::alcoholicz::ConfigWrite {handle} {
-    ConfigAcquire $handle
+    ConfigAcquire $handle config
     set fileHandle [open $config(path) w]
 
     TreeFor {section sectionTree} $config(tree) {
@@ -263,7 +263,7 @@ proc ::alcoholicz::ConfigWrite {handle} {
 # is specified, only matching keys are returned.
 #
 proc ::alcoholicz::ConfigKeys {handle section {pattern "*"}} {
-    ConfigAcquire $handle
+    ConfigAcquire $handle config
     return [TreeKeys [TreeGetNaive $config(tree) $section data] $pattern]
 }
 
@@ -274,7 +274,7 @@ proc ::alcoholicz::ConfigKeys {handle section {pattern "*"}} {
 # specified, only matching sections are returned.
 #
 proc ::alcoholicz::ConfigSections {handle {pattern "*"}} {
-    ConfigAcquire $handle
+    ConfigAcquire $handle config
     return [TreeKeys $config(tree) $pattern]
 }
 
@@ -284,7 +284,7 @@ proc ::alcoholicz::ConfigSections {handle {pattern "*"}} {
 # Test for the existence of a section or a key within a given section.
 #
 proc ::alcoholicz::ConfigExists {handle section {key ""}} {
-    ConfigAcquire $handle
+    ConfigAcquire $handle config
     if {[string length $key]} {
         return [TreeExists $config(tree) $section data $key]
     } else {
@@ -298,7 +298,7 @@ proc ::alcoholicz::ConfigExists {handle section {key ""}} {
 # Returns the value of the named key from the specified section.
 #
 proc ::alcoholicz::ConfigGet {handle section key} {
-    ConfigAcquire $handle
+    ConfigAcquire $handle config
     return [TreeGetNaive $config(tree) $section data $key value]
 }
 
@@ -309,7 +309,7 @@ proc ::alcoholicz::ConfigGet {handle section key} {
 # "pattern" argument is specified, only matching keys are returned.
 #
 proc ::alcoholicz::ConfigGetEx {handle section {pattern "*"}} {
-    ConfigAcquire $handle
+    ConfigAcquire $handle config
     set pairList [list]
     TreeFor {key keyTree} [TreeGetNaive $config(tree) $section data] {
         if {[string match $pattern $key]} {
@@ -326,7 +326,7 @@ proc ::alcoholicz::ConfigGetEx {handle section {pattern "*"}} {
 # exist, a new one is created.
 #
 proc ::alcoholicz::ConfigSet {handle section args} {
-    ConfigAcquire $handle
+    ConfigAcquire $handle config
     set argc [llength $args]
     if {$argc != 0  && $argc != 2} {
         error "wrong # args: must be \"ConfigSet handle section ?key value?\""
@@ -355,7 +355,7 @@ proc ::alcoholicz::ConfigSet {handle section args} {
 # Removes the key or the entire section and all its keys.
 #
 proc ::alcoholicz::ConfigUnset {handle section {key ""}} {
-    ConfigAcquire $handle
+    ConfigAcquire $handle config
     if {[string length $key]} {
         TreeUnset config(tree) $section data $key
     } else {
