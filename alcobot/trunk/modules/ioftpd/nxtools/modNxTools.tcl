@@ -366,7 +366,7 @@ proc ::alcoholicz::NxTools::Undupe {command target user host handle channel argv
         return
     }
     set pattern [join $pattern]
-    if {[regexp {[\*\?]} $pattern] && [regexp -all {[[:alnum:]]} $pattern] < $undupeChars} {
+    if {[regexp -- {[\*\?]} $pattern] && [regexp -all -- {[[:alnum:]]} $pattern] < $undupeChars} {
         CmdSendHelp $channel channel $command "you must specify at least $undupeChars alphanumeric chars with wildcards"
         return
     }

@@ -355,7 +355,7 @@ proc ::alcoholicz::FlagGetValue {flagList flagName valueVar} {
     upvar $valueVar value
     foreach flag $flagList {
         # Parse: +|-<name>=<value>
-        if {[regexp {^(?:\+|\-)(\w+)=(.+)$} $flag dummy name result] && $name eq $flagName} {
+        if {[regexp -- {^(?:\+|\-)(\w+)=(.+)$} $flag dummy name result] && $name eq $flagName} {
             set value $result; return 1
         }
     }
@@ -370,7 +370,7 @@ proc ::alcoholicz::FlagGetValue {flagList flagName valueVar} {
 proc ::alcoholicz::FlagExists {flagList flagName} {
     foreach flag $flagList {
         # Parse: +|-<name>[=<value>]
-        if {[regexp {^(?:\+|\-)(\w+)} $flag dummy name] && $name eq $flagName} {
+        if {[regexp -- {^(?:\+|\-)(\w+)} $flag dummy name] && $name eq $flagName} {
             return 1
         }
     }
@@ -385,7 +385,7 @@ proc ::alcoholicz::FlagExists {flagList flagName} {
 proc ::alcoholicz::FlagIsDisabled {flagList flagName} {
     foreach flag $flagList {
         # Parse: +|-<name>[=<value>]
-        if {![regexp {^(\+|\-)(\w+)} $flag dummy prefix name]} {continue}
+        if {![regexp -- {^(\+|\-)(\w+)} $flag dummy prefix name]} {continue}
 
         if {$name eq "all" || $name eq $flagName} {
             return [string equal $prefix "-"]
@@ -402,7 +402,7 @@ proc ::alcoholicz::FlagIsDisabled {flagList flagName} {
 proc ::alcoholicz::FlagIsEnabled {flagList flagName} {
     foreach flag $flagList {
         # Parse: +|-<name>[=<value>]
-        if {![regexp {^(\+|\-)(\w+)} $flag dummy prefix name]} {continue}
+        if {![regexp -- {^(\+|\-)(\w+)} $flag dummy prefix name]} {continue}
 
         if {$name eq "all" || $name eq $flagName} {
             return [string equal $prefix "+"]
@@ -420,7 +420,7 @@ proc ::alcoholicz::FlagCheckEvent {flagList event} {
     variable events
     foreach flag $flagList {
         # Parse: +|-<name>[=<value>]
-        if {![regexp {^(\+|\-)(\w+)} $flag dummy prefix name]} {continue}
+        if {![regexp -- {^(\+|\-)(\w+)} $flag dummy prefix name]} {continue}
 
         if {$name eq "all" || $name eq $event || ([info exists events($name)] &&
             [lsearch -sorted $events($name) $event] != -1)} {
@@ -1062,7 +1062,7 @@ proc ::alcoholicz::InitConfig {filePath} {
         set flags [list]
         foreach flag [ArgsToList $value] {
             # Parse command flags into a list.
-            if {[regexp {^(\+|\-)(\w+)=?(.*)$} $flag dummy prefix flag setting]} {
+            if {[regexp -- {^(\+|\-)(\w+)=?(.*)$} $flag dummy prefix flag setting]} {
                 lappend flags [string equal "+" $prefix] $flag $setting
             } else {
                 LogWarning InitConfig "Invalid flag for command \"$name\": $flag"
@@ -1187,7 +1187,7 @@ proc ::alcoholicz::InitTheme {themeFile} {
 
     # Process colour entries.
     foreach {name value} [ConfigGetEx $handle Colour] {
-        if {![regexp {^(\S+),(\d+)$} $name result section num]} {
+        if {![regexp -- {^(\S+),(\d+)$} $name result section num]} {
             LogWarning InitTheme "Invalid colour entry \"$name\"."
         } elseif {![string is digit -strict $value] || $value < 0 || $value > 15} {
             LogWarning InitTheme "Invalid colour value \"$value\" for \"$name\", must be from 0 to 15."

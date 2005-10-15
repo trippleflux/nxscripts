@@ -412,15 +412,15 @@ proc ::siteInvite::Passwd {argList} {
     }
 
     # Security flag checks (hackish, but better than nothing).
-    if {[string first "A" $passFlags] != -1 && ![regexp -all {\w} $password]} {
+    if {[string first "A" $passFlags] != -1 && ![regexp -all -- {\w} $password]} {
         LinePuts "Your password must contain alphanumeric characters."
         return 1
     }
-    if {[string first "N" $passFlags] != -1 && ![regexp -all {\d} $password]} {
+    if {[string first "N" $passFlags] != -1 && ![regexp -all -- {\d} $password]} {
         LinePuts "Your password must contain numbers (e.g. 0-9)."
         return 1
     }
-    if {[string first "S" $passFlags] != -1 && ![regexp -all {\W} $password]} {
+    if {[string first "S" $passFlags] != -1 && ![regexp -all -- {\W} $password]} {
         LinePuts "Your password must contain special characters."
         return 1
     }

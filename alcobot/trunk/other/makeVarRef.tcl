@@ -85,7 +85,7 @@ proc IndexFile {handle desc filePath} {
         # Check substitution types.
         set nameList [list]
         foreach varName $varList {
-            if {![regexp {^(\w+):(\w)$} $varName dummy name type]} {
+            if {![regexp -- {^(\w+):(\w)$} $varName dummy name type]} {
                 puts "  - Invalid variable \"$varName\" for \"$themeName\"."
                 continue
             }

@@ -125,7 +125,7 @@ proc ::alcoholicz::IsSubDir {path} {
 # Removes leading, trailing, and duplicate path separators.
 #
 proc ::alcoholicz::PathStrip {path} {
-    regsub -all {[\\/]+} $path {/} path
+    regsub -all -- {[\\/]+} $path {/} path
     return [string trim $path "/"]
 }
 
@@ -184,7 +184,7 @@ proc ::alcoholicz::PathParseSection {fullPath useSection} {
 #
 proc ::alcoholicz::PermCheck {rightsList userName groupList flags} {
     foreach right $rightsList {
-        regexp {^(!?[=-]?)(.+)} $right result prefix right
+        regexp -- {^(!?[=-]?)(.+)} $right result prefix right
         switch -- $prefix {
             {!-} {if {[string match $right $userName]} {return 0}}
             {!=} {if {[lsearch -glob $groupList $right] != -1} {return 0}}
@@ -231,7 +231,7 @@ proc ::alcoholicz::SqlEscape {string} {
 #
 proc ::alcoholicz::SqlGetPattern {pattern} {
     set pattern "*$pattern*"
-    regsub -all {[\s\*]+} $pattern "*" pattern
+    regsub -all -- {[\s\*]+} $pattern "*" pattern
     return [SqlToLike $pattern]
 }
 
