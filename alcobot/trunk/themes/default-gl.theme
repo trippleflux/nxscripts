@@ -143,6 +143,11 @@ TAKE          = [b][[c1]Take[c]][b] [b]%(user)[b] took %(credits) of credits fro
 commandHelp   = [b][[c1]Usage[c]][b] %(command) %(arguments) - %(message)
 commandUsage  = [b][[c1]Usage[c]][b] %(command) %(arguments)
 
+# Module: bouncer
+bouncerHead   = [b][[c1]BNC[c]][b] Checking bouncer status...
+bouncerDown   = [b][[c1]BNC[c]][b] %(name) - %(host):%(port) is [b]DOWN[b].
+bouncerUp     = [b][[c1]BNC[c]][b] %(name) - %(host):%(port) is [b]UP[b].
+
 # Module: free
 freeHead      = [b][[c1]Free[c]][b] Total Space:
 freeBody      = [b][[c1]Free[c]][b] %(sections): %(free) free of %(total)
