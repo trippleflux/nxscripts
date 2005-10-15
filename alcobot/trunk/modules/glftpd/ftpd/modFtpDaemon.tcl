@@ -46,6 +46,20 @@ proc ::alcoholicz::FtpDaemon::GetFtpConnection {} {
 }
 
 ####
+# FtpNotify
+#
+# Called when the initial connection succeeds or fails.
+#
+proc ::alcoholicz::FtpDaemon::FtpNotify {connection success} {
+    if {$success} {
+        LogInfo "FTP connection established."
+    } else {
+        LogInfo "FTP connection failed - [FtpGetError $connection]"
+    }
+    return
+}
+
+####
 # FtpTimer
 #
 # Checks the status of the FTP connection every minute.
@@ -386,7 +400,8 @@ proc ::alcoholicz::FtpDaemon::Load {firstLoad} {
     } else {
         FtpClose $connection
     }
-    set connection [FtpOpen $host $port $user $passwd -secure $secure]
+    set connection [FtpOpen $host $port $user $passwd \
+        -notify [namespace current]::FtpNotify -secure $secure]
     FtpConnect $connection
 
     # Force a reload on all cached files.

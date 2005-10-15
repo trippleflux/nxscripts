@@ -455,9 +455,9 @@ proc ::alcoholicz::NxTools::SiteCmd {event command target user host handle chann
 #
 # SITE command callback, display the server's response.
 #
-proc ::alcoholicz::NxTools::SiteCallback {target theme buffer} {
+proc ::alcoholicz::NxTools::SiteCallback {target theme connection response} {
     # Ignore the header, foot, and the "command successful" message.
-    foreach {code message} [lrange $buffer 2 end-4] {
+    foreach {code message} [lrange $response 2 end-4] {
         set message [string trim $message "| \t"]
         SendTargetTheme $target $theme [list $message]
     }
