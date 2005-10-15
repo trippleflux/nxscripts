@@ -12,7 +12,7 @@
 #   Implements a FTP client library to interact with FTP servers.
 #
 # Exported Procedures:
-#   FtpOpen       <host> <port> <user> <passwd> [-secure <type>]
+#   FtpOpen       <host> <port> <user> <passwd> [-notify <script>] [-secure <type>]
 #   FtpClose      <handle>
 #   FtpGetError   <handle>
 #   FtpGetStatus  <handle>

@@ -1,5 +1,8 @@
 AlcoBot v0.6.0 (not released):
+  NEW: Added a "notify" callback to the FTP library (connection success).
   NEW: Expanded zipscript support to include iojZS (jeza) and php_psio (SnypeTEST).
+  NEW: The "ftpd" module will indicate if the FTP connection succeeded or failed.
+  FIX: Forgot to add the "UPDATE" log type to the "zipscript" event group.
   FIX: The default colours are used if there are no available section colours.
 
 AlcoBot v0.5.0 (Oct 12, 2005):
