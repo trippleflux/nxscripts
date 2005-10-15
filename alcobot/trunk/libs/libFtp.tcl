@@ -58,9 +58,12 @@ proc ::alcoholicz::FtpAcquire {handle handleVar} {
 proc ::alcoholicz::FtpOpen {host port user passwd args} {
     variable ftpNextHandle
 
-    set secure ""
+    set notify ""; set secure ""
     foreach {option value} $args {
-        if {$option eq "-secure"} {
+        if {$option eq "-notify"} {
+            set notify $value
+
+        } elseif {$option eq "-secure"} {
             switch -- $value {
                 {} {}
                 none {set value ""}
@@ -73,11 +76,13 @@ proc ::alcoholicz::FtpOpen {host port user passwd args} {
                 }
             }
             set secure $value
+
         } elseif {$option eq "-timeout"} {
             # TODO: connection timeout
             error "not implemented"
+
         } else {
-            error "invalid switch \"$option\": must be -secure or -timeout"
+            error "invalid switch \"$option\": must be -notify, -secure, or -timeout"
         }
     }
 
@@ -91,6 +96,7 @@ proc ::alcoholicz::FtpOpen {host port user passwd args} {
     # ftp(port)   - Remote server port.
     # ftp(user)   - Client user name.
     # ftp(passwd) - Client password.
+    # ftp(notify) - Callback to notify when connected.
     # ftp(secure) - Connect securely, using SSL or TLS.
     # ftp(error)  - Last error message.
     # ftp(queue)  - Event queue (FIFO).
@@ -102,6 +108,7 @@ proc ::alcoholicz::FtpOpen {host port user passwd args} {
         port   $port    \
         user   $user    \
         passwd $passwd  \
+        notify $notify  \
         secure $secure  \
         error  ""       \
         queue  [list]   \
@@ -186,8 +193,8 @@ proc ::alcoholicz::FtpDisconnect {handle} {
 # by specifying a callback, since this library operates asynchronously.
 # For example:
 #
-# proc SiteWhoCallback {buffer} {
-#     foreach {code text} $buffer {
+# proc SiteWhoCallback {handle response} {
+#     foreach {code text} $response {
 #         putlog "$code: $text"
 #     }
 # }
@@ -213,6 +220,17 @@ proc ::alcoholicz::FtpCommand {handle command {callback ""}} {
 }
 
 ####
+# FtpEval
+#
+# Evaluates a callback script.
+#
+proc ::alcoholicz::FtpEval {script args} {
+    if {$script ne "" && [catch {eval $script $args} message]} {
+        LogDebug FtpEval $message
+    }
+}
+
+####
 # FtpSend
 #
 # Sends a command to the FTP control channel.
@@ -234,7 +252,8 @@ proc ::alcoholicz::FtpSend {handle command} {
 ####
 # FtpShutdown
 #
-# Shuts down the FTP connection.
+# Shuts down the FTP connection. The error parameter is an empty string
+# when the connection is closed intentionally with FtpClose or FtpDisconnect.
 #
 proc ::alcoholicz::FtpShutdown {handle {error ""}} {
     upvar [namespace current]::$handle ftp
@@ -251,9 +270,12 @@ proc ::alcoholicz::FtpShutdown {handle {error ""}} {
         catch {close $ftp(sock)}
         set ftp(sock) ""
 
-        # Update connection status and error message.
+        # Update connection status, error message, and evaluate the notify callback.
         set ftp(status) 0
-        if {$error ne ""} {set ftp(error) $error}
+        if {$error ne ""} {
+            set ftp(error) $error
+            FtpEval $ftp(notify) $handle 0
+        }
     }
 }
 
@@ -438,6 +460,7 @@ proc ::alcoholicz::FtpHandler {handle {direct 0}} {
                 # Receive PASS response.
                 if {$replyBase == 2} {
                     set ftp(status) 2
+                    FtpEval $ftp(notify) $handle 1
                     set nextEvent 1
                 } else {
                     FtpShutdown $handle "unable to login - $message"
@@ -451,12 +474,7 @@ proc ::alcoholicz::FtpHandler {handle {direct 0}} {
             }
             quote_sent {
                 # Receive command.
-                set callback [lindex $event 1]
-                if {$callback ne ""} {
-                    if {[catch {eval $callback [list $buffer]} message]} {
-                        LogDebug FtpHandler $message
-                    }
-                }
+                FtpEval [lindex $event 1] $handle $buffer
                 set nextEvent 1
             }
             default {
