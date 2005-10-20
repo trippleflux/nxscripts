@@ -25,7 +25,7 @@ namespace eval ::nxTools::Nuke {
 ######################################################################
 
 proc ::nxTools::Nuke::FindTags {realPath tagFormat} {
-    regsub -all -- {%\(\w+\)} $tagFormat {*} TagFormat
+    regsub -all -- {%\(\w+\)} $tagFormat {*} tagFormat
     set tagFormat [string map {\[ \\\[ \] \\\] \{ \\\{ \} \\\}} $tagFormat]
     return [glob -nocomplain -types d -directory $realPath $tagFormat]
 }
