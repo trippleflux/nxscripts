@@ -17,20 +17,19 @@ Topics:
 # 1. Information                                                               #
 ################################################################################
 
-   nxTools is a fully-featured ioFTPD script. Such features include: a dupe
-checker, nuker, pre script, request script, sitebot, and various other tools
-and statistic commands. Written in Tcl, which offers fast processing speed
-and easily customizable output.
+    nxTools is a fully-featured ioFTPD script. Such features include: a dupe
+checker, nuker, pre script, request script, and various other tools and various
+statistical commands. Written in Tcl, which offers fast processing speed and
+easily customizable output.
 
 
 ################################################################################
 # 2. Requirements                                                              #
 ################################################################################
 
-   nxTools should only be installed on Windows NT/2000/XP/2003 any other
-operating system is unsupported. This script was tested on v5.8.5r so I cannot
-guarantee it will work on any other versions of ioFTPD. nxTools is updated
-frequently, so be sure you are always using the latest version.
+    nxTools should only be installed on Windows NT/2000/XP/2003 any other
+operating system is unsupported. This script was tested on Beta-v5.8.5r so I
+cannot guarantee it will work on any other versions of ioFTPD.
 
 
 ################################################################################
@@ -603,7 +602,7 @@ Legend:
 # 5. Text Templates                                                            #
 ################################################################################
 
-   The template parser was added to a few portions of nxTools to allow users
+    The template parser was added to a few portions of nxTools to allow users
 to customize the script's output. So far the only customizable SITE commands,
 and their available cookies are:
 
@@ -672,7 +671,7 @@ and their available cookies are:
 # 7. Bugs and Comments                                                         #
 ################################################################################
 
-   If you have any problems with this script; or you found a bug, spelling
+    If you have any problems with this script; or you found a bug, spelling
 mistake or grammar error, please report it to me. If it's a technical issue,
 be sure you can reproduce the problem, so I can find a solution.
 
@@ -684,4 +683,4 @@ Email: neoxed@gmail.com
 # 8. License                                                                   #
 ################################################################################
 
-   See the "license.txt" file for details.
+    See the "license.txt" file for details.
