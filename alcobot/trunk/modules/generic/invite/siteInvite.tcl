@@ -166,7 +166,7 @@ proc ::siteInvite::SetIrcUser {ftpUser ircUser} {
 
     # Probably the most portable way to do this.
     if {![db "UPDATE invite_users SET irc_user='$ircUser' WHERE ftp_user='$ftpUser'"]} {
-        db "INSERT INTO invite_users(ftp_user,irc_user) VALUES('$ftpUser','$ircUser')"
+        catch {db "INSERT INTO invite_users(ftp_user,irc_user) VALUES('$ftpUser','$ircUser')"}
     }
     return
 }
@@ -182,7 +182,7 @@ proc ::siteInvite::SetPassword {ftpUser password} {
 
     # Probably the most portable way to do this.
     if {![db "UPDATE invite_users SET password='$hash' WHERE ftp_user='$ftpUser'"]} {
-        db "INSERT INTO invite_users(ftp_user,password) VALUES('$ftpUser','$hash')"
+        catch {db "INSERT INTO invite_users(ftp_user,password) VALUES('$ftpUser','$hash')"}
     }
     return
 }
