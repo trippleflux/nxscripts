@@ -25,7 +25,6 @@ namespace eval ::alcoholicz {
     if {![info exists ftpNextHandle]} {
         variable ftpNextHandle 0
     }
-    catch {package require tls 1.5}
     namespace export FtpOpen FtpClose FtpGetError FtpGetStatus \
         FtpConnect FtpDisconnect FtpCommand
 }

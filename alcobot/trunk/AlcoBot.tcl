@@ -1113,7 +1113,9 @@ proc ::alcoholicz::InitLibraries {rootPath} {
         lappend auto_path $libPath
     }
 
-    # Load the Alcoholicz Tcl extension.
+    if {[catch {package require tls 1.5} message]} {
+        LogError Libraries "SSL supported disabled: $message"
+    }
     package require AlcoExt 0.3
     return
 }
