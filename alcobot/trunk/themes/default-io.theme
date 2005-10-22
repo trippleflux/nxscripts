@@ -93,14 +93,14 @@ speedGiga = [b]%.2(speed)[b]GB/s
 #
 [Theme]
 # ioFTPD events.
-NEWDIR        = [b][[c1]%(section)[c]][b] New Release: [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
-DELDIR        = [b][[c1]%(section)[c]][b] Directory Deleted: [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
+NEWDIR        = [b][[c1]%(section)[c]][b] New Release: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group).
+DELDIR        = [b][[c1]%(section)[c]][b] Directory Deleted: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group).
 LOGIN         = [b][[c1]Login[c]][b] [b]%(user)[b]/%(group) has logged in.
 LOGOUT        = [b][[c1]Logout[c]][b] [b]%(user)[b]/%(group) has logged out.
 
 # ModPreTimes events
-PRENEW        = [b][[c1]%(section)[c]][b] New Release: [b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago.
-PRELATE       = [b][[c1]%(section)[c]][b] New Release: [b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago, older than the %(limit) limit.
+PRENEW        = [b][[c1]%(section)[c]][b] New Release: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago.
+PRELATE       = [b][[c1]%(section)[c]][b] New Release: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago, older than the %(limit) limit.
 
 # Error events.
 ERROR         = [b][[c1]Error[c]][b] %(message)
@@ -121,25 +121,25 @@ CHGRPDEL      = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] removed [b]%(user)[b] from 
 SYSOP         = [b][[c1]SysOp[c]][b] %(message)
 
 # nxAutoNuke events.
-ANUKEALLOWED  = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] is not from an allowed group, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
-ANUKEBANNED   = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] is a banned release ([b]%(banned)[b]), it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
-ANUKEDISKS    = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] has [b]%(disks)[b] disks, exceeding the maximum of [b]%(maxDisks)[b] disks, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
-ANUKEEMPTY    = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] is still empty after %(age), it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
-ANUKEIMDB     = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] the IMDB %(type) [b]%(banned)[b] is banned, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
-ANUKEINC      = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] has been incomplete for %(age), it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
-ANUKEKEYWORD  = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] is a banned type [b]%(banned)[b], it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
-ANUKEMP3      = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] the MP3 %(type) [b]%(banned)[b] is banned, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
+ANUKEALLOWED  = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] is not from an allowed group, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
+ANUKEBANNED   = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] is a banned release ([b]%(banned)[b]), it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
+ANUKEDISKS    = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] has [b]%(disks)[b] disks, exceeding the maximum of [b]%(maxDisks)[b] disks, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
+ANUKEEMPTY    = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] is still empty after %(age), it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
+ANUKEIMDB     = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] the IMDB %(type) [b]%(banned)[b] is banned, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
+ANUKEINC      = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] has been incomplete for %(age), it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
+ANUKEKEYWORD  = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] is a banned type [b]%(banned)[b], it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
+ANUKEMP3      = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] the MP3 %(type) [b]%(banned)[b] is banned, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
 
 # nxTools events.
-APPROVE       = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] was approved by [b]%(user)[b]/%(group).
-NEWDATE       = [b][[c1]%(section)[c]][b] A new day has come, change your current dir to [b]%(releaseName)[b].
-NUKE          = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] was nuked [b]%(multi)x[b] by [b]%(user)[b]/%(group) for [b]%(reason)[b]. Nukees: %(nukees)
-UNNUKE        = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] was unnuked [b]%(multi)x[b] by [b]%(user)[b]/%(group) for [b]%(reason)[b]. Nukees: %(nukees)
+APPROVE       = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] was approved by [b]%(user)[b]/%(group).
+NEWDATE       = [b][[c1]%(section)[c]][b] A new day has come, change your current dir to %(releasePath)[b]%(releaseName)[b].
+NUKE          = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] was nuked [b]%(multi)x[b] by [b]%(user)[b]/%(group) for [b]%(reason)[b]. Nukees: %(nukees)
+UNNUKE        = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] was unnuked [b]%(multi)x[b] by [b]%(user)[b]/%(group) for [b]%(reason)[b]. Nukees: %(nukees)
 NUKEES        = [b]%(user)[b] (%(stats))
 NUKEES_JOIN   = ", "
-PRE           = [b][[c1]%(section)[c]][b] [b]%(preGroup)[b] launches [b]%(releaseName)[b] (%(size) in [b]%(files)[b]F with [b]%(disks)[b] disks).
-PRE-MP3       = [b][[c1]%(section)[c]][b] [b]%(preGroup)[b] launches [b]%(releaseName)[b] (%(size) in [b]%(files)[b]F - [b]%(genre)[b] - [b]%(bitrate)[b]Kbit/s - [b]%(year)[b]).
-WIPE          = [b][[c1]%(section)[c]][b] Wiped: [b]%(releaseName)[b] by [b]%(user)[b]/%(group) (%(size) in [b]%(files)[b] files and [b]%(dirs)[b] dirs).
+PRE           = [b][[c1]%(section)[c]][b] [b]%(preGroup)[b] launches %(releasePath)[b]%(releaseName)[b] (%(size) in [b]%(files)[b]F with [b]%(disks)[b] disks).
+PRE-MP3       = [b][[c1]%(section)[c]][b] [b]%(preGroup)[b] launches %(releasePath)[b]%(releaseName)[b] (%(size) in [b]%(files)[b]F - [b]%(genre)[b] - [b]%(bitrate)[b]Kbit/s - [b]%(year)[b]).
+WIPE          = [b][[c1]%(section)[c]][b] Wiped: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group) (%(size) in [b]%(files)[b] files and [b]%(dirs)[b] dirs).
 
 APPROVEADD    = [b][[c1]Approve[c]][b] [b]%(user)[b]/%(group) approved [b]%(releaseName)[b].
 APPROVEDEL    = [b][[c1]Approve[c]][b] [b]%(user)[b]/%(group) deleted [b]%(releaseName)[b].

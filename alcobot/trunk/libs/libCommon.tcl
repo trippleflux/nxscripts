@@ -125,7 +125,7 @@ proc ::alcoholicz::IsSubDir {path} {
 # Removes leading, trailing, and duplicate path separators.
 #
 proc ::alcoholicz::PathStrip {path} {
-    regsub -all -- {[\\/]+} $path {/} path
+    regsub -all -- {[\\/]+} $path "/" path
     return [string trim $path "/"]
 }
 
@@ -150,6 +150,8 @@ proc ::alcoholicz::PathParse {fullPath {basePath ""}} {
         set relPath $relFull
     }
 
+    if {[string length $relFull]} {append relFull "/"}
+    if {[string length $relPath]} {append relPath "/"}
     return [list $relDir $relFull $relName $relPath]
 }
 

@@ -69,11 +69,11 @@ test path-3.2 {PathParse: leading/trailing path separators} {
 
 test path-3.3 {PathParse: several path separators} {
     PathParse "/Other/Something"
-} {Something Other Something Other}
+} {Something Other/ Something Other/}
 
 test path-3.4 {PathParse: Windows style path separators} {
     PathParse "/Other/Something/CD1"
-} {CD1 Other/Something {Something (CD1)} Other}
+} {CD1 Other/Something/ {Something (CD1)} Other/}
 
 
 ::tcltest::cleanupTests
