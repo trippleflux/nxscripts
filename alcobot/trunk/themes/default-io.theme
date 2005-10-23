@@ -168,9 +168,11 @@ commandHelp   = [b][[c1]Usage[c]][b] %(command) %(arguments) - %(message)
 commandUsage  = [b][[c1]Usage[c]][b] %(command) %(arguments)
 
 # Module: bouncer
-bouncerHead   = [b][[c1]BNC[c]][b] Checking bouncer status...
-bouncerDown   = [b][[c1]BNC[c]][b] %(name) - %(host):%(port) is [b]DOWN[b].
-bouncerUp     = [b][[c1]BNC[c]][b] %(name) - %(host):%(port) is [b]UP[b].
+bouncerHead    = [b][[c1]BNC[c]][b] FTP Bouncer Status:
+bouncerOffline = [b][[c1]BNC[c]][b] %(name) - Host: %(host):%(port) - Status: [c]4[b]Offline[b][c] (checked %(age) ago).
+bouncerOnline  = [b][[c1]BNC[c]][b] %(name) - Host: %(host):%(port) - Status: [c]3[b]Online[b][c] (checked %(age) ago).
+bouncerUnknown = [b][[c1]BNC[c]][b] %(name) - Host: %(host):%(port) - Status: [c]4[b]Unknown[b][c].
+bouncerFoot    =
 
 # Module: free
 freeHead      = [b][[c1]Free[c]][b] Total Space:
