@@ -15,6 +15,7 @@
 #   GetFtpUser <ircUser>
 #   GetIrcUser <ftpUser>
 #
+
 namespace eval ::alcoholicz::Invite {
     if {![info exists dataSource]} {
         variable dataSource ""
