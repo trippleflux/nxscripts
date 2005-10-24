@@ -1,4 +1,4 @@
-AlcoBot v0.6.0 (not released):
+AlcoBot v0.6.0 (Oct 23, 2005):
   NEW: Added a "notify" callback to the FTP library (connection success).
   NEW: Bouncer module, to display the status of FTP bouncers.
   NEW: Expanded zipscript support to include iojZS (jeza) and php_psio (SnypeTEST).
