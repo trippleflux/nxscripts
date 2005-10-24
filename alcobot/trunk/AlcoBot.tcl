@@ -210,6 +210,7 @@ proc ::alcoholicz::CmdGetList {typePattern namePattern} {
 # Send a command help message to the specified target.
 #
 proc ::alcoholicz::CmdSendHelp {target type name {message ""}} {
+    global lastbind
     variable cmdNames
 
     if {![info exists cmdNames([list $type $name])]} {
@@ -218,9 +219,9 @@ proc ::alcoholicz::CmdSendHelp {target type name {message ""}} {
 
     set argDesc [lindex $cmdNames([list $type $name]) 0]
     if {$message ne ""} {
-        SendTargetTheme "PRIVMSG $target" commandHelp  [list $argDesc $name $message]
+        SendTargetTheme "PRIVMSG $target" commandHelp  [list $argDesc $lastbind $message]
     } else {
-        SendTargetTheme "PRIVMSG $target" commandUsage [list $argDesc $name]
+        SendTargetTheme "PRIVMSG $target" commandUsage [list $argDesc $lastbind]
     }
     return
 }

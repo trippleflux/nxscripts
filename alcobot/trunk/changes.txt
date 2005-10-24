@@ -6,7 +6,8 @@ AlcoBot v0.6.0 (not released):
   CHG: A trailing path separator is appended to %(releaseFull) and %(releasePath).
   CHG: Debug mode is disabled by default in the sample configuration files.
   FIX: Forgot to add the "UPDATE" log type to the "zipscript" event group.
-  FIX: The "SITE INVADMIN USER" would fail if the same IRC and FTP user were used repeatedly.
+  FIX: "SITE INVADMIN USER" would fail if the same IRC and FTP user were used repeatedly.
+  FIX: The command help message displayed the command name instead of the binding.
   FIX: The default colours are used if there are no available section colours.
 
 AlcoBot v0.5.0 (Oct 12, 2005):
