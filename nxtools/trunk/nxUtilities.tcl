@@ -742,17 +742,6 @@ proc ::nxTools::Utils::Main {argv} {
                 iputs "Syntax: SITE $event <username> <credits> \[credit section\]"
             }
         }
-        INVITE {
-            if {$argLength == 2} {
-                iputs ".-\[Invite\]---------------------------------------------------------------."
-                set ircNick [lindex $argList 1]
-                LinePuts "Inviting the IRC nick \"$ircNick\"."
-                putlog "INVITE: \"$user\" \"$group\" \"$ircNick\""
-                iputs "'------------------------------------------------------------------------'"
-            } else {
-                iputs "Syntax: SITE INVITE <irc nick>"
-            }
-        }
         NEWDATE {
             set result [NewDate [lindex $argList 1]]
         }

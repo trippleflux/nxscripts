@@ -3,6 +3,7 @@
 ################################################################################
 
 nxTools v1.0.1 (XXX XX, 2005):
+  CHG: Removed 'SITE INVITE' command.
   FIX: The nuke tag should be removed on unnuke.
 
 nxTools v1.0.0 (Oct 12, 2005):

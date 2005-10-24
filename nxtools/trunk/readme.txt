@@ -114,7 +114,6 @@ drives      = TCL ..\scripts\nxTools\nxUtilities.tcl DRIVES
 errlog      = TCL ..\scripts\nxTools\nxUtilities.tcl ERRLOG
 ginfo       = TCL ..\scripts\nxTools\nxUtilities.tcl GINFO
 give        = TCL ..\scripts\nxTools\nxUtilities.tcl GIVE
-invite      = TCL ..\scripts\nxTools\nxUtilities.tcl INVITE
 newdate     = TCL ..\scripts\nxTools\nxUtilities.tcl NEWDATE
 onel        = TCL ..\scripts\nxTools\nxUtilities.tcl ONELINES
 resetstats  = TCL ..\scripts\nxTools\nxUtilities.tcl RESETSTATS
@@ -140,7 +139,6 @@ errlog      = M1
 fdupe       = !A *
 ginfo       = M12
 give        = M1
-invite      = !A *
 new         = !A *
 newdate     = M1V
 nuke        = N
@@ -354,12 +352,6 @@ Legend:
      - SITE GIVE someuser 100
      - SITE GIVE someuser 100KB 3
      - SITE GIVE someuser 500GB 3
-
-- SITE INVITE <irc nick>
-    Description:
-     - Invite the specified IRC nickname to the site channel.
-    Examples:
-     - SITE INVITE mynick
 
 - SITE NEW [-max <limit>] [section]
     Description:
