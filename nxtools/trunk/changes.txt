@@ -2,9 +2,11 @@
 #                             nxTools - Change Log                             #
 ################################################################################
 
-nxTools v1.0.1 (XXX XX, 2005):
+nxTools v1.0.1 (not released):
+  CHG: Display requests in ascending order based on their IDs.
   CHG: Removed 'SITE INVITE' command.
   FIX: The nuke tag should be removed on unnuke.
+  FIX: Zero-padding the request ID caused Tcl to mistake it for an octal value.
 
 nxTools v1.0.0 (Oct 12, 2005):
   NEW: SITE APPROVE BOT, for IRC approve support.

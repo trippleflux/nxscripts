@@ -53,6 +53,7 @@ proc ::nxTools::Req::CheckLimit {userName groupName} {
 
         if {$timeLimit >= 0 && $timePeriod >= 0} {
             set timeStamp [expr {[clock seconds] - ($timePeriod * 86400)}]
+
             if {[ReqDb eval {SELECT count(*) FROM Requests WHERE TimeStamp > $timeStamp AND UserName=$userName}] >= $timeLimit} {
                 LinePuts "Only $timeLimit request(s) can be made every $timePeriod day(s)."
                 set lastReq [ReqDb eval {SELECT TimeStamp FROM Requests WHERE UserName=$userName ORDER BY TimeStamp DESC LIMIT 1}]
@@ -134,7 +135,6 @@ proc ::nxTools::Req::Add {userName groupName request} {
             set timeStamp [clock seconds]
             ReqDb eval {INSERT INTO Requests(TimeStamp,UserName,GroupName,Status,RequestId,Request) VALUES($timeStamp,$userName,$groupName,0,$requestId,$request)}
 
-            set requestId [format "%03s" $requestId]
             putlog "REQUEST: \"$userName\" \"$groupName\" \"$request\" \"$requestId\""
             LinePuts "Added your request of $request (#$requestId)."
             UpdateDir ADD $request [resolve user $userName] [resolve group $groupName]
@@ -180,8 +180,7 @@ proc ::nxTools::Req::Update {event userName groupName flags request} {
         }
 
         set requestAge [expr {[clock seconds] - $values(TimeStamp)}]
-        set requestId [format "%03s" $values(RequestId)]
-        putlog "${logType}: \"$userName\" \"$groupName\" \"$values(Request)\" \"$values(UserName)\" \"$values(GroupName)\" \"$requestId\" \"$requestAge\""
+        putlog "${logType}: \"$userName\" \"$groupName\" \"$values(Request)\" \"$values(UserName)\" \"$values(GroupName)\" \"$values(RequestId)\" \"$requestAge\""
         UpdateDir $event $values(Request)
     }
 
@@ -198,11 +197,10 @@ proc ::nxTools::Req::List {} {
     OutputText $template(Header)
     set count 0
 
-    ReqDb eval {SELECT * FROM Requests WHERE Status=0 ORDER BY RequestId DESC} values {
+    ReqDb eval {SELECT * FROM Requests WHERE Status=0 ORDER BY RequestId ASC} values {
         incr count
         set reqAge [FormatDuration [expr {[clock seconds] - $values(TimeStamp)}]]
-        set reqId [format "%03s" $values(RequestId)]
-        set valueList [list [lrange $reqAge 0 1] $reqId $values(UserName) $values(GroupName) $values(Request)]
+        set valueList [list [lrange $reqAge 0 1] $values(RequestId) $values(UserName) $values(GroupName) $values(Request)]
         OutputText [ParseCookies $template(Body) $valueList {age id user group request}]
     }
 
@@ -221,9 +219,8 @@ proc ::nxTools::Req::Wipe {} {
         LinePuts "Wiping filled requests older than $req(MaximumAge) day(s)..."
         set maxAge [expr {[clock seconds] - $req(MaximumAge) * 86400}]
 
-        ReqDb eval {SELECT rowid,* FROM Requests WHERE Status=1 AND TimeStamp < $maxAge ORDER BY RequestId DESC} values {
+        ReqDb eval {SELECT rowid,* FROM Requests WHERE Status=1 AND TimeStamp < $maxAge ORDER BY RequestId ASC} values {
             set requestAge [expr {[clock seconds] - $values(TimeStamp)}]
-            set requestId [format "%03s" $values(RequestId)]
 
             # Wipe the directory if it exists.
             set fillPath [string map [list %(request) $values(Request)] $req(FilledTag)]
@@ -233,8 +230,8 @@ proc ::nxTools::Req::Wipe {} {
                 if {[catch {file delete -force -- $fillPath} error]} {
                     ErrorLog ReqWipe $error
                 }
-                LinePuts "Wiped: $values(Request) by $values(UserName)/$values(GroupName) (#$requestId)."
-                putlog "REQWIPE: \"$values(UserName)\" \"$values(GroupName)\" \"$values(Request)\" \"$requestId\" \"$requestAge\" \"$req(MaximumAge)\""
+                LinePuts "Wiped: $values(Request) by $values(UserName)/$values(GroupName) (#$values(RequestId))."
+                putlog "REQWIPE: \"$values(UserName)\" \"$values(GroupName)\" \"$values(Request)\" \"$values(RequestId)\" \"$requestAge\" \"$req(MaximumAge)\""
             }
             ReqDb eval {UPDATE Requests SET Status=2 WHERE rowid=$values(rowid)}
         }
