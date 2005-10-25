@@ -2,6 +2,10 @@
 #                             nxTools - Upgrading                              #
 ################################################################################
 
+1.0.0  -> 1.0.1
+ - Repeat step 3 in the installation manual.
+ - Replace ioFTPD\scripts\nxLib.tcl and all files in ioFTPD\scripts\nxTools\.
+
 0.9.13 -> 1.0.0
  - Repeat steps 1 and 3 in the installation manual.
  - Replace ioFTPD\scripts\nxLib.tcl and all files in ioFTPD\scripts\nxTools\.
