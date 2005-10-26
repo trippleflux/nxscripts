@@ -125,7 +125,7 @@ Abstract:
 #define bad_file_vbr_preset_type                        "BAD_FILE_VBR_PRESET"
 #define bad_file_wrongdir_type                          "BAD_FILE_WRONGDIR"
 #define bad_file_year_type                              "BAD_FILE_YEAR"
-#define bad_file_zip_type                               "BAD_FILE"
+#define bad_file_zip_type                               "BAD_FILE_ZIP"
 
 /* Output of racestats binary */
 #define stats_line          "\"%F\" \"%f\" \"%u\" \"%g\" %C0 %c0"
