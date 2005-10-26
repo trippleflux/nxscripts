@@ -81,6 +81,9 @@ file name to "varFiles", under [General], in the AlcoBot configuration file.
 
     pzs-ng.vars   - Project-ZS-NG for glFTPD, written by the PZS-NG team.
                   - URL: http://www.pzs-ng.com
+                  - You must recompile PZS-NG using the provided constants.h file.
+                    cp -f other/constants.h ~/project-zs-ng/src/zipscript/
+                    cd ~/project-zs-ng/ && make clean && make
 
 
 ################################################################################
