@@ -60,6 +60,7 @@ set disable(ANUKEIMDB)    0
 set disable(ANUKEINC)     0
 set disable(ANUKEKEYWORD) 0
 set disable(ANUKEMP3)     0
+set disable(ANUKESIZE)    0
 
 set variables(ANUKEALLOWED) "%pf %group %age %timeleft %nuketime %multi %uploaders"
 set variables(ANUKEBANNED)  "%pf %banned %age %timeleft %nuketime %multi %uploaders"
@@ -69,6 +70,7 @@ set variables(ANUKEIMDB)    "%pf %type %banned %age %timeleft %nuketime %multi %
 set variables(ANUKEINC)     "%pf %age %timeleft %nuketime %multi %uploaders"
 set variables(ANUKEKEYWORD) "%pf %banned %age %timeleft %nuketime %multi %uploaders"
 set variables(ANUKEMP3)     "%pf %type %banned %age %timeleft %nuketime %multi %uploaders"
+set variables(ANUKESIZE)    "%pf %type %size %age %timeleft %nuketime %multi %uploaders"
 
 set announce(ANUKEALLOWED) "-%sitename- \[%section\] + %path/%bold%release%bold is not from an allowed group, it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
 set announce(ANUKEBANNED)  "-%sitename- \[%section\] + %path/%bold%release%bold is a banned release (%bold%banned%bold), it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
@@ -78,13 +80,14 @@ set announce(ANUKEIMDB)    "-%sitename- \[%section\] + %path/%bold%release%bold 
 set announce(ANUKEINC)     "-%sitename- \[%section\] + %path/%bold%release%bold has been incomplete for %bold%age%boldmins, it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
 set announce(ANUKEKEYWORD) "-%sitename- \[%section\] + %path/%bold%release%bold is a banned type (%bold%banned%bold), it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
 set announce(ANUKEMP3)     "-%sitename- \[%section\] + %path/%bold%release%bold the MP3 %type %bold%banned%bold is banned, it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
+set announce(ANUKESIZE)    "-%sitename- \[%section\] + %path/%bold%release%bold must be a %type of %bold%size%boldMB, it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
 
 6. Find msgtypes(RACE) in your dZSbot.tcl file, and add the following events:
 
-ANUKEALLOWED ANUKEBANNED ANUKEDISKS ANUKEEMPTY ANUKEIMDB ANUKEINC ANUKEKEYWORD ANUKEMP3
+ANUKEALLOWED ANUKEBANNED ANUKEDISKS ANUKEEMPTY ANUKEIMDB ANUKEINC ANUKEKEYWORD ANUKEMP3 ANUKESIZE
 
 Example Line:
-set msgtypes(RACE) "ANUKEALLOWED ANUKEBANNED ANUKEDISKS ANUKEEMPTY ANUKEIMDB ANUKEINC ANUKEKEYWORD ANUKEMP3 ..."
+set msgtypes(RACE) "ANUKEALLOWED ANUKEBANNED ANUKEDISKS ANUKEEMPTY ANUKEIMDB ANUKEINC ANUKEKEYWORD ANUKEMP3 ANUKESIZE ..."
 
 7. Rehash or restart Windrop.
 
@@ -127,6 +130,7 @@ set disable(ANUKEIMDB)    0
 set disable(ANUKEINC)     0
 set disable(ANUKEKEYWORD) 0
 set disable(ANUKEMP3)     0
+set disable(ANUKESIZE)    0
 
 set variables(ANUKEALLOWED) "%pf %group %age %timeleft %nuketime %multi %uploaders"
 set variables(ANUKEBANNED)  "%pf %banned %age %timeleft %nuketime %multi %uploaders"
@@ -136,6 +140,7 @@ set variables(ANUKEIMDB)    "%pf %type %banned %age %timeleft %nuketime %multi %
 set variables(ANUKEINC)     "%pf %age %timeleft %nuketime %multi %uploaders"
 set variables(ANUKEKEYWORD) "%pf %banned %age %timeleft %nuketime %multi %uploaders"
 set variables(ANUKEMP3)     "%pf %type %banned %age %timeleft %nuketime %multi %uploaders"
+set variables(ANUKESIZE)    "%pf %type %size %age %timeleft %nuketime %multi %uploaders"
 
 6. Add the following to your ioBanana skin (e.g. ioB_default.skin):
 
@@ -147,6 +152,7 @@ set announce(ANUKEIMDB)    "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] th
 set announce(ANUKEINC)     "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] has been incomplete for [b]%age[b]mins, it will be nuked [b]%multi[b]x in [b]%timeleft[b]mins. Uploaders: %uploaders"
 set announce(ANUKEKEYWORD) "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] is a banned type (%bold%banned%bold), it will be nuked %bold%multi%boldx in %bold%timeleft%boldmins. Uploaders: %uploaders"
 set announce(ANUKEMP3)     "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] the MP3 %type [b]%banned[b] is banned, it will be nuked [b]%multi[b]x in [b]%timeleft[b]mins. Uploaders: %uploaders"
+set announce(ANUKESIZE)    "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] must be a %type of [b]%size[b]MB, it will be nuked [b]%multi[b]x in [b]%timeleft[b]mins. Uploaders: %uploaders"
 
 7. Rehash or restart Windrop.
 
