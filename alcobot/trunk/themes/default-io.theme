@@ -129,6 +129,7 @@ ANUKEIMDB      = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] th
 ANUKEINC       = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] has been incomplete for %(age), it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
 ANUKEKEYWORD   = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] is a banned type [b]%(banned)[b], it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
 ANUKEMP3       = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] the MP3 %(type) [b]%(banned)[b] is banned, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
+ANUKESIZE      = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] must be a %(type) of [b]%.1(mbytes)[b]MB, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
 
 # nxTools events.
 APPROVE        = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] was approved by [b]%(user)[b]/%(group).
