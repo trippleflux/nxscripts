@@ -128,7 +128,7 @@ Abstract:
 #define bad_file_zip_type                               "BAD_FILE_ZIP"
 
 /* Output of racestats binary */
-#define stats_line          "\"%F\" \"%f\" \"%u\" \"%g\" %C0 %c0"
+#define stats_line          "\"%F\" \"%f\" \"%u\" \"%g\" \"%C0\" \"%c0\""
 
 /* Some crap */
 #define post_stats          NULL
@@ -136,10 +136,10 @@ Abstract:
 #define loser               "loser"
 
 /* Put in %C cookie */
-#define user_info           "\"%u\" \"%g\" \"%.3m\" \"%.3S\" \"%.3p\" \"%f\""
+#define user_info           "%u %g %.3m %.3S %.3p %f"
 
 /* Put in %c cookie */
-#define group_info          "\"%g\" \"%.3m\" \"%.3S\" \"%.3p\" \"%f\""
+#define group_info          "%g %.3m %.3S %.3p %f"
 
 /* Put in %L cookie */
 #define fastestfile         "\"%u\" \"%g\" \"%.3F\""
@@ -163,11 +163,11 @@ Abstract:
 #define group_top           "%n %g %.3m %.3S %.3p %f"
 
 /* Complete cookies (race) */
-#define audio_complete              "\"%.3m\" \"%.3A\" \"%.3a\" \"%f\" \"%d\" \"%u\" \"%g\" %L %l %C0 %c0 \"%t\" \"%T\""
-#define other_complete              "\"%.3m\" \"%.3A\" \"%.3a\" \"%f\" \"%d\" \"%u\" \"%g\" %L %l %C0 %c0 \"%t\" \"%T\""
-#define rar_complete                "\"%.3m\" \"%.3A\" \"%.3a\" \"%f\" \"%d\" \"%u\" \"%g\" %L %l %C0 %c0 \"%t\" \"%T\""
-#define video_complete              "\"%.3m\" \"%.3A\" \"%.3a\" \"%f\" \"%d\" \"%u\" \"%g\" %L %l %C0 %c0 \"%t\" \"%T\""
-#define zip_complete                "\"%.3m\" \"%.3A\" \"%.3a\" \"%f\" \"%d\" \"%u\" \"%g\" %L %l %C0 %c0 \"%t\" \"%T\""
+#define audio_complete              "\"%.3m\" \"%.3A\" \"%.3a\" \"%f\" \"%d\" \"%u\" \"%g\" %L %l \"%C0\" \"%c0\" \"%t\" \"%T\""
+#define other_complete              "\"%.3m\" \"%.3A\" \"%.3a\" \"%f\" \"%d\" \"%u\" \"%g\" %L %l \"%C0\" \"%c0\" \"%t\" \"%T\""
+#define rar_complete                "\"%.3m\" \"%.3A\" \"%.3a\" \"%f\" \"%d\" \"%u\" \"%g\" %L %l \"%C0\" \"%c0\" \"%t\" \"%T\""
+#define video_complete              "\"%.3m\" \"%.3A\" \"%.3a\" \"%f\" \"%d\" \"%u\" \"%g\" %L %l \"%C0\" \"%c0\" \"%t\" \"%T\""
+#define zip_complete                "\"%.3m\" \"%.3A\" \"%.3a\" \"%f\" \"%d\" \"%u\" \"%g\" %L %l \"%C0\" \"%c0\" \"%t\" \"%T\""
 
 /* Complete cookies (norace) */
 #define audio_norace_complete       "\"%U\" \"%G\" \"%K\" \"%.3m\" \"%.3A\" \"%.3a\" \"%f\" \"%d\""
@@ -177,11 +177,11 @@ Abstract:
 #define zip_norace_complete         "\"%U\" \"%G\" \"%K\" \"%.3m\" \"%.3A\" \"%.3a\" \"%f\" \"%d\""
 
 /* Halfway cookies (race) */
-#define audio_halfway               "\"%.3m\" \"%.3A\" \"%.3a\" \"%.3p\" \"%F\" \"%M\" \"%f\" \"%d\" \"%$\" \"%u\" \"%g\" %C0 %c0"
-#define other_halfway               "\"%.3m\" \"%.3A\" \"%.3a\" \"%.3p\" \"%F\" \"%M\" \"%f\" \"%d\" \"%$\" \"%u\" \"%g\" %C0 %c0"
-#define rar_halfway                 "\"%.3m\" \"%.3A\" \"%.3a\" \"%.3p\" \"%F\" \"%M\" \"%f\" \"%d\" \"%$\" \"%u\" \"%g\" %C0 %c0"
-#define video_halfway               "\"%.3m\" \"%.3A\" \"%.3a\" \"%.3p\" \"%F\" \"%M\" \"%f\" \"%d\" \"%$\" \"%u\" \"%g\" %C0 %c0"
-#define zip_halfway                 "\"%.3m\" \"%.3A\" \"%.3a\" \"%.3p\" \"%F\" \"%M\" \"%f\" \"%d\" \"%$\" \"%u\" \"%g\" %C0 %c0"
+#define audio_halfway               "\"%.3m\" \"%.3A\" \"%.3a\" \"%.3p\" \"%F\" \"%M\" \"%f\" \"%d\" \"%$\" \"%u\" \"%g\" \"%C0\" \"%c0\""
+#define other_halfway               "\"%.3m\" \"%.3A\" \"%.3a\" \"%.3p\" \"%F\" \"%M\" \"%f\" \"%d\" \"%$\" \"%u\" \"%g\" \"%C0\" \"%c0\""
+#define rar_halfway                 "\"%.3m\" \"%.3A\" \"%.3a\" \"%.3p\" \"%F\" \"%M\" \"%f\" \"%d\" \"%$\" \"%u\" \"%g\" \"%C0\" \"%c0\""
+#define video_halfway               "\"%.3m\" \"%.3A\" \"%.3a\" \"%.3p\" \"%F\" \"%M\" \"%f\" \"%d\" \"%$\" \"%u\" \"%g\" \"%C0\" \"%c0\""
+#define zip_halfway                 "\"%.3m\" \"%.3A\" \"%.3a\" \"%.3p\" \"%F\" \"%M\" \"%f\" \"%d\" \"%$\" \"%u\" \"%g\" \"%C0\" \"%c0\""
 
 /* Halfway cookies (norace) */
 #define audio_norace_halfway        "\"%U\" \"%G\" \"%K\" \"%.3m\" \"%.3A\" \"%.3a\" \"%.3p\" \"%F\" \"%M\" \"%f\" \"%d\" \"%$\""
@@ -198,11 +198,11 @@ Abstract:
 #define zip_update                  "\"%U\" \"%G\" \"%K\" \"%.3e\" \"%.3S\" \"%.3p\" \"%F\" \"%M\" \"%f\" \"%d\" \"%$\""
 
 /* New leader cookies */
-#define audio_newleader             "\"%U\" \"%G\" \"%K\" \"%.3m\" \"%.3S\" \"%.3p\" \"%F\" \"%M\" \"%f\" \"%d\" \"%$\" \"%u\" \"%g\" \"%R\" %C0 %c0"
-#define other_newleader             "\"%U\" \"%G\" \"%K\" \"%.3m\" \"%.3S\" \"%.3p\" \"%F\" \"%M\" \"%f\" \"%d\" \"%$\" \"%u\" \"%g\" \"%R\" %C0 %c0"
-#define rar_newleader               "\"%U\" \"%G\" \"%K\" \"%.3m\" \"%.3S\" \"%.3p\" \"%F\" \"%M\" \"%f\" \"%d\" \"%$\" \"%u\" \"%g\" \"%R\" %C0 %c0"
-#define video_newleader             "\"%U\" \"%G\" \"%K\" \"%.3m\" \"%.3S\" \"%.3p\" \"%F\" \"%M\" \"%f\" \"%d\" \"%$\" \"%u\" \"%g\" \"%R\" %C0 %c0"
-#define zip_newleader               "\"%U\" \"%G\" \"%K\" \"%.3m\" \"%.3S\" \"%.3p\" \"%F\" \"%M\" \"%f\" \"%d\" \"%$\" \"%u\" \"%g\" \"%R\" %C0 %c0"
+#define audio_newleader             "\"%U\" \"%G\" \"%K\" \"%.3m\" \"%.3S\" \"%.3p\" \"%F\" \"%M\" \"%f\" \"%d\" \"%$\" \"%u\" \"%g\" \"%R\" \"%C0\" \"%c0\""
+#define other_newleader             "\"%U\" \"%G\" \"%K\" \"%.3m\" \"%.3S\" \"%.3p\" \"%F\" \"%M\" \"%f\" \"%d\" \"%$\" \"%u\" \"%g\" \"%R\" \"%C0\" \"%c0\""
+#define rar_newleader               "\"%U\" \"%G\" \"%K\" \"%.3m\" \"%.3S\" \"%.3p\" \"%F\" \"%M\" \"%f\" \"%d\" \"%$\" \"%u\" \"%g\" \"%R\" \"%C0\" \"%c0\""
+#define video_newleader             "\"%U\" \"%G\" \"%K\" \"%.3m\" \"%.3S\" \"%.3p\" \"%F\" \"%M\" \"%f\" \"%d\" \"%$\" \"%u\" \"%g\" \"%R\" \"%C0\" \"%c0\""
+#define zip_newleader               "\"%U\" \"%G\" \"%K\" \"%.3m\" \"%.3S\" \"%.3p\" \"%F\" \"%M\" \"%f\" \"%d\" \"%$\" \"%u\" \"%g\" \"%R\" \"%C0\" \"%c0\""
 
 /* Race cookies */
 #define audio_race                  "\"%U\" \"%G\" \"%K\" \"%.3m\" \"%.3S\" \"%.3p\" \"%F\" \"%M\" \"%f\" \"%d\" \"%$\" \"%u\" \"%g\" \"%R\""
