@@ -93,64 +93,64 @@ speedGiga = [b]%.2(speed)[b]GB/s
 #
 [Theme]
 # ioFTPD events.
-NEWDIR        = [b][[c1]%(section)[c]][b] New Release: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group).
-DELDIR        = [b][[c1]%(section)[c]][b] Directory Deleted: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group).
-LOGIN         = [b][[c1]Login[c]][b] [b]%(user)[b]/%(group) has logged in.
-LOGOUT        = [b][[c1]Logout[c]][b] [b]%(user)[b]/%(group) has logged out.
+NEWDIR         = [b][[c1]%(section)[c]][b] New Release: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group).
+DELDIR         = [b][[c1]%(section)[c]][b] Directory Deleted: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group).
+LOGIN          = [b][[c1]Login[c]][b] [b]%(user)[b]/%(group) has logged in.
+LOGOUT         = [b][[c1]Logout[c]][b] [b]%(user)[b]/%(group) has logged out.
 
 # ModPreTimes events
-PRENEW        = [b][[c1]%(section)[c]][b] New Release: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago.
-PRELATE       = [b][[c1]%(section)[c]][b] New Release: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago, older than the %(limit) limit.
+PRENEW         = [b][[c1]%(section)[c]][b] New Release: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago.
+PRELATE        = [b][[c1]%(section)[c]][b] New Release: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago, older than the %(limit) limit.
 
 # Error events.
-ERROR         = [b][[c1]Error[c]][b] %(message)
+ERROR          = [b][[c1]Error[c]][b] %(message)
 
 # Sysop events.
-GADDUSER      = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] added user [b]%(user)[b] to group [b]%(group)[b].
-RENUSER       = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] renamed user [b]%(user)[b] to [b]%(newUser)[b].
-DELUSER       = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] deleted user [b]%(user)[b].
-READDED       = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] readded user [b]%(user)[b].
-PURGED        = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] purged user [b]%(user)[b].
-ADDIP         = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] added IP [b]%(ip)[b] to [b]%(user)[b].
-DELIP         = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] removed IP [b]%(ip)[b] from [b]%(user)[b].
-GRPADD        = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] added group [b]%(group)[b].
-GRPREN        = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] renamed group [b]%(group)[b] to [b]%(newGroup)[b].
-GRPDEL        = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] deleted group [b]%(group)[b].
-CHGRPADD      = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] added [b]%(user)[b] to group [b]%(group)[b].
-CHGRPDEL      = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] removed [b]%(user)[b] from group [b]%(group)[b].
-SYSOP         = [b][[c1]SysOp[c]][b] %(message)
+GADDUSER       = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] added user [b]%(user)[b] to group [b]%(group)[b].
+RENUSER        = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] renamed user [b]%(user)[b] to [b]%(newUser)[b].
+DELUSER        = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] deleted user [b]%(user)[b].
+READDED        = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] readded user [b]%(user)[b].
+PURGED         = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] purged user [b]%(user)[b].
+ADDIP          = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] added IP [b]%(ip)[b] to [b]%(user)[b].
+DELIP          = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] removed IP [b]%(ip)[b] from [b]%(user)[b].
+GRPADD         = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] added group [b]%(group)[b].
+GRPREN         = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] renamed group [b]%(group)[b] to [b]%(newGroup)[b].
+GRPDEL         = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] deleted group [b]%(group)[b].
+CHGRPADD       = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] added [b]%(user)[b] to group [b]%(group)[b].
+CHGRPDEL       = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] removed [b]%(user)[b] from group [b]%(group)[b].
+SYSOP          = [b][[c1]SysOp[c]][b] %(message)
 
 # nxAutoNuke events.
-ANUKEALLOWED  = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] is not from an allowed group, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
-ANUKEBANNED   = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] is a banned release ([b]%(banned)[b]), it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
-ANUKEDISKS    = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] has [b]%(disks)[b] disks, exceeding the maximum of [b]%(maxDisks)[b] disks, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
-ANUKEEMPTY    = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] is still empty after %(age), it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
-ANUKEIMDB     = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] the IMDB %(type) [b]%(banned)[b] is banned, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
-ANUKEINC      = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] has been incomplete for %(age), it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
-ANUKEKEYWORD  = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] is a banned type [b]%(banned)[b], it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
-ANUKEMP3      = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] the MP3 %(type) [b]%(banned)[b] is banned, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
+ANUKEALLOWED   = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] is not from an allowed group, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
+ANUKEBANNED    = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] is a banned release ([b]%(banned)[b]), it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
+ANUKEDISKS     = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] has [b]%(disks)[b] disks, exceeding the maximum of [b]%(maxDisks)[b] disks, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
+ANUKEEMPTY     = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] is still empty after %(age), it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
+ANUKEIMDB      = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] the IMDB %(type) [b]%(banned)[b] is banned, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
+ANUKEINC       = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] has been incomplete for %(age), it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
+ANUKEKEYWORD   = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] is a banned type [b]%(banned)[b], it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
+ANUKEMP3       = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] the MP3 %(type) [b]%(banned)[b] is banned, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
 
 # nxTools events.
-APPROVE       = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] was approved by [b]%(user)[b]/%(group).
-NEWDATE       = [b][[c1]%(section)[c]][b] A new day has come, change your current dir to %(releasePath)[b]%(releaseName)[b].
-NUKE          = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] was nuked [b]%(multi)x[b] by [b]%(user)[b]/%(group) for [b]%(reason)[b]. Nukees: %(nukees)
-UNNUKE        = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] was unnuked [b]%(multi)x[b] by [b]%(user)[b]/%(group) for [b]%(reason)[b]. Nukees: %(nukees)
-NUKEES        = [b]%(user)[b] (%(stats))
-NUKEES_JOIN   = ", "
-PRE           = [b][[c1]%(section)[c]][b] [b]%(preGroup)[b] launches %(releasePath)[b]%(releaseName)[b] (%(size) in [b]%(files)[b]F with [b]%(disks)[b] disks).
-PRE-MP3       = [b][[c1]%(section)[c]][b] [b]%(preGroup)[b] launches %(releasePath)[b]%(releaseName)[b] (%(size) in [b]%(files)[b]F - [b]%(genre)[b] - [b]%(bitrate)[b]Kbit/s - [b]%(year)[b]).
-WIPE          = [b][[c1]%(section)[c]][b] Wiped: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group) (%(size) in [b]%(files)[b] files and [b]%(dirs)[b] dirs).
+APPROVE        = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] was approved by [b]%(user)[b]/%(group).
+NEWDATE        = [b][[c1]%(section)[c]][b] A new day has come, change your current dir to %(releasePath)[b]%(releaseName)[b].
+NUKE           = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] was nuked [b]%(multi)x[b] by [b]%(user)[b]/%(group) for [b]%(reason)[b]. Nukees: %(nukees)
+UNNUKE         = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] was unnuked [b]%(multi)x[b] by [b]%(user)[b]/%(group) for [b]%(reason)[b]. Nukees: %(nukees)
+NUKEES         = [b]%(user)[b] (%(stats))
+NUKEES_JOIN    = ", "
+PRE            = [b][[c1]%(section)[c]][b] [b]%(preGroup)[b] launches %(releasePath)[b]%(releaseName)[b] (%(size) in [b]%(files)[b]F with [b]%(disks)[b] disks).
+PRE-MP3        = [b][[c1]%(section)[c]][b] [b]%(preGroup)[b] launches %(releasePath)[b]%(releaseName)[b] (%(size) in [b]%(files)[b]F - [b]%(genre)[b] - [b]%(bitrate)[b]Kbit/s - [b]%(year)[b]).
+WIPE           = [b][[c1]%(section)[c]][b] Wiped: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group) (%(size) in [b]%(files)[b] files and [b]%(dirs)[b] dirs).
 
-APPROVEADD    = [b][[c1]Approve[c]][b] [b]%(user)[b]/%(group) approved [b]%(releaseName)[b].
-APPROVEDEL    = [b][[c1]Approve[c]][b] [b]%(user)[b]/%(group) deleted [b]%(releaseName)[b].
-CLOSE         = [b][[c1]Close[c]][b] [b]%(user)[b]/%(group) has closed the server for: %(reason).
-OPEN          = [b][[c1]Open[c]][b] [b]%(user)[b]/%(group) has opened the server, closed for %(duration).
-GIVE          = [b][[c1]Give[c]][b] [b]%(user)[b]/%(group) gave %(credits) of credits to [b]%(target)[b].
-TAKE          = [b][[c1]Take[c]][b] [b]%(user)[b]/%(group) took %(credits) of credits from [b]%(target)[b].
-REQUEST       = [b][[c1]Request[c]][b] [b]%(request)[b] (ID #%(id)) added by [b]%(user)[b]/%(group).
-REQDEL        = [b][[c1]Request[c]][b] [b]%(request)[b] (ID #%(id)) deleted by [b]%(user)[b]/%(group) after %(age).
-REQFILL       = [b][[c1]Request[c]][b] [b]%(request)[b] (ID #%(id)) filled by [b]%(user)[b]/%(group) after %(age).
-REQWIPE       = [b][[c1]Request[c]][b] [b]%(request)[b] was auto-wiped since it's older than %(maxAge).
+APPROVEADD     = [b][[c1]Approve[c]][b] [b]%(user)[b]/%(group) approved [b]%(releaseName)[b].
+APPROVEDEL     = [b][[c1]Approve[c]][b] [b]%(user)[b]/%(group) deleted [b]%(releaseName)[b].
+CLOSE          = [b][[c1]Close[c]][b] [b]%(user)[b]/%(group) has closed the server for: %(reason).
+OPEN           = [b][[c1]Open[c]][b] [b]%(user)[b]/%(group) has opened the server, closed for %(duration).
+GIVE           = [b][[c1]Give[c]][b] [b]%(user)[b]/%(group) gave %(credits) of credits to [b]%(target)[b].
+TAKE           = [b][[c1]Take[c]][b] [b]%(user)[b]/%(group) took %(credits) of credits from [b]%(target)[b].
+REQUEST        = [b][[c1]Request[c]][b] [b]%(request)[b] (ID #%(id)) added by [b]%(user)[b]/%(group).
+REQDEL         = [b][[c1]Request[c]][b] [b]%(request)[b] (ID #%(id)) deleted by [b]%(user)[b]/%(group) after %(age).
+REQFILL        = [b][[c1]Request[c]][b] [b]%(request)[b] (ID #%(id)) filled by [b]%(user)[b]/%(group) after %(age).
+REQWIPE        = [b][[c1]Request[c]][b] [b]%(request)[b] was auto-wiped since it's older than %(maxAge).
 
 # ioSFV, ioZS, and Project-ZS events.
 COMPLETE      = [b][[c1]%(section)[c]][b] %(message)
@@ -164,8 +164,8 @@ UPDATE        = [b][[c1]%(section)[c]][b] %(message)
 WARN          = [b][[c1]%(section)[c]][b] %(message)
 
 # Command argument help.
-commandHelp   = [b][[c1]Usage[c]][b] %(command) %(arguments) - %(message)
-commandUsage  = [b][[c1]Usage[c]][b] %(command) %(arguments)
+commandHelp    = [b][[c1]Usage[c]][b] %(command) %(arguments) - %(message)
+commandUsage   = [b][[c1]Usage[c]][b] %(command) %(arguments)
 
 # Module: bouncer
 bouncerHead    = [b][[c1]BNC[c]][b] FTP Bouncer Status:
@@ -175,119 +175,119 @@ bouncerUnknown = [b][[c1]BNC[c]][b] %(name) - Host: %(host):%(port) - Status: [c
 bouncerFoot    =
 
 # Module: free
-freeHead      = [b][[c1]Free[c]][b] Total Space:
-freeBody      = [b][[c1]Free[c]][b] %(sections): %(free) free of %(total)
-freeFoot      = [b][[c1]Free[c]][b] TOTAL: %(free) free of %(total)
+freeHead       = [b][[c1]Free[c]][b] Total Space:
+freeBody       = [b][[c1]Free[c]][b] %(sections): %(free) free of %(total)
+freeFoot       = [b][[c1]Free[c]][b] TOTAL: %(free) free of %(total)
 
 # Module: groups
-affilsHead    = [b]Affiliated Groups:[b]
-affilsBody    = [b][[c1]%(section)[c]][b] %(groups)
-affilsFoot    = Total: [b]%(groupCount)[b] affil(s) in [b]%(sectionCount)[b] section(s).
+affilsHead     = [b]Affiliated Groups:[b]
+affilsBody     = [b][[c1]%(section)[c]][b] %(groups)
+affilsFoot     = Total: [b]%(groupCount)[b] affil(s) in [b]%(sectionCount)[b] section(s).
 
-bannedHead    = [b]Banned Groups:[b]
-bannedBody    = [b][[c1]%(section)[c]][b] %(groups)
-bannedFoot    = Total: [b]%(groupCount)[b] banned group(s) in [b]%(sectionCount)[b] section(s).
+bannedHead     = [b]Banned Groups:[b]
+bannedBody     = [b][[c1]%(section)[c]][b] %(groups)
+bannedFoot     = Total: [b]%(groupCount)[b] banned group(s) in [b]%(sectionCount)[b] section(s).
 
 # Module: help
-helpHead      = [b]Supported Commands:[b]
-helpType      = [u]%(type) Commands:[u]
-helpBody      = %(command) %(arguments) - %(description)
-helpFoot      =
+helpHead       = [b]Supported Commands:[b]
+helpType       = [u]%(type) Commands:[u]
+helpBody       = %(command) %(arguments) - %(description)
+helpFoot       =
 
 # Module: invite
-inviteBad     = [b][[c1]Invite[c]][b] Incorrect username, password, or IRC host.
-inviteBadHost = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) using an unknown IRC host.
-inviteBadPass = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) used an incorrect account or password.
-inviteBadUser = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) used the wrong IRC nickname.
-inviteDbDown  = [b][[c1]Invite[c]][b] Database offline, unable to invite [b]%(nick)[b].
-inviteFailed  = [b][[c1]Invite[c]][b] I need ops in [b]%(channels)[b] to invite [b]%(nick)[b].
-INVITE        = [b][[c1]Invite[c]][b] [b]%(user)[b]/%(group) invited himself as [b]%(nick)[b].
+inviteBad      = [b][[c1]Invite[c]][b] Incorrect username, password, or IRC host.
+inviteBadHost  = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) using an unknown IRC host.
+inviteBadPass  = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) used an incorrect account or password.
+inviteBadUser  = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) used the wrong IRC nickname.
+inviteDbDown   = [b][[c1]Invite[c]][b] Database offline, unable to invite [b]%(nick)[b].
+inviteFailed   = [b][[c1]Invite[c]][b] I need ops in [b]%(channels)[b] to invite [b]%(nick)[b].
+INVITE         = [b][[c1]Invite[c]][b] [b]%(user)[b]/%(group) invited himself as [b]%(nick)[b].
 
 # Module: nxtools
-approveAdd    = [b][[c1]Approve[c]][b] %(message)
-requestAdd    = [b][[c1]Request[c]][b] %(message)
-requestDel    = [b][[c1]Request[c]][b] %(message)
-requestFill   = [b][[c1]Request[c]][b] %(message)
+approveAdd     = [b][[c1]Approve[c]][b] %(message)
+requestAdd     = [b][[c1]Request[c]][b] %(message)
+requestDel     = [b][[c1]Request[c]][b] %(message)
+requestFill    = [b][[c1]Request[c]][b] %(message)
 
-approveHead   = [b]Approved Releases:[b]
-approveBody   = [%02(num)] [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
-approveNone   = No releases found.
-approveFoot   =
+approveHead    = [b]Approved Releases:[b]
+approveBody    = [%02(num)] [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
+approveNone    = No releases found.
+approveFoot    =
 
-latestHead    = [b]Latest Releases:[b]
-latestBody    = [%02(num)] [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
-latestNone    = No releases found.
-latestFoot    =
+latestHead     = [b]Latest Releases:[b]
+latestBody     = [%02(num)] [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
+latestNone     = No releases found.
+latestFoot     =
 
-searchHead    = [b]Search:[b]
-searchBody    = [%02(num)] %(releaseDate) - [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
-searchNone    = No releases found matching "%(pattern)".
-searchFoot    =
+searchHead     = [b]Search:[b]
+searchBody     = [%02(num)] %(releaseDate) - [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
+searchNone     = No releases found matching "%(pattern)".
+searchFoot     =
 
-nukesHead     = [b]Nukes:[b]
-nukesBody     = [%02(num)] [b]%(releaseName)[b] nuked [b]%(multi)x[b] by [b]%(user)[b]/%(group) for [b]%(reason)[b].
-nukesNone     = No releases found.
-nukesFoot     =
+nukesHead      = [b]Nukes:[b]
+nukesBody      = [%02(num)] [b]%(releaseName)[b] nuked [b]%(multi)x[b] by [b]%(user)[b]/%(group) for [b]%(reason)[b].
+nukesNone      = No releases found.
+nukesFoot      =
 
-nuketopHead   = [b]Nuke Top:[b]
-nuketopBody   = [%02(num)] [b]%(user)[b]/%(group) has been nuked [b]%(nuked)[b] time(s).
-nuketopNone   = No users found.
-nuketopFoot   =
+nuketopHead    = [b]Nuke Top:[b]
+nuketopBody    = [%02(num)] [b]%(user)[b]/%(group) has been nuked [b]%(nuked)[b] time(s).
+nuketopNone    = No users found.
+nuketopFoot    =
 
-unnukesHead   = [b]Unnukes:[b]
-unnukesBody   = [%02(num)] [b]%(releaseName)[b] unnuked [b]%(multi)x[b] by [b]%(user)[b]/%(group) for [b]%(reason)[b].
-unnukesNone   = No releases found.
-unnukesFoot   =
+unnukesHead    = [b]Unnukes:[b]
+unnukesBody    = [%02(num)] [b]%(releaseName)[b] unnuked [b]%(multi)x[b] by [b]%(user)[b]/%(group) for [b]%(reason)[b].
+unnukesNone    = No releases found.
+unnukesFoot    =
 
-oneLinesHead  = [b]One Lines:[b]
-oneLinesBody  = [%(messageDate)] [b]%(message)[b] by [b]%(user)[b]/%(group).
-oneLinesNone  = No messages found.
-oneLinesFoot  =
+oneLinesHead   = [b]One Lines:[b]
+oneLinesBody   = [%(messageDate)] [b]%(message)[b] by [b]%(user)[b]/%(group).
+oneLinesNone   = No messages found.
+oneLinesFoot   =
 
-requestsHead  = [b]Requests:[b]
-requestsBody  = [%02(num)] [b]%(request)[b] (ID #%(id)) by [b]%(user)[b]/%(group).
-requestsNone  = No requests found.
-requestsFoot  =
+requestsHead   = [b]Requests:[b]
+requestsBody   = [%02(num)] [b]%(request)[b] (ID #%(id)) by [b]%(user)[b]/%(group).
+requestsNone   = No requests found.
+requestsFoot   =
 
-undupeHead    = [b]Undupe:[b]
-undupeBody    = [%02(num)] [b]%(entry)[b] removed.
-undupeNone    = No entries found matching "%(pattern)".
-undupeFoot    =
+undupeHead     = [b]Undupe:[b]
+undupeBody     = [%02(num)] [b]%(entry)[b] removed.
+undupeNone     = No entries found matching "%(pattern)".
+undupeFoot     =
 
 # Module: online
-bandwidth     = [b][[c1]Bandwidth[c]][b] Leechers: [b]%(usersDn)[b] at %(speedDn) - Uploaders: [b]%(usersUp)[b] at %(speedUp) - Idlers: [b]%(usersIdle)[b] - Total: %(speedTotal) with [b]%(usersTotal)[b] online.
-bandwidthDn   = [b][[c1]Bandwidth[c]][b] [b]%(usersDn)[b] download(s) at %(speedDn).
-bandwidthUp   = [b][[c1]Bandwidth[c]][b] [b]%(usersUp)[b] upload(s) at %(speedUp).
+bandwidth      = [b][[c1]Bandwidth[c]][b] Leechers: [b]%(usersDn)[b] at %(speedDn) - Uploaders: [b]%(usersUp)[b] at %(speedUp) - Idlers: [b]%(usersIdle)[b] - Total: %(speedTotal) with [b]%(usersTotal)[b] online.
+bandwidthDn    = [b][[c1]Bandwidth[c]][b] [b]%(usersDn)[b] download(s) at %(speedDn).
+bandwidthUp    = [b][[c1]Bandwidth[c]][b] [b]%(usersUp)[b] upload(s) at %(speedUp).
 
-idleHead      =
-idleBody      = [b][[c1]Idle[c]][b] [b]%(user)[b]/%(group) has been idle for %(idle).
-idleFoot      = [b][[c1]Idle[c]][b] Total: [b]%(users)[b] user(s).
+idleHead       =
+idleBody       = [b][[c1]Idle[c]][b] [b]%(user)[b]/%(group) has been idle for %(idle).
+idleFoot       = [b][[c1]Idle[c]][b] Total: [b]%(users)[b] user(s).
 
-downloadHead  =
-downloadBody  = [b][[c1]Leech[c]][b] [b]%(user)[b]/%(group) is downloading [b]%(file)[b] at %(speed) (%(size) done).
-downloadFoot  = [b][[c1]Leech[c]][b] Total: [b]%(users)[b] user(s) at %(speed).
+downloadHead   =
+downloadBody   = [b][[c1]Leech[c]][b] [b]%(user)[b]/%(group) is downloading [b]%(file)[b] at %(speed) (%(size) done).
+downloadFoot   = [b][[c1]Leech[c]][b] Total: [b]%(users)[b] user(s) at %(speed).
 
-uploadHead    =
-uploadBody    = [b][[c1]Upload[c]][b] [b]%(user)[b]/%(group) is uploading [b]%(file)[b] at %(speed) (%(size) done).
-uploadFoot    = [b][[c1]Upload[c]][b] Total: [b]%(users)[b] user(s) at %(speed).
+uploadHead     =
+uploadBody     = [b][[c1]Upload[c]][b] [b]%(user)[b]/%(group) is uploading [b]%(file)[b] at %(speed) (%(size) done).
+uploadFoot     = [b][[c1]Upload[c]][b] Total: [b]%(users)[b] user(s) at %(speed).
 
-speedHead     =
-speedIdle     = [b][[c1]Speed[c]][b] [b]%(user)[b]/%(group) has been idle for %(idle).
-speedDownload = [b][[c1]Speed[c]][b] [b]%(user)[b]/%(group) is downloading [b]%(file)[b] at %(speed) (%(size) done).
-speedUpload   = [b][[c1]Speed[c]][b] [b]%(user)[b]/%(group) is uploading [b]%(file)[b] at %(speed) (%(size) done).
-speedNone     = [b][[c1]Speed[c]][b] The specified user is not online.
-speedFoot     =
+speedHead      =
+speedIdle      = [b][[c1]Speed[c]][b] [b]%(user)[b]/%(group) has been idle for %(idle).
+speedDownload  = [b][[c1]Speed[c]][b] [b]%(user)[b]/%(group) is downloading [b]%(file)[b] at %(speed) (%(size) done).
+speedUpload    = [b][[c1]Speed[c]][b] [b]%(user)[b]/%(group) is uploading [b]%(file)[b] at %(speed) (%(size) done).
+speedNone      = [b][[c1]Speed[c]][b] The specified user is not online.
+speedFoot      =
 
-whoHead       = [b]Who's Online:[b]
-whoIdle       = [b]-[b] [b]%(user)[b]/%(group) has been idle for %(idle).
-whoDownload   = [b]-[b] [b]%(user)[b]/%(group) is downloading [b]%(file)[b] at %(speed) (%(size) done.
-whoUpload     = [b]-[b] [b]%(user)[b]/%(group) is uploading [b]%(file)[b] at %(speed) (%(size) done).
-whoNone       = [b]-[b] There is no one online.
-whoFoot       =
+whoHead        = [b]Who's Online:[b]
+whoIdle        = [b]-[b] [b]%(user)[b]/%(group) has been idle for %(idle).
+whoDownload    = [b]-[b] [b]%(user)[b]/%(group) is downloading [b]%(file)[b] at %(speed) (%(size) done.
+whoUpload      = [b]-[b] [b]%(user)[b]/%(group) is uploading [b]%(file)[b] at %(speed) (%(size) done).
+whoNone        = [b]-[b] There is no one online.
+whoFoot        =
 
 # Module: pretimes
-preHead       =
-preBody       = [b][[c1]Pre[c]][b] [b]%(release)[b] (%(size)/[b]%(files)[b]F) released %(age) ago (%(preDate) %(preTime))
-preNuke       = [b][[c1]Pre[c]][b] [b]%(release)[b] (%(size)/[b]%(files)[b]F) released %(age) ago (%(preDate) %(preTime)) nuked for [b]%(reason)[b]
-preNone       = [b][[c1]Pre[c]][b] No releases found matching "%(pattern)".
-preFoot       =
+preHead        =
+preBody        = [b][[c1]Pre[c]][b] [b]%(release)[b] (%(size)/[b]%(files)[b]F) released %(age) ago (%(preDate) %(preTime))
+preNuke        = [b][[c1]Pre[c]][b] [b]%(release)[b] (%(size)/[b]%(files)[b]F) released %(age) ago (%(preDate) %(preTime)) nuked for [b]%(reason)[b]
+preNone        = [b][[c1]Pre[c]][b] No releases found matching "%(pattern)".
+preFoot        =
