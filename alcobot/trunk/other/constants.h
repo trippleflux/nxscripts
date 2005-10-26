@@ -141,10 +141,10 @@ Abstract:
 /* Put in %c cookie */
 #define group_info          "\"%g\" \"%.3m\" \"%.3S\" \"%.3p\" \"%f\""
 
-/* Put in %l cookie */
+/* Put in %L cookie */
 #define fastestfile         "\"%u\" \"%g\" \"%.3F\""
 
-/* Put in %L cookie */
+/* Put in %l cookie */
 #define slowestfile         "\"%u\" \"%g\" \"%.3S\""
 
 /* Put in %j cookie */
@@ -163,11 +163,11 @@ Abstract:
 #define group_top           "%n %g %.3m %.3S %.3p %f"
 
 /* Complete cookies (race) */
-#define audio_complete              "\"%.3m\" \"%.3A\" \"%.3a\" \"%f\" \"%d\" \"%u\" \"%g\" %l %L %C0 %c0 \"%t\" \"%T\""
-#define other_complete              "\"%.3m\" \"%.3A\" \"%.3a\" \"%f\" \"%d\" \"%u\" \"%g\" %l %L %C0 %c0 \"%t\" \"%T\""
-#define rar_complete                "\"%.3m\" \"%.3A\" \"%.3a\" \"%f\" \"%d\" \"%u\" \"%g\" %l %L %C0 %c0 \"%t\" \"%T\""
-#define video_complete              "\"%.3m\" \"%.3A\" \"%.3a\" \"%f\" \"%d\" \"%u\" \"%g\" %l %L %C0 %c0 \"%t\" \"%T\""
-#define zip_complete                "\"%.3m\" \"%.3A\" \"%.3a\" \"%f\" \"%d\" \"%u\" \"%g\" %l %L %C0 %c0 \"%t\" \"%T\""
+#define audio_complete              "\"%.3m\" \"%.3A\" \"%.3a\" \"%f\" \"%d\" \"%u\" \"%g\" %L %l %C0 %c0 \"%t\" \"%T\""
+#define other_complete              "\"%.3m\" \"%.3A\" \"%.3a\" \"%f\" \"%d\" \"%u\" \"%g\" %L %l %C0 %c0 \"%t\" \"%T\""
+#define rar_complete                "\"%.3m\" \"%.3A\" \"%.3a\" \"%f\" \"%d\" \"%u\" \"%g\" %L %l %C0 %c0 \"%t\" \"%T\""
+#define video_complete              "\"%.3m\" \"%.3A\" \"%.3a\" \"%f\" \"%d\" \"%u\" \"%g\" %L %l %C0 %c0 \"%t\" \"%T\""
+#define zip_complete                "\"%.3m\" \"%.3A\" \"%.3a\" \"%f\" \"%d\" \"%u\" \"%g\" %L %l %C0 %c0 \"%t\" \"%T\""
 
 /* Complete cookies (norace) */
 #define audio_norace_complete       "\"%U\" \"%G\" \"%K\" \"%.3m\" \"%.3A\" \"%.3a\" \"%f\" \"%d\""
