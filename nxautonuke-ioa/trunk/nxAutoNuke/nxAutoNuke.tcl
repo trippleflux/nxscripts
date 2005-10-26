@@ -419,19 +419,20 @@ proc ::nxAutoNuke::CheckSize {settings realPath} {
         return 1
     }
     GetDirStats $realPath stats ".ioFTPD*"
+    set kiloBytes [expr {$stats(TotalSize) / 1024.0}]
 
-    if {$min > 0 && ($min * 1024.0) > $stats(TotalSize)} {
+    if {$min > 0 && ($min * 1024.0) > $kiloBytes} {
         set check(Cookies) [list %(type) "minimum" %(size) $min]
         set check(WarnData) "\"minimum\" \"$min\" "
-        return 0
+        return 1
     }
 
-    if {$max > 0 && ($max * 1024.0) < $stats(TotalSize)} {
+    if {$max > 0 && ($max * 1024.0) < $kiloBytes} {
         set check(Cookies) [list %(type) "maximum" %(size) $max]
         set check(WarnData) "\"maximum\" \"$max\" "
-        return 0
+        return 1
     }
-    return 1
+    return 0
 }
 
 # Auto Nuke Procedures
@@ -476,7 +477,7 @@ proc ::nxAutoNuke::SplitSettings {type settings} {
     set checkList [list]
     foreach entry $settings {
         set value [split $entry ":"]
-        if {[llength $value == 2} {
+        if {[llength $value] == 2} {
             lappend checkList [string tolower [lindex $value 0]] [lindex $value 1]
         } else {
             ErrorLog AutoNuke "Invalid $type entry \"$entry\"."
