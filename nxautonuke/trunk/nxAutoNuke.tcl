@@ -330,6 +330,9 @@ proc ::nxAutoNuke::CheckImdb {checkList realPath} {
             year {
                 if {![string match -nocase $value $year]} {set nuke 1}
             }
+            default {
+                ErrorLog AutoNuke "Unknown IMDB setting \"$type\"."
+            }
         }
 
         if {$nuke} {
@@ -381,6 +384,9 @@ proc ::nxAutoNuke::CheckMP3 {checkList realPath} {
             }
             year {
                 if {![string match -nocase $value $year]} {set nuke 1}
+            }
+            default {
+                ErrorLog AutoNuke "Unknown MP3 setting \"$type\"."
             }
         }
 
