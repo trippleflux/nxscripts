@@ -168,7 +168,7 @@ proc ::nxAutoNuke::CheckKeyword {keywordList releaseName} {
 proc ::nxAutoNuke::CheckMP3 {checkList realPath} {
     global anuke
     variable check
-    set found 0; set genre ""; set year ""
+    set found 0; set bitrate 0; set genre ""; set year ""
 
     foreach tagName [FindTags $realPath] {
         set reMatch [regexp -inline -nocase -- $anuke(MP3Match) [file tail $tagName]]
@@ -182,6 +182,15 @@ proc ::nxAutoNuke::CheckMP3 {checkList realPath} {
     foreach {type value} $checkList {
         set nuke 0
         switch -- $type {
+            bitrate {
+                set min [lindex $value 0]
+                set max [lindex $value 1]
+                if {![string is double -strict $min] || ![string is double -strict $max]} {
+                    ErrorLog AutoNuke "Invalid MP3 bitrate setting \"$value\"."
+                } elseif {($min > 0 && $min > $bitrate) || ($max > 0 && $max < $bitrate)} {
+                    set nuke 1
+                }
+            }
             genre {
                 if {[string match -nocase $value $genre]} {set nuke 1}
             }
@@ -201,6 +210,31 @@ proc ::nxAutoNuke::CheckMP3 {checkList realPath} {
         }
     }
     return 0
+}
+
+proc ::nxAutoNuke::CheckSize {settings realPath} {
+    variable check
+
+    set min [lindex $settings 0]
+    set max [lindex $settings 1]
+    if {![string is double -strict $min] || ![string is double -strict $max]} {
+        ErrorLog AutoNuke "Invalid size setting \"$settings\"."
+        return 1
+    }
+    GetDirStats $realPath stats ".ioFTPD*"
+
+    if {$min > 0 && ($min * 1024.0) > $stats(TotalSize)} {
+        set check(Cookies) [list %(type) "minimum" %(size) $min]
+        set check(WarnData) "\"minimum\" \"$min\" "
+        return 0
+    }
+
+    if {$max > 0 && ($max * 1024.0) < $stats(TotalSize)} {
+        set check(Cookies) [list %(type) "maximum" %(size) $max]
+        set check(WarnData) "\"maximum\" \"$max\" "
+        return 0
+    }
+    return 1
 }
 
 # Auto Nuke Procedures
@@ -241,11 +275,15 @@ proc ::nxAutoNuke::FindTags {realPath {tagTemplate "*"}} {
     return [glob -nocomplain -types d -directory $realPath $tagTemplate]
 }
 
-proc ::nxAutoNuke::SplitSettings {settings} {
+proc ::nxAutoNuke::SplitSettings {type settings} {
     set checkList [list]
     foreach entry $settings {
-        foreach {name value} [split $entry ":"] {break}
-        lappend checkList [string tolower $name] $value
+        set value [split $entry ":"]
+        if {[llength $value == 2} {
+            lappend checkList [string tolower [lindex $value 0]] [lindex $value 1]
+        } else {
+            ErrorLog AutoNuke "Invalid $type entry \"$entry\"."
+        }
     }
     return $checkList
 }
@@ -360,6 +398,7 @@ proc ::nxAutoNuke::Main {} {
         disks      [list ANUKEDISKS   $anuke(ReasonDisks)   {CheckDisks   $check(Settings) [llength $release(PathList)]}] \
         imdb       [list ANUKEIMDB    $anuke(ReasonImdb)    {CheckImdb    $check(Settings) $release(RealPath)}] \
         keyword    [list ANUKEKEYWORD $anuke(ReasonKeyword) {CheckKeyword $check(Settings) $release(Name)}] \
+        size       [list ANUKESIZE    $anuke(ReasonSize)    {CheckSize    $check(Settings) $release(RealPath)}] \
     ]
     array set diskChecks [list \
         empty      [list ANUKEEMPTY   $anuke(ReasonEmpty)   {CheckEmpty $disk(RealPath)}] \
@@ -396,7 +435,7 @@ proc ::nxAutoNuke::Main {} {
 
             # Split IMDB and MP3 check settings.
             if {$checkType eq "imdb" || $checkType eq "mp3"} {
-                set check(Settings) [SplitSettings $check(Settings)]
+                set check(Settings) [SplitSettings $checkType $check(Settings)]
             } elseif {$checkType eq "keyword"} {
                 set check(Settings) [string tolower $check(Settings)]
             }
