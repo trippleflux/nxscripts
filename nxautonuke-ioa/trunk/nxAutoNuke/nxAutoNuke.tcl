@@ -184,8 +184,8 @@ proc ::nxAutoNuke::Nuke {realPath virtualPath nukerUser nukerGroup multi reason}
     set nukeeLog [join [lsort -decreasing -integer -index 2 $nukeeLog]]
 
     # Create nuke tag.
-    set reMap [list %(user) $nukerUser %(group) $nukerGroup %(multi) $multi %(reason) $reason]
-    set nukeTag [file join $realPath [string map $reMap $nuke(InfoTag)]]
+    set mapList [list %(user) $nukerUser %(group) $nukerGroup %(multi) $multi %(reason) $reason]
+    set nukeTag [file join $realPath [string map $mapList $nuke(InfoTag)]]
     CreateTag $nukeTag [resolve user $nukerUser] [resolve group $nukerGroup] 555
     RemoveParentLinks $realPath $virtualPath
 
@@ -460,10 +460,10 @@ proc ::nxAutoNuke::GetUserList {realPath} {
     }
 
     # Format uploaders list.
-    set formatList ""
+    set formatList [list]
     foreach {userName groupName} [array get uploader] {
-        set reMap [list %b \002 %c \003 %u \031 %(user) $userName %(group) $groupName]
-        lappend formatList [string map $reMap $anuke(UserFormat)]
+        set mapList [list %b \002 %c \003 %u \031 %(user) $userName %(group) $groupName]
+        lappend formatList [string map $mapList $anuke(UserFormat)]
     }
     return [join [lsort -ascii $formatList] $anuke(UserSplit)]
 }

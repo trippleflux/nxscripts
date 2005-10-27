@@ -263,10 +263,10 @@ proc ::nxAutoNuke::GetUserList {realPath} {
     }
 
     # Format uploaders list.
-    set formatList ""
+    set formatList [list]
     foreach {userName groupName} [array get uploader] {
-        set reMap [list %b \002 %c \003 %u \031 %(user) $userName %(group) $groupName]
-        lappend formatList [string map $reMap $anuke(UserFormat)]
+        set mapList [list %b \002 %c \003 %u \031 %(user) $userName %(group) $groupName]
+        lappend formatList [string map $mapList $anuke(UserFormat)]
     }
     return [join [lsort -ascii $formatList] $anuke(UserSplit)]
 }
