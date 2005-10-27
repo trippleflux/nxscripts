@@ -286,8 +286,8 @@ proc ::nxTools::Nuke::Main {argv} {
             set nukeeLog [join [lsort -decreasing -integer -index 2 $nukeeLog]]
 
             if {$isNuke} {
-                set reMap [list %(user) $user %(group) $group %(multi) $multi %(reason) $reason]
-                set nukeTag [file join $realPath [string map $reMap $nuke(InfoTag)]]
+                set mapList [list %(user) $user %(group) $group %(multi) $multi %(reason) $reason]
+                set nukeTag [file join $realPath [string map $mapList $nuke(InfoTag)]]
                 CreateTag $nukeTag $uid $gid 555
                 RemoveParentLinks $realPath $virtualPath
                 set dirChmod 555

@@ -75,8 +75,8 @@ proc ::nxTools::Req::UpdateDir {event request {userId 0} {groupId 0}} {
         ErrorLog ReqUpdateDir "The requests directory \"$req(RequestPath)\" does not exist."
         return
     }
-    set reMap [list %(request) $request]
-    set reqPath [file join $req(RequestPath) [string map $reMap $req(RequestTag)]]
+    set mapList [list %(request) $request]
+    set reqPath [file join $req(RequestPath) [string map $mapList $req(RequestTag)]]
 
     switch -- $event {
         ADD {CreateTag $reqPath $userId $groupId 777}
@@ -90,7 +90,7 @@ proc ::nxTools::Req::UpdateDir {event request {userId 0} {groupId 0}} {
         }
         FILL {
             if {[file isdirectory $reqPath]} {
-                set fillPath [file join $req(RequestPath) [string map $reMap $req(FilledTag)]]
+                set fillPath [file join $req(RequestPath) [string map $mapList $req(FilledTag)]]
                 KickUsers [file join $reqPath "*"] True
                 if {[catch {file rename -force -- $reqPath $fillPath} error]} {
                     ErrorLog ReqFill $error
