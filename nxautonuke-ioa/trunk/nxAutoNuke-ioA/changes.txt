@@ -3,6 +3,7 @@
 ################################################################################
 
 nxAutoNuke v2.3.0 (not released):
+  NEW: Example directory tag patterns in the readme (section 4).
   NEW: Improved error logging when incorrect settings are detected.
   NEW: Minimum and maximum bitrate for MP3 releases.
   NEW: Minimum and maximum size enforcements for releases.

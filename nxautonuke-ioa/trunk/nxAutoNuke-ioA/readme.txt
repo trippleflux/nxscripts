@@ -7,7 +7,7 @@ Topics:
  1. Information
  2. ioA and dZSbot Installation
  3. ioA and ioBanana Installation
- 4. Todo List
+ 4. Directory Tags
  5. Bugs and Comments
  6. License
 
@@ -158,11 +158,36 @@ set announce(ANUKESIZE)    "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] mu
 
 
 ################################################################################
-# 4. Todo List                                                                 #
+# 4. Directory Tags                                                            #
 ################################################################################
 
-- RiA release name checks will only be added if someone can provide
-  me with an original copy of the RiA standards/rules.
+    Parsing is done using regular expressions. For more information on regular
+expressions, see: http://www.tcl.tk/man/tcl8.4/TclCmd/re_syntax.htm
+
+- dZSbot IMDB Tag:
+  [IMDB] - Action (2004) - 2.7 of 10 - [IMDB]
+  set anuke(ImdbMatch) {^\[IMDB\] - (.+) \((\d+)\) - ([\d\.]+) of 10 - \[IMDB\]$}
+  set anuke(ImdbOrder) {genre year rating}
+
+- ioSFV MP3 Tag:
+  -[100%]-[62.71MB in 11 files with 11 tracks - Death Metal 2005 256kbps]-[race won by user]-
+  set anuke(MP3Match) {^-\[.*\]-\[.+ in \d+ files with \d+ tracks - (.+) (\d+) (\d+)kbps\]-\[race won by .+\]-$}
+  set anuke(MP3Order) {genre year bitrate}
+
+- Project-ZS MP3 Tag:
+  [SITE] - ( 62.7MB 11F - COMPLETE - Death Metal 2005 ) - [SITE]
+  set anuke(MP3Match) {^\[.*\] - \( .* - COMPLETE - (.+) (\d+) \) - \[.*\]$}
+  set anuke(MP3Order) {genre year}
+
+- ioBanana v2.0 release-1 IMDB Tag:
+  [iMDB]-8.0 with 68,600 votes - Action - 3,661 screens-[iMDB]
+  set anuke(ImdbMatch) {^\[iMDB\]-([\d\.]+) with \S+ votes - (.+) - \S+ screens-\[iMDB\]$}
+  set anuke(ImdbOrder) {rating genre}
+
+- ioBanana v2.0 release-1 MP3 Tag:
+  [100% Complete]-[12F @ 82.2MB at 161kBps]-[Death Metal from 2005 at 256kbps]-[XL]
+  set anuke(MP3Match) {^\[.*\]-\[.*\]-\[(.+) from (\d+) at (\d+)kbps\]-\[.+\]$}
+  set anuke(MP3Order) {genre year bitrate}
 
 
 ################################################################################
