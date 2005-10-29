@@ -152,14 +152,18 @@ proc ::nxTools::Dupe::CleanDb {} {
     } else {
         LinePuts "Cleaning the directory database."
         set maxAge [expr {[clock seconds] - ($dupe(CleanDirs) * 86400)}]
-        DirDb eval {BEGIN}
-        DirDb eval {SELECT DirPath,DirName,rowid FROM DupeDirs WHERE TimeStamp < $maxAge ORDER BY TimeStamp DESC} values {
+
+        set rowIds [list]
+        DirDb eval {SELECT DirPath,DirName,rowid FROM DupeDirs WHERE TimeStamp < $maxAge} values {
             set fullPath [file join $values(DirPath) $values(DirName)]
             if {![file isdirectory [resolve pwd $fullPath]]} {
-                DirDb eval {DELETE FROM DupeDirs WHERE rowid=$values(rowid)}
+                lappend rowIds $values(rowid)
             }
         }
-        DirDb eval {COMMIT}
+
+        if {[llength $rowIds]} {
+            DirDb eval "DELETE FROM DupeDirs WHERE rowid IN ([join $rowIds ,])"
+        }
         DirDb close
     }
     iputs "'------------------------------------------------------------------------'"
