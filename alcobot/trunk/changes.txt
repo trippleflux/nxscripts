@@ -1,3 +1,7 @@
+AlcoBot v0.7.0 (not released):
+  NEW: Completed Project-ZS-NG support, for glFTPD only.
+  NEW: Support for nxAutoNuke v2.3 (the ANUKESIZE event).
+
 AlcoBot v0.6.0 (Oct 23, 2005):
   NEW: Added a "notify" callback to the FTP library (connection success).
   NEW: Bouncer module, to display the status of FTP bouncers.
