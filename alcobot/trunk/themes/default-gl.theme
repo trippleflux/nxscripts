@@ -162,8 +162,8 @@ WARN_PRESET    = [b][[c1]%(section)[c]][b] [b]%(user)[b]/%(group) is uploading a
 WARN_YEAR      = [b][[c1]%(section)[c]][b] [b]%(user)[b]/%(group) is uploading a banned year from [b]%(year)[b].
 
 # Zipscript: general events
-COMPLETE       = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] [[b]%(mbytes)[b]MB in [b]%(files)[b]F at %(xferSpeed) - %(timeElapsed)] was completed by [b]%(user)[b]/%(group).
-COMPLETE_RACE  = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] [[b]%(mbytes)[b]MB in [b]%(files)[b]F at %(avgSpeed) - %(timeElapsed)] was completed by [b]%(userCount)[b] user(s) in [b]%(groupCount)[b] group(s).\n[b][[c1]%(section)[c]][b] User Top:%(userTop)\n[b][[c1]%(section)[c]][b] Group Top:\n%(groupTop)
+COMPLETE       = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] [[b]%.1(mbytes)[b]MB in [b]%(filesTotal)[b]F at %(xferSpeed) - %(timeElapsed)] was completed by [b]%(user)[b]/%(group).
+COMPLETE_RACE  = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] [[b]%.1(mbytes)[b]MB in [b]%(filesTotal)[b]F at %(avgSpeed) - %(timeElapsed)] was completed by [b]%(userCount)[b] user(s) in [b]%(groupCount)[b] group(s).\n[b][[c1]%(section)[c]][b] User Top:%(userTop)\n[b][[c1]%(section)[c]][b] Group Top:\n%(groupTop)
 DOUBLE_SFV     = [b][[c1]%(section)[c]][b] [b]%(user)[b]/%(group) tried to upload a second SFV in [b]%(releaseName)[b].
 HALFWAY        = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] is in halfway, [b]%(user)[b]/%(group) is all alone.
 HALFWAY_RACE   = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] is in halfway with [b]%(userCount)[b] user(s) from [b]%(groupCount)[b] group(s). Leading uploader is %(leadUser), leading group is %(leadGroup).
