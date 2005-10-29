@@ -1,5 +1,5 @@
 #
-# nxAutoNuke - Extensive auto-nuker for ioFTPD.
+# nxAutoNuke-ioA - Extensive auto-nuker for ioFTPD.
 # Copyright (c) 2004-2005 neoxed
 #
 # Module Name:
