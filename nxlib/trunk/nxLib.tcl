@@ -411,24 +411,24 @@ proc ::nxLib::ErrorLog {type message} {
 
 proc ::nxLib::FormatDuration {seconds} {
     set duration [list]
-    foreach divisor {31536000 604800 86400 3600 60 1} mod {0 52 7 24 60 60} unit {y w d h m s} {
-        set num [expr {$seconds / $divisor}]
-        if {$mod > 0} {set num [expr {$num % $mod}]}
+    foreach div {31536000 604800 86400 3600 60 1} unit {y w d h m s} {
+        set num [expr {$seconds / $div}]
         if {$num > 0} {lappend duration "$num$unit"}
+        set seconds [expr {$seconds % $div}]
     }
     if {[llength $duration]} {return [join $duration]} else {return "0s"}
 }
 
 proc ::nxLib::FormatDurationLong {seconds} {
     set duration [list]
-    foreach divisor {31536000 604800 86400 3600 60 1} mod {0 52 7 24 60 60} unit {year week day hour min sec} {
-        set num [expr {$seconds / $divisor}]
-        if {$mod > 0} {set num [expr {$num % $mod}]}
+    foreach div {31536000 604800 86400 3600 60 1} unit {year week day hour min sec} {
+        set num [expr {$seconds / $div}]
         if {$num > 1} {
             lappend duration "$num ${unit}s"
         } elseif {$num == 1} {
             lappend duration "$num $unit"
         }
+        set seconds [expr {$seconds % $div}]
     }
     if {[llength $duration]} {return [join $duration {, }]} else {return "0 secs"}
 }
