@@ -34,6 +34,11 @@ Abstract:
 
 --*/
 
+// Strings in ioFTPD's headers are declared as TCHAR's, even though
+// the shared memory interface does not support wide characters.
+#undef UNICODE
+#undef _UNICODE
+
 #include <alcoExt.h>
 
 // Relevant ioFTPD headers.
