@@ -78,6 +78,7 @@ main(
             return 1;
         } else if (pid != 0) {
             printf("Forked process into the background (PID: %d).\n", pid);
+            return 0;
         }
     } else {
         fprintf(stderr, "Script returned %d, not forking process.\n", background);
