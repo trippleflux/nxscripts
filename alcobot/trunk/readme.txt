@@ -91,6 +91,18 @@ file name to "varFiles", under [General], in the AlcoBot configuration file.
 ################################################################################
 
 ############################################################
+# bouncer                                                  #
+############################################################
+
+FTPD: All
+Info: Display FTP bouncer status.
+Path: modules/generic/bouncer
+
+1. Add "bouncer" to the module list in AlcoBot.conf.
+2. Configure the [Module::Bouncer] section in AlcoBot.conf.
+3. Reload AlcoBot by entering the command ".alcobot reload" in DCC chat.
+
+############################################################
 # free                                                     #
 ############################################################
 
