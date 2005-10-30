@@ -13,8 +13,8 @@
 #
 
 set TclFiles {
-  {../scripts/nxAutoNuke.cfg}
-  {../scripts/nxTools.cfg}
+  {../scripts/nxAutoNuke/nxAutoNuke.cfg}
+  {../scripts/nxTools/nxTools.cfg}
   {../scripts/nxLib.tcl}
 }
 
