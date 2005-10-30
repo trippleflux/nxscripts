@@ -31,7 +31,7 @@ groups. Nuke reasons are customizable using cookies.
    The files must be placed as follows:
    ioFTPD\scripts\init.itcl
    ioFTPD\scripts\nxLib.tcl
-   ioFTPD\scripts\nxAutoNuke.cfg
+   ioFTPD\scripts\nxAutoNuke\nxAutoNuke.cfg
    ioFTPD\scripts\nxAutoNuke\nxAutoNuke.tcl
 
 2. Configure nxAutoNuke.cfg to your liking. Read the comments carefully!

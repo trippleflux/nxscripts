@@ -8,6 +8,7 @@ nxAutoNuke v2.3.0 (not released):
   NEW: Minimum and maximum bitrate for MP3 releases.
   NEW: Minimum and maximum size enforcements for releases.
   CHG: Minor clean-ups to the default configuration file.
+  CHG: Moved configuration to the nxAutoNuke directory.
   CHG: Verify the parsed IMDB and MP3 values before comparing them.
 
 nxAutoNuke v2.2.0 (Oct 12, 2005):
