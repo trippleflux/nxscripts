@@ -322,13 +322,19 @@ proc ::nxAutoNuke::CheckImdb {checkList realPath} {
         set nuke 0
         switch -- $type {
             genre {
-                if {[string match -nocase $value $genre]} {set nuke 1}
+                if {[string length $genre] && [string match -nocase $value $genre]} {
+                    set nuke 1
+                }
             }
             rating {
-                if {[string is double -strict $rating] && $rating < $value} {set nuke 1}
+                if {[string is double -strict $rating] && $rating < $value} {
+                    set nuke 1
+                }
             }
             year {
-                if {![string match -nocase $value $year]} {set nuke 1}
+                if {[string length $year] && ![string match -nocase $value $year]} {
+                    set nuke 1
+                }
             }
             default {
                 ErrorLog AutoNuke "Unknown IMDB setting \"$type\"."
@@ -380,19 +386,26 @@ proc ::nxAutoNuke::CheckMP3 {checkList realPath} {
         set nuke 0
         switch -- $type {
             bitrate {
-                set min [lindex $value 0]
-                set max [lindex $value 1]
-                if {![string is double -strict $min] || ![string is double -strict $max]} {
-                    ErrorLog AutoNuke "Invalid MP3 bitrate setting \"$value\"."
-                } elseif {($min > 0 && $min > $bitrate) || ($max > 0 && $max < $bitrate)} {
-                    set nuke 1
+                if {[string is double -strict $bitrate] && $bitrate > 0} {
+                    set min [lindex $value 0]
+                    set max [lindex $value 1]
+
+                    if {![string is double -strict $min] || ![string is double -strict $max]} {
+                        ErrorLog AutoNuke "Invalid MP3 bitrate setting \"$value\"."
+                    } elseif {($min > 0 && $min > $bitrate) || ($max > 0 && $max < $bitrate)} {
+                        set nuke 1
+                    }
                 }
             }
             genre {
-                if {[string match -nocase $value $genre]} {set nuke 1}
+                if {[string length $genre] && [string match -nocase $value $genre]} {
+                    set nuke 1
+                }
             }
             year {
-                if {![string match -nocase $value $year]} {set nuke 1}
+                if {[string length $year] && ![string match -nocase $value $year]} {
+                    set nuke 1
+                }
             }
             default {
                 ErrorLog AutoNuke "Unknown MP3 setting \"$type\"."
