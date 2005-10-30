@@ -4,6 +4,7 @@
 
 nxTools v1.0.1 (Oct 29, 2005):
   CHG: Display requests in ascending order, based on their ID.
+  CHG: Moved configuration to the nxTools directory.
   CHG: Removed 'SITE INVITE' command.
   CHG: Removed an unneeded ORDER clause from the dupe database cleaner.
   FIX: The nuke tag should be removed on unnuke.

@@ -3,40 +3,42 @@
 ################################################################################
 
 1.0.0  -> 1.0.1
+ - Move the nxTools.cfg file to ioFTPD\scripts\nxTools\.
  - Repeat step 3 in the installation manual.
- - Replace ioFTPD\scripts\nxLib.tcl and all files in ioFTPD\scripts\nxTools\.
+ - Replace ioFTPD\scripts\init.itcl, ioFTPD\scripts\nxLib.tcl, and
+   all Tcl files in ioFTPD\scripts\nxTools\.
 
 0.9.13 -> 1.0.0
  - Repeat steps 1 and 3 in the installation manual.
- - Replace ioFTPD\scripts\nxLib.tcl and all files in ioFTPD\scripts\nxTools\.
+ - Replace ioFTPD\scripts\nxLib.tcl and all Tcl files in ioFTPD\scripts\nxTools\.
  - Replace the nxHelper.dll and tclsqlite3.dll files in ioFTPD\system\.
  - Remove config options: misc(dZSbotLogging), mysql(DataBase), mysql(Host),
    mysql(Password), mysql(Port), mysql(TableName), mysql(Username),
    pretime(AddOnPre), pretime(CheckMkd), pretime(CheckPaths), and pretime(Ignores).
 
 0.9.12 -> 0.9.13
- - Replace \scripts\nxLib.tcl and all files located in \scripts\nxTools\.
+ - Replace \scripts\nxLib.tcl and all Tcl files in ioFTPD\scripts\nxTools\.
  - Remove config options: misc(SiteBot) and new(Exempts).
 
 0.9.11 -> 0.9.12
- - Replace \scripts\nxLib.tcl and all files located in \scripts\nxTools\.
+ - Replace \scripts\nxLib.tcl and all Tcl files in ioFTPD\scripts\nxTools\.
  - New config option: req(ReleaseNames).
  - Remove config options: invite(ConfigFile) and invite(Default).
 
 0.9.10 -> 0.9.11
  - Download an updated nxTools-Libraries package.
- - Replace \scripts\nxLib.tcl and all files located in \scripts\nxTools\.
+ - Replace \scripts\nxLib.tcl and all Tcl files in ioFTPD\scripts\nxTools\.
  - Update your events and scripts in ioFTPD.ini.
  - New config option: req(Limits).
  - Remove config options: req(TimeDays), req(TimeLimit), req(TotalLimit), and
    req(UserLimit).
 
 0.9.8 -> 0.9.10
- - Replace all files located in \scripts\nxTools\.
+ - Replace all Tcl files in ioFTPD\scripts\nxTools\.
  - Download an updated nxTools-Libraries package.
 
 0.9.8 -> 0.9.9
- - Replace all files located in \scripts\nxTools\.
+ - Replace all Tcl files in ioFTPD\scripts\nxTools\.
  - Remove your nukes and requests database from \scripts\nxTools\data\
    and recreate them using the "SITE DB CREATE" command.
  - Changed config option: dupe(RebuildPaths), newdate(Default), and

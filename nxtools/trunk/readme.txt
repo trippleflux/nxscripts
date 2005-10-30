@@ -39,8 +39,6 @@ cannot guarantee it will work on any other versions of ioFTPD.
  1. UnRAR and copy all files and directories, and place the files as follows:
 
     ioFTPD\scripts\init.itcl
-    ioFTPD\scripts\nxTools.cfg
-    ioFTPD\scripts\nxTools.txt
     ioFTPD\scripts\nxLib.tcl
     ioFTPD\scripts\nxTools\data\*
     ioFTPD\scripts\nxTools\text\*
@@ -53,6 +51,7 @@ cannot guarantee it will work on any other versions of ioFTPD.
     ioFTPD\scripts\nxTools\nxRequest.tcl
     ioFTPD\scripts\nxTools\nxRules.cfg
     ioFTPD\scripts\nxTools\nxRules.tcl
+    ioFTPD\scripts\nxTools\nxTools.cfg
     ioFTPD\scripts\nxTools\nxUtilities.tcl
     ioFTPD\scripts\nxTools\nxWeekly.cfg
     ioFTPD\system\nxHelper.dll
