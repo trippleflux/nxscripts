@@ -32,7 +32,7 @@ groups. Nuke reasons are customizable using cookies.
    The files must be placed as follows:
    ioFTPD\scripts\init.itcl
    ioFTPD\scripts\nxLib.tcl
-   ioFTPD\scripts\nxAutoNuke.cfg
+   ioFTPD\scripts\nxAutoNuke-ioA\nxAutoNuke.cfg
    ioFTPD\scripts\nxAutoNuke-ioA\nxAutoNuke.tcl
 
 2. Configure nxAutoNuke.cfg to your liking. Read the comments carefully!
@@ -102,7 +102,7 @@ set msgtypes(RACE) "ANUKEALLOWED ANUKEBANNED ANUKEDISKS ANUKEEMPTY ANUKEIMDB ANU
    The files must be placed as follows:
    ioFTPD\scripts\init.itcl
    ioFTPD\scripts\nxLib.tcl
-   ioFTPD\scripts\nxAutoNuke.cfg
+   ioFTPD\scripts\nxAutoNuke-ioA\nxAutoNuke.cfg
    ioFTPD\scripts\nxAutoNuke-ioA\nxAutoNuke.tcl
 
 2. Configure nxAutoNuke.cfg to your liking. Read the comments carefully!

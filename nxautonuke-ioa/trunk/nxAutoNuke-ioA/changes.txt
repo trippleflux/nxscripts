@@ -8,6 +8,7 @@ nxAutoNuke-ioA v2.3.0 (not released):
   NEW: Minimum and maximum bitrate for MP3 releases.
   NEW: Minimum and maximum size enforcements for releases.
   CHG: Minor clean-ups to the default configuration file.
+  CHG: Moved configuration to the nxAutoNuke-ioA directory.
   CHG: New announce types (ANUKESIZE), be sure to update your sitebot.
   CHG: Removed ioBanana.exe KICKNUKE functions (not present in ioBanana v2.0 rel-1).
   CHG: Verify the parsed IMDB and MP3 values before comparing them.
