@@ -125,16 +125,19 @@ proc ::nxAutoNuke::CheckImdb {checkList realPath} {
         set nuke 0
         switch -- $type {
             genre {
+                # Banned genre(s).
                 if {[string length $genre] && [string match -nocase $value $genre]} {
                     set nuke 1
                 }
             }
             rating {
+                # Minimum rating.
                 if {[string is double -strict $rating] && $rating < $value} {
                     set nuke 1
                 }
             }
             year {
+                # Accepted year(s).
                 if {[string length $year] && ![string match -nocase $value $year]} {
                     set nuke 1
                 }
@@ -189,6 +192,7 @@ proc ::nxAutoNuke::CheckMP3 {checkList realPath} {
         set nuke 0
         switch -- $type {
             bitrate {
+                # Minimum and maximum bitrate.
                 if {[string is double -strict $bitrate] && $bitrate > 0} {
                     set min [lindex $value 0]
                     set max [lindex $value 1]
@@ -201,11 +205,13 @@ proc ::nxAutoNuke::CheckMP3 {checkList realPath} {
                 }
             }
             genre {
+                # Banned genre(s).
                 if {[string length $genre] && [string match -nocase $value $genre]} {
                     set nuke 1
                 }
             }
             year {
+                # Accepted year(s).
                 if {[string length $year] && ![string match -nocase $value $year]} {
                     set nuke 1
                 }
