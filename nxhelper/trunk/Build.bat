@@ -13,12 +13,8 @@
 ::   Batch script to build a release and debug version of nxHelper.
 ::
 
-:: Tcl installation path.
-SET TCL_DIR=D:\Projects\Tcl
-
-:: -------------------------------------------------------------------------
-
-CALL "C:\Program Files\Microsoft Visual Studio .NET 2003\Common7\Tools\vsvars32.bat"
+SET TCL_DIR=C:\Tcl
+CALL "C:\Program Files\Microsoft Visual Studio 8\Common7\Tools\vsvars32.bat"
 
 ECHO:=======================================================================
 ECHO: nxHelper - Release Build
