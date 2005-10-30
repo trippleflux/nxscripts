@@ -285,11 +285,14 @@ proc ::alcoholicz::FormatTime {{clockVal ""}} {
 # Formats a time duration into a human-readable format.
 #
 proc ::alcoholicz::FormatDuration {seconds} {
+    if {$seconds < 0} {
+        set seconds [expr {-$seconds}]
+    }
     set duration [list]
-    foreach div {31536000 604800 86400 3600 60 1} mod {0 52 7 24 60 60} unit {y w d h m s} {
+    foreach div {31536000 604800 86400 3600 60 1} unit {y w d h m s} {
         set num [expr {$seconds / $div}]
-        if {$mod > 0} {set num [expr {$num % $mod}]}
         if {$num > 0} {lappend duration "[b]$num[b]$unit"}
+        set seconds [expr {$seconds % $div}]
     }
     if {[llength $duration]} {return [join $duration]} else {return "[b]0[b]s"}
 }
@@ -300,15 +303,18 @@ proc ::alcoholicz::FormatDuration {seconds} {
 # Formats a time duration into a human-readable format.
 #
 proc ::alcoholicz::FormatDurationLong {seconds} {
+    if {$seconds < 0} {
+        set seconds [expr {-$seconds}]
+    }
     set duration [list]
-    foreach div {31536000 604800 86400 3600 60 1} mod {0 52 7 24 60 60} unit {year week day hour min sec} {
+    foreach div {31536000 604800 86400 3600 60 1} unit {year week day hour min sec} {
         set num [expr {$seconds / $div}]
-        if {$mod > 0} {set num [expr {$num % $mod}]}
         if {$num > 1} {
             lappend duration "[b]$num[b] ${unit}s"
         } elseif {$num == 1} {
             lappend duration "[b]$num[b] $unit"
         }
+        set seconds [expr {$seconds % $div}]
     }
     if {[llength $duration]} {return [join $duration {, }]} else {return "[b]0[b] secs"}
 }
