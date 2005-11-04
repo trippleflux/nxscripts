@@ -68,7 +68,9 @@ proc ::alcoholicz::FtpOpen {host port user passwd args} {
                 none {set value ""}
                 implicit - ssl - tls {
                     # Make sure the TLS package (http://tls.sf.net) is present.
-                    package present tls
+                    if {[catch {package present tls} message]} {
+                        error "SSL/TLS support not available, install the Tcl-TLS package"
+                    }
                 }
                 default {
                     error "invalid value \"$value\": must be none, implicit, ssl, or tls"
