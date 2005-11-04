@@ -509,12 +509,12 @@ proc ::alcoholicz::NxTools::Load {firstLoad} {
     # Check defined file and directory paths.
     set configFile [ConfigGet $configHandle Module::NxTools configFile]
     if {[catch {ReadConfig $configFile} message]} {
-        LogError ModNxTools "Unable to read nxTools configuration: $message"
+        error "Unable to read nxTools configuration: $message"
     }
 
     set dataPath [ConfigGet $configHandle Module::NxTools dataPath]
     if {![file isdirectory $dataPath]} {
-        LogError ModNxTools "The database directory \"$dataPath\" does not exist."
+        error "The database directory \"$dataPath\" does not exist."
     }
 
     if {[ConfigExists $configHandle Module::NxTools cmdPrefix]} {
