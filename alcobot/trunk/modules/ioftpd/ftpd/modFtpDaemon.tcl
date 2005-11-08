@@ -168,7 +168,7 @@ proc ::alcoholicz::FtpDaemon::UserExists {userName} {
 #  - dayup    <30 ints>
 #  - flags    <flags>
 #  - groups   <group list>
-#  - ips      <IP list>
+#  - hosts    <host list>
 #  - logins   <max logins>
 #  - monthdn  <30 ints>
 #  - monthup  <30 ints>
@@ -190,12 +190,13 @@ proc ::alcoholicz::FtpDaemon::UserInfo {userName varName} {
 
     set user(admin)    [ResolveGIDs $user(admingroups)]
     set user(groups)   [ResolveGIDs $user(groups)]
+    set user(hosts)    $user(ips)
     set user(logins)   [lindex $user(limits) 4]
     set user(password) [encode hex $user(password)]
     set user(speed)    [lrange $user(limits) 1 2]
     set user(uid)      [ioftpd user toid $msgWindow $userName]
 
-    unset user(admingroups) user(limits) user(vfsfile)
+    unset user(admingroups) user(ips) user(limits) user(vfsfile)
     return 1
 }
 

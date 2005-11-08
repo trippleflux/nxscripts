@@ -213,7 +213,7 @@ proc ::alcoholicz::FtpDaemon::UserExists {userName} {
 #  - dayup    <30 ints>
 #  - flags    <flags>
 #  - groups   <group list>
-#  - ips      <IP list>
+#  - hosts    <host list>
 #  - logins   <max logins>
 #  - monthdn  <30 ints>
 #  - monthup  <30 ints>
@@ -246,7 +246,7 @@ proc ::alcoholicz::FtpDaemon::UserInfo {userName varName} {
         credits  {0 0 0 0 0 0 0 0 0 0}        \
         flags    ""                           \
         groups   ""                           \
-        ips      ""                           \
+        hosts    ""                           \
         logins   0                            \
         password [lindex $users($userName) 0] \
         ratio    {0 0 0 0 0 0 0 0 0 0}        \
@@ -276,18 +276,30 @@ proc ::alcoholicz::FtpDaemon::UserInfo {userName varName} {
                 incr i
                 set dest(credits) [lreplace $dest(credits) $i $i [lindex $line 1]]
             }
-            flags   {set dest(flags) [lindex $line 1]}
-            general {set dest(speed) [lrange $line 3 4]}
-            group   {
+            flags {
+                set dest(flags) [lindex $line 1]
+            }
+            general {
+                set dest(speed) [lrange $line 3 4]
+            }
+            group {
                 if {[lindex $line 2] == 1} {
                     lappend dest(admin) [lindex $line 1]
                 }
                 lappend dest(groups) [lindex $line 1]
             }
-            ip      {lappend dest(ips) [lindex $line 1]}
-            logins  {set dest(logins)  [lindex $line 1]}
-            ratio   {set dest(ratio)   [lreplace $dest(ratio) $i $i [lindex $line 1]]}
-            tagline {set dest(tagline) [join [lrange $line 1 end]]}
+            dns - ip {
+                lappend dest(hosts) [lindex $line 1]
+            }
+            logins {
+                set dest(logins)  [lindex $line 1]
+            }
+            ratio {
+                set dest(ratio)   [lreplace $dest(ratio) $i $i [lindex $line 1]]
+            }
+            tagline {
+                set dest(tagline) [join [lrange $line 1 end]]
+            }
         }
     }
     close $handle

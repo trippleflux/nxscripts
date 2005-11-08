@@ -1,6 +1,8 @@
 AlcoBot v0.7.0 (not released):
+  NEW: Check for "DNS" fields in glFTPD user-files.
   NEW: Completed Project-ZS-NG support, for glFTPD only.
   NEW: Support for nxAutoNuke v2.3 (the ANUKESIZE event).
+  CHG: Renamed the "ips" array element to "hosts" for the UserInfo function.
   FIX: Corrected inconsistencies in the time duration functions (patch by iwi).
 
 AlcoBot v0.6.0 (Oct 23, 2005):
