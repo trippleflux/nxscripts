@@ -86,7 +86,7 @@ proc ::alcoholicz::NxTools::Dupe {command target user host handle channel argv} 
     } else {
         set sectionQuery ""
     }
-    SendTargetTheme $target searchHead [list $pattern]
+    SendTargetTheme $target dupeHead [list $pattern]
 
     set count 0
     if {[DbOpenFile "DupeDirs.db"]} {
@@ -100,14 +100,14 @@ proc ::alcoholicz::NxTools::Dupe {command target user host handle channel argv} 
 
             incr count
             set age [expr {[clock seconds] - $values(TimeStamp)}]
-            SendTargetTheme $target searchBody [list $values(UserName) $values(GroupName) \
+            SendTargetTheme $target dupeBody [list $values(UserName) $values(GroupName) \
                 $section $virtualPath $values(TimeStamp) $age $count]
         }
         db close
     }
 
-    if {!$count} {SendTargetTheme $target searchNone [list $pattern]}
-    SendTargetTheme $target searchFoot
+    if {!$count} {SendTargetTheme $target dupeNone [list $pattern]}
+    SendTargetTheme $target dupeFoot
     return
 }
 
@@ -139,7 +139,7 @@ proc ::alcoholicz::NxTools::New {command target user host handle channel argv} {
         set matchPath [SqlToLike [lindex $pathSections($section) 0]]
         set sectionQuery "WHERE DirPath LIKE '${matchPath}%' ESCAPE '\\'"
     }
-    SendTargetTheme $target latestHead
+    SendTargetTheme $target newHead
 
     set count 0
     if {[DbOpenFile "DupeDirs.db"]} {
@@ -152,14 +152,14 @@ proc ::alcoholicz::NxTools::New {command target user host handle channel argv} {
 
             incr count
             set age [expr {[clock seconds] - $values(TimeStamp)}]
-            SendTargetTheme $target latestBody [list $values(UserName) $values(GroupName) \
+            SendTargetTheme $target newBody [list $values(UserName) $values(GroupName) \
                 $section $virtualPath $values(TimeStamp) $age $count]
         }
         db close
     }
 
-    if {!$count} {SendTargetTheme $target latestNone}
-    SendTargetTheme $target latestFoot
+    if {!$count} {SendTargetTheme $target newNone}
+    SendTargetTheme $target newFoot
     return
 }
 

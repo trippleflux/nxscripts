@@ -215,15 +215,15 @@ approveBody    = [%02(num)] [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
 approveNone    = No releases found.
 approveFoot    =
 
-latestHead     = [b]Latest Releases:[b]
-latestBody     = [%02(num)] [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
-latestNone     = No releases found.
-latestFoot     =
+dupeHead       = [b]Search:[b]
+dupeBody       = [%02(num)] %(releaseDate) - [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
+dupeNone       = No releases found matching "%(pattern)".
+dupeFoot       =
 
-searchHead     = [b]Search:[b]
-searchBody     = [%02(num)] %(releaseDate) - [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
-searchNone     = No releases found matching "%(pattern)".
-searchFoot     =
+newHead        = [b]New Releases:[b]
+newBody        = [%02(num)] [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
+newNone        = No releases found.
+newFoot        =
 
 nukesHead      = [b]Nukes:[b]
 nukesBody      = [%02(num)] [b]%(releaseName)[b] nuked [b]%(multi)x[b] by [b]%(user)[b]/%(group) for [b]%(reason)[b].
