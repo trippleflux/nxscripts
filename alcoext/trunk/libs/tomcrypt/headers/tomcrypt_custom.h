@@ -125,11 +125,13 @@
 /* number of pools (4..32) can save a bit of ram by lowering the count */
 #define FORTUNA_POOLS 32
 
-/* Greg's SOBER128 PRNG ;-0 */
+/* Greg's SOBER128 PRNG */
 #define SOBER128
 
 /* the *nix style /dev/random device */
-#define DEVRANDOM
+#if !defined(_WIN32) && !defined(_WIN64)
+#   define DEVRANDOM
+#endif
 
 /* try /dev/urandom before trying /dev/random */
 #define TRY_URANDOM_FIRST

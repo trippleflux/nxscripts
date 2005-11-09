@@ -650,7 +650,7 @@ RowDataGet(
                     char *value = (char *)dataOffset;
 
                     // The last list entry is NULL.
-                    if (rowData[i].type == TYPE_STRLIST && *value == '\0') {
+                    if (rowData[i].type == TYPE_STRLIST && value[0] == '\0') {
                         goto endOfRow;
                     }
                     valueObj = Tcl_NewStringObj(value, -1);
