@@ -125,12 +125,13 @@ main(
     memset(&nukelog.nuketime, 'B', sizeof(nukelog.nuketime));
     memset(&nukelog.nuker,    'C', sizeof(nukelog.nuker));
     memset(&nukelog.unnuker,  'D', sizeof(nukelog.unnuker));
-    memset(&nukelog.mult,     'E', sizeof(nukelog.mult));
-    memset(&nukelog.bytes,    'F', sizeof(nukelog.bytes));
-    memset(&nukelog.reason,   'G', sizeof(nukelog.reason));
-    memset(&nukelog.dirname,  'H', sizeof(nukelog.dirname));
-    memset(&nukelog.nxt,      'I', sizeof(nukelog.nxt));
-    memset(&nukelog.prv,      'J', sizeof(nukelog.prv));
+    memset(&nukelog.nukee,    'E', sizeof(nukelog.nukee));
+    memset(&nukelog.mult,     'F', sizeof(nukelog.mult));
+    memset(&nukelog.bytes,    'G', sizeof(nukelog.bytes));
+    memset(&nukelog.reason,   'H', sizeof(nukelog.reason));
+    memset(&nukelog.dirname,  'I', sizeof(nukelog.dirname));
+    memset(&nukelog.nxt,      'J', sizeof(nukelog.nxt));
+    memset(&nukelog.prv,      'K', sizeof(nukelog.prv));
     PrintStruct("nukelog", &nukelog, sizeof(nukelog));
 
     /* Structure: oneliner */
