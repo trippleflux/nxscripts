@@ -58,35 +58,65 @@ proc ::alcoholicz::NxTools::DbBusyHandler {tries} {
 }
 
 ####
-# Approved
+# Dupe
 #
-# Display approved releases, command: !approved.
+# Search for a release, command: !dupe [-limit <num>] [-section <name>] <pattern>.
 #
-proc ::alcoholicz::NxTools::Approved {command target user host handle channel argv} {
-    SendTargetTheme $target approveHead
+proc ::alcoholicz::NxTools::Dupe {command target user host handle channel argv} {
+    upvar ::alcoholicz::pathSections pathSections
+
+    # Parse command options.
+    set option(limit) -1
+    set optList [list {limit integer} [list section arg [lsort [array names pathSections]]]]
+
+    if {[catch {set pattern [GetOptions $argv $optList option]} message]} {
+        CmdSendHelp $channel channel $command $message
+        return
+    }
+    if {[set pattern [join $pattern]] eq ""} {
+        CmdSendHelp $channel channel $command "you must specify a pattern"
+        return
+    }
+    set option(limit) [GetResultLimit $option(limit)]
+
+    if {[info exists option(section)]} {
+        set section $option(section)
+        set matchPath [SqlToLike [lindex $pathSections($section) 0]]
+        set sectionQuery "AND DirPath LIKE '${matchPath}%' ESCAPE '\\'"
+    } else {
+        set sectionQuery ""
+    }
+    SendTargetTheme $target searchHead [list $pattern]
 
     set count 0
-    if {[DbOpenFile "Approves.db"]} {
-        db eval {SELECT * FROM Approves ORDER BY Release ASC} values {
+    if {[DbOpenFile "DupeDirs.db"]} {
+        db eval "SELECT * FROM DupeDirs WHERE DirName LIKE '[SqlGetPattern $pattern]' ESCAPE '\\' \
+                $sectionQuery ORDER BY TimeStamp DESC LIMIT $option(limit)" values {
+            # Retrieve the section name.
+            set virtualPath [file join $values(DirPath) $values(DirName)]
+            if {$sectionQuery eq "" && [set section [GetSectionFromPath $virtualPath]] eq ""} {
+                set section $::alcoholicz::defaultSection
+            }
+
             incr count
             set age [expr {[clock seconds] - $values(TimeStamp)}]
-            SendTargetTheme $target approveBody [list $values(UserName) \
-                $values(GroupName) $values(Release) $age $count]
+            SendTargetTheme $target searchBody [list $values(UserName) $values(GroupName) \
+                $section $virtualPath $values(TimeStamp) $age $count]
         }
         db close
     }
 
-    if {!$count} {SendTargetTheme $target approveNone}
-    SendTargetTheme $target approveFoot
+    if {!$count} {SendTargetTheme $target searchNone [list $pattern]}
+    SendTargetTheme $target searchFoot
     return
 }
 
 ####
-# Latest
+# New
 #
 # Display recent releases, command: !new [-limit <num>] [section].
 #
-proc ::alcoholicz::NxTools::Latest {command target user host handle channel argv} {
+proc ::alcoholicz::NxTools::New {command target user host handle channel argv} {
     upvar ::alcoholicz::pathSections pathSections
 
     # Parse command options.
@@ -134,56 +164,52 @@ proc ::alcoholicz::NxTools::Latest {command target user host handle channel argv
 }
 
 ####
-# Search
+# Undupe
 #
-# Search for a release, command: !dupe [-limit <num>] [-section <name>] <pattern>.
+# Remove a file or directory from the dupe database, command: !undupe [-directory] <pattern>.
 #
-proc ::alcoholicz::NxTools::Search {command target user host handle channel argv} {
-    upvar ::alcoholicz::pathSections pathSections
+proc ::alcoholicz::NxTools::Undupe {command target user host handle channel argv} {
+    variable undupeChars
 
     # Parse command options.
-    set option(limit) -1
-    set optList [list {limit integer} [list section arg [lsort [array names pathSections]]]]
-
-    if {[catch {set pattern [GetOptions $argv $optList option]} message]} {
+    if {[catch {set pattern [GetOptions $argv {directory} option]} message]} {
         CmdSendHelp $channel channel $command $message
         return
     }
-    if {[set pattern [join $pattern]] eq ""} {
+    set pattern [join $pattern]
+    if {[regexp -- {[\*\?]} $pattern] && [regexp -all -- {[[:alnum:]]} $pattern] < $undupeChars} {
+        CmdSendHelp $channel channel $command "you must specify at least $undupeChars alphanumeric chars with wildcards"
+        return
+    }
+    if {$pattern eq ""} {
         CmdSendHelp $channel channel $command "you must specify a pattern"
         return
     }
-    set option(limit) [GetResultLimit $option(limit)]
+    SendTargetTheme $target undupeHead [list $pattern]
 
-    if {[info exists option(section)]} {
-        set section $option(section)
-        set matchPath [SqlToLike [lindex $pathSections($section) 0]]
-        set sectionQuery "AND DirPath LIKE '${matchPath}%' ESCAPE '\\'"
+    if {[info exists option(directory)]} {
+        set colName "DirName"
+        set tableName "DupeDirs"
     } else {
-        set sectionQuery ""
+        set colName "FileName"
+        set tableName "DupeFiles"
     }
-    SendTargetTheme $target searchHead [list $pattern]
 
     set count 0
-    if {[DbOpenFile "DupeDirs.db"]} {
-        db eval "SELECT * FROM DupeDirs WHERE DirName LIKE '[SqlGetPattern $pattern]' ESCAPE '\\' \
-                $sectionQuery ORDER BY TimeStamp DESC LIMIT $option(limit)" values {
-            # Retrieve the section name.
-            set virtualPath [file join $values(DirPath) $values(DirName)]
-            if {$sectionQuery eq "" && [set section [GetSectionFromPath $virtualPath]] eq ""} {
-                set section $::alcoholicz::defaultSection
-            }
-
+    if {[DbOpenFile "${tableName}.db"]} {
+        db eval {BEGIN}
+        db eval "SELECT $colName,rowid FROM $tableName WHERE $colName \
+                LIKE '[SqlToLike $pattern]' ESCAPE '\\' ORDER BY $colName ASC" values {
             incr count
-            set age [expr {[clock seconds] - $values(TimeStamp)}]
-            SendTargetTheme $target searchBody [list $values(UserName) $values(GroupName) \
-                $section $virtualPath $values(TimeStamp) $age $count]
+            SendTargetTheme $target undupeBody [list $values($colName) $count]
+            db eval "DELETE FROM $tableName WHERE rowid=$values(rowid)"
         }
+        db eval {COMMIT}
         db close
     }
 
-    if {!$count} {SendTargetTheme $target searchNone [list $pattern]}
-    SendTargetTheme $target searchFoot
+    if {!$count} {SendTargetTheme $target undupeNone [list $pattern]}
+    SendTargetTheme $target undupeFoot
     return
 }
 
@@ -304,6 +330,30 @@ proc ::alcoholicz::NxTools::Unnukes {command target user host handle channel arg
 }
 
 ####
+# Approved
+#
+# Display approved releases, command: !approved.
+#
+proc ::alcoholicz::NxTools::Approved {command target user host handle channel argv} {
+    SendTargetTheme $target approveHead
+
+    set count 0
+    if {[DbOpenFile "Approves.db"]} {
+        db eval {SELECT * FROM Approves ORDER BY Release ASC} values {
+            incr count
+            set age [expr {[clock seconds] - $values(TimeStamp)}]
+            SendTargetTheme $target approveBody [list $values(UserName) \
+                $values(GroupName) $values(Release) $age $count]
+        }
+        db close
+    }
+
+    if {!$count} {SendTargetTheme $target approveNone}
+    SendTargetTheme $target approveFoot
+    return
+}
+
+####
 # OneLines
 #
 # Display recent one-lines, command: !onel.
@@ -349,56 +399,6 @@ proc ::alcoholicz::NxTools::Requests {command target user host handle channel ar
 
     if {!$count} {SendTargetTheme $target requestsNone}
     SendTargetTheme $target requestsFoot
-    return
-}
-
-####
-# Undupe
-#
-# Remove a file or directory from the dupe database, command: !undupe [-directory] <pattern>.
-#
-proc ::alcoholicz::NxTools::Undupe {command target user host handle channel argv} {
-    variable undupeChars
-
-    # Parse command options.
-    if {[catch {set pattern [GetOptions $argv {directory} option]} message]} {
-        CmdSendHelp $channel channel $command $message
-        return
-    }
-    set pattern [join $pattern]
-    if {[regexp -- {[\*\?]} $pattern] && [regexp -all -- {[[:alnum:]]} $pattern] < $undupeChars} {
-        CmdSendHelp $channel channel $command "you must specify at least $undupeChars alphanumeric chars with wildcards"
-        return
-    }
-    if {$pattern eq ""} {
-        CmdSendHelp $channel channel $command "you must specify a pattern"
-        return
-    }
-    SendTargetTheme $target undupeHead [list $pattern]
-
-    if {[info exists option(directory)]} {
-        set colName "DirName"
-        set tableName "DupeDirs"
-    } else {
-        set colName "FileName"
-        set tableName "DupeFiles"
-    }
-
-    set count 0
-    if {[DbOpenFile "${tableName}.db"]} {
-        db eval {BEGIN}
-        db eval "SELECT $colName,rowid FROM $tableName WHERE $colName \
-                LIKE '[SqlToLike $pattern]' ESCAPE '\\' ORDER BY $colName ASC" values {
-            incr count
-            SendTargetTheme $target undupeBody [list $values($colName) $count]
-            db eval "DELETE FROM $tableName WHERE rowid=$values(rowid)"
-        }
-        db eval {COMMIT}
-        db close
-    }
-
-    if {!$count} {SendTargetTheme $target undupeNone [list $pattern]}
-    SendTargetTheme $target undupeFoot
     return
 }
 
@@ -524,11 +524,11 @@ proc ::alcoholicz::NxTools::Load {firstLoad} {
     }
 
     # Directory commands.
-    CmdCreate channel dupe   [namespace current]::Search \
+    CmdCreate channel dupe   [namespace current]::Dupe \
         -category "Stats" -args "\[-limit <num>\] \[-section <name>\] <pattern>" \
         -prefix   $prefix -desc "Search for a release."
 
-    CmdCreate channel new    [namespace current]::Latest \
+    CmdCreate channel new    [namespace current]::New \
         -category "Stats" -args "\[-limit <num>\] \[section\]" \
         -prefix   $prefix -desc "Display new releases."
 
