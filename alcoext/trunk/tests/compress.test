@@ -334,7 +334,7 @@ test compress-7.1 {stress test: bzip2} {
         append buff [format %c [expr {int(rand() * 256)}]]
         set test [compress expand bzip2 [compress compact -level 9 bzip2 $buff]]
         if {$test ne $buff} {
-            return "bzip2: expected [encode hex $buff], got [encode hex $"test"]"
+            return "bzip2: expected [encode hex $buff], got [encode hex $test]"
         }
     }
 } {}
@@ -346,7 +346,7 @@ test compress-7.2 {stress test: gzip} {
         append buff [format %c [expr {int(rand() * 256)}]]
         set test [compress expand gzip [compress compact -level 9 gzip $buff]]
         if {$test ne $buff} {
-            return "gzip: expected [encode hex $buff], got [encode hex $"test"]"
+            return "gzip: expected [encode hex $buff], got [encode hex $test]"
         }
     }
 } {}
@@ -357,7 +357,7 @@ test compress-7.3 {stress test: zlib} {
         append buff [format %c [expr {int(rand() * 256)}]]
         set test [compress expand zlib [compress compact -level 9 zlib $buff]]
         if {$test ne $buff} {
-            return "zlib: expected [encode hex $buff], got [encode hex $"test"]"
+            return "zlib: expected [encode hex $buff], got [encode hex $test]"
         }
     }
 } {}
@@ -368,7 +368,7 @@ test compress-7.4 {stress test: zlib-raw} {
         append buff [format %c [expr {int(rand() * 256)}]]
         set test [compress expand zlib-raw [compress compact -level 9 zlib-raw $buff]]
         if {$test ne $buff} {
-            return "zlib-raw: expected [encode hex $buff], got [encode hex $"test"]"
+            return "zlib-raw: expected [encode hex $buff], got [encode hex $test]"
         }
     }
 } {}
