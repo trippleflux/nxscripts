@@ -29,8 +29,9 @@
 #
 
 namespace eval ::alcoholicz {
+    variable configNextHandle
     if {![info exists configNextHandle]} {
-        variable configNextHandle 0
+        set configNextHandle 0
     }
     namespace export ConfigOpen ConfigChange ConfigClose ConfigFree ConfigRead ConfigWrite \
         ConfigKeys ConfigSections ConfigExists ConfigGet ConfigGetEx ConfigSet ConfigUnset

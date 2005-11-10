@@ -13,10 +13,8 @@
 #
 
 namespace eval ::alcoholicz {
-    if {![info exists debugMode]} {
-        variable debugMode 0
-        variable ftpDaemon 0
-    }
+    variable debugMode 0
+    variable ftpDaemon 0
     variable scriptPath [file dirname [file normalize [info script]]]
 
     namespace export b c u r o \

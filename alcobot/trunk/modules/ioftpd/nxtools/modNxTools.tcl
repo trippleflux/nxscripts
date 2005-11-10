@@ -13,7 +13,7 @@
 #
 
 namespace eval ::alcoholicz::NxTools {
-    if {![info exists dataPath]} {
+    if {![info exists [namespace current]::dataPath]} {
         variable dataPath ""
         variable oneLines 5
         variable undupeChars 5

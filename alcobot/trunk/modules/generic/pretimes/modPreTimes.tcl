@@ -13,7 +13,7 @@
 #
 
 namespace eval ::alcoholicz::PreTimes {
-    if {![info exists dataSource]} {
+    if {![info exists [namespace current]::dataSource]} {
         variable dataSource ""
         variable defLimit 5
     }

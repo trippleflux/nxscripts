@@ -22,8 +22,9 @@
 #
 
 namespace eval ::alcoholicz {
+    variable ftpNextHandle
     if {![info exists ftpNextHandle]} {
-        variable ftpNextHandle 0
+        set ftpNextHandle 0
     }
     namespace export FtpOpen FtpClose FtpGetError FtpGetStatus \
         FtpConnect FtpDisconnect FtpCommand

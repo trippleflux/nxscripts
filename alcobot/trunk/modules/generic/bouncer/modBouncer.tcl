@@ -13,7 +13,7 @@
 #
 
 namespace eval ::alcoholicz::Bouncer {
-    if {![info exists checkIndex]} {
+    if {![info exists [namespace current]::checkIndex]} {
         variable checkIndex 0
         variable timerId ""
     }

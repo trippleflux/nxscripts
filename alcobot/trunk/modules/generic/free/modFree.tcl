@@ -13,7 +13,7 @@
 #
 
 namespace eval ::alcoholicz::Free {
-    if {![info exists volumeList]} {
+    if {![info exists [namespace current]::volumeList]} {
         variable volumeList [list]
     }
     namespace import -force ::alcoholicz::*

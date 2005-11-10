@@ -27,7 +27,7 @@
 #
 
 namespace eval ::alcoholicz::FtpDaemon {
-    if {![info exists connection]} {
+    if {![info exists [namespace current]::connection]} {
         variable connection ""
         variable deleteFlag ""
         variable etcPath ""

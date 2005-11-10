@@ -13,7 +13,7 @@
 #
 
 namespace eval ::alcoholicz::Online {
-    if {![info exists hideUsers]} {
+    if {![info exists [namespace current]::hideUsers]} {
         variable hideUsers  [list]
         variable hideGroups [list]
         variable hidePaths  [list]

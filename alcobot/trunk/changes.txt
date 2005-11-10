@@ -6,6 +6,7 @@ AlcoBot v0.7.0 (not released):
   CHG: Renamed the "ips" array element to "hosts" for the UserInfo function.
   FIX: Corrected a few grammatical errors in command descriptions (patch by iwi).
   FIX: Corrected inconsistencies in the time duration functions (patch by iwi).
+  FIX: Define namespace variables before checking for their existence.
   FIX: The invite module passed the wrong number of arguments to ScriptUnregister (patch by iwi).
 
 AlcoBot v0.6.0 (Oct 23, 2005):

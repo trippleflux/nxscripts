@@ -18,9 +18,9 @@
 #
 
 namespace eval ::alcoholicz {
+    variable charClasses
     if {![info exists charClasses]} {
         # Create a list of known character classes.
-        variable charClasses
         catch {string is . .} charClasses
         regexp -- {must be (.+)$} $charClasses dummy charClasses
         regsub -all -- {, (or )?} $charClasses { } charClasses

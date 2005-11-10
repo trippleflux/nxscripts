@@ -13,8 +13,8 @@
 #
 
 namespace eval ::alcoholicz::ReadLogs {
-    if {![info exists logList]} {
-        variable excludePaths ""
+    if {![info exists [namespace current]::excludePaths]} {
+        variable excludePaths [list]
         variable logCount 0
         variable logList [list]
         variable timerId ""

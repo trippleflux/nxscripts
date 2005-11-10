@@ -17,7 +17,7 @@
 #
 
 namespace eval ::alcoholicz::Invite {
-    if {![info exists dataSource]} {
+    if {![info exists [namespace current]::dataSource]} {
         variable dataSource ""
         variable hostCheck 0
         variable userCheck 0
