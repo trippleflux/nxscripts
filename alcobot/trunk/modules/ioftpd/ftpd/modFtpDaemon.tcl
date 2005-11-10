@@ -12,14 +12,18 @@
 #   Uniform FTPD API, for ioFTPD.
 #
 # Exported Procedures:
-#   GetFtpConnection
 #   GetFlagTypes     <varName>
+#   GetFtpConnection
 #   UserList
 #   UserExists       <userName>
 #   UserInfo         <userName> <varName>
+#   UserIdToName     <userId>
+#   UserNameToId     <userName>
 #   GroupList
 #   GroupExists      <groupName>
 #   GroupInfo        <groupName> <varName>
+#   GroupIdToName    <groupId>
+#   GroupNameToId    <groupName>
 #
 
 namespace eval ::alcoholicz::FtpDaemon {
@@ -31,19 +35,9 @@ namespace eval ::alcoholicz::FtpDaemon {
         variable timerId ""
     }
     namespace import -force ::alcoholicz::*
-    namespace export GetFtpConnection GetFlagTypes \
-        UserExists UserList UserInfo \
-        GroupExists GroupList GroupInfo
-}
-
-####
-# GetFtpConnection
-#
-# Retrieves the main FTP connection handle.
-#
-proc ::alcoholicz::FtpDaemon::GetFtpConnection {} {
-    variable connection
-    return $connection
+    namespace export GetFlagTypes GetFtpConnection \
+        UserExists UserList UserInfo UserIdToName UserNameToId \
+        GroupExists GroupList GroupInfo GroupIdToName GroupNameToId
 }
 
 ####
@@ -112,6 +106,16 @@ proc ::alcoholicz::FtpDaemon::GetFlagTypes {varName} {
 
     upvar $varName flags
     array set flags [list deleted $deleteFlag gadmin "G2" siteop "M1"]
+}
+
+####
+# GetFtpConnection
+#
+# Retrieves the main FTP connection handle.
+#
+proc ::alcoholicz::FtpDaemon::GetFtpConnection {} {
+    variable connection
+    return $connection
 }
 
 ####
@@ -201,6 +205,36 @@ proc ::alcoholicz::FtpDaemon::UserInfo {userName varName} {
 }
 
 ####
+# UserIdToName
+#
+# Resolve a user ID to its corresponding user name.
+#
+proc ::alcoholicz::FtpDaemon::UserIdToName {userId} {
+    variable msgWindow
+
+    if {[catch {ioftpd user toname $msgWindow $userId} result]} {
+        LogError UserIdToName $result
+        return ""
+    }
+    return $result
+}
+
+####
+# UserNameToId
+#
+# Resolve a user name to its corresponding user ID.
+#
+proc ::alcoholicz::FtpDaemon::UserNameToId {userName} {
+    variable msgWindow
+
+    if {[catch {ioftpd user toid $msgWindow $userName} result]} {
+        LogError UserNameToId $result
+        return -1
+    }
+    return $result
+}
+
+####
 # GroupList
 #
 # Retrieves a list of groups.
@@ -265,6 +299,36 @@ proc ::alcoholicz::FtpDaemon::GroupInfo {groupName varName} {
 
     unset group(slots) group(vfsfile)
     return 1
+}
+
+####
+# GroupIdToName
+#
+# Resolve a group ID to its corresponding group name.
+#
+proc ::alcoholicz::FtpDaemon::GroupIdToName {groupId} {
+    variable msgWindow
+
+    if {[catch {ioftpd group toname $msgWindow $groupId} result]} {
+        LogError GroupIdToName $result
+        return ""
+    }
+    return $result
+}
+
+####
+# GroupNameToId
+#
+# Resolve a group name to its corresponding group ID.
+#
+proc ::alcoholicz::FtpDaemon::GroupNameToId {groupName} {
+    variable msgWindow
+
+    if {[catch {ioftpd group toid $msgWindow $groupName} result]} {
+        LogError GroupNameToId $result
+        return -1
+    }
+    return $result
 }
 
 ####
