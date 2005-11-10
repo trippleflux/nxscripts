@@ -208,7 +208,7 @@ proc ::alcoholicz::Groups::Load {firstLoad} {
 
     CmdCreate channel delaffil [list [namespace current]::ChangeAffils DEL] \
         -category "Admin" -args "<section> <group>" \
-        -prefix   $prefix -desc "Removed an affiliated group."
+        -prefix   $prefix -desc "Remove an affiliated group."
 
     CmdCreate channel addban   [list [namespace current]::ChangeBanned ADD] \
         -category "Admin" -args "<section> <group>" \
@@ -216,7 +216,7 @@ proc ::alcoholicz::Groups::Load {firstLoad} {
 
     CmdCreate channel delban   [list [namespace current]::ChangeBanned DEL] \
         -category "Admin" -args "<section> <group>" \
-        -prefix   $prefix -desc "Removed a banned group."
+        -prefix   $prefix -desc "Remove a banned group."
 
     return
 }

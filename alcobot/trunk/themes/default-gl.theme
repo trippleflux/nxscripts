@@ -222,6 +222,15 @@ helpType       = [u]%(type) Commands:[u]
 helpBody       = %(command) %(arguments) - %(description)
 helpFoot       =
 
+# Module: invite
+inviteBad      = [b][[c1]Invite[c]][b] Incorrect username, password, or IRC host.
+inviteBadHost  = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) using an unknown IRC host.
+inviteBadPass  = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) used an incorrect account or password.
+inviteBadUser  = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) used the wrong IRC nickname.
+inviteDbDown   = [b][[c1]Invite[c]][b] Database offline, unable to invite [b]%(nick)[b].
+inviteFailed   = [b][[c1]Invite[c]][b] I need ops in [b]%(channels)[b] to invite [b]%(nick)[b].
+INVITE         = [b][[c1]Invite[c]][b] [b]%(user)[b]/%(group) invited himself as [b]%(nick)[b].
+
 # Module: online
 bandwidth      = [b][[c1]Bandwidth[c]][b] Leechers: [b]%(usersDn)[b] at %(speedDn) - Uploaders: [b]%(usersUp)[b] at %(speedUp) - Idlers: [b]%(usersIdle)[b] - Total: %(speedTotal) with [b]%(usersTotal)[b]/[b]%(usersMax)[b] online.
 bandwidthDn    = [b][[c1]Bandwidth[c]][b] [b]%(usersDn)[b] download(s) at %(speedDn).

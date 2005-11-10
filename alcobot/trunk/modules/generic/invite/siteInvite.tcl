@@ -54,7 +54,7 @@ namespace eval ::siteInvite {
 
     # Uncomment the following line for your FTPD:
     #variable logPath   "../logs/"
-    #variable logPath   "/glftpd/ftp-data/logs/"
+    #variable logPath   "/ftp-data/logs/"
 
     # hostCheck - Check a user's IRC host before inviting them into the channel.
     # userCheck - Check a user's IRC name before inviting them into the channel,

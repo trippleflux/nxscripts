@@ -480,9 +480,9 @@ proc ::alcoholicz::Invite::Unload {} {
     unbind nick -|- "*" [list [namespace current]::ChanEvent NICK]
     unbind part -|- "*" [list [namespace current]::ChanEvent PART]
     unbind sign -|- "*" [list [namespace current]::ChanEvent QUIT]
-    ScriptUnregister pre INVITE  [namespace current]::LogEvent True
-    ScriptUnregister pre DELUSER [namespace current]::LogEvent True
-    ScriptUnregister pre PURGED  [namespace current]::LogEvent True
+    ScriptUnregister pre INVITE  [namespace current]::LogEvent
+    ScriptUnregister pre DELUSER [namespace current]::LogEvent
+    ScriptUnregister pre PURGED  [namespace current]::LogEvent
 
     catch {db disconnect}
     return

@@ -4,7 +4,9 @@ AlcoBot v0.7.0 (not released):
   NEW: Support for nxAutoNuke v2.3 (the ANUKESIZE event).
   CHG: Renamed "latest" and "search" themes to "new" and "dupe", respectively.
   CHG: Renamed the "ips" array element to "hosts" for the UserInfo function.
+  FIX: Corrected a few grammatical errors in command descriptions (patch by iwi).
   FIX: Corrected inconsistencies in the time duration functions (patch by iwi).
+  FIX: The invite module passed the wrong number of arguments to ScriptUnregister (patch by iwi).
 
 AlcoBot v0.6.0 (Oct 23, 2005):
   NEW: Added a "notify" callback to the FTP library (connection success).
