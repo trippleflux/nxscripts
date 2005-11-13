@@ -12,9 +12,12 @@
 #   Implements an auto-nuker using ioA.
 #
 
-if {[catch {source "../scripts/init.itcl"} error]} {
-    iputs "Unable to load script configuration, contact a siteop."
-    return -code error $error
+foreach scriptFile {nxLib.tcl nxAutoNuke.cfg} {
+    set scriptPath [file join [file dirname [info script]] $scriptFile]
+    if {[catch {source $scriptPath} error]} {
+        iputs "Unable to source file \"$scriptFile\", contact a siteop."
+        return -code error "unable to source file \"$scriptPath\": $error"
+    }
 }
 
 namespace eval ::nxAutoNuke {

@@ -30,8 +30,7 @@ groups. Nuke reasons are customizable using cookies.
    original directory structure, to ioFTPD\scripts\.
 
    The files must be placed as follows:
-   ioFTPD\scripts\init.itcl
-   ioFTPD\scripts\nxLib.tcl
+   ioFTPD\scripts\nxAutoNuke-ioA\nxLib.tcl
    ioFTPD\scripts\nxAutoNuke-ioA\nxAutoNuke.cfg
    ioFTPD\scripts\nxAutoNuke-ioA\nxAutoNuke.tcl
 
@@ -100,8 +99,7 @@ set msgtypes(RACE) "ANUKEALLOWED ANUKEBANNED ANUKEDISKS ANUKEEMPTY ANUKEIMDB ANU
    original directory structure, to ioFTPD\scripts\.
 
    The files must be placed as follows:
-   ioFTPD\scripts\init.itcl
-   ioFTPD\scripts\nxLib.tcl
+   ioFTPD\scripts\nxAutoNuke-ioA\nxLib.tcl
    ioFTPD\scripts\nxAutoNuke-ioA\nxAutoNuke.cfg
    ioFTPD\scripts\nxAutoNuke-ioA\nxAutoNuke.tcl
 
