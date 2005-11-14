@@ -156,7 +156,13 @@ PrintStruct(
     size_t i, j;
     unsigned char *data = (unsigned char *)buffer;
 
-    printf("Structure: %s (%lu bytes)\n", name, length);
+    printf("############################################################\n");
+    printf("# Structure: %-45s #\n", name);
+    printf("############################################################\n\n");
+
+    printf("Length: %lu bytes\n", length);
+    printf("Format: <format string>\n");
+    printf("Values: <variable list>\n\n");
 
     /* Print 50 bytes per line. */
     for (i = 0; i < length; i += 50) {
