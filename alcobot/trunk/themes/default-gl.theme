@@ -180,15 +180,15 @@ RACERS         = [b]%(user)[b]/%(group)
 RACERS_JOIN    = " "
 
 # Zipscript: user and group information
-USERINFO       = [b][[c1]%(section)[c]][b] [b]%(user)[b]/%(group) [[b]%.1(mbytes)[b]MB/[b]%(files)[b]F/[b]%.1(percent)[b]%/%(speed)]
+USERINFO       = [b]%(user)[b]/%(group) [[b]%.1(mbytes)[b]MB/[b]%(files)[b]F/[b]%.1(percent)[b]%/%(speed)]
 USERINFO_JOIN  =
-GROUPINFO      = [b][[c1]%(section)[c]][b] [b]%(group)[b] [[b]%.1(mbytes)[b]MB/[b]%(files)[b]F/[b]%.1(percent)[b]%/%(speed)]
+GROUPINFO      = [b]%(group)[b] [[b]%.1(mbytes)[b]MB/[b]%(files)[b]F/[b]%.1(percent)[b]%/%(speed)]
 GROUPINFO_JOIN =
 
 # Zipscript: users and groups shown on completion
-USERTOP        = %(pos). [b]%(user)[b]/%(group) [[b]%.1(mbytes)[b]MB/[b]%(files)[b]F/[b]%.1(percent)[b]%/%(speed)]
+USERTOP        = [b][[c1]%(section)[c]][b] %(pos). [b]%(user)[b]/%(group) [[b]%.1(mbytes)[b]MB/[b]%(files)[b]F/[b]%.1(percent)[b]%/%(speed)]
 USERTOP_JOIN   = "\n"
-GROUPTOP       = %(pos). [b]%(group)[b] [[b]%.1(mbytes)[b]MB/[b]%(files)[b]F/[b]%.1(percent)[b]%/%(speed)]
+GROUPTOP       = [b][[c1]%(section)[c]][b] %(pos). [b]%(group)[b] [[b]%.1(mbytes)[b]MB/[b]%(files)[b]F/[b]%.1(percent)[b]%/%(speed)]
 GROUPTOP_JOIN  = "\n"
 
 # Command argument help
