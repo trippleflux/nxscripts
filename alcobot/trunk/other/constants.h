@@ -136,10 +136,10 @@ Abstract:
 #define loser               "loser"
 
 /* Put in %C cookie */
-#define user_info           "%u %g %.3m %.3S %.3p %f"
+#define user_info           "%u %g %.3m %.3s %.3p %f"
 
 /* Put in %c cookie */
-#define group_info          "%g %.3m %.3S %.3p %f"
+#define group_info          "%g %.3m %.3s %.3p %f"
 
 /* Put in %L cookie */
 #define fastestfile         "\"%u\" \"%g\" \"%.3F\""
@@ -157,10 +157,10 @@ Abstract:
 #define racersmsg           "%u %g"
 
 /* Put in %T cookie */
-#define user_top            "%n %u %g %.3m %.3S %.3p %f %D %W %M %A"
+#define user_top            "%n %u %g %.3m %.3s %.3p %f %D %W %M %A"
 
 /* Put in %t cookie */
-#define group_top           "%n %g %.3m %.3S %.3p %f"
+#define group_top           "%n %g %.3m %.3s %.3p %f"
 
 /* Complete cookies (race) */
 #define audio_complete              "\"%.3m\" \"%.3A\" \"%.3a\" \"%f\" \"%d\" \"%u\" \"%g\" %L %l \"%C0\" \"%c0\" \"%T\" \"%t\""
