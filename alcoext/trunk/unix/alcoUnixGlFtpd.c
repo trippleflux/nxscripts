@@ -263,6 +263,8 @@ ParseFields(
     int i;
 
     *lengthPtr = 0;
+    *idPtr = -1;
+
     for (i = 0; i < delims; i++) {
         if ((p = strchr(p, ':')) == NULL) {
             break;
