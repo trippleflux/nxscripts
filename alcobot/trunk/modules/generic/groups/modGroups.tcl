@@ -9,7 +9,7 @@
 #   neoxed (neoxed@gmail.com) Jun 14, 2005
 #
 # Abstract:
-#   Implements a module to Display affiliated and banned groups.
+#   Implements a module to display affiliated and banned groups.
 #
 
 namespace eval ::alcoholicz::Groups {
