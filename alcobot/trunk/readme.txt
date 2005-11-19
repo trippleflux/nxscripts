@@ -119,7 +119,7 @@ Path: modules/generic/free
 ############################################################
 
 FTPD: All
-Info: Manage affiliated and banned groups.
+Info: Display affiliated and banned groups.
 Path: modules/generic/groups
 
 1. Add "groups" to the module list in AlcoBot.conf.

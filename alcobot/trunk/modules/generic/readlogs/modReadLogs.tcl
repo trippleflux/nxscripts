@@ -9,7 +9,7 @@
 #   neoxed (neoxed@gmail.com) Aug 22, 2005
 #
 # Abstract:
-#   Implements a module to manage affiliated and banned groups.
+#   Implements a module to read and announce log entries.
 #
 
 namespace eval ::alcoholicz::ReadLogs {
