@@ -36,7 +36,7 @@
 #   2. Copy the siteInvite.tcl file to /glftpd/bin/.
 #   3. Install the AlcoExt and TclODBC extensions to glFTPD's chroot environment.
 #   4. Configure the script and uncomment the logPath option for glFTPD.
-#   5. Add the following to your glftpd.conf:
+#   5. Add the following to your glftpd.conf file:
 #
 #   site_cmd INVITE    EXEC /bin/siteInvite.tcl[:space:]INVITE
 #   site_cmd INVADMIN  EXEC /bin/siteInvite.tcl[:space:]ADMIN
@@ -45,8 +45,6 @@
 #   custom-invite    !8 *
 #   custom-invadmin  1
 #   custom-invpasswd !8 *
-#
-#   6. Rehash or restart ioFTPD for the changes to take effect.
 #
 
 namespace eval ::siteInvite {
