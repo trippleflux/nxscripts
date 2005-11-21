@@ -13,9 +13,9 @@
 #   Implements a SITE command to manage invite options.
 #
 # ioFTPD Installation:
-#   1. Copy the siteInvite.tcl file to x:\ioFTPD\scripts\.
+#   1. Copy the siteInvite.tcl file to C:\ioFTPD\scripts\.
 #   2. Copy the AlcoExt0.x and tclodbc2.x directories from
-#      Eggdrop\AlcoBot\libs\ to x:\ioFTPD\lib\.
+#      C:\Eggdrop\AlcoBot\libs\ to C:\ioFTPD\lib\.
 #   3. Configure the script and uncomment the logPath option for ioFTPD.
 #   4. Add the following to your ioFTPD.ini:
 #
@@ -32,9 +32,11 @@
 #   5. Rehash or restart ioFTPD for the changes to take effect.
 #
 # glFTPD Installation:
-#   1. Copy the siteInvite.tcl file to /glftpd/bin/.
-#   2. Configure the script and uncomment the logPath option for glFTPD.
-#   3. Add the following to your glftpd.conf:
+#   1. Install Tcl to glFTPD's chroot environment.
+#   2. Copy the siteInvite.tcl file to /glftpd/bin/.
+#   3. Install the AlcoExt and TclODBC extensions to glFTPD's chroot environment.
+#   4. Configure the script and uncomment the logPath option for glFTPD.
+#   5. Add the following to your glftpd.conf:
 #
 #   site_cmd INVITE    EXEC /bin/siteInvite.tcl[:space:]INVITE
 #   site_cmd INVADMIN  EXEC /bin/siteInvite.tcl[:space:]ADMIN
@@ -44,7 +46,7 @@
 #   custom-invadmin  1
 #   custom-invpasswd !8 *
 #
-#   4. Rehash or restart ioFTPD for the changes to take effect.
+#   6. Rehash or restart ioFTPD for the changes to take effect.
 #
 
 namespace eval ::siteInvite {
