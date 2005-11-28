@@ -296,9 +296,9 @@ AC_CHECK_MEMBERS([
 TEA_ADD_SOURCES([])
 TEA_ADD_HEADERS([])
 TEA_ADD_INCLUDES(
-    -I\"../libs/bzip2/headers/\"
-    -I\"../libs/tomcrypt/headers/\"
-    -I\"../libs/zlib/headers/\"
+    -I\"../libs/bzip2/\"
+    -I\"../libs/tomcrypt/\"
+    -I\"../libs/zlib/\"
     -I\"../generic/\"
     -I\"./\"
 )

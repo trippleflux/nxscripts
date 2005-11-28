@@ -169,9 +169,9 @@ PKG_CFLAGS  = $(PKG_CFLAGS) "-DPACKAGE_FILE=\"$(PKG_FILE)\"" "-DPACKAGE_OPTIONS=
 
 INCLUDE_DIRS=\
     -I"$(TCL_INCLUDES)"\
-    -I"$(TOP)\libs\bzip2\headers"\
-    -I"$(TOP)\libs\tomcrypt\headers"\
-    -I"$(TOP)\libs\zlib\headers"\
+    -I"$(TOP)\libs\bzip2"\
+    -I"$(TOP)\libs\tomcrypt"\
+    -I"$(TOP)\libs\zlib"\
     -I"$(TOP)\generic"\
     -I"$(TOP)\win"
 
@@ -185,54 +185,112 @@ INTERMEDIATE_FILES=\
     $(PKG_INTDIR)\randtable.obj\
     $(PKG_INTDIR)\aes.obj\
     $(PKG_INTDIR)\anubis.obj\
+    $(PKG_INTDIR)\base64_decode.obj\
+    $(PKG_INTDIR)\base64_encode.obj\
     $(PKG_INTDIR)\blowfish.obj\
+    $(PKG_INTDIR)\burn_stack.obj\
     $(PKG_INTDIR)\cast5.obj\
+    $(PKG_INTDIR)\cbc_decrypt.obj\
+    $(PKG_INTDIR)\cbc_done.obj\
+    $(PKG_INTDIR)\cbc_encrypt.obj\
+    $(PKG_INTDIR)\cbc_getiv.obj\
+    $(PKG_INTDIR)\cbc_setiv.obj\
+    $(PKG_INTDIR)\cbc_start.obj\
+    $(PKG_INTDIR)\cfb_decrypt.obj\
+    $(PKG_INTDIR)\cfb_done.obj\
+    $(PKG_INTDIR)\cfb_encrypt.obj\
+    $(PKG_INTDIR)\cfb_getiv.obj\
+    $(PKG_INTDIR)\cfb_setiv.obj\
+    $(PKG_INTDIR)\cfb_start.obj\
+    $(PKG_INTDIR)\chc.obj\
+    $(PKG_INTDIR)\crypt.obj\
+    $(PKG_INTDIR)\crypt_argchk.obj\
+    $(PKG_INTDIR)\crypt_cipher_descriptor.obj\
+    $(PKG_INTDIR)\crypt_cipher_is_valid.obj\
+    $(PKG_INTDIR)\crypt_find_cipher.obj\
+    $(PKG_INTDIR)\crypt_find_cipher_any.obj\
+    $(PKG_INTDIR)\crypt_find_cipher_id.obj\
+    $(PKG_INTDIR)\crypt_find_hash.obj\
+    $(PKG_INTDIR)\crypt_find_hash_any.obj\
+    $(PKG_INTDIR)\crypt_find_hash_id.obj\
+    $(PKG_INTDIR)\crypt_find_hash_oid.obj\
+    $(PKG_INTDIR)\crypt_find_prng.obj\
+    $(PKG_INTDIR)\crypt_hash_descriptor.obj\
+    $(PKG_INTDIR)\crypt_hash_is_valid.obj\
+    $(PKG_INTDIR)\crypt_ltc_mp_descriptor.obj\
+    $(PKG_INTDIR)\crypt_prng_descriptor.obj\
+    $(PKG_INTDIR)\crypt_prng_is_valid.obj\
+    $(PKG_INTDIR)\crypt_register_cipher.obj\
+    $(PKG_INTDIR)\crypt_register_hash.obj\
+    $(PKG_INTDIR)\crypt_register_prng.obj\
+    $(PKG_INTDIR)\crypt_unregister_cipher.obj\
+    $(PKG_INTDIR)\crypt_unregister_hash.obj\
+    $(PKG_INTDIR)\crypt_unregister_prng.obj\
+    $(PKG_INTDIR)\ctr_decrypt.obj\
+    $(PKG_INTDIR)\ctr_done.obj\
+    $(PKG_INTDIR)\ctr_encrypt.obj\
+    $(PKG_INTDIR)\ctr_getiv.obj\
+    $(PKG_INTDIR)\ctr_setiv.obj\
+    $(PKG_INTDIR)\ctr_start.obj\
     $(PKG_INTDIR)\des.obj\
-    $(PKG_INTDIR)\khazad.obj\
-    $(PKG_INTDIR)\noekeon.obj\
-    $(PKG_INTDIR)\rc2.obj\
-    $(PKG_INTDIR)\rc5.obj\
-    $(PKG_INTDIR)\rc6.obj\
-    $(PKG_INTDIR)\safer.obj\
-    $(PKG_INTDIR)\safer_tab.obj\
-    $(PKG_INTDIR)\saferp.obj\
-    $(PKG_INTDIR)\skipjack.obj\
-    $(PKG_INTDIR)\twofish.obj\
-    $(PKG_INTDIR)\xtea.obj\
+    $(PKG_INTDIR)\ecb_decrypt.obj\
+    $(PKG_INTDIR)\ecb_done.obj\
+    $(PKG_INTDIR)\ecb_encrypt.obj\
+    $(PKG_INTDIR)\ecb_start.obj\
+    $(PKG_INTDIR)\error_to_string.obj\
+    $(PKG_INTDIR)\fortuna.obj\
     $(PKG_INTDIR)\hash_memory.obj\
+    $(PKG_INTDIR)\hmac_done.obj\
+    $(PKG_INTDIR)\hmac_init.obj\
+    $(PKG_INTDIR)\hmac_memory.obj\
+    $(PKG_INTDIR)\hmac_process.obj\
+    $(PKG_INTDIR)\khazad.obj\
     $(PKG_INTDIR)\md2.obj\
     $(PKG_INTDIR)\md4.obj\
     $(PKG_INTDIR)\md5.obj\
+    $(PKG_INTDIR)\noekeon.obj\
+    $(PKG_INTDIR)\ofb_decrypt.obj\
+    $(PKG_INTDIR)\ofb_done.obj\
+    $(PKG_INTDIR)\ofb_encrypt.obj\
+    $(PKG_INTDIR)\ofb_getiv.obj\
+    $(PKG_INTDIR)\ofb_setiv.obj\
+    $(PKG_INTDIR)\ofb_start.obj\
+    $(PKG_INTDIR)\omac_done.obj\
+    $(PKG_INTDIR)\omac_init.obj\
+    $(PKG_INTDIR)\omac_memory.obj\
+    $(PKG_INTDIR)\omac_process.obj\
+    $(PKG_INTDIR)\pelican.obj\
+    $(PKG_INTDIR)\pelican_memory.obj\
+    $(PKG_INTDIR)\pkcs_5_1.obj\
+    $(PKG_INTDIR)\pkcs_5_2.obj\
+    $(PKG_INTDIR)\pmac_done.obj\
+    $(PKG_INTDIR)\pmac_init.obj\
+    $(PKG_INTDIR)\pmac_memory.obj\
+    $(PKG_INTDIR)\pmac_ntz.obj\
+    $(PKG_INTDIR)\pmac_process.obj\
+    $(PKG_INTDIR)\pmac_shift_xor.obj\
+    $(PKG_INTDIR)\rc2.obj\
+    $(PKG_INTDIR)\rc4.obj\
+    $(PKG_INTDIR)\rc5.obj\
+    $(PKG_INTDIR)\rc6.obj\
     $(PKG_INTDIR)\rmd128.obj\
     $(PKG_INTDIR)\rmd160.obj\
+    $(PKG_INTDIR)\rng_get_bytes.obj\
+    $(PKG_INTDIR)\safer.obj\
+    $(PKG_INTDIR)\safer_tab.obj\
+    $(PKG_INTDIR)\saferp.obj\
     $(PKG_INTDIR)\sha1.obj\
     $(PKG_INTDIR)\sha256.obj\
     $(PKG_INTDIR)\sha512.obj\
-    $(PKG_INTDIR)\tiger.obj\
-    $(PKG_INTDIR)\whirl.obj\
-    $(PKG_INTDIR)\hmac.obj\
-    $(PKG_INTDIR)\omac.obj\
-    $(PKG_INTDIR)\pelican.obj\
-    $(PKG_INTDIR)\pmac.obj\
-    $(PKG_INTDIR)\base64_decode.obj\
-    $(PKG_INTDIR)\base64_encode.obj\
-    $(PKG_INTDIR)\pkcs_5_1.obj\
-    $(PKG_INTDIR)\pkcs_5_2.obj\
-    $(PKG_INTDIR)\crypt_cipher.obj\
-    $(PKG_INTDIR)\crypt_hash.obj\
-    $(PKG_INTDIR)\crypt_prng.obj\
-    $(PKG_INTDIR)\crypt_utils.obj\
-    $(PKG_INTDIR)\cbc.obj\
-    $(PKG_INTDIR)\cfb.obj\
-    $(PKG_INTDIR)\ctr.obj\
-    $(PKG_INTDIR)\ecb.obj\
-    $(PKG_INTDIR)\ofb.obj\
-    $(PKG_INTDIR)\fortuna.obj\
-    $(PKG_INTDIR)\rc4.obj\
-    $(PKG_INTDIR)\rng_get_bytes.obj\
+    $(PKG_INTDIR)\skipjack.obj\
     $(PKG_INTDIR)\sober128.obj\
     $(PKG_INTDIR)\sprng.obj\
+    $(PKG_INTDIR)\tiger.obj\
+    $(PKG_INTDIR)\twofish.obj\
+    $(PKG_INTDIR)\whirl.obj\
+    $(PKG_INTDIR)\xtea.obj\
     $(PKG_INTDIR)\yarrow.obj\
+    $(PKG_INTDIR)\zeromem.obj\
     $(PKG_INTDIR)\adler32.obj\
     $(PKG_INTDIR)\crc32.obj\
     $(PKG_INTDIR)\deflate.obj\
@@ -253,71 +311,129 @@ INTERMEDIATE_FILES=\
     $(PKG_INTDIR)\alcoExt.res
 
 OBJECT_FILES=\
-    $(TOP)\libs\bzip2\source\blocksort.obj\
-    $(TOP)\libs\bzip2\source\bzlib.obj\
-    $(TOP)\libs\bzip2\source\compress.obj\
-    $(TOP)\libs\bzip2\source\crctable.obj\
-    $(TOP)\libs\bzip2\source\decompress.obj\
-    $(TOP)\libs\bzip2\source\huffman.obj\
-    $(TOP)\libs\bzip2\source\randtable.obj\
-    $(TOP)\libs\tomcrypt\ciphers\aes\aes.obj\
-    $(TOP)\libs\tomcrypt\ciphers\anubis.obj\
-    $(TOP)\libs\tomcrypt\ciphers\blowfish.obj\
-    $(TOP)\libs\tomcrypt\ciphers\cast5.obj\
-    $(TOP)\libs\tomcrypt\ciphers\des.obj\
-    $(TOP)\libs\tomcrypt\ciphers\khazad.obj\
-    $(TOP)\libs\tomcrypt\ciphers\noekeon.obj\
-    $(TOP)\libs\tomcrypt\ciphers\rc2.obj\
-    $(TOP)\libs\tomcrypt\ciphers\rc5.obj\
-    $(TOP)\libs\tomcrypt\ciphers\rc6.obj\
-    $(TOP)\libs\tomcrypt\ciphers\safer\safer.obj\
-    $(TOP)\libs\tomcrypt\ciphers\safer\safer_tab.obj\
-    $(TOP)\libs\tomcrypt\ciphers\safer\saferp.obj\
-    $(TOP)\libs\tomcrypt\ciphers\skipjack.obj\
-    $(TOP)\libs\tomcrypt\ciphers\twofish\twofish.obj\
-    $(TOP)\libs\tomcrypt\ciphers\xtea.obj\
-    $(TOP)\libs\tomcrypt\hashes\helper\hash_memory.obj\
-    $(TOP)\libs\tomcrypt\hashes\md2.obj\
-    $(TOP)\libs\tomcrypt\hashes\md4.obj\
-    $(TOP)\libs\tomcrypt\hashes\md5.obj\
-    $(TOP)\libs\tomcrypt\hashes\rmd128.obj\
-    $(TOP)\libs\tomcrypt\hashes\rmd160.obj\
-    $(TOP)\libs\tomcrypt\hashes\sha1.obj\
-    $(TOP)\libs\tomcrypt\hashes\sha2\sha256.obj\
-    $(TOP)\libs\tomcrypt\hashes\sha2\sha512.obj\
-    $(TOP)\libs\tomcrypt\hashes\tiger.obj\
-    $(TOP)\libs\tomcrypt\hashes\whirl\whirl.obj\
-    $(TOP)\libs\tomcrypt\mac\hmac.obj\
-    $(TOP)\libs\tomcrypt\mac\omac.obj\
-    $(TOP)\libs\tomcrypt\mac\pelican.obj\
-    $(TOP)\libs\tomcrypt\mac\pmac.obj\
-    $(TOP)\libs\tomcrypt\misc\base64\base64_decode.obj\
-    $(TOP)\libs\tomcrypt\misc\base64\base64_encode.obj\
-    $(TOP)\libs\tomcrypt\misc\pkcs5\pkcs_5_1.obj\
-    $(TOP)\libs\tomcrypt\misc\pkcs5\pkcs_5_2.obj\
-    $(TOP)\libs\tomcrypt\misc\crypt_cipher.obj\
-    $(TOP)\libs\tomcrypt\misc\crypt_hash.obj\
-    $(TOP)\libs\tomcrypt\misc\crypt_prng.obj\
-    $(TOP)\libs\tomcrypt\misc\crypt_utils.obj\
-    $(TOP)\libs\tomcrypt\modes\cbc.obj\
-    $(TOP)\libs\tomcrypt\modes\cfb.obj\
-    $(TOP)\libs\tomcrypt\modes\ctr.obj\
-    $(TOP)\libs\tomcrypt\modes\ecb.obj\
-    $(TOP)\libs\tomcrypt\modes\ofb.obj\
-    $(TOP)\libs\tomcrypt\prngs\fortuna.obj\
-    $(TOP)\libs\tomcrypt\prngs\rc4.obj\
-    $(TOP)\libs\tomcrypt\prngs\rng_get_bytes.obj\
-    $(TOP)\libs\tomcrypt\prngs\sober128.obj\
-    $(TOP)\libs\tomcrypt\prngs\sprng.obj\
-    $(TOP)\libs\tomcrypt\prngs\yarrow.obj\
-    $(TOP)\libs\zlib\source\adler32.obj\
-    $(TOP)\libs\zlib\source\crc32.obj\
-    $(TOP)\libs\zlib\source\deflate.obj\
-    $(TOP)\libs\zlib\source\inffast.obj\
-    $(TOP)\libs\zlib\source\inflate.obj\
-    $(TOP)\libs\zlib\source\inftrees.obj\
-    $(TOP)\libs\zlib\source\trees.obj\
-    $(TOP)\libs\zlib\source\zutil.obj\
+    $(TOP)\libs\bzip2\blocksort.obj\
+    $(TOP)\libs\bzip2\bzlib.obj\
+    $(TOP)\libs\bzip2\compress.obj\
+    $(TOP)\libs\bzip2\crctable.obj\
+    $(TOP)\libs\bzip2\decompress.obj\
+    $(TOP)\libs\bzip2\huffman.obj\
+    $(TOP)\libs\bzip2\randtable.obj\
+    $(TOP)\libs\tomcrypt\aes.obj\
+    $(TOP)\libs\tomcrypt\anubis.obj\
+    $(TOP)\libs\tomcrypt\base64_decode.obj\
+    $(TOP)\libs\tomcrypt\base64_encode.obj\
+    $(TOP)\libs\tomcrypt\blowfish.obj\
+    $(TOP)\libs\tomcrypt\burn_stack.obj\
+    $(TOP)\libs\tomcrypt\cast5.obj\
+    $(TOP)\libs\tomcrypt\cbc_decrypt.obj\
+    $(TOP)\libs\tomcrypt\cbc_done.obj\
+    $(TOP)\libs\tomcrypt\cbc_encrypt.obj\
+    $(TOP)\libs\tomcrypt\cbc_getiv.obj\
+    $(TOP)\libs\tomcrypt\cbc_setiv.obj\
+    $(TOP)\libs\tomcrypt\cbc_start.obj\
+    $(TOP)\libs\tomcrypt\cfb_decrypt.obj\
+    $(TOP)\libs\tomcrypt\cfb_done.obj\
+    $(TOP)\libs\tomcrypt\cfb_encrypt.obj\
+    $(TOP)\libs\tomcrypt\cfb_getiv.obj\
+    $(TOP)\libs\tomcrypt\cfb_setiv.obj\
+    $(TOP)\libs\tomcrypt\cfb_start.obj\
+    $(TOP)\libs\tomcrypt\chc.obj\
+    $(TOP)\libs\tomcrypt\crypt.obj\
+    $(TOP)\libs\tomcrypt\crypt_argchk.obj\
+    $(TOP)\libs\tomcrypt\crypt_cipher_descriptor.obj\
+    $(TOP)\libs\tomcrypt\crypt_cipher_is_valid.obj\
+    $(TOP)\libs\tomcrypt\crypt_find_cipher.obj\
+    $(TOP)\libs\tomcrypt\crypt_find_cipher_any.obj\
+    $(TOP)\libs\tomcrypt\crypt_find_cipher_id.obj\
+    $(TOP)\libs\tomcrypt\crypt_find_hash.obj\
+    $(TOP)\libs\tomcrypt\crypt_find_hash_any.obj\
+    $(TOP)\libs\tomcrypt\crypt_find_hash_id.obj\
+    $(TOP)\libs\tomcrypt\crypt_find_hash_oid.obj\
+    $(TOP)\libs\tomcrypt\crypt_find_prng.obj\
+    $(TOP)\libs\tomcrypt\crypt_hash_descriptor.obj\
+    $(TOP)\libs\tomcrypt\crypt_hash_is_valid.obj\
+    $(TOP)\libs\tomcrypt\crypt_ltc_mp_descriptor.obj\
+    $(TOP)\libs\tomcrypt\crypt_prng_descriptor.obj\
+    $(TOP)\libs\tomcrypt\crypt_prng_is_valid.obj\
+    $(TOP)\libs\tomcrypt\crypt_register_cipher.obj\
+    $(TOP)\libs\tomcrypt\crypt_register_hash.obj\
+    $(TOP)\libs\tomcrypt\crypt_register_prng.obj\
+    $(TOP)\libs\tomcrypt\crypt_unregister_cipher.obj\
+    $(TOP)\libs\tomcrypt\crypt_unregister_hash.obj\
+    $(TOP)\libs\tomcrypt\crypt_unregister_prng.obj\
+    $(TOP)\libs\tomcrypt\ctr_decrypt.obj\
+    $(TOP)\libs\tomcrypt\ctr_done.obj\
+    $(TOP)\libs\tomcrypt\ctr_encrypt.obj\
+    $(TOP)\libs\tomcrypt\ctr_getiv.obj\
+    $(TOP)\libs\tomcrypt\ctr_setiv.obj\
+    $(TOP)\libs\tomcrypt\ctr_start.obj\
+    $(TOP)\libs\tomcrypt\des.obj\
+    $(TOP)\libs\tomcrypt\ecb_decrypt.obj\
+    $(TOP)\libs\tomcrypt\ecb_done.obj\
+    $(TOP)\libs\tomcrypt\ecb_encrypt.obj\
+    $(TOP)\libs\tomcrypt\ecb_start.obj\
+    $(TOP)\libs\tomcrypt\error_to_string.obj\
+    $(TOP)\libs\tomcrypt\fortuna.obj\
+    $(TOP)\libs\tomcrypt\hash_memory.obj\
+    $(TOP)\libs\tomcrypt\hmac_done.obj\
+    $(TOP)\libs\tomcrypt\hmac_init.obj\
+    $(TOP)\libs\tomcrypt\hmac_memory.obj\
+    $(TOP)\libs\tomcrypt\hmac_process.obj\
+    $(TOP)\libs\tomcrypt\khazad.obj\
+    $(TOP)\libs\tomcrypt\md2.obj\
+    $(TOP)\libs\tomcrypt\md4.obj\
+    $(TOP)\libs\tomcrypt\md5.obj\
+    $(TOP)\libs\tomcrypt\noekeon.obj\
+    $(TOP)\libs\tomcrypt\ofb_decrypt.obj\
+    $(TOP)\libs\tomcrypt\ofb_done.obj\
+    $(TOP)\libs\tomcrypt\ofb_encrypt.obj\
+    $(TOP)\libs\tomcrypt\ofb_getiv.obj\
+    $(TOP)\libs\tomcrypt\ofb_setiv.obj\
+    $(TOP)\libs\tomcrypt\ofb_start.obj\
+    $(TOP)\libs\tomcrypt\omac_done.obj\
+    $(TOP)\libs\tomcrypt\omac_init.obj\
+    $(TOP)\libs\tomcrypt\omac_memory.obj\
+    $(TOP)\libs\tomcrypt\omac_process.obj\
+    $(TOP)\libs\tomcrypt\pelican.obj\
+    $(TOP)\libs\tomcrypt\pelican_memory.obj\
+    $(TOP)\libs\tomcrypt\pkcs_5_1.obj\
+    $(TOP)\libs\tomcrypt\pkcs_5_2.obj\
+    $(TOP)\libs\tomcrypt\pmac_done.obj\
+    $(TOP)\libs\tomcrypt\pmac_init.obj\
+    $(TOP)\libs\tomcrypt\pmac_memory.obj\
+    $(TOP)\libs\tomcrypt\pmac_ntz.obj\
+    $(TOP)\libs\tomcrypt\pmac_process.obj\
+    $(TOP)\libs\tomcrypt\pmac_shift_xor.obj\
+    $(TOP)\libs\tomcrypt\rc2.obj\
+    $(TOP)\libs\tomcrypt\rc4.obj\
+    $(TOP)\libs\tomcrypt\rc5.obj\
+    $(TOP)\libs\tomcrypt\rc6.obj\
+    $(TOP)\libs\tomcrypt\rmd128.obj\
+    $(TOP)\libs\tomcrypt\rmd160.obj\
+    $(TOP)\libs\tomcrypt\rng_get_bytes.obj\
+    $(TOP)\libs\tomcrypt\safer.obj\
+    $(TOP)\libs\tomcrypt\safer_tab.obj\
+    $(TOP)\libs\tomcrypt\saferp.obj\
+    $(TOP)\libs\tomcrypt\sha1.obj\
+    $(TOP)\libs\tomcrypt\sha256.obj\
+    $(TOP)\libs\tomcrypt\sha512.obj\
+    $(TOP)\libs\tomcrypt\skipjack.obj\
+    $(TOP)\libs\tomcrypt\sober128.obj\
+    $(TOP)\libs\tomcrypt\sprng.obj\
+    $(TOP)\libs\tomcrypt\tiger.obj\
+    $(TOP)\libs\tomcrypt\twofish.obj\
+    $(TOP)\libs\tomcrypt\whirl.obj\
+    $(TOP)\libs\tomcrypt\xtea.obj\
+    $(TOP)\libs\tomcrypt\yarrow.obj\
+    $(TOP)\libs\tomcrypt\zeromem.obj\
+    $(TOP)\libs\zlib\adler32.obj\
+    $(TOP)\libs\zlib\crc32.obj\
+    $(TOP)\libs\zlib\deflate.obj\
+    $(TOP)\libs\zlib\inffast.obj\
+    $(TOP)\libs\zlib\inflate.obj\
+    $(TOP)\libs\zlib\inftrees.obj\
+    $(TOP)\libs\zlib\trees.obj\
+    $(TOP)\libs\zlib\zutil.obj\
     $(TOP)\generic\alcoCompress.obj\
     $(TOP)\generic\alcoCrypt.obj\
     $(TOP)\generic\alcoEncoding.obj\
