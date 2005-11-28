@@ -1,0 +1,33 @@
+################################################################################
+#                                 Library Notes                                #
+################################################################################
+
+    Some libraries require minor modifications or specific compilation
+procedures for inclusion with AlcoExt.
+
+
+############################################################
+# Bzip2                                                    #
+############################################################
+
+1) Download the latest source archive from http://www.bzip.org.
+
+2) TODO
+
+
+############################################################
+# TomCrypt                                                 #
+############################################################
+
+1) Download the latest source archive from http://libtomcrypt.org.
+
+2) TODO
+
+
+############################################################
+# Zlib                                                     #
+############################################################
+
+1) Download the latest source archive from http://www.zlib.org.
+
+2) TODO
