@@ -555,6 +555,7 @@ static const ulong64 table[4*256] = {
     CONST64(0xCD56D9430EA8280E) /* 1020 */, CONST64(0xC12591D7535F5065) /* 1021 */,
     CONST64(0xC83223F1720AEF96) /* 1022 */, CONST64(0xC3A0396F7363A51F) /* 1023 */};
 
+#undef INLINE
 #ifdef _MSC_VER
    #define INLINE __inline
 #else

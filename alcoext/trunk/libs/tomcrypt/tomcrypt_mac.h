@@ -286,14 +286,15 @@ typedef struct pelican_state
     int           buflen;
 } pelican_state;
 
-int pelican_init(pelican_state *pelmac, const unsigned char *key, unsigned long keylen);
+int pelican_init(pelican_state *pelmac, int cipher, const unsigned char *key, unsigned long keylen);
 int pelican_process(pelican_state *pelmac, const unsigned char *in, unsigned long inlen);
-int pelican_done(pelican_state *pelmac, unsigned char *out);
+int pelican_done(pelican_state *pelmac, unsigned char *out, unsigned long *outlen);
 int pelican_test(void);
 
-int pelican_memory(const unsigned char *key, unsigned long keylen,
+int pelican_memory(int cipher,
+                   const unsigned char *key, unsigned long keylen,
                    const unsigned char *in, unsigned long inlen,
-                         unsigned char *out);
+                         unsigned char *out, unsigned long *outlen);
 
 #endif
 

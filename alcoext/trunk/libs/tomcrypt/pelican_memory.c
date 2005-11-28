@@ -19,26 +19,34 @@
 
 /**
   Pelican block of memory
+  @param cipher   The index of the desired cipher, must be AES
   @param key      The key for the MAC
   @param keylen   The length of the key (octets)
   @param in       The input to MAC
   @param inlen    The length of the input (octets)
   @param out      [out] The output TAG
+  @param outlen   [out] The resulting size of the authentication tag
   @return CRYPT_OK on success
 */
-int pelican_memory(const unsigned char *key, unsigned long keylen,
+int pelican_memory(int cipher,
+                   const unsigned char *key, unsigned long keylen,
                    const unsigned char *in,  unsigned long inlen,
-                         unsigned char *out)
+                         unsigned char *out, unsigned long *outlen)
 {
    pelican_state *pel;
    int err;
 
-   pel = XMALLOC(sizeof(*pel));
+   LTC_ARGCHK(key    != NULL);
+   LTC_ARGCHK(in     != NULL);
+   LTC_ARGCHK(out    != NULL);
+   LTC_ARGCHK(outlen != NULL);
+
+   pel = XMALLOC(sizeof(pelican_state));
    if (pel == NULL) {
       return CRYPT_MEM;
    }
 
-   if ((err = pelican_init(pel, key, keylen)) != CRYPT_OK) {
+   if ((err = pelican_init(pel, cipher, key, keylen)) != CRYPT_OK) {
       XFREE(pel);
       return err;
    }
@@ -46,7 +54,7 @@ int pelican_memory(const unsigned char *key, unsigned long keylen,
       XFREE(pel);
       return err;
    }
-   err = pelican_done(pel, out);
+   err = pelican_done(pel, out, outlen);
    XFREE(pel);
    return err;
 }

@@ -18,22 +18,29 @@
 #ifdef PELICAN
 
 #define ENCRYPT_ONLY
-#include "../../ciphers/aes/aes_tab.c"
+#include "aes_tab.c"
 
 
 /**
    Initialize a Pelican state
    @param pelmac    The Pelican state to initialize
+   @param cipher    The index of the desired cipher, must be AES
    @param key       The secret key
    @param keylen    The length of the secret key (octets)
    @return CRYPT_OK if successful
 */
-int pelican_init(pelican_state *pelmac, const unsigned char *key, unsigned long keylen)
+int pelican_init(pelican_state *pelmac, int cipher, const unsigned char *key, unsigned long keylen)
 {
+    int index;
     int err;
 
     LTC_ARGCHK(pelmac != NULL);
     LTC_ARGCHK(key    != NULL);
+
+   index = find_cipher("aes");
+   if (cipher != index || index < 0) {
+      return CRYPT_INVALID_CIPHER;
+   }
 
 #ifdef LTC_FAST
     if (16 % sizeof(LTC_FAST_TYPE)) {
@@ -136,12 +143,14 @@ int pelican_process(pelican_state *pelmac, const unsigned char *in, unsigned lon
   Terminate Pelican MAC
   @param pelmac      The Pelican MAC state
   @param out         [out] The TAG
+  @param outlen [out] The resulting size of the authentication tag
   @return CRYPT_OK on sucess
 */
-int pelican_done(pelican_state *pelmac, unsigned char *out)
+int pelican_done(pelican_state *pelmac, unsigned char *out, unsigned long *outlen)
 {
    LTC_ARGCHK(pelmac  != NULL);
    LTC_ARGCHK(out     != NULL);
+   LTC_ARGCHK(outlen  != NULL);
 
    /* check range */
    if (pelmac->buflen < 0 || pelmac->buflen > 16) {
@@ -155,6 +164,8 @@ int pelican_done(pelican_state *pelmac, unsigned char *out)
    pelmac->state[pelmac->buflen++] ^= 0x80;
    aes_ecb_encrypt(pelmac->state, out, &pelmac->K);
    aes_done(&pelmac->K);
+
+   *outlen = 16;
    return CRYPT_OK;
 }
 

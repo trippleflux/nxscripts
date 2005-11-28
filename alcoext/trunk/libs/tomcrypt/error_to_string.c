@@ -18,40 +18,40 @@
 
 static const char *err_2_str[] =
 {
-   "CRYPT_OK",
-   "CRYPT_ERROR",
-   "Non-fatal 'no-operation' requested.",
+   "success",
+   "generic error",
+   "no-operation requested",
 
-   "Invalid keysize for block cipher.",
-   "Invalid number of rounds for block cipher.",
-   "Algorithm failed test vectors.",
+   "invalid key length for block cipher",
+   "invalid number of rounds for block cipher",
+   "invalid salt length",
+   "algorithm failed test vectors",
 
-   "Buffer overflow.",
-   "Invalid input packet.",
+   "buffer overflow",
+   "invalid input packet",
 
-   "Invalid number of bits for a PRNG.",
-   "Error reading the PRNG.",
+   "invalid number of bits for a PRNG",
+   "error reading the PRNG",
 
-   "Invalid cipher specified.",
-   "Invalid hash specified.",
-   "Invalid PRNG specified.",
+   "invalid cipher specified",
+   "invalid hash specified",
+   "invalid PRNG specified",
 
-   "Out of memory.",
+   "out of memory",
 
-   "Invalid PK key or key type specified for function.",
-   "A private PK key is required.",
+   "invalid PK key or key type specified for function",
+   "a private PK key is required",
 
-   "Invalid argument provided.",
-   "File Not Found",
+   "invalid argument provided",
+   "file not found",
 
-   "Invalid PK type.",
-   "Invalid PK system.",
-   "Duplicate PK key found on keyring.",
-   "Key not found in keyring.",
-   "Invalid sized parameter.",
+   "invalid PK type",
+   "invalid PK system",
+   "duplicate PK key found on keyring",
+   "key not found in keyring",
+   "invalid sized parameter",
 
-   "Invalid size for prime.",
-
+   "invalid size for prime"
 };
 
 /**
@@ -62,7 +62,7 @@ static const char *err_2_str[] =
 const char *error_to_string(int err)
 {
    if (err < 0 || err >= (int)(sizeof(err_2_str)/sizeof(err_2_str[0]))) {
-      return "Invalid error code.";
+      return "unknown error";
    } else {
       return err_2_str[err];
    }

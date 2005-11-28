@@ -499,6 +499,7 @@ int cast5_setup(const unsigned char *key, int keylen, int num_rounds, symmetric_
 }
 #endif
 
+#undef INLINE
 #ifdef _MSC_VER
    #define INLINE __inline
 #else

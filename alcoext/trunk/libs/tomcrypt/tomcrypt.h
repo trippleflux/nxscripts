@@ -33,6 +33,7 @@ enum {
 
    CRYPT_INVALID_KEYSIZE,  /* Invalid key size given */
    CRYPT_INVALID_ROUNDS,   /* Invalid number of rounds */
+   CRYPT_INVALID_SALT,     /* Invalid salt given */
    CRYPT_FAIL_TESTVECTOR,  /* Algorithm failed test vectors */
 
    CRYPT_BUFFER_OVERFLOW,  /* Not enough space for output */
