@@ -32,7 +32,8 @@ const struct ltc_hash_descriptor tiger_desc =
     &tiger_init,
     &tiger_process,
     &tiger_done,
-    &tiger_test
+    &tiger_test,
+    NULL
 };
 
 #define t1 (table)
@@ -554,10 +555,6 @@ static const ulong64 table[4*256] = {
     CONST64(0xCD56D9430EA8280E) /* 1020 */, CONST64(0xC12591D7535F5065) /* 1021 */,
     CONST64(0xC83223F1720AEF96) /* 1022 */, CONST64(0xC3A0396F7363A51F) /* 1023 */};
 
-#ifdef INLINE
-    #undef INLINE
-#endif
-
 #ifdef _MSC_VER
    #define INLINE __inline
 #else
@@ -811,3 +808,7 @@ Hash of "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-ABCDEFG
 
 
 
+
+/* $Source: /cvs/libtom/libtomcrypt/src/hashes/tiger.c,v $ */
+/* $Revision: 1.6 $ */
+/* $Date: 2005/07/16 19:56:37 $ */

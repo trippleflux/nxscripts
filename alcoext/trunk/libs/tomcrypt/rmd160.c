@@ -37,7 +37,8 @@ const struct ltc_hash_descriptor rmd160_desc =
     &rmd160_init,
     &rmd160_process,
     &rmd160_done,
-    &rmd160_test
+    &rmd160_test,
+    NULL
 };
 
 /* the five basic functions F(), G() and H() */
@@ -462,3 +463,7 @@ int rmd160_test(void)
 
 #endif
 
+
+/* $Source: /cvs/libtom/libtomcrypt/src/hashes/rmd160.c,v $ */
+/* $Revision: 1.6 $ */
+/* $Date: 2005/07/16 19:56:37 $ */

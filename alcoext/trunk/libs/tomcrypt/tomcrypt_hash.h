@@ -160,6 +160,12 @@ extern  struct ltc_hash_descriptor {
       @return CRYPT_OK if successful, CRYPT_NOP if self-tests have been disabled
     */
     int (*test)(void);
+
+    /* accelerated hmac callback: if you need to-do multiple packets just use the generic hmac_memory and provide a hash callback */
+    int  (*hmac_block)(const unsigned char *key, unsigned long  keylen,
+                       const unsigned char *in,  unsigned long  inlen,
+                             unsigned char *out, unsigned long *outlen);
+
 } hash_descriptor[];
 
 #ifdef CHC_HASH
@@ -281,9 +287,15 @@ int register_hash(const struct ltc_hash_descriptor *hash);
 int unregister_hash(const struct ltc_hash_descriptor *hash);
 int hash_is_valid(int idx);
 
+LTC_MUTEX_PROTO(ltc_hash_mutex)
+
 int hash_memory(int hash,
                 const unsigned char *in,  unsigned long inlen,
                       unsigned char *out, unsigned long *outlen);
+int hash_memory_multi(int hash, unsigned char *out, unsigned long *outlen,
+                      const unsigned char *in, unsigned long inlen, ...);
+int hash_filehandle(int hash, FILE *in, unsigned char *out, unsigned long *outlen);
+int hash_file(int hash, const char *fname, unsigned char *out, unsigned long *outlen);
 
 /* a simple macro for making hash "process" functions */
 #define HASH_PROCESS(func_name, compress_name, state_var, block_size)                       \
@@ -321,3 +333,7 @@ int func_name (hash_state * md, const unsigned char *in, unsigned long inlen)   
     }                                                                                       \
     return CRYPT_OK;                                                                        \
 }
+
+/* $Source: /cvs/libtom/libtomcrypt/src/headers/tomcrypt_hash.h,v $ */
+/* $Revision: 1.16 $ */
+/* $Date: 2005/07/30 23:13:00 $ */

@@ -32,7 +32,8 @@ const struct ltc_hash_descriptor whirlpool_desc =
     &whirlpool_init,
     &whirlpool_process,
     &whirlpool_done,
-    &whirlpool_test
+    &whirlpool_test,
+    NULL
 };
 
 /* the sboxes */
@@ -307,3 +308,7 @@ int  whirlpool_test(void)
 
 #endif
 
+
+/* $Source: /cvs/libtom/libtomcrypt/src/hashes/whirl/whirl.c,v $ */
+/* $Revision: 1.6 $ */
+/* $Date: 2005/07/16 19:56:37 $ */

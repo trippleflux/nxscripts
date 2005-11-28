@@ -49,8 +49,8 @@ int pkcs_5_alg2(const unsigned char *password, unsigned long password_len,
       return err;
    }
 
-   buf[0] = (unsigned char *) XMALLOC(MAXBLOCKSIZE * 2);
-   hmac   = (hmac_state *) XMALLOC(sizeof(hmac_state));
+   buf[0] = XMALLOC(MAXBLOCKSIZE * 2);
+   hmac   = XMALLOC(sizeof(hmac_state));
    if (hmac == NULL || buf[0] == NULL) {
       if (hmac != NULL) {
          XFREE(hmac);
@@ -123,3 +123,7 @@ LBL_ERR:
 
 #endif
 
+
+/* $Source: /cvs/libtom/libtomcrypt/src/misc/pkcs5/pkcs_5_2.c,v $ */
+/* $Revision: 1.4 $ */
+/* $Date: 2005/05/05 14:35:59 $ */

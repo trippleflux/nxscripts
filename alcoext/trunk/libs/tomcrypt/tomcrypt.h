@@ -16,8 +16,8 @@ extern "C" {
 #endif
 
 /* version */
-#define CRYPT   0x0106
-#define SCRYPT  "1.06"
+#define CRYPT   0x0108
+#define SCRYPT  "1.08"
 
 /* max size of either a cipher/hash block or symmetric key [largest of the two] */
 #define MAXBLOCKSIZE  128
@@ -33,7 +33,6 @@ enum {
 
    CRYPT_INVALID_KEYSIZE,  /* Invalid key size given */
    CRYPT_INVALID_ROUNDS,   /* Invalid number of rounds */
-   CRYPT_INVALID_SALT,     /* Invalid salt given */
    CRYPT_FAIL_TESTVECTOR,  /* Algorithm failed test vectors */
 
    CRYPT_BUFFER_OVERFLOW,  /* Not enough space for output */
@@ -69,6 +68,8 @@ enum {
 #include <tomcrypt_hash.h>
 #include <tomcrypt_mac.h>
 #include <tomcrypt_prng.h>
+#include <tomcrypt_pk.h>
+#include <tomcrypt_math.h>
 #include <tomcrypt_misc.h>
 #include <tomcrypt_argchk.h>
 #include <tomcrypt_pkcs.h>
@@ -79,3 +80,7 @@ enum {
 
 #endif /* TOMCRYPT_H_ */
 
+
+/* $Source: /cvs/libtom/libtomcrypt/src/headers/tomcrypt.h,v $ */
+/* $Revision: 1.11 $ */
+/* $Date: 2005/11/18 06:58:52 $ */

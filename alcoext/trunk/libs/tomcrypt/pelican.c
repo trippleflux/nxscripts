@@ -11,35 +11,29 @@
 #include "tomcrypt.h"
 
 /**
-  @file pelican.c
-  Pelican MAC implementation, by Tom St Denis
+   @file pelican.c
+   Pelican MAC, initialize state, by Tom St Denis
 */
 
 #ifdef PELICAN
 
 #define ENCRYPT_ONLY
-#include "../ciphers/aes/aes_tab.c"
+#include "../../ciphers/aes/aes_tab.c"
+
 
 /**
-  Initialize a Pelican state
-  @param pelmac    The Pelican state to initialize
-  @param cipher    The index of the desired cipher, must be AES
-  @param key       The secret key
-  @param keylen    The length of the secret key (octets)
-  @return CRYPT_OK if successful
+   Initialize a Pelican state
+   @param pelmac    The Pelican state to initialize
+   @param key       The secret key
+   @param keylen    The length of the secret key (octets)
+   @return CRYPT_OK if successful
 */
-int pelican_init(pelican_state *pelmac, int cipher, const unsigned char *key, unsigned long keylen)
+int pelican_init(pelican_state *pelmac, const unsigned char *key, unsigned long keylen)
 {
-    int index;
     int err;
 
     LTC_ARGCHK(pelmac != NULL);
     LTC_ARGCHK(key    != NULL);
-
-   index = find_cipher("aes");
-   if (cipher != index || index < 0) {
-      return CRYPT_INVALID_CIPHER;
-   }
 
 #ifdef LTC_FAST
     if (16 % sizeof(LTC_FAST_TYPE)) {
@@ -102,7 +96,7 @@ static void four_rounds(pelican_state *pelmac)
   @param in           The input
   @param inlen        The length input (octets)
   @return CRYPT_OK on success
-*/
+  */
 int pelican_process(pelican_state *pelmac, const unsigned char *in, unsigned long inlen)
 {
 
@@ -140,74 +134,32 @@ int pelican_process(pelican_state *pelmac, const unsigned char *in, unsigned lon
 
 /**
   Terminate Pelican MAC
-  @param pelmac The Pelican MAC state
-  @param out    [out] The TAG
-  @param outlen [out] The resulting size of the authentication tag
+  @param pelmac      The Pelican MAC state
+  @param out         [out] The TAG
   @return CRYPT_OK on sucess
 */
-int pelican_done(pelican_state *pelmac, unsigned char *out, unsigned long *outlen)
+int pelican_done(pelican_state *pelmac, unsigned char *out)
 {
    LTC_ARGCHK(pelmac  != NULL);
    LTC_ARGCHK(out     != NULL);
-   LTC_ARGCHK(outlen  != NULL);
 
    /* check range */
    if (pelmac->buflen < 0 || pelmac->buflen > 16) {
       return CRYPT_INVALID_ARG;
    }
 
-   if (pelmac->buflen == 16) {
+   if  (pelmac->buflen == 16) {
        four_rounds(pelmac);
        pelmac->buflen = 0;
    }
    pelmac->state[pelmac->buflen++] ^= 0x80;
    aes_ecb_encrypt(pelmac->state, out, &pelmac->K);
    aes_done(&pelmac->K);
-
-   *outlen = 16;
    return CRYPT_OK;
 }
 
-/**
-  Pelican block of memory
-  @param cipher   The index of the desired cipher, must be AES
-  @param key      The key for the MAC
-  @param keylen   The length of the key (octets)
-  @param in       The input to MAC
-  @param inlen    The length of the input (octets)
-  @param out      [out] The output TAG
-  @param outlen   [out] The resulting size of the authentication tag
-  @return CRYPT_OK on success
-*/
-int pelican_memory(int cipher,
-                   const unsigned char *key, unsigned long keylen,
-                   const unsigned char *in,  unsigned long inlen,
-                         unsigned char *out, unsigned long *outlen)
-{
-   pelican_state *pel;
-   int err;
-
-   LTC_ARGCHK(key    != NULL);
-   LTC_ARGCHK(in     != NULL);
-   LTC_ARGCHK(out    != NULL);
-   LTC_ARGCHK(outlen != NULL);
-
-   pel = (pelican_state *) XMALLOC(sizeof(pelican_state));
-   if (pel == NULL) {
-      return CRYPT_MEM;
-   }
-
-   if ((err = pelican_init(pel, cipher, key, keylen)) != CRYPT_OK) {
-      XFREE(pel);
-      return err;
-   }
-   if ((err = pelican_process(pel, in, inlen)) != CRYPT_OK) {
-      XFREE(pel);
-      return err;
-   }
-   err = pelican_done(pel, out, outlen);
-   XFREE(pel);
-   return err;
-}
-
 #endif
+
+/* $Source: /cvs/libtom/libtomcrypt/src/mac/pelican/pelican.c,v $ */
+/* $Revision: 1.16 $ */
+/* $Date: 2005/05/05 14:35:59 $ */

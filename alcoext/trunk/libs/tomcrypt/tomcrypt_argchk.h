@@ -19,7 +19,11 @@ void crypt_argchk(char *v, char *s, int d);
 
 #elif ARGTYPE == 3
 
-#define LTC_ARGCHK(x) 
+#define LTC_ARGCHK(x)
 
 #endif
 
+
+/* $Source: /cvs/libtom/libtomcrypt/src/headers/tomcrypt_argchk.h,v $ */
+/* $Revision: 1.3 $ */
+/* $Date: 2003/01/06 06:03:08 $ */

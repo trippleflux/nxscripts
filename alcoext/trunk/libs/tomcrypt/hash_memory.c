@@ -41,7 +41,7 @@ int hash_memory(int hash, const unsigned char *in, unsigned long inlen, unsigned
        return CRYPT_BUFFER_OVERFLOW;
     }
 
-    md = (hash_state *) XMALLOC(sizeof(hash_state));
+    md = XMALLOC(sizeof(hash_state));
     if (md == NULL) {
        return CRYPT_MEM;
     }
@@ -62,3 +62,7 @@ LBL_ERR:
 
     return err;
 }
+
+/* $Source: /cvs/libtom/libtomcrypt/src/hashes/helper/hash_memory.c,v $ */
+/* $Revision: 1.3 $ */
+/* $Date: 2005/05/05 14:35:58 $ */

@@ -285,6 +285,50 @@ static inline unsigned RORc(unsigned word, const int i)
 
 #endif
 
+#elif defined(LTC_PPC32)
+
+static inline unsigned ROL(unsigned word, int i)
+{
+   asm ("rotlw %0,%0,%2"
+      :"=r" (word)
+      :"0" (word),"r" (i));
+   return word;
+}
+
+static inline unsigned ROR(unsigned word, int i)
+{
+   asm ("rotlw %0,%0,%2"
+      :"=r" (word)
+      :"0" (word),"r" (32-i));
+   return word;
+}
+
+#ifndef LTC_NO_ROLC
+
+static inline unsigned ROLc(unsigned word, const int i)
+{
+   asm ("rotlwi %0,%0,%2"
+      :"=r" (word)
+      :"0" (word),"I" (i));
+   return word;
+}
+
+static inline unsigned RORc(unsigned word, const int i)
+{
+   asm ("rotrwi %0,%0,%2"
+      :"=r" (word)
+      :"0" (word),"I" (i));
+   return word;
+}
+
+#else
+
+#define ROLc ROL
+#define RORc ROR
+
+#endif
+
+
 #else
 
 /* rotates the hard way */
@@ -374,3 +418,7 @@ static inline unsigned long ROR64c(unsigned long word, const int i)
 #else
    #define byte(x, n) (((x) >> (8 * (n))) & 255)
 #endif
+
+/* $Source: /cvs/libtom/libtomcrypt/src/headers/tomcrypt_macros.h,v $ */
+/* $Revision: 1.11 $ */
+/* $Date: 2005/11/12 04:09:09 $ */

@@ -20,6 +20,9 @@
 static unsigned long rng_nix(unsigned char *buf, unsigned long len,
                              void (*callback)(void))
 {
+#ifdef LTC_NO_FILE
+    return 0;
+#else
     FILE *f;
     unsigned long x;
 #ifdef TRY_URANDOM_FIRST
@@ -41,6 +44,7 @@ static unsigned long rng_nix(unsigned char *buf, unsigned long len,
     x = (unsigned long)fread(buf, 1, (size_t)len, f);
     fclose(f);
     return x;
+#endif /* LTC_NO_FILE */
 }
 
 #endif /* DEVRANDOM */
@@ -123,13 +127,18 @@ unsigned long rng_get_bytes(unsigned char *out, unsigned long outlen,
 
    LTC_ARGCHK(out != NULL);
 
+#if defined(DEVRANDOM)
+   x = rng_nix(out, outlen, callback);   if (x != 0) { return x; }
+#endif
 #ifdef WIN32
    x = rng_win32(out, outlen, callback); if (x != 0) { return x; }
-#elif defined(DEVRANDOM)
-   x = rng_nix(out, outlen, callback);   if (x != 0) { return x; }
 #endif
 #ifdef ANSI_RNG
    x = rng_ansic(out, outlen, callback); if (x != 0) { return x; }
 #endif
    return 0;
 }
+
+/* $Source: /cvs/libtom/libtomcrypt/src/prngs/rng_get_bytes.c,v $ */
+/* $Revision: 1.3 $ */
+/* $Date: 2005/05/05 14:35:59 $ */

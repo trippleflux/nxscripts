@@ -47,8 +47,8 @@ int pkcs_5_alg1(const unsigned char *password, unsigned long password_len,
    }
 
    /* allocate memory */
-   md  = (hash_state *) XMALLOC(sizeof(hash_state));
-   buf = (unsigned char *) XMALLOC(MAXBLOCKSIZE);
+   md  = XMALLOC(sizeof(hash_state));
+   buf = XMALLOC(MAXBLOCKSIZE);
    if (md == NULL || buf == NULL) {
       if (md != NULL) {
          XFREE(md);
@@ -100,3 +100,7 @@ LBL_ERR:
 }
 
 #endif
+
+/* $Source: /cvs/libtom/libtomcrypt/src/misc/pkcs5/pkcs_5_1.c,v $ */
+/* $Revision: 1.4 $ */
+/* $Date: 2005/05/05 14:35:59 $ */
