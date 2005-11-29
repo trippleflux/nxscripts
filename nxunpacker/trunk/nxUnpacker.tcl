@@ -6,9 +6,10 @@ set unpack(source)      [pwd]
 set unpack(binUnzip)    "UnZIP.exe"
 set unpack(binUnrar)    "UnRAR.exe"
 
-set unpack(source) {E:\Site\REQS\Templates}
+puts -nonewline "|- Target Dir: "
+flush stdout
+gets stdin unpack(source)
 
-puts "|- Listing: $unpack(source)"
 set curPath [pwd]
 set dirList [glob -directory $unpack(source) -types d -nocomplain "*"]
 
