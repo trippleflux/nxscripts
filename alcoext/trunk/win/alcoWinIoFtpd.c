@@ -1310,7 +1310,7 @@ IoGroupCmd(
         "exists", "get", "set", "toid", "toname", NULL
     };
     enum options {
-        GROUP_EXISTS, GROUP_GET, GROUP_SET, GROUP_TO_ID, GROUP_TO_NAME
+        GROUP_EXISTS = 0, GROUP_GET, GROUP_SET, GROUP_TO_ID, GROUP_TO_NAME
     };
 
     if (objc < 4) {
@@ -1638,7 +1638,7 @@ IoUserCmd(
         "exists", "get", "set", "toid", "toname", NULL
     };
     enum options {
-        USER_EXISTS, USER_GET, USER_SET, USER_TO_ID, USER_TO_NAME
+        USER_EXISTS = 0, USER_GET, USER_SET, USER_TO_ID, USER_TO_NAME
     };
 
     if (objc < 4) {
@@ -1861,7 +1861,8 @@ IoFtpdObjCmd(
         "group", "info", "kick", "kill", "user", "who", NULL
     };
     enum options {
-        OPTION_GROUP, OPTION_INFO, OPTION_KICK, OPTION_KILL, OPTION_USER, OPTION_WHO
+        OPTION_GROUP = 0, OPTION_INFO, OPTION_KICK,
+        OPTION_KILL, OPTION_USER, OPTION_WHO
     };
 
     // Validate "whoFields" indices.

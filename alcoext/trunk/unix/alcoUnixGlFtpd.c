@@ -834,8 +834,12 @@ GlConfigCmd(
     int index;
     GlHandle *handlePtr;
     Tcl_HashEntry *hashEntryPtr;
-    static const char *switches[] = {"-etc", "-key", "-version", NULL};
-    enum switches {SWITCH_ETC, SWITCH_KEY, SWITCH_VERSION};
+    static const char *switches[] = {
+        "-etc", "-key", "-version", NULL
+    };
+    enum switches {
+        SWITCH_ETC = 0, SWITCH_KEY, SWITCH_VERSION
+    };
 
     if (objc < 3 || (!(objc & 1) && objc != 4)) {
         Tcl_WrongNumArgs(interp, 2, objv, "handle ?switch? ?value? ?switch value?...");
@@ -1074,8 +1078,12 @@ GlInfoCmd(
 {
     int index;
     Tcl_Obj *resultPtr;
-    static const char *options[] = {"handles", "maxusers", NULL};
-    enum options {OPTION_HANDLES, OPTION_MAXUSERS};
+    static const char *options[] = {
+        "handles", "maxusers", NULL
+    };
+    enum options {
+        OPTION_HANDLES = 0, OPTION_MAXUSERS
+    };
 
     if (objc < 3) {
         Tcl_WrongNumArgs(interp, 2, objv, "option ?arg...?");
@@ -1522,7 +1530,7 @@ GlFtpdObjCmd(
         "kill", "open", "who", NULL
     };
     enum options {
-        OPTION_CLOSE, OPTION_CONFIG, OPTION_INFO,
+        OPTION_CLOSE = 0, OPTION_CONFIG, OPTION_INFO,
         OPTION_KILL, OPTION_OPEN, OPTION_WHO
     };
 

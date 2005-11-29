@@ -718,7 +718,7 @@ CompressObjCmd(
         "adler32", "compact", "crc32", "expand", "stream", NULL
     };
     enum options {
-        OPTION_ADLER32, OPTION_COMPACT, OPTION_CRC32, OPTION_EXPAND, OPTION_STREAM
+        OPTION_ADLER32 = 0, OPTION_COMPACT, OPTION_CRC32, OPTION_EXPAND, OPTION_STREAM
     };
 
     // Validate "compressionFormats" indices.

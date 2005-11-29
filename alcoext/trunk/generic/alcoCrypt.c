@@ -603,7 +603,9 @@ CryptProcessCmd(
     static const char *switches[] = {
         "-counter", "-iv", "-mode", "-rounds", NULL
     };
-    enum switches {SWITCH_COUNTER, SWITCH_IV, SWITCH_MODE, SWITCH_ROUNDS};
+    enum switches {
+        SWITCH_COUNTER = 0, SWITCH_IV, SWITCH_MODE, SWITCH_ROUNDS
+    };
 
     assert(mode == MODE_DECRYPT || mode == MODE_ENCRYPT);
 
@@ -1245,7 +1247,7 @@ CryptInfoCmd(
         "ciphers", "handles", "hashes", "modes", "prngs", NULL
     };
     enum options {
-        OPTION_CIPHERS, OPTION_HANDLES, OPTION_HASHES, OPTION_MODES, OPTION_PRNGS
+        OPTION_CIPHERS = 0, OPTION_HANDLES, OPTION_HASHES, OPTION_MODES, OPTION_PRNGS
     };
 
     if (objc != 3) {
@@ -1349,8 +1351,12 @@ CryptPkcs5Cmd(
     unsigned char *salt;
     unsigned char pkcsFiveAlgo = 2;
     unsigned long destLength;
-    static const char *switches[] = {"-v1", "-v2", "-rounds", NULL};
-    enum switches {SWITCH_ALGO1, SWITCH_ALGO2, SWITCH_ROUNDS};
+    static const char *switches[] = {
+        "-v1", "-v2", "-rounds", NULL
+    };
+    enum switches {
+        SWITCH_ALGO1 = 0, SWITCH_ALGO2, SWITCH_ROUNDS
+    };
 
     for (i = 2; i+3 < objc; i++) {
         char *name = Tcl_GetString(objv[i]);
@@ -1891,7 +1897,7 @@ CryptObjCmd(
         "pkcs5", "prng", "rand", "start", "update", NULL
     };
     enum options {
-        OPTION_DECRYPT, OPTION_ENCRYPT, OPTION_END, OPTION_HASH, OPTION_INFO,
+        OPTION_DECRYPT = 0, OPTION_ENCRYPT, OPTION_END, OPTION_HASH, OPTION_INFO,
         OPTION_PKCS5, OPTION_PRNG, OPTION_RAND, OPTION_START, OPTION_UPDATE
     };
 

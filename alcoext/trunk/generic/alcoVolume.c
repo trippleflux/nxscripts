@@ -60,8 +60,12 @@ VolumeObjCmd(
     )
 {
     int index;
-    static const char *options[] = {"info", "list", NULL};
-    enum options {OPTION_INFO, OPTION_LIST};
+    static const char *options[] = {
+        "info", "list", NULL
+    };
+    enum options {
+        OPTION_INFO = 0, OPTION_LIST
+    };
 
     if (objc < 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "option arg ?arg ...?");
@@ -77,8 +81,12 @@ VolumeObjCmd(
             int i;
             unsigned short listOptions = 0;
             Tcl_Obj *objPtr;
-            static const char *switches[] = {"-local", "-mounts", "-root", NULL};
-            enum switches {SWITCH_LOCAL, SWITCH_MOUNTS, SWITCH_ROOT};
+            static const char *switches[] = {
+                "-local", "-mounts", "-root", NULL
+            };
+            enum switches {
+                SWITCH_LOCAL = 0, SWITCH_MOUNTS, SWITCH_ROOT
+            };
 
             for (i = 2; i < objc; i++) {
                 if (Tcl_GetIndexFromObj(interp, objv[i], switches, "switch", TCL_EXACT, &index) != TCL_OK) {
