@@ -603,7 +603,7 @@ CryptProcessCmd(
     static const char *switches[] = {
         "-counter", "-iv", "-mode", "-rounds", NULL
     };
-    enum switches {
+    enum switchIndices {
         SWITCH_COUNTER = 0, SWITCH_IV, SWITCH_MODE, SWITCH_ROUNDS
     };
 
@@ -620,7 +620,7 @@ CryptProcessCmd(
         }
 
         i++;
-        switch ((enum switches) index) {
+        switch ((enum switchIndices) index) {
             case SWITCH_COUNTER: {
                 static const char *counterModes[] = {
                     "littleEndian", "bigEndian", NULL
@@ -1246,7 +1246,7 @@ CryptInfoCmd(
     static const char *options[] = {
         "ciphers", "handles", "hashes", "modes", "prngs", NULL
     };
-    enum options {
+    enum optionIndices {
         OPTION_CIPHERS = 0, OPTION_HANDLES, OPTION_HASHES, OPTION_MODES, OPTION_PRNGS
     };
 
@@ -1261,7 +1261,7 @@ CryptInfoCmd(
 
     resultPtr = Tcl_GetObjResult(interp);
 
-    switch ((enum options) index) {
+    switch ((enum optionIndices) index) {
         case OPTION_CIPHERS: {
             // Create a list of supported ciphers.
             for (index = 0; index < TAB_SIZE && cipher_descriptor[index].name != NULL; index++) {
@@ -1354,7 +1354,7 @@ CryptPkcs5Cmd(
     static const char *switches[] = {
         "-v1", "-v2", "-rounds", NULL
     };
-    enum switches {
+    enum switchIndices {
         SWITCH_ALGO1 = 0, SWITCH_ALGO2, SWITCH_ROUNDS
     };
 
@@ -1368,7 +1368,7 @@ CryptPkcs5Cmd(
             return TCL_ERROR;
         }
 
-        switch ((enum switches) index) {
+        switch ((enum switchIndices) index) {
             case SWITCH_ALGO1: {
                 pkcsFiveAlgo = 1;
                 break;
@@ -1896,7 +1896,7 @@ CryptObjCmd(
         "decrypt", "encrypt", "end", "hash", "info",
         "pkcs5", "prng", "rand", "start", "update", NULL
     };
-    enum options {
+    enum optionIndices {
         OPTION_DECRYPT = 0, OPTION_ENCRYPT, OPTION_END, OPTION_HASH, OPTION_INFO,
         OPTION_PKCS5, OPTION_PRNG, OPTION_RAND, OPTION_START, OPTION_UPDATE
     };
@@ -1917,7 +1917,7 @@ CryptObjCmd(
         return TCL_ERROR;
     }
 
-    switch ((enum options) index) {
+    switch ((enum optionIndices) index) {
         case OPTION_DECRYPT: return CryptProcessCmd(interp, objc, objv, MODE_DECRYPT);
         case OPTION_ENCRYPT: return CryptProcessCmd(interp, objc, objv, MODE_ENCRYPT);
         case OPTION_END:     return CryptEndCmd(interp, objc, objv, statePtr);

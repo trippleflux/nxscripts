@@ -1081,7 +1081,7 @@ GlInfoCmd(
     static const char *options[] = {
         "handles", "maxusers", NULL
     };
-    enum options {
+    enum optionIndices {
         OPTION_HANDLES = 0, OPTION_MAXUSERS
     };
 
@@ -1096,7 +1096,7 @@ GlInfoCmd(
 
     resultPtr = Tcl_GetObjResult(interp);
 
-    switch ((enum options) index) {
+    switch ((enum optionIndices) index) {
         case OPTION_HANDLES: {
             char *name;
             Tcl_HashEntry *hashEntryPtr;
@@ -1529,7 +1529,7 @@ GlFtpdObjCmd(
         "close", "config", "info",
         "kill", "open", "who", NULL
     };
-    enum options {
+    enum optionIndices {
         OPTION_CLOSE = 0, OPTION_CONFIG, OPTION_INFO,
         OPTION_KILL, OPTION_OPEN, OPTION_WHO
     };
@@ -1566,7 +1566,7 @@ GlFtpdObjCmd(
         return TCL_ERROR;
     }
 
-    switch ((enum options) index) {
+    switch ((enum optionIndices) index) {
         case OPTION_CLOSE:  return GlCloseCmd(interp, objc, objv, statePtr);
         case OPTION_CONFIG: return GlConfigCmd(interp, objc, objv, statePtr);
         case OPTION_INFO:   return GlInfoCmd(interp, objc, objv, statePtr);

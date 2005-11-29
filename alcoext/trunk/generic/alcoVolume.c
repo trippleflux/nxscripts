@@ -63,7 +63,7 @@ VolumeObjCmd(
     static const char *options[] = {
         "info", "list", NULL
     };
-    enum options {
+    enum optionIndices {
         OPTION_INFO = 0, OPTION_LIST
     };
 
@@ -76,7 +76,7 @@ VolumeObjCmd(
         return TCL_ERROR;
     }
 
-    switch ((enum options) index) {
+    switch ((enum optionIndices) index) {
         case OPTION_LIST: {
             int i;
             unsigned short listOptions = 0;
@@ -84,7 +84,7 @@ VolumeObjCmd(
             static const char *switches[] = {
                 "-local", "-mounts", "-root", NULL
             };
-            enum switches {
+            enum switchIndices {
                 SWITCH_LOCAL = 0, SWITCH_MOUNTS, SWITCH_ROOT
             };
 
@@ -93,7 +93,7 @@ VolumeObjCmd(
                     return TCL_ERROR;
                 }
 
-                switch ((enum switches) index) {
+                switch ((enum switchIndices) index) {
                     case SWITCH_LOCAL: {
                         listOptions |= VOLLIST_FLAG_LOCAL;
                         break;

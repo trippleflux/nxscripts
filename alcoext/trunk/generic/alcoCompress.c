@@ -717,7 +717,7 @@ CompressObjCmd(
     static const char *options[] = {
         "adler32", "compact", "crc32", "expand", "stream", NULL
     };
-    enum options {
+    enum optionIndices {
         OPTION_ADLER32 = 0, OPTION_COMPACT, OPTION_CRC32, OPTION_EXPAND, OPTION_STREAM
     };
 
@@ -737,7 +737,7 @@ CompressObjCmd(
         return TCL_ERROR;
     }
 
-    switch ((enum options) index) {
+    switch ((enum optionIndices) index) {
         case OPTION_ADLER32:
         case OPTION_CRC32: {
             int dataLength;
@@ -751,7 +751,7 @@ CompressObjCmd(
 
             data = Tcl_GetByteArrayFromObj(objv[2], &dataLength);
 
-            switch ((enum options) index) {
+            switch ((enum optionIndices) index) {
                 case OPTION_ADLER32: {
                     checksum = adler32(0, NULL, 0);
                     checksum = adler32(checksum, data, dataLength);

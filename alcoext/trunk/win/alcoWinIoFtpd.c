@@ -1309,7 +1309,7 @@ IoGroupCmd(
     static const char *options[] = {
         "exists", "get", "set", "toid", "toname", NULL
     };
-    enum options {
+    enum optionIndices {
         GROUP_EXISTS = 0, GROUP_GET, GROUP_SET, GROUP_TO_ID, GROUP_TO_NAME
     };
 
@@ -1324,7 +1324,7 @@ IoGroupCmd(
     }
 
     resultObj = Tcl_GetObjResult(interp);
-    switch ((enum options) index) {
+    switch ((enum optionIndices) index) {
         case GROUP_GET:
         case GROUP_SET: {
             char *groupName;
@@ -1637,7 +1637,7 @@ IoUserCmd(
     static const char *options[] = {
         "exists", "get", "set", "toid", "toname", NULL
     };
-    enum options {
+    enum optionIndices {
         USER_EXISTS = 0, USER_GET, USER_SET, USER_TO_ID, USER_TO_NAME
     };
 
@@ -1652,7 +1652,7 @@ IoUserCmd(
     }
 
     resultObj = Tcl_GetObjResult(interp);
-    switch ((enum options) index) {
+    switch ((enum optionIndices) index) {
         case USER_GET:
         case USER_SET: {
             char *userName;
@@ -1860,7 +1860,7 @@ IoFtpdObjCmd(
     static const char *options[] = {
         "group", "info", "kick", "kill", "user", "who", NULL
     };
-    enum options {
+    enum optionIndices {
         OPTION_GROUP = 0, OPTION_INFO, OPTION_KICK,
         OPTION_KILL, OPTION_USER, OPTION_WHO
     };
@@ -1897,7 +1897,7 @@ IoFtpdObjCmd(
         return TCL_ERROR;
     }
 
-    switch ((enum options) index) {
+    switch ((enum optionIndices) index) {
         case OPTION_GROUP: return IoGroupCmd(interp, objc, objv);
         case OPTION_INFO:  return IoInfoCmd(interp, objc, objv);
         case OPTION_KICK:  return IoKickCmd(interp, objc, objv);
