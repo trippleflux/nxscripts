@@ -23,24 +23,6 @@ GetVolumeSize(
     ULONGLONG *bytesTotal
     );
 
-const VolumeFlagList volumeFlags[] = {
-    // Flag names should be in alphabetical order.
-    {"acl",             FS_PERSISTENT_ACLS},
-    {"caseIsPreserved", FS_CASE_IS_PRESERVED},
-    {"caseSensitive",   FS_CASE_SENSITIVE},
-    {"compressed",      FS_VOL_IS_COMPRESSED},
-    {"fileCompression", FS_FILE_COMPRESSION},
-    {"fileEncryption",  FS_FILE_ENCRYPTION},
-    {"namedStreams",    FILE_NAMED_STREAMS},
-    {"objectIDs",       FILE_SUPPORTS_OBJECT_IDS},
-    {"quotas",          FILE_VOLUME_QUOTAS},
-    {"readOnly",        FILE_READ_ONLY_VOLUME},
-    {"reparsePoints",   FILE_SUPPORTS_REPARSE_POINTS},
-    {"sparseFiles",     FILE_SUPPORTS_SPARSE_FILES},
-    {"unicode",         FS_UNICODE_STORED_ON_DISK},
-    {NULL}
-};
-
 
 /*++
 

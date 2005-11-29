@@ -18,11 +18,6 @@ Abstract:
 #define _ALCOVOLUME_H_
 
 typedef struct {
-    char *name;             // Flag's name.
-    unsigned long flag;     // Bit used for comparison.
-} VolumeFlagList;
-
-typedef struct {
     Tcl_WideUInt free;      // Total number of free bytes.
     Tcl_WideUInt total;     // Total number of bytes.
     unsigned long flags;    // File system flags.
@@ -36,8 +31,6 @@ typedef struct {
 #define VOLLIST_FLAG_LOCAL      0x0001  // Only list local volumes.
 #define VOLLIST_FLAG_MOUNTS     0x0002  // Include mount points.
 #define VOLLIST_FLAG_ROOT       0x0004  // Include volume roots.
-
-const VolumeFlagList volumeFlags[];
 
 int
 GetVolumeInfo(
