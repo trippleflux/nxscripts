@@ -1,5 +1,8 @@
 AlcoExt v0.4.0 (not released):
   NEW: Added the "service" field to "ioftpd who".
+  CHG: Reorganised third party libraries, easier for future updates.
+  CHG: Updated LibTomCrypt to v1.08.
+  CHG: Updated the TEA autoconf scripts.
   FIX: The "status" field for "glftpd who" did not change until another FTP
        command was issued after a file transfer.
 
