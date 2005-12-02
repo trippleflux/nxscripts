@@ -18,7 +18,7 @@ AC_INIT([AlcoExt],[0.4])
 AC_CONFIG_HEADER([config.h])
 
 # Load TEA and the tclConfig.sh file.
-TEA_INIT([3.3])
+TEA_INIT([3.4])
 TEA_PATH_TCLCONFIG
 TEA_LOAD_TCLCONFIG
 TEA_PREFIX

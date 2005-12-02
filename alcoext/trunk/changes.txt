@@ -2,14 +2,14 @@ AlcoExt v0.4.0 (not released):
   NEW: Added the "service" field to "ioftpd who".
   CHG: Reorganised third party libraries, easier for future updates.
   CHG: Updated LibTomCrypt to v1.08.
-  CHG: Updated the TEA autoconf scripts.
+  CHG: Updated TEA autoconf scripts to v3.4.
   FIX: The "status" field for "glftpd who" did not change until another FTP
        command was issued after a file transfer.
 
 AlcoExt v0.3.0 (Oct 7, 2005):
   NEW: External interface to ioFTPD, uses shared memory to communicate with ioFTPD.
   CHG: Changed the values of the "status" field for the "glftpd who" command.
-  CHG: Updated the TEA autoconf scripts.
+  CHG: Updated TEA autoconf scripts to v3.3.
   FIX: Build issues on BSD/Linux systems.
   FIX: The template pkgIndex.tcl file had the wrong package name.
 
