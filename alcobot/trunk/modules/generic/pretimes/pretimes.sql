@@ -1,6 +1,6 @@
-#
-# Pre time table schema (same as the one used by nxTools).
-#
+--
+-- Pre time table schema (same as the one used by nxTools).
+--
 
 CREATE TABLE `pretimes` (
   `id`       int unsigned      NOT NULL auto_increment,

@@ -1,6 +1,6 @@
-#
-# Invite table schemas.
-#
+--
+-- Invite table schemas.
+--
 
 CREATE TABLE `invite_users` (
   `ftp_user` varchar(255) NOT NULL default '',  -- FTP user name.
