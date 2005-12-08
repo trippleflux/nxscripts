@@ -162,8 +162,8 @@ WARN_PRESET    = [b][[c1]%(section)[c]][b] [b]%(user)[b]/%(group) is uploading a
 WARN_YEAR      = [b][[c1]%(section)[c]][b] [b]%(user)[b]/%(group) is uploading a banned year from [b]%(year)[b].
 
 # Zipscript: general events
-COMPLETE       = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] [[b]%.1(mbytes)[b]MB in [b]%(filesTotal)[b]F at %(xferSpeed) - %(timeElapsed)] was completed by [b]%(user)[b]/%(group).
-COMPLETE_RACE  = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] [[b]%.1(mbytes)[b]MB in [b]%(filesTotal)[b]F at %(avgSpeed) - %(timeElapsed)] was completed by [b]%(userCount)[b] user(s) in [b]%(groupCount)[b] group(s).\n[b][[c1]%(section)[c]][b] User Top:\n%(userTop)\n[b][[c1]%(section)[c]][b] Group Top:\n%(groupTop)
+COMPLETE       = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] [%(size) in [b]%(filesTotal)[b]F at %(xferSpeed) - %(timeElapsed)] was completed by [b]%(user)[b]/%(group).
+COMPLETE_RACE  = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] [%(size) in [b]%(filesTotal)[b]F at %(avgSpeed) - %(timeElapsed)] was completed by [b]%(userCount)[b] user(s) in [b]%(groupCount)[b] group(s).\n[b][[c1]%(section)[c]][b] User Top:\n%(userTop)\n[b][[c1]%(section)[c]][b] Group Top:\n%(groupTop)
 DOUBLE_SFV     = [b][[c1]%(section)[c]][b] [b]%(user)[b]/%(group) tried to upload a second SFV in [b]%(releaseName)[b].
 HALFWAY        = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] is in halfway, [b]%(user)[b]/%(group) is all alone.
 HALFWAY_RACE   = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] is in halfway with [b]%(userCount)[b] user(s) from [b]%(groupCount)[b] group(s). Leading uploader is %(leadUser), leading group is %(leadGroup).
@@ -171,24 +171,24 @@ INCOMPLETE     = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] is now incomplet
 NEWLEADER      = [b][[c1]%(section)[c]][b] %(leadUser) takes the lead in [b]%(releaseName)[b].
 RACE           = [b][[c1]%(section)[c]][b] [b]%(user)[b]/%(group) races [b]%(releaseName)[b] at %(speed), [b]%.1(percent)[b]% done.
 SFV            = [b][[c1]%(section)[c]][b] Got SFV for [b]%(releaseName)[b], expecting [b]%(filesTotal)[b]F.
-SPEEDTEST      = [b][[c1]SPEED[c]][b] [b]%(user)[b]/%(group) uploaded a speed test of [b]%.1(mbytes)[b]MB at %(speed).
-UPDATE_MP3     = [b][[c1]%(section)[c]][b] [b]%(user)[b]/%(group) was the first to upload a file in [b]%(releaseName)[b] at %(speed), expecting [b]%.1(mbytes)[b]MB of [b]%(genre)[b] from [b]%(year)[b] at [b]%(bitrate)[b]Kbit/s.
-UPDATE         = [b][[c1]%(section)[c]][b] [b]%(user)[b]/%(group) was the first to upload a file in [b]%(releaseName)[b] at %(speed), expecting [b]%.1(mbytes)[b]MB.
+SPEEDTEST      = [b][[c1]SPEED[c]][b] [b]%(user)[b]/%(group) uploaded a speed test of %(size) at %(speed).
+UPDATE_MP3     = [b][[c1]%(section)[c]][b] [b]%(user)[b]/%(group) was the first to upload a file in [b]%(releaseName)[b] at %(speed), expecting %(size) of [b]%(genre)[b] from [b]%(year)[b] at [b]%(bitrate)[b]Kbit/s.
+UPDATE         = [b][[c1]%(section)[c]][b] [b]%(user)[b]/%(group) was the first to upload a file in [b]%(releaseName)[b] at %(speed), expecting %(size).
 
 # Zipscript: list of racers
 RACERS         = [b]%(user)[b]/%(group)
 RACERS_JOIN    = " "
 
 # Zipscript: user and group information
-USERINFO       = [b]%(user)[b]/%(group) [[b]%.1(mbytes)[b]MB/[b]%(files)[b]F/[b]%.1(percent)[b]%/%(speed)]
+USERINFO       = [b]%(user)[b]/%(group) [%(size)/[b]%(files)[b]F/[b]%.1(percent)[b]%/%(speed)]
 USERINFO_JOIN  =
-GROUPINFO      = [b]%(group)[b] [[b]%.1(mbytes)[b]MB/[b]%(files)[b]F/[b]%.1(percent)[b]%/%(speed)]
+GROUPINFO      = [b]%(group)[b] [%(size)/[b]%(files)[b]F/[b]%.1(percent)[b]%/%(speed)]
 GROUPINFO_JOIN =
 
 # Zipscript: users and groups shown on completion
-USERTOP        = [b][[c1]%(section)[c]][b] %(pos). [b]%(user)[b]/%(group) [[b]%.1(mbytes)[b]MB/[b]%(files)[b]F/[b]%.1(percent)[b]%/%(speed)]
+USERTOP        = [b][[c1]%(section)[c]][b] %(pos). [b]%(user)[b]/%(group) [%(size)/[b]%(files)[b]F/[b]%.1(percent)[b]%/%(speed)]
 USERTOP_JOIN   = "\n"
-GROUPTOP       = [b][[c1]%(section)[c]][b] %(pos). [b]%(group)[b] [[b]%.1(mbytes)[b]MB/[b]%(files)[b]F/[b]%.1(percent)[b]%/%(speed)]
+GROUPTOP       = [b][[c1]%(section)[c]][b] %(pos). [b]%(group)[b] [%(size)/[b]%(files)[b]F/[b]%.1(percent)[b]%/%(speed)]
 GROUPTOP_JOIN  = "\n"
 
 # Command argument help
