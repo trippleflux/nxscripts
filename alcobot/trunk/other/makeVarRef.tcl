@@ -96,7 +96,7 @@ proc IndexFile {handle desc filePath} {
                 t {
                     lappend nameList ${name}Date ${name}Time
                 }
-                b - d - e - k - n - s - z {
+                b - d - e - k - m - n - s - z {
                     lappend nameList $name
                 }
                 default {

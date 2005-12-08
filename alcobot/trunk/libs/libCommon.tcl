@@ -369,6 +369,7 @@ proc ::alcoholicz::VarFormat {valueVar name type width precision} {
         d {set value [FormatDuration $value]}
         e {set value [subst -nocommands -novariables $value]}
         k {set value [FormatSize $value]}
+        m {set value [FormatSize [expr {double($value) * 1024.0}]]}
         s {set value [FormatSpeed $value]}
         p -
         P -
