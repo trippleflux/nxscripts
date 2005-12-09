@@ -360,16 +360,17 @@ proc ::alcoholicz::FormatSpeed {speed {seconds 0}} {
 # Formats a given variable according to its substitution type.
 #
 proc ::alcoholicz::VarFormat {valueVar name type width precision} {
+    variable sizeDivisor
     upvar $valueVar value
 
     # Type of variable substitution. Error checking is not performed
     # for all types because of the performance implications in doing so.
     switch -- $type {
-        b {set value [FormatSize [expr {double($value) / 1024.0}]]}
+        b {set value [FormatSize [expr {double($value) / double($sizeDivisor)}]]}
         d {set value [FormatDuration $value]}
         e {set value [subst -nocommands -novariables $value]}
         k {set value [FormatSize $value]}
-        m {set value [FormatSize [expr {double($value) * 1024.0}]]}
+        m {set value [FormatSize [expr {double($value) * double($sizeDivisor)}]]}
         s {set value [FormatSpeed $value]}
         p -
         P -
