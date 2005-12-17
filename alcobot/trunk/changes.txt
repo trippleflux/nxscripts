@@ -4,6 +4,7 @@ AlcoBot v0.7.0 (not released):
   NEW: Support for nxAutoNuke v2.3 (the ANUKESIZE event).
   NEW: Substitution type for sizes logged in megabytes.
   NEW: Uniform FTPD functions to resolve user names, user IDs, group names, and group IDs.
+  CHG: Moved nxTools event definitions to the "nxtools" module.
   CHG: Renamed "latest" and "search" themes to "new" and "dupe", respectively.
   CHG: Renamed the "ips" array element to "hosts" for the UserInfo function.
   FIX: Corrected grammatical errors in command descriptions (patch by iwi).
