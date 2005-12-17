@@ -141,7 +141,7 @@ proc ::alcoholicz::ReadLogs::Update {} {
     upvar ::alcoholicz::variables variables
 
     # This log reading code was taken from Project-ZS-NG's sitebot,
-    # which was coincidently also written by me (neoxed).
+    # which was, coincidently, also written by me (neoxed).
     set lines [list]
     foreach {logId logType logFile} $logList {
         if {$reBase($logType) eq ""} {continue}
