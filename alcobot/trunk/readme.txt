@@ -156,11 +156,23 @@ Path: modules/generic/invite
    siteInvite.tcl file, which is located in the module's directory.
 
 ############################################################
+# ioa                                                      #
+############################################################
+
+FTPD: ioFTPD
+Info: Announce log events and query data files used by ioA.
+Path: modules/generic/ioa
+
+1. Add "ioa" to the module list in AlcoBot.conf.
+2. Configure the [Module::IoA] section in AlcoBot.conf.
+3. Reload AlcoBot by entering the command ".alcobot reload" in DCC chat.
+
+############################################################
 # nxtools                                                  #
 ############################################################
 
 FTPD: ioFTPD
-Info: Interact with nxTools databases.
+Info: Announce log events and query databases used by nxTools.
 Path: modules/generic/nxtools
 
 1. Add "nxtools" to the module list in AlcoBot.conf.
