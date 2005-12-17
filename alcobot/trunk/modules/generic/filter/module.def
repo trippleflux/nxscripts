@@ -1,6 +1,0 @@
-# Module Definition File
-desc=Event Filter
-context=::alcoholicz::Filter
-depends=
-tclFile=modFilter.tcl
-varFile=
