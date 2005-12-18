@@ -538,7 +538,7 @@ proc ::nxTools::Utils::SiteResetStats {argList} {
     }
 
     if {![llength $resetStats]} {
-        LinePuts "No valid stats Types specified."
+        LinePuts "No valid stat types specified."
         LinePuts "Types: $statTypes"
     } else {
         LinePuts "Resetting: [JoinLiteral $resetStats]"
