@@ -525,28 +525,28 @@ proc ::alcoholicz::NxTools::Load {firstLoad} {
 
     # Directory commands.
     CmdCreate channel dupe   [namespace current]::Dupe \
-        -category "Stats" -args "\[-limit <num>\] \[-section <name>\] <pattern>" \
+        -category "Data"  -args "\[-limit <num>\] \[-section <name>\] <pattern>" \
         -prefix   $prefix -desc "Search for a release."
 
     CmdCreate channel new    [namespace current]::New \
-        -category "Stats" -args "\[-limit <num>\] \[section\]" \
+        -category "Data"  -args "\[-limit <num>\] \[section\]" \
         -prefix   $prefix -desc "Display new releases."
 
     CmdCreate channel undupe [namespace current]::Undupe \
-        -category "Stats" -args "\[-directory\] <pattern>" \
+        -category "Data"  -args "\[-directory\] <pattern>" \
         -prefix   $prefix -desc "Undupe files and directories."
 
     # Nuke commands.
     CmdCreate channel nukes   [namespace current]::Nukes \
-        -category "Stats" -args "\[-limit <num>\] \[pattern\]" \
+        -category "Data"  -args "\[-limit <num>\] \[pattern\]" \
         -prefix   $prefix -desc "Display recent nukes."
 
     CmdCreate channel nuketop [namespace current]::NukeTop \
-        -category "Stats" -args "\[-limit <num>\] \[group\]" \
+        -category "Data"  -args "\[-limit <num>\] \[group\]" \
         -prefix   $prefix -desc "Display top nuked users."
 
     CmdCreate channel unnukes [namespace current]::Unnukes \
-        -category "Stats" -args "\[-limit <num>\] \[pattern\]" \
+        -category "Data"  -args "\[-limit <num>\] \[pattern\]" \
         -prefix   $prefix -desc "Display recent unnukes."
 
     # Request commands.
