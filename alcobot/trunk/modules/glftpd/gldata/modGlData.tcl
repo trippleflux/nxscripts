@@ -22,11 +22,11 @@ namespace eval ::alcoholicz::GlData {
 }
 
 ####
-# OpenFile
+# OpenBinaryFile
 #
 # Opens a binary file located in glFTPD's log directory.
 #
-proc ::alcoholicz::GlData::OpenFile {name {mode "r"}} {
+proc ::alcoholicz::GlData::OpenBinaryFile {name {mode "r"}} {
     variable logsPath
     set filePath [file join $logsPath $name]
     if {[catch {set handle [open $filePath $mode]} message]} {
@@ -38,11 +38,73 @@ proc ::alcoholicz::GlData::OpenFile {name {mode "r"}} {
 }
 
 ####
+# StructOpen
+#
+# Opens glFTPD binary structure file for reading.
+#
+proc ::alcoholicz::GlData::StructOpen {name handleVar {backwards 1}} {
+    variable structHandles
+    variable structLength
+    upvar $handleVar handle
+
+    # Sanity check.
+    if {![info exists structLength($name)]} {
+        error "invalid structure name \"$name\""
+    }
+    set handle [OpenBinaryFile $name]
+    if {$handle eq ""} {return 0}
+
+    # Set the file access pointer to the end if we are reading
+    # the file backwards (newer entries are at the end).
+    set backwards [IsTrue $backwards]
+    if {$backwards} {
+        seek $handle -$structLength($name) end
+    }
+
+    # Format: backwards structName structLength
+    set structHandles($handle) [list $backwards $name $structLength($name)]
+    return 1
+}
+
+####
+# StructRead
+#
+# Reads an entry from a glFTPD binary file.
+#
+proc ::alcoholicz::GlData::StructRead {handle dataVar} {
+    variable structHandles
+    upvar $dataVar data
+    foreach {backwards structName structLength} $structHandles($handle) {break}
+
+    set data [read $handle $structLength]
+    if {[string length $data] != $structLength} {
+        return 0
+    }
+    if {$backwards} {
+        # Move two entries back.
+        seek $handle [expr {$structLength * -2}] current
+    }
+    return 1
+}
+
+####
+# StructClose
+#
+# Closes a glFTPD binary file.
+#
+proc ::alcoholicz::GlData::StructClose {handle} {
+    variable structHandles
+    unset structHandles($handle)
+    close $handle
+}
+
+####
 # Dupe
 #
 # Search for a release, command: !dupe [-limit <num>] [-section <name>] <pattern>.
 #
 proc ::alcoholicz::GlData::Dupe {command target user host handle channel argv} {
+    variable structFormat
     upvar ::alcoholicz::pathSections pathSections
 
     # Parse command options.
@@ -69,12 +131,14 @@ proc ::alcoholicz::GlData::Dupe {command target user host handle channel argv} {
     SendTargetTheme $target dupeHead [list $pattern]
 
     set count 0
-    if {[set handle [OpenFile "dirlog"]] ne ""} {
-        # TODO:
-        # - Read log file.
-        # - Parse binary data with "binary scan".
-        # - Output data.
-        close $handle
+    if {[StructOpen "dirlog" handle FALSE]} {
+        while {$count < $option(limit) && [StructRead $handle data]} {
+            if {[binary scan $data $structFormat(dirlog) status {} timeStamp userId groupId files {} bytes release]} {
+                incr count
+                putlog "\[$count\] $userId/$groupId at $files\F, $bytes\B for $release"
+            }
+        }
+        StructClose $handle
     }
 
     if {!$count} {SendTargetTheme $target dupeNone [list $pattern]}
@@ -88,6 +152,7 @@ proc ::alcoholicz::GlData::Dupe {command target user host handle channel argv} {
 # Display recent releases, command: !new [-limit <num>] [section].
 #
 proc ::alcoholicz::GlData::New {command target user host handle channel argv} {
+    variable structFormat
     upvar ::alcoholicz::pathSections pathSections
 
     # Parse command options.
@@ -99,7 +164,7 @@ proc ::alcoholicz::GlData::New {command target user host handle channel argv} {
     set option(limit) [GetResultLimit $option(limit)]
 
     if {[set section [join $section]] eq ""} {
-        set sectionQuery ""
+        set matchPath ""
     } else {
         # Validate the specified section name.
         set names [lsort [array names pathSections]]
@@ -112,12 +177,14 @@ proc ::alcoholicz::GlData::New {command target user host handle channel argv} {
     SendTargetTheme $target newHead
 
     set count 0
-    if {[set handle [OpenFile "dirlog"]] ne ""} {
-        # TODO:
-        # - Read log file.
-        # - Parse binary data with "binary scan".
-        # - Output data.
-        close $handle
+    if {[StructOpen "dirlog" handle]} {
+        while {$count < $option(limit) && [StructRead $handle data]} {
+            if {[binary scan $data $structFormat(dirlog) status {} timeStamp userId groupId files {} bytes release]} {
+                incr count
+                putlog "\[$count\] $userId/$groupId at $files\F, $bytes\B for $release"
+            }
+        }
+        StructClose $handle
     }
 
     if {!$count} {SendTargetTheme $target newNone}
@@ -278,7 +345,23 @@ proc ::alcoholicz::GlData::OneLines {command target user host handle channel arg
 #
 proc ::alcoholicz::GlData::Load {firstLoad} {
     variable logsPath
+    variable structFormat
+    variable structLength
     upvar ::alcoholicz::configHandle configHandle
+
+    # For 32-bit little endian systems.
+    array set structFormat {
+        dirlog   ssisssswA255
+        dupefile A256iA25
+        nukelog  ssiA12A12A12ssfA60A255
+        oneliner A24A24A64iA100
+    }
+    array set structLength {
+        dirlog   288
+        dupefile 288
+        nukelog  376
+        oneliner 216
+    }
 
     # Check defined directory paths.
     set logsPath [file join [ConfigGet $configHandle GlFtpd dataPath] "logs"]
@@ -294,28 +377,28 @@ proc ::alcoholicz::GlData::Load {firstLoad} {
 
     # Directory commands.
     CmdCreate channel dupe   [namespace current]::Dupe \
-        -category "Stats" -args "\[-limit <num>\] \[-section <name>\] <pattern>" \
+        -category "Data"  -args "\[-limit <num>\] \[-section <name>\] <pattern>" \
         -prefix   $prefix -desc "Search for a release."
 
     CmdCreate channel new    [namespace current]::New \
-        -category "Stats" -args "\[-limit <num>\] \[section\]" \
+        -category "Data"  -args "\[-limit <num>\] \[section\]" \
         -prefix   $prefix -desc "Display new releases."
 
     CmdCreate channel undupe [namespace current]::Undupe \
-        -category "Stats" -args "\[-directory\] <pattern>" \
+        -category "Data"  -args "\[-directory\] <pattern>" \
         -prefix   $prefix -desc "Undupe files and directories."
 
     # Nuke commands.
     CmdCreate channel nukes   [namespace current]::Nukes \
-        -category "Stats" -args "\[-limit <num>\] \[pattern\]" \
+        -category "Data"  -args "\[-limit <num>\] \[pattern\]" \
         -prefix   $prefix -desc "Display recent nukes."
 
     CmdCreate channel nuketop [namespace current]::NukeTop \
-        -category "Stats" -args "\[-limit <num>\] \[group\]" \
+        -category "Data"  -args "\[-limit <num>\] \[group\]" \
         -prefix   $prefix -desc "Display top nuked users."
 
     CmdCreate channel unnukes [namespace current]::Unnukes \
-        -category "Stats" -args "\[-limit <num>\] \[pattern\]" \
+        -category "Data"  -args "\[-limit <num>\] \[pattern\]" \
         -prefix   $prefix -desc "Display recent unnukes."
 
     # Other commands.
