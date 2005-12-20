@@ -1002,7 +1002,7 @@ CryptStartCmd(
 
     hashEntryPtr = Tcl_CreateHashEntry(statePtr->cryptTable, handleName, &newEntry);
     if (newEntry == 0) {
-        Tcl_Panic("Duplicate crypt hash table entries.");
+        Tcl_Panic("Duplicate crypt handle identifiers.");
     }
     Tcl_SetHashValue(hashEntryPtr, (ClientData)handlePtr);
 

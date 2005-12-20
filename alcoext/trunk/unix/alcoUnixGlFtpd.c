@@ -795,7 +795,7 @@ GlOpenCmd(
 
     hashEntryPtr = Tcl_CreateHashEntry(statePtr->glftpdTable, handleName, &newEntry);
     if (newEntry == 0) {
-        Tcl_Panic("Duplicate glftpd hash table entries.");
+        Tcl_Panic("Duplicate glftpd handle identifiers.");
     }
     Tcl_SetHashValue(hashEntryPtr, (ClientData)handlePtr);
 
