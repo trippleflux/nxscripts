@@ -653,7 +653,6 @@ proc ::nxTools::Utils::SiteWho {} {
     if {[client who init "CID" "UID" "STATUS" "TIMEIDLE" "TRANSFERSPEED" "VIRTUALPATH" "VIRTUALDATAPATH"] == 0} {
         while {[set whoData [client who fetch]] ne ""} {
             foreach {clientId userId status idleTime speed virtualPath dataPath} $whoData {break}
-            set isMe [expr {$cid == $clientId ? "*" : ""}]
             set userName [resolve uid $userId]
             set groupName "NoGroup"; set tagLine "No Tagline Set"
             set fileName [file tail $dataPath]
@@ -691,7 +690,8 @@ proc ::nxTools::Utils::SiteWho {} {
                     }
                     default {continue}
                 }
-                iputs [format "| %-10.10s | %-10.10s | %-14.14s | %-27s |" "$isMe$userName" $groupName $tagLine $action]
+                set me [expr {$cid == $clientId ? "*" : ""}]
+                iputs [format "| %-10.10s | %-10.10s | %-14.14s | %-27s |" "$me$userName" $groupName $tagLine $action]
             }
         }
     }
