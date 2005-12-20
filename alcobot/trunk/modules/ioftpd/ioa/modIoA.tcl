@@ -17,12 +17,41 @@ namespace eval ::alcoholicz::IoA {
 }
 
 ####
+# OpenFile
+#
+# Open a data file for reading.
+#
+proc ::alcoholicz::IoA::OpenFile {filePath handleVar} {
+    upvar $handleVar handle
+    if {[catch {set handle [open $filePath]} message]} {
+        LogError ModIoA $message
+        return 0
+    }
+    return 1
+}
+
+####
 # Nukes
 #
 # Display recent nukes, command: !nukes [-limit <num>] [pattern].
 #
 proc ::alcoholicz::IoA::Nukes {command target user host handle channel argv} {
     variable nukesFile
+
+    # Parse command options.
+    set option(limit) -1
+    if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
+        CmdSendHelp $channel channel $command $message
+        return
+    }
+    set option(limit) [GetResultLimit $option(limit)]
+    set pattern [join $pattern]
+
+    # Read nukes data file.
+    if {[OpenFile $nukesFile handle]} {
+        # TODO
+        close $handle
+    }
     return
 }
 
@@ -33,6 +62,12 @@ proc ::alcoholicz::IoA::Nukes {command target user host handle channel argv} {
 #
 proc ::alcoholicz::IoA::OneLines {command target user host handle channel argv} {
     variable onelinesFile
+
+    # Read one-lines data file.
+    if {[OpenFile $onelinesFile handle]} {
+        # TODO
+        close $handle
+    }
     return
 }
 
@@ -43,6 +78,12 @@ proc ::alcoholicz::IoA::OneLines {command target user host handle channel argv} 
 #
 proc ::alcoholicz::IoA::Requests {command target user host handle channel argv} {
     variable requestsFile
+
+    # Read requests data file.
+    if {[OpenFile $requestsFile handle]} {
+        # TODO
+        close $handle
+    }
     return
 }
 
@@ -53,8 +94,25 @@ proc ::alcoholicz::IoA::Requests {command target user host handle channel argv} 
 #
 proc ::alcoholicz::IoA::Search {command target user host handle channel argv} {
     variable searchFile
-    variable searchLength
     variable searchSort
+
+    # Parse command options.
+    set option(limit) -1
+    if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
+        CmdSendHelp $channel channel $command $message
+        return
+    }
+    if {[set pattern [join $pattern]] eq ""} {
+        CmdSendHelp $channel channel $command "you must specify a pattern"
+        return
+    }
+    set option(limit) [GetResultLimit $option(limit)]
+
+    # Read search data file.
+    if {[OpenFile $searchFile handle]} {
+        # TODO
+        close $handle
+    }
     return
 }
 
@@ -65,6 +123,21 @@ proc ::alcoholicz::IoA::Search {command target user host handle channel argv} {
 #
 proc ::alcoholicz::IoA::Unnukes {command target user host handle channel argv} {
     variable unnukesFile
+
+    # Parse command options.
+    set option(limit) -1
+    if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
+        CmdSendHelp $channel channel $command $message
+        return
+    }
+    set option(limit) [GetResultLimit $option(limit)]
+    set pattern [join $pattern]
+
+    # Read unnukes data file.
+    if {[OpenFile $unnukesFile handle]} {
+        # TODO
+        close $handle
+    }
     return
 }
 
@@ -89,7 +162,6 @@ proc ::alcoholicz::IoA::Load {firstLoad} {
         onelinesFile Oneline Oneline_File
         requestsFile Request Request_File
         searchFile   Search  Search_Log_File
-        searchLength Search  Search_Minimum_Length
         searchSort   Search  Search_Sort_Order
         unnukesFile  Unnuke  UnNuke_Log_File
     } {
@@ -99,7 +171,7 @@ proc ::alcoholicz::IoA::Load {firstLoad} {
     ConfigClose $ioaHandle
 
     # Create related commands.
-    CmdCreate channel nukes     [namespace current]::Nukes \
+    CmdCreate channel nukes    [namespace current]::Nukes \
         -category "Data"  -args "\[-limit <num>\] \[pattern\]" \
         -prefix   $prefix -desc "Display recent nukes."
 
