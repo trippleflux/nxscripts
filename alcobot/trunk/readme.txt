@@ -5,7 +5,7 @@
 Topics:
  1. Information
  2. Installation
- 3. Zipscript
+ 3. Scripts
  4. Modules
  5. Bugs and Comments
  6. License
@@ -57,165 +57,247 @@ AlcoBot is a modular sitebot written in Tcl for ioFTPD and glFTPD.
 
 
 ################################################################################
-# 3. Zipscript                                                                 #
+# 3. Scripts                                                                   #
 ################################################################################
 
-    AlcoBot supports multiple zipscripts, but you must load the appropriate
-variable definition file. Select your desired zipscript, and add the .vars
-file name to "varFiles", under [General], in the AlcoBot configuration file.
+    AlcoBot supports many third party scripts, but they must be enabled in order
+for AlcoBot to recognize them. Read the following installation instructions:
 
-    iozs.vars     - ioZS for ioFTPD, written by StarDog.
-                  - URL: http://www.iozs.com
+  ############################################################
+  # ioA                                                      #
+  ############################################################
 
-    iojzs.vars    - iojZS for ioFTPD, written by jeza.
-                  - URL: http://www.inicom.net/pages/en.ioftpd-scripts.php?id=20
+  FTPD: ioFTPD
+  Info: Site command package, written by WarC.
+  URL : http://www.inicom.net/pages/en.ioftpd-scripts.php?id=5
 
-    iosfv.vars    - ioSFV for ioFTPD, written by _tUFF.
-                  - URL: http://www.inicom.net/pages/en.ioftpd-scripts.php?id=41
+  1. Load the "ioa" module; see section 4 of this manual for more information.
 
-    php_psio.vars - php_psio for ioFTPD, written by SnypeTEST.
-                  - URL: http://www.inicom.net/pages/en.ioftpd-scripts.php?id=49
+  ############################################################
+  # iojZS                                                    #
+  ############################################################
 
-    pzs.vars      - Project-ZS for ioFTPD, written by Caladan and esmandil.
-                  - URL: http://www.inicom.net/pages/en.ioftpd-scripts.php?id=98
+  FTPD: ioFTPD
+  Info: Zipscript, written by jeza.
+  URL : http://www.inicom.net/pages/en.ioftpd-scripts.php?id=20
 
-    pzs-ng.vars   - Project-ZS-NG for glFTPD, written by the PZS-NG team.
-                  - URL: http://www.pzs-ng.com
-                  - You must recompile PZS-NG using the provided constants.h file.
-                    cp -f other/constants.h ~/project-zs-ng/src/zipscript/
-                    cd ~/project-zs-ng/ && make clean && make
+  1. Add "iojzs.vars" to varFiles, under [General], in AlcoBot.conf.
+  2. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
+
+  ############################################################
+  # ioSFV                                                    #
+  ############################################################
+
+  FTPD: ioFTPD
+  Info: Zipscript, written by tUFF.
+  URL : http://www.inicom.net/pages/en.ioftpd-scripts.php?id=41
+
+  1. Add "iosfv.vars" to varFiles, under [General], in AlcoBot.conf.
+  2. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
+
+  ############################################################
+  # ioZS                                                     #
+  ############################################################
+
+  FTPD: ioFTPD
+  Info: Zipscript, written by StarDog.
+  URL : http://www.iozs.com
+
+  1. Add "iozs.vars" to varFiles, under [General], in AlcoBot.conf.
+  2. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
+
+  ############################################################
+  # nxAutoNuke                                               #
+  ############################################################
+
+  FTPD: ioFTPD
+  Info: Auto-nuker, written by neoxed.
+  URL : http://www.iozs.com
+
+  1. Add "nxautonuke.vars" to varFiles, under [General], in AlcoBot.conf.
+  2. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
+
+  ############################################################
+  # nxTools                                                  #
+  ############################################################
+
+  FTPD: ioFTPD
+  Info: Site command package, written by neoxed.
+  URL : http://www.iozs.com
+
+  1. Load the "nxtools" module; see section 4 of this manual for more information.
+
+  ############################################################
+  # php_psio                                                 #
+  ############################################################
+
+  FTPD: ioFTPD
+  Info: Zipscript, written by SnypeTEST.
+  URL : http://www.inicom.net/pages/en.ioftpd-scripts.php?id=49
+
+  1. Add "php_psio.vars" to varFiles, under [General], in AlcoBot.conf.
+  2. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
+
+  ############################################################
+  # Project-ZS                                               #
+  ############################################################
+
+  FTPD: ioFTPD
+  Info: Zipscript, written by Caladan and esmandil.
+  URL : http://www.inicom.net/pages/en.ioftpd-scripts.php?id=98
+
+  1. Add "pzs.vars" to varFiles, under [General], in AlcoBot.conf.
+  2. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
+
+  ############################################################
+  # Project-ZS-NG                                            #
+  ############################################################
+
+  FTPD: glFTPD
+  Info: Zipscript, written by the PZS-NG team.
+  URL : http://www.pzs-ng.com
+
+  1. Recompile PZS-NG using the provided constants.h file.
+     cp -f other/constants.h ~/project-zs-ng/src/zipscript/
+     cd ~/project-zs-ng
+     make clean install
+  2. Add "pzs-ng.vars" to varFiles, under [General], in AlcoBot.conf.
+  3. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
 
 
 ################################################################################
 # 4. Modules                                                                   #
 ################################################################################
 
-############################################################
-# bouncer                                                  #
-############################################################
+    AlcoBot includes a variety of built-in modules that must be configured
+before use. Read the following installation instructions:
 
-FTPD: All
-Info: Display FTP bouncer status.
-Path: modules/generic/bouncer
+  ############################################################
+  # bouncer                                                  #
+  ############################################################
 
-1. Add "bouncer" to the module list in AlcoBot.conf.
-2. Configure the [Module::Bouncer] section in AlcoBot.conf.
-3. Reload AlcoBot by entering the command ".alcobot reload" in DCC chat.
+  FTPD: All
+  Info: Display FTP bouncer status.
+  Path: modules/generic/bouncer
 
-############################################################
-# free                                                     #
-############################################################
+  1. Add "bouncer" to the module list in AlcoBot.conf.
+  2. Configure the [Module::Bouncer] section in AlcoBot.conf.
+  3. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
 
-FTPD: All
-Info: Display available drive space.
-Path: modules/generic/free
+  ############################################################
+  # free                                                     #
+  ############################################################
 
-1. Add "free" to the module list in AlcoBot.conf.
-2. Configure the [Module::Free] section in AlcoBot.conf.
-3. Reload AlcoBot by entering the command ".alcobot reload" in DCC chat.
+  FTPD: All
+  Info: Display available drive space.
+  Path: modules/generic/free
 
-############################################################
-# groups                                                   #
-############################################################
+  1. Add "free" to the module list in AlcoBot.conf.
+  2. Configure the [Module::Free] section in AlcoBot.conf.
+  3. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
 
-FTPD: All
-Info: Display affiliated and banned groups.
-Path: modules/generic/groups
+  ############################################################
+  # groups                                                   #
+  ############################################################
 
-1. Add "groups" to the module list in AlcoBot.conf.
-2. Copy "groups.conf" from the module's directory to AlcoBot's directory.
-3. Configure the [Module::Groups] section in AlcoBot.conf.
-4. Reload AlcoBot by entering the command ".alcobot reload" in DCC chat.
-5. Edit groups.conf to your liking (changes to this file do not require a reload).
+  FTPD: All
+  Info: Display affiliated and banned groups.
+  Path: modules/generic/groups
 
-############################################################
-# help                                                     #
-############################################################
+  1. Add "groups" to the module list in AlcoBot.conf.
+  2. Copy "groups.conf" from the module's directory to AlcoBot's directory.
+  3. Configure the [Module::Groups] section in AlcoBot.conf.
+  4. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
+  5. Edit groups.conf to your liking (changes to this file do not require a reload).
 
-FTPD: All
-Info: Display supported channel commands.
-Path: modules/generic/help
+  ############################################################
+  # help                                                     #
+  ############################################################
 
-1. Add "help" to the module list in AlcoBot.conf.
-2. Reload AlcoBot by entering the command ".alcobot reload" in DCC chat.
+  FTPD: All
+  Info: Display supported channel commands.
+  Path: modules/generic/help
 
-############################################################
-# invite                                                   #
-############################################################
+  1. Add "help" to the module list in AlcoBot.conf.
+  2. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
 
-FTPD: All
-Info: Invite users into selected IRC channel(s).
-Path: modules/generic/invite
+  ############################################################
+  # invite                                                   #
+  ############################################################
 
-1. Add "invite" to the module list in AlcoBot.conf.
-2. Create an ODBC DSN connection to your database. Use the table schema
-   provided in invite.sql, which is located in the module's directory.
-3. Configure the [Module::Invite] section in AlcoBot.conf.
-4. Reload AlcoBot by entering the command ".alcobot reload" in DCC chat.
-5. Instructions for installing the SITE commands are in the top of the
-   siteInvite.tcl file, which is located in the module's directory.
+  FTPD: All
+  Info: Invite users into selected IRC channel(s).
+  Path: modules/generic/invite
 
-############################################################
-# ioa                                                      #
-############################################################
+  1. Add "invite" to the module list in AlcoBot.conf.
+  2. Create an ODBC DSN connection to your database. Use the table schema
+     provided in invite.sql, which is located in the module's directory.
+  3. Configure the [Module::Invite] section in AlcoBot.conf.
+  4. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
+  5. Instructions for installing the SITE commands are in the top of the
+     siteInvite.tcl file, which is located in the module's directory.
 
-FTPD: ioFTPD
-Info: Announce log events and query data files used by ioA.
-Path: modules/generic/ioa
+  ############################################################
+  # ioa                                                      #
+  ############################################################
 
-1. Add "ioa" to the module list in AlcoBot.conf.
-2. Configure the [Module::IoA] section in AlcoBot.conf.
-3. Reload AlcoBot by entering the command ".alcobot reload" in DCC chat.
+  FTPD: ioFTPD
+  Info: Announce log events and query data files used by ioA.
+  Path: modules/generic/ioa
 
-############################################################
-# nxtools                                                  #
-############################################################
+  1. Add "ioa" to the module list in AlcoBot.conf.
+  2. Configure the [Module::IoA] section in AlcoBot.conf.
+  3. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
 
-FTPD: ioFTPD
-Info: Announce log events and query databases used by nxTools.
-Path: modules/generic/nxtools
+  ############################################################
+  # nxtools                                                  #
+  ############################################################
 
-1. Add "nxtools" to the module list in AlcoBot.conf.
-2. Configure the [Module::NxTools] section in AlcoBot.conf.
-3. Reload AlcoBot by entering the command ".alcobot reload" in DCC chat.
+  FTPD: ioFTPD
+  Info: Announce log events and query databases used by nxTools.
+  Path: modules/generic/nxtools
 
-############################################################
-# online                                                   #
-############################################################
+  1. Add "nxtools" to the module list in AlcoBot.conf.
+  2. Configure the [Module::NxTools] section in AlcoBot.conf.
+  3. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
 
-FTPD: glFTPD/ioFTPD
-Info: Display online statistics.
-Path: modules/*ftpd/online
+  ############################################################
+  # online                                                   #
+  ############################################################
 
-1. Add "online" to the module list in AlcoBot.conf.
-2. Configure the [Module::Online] section in AlcoBot.conf.
-3. Reload AlcoBot by entering the command ".alcobot reload" in DCC chat.
+  FTPD: glFTPD/ioFTPD
+  Info: Display online statistics.
+  Path: modules/*ftpd/online
 
-############################################################
-# pretimes                                                 #
-############################################################
+  1. Add "online" to the module list in AlcoBot.conf.
+  2. Configure the [Module::Online] section in AlcoBot.conf.
+  3. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
 
-FTPD: All
-Info: Display and search for release pre times.
-Path: modules/generic/pretimes
+  ############################################################
+  # pretimes                                                 #
+  ############################################################
 
-1. Add "pretimes" to the module list in AlcoBot.conf.
-2. Create an ODBC DSN connection to your database. Use the table schema
-   provided in pretimes.sql, which is located in the module's directory.
-3. Configure the [Module::PreTimes] section in AlcoBot.conf.
-4. Reload AlcoBot by entering the command ".alcobot reload" in DCC chat.
+  FTPD: All
+  Info: Display and search for release pre times.
+  Path: modules/generic/pretimes
 
-############################################################
-# readlogs                                                 #
-############################################################
+  1. Add "pretimes" to the module list in AlcoBot.conf.
+  2. Create an ODBC DSN connection to your database. Use the table schema
+     provided in pretimes.sql, which is located in the module's directory.
+  3. Configure the [Module::PreTimes] section in AlcoBot.conf.
+  4. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
 
-FTPD: All
-Info: Read and announce log entries.
-Path: modules/generic/readlogs
+  ############################################################
+  # readlogs                                                 #
+  ############################################################
 
-1. Add "readlogs" to the module list in AlcoBot.conf.
-2. Configure the [Module::ReadLogs] section in AlcoBot.conf.
-3. Reload AlcoBot by entering the command ".alcobot reload" in DCC chat.
+  FTPD: All
+  Info: Read and announce log entries.
+  Path: modules/generic/readlogs
+
+  1. Add "readlogs" to the module list in AlcoBot.conf.
+  2. Configure the [Module::ReadLogs] section in AlcoBot.conf.
+  3. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
 
 
 ################################################################################
