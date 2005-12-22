@@ -9,7 +9,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: tcl.m4,v 1.78 2005/12/01 02:19:06 das Exp $
+# RCS: @(#) $Id: tcl.m4,v 1.81 2005/12/19 19:44:24 jenglish Exp $
 
 AC_PREREQ(2.50)
 
@@ -108,7 +108,8 @@ AC_DEFUN(TEA_PATH_TCLCONFIG, [
 
 	    # check in a few common install locations
 	    if test x"${ac_cv_c_tclconfig}" = x ; then
-		for i in `ls -d ${exec_prefix}/lib 2>/dev/null` \
+		for i in `ls -d ${libdir} 2>/dev/null` \
+			`ls -d ${exec_prefix}/lib 2>/dev/null` \
 			`ls -d ${prefix}/lib 2>/dev/null` \
 			`ls -d /usr/local/lib 2>/dev/null` \
 			`ls -d /usr/contrib/lib 2>/dev/null` \
@@ -234,7 +235,8 @@ AC_DEFUN(TEA_PATH_TKCONFIG, [
 
 	    # check in a few common install locations
 	    if test x"${ac_cv_c_tkconfig}" = x ; then
-		for i in `ls -d ${exec_prefix}/lib 2>/dev/null` \
+		for i in `ls -d ${libdir} 2>/dev/null` \
+			`ls -d ${exec_prefix}/lib 2>/dev/null` \
 			`ls -d ${prefix}/lib 2>/dev/null` \
 			`ls -d /usr/local/lib 2>/dev/null` \
 			`ls -d /usr/contrib/lib 2>/dev/null` \
@@ -2729,7 +2731,7 @@ AC_DEFUN(TEA_TCL_64BIT_FLAGS, [
 AC_DEFUN(TEA_INIT, [
     # TEA extensions pass this us the version of TEA they think they
     # are compatible with.
-    TEA_VERSION="3.3"
+    TEA_VERSION="3.4"
 
     AC_MSG_CHECKING([for correct TEA configuration])
     if test x"${PACKAGE_NAME}" = x ; then
@@ -3405,16 +3407,21 @@ AC_DEFUN(TEA_PUBLIC_TCL_HEADERS, [
                     list=""
                     ;;
             esac
+
+	    # Look in the source dir only if Tcl is not installed,
+	    # and in that situation, look there before installed locations.
+	    if test -f "$TCL_BIN_DIR/Makefile" ; then
+		list="$list `ls -d ${TCL_SRC_DIR}/generic 2>/dev/null`"
+	    fi
+
 	    # Check order: pkg --prefix location, Tcl's --prefix location,
-	    # directory of tclConfig.sh, and Tcl source directory.
-	    # Looking in the source dir is not ideal, but OK.
+	    # relative to directory of tclConfig.sh.
 
 	    eval "temp_includedir=${includedir}"
 	    list="$list \
 		`ls -d ${temp_includedir}        2>/dev/null` \
 		`ls -d ${TCL_PREFIX}/include     2>/dev/null` \
-		`ls -d ${TCL_BIN_DIR}/../include 2>/dev/null` \
-		`ls -d ${TCL_SRC_DIR}/generic    2>/dev/null`"
+		`ls -d ${TCL_BIN_DIR}/../include 2>/dev/null`"
 	    if test "${TEA_PLATFORM}" != "windows" -o "$GCC" = "yes"; then
 		list="$list /usr/local/include /usr/include"
 		if test x"${TCL_INCLUDE_SPEC}" != x ; then
@@ -3556,17 +3563,24 @@ AC_DEFUN(TEA_PUBLIC_TK_HEADERS, [
                     list=""
                     ;;
             esac
-	    # Check order: pkg --prefix location, Tcl's --prefix location,
-	    # directory of tclConfig.sh, and Tcl source directory.
-	    # Looking in the source dir is not ideal, but OK.
+
+	    # Look in the source dir only if Tk is not installed,
+	    # and in that situation, look there before installed locations.
+	    if test -f "$TK_BIN_DIR/Makefile" ; then
+		list="$list `ls -d ${TK_SRC_DIR}/generic 2>/dev/null`"
+	    fi
+
+	    # Check order: pkg --prefix location, Tk's --prefix location,
+	    # relative to directory of tkConfig.sh, Tcl's --prefix location,
+	    # relative to directory of tclConfig.sh.
 
 	    eval "temp_includedir=${includedir}"
 	    list="$list \
 		`ls -d ${temp_includedir}        2>/dev/null` \
 		`ls -d ${TK_PREFIX}/include      2>/dev/null` \
+		`ls -d ${TK_BIN_DIR}/../include  2>/dev/null` \
 		`ls -d ${TCL_PREFIX}/include     2>/dev/null` \
-		`ls -d ${TCL_BIN_DIR}/../include 2>/dev/null` \
-		`ls -d ${TK_SRC_DIR}/generic     2>/dev/null`"
+		`ls -d ${TCL_BIN_DIR}/../include 2>/dev/null`"
 	    if test "${TEA_PLATFORM}" != "windows" -o "$GCC" = "yes"; then
 		list="$list /usr/local/include /usr/include"
 	    fi
@@ -3793,7 +3807,8 @@ AC_DEFUN(TEA_PATH_CONFIG, [
 
 	    # check in a few common install locations
 	    if test x"${ac_cv_c_$1config}" = x ; then
-		for i in `ls -d ${exec_prefix}/lib 2>/dev/null` \
+		for i in `ls -d ${libdir} 2>/dev/null` \
+			`ls -d ${exec_prefix}/lib 2>/dev/null` \
 			`ls -d ${prefix}/lib 2>/dev/null` \
 			`ls -d /usr/local/lib 2>/dev/null` \
 			`ls -d /usr/contrib/lib 2>/dev/null` \
