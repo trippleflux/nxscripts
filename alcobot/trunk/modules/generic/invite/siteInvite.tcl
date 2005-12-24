@@ -58,7 +58,8 @@ namespace eval ::siteInvite {
 
     # hostCheck - Check a user's IRC host before inviting them into the channel.
     # userCheck - Check a user's IRC name before inviting them into the channel,
-    #             this only effective on networks that allow you register usernames.
+    #             this only effective on networks that allow you register user
+    #             names (e.g. NickServ).
     variable hostCheck  True
     variable userCheck  True
 
