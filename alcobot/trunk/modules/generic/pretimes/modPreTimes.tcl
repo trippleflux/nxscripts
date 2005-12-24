@@ -89,19 +89,24 @@ proc ::alcoholicz::PreTimes::LogEvent {event destSection pathSection path data} 
         }
     } elseif {$event eq "PRE" || $event eq "PRE-MP3"} {
         set section [SqlEscape $pathSection]
-        set files 0; set kiloBytes 0; set disks 0
+        set disks 0; set files 0; set kiloBytes 0
 
         # Retrieve the files, size, and disk count from the log data.
+        if {[set index [lsearch -exact $variables($event) "disks:n"]] != -1} {
+            set disks [lindex $data $index]
+        }
         if {[set index [lsearch -exact $variables($event) "files:n"]] != -1} {
-            set files [SqlEscape [lindex $data $index]]
+            set files [lindex $data $index]
         }
         if {[set index [lsearch -exact $variables($event) "size:k"]] != -1} {
-            set kiloBytes [SqlEscape [lindex $data $index]]
-        }
-        if {[set index [lsearch -exact $variables($event) "disks:n"]] != -1} {
-            set disks [SqlEscape [lindex $data $index]]
+            set kiloBytes [lindex $data $index]
+        } elseif {[set index [lsearch -exact $variables($event) "size:m"]] != -1} {
+            set kiloBytes [expr {[lindex $data $index] * 1024.0}]
         }
 
+        set disks [SqlEscape $disks]
+        set files [SqlEscape $files]
+        set kiloBytes [SqlEscape $kiloBytes]
         if {[catch {db "INSERT INTO pretimes(pretime,section,release,files,kbytes,disks) \
                 VALUES('$now','$section','$release','$files','$kiloBytes','$disks')"} message]} {
             LogError ModPreTime $message
