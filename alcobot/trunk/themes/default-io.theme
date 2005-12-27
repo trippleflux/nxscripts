@@ -292,3 +292,8 @@ preBody        = [b][[c1]Pre[c]][b] [b]%(release)[b] (%(size)/[b]%(files)[b]F) r
 preNuke        = [b][[c1]Pre[c]][b] [b]%(release)[b] (%(size)/[b]%(files)[b]F) released %(age) ago (%(preDate) %(preTime)) nuked for [b]%(reason)[b]
 preNone        = [b][[c1]Pre[c]][b] No releases found matching "%(pattern)".
 preFoot        =
+
+# Module: sitecmd
+siteHead       = [b][[c1]SiteCmd[c]][b] Sending: [b]%(command)[b]
+siteBody       = [b][[c1]SiteCmd[c]][b] %(message)
+siteFoot       =
