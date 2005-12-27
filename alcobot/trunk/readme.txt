@@ -299,6 +299,18 @@ before use. Read the following installation instructions:
   2. Configure the [Module::ReadLogs] section in AlcoBot.conf.
   3. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
 
+  ############################################################
+  # sitecmd                                                  #
+  ############################################################
+
+  FTPD: All
+  Info: Issue SITE commands from IRC.
+  Path: modules/generic/sitecmd
+
+  1. Add "online" to the module list in AlcoBot.conf.
+  2. Configure the [Module::SiteCmd] section in AlcoBot.conf.
+  3. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
+
 
 ################################################################################
 # 5. Bugs and Comments                                                         #

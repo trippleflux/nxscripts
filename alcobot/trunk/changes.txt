@@ -1,8 +1,10 @@
 AlcoBot v0.7.0 (not released):
-  NEW: Completed Project-ZS-NG support, for glFTPD only.
   NEW: Check for "DNS" fields in glFTPD v2.01 user-files.
-  NEW: Support for nxAutoNuke v2.3 (the ANUKESIZE event).
+  NEW: Completed Project-ZS-NG support, for glFTPD only.
+  NEW: Module for ioA support, named "ioa".
+  NEW: Module to send SITE commands to the FTP server, named "sitecmd".
   NEW: Substitution type for sizes logged in megabytes.
+  NEW: Support for nxAutoNuke v2.3 (the ANUKESIZE event).
   NEW: Uniform FTPD functions to resolve user names, user IDs, group names, and group IDs.
   CHG: Moved nxTools event definitions to the "nxtools" module.
   CHG: Renamed "latest" and "search" themes to "new" and "dupe", respectively.
