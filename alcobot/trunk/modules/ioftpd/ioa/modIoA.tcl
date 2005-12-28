@@ -44,12 +44,18 @@ proc ::alcoholicz::IoA::Nukes {command target user host handle channel argv} {
         CmdSendHelp $channel channel $command $message
         return
     }
-    set option(limit) [GetResultLimit $option(limit)]
+    set limit [GetResultLimit $option(limit)]
     set pattern [join $pattern]
 
     # Read nukes data file.
     if {[OpenFile $nukesFile handle]} {
-        # TODO
+        while {![eof $handle]} {
+            # Format: <release>|<multi>x|<amount>|<nuker>|<nukee>|MMDD-HH:SS|<reason>
+            set line [split [gets $handle] "|"]
+            if {[llength $line] == 7 && ($pattern eq "" || [string match -nocase $pattern [lindex $line 0]])} {
+                # TODO
+            }
+        }
         close $handle
     }
     return
@@ -65,7 +71,11 @@ proc ::alcoholicz::IoA::OneLines {command target user host handle channel argv} 
 
     # Read one-lines data file.
     if {[OpenFile $onelinesFile handle]} {
-        # TODO
+        while {![eof $handle]} {
+            if {[gets $handle line] > 1} {
+                # TODO
+            }
+        }
         close $handle
     }
     return
@@ -81,7 +91,11 @@ proc ::alcoholicz::IoA::Requests {command target user host handle channel argv} 
 
     # Read requests data file.
     if {[OpenFile $requestsFile handle]} {
-        # TODO
+        while {![eof $handle]} {
+            if {[gets $handle line] > 1} {
+                # TODO
+            }
+        }
         close $handle
     }
     return
@@ -106,11 +120,17 @@ proc ::alcoholicz::IoA::Search {command target user host handle channel argv} {
         CmdSendHelp $channel channel $command "you must specify a pattern"
         return
     }
-    set option(limit) [GetResultLimit $option(limit)]
+    set limit [GetResultLimit $option(limit)]
 
     # Read search data file.
     if {[OpenFile $searchFile handle]} {
-        # TODO
+        while {![eof $handle]} {
+            # Format: <time>|<path>|<release>
+            set line [split [gets $handle] "|"]
+            if {[llength $line] == 3 && [string match -nocase $pattern [lindex $line 2]]} {
+                # TODO
+            }
+        }
         close $handle
     }
     return
@@ -130,12 +150,18 @@ proc ::alcoholicz::IoA::Unnukes {command target user host handle channel argv} {
         CmdSendHelp $channel channel $command $message
         return
     }
-    set option(limit) [GetResultLimit $option(limit)]
+    set limit [GetResultLimit $option(limit)]
     set pattern [join $pattern]
 
     # Read unnukes data file.
     if {[OpenFile $unnukesFile handle]} {
-        # TODO
+        while {![eof $handle]} {
+            # Format: <release>|<multi>x|<amount>|<nuker>|<nukee>|MMDD-HH:SS|<reason>
+            set line [split [gets $handle] "|"]
+            if {[llength $line] == 7 && ($pattern eq "" || [string match -nocase $pattern [lindex $line 0]])} {
+                # TODO
+            }
+        }
         close $handle
     }
     return
