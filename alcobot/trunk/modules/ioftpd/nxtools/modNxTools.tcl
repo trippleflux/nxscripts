@@ -77,7 +77,7 @@ proc ::alcoholicz::NxTools::Dupe {command target user host handle channel argv} 
         CmdSendHelp $channel channel $command "you must specify a pattern"
         return
     }
-    set option(limit) [GetResultLimit $option(limit)]
+    set limit [GetResultLimit $option(limit)]
 
     if {[info exists option(section)]} {
         set section $option(section)
@@ -91,7 +91,7 @@ proc ::alcoholicz::NxTools::Dupe {command target user host handle channel argv} 
     set count 0
     if {[DbOpenFile "DupeDirs.db"]} {
         db eval "SELECT * FROM DupeDirs WHERE DirName LIKE '[SqlGetPattern $pattern]' ESCAPE '\\' \
-                $sectionQuery ORDER BY TimeStamp DESC LIMIT $option(limit)" values {
+                $sectionQuery ORDER BY TimeStamp DESC LIMIT $limit" values {
             # Retrieve the section name.
             set virtualPath [file join $values(DirPath) $values(DirName)]
             if {$sectionQuery eq "" && [set section [GetSectionFromPath $virtualPath]] eq ""} {
@@ -125,7 +125,7 @@ proc ::alcoholicz::NxTools::New {command target user host handle channel argv} {
         CmdSendHelp $channel channel $command $message
         return
     }
-    set option(limit) [GetResultLimit $option(limit)]
+    set limit [GetResultLimit $option(limit)]
 
     if {[set section [join $section]] eq ""} {
         set sectionQuery ""
@@ -143,7 +143,7 @@ proc ::alcoholicz::NxTools::New {command target user host handle channel argv} {
 
     set count 0
     if {[DbOpenFile "DupeDirs.db"]} {
-        db eval "SELECT * FROM DupeDirs $sectionQuery ORDER BY TimeStamp DESC LIMIT $option(limit)" values {
+        db eval "SELECT * FROM DupeDirs $sectionQuery ORDER BY TimeStamp DESC LIMIT $limit" values {
             # Retrieve the section name.
             set virtualPath [file join $values(DirPath) $values(DirName)]
             if {$sectionQuery eq "" && [set section [GetSectionFromPath $virtualPath]] eq ""} {
@@ -225,7 +225,7 @@ proc ::alcoholicz::NxTools::Nukes {command target user host handle channel argv}
         CmdSendHelp $channel channel $command $message
         return
     }
-    set option(limit) [GetResultLimit $option(limit)]
+    set limit [GetResultLimit $option(limit)]
 
     if {[set pattern [join $pattern]] eq ""} {
         set matchQuery ""
@@ -237,7 +237,7 @@ proc ::alcoholicz::NxTools::Nukes {command target user host handle channel argv}
     set count 0
     if {[DbOpenFile "Nukes.db"]} {
         db eval "SELECT * FROM Nukes WHERE Status=0 $matchQuery \
-                ORDER BY TimeStamp DESC LIMIT $option(limit)" values {
+                ORDER BY TimeStamp DESC LIMIT $limit" values {
             incr count
             set age [expr {[clock seconds] - $values(TimeStamp)}]
             SendTargetTheme $target nukesBody [list $values(UserName) $values(GroupName) \
@@ -264,7 +264,7 @@ proc ::alcoholicz::NxTools::NukeTop {command target user host handle channel arg
         CmdSendHelp $channel channel $command $message
         return
     }
-    set option(limit) [GetResultLimit $option(limit)]
+    set limit [GetResultLimit $option(limit)]
 
     if {[set group [join $group]] eq ""} {
         set groupQuery ""
@@ -277,7 +277,7 @@ proc ::alcoholicz::NxTools::NukeTop {command target user host handle channel arg
     if {[DbOpenFile "Nukes.db"]} {
         db eval "SELECT UserName, GroupName, count(*) AS Nuked, sum(Amount) AS Credits FROM Users \
                 WHERE $groupQuery (SELECT count(*) FROM Nukes WHERE NukeId=Users.NukeId AND Status=0) \
-                GROUP BY UserName ORDER BY Nuked DESC LIMIT $option(limit)" values {
+                GROUP BY UserName ORDER BY Nuked DESC LIMIT $limit" values {
             incr count
             SendTargetTheme $target nuketopBody [list $values(UserName) \
                 $values(GroupName) $values(Credits) $values(Nuked) $count]
@@ -302,7 +302,7 @@ proc ::alcoholicz::NxTools::Unnukes {command target user host handle channel arg
         CmdSendHelp $channel channel $command $message
         return
     }
-    set option(limit) [GetResultLimit $option(limit)]
+    set limit [GetResultLimit $option(limit)]
 
     if {[set pattern [join $pattern]] eq ""} {
         set matchQuery ""
@@ -314,7 +314,7 @@ proc ::alcoholicz::NxTools::Unnukes {command target user host handle channel arg
     set count 0
     if {[DbOpenFile "Nukes.db"]} {
         db eval "SELECT * FROM Nukes WHERE Status=1 $matchQuery \
-                ORDER BY TimeStamp DESC LIMIT $option(limit)" values {
+                ORDER BY TimeStamp DESC LIMIT $limit" values {
             incr count
             set age [expr {[clock seconds] - $values(TimeStamp)}]
             SendTargetTheme $target unnukesBody [list $values(UserName) $values(GroupName) \

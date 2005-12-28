@@ -119,7 +119,7 @@ proc ::alcoholicz::GlData::Dupe {command target user host handle channel argv} {
         CmdSendHelp $channel channel $command "you must specify a pattern"
         return
     }
-    set option(limit) [GetResultLimit $option(limit)]
+    set limit [GetResultLimit $option(limit)]
 
     if {[info exists option(section)]} {
         set section $option(section)
@@ -132,7 +132,7 @@ proc ::alcoholicz::GlData::Dupe {command target user host handle channel argv} {
 
     set count 0
     if {[StructOpen "dirlog" handle FALSE]} {
-        while {$count < $option(limit) && [StructRead $handle data]} {
+        while {$count < $limit && [StructRead $handle data]} {
             if {[binary scan $data $structFormat(dirlog) status {} timeStamp userId groupId files {} bytes release]} {
                 incr count
                 putlog "\[$count\] $userId/$groupId at $files\F, $bytes\B for $release"
@@ -161,7 +161,7 @@ proc ::alcoholicz::GlData::New {command target user host handle channel argv} {
         CmdSendHelp $channel channel $command $message
         return
     }
-    set option(limit) [GetResultLimit $option(limit)]
+    set limit [GetResultLimit $option(limit)]
 
     if {[set section [join $section]] eq ""} {
         set matchPath ""
@@ -178,7 +178,7 @@ proc ::alcoholicz::GlData::New {command target user host handle channel argv} {
 
     set count 0
     if {[StructOpen "dirlog" handle]} {
-        while {$count < $option(limit) && [StructRead $handle data]} {
+        while {$count < $limit && [StructRead $handle data]} {
             if {[binary scan $data $structFormat(dirlog) status {} timeStamp userId groupId files {} bytes release]} {
                 incr count
                 putlog "\[$count\] $userId/$groupId at $files\F, $bytes\B for $release"
@@ -237,7 +237,7 @@ proc ::alcoholicz::GlData::Nukes {command target user host handle channel argv} 
         CmdSendHelp $channel channel $command $message
         return
     }
-    set option(limit) [GetResultLimit $option(limit)]
+    set limit [GetResultLimit $option(limit)]
     set pattern [join $pattern]
     SendTargetTheme $target nukesHead
 
@@ -267,7 +267,7 @@ proc ::alcoholicz::GlData::NukeTop {command target user host handle channel argv
         CmdSendHelp $channel channel $command $message
         return
     }
-    set option(limit) [GetResultLimit $option(limit)]
+    set limit [GetResultLimit $option(limit)]
     set group [join $group]
     SendTargetTheme $target nuketopHead
 
@@ -297,7 +297,7 @@ proc ::alcoholicz::GlData::Unnukes {command target user host handle channel argv
         CmdSendHelp $channel channel $command $message
         return
     }
-    set option(limit) [GetResultLimit $option(limit)]
+    set limit [GetResultLimit $option(limit)]
     set pattern [join $pattern]
     SendTargetTheme $target unnukesHead
 
