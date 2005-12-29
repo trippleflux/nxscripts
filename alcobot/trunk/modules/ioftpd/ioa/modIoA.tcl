@@ -31,6 +31,20 @@ proc ::alcoholicz::IoA::OpenFile {filePath handleVar} {
 }
 
 ####
+# ParseTime
+#
+# Parse a time stamp value in the form of "MMDD-hh:mm".
+#
+proc ::alcoholicz::IoA::ParseTime {value} {
+    variable utcTime
+
+    foreach {date time} [split $value "-"] {break}
+    set month [string range $date 0 1]
+    set day [string range $date 2 3]
+    return [clock scan "$month/$day $time" -gmt $utcTime]
+}
+
+####
 # Nukes
 #
 # Display recent nukes, command: !nukes [-limit <num>] [pattern].
@@ -45,19 +59,40 @@ proc ::alcoholicz::IoA::Nukes {command target user host handle channel argv} {
         return
     }
     set limit [GetResultLimit $option(limit)]
+    set range [expr {$limit - 1}]
     set pattern [join $pattern]
+    SendTargetTheme $target nukesHead
 
     # Read nukes data file.
+    set data [list]
     if {[OpenFile $nukesFile handle]} {
         while {![eof $handle]} {
-            # Format: <release>|<multi>x|<amount>|<nuker>|<nukee>|MMDD-HH:SS|<reason>
+            # Format: <release>|<multi>x|<size>|<nuker>|<nukee>|<MMDD-hh:mm>|<reason>
             set line [split [gets $handle] "|"]
             if {[llength $line] == 7 && ($pattern eq "" || [string match -nocase $pattern [lindex $line 0]])} {
-                # TODO
+                set data [lrange [linsert $data 0 $line] 0 $range]
             }
         }
         close $handle
     }
+
+    # Display results.
+    if {[llength $data]} {
+        set count 0
+        foreach item $data {
+            incr count
+            foreach {release multi size nuker nukee time reason} $item {break}
+            set multi [string trimright $multi "x"]
+            set time [ParseTime $time]
+            set age [expr {[clock seconds] - $time}]
+
+            SendTargetTheme $target nukesBody [list $count \
+                $nuker $release $time $multi $reason $size $age]
+        }
+    } else {
+        SendTargetTheme $target nukesNone
+    }
+    SendTargetTheme $target nukesFoot
     return
 }
 
@@ -68,16 +103,22 @@ proc ::alcoholicz::IoA::Nukes {command target user host handle channel argv} {
 #
 proc ::alcoholicz::IoA::OneLines {command target user host handle channel argv} {
     variable onelinesFile
+    SendTargetTheme $target oneLinesHead
 
     # Read one-lines data file.
+    set count 0
     if {[OpenFile $onelinesFile handle]} {
         while {![eof $handle]} {
             if {[gets $handle line] > 1} {
-                # TODO
+                incr count
+                SendTargetTheme $target oneLinesBody [list $count $line]
             }
         }
         close $handle
     }
+
+    if {!$count} {SendTargetTheme $target oneLinesNone}
+    SendTargetTheme $target oneLinesFoot
     return
 }
 
@@ -88,16 +129,22 @@ proc ::alcoholicz::IoA::OneLines {command target user host handle channel argv} 
 #
 proc ::alcoholicz::IoA::Requests {command target user host handle channel argv} {
     variable requestsFile
+    SendTargetTheme $target requestsHead
 
     # Read requests data file.
+    set count 0
     if {[OpenFile $requestsFile handle]} {
         while {![eof $handle]} {
             if {[gets $handle line] > 1} {
-                # TODO
+                incr count
+                SendTargetTheme $target requestsBody [list $count $line]
             }
         }
         close $handle
     }
+
+    if {!$count} {SendTargetTheme $target requestsNone}
+    SendTargetTheme $target requestsFoot
     return
 }
 
@@ -121,18 +168,39 @@ proc ::alcoholicz::IoA::Search {command target user host handle channel argv} {
         return
     }
     set limit [GetResultLimit $option(limit)]
+    set range [expr {$limit - 1}]
+    SendTargetTheme $target searchHead [list $pattern]
 
     # Read search data file.
+    set data [list]
     if {[OpenFile $searchFile handle]} {
         while {![eof $handle]} {
             # Format: <time>|<path>|<release>
             set line [split [gets $handle] "|"]
             if {[llength $line] == 3 && [string match -nocase $pattern [lindex $line 2]]} {
-                # TODO
+                set data [lrange [linsert $data 0 $line] 0 $range]
             }
         }
         close $handle
     }
+
+    # Display results.
+    if {[llength $data]} {
+        set count 0
+        foreach item $data {
+            incr count
+            foreach {time path release} $item {break}
+            # Convert a 64bit FILETIME value into a UNIX epoch value.
+            set time [expr {(wide($time) - 116444736000000000) / 10000000}]
+            set age [expr {[clock seconds] - $time}]
+
+            SendTargetTheme $target searchBody [list $count \
+                [file join $path $release] $time $age]
+        }
+    } else {
+        SendTargetTheme $target searchNone [list $pattern]
+    }
+    SendTargetTheme $target searchFoot
     return
 }
 
@@ -151,19 +219,40 @@ proc ::alcoholicz::IoA::Unnukes {command target user host handle channel argv} {
         return
     }
     set limit [GetResultLimit $option(limit)]
+    set range [expr {$limit - 1}]
     set pattern [join $pattern]
+    SendTargetTheme $target unnukesHead
 
     # Read unnukes data file.
+    set data [list]
     if {[OpenFile $unnukesFile handle]} {
         while {![eof $handle]} {
-            # Format: <release>|<multi>x|<amount>|<nuker>|<nukee>|MMDD-HH:SS|<reason>
+            # Format: <release>|<multi>x|<size>|<unnuker>|<nukee>|<MMDD-hh:mm>|<reason>
             set line [split [gets $handle] "|"]
             if {[llength $line] == 7 && ($pattern eq "" || [string match -nocase $pattern [lindex $line 0]])} {
-                # TODO
+                set data [lrange [linsert $data 0 $line] 0 $range]
             }
         }
         close $handle
     }
+
+    # Display results.
+    if {[llength $data]} {
+        set count 0
+        foreach item $data {
+            incr count
+            foreach {release multi size unnuker nukee time reason} $item {break}
+            set multi [string trimright $multi "x"]
+            set time [ParseTime $time]
+            set age [expr {[clock seconds] - $time}]
+
+            SendTargetTheme $target unnukesBody [list $count \
+                $unnuker $release $time $multi $reason $size $age]
+        }
+    } else {
+        SendTargetTheme $target unnukesNone
+    }
+    SendTargetTheme $target unnukesFoot
     return
 }
 
@@ -173,6 +262,12 @@ proc ::alcoholicz::IoA::Unnukes {command target user host handle channel argv} {
 # Module initialisation procedure, called when the module is loaded.
 #
 proc ::alcoholicz::IoA::Load {firstLoad} {
+    variable utcTime
+    variable nukesFile
+    variable onelinesFile
+    variable requestsFile
+    variable searchFile
+    variable unnukesFile
     upvar ::alcoholicz::configHandle configHandle
 
     # Open ioA's configuration file.
@@ -184,17 +279,20 @@ proc ::alcoholicz::IoA::Load {firstLoad} {
     ConfigRead $ioaHandle
 
     foreach {varName section key} {
+        localTime    General Use_Local_Time_Instead_of_UTC
         nukesFile    Nuke    Nuke_Log_File
         onelinesFile Oneline Oneline_File
         requestsFile Request Request_File
         searchFile   Search  Search_Log_File
-        searchSort   Search  Search_Sort_Order
         unnukesFile  Unnuke  UnNuke_Log_File
     } {
         set value [ConfigGet $ioaHandle $section $key]
-        variable $varName [string trim $value " \t\""]
+        set $varName [string trim $value " \t\""]
     }
     ConfigClose $ioaHandle
+
+    # Check if ioA logs time stamps in UTC time.
+    set utcTime [expr {![IsTrue $localTime]}]
 
     # Create related commands.
     CmdCreate channel nukes    [namespace current]::Nukes \
