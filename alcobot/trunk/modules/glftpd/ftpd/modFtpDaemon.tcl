@@ -469,7 +469,7 @@ proc ::alcoholicz::FtpDaemon::Load {firstLoad} {
 
     # Retrieve configuration options.
     foreach option {dataPath rootPath host port user passwd secure} {
-        set $option [ConfigGet $configHandle GlFtpd $option]
+        set $option [ConfigGet $configHandle Ftpd $option]
     }
     if {![file isdirectory $dataPath]} {
         error "the directory \"$dataPath\" does not exist"

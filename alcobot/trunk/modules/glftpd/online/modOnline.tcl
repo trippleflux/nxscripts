@@ -228,7 +228,7 @@ proc ::alcoholicz::Online::Load {firstLoad} {
 
     # Retrieve configuration options.
     foreach option {rootPath shmKey version} {
-        set $option [ConfigGet $configHandle GlFtpd $option]
+        set $option [ConfigGet $configHandle Ftpd $option]
     }
     foreach option {hideUsers hideGroups hidePaths} {
         set $option [ArgsToList [ConfigGet $configHandle Module::Online $option]]

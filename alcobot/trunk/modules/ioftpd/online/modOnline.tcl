@@ -222,7 +222,7 @@ proc ::alcoholicz::Online::Load {firstLoad} {
     variable msgWindow
     upvar ::alcoholicz::configHandle configHandle
 
-    set msgWindow [ConfigGet $configHandle IoFtpd msgWindow]
+    set msgWindow [ConfigGet $configHandle Ftpd msgWindow]
     ioftpd info $msgWindow io
 
     foreach option {hideUsers hideGroups hidePaths} {

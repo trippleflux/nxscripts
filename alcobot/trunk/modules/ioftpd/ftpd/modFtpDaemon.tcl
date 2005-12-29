@@ -346,7 +346,7 @@ proc ::alcoholicz::FtpDaemon::Load {firstLoad} {
 
     # Retrieve configuration options.
     foreach option {deleteFlag msgWindow host port user passwd secure} {
-        set $option [ConfigGet $configHandle IoFtpd $option]
+        set $option [ConfigGet $configHandle Ftpd $option]
     }
     if {[string length $deleteFlag] != 1} {
         error "invalid flag \"$deleteFlag\": must be one character"

@@ -364,7 +364,7 @@ proc ::alcoholicz::GlData::Load {firstLoad} {
     }
 
     # Check defined directory paths.
-    set logsPath [file join [ConfigGet $configHandle GlFtpd dataPath] "logs"]
+    set logsPath [file join [ConfigGet $configHandle Ftpd dataPath] "logs"]
     if {![file isdirectory $logsPath]} {
         error "the directory \"$logsPath\" does not exist"
     }
