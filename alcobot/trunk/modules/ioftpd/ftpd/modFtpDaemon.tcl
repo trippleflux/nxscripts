@@ -353,7 +353,9 @@ proc ::alcoholicz::FtpDaemon::Load {firstLoad} {
     }
 
     # Locate ioFTPD's "etc" directory.
-    ioftpd info $msgWindow io
+    if {[catch {ioftpd info $msgWindow io}]} {
+        error "the message window \"$msgWindow\" does not exist"
+    }
     set etcPath [file join [file dirname [file dirname $io(path)]] "etc"]
     if {![file isdirectory $etcPath]} {
         error "the directory \"$etcPath\" does not exist"
