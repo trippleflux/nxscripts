@@ -260,7 +260,7 @@ before use. Read the following installation instructions:
   ############################################################
 
   FTPD: ioFTPD
-  Info: Announce log events and query data files used by ioA.
+  Info: Announce log events and query log files used by ioA.
   Path: modules/generic/ioa
 
   1. Add "ioa" to the module list in AlcoBot.conf.

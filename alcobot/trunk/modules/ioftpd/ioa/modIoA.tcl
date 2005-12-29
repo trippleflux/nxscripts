@@ -9,7 +9,7 @@
 #   neoxed (neoxed@gmail.com) Dec 17, 2005
 #
 # Abstract:
-#   Implements a module to interact with ioA's data files.
+#   Implements a module to interact with ioA's log files.
 #
 
 namespace eval ::alcoholicz::IoA {
@@ -19,7 +19,7 @@ namespace eval ::alcoholicz::IoA {
 ####
 # OpenFile
 #
-# Open a data file for reading.
+# Open a log file for reading.
 #
 proc ::alcoholicz::IoA::OpenFile {filePath handleVar} {
     upvar $handleVar handle
@@ -63,7 +63,7 @@ proc ::alcoholicz::IoA::Nukes {command target user host handle channel argv} {
     set pattern [join $pattern]
     SendTargetTheme $target nukesHead
 
-    # Read nukes data file.
+    # Read nukes log file.
     set data [list]
     if {[OpenFile $nukesFile handle]} {
         while {![eof $handle]} {
@@ -105,7 +105,7 @@ proc ::alcoholicz::IoA::OneLines {command target user host handle channel argv} 
     variable onelinesFile
     SendTargetTheme $target oneLinesHead
 
-    # Read one-lines data file.
+    # Read one-lines log file.
     set count 0
     if {[OpenFile $onelinesFile handle]} {
         while {![eof $handle]} {
@@ -131,7 +131,7 @@ proc ::alcoholicz::IoA::Requests {command target user host handle channel argv} 
     variable requestsFile
     SendTargetTheme $target requestsHead
 
-    # Read requests data file.
+    # Read requests log file.
     set count 0
     if {[OpenFile $requestsFile handle]} {
         while {![eof $handle]} {
@@ -171,7 +171,7 @@ proc ::alcoholicz::IoA::Search {command target user host handle channel argv} {
     set range [expr {$limit - 1}]
     SendTargetTheme $target searchHead [list $pattern]
 
-    # Read search data file.
+    # Read search log file.
     set data [list]
     if {[OpenFile $searchFile handle]} {
         while {![eof $handle]} {
@@ -223,7 +223,7 @@ proc ::alcoholicz::IoA::Unnukes {command target user host handle channel argv} {
     set pattern [join $pattern]
     SendTargetTheme $target unnukesHead
 
-    # Read unnukes data file.
+    # Read unnukes log file.
     set data [list]
     if {[OpenFile $unnukesFile handle]} {
         while {![eof $handle]} {
