@@ -48,12 +48,10 @@ AlcoBot is a modular sitebot written in Tcl for ioFTPD and glFTPD.
 
 3. Configure AlcoBot.conf to your liking. Read the comments carefully!
 
-4. Follow module specific instructions in section 3 of this manual.
-
-5. Add the following to your eggdrop.conf:
+4. Add the following line to your eggdrop.conf:
    source AlcoBot/AlcoBot.tcl
 
-6. Rehash or restart Eggdrop.
+5. Rehash or restart Eggdrop.
 
 
 ################################################################################
@@ -71,7 +69,27 @@ for AlcoBot to recognize them. Read the following installation instructions:
   Info: Site command package, written by WarC.
   URL : http://www.inicom.net/pages/en.ioftpd-scripts.php?id=5
 
-  1. Load the "ioa" module; see section 4 of this manual for more information.
+  1. Change the log options in your ioA.cfg to match the following:
+
+     [Credits]
+     Credits_Log      = ""%user" "%group" "%.3mb" "%target""
+
+     [Newdate]
+     Newdate_Log      = ""%vfs" "%area" "%desc""
+
+     [PRE]
+     Pre_Log          = ""%vfs/%release" "%user" "%group" "%type" "%.0files" "%.3mb""
+
+     [Request]
+     Request_Log      = ""%user" "%group" "%request""
+     Reqdel_Log       = ""%user" "%group" "%request""
+     Reqfilled_Log    = ""%user" "%group" "%request""
+     Request_Wipe_Log = ""%release" "%.0dirs" "%.0files" "%.3mb""
+
+     [Wipe]
+     Wipe_Log         = ""%vfs/%release" "%user" "%group" "%.0dirs" "%.0files" "%.3mb""
+
+  2. Load the "ioa" module; see section 4 of this manual for more information.
 
   ############################################################
   # iojZS                                                    #
