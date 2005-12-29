@@ -53,7 +53,7 @@ proc ::alcoholicz::TreeExists {tree key args} {
     foreach {name node} $tree {
         if {$key eq $name} {
             if {![llength $args]} {return 1}
-            return [eval TreeExists {$node} $args]
+            return [eval TreeExists [list $node] $args]
         }
     }
     return 0
@@ -116,7 +116,7 @@ proc ::alcoholicz::TreeGet {tree key args} {
     foreach {name node} $tree {
         if {$key eq $name} {
             if {![llength $args]} {return $node}
-            return [eval TreeGet {$node} $args]
+            return [eval TreeGet [list $node] $args]
         }
     }
     error "key \"$key\" not known in tree"
@@ -133,7 +133,7 @@ proc ::alcoholicz::TreeGetNaive {tree key args} {
     foreach {name node} $tree {
         if {$key eq $name} {
             if {![llength $args]} {return $node}
-            return [eval TreeGetNaive {$node} $args]
+            return [eval TreeGetNaive [list $node] $args]
         }
     }
     return {}
@@ -165,7 +165,7 @@ proc ::alcoholicz::TreeSet {treeVar key value args} {
     }
 
     if {[llength $args]} {
-        eval TreeSet node {$value} $args
+        eval TreeSet node [list $value] $args
     } else {
         set node $value
     }
