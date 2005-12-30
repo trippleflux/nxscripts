@@ -63,9 +63,7 @@ proc ::alcoholicz::Help::Command {command target user host handle channel argv} 
             SendTargetTheme $target helpBody $value
         }
     }
-
     SendTargetTheme $target helpFoot
-    return
 }
 
 ####

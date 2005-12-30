@@ -49,7 +49,6 @@ proc ::alcoholicz::ReadLogs::AddLog {logType logFile} {
     lappend logList $logCount $logType [file normalize $logFile]
 
     incr logCount
-    return
 }
 
 ####
@@ -236,8 +235,6 @@ proc ::alcoholicz::ReadLogs::Update {} {
         # Post-command scripts are only executed if the announce was successful.
         ScriptExecute post $event $destSection $pathSection $path $line
     }
-
-    return
 }
 
 ####

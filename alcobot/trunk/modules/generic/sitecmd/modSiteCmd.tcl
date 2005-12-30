@@ -37,7 +37,6 @@ proc ::alcoholicz::SiteCmd::Command {command target user host handle channel arg
     }
 
     FtpCommand $connection $name [list [namespace current]::Callback $target]
-    return
 }
 
 ####
@@ -55,7 +54,6 @@ proc ::alcoholicz::SiteCmd::Callback {target connection response} {
 
     SendTargetTheme $target siteBody [list $message]
     SendTargetTheme $target siteFoot
-    return
 }
 
 ####

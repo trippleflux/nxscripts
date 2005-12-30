@@ -70,7 +70,6 @@ proc ::alcoholicz::Free::Command {command target user host handle channel argv} 
 
         SendTargetTheme $target freeFoot [list $free $used $total $percentFree $percentUsed $count]
     }
-    return
 }
 
 ####

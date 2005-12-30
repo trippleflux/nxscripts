@@ -93,7 +93,6 @@ proc ::alcoholicz::IoA::Nukes {command target user host handle channel argv} {
         SendTargetTheme $target nukesNone
     }
     SendTargetTheme $target nukesFoot
-    return
 }
 
 ####
@@ -119,7 +118,6 @@ proc ::alcoholicz::IoA::OneLines {command target user host handle channel argv} 
 
     if {!$count} {SendTargetTheme $target oneLinesNone}
     SendTargetTheme $target oneLinesFoot
-    return
 }
 
 ####
@@ -145,7 +143,6 @@ proc ::alcoholicz::IoA::Requests {command target user host handle channel argv} 
 
     if {!$count} {SendTargetTheme $target requestsNone}
     SendTargetTheme $target requestsFoot
-    return
 }
 
 ####
@@ -201,7 +198,6 @@ proc ::alcoholicz::IoA::Search {command target user host handle channel argv} {
         SendTargetTheme $target searchNone [list $pattern]
     }
     SendTargetTheme $target searchFoot
-    return
 }
 
 ####
@@ -253,7 +249,6 @@ proc ::alcoholicz::IoA::Unnukes {command target user host handle channel argv} {
         SendTargetTheme $target unnukesNone
     }
     SendTargetTheme $target unnukesFoot
-    return
 }
 
 ####
@@ -312,8 +307,6 @@ proc ::alcoholicz::IoA::Load {firstLoad} {
     CmdCreate channel unnukes  [namespace current]::Unnukes \
         -category "Data"  -args "\[-limit <num>\] \[pattern\]" \
         -prefix   $prefix -desc "Display recent unnukes."
-
-    return
 }
 
 ####
@@ -322,5 +315,4 @@ proc ::alcoholicz::IoA::Load {firstLoad} {
 # Module finalisation procedure, called before the module is unloaded.
 #
 proc ::alcoholicz::IoA::Unload {} {
-    return
 }

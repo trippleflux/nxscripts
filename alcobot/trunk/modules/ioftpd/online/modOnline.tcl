@@ -90,7 +90,6 @@ proc ::alcoholicz::Online::Bandwidth {event command target user host handle chan
 
     SendTargetTheme $target $theme [list $speedDn $speedUp $speedTotal \
         $usersDn $usersUp $usersIdle $usersTotal]
-    return
 }
 
 ####
@@ -142,9 +141,7 @@ proc ::alcoholicz::Online::Status {event command target user host handle channel
     } else {
         LogError ModOnline $message
     }
-
     SendTargetTheme $target ${theme}Foot [list $total $users]
-    return
 }
 
 ####
@@ -207,7 +204,6 @@ proc ::alcoholicz::Online::Users {event command target user host handle channel 
     } else {
         SendTargetTheme $target ${theme}None
     }
-    return
 }
 
 ####
@@ -268,8 +264,6 @@ proc ::alcoholicz::Online::Load {firstLoad} {
 
     CmdCreate channel who   [list [namespace current]::Users WHO] \
         -category "Online" -prefix $prefix -desc "Who is online."
-
-    return
 }
 
 ####
@@ -278,5 +272,4 @@ proc ::alcoholicz::Online::Load {firstLoad} {
 # Module finalisation procedure, called before the module is unloaded.
 #
 proc ::alcoholicz::Online::Unload {} {
-    return
 }

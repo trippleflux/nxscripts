@@ -50,7 +50,6 @@ proc ::alcoholicz::FtpDaemon::FtpNotify {connection success} {
     } else {
         LogInfo "FTP connection failed - [FtpGetError $connection]"
     }
-    return
 }
 
 ####
@@ -126,7 +125,6 @@ proc ::alcoholicz::FtpDaemon::UpdateUsers {} {
         }
         close $handle
     }
-    return
 }
 
 ####
@@ -154,7 +152,6 @@ proc ::alcoholicz::FtpDaemon::UpdateGroups {} {
         }
         close $handle
     }
-    return
 }
 
 ####
@@ -490,7 +487,6 @@ proc ::alcoholicz::FtpDaemon::Load {firstLoad} {
 
     # Force a reload on all cached files.
     unset -nocomplain change
-    return
 }
 
 ####
@@ -510,5 +506,4 @@ proc ::alcoholicz::FtpDaemon::Unload {} {
         catch {killtimer $timerId}
         set timerId ""
     }
-    return
 }

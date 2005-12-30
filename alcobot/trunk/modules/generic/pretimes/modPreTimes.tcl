@@ -177,7 +177,6 @@ proc ::alcoholicz::PreTimes::Search {command target user host handle channel arg
         SendTargetTheme "PRIVMSG $channel" preNone [list $pattern]
     }
     if {$multi} {SendTargetTheme $target preFoot}
-    return
 }
 
 ####

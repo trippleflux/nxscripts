@@ -52,7 +52,6 @@ proc ::alcoholicz::Bouncer::Command {command target user host handle channel arg
 
     SendTargetTheme $target bouncerFoot [list $offline $online $unknown \
         [expr {$offline + $online + $unknown}]]
-    return
 }
 
 ####
@@ -106,7 +105,6 @@ proc ::alcoholicz::Bouncer::Notify {index connection success} {
     }
 
     FtpDisconnect $connection
-    return
 }
 
 ####

@@ -51,7 +51,6 @@ proc ::alcoholicz::FtpDaemon::FtpNotify {connection success} {
     } else {
         LogInfo "FTP connection failed - [FtpGetError $connection]"
     }
-    return
 }
 
 ####
@@ -370,7 +369,6 @@ proc ::alcoholicz::FtpDaemon::Load {firstLoad} {
     set connection [FtpOpen $host $port $user $passwd \
         -notify [namespace current]::FtpNotify -secure $secure]
     FtpConnect $connection
-    return
 }
 
 ####
@@ -390,5 +388,4 @@ proc ::alcoholicz::FtpDaemon::Unload {} {
         catch {killtimer $timerId}
         set timerId ""
     }
-    return
 }

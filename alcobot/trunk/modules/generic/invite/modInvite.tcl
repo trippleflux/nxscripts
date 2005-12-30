@@ -229,7 +229,6 @@ proc ::alcoholicz::Invite::Process {ircUser ircHost ftpUser ftpGroup ftpGroupLis
         set failed [JoinLiteral [lsort $failed]]
         SendTheme $ircUser inviteFailed [list $ftpUser $ircUser $failed]
     }
-    return
 }
 
 ####
@@ -281,7 +280,6 @@ proc ::alcoholicz::Invite::Command {command target user host handle argv} {
     } else {
         SendTheme $user inviteDbDown [list $ftpUser $user]
     }
-    return
 }
 
 ####

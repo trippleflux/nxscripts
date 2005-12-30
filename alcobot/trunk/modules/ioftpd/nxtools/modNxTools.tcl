@@ -108,7 +108,6 @@ proc ::alcoholicz::NxTools::Dupe {command target user host handle channel argv} 
 
     if {!$count} {SendTargetTheme $target dupeNone [list $pattern]}
     SendTargetTheme $target dupeFoot
-    return
 }
 
 ####
@@ -160,7 +159,6 @@ proc ::alcoholicz::NxTools::New {command target user host handle channel argv} {
 
     if {!$count} {SendTargetTheme $target newNone}
     SendTargetTheme $target newFoot
-    return
 }
 
 ####
@@ -210,7 +208,6 @@ proc ::alcoholicz::NxTools::Undupe {command target user host handle channel argv
 
     if {!$count} {SendTargetTheme $target undupeNone [list $pattern]}
     SendTargetTheme $target undupeFoot
-    return
 }
 
 ####
@@ -249,7 +246,6 @@ proc ::alcoholicz::NxTools::Nukes {command target user host handle channel argv}
 
     if {!$count} {SendTargetTheme $target nukesNone}
     SendTargetTheme $target nukesFoot
-    return
 }
 
 ####
@@ -287,7 +283,6 @@ proc ::alcoholicz::NxTools::NukeTop {command target user host handle channel arg
 
     if {!$count} {SendTargetTheme $target nuketopNone}
     SendTargetTheme $target nuketopFoot
-    return
 }
 
 ####
@@ -326,7 +321,6 @@ proc ::alcoholicz::NxTools::Unnukes {command target user host handle channel arg
 
     if {!$count} {SendTargetTheme $target unnukesNone}
     SendTargetTheme $target unnukesFoot
-    return
 }
 
 ####
@@ -350,7 +344,6 @@ proc ::alcoholicz::NxTools::Approved {command target user host handle channel ar
 
     if {!$count} {SendTargetTheme $target approveNone}
     SendTargetTheme $target approveFoot
-    return
 }
 
 ####
@@ -375,7 +368,6 @@ proc ::alcoholicz::NxTools::OneLines {command target user host handle channel ar
 
     if {!$count} {SendTargetTheme $target oneLinesNone}
     SendTargetTheme $target oneLinesFoot
-    return
 }
 
 ####
@@ -399,7 +391,6 @@ proc ::alcoholicz::NxTools::Requests {command target user host handle channel ar
 
     if {!$count} {SendTargetTheme $target requestsNone}
     SendTargetTheme $target requestsFoot
-    return
 }
 
 ####
@@ -447,7 +438,6 @@ proc ::alcoholicz::NxTools::SiteCmd {event command target user host handle chann
     } else {
         SendTargetTheme $target $theme [list "Not connected to the FTP server."]
     }
-    return
 }
 
 ####
@@ -490,7 +480,6 @@ proc ::alcoholicz::NxTools::ReadConfig {configFile} {
     }
 
     interp delete $slave
-    return
 }
 
 ####
@@ -575,8 +564,6 @@ proc ::alcoholicz::NxTools::Load {firstLoad} {
 
     CmdCreate channel onel     [namespace current]::OneLines \
         -category "General" -desc "Display recent one-lines." -prefix $prefix
-
-    return
 }
 
 ####
@@ -585,5 +572,4 @@ proc ::alcoholicz::NxTools::Load {firstLoad} {
 # Module finalisation procedure, called before the module is unloaded.
 #
 proc ::alcoholicz::NxTools::Unload {} {
-    return
 }

@@ -143,7 +143,6 @@ proc ::alcoholicz::GlData::Dupe {command target user host handle channel argv} {
 
     if {!$count} {SendTargetTheme $target dupeNone [list $pattern]}
     SendTargetTheme $target dupeFoot
-    return
 }
 
 ####
@@ -189,7 +188,6 @@ proc ::alcoholicz::GlData::New {command target user host handle channel argv} {
 
     if {!$count} {SendTargetTheme $target newNone}
     SendTargetTheme $target newFoot
-    return
 }
 
 ####
@@ -222,7 +220,6 @@ proc ::alcoholicz::GlData::Undupe {command target user host handle channel argv}
 
     if {!$count} {SendTargetTheme $target undupeNone [list $pattern]}
     SendTargetTheme $target undupeFoot
-    return
 }
 
 ####
@@ -252,7 +249,6 @@ proc ::alcoholicz::GlData::Nukes {command target user host handle channel argv} 
 
     if {!$count} {SendTargetTheme $target nukesNone}
     SendTargetTheme $target nukesFoot
-    return
 }
 
 ####
@@ -282,7 +278,6 @@ proc ::alcoholicz::GlData::NukeTop {command target user host handle channel argv
 
     if {!$count} {SendTargetTheme $target nuketopNone}
     SendTargetTheme $target nuketopFoot
-    return
 }
 
 ####
@@ -312,7 +307,6 @@ proc ::alcoholicz::GlData::Unnukes {command target user host handle channel argv
 
     if {!$count} {SendTargetTheme $target unnukesNone}
     SendTargetTheme $target unnukesFoot
-    return
 }
 
 ####
@@ -335,7 +329,6 @@ proc ::alcoholicz::GlData::OneLines {command target user host handle channel arg
 
     if {!$count} {SendTargetTheme $target oneLinesNone}
     SendTargetTheme $target oneLinesFoot
-    return
 }
 
 ####
@@ -404,8 +397,6 @@ proc ::alcoholicz::GlData::Load {firstLoad} {
     # Other commands.
     CmdCreate channel onel    [namespace current]::OneLines \
         -category "General" -desc "Display recent one-lines." -prefix $prefix
-
-    return
 }
 
 ####
@@ -414,5 +405,4 @@ proc ::alcoholicz::GlData::Load {firstLoad} {
 # Module finalisation procedure, called before the module is unloaded.
 #
 proc ::alcoholicz::GlData::Unload {} {
-    return
 }
