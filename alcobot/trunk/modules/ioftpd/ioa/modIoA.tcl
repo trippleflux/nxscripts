@@ -289,7 +289,13 @@ proc ::alcoholicz::IoA::Load {firstLoad} {
     # Check if ioA logs time stamps in UTC time.
     set utcTime [expr {![IsTrue $localTime]}]
 
-    # Create related commands.
+    # Create channel commands.
+    if {[ConfigExists $configHandle Module::IoA cmdPrefix]} {
+        set prefix [ConfigGet $configHandle Module::IoA cmdPrefix]
+    } else {
+        set prefix $::alcoholicz::cmdPrefix
+    }
+
     CmdCreate channel nukes    [namespace current]::Nukes \
         -category "Data"  -args "\[-limit <num>\] \[pattern\]" \
         -prefix   $prefix -desc "Display recent nukes."
