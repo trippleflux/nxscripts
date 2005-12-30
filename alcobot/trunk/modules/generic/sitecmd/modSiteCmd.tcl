@@ -24,7 +24,7 @@ namespace eval ::alcoholicz::SiteCmd {
 #
 proc ::alcoholicz::SiteCmd::Command {command target user host handle channel argv} {
     if {[llength $argv] < 1} {
-        CmdSendHelp $channel channel $command $message
+        CmdSendHelp $channel channel $command
         return
     }
     set name "SITE [join $argv]"
