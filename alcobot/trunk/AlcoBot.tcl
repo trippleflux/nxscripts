@@ -15,6 +15,7 @@
 namespace eval ::alcoholicz {
     variable debugMode 0
     variable ftpDaemon 0
+    variable localTime 0
     variable scriptPath [file dirname [file normalize [info script]]]
 
     namespace export b c u r o \
@@ -49,6 +50,7 @@ namespace eval ::alcoholicz {
 # configHandle  - Handle to the configuration file, valid only during init.
 # debugMode     - Boolean value to indicate if we're running in debug mode.
 # ftpDaemon     - FTP daemon identifier: 1=glFTPD and 2=ioFTPD.
+# localTime     - Format time values in local time, otherwise UTC is used.
 #
 
 interp alias {} IsTrue {} string is true -strict
@@ -1048,10 +1050,11 @@ proc ::alcoholicz::InitConfig {filePath} {
     }
     ConfigRead $configHandle
 
-    foreach option {cmdPrefix debugMode ftpDaemon siteName siteTag} {
+    foreach option {cmdPrefix debugMode localTime ftpDaemon siteName siteTag} {
         variable $option [ConfigGet $configHandle General $option]
     }
     set debugMode [IsTrue $debugMode]
+    set localTime [IsTrue $localTime]
 
     if {[catch {SetFtpDaemon $ftpDaemon} message]} {
         error "Unable to set FTP daemon: $message"

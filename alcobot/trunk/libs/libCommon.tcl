@@ -259,10 +259,12 @@ proc ::alcoholicz::SqlToLike {pattern} {
 #
 proc ::alcoholicz::FormatDate {{clockVal ""}} {
     variable format
+    variable localTime
+
     if {![string is digit -strict $clockVal]} {
         set clockVal [clock seconds]
     }
-    return [clock format $clockVal -format $format(date)]
+    return [clock format $clockVal -format $format(date) -gmt [expr {!$localTime}]]
 }
 
 ####
@@ -273,10 +275,12 @@ proc ::alcoholicz::FormatDate {{clockVal ""}} {
 #
 proc ::alcoholicz::FormatTime {{clockVal ""}} {
     variable format
+    variable localTime
+
     if {![string is digit -strict $clockVal]} {
         set clockVal [clock seconds]
     }
-    return [clock format $clockVal -format $format(time)]
+    return [clock format $clockVal -format $format(time) -gmt [expr {!$localTime}]]
 }
 
 ####
