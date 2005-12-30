@@ -159,6 +159,7 @@ proc ::nxTools::Pre::UpdateLinks {virtualPath} {
     set linkCount [LinkDb eval {SELECT count(*) FROM Links WHERE LinkType=1}]
     if {$linkCount > $latest(PreLinks)} {
         set linkCount [expr {$linkCount - $latest(PreLinks)}]
+        # The link type for pre tags is "1".
         LinkDb eval "SELECT DirName,rowid FROM Links WHERE LinkType=1 ORDER BY TimeStamp ASC LIMIT $linkCount" values {
             RemoveTag [file join $latest(SymPath) $values(DirName)]
             LinkDb eval {DELETE FROM Links WHERE rowid=$values(rowid)}

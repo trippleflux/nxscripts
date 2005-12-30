@@ -337,6 +337,7 @@ proc ::nxTools::Dupe::RaceLinks {virtualPath} {
     set linkCount [LinkDb eval {SELECT count(*) FROM Links WHERE LinkType=0}]
     if {$linkCount > $latest(RaceLinks)} {
         set linkCount [expr {$linkCount - $latest(RaceLinks)}]
+        # The link type for pre tags is "0".
         LinkDb eval "SELECT DirName,rowid FROM Links WHERE LinkType=0 ORDER BY TimeStamp ASC LIMIT $linkCount" values {
             RemoveTag [file join $latest(SymPath) $values(DirName)]
             LinkDb eval {DELETE FROM Links WHERE rowid=$values(rowid)}
