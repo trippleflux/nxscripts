@@ -227,7 +227,6 @@ proc ::alcoholicz::Online::Load {firstLoad} {
         set $option [ArgsToList [ConfigGet $configHandle Module::Online $option]]
     }
 
-    # Create related commands.
     if {[ConfigExists $configHandle Module::Online cmdPrefix]} {
         set prefix [ConfigGet $configHandle Module::Online cmdPrefix]
     } else {

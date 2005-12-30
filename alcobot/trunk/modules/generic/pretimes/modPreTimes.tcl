@@ -214,7 +214,6 @@ proc ::alcoholicz::PreTimes::Load {firstLoad} {
         ScriptUnregister pre NEWDIR [namespace current]::LogEvent
     }
 
-    # Create channel commands.
     if {[IsTrue $searchPres]} {
         if {[ConfigExists $configHandle Module::PreTimes cmdPrefix]} {
             set prefix [ConfigGet $configHandle Module::PreTimes cmdPrefix]

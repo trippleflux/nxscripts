@@ -143,7 +143,7 @@ proc ::alcoholicz::Bouncer::Load {firstLoad} {
     }
     if {!$index} {error "no bouncers defined"}
 
-    # Create related commands.
+    # Create channel command.
     if {[ConfigExists $configHandle Module::Bouncer cmdPrefix]} {
         set prefix [ConfigGet $configHandle Module::Bouncer cmdPrefix]
     } else {

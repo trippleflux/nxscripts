@@ -187,7 +187,6 @@ proc ::alcoholicz::Groups::Load {firstLoad} {
         ConfigChange $groupsHandle -path $groupsFile
     }
 
-    # Create related commands.
     if {[ConfigExists $configHandle Module::Groups cmdPrefix]} {
         set prefix [ConfigGet $configHandle Module::Groups cmdPrefix]
     } else {
