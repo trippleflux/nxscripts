@@ -265,7 +265,8 @@ before use. Read the following installation instructions:
 
   1. Add "ioa" to the module list in AlcoBot.conf.
   2. Configure the [Module::IoA] section in AlcoBot.conf.
-  3. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
+  3. Edit the theme entries for use with ioA, see "variables.txt" for a list of cookies.
+  4. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
 
   ############################################################
   # nxtools                                                  #
