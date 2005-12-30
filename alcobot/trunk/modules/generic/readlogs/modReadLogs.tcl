@@ -324,7 +324,6 @@ proc ::alcoholicz::ReadLogs::Load {firstLoad} {
         set timerId [utimer 1 [namespace current]::Timer]
     }
     LogInfo "Monitoring $logCount log file(s)."
-    return
 }
 
 ####
@@ -339,5 +338,4 @@ proc ::alcoholicz::ReadLogs::Unload {} {
         catch {killutimer $timerId}
         set timerId ""
     }
-    return
 }

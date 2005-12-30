@@ -161,7 +161,6 @@ proc ::alcoholicz::Bouncer::Load {firstLoad} {
     if {$firstLoad} {
         set timerId [timer 1 [namespace current]::CheckTimer]
     }
-    return
 }
 
 ####
@@ -181,5 +180,4 @@ proc ::alcoholicz::Bouncer::Unload {} {
         catch {killtimer $timerId}
         set timerId ""
     }
-    return
 }

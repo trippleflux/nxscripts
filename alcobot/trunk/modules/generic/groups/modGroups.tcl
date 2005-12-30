@@ -217,8 +217,6 @@ proc ::alcoholicz::Groups::Load {firstLoad} {
     CmdCreate channel delban   [list [namespace current]::ChangeBanned DEL] \
         -category "Admin" -args "<section> <group>" \
         -prefix   $prefix -desc "Remove a banned group."
-
-    return
 }
 
 ####
@@ -231,5 +229,4 @@ proc ::alcoholicz::Groups::Unload {} {
     if {[info exists groupsHandle]} {
         ConfigClose $groupsHandle
     }
-    return
 }

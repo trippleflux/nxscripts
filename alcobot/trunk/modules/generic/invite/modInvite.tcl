@@ -464,7 +464,6 @@ proc ::alcoholicz::Invite::Load {firstLoad} {
         catch {db disconnect}
     }
     DbConnect
-    return
 }
 
 ####
@@ -485,5 +484,4 @@ proc ::alcoholicz::Invite::Unload {} {
     ScriptUnregister pre PURGED  [namespace current]::LogEvent
 
     catch {db disconnect}
-    return
 }

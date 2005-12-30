@@ -22,7 +22,6 @@ namespace eval ::alcoholicz::Sample {
 # Module initialisation procedure, called when the module is loaded.
 #
 proc ::alcoholicz::Sample::Load {firstLoad} {
-    return
 }
 
 ####
@@ -31,5 +30,4 @@ proc ::alcoholicz::Sample::Load {firstLoad} {
 # Module finalisation procedure, called before the module is unloaded.
 #
 proc ::alcoholicz::Sample::Unload {} {
-    return
 }

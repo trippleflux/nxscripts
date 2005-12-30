@@ -233,7 +233,6 @@ proc ::alcoholicz::PreTimes::Load {firstLoad} {
         catch {db disconnect}
     }
     DbConnect
-    return
 }
 
 ####
@@ -248,5 +247,4 @@ proc ::alcoholicz::PreTimes::Unload {} {
     ScriptUnregister pre NEWDIR  [namespace current]::LogEvent
 
     catch {db disconnect}
-    return
 }

@@ -169,7 +169,6 @@ proc ::siteInvite::SetIrcUser {ftpUser ircUser} {
     if {![db "UPDATE invite_users SET irc_user='$ircUser' WHERE ftp_user='$ftpUser'"]} {
         catch {db "INSERT INTO invite_users(ftp_user,irc_user) VALUES('$ftpUser','$ircUser')"}
     }
-    return
 }
 
 ####
@@ -185,7 +184,6 @@ proc ::siteInvite::SetPassword {ftpUser password} {
     if {![db "UPDATE invite_users SET password='$hash' WHERE ftp_user='$ftpUser'"]} {
         catch {db "INSERT INTO invite_users(ftp_user,password) VALUES('$ftpUser','$hash')"}
     }
-    return
 }
 
 ####

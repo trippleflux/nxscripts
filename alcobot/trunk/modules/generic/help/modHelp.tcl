@@ -76,7 +76,6 @@ proc ::alcoholicz::Help::Command {command target user host handle channel argv} 
 proc ::alcoholicz::Help::Load {firstLoad} {
     CmdCreate channel help [namespace current]::Command -category "General" \
         -desc "Display a command list." -args "\[category\] \[category\] ..."
-    return
 }
 
 ####
@@ -85,5 +84,4 @@ proc ::alcoholicz::Help::Load {firstLoad} {
 # Module finalisation procedure, called before the module is unloaded.
 #
 proc ::alcoholicz::Help::Unload {} {
-    return
 }

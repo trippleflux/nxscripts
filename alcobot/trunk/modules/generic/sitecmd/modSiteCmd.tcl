@@ -75,8 +75,6 @@ proc ::alcoholicz::SiteCmd::Load {firstLoad} {
     CmdCreate channel site [namespace current]::Command \
         -category "Admin" -args "<command>" \
         -prefix   $prefix -desc "Issue a SITE command."
-
-    return
 }
 
 ####
@@ -85,5 +83,4 @@ proc ::alcoholicz::SiteCmd::Load {firstLoad} {
 # Module finalisation procedure, called before the module is unloaded.
 #
 proc ::alcoholicz::SiteCmd::Unload {} {
-    return
 }

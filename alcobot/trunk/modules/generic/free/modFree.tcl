@@ -90,8 +90,6 @@ proc ::alcoholicz::Free::Load {firstLoad} {
     CmdCreate channel free [namespace current]::Command \
         -aliases "df"       -args "\[section\]" \
         -category "General" -desc "Display free disk space."
-
-    return
 }
 
 ####
@@ -100,5 +98,4 @@ proc ::alcoholicz::Free::Load {firstLoad} {
 # Module finalisation procedure, called before the module is unloaded.
 #
 proc ::alcoholicz::Free::Unload {} {
-    return
 }
