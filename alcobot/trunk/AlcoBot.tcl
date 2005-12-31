@@ -1115,9 +1115,8 @@ proc ::alcoholicz::InitLibraries {rootPath} {
         lappend auto_path $libPath
     }
 
-    if {[catch {package require tls 1.5} message]} {
-        LogError Libraries "SSL supported disabled: $message"
-    }
+    # The TLS extension is optional, but AlcoExt is required.
+    catch {package require tls 1.5}
     package require AlcoExt 0.3
     return
 }
