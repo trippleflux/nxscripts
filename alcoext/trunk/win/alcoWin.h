@@ -40,6 +40,19 @@ Abstract:
 #define STRSAFE_NO_CB_FUNCTIONS
 #include <strsafe.h>
 
+#if (_MSC_VER == 1400)
+//
+// The compiler in VS2005 (VC8.0) appears to generate defective code for the
+// GetOnlineFields() function in "alcoWinIoFtpd.c"; VS2003 (VC7.1) is recommended.
+//
+// When compiled with VS2005, that particular function gets caught in an
+// infinite loop due to strange return values from ShmQuery(). However, when
+// compiled with VS2003 the function works flawlessly. It may be a bug on my
+// part, but until I know for certain, I recommend using VS2003.
+//
+#error "Due to bugs in the VS2005 compiler it is not supported, use VS2003 instead."
+#endif
+
 #ifndef inline
 #   if (_MSC_VER >= 1200)
 #       define inline __forceinline
