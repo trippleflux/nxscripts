@@ -428,8 +428,6 @@ ShmAlloc(
             // Initialise data-copy message structure.
             message->hEvent       = event;
             message->hObject      = NULL;
-            message->dwIdentifier = 0;
-            message->dwReturn     = 0;
             message->lpMemoryBase = (void *)message;
             message->lpContext    = &message[1];
 
@@ -551,6 +549,7 @@ ShmQuery(
     assert(session != NULL);
     assert(memory  != NULL);
 
+    memory->message->dwReturn     = (DWORD)-1;
     memory->message->dwIdentifier = queryType;
     PostMessage(session->messageWnd, WM_SHMEM, 0, (LPARAM)memory->remote);
 
