@@ -59,13 +59,14 @@ proc ::alcoholicz::IoA::Nukes {command target user host handle channel argv} {
         return
     }
     set limit [GetResultLimit $option(limit)]
-    set range [expr {$limit - 1}]
     set pattern [join $pattern]
     SendTargetTheme $target nukesHead
 
     # Read nukes log file.
     set data [list]
-    if {[OpenFile $nukesFile handle]} {
+    if {$limit > 0 && [OpenFile $nukesFile handle]} {
+        set range [expr {$limit - 1}]
+
         while {![eof $handle]} {
             # Format: <release>|<multi>x|<size>|<nuker>|<nukee>|<MMDD-hh:mm>|<reason>
             set line [split [gets $handle] "|"]
@@ -165,12 +166,13 @@ proc ::alcoholicz::IoA::Search {command target user host handle channel argv} {
         return
     }
     set limit [GetResultLimit $option(limit)]
-    set range [expr {$limit - 1}]
     SendTargetTheme $target searchHead [list $pattern]
 
     # Read search log file.
     set data [list]
-    if {[OpenFile $searchFile handle]} {
+    if {$limit > 0 && [OpenFile $searchFile handle]} {
+        set range [expr {$limit - 1}]
+
         while {![eof $handle]} {
             # Format: <time>|<path>|<release>
             set line [split [gets $handle] "|"]
@@ -215,13 +217,14 @@ proc ::alcoholicz::IoA::Unnukes {command target user host handle channel argv} {
         return
     }
     set limit [GetResultLimit $option(limit)]
-    set range [expr {$limit - 1}]
     set pattern [join $pattern]
     SendTargetTheme $target unnukesHead
 
     # Read unnukes log file.
     set data [list]
-    if {[OpenFile $unnukesFile handle]} {
+    if {$limit > 0 && [OpenFile $unnukesFile handle]} {
+        set range [expr {$limit - 1}]
+
         while {![eof $handle]} {
             # Format: <release>|<multi>x|<size>|<unnuker>|<nukee>|<MMDD-hh:mm>|<reason>
             set line [split [gets $handle] "|"]
