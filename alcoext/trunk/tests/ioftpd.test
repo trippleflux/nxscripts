@@ -12,6 +12,9 @@
 #   ioFTPD interface test suite.
 #
 
+# ioFTPD test settings.
+set msgWindow "ioFTPD::MessageWindow"
+
 package require tcltest 2
 namespace import -force ::tcltest::*
 
@@ -27,9 +30,6 @@ set libFile [lindex [glob -dir [file dirname $currentPath] -types f $libFile] 0]
 load $libFile
 
 namespace import -force ::alcoholicz::*
-
-# ioFTPD settings (box specific).
-set msgWindow "ioFTPD::MessageWindow"
 
 # Check if the message window exists.
 if {[catch {ioftpd info $msgWindow io}]} {
