@@ -54,8 +54,13 @@ proc ::alcoholicz::GlData::StructOpen {name handleVar {backwards 1}} {
     set handle [OpenBinaryFile $name]
     if {$handle eq ""} {return 0}
 
+    # Set the file access pointer to the end if we are reading
+    # the file backwards (newer entries are at the end).
+    if {[set backwards [IsTrue $backwards]]} {
+        seek $handle 0 end
+    }
+
     # Format: backwards structName structLength
-    set backwards [IsTrue $backwards]
     set structHandles($handle) [list $backwards $name $structLength($name)]
     return 1
 }
