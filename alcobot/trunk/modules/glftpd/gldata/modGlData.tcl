@@ -54,14 +54,8 @@ proc ::alcoholicz::GlData::StructOpen {name handleVar {backwards 1}} {
     set handle [OpenBinaryFile $name]
     if {$handle eq ""} {return 0}
 
-    # Set the file access pointer to the end if we are reading
-    # the file backwards (newer entries are at the end).
-    set backwards [IsTrue $backwards]
-    if {$backwards} {
-        seek $handle -$structLength($name) end
-    }
-
     # Format: backwards structName structLength
+    set backwards [IsTrue $backwards]
     set structHandles($handle) [list $backwards $name $structLength($name)]
     return 1
 }
@@ -76,13 +70,16 @@ proc ::alcoholicz::GlData::StructRead {handle dataVar} {
     upvar $dataVar data
     foreach {backwards structName structLength} $structHandles($handle) {break}
 
+    if {$backwards && [catch {seek $handle -$structLength current}]} {
+        # We've reached the beginning of the file.
+        return 0
+    }
     set data [read $handle $structLength]
     if {[string length $data] != $structLength} {
         return 0
     }
     if {$backwards} {
-        # Move two entries back.
-        seek $handle [expr {$structLength * -2}] current
+        seek $handle -$structLength current
     }
     return 1
 }
@@ -131,7 +128,7 @@ proc ::alcoholicz::GlData::Dupe {command target user host handle channel argv} {
     SendTargetTheme $target dupeHead [list $pattern]
 
     set count 0
-    if {[StructOpen "dirlog" handle FALSE]} {
+    if {[StructOpen "dirlog" handle 0]} {
         while {$count < $limit && [StructRead $handle data]} {
             if {[binary scan $data $structFormat(dirlog) status {} timeStamp userId groupId files {} bytes release]} {
                 incr count
