@@ -47,8 +47,8 @@ proc ::alcoholicz::Free::Command {command target user host handle channel argv} 
         if {[catch {volume info $volume info} message]} {
             LogError ModFree $message; continue
         }
-        set percentFree [expr {(double($info(free)) / double($info(total))) * 100}]
-        set percentUsed [expr {(double($info(used)) / double($info(total))) * 100}]
+        set percentFree [expr {(double($info(free)) / double($info(total))) * 100.0}]
+        set percentUsed [expr {(double($info(used)) / double($info(total))) * 100.0}]
 
         SendTargetTheme $target freeBody [list $info(free) $info(used) $info(total) \
             $percentFree $percentUsed [join $sections]]
@@ -62,8 +62,8 @@ proc ::alcoholicz::Free::Command {command target user host handle channel argv} 
 
     if {!$argc} {
         if {$total} {
-            set percentFree [expr {(double($free) / double($total)) * 100}]
-            set percentUsed [expr {(double($used) / double($total)) * 100}]
+            set percentFree [expr {(double($free) / double($total)) * 100.0}]
+            set percentUsed [expr {(double($used) / double($total)) * 100.0}]
         } else {
             set percentFree 0.0; set percentUsed 0.0
         }
