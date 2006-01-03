@@ -8,7 +8,7 @@
 
 Length: 288 bytes
 Format: ssisssswA255
-Values: status dummy timeStamp userId groupId files dummy bytes release
+Values: status dummy time userId groupId files dummy bytes path
 
 AA00BBBBCCDDEE00FFFFFFFFGGGGGGGGGGGGGGGGGGGGGGGGGG
 GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG
@@ -23,7 +23,7 @@ GGGGGGGGGGGGGGGGGGGGGGGGGGGGG0HHHHIIII
 
 Length: 288 bytes
 Format: A256iA25
-Values: fileName timeStamp userName
+Values: file time user
 
 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
@@ -38,7 +38,7 @@ AAAAAABBBBCCCCCCCCCCCCCCCCCCCCCCCCC000
 
 Length: 376 bytes
 Format: ssiA12A12A12ssfA60A255
-Values: status dummy timeStamp nuker unnuker nukee multi dummy bytes reason release
+Values: status dummy time nuker unnuker nukee multi dummy bytes reason path
 
 AA00BBBBCCCCCCCCCCCCDDDDDDDDDDDDEEEEEEEEEEEEFF00GG
 GGHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
@@ -55,7 +55,7 @@ IIIIIIIIIIIIIIIII0JJJJKKKK
 
 Length: 216 bytes
 Format: A24A24A64iA100
-Values: userName groupName tagline timeStamp message
+Values: user group tagline time message
 
 AAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBCC
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
