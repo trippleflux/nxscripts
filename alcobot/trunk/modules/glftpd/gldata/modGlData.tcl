@@ -162,7 +162,7 @@ proc ::alcoholicz::GlData::Dupe {command target user host handle channel argv} {
 ####
 # New
 #
-# Display recent releases, command: !new [-limit <num>].
+# Display recent releases, command: !new [-limit <num>] [pattern].
 #
 proc ::alcoholicz::GlData::New {command target user host handle channel argv} {
     variable structFormat
@@ -180,9 +180,21 @@ proc ::alcoholicz::GlData::New {command target user host handle channel argv} {
     set count 0
     if {[StructOpen "dirlog" handle]} {
         while {$count < $limit && [StructRead $handle data]} {
-            if {[binary scan $data $structFormat(dirlog) status {} timeStamp userId groupId files {} bytes release]} {
-                incr count
-                putlog "\[$count\] $userId/$groupId at $files\F, $bytes\B for $release"
+            if {[binary scan $data $structFormat(dirlog) status {} time userId groupId files {} bytes path]} {
+                # Status Values:
+                # 0 = NEWDIR
+                # 1 = NUKE
+                # 2 = UNNUKE
+                # 3 = DELETED
+                if {$status == 0 && ($pattern eq "" || [string match $pattern [file tail $path]])} {
+                    incr count
+                    set age [expr {[clock seconds] - $time}]
+                    set user [UserIdToName $userId]
+                    set group [GroupIdToName $groupId]
+
+                    SendTargetTheme $target newBody [list $count \
+                        $user $group $path $time $age $files $bytes]
+                }
             }
         }
         StructClose $handle
@@ -214,11 +226,18 @@ proc ::alcoholicz::GlData::Search {command target user host handle channel argv}
     SendTargetTheme $target searchHead [list $pattern]
 
     set count 0
-    if {[StructOpen "dirlog" handle 0]} {
+    if {[StructOpen "dirlog" handle]} {
         while {$count < $limit && [StructRead $handle data]} {
-            if {[binary scan $data $structFormat(dirlog) status {} timeStamp userId groupId files {} bytes release]} {
-                incr count
-                putlog "\[$count\] $userId/$groupId at $files\F, $bytes\B for $release"
+            if {[binary scan $data $structFormat(dirlog) status {} time userId groupId files {} bytes path]} {
+                if {[string match $pattern [file tail $path]]} {
+                    incr count
+                    set age [expr {[clock seconds] - $time}]
+                    set user [UserIdToName $userId]
+                    set group [GroupIdToName $groupId]
+
+                    SendTargetTheme $target newBody [list $count \
+                        $user $group $path $time $age $files $bytes]
+                }
             }
         }
         StructClose $handle
