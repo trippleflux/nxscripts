@@ -106,7 +106,7 @@ proc ::alcoholicz::GlData::StructClose {handle} {
 # Search the dupelog for a release, command: !dupe [-limit <num>] <pattern>.
 #
 proc ::alcoholicz::GlData::Dupe {command target user host handle channel argv} {
-    variable structFormat
+    variable logsPath
 
     # Parse command options.
     set option(limit) -1
@@ -122,23 +122,40 @@ proc ::alcoholicz::GlData::Dupe {command target user host handle channel argv} {
     SendTargetTheme $target dupeHead [list $pattern]
 
     set data [list]
-    if {![catch {set handle [open $dupeLog r]} message]} {
+    if {![catch {set handle [open [file join $logsPath "dupelog"] r]} message]} {
         set range [expr {$limit - 1}]
 
         while {![eof $handle]} {
             # Every line in the dupelog file should be at least eight
             # characters (timestamp is 6 characters, a space, and a path).
             if {[gets $handle line] < 8} {continue}
-            set path [string range $line 7 end]
+            set release [string range $line 7 end]
 
-            if {[string match -nocase $pattern [file tail $path]]} {
+            if {[string match -nocase $pattern $release]} {
                 set data [lrange [linsert $data 0 $line] 0 $range]
             }
         }
         close $handle
+    } else {
+        LogError ModGlData $message
     }
 
-    if {!$count} {SendTargetTheme $target dupeNone [list $pattern]}
+    # Display results.
+    if {[llength $data]} {
+        set count 0
+        foreach item $data {
+            incr count
+            set month [string range $item 0 1]
+            set day   [string range $item 2 3]
+            set year  [string range $item 4 5]
+            set time  [clock scan "$month/$day/$year"]
+            set release [string range $item 7 end]
+
+            SendTargetTheme $target dupeBody [list $count $release $time]
+        }
+    } else {
+        SendTargetTheme $target dupeNone [list $pattern]
+    }
     SendTargetTheme $target dupeFoot
 }
 
