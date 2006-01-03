@@ -103,17 +103,14 @@ proc ::alcoholicz::GlData::StructClose {handle} {
 ####
 # Dupe
 #
-# Search for a release, command: !dupe [-limit <num>] [-section <name>] <pattern>.
+# Search the dupelog for a release, command: !dupe [-limit <num>] <pattern>.
 #
 proc ::alcoholicz::GlData::Dupe {command target user host handle channel argv} {
     variable structFormat
-    upvar ::alcoholicz::pathSections pathSections
 
     # Parse command options.
     set option(limit) -1
-    set optList [list {limit integer} [list section arg [lsort [array names pathSections]]]]
-
-    if {[catch {set pattern [GetOptions $argv $optList option]} message]} {
+    if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
         CmdSendHelp $channel channel $command $message
         return
     }
@@ -122,25 +119,23 @@ proc ::alcoholicz::GlData::Dupe {command target user host handle channel argv} {
         return
     }
     set limit [GetResultLimit $option(limit)]
-
-    if {[info exists option(section)]} {
-        set section $option(section)
-        set matchPath [lindex $pathSections($section) 0]
-    } else {
-        set section ""
-        set matchPath ""
-    }
     SendTargetTheme $target dupeHead [list $pattern]
 
-    set count 0
-    if {[StructOpen "dirlog" handle 0]} {
-        while {$count < $limit && [StructRead $handle data]} {
-            if {[binary scan $data $structFormat(dirlog) status {} timeStamp userId groupId files {} bytes release]} {
-                incr count
-                putlog "\[$count\] $userId/$groupId at $files\F, $bytes\B for $release"
+    set data [list]
+    if {![catch {set handle [open $dupeLog r]} message]} {
+        set range [expr {$limit - 1}]
+
+        while {![eof $handle]} {
+            # Every line in the dupelog file should be at least eight
+            # characters (timestamp is 6 characters, a space, and a path).
+            if {[gets $handle line] < 8} {continue}
+            set path [string range $line 7 end]
+
+            if {[string match -nocase $pattern [file tail $path]]} {
+                set data [lrange [linsert $data 0 $line] 0 $range]
             }
         }
-        StructClose $handle
+        close $handle
     }
 
     if {!$count} {SendTargetTheme $target dupeNone [list $pattern]}
@@ -150,31 +145,19 @@ proc ::alcoholicz::GlData::Dupe {command target user host handle channel argv} {
 ####
 # New
 #
-# Display recent releases, command: !new [-limit <num>] [section].
+# Display recent releases, command: !new [-limit <num>].
 #
 proc ::alcoholicz::GlData::New {command target user host handle channel argv} {
     variable structFormat
-    upvar ::alcoholicz::pathSections pathSections
 
     # Parse command options.
     set option(limit) -1
-    if {[catch {set section [GetOptions $argv {{limit integer}} option]} message]} {
+    if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
         CmdSendHelp $channel channel $command $message
         return
     }
     set limit [GetResultLimit $option(limit)]
-
-    if {[set section [join $section]] eq ""} {
-        set matchPath ""
-    } else {
-        # Validate the specified section name.
-        set names [lsort [array names pathSections]]
-        if {[catch {set section [GetElementFromList $names $section section]} message]} {
-            CmdSendHelp $channel channel $command $message
-            return
-        }
-        set matchPath [lindex $pathSections($section) 0]
-    }
+    set pattern [join $pattern]
     SendTargetTheme $target newHead
 
     set count 0
@@ -193,35 +176,39 @@ proc ::alcoholicz::GlData::New {command target user host handle channel argv} {
 }
 
 ####
-# Undupe
+# Search
 #
-# Remove a file or directory from the dupe database, command: !undupe [-directory] <pattern>.
+# Search the dirlog for a release, command: !search [-limit <num>] <pattern>.
 #
-proc ::alcoholicz::GlData::Undupe {command target user host handle channel argv} {
-    variable undupeChars
+proc ::alcoholicz::GlData::Search {command target user host handle channel argv} {
+    variable structFormat
 
     # Parse command options.
-    if {[set pattern [join $argv]] eq ""} {
+    set option(limit) -1
+    if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
+        CmdSendHelp $channel channel $command $message
+        return
+    }
+    if {[set pattern [join $pattern]] eq ""} {
         CmdSendHelp $channel channel $command "you must specify a pattern"
         return
     }
-    if {[regexp -- {[\*\?]} $pattern] && [regexp -all -- {[[:alnum:]]} $pattern] < $undupeChars} {
-        CmdSendHelp $channel channel $command "you must specify at least $undupeChars alphanumeric chars with wildcards"
-        return
-    }
-    SendTargetTheme $target undupeHead [list $pattern]
+    set limit [GetResultLimit $option(limit)]
+    SendTargetTheme $target searchHead [list $pattern]
 
     set count 0
-    if {[set handle [OpenFile "dupefile"]] ne ""} {
-        # TODO:
-        # - Read log file.
-        # - Parse binary data with "binary scan".
-        # - Output data.
-        close $handle
+    if {[StructOpen "dirlog" handle 0]} {
+        while {$count < $limit && [StructRead $handle data]} {
+            if {[binary scan $data $structFormat(dirlog) status {} timeStamp userId groupId files {} bytes release]} {
+                incr count
+                putlog "\[$count\] $userId/$groupId at $files\F, $bytes\B for $release"
+            }
+        }
+        StructClose $handle
     }
 
-    if {!$count} {SendTargetTheme $target undupeNone [list $pattern]}
-    SendTargetTheme $target undupeFoot
+    if {!$count} {SendTargetTheme $target searchNone [list $pattern]}
+    SendTargetTheme $target searchFoot
 }
 
 ####
@@ -251,35 +238,6 @@ proc ::alcoholicz::GlData::Nukes {command target user host handle channel argv} 
 
     if {!$count} {SendTargetTheme $target nukesNone}
     SendTargetTheme $target nukesFoot
-}
-
-####
-# NukeTop
-#
-# Display top nuked users, command: !nukes [-limit <num>] [group].
-#
-proc ::alcoholicz::GlData::NukeTop {command target user host handle channel argv} {
-    # Parse command options.
-    set option(limit) -1
-    if {[catch {set group [GetOptions $argv {{limit integer}} option]} message]} {
-        CmdSendHelp $channel channel $command $message
-        return
-    }
-    set limit [GetResultLimit $option(limit)]
-    set group [join $group]
-    SendTargetTheme $target nuketopHead
-
-    set count 0
-    if {[set handle [OpenFile "nukelog"]] ne ""} {
-        # TODO:
-        # - Read log file.
-        # - Parse binary data with "binary scan".
-        # - Output data.
-        close $handle
-    }
-
-    if {!$count} {SendTargetTheme $target nuketopNone}
-    SendTargetTheme $target nuketopFoot
 }
 
 ####
@@ -372,25 +330,21 @@ proc ::alcoholicz::GlData::Load {firstLoad} {
 
     # Directory commands.
     CmdCreate channel dupe   [namespace current]::Dupe \
-        -category "Data"  -args "\[-limit <num>\] \[-section <name>\] <pattern>" \
-        -prefix   $prefix -desc "Search for a release."
+        -category "Data"  -args "\[-limit <num>\] <pattern>" \
+        -prefix   $prefix -desc "Search the dupe database for a release."
 
     CmdCreate channel new    [namespace current]::New \
-        -category "Data"  -args "\[-limit <num>\] \[section\]" \
+        -category "Data"  -args "\[-limit <num>\] \[pattern\]" \
         -prefix   $prefix -desc "Display new releases."
 
-    CmdCreate channel undupe [namespace current]::Undupe \
-        -category "Data"  -args "\[-directory\] <pattern>" \
-        -prefix   $prefix -desc "Undupe files and directories."
+    CmdCreate channel search [namespace current]::Search \
+        -category "Data"  -args "\[-limit <num>\] <pattern>" \
+        -prefix   $prefix -desc "Search the site for a release."
 
     # Nuke commands.
     CmdCreate channel nukes   [namespace current]::Nukes \
         -category "Data"  -args "\[-limit <num>\] \[pattern\]" \
         -prefix   $prefix -desc "Display recent nukes."
-
-    CmdCreate channel nuketop [namespace current]::NukeTop \
-        -category "Data"  -args "\[-limit <num>\] \[group\]" \
-        -prefix   $prefix -desc "Display top nuked users."
 
     CmdCreate channel unnukes [namespace current]::Unnukes \
         -category "Data"  -args "\[-limit <num>\] \[pattern\]" \
