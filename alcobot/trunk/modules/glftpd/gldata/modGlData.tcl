@@ -28,13 +28,12 @@ namespace eval ::alcoholicz::GlData {
 #
 proc ::alcoholicz::GlData::OpenBinaryFile {name {mode "r"}} {
     variable logsPath
-    set filePath [file join $logsPath $name]
 
     # Ugly hack to deal with the inconsistencies in glFTPD.
     if {$name eq "oneliners"} {
         append name ".log"
     }
-
+    set filePath [file join $logsPath $name]
     if {[catch {set handle [open $filePath $mode]} message]} {
         LogError ModGlData $message
         return ""
