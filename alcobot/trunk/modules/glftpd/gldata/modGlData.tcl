@@ -272,7 +272,10 @@ proc ::alcoholicz::GlData::Nukes {command target user host handle channel argv} 
                 # 1 = UNNUKED
                 if {$status == 0 && ($pattern eq "" || [string match -nocase $pattern [file tail $path]])} {
                     incr count
-                    # TODO
+                    set age [expr {[clock seconds] - $time}]
+
+                    SendTargetTheme $target nukesBody [list $count \
+                        $nuker $path $time $age $multi $reason $files $bytes]
                 }
             }
         }
@@ -308,7 +311,10 @@ proc ::alcoholicz::GlData::Unnukes {command target user host handle channel argv
                 # 1 = UNNUKED
                 if {$status == 1 && ($pattern eq "" || [string match -nocase $pattern [file tail $path]])} {
                     incr count
-                    # TODO
+                    set age [expr {[clock seconds] - $time}]
+
+                    SendTargetTheme $target unnukesBody [list $count \
+                        $unnuker $path $time $age $multi $reason $files $bytes]
                 }
             }
         }
@@ -338,7 +344,11 @@ proc ::alcoholicz::GlData::OneLines {command target user host handle channel arg
     if {[StructOpen "oneliner" handle]} {
         while {$count < $limit && [StructRead $handle data]} {
             if {[binary scan $data $structFormat(oneliner) user group tagline time message]} {
-                # TODO
+                incr count
+                set age [expr {[clock seconds] - $time}]
+
+                SendTargetTheme $target oneLinesBody [list $count \
+                    $user $group $message $time $age]
             }
         }
         StructClose $handle
