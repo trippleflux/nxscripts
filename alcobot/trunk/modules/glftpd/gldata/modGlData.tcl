@@ -186,7 +186,7 @@ proc ::alcoholicz::GlData::New {command target user host handle channel argv} {
                 # 1 = NUKE
                 # 2 = UNNUKE
                 # 3 = DELETED
-                if {$status == 0 && ($pattern eq "" || [string match $pattern [file tail $path]])} {
+                if {$status == 0 && ($pattern eq "" || [string match -nocase $pattern [file tail $path]])} {
                     incr count
                     set age [expr {[clock seconds] - $time}]
                     set user [UserIdToName $userId]
@@ -229,7 +229,7 @@ proc ::alcoholicz::GlData::Search {command target user host handle channel argv}
     if {[StructOpen "dirlog" handle]} {
         while {$count < $limit && [StructRead $handle data]} {
             if {[binary scan $data $structFormat(dirlog) status {} time userId groupId files {} bytes path]} {
-                if {[string match $pattern [file tail $path]]} {
+                if {[string match -nocase $pattern [file tail $path]]} {
                     incr count
                     set age [expr {[clock seconds] - $time}]
                     set user [UserIdToName $userId]
@@ -264,12 +264,19 @@ proc ::alcoholicz::GlData::Nukes {command target user host handle channel argv} 
     SendTargetTheme $target nukesHead
 
     set count 0
-    if {[set handle [OpenFile "nukelog"]] ne ""} {
-        # TODO:
-        # - Read log file.
-        # - Parse binary data with "binary scan".
-        # - Output data.
-        close $handle
+    if {[StructOpen "nukelog" handle]} {
+        while {$count < $limit && [StructRead $handle data]} {
+            if {[binary scan $data $structFormat(nukelog) status {} time nuker unnuker nukee multi {} bytes reason path]} {
+                # Status Values:
+                # 0 = NUKED
+                # 1 = UNNUKED
+                if {$status == 0 && ($pattern eq "" || [string match -nocase $pattern [file tail $path]])} {
+                    incr count
+                    # TODO
+                }
+            }
+        }
+        StructClose $handle
     }
 
     if {!$count} {SendTargetTheme $target nukesNone}
@@ -293,12 +300,19 @@ proc ::alcoholicz::GlData::Unnukes {command target user host handle channel argv
     SendTargetTheme $target unnukesHead
 
     set count 0
-    if {[set handle [OpenFile "nukelog"]] ne ""} {
-        # TODO:
-        # - Read log file.
-        # - Parse binary data with "binary scan".
-        # - Output data.
-        close $handle
+    if {[StructOpen "nukelog" handle]} {
+        while {$count < $limit && [StructRead $handle data]} {
+            if {[binary scan $data $structFormat(nukelog) status {} time nuker unnuker nukee multi {} bytes reason path]} {
+                # Status Values:
+                # 0 = NUKED
+                # 1 = UNNUKED
+                if {$status == 1 && ($pattern eq "" || [string match -nocase $pattern [file tail $path]])} {
+                    incr count
+                    # TODO
+                }
+            }
+        }
+        StructClose $handle
     }
 
     if {!$count} {SendTargetTheme $target unnukesNone}
@@ -308,19 +322,26 @@ proc ::alcoholicz::GlData::Unnukes {command target user host handle channel argv
 ####
 # OneLines
 #
-# Display recent one-lines, command: !onel.
+# Display recent one-lines, command: !onel [-limit <num>].
 #
 proc ::alcoholicz::GlData::OneLines {command target user host handle channel argv} {
-    variable oneLines
+    # Parse command options.
+    set option(limit) -1
+    if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
+        CmdSendHelp $channel channel $command $message
+        return
+    }
+    set limit [GetResultLimit $option(limit)]
     SendTargetTheme $target oneLinesHead
 
     set count 0
-    if {[set handle [OpenFile "oneliner"]] ne ""} {
-        # TODO:
-        # - Read log file.
-        # - Parse binary data with "binary scan".
-        # - Output data.
-        close $handle
+    if {[StructOpen "oneliner" handle]} {
+        while {$count < $limit && [StructRead $handle data]} {
+            if {[binary scan $data $structFormat(oneliner) user group tagline time message]} {
+                # TODO
+            }
+        }
+        StructClose $handle
     }
 
     if {!$count} {SendTargetTheme $target oneLinesNone}
@@ -388,7 +409,8 @@ proc ::alcoholicz::GlData::Load {firstLoad} {
 
     # Other commands.
     CmdCreate channel onel    [namespace current]::OneLines \
-        -category "General" -desc "Display recent one-lines." -prefix $prefix
+        -category "General" -args "\[-limit <num>\]" \
+        -prefix   $prefix   -desc "Display recent one-lines."
 }
 
 ####
