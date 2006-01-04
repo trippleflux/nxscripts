@@ -99,25 +99,43 @@ proc ::alcoholicz::IoA::Nukes {command target user host handle channel argv} {
 ####
 # OneLines
 #
-# Display recent one-lines, command: !onel.
+# Display recent one-lines, command: !onel [-limit <num>].
 #
 proc ::alcoholicz::IoA::OneLines {command target user host handle channel argv} {
     variable onelinesFile
+
+    # Parse command options.
+    set option(limit) -1
+    if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
+        CmdSendHelp $channel channel $command $message
+        return
+    }
+    set limit [GetResultLimit $option(limit)]
     SendTargetTheme $target oneLinesHead
 
     # Read one-lines log file.
-    set count 0
-    if {[OpenFile $onelinesFile handle]} {
+    set data [list]
+    if {$limit > 0 && [OpenFile $onelinesFile handle]} {
+        set range [expr {$limit - 1}]
+
         while {![eof $handle]} {
             if {[gets $handle line] > 1} {
-                incr count
-                SendTargetTheme $target oneLinesBody [list $count $line]
+                set data [lrange [linsert $data 0 $line] 0 $range]
             }
         }
         close $handle
     }
 
-    if {!$count} {SendTargetTheme $target oneLinesNone}
+    # Display results.
+    if {[llength $data]} {
+        set count 0
+        foreach item $data {
+            incr count
+            SendTargetTheme $target oneLinesBody [list $count $item]
+        }
+    } else {
+        SendTargetTheme $target oneLinesNone
+    }
     SendTargetTheme $target oneLinesFoot
 }
 
@@ -304,7 +322,8 @@ proc ::alcoholicz::IoA::Load {firstLoad} {
         -prefix   $prefix -desc "Display recent nukes."
 
     CmdCreate channel onel     [namespace current]::OneLines \
-        -category "General" -desc "Display recent one-lines." -prefix $prefix
+        -category "General" -args "\[-limit <num>\]" \
+        -prefix   $prefix   -desc "Display recent one-lines."
 
     CmdCreate channel requests [namespace current]::Requests \
         -category "General" -desc "Display current requests." -prefix $prefix
