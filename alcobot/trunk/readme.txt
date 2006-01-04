@@ -218,6 +218,18 @@ before use. Read the following installation instructions:
   3. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
 
   ############################################################
+  # gldata                                                   #
+  ############################################################
+
+  FTPD: glFTPD
+  Info: Query data files used by glFTPD.
+  Path: modules/glftpd/gldata
+
+  1. Add "gldata" to the module list in AlcoBot.conf.
+  2. Configure the [Module::GlData] section in AlcoBot.conf.
+  3. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
+
+  ############################################################
   # groups                                                   #
   ############################################################
 
