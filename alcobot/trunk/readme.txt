@@ -69,7 +69,7 @@ for AlcoBot to recognize them. Read the following installation instructions:
   Info: Site command package, written by WarC.
   URL : http://www.inicom.net/pages/en.ioftpd-scripts.php?id=5
 
-  1. Change the log options in your ioA.cfg to match the following:
+  1. Change the options below match the ones in your ioA.cfg file.
 
      [Credits]
      Credits_Log      = ""%user" "%group" "%.3mb" "%target""
@@ -85,6 +85,9 @@ for AlcoBot to recognize them. Read the following installation instructions:
      Reqdel_Log       = ""%user" "%group" "%request""
      Reqfilled_Log    = ""%user" "%group" "%request""
      Request_Wipe_Log = ""%release" "%.0dirs" "%.0files" "%.3mb""
+
+     [Search]
+     Search_Using_Log = 1
 
      [Wipe]
      Wipe_Log         = ""%vfs/%release" "%user" "%group" "%.0dirs" "%.0files" "%.3mb""
