@@ -253,6 +253,8 @@ proc ::alcoholicz::GlData::Search {command target user host handle channel argv}
 # Display recent nukes, command: !nukes [-limit <num>] [pattern].
 #
 proc ::alcoholicz::GlData::Nukes {command target user host handle channel argv} {
+    variable structFormat
+
     # Parse command options.
     set option(limit) -1
     if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
@@ -292,6 +294,8 @@ proc ::alcoholicz::GlData::Nukes {command target user host handle channel argv} 
 # Display recent unnukes, command: !unnukes [-limit <num>] [pattern].
 #
 proc ::alcoholicz::GlData::Unnukes {command target user host handle channel argv} {
+    variable structFormat
+
     # Parse command options.
     set option(limit) -1
     if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
@@ -331,6 +335,8 @@ proc ::alcoholicz::GlData::Unnukes {command target user host handle channel argv
 # Display recent one-lines, command: !onel [-limit <num>].
 #
 proc ::alcoholicz::GlData::OneLines {command target user host handle channel argv} {
+    variable structFormat
+
     # Parse command options.
     set option(limit) -1
     if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
