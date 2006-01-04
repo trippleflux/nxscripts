@@ -207,6 +207,37 @@ freeHead       = [b][[c1]Free[c]][b] Total Space:
 freeBody       = [b][[c1]Free[c]][b] %(sections): %(free) free of %(total)
 freeFoot       = [b][[c1]Free[c]][b] TOTAL: %(free) free of %(total)
 
+# Module: gldata
+dupeHead       = [b]Dupe:[b]
+dupeBody       = [%02(num)] %(releaseDate) - [b]%(releaseName)[b]
+dupeNone       = No releases found matching "%(pattern)".
+dupeFoot       =
+
+newHead        = [b]New Releases:[b]
+newBody        = [%02(num)] [b]%(releaseName)[b] by [b]%(user)[b]/%(group) (%(size)/[b]%(files)[b]F/%(age)).
+newNone        = No releases found.
+newFoot        =
+
+searchHead     = [b]Search:[b]
+searchBody     = [%02(num)] %(releaseDate) - [b]%(releaseName)[b] by [b]%(user)[b]/%(group) (%(size)/[b]%(files)[b]F/%(age)).
+searchNone     = No releases found matching "%(pattern)".
+searchFoot     =
+
+nukesHead      = [b]Nukes:[b]
+nukesBody      = [%02(num)] [b]%(releaseName)[b] nuked [b]%(multi)x[b] by [b]%(user)[b] for [b]%(reason)[b].
+nukesNone      = No releases found.
+nukesFoot      =
+
+unnukesHead    = [b]Unnukes:[b]
+unnukesBody    = [%02(num)] [b]%(releaseName)[b] unnuked [b]%(multi)x[b] by [b]%(user)[b]) for [b]%(reason)[b].
+unnukesNone    = No releases found.
+unnukesFoot    =
+
+oneLinesHead   = [b]One Lines:[b]
+oneLinesBody   = [%(messageDate)] [b]%(message)[b] by [b]%(user)[b]/%(group).
+oneLinesNone   = No messages found.
+oneLinesFoot   =
+
 # Module: groups
 affilsHead     = [b]Affiliated Groups:[b]
 affilsBody     = [b][[c1]%(section)[c]][b] %(groups)

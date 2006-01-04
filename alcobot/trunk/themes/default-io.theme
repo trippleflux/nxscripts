@@ -215,7 +215,7 @@ approveBody    = [%02(num)] [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
 approveNone    = No releases found.
 approveFoot    =
 
-dupeHead       = [b]Search:[b]
+dupeHead       = [b]Dupe:[b]
 dupeBody       = [%02(num)] %(releaseDate) - [b]%(releaseName)[b] by [b]%(user)[b]/%(group).
 dupeNone       = No releases found matching "%(pattern)".
 dupeFoot       =
