@@ -29,6 +29,12 @@ namespace eval ::alcoholicz::GlData {
 proc ::alcoholicz::GlData::OpenBinaryFile {name {mode "r"}} {
     variable logsPath
     set filePath [file join $logsPath $name]
+
+    # Ugly hack to deal with the inconsistencies in glFTPD.
+    if {$name eq "oneliners"} {
+        append name ".log"
+    }
+
     if {[catch {set handle [open $filePath $mode]} message]} {
         LogError ModGlData $message
         return ""
@@ -347,9 +353,9 @@ proc ::alcoholicz::GlData::OneLines {command target user host handle channel arg
     SendTargetTheme $target oneLinesHead
 
     set count 0
-    if {[StructOpen "oneliner" handle]} {
+    if {[StructOpen "oneliners" handle]} {
         while {$count < $limit && [StructRead $handle data]} {
-            if {[binary scan $data $structFormat(oneliner) user group tagline time message]} {
+            if {[binary scan $data $structFormat(oneliners) user group tagline time message]} {
                 incr count
                 set age [expr {[clock seconds] - $time}]
 
@@ -377,16 +383,16 @@ proc ::alcoholicz::GlData::Load {firstLoad} {
 
     # For 32-bit little endian systems.
     array set structFormat {
-        dirlog   ssisssswA255
-        dupefile A256iA25
-        nukelog  ssiA12A12A12ssfA60A255
-        oneliner A24A24A64iA100
+        dirlog    ssisssswA255
+        dupefile  A256iA25
+        nukelog   ssiA12A12A12ssfA60A255
+        oneliners A24A24A64iA100
     }
     array set structLength {
-        dirlog   288
-        dupefile 288
-        nukelog  376
-        oneliner 216
+        dirlog    288
+        dupefile  288
+        nukelog   376
+        oneliners 216
     }
 
     # Check defined directory paths.

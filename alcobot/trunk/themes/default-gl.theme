@@ -229,7 +229,7 @@ nukesNone      = No releases found.
 nukesFoot      =
 
 unnukesHead    = [b]Unnukes:[b]
-unnukesBody    = [%02(num)] [b]%(releaseName)[b] unnuked [b]%(multi)x[b] by [b]%(user)[b]) for [b]%(reason)[b].
+unnukesBody    = [%02(num)] [b]%(releaseName)[b] unnuked [b]%(multi)x[b] by [b]%(user)[b] for [b]%(reason)[b].
 unnukesNone    = No releases found.
 unnukesFoot    =
 
