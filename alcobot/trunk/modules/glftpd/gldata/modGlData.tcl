@@ -277,7 +277,7 @@ proc ::alcoholicz::GlData::Nukes {command target user host handle channel argv} 
                     set age [expr {[clock seconds] - $time}]
 
                     SendTargetTheme $target nukesBody [list $count \
-                        $nuker $path $time $age $multi $reason $files $bytes]
+                        $nuker $path $time $age $multi $reason $bytes]
                 }
             }
         }
@@ -318,7 +318,7 @@ proc ::alcoholicz::GlData::Unnukes {command target user host handle channel argv
                     set age [expr {[clock seconds] - $time}]
 
                     SendTargetTheme $target unnukesBody [list $count \
-                        $unnuker $path $time $age $multi $reason $files $bytes]
+                        $unnuker $path $time $age $multi $reason $bytes]
                 }
             }
         }
