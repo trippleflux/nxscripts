@@ -69,7 +69,7 @@ for AlcoBot to recognize them. Read the following installation instructions:
   Info: Site command package, written by WarC.
   URL : http://www.inicom.net/pages/en.ioftpd-scripts.php?id=5
 
-  1. Change the options below match the ones in your ioA.cfg file.
+  1. Change the options in your ioA.cfg file to match the following:
 
      [Credits]
      Credits_Log      = ""%user" "%group" "%.3mb" "%target""
@@ -179,8 +179,8 @@ for AlcoBot to recognize them. Read the following installation instructions:
   URL : http://www.pzs-ng.com
 
   1. Recompile PZS-NG using the provided constants.h file.
-     cp -f other/constants.h ~/project-zs-ng/src/zipscript/
-     cd ~/project-zs-ng
+     cp -f AlcoBot/other/constants.h project-zs-ng/src/zipscript/
+     cd project-zs-ng
      make clean install
   2. Add "pzs-ng.vars" to varFiles, under [General], in AlcoBot.conf.
   3. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
