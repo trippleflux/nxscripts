@@ -463,7 +463,7 @@ proc ::alcoholicz::FtpDaemon::NukeEvent {event destSection pathSection path data
 
     # Before: path nuker multi reason nukee1 nukee2 ...
     # After : path nuker multi reason {nukee1 nukee2 ...}
-    set nukees [lrange $data 4 end]
+    set nukees [join [lrange $data 4 end]]
     set data [lreplace $data 4 end $nukees]
 
     SendSectionTheme $destSection $event $data
