@@ -20,9 +20,6 @@
 static unsigned long rng_nix(unsigned char *buf, unsigned long len,
                              void (*callback)(void))
 {
-#ifdef LTC_NO_FILE
-    return 0;
-#else
     FILE *f;
     unsigned long x;
 #ifdef TRY_URANDOM_FIRST
@@ -44,47 +41,9 @@ static unsigned long rng_nix(unsigned char *buf, unsigned long len,
     x = (unsigned long)fread(buf, 1, (size_t)len, f);
     fclose(f);
     return x;
-#endif /* LTC_NO_FILE */
 }
 
 #endif /* DEVRANDOM */
-
-/* on ANSI C platforms with 100 < CLOCKS_PER_SEC < 10000 */
-#if defined(CLOCKS_PER_SEC)
-
-#define ANSI_RNG
-
-static unsigned long rng_ansic(unsigned char *buf, unsigned long len,
-                               void (*callback)(void))
-{
-   clock_t t1;
-   int l, acc, bits, a, b;
-
-   if (XCLOCKS_PER_SEC < 100 || XCLOCKS_PER_SEC > 10000) {
-      return 0;
-   }
-
-   l = len;
-   bits = 8;
-   acc  = a = b = 0;
-   while (len--) {
-       if (callback != NULL) callback();
-       while (bits--) {
-          do {
-             t1 = XCLOCK(); while (t1 == XCLOCK()) a ^= 1;
-             t1 = XCLOCK(); while (t1 == XCLOCK()) b ^= 1;
-          } while (a == b);
-          acc = (acc << 1) | a;
-       }
-       *buf++ = acc;
-       acc  = 0;
-       bits = 8;
-   }
-   acc = bits = a = b = 0;
-   return l;
-}
-
-#endif
 
 /* Try the Microsoft CSP */
 #ifdef WIN32
@@ -132,9 +91,6 @@ unsigned long rng_get_bytes(unsigned char *out, unsigned long outlen,
 #endif
 #ifdef WIN32
    x = rng_win32(out, outlen, callback); if (x != 0) { return x; }
-#endif
-#ifdef ANSI_RNG
-   x = rng_ansic(out, outlen, callback); if (x != 0) { return x; }
 #endif
    return 0;
 }
