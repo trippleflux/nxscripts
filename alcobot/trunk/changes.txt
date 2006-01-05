@@ -12,10 +12,10 @@ AlcoBot v0.7.0 (not released):
   CHG: Renamed "latest" and "search" themes to "new" and "dupe", respectively.
   CHG: Renamed the "GlFtpd" and "IoFtpd" configuration sections to "Ftpd".
   CHG: Renamed the "ips" array element to "hosts" for the UserInfo function.
-  FIX: Corrected grammatical errors in command descriptions (patch by iwi).
-  FIX: Corrected inconsistencies in the time duration functions (patch by iwi).
-  FIX: Corrected the display of nukees in NUKE and UNNUKE log events for glFTPD.
   FIX: Declare namespace variables before checking their existence.
+  FIX: Grammatical errors in command descriptions (patch by iwi).
+  FIX: Inconsistencies in the time duration functions (patch by iwi).
+  FIX: Nukees were not displayed properly on NUKE and UNNUKE log events for glFTPD.
   FIX: The invite module passed the wrong number of arguments to ScriptUnregister (patch by iwi).
 
 AlcoBot v0.6.0 (Oct 23, 2005):
