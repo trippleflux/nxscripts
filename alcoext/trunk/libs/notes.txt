@@ -29,6 +29,9 @@ procedures for inclusion with AlcoExt.
 
 5) Commit the changed files.
 
+Diff Command:
+
+svn diff http://svn.alcoholicz.com/trunk/ext/libs/tomcrypt/@506 http://svn.alcoholicz.com/ext/trunk/libs/tomcrypt/
 
 ############################################################
 # Zlib                                                     #
