@@ -13,9 +13,11 @@
 #
 
 namespace eval ::alcoholicz::GlData {
-    variable logsPath
-    if {![info exists logsPath]} {
-        set logsPath ""
+    if {![info exists [namespace current]::logsPath]} {
+        variable logsPath ""
+        variable tempPath ""
+        variable undupeChars 5
+        variable undupeWild 0
     }
     namespace import -force ::alcoholicz::*
     namespace import -force ::alcoholicz::FtpDaemon::*
@@ -26,14 +28,9 @@ namespace eval ::alcoholicz::GlData {
 #
 # Opens a binary file located in glFTPD's log directory.
 #
-proc ::alcoholicz::GlData::OpenBinaryFile {name {mode "r"}} {
+proc ::alcoholicz::GlData::OpenBinaryFile {fileName {mode "r"}} {
     variable logsPath
-
-    # Ugly hack to deal with the inconsistencies in glFTPD.
-    if {$name eq "oneliners"} {
-        append name ".log"
-    }
-    set filePath [file join $logsPath $name]
+    set filePath [file join $logsPath $fileName]
     if {[catch {set handle [open $filePath $mode]} message]} {
         LogError ModGlData $message
         return ""
@@ -47,16 +44,17 @@ proc ::alcoholicz::GlData::OpenBinaryFile {name {mode "r"}} {
 #
 # Opens glFTPD binary structure file for reading.
 #
-proc ::alcoholicz::GlData::StructOpen {name handleVar {backwards 1}} {
+proc ::alcoholicz::GlData::StructOpen {fileName handleVar {backwards 1}} {
     variable structHandles
     variable structLength
     upvar $handleVar handle
 
     # Sanity check.
+    set name [file rootname $fileName]
     if {![info exists structLength($name)]} {
         error "invalid structure name \"$name\""
     }
-    set handle [OpenBinaryFile $name]
+    set handle [OpenBinaryFile $fileName]
     if {$handle eq ""} {return 0}
 
     # Set the file access pointer to the end if we are reading
@@ -253,6 +251,54 @@ proc ::alcoholicz::GlData::Search {command target user host handle channel argv}
 }
 
 ####
+# Undupe
+#
+# Remove a file the dupefile log, command: !undupe <pattern>.
+#
+proc ::alcoholicz::GlData::Undupe {command target user host handle channel argv} {
+    variable tempPath
+    variable undupeChars
+    variable undupeWild
+
+    # Parse command options.
+    if {[set pattern [join $pattern]] eq ""} {
+        CmdSendHelp $channel channel $command "you must specify a pattern"
+        return
+    }
+    if {[string first "?" $pattern] != -1 || [string first "*" $pattern] != -1 } {
+        if {!$undupeWild} {
+            CmdSendHelp $channel channel $command "wildcards are not allowed"
+            return
+        }
+        if {[regexp -all -- {[[:alnum:]]} $pattern] < $undupeChars} {
+            CmdSendHelp $channel channel $command "you must specify at least $undupeChars alphanumeric chars with wildcards"
+            return
+        }
+    }
+    SendTargetTheme $target undupeHead [list $pattern]
+
+    set count 0
+    if {[StructOpen "dupefile" handle]} {
+        # TODO:
+        # - Open a temp file for writing.
+        # - Write non-matching items to the temp file.
+        # - Set removed to true if there are files removed.
+        # - Replace file with temp if there are changes, e.g.:
+        #
+        # if {$removed} {
+        #   file rename -force /tmp/dupefile /glftpd/ftp-data/logs/dupefile
+        # } else {
+        #   file delete /tmp/dupefile
+        # }
+        #
+        StructClose $handle
+    }
+
+    if {!$count} {SendTargetTheme $target undupeNone [list $pattern]}
+    SendTargetTheme $target undupeFoot
+}
+
+####
 # Nukes
 #
 # Display recent nukes, command: !nukes [-limit <num>] [pattern].
@@ -352,7 +398,7 @@ proc ::alcoholicz::GlData::OneLines {command target user host handle channel arg
     SendTargetTheme $target oneLinesHead
 
     set count 0
-    if {[StructOpen "oneliners" handle]} {
+    if {[StructOpen "oneliners.log" handle]} {
         while {$count < $limit && [StructRead $handle data]} {
             if {[binary scan $data $structFormat(oneliners) user group tagline time message]} {
                 incr count
@@ -376,6 +422,9 @@ proc ::alcoholicz::GlData::OneLines {command target user host handle channel arg
 #
 proc ::alcoholicz::GlData::Load {firstLoad} {
     variable logsPath
+    variable tempPath
+    variable undupeChars
+    variable undupeWild
     variable structFormat
     variable structLength
     upvar ::alcoholicz::configHandle configHandle
@@ -394,7 +443,15 @@ proc ::alcoholicz::GlData::Load {firstLoad} {
         oneliners 216
     }
 
-    # Check defined directory paths.
+    # Retrieve configuration options.
+    foreach option {tempPath undupeChars undupeWild} {
+        set $option [ConfigGet $configHandle Module::GlData $option]
+    }
+    if {![file isdirectory $tempPath]} {
+        error "the directory \"$tempPath\" does not exist"
+    }
+    set undupeWild [IsTrue $undupeWild]
+
     set logsPath [file join [ConfigGet $configHandle Ftpd dataPath] "logs"]
     if {![file isdirectory $logsPath]} {
         error "the directory \"$logsPath\" does not exist"
@@ -418,6 +475,10 @@ proc ::alcoholicz::GlData::Load {firstLoad} {
     CmdCreate channel search [namespace current]::Search \
         -category "Data"  -args "\[-limit <num>\] <pattern>" \
         -prefix   $prefix -desc "Search the site for a release."
+
+    CmdCreate channel undupe [namespace current]::Undupe \
+        -category "Data"  -args "<pattern>" \
+        -prefix   $prefix -desc "Undupe files and directories."
 
     # Nuke commands.
     CmdCreate channel nukes   [namespace current]::Nukes \
