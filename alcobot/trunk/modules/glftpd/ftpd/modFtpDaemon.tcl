@@ -67,8 +67,7 @@ proc ::alcoholicz::FtpDaemon::FtpTimer {} {
         if {[FtpGetStatus $connection] == 2} {
             FtpCommand $connection "NOOP"
         } else {
-            set message [FtpGetError $connection]
-            LogError FtpServer "FTP handle not connected ($message), attemping to reconnect."
+            LogError FtpServer "FTP handle not connected, attemping to reconnect."
             FtpConnect $connection
         }
     } message]} {
