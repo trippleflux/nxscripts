@@ -465,7 +465,7 @@ proc ::alcoholicz::FtpDaemon::Load {firstLoad} {
     upvar ::alcoholicz::configHandle configHandle
 
     # Retrieve configuration options.
-    foreach option {dataPath rootPath host port user passwd secure} {
+    foreach option {dataPath rootPath host port user passwd secure version} {
         set $option [ConfigGet $configHandle Ftpd $option]
     }
     if {![file isdirectory $dataPath]} {
@@ -473,6 +473,9 @@ proc ::alcoholicz::FtpDaemon::Load {firstLoad} {
     }
     if {![file isdirectory $rootPath]} {
         error "the directory \"$rootPath\" does not exist"
+    }
+    if {[package vcompare $version 2.0] == -1} {
+        error "you must be using glFTPD v2.0 or later"
     }
 
     # Open a connection to the FTP server.
