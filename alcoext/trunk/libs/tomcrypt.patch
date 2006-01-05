@@ -1,7 +1,7 @@
-Index: tomcrypt/tomcrypt_cfg.h
+Index: tomcrypt_cfg.h
 ===================================================================
---- tomcrypt/tomcrypt_cfg.h	(revision 505)
-+++ tomcrypt/tomcrypt_cfg.h	(working copy)
+--- tomcrypt_cfg.h	(.../trunk/ext/libs/tomcrypt)	(revision 507)
++++ tomcrypt_cfg.h	(.../ext/trunk/libs/tomcrypt)	(revision 599)
 @@ -7,28 +7,6 @@
  #ifndef TOMCRYPT_CFG_H
  #define TOMCRYPT_CFG_H
@@ -31,10 +31,10 @@ Index: tomcrypt/tomcrypt_cfg.h
  /* Controls endianess and size of registers.  Leave uncommented to get platform neutral [slower] code
   *
   * Note: in order to use the optimized macros your platform must support unaligned 32 and 64 bit read/writes.
-Index: tomcrypt/error_to_string.c
+Index: error_to_string.c
 ===================================================================
---- tomcrypt/error_to_string.c	(revision 505)
-+++ tomcrypt/error_to_string.c	(working copy)
+--- error_to_string.c	(.../trunk/ext/libs/tomcrypt)	(revision 507)
++++ error_to_string.c	(.../ext/trunk/libs/tomcrypt)	(revision 599)
 @@ -18,40 +18,40 @@
  
  static const char *err_2_str[] =
@@ -110,10 +110,10 @@ Index: tomcrypt/error_to_string.c
     } else {
        return err_2_str[err];
     }
-Index: tomcrypt/tomcrypt_mac.h
+Index: tomcrypt_mac.h
 ===================================================================
---- tomcrypt/tomcrypt_mac.h	(revision 505)
-+++ tomcrypt/tomcrypt_mac.h	(working copy)
+--- tomcrypt_mac.h	(.../trunk/ext/libs/tomcrypt)	(revision 507)
++++ tomcrypt_mac.h	(.../ext/trunk/libs/tomcrypt)	(revision 599)
 @@ -286,14 +286,15 @@
      int           buflen;
  } pelican_state;
@@ -134,10 +134,10 @@ Index: tomcrypt/tomcrypt_mac.h
  
  #endif
  
-Index: tomcrypt/cast5.c
+Index: cast5.c
 ===================================================================
---- tomcrypt/cast5.c	(revision 505)
-+++ tomcrypt/cast5.c	(working copy)
+--- cast5.c	(.../trunk/ext/libs/tomcrypt)	(revision 507)
++++ cast5.c	(.../ext/trunk/libs/tomcrypt)	(revision 599)
 @@ -499,6 +499,7 @@
  }
  #endif
@@ -146,10 +146,83 @@ Index: tomcrypt/cast5.c
  #ifdef _MSC_VER
     #define INLINE __inline
  #else
-Index: tomcrypt/pelican.c
+Index: rng_get_bytes.c
 ===================================================================
---- tomcrypt/pelican.c	(revision 505)
-+++ tomcrypt/pelican.c	(working copy)
+--- rng_get_bytes.c	(.../trunk/ext/libs/tomcrypt)	(revision 507)
++++ rng_get_bytes.c	(.../ext/trunk/libs/tomcrypt)	(revision 599)
+@@ -20,9 +20,6 @@
+ static unsigned long rng_nix(unsigned char *buf, unsigned long len,
+                              void (*callback)(void))
+ {
+-#ifdef LTC_NO_FILE
+-    return 0;
+-#else
+     FILE *f;
+     unsigned long x;
+ #ifdef TRY_URANDOM_FIRST
+@@ -44,48 +41,10 @@
+     x = (unsigned long)fread(buf, 1, (size_t)len, f);
+     fclose(f);
+     return x;
+-#endif /* LTC_NO_FILE */
+ }
+ 
+ #endif /* DEVRANDOM */
+ 
+-/* on ANSI C platforms with 100 < CLOCKS_PER_SEC < 10000 */
+-#if defined(CLOCKS_PER_SEC)
+-
+-#define ANSI_RNG
+-
+-static unsigned long rng_ansic(unsigned char *buf, unsigned long len,
+-                               void (*callback)(void))
+-{
+-   clock_t t1;
+-   int l, acc, bits, a, b;
+-
+-   if (XCLOCKS_PER_SEC < 100 || XCLOCKS_PER_SEC > 10000) {
+-      return 0;
+-   }
+-
+-   l = len;
+-   bits = 8;
+-   acc  = a = b = 0;
+-   while (len--) {
+-       if (callback != NULL) callback();
+-       while (bits--) {
+-          do {
+-             t1 = XCLOCK(); while (t1 == XCLOCK()) a ^= 1;
+-             t1 = XCLOCK(); while (t1 == XCLOCK()) b ^= 1;
+-          } while (a == b);
+-          acc = (acc << 1) | a;
+-       }
+-       *buf++ = acc;
+-       acc  = 0;
+-       bits = 8;
+-   }
+-   acc = bits = a = b = 0;
+-   return l;
+-}
+-
+-#endif
+-
+ /* Try the Microsoft CSP */
+ #ifdef WIN32
+ #define _WIN32_WINNT 0x0400
+@@ -133,9 +92,6 @@
+ #ifdef WIN32
+    x = rng_win32(out, outlen, callback); if (x != 0) { return x; }
+ #endif
+-#ifdef ANSI_RNG
+-   x = rng_ansic(out, outlen, callback); if (x != 0) { return x; }
+-#endif
+    return 0;
+ }
+ 
+Index: pelican.c
+===================================================================
+--- pelican.c	(.../trunk/ext/libs/tomcrypt)	(revision 507)
++++ pelican.c	(.../ext/trunk/libs/tomcrypt)	(revision 599)
 @@ -18,23 +18,30 @@
  #ifdef PELICAN
  
@@ -208,10 +281,10 @@ Index: tomcrypt/pelican.c
     return CRYPT_OK;
  }
  
-Index: tomcrypt/tomcrypt.h
+Index: tomcrypt.h
 ===================================================================
---- tomcrypt/tomcrypt.h	(revision 505)
-+++ tomcrypt/tomcrypt.h	(working copy)
+--- tomcrypt.h	(.../trunk/ext/libs/tomcrypt)	(revision 507)
++++ tomcrypt.h	(.../ext/trunk/libs/tomcrypt)	(revision 599)
 @@ -33,6 +33,7 @@
  
     CRYPT_INVALID_KEYSIZE,  /* Invalid key size given */
@@ -220,10 +293,10 @@ Index: tomcrypt/tomcrypt.h
     CRYPT_FAIL_TESTVECTOR,  /* Algorithm failed test vectors */
  
     CRYPT_BUFFER_OVERFLOW,  /* Not enough space for output */
-Index: tomcrypt/pelican_memory.c
+Index: pelican_memory.c
 ===================================================================
---- tomcrypt/pelican_memory.c	(revision 505)
-+++ tomcrypt/pelican_memory.c	(working copy)
+--- pelican_memory.c	(.../trunk/ext/libs/tomcrypt)	(revision 507)
++++ pelican_memory.c	(.../ext/trunk/libs/tomcrypt)	(revision 599)
 @@ -19,26 +19,34 @@
  
  /**
@@ -272,10 +345,10 @@ Index: tomcrypt/pelican_memory.c
     XFREE(pel);
     return err;
  }
-Index: tomcrypt/tiger.c
+Index: tiger.c
 ===================================================================
---- tomcrypt/tiger.c	(revision 505)
-+++ tomcrypt/tiger.c	(working copy)
+--- tiger.c	(.../trunk/ext/libs/tomcrypt)	(revision 507)
++++ tiger.c	(.../ext/trunk/libs/tomcrypt)	(revision 599)
 @@ -555,6 +555,7 @@
      CONST64(0xCD56D9430EA8280E) /* 1020 */, CONST64(0xC12591D7535F5065) /* 1021 */,
      CONST64(0xC83223F1720AEF96) /* 1022 */, CONST64(0xC3A0396F7363A51F) /* 1023 */};

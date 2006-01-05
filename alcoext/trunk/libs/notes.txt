@@ -21,7 +21,13 @@ procedures for inclusion with AlcoExt.
 
 1) Download the latest source archive from http://libtomcrypt.org.
 
-2) TODO
+2) Copy all the source files to the "tomcrypt" directory.
+
+3) Revert any changes made to "tomcrypt_custom.h".
+
+4) Apply the "tomcrypt.patch" patch file.
+
+5) Commit the changed files.
 
 
 ############################################################
