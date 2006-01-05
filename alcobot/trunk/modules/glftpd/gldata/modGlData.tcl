@@ -263,7 +263,7 @@ proc ::alcoholicz::GlData::Undupe {command target user host handle channel argv}
     variable structFormat
 
     # Parse command options.
-    if {[set pattern [join $pattern]] eq ""} {
+    if {[set pattern [join $argv]] eq ""} {
         CmdSendHelp $channel channel $command "you must specify a pattern"
         return
     }
@@ -292,7 +292,7 @@ proc ::alcoholicz::GlData::Undupe {command target user host handle channel argv}
                     # Write all non-matching entries to the temporary file.
                     if {[string match -nocase $patternEsc $file]} {
                         incr count
-                        SendTargetTheme $target nukesBody [list $count $file $time]
+                        SendTargetTheme $target undupeBody [list $count $file $time]
                     } else {
                         puts -nonewline $tempHandle $data
                     }
@@ -303,10 +303,13 @@ proc ::alcoholicz::GlData::Undupe {command target user host handle channel argv}
         StructClose $handle
 
         if {$count} {
-            # Overwrite the existing dupe file with the temporary file.
+            # Replace the existing dupe file with the temporary file.
             set dupeFile [file join $logsPath "dupefile"]
             if {[catch {file rename -force -- $tempFile $dupeFile} message]} {
                 LogError ModGlData $message
+            } else {
+                # Chmod the new dupefile to 0666.
+                catch {file attributes $dupeFile -permissions 0666}
             }
         }
         catch {file delete -- $tempFile}
