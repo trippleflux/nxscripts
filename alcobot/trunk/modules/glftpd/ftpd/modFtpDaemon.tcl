@@ -452,6 +452,25 @@ proc ::alcoholicz::FtpDaemon::GroupNameToId {groupName} {
 }
 
 ####
+# NukeEvent
+#
+# Handle NUKE and UNNUKE log events.
+#
+proc ::alcoholicz::FtpDaemon::NukeEvent {event destSection pathSection path data} {
+    # glFTPD v2.x quotes each nukee separately when logging nukes, while AlcoBot's
+    # theming system expects them to be quoted together. So we have to do a bit
+    # of work to keep the two compatible.
+
+    # Before: path nuker multi reason nukee1 nukee2 ...
+    # After : path nuker multi reason {nukee1 nukee2 ...}
+    set nukees [lrange $data 4 end]
+    set data [lreplace $data 4 end $nukees]
+
+    SendSectionTheme $destSection $event $data
+    return 0
+}
+
+####
 # Load
 #
 # Module initialisation procedure, called when the module is loaded.
@@ -488,6 +507,10 @@ proc ::alcoholicz::FtpDaemon::Load {firstLoad} {
         -notify [namespace current]::FtpNotify -secure $secure]
     FtpConnect $connection
 
+    # Register event callbacks.
+    ScriptRegister pre NUKE   [namespace current]::NukeEvent
+    ScriptRegister pre UNNUKE [namespace current]::NukeEvent
+
     # Force a reload on all cached files.
     unset -nocomplain change
 }
@@ -500,6 +523,10 @@ proc ::alcoholicz::FtpDaemon::Load {firstLoad} {
 proc ::alcoholicz::FtpDaemon::Unload {} {
     variable connection
     variable timerId
+
+    # Remove event callbacks.
+    ScriptUnregister pre NUKE   [namespace current]::NukeEvent
+    ScriptUnregister pre UNNUKE [namespace current]::NukeEvent
 
     if {$connection ne ""} {
         FtpClose $connection
