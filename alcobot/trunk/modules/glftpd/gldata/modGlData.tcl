@@ -28,9 +28,8 @@ namespace eval ::alcoholicz::GlData {
 #
 # Opens a binary file located in glFTPD's log directory.
 #
-proc ::alcoholicz::GlData::OpenBinaryFile {fileName {mode "r"}} {
+proc ::alcoholicz::GlData::OpenBinaryFile {filePath {mode "r"}} {
     variable logsPath
-    set filePath [file join $logsPath $fileName]
     if {[catch {set handle [open $filePath $mode]} message]} {
         LogError ModGlData $message
         return ""
@@ -45,6 +44,7 @@ proc ::alcoholicz::GlData::OpenBinaryFile {fileName {mode "r"}} {
 # Opens glFTPD binary structure file for reading.
 #
 proc ::alcoholicz::GlData::StructOpen {fileName handleVar {backwards 1}} {
+    variable logsPath
     variable structHandles
     variable structLength
     upvar $handleVar handle
@@ -54,7 +54,7 @@ proc ::alcoholicz::GlData::StructOpen {fileName handleVar {backwards 1}} {
     if {![info exists structLength($name)]} {
         error "invalid structure name \"$name\""
     }
-    set handle [OpenBinaryFile $fileName]
+    set handle [OpenBinaryFile [file join $logsPath $fileName]]
     if {$handle eq ""} {return 0}
 
     # Set the file access pointer to the end if we are reading
@@ -256,9 +256,11 @@ proc ::alcoholicz::GlData::Search {command target user host handle channel argv}
 # Remove a file the dupefile log, command: !undupe <pattern>.
 #
 proc ::alcoholicz::GlData::Undupe {command target user host handle channel argv} {
+    variable logsPath
     variable tempPath
     variable undupeChars
     variable undupeWild
+    variable structFormat
 
     # Parse command options.
     if {[set pattern [join $pattern]] eq ""} {
@@ -275,23 +277,39 @@ proc ::alcoholicz::GlData::Undupe {command target user host handle channel argv}
             return
         }
     }
+    set patternEsc [string map {[ \\[ ] \\]} $pattern]
     SendTargetTheme $target undupeHead [list $pattern]
 
     set count 0
-    if {[StructOpen "dupefile" handle]} {
-        # TODO:
-        # - Open a temp file for writing.
-        # - Write non-matching items to the temp file.
-        # - Set removed to true if there are files removed.
-        # - Replace file with temp if there are changes, e.g.:
-        #
-        # if {$removed} {
-        #   file rename -force /tmp/dupefile /glftpd/ftp-data/logs/dupefile
-        # } else {
-        #   file delete /tmp/dupefile
-        # }
-        #
+    if {[StructOpen "dupefile" handle 0]} {
+        # Open a temporary file for writing.
+        set tempFile [file join $tempPath "dupefile-[clock seconds]"]
+        set tempHandle [OpenBinaryFile $tempFile "w"]
+
+        if {$tempHandle ne ""} {
+            while {[StructRead $handle data]} {
+                if {[binary scan $data $structFormat(dupefile) file time user]} {
+                    # Write all non-matching entries to the temporary file.
+                    if {[string match -nocase $patternEsc $file]} {
+                        incr count
+                        SendTargetTheme $target nukesBody [list $count $file $time]
+                    } else {
+                        puts -nonewline $tempHandle $data
+                    }
+                }
+            }
+            close $tempHandle
+        }
         StructClose $handle
+
+        if {$count} {
+            # Overwrite the existing dupe file with the temporary file.
+            set dupeFile [file join $logsPath "dupefile"]
+            if {[catch {file rename -force -- $tempFile $dupeFile} message]} {
+                LogError ModGlData $message
+            }
+        }
+        catch {file delete -- $tempFile}
     }
 
     if {!$count} {SendTargetTheme $target undupeNone [list $pattern]}

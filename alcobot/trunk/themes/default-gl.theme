@@ -223,6 +223,11 @@ searchBody     = [%02(num)] %(releaseDate) - [b]%(releaseName)[b] by [b]%(user)[
 searchNone     = No releases found matching "%(pattern)".
 searchFoot     =
 
+undupeHead     = [b]Undupe:[b]
+undupeBody     = [%02(num)] [b]%(file)[b] removed.
+undupeNone     = No entries found matching "%(pattern)".
+undupeFoot     =
+
 nukesHead      = [b]Nukes:[b]
 nukesBody      = [%02(num)] [b]%(releaseName)[b] nuked [b]%(multi)x[b] by [b]%(user)[b] for [b]%(reason)[b].
 nukesNone      = No releases found.
