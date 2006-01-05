@@ -136,10 +136,10 @@ proc ::alcoholicz::FtpDaemon::UserList {} {
     set userList [list]
 
     foreach line [split $data "\n"] {
-        set line [split [string trim $line] ":"]
         # User:UID:Module
+        set line [split $line ":"]
         if {[llength $line] == 3} {
-            lappend userList [lindex $line 0]
+            lappend userList [string trim [lindex $line 0]]
         }
     }
     close $handle
@@ -252,10 +252,10 @@ proc ::alcoholicz::FtpDaemon::GroupList {} {
     set groupList [list]
 
     foreach line [split $data "\n"] {
-        set line [split [string trim $line] ":"]
         # Group:GID:Module
+        set line [split $line ":"]
         if {[llength $line] == 3} {
-            lappend groupList [lindex $line 0]
+            lappend groupList [string trim [lindex $line 0]]
         }
     }
     close $handle
