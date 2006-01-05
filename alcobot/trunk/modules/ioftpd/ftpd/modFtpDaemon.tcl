@@ -90,7 +90,9 @@ proc ::alcoholicz::FtpDaemon::ResolveGIDs {idList} {
 
     set nameList [list]
     foreach groupId $idList {
-        lappend nameList [ioftpd group toname $msgWindow $groupId]
+        if {![catch {ioftpd group toname $msgWindow $groupId} group]} {
+            lappend nameList $group
+        }
     }
     return $nameList
 }
@@ -197,7 +199,7 @@ proc ::alcoholicz::FtpDaemon::UserInfo {userName varName} {
     set user(logins)   [lindex $user(limits) 4]
     set user(password) [encode hex $user(password)]
     set user(speed)    [lrange $user(limits) 1 2]
-    set user(uid)      [ioftpd user toid $msgWindow $userName]
+    set user(uid)      [UserNameToId $userName]
 
     unset user(admingroups) user(ips) user(limits) user(vfsfile)
     return 1
@@ -292,7 +294,7 @@ proc ::alcoholicz::FtpDaemon::GroupInfo {groupName varName} {
         LogError GroupInfo $message; return 0
     }
 
-    set group(gid)   [ioftpd group toid $msgWindow $groupName]
+    set group(gid)   [GroupNameToId $msgWindow $groupName]
     set group(leech) [lindex $group(slots) 1]
     set group(ratio) [lindex $group(slots) 0]
 
