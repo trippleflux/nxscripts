@@ -923,7 +923,7 @@ CryptStartCmd(
     int keyLength;
     int newEntry;
     int status;
-    unsigned char *key;
+    unsigned char *key = NULL;
     unsigned char type = CRYPT_HASH;
     CryptHandle *handlePtr;
     Tcl_HashEntry *hashEntryPtr;
