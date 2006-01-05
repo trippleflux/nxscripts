@@ -15,8 +15,8 @@
 namespace eval ::alcoholicz::NxTools {
     if {![info exists [namespace current]::dataPath]} {
         variable dataPath ""
-        variable oneLines 5
         variable undupeChars 5
+        variable undupeWild 0
     }
     namespace import -force ::alcoholicz::*
     namespace import -force ::alcoholicz::FtpDaemon::GetFtpConnection
@@ -168,20 +168,26 @@ proc ::alcoholicz::NxTools::New {command target user host handle channel argv} {
 #
 proc ::alcoholicz::NxTools::Undupe {command target user host handle channel argv} {
     variable undupeChars
+    variable undupeWild
 
     # Parse command options.
     if {[catch {set pattern [GetOptions $argv {directory} option]} message]} {
         CmdSendHelp $channel channel $command $message
         return
     }
-    set pattern [join $pattern]
-    if {[regexp -- {[\*\?]} $pattern] && [regexp -all -- {[[:alnum:]]} $pattern] < $undupeChars} {
-        CmdSendHelp $channel channel $command "you must specify at least $undupeChars alphanumeric chars with wildcards"
-        return
-    }
-    if {$pattern eq ""} {
+    if {[set pattern [join $pattern]] eq ""} {
         CmdSendHelp $channel channel $command "you must specify a pattern"
         return
+    }
+    if {[string first "?" $pattern] != -1 || [string first "*" $pattern] != -1 } {
+        if {!$undupeWild} {
+            CmdSendHelp $channel channel $command "wildcards are not allowed"
+            return
+        }
+        if {[regexp -all -- {[[:alnum:]]} $pattern] < $undupeChars} {
+            CmdSendHelp $channel channel $command "you must specify at least $undupeChars alphanumeric chars with wildcards"
+            return
+        }
     }
     SendTargetTheme $target undupeHead [list $pattern]
 
@@ -352,12 +358,18 @@ proc ::alcoholicz::NxTools::Approved {command target user host handle channel ar
 # Display recent one-lines, command: !onel.
 #
 proc ::alcoholicz::NxTools::OneLines {command target user host handle channel argv} {
-    variable oneLines
+    # Parse command options.
+    set option(limit) -1
+    if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
+        CmdSendHelp $channel channel $command $message
+        return
+    }
+    set limit [GetResultLimit $option(limit)]
     SendTargetTheme $target oneLinesHead
 
     set count 0
     if {[DbOpenFile "OneLines.db"]} {
-        db eval {SELECT * FROM OneLines ORDER BY TimeStamp DESC LIMIT $oneLines} values {
+        db eval {SELECT * FROM OneLines ORDER BY TimeStamp DESC LIMIT $limit} values {
             incr count
             set age [expr {[clock seconds] - $values(TimeStamp)}]
             SendTargetTheme $target oneLinesBody [list $values(UserName) \
@@ -454,57 +466,28 @@ proc ::alcoholicz::NxTools::SiteCallback {target theme connection response} {
 }
 
 ####
-# ReadConfig
-#
-# Reads required options from the nxTools configuration file.
-#
-proc ::alcoholicz::NxTools::ReadConfig {configFile} {
-    variable oneLines 5
-    variable undupeChars 5
-
-    if {![file isfile $configFile]} {
-        error "the file \"$configFile\" does not exist"
-    }
-
-    # Evaluate the source file in a slave interpreter
-    # to retrieve the required configuration options.
-    set slave [interp create -safe]
-    interp invokehidden $slave source [list $configFile]
-
-    foreach varName {oneLines undupeChars} option {misc(OneLines) dupe(AlphaNumChars)} {
-        if {[$slave eval info exists $option]} {
-            set $varName [$slave eval set $option]
-        } else {
-            LogWarning ModNxTools "The option \"$option\" is not defined in \"$configFile\"."
-        }
-    }
-
-    interp delete $slave
-}
-
-####
 # Load
 #
 # Module initialisation procedure, called when the module is loaded.
 #
 proc ::alcoholicz::NxTools::Load {firstLoad} {
     variable dataPath
+    variable undupeChars
+    variable undupeWild
     upvar ::alcoholicz::configHandle configHandle
 
     if {$firstLoad} {
         package require sqlite3
     }
 
-    # Check defined file and directory paths.
-    set configFile [ConfigGet $configHandle Module::NxTools configFile]
-    if {[catch {ReadConfig $configFile} message]} {
-        error "Unable to read nxTools configuration: $message"
+    # Retrieve configuration options.
+    foreach option {dataPath undupeChars undupeWild} {
+        set $option [ConfigGet $configHandle Module::NxTools $option]
     }
-
-    set dataPath [ConfigGet $configHandle Module::NxTools dataPath]
     if {![file isdirectory $dataPath]} {
         error "The database directory \"$dataPath\" does not exist."
     }
+    set undupeWild [IsTrue $undupeWild]
 
     if {[ConfigExists $configHandle Module::NxTools cmdPrefix]} {
         set prefix [ConfigGet $configHandle Module::NxTools cmdPrefix]
@@ -540,30 +523,33 @@ proc ::alcoholicz::NxTools::Load {firstLoad} {
 
     # Request commands.
     CmdCreate channel requests [namespace current]::Requests \
-        -category "Request" -desc "Display current requests." -prefix $prefix
+        -category "Request" -desc "Display current requests." \
+        -prefix   $prefix
 
     CmdCreate channel request [list [namespace current]::SiteCmd REQADD] \
         -category "Request" -args "<request/id>" \
-        -prefix $prefix     -desc "Add a request."
+        -prefix   $prefix   -desc "Add a request."
 
     CmdCreate channel reqdel  [list [namespace current]::SiteCmd REQDEL] \
         -category "Request" -args "<request/id>" \
-        -prefix $prefix     -desc "Remove a request."
+        -prefix   $prefix   -desc "Remove a request."
 
     CmdCreate channel reqfill [list [namespace current]::SiteCmd REQFILL] \
         -category "Request" -args "<request/id>" \
-        -prefix $prefix     -desc "Mark a request as filled."
+        -prefix   $prefix   -desc "Mark a request as filled."
 
     # Other commands.
     CmdCreate channel approve [list [namespace current]::SiteCmd APPROVE] \
         -category "General" -args "<release>" \
-        -prefix $prefix     -desc "Approve a release."
+        -prefix   $prefix   -desc "Approve a release."
 
     CmdCreate channel approved [namespace current]::Approved \
-        -category "General" -desc "Display approved releases." -prefix $prefix
+        -category "General" -desc "Display approved releases." \
+        -prefix   $prefix
 
     CmdCreate channel onel     [namespace current]::OneLines \
-        -category "General" -desc "Display recent one-lines." -prefix $prefix
+        -category "General" -args "\[-limit <num>\]" \
+        -prefix   $prefix   -desc "Display recent one-lines."
 }
 
 ####

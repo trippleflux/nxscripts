@@ -5,13 +5,16 @@ AlcoBot v0.7.0 (not released):
   NEW: Module to issue SITE commands from IRC, named "sitecmd".
   NEW: Module to query glFTPD's data files, named "gldata".
   NEW: Option to format time values in UTC or local time.
+  NEW: Option to prohibit wildcards in the undupe search pattern.
   NEW: Substitution type for sizes logged in megabytes.
   NEW: Support for nxAutoNuke v2.3 (the ANUKESIZE event).
+  NEW: The onel command now supports "-limit" switch in the nxtools module.
   NEW: Uniform FTPD functions to resolve user names, user IDs, group names, and group IDs.
-  CHG: Moved nxTools event definitions to the "nxtools" module.
+  CHG: Moved nxTools event definitions to the nxtools module.
   CHG: Renamed "latest" and "search" themes to "new" and "dupe", respectively.
   CHG: Renamed the "GlFtpd" and "IoFtpd" configuration sections to "Ftpd".
   CHG: Renamed the "ips" array element to "hosts" for the UserInfo function.
+  CHG: The nxtools module no longer reads nxTools.cfg on start-up.
   FIX: Declare namespace variables before checking their existence.
   FIX: Grammatical errors in command descriptions (patch by iwi).
   FIX: Inconsistencies in the time duration functions (patch by iwi).
