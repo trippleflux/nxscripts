@@ -1123,6 +1123,9 @@ GetOnlineFields(
 
     for (;;) {
         result = ShmQuery(session, memOnline, DC_GET_ONLINEDATA, 5000);
+        DebugPrint("GetOnlineFields: offset=%d result=%lu\n",
+            dcOnlineData->iOffset, result);
+
         if (result != 0) {
             if (result == (DWORD)-1) {
                 // An error occured.
