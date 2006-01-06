@@ -509,11 +509,11 @@ proc ::alcoholicz::ModuleInfo {option args} {
         list {
             if {$argc == 0} {
                 return [array names modules]
-            } elseif {$argc == 1} {
-                return [array names modules [lindex $args 0]]
-            } else {
-                error "wrong # args: must be \"ModuleInfo list ?pattern?\""
             }
+            if {$argc == 1} {
+                return [array names modules [lindex $args 0]]
+            }
+            error "wrong # args: must be \"ModuleInfo list ?pattern?\""
         }
         query {
             if {$argc != 1} {
@@ -525,8 +525,8 @@ proc ::alcoholicz::ModuleInfo {option args} {
             }
             return $modules($modName)
         }
-        default {error "unknown option \"$option\": must be loaded, list, or query"}
     }
+    error "unknown option \"$option\": must be loaded, list, or query"
 }
 
 ####
