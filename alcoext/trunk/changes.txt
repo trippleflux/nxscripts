@@ -1,4 +1,4 @@
-AlcoExt v0.4.0 (not released):
+AlcoExt v0.4.0 (Jan 7, 2006):
   NEW: Added the "service" field to "ioftpd who".
   CHG: Reorganised third party libraries, easier for future updates.
   CHG: Updated LibTomCrypt to v1.08.
