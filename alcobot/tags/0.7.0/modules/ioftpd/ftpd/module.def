@@ -1,0 +1,6 @@
+# Module Definition File
+desc=Uniform FTPD API
+context=::alcoholicz::FtpDaemon
+depends=
+tclFile=modFtpDaemon.tcl
+varFile=

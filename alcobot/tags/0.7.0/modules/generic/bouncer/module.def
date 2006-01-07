@@ -1,0 +1,6 @@
+# Module Definition File
+desc=Bouncer Status
+context=::alcoholicz::Bouncer
+depends=
+tclFile=modBouncer.tcl
+varFile=modBouncer.vars
