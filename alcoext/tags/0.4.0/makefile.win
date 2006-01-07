@@ -1,0 +1,503 @@
+#
+# AlcoExt - Alcoholicz Tcl extension.
+# Copyright (c) 2005 Alcoholicz Scripting Team
+#
+# Module Name:
+#   makefile.win
+#
+# Author:
+#   neoxed (neoxed@gmail.com) Jun 12, 2005
+#
+# Abstract:
+#   Build configuration file for NMAKE, or a compatible tool.
+#
+#   Usage:
+#     nmake -f makefile.win [OPTION=1 ...]
+#
+#   Options:
+#     DEBUG    - Toggle symbolic debugging.
+#     INSTALL  - Target installation path.
+#     MEMDEBUG - Toggle Tcl memory debugging.
+#     THREADS  - Toggle threading support.
+#
+#   Profiling:
+#     COVERAGE - Toggle Compuware DevPartner code coverage analysis.
+#     PERF     - Toggle Compuware DevPartner performance analysis.
+#
+
+# PSDK Settings
+APPVER      = 4.0
+TARGETOS    = WINNT
+
+# -------------------------------------------------------------------------
+
+!if !exist("makefile.win")
+!error You must run this makefile from the directory it is located in.
+!endif
+
+!include "package.def"
+
+# -------------------------------------------------------------------------
+
+TOP         = .
+TCL_SUFFIX  = tg
+PKG_SUFFIX  = DMTCP
+
+PKG_VERSION_DOT = $(PKG_MAJOR).$(PKG_MINOR).$(PKG_PATCH)
+PKG_VERSION_RES = $(PKG_MAJOR),$(PKG_MINOR),$(PKG_PATCH),$(PKG_STATUS)
+
+PKG_CFLAGS  = -D "PACKAGE_NAME=\"$(PKG_NAME)\"" -D "PACKAGE_DESC=\"$(PKG_DESC)\"" -D "PACKAGE_VERSION=\"$(PKG_VERSION_DOT)\"" -D "PACKAGE_VERSION_RES=$(PKG_VERSION_RES)"
+PKG_LFLAGS  = /NODEFAULTLIB:msvcrt /OPT:NOWIN98
+MISC_CFLAGS = -DBZ_NO_STDIO -DUSE_TCL_STUBS
+
+# -------------------------------------------------------------------------
+
+!if "$(DEBUG)" == "1"
+!message *** Option: Symbolic Debugging
+PKG_OPTIONS = Debug
+PKG_OUTDIR  = Debug
+# Make sure NODEBUG is not defined for debug builds.
+!ifdef NODEBUG
+!undef NODEBUG
+!endif
+!else
+NODEBUG     = 1
+PKG_OPTIONS = Release
+PKG_OUTDIR  = Release
+PKG_SUFFIX  = $(PKG_SUFFIX:D=)
+TCL_SUFFIX  = $(TCL_SUFFIX:g=)
+!endif
+
+!if "$(MEMDEBUG)" == "1"
+!message *** Option: Memory Debugging
+PKG_OPTIONS = $(PKG_OPTIONS), Memory
+TCL_CFLAGS  = $(TCL_CFLAGS) -DTCL_MEM_DEBUG=1
+!else
+PKG_SUFFIX  = $(PKG_SUFFIX:M=)
+!endif
+
+!ifndef INSTALL
+INSTALL     = $(TOP)
+!elseif !exist("$(INSTALL)")
+!error The given installation path does not exist.
+!endif
+
+!if "$(THREADS)" == "1"
+!message *** Option: Threads
+PKG_OPTIONS = $(PKG_OPTIONS), Threads
+TCL_CFLAGS  = $(TCL_CFLAGS) -DTCL_THREADS=1
+!else
+PKG_SUFFIX  = $(PKG_SUFFIX:T=)
+TCL_SUFFIX  = $(TCL_SUFFIX:t=)
+!endif
+
+!include "win/win32.mak"
+
+!if "$(COVERAGE)" == "1"
+!message *** Option: DevPartner Code Coverage Analysis
+CC          = NMCL /NMtcOn
+LINK        = NMLINK /NMtcOn
+PATH        = $(HOMEDRIVE)\Program Files\Common Files\Compuware\NMShared;$(PATH)
+PKG_OPTIONS = $(PKG_OPTIONS), Coverage
+!else
+PKG_SUFFIX  = $(PKG_SUFFIX:C=)
+!endif
+
+!if "$(PERF)" == "1"
+!message *** Option: DevPartner Performance Analysis
+CC          = NMCL /NMttOn
+LINK        = NMLINK /NMttOn
+PATH        = $(HOMEDRIVE)\Program Files\Common Files\Compuware\NMShared;$(PATH)
+PKG_OPTIONS = $(PKG_OPTIONS), Perf
+!else
+PKG_SUFFIX  = $(PKG_SUFFIX:P=)
+!endif
+
+!if "$(COVERAGE)" == "1" && "$(PERF)" == "1"
+!error You cannot profile both code coverage and performance.
+!endif
+
+# -------------------------------------------------------------------------
+
+!if !exist(nmakehlp.exe)
+!if [cl -nologo -MT win/nmakehlp.c -link -subsystem:console > nul]
+!endif
+!endif
+
+!if !defined(TCL_DIR)
+!error Unable to find tcl.h; the TCL_DIR variable is incorrect.
+!endif
+
+TCL_DIR = $(TCL_DIR:/=\)
+!if exist("$(TCL_DIR)\include\tcl.h")
+TCL_H   = $(TCL_DIR)\include\tcl.h
+!else
+!error Unable to find tcl.h; the TCL_DIR variable is incorrect.
+!endif
+
+!if [nmakehlp -v $(TCL_H) ""] == 0
+!include version.vc
+!else
+TCL_DOTVERSION  = 8.4
+TCL_VERSION = $(TCL_DOTVERSION:.=)
+!endif
+
+TCL_SH       = "$(TCL_DIR)\bin\tclsh$(TCL_VERSION)$(TCL_SUFFIX).exe"
+TCL_STUBLIB  = "$(TCL_DIR)\lib\tclstub$(TCL_VERSION).lib"
+TCL_IMPLIB   = "$(TCL_DIR)\lib\tcl$(TCL_VERSION)$(TCL_SUFFIX).lib"
+TCL_LIBRARY  = $(TCL_DIR)\lib
+TCL_INCLUDES = $(TCL_DIR)\include
+
+!message *** Tcl Version: $(TCL_DOTVERSION)
+!message *** Tcl Stub: $(TCL_STUBLIB)
+
+# -------------------------------------------------------------------------
+
+!if "$(PKG_SUFFIX)" != ""
+PKG_SUFFIX  = -$(PKG_SUFFIX)
+!endif
+
+# File and directory paths.
+PKG_FILE    = $(PKG_NAME)$(PKG_SUFFIX).dll
+PKG_OUTFILE = $(PKG_OUTDIR)\$(PKG_FILE)
+PKG_INTDIR  = $(PKG_OUTDIR)\$(PKG_OPTIONS:, =)
+PKG_INSTALL_FILE = $(PKG_NAME)$(PKG_MAJOR)$(PKG_MINOR).dll
+PKG_INSTALL_DIR  = $(INSTALL)\$(PKG_NAME)$(PKG_MAJOR).$(PKG_MINOR)
+
+# Append file and option definitions to cflags.
+PKG_CFLAGS  = $(PKG_CFLAGS) "-DPACKAGE_FILE=\"$(PKG_FILE)\"" "-DPACKAGE_OPTIONS=\"$(PKG_OPTIONS)\""
+
+INCLUDE_DIRS=\
+    -I"$(TCL_INCLUDES)"\
+    -I"$(TOP)\libs\bzip2"\
+    -I"$(TOP)\libs\tomcrypt"\
+    -I"$(TOP)\libs\zlib"\
+    -I"$(TOP)\generic"\
+    -I"$(TOP)\win"
+
+INTERMEDIATE_FILES=\
+    $(PKG_INTDIR)\blocksort.obj\
+    $(PKG_INTDIR)\bzlib.obj\
+    $(PKG_INTDIR)\compress.obj\
+    $(PKG_INTDIR)\crctable.obj\
+    $(PKG_INTDIR)\decompress.obj\
+    $(PKG_INTDIR)\huffman.obj\
+    $(PKG_INTDIR)\randtable.obj\
+    $(PKG_INTDIR)\aes.obj\
+    $(PKG_INTDIR)\anubis.obj\
+    $(PKG_INTDIR)\base64_decode.obj\
+    $(PKG_INTDIR)\base64_encode.obj\
+    $(PKG_INTDIR)\blowfish.obj\
+    $(PKG_INTDIR)\burn_stack.obj\
+    $(PKG_INTDIR)\cast5.obj\
+    $(PKG_INTDIR)\cbc_decrypt.obj\
+    $(PKG_INTDIR)\cbc_done.obj\
+    $(PKG_INTDIR)\cbc_encrypt.obj\
+    $(PKG_INTDIR)\cbc_getiv.obj\
+    $(PKG_INTDIR)\cbc_setiv.obj\
+    $(PKG_INTDIR)\cbc_start.obj\
+    $(PKG_INTDIR)\cfb_decrypt.obj\
+    $(PKG_INTDIR)\cfb_done.obj\
+    $(PKG_INTDIR)\cfb_encrypt.obj\
+    $(PKG_INTDIR)\cfb_getiv.obj\
+    $(PKG_INTDIR)\cfb_setiv.obj\
+    $(PKG_INTDIR)\cfb_start.obj\
+    $(PKG_INTDIR)\chc.obj\
+    $(PKG_INTDIR)\crypt.obj\
+    $(PKG_INTDIR)\crypt_argchk.obj\
+    $(PKG_INTDIR)\crypt_cipher_descriptor.obj\
+    $(PKG_INTDIR)\crypt_cipher_is_valid.obj\
+    $(PKG_INTDIR)\crypt_find_cipher.obj\
+    $(PKG_INTDIR)\crypt_find_cipher_any.obj\
+    $(PKG_INTDIR)\crypt_find_cipher_id.obj\
+    $(PKG_INTDIR)\crypt_find_hash.obj\
+    $(PKG_INTDIR)\crypt_find_hash_any.obj\
+    $(PKG_INTDIR)\crypt_find_hash_id.obj\
+    $(PKG_INTDIR)\crypt_find_hash_oid.obj\
+    $(PKG_INTDIR)\crypt_find_prng.obj\
+    $(PKG_INTDIR)\crypt_hash_descriptor.obj\
+    $(PKG_INTDIR)\crypt_hash_is_valid.obj\
+    $(PKG_INTDIR)\crypt_ltc_mp_descriptor.obj\
+    $(PKG_INTDIR)\crypt_prng_descriptor.obj\
+    $(PKG_INTDIR)\crypt_prng_is_valid.obj\
+    $(PKG_INTDIR)\crypt_register_cipher.obj\
+    $(PKG_INTDIR)\crypt_register_hash.obj\
+    $(PKG_INTDIR)\crypt_register_prng.obj\
+    $(PKG_INTDIR)\crypt_unregister_cipher.obj\
+    $(PKG_INTDIR)\crypt_unregister_hash.obj\
+    $(PKG_INTDIR)\crypt_unregister_prng.obj\
+    $(PKG_INTDIR)\ctr_decrypt.obj\
+    $(PKG_INTDIR)\ctr_done.obj\
+    $(PKG_INTDIR)\ctr_encrypt.obj\
+    $(PKG_INTDIR)\ctr_getiv.obj\
+    $(PKG_INTDIR)\ctr_setiv.obj\
+    $(PKG_INTDIR)\ctr_start.obj\
+    $(PKG_INTDIR)\des.obj\
+    $(PKG_INTDIR)\ecb_decrypt.obj\
+    $(PKG_INTDIR)\ecb_done.obj\
+    $(PKG_INTDIR)\ecb_encrypt.obj\
+    $(PKG_INTDIR)\ecb_start.obj\
+    $(PKG_INTDIR)\error_to_string.obj\
+    $(PKG_INTDIR)\fortuna.obj\
+    $(PKG_INTDIR)\hash_memory.obj\
+    $(PKG_INTDIR)\hmac_done.obj\
+    $(PKG_INTDIR)\hmac_init.obj\
+    $(PKG_INTDIR)\hmac_memory.obj\
+    $(PKG_INTDIR)\hmac_process.obj\
+    $(PKG_INTDIR)\khazad.obj\
+    $(PKG_INTDIR)\md2.obj\
+    $(PKG_INTDIR)\md4.obj\
+    $(PKG_INTDIR)\md5.obj\
+    $(PKG_INTDIR)\noekeon.obj\
+    $(PKG_INTDIR)\ofb_decrypt.obj\
+    $(PKG_INTDIR)\ofb_done.obj\
+    $(PKG_INTDIR)\ofb_encrypt.obj\
+    $(PKG_INTDIR)\ofb_getiv.obj\
+    $(PKG_INTDIR)\ofb_setiv.obj\
+    $(PKG_INTDIR)\ofb_start.obj\
+    $(PKG_INTDIR)\omac_done.obj\
+    $(PKG_INTDIR)\omac_init.obj\
+    $(PKG_INTDIR)\omac_memory.obj\
+    $(PKG_INTDIR)\omac_process.obj\
+    $(PKG_INTDIR)\pelican.obj\
+    $(PKG_INTDIR)\pelican_memory.obj\
+    $(PKG_INTDIR)\pkcs_5_1.obj\
+    $(PKG_INTDIR)\pkcs_5_2.obj\
+    $(PKG_INTDIR)\pmac_done.obj\
+    $(PKG_INTDIR)\pmac_init.obj\
+    $(PKG_INTDIR)\pmac_memory.obj\
+    $(PKG_INTDIR)\pmac_ntz.obj\
+    $(PKG_INTDIR)\pmac_process.obj\
+    $(PKG_INTDIR)\pmac_shift_xor.obj\
+    $(PKG_INTDIR)\rc2.obj\
+    $(PKG_INTDIR)\rc4.obj\
+    $(PKG_INTDIR)\rc5.obj\
+    $(PKG_INTDIR)\rc6.obj\
+    $(PKG_INTDIR)\rmd128.obj\
+    $(PKG_INTDIR)\rmd160.obj\
+    $(PKG_INTDIR)\rng_get_bytes.obj\
+    $(PKG_INTDIR)\safer.obj\
+    $(PKG_INTDIR)\safer_tab.obj\
+    $(PKG_INTDIR)\saferp.obj\
+    $(PKG_INTDIR)\sha1.obj\
+    $(PKG_INTDIR)\sha256.obj\
+    $(PKG_INTDIR)\sha512.obj\
+    $(PKG_INTDIR)\skipjack.obj\
+    $(PKG_INTDIR)\sober128.obj\
+    $(PKG_INTDIR)\sprng.obj\
+    $(PKG_INTDIR)\tiger.obj\
+    $(PKG_INTDIR)\twofish.obj\
+    $(PKG_INTDIR)\whirl.obj\
+    $(PKG_INTDIR)\xtea.obj\
+    $(PKG_INTDIR)\yarrow.obj\
+    $(PKG_INTDIR)\zeromem.obj\
+    $(PKG_INTDIR)\adler32.obj\
+    $(PKG_INTDIR)\crc32.obj\
+    $(PKG_INTDIR)\deflate.obj\
+    $(PKG_INTDIR)\inffast.obj\
+    $(PKG_INTDIR)\inflate.obj\
+    $(PKG_INTDIR)\inftrees.obj\
+    $(PKG_INTDIR)\trees.obj\
+    $(PKG_INTDIR)\zutil.obj\
+    $(PKG_INTDIR)\alcoCompress.obj\
+    $(PKG_INTDIR)\alcoCrypt.obj\
+    $(PKG_INTDIR)\alcoEncoding.obj\
+    $(PKG_INTDIR)\alcoExt.obj\
+    $(PKG_INTDIR)\alcoUtil.obj\
+    $(PKG_INTDIR)\alcoVolume.obj\
+    $(PKG_INTDIR)\alcoWinIoFtpd.obj\
+    $(PKG_INTDIR)\alcoWinUtil.obj\
+    $(PKG_INTDIR)\alcoWinVolume.obj\
+    $(PKG_INTDIR)\alcoExt.res
+
+OBJECT_FILES=\
+    $(TOP)\libs\bzip2\blocksort.obj\
+    $(TOP)\libs\bzip2\bzlib.obj\
+    $(TOP)\libs\bzip2\compress.obj\
+    $(TOP)\libs\bzip2\crctable.obj\
+    $(TOP)\libs\bzip2\decompress.obj\
+    $(TOP)\libs\bzip2\huffman.obj\
+    $(TOP)\libs\bzip2\randtable.obj\
+    $(TOP)\libs\tomcrypt\aes.obj\
+    $(TOP)\libs\tomcrypt\anubis.obj\
+    $(TOP)\libs\tomcrypt\base64_decode.obj\
+    $(TOP)\libs\tomcrypt\base64_encode.obj\
+    $(TOP)\libs\tomcrypt\blowfish.obj\
+    $(TOP)\libs\tomcrypt\burn_stack.obj\
+    $(TOP)\libs\tomcrypt\cast5.obj\
+    $(TOP)\libs\tomcrypt\cbc_decrypt.obj\
+    $(TOP)\libs\tomcrypt\cbc_done.obj\
+    $(TOP)\libs\tomcrypt\cbc_encrypt.obj\
+    $(TOP)\libs\tomcrypt\cbc_getiv.obj\
+    $(TOP)\libs\tomcrypt\cbc_setiv.obj\
+    $(TOP)\libs\tomcrypt\cbc_start.obj\
+    $(TOP)\libs\tomcrypt\cfb_decrypt.obj\
+    $(TOP)\libs\tomcrypt\cfb_done.obj\
+    $(TOP)\libs\tomcrypt\cfb_encrypt.obj\
+    $(TOP)\libs\tomcrypt\cfb_getiv.obj\
+    $(TOP)\libs\tomcrypt\cfb_setiv.obj\
+    $(TOP)\libs\tomcrypt\cfb_start.obj\
+    $(TOP)\libs\tomcrypt\chc.obj\
+    $(TOP)\libs\tomcrypt\crypt.obj\
+    $(TOP)\libs\tomcrypt\crypt_argchk.obj\
+    $(TOP)\libs\tomcrypt\crypt_cipher_descriptor.obj\
+    $(TOP)\libs\tomcrypt\crypt_cipher_is_valid.obj\
+    $(TOP)\libs\tomcrypt\crypt_find_cipher.obj\
+    $(TOP)\libs\tomcrypt\crypt_find_cipher_any.obj\
+    $(TOP)\libs\tomcrypt\crypt_find_cipher_id.obj\
+    $(TOP)\libs\tomcrypt\crypt_find_hash.obj\
+    $(TOP)\libs\tomcrypt\crypt_find_hash_any.obj\
+    $(TOP)\libs\tomcrypt\crypt_find_hash_id.obj\
+    $(TOP)\libs\tomcrypt\crypt_find_hash_oid.obj\
+    $(TOP)\libs\tomcrypt\crypt_find_prng.obj\
+    $(TOP)\libs\tomcrypt\crypt_hash_descriptor.obj\
+    $(TOP)\libs\tomcrypt\crypt_hash_is_valid.obj\
+    $(TOP)\libs\tomcrypt\crypt_ltc_mp_descriptor.obj\
+    $(TOP)\libs\tomcrypt\crypt_prng_descriptor.obj\
+    $(TOP)\libs\tomcrypt\crypt_prng_is_valid.obj\
+    $(TOP)\libs\tomcrypt\crypt_register_cipher.obj\
+    $(TOP)\libs\tomcrypt\crypt_register_hash.obj\
+    $(TOP)\libs\tomcrypt\crypt_register_prng.obj\
+    $(TOP)\libs\tomcrypt\crypt_unregister_cipher.obj\
+    $(TOP)\libs\tomcrypt\crypt_unregister_hash.obj\
+    $(TOP)\libs\tomcrypt\crypt_unregister_prng.obj\
+    $(TOP)\libs\tomcrypt\ctr_decrypt.obj\
+    $(TOP)\libs\tomcrypt\ctr_done.obj\
+    $(TOP)\libs\tomcrypt\ctr_encrypt.obj\
+    $(TOP)\libs\tomcrypt\ctr_getiv.obj\
+    $(TOP)\libs\tomcrypt\ctr_setiv.obj\
+    $(TOP)\libs\tomcrypt\ctr_start.obj\
+    $(TOP)\libs\tomcrypt\des.obj\
+    $(TOP)\libs\tomcrypt\ecb_decrypt.obj\
+    $(TOP)\libs\tomcrypt\ecb_done.obj\
+    $(TOP)\libs\tomcrypt\ecb_encrypt.obj\
+    $(TOP)\libs\tomcrypt\ecb_start.obj\
+    $(TOP)\libs\tomcrypt\error_to_string.obj\
+    $(TOP)\libs\tomcrypt\fortuna.obj\
+    $(TOP)\libs\tomcrypt\hash_memory.obj\
+    $(TOP)\libs\tomcrypt\hmac_done.obj\
+    $(TOP)\libs\tomcrypt\hmac_init.obj\
+    $(TOP)\libs\tomcrypt\hmac_memory.obj\
+    $(TOP)\libs\tomcrypt\hmac_process.obj\
+    $(TOP)\libs\tomcrypt\khazad.obj\
+    $(TOP)\libs\tomcrypt\md2.obj\
+    $(TOP)\libs\tomcrypt\md4.obj\
+    $(TOP)\libs\tomcrypt\md5.obj\
+    $(TOP)\libs\tomcrypt\noekeon.obj\
+    $(TOP)\libs\tomcrypt\ofb_decrypt.obj\
+    $(TOP)\libs\tomcrypt\ofb_done.obj\
+    $(TOP)\libs\tomcrypt\ofb_encrypt.obj\
+    $(TOP)\libs\tomcrypt\ofb_getiv.obj\
+    $(TOP)\libs\tomcrypt\ofb_setiv.obj\
+    $(TOP)\libs\tomcrypt\ofb_start.obj\
+    $(TOP)\libs\tomcrypt\omac_done.obj\
+    $(TOP)\libs\tomcrypt\omac_init.obj\
+    $(TOP)\libs\tomcrypt\omac_memory.obj\
+    $(TOP)\libs\tomcrypt\omac_process.obj\
+    $(TOP)\libs\tomcrypt\pelican.obj\
+    $(TOP)\libs\tomcrypt\pelican_memory.obj\
+    $(TOP)\libs\tomcrypt\pkcs_5_1.obj\
+    $(TOP)\libs\tomcrypt\pkcs_5_2.obj\
+    $(TOP)\libs\tomcrypt\pmac_done.obj\
+    $(TOP)\libs\tomcrypt\pmac_init.obj\
+    $(TOP)\libs\tomcrypt\pmac_memory.obj\
+    $(TOP)\libs\tomcrypt\pmac_ntz.obj\
+    $(TOP)\libs\tomcrypt\pmac_process.obj\
+    $(TOP)\libs\tomcrypt\pmac_shift_xor.obj\
+    $(TOP)\libs\tomcrypt\rc2.obj\
+    $(TOP)\libs\tomcrypt\rc4.obj\
+    $(TOP)\libs\tomcrypt\rc5.obj\
+    $(TOP)\libs\tomcrypt\rc6.obj\
+    $(TOP)\libs\tomcrypt\rmd128.obj\
+    $(TOP)\libs\tomcrypt\rmd160.obj\
+    $(TOP)\libs\tomcrypt\rng_get_bytes.obj\
+    $(TOP)\libs\tomcrypt\safer.obj\
+    $(TOP)\libs\tomcrypt\safer_tab.obj\
+    $(TOP)\libs\tomcrypt\saferp.obj\
+    $(TOP)\libs\tomcrypt\sha1.obj\
+    $(TOP)\libs\tomcrypt\sha256.obj\
+    $(TOP)\libs\tomcrypt\sha512.obj\
+    $(TOP)\libs\tomcrypt\skipjack.obj\
+    $(TOP)\libs\tomcrypt\sober128.obj\
+    $(TOP)\libs\tomcrypt\sprng.obj\
+    $(TOP)\libs\tomcrypt\tiger.obj\
+    $(TOP)\libs\tomcrypt\twofish.obj\
+    $(TOP)\libs\tomcrypt\whirl.obj\
+    $(TOP)\libs\tomcrypt\xtea.obj\
+    $(TOP)\libs\tomcrypt\yarrow.obj\
+    $(TOP)\libs\tomcrypt\zeromem.obj\
+    $(TOP)\libs\zlib\adler32.obj\
+    $(TOP)\libs\zlib\crc32.obj\
+    $(TOP)\libs\zlib\deflate.obj\
+    $(TOP)\libs\zlib\inffast.obj\
+    $(TOP)\libs\zlib\inflate.obj\
+    $(TOP)\libs\zlib\inftrees.obj\
+    $(TOP)\libs\zlib\trees.obj\
+    $(TOP)\libs\zlib\zutil.obj\
+    $(TOP)\generic\alcoCompress.obj\
+    $(TOP)\generic\alcoCrypt.obj\
+    $(TOP)\generic\alcoEncoding.obj\
+    $(TOP)\generic\alcoExt.obj\
+    $(TOP)\generic\alcoUtil.obj\
+    $(TOP)\generic\alcoVolume.obj\
+    $(TOP)\win\alcoWinIoFtpd.obj\
+    $(TOP)\win\alcoWinUtil.obj\
+    $(TOP)\win\alcoWinVolume.obj\
+    $(TOP)\win\alcoExt.res
+
+# -------------------------------------------------------------------------
+
+CFLAGS  = $(cdebug) $(cflags) $(cvarsmt) $(PKG_CFLAGS) $(MISC_CFLAGS) $(INCLUDE_DIRS)
+LFLAGS  = $(ldebug) $(dlllflags) $(conlibsmt) user32.lib psapi.lib $(PKG_LFLAGS) $(TCL_STUBLIB)
+RFLAGS  = $(rcflags) $(rcvars) $(PKG_CFLAGS)
+
+.c.obj::
+    $(CC) -c $(CFLAGS) -Fo$(PKG_INTDIR)\ @<<
+$<
+<<
+
+.rc.res:
+    $(RC) $(RFLAGS) -fo "$(PKG_INTDIR)\$(<B).res" $<
+
+.SUFFIXES:
+.SUFFIXES:.c .rc
+
+# -------------------------------------------------------------------------
+
+default: all
+all:     library
+
+clean:
+    @IF EXIST "$(PKG_FILE)" DEL /F "$(PKG_FILE)"
+    @IF EXIST "$(PKG_OUTFILE)" DEL /F "$(PKG_OUTFILE)"
+    @IF EXIST "$(PKG_INTDIR)" RMDIR /Q /S "$(PKG_INTDIR)"
+
+distclean: clean
+    @DEL "$(PKG_NAME)*.dll" *.exp *.obj *.pdb
+    @IF EXIST Debug RMDIR /Q /S Debug
+    @IF EXIST Release RMDIR /Q /S Release
+    @IF EXIST nmakehlp.exe DEL /F nmakehlp.exe
+    @IF EXIST nmakehlp.obj DEL /F nmakehlp.obj
+    @IF EXIST version.vc DEL /F version.vc
+
+install: library package-index
+	@ECHO Installing to: $(PKG_INSTALL_DIR)
+    @IF NOT EXIST "$(PKG_INSTALL_DIR)" MKDIR "$(PKG_INSTALL_DIR)"
+    @COPY /Y "$(PKG_OUTFILE)" "$(PKG_INSTALL_DIR)\$(PKG_INSTALL_FILE)" >NUL
+    @COPY /Y "$(PKG_INTDIR)\pkgIndex.tcl" "$(PKG_INSTALL_DIR)" >NUL
+
+library: setup $(OBJECT_FILES)
+    $(LINK) $(LFLAGS) "-out:$(PKG_OUTFILE)" $(INTERMEDIATE_FILES)
+
+package-index: setup
+    @TYPE << >"$(PKG_INTDIR)\pkgIndex.tcl"
+#
+# Tcl package index file.
+#
+if {![package vsatisfies [package provide Tcl] 8.4]} {return}
+package ifneeded $(PKG_NAME) $(PKG_VERSION_DOT) [list load [file join $$dir $(PKG_INSTALL_FILE)]]
+<<
+
+setup:
+    @IF NOT EXIST "$(PKG_OUTDIR)" MKDIR "$(PKG_OUTDIR)"
+    @IF NOT EXIST "$(PKG_INTDIR)" MKDIR "$(PKG_INTDIR)"

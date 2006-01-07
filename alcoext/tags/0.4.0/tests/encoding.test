@@ -1,0 +1,169 @@
+#
+# AlcoExt - Alcoholicz Tcl extension.
+# Copyright (c) 2005 Alcoholicz Scripting Team
+#
+# Module Name:
+#   encoding.test
+#
+# Author:
+#   neoxed (neoxed@gmail.com) May 25, 2005
+#
+# Abstract:
+#   Encode and decode commands test suite.
+#
+
+package require tcltest 2
+namespace import -force ::tcltest::*
+
+if {$tcl_platform(platform) eq "windows"} {
+    set libFile "AlcoExt*"
+} else {
+    set libFile "libAlcoExt*"
+}
+append libFile [info sharedlibextension]
+
+set parentPath [file dirname [file dirname [file normalize [info script]]]]
+set libFile [lindex [glob -dir $parentPath -types f $libFile] 0]
+load $libFile
+
+namespace import -force ::alcoholicz::*
+
+################################################################################
+# decode                                                                       #
+################################################################################
+
+test decode-1.1 {decode: no args} {
+    list [catch {decode} msg] $msg
+} {1 {wrong # args: should be "decode encoding data"}}
+
+test decode-1.2 {decode: too many args} {
+    list [catch {decode a b c d} msg] $msg
+} {1 {wrong # args: should be "decode encoding data"}}
+
+test decode-1.3 {decode: invalid encoding} {
+    list [catch {decode . a} msg] $msg
+} {1 {bad encoding ".": must be base64 or hex}}
+
+################################################################################
+# decode - base64                                                              #
+################################################################################
+
+test decode-2.1 {decode base64: invalid} {
+    list [catch {decode base64 z} msg] $msg
+} {1 {unable to process data: invalid input packet}}
+
+test decode-2.2 {decode base64: empty} {
+    decode base64 {}
+} {}
+
+test decode-2.3 {decode base64: string} {
+    decode base64 dGVzdA==
+} {test}
+
+test decode-2.4 {decode base64: strings} {
+    decode base64 YmxhaCBibGFoIGJsYWg=
+} {blah blah blah}
+
+test decode-2.5 {decode base64: nulls} {
+    decode base64 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+} "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+
+test decode-2.6 {decode base64: binary} {
+    decode base64 8HresrMDtmVywaYTGEza1M4M7gVbmmZrzwPn0O+DMna7l1x4WWvBtA==
+} "\xF0\x7A\xDE\xB2\xB3\x03\xB6\x65\x72\xC1\xA6\x13\x18\x4C\xDA\xD4\xCE\x0C\xEE\x05\x5B\x9A\x66\x6B\xCF\x03\xE7\xD0\xEF\x83\x32\x76\xBB\x97\x5C\x78\x59\x6B\xC1\xB4"
+
+################################################################################
+# decode - hex                                                                 #
+################################################################################
+
+test decode-3.1 {decode hex: invalid} {
+    list [catch {decode hex z} msg] $msg
+} {1 {unable to process data: invalid input packet}}
+
+test decode-3.2 {decode hex: empty} {
+    decode hex {}
+} {}
+
+test decode-3.3 {decode hex: string} {
+    decode hex 74657374
+} {test}
+
+test decode-3.4 {decode hex: strings} {
+    decode hex 626C616820626C616820626C6168
+} {blah blah blah}
+
+test decode-3.5 {decode hex: nulls} {
+    decode hex 000000000000000000000000000000000000000000000000
+} "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+
+test decode-3.6 {decode hex: binary} {
+    decode hex F07ADEB2B303B66572C1A613184CDAD4CE0CEE055B9A666BCF03E7D0EF833276BB975C78596BC1B4
+} "\xF0\x7A\xDE\xB2\xB3\x03\xB6\x65\x72\xC1\xA6\x13\x18\x4C\xDA\xD4\xCE\x0C\xEE\x05\x5B\x9A\x66\x6B\xCF\x03\xE7\xD0\xEF\x83\x32\x76\xBB\x97\x5C\x78\x59\x6B\xC1\xB4"
+
+################################################################################
+# encode                                                                       #
+################################################################################
+
+test encode-4.1 {encode: no args} {
+    list [catch {encode} msg] $msg
+} {1 {wrong # args: should be "encode encoding data"}}
+
+test encode-4.2 {encode: too many args} {
+    list [catch {encode a b c d} msg] $msg
+} {1 {wrong # args: should be "encode encoding data"}}
+
+test encode-4.3 {encode: invalid encoding} {
+    list [catch {encode . a} msg] $msg
+} {1 {bad encoding ".": must be base64 or hex}}
+
+################################################################################
+# encode - base64                                                              #
+################################################################################
+
+test encode-5.1 {encode base64: empty} {
+    encode base64 {}
+} {}
+
+test encode-5.2 {encode base64: string} {
+    encode base64 {test}
+} {dGVzdA==}
+
+test encode-5.3 {encode base64: strings} {
+    encode base64 {blah blah blah}
+} {YmxhaCBibGFoIGJsYWg=}
+
+test encode-5.4 {encode base64: nulls} {
+    encode base64 "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+} {AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA}
+
+test encode-5.5 {encode base64: binary} {
+    encode base64 "\xF0\x7A\xDE\xB2\xB3\x03\xB6\x65\x72\xC1\xA6\x13\x18\x4C\xDA\xD4\xCE\x0C\xEE\x05\x5B\x9A\x66\x6B\xCF\x03\xE7\xD0\xEF\x83\x32\x76\xBB\x97\x5C\x78\x59\x6B\xC1\xB4"
+} {8HresrMDtmVywaYTGEza1M4M7gVbmmZrzwPn0O+DMna7l1x4WWvBtA==}
+
+################################################################################
+# encode - hex                                                                 #
+################################################################################
+
+test encode-6.1 {encode hex: empty} {
+    encode hex {}
+} {}
+
+test encode-6.2 {encode hex: string} {
+    encode hex {test}
+} {74657374}
+
+test encode-6.3 {encode hex: strings} {
+    encode hex {blah blah blah}
+} {626C616820626C616820626C6168}
+
+test encode-6.4 {encode hex: nulls} {
+    encode hex "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+} {000000000000000000000000000000000000000000000000}
+
+test encode-6.5 {encode hex: binary} {
+    encode hex "\xF0\x7A\xDE\xB2\xB3\x03\xB6\x65\x72\xC1\xA6\x13\x18\x4C\xDA\xD4\xCE\x0C\xEE\x05\x5B\x9A\x66\x6B\xCF\x03\xE7\xD0\xEF\x83\x32\x76\xBB\x97\x5C\x78\x59\x6B\xC1\xB4"
+} {F07ADEB2B303B66572C1A613184CDAD4CE0CEE055B9A666BCF03E7D0EF833276BB975C78596BC1B4}
+
+
+::tcltest::cleanupTests
+return
