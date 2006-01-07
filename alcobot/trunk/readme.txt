@@ -69,13 +69,18 @@ for AlcoBot to recognize them. Read the following installation instructions:
   Info: Site command package, written by WarC.
   URL : http://www.inicom.net/pages/en.ioftpd-scripts.php?id=5
 
-  1. Change the options in your ioA.cfg file to match the following:
+  1. You must be using ioA v2.0.6, or newer.
+  2. Change the options in your ioA.cfg file to match the following:
 
      [Credits]
      Credits_Log      = ""%user" "%group" "%.3mb" "%target""
 
      [Newdate]
      Newdate_Log      = ""%vfs" "%area" "%desc""
+
+     [Nuke]
+     Nuke_Log         = ""%vfs" "%user" "%group" "%.0multi" "%reason" "%.3size" "%nukees""
+     Nuke_Single_Nukees_Log_Line = 1
 
      [PRE]
      Pre_Log          = ""%vfs/%release" "%user" "%group" "%type" "%.0files" "%.3mb""
@@ -92,7 +97,7 @@ for AlcoBot to recognize them. Read the following installation instructions:
      [Wipe]
      Wipe_Log         = ""%vfs/%release" "%user" "%group" "%.0dirs" "%.0files" "%.3mb""
 
-  2. Load the "ioa" module; see section 4 of this manual for more information.
+  3. Load the "ioa" module; see section 4 of this manual for more information.
 
   ############################################################
   # iojZS                                                    #
