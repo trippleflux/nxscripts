@@ -107,8 +107,8 @@ proc ::alcoholicz::PreTimes::LogEvent {event destSection pathSection path data} 
         set disks [SqlEscape $disks]
         set files [SqlEscape $files]
         set kiloBytes [SqlEscape $kiloBytes]
-        if {[catch {db "INSERT INTO pretimes(pretime,section,release,files,kbytes,disks) \
-                VALUES('$now','$section','$release','$files','$kiloBytes','$disks')"} message]} {
+        if {[catch {db "INSERT INTO pretimes (pretime, section, release, files, kbytes, disks) \
+                VALUES('$now', '$section', '$release', '$files', '$kiloBytes', '$disks')"} message]} {
             LogError ModPreTime $message
         }
     } else {

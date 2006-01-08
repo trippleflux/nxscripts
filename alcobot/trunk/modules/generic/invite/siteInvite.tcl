@@ -167,7 +167,7 @@ proc ::siteInvite::SetIrcUser {ftpUser ircUser} {
 
     # Probably the most portable way to do this.
     if {![db "UPDATE invite_users SET irc_user='$ircUser' WHERE ftp_user='$ftpUser'"]} {
-        catch {db "INSERT INTO invite_users(ftp_user,irc_user) VALUES('$ftpUser','$ircUser')"}
+        catch {db "INSERT INTO invite_users (ftp_user, irc_user) VALUES('$ftpUser', '$ircUser')"}
     }
 }
 
@@ -182,7 +182,7 @@ proc ::siteInvite::SetPassword {ftpUser password} {
 
     # Probably the most portable way to do this.
     if {![db "UPDATE invite_users SET password='$hash' WHERE ftp_user='$ftpUser'"]} {
-        catch {db "INSERT INTO invite_users(ftp_user,password) VALUES('$ftpUser','$hash')"}
+        catch {db "INSERT INTO invite_users (ftp_user, password) VALUES('$ftpUser', '$hash')"}
     }
 }
 
@@ -229,7 +229,7 @@ proc ::siteInvite::Admin {argList} {
                 return 1
             }
 
-            db "REPLACE INTO invite_hosts(ftp_user,hostmask) VALUES('$ftpUserEsc','[SqlEscape $hostMask]')"
+            db "REPLACE INTO invite_hosts (ftp_user, hostmask) VALUES('$ftpUserEsc', '[SqlEscape $hostMask]')"
             LinePuts "Added host-mask \"$hostMask\" to user \"$ftpUser\"."
         }
         DELHOST - DELIP {
@@ -274,7 +274,7 @@ proc ::siteInvite::Admin {argList} {
             iputs "|--------------------------------------------------------------|"
             set count 0
 
-            foreach row [db "SELECT ftp_user,irc_user,online,time FROM invite_users ORDER BY ftp_user ASC"] {
+            foreach row [db "SELECT ftp_user, irc_user, online, time FROM invite_users ORDER BY ftp_user ASC"] {
                 incr count
                 foreach {ftpUser ircUser online time} $row {break}
                 if {!$time} {
