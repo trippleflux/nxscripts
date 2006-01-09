@@ -47,6 +47,8 @@ proc ::alcoholicz::Free::Command {command target user host handle channel argv} 
         if {[catch {volume info $volume info} message]} {
             LogError ModFree $message; continue
         }
+        if {$info(total) == 0} {continue}
+
         set percentFree [expr {(double($info(free)) / double($info(total))) * 100.0}]
         set percentUsed [expr {(double($info(used)) / double($info(total))) * 100.0}]
 
