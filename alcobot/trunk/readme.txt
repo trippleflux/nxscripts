@@ -30,28 +30,88 @@ AlcoBot is a modular sitebot written in Tcl for ioFTPD and glFTPD.
 # 2. Installation                                                              #
 ################################################################################
 
-1. UnRAR and copy all files and directories, maintaining the
-   original directory structure, to your Eggdrop directory.
+  ############################################################
+  # Windows                                                  #
+  ############################################################
 
-   The files and directories should be placed as follows:
-   Eggdrop/AlcoBot/AlcoBot.conf
-   Eggdrop/AlcoBot/AlcoBot.tcl
-   Eggdrop/AlcoBot/AlcoBot.vars
-   Eggdrop/AlcoBot/libs/
-   Eggdrop/AlcoBot/modules/
-   Eggdrop/AlcoBot/themes/
-   Eggdrop/AlcoBot/vars/
+  1. Download and install the Cygwin build of Eggdrop. I reccomend using
+     Bounty's version, available at: http://users.skynet.be/bounty/index2.html
 
-2. If you checked out a copy from the Subversion repository, you must rename
-   the appropriate .conf file for your FTP daemon. For example, if you are
-   using ioFTPD, rename the AlcoBot-ioFTPD.conf file to AlcoBot.conf.
+  2. Unpack the AlcoBot archive then copy all files and subdirectories to your
+     Eggdrop directory. Be sure to maintain the following directory structure:
 
-3. Configure AlcoBot.conf to your liking. Read the comments carefully!
+     eggdrop\AlcoBot\AlcoBot.conf
+     eggdrop\AlcoBot\AlcoBot.tcl
+     eggdrop\AlcoBot\AlcoBot.vars
+     eggdrop\AlcoBot\libs\*
+     eggdrop\AlcoBot\modules\*
+     eggdrop\AlcoBot\themes\*
+     eggdrop\AlcoBot\vars\*
 
-4. Add the following line to your eggdrop.conf:
-   source AlcoBot/AlcoBot.tcl
+  3. Rename the AlcoBot-ioFTPD.conf file to AlcoBot.conf. If you downloaded
+     the Windows binary package, this step may not be necessary.
 
-5. Rehash or restart Eggdrop.
+  4. Configure AlcoBot.conf to your liking. Read the comments carefully!
+
+  5. Add the following line to the bottom of your eggdrop.conf file:
+
+     source AlcoBot/AlcoBot.tcl
+
+  6. Rehash or restart Eggdrop for the changes to take affect.
+
+  ############################################################
+  # FreeBSD/Linux                                            #
+  ############################################################
+
+  1. Download and install Tcl v8.4, or newer.
+
+     Debian : apt-get install tcl8.4-dev
+     FreeBSD: portupgrade -N tcl84
+     Source : http://sourceforge.net/project/showfiles.php?group_id=10894
+
+  2. Download and install the AlcoExt Tcl extension.
+
+     Source : http://www.alcoholicz.com/wiki/Downloads
+
+  3. The following packages are optional, but highly recommended.
+
+     TclTLS - SSL/TLS support for FTP connections.
+       Debian : apt-get install tcltls
+       FreeBSD: portupgrade -N tcltls
+       Source : http://sourceforge.net/project/showfiles.php?group_id=13248
+
+     unixODBC - ODBC support for modInvite and modPreTimes.
+       Debian : apt-get install unixodbc-dev
+       FreeBSD: portupgrade -N unixODBC
+       Source : http://www.unixodbc.org
+
+     TclODBC - ODBC support for modInvite and modPreTimes.
+       Source : http://sourceforge.net/project/showfiles.php?group_id=13173
+
+  4. Download and install Eggdrop.
+
+     Source : http://www.eggheads.org
+
+  5. Unpack the AlcoBot archive then copy all files and subdirectories to your
+     Eggdrop directory. Be sure to maintain the following directory structure:
+
+     eggdrop/AlcoBot/AlcoBot.conf
+     eggdrop/AlcoBot/AlcoBot.tcl
+     eggdrop/AlcoBot/AlcoBot.vars
+     eggdrop/AlcoBot/libs/*
+     eggdrop/AlcoBot/modules/*
+     eggdrop/AlcoBot/themes/*
+     eggdrop/AlcoBot/vars/*
+
+  6. Rename the AlcoBot-glFTPD.conf file to AlcoBot.conf.
+
+  7. Configure AlcoBot.conf to your liking. Read the comments carefully!
+
+  8. Add the following line to the bottom of your eggdrop.conf file:
+
+     source AlcoBot/AlcoBot.tcl
+
+  9. Rehash or restart Eggdrop for the changes to take affect.
 
 
 ################################################################################
