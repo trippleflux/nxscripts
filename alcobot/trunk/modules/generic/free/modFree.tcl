@@ -47,7 +47,10 @@ proc ::alcoholicz::Free::Command {command target user host handle channel argv} 
         if {[catch {volume info $volume info} message]} {
             LogError ModFree $message; continue
         }
-        if {$info(total) == 0} {continue}
+        if {$info(total) == 0} {
+            LogError ModFree "Invalid volume \"$volume\": the total size is zero."
+            continue
+        }
 
         set percentFree [expr {(double($info(free)) / double($info(total))) * 100.0}]
         set percentUsed [expr {(double($info(used)) / double($info(total))) * 100.0}]
@@ -70,7 +73,8 @@ proc ::alcoholicz::Free::Command {command target user host handle channel argv} 
             set percentFree 0.0; set percentUsed 0.0
         }
 
-        SendTargetTheme $target freeFoot [list $free $used $total $percentFree $percentUsed $count]
+        SendTargetTheme $target freeFoot [list $free $used $total \
+            $percentFree $percentUsed $count]
     }
 }
 
@@ -89,7 +93,7 @@ proc ::alcoholicz::Free::Load {firstLoad} {
     }
 
     CmdCreate channel free [namespace current]::Command \
-        -aliases "df"       -args "\[section\]" \
+        -aliases  "df"      -args "\[section\]" \
         -category "General" -desc "Display free disk space."
 }
 
