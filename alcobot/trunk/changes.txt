@@ -1,6 +1,6 @@
 AlcoBot v1.0.0 (not yet released):
   NEW: Improved installation instructions.
-  FIX: Division-by-zero error in the free module if the total size of a volume is 0.
+  FIX: Division-by-zero error in the free module if the total size of a volume is zero.
 
 AlcoBot v0.7.0 (Jan 7, 2006):
   NEW: Check for "DNS" fields in glFTPD v2.01 user-files.
