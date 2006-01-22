@@ -1,6 +1,0 @@
-# Module Definition File
-desc=nxTools Support
-context=::alcoholicz::NxTools
-depends=ftpd invite
-tclFile=modNxTools.tcl
-varFile=modNxTools.vars

@@ -1,6 +1,0 @@
-# Module Definition File
-desc=Log Reading
-context=::alcoholicz::ReadLogs
-depends=
-tclFile=modReadLogs.tcl
-varFile=

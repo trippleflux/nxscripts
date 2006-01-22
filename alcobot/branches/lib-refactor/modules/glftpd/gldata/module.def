@@ -1,6 +1,0 @@
-# Module Definition File
-desc=glFTPD Data Files
-context=::alcoholicz::GlData
-depends=ftpd
-tclFile=modGlData.tcl
-varFile=modGlData.vars

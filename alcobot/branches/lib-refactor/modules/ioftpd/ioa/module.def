@@ -1,6 +1,0 @@
-# Module Definition File
-desc=ioA Support
-context=::alcoholicz::IoA
-depends=
-tclFile=modIoA.tcl
-varFile=modIoA.vars

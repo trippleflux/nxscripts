@@ -1,6 +1,0 @@
-# Module Definition File
-desc=Invite Users
-context=::alcoholicz::Invite
-depends=ftpd
-tclFile=modInvite.tcl
-varFile=modInvite.vars
