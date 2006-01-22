@@ -14,6 +14,7 @@
 
 namespace eval ::alcoholicz::Groups {
     namespace import -force ::alcoholicz::*
+    namespace import -force ::config::*
 }
 
 ####

@@ -20,6 +20,7 @@ namespace eval ::alcoholicz::ReadLogs {
         variable timerId ""
     }
     namespace import -force ::alcoholicz::*
+    namespace import -force ::config::*
 }
 
 ####

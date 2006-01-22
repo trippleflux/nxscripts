@@ -34,6 +34,8 @@ namespace eval ::alcoholicz::FtpDaemon {
         variable timerId ""
     }
     namespace import -force ::alcoholicz::*
+    namespace import -force ::config::*
+    namespace import -force ::ftp::*
     namespace export GetFlagTypes GetFtpConnection \
         UserExists UserList UserInfo UserIdToName UserNameToId \
         GroupExists GroupList GroupInfo GroupIdToName GroupNameToId

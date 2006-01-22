@@ -25,6 +25,7 @@ namespace eval ::alcoholicz::Invite {
     }
     namespace import -force ::alcoholicz::*
     namespace import -force ::alcoholicz::FtpDaemon::*
+    namespace import -force ::config::*
     namespace export GetFtpUser GetIrcUser
 }
 

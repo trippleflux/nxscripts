@@ -21,6 +21,9 @@ namespace eval ::alcoholicz::NxTools {
     namespace import -force ::alcoholicz::*
     namespace import -force ::alcoholicz::FtpDaemon::GetFtpConnection
     namespace import -force ::alcoholicz::Invite::GetFtpUser
+    namespace import -force ::config::*
+    namespace import -force ::ftp::*
+    namespace import -force ::getopt::*
 }
 
 ####

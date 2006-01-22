@@ -14,6 +14,8 @@
 
 namespace eval ::alcoholicz::IoA {
     namespace import -force ::alcoholicz::*
+    namespace import -force ::config::*
+    namespace import -force ::getopt::*
 }
 
 ####

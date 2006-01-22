@@ -17,6 +17,7 @@ namespace eval ::alcoholicz::Free {
         variable volumeList [list]
     }
     namespace import -force ::alcoholicz::*
+    namespace import -force ::config::*
 }
 
 ####

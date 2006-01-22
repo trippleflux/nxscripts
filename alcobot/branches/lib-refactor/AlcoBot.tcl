@@ -1040,6 +1040,7 @@ proc ::alcoholicz::InitConfig {filePath} {
     variable chanSections
     variable pathSections
     unset -nocomplain cmdFlags chanSections pathSections
+    namespace import -force ::config::*
 
     # Update configuration path before reading the file.
     set configFile $filePath

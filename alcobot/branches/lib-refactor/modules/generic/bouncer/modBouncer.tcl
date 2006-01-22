@@ -18,6 +18,8 @@ namespace eval ::alcoholicz::Bouncer {
         variable timerId ""
     }
     namespace import -force ::alcoholicz::*
+    namespace import -force ::config::*
+    namespace import -force ::ftp::*
 }
 
 ####
