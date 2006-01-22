@@ -1040,6 +1040,7 @@ proc ::alcoholicz::InitConfig {filePath} {
     variable chanSections
     variable pathSections
     unset -nocomplain cmdFlags chanSections pathSections
+    namespace import -force ::config::*
 
     # Update configuration path before reading the file.
     set configFile $filePath
@@ -1101,7 +1102,7 @@ proc ::alcoholicz::InitLibraries {rootPath} {
     global auto_path
 
     set libPath [file join $rootPath "libs"]
-    foreach script {constants.tcl libCommon.tcl libConfig.tcl libFtp.tcl libGetOpt.tcl libTree.tcl} {
+    foreach script {constants.tcl libFtp.tcl libGetOpt.tcl libTree.tcl libConfig.tcl libUtil.tcl} {
         set script [file join $libPath $script]
         if {[catch {source $script} message]} {
             error "couldn't source script \"$script\": $message"

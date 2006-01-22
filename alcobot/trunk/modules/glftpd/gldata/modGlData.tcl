@@ -21,6 +21,8 @@ namespace eval ::alcoholicz::GlData {
     }
     namespace import -force ::alcoholicz::*
     namespace import -force ::alcoholicz::FtpDaemon::*
+    namespace import -force ::config::*
+    namespace import -force ::getopt::*
 }
 
 ####

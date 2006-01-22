@@ -20,6 +20,7 @@ namespace eval ::alcoholicz::Online {
         variable session ""
     }
     namespace import -force ::alcoholicz::*
+    namespace import -force ::config::*
 }
 
 ####

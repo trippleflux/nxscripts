@@ -18,6 +18,8 @@ namespace eval ::alcoholicz::PreTimes {
         variable defLimit 5
     }
     namespace import -force ::alcoholicz::*
+    namespace import -force ::config::*
+    namespace import -force ::getopt::*
 }
 
 ####

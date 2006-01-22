@@ -3,7 +3,7 @@
 # Copyright (c) 2005 Alcoholicz Scripting Team
 #
 # Module Name:
-#   Common Library
+#   Utility Library
 #
 # Author:
 #   neoxed (neoxed@gmail.com) May 16, 2005

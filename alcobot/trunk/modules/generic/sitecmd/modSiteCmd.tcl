@@ -15,6 +15,8 @@
 namespace eval ::alcoholicz::SiteCmd {
     namespace import -force ::alcoholicz::*
     namespace import -force ::alcoholicz::FtpDaemon::GetFtpConnection
+    namespace import -force ::config::*
+    namespace import -force ::ftp::*
 }
 
 ####
