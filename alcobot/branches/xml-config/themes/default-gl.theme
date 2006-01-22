@@ -1,0 +1,311 @@
+################################################################################
+#                        AlcoBot - Alcoholicz site bot.                        #
+#                 Copyright (c) 2005 Alcoholicz Scripting Team                 #
+################################################################################
+#
+# Control Identifiers:
+#   [b]  - Bold code
+#   [c]  - Colour code, followed by a colour index.
+#   [c#] - Section colour code.
+#   [o]  - Reset code.
+#   [r]  - Reverse code.
+#   [u]  - Underline code.
+#
+# Colour Index:
+#   00 - White   04 - Light Red   08 - Yellow         12 - Light Blue
+#   01 - Black   05 - Brown       09 - Light Green    13 - Pink
+#   02 - Blue    06 - Purple      10 - Cyan           14 - Grey
+#   03 - Green   07 - Orange      11 - Light Cyan     15 - Light Grey
+#
+# Variables:
+#   %[width].[precision](variableName)
+#   - All variable names are in camel casing (lower-case for the first word
+#     and the first character of all subsequent words is capitalized).
+#   - The 'width' and 'precision' fields work just as they do in the
+#     C printf() function.
+#
+#### Colour
+#
+# Format : <section>,<number> = <colour>
+# Example: APPS,1 = 03
+#
+# - The 'DEFAULT' entry is used if the announce is not section oriented
+#   or there are no colours defined for the specific section.
+# - The section colour identifier is '[c#]' (i.e. for 'APPS,2' the colour
+#   identifier would be '[c2]').
+# - There is no limit to the number of section colours you may define.
+#
+[Colour]
+# Section colour one [c1].
+DEFAULT,1 = 14
+STAFF,1   = 14
+0DAY,1    = 04
+APPS,1    = 04
+DVDR,1    = 03
+GAMES,1   = 07
+MP3,1     = 12
+REQS,1    = 15
+SVCD,1    = 05
+TV,1      = 07
+VCD,1     = 06
+XVID,1    = 12
+
+# Section colour two [c2].
+DEFAULT,2 = 15
+STAFF,2   = 15
+APPS,2    = 14
+DVDR,2    = 14
+GAMES,2   = 14
+XVID,2    = 14
+
+#### Format
+#
+# Format : <entry> = <text>
+# Example: prefix = [SITE]
+#
+# - Customize date, time, size, and speed output. These entries are
+#   required and should NOT be removed or commented out.
+# - Refer to Tcl's manual for available date and time descriptors.
+#   URL: http://www.tcl.tk/man/tcl8.4/TclCmd/clock.htm#M6
+#
+[Format]
+prefix    = [%(siteTag)]
+time      = %H[b]:[b]%M[b]:[b]%S
+date      = %m[b]/[b]%d[b]/[b]%y
+
+sizeKilo  = [b]%.0(size)[b]KB
+sizeMega  = [b]%.1(size)[b]MB
+sizeGiga  = [b]%.2(size)[b]GB
+sizeTera  = [b]%.2(size)[b]TB
+
+speedKilo = [b]%.0(speed)[b]KB/s
+speedMega = [b]%.1(speed)[b]MB/s
+speedGiga = [b]%.2(speed)[b]GB/s
+
+#### Theme
+#
+# Format : <entry> = <text>
+# Example: NEWDIR  = %(section) :: New Release: %(releaseName) by %(user)/%(group)
+#
+# - Theme definitions may contain control identifiers.
+# - There are three variables common to all entries: %(prefix), %(siteName),
+#   and %(siteName). All other variables are specific to each theme entry.
+#
+[Theme]
+# glFTPD events
+NEWDIR         = [b][[c1]%(section)[c]][b] New Release: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group).
+DELDIR         = [b][[c1]%(section)[c]][b] Directory Deleted: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group).
+NUKE           = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] was nuked [b]%(multi)x[b] by [b]%(user)[b] for [b]%(reason)[b]. Nukees: %(nukees)
+UNNUKE         = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] was unnuked [b]%(multi)x[b] by [b]%(user)[b] for [b]%(reason)[b]. Nukees: %(nukees)
+NUKEES         = [b]%(user)[b] (%(stats))
+NUKEES_JOIN    = ", "
+REQUEST        = [b][[c1]Request[c]][b] [b]%(request)[b] deleted by [b]%(user)[b]/%(group).
+REQFILLED      = [b][[c1]Request[c]][b] [b]%(request)[b] filled by [b]%(user)[b]/%(group) for [b]%(reqUser)[b].
+WIPE           = [b][[c1]%(section)[c]][b] Wiped: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group).
+WIPE-r         = [b][[c1]%(section)[c]][b] Wiped: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group).
+
+# ModPreTimes events
+PRENEW         = [b][[c1]%(section)[c]][b] New Release: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago.
+PRELATE        = [b][[c1]%(section)[c]][b] New Release: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago, older than the %(limit) limit.
+
+# Error events
+ERROR          = [b][[c1]Error[c]][b] %(message)
+
+# Login events
+LOGIN          = [b][[c1]Login[c]][b] [b]%(user)[b]/%(group) has logged in.
+LOGOUT         = [b][[c1]Logout[c]][b] [b]%(user)[b]/%(group) has logged out.
+TIMEOUT        = [b][[c1]Logout[c]][b] [b]%(user)[b] has timed out after [b]%(seconds)[b]s.
+BADHOSTMASK    = [b][[c1]Login[c]][b] [b]%(user)[b] could not login, hostmask [b]%(ident)@%(ip)[b] is not added.
+BADPASSWORD    = [b][[c1]Login[c]][b] [b]%(user)[b] could not login, invalid password.
+BANNEDHOST     = [b][[c1]Login[c]][b] [b]%(user)[b] could not login, hostmask [b]%(ident)@%(ip)[b] is banned.
+DELETED        = [b][[c1]Login[c]][b] [b]%(user)[b] could not login, account deleted.
+KILLGHOST      = [b][[c1]Ghost[c]][b] [b]%(user)[b] killed a ghost with PID [b]%(pid)[b].
+UNKNOWNHOST    = [b][[c1]Login[c]][b] Denied connection from unknown host [b]%(ident)@%(ip)[b].
+
+# Sysop events
+ADDUSER        = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] added user [b]%(user)[b].
+GADDUSER       = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] added user [b]%(user)[b] to group [b]%(group)[b].
+RENUSER        = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] renamed user [b]%(user)[b] to [b]%(newUser)[b].
+DELUSER        = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] deleted user [b]%(user)[b].
+READDED        = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] readded user [b]%(user)[b].
+PURGED         = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] purged user [b]%(user)[b].
+ADDIP          = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] added IP [b]%(ip)[b] to [b]%(user)[b].
+DELIP          = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] removed IP [b]%(ip)[b] from [b]%(user)[b].
+GRPADD         = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] added group [b]%(group)[b].
+GRPDEL         = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] deleted group [b]%(group)[b].
+CHGRPADD       = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] added [b]%(user)[b] to group [b]%(group)[b].
+CHGRPDEL       = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] removed [b]%(user)[b] from group [b]%(group)[b].
+SYSOP          = [b][[c1]SysOp[c]][b] %(message)
+GIVE           = [b][[c1]Give[c]][b] [b]%(user)[b] gave %(credits) of credits to [b]%(target)[b].
+TAKE           = [b][[c1]Take[c]][b] [b]%(user)[b] took %(credits) of credits from [b]%(target)[b].
+
+# Zipscript: bad file events
+BAD_FILE_0SIZE     = [b][[c1]%(section)[c1]][b] [b]%(user)[b]/%(group) uploaded a zero byte file in [b]%(releaseName)[b].
+BAD_FILE_BITRATE   = [b][[c1]%(section)[c1]][b] [b]%(user)[b]/%(group) uploaded a banned bitrate in [b]%(releaseName)[b].
+BAD_FILE_CRC       = [b][[c1]%(section)[c1]][b] [b]%(user)[b]/%(group) uploaded a bad file in [b]%(releaseName)[b].
+BAD_FILE_DUPENFO   = [b][[c1]%(section)[c1]][b] [b]%(user)[b]/%(group) uploaded a duplicate NFO in [b]%(releaseName)[b].
+BAD_FILE_GENRE     = [b][[c1]%(section)[c1]][b] [b]%(user)[b]/%(group) uploaded a banned genre in [b]%(releaseName)[b].
+BAD_FILE_NFODENIED = [b][[c1]%(section)[c1]][b] [b]%(user)[b]/%(group) uploaded a NFO file in [b]%(releaseName)[b].
+BAD_FILE_NOSFV     = [b][[c1]%(section)[c1]][b] [b]%(user)[b]/%(group) uploaded a file without an SFV present in [b]%(releaseName)[b].
+BAD_FILE_PASSWORD  = [b][[c1]%(section)[c1]][b] [b]%(user)[b]/%(group) uploaded a password protected file in [b]%(releaseName)[b].
+BAD_FILE_PRESET    = [b][[c1]%(section)[c1]][b] [b]%(user)[b]/%(group) uploaded a banned VBR preset in [b]%(releaseName)[b].
+BAD_FILE_SFV       = [b][[c1]%(section)[c1]][b] [b]%(user)[b]/%(group) uploaded a bad SFV in [b]%(releaseName)[b].
+BAD_FILE_TYPE      = [b][[c1]%(section)[c1]][b] [b]%(user)[b]/%(group) uploaded a banned file type in [b]%(releaseName)[b].
+BAD_FILE_WRONGDIR  = [b][[c1]%(section)[c1]][b] [b]%(user)[b]/%(group) uploaded a file to the wrong dir in [b]%(releaseName)[b].
+BAD_FILE_YEAR      = [b][[c1]%(section)[c1]][b] [b]%(user)[b]/%(group) uploaded a banned year in [b]%(releaseName)[b].
+BAD_FILE_ZIP       = [b][[c1]%(section)[c1]][b] [b]%(user)[b]/%(group) uploaded a bad ZIP in [b]%(releaseName)[b].
+
+# Zipscript: bad MP3 events
+WARN_BITRATE   = [b][[c1]%(section)[c]][b] [b]%(user)[b]/%(group) is uploading a banned bitrate of [b]%(bitrate)[b]Kbit/s.
+WARN_GENRE     = [b][[c1]%(section)[c]][b] [b]%(user)[b]/%(group) is uploading a banned genre of [b]%(genre)[b].
+WARN_PRESET    = [b][[c1]%(section)[c]][b] [b]%(user)[b]/%(group) is uploading a banned VBR preset [b]%(preset)[b].
+WARN_YEAR      = [b][[c1]%(section)[c]][b] [b]%(user)[b]/%(group) is uploading a banned year from [b]%(year)[b].
+
+# Zipscript: general events
+COMPLETE       = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] [%(size) in [b]%(filesTotal)[b]F at %(xferSpeed) - %(timeElapsed)] was completed by [b]%(user)[b]/%(group).
+COMPLETE_RACE  = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] [%(size) in [b]%(filesTotal)[b]F at %(avgSpeed) - %(timeElapsed)] was completed by [b]%(userCount)[b] user(s) in [b]%(groupCount)[b] group(s).\n[b][[c1]%(section)[c]][b] User Top:\n%(userTop)\n[b][[c1]%(section)[c]][b] Group Top:\n%(groupTop)
+DOUBLE_SFV     = [b][[c1]%(section)[c]][b] [b]%(user)[b]/%(group) tried to upload a second SFV in [b]%(releaseName)[b].
+HALFWAY        = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] is in halfway, [b]%(user)[b]/%(group) is all alone.
+HALFWAY_RACE   = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] is in halfway with [b]%(userCount)[b] user(s) from [b]%(groupCount)[b] group(s). Leading uploader is %(leadUser), leading group is %(leadGroup).
+INCOMPLETE     = [b][[c1]%(section)[c]][b] [b]%(releaseName)[b] is now incomplete thanks to [b]%(user)[b]/%(group).
+NEWLEADER      = [b][[c1]%(section)[c]][b] %(leadUser) takes the lead in [b]%(releaseName)[b].
+RACE           = [b][[c1]%(section)[c]][b] [b]%(user)[b]/%(group) races [b]%(releaseName)[b] at %(speed), [b]%.1(percent)[b]% done.
+SFV            = [b][[c1]%(section)[c]][b] Got SFV for [b]%(releaseName)[b], expecting [b]%(filesTotal)[b]F.
+SPEEDTEST      = [b][[c1]SPEED[c]][b] [b]%(user)[b]/%(group) uploaded a speed test of %(size) at %(speed).
+UPDATE_MP3     = [b][[c1]%(section)[c]][b] [b]%(user)[b]/%(group) was the first to upload a file in [b]%(releaseName)[b] at %(speed), expecting %(size) of [b]%(genre)[b] from [b]%(year)[b] at [b]%(bitrate)[b]Kbit/s.
+UPDATE         = [b][[c1]%(section)[c]][b] [b]%(user)[b]/%(group) was the first to upload a file in [b]%(releaseName)[b] at %(speed), expecting %(size).
+
+# Zipscript: list of racers
+RACERS         = [b]%(user)[b]/%(group)
+RACERS_JOIN    = " "
+
+# Zipscript: user and group information
+USERINFO       = [b]%(user)[b]/%(group) [%(size)/[b]%(files)[b]F/[b]%.1(percent)[b]%/%(speed)]
+USERINFO_JOIN  =
+GROUPINFO      = [b]%(group)[b] [%(size)/[b]%(files)[b]F/[b]%.1(percent)[b]%/%(speed)]
+GROUPINFO_JOIN =
+
+# Zipscript: users and groups shown on completion
+USERTOP        = [b][[c1]%(section)[c]][b] %(pos). [b]%(user)[b]/%(group) [%(size)/[b]%(files)[b]F/[b]%.1(percent)[b]%/%(speed)]
+USERTOP_JOIN   = "\n"
+GROUPTOP       = [b][[c1]%(section)[c]][b] %(pos). [b]%(group)[b] [%(size)/[b]%(files)[b]F/[b]%.1(percent)[b]%/%(speed)]
+GROUPTOP_JOIN  = "\n"
+
+# Command argument help
+commandHelp    = [b][[c1]Usage[c]][b] %(command) %(arguments) - %(message)
+commandUsage   = [b][[c1]Usage[c]][b] %(command) %(arguments)
+
+# Module: bouncer
+bouncerHead    = [b][[c1]BNC[c]][b] FTP Bouncer Status:
+bouncerOffline = [b][[c1]BNC[c]][b] %(name) - Host: %(host):%(port) - Status: [c]4[b]Offline[b][c] (checked %(age) ago).
+bouncerOnline  = [b][[c1]BNC[c]][b] %(name) - Host: %(host):%(port) - Status: [c]3[b]Online[b][c] (checked %(age) ago).
+bouncerUnknown = [b][[c1]BNC[c]][b] %(name) - Host: %(host):%(port) - Status: [c]4[b]Unknown[b][c].
+bouncerFoot    =
+
+# Module: free
+freeHead       = [b][[c1]Free[c]][b] Total Space:
+freeBody       = [b][[c1]Free[c]][b] %(sections): %(free) free of %(total)
+freeFoot       = [b][[c1]Free[c]][b] TOTAL: %(free) free of %(total)
+
+# Module: gldata
+dupeHead       = [b]Dupe:[b]
+dupeBody       = [%02(num)] %(releaseDate) - [b]%(releaseName)[b]
+dupeNone       = No releases found matching "%(pattern)".
+dupeFoot       =
+
+newHead        = [b]New Releases:[b]
+newBody        = [%02(num)] [b]%(releaseName)[b] by [b]%(user)[b]/%(group) (%(size)/[b]%(files)[b]F/%(age)).
+newNone        = No releases found.
+newFoot        =
+
+searchHead     = [b]Search:[b]
+searchBody     = [%02(num)] %(releaseDate) - [b]%(releaseName)[b] by [b]%(user)[b]/%(group) (%(size)/[b]%(files)[b]F/%(age)).
+searchNone     = No releases found matching "%(pattern)".
+searchFoot     =
+
+undupeHead     = [b]Undupe:[b]
+undupeBody     = [%02(num)] [b]%(file)[b] removed.
+undupeNone     = No entries found matching "%(pattern)".
+undupeFoot     =
+
+nukesHead      = [b]Nukes:[b]
+nukesBody      = [%02(num)] [b]%(releaseName)[b] nuked [b]%(multi)x[b] by [b]%(user)[b] for [b]%(reason)[b].
+nukesNone      = No releases found.
+nukesFoot      =
+
+unnukesHead    = [b]Unnukes:[b]
+unnukesBody    = [%02(num)] [b]%(releaseName)[b] unnuked [b]%(multi)x[b] by [b]%(user)[b] for [b]%(reason)[b].
+unnukesNone    = No releases found.
+unnukesFoot    =
+
+oneLinesHead   = [b]One Lines:[b]
+oneLinesBody   = [%(messageDate)] [b]%(message)[b] by [b]%(user)[b]/%(group).
+oneLinesNone   = No messages found.
+oneLinesFoot   =
+
+# Module: groups
+affilsHead     = [b]Affiliated Groups:[b]
+affilsBody     = [b][[c1]%(section)[c]][b] %(groups)
+affilsFoot     = Total: [b]%(groupCount)[b] affil(s) in [b]%(sectionCount)[b] section(s).
+
+bannedHead     = [b]Banned Groups:[b]
+bannedBody     = [b][[c1]%(section)[c]][b] %(groups)
+bannedFoot     = Total: [b]%(groupCount)[b] banned group(s) in [b]%(sectionCount)[b] section(s).
+
+# Module: help
+helpHead       = [b]Supported Commands:[b]
+helpType       = [u]%(type) Commands:[u]
+helpBody       = %(command) %(arguments) - %(description)
+helpFoot       =
+
+# Module: invite
+inviteBad      = [b][[c1]Invite[c]][b] Incorrect username, password, or IRC host.
+inviteBadHost  = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) using an unknown IRC host.
+inviteBadPass  = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) used an incorrect account or password.
+inviteBadUser  = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) used the wrong IRC nickname.
+inviteDbDown   = [b][[c1]Invite[c]][b] Database offline, unable to invite [b]%(nick)[b].
+inviteFailed   = [b][[c1]Invite[c]][b] I need ops in [b]%(channels)[b] to invite [b]%(nick)[b].
+INVITE         = [b][[c1]Invite[c]][b] [b]%(user)[b]/%(group) invited himself as [b]%(nick)[b].
+
+# Module: online
+bandwidth      = [b][[c1]Bandwidth[c]][b] Leechers: [b]%(usersDn)[b] at %(speedDn) - Uploaders: [b]%(usersUp)[b] at %(speedUp) - Idlers: [b]%(usersIdle)[b] - Total: %(speedTotal) with [b]%(usersTotal)[b]/[b]%(usersMax)[b] online.
+bandwidthDn    = [b][[c1]Bandwidth[c]][b] [b]%(usersDn)[b] download(s) at %(speedDn).
+bandwidthUp    = [b][[c1]Bandwidth[c]][b] [b]%(usersUp)[b] upload(s) at %(speedUp).
+
+idleHead       =
+idleBody       = [b][[c1]Idle[c]][b] [b]%(user)[b]/%(group) has been idle for %(idle).
+idleFoot       = [b][[c1]Idle[c]][b] Total: [b]%(users)[b] user(s).
+
+downloadHead   =
+downloadBody   = [b][[c1]Leech[c]][b] [b]%(user)[b]/%(group) is downloading [b]%(file)[b] at %(speed) (%(size) done).
+downloadFoot   = [b][[c1]Leech[c]][b] Total: [b]%(users)[b] user(s) at %(speed).
+
+uploadHead     =
+uploadBody     = [b][[c1]Upload[c]][b] [b]%(user)[b]/%(group) is uploading [b]%(file)[b] at %(speed) (%(size) done).
+uploadFoot     = [b][[c1]Upload[c]][b] Total: [b]%(users)[b] user(s) at %(speed).
+
+speedHead      =
+speedIdle      = [b][[c1]Speed[c]][b] [b]%(user)[b]/%(group) has been idle for %(idle).
+speedDownload  = [b][[c1]Speed[c]][b] [b]%(user)[b]/%(group) is downloading [b]%(file)[b] at %(speed) (%(size) done).
+speedUpload    = [b][[c1]Speed[c]][b] [b]%(user)[b]/%(group) is uploading [b]%(file)[b] at %(speed) (%(size) done).
+speedNone      = [b][[c1]Speed[c]][b] The specified user is not online.
+speedFoot      =
+
+whoHead        = [b]Who's Online:[b]
+whoIdle        = [b]-[b] [b]%(user)[b]/%(group) has been idle for %(idle).
+whoDownload    = [b]-[b] [b]%(user)[b]/%(group) is downloading [b]%(file)[b] at %(speed) (%(size) done.
+whoUpload      = [b]-[b] [b]%(user)[b]/%(group) is uploading [b]%(file)[b] at %(speed) (%(size) done).
+whoNone        = [b]-[b] There is no one online.
+whoFoot        =
+
+# Module: pretimes
+preHead        =
+preBody        = [b][[c1]Pre[c]][b] [b]%(release)[b] (%(size)/[b]%(files)[b]F) released %(age) ago (%(preDate) %(preTime))
+preNuke        = [b][[c1]Pre[c]][b] [b]%(release)[b] (%(size)/[b]%(files)[b]F) released %(age) ago (%(preDate) %(preTime)) nuked for [b]%(reason)[b]
+preNone        = [b][[c1]Pre[c]][b] No releases found matching "%(pattern)".
+preFoot        =
+
+# Module: sitecmd
+siteHead       = [b][[c1]SiteCmd[c]][b] Sending: [b]%(command)[b]
+siteBody       = [b][[c1]SiteCmd[c]][b] %(message)
+siteFoot       =

@@ -1,0 +1,6 @@
+# Module Definition File
+desc=Site Command
+context=::alcoholicz::SiteCmd
+depends=ftpd
+tclFile=modSiteCmd.tcl
+varFile=modSiteCmd.vars
