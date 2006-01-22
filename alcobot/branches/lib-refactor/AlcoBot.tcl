@@ -1101,7 +1101,7 @@ proc ::alcoholicz::InitLibraries {rootPath} {
     global auto_path
 
     set libPath [file join $rootPath "libs"]
-    foreach script {constants.tcl libCommon.tcl libConfig.tcl libFtp.tcl libGetOpt.tcl libTree.tcl} {
+    foreach script {constants.tcl libConfig.tcl libFtp.tcl libGetOpt.tcl libTree.tcl libUtil.tcl} {
         set script [file join $libPath $script]
         if {[catch {source $script} message]} {
             error "couldn't source script \"$script\": $message"
