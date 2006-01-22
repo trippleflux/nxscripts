@@ -984,40 +984,12 @@ proc ::alcoholicz::DccAdmin {handle idx text} {
         # Reload configuration file.
         InitMain
 
-    } elseif {$event eq "TEST" || $event eq "TESTS"} {
-        package require tcltest 2
-
-        # The test suite will change the working directory.
-        set workingDir [pwd]
-
-        # Configure test suite options.
-        set testPath [file join $scriptPath "tests"]
-        set logFile [file join $scriptPath "tests.log"]
-
-        if {![file isdirectory $testPath]} {
-            putdcc $idx "Test suite not found."
-            return
-        }
-
-        if {[catch {
-            ::tcltest::errorFile        $logFile
-            ::tcltest::outputFile       $logFile
-            ::tcltest::singleProcess    1
-            ::tcltest::testsDirectory   $testPath
-            ::tcltest::workingDirectory $testPath
-            ::tcltest::runAllTests
-        }]} {
-            putdcc $idx $::errorInfo
-        }
-
-        cd $workingDir
     } else {
         global lastbind
         putdcc $idx "[b]Alcoholicz Bot DCC Admin[b]"
         putdcc $idx ".$lastbind dump   - Dump configuration."
         putdcc $idx ".$lastbind help   - Command help."
         putdcc $idx ".$lastbind reload - Reload configuration."
-        putdcc $idx ".$lastbind test   - Run test suite."
     }
     return
 }
