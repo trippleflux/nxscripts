@@ -17,7 +17,7 @@
 #   GetOptions         <argList> <optList> <resultVar>
 #
 
-namespace eval ::alcoholicz {
+namespace eval ::getopt {
     variable charClasses
     if {![info exists charClasses]} {
         # Create a list of known character classes.
@@ -34,7 +34,7 @@ namespace eval ::alcoholicz {
 # Simple wrapper around GetIndexFromList, an error is thrown if no
 # match is found.
 #
-proc ::alcoholicz::GetElementFromList {list element {type "option"}} {
+proc ::getopt::GetElementFromList {list element {type "option"}} {
     set index [GetIndexFromList $list $element]
     if {$index == -1} {
         error "invalid $type \"$element\", must be [JoinLiteral $list or]"
@@ -49,7 +49,7 @@ proc ::alcoholicz::GetElementFromList {list element {type "option"}} {
 # if there is no exact match. If the element exists in the list, the index
 # is returned. If there is no unique match, -1 is returned.
 #
-proc ::alcoholicz::GetIndexFromList {list element} {
+proc ::getopt::GetIndexFromList {list element} {
     # Check for an exact match.
     set index [lsearch -exact $list $element]
     if {$index == -1} {
@@ -96,7 +96,7 @@ proc ::alcoholicz::GetIndexFromList {list element} {
 # $result(match) = glob
 # $pattern       = *some pattern*"
 #
-proc ::alcoholicz::GetOptions {argList optList resultVar} {
+proc ::getopt::GetOptions {argList optList resultVar} {
     variable charClasses
     upvar $resultVar result
 

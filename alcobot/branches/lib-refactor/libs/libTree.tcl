@@ -25,7 +25,7 @@
 #   TreeUnset    <tree> <key> [<key> ...]
 #
 
-namespace eval ::alcoholicz {
+namespace eval ::tree {
     namespace export TreeCreate TreeExists TreeFor TreeKeys TreeValues \
         TreeGet TreeGetNaive TreeSet TreeUnset
 }
@@ -36,7 +36,7 @@ namespace eval ::alcoholicz {
 # Creates a new tree that contains each of the key and value mappings listed
 # as arguments. Keys and values must be in alternating order.
 #
-proc ::alcoholicz::TreeCreate {args} {
+proc ::tree::TreeCreate {args} {
     if {[llength $args] & 1} {
         error "unbalanced list"
     }
@@ -49,7 +49,7 @@ proc ::alcoholicz::TreeCreate {args} {
 # Returns a boolean value indicating whether the given key exists in the
 # specified tree.
 #
-proc ::alcoholicz::TreeExists {tree key args} {
+proc ::tree::TreeExists {tree key args} {
     foreach {name node} $tree {
         if {$key eq $name} {
             if {![llength $args]} {return 1}
@@ -66,7 +66,7 @@ proc ::alcoholicz::TreeExists {tree key args} {
 # must be specified for the first parameter, which are mapped to the key and
 # value for each iteration.
 #
-proc ::alcoholicz::TreeFor {vars tree body} {
+proc ::tree::TreeFor {vars tree body} {
     if {[llength $vars] != 2} {
         error "must have exactly two variable names"
     }
@@ -79,7 +79,7 @@ proc ::alcoholicz::TreeFor {vars tree body} {
 # Returns a list of all keys in the given tree. If the "pattern" argument
 # is specified, only matching keys are returned.
 #
-proc ::alcoholicz::TreeKeys {tree {pattern "*"}} {
+proc ::tree::TreeKeys {tree {pattern "*"}} {
     set keys [list]
     foreach {name node} $tree {
         if {[string match $pattern $name]} {
@@ -95,7 +95,7 @@ proc ::alcoholicz::TreeKeys {tree {pattern "*"}} {
 # Returns a list of all values in the given tree. If the "pattern" argument
 # is specified, only matching values are returned.
 #
-proc ::alcoholicz::TreeValues {tree {pattern "*"}} {
+proc ::tree::TreeValues {tree {pattern "*"}} {
     set values [list]
     foreach {name node} $tree {
         if {[string match $pattern $node]} {
@@ -112,7 +112,7 @@ proc ::alcoholicz::TreeValues {tree {pattern "*"}} {
 # specified to retrieve values of nested keys. An error is raised if you attempt
 # to retrieve a value for a key that does not exist.
 #
-proc ::alcoholicz::TreeGet {tree key args} {
+proc ::tree::TreeGet {tree key args} {
     foreach {name node} $tree {
         if {$key eq $name} {
             if {![llength $args]} {return $node}
@@ -129,7 +129,7 @@ proc ::alcoholicz::TreeGet {tree key args} {
 # specified. This simplifies implementations that consider the key's existence to
 # be irrelevant.
 #
-proc ::alcoholicz::TreeGetNaive {tree key args} {
+proc ::tree::TreeGetNaive {tree key args} {
     foreach {name node} $tree {
         if {$key eq $name} {
             if {![llength $args]} {return $node}
@@ -146,7 +146,7 @@ proc ::alcoholicz::TreeGetNaive {tree key args} {
 # specified, it creates or updates a chain of nested keys. Note that this
 # procedure takes name of a tree variable, not the actual tree.
 #
-proc ::alcoholicz::TreeSet {treeVar key value args} {
+proc ::tree::TreeSet {treeVar key value args} {
     upvar 1 $treeVar tree
     if {![info exists tree]} {set tree [list]}
 
@@ -179,7 +179,7 @@ proc ::alcoholicz::TreeSet {treeVar key value args} {
 # it removes the deepest existing key. Note that this procedure takes name of
 # a tree variable, not the actual tree.
 #
-proc ::alcoholicz::TreeUnset {treeVar key args} {
+proc ::tree::TreeUnset {treeVar key args} {
     upvar 1 $treeVar tree
     if {![info exists tree]} {return [list]}
 
