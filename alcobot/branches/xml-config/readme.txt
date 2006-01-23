@@ -69,9 +69,15 @@ AlcoBot is a modular sitebot written in Tcl for ioFTPD and glFTPD.
      FreeBSD: portupgrade -N tcl84
      Source : http://sourceforge.net/project/showfiles.php?group_id=10894
 
-  2. Download and install the AlcoExt Tcl extension.
+  2. Download and install the AlcoExt and tDOM Tcl extensions.
 
-     Source : http://www.alcoholicz.com/wiki/Downloads
+     AlcoExt  - Miscellaneous functionality.
+       Source : http://www.alcoholicz.com/wiki/Downloads
+
+     tDOM     - XML configuration parsing.
+       Debian : apt-get install tdom
+       FreeBSD: portupgrade -N tdom
+       Source : http://www.tdom.org
 
   3. The following packages are optional, but highly recommended.
 

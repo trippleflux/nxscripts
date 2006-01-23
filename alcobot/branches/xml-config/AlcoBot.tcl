@@ -1012,7 +1012,8 @@ proc ::alcoholicz::InitConfig {filePath} {
     variable chanSections
     variable pathSections
     unset -nocomplain cmdFlags chanSections pathSections
-    namespace import -force ::config::*
+
+    # TODO: Parse xml config.
 
     # Update configuration path before reading the file.
     set configFile $filePath
@@ -1088,9 +1089,10 @@ proc ::alcoholicz::InitLibraries {rootPath} {
         lappend auto_path $libPath
     }
 
-    # The TLS extension is optional, but AlcoExt is required.
+    # The TLS extension is optional, but AlcoExt and tDOM are required.
     catch {package require tls 1.5}
     package require AlcoExt 0.4
+    package require tdom 8.0
     return
 }
 
