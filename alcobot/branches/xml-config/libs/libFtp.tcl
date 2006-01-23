@@ -21,26 +21,13 @@
 #   FtpCommand    <handle> <command> [callback]
 #
 
-namespace eval ::alcoholicz {
-    variable ftpNextHandle
-    if {![info exists ftpNextHandle]} {
-        set ftpNextHandle 0
+namespace eval ::ftp {
+    variable nextHandle
+    if {![info exists nextHandle]} {
+        set nextHandle 0
     }
     namespace export FtpOpen FtpClose FtpGetError FtpGetStatus \
         FtpConnect FtpDisconnect FtpCommand
-}
-
-####
-# FtpAcquire
-#
-# Validate and acquire a FTP handle. This procedure is for internal use only,
-# hence why it is not exported.
-#
-proc ::alcoholicz::FtpAcquire {handle handleVar} {
-    if {![regexp -- {ftp\d+} $handle] || ![array exists [namespace current]::$handle]} {
-        error "invalid ftp handle \"$handle\""
-    }
-    uplevel 1 [list upvar [namespace current]::$handle $handleVar]
 }
 
 ####
@@ -55,8 +42,8 @@ proc ::alcoholicz::FtpAcquire {handle handleVar} {
 # ssl      - Explicit SSL connection (AUTH SSL).
 # tls      - Explicit TLS connection (AUTH TLS).
 #
-proc ::alcoholicz::FtpOpen {host port user passwd args} {
-    variable ftpNextHandle
+proc ::ftp::FtpOpen {host port user passwd args} {
+    variable nextHandle
 
     set notify ""; set secure ""
     foreach {option value} $args {
@@ -88,7 +75,7 @@ proc ::alcoholicz::FtpOpen {host port user passwd args} {
         }
     }
 
-    set handle "ftp$ftpNextHandle"
+    set handle "ftp$nextHandle"
     upvar [namespace current]::$handle ftp
 
     #
@@ -118,7 +105,7 @@ proc ::alcoholicz::FtpOpen {host port user passwd args} {
         status 0        \
     ]
 
-    incr ftpNextHandle
+    incr nextHandle
     return $handle
 }
 
@@ -127,9 +114,9 @@ proc ::alcoholicz::FtpOpen {host port user passwd args} {
 #
 # Closes and invalidates the specified handle.
 #
-proc ::alcoholicz::FtpClose {handle} {
-    FtpAcquire $handle ftp
-    FtpShutdown $handle
+proc ::ftp::FtpClose {handle} {
+    Acquire $handle ftp
+    Shutdown $handle
     unset -nocomplain ftp
     return
 }
@@ -139,8 +126,8 @@ proc ::alcoholicz::FtpClose {handle} {
 #
 # Returns the last error message.
 #
-proc ::alcoholicz::FtpGetError {handle} {
-    FtpAcquire $handle ftp
+proc ::ftp::FtpGetError {handle} {
+    Acquire $handle ftp
     return $ftp(error)
 }
 
@@ -149,8 +136,8 @@ proc ::alcoholicz::FtpGetError {handle} {
 #
 # Returns the connection status.
 #
-proc ::alcoholicz::FtpGetStatus {handle} {
-    FtpAcquire $handle ftp
+proc ::ftp::FtpGetStatus {handle} {
+    Acquire $handle ftp
     return $ftp(status)
 }
 
@@ -159,8 +146,8 @@ proc ::alcoholicz::FtpGetStatus {handle} {
 #
 # Connects to the FTP server.
 #
-proc ::alcoholicz::FtpConnect {handle} {
-    FtpAcquire $handle ftp
+proc ::ftp::FtpConnect {handle} {
+    Acquire $handle ftp
 
     if {$ftp(sock) ne ""} {
         error "ftp connection open, disconnect first"
@@ -173,7 +160,7 @@ proc ::alcoholicz::FtpConnect {handle} {
     # the socket is connected or if the connection failed.
     set ftp(sock) [socket -async $ftp(host) $ftp(port)]
 
-    fileevent $ftp(sock) writable [list [namespace current]::FtpVerify $handle]
+    fileevent $ftp(sock) writable [list [namespace current]::Verify $handle]
     return
 }
 
@@ -182,9 +169,9 @@ proc ::alcoholicz::FtpConnect {handle} {
 #
 # Disconnects from the FTP server.
 #
-proc ::alcoholicz::FtpDisconnect {handle} {
-    FtpAcquire $handle ftp
-    FtpShutdown $handle
+proc ::ftp::FtpDisconnect {handle} {
+    Acquire $handle ftp
+    Shutdown $handle
     return
 }
 
@@ -206,8 +193,8 @@ proc ::alcoholicz::FtpDisconnect {handle} {
 # FtpCommand $handle "SITE WHO" SiteWhoCallback
 # FtpClose $handle
 #
-proc ::alcoholicz::FtpCommand {handle command {callback ""}} {
-    FtpAcquire $handle ftp
+proc ::ftp::FtpCommand {handle command {callback ""}} {
+    Acquire $handle ftp
 
     if {$ftp(status) != 2} {
         error "not connected"
@@ -216,34 +203,55 @@ proc ::alcoholicz::FtpCommand {handle command {callback ""}} {
 
     # If there's only event in queue, invoke the handler directly.
     if {[llength $ftp(queue)] == 1} {
-        FtpHandler $handle 1
+        Handler $handle 1
     }
     return
 }
 
 ####
-# FtpEval
+# Acquire
+#
+# Validate and acquire a FTP handle.
+#
+proc ::ftp::Acquire {handle handleVar} {
+    if {![regexp -- {ftp\d+} $handle] || ![array exists [namespace current]::$handle]} {
+        error "invalid ftp handle \"$handle\""
+    }
+    uplevel 1 [list upvar [namespace current]::$handle $handleVar]
+}
+
+####
+# Debug
+#
+# Logs a debug message.
+#
+proc ::ftp::Debug {function message} {
+    ::alcoholicz::LogDebug $function $message
+}
+
+####
+# Evaluate
 #
 # Evaluates a callback script.
 #
-proc ::alcoholicz::FtpEval {script args} {
+proc ::ftp::Evaluate {script args} {
     if {$script ne "" && [catch {eval $script $args} message]} {
-        LogDebug FtpEval $message
+        Debug FtpEvaluate $message
     }
 }
 
 ####
-# FtpSend
+# Send
 #
 # Sends a command to the FTP control channel.
 #
-proc ::alcoholicz::FtpSend {handle command} {
+proc ::ftp::Send {handle command} {
     upvar [namespace current]::$handle ftp
-    LogDebug FtpSend "Sending command \"$command\" ($handle)."
+    Debug FtpSend "Sending command \"$command\" ($handle)."
 
     if {[info exists ftp]} {
         if {[catch {puts $ftp(sock) $command} message]} {
-            FtpShutdown $handle "unable to send command - $message"
+            Shutdown $handle "unable to send command - $message"
         } else {
             catch {flush $ftp(sock)}
         }
@@ -252,14 +260,14 @@ proc ::alcoholicz::FtpSend {handle command} {
 }
 
 ####
-# FtpShutdown
+# Shutdown
 #
 # Shuts down the FTP connection. The error parameter is an empty string
 # when the connection is closed intentionally with FtpClose or FtpDisconnect.
 #
-proc ::alcoholicz::FtpShutdown {handle {error ""}} {
+proc ::ftp::Shutdown {handle {error ""}} {
     upvar [namespace current]::$handle ftp
-    LogDebug FtpShutdown "Connection closed ($handle): $error"
+    Debug FtpShutdown "Connection closed ($handle): $error"
 
     if {[info exists ftp]} {
         # Remove channel events before closing the channel.
@@ -276,21 +284,21 @@ proc ::alcoholicz::FtpShutdown {handle {error ""}} {
         set ftp(status) 0
         if {$error ne ""} {
             set ftp(error) $error
-            FtpEval $ftp(notify) $handle 0
+            Evaluate $ftp(notify) $handle 0
         }
     }
 }
 
 ####
-# FtpVerify
+# Verify
 #
 # Verifies the connection's state and begins the SSL negotiation for
 # FTP servers using implicit SSL.
 #
-proc ::alcoholicz::FtpVerify {handle} {
+proc ::ftp::Verify {handle} {
     upvar [namespace current]::$handle ftp
     if {![info exists ftp]} {
-        LogDebug FtpVerify "Handle \"$handle\" does not exist."
+        Debug FtpVerify "Handle \"$handle\" does not exist."
         return
     }
 
@@ -299,17 +307,17 @@ proc ::alcoholicz::FtpVerify {handle} {
 
     set message [fconfigure $ftp(sock) -error]
     if {$message ne ""} {
-        FtpShutdown $handle "unable to connect - $message"
+        Shutdown $handle "unable to connect - $message"
         return
     }
 
     set peer [fconfigure $ftp(sock) -peername]
-    LogDebug FtpVerify "Connected to [lindex $peer 0]:[lindex $peer 2] ($handle)."
+    Debug FtpVerify "Connected to [lindex $peer 0]:[lindex $peer 2] ($handle)."
 
     # Perform SSL negotiation for FTP servers using implicit SSL.
     # TODO: Implicit is broken.
     if {$ftp(secure) eq "implicit" && [catch {tls::import $ftp(sock) -ssl2 1 -ssl3 1 -tls1 1} message]} {
-        FtpShutdown $handle "SSL negotiation failed - $message"
+        Shutdown $handle "SSL negotiation failed - $message"
         return
     }
 
@@ -322,19 +330,19 @@ proc ::alcoholicz::FtpVerify {handle} {
 
     # Set channel options and event handlers.
     fconfigure $ftp(sock) -buffering line -blocking 0 -translation {auto crlf}
-    fileevent $ftp(sock) readable [list [namespace current]::FtpHandler $handle]
+    fileevent $ftp(sock) readable [list [namespace current]::Handler $handle]
     return
 }
 
 ####
-# FtpHandler
+# Handler
 #
 # FTP client event handler.
 #
-proc ::alcoholicz::FtpHandler {handle {direct 0}} {
+proc ::ftp::Handler {handle {direct 0}} {
     upvar [namespace current]::$handle ftp
     if {![info exists ftp]} {
-        LogDebug FtpHandler "Handle \"$handle\" does not exist."
+        Debug FtpHandler "Handle \"$handle\" does not exist."
         return
     }
     set replyCode 0
@@ -355,7 +363,7 @@ proc ::alcoholicz::FtpHandler {handle {direct 0}} {
         if {[regexp -- {^([0-9]+)( |-)?(.*)$} $line result replyCode multi message]} {
             lappend buffer $replyCode $message
         } else {
-            LogDebug FtpHandler "Invalid server response \"$line\"."
+            Debug FtpHandler "Invalid server response \"$line\"."
             set multi ""
         }
 
@@ -380,14 +388,14 @@ proc ::alcoholicz::FtpHandler {handle {direct 0}} {
         }
     } elseif {[eof $ftp(sock)]} {
         # The remote server has closed the control connection.
-        FtpShutdown $handle "server closed connection"
+        Shutdown $handle "server closed connection"
         return
     } elseif {!$direct} {
         # No response from the server. Return if the handler was not
         # invoked directly (i.e. not by a channel writable event).
         return
     }
-    LogDebug FtpHandler "Reply code \"$replyCode\" and message \"$message\" ($handle)."
+    Debug FtpHandler "Reply code \"$replyCode\" and message \"$message\" ($handle)."
 
     #
     # Variables:
@@ -409,15 +417,15 @@ proc ::alcoholicz::FtpHandler {handle {direct 0}} {
         # Pop the event from queue.
         set ftp(queue) [lrange $ftp(queue) 1 end]
 
-        LogDebug FtpHandler "Event: $eventName ($handle)"
+        Debug FtpHandler "Event: $eventName ($handle)"
         switch -- $eventName {
             auth {
                 # Receive hello response and send AUTH.
                 if {$replyBase == 2} {
-                    FtpSend $handle "AUTH [string toupper $ftp(secure)]"
+                    Send $handle "AUTH [string toupper $ftp(secure)]"
                     set ftp(queue) auth_sent
                 } else {
-                    FtpShutdown $handle "unable to login - $message"
+                    Shutdown $handle "unable to login - $message"
                     return
                 }
             }
@@ -425,36 +433,36 @@ proc ::alcoholicz::FtpHandler {handle {direct 0}} {
                 # Receive AUTH response and send PBSZ.
                 if {$replyBase == 2} {
                     if {[catch {tls::import $ftp(sock) -ssl2 1 -ssl3 1 -tls1 1} message]} {
-                        FtpShutdown $handle "SSL negotiation failed - $message"
+                        Shutdown $handle "SSL negotiation failed - $message"
                         return
                     }
                     # Set channel options again, in case the TLS module changes them.
                     fconfigure $ftp(sock) -buffering line -blocking 0 -translation {auto crlf}
 
-                    FtpSend $handle "PBSZ 0"
+                    Send $handle "PBSZ 0"
                     set ftp(queue) user
                 } else {
-                    FtpShutdown $handle "unable to login - $message"
+                    Shutdown $handle "unable to login - $message"
                     return
                 }
             }
             user {
                 # Receive hello or PBSZ response and send USER.
                 if {$replyBase == 2} {
-                    FtpSend $handle "USER $ftp(user)"
+                    Send $handle "USER $ftp(user)"
                     set ftp(queue) user_sent
                 } else {
-                    FtpShutdown $handle "unable to login - $message"
+                    Shutdown $handle "unable to login - $message"
                     return
                 }
             }
             user_sent {
                 # Receive USER response and send PASS.
                 if {$replyBase == 3} {
-                    FtpSend $handle "PASS $ftp(passwd)"
+                    Send $handle "PASS $ftp(passwd)"
                     set ftp(queue) pass_sent
                 } else {
-                    FtpShutdown $handle "unable to login - $message"
+                    Shutdown $handle "unable to login - $message"
                     return
                 }
             }
@@ -462,25 +470,25 @@ proc ::alcoholicz::FtpHandler {handle {direct 0}} {
                 # Receive PASS response.
                 if {$replyBase == 2} {
                     set ftp(status) 2
-                    FtpEval $ftp(notify) $handle 1
+                    Evaluate $ftp(notify) $handle 1
                     set nextEvent 1
                 } else {
-                    FtpShutdown $handle "unable to login - $message"
+                    Shutdown $handle "unable to login - $message"
                     return
                 }
             }
             quote {
                 # Send command.
-                FtpSend $handle [lindex $event 1]
+                Send $handle [lindex $event 1]
                 set ftp(queue) [linsert $ftp(queue) 0 [list quote_sent [lindex $event 2]]]
             }
             quote_sent {
                 # Receive command.
-                FtpEval [lindex $event 1] $handle $buffer
+                Evaluate [lindex $event 1] $handle $buffer
                 set nextEvent 1
             }
             default {
-                LogDebug FtpHandler "Invalid event name \"$eventName\"."
+                Debug FtpHandler "Invalid event name \"$eventName\"."
             }
         }
 

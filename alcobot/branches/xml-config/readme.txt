@@ -81,7 +81,7 @@ AlcoBot is a modular sitebot written in Tcl for ioFTPD and glFTPD.
 
   3. The following packages are optional, but highly recommended.
 
-     TclTLS - SSL/TLS support for FTP connections.
+     TclTLS   - SSL/TLS support for FTP connections.
        Debian : apt-get install tcltls
        FreeBSD: portupgrade -N tcltls
        Source : http://sourceforge.net/project/showfiles.php?group_id=13248
@@ -91,7 +91,7 @@ AlcoBot is a modular sitebot written in Tcl for ioFTPD and glFTPD.
        FreeBSD: portupgrade -N unixODBC
        Source : http://www.unixodbc.org
 
-     TclODBC - ODBC support for modInvite and modPreTimes.
+     TclODBC  - ODBC support for modInvite and modPreTimes.
        Source : http://sourceforge.net/project/showfiles.php?group_id=13173
 
   4. Download and install Eggdrop.

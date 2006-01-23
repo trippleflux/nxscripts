@@ -223,7 +223,6 @@ proc ::alcoholicz::CmdSendHelp {target type name {message ""}} {
     } else {
         SendTargetTheme "PRIVMSG $target" commandUsage [list $argDesc $lastbind]
     }
-    return
 }
 
 ####
@@ -1062,7 +1061,6 @@ proc ::alcoholicz::InitConfig {filePath} {
     if {![info exists chanSections($defaultSection)]} {
         error "No default channel section defined, must be named \"$defaultSection\"."
     }
-    return
 }
 
 ####
@@ -1093,7 +1091,6 @@ proc ::alcoholicz::InitLibraries {rootPath} {
     catch {package require tls 1.5}
     package require AlcoExt 0.4
     package require tdom 8.0
-    return
 }
 
 ####
@@ -1143,7 +1140,6 @@ proc ::alcoholicz::InitModules {modList} {
             CmdRemove [lindex $name 0] [lindex $name 1]
         }
     }
-    return
 }
 
 ####
@@ -1219,7 +1215,6 @@ proc ::alcoholicz::InitTheme {themeFile} {
     }
 
     ConfigClose $handle
-    return
 }
 
 ####
@@ -1277,7 +1272,6 @@ proc ::alcoholicz::InitVariables {fileNames} {
     foreach name [array names events] {
         set events($name) [lsort -unique $events($name)]
     }
-    return
 }
 
 ####
