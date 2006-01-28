@@ -203,7 +203,6 @@ INTERMEDIATE_FILES=\
     $(PKG_INTDIR)\cfb_setiv.obj\
     $(PKG_INTDIR)\cfb_start.obj\
     $(PKG_INTDIR)\chc.obj\
-    $(PKG_INTDIR)\crypt.obj\
     $(PKG_INTDIR)\crypt_argchk.obj\
     $(PKG_INTDIR)\crypt_cipher_descriptor.obj\
     $(PKG_INTDIR)\crypt_cipher_is_valid.obj\
@@ -338,7 +337,6 @@ OBJECT_FILES=\
     $(TOP)\libs\tomcrypt\cfb_setiv.obj\
     $(TOP)\libs\tomcrypt\cfb_start.obj\
     $(TOP)\libs\tomcrypt\chc.obj\
-    $(TOP)\libs\tomcrypt\crypt.obj\
     $(TOP)\libs\tomcrypt\crypt_argchk.obj\
     $(TOP)\libs\tomcrypt\crypt_cipher_descriptor.obj\
     $(TOP)\libs\tomcrypt\crypt_cipher_is_valid.obj\

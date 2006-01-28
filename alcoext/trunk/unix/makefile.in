@@ -30,7 +30,7 @@ BZIP2_OBJS      = blocksort.o bzlib.o compress.o crctable.o decompress.o huffman
 TOMCRYPT_OBJS   = aes.o anubis.o base64_decode.o base64_encode.o blowfish.o\
                   burn_stack.o cast5.o cbc_decrypt.o cbc_done.o cbc_encrypt.o\
                   cbc_getiv.o cbc_setiv.o cbc_start.o cfb_decrypt.o cfb_done.o\
-                  cfb_encrypt.o cfb_getiv.o cfb_setiv.o cfb_start.o chc.o crypt.o\
+                  cfb_encrypt.o cfb_getiv.o cfb_setiv.o cfb_start.o chc.o\
                   crypt_argchk.o crypt_cipher_descriptor.o crypt_cipher_is_valid.o\
                   crypt_find_cipher.o crypt_find_cipher_any.o crypt_find_cipher_id.o\
                   crypt_find_hash.o crypt_find_hash_any.o crypt_find_hash_id.o\
@@ -261,9 +261,6 @@ cfb_start.o:
 
 chc.o:
 	$(COMPILE) -c $(TOMCRYPT_DIR)/chc.c
-
-crypt.o:
-	$(COMPILE) -c $(TOMCRYPT_DIR)/crypt.c
 
 crypt_argchk.o:
 	$(COMPILE) -c $(TOMCRYPT_DIR)/crypt_argchk.c
