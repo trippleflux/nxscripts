@@ -634,7 +634,8 @@ GetOnlineData(
 
     *maxUsers = shmInfo.shm_segsz / versions[version].structSize;
 
-    if (!onlineDataPtr) {
+    if (onlineDataPtr == NULL) {
+        // Only the max user count was requested.
         return TCL_OK;
     }
 
@@ -1380,7 +1381,7 @@ GetOnlineFields(
     resultObj = Tcl_GetObjResult(interp);
 
     for (i = 0; i < maxUsers; i++) {
-        if (!onlineData[i]->procid) {
+        if (onlineData[i]->procid <= 0) {
             continue;
         }
         userObj = Tcl_NewObj();
