@@ -1064,7 +1064,7 @@ Arguments:
 
     fields      - Array of fields to retrieve.
 
-    fieldCount  - Number of fields given for the 'fields' parameter.
+    fieldCount  - Number of fields given for the "fields" parameter.
 
     flags       - Bit mask of ONLINE_GET_GROUPID and/or ONLINE_GET_USERNAME.
 

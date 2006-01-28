@@ -60,7 +60,7 @@ test volume-2.3 {volume list: -local and -root are the same on win} {win} {
 } {1}
 
 test volume-2.4 {volume list: -root on nix} {unix} {
-    # The only 'root' path on a UNIX system is "/".
+    # The only "root" path on a UNIX system is "/".
     string equal [volume list -root] "/"
 } {1}
 

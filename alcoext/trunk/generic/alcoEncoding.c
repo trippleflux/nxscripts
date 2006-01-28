@@ -14,11 +14,11 @@ Abstract:
 
     encode <encoding> <data>
       - Encodes the given data in the specified format.
-      - The 'encoding' parameter must be 'base64' or 'hex'.
+      - The "encoding" parameter must be "base64" or "hex".
 
     decode <encoding> <data>
       - Decodes the given data from the specified format.
-      - The 'encoding' parameter must be 'base64' or 'hex'.
+      - The "encoding" parameter must be "base64" or "hex".
       - An error is raised if the given data cannot be decoded.
 
 --*/
@@ -210,7 +210,7 @@ EncodingObjCmd
     This function provides the "encode" and "decode" Tcl commands.
 
 Arguments:
-    clientData - Pointer to an array of 'EncodingFuncts'.
+    clientData - Pointer to an array of "EncodingFuncts" structures.
 
     interp     - Current interpreter.
 

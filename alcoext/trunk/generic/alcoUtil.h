@@ -31,7 +31,7 @@ Abstract:
 // MIN - Returns the minimum of two numeric values.
 #define MIN(a, b)       (((a) < (b)) ? (a) : (b))
 
-// ROUNDUP - Round 'a' up to a multiple of 'b'.
+// ROUNDUP - Round "a" up to a multiple of "b".
 #define ROUNDUP(a,b)    ((((a) + ((b) - 1)) / (b)) * (b))
 
 // DebugPrint - Display debugging information to stdout.

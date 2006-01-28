@@ -319,7 +319,7 @@ Alcoext_Unload(
         return TCL_OK;
     }
 
-    // Unknown 'flags' value.
+    // Unknown "flags" value.
     return TCL_ERROR;
 }
 
@@ -354,7 +354,7 @@ FreeState
     Deletes hash tables and frees state structure.
 
 Arguments:
-    statePtr - Pointer to a 'ExtState' structure.
+    statePtr - Pointer to a "ExtState" structure.
 
 Return Value:
     None.
@@ -439,7 +439,7 @@ InterpDeleteHandler
     Frees the state structure for an interpreter that is being deleted.
 
 Arguments:
-    clientData - Pointer to a 'ExtState' structure.
+    clientData - Pointer to a "ExtState" structure.
 
     interp     - Current interpreter.
 

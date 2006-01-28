@@ -27,7 +27,7 @@ Arguments:
 
     volumePath - A pointer to a string that specifies the volume.
 
-    volumeInfo - A pointer to a 'VolumeInfo' structure.
+    volumeInfo - A pointer to a "VolumeInfo" structure.
 
 Return Value:
     A standard Tcl result.
@@ -92,7 +92,7 @@ GetVolumeList(
 {
     Tcl_Obj *volumeList = Tcl_NewObj();
 
-    // The only 'root' path on a UNIX system is "/".
+    // The only "root" path on a UNIX system is "/".
     if (options & VOLLIST_FLAG_ROOT) {
         Tcl_ListObjAppendElement(NULL, volumeList, Tcl_NewStringObj("/", 1));
     }

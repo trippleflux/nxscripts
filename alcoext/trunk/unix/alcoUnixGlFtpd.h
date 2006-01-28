@@ -17,10 +17,10 @@ Abstract:
 #ifndef _ALCOUNIXGLFTPD_H_
 #define _ALCOUNIXGLFTPD_H_
 
-// Default path to glFTPD's 'etc' directory.
+// Default path to glFTPD's "etc" directory.
 #define GLFTPD_ETC_PATH "/glftpd/etc"
 
-// Name of the 'group' and 'passwd' files (must include a leading slash).
+// Name of the "group" and "passwd" files (must include a leading slash).
 #define GLFTPD_GROUP    "/group"
 #define GLFTPD_PASSWD   "/passwd"
 
@@ -110,9 +110,9 @@ typedef struct {
 } GlVersion;
 
 typedef struct {
-    char *etcPath; // Path to glFTPD's 'etc' directory.
+    char *etcPath; // Path to glFTPD's "etc" directory.
     key_t shmKey;  // Shared memory segment key.
-    int version;   // Array index in 'versions', representing the online structure version.
+    int version;   // Array index in "versions", representing the online structure version.
 } GlHandle;
 
 Tcl_ObjCmdProc GlFtpdObjCmd;

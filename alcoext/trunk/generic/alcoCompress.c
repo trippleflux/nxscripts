@@ -21,7 +21,7 @@ Abstract:
     compress compact [-level 0-9] <format> <data>
       - Compresses data in the specified format.
       - Supported formats: bzip2, gzip, zlib, and zlib-raw.
-      - The '-level' switch sets the compression level, one by default.
+      - The "-level" switch sets the compression level, one by default.
 
     compress expand <format> <data>
       - Decompresses data from the specified format.
@@ -319,7 +319,7 @@ BzipDecompressObj(
 
     stream.next_in = (char *)Tcl_GetByteArrayFromObj(sourceObj, (int *)&sourceLength);
     if (sourceLength < 3) {
-        // The Bzip2 header is at least 3 characters in length, 'BZh'.
+        // The Bzip2 header is at least 3 characters in length, "BZh".
         return BZ_DATA_ERROR_MAGIC;
     }
 

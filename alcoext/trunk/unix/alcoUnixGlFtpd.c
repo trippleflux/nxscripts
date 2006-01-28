@@ -14,18 +14,18 @@ Abstract:
 
     glftpd open <shmKey>
       - Returns a glFTPD session handle, used by all subcommands.
-      - The default 'etc' directory path and version is '/glftpd/etc' and
+      - The default "etc" directory path and version is "/glftpd/etc" and
         2.01, respectively. These default values can be changed with the
-        'glftpd config' command.
+        "glftpd config" command.
 
     glftpd config <handle> [<switch> [value] ...]
       - Modify and retrieve options for glFTPD handles.
-      - This command behaves similar to Tcl's 'fconfigure' command. If no
+      - This command behaves similar to Tcl's "fconfigure" command. If no
         switches are given, a list of options and values is returned. If
         only a switch is given, its value is returned. Multiple pairs of
         switches and values can be given to modify handle options.
       - Switches:
-         -etc [path]    - Path to glFTPD's 'etc' directory.
+         -etc [path]    - Path to glFTPD's "etc" directory.
          -key [shmKey]  - Shared memory key.
          -version [ver] - glFTPD online structure version, must be 1.3, 2.00, or 2.01.
 
@@ -236,7 +236,7 @@ enum {
 
 ParseFields
 
-    Parse the name and ID fields from a 'passwd' or 'group' file entry.
+    Parse the name and ID fields from a "passwd" or "group" file entry.
 
 Arguments:
     line      - Entry to parse.
@@ -273,11 +273,11 @@ ParseFields(
 
         // Format: <name>:ignored:<ID>
         if (i == 0) {
-            // Length of the 'name' field in characters.
+            // Length of the "name" field in characters.
             *lengthPtr = (int) (p - line) - 1;
 
         } else if (i == 1) {
-            // Retrieve the long value of the 'ID' field.
+            // Retrieve the long value of the "ID" field.
             *idPtr = strtol(p, NULL, 10);
         }
     }
@@ -289,14 +289,14 @@ ParseFields(
 
 GetUserList
 
-    Creates a list of users from the 'passwd' file located in 'etcPath'.
+    Creates a list of users from the "passwd" file located in "etcPath".
 
 Arguments:
     interp      - Interpreter to use for error reporting.
 
-    etcPath     - Path to glFTPD's 'etc' directory.
+    etcPath     - Path to glFTPD's "etc" directory.
 
-    userListPtr - Pointer to a receive a list of 'GlUser' structures.
+    userListPtr - Pointer to a receive a list of "GlUser" structures.
 
 Return Value:
     A standard Tcl result.
@@ -340,7 +340,7 @@ GetUserList(
             continue;
         }
 
-        // A 'passwd' entry has 6 delimiters for 7 fields.
+        // A "passwd" entry has 6 delimiters for 7 fields.
         // Format: User:Password:UID:GID:Date:HomeDir:Irrelevant
         if (ParseFields(p, 6, &nameLength, &userId) == TCL_OK) {
             GlUser *userPtr = (GlUser *)ckalloc(sizeof(GlUser));
@@ -368,10 +368,10 @@ GetUserList(
 
 FreeUserList
 
-    Frees a list of 'GlUser' structures.
+    Frees a list of "GlUser" structures.
 
 Arguments:
-    userListPtr - Pointer to a 'GlUser' structure that represents the list head.
+    userListPtr - Pointer to a "GlUser" structure that represents the list head.
 
 Return Value:
     None.
@@ -398,7 +398,7 @@ GetUserIdFromName
     Retrieves the user ID for a given user name.
 
 Arguments:
-    userListPtr - Pointer to a 'GlUser' structure that represents the list head.
+    userListPtr - Pointer to a "GlUser" structure that represents the list head.
 
     userName    - The user name to look-up.
 
@@ -427,14 +427,14 @@ GetUserIdFromName(
 
 GetGroupList
 
-    Creates a list of groups from the 'group' file located in 'etcPath'.
+    Creates a list of groups from the "group" file located in "etcPath".
 
 Arguments:
     interp       - Interpreter to use for error reporting.
 
-    etcPath      - Path to glFTPD's 'etc' directory.
+    etcPath      - Path to glFTPD's "etc" directory.
 
-    groupListPtr - Pointer to a receive a list of 'GlGroup' structures.
+    groupListPtr - Pointer to a receive a list of "GlGroup" structures.
 
 Return Value:
     A standard Tcl result.
@@ -478,7 +478,7 @@ GetGroupList(
             continue;
         }
 
-        // A 'passwd' entry has 3 delimiters for 4 fields.
+        // A "passwd" entry has 3 delimiters for 4 fields.
         // Format: Group:Description:GID:Irrelevant
         if (ParseFields(p, 3, &nameLength, &userId) == TCL_OK) {
             GlGroup *groupPtr = (GlGroup *)ckalloc(sizeof(GlUser));
@@ -506,10 +506,10 @@ GetGroupList(
 
 FreeGroupList
 
-    Frees a list of 'GlGroup' structures.
+    Frees a list of "GlGroup" structures.
 
 Arguments:
-    groupListPtr - Pointer to a 'GlGroup' structure that represents the list head.
+    groupListPtr - Pointer to a "GlGroup" structure that represents the list head.
 
 Return Value:
     None.
@@ -536,7 +536,7 @@ GetGroupNameFromId
     Retrieves the group's name for a given group ID.
 
 Arguments:
-    groupListPtr - Pointer to a 'GlGroup' structure that represents the list head.
+    groupListPtr - Pointer to a "GlGroup" structure that represents the list head.
 
     groupId      - The group ID to look-up.
 
@@ -572,7 +572,7 @@ Arguments:
 
     shmKey        - Shared memory key used by glFTPD.
 
-    version       - Online structure version, must be an index in the 'versions' array.
+    version       - Online structure version, must be an index in the "versions" array.
 
     maxUsers      - Location to store the maximum number of online users is stored.
 
@@ -690,8 +690,8 @@ GetOnlineData(
         }
         case GLFTPD_201: {
             //
-            // The 'GlOnlineGeneric' structure is the exact same
-            // as the 'GlOnline201' structure (for now anyway).
+            // The "GlOnlineGeneric" structure is the exact same
+            // as the "GlOnline201" structure (for now anyway).
             //
             assert(sizeof(GlOnlineGeneric) == sizeof(GlOnline201));
 
@@ -710,7 +710,7 @@ GetOnlineData(
 
 FreeOnlineData
 
-    Frees online data allocated by 'GetOnlineData'.
+    Frees online data allocated by GetOnlineData().
 
 Arguments:
     maxUsers      - Maximum number of online users.
@@ -747,7 +747,7 @@ Arguments:
 
     objv     - Argument objects.
 
-    statePtr - Pointer to a 'ExtState' structure.
+    statePtr - Pointer to a "ExtState" structure.
 
 Return Value:
     A standard Tcl result.
@@ -817,7 +817,7 @@ Arguments:
 
     objv     - Argument objects.
 
-    statePtr - Pointer to a 'ExtState' structure.
+    statePtr - Pointer to a "ExtState" structure.
 
 Return Value:
     A standard Tcl result.
@@ -981,7 +981,7 @@ Arguments:
 
     objv     - Argument objects.
 
-    statePtr - Pointer to a 'ExtState' structure.
+    statePtr - Pointer to a "ExtState" structure.
 
 Return Value:
     A standard Tcl result.
@@ -1063,7 +1063,7 @@ Arguments:
 
     objv     - Argument objects.
 
-    statePtr - Pointer to a 'ExtState' structure.
+    statePtr - Pointer to a "ExtState" structure.
 
 Return Value:
     A standard Tcl result.
@@ -1161,7 +1161,7 @@ Arguments:
 
     objv     - Argument objects.
 
-    statePtr - Pointer to a 'ExtState' structure.
+    statePtr - Pointer to a "ExtState" structure.
 
 Return Value:
     A standard Tcl result.
@@ -1240,7 +1240,7 @@ Arguments:
 
     objv     - Argument objects.
 
-    statePtr - Pointer to a 'ExtState' structure.
+    statePtr - Pointer to a "ExtState" structure.
 
 Return Value:
     A standard Tcl result.
@@ -1290,13 +1290,13 @@ GlWhoCmd(
         }
 
         if (fieldIndex == WHO_GROUP) {
-            // Read '/glftpd/etc/group' for group ID to group name resolving.
+            // Read "/glftpd/etc/group" for group ID to group name resolving.
             if (groupListPtr == NULL && GetGroupList(interp,
                     handlePtr->etcPath, &groupListPtr) != TCL_OK) {
                 goto end;
             }
         } else if (fieldIndex == WHO_UID) {
-            // Read '/glftpd/etc/passwd' for user name to user ID resolving.
+            // Read "/glftpd/etc/passwd" for user name to user ID resolving.
             if (userListPtr == NULL && GetUserList(interp,
                     handlePtr->etcPath, &userListPtr) != TCL_OK) {
                 goto end;
@@ -1330,16 +1330,16 @@ GetOnlineFields
 Arguments:
     interp       - Current interpreter.
 
-    handlePtr    - Pointer to a 'GlHandle' structure.
+    handlePtr    - Pointer to a "GlHandle" structure.
 
     fields       - Array of fields to retrieve.
 
-    fieldCount   - Number of fields given for the 'fields' parameter.
+    fieldCount   - Number of fields given for the "fields" parameter.
 
-    userListPtr  - Pointer to a 'GlUser' structure that represents the
+    userListPtr  - Pointer to a "GlUser" structure that represents the
                    user list head.
 
-    groupListPtr - Pointer to a 'GlGroup' structure that represents the
+    groupListPtr - Pointer to a "GlGroup" structure that represents the
                    group list head.
 
 Return Value:
@@ -1504,7 +1504,7 @@ GlFtpdObjCmd
     This function provides the "glftpd" Tcl command.
 
 Arguments:
-    clientData - Pointer to a 'ExtState' structure.
+    clientData - Pointer to a "ExtState" structure.
 
     interp     - Current interpreter.
 

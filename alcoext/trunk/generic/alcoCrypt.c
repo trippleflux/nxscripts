@@ -904,7 +904,7 @@ Arguments:
 
     objv     - Argument objects.
 
-    statePtr - Pointer to a 'ExtState' structure.
+    statePtr - Pointer to a "ExtState" structure.
 
 Return Value:
     A standard Tcl result.
@@ -1023,7 +1023,7 @@ Arguments:
 
     objv     - Argument objects.
 
-    statePtr - Pointer to a 'ExtState' structure.
+    statePtr - Pointer to a "ExtState" structure.
 
 Return Value:
     A standard Tcl result.
@@ -1107,7 +1107,7 @@ Arguments:
 
     objv     - Argument objects.
 
-    statePtr - Pointer to a 'ExtState' structure.
+    statePtr - Pointer to a "ExtState" structure.
 
 Return Value:
     A standard Tcl result.
@@ -1188,10 +1188,10 @@ CryptEndCmd(
 
 CryptCloseHandles
 
-    Close all 'crypt' handles in the given hash table.
+    Close all "crypt" handles in the given hash table.
 
 Arguments:
-    tablePtr - Hash table of 'crypt' handles.
+    tablePtr - Hash table of "crypt" handles.
 
 Return Value:
     None.
@@ -1227,7 +1227,7 @@ Arguments:
 
     objv     - Argument objects.
 
-    statePtr - Pointer to a 'ExtState' structure.
+    statePtr - Pointer to a "ExtState" structure.
 
 Return Value:
     A standard Tcl result.
@@ -1565,7 +1565,7 @@ PrngSetBlocking
     Sets the blocking mode on a PRNG channel.
 
 Arguments:
-    instanceData - Pointer to a 'PrngHandle' structure.
+    instanceData - Pointer to a "PrngHandle" structure.
 
     mode         - Requested blocking mode, TCL_MODE_BLOCKING
                    or TCL_MODE_NONBLOCKING.
@@ -1592,7 +1592,7 @@ PrngClose
     Closes the PRNG channel.
 
 Arguments:
-    instanceData - Pointer to a 'PrngHandle' structure.
+    instanceData - Pointer to a "PrngHandle" structure.
 
     interp       - Interpreter to use for error reporting. This
                    argument can be NULL.
@@ -1624,7 +1624,7 @@ PrngInput
     Reads random data from the PRNG channel.
 
 Arguments:
-    instanceData - Pointer to a 'PrngHandle' structure.
+    instanceData - Pointer to a "PrngHandle" structure.
 
     dest         - Buffer to receive random data.
 
@@ -1667,7 +1667,7 @@ PrngOutput
     Adds entropy to the PRNG channel.
 
 Arguments:
-    instanceData - Pointer to a 'PrngHandle' structure.
+    instanceData - Pointer to a "PrngHandle" structure.
 
     source       - Buffer containing the entropy to add.
 
@@ -1724,7 +1724,7 @@ PrngGetOption
     Retrieves an option value for a PRNG channel.
 
 Arguments:
-    instanceData - Pointer to a 'PrngHandle' structure.
+    instanceData - Pointer to a "PrngHandle" structure.
 
     interp       - Interpreter to use for error reporting. This
                    argument can be NULL.
@@ -1777,7 +1777,7 @@ PrngSetOption
     Sets PRNG channel specific options.
 
 Arguments:
-    instanceData - Pointer to a 'PrngHandle' structure.
+    instanceData - Pointer to a "PrngHandle" structure.
 
     interp       - Interpreter to use for error reporting. This
                    argument can be NULL.
@@ -1840,7 +1840,7 @@ PrngWatch
     Called by the notifier to set up to watch for events on this channel.
 
 Arguments:
-    instanceData - Pointer to a 'PrngHandle' structure.
+    instanceData - Pointer to a "PrngHandle" structure.
 
     mask         - Events the caller is interested in noticing on this
                    channel. An OR-ed combination of TCL_READABLE,
@@ -1870,7 +1870,7 @@ CryptObjCmd
     This function provides the "crypt" Tcl command.
 
 Arguments:
-    clientData  - Pointer to a 'ExtState' structure.
+    clientData  - Pointer to a "ExtState" structure.
 
     interp      - Current interpreter.
 

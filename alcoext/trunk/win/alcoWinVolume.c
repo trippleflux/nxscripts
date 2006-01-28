@@ -96,7 +96,7 @@ Arguments:
 
     volumePath - A pointer to a string that specifies the volume.
 
-    volumeInfo - A pointer to a 'VolumeInfo' structure.
+    volumeInfo - A pointer to a "VolumeInfo" structure.
 
 Return Value:
     A standard Tcl result.
