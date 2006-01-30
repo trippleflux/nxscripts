@@ -138,7 +138,7 @@ proc ::alcoholicz::CmdCreate {type name script args} {
     variable cmdPrefix
 
     # Check arguments.
-    if {$type ne "channel" && $type ne "message"} {
+    if {$type ne "channel" && $type ne "private"} {
         error "invalid command type \"$type\""
     }
     if {[info exists cmdNames([list $type $name])]} {
@@ -169,8 +169,8 @@ proc ::alcoholicz::CmdCreate {type name script args} {
 
         if {$type eq "channel"} {
             bind pub -|- $command [list [namespace current]::CmdChannelProc $name]
-        } elseif {$type eq "message"} {
-            bind msg -|- $command [list [namespace current]::CmdMessageProc $name]
+        } elseif {$type eq "private"} {
+            bind msg -|- $command [list [namespace current]::CmdPrivateProc $name]
         }
         lappend binds $command
     }
@@ -245,8 +245,8 @@ proc ::alcoholicz::CmdRemove {type name} {
     foreach command $binds {
         if {$type eq "channel"} {
             catch {unbind pub -|- $command [list [namespace current]::CmdChannelProc $name]}
-        } elseif {$type eq "message"} {
-            catch {unbind msg -|- $command [list [namespace current]::CmdMessageProc $name]}
+        } elseif {$type eq "private"} {
+            catch {unbind msg -|- $command [list [namespace current]::CmdPrivateProc $name]}
         }
     }
 
@@ -302,12 +302,12 @@ proc ::alcoholicz::CmdChannelProc {command user host handle channel text} {
 }
 
 ####
-# CmdMessageProc
+# CmdPrivateProc
 #
 # Wrapper for Eggdrop "bind msg" commands. Parses the text argument into a
 # Tcl list and provides more information when a command evaluation fails.
 #
-proc ::alcoholicz::CmdMessageProc {command user host handle text} {
+proc ::alcoholicz::CmdPrivateProc {command user host handle text} {
     variable cmdFlags
     variable cmdNames
 
@@ -331,8 +331,8 @@ proc ::alcoholicz::CmdMessageProc {command user host handle text} {
     set target "PRIVMSG $user"
 
     # Eval is used to expand arguments to the callback procedure,
-    # e.g. "CmdCreate message !foo [list MessageFooCmd abc 123]".
-    set script [lindex $cmdNames([list "message" $command]) 4]
+    # e.g. "CmdCreate private !foo [list MessageFooCmd abc 123]".
+    set script [lindex $cmdNames([list "private" $command]) 4]
 
     if {[catch {eval $script [list $command $target $user $host $handle $argv]} message]} {
         LogError CmdMessage "Error evaluating \"$script\":\n$::errorInfo"
