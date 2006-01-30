@@ -1,0 +1,344 @@
+<?xml version="1.0"?>
+<!--
+################################################################################
+#                        AlcoBot - Alcoholicz site bot.                        #
+#               Copyright (c) 2005-2006 Alcoholicz Scripting Team              #
+################################################################################
+-->
+<config>
+    <!--
+    #### General
+    #
+    # cmd_prefix
+    # site_name
+    # site_tag
+    #
+    # debug_mode
+    # local_time
+    # modules
+    # theme_file
+    #
+    -->
+    <general>
+        <cmd_prefix>!alc</cmd_prefix>
+        <site_name>Alcoholicz</site_name>
+        <site_tag>ALC</site_tag>
+
+        <debug_mode>False</debug_mode>
+        <local_time>True</local_time>
+        <theme_file>themes/ioftpd.xml</theme_file>
+        <modules>
+            <module>bouncer</module>
+            <module>ftpd</module>
+            <module>free</module>
+            <module>groups</module>
+            <module>help</module>
+            <module>invite</module>
+            <module>online</module>
+            <module>pretimes</module>
+            <module>readlogs</module>
+            <module>sitecmd</module>
+        </modules>
+    </general>
+
+    <!--
+    #### FTPD
+    #
+    # type
+    # delete
+    # window
+    #
+    # host
+    # port
+    # user
+    # pass
+    # secure
+    #
+    -->
+    <ftpd>
+        <type>ioftpd</type>
+        <delete>6</delete>
+        <window>ioFTPD::MessageWindow</window>
+
+        <host>127.0.0.1</host>
+        <port>21</port>
+        <user>!sitebot</user>
+        <pass>sitebot</pass>
+        <secure>tls</secure>
+    </ftpd>
+
+    <!--
+    #### Commands
+    #
+    # channel_command
+    # private_command
+    #  - name
+    #  - prefix
+    #  - target
+    #  - flags
+    #
+    -->
+    <commands>
+        <!-- Bouncer module. -->
+        <channel_command>
+            <name>bnc</name>
+            <prefix>!</prefix>
+            <target>notice</target>
+        </channel_command>
+
+        <!-- Invite module. -->
+        <private_command>
+            <name>invite</name>
+            <prefix>!</prefix>
+        </private_command>
+
+        <!-- Groups module. -->
+        <channel_command>
+            <name>affils</name>
+            <prefix>!</prefix>
+            <target>notice</target>
+        </channel_command>
+        <channel_command>
+            <name>banned</name>
+            <prefix>!</prefix>
+            <target>notice</target>
+        </channel_command>
+        <channel_command>
+            <name>addaffil</name>
+            <prefix>!</prefix>
+            <flags>
+                <!-- TODO: siteop flags -->
+            </flags>
+        </channel_command>
+        <channel_command>
+            <name>delaffil</name>
+            <prefix>!</prefix>
+            <flags>
+                <!-- TODO: siteop flags -->
+            </flags>
+        </channel_command>
+        <channel_command>
+            <name>addban</name>
+            <prefix>!</prefix>
+            <flags>
+                <!-- TODO: siteop flags -->
+            </flags>
+        </channel_command>
+        <channel_command>
+            <name>delban</name>
+            <prefix>!</prefix>
+            <flags>
+                <!-- TODO: siteop flags -->
+            </flags>
+        </channel_command>
+
+        <!-- Help module. -->
+        <channel_command>
+            <name>help</name>
+            <target>notice</target>
+        </channel_command>
+
+        <!-- NxTools module. -->
+        <channel_command>
+            <name>approve</name>
+            <target>notice</target>
+        </channel_command>
+        <channel_command>
+            <name>dupe</name>
+            <target>notice</target>
+        </channel_command>
+        <channel_command>
+            <name>new</name>
+            <target>notice</target>
+        </channel_command>
+        <channel_command>
+            <name>nukes</name>
+            <target>notice</target>
+        </channel_command>
+        <channel_command>
+            <name>onel</name>
+            <target>notice</target>
+        </channel_command>
+        <channel_command>
+            <name>reqdel</name>
+            <target>notice</target>
+        </channel_command>
+        <channel_command>
+            <name>reqfill</name>
+            <target>notice</target>
+        </channel_command>
+        <channel_command>
+            <name>request</name>
+            <target>notice</target>
+        </channel_command>
+        <channel_command>
+            <name>undupe</name>
+            <flags>
+                <!-- TODO: siteop flags -->
+            </flags>
+        </channel_command>
+        <channel_command>
+            <name>unnukes</name>
+            <target>notice</target>
+        </channel_command>
+
+        <!-- Online module. -->
+        <channel_command>
+            <name>who</name>
+            <target>notice</target>
+        </channel_command>
+
+        <!-- PreTimes module. -->
+        <channel_command>
+            <name>pre</name>
+            <prefix>!</prefix>
+            <target>notice</target>
+        </channel_command>
+
+        <!-- SiteCmd module. -->
+        <channel_command>
+            <name>site</name>
+            <prefix>!</prefix>
+            <flags>
+                <!-- TODO: siteop flags -->
+            </flags>
+        </channel_command>
+    </commands>
+
+    <!--
+    #### Sections
+    #
+    # chan_section
+    # path_section
+    #  - name
+    #  - path
+    #  - channels
+    #  - flags
+    #
+    -->
+    <sections>
+        <!-- Channel sections. -->
+        <chan_section>
+            <name>DEFAULT</name>
+            <channels>
+                <channel>#Alc</channel>
+            </channels>
+            <flags>
+                +approve +close +credits +request
+            </flags>
+        </chan_section>
+        <chan_section>
+            <name>STAFF</name>
+            <channels>
+                <channel>#AlcStaff</channel>
+            </channels>
+            <flags>
+                +error +login +sysop +wipe
+            </flags>
+        </chan_section>
+
+        <!-- Path sections. -->
+        <path_section>
+            <name>0DAY</name>
+            <path>/0DAY/</path>
+            <channels>
+                <channel>#AlcSpam</channel>
+            </channels>
+            <flags>
+                +COMPLETE -wipe -zipscript +pretime=60 +all
+            </flags>
+        </path_section>
+        <path_section>
+            <name>APPS</name>
+            <path>/APPS/</path>
+            <channels>
+                <channel>#Alc</channel>
+            </channels>
+            <flags>
+                -wipe +all
+            </flags>
+        </path_section>
+        <path_section>
+            <name>DVDR</name>
+            <path>/DVDR/</path>
+            <channels>
+                <channel>#Alc</channel>
+            </channels>
+            <flags>
+                -wipe +all
+            </flags>
+        </path_section>
+        <path_section>
+            <name>GAMES</name>
+            <path>/GAMES/</path>
+            <channels>
+                <channel>#Alc</channel>
+            </channels>
+            <flags>
+                -wipe +all
+            </flags>
+        </path_section>
+        <path_section>
+            <name>MP3</name>
+            <path>/MP3/</path>
+            <channels>
+                <channel>#AlcSpam</channel>
+            </channels>
+            <flags>
+                -wipe +pretime=60 +all
+            </flags>
+        </path_section>
+        <path_section>
+            <name>REQS</name>
+            <path>/MP3/</path>
+            <channels>
+                <channel>#Alc</channel>
+            </channels>
+            <flags>
+                -wipe -pretime +all
+            </flags>
+        </path_section>
+        <path_section>
+            <name>SVCD</name>
+            <path>/SVCD/</path>
+            <channels>
+                <channel>#Alc</channel>
+            </channels>
+            <flags>
+                -wipe +all
+            </flags>
+        </path_section>
+        <path_section>
+            <name>TV</name>
+            <path>/TV/</path>
+            <channels>
+                <channel>#Alc</channel>
+            </channels>
+            <flags>
+                -wipe +all
+            </flags>
+        </path_section>
+        <path_section>
+            <name>VCD</name>
+            <path>/VCD/</path>
+            <channels>
+                <channel>#Alc</channel>
+            </channels>
+            <flags>
+                -wipe +all
+            </flags>
+        </path_section>
+        <path_section>
+            <name>XVID</name>
+            <path>/XVID/</path>
+            <channels>
+                <channel>#Alc</channel>
+            </channels>
+            <flags>
+                -wipe +all
+            </flags>
+        </path_section>
+    </sections>
+
+    <!-- TODO: module options -->
+</config>
