@@ -423,7 +423,7 @@ proc ::ftp::Handler {handle {direct 0}} {
                 # Receive hello response and send AUTH.
                 if {$replyBase == 2} {
                     Send $handle "AUTH [string toupper $ftp(secure)]"
-                    set ftp(queue) auth_sent
+                    set ftp(queue) [linsert $ftp(queue) 0 auth_sent]
                 } else {
                     Shutdown $handle "unable to login - $message"
                     return
@@ -440,7 +440,7 @@ proc ::ftp::Handler {handle {direct 0}} {
                     fconfigure $ftp(sock) -buffering line -blocking 0 -translation {auto crlf}
 
                     Send $handle "PBSZ 0"
-                    set ftp(queue) user
+                    set ftp(queue) [linsert $ftp(queue) 0 user]
                 } else {
                     Shutdown $handle "unable to login - $message"
                     return
@@ -450,7 +450,7 @@ proc ::ftp::Handler {handle {direct 0}} {
                 # Receive hello or PBSZ response and send USER.
                 if {$replyBase == 2} {
                     Send $handle "USER $ftp(user)"
-                    set ftp(queue) user_sent
+                    set ftp(queue) [linsert $ftp(queue) 0 user_sent]
                 } else {
                     Shutdown $handle "unable to login - $message"
                     return
@@ -460,7 +460,7 @@ proc ::ftp::Handler {handle {direct 0}} {
                 # Receive USER response and send PASS.
                 if {$replyBase == 3} {
                     Send $handle "PASS $ftp(passwd)"
-                    set ftp(queue) pass_sent
+                    set ftp(queue) [linsert $ftp(queue) 0 pass_sent]
                 } else {
                     Shutdown $handle "unable to login - $message"
                     return
