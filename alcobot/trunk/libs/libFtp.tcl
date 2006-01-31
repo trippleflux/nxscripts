@@ -360,7 +360,7 @@ proc ::ftp::Handler {handle {direct 0}} {
         # 200-blah
         # 200 Command successful.
         #
-        if {[regexp -- {^([0-9]+)( |-)?(.*)$} $line result replyCode multi message]} {
+        if {[regexp -- {^(\d+)( |-)?(.*)$} $line result replyCode multi message]} {
             lappend buffer $replyCode $message
         } else {
             Debug FtpHandler "Invalid server response \"$line\"."
@@ -383,7 +383,7 @@ proc ::ftp::Handler {handle {direct 0}} {
         # regardless of whether or not it matches the regular expression.
         #
         while {$multi eq "-" && [gets $ftp(sock) line] > 0} {
-            regexp -- {^([0-9]+)( |-)?(.*)$} $line result replyCode multi line
+            regexp -- {^(\d+)( |-)?(.*)$} $line result replyCode multi line
             lappend buffer $replyCode $line
         }
     } elseif {[eof $ftp(sock)]} {
