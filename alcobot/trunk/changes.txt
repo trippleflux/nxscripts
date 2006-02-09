@@ -1,5 +1,6 @@
 AlcoBot v1.0.0 (not yet released):
   NEW: Improved installation instructions.
+  NEW: Option to include or exclude hidden users in bandwidth stats (!bw/!bwdn/!bwup).
   FIX: Division-by-zero error in the free module if the total size of a volume is zero.
 
 AlcoBot v0.7.0 (Jan 7, 2006):
