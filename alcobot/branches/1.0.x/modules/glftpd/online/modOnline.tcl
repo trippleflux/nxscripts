@@ -14,6 +14,7 @@
 
 namespace eval ::alcoholicz::Online {
     if {![info exists [namespace current]::hideUsers]} {
+        variable hideCount  0
         variable hideUsers  [list]
         variable hideGroups [list]
         variable hidePaths  [list]
@@ -47,6 +48,7 @@ proc ::alcoholicz::Online::IsHidden {user group path} {
 # Implements a channel command to display current site bandwidth.
 #
 proc ::alcoholicz::Online::Bandwidth {event command target user host handle channel argv} {
+    variable hideCount
     variable session
 
     switch -- $event {
@@ -61,16 +63,17 @@ proc ::alcoholicz::Online::Bandwidth {event command target user host handle chan
     set speedDn 0.0; set speedUp 0.0
     set usersDn 0; set usersUp 0; set usersIdle 0
 
-    if {![catch {set online [glftpd who $session "speed status"]} message]} {
+    if {![catch {set online [glftpd who $session "status user group speed path"]} message]} {
         foreach entry $online {
-            set speed [lindex $entry 0]
+            foreach {status user group speed path} $entry {break}
+            if {$hideCount && [IsHidden $user $group $path]} {continue}
 
             # User Status:
             # 0 - Idle
             # 1 - Download
             # 2 - Upload
             # 3 - Listing
-            switch -- [lindex $entry 1] {
+            switch -- $status {
                 0 - 3 {incr usersIdle}
                 1 {
                     incr usersDn
@@ -217,6 +220,7 @@ proc ::alcoholicz::Online::Users {event command target user host handle channel 
 #
 proc ::alcoholicz::Online::Load {firstLoad} {
     variable session
+    variable hideCount
     variable hideUsers
     variable hideGroups
     variable hidePaths
@@ -229,6 +233,7 @@ proc ::alcoholicz::Online::Load {firstLoad} {
     foreach option {hideUsers hideGroups hidePaths} {
         set $option [ArgsToList [ConfigGet $configHandle Module::Online $option]]
     }
+    set hideCount [IsTrue [ConfigGet $configHandle Module::Online hideCount]]
 
     set etcPath [file join $rootPath "etc"]
     if {![file isdirectory $etcPath]} {

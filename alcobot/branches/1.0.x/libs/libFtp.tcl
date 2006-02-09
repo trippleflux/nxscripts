@@ -352,7 +352,7 @@ proc ::alcoholicz::FtpHandler {handle {direct 0}} {
         # 200-blah
         # 200 Command successful.
         #
-        if {[regexp -- {^([0-9]+)( |-)?(.*)$} $line result replyCode multi message]} {
+        if {[regexp -- {^(\d+)( |-)?(.*)$} $line result replyCode multi message]} {
             lappend buffer $replyCode $message
         } else {
             LogDebug FtpHandler "Invalid server response \"$line\"."
@@ -375,7 +375,7 @@ proc ::alcoholicz::FtpHandler {handle {direct 0}} {
         # regardless of whether or not it matches the regular expression.
         #
         while {$multi eq "-" && [gets $ftp(sock) line] > 0} {
-            regexp -- {^([0-9]+)( |-)?(.*)$} $line result replyCode multi line
+            regexp -- {^(\d+)( |-)?(.*)$} $line result replyCode multi line
             lappend buffer $replyCode $line
         }
     } elseif {[eof $ftp(sock)]} {
@@ -415,7 +415,7 @@ proc ::alcoholicz::FtpHandler {handle {direct 0}} {
                 # Receive hello response and send AUTH.
                 if {$replyBase == 2} {
                     FtpSend $handle "AUTH [string toupper $ftp(secure)]"
-                    set ftp(queue) auth_sent
+                    set ftp(queue) [linsert $ftp(queue) 0 auth_sent]
                 } else {
                     FtpShutdown $handle "unable to login - $message"
                     return
@@ -432,7 +432,7 @@ proc ::alcoholicz::FtpHandler {handle {direct 0}} {
                     fconfigure $ftp(sock) -buffering line -blocking 0 -translation {auto crlf}
 
                     FtpSend $handle "PBSZ 0"
-                    set ftp(queue) user
+                    set ftp(queue) [linsert $ftp(queue) 0 user]
                 } else {
                     FtpShutdown $handle "unable to login - $message"
                     return
@@ -442,7 +442,7 @@ proc ::alcoholicz::FtpHandler {handle {direct 0}} {
                 # Receive hello or PBSZ response and send USER.
                 if {$replyBase == 2} {
                     FtpSend $handle "USER $ftp(user)"
-                    set ftp(queue) user_sent
+                    set ftp(queue) [linsert $ftp(queue) 0 user_sent]
                 } else {
                     FtpShutdown $handle "unable to login - $message"
                     return
@@ -452,7 +452,7 @@ proc ::alcoholicz::FtpHandler {handle {direct 0}} {
                 # Receive USER response and send PASS.
                 if {$replyBase == 3} {
                     FtpSend $handle "PASS $ftp(passwd)"
-                    set ftp(queue) pass_sent
+                    set ftp(queue) [linsert $ftp(queue) 0 pass_sent]
                 } else {
                     FtpShutdown $handle "unable to login - $message"
                     return

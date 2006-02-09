@@ -10,8 +10,8 @@ PKG_DESC    = Alcoholicz Site Bot
 # - Define package version.
 # - Ex. <major>.<minor>.<patch>
 #
-PKG_MAJOR   = 0
-PKG_MINOR   = 7
+PKG_MAJOR   = 1
+PKG_MINOR   = 0
 PKG_PATCH   = 0
 
 ### Package Status
@@ -21,7 +21,7 @@ PKG_PATCH   = 0
 # 2 = Release Candidate
 # 3 = Final
 #
-PKG_STATUS  = 0
+PKG_STATUS  = 3
 
 ### Release Number
 #
