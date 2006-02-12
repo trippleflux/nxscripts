@@ -36,7 +36,7 @@ AC_TYPE_SIZE_T
 
 # Check for required headers.
 AC_CHECK_HEADERS([limits.h syslimits.h sys/limits.h])
-AC_CHECK_HEADERS([memory.h strings.h time.h unistd.h])
+AC_CHECK_HEADERS([inttypes.h memory.h stdint.h strings.h time.h unistd.h])
 AC_CHECK_HEADERS([sys/time.h sys/mount.h sys/statfs.h sys/statvfs.h sys/vfs.h])
 
 AC_DEFINE([BZ_NO_STDIO], 1, [Remove unused stdio functionality in Bzip.])
