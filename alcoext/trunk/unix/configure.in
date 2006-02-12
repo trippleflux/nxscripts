@@ -37,7 +37,14 @@ AC_TYPE_SIZE_T
 # Check for required headers.
 AC_CHECK_HEADERS([limits.h syslimits.h sys/limits.h])
 AC_CHECK_HEADERS([inttypes.h memory.h stdint.h strings.h time.h unistd.h])
-AC_CHECK_HEADERS([sys/time.h sys/mount.h sys/statfs.h sys/statvfs.h sys/vfs.h])
+AC_CHECK_HEADERS([sys/param.h sys/statfs.h sys/statvfs.h sys/time.h sys/vfs.h])
+mount_includes="\
+$ac_includes_default
+#if HAVE_SYS_PARAM_H
+# include <sys/param.h>
+#endif
+"
+AC_CHECK_HEADERS([sys/mount.h],,,[$mount_includes])
 
 AC_DEFINE([BZ_NO_STDIO], 1, [Remove unused stdio functionality in Bzip.])
 AC_DEFINE([LTC_NO_ROLC], 1, [Prevent compiler warnings when building LibTomCrypt.])
@@ -46,15 +53,6 @@ AC_DEFINE([LTC_NO_ROLC], 1, [Prevent compiler warnings when building LibTomCrypt
 # Statfs checks borrowed from rdesktop.
 # URL: http://sourceforge.net/projects/rdesktop
 #-----------------------------------------------------------------------
-
-mount_includes="\
-  $ac_includes_default
-  #if HAVE_SYS_PARAM_H
-  # include <sys/param.h>
-  #endif
-  "
-
-AC_CHECK_HEADERS(sys/mount.h,,,[$mount_includes])
 
 AC_CHECKING(how to get filesystem space usage)
 space=no
