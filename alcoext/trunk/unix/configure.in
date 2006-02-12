@@ -54,7 +54,6 @@ AC_DEFINE([LTC_NO_ROLC], 1, [Prevent compiler warnings when building LibTomCrypt
 # URL: http://sourceforge.net/projects/rdesktop
 #-----------------------------------------------------------------------
 
-AC_CHECKING(how to get filesystem space usage)
 space=no
 
 # Test for statvfs64.
