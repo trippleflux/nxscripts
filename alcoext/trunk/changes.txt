@@ -1,5 +1,5 @@
 AlcoExt v0.5.0 (not yet released):
-  NEW: Support for running 32bit glFTPD on 64bit systems.
+  NEW: Support for running a 32bit version of glFTPD on 64bit systems.
   CHG: Improve initialisation time when loading the extension in multiple threads.
   CHG: Updated LibTomCrypt to v1.10.
   CHG: Updated TEA autoconf scripts to v3.5.
