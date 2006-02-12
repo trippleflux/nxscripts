@@ -25,20 +25,14 @@ Abstract:
 #include <string.h>
 #ifdef _WIN32
 #   include <time.h>
+typedef unsigned short ushort;
 #else
 #   include <sys/time.h>
 #   include <sys/types.h>
 #endif /* _WIN32 */
 
-#ifdef _WIN32
-/* Non-standard data type. */
-typedef unsigned short ushort;
-
-/* Microsoft's 32bit compiler uses 8-byte alignment by default. */
-#   ifndef _WIN64
-#       pragma pack(push, 4)
-#   endif
-#endif /* _WIN32 */
+/* Force structure alignment to 4 bytes. */
+#pragma pack(push, 4)
 
 struct dirlog {
     ushort status;              /* 0 = NEWDIR, 1 = NUKE, 2 = UNNUKE, 3 = DELETED */
