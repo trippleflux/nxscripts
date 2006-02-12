@@ -238,7 +238,7 @@ if test $space = no; then
   fi
 fi
 
-  statxfs_includes="\
+statfs_includes="\
 $ac_includes_default
 #if HAVE_SYS_STATVFS_H
 # include <sys/statvfs.h>
@@ -269,7 +269,7 @@ AC_CHECK_MEMBERS([
     struct statfs.f_fstypename,
     struct statfs.f_namelen,
     struct statfs.f_namemax],,,
-    [$statxfs_includes])
+    [$statfs_includes])
 
 AC_CHECK_MEMBERS([
     struct statvfs.f_basetype,
@@ -280,7 +280,7 @@ AC_CHECK_MEMBERS([
     struct statvfs.f_fstypename,
     struct statvfs.f_namelen,
     struct statvfs.f_namemax],,,
-    [$statxfs_includes])
+    [$statfs_includes])
 
 #-----------------------------------------------------------------------
 # Specify the C source files to compile in TEA_ADD_SOURCES,
