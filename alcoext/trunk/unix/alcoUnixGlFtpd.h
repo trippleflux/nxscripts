@@ -24,89 +24,97 @@ Abstract:
 #define GLFTPD_GROUP    "/group"
 #define GLFTPD_PASSWD   "/passwd"
 
+// Maximum length of a user or group name (GlUser and GlGroup structures).
+#define GLFTPD_MAX_NAME 24
+
+// 32-bit timeval data structure.
+typedef struct {
+    int32_t tv_sec;
+    int32_t tv_usec;
+} timeval32;
+
 //
 // Generic shared memory structure. At the moment, this structure is a
 // copy of the v2.01 online structure until the structure changes again.
 //
 typedef struct {
-    char   tagline[64];
-    char   username[24];
-    char   status[256];
-    short int ssl_flag;
-    char   host[256];
-    char   currentdir[256];
-    long   groupid;
-    time_t login_time;
-    struct timeval tstart;
-    struct timeval txfer;
-    unsigned long long bytes_xfer;
-    unsigned long long bytes_txfer;
-    pid_t  procid;
+    char      tagline[64];
+    char      username[24];
+    char      status[256];
+    int16_t   ssl_flag;
+    char      host[256];
+    char      currentdir[256];
+    int32_t   groupid;
+    int32_t   login_time;
+    timeval32 tstart;
+    timeval32 txfer;
+    uint64_t  bytes_xfer;
+    uint64_t  bytes_txfer;
+    int32_t   procid;
 } GlOnlineGeneric;
 
 // Version specific shared memory structures.
 typedef struct {
-    char   tagline[64];
-    char   username[24];
-    char   status[256];
-    char   host[256];
-    char   currentdir[256];
-    long   groupid;
-    time_t login_time;
-    struct timeval tstart;
-    unsigned long bytes_xfer;
-    pid_t  procid;
+    char      tagline[64];
+    char      username[24];
+    char      status[256];
+    char      host[256];
+    char      currentdir[256];
+    int32_t   groupid;
+    int32_t   login_time;
+    timeval32 tstart;
+    uint32_t  bytes_xfer;
+    int32_t   procid;
 } GlOnline130;
 
 typedef struct {
-    char   tagline[64];
-    char   username[24];
-    char   status[256];
-    short int ssl_flag;
-    char   host[256];
-    char   currentdir[256];
-    long   groupid;
-    time_t login_time;
-    struct timeval tstart;
-    struct timeval txfer;
-    unsigned long long bytes_xfer;
-    pid_t  procid;
+    char      tagline[64];
+    char      username[24];
+    char      status[256];
+    int16_t   ssl_flag;
+    char      host[256];
+    char      currentdir[256];
+    int32_t   groupid;
+    int32_t   login_time;
+    timeval32 tstart;
+    timeval32 txfer;
+    uint64_t  bytes_xfer;
+    int32_t   procid;
 } GlOnline200;
 
 typedef struct {
-    char   tagline[64];
-    char   username[24];
-    char   status[256];
-    short int ssl_flag;
-    char   host[256];
-    char   currentdir[256];
-    long   groupid;
-    time_t login_time;
-    struct timeval tstart;
-    struct timeval txfer;
-    unsigned long long bytes_xfer;
-    unsigned long long bytes_txfer;
-    pid_t  procid;
+    char      tagline[64];
+    char      username[24];
+    char      status[256];
+    int16_t   ssl_flag;
+    char      host[256];
+    char      currentdir[256];
+    int32_t   groupid;
+    int32_t   login_time;
+    timeval32 tstart;
+    timeval32 txfer;
+    uint64_t  bytes_xfer;
+    uint64_t  bytes_txfer;
+    int32_t   procid;
 } GlOnline201;
 
-#define GL_USER_LENGTH      24
-#define GL_GROUP_LENGTH     24
+typedef struct GlGroup GlGroup;
+struct GlGroup {
+    int32_t id;
+    char    name[GLFTPD_MAX_NAME];
+    GlGroup *next;
+};
 
-typedef struct GlGroup {
-    long id;
-    char name[GL_GROUP_LENGTH];
-    struct GlGroup *next;
-} GlGroup;
-
-typedef struct GlUser {
-    long id;
-    char name[GL_USER_LENGTH];
-    struct GlUser *next;
-} GlUser;
+typedef struct GlUser GlUser;
+struct GlUser {
+    int32_t id;
+    char    name[GLFTPD_MAX_NAME];
+    GlUser  *next;
+};
 
 typedef struct {
     char *name;
-    unsigned long structSize;
+    size_t structSize;
 } GlVersion;
 
 typedef struct {

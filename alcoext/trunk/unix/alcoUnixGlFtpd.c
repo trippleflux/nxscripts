@@ -140,7 +140,7 @@ ParseFields(
     const char *line,
     int delims,
     int *lengthPtr,
-    long *idPtr
+    int32_t *idPtr
     );
 
 static int
@@ -155,7 +155,7 @@ FreeUserList(
     GlUser **userListPtr
     );
 
-static long
+static int32_t
 GetUserIdFromName(
     GlUser **userListPtr,
     const char *userName
@@ -176,7 +176,7 @@ FreeGroupList(
 static char *
 GetGroupNameFromId(
     GlGroup **groupListPtr,
-    long groupId
+    int32_t groupId
     );
 
 
@@ -256,7 +256,7 @@ ParseFields(
     const char *line,
     int delims,
     int *lengthPtr,
-    long *idPtr
+    int32_t *idPtr
     )
 {
     char *p = (char *)line;
@@ -274,11 +274,11 @@ ParseFields(
         // Format: <name>:ignored:<ID>
         if (i == 0) {
             // Length of the "name" field in characters.
-            *lengthPtr = (int) (p - line) - 1;
+            *lengthPtr = (int)(p - line) - 1;
 
         } else if (i == 1) {
             // Retrieve the long value of the "ID" field.
-            *idPtr = strtol(p, NULL, 10);
+            *idPtr = (int32_t)strtol(p, NULL, 10);
         }
     }
 
@@ -316,7 +316,7 @@ GetUserList(
     char line[512];
     char passwdFile[PATH_MAX];
     int nameLength;
-    long userId;
+    int32_t userId;
     FILE *stream;
 
     strncpy(passwdFile, etcPath, ARRAYSIZE(passwdFile));
@@ -345,8 +345,8 @@ GetUserList(
         if (ParseFields(p, 6, &nameLength, &userId) == TCL_OK) {
             GlUser *userPtr = (GlUser *)ckalloc(sizeof(GlUser));
 
-            if (nameLength >= GL_USER_LENGTH) {
-                nameLength = GL_USER_LENGTH;
+            if (nameLength >= GLFTPD_MAX_NAME) {
+                nameLength = GLFTPD_MAX_NAME;
             } else {
                 nameLength++;
             }
@@ -407,7 +407,7 @@ Return Value:
     user name is returned. If the function fails, -1 is returned.
 
 --*/
-static long
+static int32_t
 GetUserIdFromName(
     GlUser **userListPtr,
     const char *userName
@@ -454,7 +454,7 @@ GetGroupList(
     char line[512];
     char groupFile[PATH_MAX];
     int nameLength;
-    long userId;
+    int32_t groupId;
     FILE *stream;
 
     strncpy(groupFile, etcPath, ARRAYSIZE(groupFile));
@@ -480,17 +480,17 @@ GetGroupList(
 
         // A "passwd" entry has 3 delimiters for 4 fields.
         // Format: Group:Description:GID:Irrelevant
-        if (ParseFields(p, 3, &nameLength, &userId) == TCL_OK) {
+        if (ParseFields(p, 3, &nameLength, &groupId) == TCL_OK) {
             GlGroup *groupPtr = (GlGroup *)ckalloc(sizeof(GlUser));
 
-            if (nameLength >= GL_GROUP_LENGTH) {
-                nameLength = GL_GROUP_LENGTH;
+            if (nameLength >= GLFTPD_MAX_NAME) {
+                nameLength = GLFTPD_MAX_NAME;
             } else {
                 nameLength++;
             }
             strncpy(groupPtr->name, p, nameLength);
             groupPtr->name[nameLength-1] = '\0';
-            groupPtr->id = userId;
+            groupPtr->id = groupId;
 
             // Insert entry at the list head.
             groupPtr->next = *groupListPtr;
@@ -548,7 +548,7 @@ Return Value:
 static char *
 GetGroupNameFromId(
     GlGroup **groupListPtr,
-    long groupId
+    int32_t groupId
     )
 {
     GlGroup *groupPtr;
@@ -625,14 +625,14 @@ GetOnlineData(
         return TCL_ERROR;
     }
 
-    if (shmInfo.shm_segsz % versions[version].structSize) {
+    if ((size_t)shmInfo.shm_segsz % versions[version].structSize) {
         Tcl_ResetResult(interp);
         Tcl_SetResult(interp, "unable to retrieve shared memory data: "
             "glftpd version mismatch", TCL_STATIC);
         return TCL_ERROR;
     }
 
-    *maxUsers = shmInfo.shm_segsz / versions[version].structSize;
+    *maxUsers = (size_t)shmInfo.shm_segsz / versions[version].structSize;
 
     if (onlineDataPtr == NULL) {
         // Only the max user count was requested.
@@ -1203,9 +1203,9 @@ GlKillCmd(
     }
 
     for (i = 0; i < maxUsers; i++) {
-        if (onlineData[i]->procid > 0 && onlineData[i]->procid == (pid_t) procId) {
+        if (onlineData[i]->procid > 0 && (pid_t)onlineData[i]->procid == (pid_t)procId) {
 
-            if (kill(onlineData[i]->procid, SIGTERM) == 0) {
+            if (kill((pid_t)onlineData[i]->procid, SIGTERM) == 0) {
                 status = TCL_OK;
             } else {
                 Tcl_AppendResult(interp, "unable to kill user: ",
@@ -1395,7 +1395,7 @@ GetOnlineFields(
                     break;
                 }
                 case WHO_GID: {
-                    fieldObj = Tcl_NewLongObj(onlineData[i]->groupid);
+                    fieldObj = Tcl_NewLongObj((long)onlineData[i]->groupid);
                     break;
                 }
                 case WHO_GROUP: {
@@ -1408,7 +1408,7 @@ GetOnlineFields(
                     break;
                 }
                 case WHO_IDLETIME: {
-                    fieldObj = Tcl_NewLongObj((long) (timeNow.tv_sec - onlineData[i]->tstart.tv_sec));
+                    fieldObj = Tcl_NewLongObj((long)timeNow.tv_sec - (long)onlineData[i]->tstart.tv_sec);
                     break;
                 }
                 case WHO_LOGINTIME: {
@@ -1424,13 +1424,13 @@ GetOnlineFields(
                     break;
                 }
                 case WHO_SIZE: {
-                    fieldObj = Tcl_NewWideIntObj((Tcl_WideInt) onlineData[i]->bytes_xfer);
+                    fieldObj = Tcl_NewWideIntObj((Tcl_WideInt)onlineData[i]->bytes_xfer);
                     break;
                 }
                 case WHO_SPEED: {
                     double speed = (onlineData[i]->bytes_xfer / 1024.0) /
-                        ((timeNow.tv_sec - onlineData[i]->tstart.tv_sec) * 1.0 +
-                        (timeNow.tv_usec - onlineData[i]->tstart.tv_usec) / 1000000.0);
+                        (((long)timeNow.tv_sec - (long)onlineData[i]->tstart.tv_sec) * 1.0 +
+                        ((long)timeNow.tv_usec - (long)onlineData[i]->tstart.tv_usec) / 1000000.0);
 
                     fieldObj = Tcl_NewDoubleObj(speed);
                     break;
@@ -1475,7 +1475,7 @@ GetOnlineFields(
                     break;
                 }
                 case WHO_UID: {
-                    fieldObj = Tcl_NewLongObj(GetUserIdFromName(userListPtr,
+                    fieldObj = Tcl_NewLongObj((long)GetUserIdFromName(userListPtr,
                         onlineData[i]->username));
                     break;
                 }
@@ -1534,6 +1534,13 @@ GlFtpdObjCmd(
         OPTION_CLOSE = 0, OPTION_CONFIG, OPTION_INFO,
         OPTION_KILL, OPTION_OPEN, OPTION_WHO
     };
+
+    // Make sure the modified online structures are the exact same size as
+    // the original data structure. This check is needed in case the Tcl
+    // extension is built on a 64bit system.
+    assert(sizeof(GlOnline130) == 880);
+    assert(sizeof(GlOnline200) == 896);
+    assert(sizeof(GlOnline201) == 904);
 
     // Validate "versions" indices.
     assert(!strcmp("1.3",  versions[GLFTPD_130].name));
