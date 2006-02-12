@@ -27,6 +27,9 @@ Abstract:
 // Maximum length of a user or group name (GlUser and GlGroup structures).
 #define GLFTPD_MAX_NAME 24
 
+// Force structure alignment to 4 bytes.
+#pragma pack(push, 4)
+
 // 32-bit timeval data structure.
 typedef struct {
     int32_t tv_sec;
@@ -97,6 +100,9 @@ typedef struct {
     uint64_t  bytes_txfer;
     int32_t   procid;
 } GlOnline201;
+
+// Restore default structure alignment for non-critical structures.
+#pragma pack(pop)
 
 typedef struct GlGroup GlGroup;
 struct GlGroup {
