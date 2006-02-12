@@ -154,17 +154,15 @@ COMPILE         = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLA
 # Targets
 #========================================================================
 
-all: binaries libraries
+all: binaries
 
 binaries: $(BINARIES)
-
-libraries: binaries
 
 depend:
 
 install: install-binaries
 
-test: binaries libraries
+test: binaries
 	$(TCLSH) `@CYGPATH@ $(TOP_DIR)/tests/all.tcl` $(TESTFLAGS)
 
 $(PKG_LIB_FILE): $(PKG_OBJECTS)
@@ -623,7 +621,7 @@ distclean: clean
 	-rm -f config.cache config.log config.status
 	-rm -rf autom4te.cache
 
-.PHONY: all binaries clean depend distclean libraries install test
+.PHONY: all binaries clean depend distclean install test
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
