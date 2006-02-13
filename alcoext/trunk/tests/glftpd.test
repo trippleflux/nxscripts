@@ -37,7 +37,24 @@ proc CheckShmKey {shmKey} {
     if {![catch {exec ipcs -m} output]} {
         set hexStr [format "0x%08x" $shmKey]
         foreach line [split $output "\n"] {
-            if {[string equal -length 10 -nocase $line $hexStr]} {return 1}
+            set items [split $line]
+            # Linux ipcs output
+            #
+            # ------ Shared Memory Segments --------
+            # key        shmid      owner      perms      bytes      nattch     status
+            # 0x50494f4e 0          nobody    666        2016       1
+            # 0x0000dead 65537      root      644        22400      2                 locked
+            #
+            if {[string equal -nocase [lindex $items 0] $hexStr]} {return 1}
+
+            # FreeBSD ipcs output
+            #
+            # Shared Memory:
+            # T           ID          KEY MODE        OWNER    GROUP
+            # m      1310720        57005 --rw-r--r--     root    wheel
+            # m        65537        57006 --rw-r--r--     root    wheel
+            #
+            if {[string equal [lindex $items 2] $shmKey]} {return 1}
         }
     }
     return 0
