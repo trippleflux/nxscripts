@@ -9,14 +9,16 @@
     <!--
     #### General
     #
-    # cmd_prefix
-    # site_name
-    # site_tag
+    # Site Options:
+    # cmd_prefix  - Default command prefix.
+    # site_name   - Name describing your site.
+    # site_tag    - Short name or abbreviation of your site.
     #
-    # debug_mode
-    # local_time
-    # modules
-    # theme_file
+    # Bot Options:
+    # modules     - List of module names to load on start-up.
+    # theme_file  - Theme file to read.
+    # debug_mode  - Toggle debugging information (true/false).
+    # local_time  - Display time values in local time, otherwise UTC is used.
     #
     -->
     <general>
@@ -44,19 +46,21 @@
     <!--
     #### FTPD
     #
-    # type
-    # delete
-    # window
+    # Daemon Options:
+    # daemon    - FTP daemon type, must be glftpd or ioftpd.
+    # delete    - Flag given to users when they are deleted.
+    # window    - ioFTPD's message window name.
     #
-    # host
-    # port
-    # user
-    # pass
-    # secure
+    # Sitebot Options:
+    # host      - FTP server host.
+    # port      - FTP server port.
+    # user      - Bot user, must have siteop flag(s).
+    # pass      - Bot password.
+    # secure    - Connection security; must be "ssl", "tls", or "none".
     #
     -->
     <ftpd>
-        <type>ioftpd</type>
+        <daemon>ioftpd</daemon>
         <delete>6</delete>
         <window>ioFTPD::MessageWindow</window>
 
