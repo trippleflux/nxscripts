@@ -478,7 +478,7 @@ GetGroupList(
             continue;
         }
 
-        // A "passwd" entry has 3 delimiters for 4 fields.
+        // A "group" entry has 3 delimiters for 4 fields.
         // Format: Group:Description:GID:Irrelevant
         if (ParseFields(p, 3, &nameLength, &groupId) == TCL_OK) {
             GlGroup *groupPtr = (GlGroup *)ckalloc(sizeof(GlUser));
