@@ -3,6 +3,8 @@ AlcoExt v0.5.0 (not yet released):
   CHG: Improve initialisation time when loading the extension in multiple threads.
   CHG: Updated LibTomCrypt to v1.10.
   CHG: Updated TEA autoconf scripts to v3.5.
+  FIX: Compression regression tests produced false positives on some systems.
+  FIX: glFTPD shared memory regression tests were skipped on FreeBSD.
 
 AlcoExt v0.4.0 (Jan 7, 2006):
   NEW: Added the "service" field to "ioftpd who".
