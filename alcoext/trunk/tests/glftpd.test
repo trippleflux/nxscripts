@@ -20,7 +20,11 @@ set shmKey  [expr {0x0000DEAD}]
 set version "2.01"
 set etcPath "/glftpd/etc"
 
+####
+# CheckShmKey
+#
 # Check if the given shared memory key exists.
+#
 proc CheckShmKey {shmKey} {
     if {![catch {exec ipcs -m} output]} {
         set hexStr [format "0x%08x" $shmKey]
@@ -50,7 +54,12 @@ proc CheckShmKey {shmKey} {
     return 0
 }
 
-# Retrieve a list of users and UIDs {UserName UserID UserName UserID ...}
+####
+# GetUserNames
+#
+# Retrieve a list of users and UIDs in the
+# form of "UserName UserID UserName UserID ...".
+#
 proc GetUserNames {passwd} {
     set users [list]
     set handle [open $passwd r]
@@ -64,7 +73,12 @@ proc GetUserNames {passwd} {
     return $users
 }
 
-# Retrieve a list of GIDs and groups {GroupID GroupName GroupID GroupName ...}
+####
+# GetGroupIds
+#
+# Retrieve a list of GIDs and groups in the
+# form of "GroupID GroupName GroupID GroupName ...".
+#
 proc GetGroupIds {group} {
     set groups [list]
     set handle [open $group r]
@@ -78,8 +92,12 @@ proc GetGroupIds {group} {
     return $groups
 }
 
+####
+# GetNonExistentDir
+#
+# Returns a nonexistent directory path.
+#
 proc GetNonExistentDir {} {
-    # Loop until a nonexistent directory is found.
     while {1} {
         set rnd [expr {rand() * [clock clicks]}]
         set path [file join [testsDirectory] $rnd]
@@ -87,7 +105,6 @@ proc GetNonExistentDir {} {
     }
 }
 
-# Check if the shared memory key and etc directory exists.
 testConstraint shmKeyExists [CheckShmKey $shmKey]
 testConstraint etcPathExists [file isdirectory $etcPath]
 

@@ -54,14 +54,24 @@ set testData {
 "\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37"
 }
 
+####
+# GetTclEntropy
+#
+# Retrieve entropy from the Tcl interpreter.
+#
 proc GetTclEntropy {} {
-    # Pretty cheesy attempt at gathering entropy from Tcl,
+    # Lame attempt at gathering entropy from Tcl,
     # never use this in a production environment!
     set stuff [expr {pow(2,31) * rand() + ([clock clicks]/2)}]
     append stuff [clock seconds]
     return [string range $stuff 0 15]
 }
 
+####
+# ZeroPadData
+#
+# Pad the given data to a multiple of the block length.
+#
 proc ZeroPadData {blockLen data} {
     set dataLen [string length $data]
     set padding [expr {(($dataLen + $blockLen - 1) / $blockLen) * $blockLen}]
@@ -71,6 +81,11 @@ proc ZeroPadData {blockLen data} {
     return $data
 }
 
+####
+# InList
+#
+# Check if given list element is present.
+#
 proc InList {list element} {
     # Similar to Tcl 8.5's "in" operator.
     expr {[lsearch -exact $list $element] != -1}

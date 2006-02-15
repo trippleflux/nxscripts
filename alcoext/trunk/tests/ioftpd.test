@@ -18,16 +18,24 @@ source [file join $currentPath "loader.tcl"]
 # ioFTPD test settings.
 set msgWindow "ioFTPD::MessageWindow"
 
+####
+# CheckMsgWnd
+#
 # Check if the message window exists.
+#
 proc CheckMsgWnd {msgWindow} {
     if {[catch {ioftpd info $msgWindow io}]} {
-        testConstraint msgWndExists 0
+        return 0
     } else {
-        testConstraint msgWndExists 1
+        return 1
     }
 }
 
+####
+# GetEtcPath
+#
 # Retrieve the path to ioFTPD's "etc" directory.
+#
 proc GetEtcPath {} {
     global msgWindow
     ioftpd info $msgWindow io
@@ -35,6 +43,11 @@ proc GetEtcPath {} {
     return [file join $rootPath "etc"]
 }
 
+####
+# BufferUsers
+#
+# Save all user names and IDs to the "users" array.
+#
 proc BufferUsers {} {
     global users
     unset -nocomplain users
@@ -53,6 +66,11 @@ proc BufferUsers {} {
     close $handle
 }
 
+####
+# BufferGroups
+#
+# Save all group names and IDs to the "groups" array.
+#
 proc BufferGroups {} {
     global groups
     unset -nocomplain groups

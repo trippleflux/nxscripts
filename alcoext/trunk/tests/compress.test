@@ -15,6 +15,11 @@
 set currentPath [file dirname [file normalize [info script]]]
 source [file join $currentPath "loader.tcl"]
 
+####
+# GetFileData
+#
+# Retrieve the contents of a binary file.
+#
 proc GetFileData {filePath} {
     set handle [open $filePath r]
     fconfigure $handle -translation binary
