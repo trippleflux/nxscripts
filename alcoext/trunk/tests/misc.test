@@ -12,21 +12,8 @@
 #   Test resource clean up and synchronization in threaded interpreters.
 #
 
-package require tcltest 2
-namespace import -force ::tcltest::*
-
-if {$tcl_platform(platform) eq "windows"} {
-    set libFile "AlcoExt*"
-} else {
-    set libFile "libAlcoExt*"
-}
-append libFile [info sharedlibextension]
-
-set parentPath [file dirname [file dirname [file normalize [info script]]]]
-set libFile [lindex [glob -dir $parentPath -types f $libFile] 0]
-load $libFile
-
-namespace import -force ::alcoholicz::*
+set currentPath [file dirname [file normalize [info script]]]
+source [file join $currentPath "loader.tcl"]
 
 testConstraint threaded   [expr {[info exists tcl_platform(threaded)] && $tcl_platform(threaded)}]
 testConstraint threadPkg  [expr {![catch {package require Thread}]}]

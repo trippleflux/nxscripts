@@ -12,21 +12,8 @@
 #   Compress command test suite.
 #
 
-package require tcltest 2
-namespace import -force ::tcltest::*
-
-if {$tcl_platform(platform) eq "windows"} {
-    set libFile "AlcoExt*"
-} else {
-    set libFile "libAlcoExt*"
-}
-append libFile [info sharedlibextension]
-
 set currentPath [file dirname [file normalize [info script]]]
-set libFile [lindex [glob -dir [file dirname $currentPath] -types f $libFile] 0]
-load $libFile
-
-namespace import -force ::alcoholicz::*
+source [file join $currentPath "loader.tcl"]
 
 proc GetFileData {filePath} {
     set handle [open $filePath r]

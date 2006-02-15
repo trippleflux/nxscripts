@@ -12,33 +12,22 @@
 #   ioFTPD interface test suite.
 #
 
+set currentPath [file dirname [file normalize [info script]]]
+source [file join $currentPath "loader.tcl"]
+
 # ioFTPD test settings.
 set msgWindow "ioFTPD::MessageWindow"
 
-package require tcltest 2
-namespace import -force ::tcltest::*
-
-if {$tcl_platform(platform) eq "windows"} {
-    set libFile "AlcoExt*"
-} else {
-    set libFile "libAlcoExt*"
-}
-append libFile [info sharedlibextension]
-
-set currentPath [file dirname [file normalize [info script]]]
-set libFile [lindex [glob -dir [file dirname $currentPath] -types f $libFile] 0]
-load $libFile
-
-namespace import -force ::alcoholicz::*
-
 # Check if the message window exists.
-if {[catch {ioftpd info $msgWindow io}]} {
-    testConstraint msgWndExists 0
-} else {
-    testConstraint msgWndExists 1
+proc CheckMsgWnd {msgWindow} {
+    if {[catch {ioftpd info $msgWindow io}]} {
+        testConstraint msgWndExists 0
+    } else {
+        testConstraint msgWndExists 1
+    }
 }
-unset -nocomplain io
 
+# Retrieve the path to ioFTPD's "etc" directory.
 proc GetEtcPath {} {
     global msgWindow
     ioftpd info $msgWindow io
@@ -46,7 +35,7 @@ proc GetEtcPath {} {
     return [file join $rootPath "etc"]
 }
 
-proc UpdateUsers {} {
+proc BufferUsers {} {
     global users
     unset -nocomplain users
 
@@ -64,7 +53,7 @@ proc UpdateUsers {} {
     close $handle
 }
 
-proc UpdateGroups {} {
+proc BufferGroups {} {
     global groups
     unset -nocomplain groups
 
@@ -81,6 +70,8 @@ proc UpdateGroups {} {
     }
     close $handle
 }
+
+testConstraint [CheckMsgWnd $msgWindow]
 
 ################################################################################
 # ioftpd                                                                       #
@@ -111,7 +102,7 @@ test ioftpd-2.2 {ioftpd group: invalid sub-option} {win} {
 } {1 {bad option ".": must be exists, get, set, toid, or toname}}
 
 test ioftpd-2.3 {ioftpd group: exists, valid groups} {win msgWndExists} {
-    UpdateGroups
+    BufferGroups
     foreach name [array names groups] {
         if {![ioftpd group exists $msgWindow $name]} {
             return "group \"$name\" does exist"
@@ -124,7 +115,7 @@ test ioftpd-2.4 {ioftpd group: exists, invalid group} {win msgWndExists} {
 } {0}
 
 test ioftpd-2.5 {ioftpd group: get, valid group} {win msgWndExists} {
-    UpdateGroups
+    BufferGroups
     unset -nocomplain test
     array set test [ioftpd group get $msgWindow [lindex [array names groups] 0]]
     set names [lsort [array names test]]
@@ -137,7 +128,7 @@ test ioftpd-2.6 {ioftpd group: get, invalid group} {win msgWndExists} {
 } {1 {invalid group name ""}}
 
 test ioftpd-2.7 {ioftpd group: set, valid group} {win msgWndExists} {
-    UpdateGroups
+    BufferGroups
     list [catch {ioftpd group set $msgWindow [lindex [array names groups] 0] ""} msg] $msg
 } {1 {not implemented}}
 
@@ -146,7 +137,7 @@ test ioftpd-2.8 {ioftpd group: set, invalid group} {win msgWndExists} {
 } {1 {invalid group name ""}}
 
 test ioftpd-2.9 {ioftpd group: toid, valid groups} {win msgWndExists} {
-    UpdateGroups
+    BufferGroups
     foreach name [array names groups] {
         set result [ioftpd group toid $msgWindow $name]
         if {$result != $groups($name)} {
@@ -164,7 +155,7 @@ test ioftpd-2.11 {ioftpd group: toname, invalid int} {win msgWndExists} {
 } {1 {expected integer but got "."}}
 
 test ioftpd-2.12 {ioftpd group: toname, valid groups} {win msgWndExists} {
-    UpdateGroups
+    BufferGroups
     foreach name [array names groups] {
         set result [ioftpd group toname $msgWindow $groups($name)]
         if {![string equal $result $name]} {
@@ -248,7 +239,7 @@ test ioftpd-6.2 {ioftpd user: invalid sub-option} {win} {
 } {1 {bad option ".": must be exists, get, set, toid, or toname}}
 
 test ioftpd-6.3 {ioftpd user: exists, valid users} {win msgWndExists} {
-    UpdateUsers
+    BufferUsers
     foreach name [array names users] {
         if {![ioftpd user exists $msgWindow $name]} {
             return "user \"$name\" does exist"
@@ -261,7 +252,7 @@ test ioftpd-6.4 {ioftpd user: exists, invalid user} {win msgWndExists} {
 } {0}
 
 test ioftpd-6.5 {ioftpd user: get, valid user} {win msgWndExists} {
-    UpdateUsers
+    BufferUsers
     unset -nocomplain test
     array set test [ioftpd user get $msgWindow [lindex [array names users] 0]]
     set names [lsort [array names test]]
@@ -274,7 +265,7 @@ test ioftpd-6.6 {ioftpd user: get, invalid user} {win msgWndExists} {
 } {1 {invalid user name ""}}
 
 test ioftpd-6.7 {ioftpd user: set, valid user} {win msgWndExists} {
-    UpdateUsers
+    BufferUsers
     list [catch {ioftpd user set $msgWindow [lindex [array names users] 0] ""} msg] $msg
 } {1 {not implemented}}
 
@@ -283,7 +274,7 @@ test ioftpd-6.8 {ioftpd user: set, invalid user} {win msgWndExists} {
 } {1 {invalid user name ""}}
 
 test ioftpd-6.9 {ioftpd user: toid, valid users} {win msgWndExists} {
-    UpdateUsers
+    BufferUsers
     foreach name [array names users] {
         set result [ioftpd user toid $msgWindow $name]
         if {$result != $users($name)} {
@@ -301,7 +292,7 @@ test ioftpd-6.11 {ioftpd user: toname, invalid int} {win msgWndExists} {
 } {1 {expected integer but got "."}}
 
 test ioftpd-6.12 {ioftpd user: toname, valid users} {win msgWndExists} {
-    UpdateUsers
+    BufferUsers
     foreach name [array names users] {
         set result [ioftpd user toname $msgWindow $users($name)]
         if {![string equal $result $name]} {

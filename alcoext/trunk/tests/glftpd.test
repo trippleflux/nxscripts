@@ -12,27 +12,15 @@
 #   glFTPD interface test suite.
 #
 
+set currentPath [file dirname [file normalize [info script]]]
+source [file join $currentPath "loader.tcl"]
+
 # glFTPD test settings.
 set shmKey  [expr {0x0000DEAD}]
 set version "2.01"
-set etcPath "/jail/glftpd/etc"
+set etcPath "/glftpd/etc"
 
-package require tcltest 2
-namespace import -force ::tcltest::*
-
-if {$tcl_platform(platform) eq "windows"} {
-    set libFile "AlcoExt*"
-} else {
-    set libFile "libAlcoExt*"
-}
-append libFile [info sharedlibextension]
-
-set currentPath [file dirname [file normalize [info script]]]
-set libFile [lindex [glob -dir [file dirname $currentPath] -types f $libFile] 0]
-load $libFile
-
-namespace import -force ::alcoholicz::*
-
+# Check if the given shared memory key exists.
 proc CheckShmKey {shmKey} {
     if {![catch {exec ipcs -m} output]} {
         set hexStr [format "0x%08x" $shmKey]
