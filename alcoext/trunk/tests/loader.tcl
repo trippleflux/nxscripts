@@ -27,6 +27,6 @@ load $libFile
 # Load the test package.
 package require tcltest 2
 
-# Import commonly used namespaces.
+# Import commonly used namespace functions.
 namespace import -force ::alcoholicz::*
 namespace import -force ::tcltest::*
