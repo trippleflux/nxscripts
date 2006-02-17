@@ -45,8 +45,8 @@
 #
 #   3. Copy the AlcoExt and TclODBC extensions to glFTPD's chroot environment.
 #
+#      cp -R /usr/local/lib/AlcoExt0.* /glftpd/lib
 #      cp -R /usr/local/lib/tclodbc2.* /glftpd/lib
-#      cp -R /usr/local/lib/tls1.5.* /glftpd/lib
 #
 #   4. Configure siteInvite.tcl and uncomment the logPath option for glFTPD.
 #
