@@ -13,10 +13,13 @@
 #   Implements a SITE command to manage invite options.
 #
 # ioFTPD Installation:
-#   1. Copy the siteInvite.tcl file to C:\ioFTPD\scripts\.
-#   2. Copy the AlcoExt0.x and tclodbc2.x directories from
+#   1. Copy the AlcoExt0.x and tclodbc2.x directories from
 #      C:\Eggdrop\AlcoBot\libs\ to C:\ioFTPD\lib\.
-#   3. Configure the script and uncomment the logPath option for ioFTPD.
+#
+#   2. Copy the siteInvite.tcl file to C:\ioFTPD\scripts\.
+#
+#   3. Configure siteInvite.tcl and uncomment the logPath option for ioFTPD.
+#
 #   4. Add the following to your ioFTPD.ini:
 #
 #      [FTP_Custom_Commands]
@@ -38,9 +41,15 @@
 #      cp -R /usr/local/lib/tcl8.4 /glftpd/lib
 #      bash /glftpd/libcopy.sh
 #
-#   2. Copy the siteInvite.tcl file to /glftpd/bin/.
-#   3. Install the AlcoExt and TclODBC extensions to glFTPD's chroot environment.
-#   4. Configure the script and uncomment the logPath option for glFTPD.
+#   2. Copy the AlcoExt and TclODBC extensions to glFTPD's chroot environment.
+#
+#      cp -R /usr/local/lib/AlcoExt0.* /glftpd/lib
+#      cp -R /usr/local/lib/tclodbc2.* /glftpd/lib
+#
+#   3. Copy the siteInvite.tcl file to /glftpd/bin/.
+#
+#   4. Configure siteInvite.tcl and uncomment the logPath option for glFTPD.
+#
 #   5. Add the following to your glftpd.conf file:
 #
 #      site_cmd INVITE    EXEC /bin/siteInvite.tcl[:space:]INVITE
