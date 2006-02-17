@@ -14,9 +14,12 @@
 #
 # ioFTPD Installation:
 #   1. Copy the siteInvite.tcl file to C:\ioFTPD\scripts\.
+#
 #   2. Copy the AlcoExt0.x and tclodbc2.x directories from
 #      C:\Eggdrop\AlcoBot\libs\ to C:\ioFTPD\lib\.
+#
 #   3. Configure siteInvite.tcl and uncomment the logPath option for ioFTPD.
+#
 #   4. Add the following to your ioFTPD.ini:
 #
 #      [FTP_Custom_Commands]
@@ -39,12 +42,14 @@
 #      bash /glftpd/libcopy.sh
 #
 #   2. Copy the siteInvite.tcl file to /glftpd/bin/.
+#
 #   3. Copy the AlcoExt and TclODBC extensions to glFTPD's chroot environment.
 #
 #      cp -R /usr/local/lib/tclodbc2.* /glftpd/lib
 #      cp -R /usr/local/lib/tls1.5.* /glftpd/lib
 #
 #   4. Configure siteInvite.tcl and uncomment the logPath option for glFTPD.
+#
 #   5. Add the following to your glftpd.conf file:
 #
 #      site_cmd INVITE    EXEC /bin/siteInvite.tcl[:space:]INVITE
