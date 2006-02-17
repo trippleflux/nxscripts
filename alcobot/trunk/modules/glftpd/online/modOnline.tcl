@@ -67,7 +67,7 @@ proc ::alcoholicz::Online::Bandwidth {event command target user host handle chan
     if {![catch {set online [glftpd who $session "status user group speed path"]} message]} {
         foreach entry $online {
             foreach {status user group speed path} $entry {break}
-            if {$hideCount && [IsHidden $user $group $path]} {continue}
+            if {!$hideCount && [IsHidden $user $group $path]} {continue}
 
             # User Status:
             # 0 - Idle

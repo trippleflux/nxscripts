@@ -67,7 +67,7 @@ proc ::alcoholicz::Online::Bandwidth {event command target user host handle chan
     if {![catch {set online [ioftpd who $msgWindow "status user group speed vpath"]} message]} {
         foreach entry $online {
             foreach {status user group speed vpath} $entry {break}
-            if {$hideCount && [IsHidden $user $group $vpath]} {continue}
+            if {!$hideCount && [IsHidden $user $group $vpath]} {continue}
 
             # User Status:
             # 0 - Idle
