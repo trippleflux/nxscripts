@@ -1115,7 +1115,7 @@ proc ::alcoholicz::InitLibraries {rootPath} {
 
     # The TLS extension is optional, but AlcoExt is required.
     catch {package require tls 1.5}
-    package require AlcoExt 0.4
+    package require AlcoExt 0.5
 }
 
 ####
