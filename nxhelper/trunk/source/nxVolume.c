@@ -64,7 +64,7 @@ GetVolumeSize(TCHAR *volumePath, ULONGLONG *bytesFree, ULONGLONG *bytesTotal)
      * GetDiskFreeSpaceEx() crashes on NT4, at least it did
      * for me; so we'll use GetDiskFreeSpace() instead.
      */
-    if (GetDiskFreeSpaceExPtr == NULL || (osVersion.dwPlatformId == VER_PLATFORM_WIN32_NT &&
+    if (getDiskFreeSpaceExPtr == NULL || (osVersion.dwPlatformId == VER_PLATFORM_WIN32_NT &&
         osVersion.dwMajorVersion <= 4)) {
 
         ULONG bytesPerSector;
@@ -85,7 +85,7 @@ GetVolumeSize(TCHAR *volumePath, ULONGLONG *bytesFree, ULONGLONG *bytesTotal)
     } else {
         ULONGLONG freeToCaller;
 
-        result = GetDiskFreeSpaceExPtr(volumePath,
+        result = getDiskFreeSpaceExPtr(volumePath,
             (PULARGE_INTEGER)&freeToCaller,
             (PULARGE_INTEGER)&(*bytesTotal),
             (PULARGE_INTEGER)&(*bytesFree));

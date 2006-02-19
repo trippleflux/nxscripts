@@ -20,7 +20,7 @@ TCL_DECLARE_MUTEX(initMutex)
 
 /* Global variables. */
 OSVERSIONINFO osVersion;
-Fn_GetDiskFreeSpaceEx GetDiskFreeSpaceExPtr = NULL;
+Fn_GetDiskFreeSpaceEx getDiskFreeSpaceExPtr = NULL;
 
 EXTERN int Nxhelper_Init(Tcl_Interp *interp);
 EXTERN int Nxhelper_SafeInit(Tcl_Interp *interp);
@@ -79,14 +79,14 @@ Nxhelper_Init(Tcl_Interp *interp)
                  * compatibility on older Windows systems (earlier than NT v5).
                  */
 #ifdef UNICODE
-                GetDiskFreeSpaceExPtr = (Fn_GetDiskFreeSpaceEx)
+                getDiskFreeSpaceExPtr = (Fn_GetDiskFreeSpaceEx)
                     GetProcAddress(kernelModule, "GetDiskFreeSpaceExW");
 #else /* UNICODE */
-                GetDiskFreeSpaceExPtr = (Fn_GetDiskFreeSpaceEx)
+                getDiskFreeSpaceExPtr = (Fn_GetDiskFreeSpaceEx)
                     GetProcAddress(kernelModule, "GetDiskFreeSpaceExA");
 #endif /* UNICODE */
             } else {
-                GetDiskFreeSpaceExPtr = NULL;
+                getDiskFreeSpaceExPtr = NULL;
             }
 
             /*
@@ -153,15 +153,13 @@ static void
 Nxhelper_Exit(ClientData dummy)
 {
     Tcl_MutexLock(&initMutex);
-
     if (kernelModule != NULL) {
         FreeLibrary(kernelModule);
         kernelModule = NULL;
     }
 
-    GetDiskFreeSpaceExPtr = NULL;
+    getDiskFreeSpaceExPtr = NULL;
     initialised = FALSE;
-
     Tcl_MutexUnlock(&initMutex);
 
 #ifdef TCL_MEM_DEBUG

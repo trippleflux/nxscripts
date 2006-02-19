@@ -68,7 +68,7 @@ typedef BOOL (WINAPI *Fn_GetDiskFreeSpaceEx)(
     PULARGE_INTEGER lpTotalNumberOfFreeBytes
 );
 
-Fn_GetDiskFreeSpaceEx GetDiskFreeSpaceExPtr;
+Fn_GetDiskFreeSpaceEx getDiskFreeSpaceExPtr;
 OSVERSIONINFO osVersion;
 
 #endif /* __NXHELPER_H__ */
