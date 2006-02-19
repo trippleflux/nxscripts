@@ -163,6 +163,8 @@ Nxhelper_Exit(ClientData dummy)
         FreeLibrary(kernelModule);
         kernelModule = NULL;
     }
+
+    GetDiskFreeSpaceExPtr = NULL
     initialised = FALSE;
 
     Tcl_MutexUnlock(&initMutex);
