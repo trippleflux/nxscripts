@@ -59,47 +59,55 @@ Nxhelper_Init(Tcl_Interp *interp)
         return TCL_ERROR;
     }
 
-    Tcl_MutexLock(&initMutex);
+    /*
+     * Check if the library is already initialised before locking
+     * the global initialisation mutex (improves loading time).
+     */
     if (!initialised) {
-        /* Initialise the OS version structure. */
-        osVersion.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-        GetVersionEx(&osVersion);
+        Tcl_MutexLock(&initMutex);
 
-        kernelModule = LoadLibrary(TEXT("kernel32.dll"));
+        /* Check initialisation status again now that we're in the mutex. */
+        if (!initialised) {
+            /* Initialise the OS version structure. */
+            osVersion.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+            GetVersionEx(&osVersion);
 
-        if (kernelModule == NULL) {
-            Tcl_AppendResult(interp, "unable to load kernel32.dll: ",
-                TclSetWinError(interp, GetLastError()), NULL);
+            kernelModule = LoadLibrary(TEXT("kernel32.dll"));
 
-            Tcl_MutexUnlock(&initMutex);
-            return TCL_ERROR;
-        }
+            if (kernelModule == NULL) {
+                Tcl_AppendResult(interp, "unable to load kernel32.dll: ",
+                    TclSetWinError(interp, GetLastError()), NULL);
 
-        /*
-         * These functions must be resolved on run-time for backwards
-         * compatibility on older Windows systems (earlier than NT v5).
-         */
+                Tcl_MutexUnlock(&initMutex);
+                return TCL_ERROR;
+            }
+
+            /*
+             * These functions must be resolved on run-time for backwards
+             * compatibility on older Windows systems (earlier than NT v5).
+             */
 #ifdef UNICODE
-        GetDiskFreeSpaceExPtr = (Fn_GetDiskFreeSpaceEx)
-            GetProcAddress(kernelModule, "GetDiskFreeSpaceExW");
+            GetDiskFreeSpaceExPtr = (Fn_GetDiskFreeSpaceEx)
+                GetProcAddress(kernelModule, "GetDiskFreeSpaceExW");
 #else /* UNICODE */
-        GetDiskFreeSpaceExPtr = (Fn_GetDiskFreeSpaceEx)
-            GetProcAddress(kernelModule, "GetDiskFreeSpaceExA");
+            GetDiskFreeSpaceExPtr = (Fn_GetDiskFreeSpaceEx)
+                GetProcAddress(kernelModule, "GetDiskFreeSpaceExA");
 #endif /* UNICODE */
 
-        /*
-         * If GetVolumeInformation() is called on a floppy drive or a CD-ROM drive
-         * that does not have a disk inserted, the system will display a message box
-         * asking the user to insert one.
-         */
-        SetErrorMode(SetErrorMode(0) | SEM_FAILCRITICALERRORS);
+            /*
+             * If GetVolumeInformation() is called on a floppy drive or a CD-ROM drive
+             * that does not have a disk inserted, the system will display a message box
+             * asking the user to insert one.
+             */
+            SetErrorMode(SetErrorMode(0) | SEM_FAILCRITICALERRORS);
 
-        /* An exit handler should be registered once. */
-        Tcl_CreateExitHandler(Nxhelper_Exit, NULL);
+            /* An exit handler should be registered once. */
+            Tcl_CreateExitHandler(Nxhelper_Exit, NULL);
 
-        initialised = TRUE;
+            initialised = TRUE;
+        }
+        Tcl_MutexUnlock(&initMutex);
     }
-    Tcl_MutexUnlock(&initMutex);
 
     Tcl_CreateObjCommand(interp, "::nx::base64", Base64ObjCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::nx::mp3",    Mp3ObjCmd,    NULL, NULL);
