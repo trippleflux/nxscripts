@@ -178,14 +178,14 @@ test ioftpd-2.7 {ioftpd group: get, check data} {win msgWndExists} {
     unset -nocomplain data name value
 } {}
 
-test ioftpd-2.8 {ioftpd group: set, valid group} {win msgWndExists} {
+test ioftpd-2.8 {ioftpd group: set, invalid group} {win msgWndExists} {
+    list [catch {ioftpd group set $msgWindow "" ""} msg] $msg
+} {1 {invalid group name ""}}
+
+test ioftpd-2.9 {ioftpd group: set, valid group} {win msgWndExists} {
     BufferGroups
     list [catch {ioftpd group set $msgWindow [lindex [array names groups] 0] ""} msg] $msg
 } {1 {not implemented}}
-
-test ioftpd-2.9 {ioftpd group: set, invalid group} {win msgWndExists} {
-    list [catch {ioftpd group set $msgWindow "" ""} msg] $msg
-} {1 {invalid group name ""}}
 
 test ioftpd-2.10 {ioftpd group: toid, valid groups} {win msgWndExists} {
     BufferGroups
@@ -380,14 +380,14 @@ test ioftpd-6.7 {ioftpd user: get, check data} {win msgWndExists} {
     unset -nocomplain data name value
 } {}
 
-test ioftpd-6.8 {ioftpd user: set, valid user} {win msgWndExists} {
+test ioftpd-6.8 {ioftpd user: set, invalid user} {win msgWndExists} {
+    list [catch {ioftpd user set $msgWindow "" ""} msg] $msg
+} {1 {invalid user name ""}}
+
+test ioftpd-6.9 {ioftpd user: set, valid user} {win msgWndExists} {
     BufferUsers
     list [catch {ioftpd user set $msgWindow [lindex [array names users] 0] ""} msg] $msg
 } {1 {not implemented}}
-
-test ioftpd-6.9 {ioftpd user: set, invalid user} {win msgWndExists} {
-    list [catch {ioftpd user set $msgWindow "" ""} msg] $msg
-} {1 {invalid user name ""}}
 
 test ioftpd-6.10 {ioftpd user: toid, valid users} {win msgWndExists} {
     BufferUsers
