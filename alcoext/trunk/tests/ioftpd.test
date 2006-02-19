@@ -132,29 +132,62 @@ test ioftpd-2.4 {ioftpd group: exists, invalid group} {win msgWndExists} {
     ioftpd group exists $msgWindow ""
 } {0}
 
-test ioftpd-2.5 {ioftpd group: get, valid group} {win msgWndExists} {
-    BufferGroups
-    unset -nocomplain test
-    array set test [ioftpd group get $msgWindow [lindex [array names groups] 0]]
-    set names [lsort [array names test]]
-    unset -nocomplain test
-    set names
-} {desc slots users vfsfile}
-
-test ioftpd-2.6 {ioftpd group: get, invalid group} {win msgWndExists} {
+test ioftpd-2.5 {ioftpd group: get, invalid group} {win msgWndExists} {
     list [catch {ioftpd group get $msgWindow ""} msg] $msg
 } {1 {invalid group name ""}}
 
-test ioftpd-2.7 {ioftpd group: set, valid group} {win msgWndExists} {
+test ioftpd-2.6 {ioftpd group: get, field names} {win msgWndExists} {
+    BufferGroups
+    unset -nocomplain data
+    array set data [ioftpd group get $msgWindow [lindex [array names groups] 0]]
+    set names [lsort [array names data]]
+    unset -nocomplain data
+    set names
+} {desc slots users vfsfile}
+
+test ioftpd-2.7 {ioftpd group: get, check data} {win msgWndExists} {
+    BufferGroups
+    foreach group [array names groups] {
+        unset -nocomplain data
+        set data [ioftpd group get $msgWindow $group]
+        foreach {name value} $data {
+            set valid 0
+            switch -- $name {
+                desc -
+                vfsfile {
+                    # String.
+                    set valid 1
+                }
+                slots {
+                    # List of integers (2).
+                    set intCount 0
+                    foreach num $value {
+                        incr intCount [string is integer -strict $num]
+                    }
+                    set valid [expr {[llength $value] == 2 && $intCount == 2}]
+                }
+                users {
+                    # Integer.
+                    set valid [string is integer -strict $value]
+                }
+                default {return "invalid field name \"$name\""}
+            }
+            if {!$valid} {return "invalid value \"$value\" for \"$name\""}
+        }
+    }
+    unset -nocomplain data name value
+} {}
+
+test ioftpd-2.8 {ioftpd group: set, valid group} {win msgWndExists} {
     BufferGroups
     list [catch {ioftpd group set $msgWindow [lindex [array names groups] 0] ""} msg] $msg
 } {1 {not implemented}}
 
-test ioftpd-2.8 {ioftpd group: set, invalid group} {win msgWndExists} {
+test ioftpd-2.9 {ioftpd group: set, invalid group} {win msgWndExists} {
     list [catch {ioftpd group set $msgWindow "" ""} msg] $msg
 } {1 {invalid group name ""}}
 
-test ioftpd-2.9 {ioftpd group: toid, valid groups} {win msgWndExists} {
+test ioftpd-2.10 {ioftpd group: toid, valid groups} {win msgWndExists} {
     BufferGroups
     foreach name [array names groups] {
         set result [ioftpd group toid $msgWindow $name]
@@ -164,15 +197,15 @@ test ioftpd-2.9 {ioftpd group: toid, valid groups} {win msgWndExists} {
     }
 } {}
 
-test ioftpd-2.10 {ioftpd group: toid, invalid group} {win msgWndExists} {
+test ioftpd-2.11 {ioftpd group: toid, invalid group} {win msgWndExists} {
     ioftpd group toid $msgWindow ""
 } {-1}
 
-test ioftpd-2.11 {ioftpd group: toname, invalid int} {win msgWndExists} {
+test ioftpd-2.12 {ioftpd group: toname, invalid int} {win msgWndExists} {
     list [catch {ioftpd group toname $msgWindow .} msg] $msg
 } {1 {expected integer but got "."}}
 
-test ioftpd-2.12 {ioftpd group: toname, valid groups} {win msgWndExists} {
+test ioftpd-2.13 {ioftpd group: toname, valid groups} {win msgWndExists} {
     BufferGroups
     foreach name [array names groups] {
         set result [ioftpd group toname $msgWindow $groups($name)]
@@ -182,7 +215,7 @@ test ioftpd-2.12 {ioftpd group: toname, valid groups} {win msgWndExists} {
     }
 } {}
 
-test ioftpd-2.13 {ioftpd group: toname, invalid group} {win msgWndExists} {
+test ioftpd-2.14 {ioftpd group: toname, invalid group} {win msgWndExists} {
     ioftpd group toname $msgWindow -1
 } {}
 
@@ -269,29 +302,94 @@ test ioftpd-6.4 {ioftpd user: exists, invalid user} {win msgWndExists} {
     ioftpd user exists $msgWindow ""
 } {0}
 
-test ioftpd-6.5 {ioftpd user: get, valid user} {win msgWndExists} {
-    BufferUsers
-    unset -nocomplain test
-    array set test [ioftpd user get $msgWindow [lindex [array names users] 0]]
-    set names [lsort [array names test]]
-    unset -nocomplain test
-    set names
-} {admingroups alldn allup credits daydn dayup flags groups home ips limits monthdn monthup password ratio tagline vfsfile wkdn wkup}
-
-test ioftpd-6.6 {ioftpd user: get, invalid user} {win msgWndExists} {
+test ioftpd-6.5 {ioftpd user: get, invalid user} {win msgWndExists} {
     list [catch {ioftpd user get $msgWindow ""} msg] $msg
 } {1 {invalid user name ""}}
 
-test ioftpd-6.7 {ioftpd user: set, valid user} {win msgWndExists} {
+test ioftpd-6.6 {ioftpd user: get, field names} {win msgWndExists} {
+    BufferUsers
+    unset -nocomplain data
+    array set data [ioftpd user get $msgWindow [lindex [array names users] 0]]
+    set names [lsort [array names data]]
+    unset -nocomplain data
+    set names
+} {admingroups alldn allup credits daydn dayup flags groups home ips limits monthdn monthup password ratio tagline vfsfile wkdn wkup}
+
+test ioftpd-6.7 {ioftpd user: get, check data} {win msgWndExists} {
+    BufferUsers
+    foreach user [array names users] {
+        unset -nocomplain data
+        set data [ioftpd user get $msgWindow $user]
+        foreach {name value} $data {
+            set valid 0
+            switch -- $name {
+                alldn - allup -
+                daydn - dayup -
+                monthdn - monthup -
+                wkdn - wkup {
+                    # List of integers (30).
+                    set intCount 0
+                    foreach num $value {
+                        incr intCount [string is integer -strict $num]
+                    }
+                    set valid [expr {[llength $value] == 30 && $intCount == 30}]
+                }
+                credits -
+                ratio {
+                    # List of integers (10).
+                    set intCount 0
+                    foreach num $value {
+                        incr intCount [string is integer -strict $num]
+                    }
+                    set valid [expr {[llength $value] == 10 && $intCount == 10}]
+                }
+                limits {
+                    # List of integers (5).
+                    set intCount 0
+                    foreach num $value {
+                        incr intCount [string is integer -strict $num]
+                    }
+                    set valid [expr {[llength $value] == 5 && $intCount == 5}]
+                }
+                admingroups -
+                groups {
+                    # List of integers.
+                    set intCount 0
+                    foreach num $value {
+                        incr intCount [string is integer -strict $num]
+                    }
+                    set valid [expr {[llength $value] == $intCount}]
+                }
+                ips {
+                    # List of string.
+                    set valid 1
+                }
+                flags -
+                home -
+                password -
+                tagline -
+                vfsfile {
+                    # String.
+                    set valid 1
+                }
+                default {return "invalid field name \"$name\""}
+            }
+            if {!$valid} {return "invalid value \"$value\" for \"$name\""}
+        }
+    }
+    unset -nocomplain data name value
+} {}
+
+test ioftpd-6.8 {ioftpd user: set, valid user} {win msgWndExists} {
     BufferUsers
     list [catch {ioftpd user set $msgWindow [lindex [array names users] 0] ""} msg] $msg
 } {1 {not implemented}}
 
-test ioftpd-6.8 {ioftpd user: set, invalid user} {win msgWndExists} {
+test ioftpd-6.9 {ioftpd user: set, invalid user} {win msgWndExists} {
     list [catch {ioftpd user set $msgWindow "" ""} msg] $msg
 } {1 {invalid user name ""}}
 
-test ioftpd-6.9 {ioftpd user: toid, valid users} {win msgWndExists} {
+test ioftpd-6.10 {ioftpd user: toid, valid users} {win msgWndExists} {
     BufferUsers
     foreach name [array names users] {
         set result [ioftpd user toid $msgWindow $name]
@@ -301,15 +399,15 @@ test ioftpd-6.9 {ioftpd user: toid, valid users} {win msgWndExists} {
     }
 } {}
 
-test ioftpd-6.10 {ioftpd user: toid, invalid user} {win msgWndExists} {
+test ioftpd-6.11 {ioftpd user: toid, invalid user} {win msgWndExists} {
     ioftpd user toid $msgWindow ""
 } {-1}
 
-test ioftpd-6.11 {ioftpd user: toname, invalid int} {win msgWndExists} {
+test ioftpd-6.12 {ioftpd user: toname, invalid int} {win msgWndExists} {
     list [catch {ioftpd user toname $msgWindow .} msg] $msg
 } {1 {expected integer but got "."}}
 
-test ioftpd-6.12 {ioftpd user: toname, valid users} {win msgWndExists} {
+test ioftpd-6.13 {ioftpd user: toname, valid users} {win msgWndExists} {
     BufferUsers
     foreach name [array names users] {
         set result [ioftpd user toname $msgWindow $users($name)]
@@ -319,7 +417,7 @@ test ioftpd-6.12 {ioftpd user: toname, valid users} {win msgWndExists} {
     }
 } {}
 
-test ioftpd-6.13 {ioftpd user: toname, invalid user} {win msgWndExists} {
+test ioftpd-6.14 {ioftpd user: toname, invalid user} {win msgWndExists} {
     ioftpd user toname $msgWindow -1
 } {}
 
