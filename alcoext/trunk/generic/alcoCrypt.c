@@ -648,7 +648,7 @@ CryptProcessCmd(
             }
             case SWITCH_MODE: {
                 if (Tcl_GetIndexFromObjStruct(interp, objv[i], cipherModes,
-                    sizeof(cipherModes[0]), "mode", TCL_EXACT, &modeIndex) != TCL_OK) {
+                        sizeof(cipherModes[0]), "mode", TCL_EXACT, &modeIndex) != TCL_OK) {
                     return TCL_ERROR;
                 }
                 break;
@@ -673,7 +673,7 @@ CryptProcessCmd(
     }
 
     if (Tcl_GetIndexFromObjStruct(interp, objv[objc-3], cipher_descriptor,
-        sizeof(cipher_descriptor[0]), "cipher", TCL_EXACT, &cipherIndex) != TCL_OK) {
+            sizeof(cipher_descriptor[0]), "cipher", TCL_EXACT, &cipherIndex) != TCL_OK) {
         return TCL_ERROR;
     }
 
@@ -1398,7 +1398,7 @@ CryptPkcs5Cmd(
     }
 
     if (Tcl_GetIndexFromObjStruct(interp, objv[objc-3], hash_descriptor,
-        sizeof(hash_descriptor[0]), "hash", TCL_EXACT, &index) != TCL_OK) {
+            sizeof(hash_descriptor[0]), "hash", TCL_EXACT, &index) != TCL_OK) {
         return TCL_ERROR;
     }
 
@@ -1469,7 +1469,7 @@ CryptPrngCmd(
     }
 
     if (Tcl_GetIndexFromObjStruct(interp, objv[2], prng_descriptor,
-        sizeof(prng_descriptor[0]), "prng", TCL_EXACT, &index) != TCL_OK) {
+            sizeof(prng_descriptor[0]), "prng", TCL_EXACT, &index) != TCL_OK) {
         return TCL_ERROR;
     }
 
