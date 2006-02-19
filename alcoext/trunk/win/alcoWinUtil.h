@@ -51,11 +51,12 @@ typedef BOOL (WINAPI *FindVolumeMountPointCloseProc)(
     );
 
 typedef struct {
-    GetDiskFreeSpaceExProc                  getDiskFreeSpaceEx;
-    FindFirstVolumeMountPointProc           findFirstVolumeMountPoint;
-    FindNextVolumeMountPointProc            findNextVolumeMountPoint;
-    FindVolumeMountPointCloseProc           findVolumeMountPointClose;
-    GetVolumeNameForVolumeMountPointProc    getVolumeNameForVolumeMountPoint;
+    HMODULE                              module; // Handle to kernel32.dll
+    GetDiskFreeSpaceExProc               getDiskFreeSpaceEx;
+    FindFirstVolumeMountPointProc        findFirstVolumeMountPoint;
+    FindNextVolumeMountPointProc         findNextVolumeMountPoint;
+    FindVolumeMountPointCloseProc        findVolumeMountPointClose;
+    GetVolumeNameForVolumeMountPointProc getVolumeNameForVolumeMountPoint;
 } WinProcs;
 
 

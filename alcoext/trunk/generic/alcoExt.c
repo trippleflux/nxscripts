@@ -30,7 +30,6 @@ TCL_DECLARE_MUTEX(initMutex)
 TCL_DECLARE_MUTEX(stateMutex)
 
 #ifdef _WINDOWS
-static HMODULE kernelModule = NULL;
 OSVERSIONINFOA osVersion;
 WinProcs winProcs;
 #endif // _WINDOWS
@@ -91,9 +90,9 @@ Alcoext_Init(
             GetVersionExA(&osVersion);
 
             ZeroMemory(&winProcs, sizeof(WinProcs));
-            kernelModule = LoadLibraryA("kernel32.dll");
+            winProcs.module = LoadLibraryA("kernel32.dll");
 
-            if (kernelModule == NULL) {
+            if (winProcs.module == NULL) {
                 Tcl_AppendResult(interp, "unable to load kernel32.dll: ",
                     TclSetWinError(interp, GetLastError()), NULL);
 
@@ -106,17 +105,17 @@ Alcoext_Init(
             // compatibility on older Windows systems (earlier than NT v5).
             //
             winProcs.getDiskFreeSpaceEx = (GetDiskFreeSpaceExProc)
-                GetProcAddress(kernelModule, "GetDiskFreeSpaceExA");
+                GetProcAddress(winProcs.module, "GetDiskFreeSpaceExA");
 
             winProcs.findFirstVolumeMountPoint = (FindFirstVolumeMountPointProc)
-                GetProcAddress(kernelModule, "FindFirstVolumeMountPointA");
+                GetProcAddress(winProcs.module, "FindFirstVolumeMountPointA");
             winProcs.findNextVolumeMountPoint = (FindNextVolumeMountPointProc)
-                GetProcAddress(kernelModule, "FindNextVolumeMountPointA");
+                GetProcAddress(winProcs.module, "FindNextVolumeMountPointA");
             winProcs.findVolumeMountPointClose = (FindVolumeMountPointCloseProc)
-                GetProcAddress(kernelModule, "FindVolumeMountPointClose");
+                GetProcAddress(winProcs.module, "FindVolumeMountPointClose");
 
             winProcs.getVolumeNameForVolumeMountPoint = (GetVolumeNameForVolumeMountPointProc)
-                GetProcAddress(kernelModule, "GetVolumeNameForVolumeMountPointA");
+                GetProcAddress(winProcs.module, "GetVolumeNameForVolumeMountPointA");
 
             //
             // If GetVolumeInformation() is called on a floppy drive or a CD-ROM
@@ -409,10 +408,10 @@ ExitHandler(
 {
     Tcl_MutexLock(&initMutex);
 #ifdef _WINDOWS
-    if (kernelModule != NULL) {
-        FreeLibrary(kernelModule);
-        kernelModule = NULL;
+    if (winProcs.module != NULL) {
+        FreeLibrary(winProcs.module);
     }
+    ZeroMemory(&winProcs, sizeof(WinProcs));
 #endif // _WINDOWS
 
     initialised = 0;
