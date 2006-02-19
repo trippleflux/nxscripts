@@ -220,6 +220,13 @@ GetGroupFile(
     );
 
 static int
+SetGroupFile(
+    ShmSession *session,
+    ShmMemory *memory,
+    const GROUPFILE *groupFile
+    );
+
+static int
 GroupIdToName(
     ShmSession *session,
     ShmMemory *memory,
@@ -241,6 +248,13 @@ GetUserFile(
     ShmMemory *memory,
     int userId,
     USERFILE *userFile
+    );
+
+static int
+SetUserFile(
+    ShmSession *session,
+    ShmMemory *memory,
+    const USERFILE *userFile
     );
 
 static int
@@ -742,11 +756,11 @@ GetGroupFile(
     GROUPFILE *groupFile
     )
 {
-    DebugPrint("GetGroupFile: groupId=%d groupFile=0x%p\n", groupId, groupFile);
     assert(session   != NULL);
     assert(memory    != NULL);
     assert(memory->bytes >= sizeof(GROUPFILE));
     assert(groupFile != NULL);
+    DebugPrint("GetGroupFile: groupId=%d groupFile=0x%p\n", groupId, groupFile);
 
     // Set the requested group ID.
     ((GROUPFILE *)memory->block)->Gid = groupId;
@@ -767,6 +781,68 @@ GetGroupFile(
 
     DebugPrint("GetGroupFile: FAIL\n");
     return TCL_ERROR;
+}
+
+/*++
+
+SetGroupFile
+
+    Update the GROUPFILE structure for a group.
+
+Arguments:
+    session     - Pointer to an initialised ShmSession structure.
+
+    memory      - Pointer to an ShmMemory structure allocated by the ShmAlloc
+                  function. Must be large enough to hold the GROUPFILE structure.
+
+    groupFile   - Pointer to an initialised GROUPFILE structure.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
+static int
+SetGroupFile(
+    ShmSession *session,
+    ShmMemory *memory,
+    const GROUPFILE *groupFile
+    )
+{
+    int status = TCL_ERROR;
+
+    assert(session   != NULL);
+    assert(memory    != NULL);
+    assert(memory->bytes >= sizeof(GROUPFILE));
+    assert(groupFile != NULL);
+    DebugPrint("SetGroupFile: groupFile=0x%p groupFile->Gid=%d\n", groupFile, groupFile->Gid);
+
+    // Set the requested group ID.
+    ((GROUPFILE *)memory->block)->Gid = groupFile->Gid;
+
+    if (!ShmQuery(session, memory, DC_GROUPFILE_OPEN, 5000)) {
+        if (!ShmQuery(session, memory, DC_GROUPFILE_LOCK, 5000)) {
+            //
+            // Copy the GROUPFILE structure to the shared memory block
+            // after locking, since the open call will overwrite it.
+            //
+            CopyMemory(memory->block, groupFile, sizeof(GROUPFILE));
+
+            // Unlock will update the group-file.
+            ShmQuery(session, memory, DC_GROUPFILE_UNLOCK, 5000);
+
+            status = TCL_OK;
+            DebugPrint("SetGroupFile: OKAY\n");
+        } else {
+            DebugPrint("SetGroupFile: LOCK FAIL\n");
+        }
+
+        // Close the group-file before returning.
+        ShmQuery(session, memory, DC_GROUPFILE_CLOSE, 5000);
+    } else {
+        DebugPrint("SetGroupFile: OPEN FAIL\n");
+    }
+
+    return status;
 }
 
 /*++
@@ -800,11 +876,11 @@ GroupIdToName(
 {
     DC_NAMEID *nameId;
 
-    DebugPrint("GroupIdToName: groupId=%d groupName=0x%p\n", groupId, groupName);
     assert(session   != NULL);
     assert(memory    != NULL);
     assert(memory->bytes >= sizeof(DC_NAMEID));
     assert(groupName != NULL);
+    DebugPrint("GroupIdToName: groupId=%d groupName=0x%p\n", groupId, groupName);
 
     // Initialise the DC_NAMEID structure.
     nameId = (DC_NAMEID *)memory->block;
@@ -853,12 +929,12 @@ GroupNameToId(
     DC_NAMEID *nameId;
     DWORD result;
 
-    DebugPrint("GroupNameToId: groupName=%s groupId=0x%p\n", groupName, groupId);
     assert(session   != NULL);
     assert(memory    != NULL);
     assert(memory->bytes >= sizeof(DC_NAMEID));
     assert(groupName != NULL);
     assert(groupId   != NULL);
+    DebugPrint("GroupNameToId: groupName=%s groupId=0x%p\n", groupName, groupId);
 
     // Initialise the DC_NAMEID structure.
     nameId = (DC_NAMEID *)memory->block;
@@ -910,11 +986,11 @@ GetUserFile(
     USERFILE *userFile
     )
 {
-    DebugPrint("GetUserFile: userId=%d userFile=0x%p\n", userId, userFile);
     assert(session  != NULL);
     assert(memory   != NULL);
     assert(memory->bytes >= sizeof(USERFILE));
     assert(userFile != NULL);
+    DebugPrint("GetUserFile: userId=%d userFile=0x%p\n", userId, userFile);
 
     // Set the requested user ID.
     ((USERFILE *)memory->block)->Uid = userId;
@@ -936,6 +1012,68 @@ GetUserFile(
 
     DebugPrint("GetUserFile: FAIL\n");
     return TCL_ERROR;
+}
+
+/*++
+
+SetUserFile
+
+    Update the USERFILE structure for a user.
+
+Arguments:
+    session     - Pointer to an initialised ShmSession structure.
+
+    memory      - Pointer to an ShmMemory structure allocated by the ShmAlloc
+                  function. Must be large enough to hold the USERFILE structure.
+
+    userFile    - Pointer to an initialised USERFILE structure.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
+static int
+SetUserFile(
+    ShmSession *session,
+    ShmMemory *memory,
+    const USERFILE *userFile
+    )
+{
+    int status = TCL_ERROR;
+
+    assert(session  != NULL);
+    assert(memory   != NULL);
+    assert(memory->bytes >= sizeof(USERFILE));
+    assert(userFile != NULL);
+    DebugPrint("SetUserFile: userFile=0x%p userFile->Uid=%d\n", userFile, userFile->Uid);
+
+    // Set the requested user ID.
+    ((USERFILE *)memory->block)->Uid = userFile->Uid;
+
+    if (!ShmQuery(session, memory, DC_USERFILE_OPEN, 5000)) {
+        if (!ShmQuery(session, memory, DC_USERFILE_LOCK, 5000)) {
+            //
+            // Copy the USERFILE structure to the shared memory block
+            // after locking, since the open call will overwrite it.
+            //
+            CopyMemory(memory->block, userFile, sizeof(USERFILE));
+
+            // Unlock will update the user-file.
+            ShmQuery(session, memory, DC_USERFILE_UNLOCK, 5000);
+
+            status = TCL_OK;
+            DebugPrint("SetUserFile: OKAY\n");
+        } else {
+            DebugPrint("SetUserFile: LOCK FAIL\n");
+        }
+
+        // Close the user-file before returning.
+        ShmQuery(session, memory, DC_USERFILE_CLOSE, 5000);
+    } else {
+        DebugPrint("SetUserFile: OPEN FAIL\n");
+    }
+
+    return status;
 }
 
 /*++
@@ -969,11 +1107,11 @@ UserIdToName(
 {
     DC_NAMEID *nameId;
 
-    DebugPrint("UserIdToName: userId=%d userName=0x%p\n", userId, userName);
     assert(session  != NULL);
     assert(memory   != NULL);
     assert(memory->bytes >= sizeof(DC_NAMEID));
     assert(userName != NULL);
+    DebugPrint("UserIdToName: userId=%d userName=0x%p\n", userId, userName);
 
     // Initialise the DC_NAMEID structure.
     nameId = (DC_NAMEID *)memory->block;
@@ -1022,12 +1160,12 @@ UserNameToId(
     DC_NAMEID *nameId;
     DWORD result;
 
-    DebugPrint("UserNameToId: userName=%s userId=0x%p\n", userName, userId);
     assert(session  != NULL);
     assert(memory   != NULL);
     assert(memory->bytes >= sizeof(DC_NAMEID));
     assert(userName != NULL);
     assert(userId   != NULL);
+    DebugPrint("UserNameToId: userName=%s userId=0x%p\n", userName, userId);
 
     // Initialise the DC_NAMEID structure.
     nameId = (DC_NAMEID *)memory->block;
@@ -1357,7 +1495,7 @@ IoGroupCmd(
                 return TCL_ERROR;
             }
 
-            // Retrieve the group file.
+            // Retrieve the group-file.
             if (GetGroupFile(&session, memory, groupId, &groupFile) != TCL_OK) {
                 ShmFree(&session, memory);
 
@@ -1370,7 +1508,14 @@ IoGroupCmd(
                 result = RowDataGet(groupRowDef, &groupFile, resultObj);
             } else {
                 result = RowDataSet(interp, objv[5], groupRowDef, &groupFile);
-                // TODO: if (result == TCL_OK) SetGroupFile(...);
+                if (result == TCL_OK) {
+                    // Update the group-file.
+                    if (SetGroupFile(&session, memory, &groupFile) != TCL_OK) {
+                        Tcl_AppendResult(interp, "unable to update group file for \"",
+                            groupName, "\"", NULL);
+                        result = TCL_ERROR;
+                    }
+                }
             }
 
             ShmFree(&session, memory);
@@ -1685,7 +1830,7 @@ IoUserCmd(
                 return TCL_ERROR;
             }
 
-            // Retrieve the user file.
+            // Retrieve the user-file.
             if (GetUserFile(&session, memory, userId, &userFile) != TCL_OK) {
                 ShmFree(&session, memory);
 
@@ -1698,7 +1843,14 @@ IoUserCmd(
                 result = RowDataGet(userRowDef, &userFile, resultObj);
             } else {
                 result = RowDataSet(interp, objv[5], userRowDef, &userFile);
-                // TODO: if (result == TCL_OK) SetUserFile(...);
+                if (result == TCL_OK) {
+                    // Update the user-file.
+                    if (SetUserFile(&session, memory, &userFile) != TCL_OK) {
+                        Tcl_AppendResult(interp, "unable to update user file for \"",
+                            userName, "\"", NULL);
+                        result = TCL_ERROR;
+                    }
+                }
             }
 
             ShmFree(&session, memory);
