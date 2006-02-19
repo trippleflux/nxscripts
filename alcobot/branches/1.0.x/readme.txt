@@ -132,18 +132,11 @@ for AlcoBot to recognize them. Read the following installation instructions:
   1. You must be using ioA v2.0.6, or newer.
   2. Change the options in your ioA.cfg file to match the following:
 
-     [Credits]
-     Credits_Log      = ""%user" "%group" "%.3mb" "%target""
+     [Wipe]
+     Wipe_Log         = ""%vfs/%release" "%user" "%group" "%.0dirs" "%.0files" "%.3mb""
 
-     [Newdate]
-     Newdate_Log      = ""%vfs" "%area" "%desc""
-
-     [Nuke]
-     Nuke_Log         = ""%vfs" "%user" "%group" "%.0multi" "%reason" "%.3size" "%nukees""
-     Nuke_Single_Nukees_Log_Line = 1
-
-     [PRE]
-     Pre_Log          = ""%vfs/%release" "%user" "%group" "%type" "%.0files" "%.3mb""
+     [Search]
+     Search_Using_Log = 1
 
      [Request]
      Request_Log      = ""%user" "%group" "%request""
@@ -151,11 +144,21 @@ for AlcoBot to recognize them. Read the following installation instructions:
      Reqfilled_Log    = ""%user" "%group" "%request""
      Request_Wipe_Log = ""%release" "%.0dirs" "%.0files" "%.3mb""
 
-     [Search]
-     Search_Using_Log = 1
+     [Credits]
+     Credits_Log      = ""%user" "%group" "%.3mb" "%target""
 
-     [Wipe]
-     Wipe_Log         = ""%vfs/%release" "%user" "%group" "%.0dirs" "%.0files" "%.3mb""
+     [Newdate]
+     Newdate_Log      = ""%vfs" "%area" "%desc""
+
+     [PRE]
+     Pre_Log          = ""%vfs/%release" "%user" "%group" "%type" "%.0files" "%.3mb""
+
+     [Nuke]
+     Nuke_Log         = ""%vfs" "%user" "%group" "%.0multi" "%reason" "%.3size" "%nukees""
+     Nuke_Single_Nukees_Log_Line = 1
+
+     [Unnuke]
+     UnNuke_Log       = ""%vfs" "%user" "%group" "%.0multi" "%reason" "%.3size" "%nukees""
 
   3. Load the "ioa" module; see section 4 of this manual for more information.
 
