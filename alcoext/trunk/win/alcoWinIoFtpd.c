@@ -717,14 +717,41 @@ RowDataSet(
     void *data
     )
 {
+    int elementCount;
+    int i;
+    int rowIndex;
+    Tcl_Obj **elementPtrs;
+
     assert(interp  != NULL);
     assert(listObj != NULL);
     assert(rowData == userRowDef || rowData == groupRowDef);
     assert(data    != NULL);
 
-    // TODO
-    Tcl_SetResult(interp, "not implemented", TCL_STATIC);
-    return TCL_ERROR;
+    if (Tcl_ListObjGetElements(interp, listObj, &elementCount, &elementPtrs) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    // The list elements are paired with a name and data value.
+    // Example: alldn {1 2 3} allup {4 5 6} tagline {blah blah blah}
+    if (elementCount & 1) {
+        Tcl_SetResult(interp, "list must have an even number of elements", TCL_STATIC);
+        return TCL_ERROR;
+    }
+
+    for (i = 0; i < elementCount; i++) {
+        // Process the name value.
+        if (Tcl_GetIndexFromObjStruct(interp, elementPtrs[i], rowData,
+                sizeof(RowData), "field", TCL_EXACT, &rowIndex) != TCL_OK) {
+            return TCL_ERROR;
+        }
+
+        // Process the data value.
+        i++;
+
+        // TODO
+    }
+
+    return TCL_OK;
 }
 
 
