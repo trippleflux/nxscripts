@@ -92,30 +92,24 @@ Alcoext_Init(
             ZeroMemory(&winProcs, sizeof(WinProcs));
             winProcs.module = LoadLibraryA("kernel32.dll");
 
-            if (winProcs.module == NULL) {
-                Tcl_AppendResult(interp, "unable to load kernel32.dll: ",
-                    TclSetWinError(interp, GetLastError()), NULL);
+            if (winProcs.module != NULL) {
+                //
+                // These functions must be resolved on run-time for backwards
+                // compatibility on older Windows systems (earlier than NT v5).
+                //
+                winProcs.getDiskFreeSpaceEx = (GetDiskFreeSpaceExProc)
+                    GetProcAddress(winProcs.module, "GetDiskFreeSpaceExA");
 
-                Tcl_MutexUnlock(&initMutex);
-                return TCL_ERROR;
+                winProcs.findFirstVolumeMountPoint = (FindFirstVolumeMountPointProc)
+                    GetProcAddress(winProcs.module, "FindFirstVolumeMountPointA");
+                winProcs.findNextVolumeMountPoint = (FindNextVolumeMountPointProc)
+                    GetProcAddress(winProcs.module, "FindNextVolumeMountPointA");
+                winProcs.findVolumeMountPointClose = (FindVolumeMountPointCloseProc)
+                    GetProcAddress(winProcs.module, "FindVolumeMountPointClose");
+
+                winProcs.getVolumeNameForVolumeMountPoint = (GetVolumeNameForVolumeMountPointProc)
+                    GetProcAddress(winProcs.module, "GetVolumeNameForVolumeMountPointA");
             }
-
-            //
-            // These functions must be resolved on run-time for backwards
-            // compatibility on older Windows systems (earlier than NT v5).
-            //
-            winProcs.getDiskFreeSpaceEx = (GetDiskFreeSpaceExProc)
-                GetProcAddress(winProcs.module, "GetDiskFreeSpaceExA");
-
-            winProcs.findFirstVolumeMountPoint = (FindFirstVolumeMountPointProc)
-                GetProcAddress(winProcs.module, "FindFirstVolumeMountPointA");
-            winProcs.findNextVolumeMountPoint = (FindNextVolumeMountPointProc)
-                GetProcAddress(winProcs.module, "FindNextVolumeMountPointA");
-            winProcs.findVolumeMountPointClose = (FindVolumeMountPointCloseProc)
-                GetProcAddress(winProcs.module, "FindVolumeMountPointClose");
-
-            winProcs.getVolumeNameForVolumeMountPoint = (GetVolumeNameForVolumeMountPointProc)
-                GetProcAddress(winProcs.module, "GetVolumeNameForVolumeMountPointA");
 
             //
             // If GetVolumeInformation() is called on a floppy drive or a CD-ROM
