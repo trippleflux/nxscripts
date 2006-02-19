@@ -89,7 +89,7 @@ proc BufferGroups {} {
     close $handle
 }
 
-testConstraint [CheckMsgWnd $msgWindow]
+testConstraint msgWndExists [CheckMsgWnd $msgWindow]
 
 ################################################################################
 # ioftpd                                                                       #
