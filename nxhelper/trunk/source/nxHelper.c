@@ -73,26 +73,21 @@ Nxhelper_Init(Tcl_Interp *interp)
             GetVersionEx(&osVersion);
 
             kernelModule = LoadLibrary(TEXT("kernel32.dll"));
-
-            if (kernelModule == NULL) {
-                Tcl_AppendResult(interp, "unable to load kernel32.dll: ",
-                    TclSetWinError(interp, GetLastError()), NULL);
-
-                Tcl_MutexUnlock(&initMutex);
-                return TCL_ERROR;
-            }
-
-            /*
-             * These functions must be resolved on run-time for backwards
-             * compatibility on older Windows systems (earlier than NT v5).
-             */
+            if (kernelModule != NULL) {
+                /*
+                 * GetDiskFreeSpaceEx() must be resolved on run-time for backwards
+                 * compatibility on older Windows systems (earlier than NT v5).
+                 */
 #ifdef UNICODE
-            GetDiskFreeSpaceExPtr = (Fn_GetDiskFreeSpaceEx)
-                GetProcAddress(kernelModule, "GetDiskFreeSpaceExW");
+                GetDiskFreeSpaceExPtr = (Fn_GetDiskFreeSpaceEx)
+                    GetProcAddress(kernelModule, "GetDiskFreeSpaceExW");
 #else /* UNICODE */
-            GetDiskFreeSpaceExPtr = (Fn_GetDiskFreeSpaceEx)
-                GetProcAddress(kernelModule, "GetDiskFreeSpaceExA");
+                GetDiskFreeSpaceExPtr = (Fn_GetDiskFreeSpaceEx)
+                    GetProcAddress(kernelModule, "GetDiskFreeSpaceExA");
 #endif /* UNICODE */
+            } else {
+                GetDiskFreeSpaceExPtr = NULL;
+            }
 
             /*
              * If GetVolumeInformation() is called on a floppy drive or a CD-ROM drive
@@ -164,7 +159,7 @@ Nxhelper_Exit(ClientData dummy)
         kernelModule = NULL;
     }
 
-    GetDiskFreeSpaceExPtr = NULL
+    GetDiskFreeSpaceExPtr = NULL;
     initialised = FALSE;
 
     Tcl_MutexUnlock(&initMutex);
