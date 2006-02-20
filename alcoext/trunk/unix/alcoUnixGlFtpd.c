@@ -1263,7 +1263,7 @@ GlWhoCmd(
     GlGroup *groupListPtr = NULL;
     GlUser *userListPtr = NULL;
     Tcl_HashEntry *hashEntryPtr;
-    Tcl_Obj **elementPtrs;
+    Tcl_Obj **elementObjs;
 
     if (objc != 4) {
         Tcl_WrongNumArgs(interp, 2, objv, "handle fields");
@@ -1276,7 +1276,7 @@ GlWhoCmd(
     }
     handlePtr = (GlHandle *)Tcl_GetHashValue(hashEntryPtr);
 
-    if (Tcl_ListObjGetElements(interp, objv[3], &elementCount, &elementPtrs) != TCL_OK) {
+    if (Tcl_ListObjGetElements(interp, objv[3], &elementCount, &elementObjs) != TCL_OK) {
         return TCL_ERROR;
     }
 
@@ -1284,7 +1284,7 @@ GlWhoCmd(
     fields = (unsigned char *)ckalloc(elementCount * sizeof(unsigned char));
 
     for (i = 0; i < elementCount; i++) {
-        if (Tcl_GetIndexFromObj(interp, elementPtrs[i], whoFields,
+        if (Tcl_GetIndexFromObj(interp, elementObjs[i], whoFields,
                 "field", 0, &fieldIndex) != TCL_OK) {
             goto end;
         }

@@ -720,14 +720,15 @@ RowDataSet(
     int elementCount;
     int i;
     int rowIndex;
-    Tcl_Obj **elementPtrs;
+    void *dataOffset;
+    Tcl_Obj **elementObjs;
 
     assert(interp  != NULL);
     assert(listObj != NULL);
     assert(rowData == userRowDef || rowData == groupRowDef);
     assert(data    != NULL);
 
-    if (Tcl_ListObjGetElements(interp, listObj, &elementCount, &elementPtrs) != TCL_OK) {
+    if (Tcl_ListObjGetElements(interp, listObj, &elementCount, &elementObjs) != TCL_OK) {
         return TCL_ERROR;
     }
 
@@ -740,13 +741,14 @@ RowDataSet(
 
     for (i = 0; i < elementCount; i++) {
         // Process the name value.
-        if (Tcl_GetIndexFromObjStruct(interp, elementPtrs[i], rowData,
+        if (Tcl_GetIndexFromObjStruct(interp, elementObjs[i], rowData,
                 sizeof(RowData), "field", TCL_EXACT, &rowIndex) != TCL_OK) {
             return TCL_ERROR;
         }
 
         // Process the data value.
         i++;
+        dataOffset = (BYTE *)data + rowData[rowIndex].offset;
 
         // TODO
     }
@@ -1970,7 +1972,7 @@ IoWhoCmd(
     unsigned char *fields;
     unsigned short flags = 0;
     ShmSession session;
-    Tcl_Obj **elementPtrs;
+    Tcl_Obj **elementObjs;
 
     if (objc != 4) {
         Tcl_WrongNumArgs(interp, 2, objv, "msgWindow fields");
@@ -1981,7 +1983,7 @@ IoWhoCmd(
         return TCL_ERROR;
     }
 
-    if (Tcl_ListObjGetElements(interp, objv[3], &elementCount, &elementPtrs) != TCL_OK) {
+    if (Tcl_ListObjGetElements(interp, objv[3], &elementCount, &elementObjs) != TCL_OK) {
         return TCL_ERROR;
     }
 
@@ -1989,7 +1991,7 @@ IoWhoCmd(
     fields = (unsigned char *)ckalloc(elementCount * sizeof(unsigned char));
 
     for (i = 0; i < elementCount; i++) {
-        if (Tcl_GetIndexFromObj(interp, elementPtrs[i], whoFields,
+        if (Tcl_GetIndexFromObj(interp, elementObjs[i], whoFields,
                 "field", 0, &fieldIndex) != TCL_OK) {
             goto end;
         }
