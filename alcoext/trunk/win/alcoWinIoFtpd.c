@@ -620,12 +620,6 @@ RowDataGet(
 
     // Process each row.
     for (i = 0; rowData[i].name != NULL; i++) {
-        assert(rowData[i].type == TYPE_BIN ||
-               rowData[i].type == TYPE_I32 ||
-               rowData[i].type == TYPE_I32LIST ||
-               rowData[i].type == TYPE_I64 ||
-               rowData[i].type == TYPE_STR ||
-               rowData[i].type == TYPE_STRLIST);
         assert(rowData[i].values > 0);
         assert(rowData[i].bytes > 0);
 
@@ -668,6 +662,10 @@ RowDataGet(
                     }
                     valueObj = Tcl_NewStringObj(value, -1);
                     break;
+                }
+                default: {
+                    // Unknown data type.
+                    assert(0);
                 }
             }
             assert(valueObj != NULL);
@@ -718,10 +716,13 @@ RowDataSet(
     )
 {
     int elementCount;
+    int nestedCount;
     int i;
+    int j;
     int rowIndex;
     void *dataOffset;
     Tcl_Obj **elementObjs;
+    Tcl_Obj **nestedObjs;
 
     assert(interp  != NULL);
     assert(listObj != NULL);
@@ -748,9 +749,102 @@ RowDataSet(
 
         // Process the data value.
         i++;
-        dataOffset = (BYTE *)data + rowData[rowIndex].offset;
+        assert(rowData[rowIndex].values > 0);
+        assert(rowData[rowIndex].bytes > 0);
 
-        // TODO
+        if (rowData[rowIndex].values == 1) {
+            // Single data value.
+            nestedCount = 1;
+            nestedObjs = &elementObjs[i];
+        } else {
+            // Nested data values.
+            if (Tcl_ListObjGetElements(interp, elementObjs[i], &nestedCount, &nestedObjs) != TCL_OK) {
+                return TCL_ERROR;
+            }
+
+            if (rowData[rowIndex].type == TYPE_I32LIST || rowData[rowIndex].type == TYPE_STRLIST) {
+                // The xxxLIST rows do not have a fixed number of values.
+                if (nestedCount > rowData[rowIndex].values) {
+                    Tcl_AppendResult(interp, "too many list elements for the \"",
+                        rowData[rowIndex].name, "\" field", NULL);
+                    return TCL_ERROR;
+                }
+
+            } else if (nestedCount != rowData[rowIndex].values) {
+                char num[12];
+                StringCchPrintfA(num, ARRAYSIZE(num), "%d", rowData[rowIndex].values);
+
+                Tcl_AppendResult(interp, "the \"", rowData[rowIndex].name,
+                    "\" field must have ", num, " list elements", NULL);
+                return TCL_ERROR;
+            }
+        }
+
+        for (j = 0; j < nestedCount; j++) {
+            dataOffset = (BYTE *)data + rowData[rowIndex].offset + (j * rowData[rowIndex].bytes);
+
+            switch (rowData[rowIndex].type) {
+                case TYPE_BIN: {
+                    BYTE *value;
+                    int length;
+
+                    value = Tcl_GetByteArrayFromObj(nestedObjs[j], &length);
+
+                    // Do not copy more data than the row's size.
+                    length = MIN(length, rowData[rowIndex].bytes);
+                    CopyMemory(dataOffset, value, length);
+
+                    // Zero the remaining bytes.
+                    if (length < rowData[rowIndex].bytes) {
+                        ZeroMemory((BYTE *)dataOffset + length, rowData[rowIndex].bytes - length);
+                    }
+                    break;
+                }
+                case TYPE_I32:
+                case TYPE_I32LIST: {
+                    int value;
+
+                    if (Tcl_GetIntFromObj(interp, nestedObjs[j], &value) != TCL_OK) {
+                        return TCL_ERROR;
+                    }
+                    ((int *)dataOffset)[0] = value;
+                    break;
+                }
+                case TYPE_I64: {
+                    INT64 value;
+
+                    if (Tcl_GetWideIntFromObj(interp, nestedObjs[j], (Tcl_WideInt *)&value) != TCL_OK) {
+                        return TCL_ERROR;
+                    }
+                    ((INT64 *)dataOffset)[0] = value;
+                    break;
+                }
+                case TYPE_STR:
+                case TYPE_STRLIST: {
+                    char *value = Tcl_GetString(nestedObjs[j]);
+                    StringCchCopyA((char *)dataOffset, rowData[rowIndex].bytes, value);
+                    break;
+                }
+                default: {
+                    // Unknown data type.
+                    assert(0);
+                }
+            }
+        }
+
+        if (j < rowData[rowIndex].values) {
+            // Terminate the end of a integer/string list.
+            switch (rowData[rowIndex].type) {
+                case TYPE_I32LIST: {
+                    ((int *)dataOffset)[1] = -1;
+                    break;
+                }
+                case TYPE_STRLIST: {
+                    ((char *)dataOffset + rowData[rowIndex].bytes)[0] = '\0';
+                    break;
+                }
+            }
+        }
     }
 
     return TCL_OK;
