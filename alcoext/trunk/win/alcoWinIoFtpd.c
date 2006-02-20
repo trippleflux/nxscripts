@@ -196,7 +196,7 @@ static const RowData userRowDef[] = {
     {"vfsfile",     offsetof(USERFILE, MountFile),   TYPE_STR,     1,              sizeof(char) * (_MAX_PATH + 1)},
     {"wkdn",        offsetof(USERFILE, WkDn),        TYPE_I64,     MAX_SECTIONS*3, sizeof(INT64)},
     {"wkup",        offsetof(USERFILE, WkUp),        TYPE_I64,     MAX_SECTIONS*3, sizeof(INT64)},
-    {NULL} // Must end with a null entry for use with Tcl_GetIndexFromObjStruct.
+    {NULL} 
 };
 
 static const RowData groupRowDef[] = {
@@ -204,7 +204,7 @@ static const RowData groupRowDef[] = {
     {"slots",       offsetof(GROUPFILE, Slots),         TYPE_I32, 2, sizeof(int)},
     {"users",       offsetof(GROUPFILE, Users),         TYPE_I32, 1, sizeof(int)},
     {"vfsfile",     offsetof(GROUPFILE, szVfsFile),     TYPE_STR, 1, sizeof(char) * (_MAX_PATH + 1)},
-    {NULL} // Must end with a null entry for use with Tcl_GetIndexFromObjStruct.
+    {NULL} 
 };
 
 //

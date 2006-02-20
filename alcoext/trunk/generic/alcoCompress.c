@@ -793,7 +793,7 @@ CompressObjCmd(
             }
 
             if (Tcl_GetIndexFromObjStruct(interp, objv[objc-2], compressionFormats,
-                sizeof(compressionFormats[0]), "format", TCL_EXACT, &index) != TCL_OK) {
+                    sizeof(compressionFormats[0]), "format", TCL_EXACT, &index) != TCL_OK) {
                 return TCL_ERROR;
             }
 
@@ -856,7 +856,7 @@ CompressObjCmd(
             }
 
             if (Tcl_GetIndexFromObjStruct(interp, objv[2], compressionFormats,
-                sizeof(compressionFormats[0]), "format", TCL_EXACT, &index) != TCL_OK) {
+                    sizeof(compressionFormats[0]), "format", TCL_EXACT, &index) != TCL_OK) {
                 return TCL_ERROR;
             }
 
