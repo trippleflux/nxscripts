@@ -452,18 +452,16 @@ test ioftpd-7.3 {ioftpd who: invalid field} {win msgWndExists} {
 test ioftpd-7.4 {ioftpd who: check fields} {win msgWndExists} {
     set fields {action cid gid group host ident idletime ip logintime port realdatapath realpath service size speed status uid user vdatapath vpath}
     set fieldCount [llength $fields]
-    set result ""
 
     for {set i 0} {$i < $fieldCount} {incr i} {
         set getFields [lrange $fields 0 $i]
-        set data [ioftpd who $msgWindow $getFields]
-        foreach user $data {
-            if {[llength $user] != [llength $getFields]} {
+        foreach entry [ioftpd who $msgWindow $getFields] {
+            if {[llength $entry] != [llength $getFields]} {
                 return "expected fields \"$getFields\" but got \"$user\""
             }
         }
     }
-    unset -nocomplain data user
+    unset -nocomplain entry
 } {}
 
 test ioftpd-7.5 {ioftpd who: check users/groups} {win msgWndExists} {
