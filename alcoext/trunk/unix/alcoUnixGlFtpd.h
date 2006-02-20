@@ -34,51 +34,51 @@ Abstract:
 typedef struct {
     int32_t tv_sec;
     int32_t tv_usec;
-} timeval32;
+} timeval32_t;
 
 // Version specific shared memory structures.
 typedef struct {
-    char      tagline[64];
-    char      username[24];
-    char      status[256];
-    char      host[256];
-    char      currentdir[256];
-    int32_t   groupid;
-    int32_t   login_time;
-    timeval32 tstart;
-    uint32_t  bytes_xfer;
-    int32_t   procid;
+    char        tagline[64];
+    char        username[24];
+    char        status[256];
+    char        host[256];
+    char        currentdir[256];
+    int32_t     groupid;
+    int32_t     login_time;
+    timeval32_t tstart;
+    uint32_t    bytes_xfer;
+    int32_t     procid;
 } GlOnline130;
 
 typedef struct {
-    char      tagline[64];
-    char      username[24];
-    char      status[256];
-    int16_t   ssl_flag;
-    char      host[256];
-    char      currentdir[256];
-    int32_t   groupid;
-    int32_t   login_time;
-    timeval32 tstart;
-    timeval32 txfer;
-    uint64_t  bytes_xfer;
-    int32_t   procid;
+    char        tagline[64];
+    char        username[24];
+    char        status[256];
+    int16_t     ssl_flag;
+    char        host[256];
+    char        currentdir[256];
+    int32_t     groupid;
+    int32_t     login_time;
+    timeval32_t tstart;
+    timeval32_t txfer;
+    uint64_t    bytes_xfer;
+    int32_t     procid;
 } GlOnline200;
 
 typedef struct {
-    char      tagline[64];
-    char      username[24];
-    char      status[256];
-    int16_t   ssl_flag;
-    char      host[256];
-    char      currentdir[256];
-    int32_t   groupid;
-    int32_t   login_time;
-    timeval32 tstart;
-    timeval32 txfer;
-    uint64_t  bytes_xfer;
-    uint64_t  bytes_txfer;
-    int32_t   procid;
+    char        tagline[64];
+    char        username[24];
+    char        status[256];
+    int16_t     ssl_flag;
+    char        host[256];
+    char        currentdir[256];
+    int32_t     groupid;
+    int32_t     login_time;
+    timeval32_t tstart;
+    timeval32_t txfer;
+    uint64_t    bytes_xfer;
+    uint64_t    bytes_txfer;
+    int32_t     procid;
 } GlOnline201;
 
 //
@@ -86,19 +86,19 @@ typedef struct {
 // copy of the v2.01 online structure until the structure changes again.
 //
 typedef struct {
-    char      tagline[64];
-    char      username[24];
-    char      status[256];
-    int16_t   ssl_flag;
-    char      host[256];
-    char      currentdir[256];
-    int32_t   groupid;
-    int32_t   login_time;
-    timeval32 tstart;
-    timeval32 txfer;
-    uint64_t  bytes_xfer;
-    uint64_t  bytes_txfer;
-    int32_t   procid;
+    char        tagline[64];
+    char        username[24];
+    char        status[256];
+    int16_t     ssl_flag;
+    char        host[256];
+    char        currentdir[256];
+    int32_t     groupid;
+    int32_t     login_time;
+    timeval32_t tstart;
+    timeval32_t txfer;
+    uint64_t    bytes_xfer;
+    uint64_t    bytes_txfer;
+    int32_t     procid;
 } GlOnlineGeneric;
 
 // Restore default structure alignment for non-critical structures.
