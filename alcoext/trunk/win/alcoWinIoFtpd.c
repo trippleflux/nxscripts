@@ -44,7 +44,7 @@ Abstract:
 // Relevant ioFTPD headers.
 #include "ioftpd\ServerLimits.h"
 #include "ioftpd\UserFile.h"
-#include "ioftpd\GroupFile.h"
+#include "ioftpd\GroupSetFile.h"
 #include "ioftpd\WinMessages.h"
 #include "ioftpd\DataCopy.h"
 
@@ -157,7 +157,7 @@ typedef struct {
     char *name;     // Name of the row.
     int offset;     // Offset in the data structure.
     int type;       // Type of data contained in the row.
-    int values;     // Number of required values.
+    int values;     // Number of values in the row.
     int bytes;      // Size of each value, in bytes.
 } RowData;
 
@@ -196,7 +196,7 @@ static const RowData userRowDef[] = {
     {"vfsfile",     offsetof(USERFILE, MountFile),   TYPE_STR,     1,              sizeof(char) * (_MAX_PATH + 1)},
     {"wkdn",        offsetof(USERFILE, WkDn),        TYPE_I64,     MAX_SECTIONS*3, sizeof(INT64)},
     {"wkup",        offsetof(USERFILE, WkUp),        TYPE_I64,     MAX_SECTIONS*3, sizeof(INT64)},
-    {NULL} 
+    {NULL}
 };
 
 static const RowData groupRowDef[] = {
@@ -204,7 +204,7 @@ static const RowData groupRowDef[] = {
     {"slots",       offsetof(GROUPFILE, Slots),         TYPE_I32, 2, sizeof(int)},
     {"users",       offsetof(GROUPFILE, Users),         TYPE_I32, 1, sizeof(int)},
     {"vfsfile",     offsetof(GROUPFILE, szVfsFile),     TYPE_STR, 1, sizeof(char) * (_MAX_PATH + 1)},
-    {NULL} 
+    {NULL}
 };
 
 //
@@ -212,7 +212,7 @@ static const RowData groupRowDef[] = {
 //
 
 static int
-GetGroupFile(
+GroupGetFile(
     ShmSession *session,
     ShmMemory *memory,
     int groupId,
@@ -220,7 +220,7 @@ GetGroupFile(
     );
 
 static int
-SetGroupFile(
+GroupSetFile(
     ShmSession *session,
     ShmMemory *memory,
     const GROUPFILE *groupFile
@@ -243,7 +243,7 @@ GroupNameToId(
     );
 
 static int
-GetUserFile(
+UserGetFile(
     ShmSession *session,
     ShmMemory *memory,
     int userId,
@@ -251,7 +251,7 @@ GetUserFile(
     );
 
 static int
-SetUserFile(
+UserSetFile(
     ShmSession *session,
     ShmMemory *memory,
     const USERFILE *userFile
@@ -757,7 +757,7 @@ RowDataSet(
 
 /*++
 
-GetGroupFile
+GroupGetFile
 
     Retrieve the GROUPFILE structure for a given a group ID.
 
@@ -776,7 +776,7 @@ Return Value:
 
 --*/
 static int
-GetGroupFile(
+GroupGetFile(
     ShmSession *session,
     ShmMemory *memory,
     int groupId,
@@ -787,7 +787,7 @@ GetGroupFile(
     assert(memory    != NULL);
     assert(memory->bytes >= sizeof(GROUPFILE));
     assert(groupFile != NULL);
-    DebugPrint("GetGroupFile: groupId=%d groupFile=0x%p\n", groupId, groupFile);
+    DebugPrint("GroupGetFile: groupId=%d groupFile=0x%p\n", groupId, groupFile);
 
     // Set the requested group ID.
     ((GROUPFILE *)memory->block)->Gid = groupId;
@@ -798,7 +798,7 @@ GetGroupFile(
         // Close the group-file before returning.
         ShmQuery(session, memory, DC_GROUPFILE_CLOSE, 5000);
 
-        DebugPrint("GetGroupFile: OKAY\n");
+        DebugPrint("GroupGetFile: OKAY\n");
         return TCL_OK;
     }
 
@@ -806,13 +806,13 @@ GetGroupFile(
     ZeroMemory(groupFile, sizeof(GROUPFILE));
     groupFile->Gid = -1;
 
-    DebugPrint("GetGroupFile: FAIL\n");
+    DebugPrint("GroupGetFile: FAIL\n");
     return TCL_ERROR;
 }
 
 /*++
 
-SetGroupFile
+GroupSetFile
 
     Update the GROUPFILE structure for a group.
 
@@ -829,7 +829,7 @@ Return Value:
 
 --*/
 static int
-SetGroupFile(
+GroupSetFile(
     ShmSession *session,
     ShmMemory *memory,
     const GROUPFILE *groupFile
@@ -841,7 +841,7 @@ SetGroupFile(
     assert(memory    != NULL);
     assert(memory->bytes >= sizeof(GROUPFILE));
     assert(groupFile != NULL);
-    DebugPrint("SetGroupFile: groupFile=0x%p groupFile->Gid=%d\n", groupFile, groupFile->Gid);
+    DebugPrint("GroupSetFile: groupFile=0x%p groupFile->Gid=%d\n", groupFile, groupFile->Gid);
 
     // Set the requested group ID.
     ((GROUPFILE *)memory->block)->Gid = groupFile->Gid;
@@ -858,15 +858,15 @@ SetGroupFile(
             ShmQuery(session, memory, DC_GROUPFILE_UNLOCK, 5000);
 
             status = TCL_OK;
-            DebugPrint("SetGroupFile: OKAY\n");
+            DebugPrint("GroupSetFile: OKAY\n");
         } else {
-            DebugPrint("SetGroupFile: LOCK FAIL\n");
+            DebugPrint("GroupSetFile: LOCK FAIL\n");
         }
 
         // Close the group-file before returning.
         ShmQuery(session, memory, DC_GROUPFILE_CLOSE, 5000);
     } else {
-        DebugPrint("SetGroupFile: OPEN FAIL\n");
+        DebugPrint("GroupSetFile: OPEN FAIL\n");
     }
 
     return status;
@@ -987,7 +987,7 @@ GroupNameToId(
 
 /*++
 
-GetUserFile
+UserGetFile
 
     Retrieve the USERFILE structure for a given a user ID.
 
@@ -1006,7 +1006,7 @@ Return Value:
 
 --*/
 static int
-GetUserFile(
+UserGetFile(
     ShmSession *session,
     ShmMemory *memory,
     int userId,
@@ -1017,7 +1017,7 @@ GetUserFile(
     assert(memory   != NULL);
     assert(memory->bytes >= sizeof(USERFILE));
     assert(userFile != NULL);
-    DebugPrint("GetUserFile: userId=%d userFile=0x%p\n", userId, userFile);
+    DebugPrint("UserGetFile: userId=%d userFile=0x%p\n", userId, userFile);
 
     // Set the requested user ID.
     ((USERFILE *)memory->block)->Uid = userId;
@@ -1028,7 +1028,7 @@ GetUserFile(
         // Close the user-file before returning.
         ShmQuery(session, memory, DC_USERFILE_CLOSE, 5000);
 
-        DebugPrint("GetUserFile: OKAY\n");
+        DebugPrint("UserGetFile: OKAY\n");
         return TCL_OK;
     }
 
@@ -1037,13 +1037,13 @@ GetUserFile(
     userFile->Uid = -1;
     userFile->Gid = -1;
 
-    DebugPrint("GetUserFile: FAIL\n");
+    DebugPrint("UserGetFile: FAIL\n");
     return TCL_ERROR;
 }
 
 /*++
 
-SetUserFile
+UserSetFile
 
     Update the USERFILE structure for a user.
 
@@ -1060,7 +1060,7 @@ Return Value:
 
 --*/
 static int
-SetUserFile(
+UserSetFile(
     ShmSession *session,
     ShmMemory *memory,
     const USERFILE *userFile
@@ -1072,7 +1072,7 @@ SetUserFile(
     assert(memory   != NULL);
     assert(memory->bytes >= sizeof(USERFILE));
     assert(userFile != NULL);
-    DebugPrint("SetUserFile: userFile=0x%p userFile->Uid=%d\n", userFile, userFile->Uid);
+    DebugPrint("UserSetFile: userFile=0x%p userFile->Uid=%d\n", userFile, userFile->Uid);
 
     // Set the requested user ID.
     ((USERFILE *)memory->block)->Uid = userFile->Uid;
@@ -1089,15 +1089,15 @@ SetUserFile(
             ShmQuery(session, memory, DC_USERFILE_UNLOCK, 5000);
 
             status = TCL_OK;
-            DebugPrint("SetUserFile: OKAY\n");
+            DebugPrint("UserSetFile: OKAY\n");
         } else {
-            DebugPrint("SetUserFile: LOCK FAIL\n");
+            DebugPrint("UserSetFile: LOCK FAIL\n");
         }
 
         // Close the user-file before returning.
         ShmQuery(session, memory, DC_USERFILE_CLOSE, 5000);
     } else {
-        DebugPrint("SetUserFile: OPEN FAIL\n");
+        DebugPrint("UserSetFile: OPEN FAIL\n");
     }
 
     return status;
@@ -1307,7 +1307,7 @@ GetOnlineFields(
             USERFILE userFile;
 
             // Retrieve the group ID from the user-file.
-            GetUserFile(session, memUser, dcOnlineData->OnlineData.Uid, &userFile);
+            UserGetFile(session, memUser, dcOnlineData->OnlineData.Uid, &userFile);
             groupId = userFile.Gid;
         }
 
@@ -1523,7 +1523,7 @@ IoGroupCmd(
             }
 
             // Retrieve the group-file.
-            if (GetGroupFile(&session, memory, groupId, &groupFile) != TCL_OK) {
+            if (GroupGetFile(&session, memory, groupId, &groupFile) != TCL_OK) {
                 ShmFree(&session, memory);
 
                 Tcl_AppendResult(interp, "unable to retrieve group file for \"",
@@ -1537,7 +1537,7 @@ IoGroupCmd(
                 result = RowDataSet(interp, objv[5], groupRowDef, &groupFile);
                 if (result == TCL_OK) {
                     // Update the group-file.
-                    if (SetGroupFile(&session, memory, &groupFile) != TCL_OK) {
+                    if (GroupSetFile(&session, memory, &groupFile) != TCL_OK) {
                         Tcl_AppendResult(interp, "unable to update group file for \"",
                             groupName, "\"", NULL);
                         result = TCL_ERROR;
@@ -1858,7 +1858,7 @@ IoUserCmd(
             }
 
             // Retrieve the user-file.
-            if (GetUserFile(&session, memory, userId, &userFile) != TCL_OK) {
+            if (UserGetFile(&session, memory, userId, &userFile) != TCL_OK) {
                 ShmFree(&session, memory);
 
                 Tcl_AppendResult(interp, "unable to retrieve user file for \"",
@@ -1872,7 +1872,7 @@ IoUserCmd(
                 result = RowDataSet(interp, objv[5], userRowDef, &userFile);
                 if (result == TCL_OK) {
                     // Update the user-file.
-                    if (SetUserFile(&session, memory, &userFile) != TCL_OK) {
+                    if (UserSetFile(&session, memory, &userFile) != TCL_OK) {
                         Tcl_AppendResult(interp, "unable to update user file for \"",
                             userName, "\"", NULL);
                         result = TCL_ERROR;
