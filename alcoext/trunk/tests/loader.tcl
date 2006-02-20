@@ -12,6 +12,10 @@
 #   Test suite loader.
 #
 
+# Load required packages.
+package require Tcl 8.4
+package require tcltest 2
+
 # Load the AlcoExt library.
 if {$tcl_platform(platform) eq "windows"} {
     set libFile "AlcoExt*"
@@ -23,9 +27,6 @@ append libFile [info sharedlibextension]
 set parentPath [file dirname [file dirname [file normalize [info script]]]]
 set libFile [lindex [glob -dir $parentPath -types f $libFile] 0]
 load $libFile
-
-# Load the test package.
-package require tcltest 2
 
 # Import commonly used namespace functions.
 namespace import -force ::alcoholicz::*

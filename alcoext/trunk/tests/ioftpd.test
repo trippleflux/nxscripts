@@ -216,7 +216,7 @@ test ioftpd-2.14 {ioftpd group: toname, valid groups} {win msgWndExists} {
     BufferGroups
     foreach name [array names groups] {
         set result [ioftpd group toname $msgWindow $groups($name)]
-        if {![string equal $result $name]} {
+        if {$result ne $name} {
             return "expected $name for GID $groups($name) but got $result"
         }
     }
@@ -423,7 +423,7 @@ test ioftpd-6.14 {ioftpd user: toname, valid users} {win msgWndExists} {
     BufferUsers
     foreach name [array names users] {
         set result [ioftpd user toname $msgWindow $users($name)]
-        if {![string equal $result $name]} {
+        if {$result ne $name} {
             return "expected $name for UID $users($name) but got $result"
         }
     }
