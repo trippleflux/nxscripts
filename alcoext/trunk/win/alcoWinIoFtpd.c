@@ -13,11 +13,11 @@ Abstract:
     Implements a Tcl command-based interface for interaction with ioFTPD.
 
     User Commands:
-    ioftpd user exists  <msgWindow> <user>        - Check if a user exists.
-    ioftpd user get     <msgWindow> <user>        - Get user information.
-    ioftpd user set     <msgWindow> <user> <data> - Set user information.
-    ioftpd user toid    <msgWindow> <user>        - User name to UID.
-    ioftpd user toname  <msgWindow> <uid>         - UID to user name.
+    ioftpd user exists  <msgWindow> <user>         - Check if a user exists.
+    ioftpd user get     <msgWindow> <user>         - Get user information.
+    ioftpd user set     <msgWindow> <user> <data>  - Set user information.
+    ioftpd user toid    <msgWindow> <user>         - User name to UID.
+    ioftpd user toname  <msgWindow> <uid>          - UID to user name.
 
     Group Commands:
     ioftpd group exists <msgWindow> <group>        - Check if a group exists.
@@ -44,7 +44,7 @@ Abstract:
 // Relevant ioFTPD headers.
 #include "ioftpd\ServerLimits.h"
 #include "ioftpd\UserFile.h"
-#include "ioftpd\GroupSetFile.h"
+#include "ioftpd\GroupFile.h"
 #include "ioftpd\WinMessages.h"
 #include "ioftpd\DataCopy.h"
 
