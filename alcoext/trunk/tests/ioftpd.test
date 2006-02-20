@@ -49,8 +49,8 @@ proc GetEtcPath {} {
 # Save all user names and IDs to the "users" array.
 #
 proc BufferUsers {} {
-    global users
-    unset -nocomplain users
+    global uids users
+    unset -nocomplain uids users
 
     set filePath [file join [GetEtcPath] "UserIdTable"]
     set handle [open $filePath r]
@@ -60,6 +60,7 @@ proc BufferUsers {} {
         set line [split [string trim $line] ":"]
         # User:UID:Module
         if {[llength $line] == 3} {
+            set uids([lindex $line 1]) [lindex $line 0]
             set users([lindex $line 0]) [lindex $line 1]
         }
     }
@@ -72,8 +73,8 @@ proc BufferUsers {} {
 # Save all group names and IDs to the "groups" array.
 #
 proc BufferGroups {} {
-    global groups
-    unset -nocomplain groups
+    global gids groups
+    unset -nocomplain gids groups
 
     set filePath [file join [GetEtcPath] "GroupIdTable"]
     set handle [open $filePath r]
@@ -83,6 +84,7 @@ proc BufferGroups {} {
         set line [split [string trim $line] ":"]
         # Group:GID:Module
         if {[llength $line] == 3} {
+            set gids([lindex $line 1]) [lindex $line 0]
             set groups([lindex $line 0]) [lindex $line 1]
         }
     }
@@ -117,7 +119,7 @@ test ioftpd-2.1 {ioftpd group: no args} {win} {
 
 test ioftpd-2.2 {ioftpd group: invalid sub-option} {win} {
     list [catch {ioftpd group . a b} msg] $msg
-} {1 {bad option ".": must be exists, get, set, toid, or toname}}
+} {1 {bad option ".": must be create, delete, exists, get, rename, set, toid, or toname}}
 
 test ioftpd-2.3 {ioftpd group: exists, valid groups} {win msgWndExists} {
     BufferGroups
@@ -292,7 +294,7 @@ test ioftpd-6.1 {ioftpd user: no args} {win} {
 
 test ioftpd-6.2 {ioftpd user: invalid sub-option} {win} {
     list [catch {ioftpd user . a b} msg] $msg
-} {1 {bad option ".": must be exists, get, set, toid, or toname}}
+} {1 {bad option ".": must be create, delete, exists, get, rename, set, toid, or toname}}
 
 test ioftpd-6.3 {ioftpd user: exists, valid users} {win msgWndExists} {
     BufferUsers
@@ -457,16 +459,46 @@ test ioftpd-7.4 {ioftpd who: check fields} {win msgWndExists} {
         set data [ioftpd who $msgWindow $getFields]
         foreach user $data {
             if {[llength $user] != [llength $getFields]} {
-                set result "expected fields \"$getFields\" but got \"$user\""
-                break
+                return "expected fields \"$getFields\" but got \"$user\""
             }
         }
     }
     unset -nocomplain data user
-    set result
+} {}
+
+test ioftpd-7.5 {ioftpd who: check users/groups} {win msgWndExists} {
+    BufferGroups
+    BufferUsers
+
+    foreach entry [ioftpd who $msgWindow "uid user gid group"] {
+        foreach {userId userName groupId groupName} $entry {break}
+
+        # User checks.
+        if {![info exists uids($userId)]} {
+            return "the user ID \"$userId\" does not exist"
+        }
+        if {![info exists users($userName)]} {
+            return "the user name \"$userName\" does not exist"
+        }
+        if {$users($userName) != $userId} {
+            return "the user ID \"$userId\" for user name \"$userName\""
+        }
+
+        # Group checks.
+        if {![info exists gids($groupId)]} {
+            return "the group ID \"$groupId\" does not exist"
+        }
+        if {![info exists groups($groupName)]} {
+            return "the group name \"$groupName\" does not exist"
+        }
+        if {$groups($groupName) != $groupId} {
+            return "the group ID \"$groupId\" for group name \"$groupName\""
+        }
+    }
+    unset -nocomplain entry groupId groupName userId userName
 } {}
 
 
-unset -nocomplain users groups
+unset -nocomplain uids users gids groups
 ::tcltest::cleanupTests
 return
