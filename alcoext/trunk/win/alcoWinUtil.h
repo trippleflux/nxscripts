@@ -60,15 +60,6 @@ typedef struct {
 } WinProcs;
 
 
-// Flags for IsFeatureAvailable().
-#define FEATURE_DISKSPACEEX     0x00000001
-#define FEATURE_MOUNT_POINTS    0x00000002
-
-int
-IsFeatureAvailable(
-    unsigned long features
-    );
-
 long
 FileTimeToEpoch(
     const FILETIME *fileTime

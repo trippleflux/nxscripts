@@ -77,40 +77,6 @@ TclSetWinError(
 
 /*++
 
-IsFeatureAvailable
-
-    Checks if feature specific functions are available.
-
-Arguments:
-    features - Bit mask of features to check for.
-
-Return Value:
-    If the feature is available, the return value is non-zero.
-    If the feature is not available, the return value is zero.
-
---*/
-int
-IsFeatureAvailable(
-    unsigned long features
-    )
-{
-    if (features & FEATURE_DISKSPACEEX && winProcs.getDiskFreeSpaceEx == NULL) {
-        return 0;
-    }
-
-    if (features & FEATURE_MOUNT_POINTS && (
-        winProcs.findFirstVolumeMountPoint == NULL ||
-        winProcs.findNextVolumeMountPoint  == NULL ||
-        winProcs.findVolumeMountPointClose == NULL ||
-        winProcs.getVolumeNameForVolumeMountPoint == NULL)) {
-        return 0;
-    }
-
-    return 1;
-}
-
-/*++
-
 FileTimeToEpoch
 
     Convert a FILETIME structure to a POSIX epoch time.

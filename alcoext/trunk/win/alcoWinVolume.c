@@ -23,6 +23,15 @@ GetVolumeSize(
     ULONGLONG *bytesTotal
     );
 
+#define IsDiskSpaceExAvailable()                    \
+    (winProcs.getDiskFreeSpaceEx != NULL)
+
+#define IsVolumeMountPointAvailable()               \
+    (winProcs.findFirstVolumeMountPoint != NULL &&  \
+     winProcs.findNextVolumeMountPoint  != NULL &&  \
+     winProcs.findVolumeMountPointClose != NULL &&  \
+     winProcs.getVolumeNameForVolumeMountPoint != NULL)
+
 
 /*++
 
@@ -57,7 +66,7 @@ GetVolumeSize(
     // GetDiskFreeSpaceEx() crashes on NT4, at least it did
     // for me; so we'll use GetDiskFreeSpace() instead.
     //
-    if (!IsFeatureAvailable(FEATURE_DISKSPACEEX) || (osVersion.dwPlatformId == VER_PLATFORM_WIN32_NT && osVersion.dwMajorVersion <= 4)) {
+    if (!IsDiskSpaceExAvailable() || (osVersion.dwPlatformId == VER_PLATFORM_WIN32_NT && osVersion.dwMajorVersion <= 4)) {
         unsigned long bytesPerSector;
         unsigned long freeClusters;
         unsigned long sectorsPerCluster;
@@ -175,9 +184,11 @@ GetVolumeList(
     Tcl_Obj *elementPtr;
     Tcl_Obj *normalPath;
 
-    // Volume mounts were added in Windows 2000 using reparse points.
-    if ((options & VOLLIST_FLAG_MOUNTS) && (osVersion.dwPlatformId != VER_PLATFORM_WIN32_NT ||
-        osVersion.dwMajorVersion < 5 || !IsFeatureAvailable(FEATURE_MOUNT_POINTS))) {
+    // Volume mount points were added in Windows 2000.
+    if ((options & VOLLIST_FLAG_MOUNTS) &&
+            (!IsVolumeMountPointAvailable() ||
+             osVersion.dwPlatformId != VER_PLATFORM_WIN32_NT ||
+             osVersion.dwMajorVersion < 5)) {
         Tcl_SetResult(interp, "volume mount points are only available on NT5+ systems", TCL_STATIC);
         return NULL;
     }
