@@ -2115,8 +2115,8 @@ IoGroupCmd(
         }
     }
 
-    // This point should never be reached.
-    Tcl_Panic("unexpected fallthrough");
+    // This point is never reached.
+    assert(0);
     return TCL_ERROR;
 }
 
@@ -2524,8 +2524,8 @@ IoUserCmd(
         }
     }
 
-    // This point should never be reached.
-    Tcl_Panic("unexpected fallthrough");
+    // This point is never reached.
+    assert(0);
     return TCL_ERROR;
 }
 
@@ -2677,7 +2677,7 @@ IoFtpdObjCmd(
         case OPTION_WHO:   return IoWhoCmd(interp, objc, objv);
     }
 
-    // This point should never be reached.
-    Tcl_Panic("unexpected fallthrough");
+    // This point is never reached.
+    assert(0);
     return TCL_ERROR;
 }

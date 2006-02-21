@@ -1143,8 +1143,8 @@ GlInfoCmd(
         }
     }
 
-    // This point should never be reached.
-    Tcl_Panic("unexpected fallthrough");
+    // This point is never reached.
+    assert(0);
     return TCL_ERROR;
 }
 
@@ -1583,7 +1583,7 @@ GlFtpdObjCmd(
         case OPTION_WHO:    return GlWhoCmd(interp, objc, objv, statePtr);
     }
 
-    // This point should never be reached.
-    Tcl_Panic("unexpected fallthrough");
+    // This point is never reached.
+    assert(0);
     return TCL_ERROR;
 }
