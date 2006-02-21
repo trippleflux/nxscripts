@@ -925,6 +925,7 @@ test crypt-11.10 {crypt prng: one source of entropy} {
         }
         close $handle
     }
+    unset -nocomplain type
 } {}
 
 test crypt-11.11 {crypt prng: multiple sources of entropy} {
@@ -944,6 +945,7 @@ test crypt-11.11 {crypt prng: multiple sources of entropy} {
         }
         close $handle
     }
+    unset -nocomplain type
 } {}
 
 ################################################################################
