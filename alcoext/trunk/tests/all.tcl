@@ -12,16 +12,8 @@
 #   Run all test suites.
 #
 
-package require tcltest 2
-namespace import -force tcltest::*
+set currentPath [file dirname [file normalize [info script]]]
+source [file join $currentPath "loader.tcl"]
 
-if {[info exists tcl_platform(debug)] || [llength [info commands memory]]} {
-    tcltest::singleProcess 1
-}
-
-set testPath [file dirname [info script]]
-tcltest::workingDirectory $testPath
-tcltest::testsDirectory $testPath
 tcltest::runAllTests
-
 return

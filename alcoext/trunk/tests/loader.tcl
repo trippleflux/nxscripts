@@ -16,6 +16,15 @@
 package require Tcl 8.4
 package require tcltest 2
 
+# Setup test package.
+if {[info exists tcl_platform(debug)] || [llength [info commands memory]]} {
+    tcltest::singleProcess 1
+}
+
+set testPath [file dirname [info script]]
+tcltest::workingDirectory $testPath
+tcltest::testsDirectory $testPath
+
 # Load the AlcoExt library.
 if {$tcl_platform(platform) eq "windows"} {
     set libFile "AlcoExt*"
