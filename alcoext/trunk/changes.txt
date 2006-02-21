@@ -1,4 +1,6 @@
 AlcoExt v0.5.0 (not yet released):
+  NEW: Commands to create/rename/delete users and groups on ioFTPD.
+  NEW: Completed the "ioftpd user/group set" commands for updating user/group files.
   NEW: Support for running a 32bit version of glFTPD on 64bit systems.
   CHG: Improve initialisation time when loading the extension in multiple threads.
   CHG: Updated LibTomCrypt to v1.10.
