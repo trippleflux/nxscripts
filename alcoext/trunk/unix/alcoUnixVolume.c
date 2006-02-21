@@ -42,6 +42,10 @@ GetVolumeInfo(
 {
     struct STATFS_T fsInfo;
 
+    assert(interp     != NULL);
+    assert(volumePath != NULL);
+    assert(volumeInfo != NULL);
+
     if (STATFS_FN(volumePath, &fsInfo) != 0) {
         Tcl_ResetResult(interp);
         Tcl_AppendResult(interp, "unable to retrieve mount information for \"",
@@ -90,7 +94,10 @@ GetVolumeList(
     unsigned short options
     )
 {
-    Tcl_Obj *volumeList = Tcl_NewObj();
+    Tcl_Obj *volumeList;
+    assert(interp != NULL);
+
+    volumeList = Tcl_NewObj();
 
     // The only "root" path on a UNIX system is "/".
     if (options & VOLLIST_FLAG_ROOT) {

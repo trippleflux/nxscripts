@@ -48,6 +48,11 @@ GetHandleTableEntry(
     char *handle;
     Tcl_HashEntry *hashEntryPtr;
 
+    assert(interp   != NULL);
+    assert(objPtr   != NULL);
+    assert(tablePtr != NULL);
+    assert(type     != NULL);
+
     handle = Tcl_GetString(objPtr);
     hashEntryPtr = Tcl_FindHashEntry(tablePtr, handle);
 
@@ -85,7 +90,12 @@ PartialSwitchCompare(
     )
 {
     int optionLength;
-    char *option = Tcl_GetStringFromObj(objPtr, &optionLength);
+    char *option;
+
+    assert(objPtr     != NULL);
+    assert(switchName != NULL);
+
+    option = Tcl_GetStringFromObj(objPtr, &optionLength);
 
     //
     // The user supplied switch must be at least two characters in

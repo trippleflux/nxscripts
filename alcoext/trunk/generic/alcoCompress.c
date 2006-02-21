@@ -253,6 +253,9 @@ BzipCompressObj(
     int status;
     unsigned int destLength;
 
+    assert(sourceObj != NULL);
+    assert(destObj   != NULL);
+
     //
     // The bzalloc, bzfree, and opaque data structure members
     // must be initialised prior to calling BZ2_bzCompressInit().
@@ -316,6 +319,9 @@ BzipDecompressObj(
     unsigned int factor;
     unsigned int sourceLength;
     Tcl_WideUInt totalOut;
+
+    assert(sourceObj != NULL);
+    assert(destObj   != NULL);
 
     stream.next_in = (char *)Tcl_GetByteArrayFromObj(sourceObj, (int *)&sourceLength);
     if (sourceLength < 3) {
@@ -421,6 +427,9 @@ BzipSetError(
         "unknown error"
     };
 
+    assert(interp  != NULL);
+    assert(message != NULL);
+
     if (status > 0) {
         status = 0;
     } else {
@@ -522,6 +531,9 @@ ZlibCompressObj(
     int status;
     z_stream stream;
 
+    assert(sourceObj != NULL);
+    assert(destObj   != NULL);
+
     //
     // The next_in, opaque, zalloc, and zfree data structure members
     // must be initialised prior to calling deflateInit2().
@@ -595,6 +607,9 @@ ZlibDecompressObj(
     uInt sourceLength;
     unsigned char *dest;
     z_stream stream;
+
+    assert(sourceObj != NULL);
+    assert(destObj   != NULL);
 
     //
     // The avail_in, next_in, opaque, zalloc, and zfree data structure
@@ -682,6 +697,9 @@ ZlipSetError(
     int status
     )
 {
+    assert(interp  != NULL);
+    assert(message != NULL);
+
     Tcl_ResetResult(interp);
     Tcl_AppendResult(interp, message, zError(status), NULL);
 }

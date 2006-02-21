@@ -49,8 +49,11 @@ TclSetWinError(
     )
 {
     char errorId[12];
-    ThreadSpecificData *tsdPtr = TCL_TSD_INIT(&dataKey);
+    ThreadSpecificData *tsdPtr;
 
+    assert(interp != NULL);
+
+    tsdPtr = TCL_TSD_INIT(&dataKey);
     StringCchPrintfA(errorId, ARRAYSIZE(errorId), "%lu", errorCode);
 
     if (FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM,
@@ -93,7 +96,10 @@ FileTimeToEpoch(
     const FILETIME *fileTime
     )
 {
-    ULONGLONG epochTime = ((ULONGLONG)fileTime->dwHighDateTime << 32) + fileTime->dwLowDateTime;
+    ULONGLONG epochTime;
+    assert(fileTime != NULL);
+
+    epochTime = ((ULONGLONG)fileTime->dwHighDateTime << 32) + fileTime->dwLowDateTime;
     return (long)((epochTime - 116444736000000000) / 10000000);
 }
 
@@ -119,7 +125,10 @@ EpochToFileTime(
     FILETIME *fileTime
     )
 {
-    ULONGLONG timeNs = UInt32x32To64(epochTime, 10000000) + 116444736000000000;
+    ULONGLONG timeNs;
+    assert(fileTime != NULL);
+
+    timeNs = UInt32x32To64(epochTime, 10000000) + 116444736000000000;
     fileTime->dwLowDateTime = (DWORD)timeNs;
     fileTime->dwHighDateTime = (DWORD)(timeNs >> 32);
 }

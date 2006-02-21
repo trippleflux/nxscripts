@@ -62,6 +62,10 @@ GetVolumeSize(
 {
     BOOL result;
 
+    assert(volumePath != NULL);
+    assert(bytesFree  != NULL);
+    assert(bytesTotal != NULL);
+
     //
     // GetDiskFreeSpaceEx() crashes on NT4, at least it did
     // for me; so we'll use GetDiskFreeSpace() instead.
@@ -119,6 +123,10 @@ GetVolumeInfo(
     )
 {
     char *type;
+
+    assert(interp     != NULL);
+    assert(volumePath != NULL);
+    assert(volumeInfo != NULL);
 
     if (!GetVolumeInformationA(volumePath,
         volumeInfo->name, ARRAYSIZE(volumeInfo->name),
@@ -183,6 +191,8 @@ GetVolumeList(
     Tcl_Obj *volumeList;
     Tcl_Obj *elementPtr;
     Tcl_Obj *normalPath;
+
+    assert(interp != NULL);
 
     // Volume mount points were added in Windows 2000.
     if ((options & VOLLIST_FLAG_MOUNTS) &&

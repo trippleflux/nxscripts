@@ -118,6 +118,10 @@ HexDecode(
     unsigned long i;
     unsigned long length = 0;
 
+    assert(source     != NULL);
+    assert(dest       != NULL);
+    assert(destLength != NULL);
+
     if (*destLength < (sourceLength / 2) + 1) {
         return CRYPT_BUFFER_OVERFLOW;
     }
@@ -187,6 +191,10 @@ HexEncode(
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
         'A', 'B', 'C', 'D', 'E', 'F'
     };
+
+    assert(source     != NULL);
+    assert(dest       != NULL);
+    assert(destLength != NULL);
 
     if (*destLength < (sourceLength * 2) + 1) {
         return CRYPT_BUFFER_OVERFLOW;
