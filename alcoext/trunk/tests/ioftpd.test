@@ -206,9 +206,20 @@ test ioftpd-2.12 {ioftpd group: set, "users" field} {win msgWndExists} {
     list [catch {ioftpd group set $msgWindow [lindex [array names groups] 0] $data} msg] $msg
 } {1 {expected integer but got "."}}
 
-# TODO: More "ioftpd group set" tests.
+test ioftpd-2.13 {ioftpd group: set, consistency} {win msgWndExists} {
+    BufferGroups
+    foreach group [array names groups] {
+        set dataBefore [ioftpd group get $msgWindow $group]
+        ioftpd group set $msgWindow $group $dataBefore
+        set dataAfter [ioftpd group get $msgWindow $group]
 
-test ioftpd-2.13 {ioftpd group: toid, valid groups} {win msgWndExists} {
+        if {$dataBefore ne $dataAfter} {
+            return "the group file data changed for \"$group\""
+        }
+    }
+} {}
+
+test ioftpd-2.14 {ioftpd group: toid, valid groups} {win msgWndExists} {
     BufferGroups
     foreach name [array names groups] {
         set result [ioftpd group toid $msgWindow $name]
@@ -218,15 +229,15 @@ test ioftpd-2.13 {ioftpd group: toid, valid groups} {win msgWndExists} {
     }
 } {}
 
-test ioftpd-2.14 {ioftpd group: toid, invalid group} {win msgWndExists} {
+test ioftpd-2.15 {ioftpd group: toid, invalid group} {win msgWndExists} {
     ioftpd group toid $msgWindow ""
 } {-1}
 
-test ioftpd-2.15 {ioftpd group: toname, invalid int} {win msgWndExists} {
+test ioftpd-2.16 {ioftpd group: toname, invalid int} {win msgWndExists} {
     list [catch {ioftpd group toname $msgWindow .} msg] $msg
 } {1 {expected integer but got "."}}
 
-test ioftpd-2.16 {ioftpd group: toname, valid groups} {win msgWndExists} {
+test ioftpd-2.17 {ioftpd group: toname, valid groups} {win msgWndExists} {
     BufferGroups
     foreach name [array names groups] {
         set result [ioftpd group toname $msgWindow $groups($name)]
@@ -236,7 +247,7 @@ test ioftpd-2.16 {ioftpd group: toname, valid groups} {win msgWndExists} {
     }
 } {}
 
-test ioftpd-2.17 {ioftpd group: toname, invalid group} {win msgWndExists} {
+test ioftpd-2.18 {ioftpd group: toname, invalid group} {win msgWndExists} {
     ioftpd group toname $msgWindow -1
 } {}
 
@@ -451,9 +462,20 @@ test ioftpd-6.14 {ioftpd user: set, "ratio" field} {win msgWndExists} {
     list [catch {ioftpd user set $msgWindow [lindex [array names users] 0] $data} msg] $msg
 } {1 {the "ratio" field must have 10 list elements}}
 
-# TODO: More "ioftpd user set" tests.
+test ioftpd-6.15 {ioftpd user: set, consistency} {win msgWndExists} {
+    BufferUsers
+    foreach user [array names users] {
+        set dataBefore [ioftpd user get $msgWindow $user]
+        ioftpd user set $msgWindow $user $dataBefore
+        set dataAfter [ioftpd user get $msgWindow $user]
 
-test ioftpd-6.15 {ioftpd user: toid, valid users} {win msgWndExists} {
+        if {$dataBefore ne $dataAfter} {
+            return "the user file data changed for \"$user\""
+        }
+    }
+} {}
+
+test ioftpd-6.16 {ioftpd user: toid, valid users} {win msgWndExists} {
     BufferUsers
     foreach name [array names users] {
         set result [ioftpd user toid $msgWindow $name]
@@ -463,15 +485,15 @@ test ioftpd-6.15 {ioftpd user: toid, valid users} {win msgWndExists} {
     }
 } {}
 
-test ioftpd-6.16 {ioftpd user: toid, invalid user} {win msgWndExists} {
+test ioftpd-6.17 {ioftpd user: toid, invalid user} {win msgWndExists} {
     ioftpd user toid $msgWindow ""
 } {-1}
 
-test ioftpd-6.17 {ioftpd user: toname, invalid int} {win msgWndExists} {
+test ioftpd-6.18 {ioftpd user: toname, invalid int} {win msgWndExists} {
     list [catch {ioftpd user toname $msgWindow .} msg] $msg
 } {1 {expected integer but got "."}}
 
-test ioftpd-6.18 {ioftpd user: toname, valid users} {win msgWndExists} {
+test ioftpd-6.19 {ioftpd user: toname, valid users} {win msgWndExists} {
     BufferUsers
     foreach name [array names users] {
         set result [ioftpd user toname $msgWindow $users($name)]
@@ -481,7 +503,7 @@ test ioftpd-6.18 {ioftpd user: toname, valid users} {win msgWndExists} {
     }
 } {}
 
-test ioftpd-6.19 {ioftpd user: toname, invalid user} {win msgWndExists} {
+test ioftpd-6.20 {ioftpd user: toname, invalid user} {win msgWndExists} {
     ioftpd user toname $msgWindow -1
 } {}
 

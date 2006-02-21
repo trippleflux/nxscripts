@@ -833,14 +833,16 @@ RowDataSet(
         }
 
         if (j < rowData[rowIndex].values) {
+            dataOffset = (BYTE *)data + rowData[rowIndex].offset + (j * rowData[rowIndex].bytes);
+
             // Terminate the end of a integer/string list.
             switch (rowData[rowIndex].type) {
                 case TYPE_I32LIST: {
-                    ((int *)dataOffset)[1] = -1;
+                    ((int *)dataOffset)[0] = -1;
                     break;
                 }
                 case TYPE_STRLIST: {
-                    ((char *)dataOffset + rowData[rowIndex].bytes)[0] = '\0';
+                    ((char *)dataOffset)[0] = '\0';
                     break;
                 }
             }
