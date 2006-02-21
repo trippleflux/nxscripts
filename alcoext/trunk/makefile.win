@@ -71,7 +71,7 @@ TCL_SUFFIX  = $(TCL_SUFFIX:g=)
 !if "$(MEMDEBUG)" == "1"
 !message *** Option: Memory Debugging
 PKG_OPTIONS = $(PKG_OPTIONS), Memory
-TCL_CFLAGS  = $(TCL_CFLAGS) -DTCL_MEM_DEBUG=1
+PKG_CFLAGS  = $(PKG_CFLAGS) -DTCL_MEM_DEBUG=1
 !else
 PKG_SUFFIX  = $(PKG_SUFFIX:M=)
 !endif
@@ -85,7 +85,7 @@ INSTALL     = $(TOP)
 !if "$(THREADS)" == "1"
 !message *** Option: Threads
 PKG_OPTIONS = $(PKG_OPTIONS), Threads
-TCL_CFLAGS  = $(TCL_CFLAGS) -DTCL_THREADS=1
+PKG_CFLAGS  = $(PKG_CFLAGS) -DTCL_THREADS=1
 !else
 PKG_SUFFIX  = $(PKG_SUFFIX:T=)
 TCL_SUFFIX  = $(TCL_SUFFIX:t=)
