@@ -38,6 +38,11 @@ Abstract:
     ioftpd kill         <msgWindow> <cid>          - Kick a connection ID.
     ioftpd who          <msgWindow> <fields>       - Query online users.
 
+    VFS Commands:
+    ioftpd vfs read     <msgWindow> <path> [-uid] [-gid] [-chmod]
+    ioftpd vfs write    <msgWindow> <path> [-recurse <bool>] [-uid <uid>] [-gid <gid>] [-chmod <chmod>]
+    ioftpd vfs flush    <msgWindow> <path>
+
 --*/
 
 // Strings in ioFTPD's headers are declared as TCHAR's, even though
@@ -88,6 +93,13 @@ IoKillCmd(
 
 static int
 IoUserCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[]
+    );
+
+static int
+IoVfsCmd(
     Tcl_Interp *interp,
     int objc,
     Tcl_Obj *CONST objv[]
@@ -323,6 +335,13 @@ UserNameToId(
     ShmMemory *memory,
     const char *userName,
     int *userId
+    );
+
+static int
+VfsFlush(
+    ShmSession *session,
+    ShmMemory *memory,
+    const char *dirPath
     );
 
 // Flags for GetOnlineFields
@@ -1660,6 +1679,49 @@ UserNameToId(
 
 /*++
 
+VfsFlush
+
+    Flush the directory cache for a specified path.
+
+Arguments:
+    session     - Pointer to an initialised ShmSession structure.
+
+    memory      - Pointer to an ShmMemory structure allocated by the ShmAlloc
+                  function. Must be large enough to hold dirPath an a null.
+
+    dirPath     - The directory path to flush.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
+static int
+VfsFlush(
+    ShmSession *session,
+    ShmMemory *memory,
+    const char *dirPath
+    )
+{
+    assert(session != NULL);
+    assert(memory  != NULL);
+    assert(dirPath != NULL);
+    assert(memory->bytes >= strlen(dirPath) + sizeof(char));
+    DebugPrint("VfsFlush: dirPath=%s\n", dirPath);
+
+    StringCchCopyA((char *)memory->block, (size_t)memory->bytes, dirPath);
+
+    // ioFTPD appears to return 1 on both success and failure.
+    if (ShmQuery(session, memory, DC_DIRECTORY_MARKDIRTY, 5000) == 1) {
+        DebugPrint("VfsFlush: OKAY\n");
+        return TCL_OK;
+    }
+
+    DebugPrint("VfsFlush: FAIL\n");
+    return TCL_ERROR;
+}
+
+/*++
+
 GetOnlineFields
 
     Retrieve a list of online users and the requested fields.
@@ -2531,6 +2593,89 @@ IoUserCmd(
 
 /*++
 
+IoVfsCmd
+
+    Manipulate ioFTPD's directory cache and file/directory permissions.
+
+Arguments:
+    interp - Current interpreter.
+
+    objc   - Number of arguments.
+
+    objv   - Argument objects.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
+static int
+IoVfsCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[]
+    )
+{
+    char *path;
+    int index;
+    int pathLength;
+    int result;
+    ShmMemory *memory;
+    ShmSession session;
+    static const char *options[] = {
+        "flush", "read", "write", NULL
+    };
+    enum optionIndices {
+        VFS_FLUSH = 0, VFS_READ, VFS_WRITE
+    };
+
+    if (objc < 5) {
+        Tcl_WrongNumArgs(interp, 2, objv, "option arg arg ?arg ...?");
+        return TCL_ERROR;
+    }
+
+    if (Tcl_GetIndexFromObj(interp, objv[2], options, "option", 0, &index) != TCL_OK ||
+            ShmInit(interp, objv[3], &session) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    path = Tcl_GetStringFromObj(objv[4], &pathLength);
+
+    switch ((enum optionIndices) index) {
+        case VFS_FLUSH: {
+            if (objc != 5) {
+                Tcl_WrongNumArgs(interp, 3, objv, "msgWindow path");
+                return TCL_ERROR;
+            }
+
+            memory = ShmAlloc(interp, &session, pathLength + sizeof(char));
+            if (memory == NULL) {
+                return TCL_ERROR;
+            }
+
+            result = VfsFlush(&session, memory, path);
+            if (result != TCL_OK) {
+                Tcl_AppendResult(interp, "unable to flush path \"", path, "\"", NULL);
+            }
+
+            ShmFree(&session, memory);
+            return result;
+        }
+        case VFS_READ: {
+            // TODO
+            return TCL_ERROR;
+        }
+        case VFS_WRITE: {
+            // TODO
+            return TCL_ERROR;
+        }
+    }
+
+    // This point is never reached.
+    assert(0);
+    return TCL_ERROR;
+}
+
+/*++
+
 IoWhoCmd
 
     Retrieves online user information from ioFTPD's shared memory.
@@ -2629,11 +2774,11 @@ IoFtpdObjCmd(
 {
     int index;
     static const char *options[] = {
-        "group", "info", "kick", "kill", "user", "who", NULL
+        "group", "info", "kick", "kill", "user", "vfs", "who", NULL
     };
     enum optionIndices {
         OPTION_GROUP = 0, OPTION_INFO, OPTION_KICK,
-        OPTION_KILL, OPTION_USER, OPTION_WHO
+        OPTION_KILL, OPTION_USER, OPTION_VFS, OPTION_WHO
     };
 
     // Validate "whoFields" indices.
@@ -2674,6 +2819,7 @@ IoFtpdObjCmd(
         case OPTION_KICK:  return IoKickCmd(interp, objc, objv);
         case OPTION_KILL:  return IoKillCmd(interp, objc, objv);
         case OPTION_USER:  return IoUserCmd(interp, objc, objv);
+        case OPTION_VFS:   return IoVfsCmd(interp, objc, objv);
         case OPTION_WHO:   return IoWhoCmd(interp, objc, objv);
     }
 

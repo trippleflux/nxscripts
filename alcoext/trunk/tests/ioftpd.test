@@ -127,11 +127,11 @@ test ioftpd-1.1 {ioftpd: no args} {win} {
 
 test ioftpd-1.2 {ioftpd: one arg} {win} {
     list [catch {ioftpd .} msg] $msg
-} {1 {bad option ".": must be group, info, kick, kill, user, or who}}
+} {1 {bad option ".": must be group, info, kick, kill, user, vfs, or who}}
 
 test ioftpd-1.3 {ioftpd: invalid option} {win} {
     list [catch {ioftpd . a} msg] $msg
-} {1 {bad option ".": must be group, info, kick, kill, user, or who}}
+} {1 {bad option ".": must be group, info, kick, kill, user, vfs, or who}}
 
 ################################################################################
 # ioftpd group                                                                 #
@@ -640,22 +640,45 @@ test ioftpd-6.21 {ioftpd user: toname, invalid user} {win msgWndExists} {
 } {}
 
 ################################################################################
+# ioftpd vfs                                                                   #
+################################################################################
+
+test ioftpd-7.1 {ioftpd vfs: no args} {win} {
+    list [catch {ioftpd vfs} msg] $msg
+} {1 {wrong # args: should be "ioftpd vfs option arg arg ?arg ...?"}}
+
+test ioftpd-7.2 {ioftpd vfs: not enough args} {win} {
+    list [catch {ioftpd vfs a b} msg] $msg
+} {1 {wrong # args: should be "ioftpd vfs option arg arg ?arg ...?"}}
+
+test ioftpd-7.3 {ioftpd vfs: invalid sub-option} {win} {
+    list [catch {ioftpd vfs . a b} msg] $msg
+} {1 {bad option ".": must be flush, read, or write}}
+
+test ioftpd-7.4 {ioftpd vfs: flush, valid path} {win msgWndExists} {
+    ioftpd vfs flush $msgWindow [string map {/ \\} $currentPath]
+} {}
+
+::tcltest::cleanupTests
+return
+
+################################################################################
 # ioftpd who                                                                   #
 ################################################################################
 
-test ioftpd-7.1 {ioftpd who: no args} {win} {
+test ioftpd-8.1 {ioftpd who: no args} {win} {
     list [catch {ioftpd who} msg] $msg
 } {1 {wrong # args: should be "ioftpd who msgWindow fields"}}
 
-test ioftpd-7.2 {ioftpd who: too many args} {win} {
+test ioftpd-8.2 {ioftpd who: too many args} {win} {
     list [catch {ioftpd who a b c} msg] $msg
 } {1 {wrong # args: should be "ioftpd who msgWindow fields"}}
 
-test ioftpd-7.3 {ioftpd who: invalid field} {win msgWndExists} {
+test ioftpd-8.3 {ioftpd who: invalid field} {win msgWndExists} {
     list [catch {ioftpd who $msgWindow .} msg] $msg
 } {1 {bad field ".": must be action, cid, gid, group, host, ident, idletime, ip, logintime, port, realdatapath, realpath, service, size, speed, status, uid, user, vdatapath, or vpath}}
 
-test ioftpd-7.4 {ioftpd who: check fields} {win msgWndExists} {
+test ioftpd-8.4 {ioftpd who: check fields} {win msgWndExists} {
     set fields {action cid gid group host ident idletime ip logintime port realdatapath realpath service size speed status uid user vdatapath vpath}
     set fieldCount [llength $fields]
 
@@ -670,7 +693,7 @@ test ioftpd-7.4 {ioftpd who: check fields} {win msgWndExists} {
     unset -nocomplain entry
 } {}
 
-test ioftpd-7.5 {ioftpd who: check users/groups} {win msgWndExists} {
+test ioftpd-8.5 {ioftpd who: check users/groups} {win msgWndExists} {
     BufferGroups
     BufferUsers
 
