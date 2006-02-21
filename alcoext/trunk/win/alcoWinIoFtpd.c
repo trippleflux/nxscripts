@@ -947,8 +947,9 @@ GroupSetFile(
             //
             // Copy the GROUPFILE structure to the shared memory block
             // after locking, since the open call will overwrite it.
+            // The lpInternal and lpParent members must not be changed!
             //
-            CopyMemory(memory->block, groupFile, sizeof(GROUPFILE));
+            CopyMemory(memory->block, groupFile, offsetof(GROUPFILE, lpInternal));
 
             // Unlock will update the group-file.
             ShmQuery(session, memory, DC_GROUPFILE_UNLOCK, 5000);
@@ -1178,8 +1179,9 @@ UserSetFile(
             //
             // Copy the USERFILE structure to the shared memory block
             // after locking, since the open call will overwrite it.
+            // The lpInternal and lpParent members must not be changed!
             //
-            CopyMemory(memory->block, userFile, sizeof(USERFILE));
+            CopyMemory(memory->block, userFile, offsetof(USERFILE, lpInternal));
 
             // Unlock will update the user-file.
             ShmQuery(session, memory, DC_USERFILE_UNLOCK, 5000);
