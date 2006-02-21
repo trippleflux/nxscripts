@@ -48,7 +48,8 @@ PKG_VERSION_RES = $(PKG_MAJOR),$(PKG_MINOR),$(PKG_PATCH),$(PKG_STATUS)
 
 PKG_CFLAGS  = -D "PACKAGE_NAME=\"$(PKG_NAME)\"" -D "PACKAGE_DESC=\"$(PKG_DESC)\"" -D "PACKAGE_VERSION=\"$(PKG_VERSION_DOT)\"" -D "PACKAGE_VERSION_RES=$(PKG_VERSION_RES)"
 PKG_LFLAGS  = /NODEFAULTLIB:msvcrt /OPT:NOWIN98
-MISC_CFLAGS = -DBZ_NO_STDIO -DUSE_TCL_STUBS
+MISC_CFLAGS = -DBZ_NO_STDIO
+TCL_CFLAGS  = -DUSE_TCL_STUBS
 
 # -------------------------------------------------------------------------
 
@@ -71,7 +72,7 @@ TCL_SUFFIX  = $(TCL_SUFFIX:g=)
 !if "$(MEMDEBUG)" == "1"
 !message *** Option: Memory Debugging
 PKG_OPTIONS = $(PKG_OPTIONS), Memory
-PKG_CFLAGS  = $(PKG_CFLAGS) -DTCL_MEM_DEBUG=1
+TCL_CFLAGS  = $(TCL_CFLAGS) -DTCL_MEM_DEBUG=1
 !else
 PKG_SUFFIX  = $(PKG_SUFFIX:M=)
 !endif
@@ -85,7 +86,7 @@ INSTALL     = $(TOP)
 !if "$(THREADS)" == "1"
 !message *** Option: Threads
 PKG_OPTIONS = $(PKG_OPTIONS), Threads
-PKG_CFLAGS  = $(PKG_CFLAGS) -DTCL_THREADS=1
+TCL_CFLAGS  = $(TCL_CFLAGS) -DTCL_THREADS=1
 !else
 PKG_SUFFIX  = $(PKG_SUFFIX:T=)
 TCL_SUFFIX  = $(TCL_SUFFIX:t=)
@@ -445,7 +446,7 @@ OBJECT_FILES=\
 
 # -------------------------------------------------------------------------
 
-CFLAGS  = $(cdebug) $(cflags) $(cvarsmt) $(PKG_CFLAGS) $(MISC_CFLAGS) $(INCLUDE_DIRS)
+CFLAGS  = $(cdebug) $(cflags) $(cvarsmt) $(PKG_CFLAGS) $(MISC_CFLAGS) $(TCL_CFLAGS) $(INCLUDE_DIRS)
 LFLAGS  = $(ldebug) $(dlllflags) $(conlibsmt) user32.lib psapi.lib $(PKG_LFLAGS) $(TCL_STUBLIB)
 RFLAGS  = $(rcflags) $(rcvars) $(PKG_CFLAGS)
 
