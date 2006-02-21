@@ -294,6 +294,7 @@ test ioftpd-2.14 {ioftpd group: set, consistency} {win msgWndExists} {
             return "the group file data changed for \"$group\""
         }
     }
+    unset -nocomplain dataBefore dataAfter
 } {}
 
 test ioftpd-2.15 {ioftpd group: toid, valid groups} {win msgWndExists} {
@@ -539,7 +540,7 @@ test ioftpd-6.8 {ioftpd user: get, check data} {win msgWndExists} {
             if {!$valid} {return "invalid value \"$value\" for \"$name\""}
         }
     }
-    unset -nocomplain data name value
+    unset -nocomplain data name value num
 } {}
 
 test ioftpd-6.9 {ioftpd user: set, invalid user} {win msgWndExists} {
@@ -603,6 +604,7 @@ test ioftpd-6.16 {ioftpd user: set, consistency} {win msgWndExists} {
             return "the user file data changed for \"$user\""
         }
     }
+    unset -nocomplain dataBefore dataAfter
 } {}
 
 test ioftpd-6.17 {ioftpd user: toid, valid users} {win msgWndExists} {
