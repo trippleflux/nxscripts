@@ -13,6 +13,9 @@ Abstract:
     Implements a Tcl command-based interface for interaction with ioFTPD.
 
     User Commands:
+    ioftpd user create  <msgWindow> <user>         - Create a user.
+    ioftpd user rename  <msgWindow> <user> <new>   - Rename a user.
+    ioftpd user delete  <msgWindow> <user>         - Delete a user.
     ioftpd user exists  <msgWindow> <user>         - Check if a user exists.
     ioftpd user get     <msgWindow> <user>         - Get user information.
     ioftpd user set     <msgWindow> <user> <data>  - Set user information.
@@ -20,6 +23,9 @@ Abstract:
     ioftpd user toname  <msgWindow> <uid>          - UID to user name.
 
     Group Commands:
+    ioftpd group create <msgWindow> <group>        - Create a group.
+    ioftpd group rename <msgWindow> <group> <new>  - Rename a group.
+    ioftpd group delete <msgWindow> <group>        - Delete a group.
     ioftpd group exists <msgWindow> <group>        - Check if a group exists.
     ioftpd group get    <msgWindow> <group>        - Get group information.
     ioftpd group set    <msgWindow> <group> <data> - Set group information.
@@ -212,6 +218,29 @@ static const RowData groupRowDef[] = {
 //
 
 static int
+GroupCreate(
+    ShmSession *session,
+    ShmMemory *memory,
+    const char *groupName,
+    int *groupId
+    );
+
+static int
+GroupRename(
+    ShmSession *session,
+    ShmMemory *memory,
+    const char *groupName,
+    const char *newName
+    );
+
+static int
+GroupDelete(
+    ShmSession *session,
+    ShmMemory *memory,
+    const char *groupName
+    );
+
+static int
 GroupGetFile(
     ShmSession *session,
     ShmMemory *memory,
@@ -240,6 +269,29 @@ GroupNameToId(
     ShmMemory *memory,
     const char *groupName,
     int *groupId
+    );
+
+static int
+UserCreate(
+    ShmSession *session,
+    ShmMemory *memory,
+    const char *userName,
+    int *userId
+    );
+
+static int
+UserRename(
+    ShmSession *session,
+    ShmMemory *memory,
+    const char *userName,
+    const char *newName
+    );
+
+static int
+UserDelete(
+    ShmSession *session,
+    ShmMemory *memory,
+    const char *userName
     );
 
 static int
@@ -855,6 +907,157 @@ RowDataSet(
 
 /*++
 
+GroupCreate
+
+    Create a new group.
+
+Arguments:
+    session     - Pointer to an initialised ShmSession structure.
+
+    memory      - Pointer to an ShmMemory structure allocated by the ShmAlloc
+                  function. Must be large enough to hold the DC_NAMEID structure.
+
+    groupName   - The group name to create.
+
+    groupId     - Location to store the group ID of the created group.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
+static int
+GroupCreate(
+    ShmSession *session,
+    ShmMemory *memory,
+    const char *groupName,
+    int *groupId
+    )
+{
+    DC_NAMEID *dcNameId;
+    DWORD result;
+
+    assert(session  != NULL);
+    assert(memory   != NULL);
+    assert(memory->bytes >= sizeof(DC_NAMEID));
+    assert(groupName != NULL);
+    assert(groupId   != NULL);
+    DebugPrint("GroupCreate: groupName=%s groupId=0x%p\n", groupName, groupId);
+
+    // Initialise the DC_NAMEID structure.
+    dcNameId = (DC_NAMEID *)memory->block;
+    StringCchCopyA(dcNameId->tszName, ARRAYSIZE(dcNameId->tszName), groupName);
+
+    result = ShmQuery(session, memory, DC_CREATE_GROUP, 5000);
+    if (result != (DWORD)-1) {
+        *groupId = (int)result;
+        DebugPrint("GroupCreate: OKAY\n");
+        return TCL_OK;
+    }
+
+    *groupId = -1;
+    DebugPrint("GroupCreate: FAIL\n");
+    return TCL_ERROR;
+}
+
+/*++
+
+GroupRename
+
+    Rename an existing group.
+
+Arguments:
+    session     - Pointer to an initialised ShmSession structure.
+
+    memory      - Pointer to an ShmMemory structure allocated by the ShmAlloc
+                  function. Must be large enough to hold the DC_RENAME structure.
+
+    groupName   - The group name to rename.
+
+    newName     - The new group name.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
+static int
+GroupRename(
+    ShmSession *session,
+    ShmMemory *memory,
+    const char *groupName,
+    const char *newName
+    )
+{
+    DC_RENAME *dcRename;
+
+    assert(session  != NULL);
+    assert(memory   != NULL);
+    assert(memory->bytes >= sizeof(DC_RENAME));
+    assert(groupName != NULL);
+    assert(newName  != NULL);
+    DebugPrint("GroupRename: groupName=%s newName=%s\n", groupName, newName);
+
+    // Initialise the DC_RENAME structure.
+    dcRename = (DC_RENAME *)memory->block;
+    StringCchCopyA(dcRename->tszName,    ARRAYSIZE(dcRename->tszName),    groupName);
+    StringCchCopyA(dcRename->tszNewName, ARRAYSIZE(dcRename->tszNewName), newName);
+
+    if (!ShmQuery(session, memory, DC_RENAME_GROUP, 5000)) {
+        DebugPrint("GroupRename: OKAY\n");
+        return TCL_OK;
+    }
+
+    DebugPrint("GroupRename: FAIL\n");
+    return TCL_ERROR;
+}
+
+/*++
+
+GroupDelete
+
+    Delete a group.
+
+Arguments:
+    session     - Pointer to an initialised ShmSession structure.
+
+    memory      - Pointer to an ShmMemory structure allocated by the ShmAlloc
+                  function. Must be large enough to hold the DC_NAMEID structure.
+
+    groupName   - The group name to delete.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
+static int
+GroupDelete(
+    ShmSession *session,
+    ShmMemory *memory,
+    const char *groupName
+    )
+{
+    DC_NAMEID *dcNameId;
+
+    assert(session  != NULL);
+    assert(memory   != NULL);
+    assert(memory->bytes >= sizeof(DC_NAMEID));
+    assert(groupName != NULL);
+    DebugPrint("GroupDelete: groupName=%s\n", groupName);
+
+    // Initialise the DC_NAMEID structure.
+    dcNameId = (DC_NAMEID *)memory->block;
+    StringCchCopyA(dcNameId->tszName, ARRAYSIZE(dcNameId->tszName), groupName);
+
+    if (!ShmQuery(session, memory, DC_DELETE_GROUP, 5000)) {
+        DebugPrint("GroupDelete: OKAY\n");
+        return TCL_OK;
+    }
+
+    DebugPrint("GroupDelete: FAIL\n");
+    return TCL_ERROR;
+}
+
+/*++
+
 GroupGetFile
 
     Retrieve the GROUPFILE structure for a given a group ID.
@@ -1000,7 +1203,7 @@ GroupIdToName(
     char *groupName
     )
 {
-    DC_NAMEID *nameId;
+    DC_NAMEID *dcNameId;
 
     assert(session   != NULL);
     assert(memory    != NULL);
@@ -1009,11 +1212,11 @@ GroupIdToName(
     DebugPrint("GroupIdToName: groupId=%d groupName=0x%p\n", groupId, groupName);
 
     // Initialise the DC_NAMEID structure.
-    nameId = (DC_NAMEID *)memory->block;
-    nameId->Id = groupId;
+    dcNameId = (DC_NAMEID *)memory->block;
+    dcNameId->Id = groupId;
 
     if (!ShmQuery(session, memory, DC_GID_TO_GROUP, 5000)) {
-        StringCchCopyA(groupName, _MAX_NAME+1, nameId->tszName);
+        StringCchCopyA(groupName, _MAX_NAME+1, dcNameId->tszName);
 
         DebugPrint("GroupIdToName: OKAY\n");
         return TCL_OK;
@@ -1052,7 +1255,7 @@ GroupNameToId(
     int *groupId
     )
 {
-    DC_NAMEID *nameId;
+    DC_NAMEID *dcNameId;
     DWORD result;
 
     assert(session   != NULL);
@@ -1063,24 +1266,169 @@ GroupNameToId(
     DebugPrint("GroupNameToId: groupName=%s groupId=0x%p\n", groupName, groupId);
 
     // Initialise the DC_NAMEID structure.
-    nameId = (DC_NAMEID *)memory->block;
-    StringCchCopyA(nameId->tszName, ARRAYSIZE(nameId->tszName), groupName);
+    dcNameId = (DC_NAMEID *)memory->block;
+    StringCchCopyA(dcNameId->tszName, ARRAYSIZE(dcNameId->tszName), groupName);
 
-    //
-    // The DC_NAMEID structure is not updated with the group ID,
-    // instead the group ID is the return value (DC_MESSAGE::dwReturn).
-    // So much for consistency...
-    //
     result = ShmQuery(session, memory, DC_GROUP_TO_GID, 5000);
     if (result != (DWORD)-1) {
         *groupId = (int)result;
-
         DebugPrint("GroupNameToId: OKAY\n");
         return TCL_OK;
     }
 
     *groupId = -1;
     DebugPrint("GroupNameToId: FAIL\n");
+    return TCL_ERROR;
+}
+
+/*++
+
+UserCreate
+
+    Create a new user.
+
+Arguments:
+    session     - Pointer to an initialised ShmSession structure.
+
+    memory      - Pointer to an ShmMemory structure allocated by the ShmAlloc
+                  function. Must be large enough to hold the DC_NAMEID structure.
+
+    userName    - The user name to create.
+
+    userId      - Location to store the user ID of the created user.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
+static int
+UserCreate(
+    ShmSession *session,
+    ShmMemory *memory,
+    const char *userName,
+    int *userId
+    )
+{
+    DC_NAMEID *dcNameId;
+    DWORD result;
+
+    assert(session  != NULL);
+    assert(memory   != NULL);
+    assert(memory->bytes >= sizeof(DC_NAMEID));
+    assert(userName != NULL);
+    assert(userId   != NULL);
+    DebugPrint("UserCreate: userName=%s userId=0x%p\n", userName, userId);
+
+    // Initialise the DC_NAMEID structure.
+    dcNameId = (DC_NAMEID *)memory->block;
+    StringCchCopyA(dcNameId->tszName, ARRAYSIZE(dcNameId->tszName), userName);
+
+    result = ShmQuery(session, memory, DC_CREATE_USER, 5000);
+    if (result != (DWORD)-1) {
+        *userId = (int)result;
+        DebugPrint("UserCreate: OKAY\n");
+        return TCL_OK;
+    }
+
+    *userId = -1;
+    DebugPrint("UserCreate: FAIL\n");
+    return TCL_ERROR;
+}
+
+/*++
+
+UserRename
+
+    Rename an existing user.
+
+Arguments:
+    session     - Pointer to an initialised ShmSession structure.
+
+    memory      - Pointer to an ShmMemory structure allocated by the ShmAlloc
+                  function. Must be large enough to hold the DC_RENAME structure.
+
+    userName    - The user name to rename.
+
+    newName     - The new user name.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
+static int
+UserRename(
+    ShmSession *session,
+    ShmMemory *memory,
+    const char *userName,
+    const char *newName
+    )
+{
+    DC_RENAME *dcRename;
+
+    assert(session  != NULL);
+    assert(memory   != NULL);
+    assert(memory->bytes >= sizeof(DC_RENAME));
+    assert(userName != NULL);
+    assert(newName  != NULL);
+    DebugPrint("UserRename: userName=%s newName=%s\n", userName, newName);
+
+    // Initialise the DC_RENAME structure.
+    dcRename = (DC_RENAME *)memory->block;
+    StringCchCopyA(dcRename->tszName,    ARRAYSIZE(dcRename->tszName),    userName);
+    StringCchCopyA(dcRename->tszNewName, ARRAYSIZE(dcRename->tszNewName), newName);
+
+    if (!ShmQuery(session, memory, DC_RENAME_USER, 5000)) {
+        DebugPrint("UserRename: OKAY\n");
+        return TCL_OK;
+    }
+
+    DebugPrint("UserRename: FAIL\n");
+    return TCL_ERROR;
+}
+
+/*++
+
+UserDelete
+
+    Delete a user.
+
+Arguments:
+    session     - Pointer to an initialised ShmSession structure.
+
+    memory      - Pointer to an ShmMemory structure allocated by the ShmAlloc
+                  function. Must be large enough to hold the DC_NAMEID structure.
+
+    userName    - The user name to delete.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
+static int
+UserDelete(
+    ShmSession *session,
+    ShmMemory *memory,
+    const char *userName
+    )
+{
+    DC_NAMEID *dcNameId;
+
+    assert(session  != NULL);
+    assert(memory   != NULL);
+    assert(memory->bytes >= sizeof(DC_NAMEID));
+    assert(userName != NULL);
+    DebugPrint("UserDelete: userName=%s\n", userName);
+
+    // Initialise the DC_NAMEID structure.
+    dcNameId = (DC_NAMEID *)memory->block;
+    StringCchCopyA(dcNameId->tszName, ARRAYSIZE(dcNameId->tszName), userName);
+
+    if (!ShmQuery(session, memory, DC_DELETE_USER, 5000)) {
+        DebugPrint("UserDelete: OKAY\n");
+        return TCL_OK;
+    }
+
+    DebugPrint("UserDelete: FAIL\n");
     return TCL_ERROR;
 }
 
@@ -1232,7 +1580,7 @@ UserIdToName(
     char *userName
     )
 {
-    DC_NAMEID *nameId;
+    DC_NAMEID *dcNameId;
 
     assert(session  != NULL);
     assert(memory   != NULL);
@@ -1241,11 +1589,11 @@ UserIdToName(
     DebugPrint("UserIdToName: userId=%d userName=0x%p\n", userId, userName);
 
     // Initialise the DC_NAMEID structure.
-    nameId = (DC_NAMEID *)memory->block;
-    nameId->Id = userId;
+    dcNameId = (DC_NAMEID *)memory->block;
+    dcNameId->Id = userId;
 
     if (!ShmQuery(session, memory, DC_UID_TO_USER, 5000)) {
-        StringCchCopyA(userName, _MAX_NAME+1, nameId->tszName);
+        StringCchCopyA(userName, _MAX_NAME+1, dcNameId->tszName);
 
         DebugPrint("UserIdToName: OKAY\n");
         return TCL_OK;
@@ -1284,7 +1632,7 @@ UserNameToId(
     int *userId
     )
 {
-    DC_NAMEID *nameId;
+    DC_NAMEID *dcNameId;
     DWORD result;
 
     assert(session  != NULL);
@@ -1295,18 +1643,12 @@ UserNameToId(
     DebugPrint("UserNameToId: userName=%s userId=0x%p\n", userName, userId);
 
     // Initialise the DC_NAMEID structure.
-    nameId = (DC_NAMEID *)memory->block;
-    StringCchCopyA(nameId->tszName, ARRAYSIZE(nameId->tszName), userName);
+    dcNameId = (DC_NAMEID *)memory->block;
+    StringCchCopyA(dcNameId->tszName, ARRAYSIZE(dcNameId->tszName), userName);
 
-    //
-    // The DC_NAMEID structure is not updated with the user ID,
-    // instead the user ID is the return value (DC_MESSAGE::dwReturn).
-    // So much for consistency...
-    //
     result = ShmQuery(session, memory, DC_USER_TO_UID, 5000);
     if (result != (DWORD)-1) {
         *userId = (int)result;
-
         DebugPrint("UserNameToId: OKAY\n");
         return TCL_OK;
     }
@@ -1570,14 +1912,17 @@ IoGroupCmd(
     )
 {
     int index;
+    int result;
     ShmMemory *memory;
     ShmSession session;
     Tcl_Obj *resultObj;
     static const char *options[] = {
-        "exists", "get", "set", "toid", "toname", NULL
+        "create", "delete", "exists", "get",
+        "rename", "set", "toid", "toname", NULL
     };
     enum optionIndices {
-        GROUP_EXISTS = 0, GROUP_GET, GROUP_SET, GROUP_TO_ID, GROUP_TO_NAME
+        GROUP_CREATE = 0, GROUP_DELETE, GROUP_EXISTS, GROUP_GET,
+        GROUP_RENAME, GROUP_SET, GROUP_TO_ID, GROUP_TO_NAME
     };
 
     if (objc < 4) {
@@ -1592,11 +1937,84 @@ IoGroupCmd(
 
     resultObj = Tcl_GetObjResult(interp);
     switch ((enum optionIndices) index) {
+        case GROUP_CREATE: {
+            char *groupName;
+            int groupId;
+
+            if (objc != 5) {
+                Tcl_WrongNumArgs(interp, 3, objv, "msgWindow group");
+                return TCL_ERROR;
+            }
+
+            memory = ShmAlloc(interp, &session, sizeof(DC_NAMEID));
+            if (memory == NULL) {
+                return TCL_ERROR;
+            }
+            groupName = Tcl_GetString(objv[4]);
+
+            result = GroupCreate(&session, memory, groupName, &groupId);
+            if (result == TCL_OK) {
+                Tcl_SetIntObj(resultObj, groupId);
+            } else {
+                Tcl_AppendResult(interp, "unable to create group \"",
+                    groupName, "\"", NULL);
+            }
+
+            ShmFree(&session, memory);
+            return result;
+        }
+        case GROUP_RENAME: {
+            char *groupName;
+            char *newName;
+
+            if (objc != 6) {
+                Tcl_WrongNumArgs(interp, 3, objv, "msgWindow group newGroup");
+                return TCL_ERROR;
+            }
+
+            memory = ShmAlloc(interp, &session, sizeof(DC_RENAME));
+            if (memory == NULL) {
+                return TCL_ERROR;
+            }
+            groupName = Tcl_GetString(objv[4]);
+            newName = Tcl_GetString(objv[5]);
+
+            result = GroupRename(&session, memory, groupName, newName);
+            if (result != TCL_OK) {
+                Tcl_AppendResult(interp, "unable to rename group \"",
+                    groupName, "\" to \"", newName, "\"", NULL);
+            }
+
+            ShmFree(&session, memory);
+            return result;
+        }
+        case GROUP_DELETE: {
+            char *groupName;
+
+            if (objc != 5) {
+                Tcl_WrongNumArgs(interp, 3, objv, "msgWindow group");
+                return TCL_ERROR;
+            }
+
+            memory = ShmAlloc(interp, &session, sizeof(DC_NAMEID));
+            if (memory == NULL) {
+                return TCL_ERROR;
+            }
+            groupName = Tcl_GetString(objv[4]);
+
+            result = GroupDelete(&session, memory, groupName);
+            if (result != TCL_OK) {
+                Tcl_AppendResult(interp, "unable to delete group \"",
+                    groupName, "\"", NULL);
+            }
+
+            ShmFree(&session, memory);
+            return result;
+        }
         case GROUP_GET:
         case GROUP_SET: {
             char *groupName;
             int groupId;
-            int result;
             GROUPFILE groupFile;
 
             if (index == GROUP_GET && objc != 5) {
@@ -1617,8 +2035,7 @@ IoGroupCmd(
             if (GroupNameToId(&session, memory, groupName, &groupId) != TCL_OK) {
                 ShmFree(&session, memory);
 
-                Tcl_AppendResult(interp, "invalid group name \"",
-                    groupName, "\"", NULL);
+                Tcl_AppendResult(interp, "invalid group \"", groupName, "\"", NULL);
                 return TCL_ERROR;
             }
 
@@ -1651,7 +2068,6 @@ IoGroupCmd(
         case GROUP_EXISTS:
         case GROUP_TO_ID: {
             int groupId;
-            int result;
 
             if (objc != 5) {
                 Tcl_WrongNumArgs(interp, 3, objv, "msgWindow group");
@@ -1905,14 +2321,17 @@ IoUserCmd(
     )
 {
     int index;
+    int result;
     ShmMemory *memory;
     ShmSession session;
     Tcl_Obj *resultObj;
     static const char *options[] = {
-        "exists", "get", "set", "toid", "toname", NULL
+        "create", "delete", "exists", "get",
+        "rename", "set", "toid", "toname", NULL
     };
     enum optionIndices {
-        USER_EXISTS = 0, USER_GET, USER_SET, USER_TO_ID, USER_TO_NAME
+        USER_CREATE = 0, USER_DELETE, USER_EXISTS, USER_GET,
+        USER_RENAME, USER_SET, USER_TO_ID, USER_TO_NAME
     };
 
     if (objc < 4) {
@@ -1927,11 +2346,84 @@ IoUserCmd(
 
     resultObj = Tcl_GetObjResult(interp);
     switch ((enum optionIndices) index) {
+        case USER_CREATE: {
+            char *userName;
+            int userId;
+
+            if (objc != 5) {
+                Tcl_WrongNumArgs(interp, 3, objv, "msgWindow user");
+                return TCL_ERROR;
+            }
+
+            memory = ShmAlloc(interp, &session, sizeof(DC_NAMEID));
+            if (memory == NULL) {
+                return TCL_ERROR;
+            }
+            userName = Tcl_GetString(objv[4]);
+
+            result = UserCreate(&session, memory, userName, &userId);
+            if (result == TCL_OK) {
+                Tcl_SetIntObj(resultObj, userId);
+            } else {
+                Tcl_AppendResult(interp, "unable to create user \"",
+                    userName, "\"", NULL);
+            }
+
+            ShmFree(&session, memory);
+            return result;
+        }
+        case USER_RENAME: {
+            char *userName;
+            char *newName;
+
+            if (objc != 6) {
+                Tcl_WrongNumArgs(interp, 3, objv, "msgWindow user newUser");
+                return TCL_ERROR;
+            }
+
+            memory = ShmAlloc(interp, &session, sizeof(DC_RENAME));
+            if (memory == NULL) {
+                return TCL_ERROR;
+            }
+            userName = Tcl_GetString(objv[4]);
+            newName = Tcl_GetString(objv[5]);
+
+            result = UserRename(&session, memory, userName, newName);
+            if (result != TCL_OK) {
+                Tcl_AppendResult(interp, "unable to rename user \"",
+                    userName, "\" to \"", newName, "\"", NULL);
+            }
+
+            ShmFree(&session, memory);
+            return result;
+        }
+        case USER_DELETE: {
+            char *userName;
+
+            if (objc != 5) {
+                Tcl_WrongNumArgs(interp, 3, objv, "msgWindow user");
+                return TCL_ERROR;
+            }
+
+            memory = ShmAlloc(interp, &session, sizeof(DC_NAMEID));
+            if (memory == NULL) {
+                return TCL_ERROR;
+            }
+            userName = Tcl_GetString(objv[4]);
+
+            result = UserDelete(&session, memory, userName);
+            if (result != TCL_OK) {
+                Tcl_AppendResult(interp, "unable to delete user \"",
+                    userName, "\"", NULL);
+            }
+
+            ShmFree(&session, memory);
+            return result;
+        }
         case USER_GET:
         case USER_SET: {
             char *userName;
             int userId;
-            int result;
             USERFILE userFile;
 
             if (index == USER_GET && objc != 5) {
@@ -1952,8 +2444,7 @@ IoUserCmd(
             if (UserNameToId(&session, memory, userName, &userId) != TCL_OK) {
                 ShmFree(&session, memory);
 
-                Tcl_AppendResult(interp, "invalid user name \"",
-                    userName, "\"", NULL);
+                Tcl_AppendResult(interp, "invalid user \"", userName, "\"", NULL);
                 return TCL_ERROR;
             }
 
@@ -1986,7 +2477,6 @@ IoUserCmd(
         case USER_EXISTS:
         case USER_TO_ID: {
             int userId;
-            int result;
 
             if (objc != 5) {
                 Tcl_WrongNumArgs(interp, 3, objv, "msgWindow user");
