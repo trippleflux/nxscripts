@@ -16,11 +16,11 @@ set currentPath [file dirname [file normalize [info script]]]
 source [file join $currentPath "loader.tcl"]
 
 # Source crypt test vectors.
-source [file join $currentPath crypt cipher.tv]
-source [file join $currentPath crypt hash.tv]
-source [file join $currentPath crypt hmac.tv]
-source [file join $currentPath crypt omac.tv]
-source [file join $currentPath crypt pmac.tv]
+source [file join $currentPath "crypt" "cipher.tv"]
+source [file join $currentPath "crypt" "hash.tv"]
+source [file join $currentPath "crypt" "hmac.tv"]
+source [file join $currentPath "crypt" "omac.tv"]
+source [file join $currentPath "crypt" "pmac.tv"]
 
 # Algorithm definitions.
 # algo    keyMin keyMax block rounds
