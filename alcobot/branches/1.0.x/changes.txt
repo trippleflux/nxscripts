@@ -1,6 +1,8 @@
 AlcoBot v1.0.0 (not yet released):
   NEW: Improved installation instructions.
   NEW: Option to include or exclude hidden users in bandwidth stats (!bw/!bwdn/!bwup).
+  NEW: The module load order is automatically rearranged so dependencies are loaded first.
+  CHG: Dependency checks are performed by ModuleLoadEx now, rather than ModuleLoad.
   FIX: Division-by-zero error in the free module if the total size of a volume is zero.
   FIX: Forgot to include the required "UnNuke_Log" setting for ioA.
   FIX: Inconsistencies in the FTP library's event handler during the login sequence.

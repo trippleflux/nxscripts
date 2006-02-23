@@ -539,16 +539,7 @@ proc ::alcoholicz::ModuleLoad {modName} {
 
     # Locate the module and read its definition file.
     set modPath [ModuleFind $modName]
-    array set modInfo [ModuleRead [file join $modPath "module.def"]]
-
-    # Refuse to load the module if a dependency is not present.
-    foreach modDepend $modInfo(depends) {
-        if {![info exists modules($modDepend)]} {
-            error "missing module dependency \"$modDepend\""
-        }
-    }
-
-    ModuleLoadEx $modName [array get modInfo]
+    ModuleLoadEx $modName [ModuleRead [file join $modPath "module.def"]]
 }
 
 ####
@@ -561,6 +552,13 @@ proc ::alcoholicz::ModuleLoad {modName} {
 proc ::alcoholicz::ModuleLoadEx {modName modInfoList} {
     variable modules
     array set modInfo $modInfoList
+
+    # Refuse to load the module if a dependency is not present.
+    foreach modDepend $modInfo(depends) {
+        if {![info exists modules($modDepend)]} {
+            error "missing module dependency \"$modDepend\""
+        }
+    }
 
     set firstLoad 1
     set fileHash [ModuleHash $modInfo(tclFile)]
@@ -585,18 +583,16 @@ proc ::alcoholicz::ModuleLoadEx {modName modInfoList} {
     # Remove trailing namespace identifiers from the context.
     set modInfo(context) [string trimright $modInfo(context) ":"]
 
-    if {[catch {${modInfo(context)}::Load $firstLoad} message]} {
-        # If the module initialisation failed, call the unload procedure
-        # in case the module did not clean up after failing.
-        catch {${modInfo(context)}::Unload}
-
-        error "initialisation failed: $message"
-    }
-
     set modules($modName) [list $modInfo(desc) $modInfo(context) \
         $modInfo(depends) $modInfo(tclFile) $modInfo(varFile) $fileHash]
 
-    return
+    if {[catch {${modInfo(context)}::Load $firstLoad} message]} {
+        # Unload the module since initialisation failed.
+        if {[catch {ModuleUnload $modName} unloadMsg]} {
+            LogDebug ModuleLoadEx "unable to unload \"$modName\": $message"
+        }
+        error "initialisation failed: $message"
+    }
 }
 
 ####
@@ -624,7 +620,6 @@ proc ::alcoholicz::ModuleUnload {modName} {
 
     # Raise an error after cleaning up the module.
     if {$failed} {error "finalisation failed: $message"}
-    return
 }
 
 ####
@@ -983,40 +978,12 @@ proc ::alcoholicz::DccAdmin {handle idx text} {
         # Reload configuration file.
         InitMain
 
-    } elseif {$event eq "TEST" || $event eq "TESTS"} {
-        package require tcltest 2
-
-        # The test suite will change the working directory.
-        set workingDir [pwd]
-
-        # Configure test suite options.
-        set testPath [file join $scriptPath "tests"]
-        set logFile [file join $scriptPath "tests.log"]
-
-        if {![file isdirectory $testPath]} {
-            putdcc $idx "Test suite not found."
-            return
-        }
-
-        if {[catch {
-            ::tcltest::errorFile        $logFile
-            ::tcltest::outputFile       $logFile
-            ::tcltest::singleProcess    1
-            ::tcltest::testsDirectory   $testPath
-            ::tcltest::workingDirectory $testPath
-            ::tcltest::runAllTests
-        }]} {
-            putdcc $idx $::errorInfo
-        }
-
-        cd $workingDir
     } else {
         global lastbind
         putdcc $idx "[b]Alcoholicz Bot DCC Admin[b]"
         putdcc $idx ".$lastbind dump   - Dump configuration."
         putdcc $idx ".$lastbind help   - Command help."
         putdcc $idx ".$lastbind reload - Reload configuration."
-        putdcc $idx ".$lastbind test   - Run test suite."
     }
     return
 }
@@ -1129,28 +1096,47 @@ proc ::alcoholicz::InitModules {modList} {
     variable modules
     LogInfo "Loading modules..."
 
-    set prevModList [array names modules]
-    array set prevCmdNames [array get cmdNames]
+    set prevModules [array names modules]
+    array set prevCommands [array get cmdNames]
     unset -nocomplain cmdNames
 
-    # TODO:
-    # - The module load order should reflect their dependency requirements.
-    # - Read all module definition files, re-order them, and call ModuleLoadEx.
-
+    # Locate and read all module definition files.
+    set modInfo [TreeCreate]
     foreach modName $modList {
-        if {[catch {ModuleLoad $modName} message]} {
+        if {[catch {
+            set defFile [file join [ModuleFind $modName] "module.def"]
+            TreeSet modInfo $modName [ModuleRead $defFile]
+        } message]} {
             LogInfo "Unable to load module \"$modName\": $message"
-        } else {
-            LogInfo "Module Loaded: $modName"
-            set index [lsearch -exact $prevModList $modName]
-            if {$index != -1} {
-                set prevModList [lreplace $prevModList $index $index]
+        }
+    }
+
+    # Reorder the modules based on their dependencies.
+    set loadOrder [TreeKeys $modInfo]
+    foreach modName $loadOrder {
+        # The module's index changes as the list is reordered.
+        set modIndex [lsearch -exact $loadOrder $modName]
+
+        foreach depName [TreeGet $modInfo $modName depends] {
+            set depIndex [lsearch -exact $loadOrder $depName]
+
+            if {$depIndex > $modIndex} {
+                # Move the dependency before the module.
+                set loadOrder [lreplace $loadOrder $depIndex $depIndex]
+                set loadOrder [linsert $loadOrder $modIndex $depName]
             }
+        }
+
+        set modIndex [lsearch -exact $prevModules $modName]
+        if {$modIndex != -1} {
+            # The module was requested to be loaded again, remove it
+            # from the list of previous modules so its not unloaded.
+            set prevModules [lreplace $prevModules $modIndex $modIndex]
         }
     }
 
     # Remove unreferenced modules.
-    foreach modName $prevModList {
+    foreach modName $prevModules {
         if {[catch {ModuleUnload $modName} message]} {
             LogInfo "Unable to unload module \"$modName\": $message"
         } else {
@@ -1158,10 +1144,19 @@ proc ::alcoholicz::InitModules {modList} {
         }
     }
 
+    # Load all modules listed in the configuration file.
+    foreach modName $loadOrder {
+        if {[catch {ModuleLoadEx $modName [TreeGet $modInfo $modName]} message]} {
+            LogInfo "Unable to load module \"$modName\": $message"
+        } else {
+            LogInfo "Module Loaded: $modName"
+        }
+    }
+
     # Remove unreferenced commands.
-    foreach name [array names prevCmdNames] {
+    foreach name [array names prevCommands] {
         if {![info exists cmdNames($name)]} {
-            set cmdNames($name) $prevCmdNames($name)
+            set cmdNames($name) $prevCommands($name)
             CmdRemove [lindex $name 0] [lindex $name 1]
         }
     }
