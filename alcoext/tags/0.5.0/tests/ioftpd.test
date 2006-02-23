@@ -1,0 +1,739 @@
+#
+# AlcoExt - Alcoholicz Tcl extension.
+# Copyright (c) 2005-2006 Alcoholicz Scripting Team
+#
+# Module Name:
+#   ioftpd.test
+#
+# Author:
+#   neoxed (neoxed@gmail.com) Jul 23, 2005
+#
+# Abstract:
+#   ioFTPD interface test suite.
+#
+
+set currentPath [file dirname [file normalize [info script]]]
+source [file join $currentPath "loader.tcl"]
+
+# ioFTPD test settings.
+set msgWindow "ioFTPD::MessageWindow"
+
+####
+# CheckMsgWnd
+#
+# Check if the message window exists.
+#
+proc CheckMsgWnd {msgWindow} {
+    if {[catch {ioftpd info $msgWindow io}]} {
+        return 0
+    } else {
+        return 1
+    }
+}
+
+####
+# GetEtcPath
+#
+# Retrieve the path to ioFTPD's "etc" directory.
+#
+proc GetEtcPath {} {
+    global msgWindow
+    ioftpd info $msgWindow io
+    set rootPath [file dirname [file dirname $io(path)]]
+    return [file join $rootPath "etc"]
+}
+
+####
+# GetNonExistentUser
+#
+# Returns a nonexistent ioFTPD user.
+#
+proc GetNonExistentUser {msgWindow} {
+    while {1} {
+        set rnd [expr {rand() * [clock clicks]}]
+        if {![ioftpd user exists $msgWindow $rnd]} {return $rnd}
+    }
+}
+
+####
+# GetNonExistentGroup
+#
+# Returns a nonexistent ioFTPD group.
+#
+proc GetNonExistentGroup {msgWindow} {
+    while {1} {
+        set rnd [expr {rand() * [clock clicks]}]
+        if {![ioftpd group exists $msgWindow $rnd]} {return $rnd}
+    }
+}
+
+####
+# BufferUsers
+#
+# Save all user names and IDs to the "users" array.
+#
+proc BufferUsers {} {
+    global uids users
+    unset -nocomplain uids users
+
+    set filePath [file join [GetEtcPath] "UserIdTable"]
+    set handle [open $filePath r]
+    set data [read -nonewline $handle]
+
+    foreach line [split $data "\n"] {
+        set line [split [string trim $line] ":"]
+        # User:UID:Module
+        if {[llength $line] == 3} {
+            set uids([lindex $line 1]) [lindex $line 0]
+            set users([lindex $line 0]) [lindex $line 1]
+        }
+    }
+    close $handle
+}
+
+####
+# BufferGroups
+#
+# Save all group names and IDs to the "groups" array.
+#
+proc BufferGroups {} {
+    global gids groups
+    unset -nocomplain gids groups
+
+    set filePath [file join [GetEtcPath] "GroupIdTable"]
+    set handle [open $filePath r]
+    set data [read -nonewline $handle]
+
+    foreach line [split $data "\n"] {
+        set line [split [string trim $line] ":"]
+        # Group:GID:Module
+        if {[llength $line] == 3} {
+            set gids([lindex $line 1]) [lindex $line 0]
+            set groups([lindex $line 0]) [lindex $line 1]
+        }
+    }
+    close $handle
+}
+
+testConstraint msgWndExists [CheckMsgWnd $msgWindow]
+
+################################################################################
+# ioftpd                                                                       #
+################################################################################
+
+test ioftpd-1.1 {ioftpd: no args} {win} {
+    list [catch {ioftpd} msg] $msg
+} {1 {wrong # args: should be "ioftpd option arg ?arg ...?"}}
+
+test ioftpd-1.2 {ioftpd: one arg} {win} {
+    list [catch {ioftpd .} msg] $msg
+} {1 {bad option ".": must be group, info, kick, kill, user, vfs, or who}}
+
+test ioftpd-1.3 {ioftpd: invalid option} {win} {
+    list [catch {ioftpd . a} msg] $msg
+} {1 {bad option ".": must be group, info, kick, kill, user, vfs, or who}}
+
+################################################################################
+# ioftpd group                                                                 #
+################################################################################
+
+test ioftpd-2.1 {ioftpd group: no args} {win} {
+    list [catch {ioftpd group} msg] $msg
+} {1 {wrong # args: should be "ioftpd group option arg ?arg ...?"}}
+
+test ioftpd-2.2 {ioftpd group: invalid sub-option} {win} {
+    list [catch {ioftpd group . a b} msg] $msg
+} {1 {bad option ".": must be create, delete, exists, get, rename, set, toid, or toname}}
+
+test ioftpd-2.3 {ioftpd group: create/rename/delete} {win msgWndExists} {
+    set result [list]
+    set group [GetNonExistentGroup $msgWindow]
+
+    # Make sure the group does not exist (exist 0 0).
+    BufferGroups
+    lappend result [list                        \
+        "exist"                                 \
+        [ioftpd group exists $msgWindow $group] \
+        [info exists groups($group)]            \
+    ]
+
+    # Create the group.
+    set gid [ioftpd group create $msgWindow $group]
+
+    # Check that the group was created (create 1 1 1).
+    BufferGroups
+    lappend result [list                                       \
+        "create"                                               \
+        [ioftpd group exists $msgWindow $group]                \
+        [info exists groups($group)]                           \
+        [expr {[ioftpd group toid $msgWindow $group] == $gid}] \
+    ]
+
+    # Rename the group.
+    set newGroup [GetNonExistentGroup $msgWindow]
+    ioftpd group rename $msgWindow $group $newGroup
+
+    # Check that the group was renamed (rename 0 0 1 1 1).
+    BufferGroups
+    lappend result [list                                          \
+        "rename"                                                  \
+        [ioftpd group exists $msgWindow $group]                   \
+        [info exists groups($group)]                              \
+        [ioftpd group exists $msgWindow $newGroup]                \
+        [info exists groups($newGroup)]                           \
+        [expr {[ioftpd group toid $msgWindow $newGroup] == $gid}] \
+    ]
+
+    # Delete the new group.
+    ioftpd group delete $msgWindow $newGroup
+
+    # Check that the new group was deleted (delete 0 0).
+    BufferGroups
+    lappend result [list                           \
+        "delete"                                   \
+        [ioftpd group exists $msgWindow $newGroup] \
+        [info exists groups($newGroup)]            \
+    ]
+
+    set result
+} {{exist 0 0} {create 1 1 1} {rename 0 0 1 1 1} {delete 0 0}}
+
+test ioftpd-2.4 {ioftpd group: exists, valid groups} {win msgWndExists} {
+    BufferGroups
+    foreach name [array names groups] {
+        if {![ioftpd group exists $msgWindow $name]} {
+            return "group \"$name\" does exist"
+        }
+    }
+} {}
+
+test ioftpd-2.5 {ioftpd group: exists, invalid group} {win msgWndExists} {
+    ioftpd group exists $msgWindow ""
+} {0}
+
+test ioftpd-2.6 {ioftpd group: get, invalid group} {win msgWndExists} {
+    list [catch {ioftpd group get $msgWindow ""} msg] $msg
+} {1 {invalid group ""}}
+
+test ioftpd-2.7 {ioftpd group: get, field names} {win msgWndExists} {
+    BufferGroups
+    unset -nocomplain data
+    array set data [ioftpd group get $msgWindow [lindex [array names groups] 0]]
+    set names [lsort [array names data]]
+    unset -nocomplain data
+    set names
+} {desc slots users vfsfile}
+
+test ioftpd-2.8 {ioftpd group: get, check data} {win msgWndExists} {
+    BufferGroups
+    foreach group [array names groups] {
+        unset -nocomplain data
+        set data [ioftpd group get $msgWindow $group]
+        foreach {name value} $data {
+            set valid 0
+            switch -- $name {
+                desc -
+                vfsfile {
+                    # String.
+                    set valid 1
+                }
+                slots {
+                    # List of integers (2).
+                    set intCount 0
+                    foreach num $value {
+                        incr intCount [string is integer -strict $num]
+                    }
+                    set valid [expr {[llength $value] == 2 && $intCount == 2}]
+                }
+                users {
+                    # Integer.
+                    set valid [string is integer -strict $value]
+                }
+                default {return "invalid field name \"$name\""}
+            }
+            if {!$valid} {return "invalid value \"$value\" for \"$name\""}
+        }
+    }
+    unset -nocomplain data name value
+} {}
+
+test ioftpd-2.9 {ioftpd group: set, invalid group} {win msgWndExists} {
+    list [catch {ioftpd group set $msgWindow "" ""} msg] $msg
+} {1 {invalid group ""}}
+
+test ioftpd-2.10 {ioftpd group: set, invalid list data} {win msgWndExists} {
+    BufferGroups
+    list [catch {ioftpd group set $msgWindow [lindex [array names groups] 0] "a b c"} msg] $msg
+} {1 {list must have an even number of elements}}
+
+test ioftpd-2.11 {ioftpd group: set, invalid field name} {win msgWndExists} {
+    BufferGroups
+    list [catch {ioftpd group set $msgWindow [lindex [array names groups] 0] ". {}"} msg] $msg
+} {1 {bad field ".": must be desc, slots, users, or vfsfile}}
+
+test ioftpd-2.12 {ioftpd group: set, "slots" field} {win msgWndExists} {
+    BufferGroups
+    set data [list slots [list 1 2 3]]
+    list [catch {ioftpd group set $msgWindow [lindex [array names groups] 0] $data} msg] $msg
+} {1 {the "slots" field must have 2 list elements}}
+
+test ioftpd-2.13 {ioftpd group: set, "users" field} {win msgWndExists} {
+    BufferGroups
+    set data [list users .]
+    list [catch {ioftpd group set $msgWindow [lindex [array names groups] 0] $data} msg] $msg
+} {1 {expected integer but got "."}}
+
+test ioftpd-2.14 {ioftpd group: set, consistency} {win msgWndExists} {
+    BufferGroups
+    foreach group [array names groups] {
+        set dataBefore [ioftpd group get $msgWindow $group]
+        ioftpd group set $msgWindow $group $dataBefore
+        set dataAfter [ioftpd group get $msgWindow $group]
+
+        if {$dataBefore ne $dataAfter} {
+            return "the group file data changed for \"$group\""
+        }
+    }
+    unset -nocomplain dataBefore dataAfter
+} {}
+
+test ioftpd-2.15 {ioftpd group: toid, valid groups} {win msgWndExists} {
+    BufferGroups
+    foreach name [array names groups] {
+        set result [ioftpd group toid $msgWindow $name]
+        if {$result != $groups($name)} {
+            return "expected $groups($name) for group $name but got $result"
+        }
+    }
+} {}
+
+test ioftpd-2.16 {ioftpd group: toid, invalid group} {win msgWndExists} {
+    ioftpd group toid $msgWindow ""
+} {-1}
+
+test ioftpd-2.17 {ioftpd group: toname, invalid int} {win msgWndExists} {
+    list [catch {ioftpd group toname $msgWindow .} msg] $msg
+} {1 {expected integer but got "."}}
+
+test ioftpd-2.18 {ioftpd group: toname, valid groups} {win msgWndExists} {
+    BufferGroups
+    foreach name [array names groups] {
+        set result [ioftpd group toname $msgWindow $groups($name)]
+        if {$result ne $name} {
+            return "expected $name for GID $groups($name) but got $result"
+        }
+    }
+} {}
+
+test ioftpd-2.19 {ioftpd group: toname, invalid group} {win msgWndExists} {
+    ioftpd group toname $msgWindow -1
+} {}
+
+################################################################################
+# ioftpd info                                                                  #
+################################################################################
+
+test ioftpd-3.1 {ioftpd info: no args} {win} {
+    list [catch {ioftpd info} msg] $msg
+} {1 {wrong # args: should be "ioftpd info msgWindow varName"}}
+
+test ioftpd-3.2 {ioftpd info: too many args} {win} {
+    list [catch {ioftpd info a b c} msg] $msg
+} {1 {wrong # args: should be "ioftpd info msgWindow varName"}}
+
+test ioftpd-3.3 {ioftpd info: array elements} {win msgWndExists} {
+    ioftpd info $msgWindow io
+    set names [lsort [array names io]]
+    unset -nocomplain io
+    set names
+} {path pid time}
+
+test ioftpd-3.4 {ioftpd info: varName isn't an array} {win msgWndExists} {
+    unset -nocomplain test; set test 1
+    set result [list [catch {ioftpd info $msgWindow test} msg] $msg]
+    unset test
+    set result
+} {1 {can't set "test(path)": variable isn't array}}
+
+################################################################################
+# ioftpd kick                                                                  #
+################################################################################
+
+test ioftpd-4.1 {ioftpd kick: no args} {win} {
+    list [catch {ioftpd kick} msg] $msg
+} {1 {wrong # args: should be "ioftpd kick msgWindow uid"}}
+
+test ioftpd-4.2 {ioftpd kick: too many args} {win} {
+    list [catch {ioftpd kick a b c} msg] $msg
+} {1 {wrong # args: should be "ioftpd kick msgWindow uid"}}
+
+test ioftpd-4.3 {ioftpd kick: invalid int} {win msgWndExists} {
+    list [catch {ioftpd kick $msgWindow .} msg] $msg
+} {1 {expected integer but got "."}}
+
+################################################################################
+# ioftpd kill                                                                  #
+################################################################################
+
+test ioftpd-5.1 {ioftpd kill: no args} {win} {
+    list [catch {ioftpd kill} msg] $msg
+} {1 {wrong # args: should be "ioftpd kill msgWindow cid"}}
+
+test ioftpd-5.2 {ioftpd kill: too many args} {win} {
+    list [catch {ioftpd kill a b c} msg] $msg
+} {1 {wrong # args: should be "ioftpd kill msgWindow cid"}}
+
+test ioftpd-5.3 {ioftpd kill: invalid int} {win msgWndExists} {
+    list [catch {ioftpd kill $msgWindow .} msg] $msg
+} {1 {expected integer but got "."}}
+
+################################################################################
+# ioftpd user                                                                  #
+################################################################################
+
+test ioftpd-6.1 {ioftpd user: no args} {win} {
+    list [catch {ioftpd user} msg] $msg
+} {1 {wrong # args: should be "ioftpd user option arg ?arg ...?"}}
+
+test ioftpd-6.2 {ioftpd user: invalid sub-option} {win} {
+    list [catch {ioftpd user . a b} msg] $msg
+} {1 {bad option ".": must be create, delete, exists, get, rename, set, toid, or toname}}
+
+test ioftpd-6.3 {ioftpd user: create/rename/delete} {win msgWndExists} {
+    set result [list]
+    set user [GetNonExistentUser $msgWindow]
+
+    # Make sure the user does not exist (exist 0 0).
+    BufferUsers
+    lappend result [list                      \
+        "exist"                               \
+        [ioftpd user exists $msgWindow $user] \
+        [info exists users($user)]            \
+    ]
+
+    # Create the user.
+    set uid [ioftpd user create $msgWindow $user]
+
+    # Check that the user was created (create 1 1 1).
+    BufferUsers
+    lappend result [list                                     \
+        "create"                                             \
+        [ioftpd user exists $msgWindow $user]                \
+        [info exists users($user)]                           \
+        [expr {[ioftpd user toid $msgWindow $user] == $uid}] \
+    ]
+
+    # Rename the user.
+    set newUser [GetNonExistentUser $msgWindow]
+    ioftpd user rename $msgWindow $user $newUser
+
+    # Check that the user was renamed (rename 0 0 1 1 1).
+    BufferUsers
+    lappend result [list                                        \
+        "rename"                                                \
+        [ioftpd user exists $msgWindow $user]                   \
+        [info exists users($user)]                              \
+        [ioftpd user exists $msgWindow $newUser]                \
+        [info exists users($newUser)]                           \
+        [expr {[ioftpd user toid $msgWindow $newUser] == $uid}] \
+    ]
+
+    # Delete the new user.
+    ioftpd user delete $msgWindow $newUser
+
+    # Check that the new user was deleted (delete 0 0).
+    BufferUsers
+    lappend result [list                         \
+        "delete"                                 \
+        [ioftpd user exists $msgWindow $newUser] \
+        [info exists users($newUser)]            \
+    ]
+
+    set result
+} {{exist 0 0} {create 1 1 1} {rename 0 0 1 1 1} {delete 0 0}}
+
+test ioftpd-6.4 {ioftpd user: exists, valid users} {win msgWndExists} {
+    BufferUsers
+    foreach name [array names users] {
+        if {![ioftpd user exists $msgWindow $name]} {
+            return "user \"$name\" does exist"
+        }
+    }
+} {}
+
+test ioftpd-6.5 {ioftpd user: exists, invalid user} {win msgWndExists} {
+    ioftpd user exists $msgWindow ""
+} {0}
+
+test ioftpd-6.6 {ioftpd user: get, invalid user} {win msgWndExists} {
+    list [catch {ioftpd user get $msgWindow ""} msg] $msg
+} {1 {invalid user ""}}
+
+test ioftpd-6.7 {ioftpd user: get, field names} {win msgWndExists} {
+    BufferUsers
+    unset -nocomplain data
+    array set data [ioftpd user get $msgWindow [lindex [array names users] 0]]
+    set names [lsort [array names data]]
+    unset -nocomplain data
+    set names
+} {admingroups alldn allup credits daydn dayup flags groups home ips limits monthdn monthup password ratio tagline vfsfile wkdn wkup}
+
+test ioftpd-6.8 {ioftpd user: get, check data} {win msgWndExists} {
+    BufferUsers
+    foreach user [array names users] {
+        unset -nocomplain data
+        set data [ioftpd user get $msgWindow $user]
+        foreach {name value} $data {
+            set valid 0
+            switch -- $name {
+                alldn - allup -
+                daydn - dayup -
+                monthdn - monthup -
+                wkdn - wkup {
+                    # List of integers (30).
+                    set intCount 0
+                    foreach num $value {
+                        incr intCount [string is integer -strict $num]
+                    }
+                    set valid [expr {[llength $value] == 30 && $intCount == 30}]
+                }
+                credits -
+                ratio {
+                    # List of integers (10).
+                    set intCount 0
+                    foreach num $value {
+                        incr intCount [string is integer -strict $num]
+                    }
+                    set valid [expr {[llength $value] == 10 && $intCount == 10}]
+                }
+                limits {
+                    # List of integers (5).
+                    set intCount 0
+                    foreach num $value {
+                        incr intCount [string is integer -strict $num]
+                    }
+                    set valid [expr {[llength $value] == 5 && $intCount == 5}]
+                }
+                admingroups -
+                groups {
+                    # List of integers.
+                    set intCount 0
+                    foreach num $value {
+                        incr intCount [string is integer -strict $num]
+                    }
+                    set valid [expr {[llength $value] == $intCount}]
+                }
+                ips {
+                    # List of string.
+                    set valid 1
+                }
+                flags -
+                home -
+                password -
+                tagline -
+                vfsfile {
+                    # String.
+                    set valid 1
+                }
+                default {return "invalid field name \"$name\""}
+            }
+            if {!$valid} {return "invalid value \"$value\" for \"$name\""}
+        }
+    }
+    unset -nocomplain data name value num
+} {}
+
+test ioftpd-6.9 {ioftpd user: set, invalid user} {win msgWndExists} {
+    list [catch {ioftpd user set $msgWindow "" ""} msg] $msg
+} {1 {invalid user ""}}
+
+test ioftpd-6.10 {ioftpd user: set, invalid list data} {win msgWndExists} {
+    BufferUsers
+    list [catch {ioftpd user set $msgWindow [lindex [array names users] 0] "a b c"} msg] $msg
+} {1 {list must have an even number of elements}}
+
+test ioftpd-6.11 {ioftpd user: set, invalid field name} {win msgWndExists} {
+    BufferUsers
+    list [catch {ioftpd user set $msgWindow [lindex [array names users] 0] ". {}"} msg] $msg
+} {1 {bad field ".": must be admingroups, alldn, allup, credits, daydn, dayup, flags, groups, home, ips, limits, monthdn, monthup, password, ratio, tagline, vfsfile, wkdn, or wkup}}
+
+test ioftpd-6.12 {ioftpd user:, "credits" field} {win msgWndExists} {
+    BufferUsers
+    set nums [list]
+    for {set i 0} {$i < 11} {incr i} {
+        lappend nums $i
+    }
+    set data [list credits $nums]
+    list [catch {ioftpd user set $msgWindow [lindex [array names users] 0] $data} msg] $msg
+} {1 {the "credits" field must have 10 list elements}}
+
+test ioftpd-6.13 {ioftpd user:, "ips" field} {win msgWndExists} {
+    BufferUsers
+    set ipList [list]
+    for {set i 0} {$i < 30} {incr i} {
+        lappend ipList "*@host${i}.com"
+    }
+    set data [list ips $ipList]
+    list [catch {ioftpd user set $msgWindow [lindex [array names users] 0] $data} msg] $msg
+} {1 {too many list elements for the "ips" field}}
+
+test ioftpd-6.14 {ioftpd user: set, "limits" field} {win msgWndExists} {
+    BufferUsers
+    set data [list limits [list 1 2 3 4 5 6]]
+    list [catch {ioftpd user set $msgWindow [lindex [array names users] 0] $data} msg] $msg
+} {1 {the "limits" field must have 5 list elements}}
+
+test ioftpd-6.15 {ioftpd user: set, "ratio" field} {win msgWndExists} {
+    BufferUsers
+    set nums [list]
+    for {set i 0} {$i < 9} {incr i} {
+        lappend nums $i
+    }
+    set data [list ratio $nums]
+    list [catch {ioftpd user set $msgWindow [lindex [array names users] 0] $data} msg] $msg
+} {1 {the "ratio" field must have 10 list elements}}
+
+test ioftpd-6.16 {ioftpd user: set, consistency} {win msgWndExists} {
+    BufferUsers
+    foreach user [array names users] {
+        set dataBefore [ioftpd user get $msgWindow $user]
+        ioftpd user set $msgWindow $user $dataBefore
+        set dataAfter [ioftpd user get $msgWindow $user]
+
+        if {$dataBefore ne $dataAfter} {
+            return "the user file data changed for \"$user\""
+        }
+    }
+    unset -nocomplain dataBefore dataAfter
+} {}
+
+test ioftpd-6.17 {ioftpd user: toid, valid users} {win msgWndExists} {
+    BufferUsers
+    foreach name [array names users] {
+        set result [ioftpd user toid $msgWindow $name]
+        if {$result != $users($name)} {
+            return "expected $users($name) for user $name but got $result"
+        }
+    }
+} {}
+
+test ioftpd-6.18 {ioftpd user: toid, invalid user} {win msgWndExists} {
+    ioftpd user toid $msgWindow ""
+} {-1}
+
+test ioftpd-6.19 {ioftpd user: toname, invalid int} {win msgWndExists} {
+    list [catch {ioftpd user toname $msgWindow .} msg] $msg
+} {1 {expected integer but got "."}}
+
+test ioftpd-6.20 {ioftpd user: toname, valid users} {win msgWndExists} {
+    BufferUsers
+    foreach name [array names users] {
+        set result [ioftpd user toname $msgWindow $users($name)]
+        if {$result ne $name} {
+            return "expected $name for UID $users($name) but got $result"
+        }
+    }
+} {}
+
+test ioftpd-6.21 {ioftpd user: toname, invalid user} {win msgWndExists} {
+    ioftpd user toname $msgWindow -1
+} {}
+
+################################################################################
+# ioftpd vfs                                                                   #
+################################################################################
+
+test ioftpd-7.1 {ioftpd vfs: no args} {win} {
+    list [catch {ioftpd vfs} msg] $msg
+} {1 {wrong # args: should be "ioftpd vfs option arg arg ?arg ...?"}}
+
+test ioftpd-7.2 {ioftpd vfs: not enough args} {win} {
+    list [catch {ioftpd vfs a b} msg] $msg
+} {1 {wrong # args: should be "ioftpd vfs option arg arg ?arg ...?"}}
+
+test ioftpd-7.3 {ioftpd vfs: invalid sub-option} {win} {
+    list [catch {ioftpd vfs . a b} msg] $msg
+} {1 {bad option ".": must be flush, read, or write}}
+
+test ioftpd-7.4 {ioftpd vfs: flush, valid path} {win msgWndExists} {
+    ioftpd vfs flush $msgWindow [string map {/ \\} $currentPath]
+} {}
+
+test ioftpd-7.5 {ioftpd vfs: read, not complete} {win msgWndExists} {
+    list [catch {ioftpd vfs read $msgWindow .} msg] $msg
+} {1 {not implemented}}
+
+test ioftpd-7.6 {ioftpd vfs: write, not complete} {win msgWndExists} {
+    list [catch {ioftpd vfs write $msgWindow .} msg] $msg
+} {1 {not implemented}}
+
+::tcltest::cleanupTests
+return
+
+################################################################################
+# ioftpd who                                                                   #
+################################################################################
+
+test ioftpd-8.1 {ioftpd who: no args} {win} {
+    list [catch {ioftpd who} msg] $msg
+} {1 {wrong # args: should be "ioftpd who msgWindow fields"}}
+
+test ioftpd-8.2 {ioftpd who: too many args} {win} {
+    list [catch {ioftpd who a b c} msg] $msg
+} {1 {wrong # args: should be "ioftpd who msgWindow fields"}}
+
+test ioftpd-8.3 {ioftpd who: invalid field} {win msgWndExists} {
+    list [catch {ioftpd who $msgWindow .} msg] $msg
+} {1 {bad field ".": must be action, cid, gid, group, host, ident, idletime, ip, logintime, port, realdatapath, realpath, service, size, speed, status, uid, user, vdatapath, or vpath}}
+
+test ioftpd-8.4 {ioftpd who: check fields} {win msgWndExists} {
+    set fields {action cid gid group host ident idletime ip logintime port realdatapath realpath service size speed status uid user vdatapath vpath}
+    set fieldCount [llength $fields]
+
+    for {set i 0} {$i < $fieldCount} {incr i} {
+        set getFields [lrange $fields 0 $i]
+        foreach entry [ioftpd who $msgWindow $getFields] {
+            if {[llength $entry] != [llength $getFields]} {
+                return "expected fields \"$getFields\" but got \"$user\""
+            }
+        }
+    }
+    unset -nocomplain entry
+} {}
+
+test ioftpd-8.5 {ioftpd who: check users/groups} {win msgWndExists} {
+    BufferGroups
+    BufferUsers
+
+    foreach entry [ioftpd who $msgWindow "uid user gid group"] {
+        foreach {userId userName groupId groupName} $entry {break}
+
+        # User checks.
+        if {![info exists uids($userId)]} {
+            return "the user ID \"$userId\" does not exist"
+        }
+        if {![info exists users($userName)]} {
+            return "the user name \"$userName\" does not exist"
+        }
+        if {$users($userName) != $userId} {
+            return "the user ID \"$userId\" for user name \"$userName\""
+        }
+
+        # Group checks.
+        if {![info exists gids($groupId)]} {
+            return "the group ID \"$groupId\" does not exist"
+        }
+        if {![info exists groups($groupName)]} {
+            return "the group name \"$groupName\" does not exist"
+        }
+        if {$groups($groupName) != $groupId} {
+            return "the group ID \"$groupId\" for group name \"$groupName\""
+        }
+    }
+    unset -nocomplain entry groupId groupName userId userName
+} {}
+
+
+unset -nocomplain uids users gids groups
+::tcltest::cleanupTests
+return

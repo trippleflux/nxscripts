@@ -1,0 +1,379 @@
+#
+# AlcoExt - Alcoholicz Tcl extension.
+# Copyright (c) 2005-2006 Alcoholicz Scripting Team
+#
+# Module Name:
+#   configure.in
+#
+# Author:
+#   neoxed (neoxed@gmail.com) Aug 3, 2005
+#
+# Abstract:
+#   Autoconf template.
+#
+
+# Setup autoconf.
+AC_PREREQ(2.59)
+AC_INIT([AlcoExt],[0.5])
+AC_CONFIG_HEADER([config.h])
+
+# Load TEA and the tclConfig.sh file.
+TEA_INIT([3.5])
+TEA_PATH_TCLCONFIG
+TEA_LOAD_TCLCONFIG
+TEA_PREFIX
+TEA_SETUP_COMPILER
+
+# Check for compiler characteristics.
+AC_C_CONST
+AC_C_INLINE
+AC_C_VOLATILE
+
+# Check for library functions, structures, and types.
+AC_CHECK_FUNCS([getmntent getmntinfo getmntinfo_r])
+AC_TYPE_PID_T
+AC_TYPE_SIZE_T
+
+# Check for required headers.
+AC_CHECK_HEADERS([limits.h syslimits.h sys/limits.h])
+AC_CHECK_HEADERS([inttypes.h memory.h stdint.h strings.h time.h unistd.h])
+AC_CHECK_HEADERS([sys/param.h sys/statfs.h sys/statvfs.h sys/time.h sys/vfs.h])
+mount_includes="\
+$ac_includes_default
+#if HAVE_SYS_PARAM_H
+# include <sys/param.h>
+#endif
+"
+AC_CHECK_HEADERS([sys/mount.h],,,[$mount_includes])
+
+AC_DEFINE([BZ_NO_STDIO], 1, [Remove unused stdio functionality in Bzip.])
+AC_DEFINE([LTC_NO_ROLC], 1, [Prevent compiler warnings when building LibTomCrypt.])
+
+#-----------------------------------------------------------------------
+# Statfs checks borrowed from rdesktop.
+# URL: http://sourceforge.net/projects/rdesktop
+#-----------------------------------------------------------------------
+
+space=no
+
+# Test for statvfs64.
+if test $space = no; then
+  # SVR4
+  AC_CACHE_CHECK([statvfs64 function (SVR4)], fu_cv_sys_stat_statvfs64,
+  [AC_TRY_RUN([
+#if defined(HAVE_UNISTD_H)
+#include <unistd.h>
+#endif
+#include <sys/types.h>
+#include <sys/statvfs.h>
+  main ()
+  {
+    struct statvfs64 fsd;
+    exit (statvfs64 (".", &fsd));
+  }],
+  fu_cv_sys_stat_statvfs64=yes,
+  fu_cv_sys_stat_statvfs64=no,
+  fu_cv_sys_stat_statvfs64=cross)])
+  if test $fu_cv_sys_stat_statvfs64 = yes; then
+    space=yes
+    AC_DEFINE(STAT_STATVFS64,1,[Whether statvfs64() is available])
+  fi
+fi
+
+# Perform only the link test since it seems there are no variants of the
+# statvfs function.  This check is more than just AC_CHECK_FUNCS(statvfs)
+# because that got a false positive on SCO OSR5.  Adding the declaration
+# of a `struct statvfs' causes this test to fail (as it should) on such
+# systems.  That system is reported to work fine with STAT_STATFS4 which
+# is what it gets when this test fails.
+if test $space = no; then
+  # SVR4
+  AC_CACHE_CHECK([statvfs function (SVR4)], fu_cv_sys_stat_statvfs,
+                 [AC_TRY_LINK([#include <sys/types.h>
+#include <sys/statvfs.h>],
+                              [struct statvfs fsd; statvfs (0, &fsd);],
+                              fu_cv_sys_stat_statvfs=yes,
+                              fu_cv_sys_stat_statvfs=no)])
+  if test $fu_cv_sys_stat_statvfs = yes; then
+    space=yes
+    AC_DEFINE(STAT_STATVFS,1,[Whether statvfs() is available])
+  fi
+fi
+
+if test $space = no; then
+  # DEC Alpha running OSF/1
+  AC_MSG_CHECKING([for 3-argument statfs function (DEC OSF/1)])
+  AC_CACHE_VAL(fu_cv_sys_stat_statfs3_osf1,
+  [AC_TRY_RUN([
+#include <sys/param.h>
+#include <sys/types.h>
+#include <sys/mount.h>
+  main ()
+  {
+    struct statfs fsd;
+    fsd.f_fsize = 0;
+    exit (statfs (".", &fsd, sizeof (struct statfs)));
+  }],
+  fu_cv_sys_stat_statfs3_osf1=yes,
+  fu_cv_sys_stat_statfs3_osf1=no,
+  fu_cv_sys_stat_statfs3_osf1=no)])
+
+
+#C_MSG_RESULT($fu_cv_sys_stat_statfs3_osf1)
+  if test $fu_cv_sys_stat_statfs3_osf1 = yes; then
+    space=yes
+    AC_DEFINE(STAT_STATFS3_OSF1,1,[Whether statfs requires 3 arguments])
+  fi
+fi
+
+if test $space = no; then
+# AIX
+  AC_MSG_CHECKING([for two-argument statfs with statfs.bsize dnl
+member (AIX, 4.3BSD)])
+  AC_CACHE_VAL(fu_cv_sys_stat_statfs2_bsize,
+  [AC_TRY_RUN([
+#ifdef HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif
+#ifdef HAVE_SYS_MOUNT_H
+#include <sys/mount.h>
+#endif
+#ifdef HAVE_SYS_VFS_H
+#include <sys/vfs.h>
+#endif
+  main ()
+  {
+  struct statfs fsd;
+  fsd.f_bsize = 0;
+  exit (statfs (".", &fsd));
+  }],
+  fu_cv_sys_stat_statfs2_bsize=yes,
+  fu_cv_sys_stat_statfs2_bsize=no,
+  fu_cv_sys_stat_statfs2_bsize=no)])
+  AC_MSG_RESULT($fu_cv_sys_stat_statfs2_bsize)
+  if test $fu_cv_sys_stat_statfs2_bsize = yes; then
+    space=yes
+    AC_DEFINE(STAT_STATFS2_BSIZE,1,[Whether statfs requires two arguments and struct statfs has bsize property])
+  fi
+fi
+
+if test $space = no; then
+# SVR3
+  AC_MSG_CHECKING([for four-argument statfs (AIX-3.2.5, SVR3)])
+  AC_CACHE_VAL(fu_cv_sys_stat_statfs4,
+  [AC_TRY_RUN([#include <sys/types.h>
+#include <sys/statfs.h>
+  main ()
+  {
+  struct statfs fsd;
+  exit (statfs (".", &fsd, sizeof fsd, 0));
+  }],
+    fu_cv_sys_stat_statfs4=yes,
+    fu_cv_sys_stat_statfs4=no,
+    fu_cv_sys_stat_statfs4=no)])
+  AC_MSG_RESULT($fu_cv_sys_stat_statfs4)
+  if test $fu_cv_sys_stat_statfs4 = yes; then
+    space=yes
+    AC_DEFINE(STAT_STATFS4,1,[Whether statfs requires 4 arguments])
+  fi
+fi
+
+if test $space = no; then
+# 4.4BSD and NetBSD
+  AC_MSG_CHECKING([for two-argument statfs with statfs.fsize dnl
+member (4.4BSD and NetBSD)])
+  AC_CACHE_VAL(fu_cv_sys_stat_statfs2_fsize,
+  [AC_TRY_RUN([#include <sys/types.h>
+#ifdef HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif
+#ifdef HAVE_SYS_MOUNT_H
+#include <sys/mount.h>
+#endif
+  main ()
+  {
+  struct statfs fsd;
+  fsd.f_fsize = 0;
+  exit (statfs (".", &fsd));
+  }],
+  fu_cv_sys_stat_statfs2_fsize=yes,
+  fu_cv_sys_stat_statfs2_fsize=no,
+  fu_cv_sys_stat_statfs2_fsize=no)])
+  AC_MSG_RESULT($fu_cv_sys_stat_statfs2_fsize)
+  if test $fu_cv_sys_stat_statfs2_fsize = yes; then
+    space=yes
+        AC_DEFINE(STAT_STATFS2_FSIZE,1,[Whether statfs requires 2 arguments and struct statfs has fsize])
+  fi
+fi
+
+if test $space = no; then
+  # Ultrix
+  AC_MSG_CHECKING([for two-argument statfs with struct fs_data (Ultrix)])
+  AC_CACHE_VAL(fu_cv_sys_stat_fs_data,
+  [AC_TRY_RUN([#include <sys/types.h>
+#ifdef HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif
+#ifdef HAVE_SYS_MOUNT_H
+#include <sys/mount.h>
+#endif
+#ifdef HAVE_SYS_FS_TYPES_H
+#include <sys/fs_types.h>
+#endif
+  main ()
+  {
+  struct fs_data fsd;
+  /* Ultrix's statfs returns 1 for success,
+     0 for not mounted, -1 for failure.  */
+  exit (statfs (".", &fsd) != 1);
+  }],
+  fu_cv_sys_stat_fs_data=yes,
+  fu_cv_sys_stat_fs_data=no,
+  fu_cv_sys_stat_fs_data=no)])
+  AC_MSG_RESULT($fu_cv_sys_stat_fs_data)
+  if test $fu_cv_sys_stat_fs_data = yes; then
+    space=yes
+    AC_DEFINE(STAT_STATFS2_FS_DATA,1,[Whether statfs requires 2 arguments and struct fs_data is available])
+  fi
+fi
+
+statfs_includes="\
+$ac_includes_default
+#if HAVE_SYS_STATVFS_H
+# include <sys/statvfs.h>
+#endif
+#if HAVE_SYS_VFS_H
+# include <sys/vfs.h>
+#endif
+#if !HAVE_SYS_STATVFS_H && !HAVE_SYS_VFS_H
+# if HAVE_SYS_MOUNT_H && HAVE_SYS_PARAM_H
+/* NetBSD 1.5.2 needs these, for the declaration of struct statfs. */
+#  include <sys/param.h>
+#  include <sys/mount.h>
+# elif HAVE_NETINET_IN_H && HAVE_NFS_NFS_CLNT_H && HAVE_NFS_VFS_H
+/* Ultrix 4.4 needs these for the declaration of struct statfs.  */
+#  include <netinet/in.h>
+#  include <nfs/nfs_clnt.h>
+#  include <nfs/vfs.h>
+# endif
+#endif
+"
+
+AC_CHECK_MEMBERS([
+    struct statfs.f_basetype,
+    struct statfs.f_flag,
+    struct statfs.f_flags,
+    struct statfs.f_fsid.val,
+    struct statfs.f_fsid,
+    struct statfs.f_fstypename,
+    struct statfs.f_namelen,
+    struct statfs.f_namemax],,,
+    [$statfs_includes])
+
+AC_CHECK_MEMBERS([
+    struct statvfs.f_basetype,
+    struct statvfs.f_flag,
+    struct statvfs.f_flags,
+    struct statvfs.f_fsid.val,
+    struct statvfs.f_fsid,
+    struct statvfs.f_fstypename,
+    struct statvfs.f_namelen,
+    struct statvfs.f_namemax],,,
+    [$statfs_includes])
+
+#-----------------------------------------------------------------------
+# Specify the C source files to compile in TEA_ADD_SOURCES,
+# public headers that need to be installed in TEA_ADD_HEADERS,
+# stub library C source files to compile in TEA_ADD_STUB_SOURCES,
+# and runtime Tcl library files in TEA_ADD_TCL_SOURCES.
+# This defines PKG(_STUB)_SOURCES, PKG(_STUB)_OBJECTS, PKG_HEADERS
+# and PKG_TCL_SOURCES.
+#-----------------------------------------------------------------------
+
+TEA_ADD_SOURCES([])
+TEA_ADD_HEADERS([])
+TEA_ADD_INCLUDES(
+    -I\"../libs/bzip2/\"
+    -I\"../libs/tomcrypt/\"
+    -I\"../libs/zlib/\"
+    -I\"../generic/\"
+    -I\"./\"
+)
+TEA_ADD_LIBS([])
+TEA_ADD_CFLAGS([])
+TEA_ADD_STUB_SOURCES([])
+TEA_ADD_TCL_SOURCES([])
+
+#--------------------------------------------------------------------
+# Choose which headers you need.  Extension authors should try very
+# hard to only rely on the Tcl public header files.  Internal headers
+# contain private data structures and are subject to change without
+# notice.
+# This MUST be called after TEA_LOAD_TCLCONFIG / TEA_LOAD_TKCONFIG
+#--------------------------------------------------------------------
+
+TEA_PUBLIC_TCL_HEADERS
+
+#--------------------------------------------------------------------
+# Check whether --enable-threads or --disable-threads was given.
+# This auto-enables if Tcl was compiled threaded.
+#--------------------------------------------------------------------
+
+TEA_ENABLE_THREADS
+
+#--------------------------------------------------------------------
+# The statement below defines a collection of symbols related to
+# building as a shared library instead of a static library.
+#--------------------------------------------------------------------
+
+TEA_ENABLE_SHARED
+
+#--------------------------------------------------------------------
+# This macro figures out what flags to use with the compiler/linker
+# when building shared/static debug/optimized objects.  This information
+# can be taken from the tclConfig.sh file, but this figures it all out.
+#--------------------------------------------------------------------
+
+TEA_CONFIG_CFLAGS
+
+#--------------------------------------------------------------------
+# Set the default compiler switches based on the --enable-symbols option.
+#--------------------------------------------------------------------
+
+TEA_ENABLE_SYMBOLS
+
+#--------------------------------------------------------------------
+# Everyone should be linking against the Tcl stub library.  If you
+# can't for some reason, remove this definition.  If you aren't using
+# stubs, you also need to modify the SHLIB_LD_LIBS setting below to
+# link against the non-stubbed Tcl library.  Add Tk too if necessary.
+#--------------------------------------------------------------------
+
+AC_DEFINE(USE_TCL_STUBS, 1, [Use Tcl stubs])
+
+#--------------------------------------------------------------------
+# This macro generates a line to use when building a library.  It
+# depends on values set by the TEA_ENABLE_SHARED, TEA_ENABLE_SYMBOLS,
+# and TEA_LOAD_TCLCONFIG macros above.
+#--------------------------------------------------------------------
+
+TEA_MAKE_LIB
+
+#--------------------------------------------------------------------
+# Find tclsh so that we can run pkg_mkIndex to generate the pkgIndex.tcl
+# file during the install process.  Don't run the TCLSH_PROG through
+# ${CYGPATH} because it's being used directly by make.
+# Require that we use a tclsh shell version 8.2 or later since earlier
+# versions have bugs in the pkg_mkIndex routine.
+# Add WISH as well if this is a Tk extension.
+#--------------------------------------------------------------------
+
+TEA_PROG_TCLSH
+
+#--------------------------------------------------------------------
+# Finally, substitute all of the various values into the Makefile.
+# You may alternatively have a special pkgIndex.tcl.in or other files
+# which require substituting th AC variables in.  Include these here.
+#--------------------------------------------------------------------
+
+AC_OUTPUT([makefile pkgIndex.tcl])
