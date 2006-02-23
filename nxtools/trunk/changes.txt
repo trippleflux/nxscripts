@@ -3,6 +3,8 @@
 ################################################################################
 
 nxTools v1.0.2 (yet to be released):
+  NEW: Option to set the default number of results for SITE DUPE/NEW/etc.
+  CHG: Updated nxHelper to v2.2.5, initialisation speed improvements.
   FIX: Corrected a typo in the default Requests.Header template.
 
 nxTools v1.0.1 (Oct 29, 2005):
@@ -19,9 +21,9 @@ nxTools v1.0.0 (Oct 12, 2005):
   CHG: Removed dZSbot support, only AlcoBot is supported now.
   CHG: Removed pre-time functionality, since duplicated in AlcoBot.
   CHG: Tcl extensions are now bundled in the nxTools package.
+  CHG: Updated nxHelper to v2.2.1, which fixes a bug in the extension loader.
   FIX: Convert the list of nuked users into a string when logging them.
   FIX: Corrected the message shown on 'SITE NUKETOP' if there are no users.
-  FIX: Updated nxHelper to v2.2.1, which fixes a bug in the extension loader.
   FIX: User ownership is now properly set on request tags.
 
 nxTools v0.9.13 (Sep 10, 2005):

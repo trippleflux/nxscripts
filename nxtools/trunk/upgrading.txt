@@ -2,6 +2,11 @@
 #                             nxTools - Upgrading                              #
 ################################################################################
 
+1.0.1  -> 1.0.2
+ - Replace ioFTPD\scripts\nxLib.tcl and all Tcl files in ioFTPD\scripts\nxTools\.
+ - Replace the nxHelper.dll and tclsqlite3.dll files in ioFTPD\system\.
+ - New config option: misc(DefaultLimit).
+
 1.0.0  -> 1.0.1
  - Move the nxTools.cfg file to ioFTPD\scripts\nxTools\.
  - Repeat step 3 in the installation manual.
