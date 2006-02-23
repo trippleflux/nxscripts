@@ -3,6 +3,7 @@
 ################################################################################
 
 nxTools v1.0.2 (yet to be released):
+  NEW: Added text templates for SITE WHO, see the text/Who.* files.
   NEW: Option to set the default number of results for SITE DUPE/NEW/etc.
   CHG: Updated nxHelper to v2.2.5, initialisation speed improvements.
   FIX: Corrected a ASCII typo in the default Requests.Header template.

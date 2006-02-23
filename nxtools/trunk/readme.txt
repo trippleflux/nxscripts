@@ -644,6 +644,13 @@ and their available cookies are:
       Rules.MultiLine  : %(num) %(punishment) %(rule) %(section)
       Rules.Footer     : %(sections)
 
+  - Viewing Who's Online (SITE WHO)
+      Who.Header       : N/A
+      Who.Download     : %(user) %(group) %(tagline) %(file) %(speed)
+      Who.Idle         : %(user) %(group) %(tagline) %(idle)
+      Who.Upload       : %(user) %(group) %(tagline) %(file) %(speed)
+      Who.Footer       : N/A
+
 
 ################################################################################
 # 6. Todo List                                                                 #
@@ -655,7 +662,7 @@ and their available cookies are:
 
 - Add support for text justification in message templates (left, right, and center).
 
-- Make SITE GINFO and SITE WHO customizable.
+- Make SITE GINFO customizable.
 
 
 ################################################################################

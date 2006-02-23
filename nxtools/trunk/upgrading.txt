@@ -5,6 +5,8 @@
 1.0.1  -> 1.0.2
  - Replace ioFTPD\scripts\nxLib.tcl and all Tcl files in ioFTPD\scripts\nxTools\.
  - Replace the nxHelper.dll and tclsqlite3.dll files in ioFTPD\system\.
+ - Copy the Who.* template files to ioFTPD\scripts\nxTools\text\.
+ - Replace the Requests.Header template file in ioFTPD\scripts\nxTools\text\.
  - New config option: misc(DefaultLimit).
 
 1.0.0  -> 1.0.1

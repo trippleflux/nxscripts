@@ -644,9 +644,11 @@ proc ::nxTools::Utils::SiteTraffic {target} {
 
 proc ::nxTools::Utils::SiteWho {} {
     global misc cid flags
-    iputs ".------------------------------------------------------------------------."
-    iputs "|    User    |   Group    |  Info          |  Action                     |"
-    iputs "|------------------------------------------------------------------------|"
+
+    foreach fileExt {Header Download Upload Idle Footer} {
+        set template($fileExt) [ReadFile [file join $misc(Templates) "Who.$fileExt"]]
+    }
+    OutputText $template(Header)
     array set who [list BwDn 0.0 BwUp 0.0 UsersDn 0 UsersUp 0 UsersIdle 0]
     set isAdmin [MatchFlags $misc(SiteopFlags) $flags]
 
@@ -654,8 +656,8 @@ proc ::nxTools::Utils::SiteWho {} {
         while {[set whoData [client who fetch]] ne ""} {
             foreach {clientId userId status idleTime speed virtualPath dataPath} $whoData {break}
             set userName [resolve uid $userId]
-            set groupName "NoGroup"; set tagLine "No Tagline Set"
-            set fileName [file tail $dataPath]
+            set groupName "NoGroup"
+            set tagline "No Tagline Set"
 
             # Find the user's group and tagline.
             if {[userfile open $userName] == 0} {
@@ -666,41 +668,51 @@ proc ::nxTools::Utils::SiteWho {} {
                     if {$type eq "groups"} {
                         set groupName [GetGroupName [lindex $line 1]]
                     } elseif {$type eq "tagline"} {
-                        set tagLine [StringRange $line 1 end]
+                        set tagline [StringRange $line 1 end]
                     }
                 }
             }
 
             # Show hidden users to either admins or the user.
             if {$isAdmin || $cid == $clientId || ![CheckHidden $userName $groupName $virtualPath]} {
+                set me [expr {$cid == $clientId ? "*" : ""}]
+                set userName "$me$userName"
+                set fileName [file tail $dataPath]
+                set idleTime [FormatDuration $idleTime]
+
+                set valueList [list $userName $groupName $tagline]
                 switch -- $status {
                     0 - 3 {
-                        set action "IDLE: [FormatDuration $idleTime]"
                         incr who(UsersIdle)
+
+                        lappend valueList $idleTime
+                        OutputText [ParseCookies $template(Idle) $valueList {user group tagline idle}]
                     }
                     1 {
-                        set action [format "DL: %-12.12s - %.0fKB/s" $fileName $speed]
                         set who(BwDn) [expr {double($who(BwDn)) + double($speed)}]
                         incr who(UsersDn)
+
+                        lappend valueList $fileName [FormatSpeed $speed]
+                        OutputText [ParseCookies $template(Download) $valueList {user group tagline file speed}]
                     }
                     2 {
-                        set action [format "UL: %-12.12s - %.0fKB/s" $fileName $speed]
                         set who(BwUp) [expr {double($who(BwUp)) + double($speed)}]
                         incr who(UsersUp)
+
+                        lappend valueList $fileName [FormatSpeed $speed]
+                        OutputText [ParseCookies $template(Upload) $valueList {user group tagline file speed}]
                     }
-                    default {continue}
                 }
-                set me [expr {$cid == $clientId ? "*" : ""}]
-                iputs [format "| %-10.10s | %-10.10s | %-14.14s | %-27s |" "$me$userName" $groupName $tagLine $action]
             }
         }
     }
-
     set who(BwTotal) [expr {double($who(BwUp)) + double($who(BwDn))}]
     set who(UsersTotal) [expr {$who(UsersUp) + $who(UsersDn) + $who(UsersIdle)}]
-    iputs "|------------------------------------------------------------------------|"
-    iputs [format "| Up: %-16s | Dn: %-16s | Total: %-17s |" "$who(UsersUp)@$who(BwUp)KB/s" "$who(UsersDn)@$who(BwDn)KB/s" "$who(UsersTotal)@$who(BwTotal)KB/s"]
-    iputs "'------------------------------------------------------------------------'"
+
+    set valueList [list $who(UsersDn) $who(UsersUp) $who(UsersIdle) $who(UsersTotal) \
+        [FormatSpeed $who(BwDn)] [FormatSpeed $who(BwUp)] [FormatSpeed $who(BwTotal)]]
+
+    OutputText [ParseCookies $template(Footer) $valueList {users_dn users_up users_idle users_total bw_dn bw_up bw_total}]
     return 0
 }
 
