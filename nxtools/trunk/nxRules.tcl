@@ -1,6 +1,6 @@
 #
 # nxTools - Dupe Checker, nuker, pre, request and utilities.
-# Copyright (c) 2004-2005 neoxed
+# Copyright (c) 2004-2006 neoxed
 #
 # Module Name:
 #   Rules
