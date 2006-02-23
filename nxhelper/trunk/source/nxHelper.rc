@@ -31,7 +31,7 @@ BEGIN
             VALUE "FileDescription",  PACKAGE_DESC
             VALUE "FileVersion",      PACKAGE_VERSION
             VALUE "InternalName",     PACKAGE_NAME
-            VALUE "LegalCopyright",   "Copyright (c) 2005 neoxed"
+            VALUE "LegalCopyright",   "Copyright (c) 2004-2006 neoxed"
             VALUE "OriginalFilename", PACKAGE_FILE
             VALUE "ProductName",      PACKAGE_DESC
             VALUE "ProductVersion",   PACKAGE_VERSION
