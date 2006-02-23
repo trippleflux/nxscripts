@@ -52,19 +52,23 @@ proc ::nxLib::StringRange {string start end} {
 }
 
 proc ::nxLib::GetOptions {argList limitVar stringVar} {
+    global misc
     upvar $limitVar limit $stringVar string
+
     set option [string tolower [lindex $argList 0]]
     if {[string index $option 0] eq "-"} {
         set option [string range $option 1 end]
         if {$option eq "limit" || $option eq "max"} {
             set limit [lindex $argList 1]
             set string [join [lrange $argList 2 end]]
-            if {![string is digit -strict $limit] || $limit < 1} {set limit 10}
+            if {![string is digit -strict $limit] || $limit < 1} {
+                set limit $misc(DefaultLimit)
+            }
         } else {
             return 0
         }
     } else {
-        set limit 10
+        set limit $misc(DefaultLimit)
         set string [join $argList]
     }
     return 1
