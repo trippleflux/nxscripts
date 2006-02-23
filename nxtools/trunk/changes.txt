@@ -5,7 +5,7 @@
 nxTools v1.0.2 (yet to be released):
   NEW: Option to set the default number of results for SITE DUPE/NEW/etc.
   CHG: Updated nxHelper to v2.2.5, initialisation speed improvements.
-  FIX: Corrected a typo in the default Requests.Header template.
+  FIX: Corrected a ASCII typo in the default Requests.Header template.
 
 nxTools v1.0.1 (Oct 29, 2005):
   CHG: Display requests in ascending order, based on their ID.
