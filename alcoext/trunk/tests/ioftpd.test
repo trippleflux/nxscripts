@@ -659,6 +659,14 @@ test ioftpd-7.4 {ioftpd vfs: flush, valid path} {win msgWndExists} {
     ioftpd vfs flush $msgWindow [string map {/ \\} $currentPath]
 } {}
 
+test ioftpd-7.5 {ioftpd vfs: read, not complete} {win msgWndExists} {
+    list [catch {ioftpd vfs read $msgWindow .} msg] $msg
+} {1 {not implemented}}
+
+test ioftpd-7.6 {ioftpd vfs: write, not complete} {win msgWndExists} {
+    list [catch {ioftpd vfs write $msgWindow .} msg] $msg
+} {1 {not implemented}}
+
 ::tcltest::cleanupTests
 return
 

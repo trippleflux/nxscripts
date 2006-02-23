@@ -2659,12 +2659,10 @@ IoVfsCmd(
             ShmFree(&session, memory);
             return result;
         }
-        case VFS_READ: {
-            // TODO
-            return TCL_ERROR;
-        }
+        case VFS_READ:
         case VFS_WRITE: {
             // TODO
+            Tcl_SetResult(interp, "not implemented", TCL_STATIC);
             return TCL_ERROR;
         }
     }
