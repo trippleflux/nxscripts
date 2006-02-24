@@ -38,16 +38,23 @@ TARGETOS    = WINNT
 
 # -------------------------------------------------------------------------
 
-TOP         = .
-TCL_SUFFIX  = tg
-PKG_SUFFIX  = DMTCP
+# Directory paths.
+TOP             = .
+GENERIC_DIR     = $(TOP)\generic
+WIN_DIR         = $(TOP)\win
 
+# Versions strings.
 PKG_VERSION_DOT = $(PKG_MAJOR).$(PKG_MINOR).$(PKG_PATCH)
 PKG_VERSION_RES = $(PKG_MAJOR),$(PKG_MINOR),$(PKG_PATCH),$(PKG_STATUS)
 
-PKG_CFLAGS  = -D "PACKAGE_NAME=\"$(PKG_NAME)\"" -D "PACKAGE_DESC=\"$(PKG_DESC)\"" -D "PACKAGE_VERSION=\"$(PKG_VERSION_DOT)\"" -D "PACKAGE_VERSION_RES=$(PKG_VERSION_RES)"
-PKG_LFLAGS  = /NODEFAULTLIB:msvcrt /OPT:NOWIN98
-TCL_CFLAGS  =
+# Compiler and linker flags.
+PKG_CFLAGS      = -D "PACKAGE_NAME=\"$(PKG_NAME)\"" -D "PACKAGE_DESC=\"$(PKG_DESC)\"" -D "PACKAGE_VERSION=\"$(PKG_VERSION_DOT)\"" -D "PACKAGE_VERSION_RES=$(PKG_VERSION_RES)"
+PKG_LFLAGS      = /NODEFAULTLIB:msvcrt /OPT:NOWIN98
+TCL_CFLAGS      =
+
+# File suffixes.
+TCL_SUFFIX      = tg
+PKG_SUFFIX      = DMTCP
 
 # -------------------------------------------------------------------------
 
@@ -161,32 +168,32 @@ PKG_CFLAGS  = $(PKG_CFLAGS) "-DPACKAGE_FILE=\"$(PKG_FILE)\"" "-DPACKAGE_OPTIONS=
 
 INCLUDE_DIRS=\
     -I"$(TCL_INCLUDES)"\
-    -I"$(TOP)\generic"\
-    -I"$(TOP)\win"
+    -I"$(GENERIC_DIR)"\
+    -I"$(WIN_DIR)"
 
-INTERMEDIATE_FILES=\
+OBJECT_FILES=\
     $(PKG_INTDIR)\tcldInit.obj\
     $(PKG_INTDIR)\tcldWinMain.obj\
     $(PKG_INTDIR)\tcld.res
 
-OBJECT_FILES=\
-    $(TOP)\generic\tcldInit.obj\
-    $(TOP)\win\tcldWinMain.obj\
-    $(TOP)\win\tcld.res
-
-# -------------------------------------------------------------------------
-
-CFLAGS  = $(cdebug) $(cflags) $(cvarsmt) $(PKG_CFLAGS) $(TCL_CFLAGS) $(INCLUDE_DIRS)
+CFLAGS  = -c $(cdebug) $(cflags) $(cvarsmt) $(PKG_CFLAGS) $(TCL_CFLAGS) $(INCLUDE_DIRS)
 LFLAGS  = $(ldebug) $(conlflags) $(conlibsmt) shlwapi.lib $(PKG_LFLAGS) $(TCL_IMPLIB)
 RFLAGS  = $(rcflags) $(rcvars) $(PKG_CFLAGS)
 
-.c.obj::
-    $(CC) -c $(CFLAGS) -Fo$(PKG_INTDIR)\ @<<
+# -------------------------------------------------------------------------
+
+{$(GENERIC_DIR)}.c{$(PKG_INTDIR)}.obj::
+    $(CC) $(CFLAGS) -Fo$(PKG_INTDIR)\ @<<
 $<
 <<
 
-.rc.res:
-    $(RC) $(RFLAGS) -fo "$(PKG_INTDIR)\$(<B).res" $<
+{$(WIN_DIR)}.c{$(PKG_INTDIR)}.obj::
+    $(CC) $(CFLAGS) -Fo$(PKG_INTDIR)\ @<<
+$<
+<<
+
+{$(WIN_DIR)}.rc{$(PKG_INTDIR)}.res:
+	$(RC) $(RFLAGS) -fo $@ $<
 
 .SUFFIXES:
 .SUFFIXES:.c .rc
@@ -194,7 +201,7 @@ $<
 # -------------------------------------------------------------------------
 
 default: all
-all:     library
+all:     binary
 
 clean:
     @IF EXIST "$(PKG_FILE)" DEL /F "$(PKG_FILE)"
@@ -202,15 +209,19 @@ clean:
     @IF EXIST "$(PKG_INTDIR)" RMDIR /Q /S "$(PKG_INTDIR)"
 
 distclean: clean
-    @DEL "$(PKG_NAME)*.dll" *.exp *.obj *.pdb
+    @DEL "$(PKG_NAME)*.exe" *.obj *.pdb
     @IF EXIST Debug RMDIR /Q /S Debug
     @IF EXIST Release RMDIR /Q /S Release
     @IF EXIST nmakehlp.exe DEL /F nmakehlp.exe
     @IF EXIST nmakehlp.obj DEL /F nmakehlp.obj
     @IF EXIST version.vc DEL /F version.vc
 
-library: setup $(OBJECT_FILES)
-    $(LINK) $(LFLAGS) "-out:$(PKG_OUTFILE)" $(INTERMEDIATE_FILES)
+$(PKG_OUTFILE): $(OBJECT_FILES)
+    $(LINK) $(LFLAGS) -out:$@ @<<
+$**
+<<
+
+binary: setup $(PKG_OUTFILE)
     @COPY /Y "$(TCL_LIB)" "$(PKG_OUTDIR)" > NUL
 
 setup:
