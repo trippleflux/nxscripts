@@ -155,6 +155,7 @@ TCL_DOTVERSION  = 8.4
 TCL_VERSION = $(TCL_DOTVERSION:.=)
 !endif
 
+TCL_LIB      = "$(TCL_DIR)\bin\tcl$(TCL_VERSION)$(TCL_SUFFIX).dll"
 TCL_SH       = "$(TCL_DIR)\bin\tclsh$(TCL_VERSION)$(TCL_SUFFIX).exe"
 TCL_STUBLIB  = "$(TCL_DIR)\lib\tclstub$(TCL_VERSION).lib"
 TCL_IMPLIB   = "$(TCL_DIR)\lib\tcl$(TCL_VERSION)$(TCL_SUFFIX).lib"
