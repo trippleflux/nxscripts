@@ -39,17 +39,29 @@ TARGETOS    = WINNT
 
 # -------------------------------------------------------------------------
 
-TOP         = .
-TCL_SUFFIX  = tg
-PKG_SUFFIX  = DMTCP
+# Directory paths.
+TOP             = .
+BZIP2_DIR       = $(TOP)\libs\bzip2
+TOMCRYPT_DIR    = $(TOP)\libs\tomcrypt
+ZLIB_DIR        = $(TOP)\libs\zlib
+GENERIC_DIR     = $(TOP)\generic
+WIN_DIR         = $(TOP)\win
 
+# Versions strings.
 PKG_VERSION_DOT = $(PKG_MAJOR).$(PKG_MINOR).$(PKG_PATCH)
 PKG_VERSION_RES = $(PKG_MAJOR),$(PKG_MINOR),$(PKG_PATCH),$(PKG_STATUS)
 
-PKG_CFLAGS  = -D "PACKAGE_NAME=\"$(PKG_NAME)\"" -D "PACKAGE_DESC=\"$(PKG_DESC)\"" -D "PACKAGE_VERSION=\"$(PKG_VERSION_DOT)\"" -D "PACKAGE_VERSION_RES=$(PKG_VERSION_RES)"
-PKG_LFLAGS  = /NODEFAULTLIB:msvcrt /OPT:NOWIN98
-MISC_CFLAGS = -DBZ_NO_STDIO
-TCL_CFLAGS  = -DUSE_TCL_STUBS
+# Compiler and linker flags.
+PKG_CFLAGS      = -D "PACKAGE_NAME=\"$(PKG_NAME)\"" -D "PACKAGE_DESC=\"$(PKG_DESC)\"" -D "PACKAGE_VERSION=\"$(PKG_VERSION_DOT)\"" -D "PACKAGE_VERSION_RES=$(PKG_VERSION_RES)"
+PKG_LFLAGS      = /NODEFAULTLIB:msvcrt /OPT:NOWIN98
+BZIP2_CFLAGS    =
+TOMCRYPT_CFLAGS =
+ZLIB_CFLAGS     =
+TCL_CFLAGS      = -DBZ_NO_STDIO -DUSE_TCL_STUBS
+
+# File suffixes.
+TCL_SUFFIX      = tg
+PKG_SUFFIX      = DMTCP
 
 # -------------------------------------------------------------------------
 
@@ -168,15 +180,17 @@ PKG_INSTALL_DIR  = $(INSTALL)\$(PKG_NAME)$(PKG_MAJOR).$(PKG_MINOR)
 # Append file and option definitions to cflags.
 PKG_CFLAGS  = $(PKG_CFLAGS) "-DPACKAGE_FILE=\"$(PKG_FILE)\"" "-DPACKAGE_OPTIONS=\"$(PKG_OPTIONS)\""
 
+# -------------------------------------------------------------------------
+
 INCLUDE_DIRS=\
     -I"$(TCL_INCLUDES)"\
-    -I"$(TOP)\libs\bzip2"\
-    -I"$(TOP)\libs\tomcrypt"\
-    -I"$(TOP)\libs\zlib"\
-    -I"$(TOP)\generic"\
-    -I"$(TOP)\win"
+    -I"$(BZIP2_DIR)"\
+    -I"$(TOMCRYPT_DIR)"\
+    -I"$(ZLIB_DIR)"\
+    -I"$(GENERIC_DIR)"\
+    -I"$(WIN_DIR)"
 
-INTERMEDIATE_FILES=\
+OBJECT_FILES=\
     $(PKG_INTDIR)\blocksort.obj\
     $(PKG_INTDIR)\bzlib.obj\
     $(PKG_INTDIR)\compress.obj\
@@ -310,153 +324,39 @@ INTERMEDIATE_FILES=\
     $(PKG_INTDIR)\alcoWinVolume.obj\
     $(PKG_INTDIR)\alcoExt.res
 
-OBJECT_FILES=\
-    $(TOP)\libs\bzip2\blocksort.obj\
-    $(TOP)\libs\bzip2\bzlib.obj\
-    $(TOP)\libs\bzip2\compress.obj\
-    $(TOP)\libs\bzip2\crctable.obj\
-    $(TOP)\libs\bzip2\decompress.obj\
-    $(TOP)\libs\bzip2\huffman.obj\
-    $(TOP)\libs\bzip2\randtable.obj\
-    $(TOP)\libs\tomcrypt\aes.obj\
-    $(TOP)\libs\tomcrypt\anubis.obj\
-    $(TOP)\libs\tomcrypt\base64_decode.obj\
-    $(TOP)\libs\tomcrypt\base64_encode.obj\
-    $(TOP)\libs\tomcrypt\blowfish.obj\
-    $(TOP)\libs\tomcrypt\burn_stack.obj\
-    $(TOP)\libs\tomcrypt\cast5.obj\
-    $(TOP)\libs\tomcrypt\cbc_decrypt.obj\
-    $(TOP)\libs\tomcrypt\cbc_done.obj\
-    $(TOP)\libs\tomcrypt\cbc_encrypt.obj\
-    $(TOP)\libs\tomcrypt\cbc_getiv.obj\
-    $(TOP)\libs\tomcrypt\cbc_setiv.obj\
-    $(TOP)\libs\tomcrypt\cbc_start.obj\
-    $(TOP)\libs\tomcrypt\cfb_decrypt.obj\
-    $(TOP)\libs\tomcrypt\cfb_done.obj\
-    $(TOP)\libs\tomcrypt\cfb_encrypt.obj\
-    $(TOP)\libs\tomcrypt\cfb_getiv.obj\
-    $(TOP)\libs\tomcrypt\cfb_setiv.obj\
-    $(TOP)\libs\tomcrypt\cfb_start.obj\
-    $(TOP)\libs\tomcrypt\chc.obj\
-    $(TOP)\libs\tomcrypt\crypt_argchk.obj\
-    $(TOP)\libs\tomcrypt\crypt_cipher_descriptor.obj\
-    $(TOP)\libs\tomcrypt\crypt_cipher_is_valid.obj\
-    $(TOP)\libs\tomcrypt\crypt_find_cipher.obj\
-    $(TOP)\libs\tomcrypt\crypt_find_cipher_any.obj\
-    $(TOP)\libs\tomcrypt\crypt_find_cipher_id.obj\
-    $(TOP)\libs\tomcrypt\crypt_find_hash.obj\
-    $(TOP)\libs\tomcrypt\crypt_find_hash_any.obj\
-    $(TOP)\libs\tomcrypt\crypt_find_hash_id.obj\
-    $(TOP)\libs\tomcrypt\crypt_find_hash_oid.obj\
-    $(TOP)\libs\tomcrypt\crypt_find_prng.obj\
-    $(TOP)\libs\tomcrypt\crypt_hash_descriptor.obj\
-    $(TOP)\libs\tomcrypt\crypt_hash_is_valid.obj\
-    $(TOP)\libs\tomcrypt\crypt_ltc_mp_descriptor.obj\
-    $(TOP)\libs\tomcrypt\crypt_prng_descriptor.obj\
-    $(TOP)\libs\tomcrypt\crypt_prng_is_valid.obj\
-    $(TOP)\libs\tomcrypt\crypt_register_cipher.obj\
-    $(TOP)\libs\tomcrypt\crypt_register_hash.obj\
-    $(TOP)\libs\tomcrypt\crypt_register_prng.obj\
-    $(TOP)\libs\tomcrypt\crypt_unregister_cipher.obj\
-    $(TOP)\libs\tomcrypt\crypt_unregister_hash.obj\
-    $(TOP)\libs\tomcrypt\crypt_unregister_prng.obj\
-    $(TOP)\libs\tomcrypt\ctr_decrypt.obj\
-    $(TOP)\libs\tomcrypt\ctr_done.obj\
-    $(TOP)\libs\tomcrypt\ctr_encrypt.obj\
-    $(TOP)\libs\tomcrypt\ctr_getiv.obj\
-    $(TOP)\libs\tomcrypt\ctr_setiv.obj\
-    $(TOP)\libs\tomcrypt\ctr_start.obj\
-    $(TOP)\libs\tomcrypt\des.obj\
-    $(TOP)\libs\tomcrypt\ecb_decrypt.obj\
-    $(TOP)\libs\tomcrypt\ecb_done.obj\
-    $(TOP)\libs\tomcrypt\ecb_encrypt.obj\
-    $(TOP)\libs\tomcrypt\ecb_start.obj\
-    $(TOP)\libs\tomcrypt\error_to_string.obj\
-    $(TOP)\libs\tomcrypt\fortuna.obj\
-    $(TOP)\libs\tomcrypt\hash_memory.obj\
-    $(TOP)\libs\tomcrypt\hmac_done.obj\
-    $(TOP)\libs\tomcrypt\hmac_init.obj\
-    $(TOP)\libs\tomcrypt\hmac_memory.obj\
-    $(TOP)\libs\tomcrypt\hmac_process.obj\
-    $(TOP)\libs\tomcrypt\khazad.obj\
-    $(TOP)\libs\tomcrypt\md2.obj\
-    $(TOP)\libs\tomcrypt\md4.obj\
-    $(TOP)\libs\tomcrypt\md5.obj\
-    $(TOP)\libs\tomcrypt\noekeon.obj\
-    $(TOP)\libs\tomcrypt\ofb_decrypt.obj\
-    $(TOP)\libs\tomcrypt\ofb_done.obj\
-    $(TOP)\libs\tomcrypt\ofb_encrypt.obj\
-    $(TOP)\libs\tomcrypt\ofb_getiv.obj\
-    $(TOP)\libs\tomcrypt\ofb_setiv.obj\
-    $(TOP)\libs\tomcrypt\ofb_start.obj\
-    $(TOP)\libs\tomcrypt\omac_done.obj\
-    $(TOP)\libs\tomcrypt\omac_init.obj\
-    $(TOP)\libs\tomcrypt\omac_memory.obj\
-    $(TOP)\libs\tomcrypt\omac_process.obj\
-    $(TOP)\libs\tomcrypt\pelican.obj\
-    $(TOP)\libs\tomcrypt\pelican_memory.obj\
-    $(TOP)\libs\tomcrypt\pkcs_5_1.obj\
-    $(TOP)\libs\tomcrypt\pkcs_5_2.obj\
-    $(TOP)\libs\tomcrypt\pmac_done.obj\
-    $(TOP)\libs\tomcrypt\pmac_init.obj\
-    $(TOP)\libs\tomcrypt\pmac_memory.obj\
-    $(TOP)\libs\tomcrypt\pmac_ntz.obj\
-    $(TOP)\libs\tomcrypt\pmac_process.obj\
-    $(TOP)\libs\tomcrypt\pmac_shift_xor.obj\
-    $(TOP)\libs\tomcrypt\rc2.obj\
-    $(TOP)\libs\tomcrypt\rc4.obj\
-    $(TOP)\libs\tomcrypt\rc5.obj\
-    $(TOP)\libs\tomcrypt\rc6.obj\
-    $(TOP)\libs\tomcrypt\rmd128.obj\
-    $(TOP)\libs\tomcrypt\rmd160.obj\
-    $(TOP)\libs\tomcrypt\rng_get_bytes.obj\
-    $(TOP)\libs\tomcrypt\safer.obj\
-    $(TOP)\libs\tomcrypt\safer_tab.obj\
-    $(TOP)\libs\tomcrypt\saferp.obj\
-    $(TOP)\libs\tomcrypt\sha1.obj\
-    $(TOP)\libs\tomcrypt\sha256.obj\
-    $(TOP)\libs\tomcrypt\sha512.obj\
-    $(TOP)\libs\tomcrypt\skipjack.obj\
-    $(TOP)\libs\tomcrypt\sober128.obj\
-    $(TOP)\libs\tomcrypt\sprng.obj\
-    $(TOP)\libs\tomcrypt\tiger.obj\
-    $(TOP)\libs\tomcrypt\twofish.obj\
-    $(TOP)\libs\tomcrypt\whirl.obj\
-    $(TOP)\libs\tomcrypt\xtea.obj\
-    $(TOP)\libs\tomcrypt\yarrow.obj\
-    $(TOP)\libs\tomcrypt\zeromem.obj\
-    $(TOP)\libs\zlib\adler32.obj\
-    $(TOP)\libs\zlib\crc32.obj\
-    $(TOP)\libs\zlib\deflate.obj\
-    $(TOP)\libs\zlib\inffast.obj\
-    $(TOP)\libs\zlib\inflate.obj\
-    $(TOP)\libs\zlib\inftrees.obj\
-    $(TOP)\libs\zlib\trees.obj\
-    $(TOP)\libs\zlib\zutil.obj\
-    $(TOP)\generic\alcoCompress.obj\
-    $(TOP)\generic\alcoCrypt.obj\
-    $(TOP)\generic\alcoEncoding.obj\
-    $(TOP)\generic\alcoExt.obj\
-    $(TOP)\generic\alcoUtil.obj\
-    $(TOP)\generic\alcoVolume.obj\
-    $(TOP)\win\alcoWinIoFtpd.obj\
-    $(TOP)\win\alcoWinUtil.obj\
-    $(TOP)\win\alcoWinVolume.obj\
-    $(TOP)\win\alcoExt.res
-
-# -------------------------------------------------------------------------
-
-CFLAGS  = $(cdebug) $(cflags) $(cvarsmt) $(PKG_CFLAGS) $(MISC_CFLAGS) $(TCL_CFLAGS) $(INCLUDE_DIRS)
+CFLAGS  = -c $(cdebug) $(cflags) $(cvarsmt) $(PKG_CFLAGS) $(TCL_CFLAGS) $(INCLUDE_DIRS)
 LFLAGS  = $(ldebug) $(dlllflags) $(conlibsmt) user32.lib psapi.lib $(PKG_LFLAGS) $(TCL_STUBLIB)
 RFLAGS  = $(rcflags) $(rcvars) $(PKG_CFLAGS)
 
-.c.obj::
-    $(CC) -c $(CFLAGS) -Fo$(PKG_INTDIR)\ @<<
+# -------------------------------------------------------------------------
+
+{$(BZIP2_DIR)}.c{$(PKG_INTDIR)}.obj::
+    $(CC) $(CFLAGS) $(BZIP2_CFLAGS) -Fo$(PKG_INTDIR)\ @<<
 $<
 <<
 
-.rc.res:
-    $(RC) $(RFLAGS) -fo "$(PKG_INTDIR)\$(<B).res" $<
+{$(TOMCRYPT_DIR)}.c{$(PKG_INTDIR)}.obj::
+    $(CC) $(CFLAGS) $(TOMCRYPT_CFLAGS) -Fo$(PKG_INTDIR)\ @<<
+$<
+<<
+
+{$(ZLIB_DIR)}.c{$(PKG_INTDIR)}.obj::
+    $(CC) $(CFLAGS) $(ZLIB_CFLAGS) -Fo$(PKG_INTDIR)\ @<<
+$<
+<<
+
+{$(GENERIC_DIR)}.c{$(PKG_INTDIR)}.obj::
+    $(CC) $(CFLAGS) -Fo$(PKG_INTDIR)\ @<<
+$<
+<<
+
+{$(WIN_DIR)}.c{$(PKG_INTDIR)}.obj::
+    $(CC) $(CFLAGS) -Fo$(PKG_INTDIR)\ @<<
+$<
+<<
+
+{$(WIN_DIR)}.rc{$(PKG_INTDIR)}.res:
+	$(RC) $(RFLAGS) -fo $@ $<
 
 .SUFFIXES:
 .SUFFIXES:.c .rc
@@ -485,8 +385,12 @@ install: library package-index
     @COPY /Y "$(PKG_OUTFILE)" "$(PKG_INSTALL_DIR)\$(PKG_INSTALL_FILE)" >NUL
     @COPY /Y "$(PKG_INTDIR)\pkgIndex.tcl" "$(PKG_INSTALL_DIR)" >NUL
 
-library: setup $(OBJECT_FILES)
-    $(LINK) $(LFLAGS) "-out:$(PKG_OUTFILE)" $(INTERMEDIATE_FILES)
+$(PKG_OUTFILE): $(OBJECT_FILES)
+    $(LINK) $(LFLAGS) -out:$@ @<<
+$**
+<<
+
+library: setup $(PKG_OUTFILE)
 
 package-index: setup
     @TYPE << >"$(PKG_INTDIR)\pkgIndex.tcl"
