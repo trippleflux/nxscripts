@@ -4,7 +4,7 @@ AlcoTcld - Alcoholicz Tcl daemon.
 Copyright (c) 2005-2006 Alcoholicz Scripting Team
 
 Module Name:
-    tcldUnixMain.c
+    Unix Main
 
 Author:
     neoxed (neoxed@gmail.com) Jul 20, 2005
