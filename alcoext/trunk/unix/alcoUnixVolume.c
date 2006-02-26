@@ -4,7 +4,7 @@ AlcoExt - Alcoholicz Tcl extension.
 Copyright (c) 2005-2006 Alcoholicz Scripting Team
 
 Module Name:
-    alcoUnixVolume.c
+    Volumes
 
 Author:
     neoxed (neoxed@gmail.com) Jun 2, 2005

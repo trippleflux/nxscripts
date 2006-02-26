@@ -4,7 +4,7 @@ AlcoExt - Alcoholicz Tcl extension.
 Copyright (c) 2005-2006 Alcoholicz Scripting Team
 
 Module Name:
-    alcoCompress.c
+    Compression
 
 Author:
     neoxed (neoxed@gmail.com) Aug 20, 2005

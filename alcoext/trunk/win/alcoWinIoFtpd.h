@@ -4,7 +4,7 @@ AlcoExt - Alcoholicz Tcl extension.
 Copyright (c) 2005-2006 Alcoholicz Scripting Team
 
 Module Name:
-    alcoWinIoFtpd.h
+    ioFTPD
 
 Author:
     neoxed (neoxed@gmail.com) Apr 23, 2005

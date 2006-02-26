@@ -4,7 +4,7 @@ AlcoExt - Alcoholicz Tcl extension.
 Copyright (c) 2005-2006 Alcoholicz Scripting Team
 
 Module Name:
-    alcoExt.h
+    Extension
 
 Author:
     neoxed (neoxed@gmail.com) Apr 16, 2005
