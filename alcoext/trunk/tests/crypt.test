@@ -967,7 +967,6 @@ test crypt-12.2 {crypt: leak test, separate interp} {singleTestInterp} {
     interp eval $interp [list load $libFile]
 
     interp eval $interp {
-        namespace import -force ::alcoholicz::*
         set handleList [list]
 
         for {set i 0} {$i < 20} {incr i} {

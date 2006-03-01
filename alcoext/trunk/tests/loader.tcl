@@ -38,5 +38,4 @@ set libFile [lindex [glob -dir $parentPath -types f $libFile] 0]
 load $libFile
 
 # Import commonly used namespace functions.
-namespace import -force ::alcoholicz::*
 namespace import -force ::tcltest::*

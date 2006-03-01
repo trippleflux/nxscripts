@@ -540,7 +540,6 @@ test glftpd-8.2 {glftpd: leak test, separate interp} {unix singleTestInterp} {
     interp eval $interp [list set shmKey $shmKey]
 
     interp eval $interp {
-        namespace import -force ::alcoholicz::*
         set handleList [list]
 
         for {set i 0} {$i < 20} {incr i} {

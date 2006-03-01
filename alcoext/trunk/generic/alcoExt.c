@@ -203,44 +203,24 @@ Alcoext_Init(
     Tcl_CallWhenDeleted(interp, InterpDeleteHandler, (ClientData)statePtr);
 
     // Create Tcl commands.
-    Tcl_CreateObjCommand(interp, "::alcoholicz::compress", CompressObjCmd,
-        (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
-
-    Tcl_CreateObjCommand(interp, "::alcoholicz::crypt", CryptObjCmd,
-        (ClientData)statePtr, (Tcl_CmdDeleteProc *)NULL);
-
-    Tcl_CreateObjCommand(interp, "::alcoholicz::decode", EncodingObjCmd,
-        (ClientData)decodeFuncts, (Tcl_CmdDeleteProc *)NULL);
-
-    Tcl_CreateObjCommand(interp, "::alcoholicz::encode", EncodingObjCmd,
-        (ClientData)encodeFuncts, (Tcl_CmdDeleteProc *)NULL);
+    Tcl_CreateObjCommand(interp, "compress", CompressObjCmd, (ClientData)NULL, NULL);
+    Tcl_CreateObjCommand(interp, "crypt",    CryptObjCmd,    (ClientData)statePtr, NULL);
+    Tcl_CreateObjCommand(interp, "decode",   EncodingObjCmd, (ClientData)decodeFuncts, NULL);
+    Tcl_CreateObjCommand(interp, "encode",   EncodingObjCmd, (ClientData)encodeFuncts, NULL);
 
     //
     // These commands are not created for safe interpreters because
     // they interact with the file system and/or other processes.
     //
     if (!Tcl_IsSafe(interp)) {
-        Tcl_CreateObjCommand(interp, "::alcoholicz::volume", VolumeObjCmd,
-            (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
+        Tcl_CreateObjCommand(interp, "volume", VolumeObjCmd, (ClientData)NULL, NULL);
 
 #ifdef _WINDOWS
-        Tcl_CreateObjCommand(interp, "::alcoholicz::ioftpd", IoFtpdObjCmd,
-            (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
+        Tcl_CreateObjCommand(interp, "ioftpd", IoFtpdObjCmd, (ClientData)NULL, NULL);
 #else // _WINDOWS
-        Tcl_CreateObjCommand(interp, "::alcoholicz::glftpd", GlFtpdObjCmd,
-            (ClientData)statePtr, (Tcl_CmdDeleteProc *)NULL);
+        Tcl_CreateObjCommand(interp, "glftpd", GlFtpdObjCmd, (ClientData)statePtr, NULL);
 #endif // _WINDOWS
     }
-
-    Tcl_Eval(interp, "namespace eval ::alcoholicz {"
-        "namespace export compress crypt encode decode volume "
-#ifdef _WINDOWS
-        "ioftpd"
-#else
-        "glftpd"
-#endif // _WINDOWS
-        "}"
-        );
 
     return TCL_OK;
 }
