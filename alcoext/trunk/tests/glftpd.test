@@ -460,7 +460,7 @@ test glftpd-7.8 {glftpd who: group file parser} {unix shmKeyExists} {
     glftpd close $handle
 } {}
 
-test glftpd-7.9 {glftpd who: user ID resolving} {unix shmKeyExists} {
+test glftpd-7.9 {glftpd who: user ID resolving} {unix etcPathExists shmKeyExists} {
     array set users [GetUserNames [file join $etcPath passwd]]
     set result ""
 
@@ -478,7 +478,7 @@ test glftpd-7.9 {glftpd who: user ID resolving} {unix shmKeyExists} {
     set result
 } {}
 
-test glftpd-7.10 {glftpd who: group name resolving} {unix shmKeyExists} {
+test glftpd-7.10 {glftpd who: group name resolving} {unix etcPathExists shmKeyExists} {
     array set gids [GetGroupIds [file join $etcPath group]]
     set result ""
 
