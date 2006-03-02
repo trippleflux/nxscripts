@@ -14,7 +14,7 @@
 
 # Setup autoconf.
 AC_PREREQ(2.59)
-AC_INIT([AlcoExt],[0.5])
+AC_INIT([AlcoExt],[0.6])
 AC_CONFIG_HEADER([config.h])
 
 # Load TEA and the tclConfig.sh file.

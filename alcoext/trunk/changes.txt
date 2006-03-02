@@ -1,3 +1,6 @@
+AlcoExt v0.6.0 (not yet released):
+  CHG: Moved all commands out of the "::alcoholicz" namespace.
+
 AlcoExt v0.5.0 (Feb 23, 2006):
   NEW: Commands to create/rename/delete users and groups on ioFTPD.
   NEW: Completed the "ioftpd user/group set" commands for updating user/group files.
