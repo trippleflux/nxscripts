@@ -1,0 +1,6 @@
+# Module Definition File
+desc=PZS-NG Variables
+context=
+depends=
+tclFile=
+varFile=modPzsNg.vars

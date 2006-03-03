@@ -1,0 +1,6 @@
+# Module Definition File
+desc=Project-ZS Variables
+context=
+depends=
+tclFile=
+varFile=modProjectZs.vars
