@@ -87,7 +87,7 @@ INSTALL_SCRIPT  = @INSTALL_SCRIPT@
 #========================================================================
 
 BUILD_DIR       = .
-TOP_DIR         = ..
+TOP_DIR         = .
 GENERIC_DIR     = $(TOP_DIR)/generic
 UNIX_DIR        = $(SRC_DIR)
 BZIP2_DIR       = $(TOP_DIR)/libs/bzip2
