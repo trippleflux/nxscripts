@@ -299,6 +299,7 @@ TEA_ADD_INCLUDES(
     -I\"./libs/zlib/\"
     -I\"./generic/\"
     -I\"./unix/\"
+    -I\"./\"
 )
 TEA_ADD_LIBS([])
 TEA_ADD_CFLAGS([])
