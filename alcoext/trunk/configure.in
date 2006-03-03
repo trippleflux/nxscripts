@@ -15,6 +15,7 @@
 # Setup autoconf.
 AC_PREREQ(2.59)
 AC_INIT([AlcoExt],[0.6])
+AC_CONFIG_AUX_DIR([tclconfig])
 AC_CONFIG_HEADER([config.h])
 
 # Load TEA and the tclConfig.sh file.
@@ -376,4 +377,4 @@ TEA_PROG_TCLSH
 # which require substituting th AC variables in.  Include these here.
 #--------------------------------------------------------------------
 
-AC_OUTPUT([makefile pkgIndex.tcl])
+AC_OUTPUT([Makefile pkgIndex.tcl])
