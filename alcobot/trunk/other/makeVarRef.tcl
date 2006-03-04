@@ -28,9 +28,10 @@ cd $basePath
 
 # Source required libraries.
 puts "- Loading libraries."
-source "libs/libConfig.tcl"
 source "libs/libTree.tcl"
-namespace import -force ::alcoholicz::*
+namespace import -force ::tree::*
+source "libs/libConfig.tcl"
+namespace import -force ::config::*
 
 puts "- Opening \"variables.txt\" for writing."
 set handle [open "variables.txt" w]
@@ -111,12 +112,6 @@ proc IndexFile {handle desc filePath} {
 
     puts $handle ""
     return
-}
-
-# Index general variable definition files.
-foreach filePath [lsort [glob ./vars/*.vars]] {
-    set desc "File: [file tail $filePath]"
-    IndexFile $handle $desc $filePath
 }
 
 # Index module variable definition files.
