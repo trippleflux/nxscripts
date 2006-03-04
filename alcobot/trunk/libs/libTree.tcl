@@ -10,7 +10,7 @@
 #
 # Abstract:
 #   Tree data structure, implemented using Tcl lists and recursion. Unlike
-#   Tcl's arrays and dictionaries, this method retains the natural order of
+#   Tcl's arrays and dictionaries, this method retains the original order of
 #   its keys and nodes.
 #
 # Exported Procedures:
