@@ -55,21 +55,21 @@ proc ::ftp::open {host port user passwd args} {
                 implicit - ssl - tls {
                     # Make sure the TLS package (http://tls.sf.net) is present.
                     if {[catch {package present tls} message]} {
-                        error "SSL/TLS support not available, install the Tcl-TLS package"
+                        throw FTP "SSL/TLS support not available, install the Tcl-TLS package"
                     }
                 }
                 default {
-                    error "invalid value \"$value\": must be none, implicit, ssl, or tls"
+                    throw FTP "invalid value \"$value\": must be none, implicit, ssl, or tls"
                 }
             }
             set secure $value
 
         } elseif {$option eq "-timeout"} {
-            # TODO: connection timeout
-            error "not implemented"
+            # TODO: Connection timeout.
+            throw FTP "timeout not implemented"
 
         } else {
-            error "invalid switch \"$option\": must be -notify, -secure, or -timeout"
+            throw FTP "invalid switch \"$option\": must be -notify, -secure, or -timeout"
         }
     }
 
@@ -148,7 +148,7 @@ proc ::ftp::connect {handle} {
     Acquire $handle ftp
 
     if {$ftp(sock) ne ""} {
-        error "ftp connection open, disconnect first"
+        throw FTP "ftp connection open, disconnect first"
     }
     set ftp(error) ""
     set ftp(status) 1
@@ -195,7 +195,7 @@ proc ::ftp::command {handle command {callback ""}} {
     Acquire $handle ftp
 
     if {$ftp(status) != 2} {
-        error "not connected"
+        throw FTP "not connected"
     }
     lappend ftp(queue) [list quote $command $callback]
 
@@ -213,7 +213,7 @@ proc ::ftp::command {handle command {callback ""}} {
 #
 proc ::ftp::Acquire {handle handleVar} {
     if {![regexp -- {ftp\d+} $handle] || ![array exists [namespace current]::$handle]} {
-        error "invalid ftp handle \"$handle\""
+        throw FTP "invalid ftp handle \"$handle\""
     }
     uplevel 1 [list upvar [namespace current]::$handle $handleVar]
 }
@@ -275,7 +275,7 @@ proc ::ftp::Shutdown {handle {error ""}} {
         # Send the QUIT command and terminate the socket.
         catch {puts $ftp(sock) "QUIT"}
         catch {flush $ftp(sock)}
-        catch {close $ftp(sock)}
+        catch {::close $ftp(sock)}
         set ftp(sock) ""
 
         # Update connection status, error message, and evaluate the notify callback.

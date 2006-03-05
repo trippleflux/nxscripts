@@ -37,7 +37,7 @@ namespace eval ::getopt {
 proc ::getopt::element {list element {type "option"}} {
     set index [::getopt::index $list $element]
     if {$index == -1} {
-        error "invalid $type \"$element\", must be [ListConvert $list or]"
+        throw GETOPT "invalid $type \"$element\", must be [ListConvert $list or]"
     }
     return [lindex $list $index]
 }
@@ -101,7 +101,7 @@ proc ::getopt::parse {argList optList resultVar} {
     upvar $resultVar result
 
     if {[info exists result] && ![array exists result]} {
-        error "the variable \"$resultVar\" is not an array"
+        throw GETOPT "the variable \"$resultVar\" is not an array"
     }
 
     # Create a list of option names.
@@ -113,18 +113,18 @@ proc ::getopt::parse {argList optList resultVar} {
             1 {}
             2 {
                 if {[lsearch -exact $types [lindex $option 1]] == -1} {
-                    error "invalid option definition \"$option\": \
+                    throw GETOPT "invalid option definition \"$option\": \
                         bad type \"[lindex $option 1]\", must be [ListConvert $types or]"
                 }
             }
             3 {
                 if {[lindex $option 1] ne "arg"} {
-                    error "invalid option definition \"$option\": \
+                    throw GETOPT "invalid option definition \"$option\": \
                         value lists can only be used with the \"arg\" type"
                 }
             }
             default {
-                error "invalid option definition \"$option\": wrong number of arguments"
+                throw GETOPT "invalid option definition \"$option\": wrong number of arguments"
             }
         }
         lappend optNames [lindex $option 0]
@@ -148,7 +148,7 @@ proc ::getopt::parse {argList optList resultVar} {
         if {[string index $arg 0] eq "-"} {
             set index [::getopt::index $optNames [string range $arg 1 end]]
             if {$index == -1} {
-                error "invalid option \"$arg\""
+                throw GETOPT "invalid option \"$arg\""
             }
 
             set optCount [llength [lindex $optList $index]]
@@ -156,7 +156,7 @@ proc ::getopt::parse {argList optList resultVar} {
 
             if {$optCount > 1} {
                 if {$argCount < 2} {
-                    error "the option \"$arg\" requires a value"
+                    throw GETOPT "the option \"$arg\" requires a value"
                 }
                 set value [lindex $argList 1]
 
@@ -165,7 +165,7 @@ proc ::getopt::parse {argList optList resultVar} {
                         set value [::getopt::element $optValues $value "value"]
                     }
                 } elseif {![string is $optType -strict $value]} {
-                    error "the option \"$arg\" requires a $optType type value"
+                    throw GETOPT "the option \"$arg\" requires a $optType type value"
                 }
 
                 set result($optName) $value

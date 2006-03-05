@@ -54,9 +54,6 @@ namespace eval ::alcoholicz {
 # localTime     - Format time values in local time, otherwise UTC is used.
 #
 
-interp alias {} IsTrue {} string is true -strict
-interp alias {} IsFalse {} string is false -strict
-
 ####
 # Control Codes
 #

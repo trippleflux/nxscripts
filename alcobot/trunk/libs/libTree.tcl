@@ -35,7 +35,7 @@ namespace eval ::tree {}
 #
 proc ::tree::create {args} {
     if {[llength $args] & 1} {
-        error "unbalanced list"
+        throw TREE "unbalanced list"
     }
     return $args
 }
@@ -65,7 +65,7 @@ proc ::tree::exists {tree key args} {
 #
 proc ::tree::for {vars tree body} {
     if {[llength $vars] != 2} {
-        error "must have exactly two variable names"
+        throw TREE "must have exactly two variable names"
     }
     uplevel 1 [list foreach $vars $tree $body]
 }
@@ -116,7 +116,7 @@ proc ::tree::get {tree key args} {
             return [eval ::tree::get [list $node] $args]
         }
     }
-    error "key \"$key\" not known in tree"
+    throw TREE "key \"$key\" not known in tree"
 }
 
 ####

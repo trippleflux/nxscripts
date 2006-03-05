@@ -53,17 +53,17 @@ proc ::config::open {filePath args} {
         switch -- $option {
             -align {
                 if {![string is digit -strict $value]} {
-                    error "expected digit but got \"$value\""
+                    throw CONFIG "expected digit but got \"$value\""
                 }
                 ::set align $value
             }
             -comment {
                 if {[string length $value] != 1} {
-                    error "invalid comment \"$value\": must be one character"
+                    throw CONFIG "invalid comment \"$value\": must be one character"
                 }
                 ::set comment $value
             }
-            default {error "invalid switch \"$option\": must be -align or -comment"}
+            default {throw CONFIG "invalid switch \"$option\": must be -align or -comment"}
         }
     }
 
@@ -88,7 +88,7 @@ proc ::config::open {filePath args} {
 proc ::config::change {handle option args} {
     Acquire $handle config
     if {[lsearch -exact {-align -comment -path} $option] == -1} {
-        error "invalid switch \"$option\": must be -align, -comment, or -path"
+        throw CONFIG "invalid switch \"$option\": must be -align, -comment, or -path"
     }
     regexp -- {-(\w+)} $option result option
 
@@ -100,13 +100,13 @@ proc ::config::change {handle option args} {
         switch -- $option {
             align {
                 if {![string is digit -strict $value]} {
-                    error "expected digit but got \"$value\""
+                    throw CONFIG "expected digit but got \"$value\""
                 }
                 ::set config(align) $value
             }
             comment {
                 if {[string length $value] != 1} {
-                    error "invalid comment \"$value\": must be one character"
+                    throw CONFIG "invalid comment \"$value\": must be one character"
                 }
                 ::set config(comment) $value
             }
@@ -114,7 +114,7 @@ proc ::config::change {handle option args} {
         }
         return $value
     } else {
-        error "wrong # args: must be \"config::change handle option ?value?\""
+        throw CONFIG "wrong # args: must be \"config::change handle option ?value?\""
     }
     return
 }
@@ -315,7 +315,7 @@ proc ::config::set {handle section args} {
     Acquire $handle config
     ::set argc [llength $args]
     if {$argc != 0  && $argc != 2} {
-        error "wrong # args: must be \"config::set handle section ?key value?\""
+        throw CONFIG "wrong # args: must be \"config::set handle section ?key value?\""
     }
 
     # Initialise the section if it does not exist.
@@ -357,7 +357,7 @@ proc ::config::unset {handle section {key ""}} {
 #
 proc ::config::Acquire {handle handleVar} {
     if {![regexp -- {config\d+} $handle] || ![array exists [namespace current]::$handle]} {
-        error "invalid config handle \"$handle\""
+        throw CONFIG "invalid config handle \"$handle\""
     }
     uplevel 1 [list upvar [namespace current]::$handle $handleVar]
 }

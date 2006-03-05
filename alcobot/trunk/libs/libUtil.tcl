@@ -26,6 +26,22 @@ namespace eval ::alcoholicz {
 ################################################################################
 
 ####
+# IsTrue
+# IsFalse
+#
+# Boolean value checks.
+#
+interp alias {} IsTrue {} string is true -strict
+interp alias {} IsFalse {} string is false -strict
+
+####
+# throw
+#
+# Throw an error with the given error-code and message.
+#
+proc throw {code message} {error $message "" $code}
+
+####
 # GetResultLimit
 #
 # Checks the number of requested results.
