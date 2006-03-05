@@ -2,5 +2,5 @@
 desc=Log Reading
 context=::alcoholicz::ReadLogs
 depends=
-tclFile=modReadLogs.tcl
-varFile=
+tclFiles=modReadLogs.tcl
+varFiles=

@@ -2,5 +2,5 @@
 desc=ioFTPD
 context=::alcoholicz::FtpDaemon
 depends=
-tclFile=modFtpDaemon.tcl
-varFile=modFtpDaemon.vars
+tclFiles=modFtpDaemon.tcl
+varFiles=modFtpDaemon.vars

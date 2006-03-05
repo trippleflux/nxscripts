@@ -2,5 +2,5 @@
 desc=PZS-NG Variables
 context=
 depends=
-tclFile=
-varFile=modPzsNg.vars
+tclFiles=
+varFiles=modPzsNg.vars

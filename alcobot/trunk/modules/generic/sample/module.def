@@ -9,5 +9,5 @@
 desc=Sample Module
 context=::alcoholicz::Sample
 depends=
-tclFile=modSample.tcl
-varFile=
+tclFiles=modSample.tcl
+varFiles=

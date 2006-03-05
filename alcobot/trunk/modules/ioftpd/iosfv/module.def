@@ -2,5 +2,5 @@
 desc=ioSFV Variables
 context=
 depends=
-tclFile=
-varFile=modIoSfv.vars
+tclFiles=
+varFiles=modIoSfv.vars

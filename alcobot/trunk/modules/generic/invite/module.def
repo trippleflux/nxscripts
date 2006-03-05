@@ -2,5 +2,5 @@
 desc=Invite Users
 context=::alcoholicz::Invite
 depends=ftpd
-tclFile=modInvite.tcl
-varFile=modInvite.vars
+tclFiles=modInvite.tcl
+varFiles=modInvite.vars

@@ -2,5 +2,5 @@
 desc=glFTPD Data Files
 context=::alcoholicz::GlData
 depends=ftpd
-tclFile=modGlData.tcl
-varFile=modGlData.vars
+tclFiles=modGlData.tcl
+varFiles=modGlData.vars

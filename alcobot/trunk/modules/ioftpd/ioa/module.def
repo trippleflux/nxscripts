@@ -2,5 +2,5 @@
 desc=ioA Support
 context=::alcoholicz::IoA
 depends=
-tclFile=modIoA.tcl
-varFile=modIoA.vars
+tclFiles=modIoA.tcl
+varFiles=modIoA.vars

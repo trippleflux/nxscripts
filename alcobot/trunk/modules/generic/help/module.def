@@ -2,5 +2,5 @@
 desc=Command Help
 context=::alcoholicz::Help
 depends=
-tclFile=modHelp.tcl
-varFile=modHelp.vars
+tclFiles=modHelp.tcl
+varFiles=modHelp.vars

@@ -2,5 +2,5 @@
 desc=Online Stats
 context=::alcoholicz::Online
 depends=
-tclFile=modOnline.tcl
-varFile=modOnline.vars
+tclFiles=modOnline.tcl
+varFiles=modOnline.vars

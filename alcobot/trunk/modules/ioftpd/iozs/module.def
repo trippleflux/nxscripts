@@ -2,5 +2,5 @@
 desc=ioZS Variables
 context=
 depends=
-tclFile=
-varFile=modIoZs.vars
+tclFiles=
+varFiles=modIoZs.vars

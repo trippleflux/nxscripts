@@ -2,5 +2,5 @@
 desc=Group List
 context=::alcoholicz::Groups
 depends=
-tclFile=modGroups.tcl
-varFile=modGroups.vars
+tclFiles=modGroups.tcl
+varFiles=modGroups.vars

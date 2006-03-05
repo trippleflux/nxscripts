@@ -2,5 +2,5 @@
 desc=Pre Times
 context=::alcoholicz::PreTimes
 depends=
-tclFile=modPreTimes.tcl
-varFile=modPreTimes.vars
+tclFiles=modPreTimes.tcl
+varFiles=modPreTimes.vars

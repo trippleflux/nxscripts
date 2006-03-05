@@ -2,5 +2,5 @@
 desc=Free Space
 context=::alcoholicz::Free
 depends=
-tclFile=modFree.tcl
-varFile=modFree.vars
+tclFiles=modFree.tcl
+varFiles=modFree.vars

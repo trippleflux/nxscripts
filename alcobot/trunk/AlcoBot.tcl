@@ -26,8 +26,7 @@ namespace eval ::alcoholicz {
         ScriptExecute ScriptRegister ScriptUnregister \
         GetFlagsFromSection GetSectionFromEvent GetSectionFromPath \
         SendSection SendSectionTheme SendTarget SendTargetTheme \
-        VarReplace VarReplaceBase VarReplaceCommon
-
+        VarLoad VarReplace VarReplaceBase VarReplaceCommon
 }
 
 #
@@ -425,7 +424,7 @@ proc ::alcoholicz::FlagCheckEvent {flagList event} {
         if {![regexp -- {^(\+|\-)(\w+)} $flag dummy prefix name]} {continue}
 
         if {$name eq "all" || $name eq $event || ([info exists events($name)] &&
-            [lsearch -sorted $events($name) $event] != -1)} {
+                [lsearch -exact $events($name) $event] != -1)} {
             return [string equal $prefix "+"]
         }
     }
@@ -563,37 +562,44 @@ proc ::alcoholicz::ModuleLoadEx {modName modInfoList} {
     }
 
     set firstLoad 1
-    set fileHash [ModuleHash $modInfo(tclFile)]
-
-    if {[info exists modules($modName)]} {
-        set currentHash [lindex $modules($modName) 4]
-
-        # If the file's check-sum has changed, it's assumed that there were
-        # code changes and a full initialisation is performed. Otherwise a
-        # basic initialisation is performed.
-        if {$fileHash ne $currentHash} {
-            catch {ModuleUnload $modName}
-        } else {
-            set firstLoad 0
+    if {[llength $modInfo(tclFiles)]} {
+        # Check if a full module initialisation is required.
+        if {[info exists modules($modName)]} {
+            if {$modInfo(tclFiles) eq [lindex $modules($modName) 4]} {
+                set firstLoad 0
+            } else {
+                LogDebug ModuleLoadEx "File checksums changed, reloading module."
+                catch {ModuleUnload $modName}
+            }
         }
-    }
 
-    if {[catch {source $modInfo(tclFile)} message]} {
-        error "can't source file \"$modInfo(tclFile)\": $message"
+        # Source all script files.
+        foreach {name hash} $modInfo(tclFiles) {
+            set path [file join $modInfo(location) $name]
+            if {[catch {source $path} message]} {
+                error "can't source file \"$path\": $message"
+            }
+        }
     }
 
     # Remove trailing namespace identifiers from the context.
     set modInfo(context) [string trimright $modInfo(context) ":"]
 
-    set modules($modName) [list $modInfo(desc) $modInfo(context) \
-        $modInfo(depends) $modInfo(tclFile) $modInfo(varFile) $fileHash]
+    set modules($modName) [list $modInfo(desc) $modInfo(context) $modInfo(depends) \
+        $modInfo(location) $modInfo(tclFiles) $modInfo(varFiles)]
 
-    if {[catch {${modInfo(context)}::Load $firstLoad} message]} {
-        # Unload the module since initialisation failed.
-        if {[catch {ModuleUnload $modName} unloadMsg]} {
-            LogDebug ModuleLoadEx "unable to unload \"$modName\": $message"
+    if {[llength $modInfo(tclFiles)]} {
+        if {[catch {${modInfo(context)}::Load $firstLoad} message]} {
+            # Unload the module since initialisation failed.
+            if {[catch {ModuleUnload $modName} unloadMsg]} {
+                LogDebug ModuleLoadEx "Unable to unload \"$modName\": $message"
+            }
+            error "initialisation failed: $message"
         }
-        error "initialisation failed: $message"
+    }
+
+    foreach {name hash} $modInfo(varFiles) {
+        VarLoad [file join $modInfo(location) $name]
     }
 }
 
@@ -609,7 +615,7 @@ proc ::alcoholicz::ModuleUnload {modName} {
         error "module not loaded"
     }
 
-    foreach {desc context depends tclFile varFile hash} $modules($modName) {break}
+    foreach {desc context depends location tclFiles varFiles} $modules($modName) {break}
     set failed [catch {${context}::Unload} message]
 
     # The namespace context must only be deleted if it's
@@ -633,8 +639,8 @@ proc ::alcoholicz::ModuleUnload {modName} {
 # information.
 #
 proc ::alcoholicz::ModuleRead {filePath} {
-    set dirPath [file dirname $filePath]
-    set required [list desc context depends tclFile varFile]
+    set location [file dirname $filePath]
+    set required [list desc context depends tclFiles varFiles]
 
     set handle [open $filePath r]
     foreach line [split [read -nonewline $handle] "\n"] {
@@ -663,17 +669,30 @@ proc ::alcoholicz::ModuleRead {filePath} {
         error "missing required module information: [JoinLiteral $required]"
     }
 
-    set modInfo(tclFile) [file join $dirPath $modInfo(tclFile)]
-    if {![file isfile $modInfo(tclFile)]} {
-        error "the source file \"$modInfo(tclFile)\" does not exist"
+    # Resolve and hash all script files.
+    set tclFiles [list]
+    foreach name [ArgsToList $modInfo(tclFiles)] {
+        set path [file join $location $name]
+        if {![file isfile $path]} {
+            error "the script file \"$path\" does not exist"
+        }
+        lappend tclFiles $name [ModuleHash $path]
     }
 
-    if {$modInfo(varFile) ne ""} {
-        set modInfo(varFile) [file join $dirPath $modInfo(varFile)]
-        if {![file isfile $modInfo(varFile)]} {
-            error "the variable file \"$modInfo(varFile)\" does not exist"
+    # Resolve and hash all variable files.
+    set varFiles [list]
+    foreach name [ArgsToList $modInfo(varFiles)] {
+        set path [file join $location $name]
+        if {![file isfile $path]} {
+            error "the variable file \"$path\" does not exist"
         }
+        lappend varFiles $name [ModuleHash $path]
     }
+
+    # Update module information.
+    set modInfo(location) $location
+    set modInfo(tclFiles) $tclFiles
+    set modInfo(varFiles) $varFiles
 
     return [array get modInfo]
 }
@@ -910,6 +929,36 @@ proc ::alcoholicz::SendTargetTheme {target type {valueList ""} {section ""}} {
 ################################################################################
 # Variables                                                                    #
 ################################################################################
+
+####
+# VarLoad
+#
+# Loads a variable definition file.
+#
+proc ::alcoholicz::VarLoad {filePath} {
+    variable events
+    variable replace
+    variable variables
+
+    set handle [ConfigOpen $filePath]
+    ConfigRead $handle
+
+    foreach {name value} [ConfigGetEx $handle Events] {
+        # Allow underscores for convenience.
+        if {![string is wordchar -strict $name]} {
+            LogError VarLoad "Invalid event group name \"$name\" in \"$filePath\": must be alphanumeric."
+            continue
+        }
+
+        # Several categories have multiple events defined. Therefore,
+        # the config value must be appended to, not replaced.
+        eval lappend [list events($name)] $value
+    }
+
+    array set replace [ConfigGetEx $handle Replace]
+    array set variables [ConfigGetEx $handle Variables]
+    ConfigClose $handle
+}
 
 ####
 # VarFormat
@@ -1176,8 +1225,8 @@ proc ::alcoholicz::DccAdmin {handle idx text} {
 
         putdcc $idx "[b]Modules:[b]"
         foreach name [lsort [array names modules]] {
-            foreach {desc context depends tclFile varFile hash} $modules($name) {break}
-            putdcc $idx "$name - [b]Info:[b] $desc [b]Path:[b] [file dirname $tclFile] [b]MD5:[b] [encode hex $hash]"
+            foreach {desc context depends location tclFiles varFiles} $modules($name) {break}
+            putdcc $idx "$name - [b]Info:[b] $desc [b]Depends:[b] [JoinLiteral $depends] [b]Path:[b] $location"
         }
 
         putdcc $idx "[b]Sections:[b]"
@@ -1321,12 +1370,15 @@ proc ::alcoholicz::InitLibraries {rootPath} {
 #
 proc ::alcoholicz::InitModules {modList} {
     variable cmdNames
+    variable events
     variable modules
+    variable replace
+    variable variables
     LogInfo "Loading modules..."
 
     set prevModules [array names modules]
     array set prevCommands [array get cmdNames]
-    unset -nocomplain cmdNames
+    unset -nocomplain cmdNames events replace variables
 
     # Locate and read all module definition files.
     set modInfo [TreeCreate]
@@ -1466,63 +1518,6 @@ proc ::alcoholicz::InitTheme {themeFile} {
 }
 
 ####
-# InitVars
-#
-# Read the given variable definition files.
-#
-proc ::alcoholicz::InitVariables {fileNames} {
-    variable events
-    variable modules
-    variable replace
-    variable scriptPath
-    variable variables
-    unset -nocomplain events replace variables
-
-    # Resolve file names to their full path.
-    set varFiles [list]
-    foreach fileName $fileNames {
-        lappend varFiles [file join $scriptPath "vars" $fileName]
-    }
-
-    # Retrieve module variable definitions.
-    foreach modName [array names modules] {
-        foreach {desc context depends tclFile varFile hash} $modules($modName) {break}
-        if {$varFile ne ""} {lappend varFiles $varFile}
-    }
-
-    # The "AlcoBot.vars" file enables users to define variables for third
-    # party scripts or to redefine existing variable definitions.
-    lappend varFiles [file join $scriptPath "AlcoBot.vars"]
-
-    foreach filePath $varFiles {
-        set handle [ConfigOpen $filePath]
-        ConfigRead $handle
-
-        foreach {name value} [ConfigGetEx $handle Events] {
-            # Allow underscores for convenience.
-            if {![string is wordchar -strict $name]} {
-                LogError InitVariables "Invalid event group name \"$name\" in \"$filePath\": must be alphanumeric."
-                continue
-            }
-
-            # Several categories have multiple events defined. Therefore,
-            # the config value must be appended to, not replaced.
-            eval lappend [list events($name)] $value
-        }
-
-        array set replace [ConfigGetEx $handle Replace]
-        array set variables [ConfigGetEx $handle Variables]
-
-        ConfigClose $handle
-    }
-
-    # The contents of "events" array must be sorted to use "lsearch -sorted".
-    foreach name [array names events] {
-        set events($name) [lsort -unique $events($name)]
-    }
-}
-
-####
 # InitMain
 #
 # Loads all bot subsystems. Eggdrop is terminated if a critical initialisation
@@ -1541,18 +1536,29 @@ proc ::alcoholicz::InitMain {} {
 
     # Initialise various subsystems.
     LogInfo "Loading configuration..."
+
     set configFile [file join $scriptPath "AlcoBot.conf"]
     if {[catch {InitConfig $configFile} message]} {
         LogError Config $message
         die
     }
 
-    foreach funct {InitModules InitVariables InitTheme} option {modules varFiles themeFile} {
-        set value [ArgsToList [ConfigGet $configHandle General $option]]
-        if {[catch {$funct $value} message]} {
-            LogError [string range $funct 4 end] $message
-            die
-        }
+    set modules [ArgsToList [ConfigGet $configHandle General modules]]
+    if {[catch {InitModules $modules} message]} {
+        LogError Modules $message
+        die
+    }
+
+    set varFile [file join $scriptPath "AlcoBot.vars"]
+    if {[catch {VarLoad $varFile} message]} {
+        LogError Variables $message
+        die
+    }
+
+    set themeFile [ConfigGet $configHandle General themeFile]
+    if {[catch {InitTheme $themeFile} message]} {
+        LogError Theme $message
+        die
     }
 
     ConfigFree $configHandle

@@ -2,5 +2,5 @@
 desc=nxAutoNuke Variables
 context=
 depends=
-tclFile=
-varFile=modNxAutoNuke.vars
+tclFiles=
+varFiles=modNxAutoNuke.vars

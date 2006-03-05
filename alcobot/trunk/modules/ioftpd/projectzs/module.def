@@ -2,5 +2,5 @@
 desc=Project-ZS Variables
 context=
 depends=
-tclFile=
-varFile=modProjectZs.vars
+tclFiles=
+varFiles=modProjectZs.vars

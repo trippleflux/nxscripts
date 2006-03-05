@@ -2,5 +2,5 @@
 desc=php_psio Variables
 context=
 depends=
-tclFile=
-varFile=modPhpPsio.vars
+tclFiles=
+varFiles=modPhpPsio.vars

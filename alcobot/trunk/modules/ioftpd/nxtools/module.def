@@ -2,5 +2,5 @@
 desc=nxTools Support
 context=::alcoholicz::NxTools
 depends=ftpd invite
-tclFile=modNxTools.tcl
-varFile=modNxTools.vars
+tclFiles=modNxTools.tcl
+varFiles=modNxTools.vars

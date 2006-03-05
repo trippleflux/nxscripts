@@ -2,5 +2,5 @@
 desc=Site Command
 context=::alcoholicz::SiteCmd
 depends=ftpd
-tclFile=modSiteCmd.tcl
-varFile=modSiteCmd.vars
+tclFiles=modSiteCmd.tcl
+varFiles=modSiteCmd.vars
