@@ -254,7 +254,6 @@ proc ::ftp::Send {handle command} {
             catch {flush $ftp(sock)}
         }
     }
-    return
 }
 
 ####
@@ -329,7 +328,6 @@ proc ::ftp::Verify {handle} {
     # Set channel options and event handlers.
     fconfigure $ftp(sock) -buffering line -blocking 0 -translation {auto crlf}
     fileevent $ftp(sock) readable [list [namespace current]::Handler $handle]
-    return
 }
 
 ####
@@ -493,5 +491,4 @@ proc ::ftp::Handler {handle {direct 0}} {
         # Proceed to the next event?
         if {!$nextEvent} {break}
     }
-    return
 }
