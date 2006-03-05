@@ -183,7 +183,7 @@ proc ::alcoholicz::ReadLogs::Update {} {
     foreach {logType event line} $lines {
         # Handle unique log files.
         switch -- $logType {
-            0 {set line [ArgsToList $line]}
+            0 {set line [ListParse $line]}
             1 {set line [list $line]; set event "ERROR"}
             2 {
                 if {![ParseLogin $line event line]} {
@@ -307,7 +307,7 @@ proc ::alcoholicz::ReadLogs::Load {firstLoad} {
 
     # Monitor all user-defined log files.
     foreach type {main error login sysop} option {mainLogs errorLogs loginLogs sysopLogs} {
-        foreach filePath [ArgsToList [config::get $configHandle Module::ReadLogs $option]] {
+        foreach filePath [ListParse [config::get $configHandle Module::ReadLogs $option]] {
             if {[catch {AddLog $type $filePath} error]} {
                 LogError ModReadLogs "Unable to add log file: $error"
             }
@@ -315,7 +315,7 @@ proc ::alcoholicz::ReadLogs::Load {firstLoad} {
     }
 
     # Paths to exclude from announcing.
-    set excludePaths [ArgsToList [config::get $configHandle Module::ReadLogs excludePaths]]
+    set excludePaths [ListParse [config::get $configHandle Module::ReadLogs excludePaths]]
 
     if {$firstLoad} {
         set timerId [utimer 1 [namespace current]::Timer]

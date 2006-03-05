@@ -290,7 +290,7 @@ proc ::alcoholicz::CmdChannelProc {command user host handle channel text} {
             break
         }
     }
-    set argv [ArgsToList $text]
+    set argv [ListParse $text]
 
     # Eval is used to expand arguments to the callback procedure,
     # e.g. "CmdCreate channel !foo [list ChanFooCmd abc 123]".
@@ -328,7 +328,7 @@ proc ::alcoholicz::CmdMessageProc {command user host handle text} {
             break
         }
     }
-    set argv [ArgsToList $text]
+    set argv [ListParse $text]
     set target "PRIVMSG $user"
 
     # Eval is used to expand arguments to the callback procedure,
@@ -657,21 +657,16 @@ proc ::alcoholicz::ModuleRead {filePath} {
 
     # Perform all module information checks after the file was
     # read, in case the same option was defined multiple times.
-    set index 0
-    while {$index < [llength $required]} {
-        if {[lsearch -exact [array names modInfo] [lindex $required $index]] != -1} {
-            set required [lreplace $required $index $index]
-            continue
-        }
-        incr index
+    foreach option [array names modInfo] {
+        set required [ListRemove $required $option]
     }
     if {[llength $required]} {
-        error "missing required module information: [JoinLiteral $required]"
+        error "missing required module information: [ListConvert $required]"
     }
 
     # Resolve and hash all script files.
     set tclFiles [list]
-    foreach name [ArgsToList $modInfo(tclFiles)] {
+    foreach name [ListParse $modInfo(tclFiles)] {
         set path [file join $location $name]
         if {![file isfile $path]} {
             error "the script file \"$path\" does not exist"
@@ -681,7 +676,7 @@ proc ::alcoholicz::ModuleRead {filePath} {
 
     # Resolve and hash all variable files.
     set varFiles [list]
-    foreach name [ArgsToList $modInfo(varFiles)] {
+    foreach name [ListParse $modInfo(varFiles)] {
         set path [file join $location $name]
         if {![file isfile $path]} {
             error "the variable file \"$path\" does not exist"
@@ -1031,7 +1026,7 @@ proc ::alcoholicz::VarReplace {input varList valueList} {
             variable theme
             variable variables
 
-            set value [ArgsToList $value]
+            set value [ListParse $value]
             foreach {varName loopName} $varName {
                 set joinName "${loopName}_JOIN"
                 if {![info exists theme($loopName)] || ![info exists theme($joinName)]} {
@@ -1199,7 +1194,7 @@ bind dcc n "alcoholicz" ::alcoholicz::DccAdmin
 proc ::alcoholicz::DccAdmin {handle idx text} {
     variable scriptPath
 
-    set argv [ArgsToList $text]
+    set argv [ListParse $text]
     set event [string toupper [lindex $argv 0]]
 
     if {$event eq "DUMP"} {
@@ -1226,17 +1221,17 @@ proc ::alcoholicz::DccAdmin {handle idx text} {
         putdcc $idx "[b]Modules:[b]"
         foreach name [lsort [array names modules]] {
             foreach {desc context depends location tclFiles varFiles} $modules($name) {break}
-            putdcc $idx "$name - [b]Info:[b] $desc [b]Depends:[b] [JoinLiteral $depends] [b]Path:[b] $location"
+            putdcc $idx "$name - [b]Info:[b] $desc [b]Depends:[b] [ListConvert $depends] [b]Path:[b] $location"
         }
 
         putdcc $idx "[b]Sections:[b]"
         foreach name [lsort [array names chanSections]] {
             foreach {channels flags} $chanSections($name) {break}
-            putdcc $idx "$name - [b]Channels:[b] [JoinLiteral $channels] [b]Flags:[b] $flags"
+            putdcc $idx "$name - [b]Channels:[b] [ListConvert $channels] [b]Flags:[b] $flags"
         }
         foreach name [lsort [array names pathSections]] {
             foreach {path channels flags} $pathSections($name) {break}
-            putdcc $idx "$name - [b]Channels:[b] [JoinLiteral $channels] [b]Flags:[b] $flags [b]Path:[b] $path"
+            putdcc $idx "$name - [b]Channels:[b] [ListConvert $channels] [b]Flags:[b] $flags [b]Path:[b] $path"
         }
 
         putdcc $idx "[b]Scripts:[b]"
@@ -1247,7 +1242,7 @@ proc ::alcoholicz::DccAdmin {handle idx text} {
             }
 
             foreach {type name} $name {break}
-            putdcc $idx "$type $name - [JoinLiteral $scriptList]"
+            putdcc $idx "$type $name - [ListConvert $scriptList]"
         }
     } elseif {$event eq "REHASH" || $event eq "RELOAD"} {
         # Reload configuration file.
@@ -1303,7 +1298,7 @@ proc ::alcoholicz::InitConfig {filePath} {
 
     foreach {name value} [config::getex $configHandle Commands] {
         set flags [list]
-        foreach flag [ArgsToList $value] {
+        foreach flag [ListParse $value] {
             # Parse command flags into a list.
             if {[regexp -- {^(\+|\-)(\w+)=?(.*)$} $flag dummy prefix flag setting]} {
                 lappend flags [string equal "+" $prefix] $flag $setting
@@ -1316,7 +1311,7 @@ proc ::alcoholicz::InitConfig {filePath} {
 
     # Read channel and path sections.
     foreach {name value} [config::getex $configHandle Sections] {
-        set options [ArgsToList $value]
+        set options [ListParse $value]
         if {[llength $options] == 2} {
             set chanSections($name) $options
         } elseif {[llength $options] == 3} {
@@ -1405,12 +1400,9 @@ proc ::alcoholicz::InitModules {modList} {
             }
         }
 
-        set modIndex [lsearch -exact $prevModules $modName]
-        if {$modIndex != -1} {
-            # The module was requested to be loaded again, remove it
-            # from the list of previous modules so its not unloaded.
-            set prevModules [lreplace $prevModules $modIndex $modIndex]
-        }
+        # The module was requested to be loaded again, remove it
+        # from the list of previous modules so its not unloaded.
+        set prevModules [ListRemove $prevModules $modName]
     }
 
     # Remove unreferenced modules.
@@ -1490,7 +1482,7 @@ proc ::alcoholicz::InitTheme {themeFile} {
     }
     if {[llength $known]} {
         foreach name $known {set format($name) ""}
-        LogWarning InitTheme "Missing format entries: [JoinLiteral $known]."
+        LogWarning InitTheme "Missing format entries: [ListConvert $known]."
     }
 
     # Process theme entries.
@@ -1509,7 +1501,7 @@ proc ::alcoholicz::InitTheme {themeFile} {
     }
     if {[llength $known]} {
         foreach name $known {set theme($name) ""}
-        LogWarning InitTheme "Missing theme entries: [JoinLiteral [lsort $known]]."
+        LogWarning InitTheme "Missing theme entries: [ListConvert [lsort $known]]."
     }
 
     config::close $handle
@@ -1541,7 +1533,7 @@ proc ::alcoholicz::InitMain {} {
         die
     }
 
-    set modules [ArgsToList [config::get $configHandle General modules]]
+    set modules [ListParse [config::get $configHandle General modules]]
     if {[catch {InitModules $modules} message]} {
         LogError Modules $message
         die

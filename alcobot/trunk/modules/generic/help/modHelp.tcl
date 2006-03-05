@@ -28,7 +28,7 @@ proc ::alcoholicz::Help::Command {command target user host handle channel argv} 
         foreach {argDesc cmdDesc category binds script} $value {break}
 
         # Check if this command is present in the listed catagories.
-        if {$cmdDesc eq "" || ([llength $argv] && ![InList $argv $category])} {
+        if {$cmdDesc eq "" || ([llength $argv] && ![ListExists $argv $category])} {
             continue
         }
         set command [lindex $binds 0]

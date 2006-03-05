@@ -13,8 +13,9 @@
 #
 
 namespace eval ::alcoholicz {
-    namespace export ArgsToList GetResultLimit JoinLiteral InList IsSubDir \
-        PathParse PathParseSection PathStrip \
+    namespace export GetResultLimit \
+        ListConvert ListExists ListParse ListRemove \
+        IsSubDir PathParse PathParseSection PathStrip \
         PermCheck PermMatchFlags \
         SqlEscape SqlGetPattern SqlToLike \
         FormatDate FormatTime FormatDuration FormatDurationLong FormatSize FormatSpeed \
@@ -25,11 +26,63 @@ namespace eval ::alcoholicz {
 ################################################################################
 
 ####
-# ArgsToList
+# GetResultLimit
 #
-# Convert an argument string into a Tcl list, respecting quoted text segments.
+# Checks the number of requested results.
 #
-proc ::alcoholicz::ArgsToList {argStr} {
+proc ::alcoholicz::GetResultLimit {results} {
+    variable defaultResults
+    variable maximumResults
+
+    if {$results < 0} {
+        return $defaultResults
+    }
+    if {$results > $maximumResults} {
+        return $maximumResults
+    }
+    return $results
+}
+
+################################################################################
+# Lists                                                                        #
+################################################################################
+
+####
+# ListConvert
+#
+# Convert a Tcl list into a human-readable list.
+#
+proc ::alcoholicz::ListConvert {list {word "and"}} {
+    if {[llength $list] < 2} {
+        return [join $list]
+    }
+    set literal [join [lrange $list 0 end-1] ", "]
+    if {[llength $list] > 2} {
+        append literal ","
+    }
+    return [append literal " " $word " " [lindex $list end]]
+}
+
+####
+# ListExists
+#
+# Searches a list for a given element (case-insensitively). The -nocase switch
+# was not added to lsearch until Tcl 8.5, so this function is provided for
+# backwards compatibility with Tcl 8.4.
+#
+proc ::alcoholicz::ListExists {list element} {
+    foreach entry $list {
+        if {[string equal -nocase $entry $element]} {return 1}
+    }
+    return 0
+}
+
+####
+# ListParse
+#
+# Parses an argument string into a list, respecting quoted text segments.
+#
+proc ::alcoholicz::ListParse {argStr} {
     set argList [list]
     set length [string length $argStr]
 
@@ -53,51 +106,16 @@ proc ::alcoholicz::ArgsToList {argStr} {
 }
 
 ####
-# GetResultLimit
+# ListRemove
 #
-# Checks the number of requested results.
+# Removes an element from a list.
 #
-proc ::alcoholicz::GetResultLimit {results} {
-    variable defaultResults
-    variable maximumResults
-
-    if {$results < 0} {
-        return $defaultResults
+proc ::alcoholicz::ListRemove {list element} {
+    set index [lsearch -exact $list $element]
+    if {$index != -1} {
+        set list [lreplace $list $index $index]
     }
-    if {$results > $maximumResults} {
-        return $maximumResults
-    }
-    return $results
-}
-
-####
-# JoinLiteral
-#
-# Convert a Tcl list into a human-readable list.
-#
-proc ::alcoholicz::JoinLiteral {list {word "and"}} {
-    if {[llength $list] < 2} {
-        return [join $list]
-    }
-    set literal [join [lrange $list 0 end-1] ", "]
-    if {[llength $list] > 2} {
-        append literal ","
-    }
-    return [append literal " " $word " " [lindex $list end]]
-}
-
-####
-# InList
-#
-# Searches a list for a given element (case-insensitively). The -nocase switch
-# was not added to lsearch until Tcl 8.5, so this function is provided for
-# backwards compatibility with Tcl 8.4.
-#
-proc ::alcoholicz::InList {list element} {
-    foreach entry $list {
-        if {[string equal -nocase $entry $element]} {return 1}
-    }
-    return 0
+    return $list
 }
 
 ################################################################################

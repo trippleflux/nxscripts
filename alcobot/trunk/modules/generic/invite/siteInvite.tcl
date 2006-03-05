@@ -90,11 +90,11 @@ namespace eval ::siteInvite {
 interp alias {} IsTrue {} string is true -strict
 
 ####
-# ArgsToList
+# ListParse
 #
 # Convert an argument string into a Tcl list, respecting quoted text segments.
 #
-proc ::siteInvite::ArgsToList {argStr} {
+proc ::siteInvite::ListParse {argStr} {
     set argList [list]
     set length [string length $argStr]
 
@@ -460,7 +460,7 @@ proc ::siteInvite::Main {} {
 
     if {$::tcl_platform(platform) eq "windows"} {
         set isWindows 1
-        set argList [ArgsToList [expr {[info exists ::args] ? $::args : ""}]]
+        set argList [ListParse [expr {[info exists ::args] ? $::args : ""}]]
     } else {
         global env user group groups flags
         set isWindows 0

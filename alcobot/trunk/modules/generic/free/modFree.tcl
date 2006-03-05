@@ -42,7 +42,7 @@ proc ::alcoholicz::Free::Command {command target user host handle channel argv} 
 
     set count 0; set free 0; set used 0; set total 0
     foreach {volume sections} $volumeList {
-        if {$argc && ![InList $sections [lindex $argv 0]]} {continue}
+        if {$argc && ![ListExists $sections [lindex $argv 0]]} {continue}
 
         if {[catch {volume info $volume info} message]} {
             LogError ModFree $message; continue

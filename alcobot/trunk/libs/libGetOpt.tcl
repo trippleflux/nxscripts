@@ -25,7 +25,7 @@ namespace eval ::getopt {
         regexp -- {must be (.+)$} $charClasses dummy charClasses
         regsub -all -- {, (or )?} $charClasses { } charClasses
     }
-    namespace import -force ::alcoholicz::JoinLiteral
+    namespace import -force ::alcoholicz::ListConvert
 }
 
 ####
@@ -37,7 +37,7 @@ namespace eval ::getopt {
 proc ::getopt::element {list element {type "option"}} {
     set index [::getopt::index $list $element]
     if {$index == -1} {
-        error "invalid $type \"$element\", must be [JoinLiteral $list or]"
+        error "invalid $type \"$element\", must be [ListConvert $list or]"
     }
     return [lindex $list $index]
 }
@@ -114,7 +114,7 @@ proc ::getopt::parse {argList optList resultVar} {
             2 {
                 if {[lsearch -exact $types [lindex $option 1]] == -1} {
                     error "invalid option definition \"$option\": \
-                        bad type \"[lindex $option 1]\", must be [JoinLiteral $types or]"
+                        bad type \"[lindex $option 1]\", must be [ListConvert $types or]"
                 }
             }
             3 {

@@ -231,7 +231,7 @@ proc ::alcoholicz::Online::Load {firstLoad} {
         set $option [config::get $configHandle Ftpd $option]
     }
     foreach option {hideUsers hideGroups hidePaths} {
-        set $option [ArgsToList [config::get $configHandle Module::Online $option]]
+        set $option [ListParse [config::get $configHandle Module::Online $option]]
     }
     set hideCount [IsTrue [config::get $configHandle Module::Online hideCount]]
 

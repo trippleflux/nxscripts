@@ -226,7 +226,7 @@ proc ::alcoholicz::Invite::Process {ircUser ircHost ftpUser ftpGroup ftpGroupLis
     }
 
     if {[llength $failed]} {
-        set failed [JoinLiteral [lsort $failed]]
+        set failed [ListConvert [lsort $failed]]
         SendTheme $ircUser inviteFailed [list $ftpUser $ircUser $failed]
     }
 }
@@ -426,7 +426,7 @@ proc ::alcoholicz::Invite::Load {firstLoad} {
 
     # Parse invite channels.
     unset -nocomplain channels
-    foreach entry [ArgsToList [config::get $configHandle Module::Invite channels]] {
+    foreach entry [ListParse [config::get $configHandle Module::Invite channels]] {
         set entry [split $entry]
         if {![llength $entry]} {
             LogError ModInvite "Invalid channel definition \"[join $entry]\"."

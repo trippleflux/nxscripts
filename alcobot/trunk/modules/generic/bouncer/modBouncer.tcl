@@ -123,7 +123,7 @@ proc ::alcoholicz::Bouncer::Load {firstLoad} {
         if {$name eq "cmdPrefix"} {continue}
 
         # Values: <host> <port> <user> <password> [secure]
-        set value [ArgsToList $value]
+        set value [ListParse $value]
         foreach {host port user passwd secure} $value {break}
 
         if {([llength $value] != 4 && [llength $value] != 5) ||
