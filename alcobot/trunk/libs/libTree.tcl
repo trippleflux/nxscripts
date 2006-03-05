@@ -14,21 +14,21 @@
 #   its keys and nodes.
 #
 # Procedures:
-#   ::tree::create [<key> <value> ...]
-#   ::tree::exists <tree> <key> [<key> ...]
-#   ::tree::for    {keyVar valueVar} <tree> <body>
-#   ::tree::keys   <tree> [pattern]
-#   ::tree::values <tree> [pattern]
-#   ::tree::get    <tree> <key> [<key> ...]
-#   ::tree::get2   <tree> <key> [<key> ...]
-#   ::tree::set    <tree> <key> [<key> ...] <value>
-#   ::tree::unset  <tree> <key> [<key> ...]
+#   tree::create [<key> <value> ...]
+#   tree::exists <tree> <key> [<key> ...]
+#   tree::for    {keyVar valueVar} <tree> <body>
+#   tree::keys   <tree> [pattern]
+#   tree::values <tree> [pattern]
+#   tree::get    <tree> <key> [<key> ...]
+#   tree::get2   <tree> <key> [<key> ...]
+#   tree::set    <tree> <key> [<key> ...] <value>
+#   tree::unset  <tree> <key> [<key> ...]
 #
 
 namespace eval ::tree {}
 
 ####
-# ::tree::create
+# tree::create
 #
 # Creates a new tree that contains each of the key and value mappings listed
 # as arguments. Keys and values must be in alternating order.
@@ -41,7 +41,7 @@ proc ::tree::create {args} {
 }
 
 ####
-# ::tree::exists
+# tree::exists
 #
 # Returns a boolean value indicating whether the given key exists in the
 # specified tree.
@@ -57,7 +57,7 @@ proc ::tree::exists {tree key args} {
 }
 
 ####
-# ::tree::for
+# tree::for
 #
 # Iterates through a tree, in the same manner as foreach. Two variable names
 # must be specified for the first parameter, which are mapped to the key and
@@ -71,7 +71,7 @@ proc ::tree::for {vars tree body} {
 }
 
 ####
-# ::tree::keys
+# tree::keys
 #
 # Returns a list of all keys in the given tree. If the "pattern" argument
 # is specified, only matching keys are returned.
@@ -87,7 +87,7 @@ proc ::tree::keys {tree {pattern "*"}} {
 }
 
 ####
-# ::tree::values
+# tree::values
 #
 # Returns a list of all values in the given tree. If the "pattern" argument
 # is specified, only matching values are returned.
@@ -103,7 +103,7 @@ proc ::tree::values {tree {pattern "*"}} {
 }
 
 ####
-# ::tree::get
+# tree::get
 #
 # Retrieves the value of a key within the specified tree. Multiple keys can be
 # specified to retrieve values of nested keys. An error is raised if you attempt
@@ -120,7 +120,7 @@ proc ::tree::get {tree key args} {
 }
 
 ####
-# ::tree::get2
+# tree::get2
 #
 # A variation of ::tree::get that returns an empty string when a nonexistent key is
 # specified. This simplifies implementations that consider the key's existence to
@@ -137,7 +137,7 @@ proc ::tree::get2 {tree key args} {
 }
 
 ####
-# ::tree::set
+# tree::set
 #
 # Creates or updates the value for a key within a tree. When multiple keys are
 # specified, it creates or updates a chain of nested keys. Note that this
@@ -173,7 +173,7 @@ proc ::tree::set {treeVar key value args} {
 }
 
 ####
-# ::tree::unset
+# tree::unset
 #
 # Removes a key and its value from a tree. When multiple keys are specified,
 # it removes the deepest existing key. Note that this procedure takes name of

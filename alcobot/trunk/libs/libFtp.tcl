@@ -12,13 +12,13 @@
 #   Implements a FTP client library to interact with FTP servers.
 #
 # Procedures:
-#   ::ftp::open       <host> <port> <user> <passwd> [-notify <script>] [-secure <type>]
-#   ::ftp::close      <handle>
-#   ::ftp::error      <handle>
-#   ::ftp::status     <handle>
-#   ::ftp::connect    <handle>
-#   ::ftp::disconnect <handle>
-#   ::ftp::command    <handle> <command> [callback]
+#   ftp::open       <host> <port> <user> <passwd> [-notify <script>] [-secure <type>]
+#   ftp::close      <handle>
+#   ftp::error      <handle>
+#   ftp::status     <handle>
+#   ftp::connect    <handle>
+#   ftp::disconnect <handle>
+#   ftp::command    <handle> <command> [callback]
 #
 
 namespace eval ::ftp {
@@ -29,7 +29,7 @@ namespace eval ::ftp {
 }
 
 ####
-# ::ftp::open
+# ftp::open
 #
 # Creates a new FTP client handle. This handle is used by every FTP procedure
 # and must be closed using ::ftp::close.
@@ -108,7 +108,7 @@ proc ::ftp::open {host port user passwd args} {
 }
 
 ####
-# ::ftp::close
+# ftp::close
 #
 # Closes and invalidates the specified handle.
 #
@@ -120,7 +120,7 @@ proc ::ftp::close {handle} {
 }
 
 ####
-# ::ftp::error
+# ftp::error
 #
 # Returns the last error message.
 #
@@ -130,7 +130,7 @@ proc ::ftp::error {handle} {
 }
 
 ####
-# ::ftp::status
+# ftp::status
 #
 # Returns the connection status.
 #
@@ -140,7 +140,7 @@ proc ::ftp::status {handle} {
 }
 
 ####
-# ::ftp::connect
+# ftp::connect
 #
 # Connects to the FTP server.
 #
@@ -163,7 +163,7 @@ proc ::ftp::connect {handle} {
 }
 
 ####
-# ::ftp::disconnect
+# ftp::disconnect
 #
 # Disconnects from the FTP server.
 #
@@ -174,7 +174,7 @@ proc ::ftp::disconnect {handle} {
 }
 
 ####
-# ::ftp::command
+# ftp::command
 #
 # Sends a command to the FTP server. The server's response can be retrieved
 # by specifying a callback, since this library operates asynchronously.
@@ -186,10 +186,10 @@ proc ::ftp::disconnect {handle} {
 #     }
 # }
 #
-# set handle [::ftp::open localhost 21 user pass]
-# ::ftp::connect $handle
-# ::ftp::command $handle "SITE WHO" SiteWhoCallback
-# ::ftp::close $handle
+# set handle [ftp::open localhost 21 user pass]
+# ftp::connect $handle
+# ftp::command $handle "SITE WHO" SiteWhoCallback
+# ftp::close $handle
 #
 proc ::ftp::command {handle command {callback ""}} {
     Acquire $handle ftp

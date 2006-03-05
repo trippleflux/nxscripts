@@ -12,9 +12,9 @@
 #   Implements a command-line option parser.
 #
 # Procedures:
-#   ::getopt::element <list> <element> [type]
-#   ::getopt::index   <list> <element>
-#   ::getopt::parse   <argList> <optList> <resultVar>
+#   getopt::element <list> <element> [type]
+#   getopt::index   <list> <element>
+#   getopt::parse   <argList> <optList> <resultVar>
 #
 
 namespace eval ::getopt {
@@ -29,7 +29,7 @@ namespace eval ::getopt {
 }
 
 ####
-# ::getopt::element
+# getopt::element
 #
 # Simple wrapper around ::getopt::index, an error is thrown if no
 # match is found.
@@ -43,7 +43,7 @@ proc ::getopt::element {list element {type "option"}} {
 }
 
 ####
-# ::getopt::index
+# getopt::index
 #
 # Returns the index of an element in a list. A partial match is performed
 # if there is no exact match. If the element exists in the list, the index
@@ -68,7 +68,7 @@ proc ::getopt::index {list element} {
 }
 
 ####
-# ::getopt::parse
+# getopt::parse
 #
 # Parses command line options from an argument list.
 #

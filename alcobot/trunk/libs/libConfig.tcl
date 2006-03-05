@@ -13,19 +13,19 @@
 #   INI-style configuration files.
 #
 # Procedures:
-#   ::config::open     <filePath> [-align <int>] [-comment <char>]
-#   ::config::change   <handle> <-align | -comment | -path> [value]
-#   ::config::close    <handle>
-#   ::config::free     <handle>
-#   ::config::read     <handle>
-#   ::config::write    <handle>
-#   ::config::keys     <handle> [pattern]
-#   ::config::sections <handle> <section> [pattern]
-#   ::config::exists   <handle> <section> [key]
-#   ::config::get      <handle> <section> <key>
-#   ::config::getex    <handle> <section> [pattern]
-#   ::config::set      <handle> <section> [<key> <value>]
-#   ::config::unset    <handle> <section> [key]
+#   config::open     <filePath> [-align <int>] [-comment <char>]
+#   config::change   <handle> <-align | -comment | -path> [value]
+#   config::close    <handle>
+#   config::free     <handle>
+#   config::read     <handle>
+#   config::write    <handle>
+#   config::keys     <handle> [pattern]
+#   config::sections <handle> <section> [pattern]
+#   config::exists   <handle> <section> [key]
+#   config::get      <handle> <section> <key>
+#   config::getex    <handle> <section> [pattern]
+#   config::set      <handle> <section> [<key> <value>]
+#   config::unset    <handle> <section> [key]
 #
 
 namespace eval ::config {
@@ -36,7 +36,7 @@ namespace eval ::config {
 }
 
 ####
-# ::config::open
+# config::open
 #
 # Create a new configuration library handle. This handle is used by every config
 # procedure and must be closed by ::config::close. The "-align int" switch determines
@@ -69,11 +69,11 @@ proc ::config::open {filePath args} {
 
     ::set handle "config$nextHandle"
     upvar [namespace current]::$handle config
-    array set config [list   \
-        align   $align       \
-        comment $comment     \
+    array set config [list       \
+        align   $align           \
+        comment $comment         \
         tree    [::tree::create] \
-        path    $filePath    \
+        path    $filePath        \
     ]
 
     incr nextHandle
@@ -81,7 +81,7 @@ proc ::config::open {filePath args} {
 }
 
 ####
-# ::config::change
+# config::change
 #
 # Retrieve and modify options for a given configuration handle.
 #
@@ -120,7 +120,7 @@ proc ::config::change {handle option args} {
 }
 
 ####
-# ::config::close
+# config::close
 #
 # Closes and invalidates the specified handle.
 #
@@ -131,7 +131,7 @@ proc ::config::close {handle} {
 }
 
 ####
-# ::config::free
+# config::free
 #
 # Clears the internal tree structure, which contains all configuration data.
 #
@@ -142,7 +142,7 @@ proc ::config::free {handle} {
 }
 
 ####
-# ::config::read
+# config::read
 #
 # Reads the configuration file from disk. An error is raised if the file
 # cannot be opened for reading.
@@ -202,7 +202,7 @@ proc ::config::read {handle} {
 }
 
 ####
-# ::config::write
+# config::write
 #
 # Writes the configuration file to disk. An error is raised if the file
 # cannot be opened for writing.
@@ -243,7 +243,7 @@ proc ::config::write {handle} {
 }
 
 ####
-# ::config::keys
+# config::keys
 #
 # Returns a list of all keys within a given section. If the "pattern" argument
 # is specified, only matching keys are returned.
@@ -254,7 +254,7 @@ proc ::config::keys {handle section {pattern "*"}} {
 }
 
 ####
-# ::config::sections
+# config::sections
 #
 # Returns a list of all configuration sections. If the "pattern" argument is
 # specified, only matching sections are returned.
@@ -265,7 +265,7 @@ proc ::config::sections {handle {pattern "*"}} {
 }
 
 ####
-# ::config::exists
+# config::exists
 #
 # Test for the existence of a section or a key within a given section.
 #
@@ -279,7 +279,7 @@ proc ::config::exists {handle section {key ""}} {
 }
 
 ####
-# ::config::get
+# config::get
 #
 # Returns the value of the named key from the specified section.
 #
@@ -289,7 +289,7 @@ proc ::config::get {handle section key} {
 }
 
 ####
-# ::config::getex
+# config::getex
 #
 # Returns a list of key and value pairs from the specified section. If the
 # "pattern" argument is specified, only matching keys are returned.
@@ -306,7 +306,7 @@ proc ::config::getex {handle section {pattern "*"}} {
 }
 
 ####
-# ::config::set
+# config::set
 #
 # Sets the value of the key in the specified section. If the section does not
 # exist, a new one is created.
@@ -336,7 +336,7 @@ proc ::config::set {handle section args} {
 }
 
 ####
-# ::config::unset
+# config::unset
 #
 # Removes the key or the entire section and all its keys.
 #
