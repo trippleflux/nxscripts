@@ -21,9 +21,6 @@ namespace eval ::alcoholicz::NxTools {
     namespace import -force ::alcoholicz::*
     namespace import -force ::alcoholicz::FtpDaemon::GetFtpConnection
     namespace import -force ::alcoholicz::Invite::GetFtpUser
-    namespace import -force ::config::*
-    namespace import -force ::ftp::*
-    namespace import -force ::getopt::*
 }
 
 ####
@@ -72,7 +69,7 @@ proc ::alcoholicz::NxTools::Dupe {command target user host handle channel argv} 
     set option(limit) -1
     set optList [list {limit integer} [list section arg [lsort [array names pathSections]]]]
 
-    if {[catch {set pattern [GetOptions $argv $optList option]} message]} {
+    if {[catch {set pattern [::getopt::parse $argv $optList option]} message]} {
         CmdSendHelp $channel channel $command $message
         return
     }
@@ -123,7 +120,7 @@ proc ::alcoholicz::NxTools::New {command target user host handle channel argv} {
 
     # Parse command options.
     set option(limit) -1
-    if {[catch {set section [GetOptions $argv {{limit integer}} option]} message]} {
+    if {[catch {set section [::getopt::parse $argv {{limit integer}} option]} message]} {
         CmdSendHelp $channel channel $command $message
         return
     }
@@ -134,7 +131,7 @@ proc ::alcoholicz::NxTools::New {command target user host handle channel argv} {
     } else {
         # Validate the specified section name.
         set names [lsort [array names pathSections]]
-        if {[catch {set section [GetElementFromList $names $section section]} message]} {
+        if {[catch {set section [::getopt::element $names $section section]} message]} {
             CmdSendHelp $channel channel $command $message
             return
         }
@@ -174,7 +171,7 @@ proc ::alcoholicz::NxTools::Undupe {command target user host handle channel argv
     variable undupeWild
 
     # Parse command options.
-    if {[catch {set pattern [GetOptions $argv {directory} option]} message]} {
+    if {[catch {set pattern [::getopt::parse $argv {directory} option]} message]} {
         CmdSendHelp $channel channel $command $message
         return
     }
@@ -227,7 +224,7 @@ proc ::alcoholicz::NxTools::Undupe {command target user host handle channel argv
 proc ::alcoholicz::NxTools::Nukes {command target user host handle channel argv} {
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
+    if {[catch {set pattern [::getopt::parse $argv {{limit integer}} option]} message]} {
         CmdSendHelp $channel channel $command $message
         return
     }
@@ -265,7 +262,7 @@ proc ::alcoholicz::NxTools::Nukes {command target user host handle channel argv}
 proc ::alcoholicz::NxTools::NukeTop {command target user host handle channel argv} {
     # Parse command options.
     set option(limit) -1
-    if {[catch {set group [GetOptions $argv {{limit integer}} option]} message]} {
+    if {[catch {set group [::getopt::parse $argv {{limit integer}} option]} message]} {
         CmdSendHelp $channel channel $command $message
         return
     }
@@ -302,7 +299,7 @@ proc ::alcoholicz::NxTools::NukeTop {command target user host handle channel arg
 proc ::alcoholicz::NxTools::Unnukes {command target user host handle channel argv} {
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
+    if {[catch {set pattern [::getopt::parse $argv {{limit integer}} option]} message]} {
         CmdSendHelp $channel channel $command $message
         return
     }
@@ -363,7 +360,7 @@ proc ::alcoholicz::NxTools::Approved {command target user host handle channel ar
 proc ::alcoholicz::NxTools::OneLines {command target user host handle channel argv} {
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
+    if {[catch {set pattern [::getopt::parse $argv {{limit integer}} option]} message]} {
         CmdSendHelp $channel channel $command $message
         return
     }
@@ -448,8 +445,8 @@ proc ::alcoholicz::NxTools::SiteCmd {event command target user host handle chann
 
     # Send the SITE command.
     set connection [GetFtpConnection]
-    if {[FtpGetStatus $connection] == 2} {
-        FtpCommand $connection $command [list [namespace current]::SiteCallback $target $theme]
+    if {[::ftp::status $connection] == 2} {
+        ::ftp::command $connection $command [list [namespace current]::SiteCallback $target $theme]
     } else {
         SendTargetTheme $target $theme [list "Not connected to the FTP server."]
     }
@@ -485,15 +482,15 @@ proc ::alcoholicz::NxTools::Load {firstLoad} {
 
     # Retrieve configuration options.
     foreach option {dataPath undupeChars undupeWild} {
-        set $option [ConfigGet $configHandle Module::NxTools $option]
+        set $option [::config::get $configHandle Module::NxTools $option]
     }
     if {![file isdirectory $dataPath]} {
         error "The database directory \"$dataPath\" does not exist."
     }
     set undupeWild [IsTrue $undupeWild]
 
-    if {[ConfigExists $configHandle Module::NxTools cmdPrefix]} {
-        set prefix [ConfigGet $configHandle Module::NxTools cmdPrefix]
+    if {[::config::exists $configHandle Module::NxTools cmdPrefix]} {
+        set prefix [::config::get $configHandle Module::NxTools cmdPrefix]
     } else {
         set prefix $::alcoholicz::cmdPrefix
     }

@@ -15,6 +15,10 @@
 package require tcltest 2
 namespace import -force ::tcltest::*
 
+source ../libs/libUtil.tcl
+source ../libs/libGetOpt.tcl
+source ../libs/libTree.tcl
+
 proc ArrayGetSort {varName} {
     upvar $varName var
     set contents [list]
@@ -25,120 +29,120 @@ proc ArrayGetSort {varName} {
 }
 
 ################################################################################
-# GetElementFromList                                                           #
+# ::getopt::element                                                            #
 ################################################################################
 
-test getopt-1.1 {GetElementFromList: no args} {
-    list [catch {GetElementFromList} msg] $msg
-} {1 {wrong # args: should be "GetElementFromList list element ?type?"}}
+test getopt-1.1 {::getopt::element: no args} {
+    list [catch {::getopt::element} msg] $msg
+} {1 {wrong # args: should be "::getopt::element list element ?type?"}}
 
-test getopt-1.2 {GetElementFromList: match} {
-    GetElementFromList {zero one two three four} two
+test getopt-1.2 {::getopt::element: match} {
+    ::getopt::element {zero one two three four} two
 } {two}
 
-test getopt-1.3 {GetElementFromList: partial match} {
-    GetElementFromList {zero one two three four} thr
+test getopt-1.3 {::getopt::element: partial match} {
+    ::getopt::element {zero one two three four} thr
 } {three}
 
-test getopt-1.4 {GetElementFromList: no match} {
-    list [catch {GetElementFromList {zero one two three four} . blah} msg] $msg
+test getopt-1.4 {::getopt::element: no match} {
+    list [catch {::getopt::element {zero one two three four} . blah} msg] $msg
 } {1 {invalid blah ".", must be zero, one, two, three, or four}}
 
 ################################################################################
-# GetIndexFromList                                                             #
+# ::getopt::index                                                              #
 ################################################################################
 
-test getopt-2.1 {GetIndexFromList: no args} {
-    list [catch {GetIndexFromList} msg] $msg
-} {1 {wrong # args: should be "GetIndexFromList list element"}}
+test getopt-2.1 {::getopt::index: no args} {
+    list [catch {::getopt::index} msg] $msg
+} {1 {wrong # args: should be "::getopt::index list element"}}
 
-test getopt-2.2 {GetIndexFromList: exact match} {
-    GetIndexFromList {zero one two three four} two
+test getopt-2.2 {::getopt::index: exact match} {
+    ::getopt::index {zero one two three four} two
 } {2}
 
-test getopt-2.3 {GetIndexFromList: no exact match} {
-    GetIndexFromList {zero one two three four} .
+test getopt-2.3 {::getopt::index: no exact match} {
+    ::getopt::index {zero one two three four} .
 } {-1}
 
-test getopt-2.4 {GetIndexFromList: unique partial match} {
-    GetIndexFromList {zero one two three four} thr
+test getopt-2.4 {::getopt::index: unique partial match} {
+    ::getopt::index {zero one two three four} thr
 } {3}
 
-test getopt-2.5 {GetIndexFromList: no unique partial match} {
-    GetIndexFromList {zero one two three four} t
+test getopt-2.5 {::getopt::index: no unique partial match} {
+    ::getopt::index {zero one two three four} t
 } {-1}
 
 ################################################################################
-# GetOptions                                                                   #
+# ::getopt::parse                                                              #
 ################################################################################
 
-test getopt-3.1 {GetOptions: no args} {
-    list [catch {GetOptions} msg] $msg
-} {1 {wrong # args: should be "GetOptions argList optList resultVar"}}
+test getopt-3.1 {::getopt::parse: no args} {
+    list [catch {::getopt::parse} msg] $msg
+} {1 {wrong # args: should be "::getopt::parse argList optList resultVar"}}
 
-test getopt-3.2 {GetOptions: result variable as scalar} {
+test getopt-3.2 {::getopt::parse: result variable as scalar} {
     unset -nocomplain result
     set result ""
-    list [catch {GetOptions "-one 5 blah blah" {{one integer}} result} msg] $msg
+    list [catch {::getopt::parse "-one 5 blah blah" {{one integer}} result} msg] $msg
 } {1 {the variable "result" is not an array}}
 
-test getopt-3.3 {GetOptions: invalid type} {
+test getopt-3.3 {::getopt::parse: invalid type} {
     -body {
         unset -nocomplain result
-        list [catch {GetOptions "" {one {two .} three} result} msg] $msg
+        list [catch {::getopt::parse "" {one {two .} three} result} msg] $msg
     }
     -match glob
     -result {1 {invalid option definition "two .":  bad type ".", must be *}}
 }
 
-test getopt-3.4 {GetOptions: invalid option} {
+test getopt-3.4 {::getopt::parse: invalid option} {
     unset -nocomplain result
-    list [catch {GetOptions "-four blah blah" {one two three} result} msg] $msg
+    list [catch {::getopt::parse "-four blah blah" {one two three} result} msg] $msg
 } {1 {invalid option "-four"}}
 
-test getopt-3.5 {GetOptions: end of options} {
+test getopt-3.5 {::getopt::parse: end of options} {
     unset -nocomplain result
-    list [GetOptions "-one -- -three blah blah" {one two three} result] [ArrayGetSort result]
+    list [::getopt::parse "-one -- -three blah blah" {one two three} result] [ArrayGetSort result]
 } {{-three blah blah} {one {}}}
 
-test getopt-3.6 {GetOptions: options with no values} {
+test getopt-3.6 {::getopt::parse: options with no values} {
     unset -nocomplain result
-    list [GetOptions "-one -three blah blah" {one two three} result] [ArrayGetSort result]
+    list [::getopt::parse "-one -three blah blah" {one two three} result] [ArrayGetSort result]
 } {{blah blah} {one {} three {}}}
 
-test getopt-3.7 {GetOptions: any value not present} {
+test getopt-3.7 {::getopt::parse: any value not present} {
     unset -nocomplain result
-    list [catch {GetOptions "-two -one" {{one arg} two {three arg}} result} msg] $msg
+    list [catch {::getopt::parse "-two -one" {{one arg} two {three arg}} result} msg] $msg
 } {1 {the option "-one" requires a value}}
 
-test getopt-3.8 {GetOptions: any value} {
+test getopt-3.8 {::getopt::parse: any value} {
     unset -nocomplain result
-    list [GetOptions "-one okay -three -- blah blah" {{one arg} two three} result] [ArrayGetSort result]
+    list [::getopt::parse "-one okay -three -- blah blah" {{one arg} two three} result] [ArrayGetSort result]
 } {{blah blah} {one okay three {}}}
 
-test getopt-3.9 {GetOptions: invalid typed value} {
+test getopt-3.9 {::getopt::parse: invalid typed value} {
     unset -nocomplain result
-    list [catch {GetOptions "-one . -three" {{one integer} two three} result} msg] $msg
+    list [catch {::getopt::parse "-one . -three" {{one integer} two three} result} msg] $msg
 } {1 {the option "-one" requires a integer type value}}
 
-test getopt-3.10 {GetOptions: typed value} {
+test getopt-3.10 {::getopt::parse: typed value} {
     unset -nocomplain result
-    list [GetOptions "-one 5 -three blah blah" {{one integer} two three} result] [ArrayGetSort result]
+    list [::getopt::parse "-one 5 -three blah blah" {{one integer} two three} result] [ArrayGetSort result]
 } {{blah blah} {one 5 three {}}}
 
-test getopt-3.11 {GetOptions: invalid prefined value} {
+test getopt-3.11 {::getopt::parse: invalid prefined value} {
     unset -nocomplain result
-    list [catch {GetOptions "-one 5 -type . -three" {{one integer} {type arg {exact glob regexp}} three} result} msg] $msg
+    list [catch {::getopt::parse "-one 5 -type . -three" {{one integer} {type arg {exact glob regexp}} three} result} msg] $msg
 } {1 {invalid value ".", must be exact, glob, or regexp}}
 
-test getopt-3.12 {GetOptions: prefined value, exact match} {
+test getopt-3.12 {::getopt::parse: prefined value, exact match} {
     unset -nocomplain result
-    list [GetOptions "-one 5 -type regexp -three blah blah" {{one integer} {type arg {exact glob regexp}} three} result] [ArrayGetSort result]
+    list [::getopt::parse "-one 5 -type regexp -three blah blah" {{one integer} {type arg {exact glob regexp}} three} result] [ArrayGetSort result]
 } {{blah blah} {one 5 three {} type regexp}}
 
-test getopt-3.13 {GetOptions: prefined value, partial match} {
+test getopt-3.13 {::getopt::parse: prefined value, partial match} {
     unset -nocomplain result
-    list [GetOptions "-one 5 -type ex -three blah blah" {{one integer} {type arg {exact glob regexp}} three} result] [ArrayGetSort result]
+    list [::getopt::parse "-one 5 -type ex -three blah blah" {{one integer} {type arg {exact glob regexp}} three} result] [ArrayGetSort result]
 } {{blah blah} {one 5 three {} type exact}}
 
 

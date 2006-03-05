@@ -21,7 +21,6 @@ namespace eval ::alcoholicz::Online {
         variable session ""
     }
     namespace import -force ::alcoholicz::*
-    namespace import -force ::config::*
 }
 
 ####
@@ -229,12 +228,12 @@ proc ::alcoholicz::Online::Load {firstLoad} {
 
     # Retrieve configuration options.
     foreach option {rootPath shmKey version} {
-        set $option [ConfigGet $configHandle Ftpd $option]
+        set $option [::config::get $configHandle Ftpd $option]
     }
     foreach option {hideUsers hideGroups hidePaths} {
-        set $option [ArgsToList [ConfigGet $configHandle Module::Online $option]]
+        set $option [ArgsToList [::config::get $configHandle Module::Online $option]]
     }
-    set hideCount [IsTrue [ConfigGet $configHandle Module::Online hideCount]]
+    set hideCount [IsTrue [::config::get $configHandle Module::Online hideCount]]
 
     set etcPath [file join $rootPath "etc"]
     if {![file isdirectory $etcPath]} {
@@ -253,8 +252,8 @@ proc ::alcoholicz::Online::Load {firstLoad} {
     }
     glftpd config $session -etc $etcPath -version $version
 
-    if {[ConfigExists $configHandle Module::Online cmdPrefix]} {
-        set prefix [ConfigGet $configHandle Module::Online cmdPrefix]
+    if {[::config::exists $configHandle Module::Online cmdPrefix]} {
+        set prefix [::config::get $configHandle Module::Online cmdPrefix]
     } else {
         set prefix $::alcoholicz::cmdPrefix
     }

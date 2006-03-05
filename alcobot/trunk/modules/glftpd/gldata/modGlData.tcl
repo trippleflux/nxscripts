@@ -21,8 +21,6 @@ namespace eval ::alcoholicz::GlData {
     }
     namespace import -force ::alcoholicz::*
     namespace import -force ::alcoholicz::FtpDaemon::*
-    namespace import -force ::config::*
-    namespace import -force ::getopt::*
 }
 
 ####
@@ -115,7 +113,7 @@ proc ::alcoholicz::GlData::Dupe {command target user host handle channel argv} {
 
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
+    if {[catch {set pattern [::getopt::parse $argv {{limit integer}} option]} message]} {
         CmdSendHelp $channel channel $command $message
         return
     }
@@ -174,7 +172,7 @@ proc ::alcoholicz::GlData::New {command target user host handle channel argv} {
 
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
+    if {[catch {set pattern [::getopt::parse $argv {{limit integer}} option]} message]} {
         CmdSendHelp $channel channel $command $message
         return
     }
@@ -219,7 +217,7 @@ proc ::alcoholicz::GlData::Search {command target user host handle channel argv}
 
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
+    if {[catch {set pattern [::getopt::parse $argv {{limit integer}} option]} message]} {
         CmdSendHelp $channel channel $command $message
         return
     }
@@ -331,7 +329,7 @@ proc ::alcoholicz::GlData::Nukes {command target user host handle channel argv} 
 
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
+    if {[catch {set pattern [::getopt::parse $argv {{limit integer}} option]} message]} {
         CmdSendHelp $channel channel $command $message
         return
     }
@@ -372,7 +370,7 @@ proc ::alcoholicz::GlData::Unnukes {command target user host handle channel argv
 
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
+    if {[catch {set pattern [::getopt::parse $argv {{limit integer}} option]} message]} {
         CmdSendHelp $channel channel $command $message
         return
     }
@@ -413,7 +411,7 @@ proc ::alcoholicz::GlData::OneLines {command target user host handle channel arg
 
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
+    if {[catch {set pattern [::getopt::parse $argv {{limit integer}} option]} message]} {
         CmdSendHelp $channel channel $command $message
         return
     }
@@ -468,20 +466,20 @@ proc ::alcoholicz::GlData::Load {firstLoad} {
 
     # Retrieve configuration options.
     foreach option {tempPath undupeChars undupeWild} {
-        set $option [ConfigGet $configHandle Module::GlData $option]
+        set $option [::config::get $configHandle Module::GlData $option]
     }
     if {![file isdirectory $tempPath]} {
         error "the directory \"$tempPath\" does not exist"
     }
     set undupeWild [IsTrue $undupeWild]
 
-    set logsPath [file join [ConfigGet $configHandle Ftpd dataPath] "logs"]
+    set logsPath [file join [::config::get $configHandle Ftpd dataPath] "logs"]
     if {![file isdirectory $logsPath]} {
         error "the directory \"$logsPath\" does not exist"
     }
 
-    if {[ConfigExists $configHandle Module::GlData cmdPrefix]} {
-        set prefix [ConfigGet $configHandle Module::GlData cmdPrefix]
+    if {[::config::exists $configHandle Module::GlData cmdPrefix]} {
+        set prefix [::config::get $configHandle Module::GlData cmdPrefix]
     } else {
         set prefix $::alcoholicz::cmdPrefix
     }

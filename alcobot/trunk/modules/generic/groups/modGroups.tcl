@@ -14,7 +14,6 @@
 
 namespace eval ::alcoholicz::Groups {
     namespace import -force ::alcoholicz::*
-    namespace import -force ::config::*
 }
 
 ####
@@ -30,11 +29,11 @@ proc ::alcoholicz::Groups::ChangeAffils {event command target user host handle c
         CmdSendHelp $channel channel $command
         return
     }
-    ConfigRead $groupsHandle
+    ::config::read $groupsHandle
 
     set section [lindex $argv 0]
     set group [lindex $argv 1]
-    set groupList [ConfigGet $groupsHandle Affils $section]
+    set groupList [::config::get $groupsHandle Affils $section]
 
     if {$event eq "ADD"} {
         if {[lsearch -exact $groupList $group] != -1} {
@@ -43,8 +42,8 @@ proc ::alcoholicz::Groups::ChangeAffils {event command target user host handle c
         }
 
         # Add group to the section's affil list.
-        ConfigSet $groupsHandle Affils $section [lappend groupList $group]
-        if {[catch {ConfigWrite $groupsHandle} message]} {
+        ::config::set $groupsHandle Affils $section [lappend groupList $group]
+        if {[catch {::config::write $groupsHandle} message]} {
             SendTarget $target "Unable to update groups file: $message"
         } else {
             SendTarget $target "Added [b]$group[b] to the [b]$section[b] affil list."
@@ -56,8 +55,8 @@ proc ::alcoholicz::Groups::ChangeAffils {event command target user host handle c
         }
 
         # Remove group from the section's affil list.
-        ConfigSet $groupsHandle Affils $section [lreplace $groupList $index $index]
-        if {[catch {ConfigWrite $groupsHandle} message]} {
+        ::config::set $groupsHandle Affils $section [lreplace $groupList $index $index]
+        if {[catch {::config::write $groupsHandle} message]} {
             SendTarget $target "Unable to update groups file: $message"
         } else {
             SendTarget $target "Removed [b]$group[b] from the [b]$section[b] affil list."
@@ -66,7 +65,7 @@ proc ::alcoholicz::Groups::ChangeAffils {event command target user host handle c
         LogError ModGroups "Unknown affil event \"$event\"."
     }
 
-    ConfigFree $groupsHandle
+    ::config::free $groupsHandle
 }
 
 ####
@@ -80,11 +79,11 @@ proc ::alcoholicz::Groups::ChangeBanned {event command target user host handle c
         CmdSendHelp $channel channel $command
         return
     }
-    ConfigRead $groupsHandle
+    ::config::read $groupsHandle
 
     set section [lindex $argv 0]
     set group [lindex $argv 1]
-    set groupList [ConfigGet $groupsHandle Banned $section]
+    set groupList [::config::get $groupsHandle Banned $section]
 
     if {$event eq "ADD"} {
         if {[lsearch -exact $groupList $group] != -1} {
@@ -93,8 +92,8 @@ proc ::alcoholicz::Groups::ChangeBanned {event command target user host handle c
         }
 
         # Add group to the section's ban list.
-        ConfigSet $groupsHandle Banned $section [lappend groupList $group]
-        if {[catch {ConfigWrite $groupsHandle} message]} {
+        ::config::set $groupsHandle Banned $section [lappend groupList $group]
+        if {[catch {::config::write $groupsHandle} message]} {
             SendTarget $target "Unable to update groups file: $message"
         } else {
             SendTarget $target "Added [b]$group[b] to the [b]$section[b] ban list."
@@ -106,8 +105,8 @@ proc ::alcoholicz::Groups::ChangeBanned {event command target user host handle c
         }
 
         # Remove group from the section's ban list.
-        ConfigSet $groupsHandle Banned $section [lreplace $groupList $index $index]
-        if {[catch {ConfigWrite $groupsHandle} message]} {
+        ::config::set $groupsHandle Banned $section [lreplace $groupList $index $index]
+        if {[catch {::config::write $groupsHandle} message]} {
             SendTarget $target "Unable to update groups file: $message"
         } else {
             SendTarget $target "Removed [b]$group[b] from the [b]$section[b] ban list."
@@ -116,7 +115,7 @@ proc ::alcoholicz::Groups::ChangeBanned {event command target user host handle c
         LogError ModGroups "Unknown banned event \"$event\"."
     }
 
-    ConfigFree $groupsHandle
+    ::config::free $groupsHandle
 }
 
 ####
@@ -126,20 +125,20 @@ proc ::alcoholicz::Groups::ChangeBanned {event command target user host handle c
 #
 proc ::alcoholicz::Groups::ListAffils {command target user host handle channel argv} {
     variable groupsHandle
-    ConfigRead $groupsHandle
-    set sections [lsort [ConfigKeys $groupsHandle Affils]]
+    ::config::read $groupsHandle
+    set sections [lsort [::config::keys $groupsHandle Affils]]
     SendTargetTheme $target affilsHead
 
     set groupList [list]
     foreach section $sections {
-        set groups [ConfigGet $groupsHandle Affils $section]
+        set groups [::config::get $groupsHandle Affils $section]
         SendTargetTheme $target affilsBody [list [join [lsort $groups]] $section]
         eval lappend groupList $groups
     }
 
     set groupList [lsort -unique $groupList]
     SendTargetTheme $target affilsFoot [list [llength $groupList] [llength $sections]]
-    ConfigFree $groupsHandle
+    ::config::free $groupsHandle
 }
 
 ####
@@ -149,20 +148,20 @@ proc ::alcoholicz::Groups::ListAffils {command target user host handle channel a
 #
 proc ::alcoholicz::Groups::ListBanned {command target user host handle channel argv} {
     variable groupsHandle
-    ConfigRead $groupsHandle
-    set sections [lsort [ConfigKeys $groupsHandle Banned]]
+    ::config::read $groupsHandle
+    set sections [lsort [::config::keys $groupsHandle Banned]]
     SendTargetTheme $target bannedHead
 
     set groupList [list]
     foreach section $sections {
-        set groups [ConfigGet $groupsHandle Banned $section]
+        set groups [::config::get $groupsHandle Banned $section]
         SendTargetTheme $target bannedBody [list [join [lsort $groups]] $section]
         eval lappend groupList $groups
     }
 
     set groupList [lsort -unique $groupList]
     SendTargetTheme $target bannedFoot [list [llength $groupList] [llength $sections]]
-    ConfigFree $groupsHandle
+    ::config::free $groupsHandle
 }
 
 ####
@@ -176,20 +175,20 @@ proc ::alcoholicz::Groups::Load {firstLoad} {
 
     # Open group configuration file.
     set groupsFile [file join $::alcoholicz::scriptPath \
-        [ConfigGet $configHandle Module::Groups groupsFile]]
+        [::config::get $configHandle Module::Groups groupsFile]]
 
     if {![file isfile $groupsFile]} {
         error "the file \"$groupsFile\" does not exist"
     }
 
     if {$firstLoad} {
-        set groupsHandle [ConfigOpen $groupsFile -align 2]
+        set groupsHandle [::config::open $groupsFile -align 2]
     } else {
-        ConfigChange $groupsHandle -path $groupsFile
+        ::config::change $groupsHandle -path $groupsFile
     }
 
-    if {[ConfigExists $configHandle Module::Groups cmdPrefix]} {
-        set prefix [ConfigGet $configHandle Module::Groups cmdPrefix]
+    if {[::config::exists $configHandle Module::Groups cmdPrefix]} {
+        set prefix [::config::get $configHandle Module::Groups cmdPrefix]
     } else {
         set prefix $::alcoholicz::cmdPrefix
     }
@@ -227,6 +226,6 @@ proc ::alcoholicz::Groups::Load {firstLoad} {
 proc ::alcoholicz::Groups::Unload {} {
     variable groupsHandle
     if {[info exists groupsHandle]} {
-        ConfigClose $groupsHandle
+        ::config::close $groupsHandle
     }
 }

@@ -34,8 +34,6 @@ namespace eval ::alcoholicz::FtpDaemon {
         variable timerId ""
     }
     namespace import -force ::alcoholicz::*
-    namespace import -force ::config::*
-    namespace import -force ::ftp::*
     namespace export GetFlagTypes GetFtpConnection \
         UserExists UserList UserInfo UserIdToName UserNameToId \
         GroupExists GroupList GroupInfo GroupIdToName GroupNameToId
@@ -50,7 +48,7 @@ proc ::alcoholicz::FtpDaemon::FtpNotify {connection success} {
     if {$success} {
         LogInfo "FTP connection established."
     } else {
-        LogInfo "FTP connection failed - [FtpGetError $connection]"
+        LogInfo "FTP connection failed - [::ftp::error $connection]"
     }
 }
 
@@ -66,11 +64,11 @@ proc ::alcoholicz::FtpDaemon::FtpTimer {} {
     # Wrap the FTP connection code in a catch statement in case the FTP
     # library throws an error. The Eggdrop timer must be recreated.
     if {[catch {
-        if {[FtpGetStatus $connection] == 2} {
-            FtpCommand $connection "NOOP"
+        if {[::ftp::status $connection] == 2} {
+            ::ftp::command $connection "NOOP"
         } else {
             LogError FtpServer "FTP handle not connected, attemping to reconnect."
-            FtpConnect $connection
+            ::ftp::connect $connection
         }
     } message]} {
         LogError FtpTimer $message
@@ -486,7 +484,7 @@ proc ::alcoholicz::FtpDaemon::Load {firstLoad} {
 
     # Retrieve configuration options.
     foreach option {dataPath rootPath host port user passwd secure version} {
-        set $option [ConfigGet $configHandle Ftpd $option]
+        set $option [::config::get $configHandle Ftpd $option]
     }
     if {![file isdirectory $dataPath]} {
         error "the directory \"$dataPath\" does not exist"
@@ -502,11 +500,11 @@ proc ::alcoholicz::FtpDaemon::Load {firstLoad} {
     if {$firstLoad} {
         set timerId [timer 1 [namespace current]::FtpTimer]
     } else {
-        FtpClose $connection
+        ::ftp::close $connection
     }
-    set connection [FtpOpen $host $port $user $passwd \
+    set connection [::ftp::open $host $port $user $passwd \
         -notify [namespace current]::FtpNotify -secure $secure]
-    FtpConnect $connection
+    ::ftp::connect $connection
 
     # Register event callbacks.
     ScriptRegister pre NUKE   [namespace current]::NukeEvent
@@ -530,7 +528,7 @@ proc ::alcoholicz::FtpDaemon::Unload {} {
     ScriptUnregister pre UNNUKE [namespace current]::NukeEvent
 
     if {$connection ne ""} {
-        FtpClose $connection
+        ::ftp::close $connection
         set connection ""
     }
     if {$timerId ne ""} {

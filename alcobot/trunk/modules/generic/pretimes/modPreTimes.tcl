@@ -18,8 +18,6 @@ namespace eval ::alcoholicz::PreTimes {
         variable defLimit 5
     }
     namespace import -force ::alcoholicz::*
-    namespace import -force ::config::*
-    namespace import -force ::getopt::*
 }
 
 ####
@@ -127,7 +125,7 @@ proc ::alcoholicz::PreTimes::LogEvent {event destSection pathSection path data} 
 proc ::alcoholicz::PreTimes::Search {command target user host handle channel argv} {
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [GetOptions $argv {{limit integer} {section arg}} option]} message]} {
+    if {[catch {set pattern [::getopt::parse $argv {{limit integer} {section arg}} option]} message]} {
         CmdSendHelp $channel channel $command $message
         return
     }
@@ -196,7 +194,7 @@ proc ::alcoholicz::PreTimes::Load {firstLoad} {
     }
 
     foreach option {addOnPre dataSource defLimit searchPres showOnNew} {
-        set $option [ConfigGet $configHandle Module::PreTimes $option]
+        set $option [::config::get $configHandle Module::PreTimes $option]
     }
     if {![string is digit -strict $defLimit]} {
         set defLimit 0
@@ -217,8 +215,8 @@ proc ::alcoholicz::PreTimes::Load {firstLoad} {
     }
 
     if {[IsTrue $searchPres]} {
-        if {[ConfigExists $configHandle Module::PreTimes cmdPrefix]} {
-            set prefix [ConfigGet $configHandle Module::PreTimes cmdPrefix]
+        if {[::config::exists $configHandle Module::PreTimes cmdPrefix]} {
+            set prefix [::config::get $configHandle Module::PreTimes cmdPrefix]
         } else {
             set prefix $::alcoholicz::cmdPrefix
         }

@@ -21,7 +21,6 @@ namespace eval ::alcoholicz::Online {
         variable msgWindow  ""
     }
     namespace import -force ::alcoholicz::*
-    namespace import -force ::config::*
 }
 
 ####
@@ -223,18 +222,18 @@ proc ::alcoholicz::Online::Load {firstLoad} {
     variable msgWindow
     upvar ::alcoholicz::configHandle configHandle
 
-    set msgWindow [ConfigGet $configHandle Ftpd msgWindow]
+    set msgWindow [::config::get $configHandle Ftpd msgWindow]
     if {[catch {ioftpd info $msgWindow io}]} {
         error "the message window \"$msgWindow\" does not exist"
     }
 
     foreach option {hideUsers hideGroups hidePaths} {
-        set $option [ArgsToList [ConfigGet $configHandle Module::Online $option]]
+        set $option [ArgsToList [::config::get $configHandle Module::Online $option]]
     }
-    set hideCount [IsTrue [ConfigGet $configHandle Module::Online hideCount]]
+    set hideCount [IsTrue [::config::get $configHandle Module::Online hideCount]]
 
-    if {[ConfigExists $configHandle Module::Online cmdPrefix]} {
-        set prefix [ConfigGet $configHandle Module::Online cmdPrefix]
+    if {[::config::exists $configHandle Module::Online cmdPrefix]} {
+        set prefix [::config::get $configHandle Module::Online cmdPrefix]
     } else {
         set prefix $::alcoholicz::cmdPrefix
     }

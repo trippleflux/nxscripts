@@ -11,10 +11,10 @@
 # Abstract:
 #   Implements a command-line option parser.
 #
-# Exported Procedures:
-#   GetElementFromList <list> <element> [type]
-#   GetIndexFromList   <list> <element>
-#   GetOptions         <argList> <optList> <resultVar>
+# Procedures:
+#   ::getopt::element <list> <element> [type]
+#   ::getopt::index   <list> <element>
+#   ::getopt::parse   <argList> <optList> <resultVar>
 #
 
 namespace eval ::getopt {
@@ -25,17 +25,17 @@ namespace eval ::getopt {
         regexp -- {must be (.+)$} $charClasses dummy charClasses
         regsub -all -- {, (or )?} $charClasses { } charClasses
     }
-    namespace export GetElementFromList GetIndexFromList GetOptions
+    namespace import -force ::alcoholicz::JoinLiteral
 }
 
 ####
-# GetElementFromList
+# ::getopt::element
 #
-# Simple wrapper around GetIndexFromList, an error is thrown if no
+# Simple wrapper around ::getopt::index, an error is thrown if no
 # match is found.
 #
-proc ::getopt::GetElementFromList {list element {type "option"}} {
-    set index [GetIndexFromList $list $element]
+proc ::getopt::element {list element {type "option"}} {
+    set index [::getopt::index $list $element]
     if {$index == -1} {
         error "invalid $type \"$element\", must be [JoinLiteral $list or]"
     }
@@ -43,13 +43,13 @@ proc ::getopt::GetElementFromList {list element {type "option"}} {
 }
 
 ####
-# GetIndexFromList
+# ::getopt::index
 #
 # Returns the index of an element in a list. A partial match is performed
 # if there is no exact match. If the element exists in the list, the index
 # is returned. If there is no unique match, -1 is returned.
 #
-proc ::getopt::GetIndexFromList {list element} {
+proc ::getopt::index {list element} {
     # Check for an exact match.
     set index [lsearch -exact $list $element]
     if {$index == -1} {
@@ -68,7 +68,7 @@ proc ::getopt::GetIndexFromList {list element} {
 }
 
 ####
-# GetOptions
+# ::getopt::parse
 #
 # Parses command line options from an argument list.
 #
@@ -90,13 +90,13 @@ proc ::getopt::GetIndexFromList {list element} {
 #
 # set argList "-limit 5 -match glob *some pattern*"
 # set optList {{limit integer} {match arg {exact glob regexp}}}
-# set pattern [GetOptions $argList $optList result]
+# set pattern [::getopt::parse $argList $optList result]
 #
 # $result(limit) = 5
 # $result(match) = glob
 # $pattern       = *some pattern*"
 #
-proc ::getopt::GetOptions {argList optList resultVar} {
+proc ::getopt::parse {argList optList resultVar} {
     variable charClasses
     upvar $resultVar result
 
@@ -146,7 +146,7 @@ proc ::getopt::GetOptions {argList optList resultVar} {
         }
 
         if {[string index $arg 0] eq "-"} {
-            set index [GetIndexFromList $optNames [string range $arg 1 end]]
+            set index [::getopt::index $optNames [string range $arg 1 end]]
             if {$index == -1} {
                 error "invalid option \"$arg\""
             }
@@ -162,7 +162,7 @@ proc ::getopt::GetOptions {argList optList resultVar} {
 
                 if {$optType eq "arg"} {
                     if {$optCount > 2} {
-                        set value [GetElementFromList $optValues $value "value"]
+                        set value [::getopt::element $optValues $value "value"]
                     }
                 } elseif {![string is $optType -strict $value]} {
                     error "the option \"$arg\" requires a $optType type value"

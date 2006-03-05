@@ -20,7 +20,6 @@ namespace eval ::alcoholicz::ReadLogs {
         variable timerId ""
     }
     namespace import -force ::alcoholicz::*
-    namespace import -force ::config::*
 }
 
 ####
@@ -308,7 +307,7 @@ proc ::alcoholicz::ReadLogs::Load {firstLoad} {
 
     # Monitor all user-defined log files.
     foreach type {main error login sysop} option {mainLogs errorLogs loginLogs sysopLogs} {
-        foreach filePath [ArgsToList [ConfigGet $configHandle Module::ReadLogs $option]] {
+        foreach filePath [ArgsToList [::config::get $configHandle Module::ReadLogs $option]] {
             if {[catch {AddLog $type $filePath} error]} {
                 LogError ModReadLogs "Unable to add log file: $error"
             }
@@ -316,7 +315,7 @@ proc ::alcoholicz::ReadLogs::Load {firstLoad} {
     }
 
     # Paths to exclude from announcing.
-    set excludePaths [ArgsToList [ConfigGet $configHandle Module::ReadLogs excludePaths]]
+    set excludePaths [ArgsToList [::config::get $configHandle Module::ReadLogs excludePaths]]
 
     if {$firstLoad} {
         set timerId [utimer 1 [namespace current]::Timer]

@@ -17,7 +17,6 @@ namespace eval ::alcoholicz::Free {
         variable volumeList [list]
     }
     namespace import -force ::alcoholicz::*
-    namespace import -force ::config::*
 }
 
 ####
@@ -89,7 +88,7 @@ proc ::alcoholicz::Free::Load {firstLoad} {
     upvar ::alcoholicz::configHandle configHandle
 
     set volumeList [list]
-    foreach {name value} [ConfigGetEx $configHandle Module::Free] {
+    foreach {name value} [::config::getex $configHandle Module::Free] {
         lappend volumeList $name $value
     }
 

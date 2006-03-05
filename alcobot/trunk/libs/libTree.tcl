@@ -13,30 +13,27 @@
 #   Tcl's arrays and dictionaries, this method retains the original order of
 #   its keys and nodes.
 #
-# Exported Procedures:
-#   TreeCreate   [<key> <value> ...]
-#   TreeExists   <tree> <key> [<key> ...]
-#   TreeFor      {keyVar valueVar} <tree> <body>
-#   TreeKeys     <tree> [pattern]
-#   TreeValues   <tree> [pattern]
-#   TreeGet      <tree> <key> [<key> ...]
-#   TreeGetNaive <tree> <key> [<key> ...]
-#   TreeSet      <tree> <key> [<key> ...] <value>
-#   TreeUnset    <tree> <key> [<key> ...]
+# Procedures:
+#   ::tree::create [<key> <value> ...]
+#   ::tree::exists <tree> <key> [<key> ...]
+#   ::tree::for    {keyVar valueVar} <tree> <body>
+#   ::tree::keys   <tree> [pattern]
+#   ::tree::values <tree> [pattern]
+#   ::tree::get    <tree> <key> [<key> ...]
+#   ::tree::get2   <tree> <key> [<key> ...]
+#   ::tree::set    <tree> <key> [<key> ...] <value>
+#   ::tree::unset  <tree> <key> [<key> ...]
 #
 
-namespace eval ::tree {
-    namespace export TreeCreate TreeExists TreeFor TreeKeys TreeValues \
-        TreeGet TreeGetNaive TreeSet TreeUnset
-}
+namespace eval ::tree {}
 
 ####
-# TreeCreate
+# ::tree::create
 #
 # Creates a new tree that contains each of the key and value mappings listed
 # as arguments. Keys and values must be in alternating order.
 #
-proc ::tree::TreeCreate {args} {
+proc ::tree::create {args} {
     if {[llength $args] & 1} {
         error "unbalanced list"
     }
@@ -44,29 +41,29 @@ proc ::tree::TreeCreate {args} {
 }
 
 ####
-# TreeExists
+# ::tree::exists
 #
 # Returns a boolean value indicating whether the given key exists in the
 # specified tree.
 #
-proc ::tree::TreeExists {tree key args} {
+proc ::tree::exists {tree key args} {
     foreach {name node} $tree {
         if {$key eq $name} {
             if {![llength $args]} {return 1}
-            return [eval TreeExists [list $node] $args]
+            return [eval ::tree::exists [list $node] $args]
         }
     }
     return 0
 }
 
 ####
-# TreeFor
+# ::tree::for
 #
 # Iterates through a tree, in the same manner as foreach. Two variable names
 # must be specified for the first parameter, which are mapped to the key and
 # value for each iteration.
 #
-proc ::tree::TreeFor {vars tree body} {
+proc ::tree::for {vars tree body} {
     if {[llength $vars] != 2} {
         error "must have exactly two variable names"
     }
@@ -74,13 +71,13 @@ proc ::tree::TreeFor {vars tree body} {
 }
 
 ####
-# TreeKeys
+# ::tree::keys
 #
 # Returns a list of all keys in the given tree. If the "pattern" argument
 # is specified, only matching keys are returned.
 #
-proc ::tree::TreeKeys {tree {pattern "*"}} {
-    set keys [list]
+proc ::tree::keys {tree {pattern "*"}} {
+    ::set keys [list]
     foreach {name node} $tree {
         if {[string match $pattern $name]} {
              lappend keys $name
@@ -90,13 +87,13 @@ proc ::tree::TreeKeys {tree {pattern "*"}} {
 }
 
 ####
-# TreeValues
+# ::tree::values
 #
 # Returns a list of all values in the given tree. If the "pattern" argument
 # is specified, only matching values are returned.
 #
-proc ::tree::TreeValues {tree {pattern "*"}} {
-    set values [list]
+proc ::tree::values {tree {pattern "*"}} {
+    ::set values [list]
     foreach {name node} $tree {
         if {[string match $pattern $node]} {
              lappend values $node
@@ -106,92 +103,95 @@ proc ::tree::TreeValues {tree {pattern "*"}} {
 }
 
 ####
-# TreeGet
+# ::tree::get
 #
 # Retrieves the value of a key within the specified tree. Multiple keys can be
 # specified to retrieve values of nested keys. An error is raised if you attempt
 # to retrieve a value for a key that does not exist.
 #
-proc ::tree::TreeGet {tree key args} {
+proc ::tree::get {tree key args} {
     foreach {name node} $tree {
         if {$key eq $name} {
             if {![llength $args]} {return $node}
-            return [eval TreeGet [list $node] $args]
+            return [eval ::tree::get [list $node] $args]
         }
     }
     error "key \"$key\" not known in tree"
 }
 
 ####
-# TreeGetNaive
+# ::tree::get2
 #
-# A variation of TreeGet that returns an empty string when a nonexistent key is
+# A variation of ::tree::get that returns an empty string when a nonexistent key is
 # specified. This simplifies implementations that consider the key's existence to
 # be irrelevant.
 #
-proc ::tree::TreeGetNaive {tree key args} {
+proc ::tree::get2 {tree key args} {
     foreach {name node} $tree {
         if {$key eq $name} {
             if {![llength $args]} {return $node}
-            return [eval TreeGetNaive [list $node] $args]
+            return [eval ::tree::get2 [list $node] $args]
         }
     }
     return {}
 }
 
 ####
-# TreeSet
+# ::tree::set
 #
 # Creates or updates the value for a key within a tree. When multiple keys are
 # specified, it creates or updates a chain of nested keys. Note that this
 # procedure takes name of a tree variable, not the actual tree.
 #
-proc ::tree::TreeSet {treeVar key value args} {
+proc ::tree::set {treeVar key value args} {
     upvar 1 $treeVar tree
-    if {![info exists tree]} {set tree [list]}
+    if {![info exists tree]} {
+        ::set tree [list]
+    }
 
-    set exists 0; set nodeIndex 1
+    ::set exists 0
+    ::set nodeIndex 1
     foreach {name node} $tree {
-        if {$key eq $name} {set exists 1; break}
+        if {$key eq $name} {::set exists 1; break}
         incr nodeIndex 2
     }
 
     if {$exists} {
-        set tree [lreplace $tree $nodeIndex $nodeIndex]
+        ::set tree [lreplace $tree $nodeIndex $nodeIndex]
     } else {
         lappend tree $key
-        set node [list]
-        set nodeIndex end
+        ::set node [list]
+        ::set nodeIndex end
     }
 
     if {[llength $args]} {
-        eval TreeSet node [list $value] $args
+        eval ::tree::set node [list $value] $args
     } else {
-        set node $value
+        ::set node $value
     }
-    set tree [linsert $tree $nodeIndex $node]
+    ::set tree [linsert $tree $nodeIndex $node]
 }
 
 ####
-# TreeUnset
+# ::tree::unset
 #
 # Removes a key and its value from a tree. When multiple keys are specified,
 # it removes the deepest existing key. Note that this procedure takes name of
 # a tree variable, not the actual tree.
 #
-proc ::tree::TreeUnset {treeVar key args} {
+proc ::tree::unset {treeVar key args} {
     upvar 1 $treeVar tree
     if {![info exists tree]} {return [list]}
 
-    set index 0
+    ::set index 0
     foreach {name node} $tree {
         if {$key ne $name} {incr index 2; continue}
         if {[llength $args]} {
             incr index
-            eval TreeUnset node $args
-            set tree [lreplace $tree $index $index $node]
+            eval ::tree::unset node $args
+            ::set tree [lreplace $tree $index $index $node]
         } else {
-            set tree [lreplace $tree $index [incr index]]
+            ::set tree [lreplace $tree $index [incr index]]
         }
         break
     }

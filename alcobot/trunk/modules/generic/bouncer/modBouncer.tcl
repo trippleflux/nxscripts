@@ -18,8 +18,6 @@ namespace eval ::alcoholicz::Bouncer {
         variable timerId ""
     }
     namespace import -force ::alcoholicz::*
-    namespace import -force ::config::*
-    namespace import -force ::ftp::*
 }
 
 ####
@@ -69,7 +67,7 @@ proc ::alcoholicz::Bouncer::CheckTimer {} {
     if {[info exists bouncers($checkIndex)]} {
         set connection [lindex $bouncers($checkIndex) 5]
 
-        if {[catch {FtpConnect $connection} message]} {
+        if {[catch {::ftp::connect $connection} message]} {
             Notify $checkIndex $connection 0
         }
     }
@@ -96,7 +94,7 @@ proc ::alcoholicz::Bouncer::Notify {index connection success} {
         if {!$success} {
             set name [lindex $bouncers($index) 0]
             set status 1
-            LogError ModBouncer "Bouncer \"$name\" is down: [FtpGetError $connection]"
+            LogError ModBouncer "Bouncer \"$name\" is down: [::ftp::error $connection]"
         } else {
             set status 2
         }
@@ -106,7 +104,7 @@ proc ::alcoholicz::Bouncer::Notify {index connection success} {
         lset bouncers($index) 4 [clock seconds]
     }
 
-    FtpDisconnect $connection
+    ::ftp::disconnect $connection
 }
 
 ####
@@ -121,7 +119,7 @@ proc ::alcoholicz::Bouncer::Load {firstLoad} {
     upvar ::alcoholicz::configHandle configHandle
 
     set index 0
-    foreach {name value} [ConfigGetEx $configHandle Module::Bouncer] {
+    foreach {name value} [::config::getex $configHandle Module::Bouncer] {
         if {$name eq "cmdPrefix"} {continue}
 
         # Values: <host> <port> <user> <password> [secure]
@@ -135,7 +133,7 @@ proc ::alcoholicz::Bouncer::Load {firstLoad} {
             continue
         }
 
-        set connection [FtpOpen $host $port $user $passwd -secure $secure \
+        set connection [::ftp::open $host $port $user $passwd -secure $secure \
             -notify [list [namespace current]::Notify $index]]
 
         # Values: <name> <host> <port> <status> <time> <connection>
@@ -146,8 +144,8 @@ proc ::alcoholicz::Bouncer::Load {firstLoad} {
     if {!$index} {error "no bouncers defined"}
 
     # Create channel command.
-    if {[ConfigExists $configHandle Module::Bouncer cmdPrefix]} {
-        set prefix [ConfigGet $configHandle Module::Bouncer cmdPrefix]
+    if {[::config::exists $configHandle Module::Bouncer cmdPrefix]} {
+        set prefix [::config::get $configHandle Module::Bouncer cmdPrefix]
     } else {
         set prefix $::alcoholicz::cmdPrefix
     }
@@ -173,7 +171,7 @@ proc ::alcoholicz::Bouncer::Unload {} {
     variable timerId
 
     foreach index [array names bouncers] {
-        FtpClose [lindex $bouncers($index) 5]
+        ::ftp::close [lindex $bouncers($index) 5]
         unset bouncers($index)
     }
     if {$timerId ne ""} {

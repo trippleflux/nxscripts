@@ -29,9 +29,7 @@ cd $basePath
 # Source required libraries.
 puts "- Loading libraries."
 source "libs/libTree.tcl"
-namespace import -force ::tree::*
 source "libs/libConfig.tcl"
-namespace import -force ::config::*
 
 puts "- Opening \"variables.txt\" for writing."
 set handle [open "variables.txt" w]
@@ -57,10 +55,10 @@ proc IndexFile {handle desc filePath} {
     puts $handle "############################################################"
     puts $handle ""
 
-    set config [ConfigOpen $filePath]
-    ConfigRead $config
-    array set variables [ConfigGetEx $config Variables]
-    ConfigClose $config
+    set config [::config::open $filePath]
+    ::config::read $config
+    array set variables [::config::getex $config Variables]
+    ::config::close $config
 
     # Find the longest theme name.
     set longest 0

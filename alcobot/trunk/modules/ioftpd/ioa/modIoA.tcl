@@ -14,8 +14,6 @@
 
 namespace eval ::alcoholicz::IoA {
     namespace import -force ::alcoholicz::*
-    namespace import -force ::config::*
-    namespace import -force ::getopt::*
 }
 
 ####
@@ -56,7 +54,7 @@ proc ::alcoholicz::IoA::Nukes {command target user host handle channel argv} {
 
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
+    if {[catch {set pattern [::getopt::parse $argv {{limit integer}} option]} message]} {
         CmdSendHelp $channel channel $command $message
         return
     }
@@ -108,7 +106,7 @@ proc ::alcoholicz::IoA::OneLines {command target user host handle channel argv} 
 
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
+    if {[catch {set pattern [::getopt::parse $argv {{limit integer}} option]} message]} {
         CmdSendHelp $channel channel $command $message
         return
     }
@@ -177,7 +175,7 @@ proc ::alcoholicz::IoA::Search {command target user host handle channel argv} {
 
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
+    if {[catch {set pattern [::getopt::parse $argv {{limit integer}} option]} message]} {
         CmdSendHelp $channel channel $command $message
         return
     }
@@ -232,7 +230,7 @@ proc ::alcoholicz::IoA::Unnukes {command target user host handle channel argv} {
 
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [GetOptions $argv {{limit integer}} option]} message]} {
+    if {[catch {set pattern [::getopt::parse $argv {{limit integer}} option]} message]} {
         CmdSendHelp $channel channel $command $message
         return
     }
@@ -289,12 +287,12 @@ proc ::alcoholicz::IoA::Load {firstLoad} {
     upvar ::alcoholicz::configHandle configHandle
 
     # Open ioA's configuration file.
-    set ioaFile [ConfigGet $configHandle Module::IoA configFile]
+    set ioaFile [::config::get $configHandle Module::IoA configFile]
     if {![file isfile $ioaFile]} {
         error "the file \"$ioaFile\" does not exist"
     }
-    set ioaHandle [ConfigOpen $ioaFile]
-    ConfigRead $ioaHandle
+    set ioaHandle [::config::open $ioaFile]
+    ::config::read $ioaHandle
 
     foreach {varName section key} {
         localTime    General Use_Local_Time_Instead_of_UTC
@@ -304,17 +302,17 @@ proc ::alcoholicz::IoA::Load {firstLoad} {
         searchFile   Search  Search_Log_File
         unnukesFile  Unnuke  UnNuke_Log_File
     } {
-        set value [ConfigGet $ioaHandle $section $key]
+        set value [::config::get $ioaHandle $section $key]
         set $varName [string trim $value " \t\""]
     }
-    ConfigClose $ioaHandle
+    ::config::close $ioaHandle
 
     # Check if ioA logs time stamps in UTC time.
     set utcTime [expr {![IsTrue $localTime]}]
 
     # Create channel commands.
-    if {[ConfigExists $configHandle Module::IoA cmdPrefix]} {
-        set prefix [ConfigGet $configHandle Module::IoA cmdPrefix]
+    if {[::config::exists $configHandle Module::IoA cmdPrefix]} {
+        set prefix [::config::get $configHandle Module::IoA cmdPrefix]
     } else {
         set prefix $::alcoholicz::cmdPrefix
     }
