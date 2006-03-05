@@ -46,7 +46,6 @@ AlcoBot is a modular sitebot written in Tcl for ioFTPD and glFTPD.
      eggdrop\AlcoBot\libs\*
      eggdrop\AlcoBot\modules\*
      eggdrop\AlcoBot\themes\*
-     eggdrop\AlcoBot\vars\*
 
   3. Rename the AlcoBot-ioFTPD.conf file to AlcoBot.conf. If you downloaded
      the Windows binary package, this step may not be necessary.
@@ -101,7 +100,6 @@ AlcoBot is a modular sitebot written in Tcl for ioFTPD and glFTPD.
      eggdrop/AlcoBot/libs/*
      eggdrop/AlcoBot/modules/*
      eggdrop/AlcoBot/themes/*
-     eggdrop/AlcoBot/vars/*
 
   6. Rename the AlcoBot-glFTPD.conf file to AlcoBot.conf.
 
@@ -170,7 +168,7 @@ for AlcoBot to recognize them. Read the following installation instructions:
   Info: Zipscript, written by jeza.
   URL : http://www.inicom.net/pages/en.ioftpd-scripts.php?id=20
 
-  1. Add "iojzs.vars" to varFiles, under [General], in AlcoBot.conf.
+  1. Add "iojzs" to the module list in AlcoBot.conf.
   2. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
 
   ############################################################
@@ -181,7 +179,7 @@ for AlcoBot to recognize them. Read the following installation instructions:
   Info: Zipscript, written by tUFF.
   URL : http://www.inicom.net/pages/en.ioftpd-scripts.php?id=41
 
-  1. Add "iosfv.vars" to varFiles, under [General], in AlcoBot.conf.
+  1. Add "iosfv" to the module list in AlcoBot.conf.
   2. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
 
   ############################################################
@@ -192,7 +190,7 @@ for AlcoBot to recognize them. Read the following installation instructions:
   Info: Zipscript, written by StarDog.
   URL : http://www.iozs.com
 
-  1. Add "iozs.vars" to varFiles, under [General], in AlcoBot.conf.
+  1. Add "iozs" to the module list in AlcoBot.conf.
   2. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
 
   ############################################################
@@ -203,7 +201,7 @@ for AlcoBot to recognize them. Read the following installation instructions:
   Info: Auto-nuker, written by neoxed.
   URL : http://www.iozs.com
 
-  1. Add "nxautonuke.vars" to varFiles, under [General], in AlcoBot.conf.
+  1. Add "nxautonuke" to the module list in AlcoBot.conf.
   2. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
 
   ############################################################
@@ -224,7 +222,7 @@ for AlcoBot to recognize them. Read the following installation instructions:
   Info: Zipscript, written by SnypeTEST.
   URL : http://www.inicom.net/pages/en.ioftpd-scripts.php?id=49
 
-  1. Add "php_psio.vars" to varFiles, under [General], in AlcoBot.conf.
+  1. Add "phppsio" to the module list in AlcoBot.conf.
   2. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
 
   ############################################################
@@ -235,7 +233,7 @@ for AlcoBot to recognize them. Read the following installation instructions:
   Info: Zipscript, written by Caladan and esmandil.
   URL : http://www.inicom.net/pages/en.ioftpd-scripts.php?id=98
 
-  1. Add "pzs.vars" to varFiles, under [General], in AlcoBot.conf.
+  1. Add "projectzs" to the module list in AlcoBot.conf.
   2. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
 
   ############################################################
@@ -250,7 +248,7 @@ for AlcoBot to recognize them. Read the following installation instructions:
      cp -f AlcoBot/other/constants.h project-zs-ng/src/zipscript/
      cd project-zs-ng
      make clean install
-  2. Add "pzs-ng.vars" to varFiles, under [General], in AlcoBot.conf.
+  2. Add "pzsng" to the module list in AlcoBot.conf.
   3. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
 
 
