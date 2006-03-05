@@ -222,18 +222,18 @@ proc ::alcoholicz::Online::Load {firstLoad} {
     variable msgWindow
     upvar ::alcoholicz::configHandle configHandle
 
-    set msgWindow [::config::get $configHandle Ftpd msgWindow]
+    set msgWindow [config::get $configHandle Ftpd msgWindow]
     if {[catch {ioftpd info $msgWindow io}]} {
         error "the message window \"$msgWindow\" does not exist"
     }
 
     foreach option {hideUsers hideGroups hidePaths} {
-        set $option [ArgsToList [::config::get $configHandle Module::Online $option]]
+        set $option [ArgsToList [config::get $configHandle Module::Online $option]]
     }
-    set hideCount [IsTrue [::config::get $configHandle Module::Online hideCount]]
+    set hideCount [IsTrue [config::get $configHandle Module::Online hideCount]]
 
-    if {[::config::exists $configHandle Module::Online cmdPrefix]} {
-        set prefix [::config::get $configHandle Module::Online cmdPrefix]
+    if {[config::exists $configHandle Module::Online cmdPrefix]} {
+        set prefix [config::get $configHandle Module::Online cmdPrefix]
     } else {
         set prefix $::alcoholicz::cmdPrefix
     }

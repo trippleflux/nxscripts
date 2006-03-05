@@ -114,7 +114,7 @@ proc ::config::change {handle option args} {
         }
         return $value
     } else {
-        error "wrong # args: must be \"::config::change handle option ?value?\""
+        error "wrong # args: must be \"config::change handle option ?value?\""
     }
     return
 }
@@ -315,7 +315,7 @@ proc ::config::set {handle section args} {
     Acquire $handle config
     ::set argc [llength $args]
     if {$argc != 0  && $argc != 2} {
-        error "wrong # args: must be \"::config::set handle section ?key value?\""
+        error "wrong # args: must be \"config::set handle section ?key value?\""
     }
 
     # Initialise the section if it does not exist.

@@ -31,12 +31,12 @@ proc ::alcoholicz::SiteCmd::Command {command target user host handle channel arg
     SendTargetTheme $target siteHead [list $name]
 
     set connection [GetFtpConnection]
-    if {[::ftp::status $connection] != 2} {
+    if {[ftp::status $connection] != 2} {
         SendTargetTheme $target siteBody [list "Not connected to the FTP server."]
         return
     }
 
-    ::ftp::command $connection $name [list [namespace current]::Callback $target]
+    ftp::command $connection $name [list [namespace current]::Callback $target]
 }
 
 ####
@@ -64,8 +64,8 @@ proc ::alcoholicz::SiteCmd::Callback {target connection response} {
 proc ::alcoholicz::SiteCmd::Load {firstLoad} {
     upvar ::alcoholicz::configHandle configHandle
 
-    if {[::config::exists $configHandle Module::SiteCmd cmdPrefix]} {
-        set prefix [::config::get $configHandle Module::SiteCmd cmdPrefix]
+    if {[config::exists $configHandle Module::SiteCmd cmdPrefix]} {
+        set prefix [config::get $configHandle Module::SiteCmd cmdPrefix]
     } else {
         set prefix $::alcoholicz::cmdPrefix
     }

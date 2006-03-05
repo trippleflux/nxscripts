@@ -55,10 +55,10 @@ proc IndexFile {handle desc filePath} {
     puts $handle "############################################################"
     puts $handle ""
 
-    set config [::config::open $filePath]
-    ::config::read $config
-    array set variables [::config::getex $config Variables]
-    ::config::close $config
+    set config [config::open $filePath]
+    config::read $config
+    array set variables [config::getex $config Variables]
+    config::close $config
 
     # Find the longest theme name.
     set longest 0
