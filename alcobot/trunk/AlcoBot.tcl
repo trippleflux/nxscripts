@@ -294,7 +294,14 @@ proc ::alcoholicz::CmdChannelProc {command user host handle channel text} {
     set script [lindex $cmdNames([list "channel" $command]) 4]
 
     if {[catch {eval $script [list $command $target $user $host $handle $channel $argv]} message]} {
-        LogError CmdChannel "Error evaluating \"$script\":\n$::errorInfo"
+        global errorCode errorInfo
+
+        if {$errorCode eq "CMDHELP" || $errorCode eq "GETOPT"} {
+            CmdSendHelp $channel "channel" $command $message
+        } else {
+            # Unhandled error code.
+            LogError CmdChannel "Error evaluating \"$script\":\n$errorInfo"
+        }
     }
     return
 }
@@ -333,7 +340,14 @@ proc ::alcoholicz::CmdMessageProc {command user host handle text} {
     set script [lindex $cmdNames([list "message" $command]) 4]
 
     if {[catch {eval $script [list $command $target $user $host $handle $argv]} message]} {
-        LogError CmdMessage "Error evaluating \"$script\":\n$::errorInfo"
+        global errorCode errorInfo
+
+        if {$errorCode eq "CMDHELP" || $errorCode eq "GETOPT"} {
+            CmdSendHelp $user "message" $command $message
+        } else {
+            # Unhandled error code.
+            LogError CmdMessage "Error evaluating \"$script\":\n$errorInfo"
+        }
     }
     return
 }
