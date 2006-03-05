@@ -1,4 +1,4 @@
-AlcoBot v1.0.0 (not yet released):
+AlcoBot v1.0.0 (Feb 23, 2006):
   NEW: Improved installation instructions.
   NEW: Option to include or exclude hidden users in bandwidth stats (!bw/!bwdn/!bwup).
   NEW: The module load order is automatically rearranged so dependencies are loaded first.
