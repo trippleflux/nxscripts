@@ -1399,7 +1399,6 @@ proc ::alcoholicz::InitModules {modList} {
     variable modules
     variable replace
     variable variables
-    LogInfo "Loading modules..."
 
     set prevModules [array names modules]
     array set prevCommands [array get cmdNames]
@@ -1558,13 +1557,13 @@ proc ::alcoholicz::InitMain {} {
         die
     }
 
-    # Initialise various subsystems.
     LogInfo "Loading configuration..."
-
     set configFile [file join $scriptPath "AlcoBot.conf"]
     if {[catch {InitConfig $configFile} message]} {
         LogError Config $message; die
     }
+
+    LogInfo "Loading modules..."
     set modules [ListParse [Config::Get $configHandle General modules]]
     if {[catch {InitModules $modules} message]} {
         LogError Modules $message; die
