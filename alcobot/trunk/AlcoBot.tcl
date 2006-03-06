@@ -372,8 +372,8 @@ proc ::alcoholicz::CmdPrivateProc {command user host handle text} {
 proc ::alcoholicz::FlagGetValue {flagList flagName valueVar} {
     upvar $valueVar value
     foreach flag $flagList {
-        # Parse: +|-<name>=<value>
-        if {[regexp -- {^(?:\+|\-)(\w+)=(.+)$} $flag dummy name result] && $name eq $flagName} {
+        # Parse: [!]<name>=<value>
+        if {[regexp -- {^(?:!?)(\w+)=(.+)$} $flag dummy name result] && $name eq $flagName} {
             set value $result; return 1
         }
     }
@@ -387,8 +387,8 @@ proc ::alcoholicz::FlagGetValue {flagList flagName valueVar} {
 #
 proc ::alcoholicz::FlagExists {flagList flagName} {
     foreach flag $flagList {
-        # Parse: +|-<name>[=<value>]
-        if {[regexp -- {^(?:\+|\-)(\w+)} $flag dummy name] && $name eq $flagName} {
+        # Parse: [!]<name>[=<value>]
+        if {[regexp -- {^(?:!?)(\w+)} $flag dummy name] && $name eq $flagName} {
             return 1
         }
     }
@@ -402,11 +402,11 @@ proc ::alcoholicz::FlagExists {flagList flagName} {
 #
 proc ::alcoholicz::FlagIsDisabled {flagList flagName} {
     foreach flag $flagList {
-        # Parse: +|-<name>[=<value>]
-        if {![regexp -- {^(\+|\-)(\w+)} $flag dummy prefix name]} {continue}
+        # Parse: [!]<name>[=<value>]
+        if {![regexp -- {^(!?)(\w+)} $flag dummy prefix name]} {continue}
 
         if {$name eq "all" || $name eq $flagName} {
-            return [string equal $prefix "-"]
+            return [string equal $prefix "!"]
         }
     }
     return 0
@@ -419,11 +419,11 @@ proc ::alcoholicz::FlagIsDisabled {flagList flagName} {
 #
 proc ::alcoholicz::FlagIsEnabled {flagList flagName} {
     foreach flag $flagList {
-        # Parse: +|-<name>[=<value>]
-        if {![regexp -- {^(\+|\-)(\w+)} $flag dummy prefix name]} {continue}
+        # Parse: [!]<name>[=<value>]
+        if {![regexp -- {^(!?)(\w+)} $flag dummy prefix name]} {continue}
 
         if {$name eq "all" || $name eq $flagName} {
-            return [string equal $prefix "+"]
+            return [string equal $prefix ""]
         }
     }
     return 0
@@ -437,12 +437,12 @@ proc ::alcoholicz::FlagIsEnabled {flagList flagName} {
 proc ::alcoholicz::FlagCheckEvent {flagList event} {
     variable events
     foreach flag $flagList {
-        # Parse: +|-<name>[=<value>]
-        if {![regexp -- {^(\+|\-)(\w+)} $flag dummy prefix name]} {continue}
+        # Parse: [!]<name>[=<value>]
+        if {![regexp -- {^(!?)(\w+)} $flag dummy prefix name]} {continue}
 
         if {$name eq "all" || $name eq $event || ([info exists events($name)] &&
                 [lsearch -exact $events($name) $event] != -1)} {
-            return [string equal $prefix "+"]
+            return [string equal $prefix ""]
         }
     }
     return 0
