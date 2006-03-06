@@ -26,14 +26,9 @@ namespace eval ::alcoholicz::Free {
 #
 proc ::alcoholicz::Free::Command {command target user host handle channel argv} {
     variable volumeList
-    set argc [llength $argv]
 
-    if {$argc > 1} {
-        # Channel commands should display the usage message in the
-        # channel they were invoked from, not the output target.
-        CmdSendHelp $channel channel $command
-        return
-    }
+    set argc [llength $argv]
+    if {$argc > 1} {throw CMDHELP}
 
     # Only display the header and footer if no section was specified.
     if {!$argc} {

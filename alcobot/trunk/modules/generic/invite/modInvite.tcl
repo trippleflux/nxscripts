@@ -239,10 +239,7 @@ proc ::alcoholicz::Invite::Process {ircUser ircHost ftpUser ftpGroup ftpGroupLis
 proc ::alcoholicz::Invite::Command {command target user host handle argv} {
     variable userCheck
 
-    if {[llength $argv] != 2} {
-        CmdSendHelp $user message $command
-        return
-    }
+    if {[llength $argv] != 2} {throw CMDHELP}
     set ftpUser [lindex $argv 0]
     set password [lindex $argv 1]
 

@@ -68,14 +68,9 @@ proc ::alcoholicz::NxTools::Dupe {command target user host handle channel argv} 
     # Parse command options.
     set option(limit) -1
     set optList [list {limit integer} [list section arg [lsort [array names pathSections]]]]
-
-    if {[catch {set pattern [getopt::parse $argv $optList option]} message]} {
-        CmdSendHelp $channel channel $command $message
-        return
-    }
-    if {[set pattern [join $pattern]] eq ""} {
-        CmdSendHelp $channel channel $command "you must specify a pattern"
-        return
+    set pattern [join [getopt::parse $argv $optList option]]
+    if {$pattern eq ""} {
+        throw CMDHELP "you must specify a pattern"
     }
     set limit [GetResultLimit $option(limit)]
 
@@ -120,21 +115,16 @@ proc ::alcoholicz::NxTools::New {command target user host handle channel argv} {
 
     # Parse command options.
     set option(limit) -1
-    if {[catch {set section [getopt::parse $argv {{limit integer}} option]} message]} {
-        CmdSendHelp $channel channel $command $message
-        return
-    }
+    set section [join [getopt::parse $argv {{limit integer}} option]]
     set limit [GetResultLimit $option(limit)]
 
-    if {[set section [join $section]] eq ""} {
+    if {$section eq ""} {
         set sectionQuery ""
     } else {
         # Validate the specified section name.
         set names [lsort [array names pathSections]]
-        if {[catch {set section [getopt::element $names $section section]} message]} {
-            CmdSendHelp $channel channel $command $message
-            return
-        }
+        set section [getopt::element $names $section section]
+
         set matchPath [SqlToLike [lindex $pathSections($section) 0]]
         set sectionQuery "WHERE DirPath LIKE '${matchPath}%' ESCAPE '\\'"
     }
@@ -171,22 +161,16 @@ proc ::alcoholicz::NxTools::Undupe {command target user host handle channel argv
     variable undupeWild
 
     # Parse command options.
-    if {[catch {set pattern [getopt::parse $argv {directory} option]} message]} {
-        CmdSendHelp $channel channel $command $message
-        return
-    }
-    if {[set pattern [join $pattern]] eq ""} {
-        CmdSendHelp $channel channel $command "you must specify a pattern"
-        return
+    set pattern [join [getopt::parse $argv {directory} option]]
+    if {$pattern eq ""} {
+        throw CMDHELP "you must specify a pattern"
     }
     if {[string first "?" $pattern] != -1 || [string first "*" $pattern] != -1 } {
         if {!$undupeWild} {
-            CmdSendHelp $channel channel $command "wildcards are not allowed"
-            return
+            throw CMDHELP "wildcards are not allowed"
         }
         if {[regexp -all -- {[[:alnum:]]} $pattern] < $undupeChars} {
-            CmdSendHelp $channel channel $command "you must specify at least $undupeChars alphanumeric chars with wildcards"
-            return
+            throw CMDHELP "you must specify at least $undupeChars alphanumeric chars with wildcards"
         }
     }
     SendTargetTheme $target undupeHead [list $pattern]
@@ -224,13 +208,10 @@ proc ::alcoholicz::NxTools::Undupe {command target user host handle channel argv
 proc ::alcoholicz::NxTools::Nukes {command target user host handle channel argv} {
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [getopt::parse $argv {{limit integer}} option]} message]} {
-        CmdSendHelp $channel channel $command $message
-        return
-    }
+    set pattern [join [getopt::parse $argv {{limit integer}} option]]
     set limit [GetResultLimit $option(limit)]
 
-    if {[set pattern [join $pattern]] eq ""} {
+    if {$pattern eq ""} {
         set matchQuery ""
     } else {
         set matchQuery "AND Release LIKE '[SqlGetPattern $pattern]' ESCAPE '\\'"
@@ -262,13 +243,10 @@ proc ::alcoholicz::NxTools::Nukes {command target user host handle channel argv}
 proc ::alcoholicz::NxTools::NukeTop {command target user host handle channel argv} {
     # Parse command options.
     set option(limit) -1
-    if {[catch {set group [getopt::parse $argv {{limit integer}} option]} message]} {
-        CmdSendHelp $channel channel $command $message
-        return
-    }
+    set group [join [getopt::parse $argv {{limit integer}} option]]
     set limit [GetResultLimit $option(limit)]
 
-    if {[set group [join $group]] eq ""} {
+    if {$group eq ""} {
         set groupQuery ""
     } else {
         set groupQuery "GroupName='[SqlEscape $group]' AND"
@@ -299,13 +277,10 @@ proc ::alcoholicz::NxTools::NukeTop {command target user host handle channel arg
 proc ::alcoholicz::NxTools::Unnukes {command target user host handle channel argv} {
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [getopt::parse $argv {{limit integer}} option]} message]} {
-        CmdSendHelp $channel channel $command $message
-        return
-    }
+    set pattern [join [getopt::parse $argv {{limit integer}} option]]
     set limit [GetResultLimit $option(limit)]
 
-    if {[set pattern [join $pattern]] eq ""} {
+    if {$pattern eq ""} {
         set matchQuery ""
     } else {
         set matchQuery "AND Release LIKE '[SqlGetPattern $pattern]' ESCAPE '\\'"
@@ -355,18 +330,15 @@ proc ::alcoholicz::NxTools::Approved {command target user host handle channel ar
 ####
 # OneLines
 #
-# Display recent one-lines, command: !onel.
+# Display recent one-lines, command: !onel [-limit <num>].
 #
 proc ::alcoholicz::NxTools::OneLines {command target user host handle channel argv} {
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [getopt::parse $argv {{limit integer}} option]} message]} {
-        CmdSendHelp $channel channel $command $message
-        return
-    }
+    getopt::parse $argv {{limit integer}} option
     set limit [GetResultLimit $option(limit)]
-    SendTargetTheme $target oneLinesHead
 
+    SendTargetTheme $target oneLinesHead
     set count 0
     if {[DbOpenFile "OneLines.db"]} {
         db eval {SELECT * FROM OneLines ORDER BY TimeStamp DESC LIMIT $limit} values {
@@ -412,8 +384,7 @@ proc ::alcoholicz::NxTools::Requests {command target user host handle channel ar
 #
 proc ::alcoholicz::NxTools::SiteCmd {event command target user host handle channel argv} {
     if {[llength $argv] != 1} {
-        CmdSendHelp $channel channel $command
-        return
+        throw CMDHELP
     }
     switch -- $event {
         APPROVE {

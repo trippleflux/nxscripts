@@ -113,17 +113,13 @@ proc ::alcoholicz::GlData::Dupe {command target user host handle channel argv} {
 
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [getopt::parse $argv {{limit integer}} option]} message]} {
-        CmdSendHelp $channel channel $command $message
-        return
-    }
-    if {[set pattern [join $pattern]] eq ""} {
-        CmdSendHelp $channel channel $command "you must specify a pattern"
-        return
+    set pattern [join [getopt::parse $argv {{limit integer}} option]]
+    if {$pattern eq ""} {
+        throw CMDHELP "you must specify a pattern"
     }
     set limit [GetResultLimit $option(limit)]
-    SendTargetTheme $target dupeHead [list $pattern]
 
+    SendTargetTheme $target dupeHead [list $pattern]
     set data [list]
     if {![catch {set handle [open [file join $logsPath "dupelog"] r]} message]} {
         set range [expr {$limit - 1}]
@@ -172,12 +168,8 @@ proc ::alcoholicz::GlData::New {command target user host handle channel argv} {
 
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [getopt::parse $argv {{limit integer}} option]} message]} {
-        CmdSendHelp $channel channel $command $message
-        return
-    }
+    set pattern [join [getopt::parse $argv {{limit integer}} option]]
     set limit [GetResultLimit $option(limit)]
-    set pattern [join $pattern]
     SendTargetTheme $target newHead
 
     set count 0
@@ -217,17 +209,13 @@ proc ::alcoholicz::GlData::Search {command target user host handle channel argv}
 
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [getopt::parse $argv {{limit integer}} option]} message]} {
-        CmdSendHelp $channel channel $command $message
-        return
-    }
-    if {[set pattern [join $pattern]] eq ""} {
-        CmdSendHelp $channel channel $command "you must specify a pattern"
-        return
+    set pattern [join [getopt::parse $argv {{limit integer}} option]]
+    if {$pattern eq ""} {
+        throw CMDHELP "you must specify a pattern"
     }
     set limit [GetResultLimit $option(limit)]
-    SendTargetTheme $target searchHead [list $pattern]
 
+    SendTargetTheme $target searchHead [list $pattern]
     set count 0
     if {[StructOpen "dirlog" handle]} {
         while {$count < $limit && [StructRead $handle data]} {
@@ -264,22 +252,19 @@ proc ::alcoholicz::GlData::Undupe {command target user host handle channel argv}
 
     # Parse command options.
     if {[set pattern [join $argv]] eq ""} {
-        CmdSendHelp $channel channel $command "you must specify a pattern"
-        return
+        throw CMDHELP "you must specify a pattern"
     }
     if {[string first "?" $pattern] != -1 || [string first "*" $pattern] != -1 } {
         if {!$undupeWild} {
-            CmdSendHelp $channel channel $command "wildcards are not allowed"
-            return
+            throw CMDHELP "wildcards are not allowed"
         }
         if {[regexp -all -- {[[:alnum:]]} $pattern] < $undupeChars} {
-            CmdSendHelp $channel channel $command "you must specify at least $undupeChars alphanumeric chars with wildcards"
-            return
+            throw CMDHELP "you must specify at least $undupeChars alphanumeric chars with wildcards"
         }
     }
     set patternEsc [string map {[ \\[ ] \\]} $pattern]
-    SendTargetTheme $target undupeHead [list $pattern]
 
+    SendTargetTheme $target undupeHead [list $pattern]
     set count 0
     if {[StructOpen "dupefile" handle 0]} {
         # Open a temporary file for writing.
@@ -329,14 +314,10 @@ proc ::alcoholicz::GlData::Nukes {command target user host handle channel argv} 
 
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [getopt::parse $argv {{limit integer}} option]} message]} {
-        CmdSendHelp $channel channel $command $message
-        return
-    }
+    set pattern [join [getopt::parse $argv {{limit integer}} option]]
     set limit [GetResultLimit $option(limit)]
-    set pattern [join $pattern]
-    SendTargetTheme $target nukesHead
 
+    SendTargetTheme $target nukesHead
     set count 0
     if {[StructOpen "nukelog" handle]} {
         while {$count < $limit && [StructRead $handle data]} {
@@ -370,14 +351,10 @@ proc ::alcoholicz::GlData::Unnukes {command target user host handle channel argv
 
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [getopt::parse $argv {{limit integer}} option]} message]} {
-        CmdSendHelp $channel channel $command $message
-        return
-    }
+    set pattern [join [getopt::parse $argv {{limit integer}} option]]
     set limit [GetResultLimit $option(limit)]
-    set pattern [join $pattern]
-    SendTargetTheme $target unnukesHead
 
+    SendTargetTheme $target unnukesHead
     set count 0
     if {[StructOpen "nukelog" handle]} {
         while {$count < $limit && [StructRead $handle data]} {
@@ -411,13 +388,10 @@ proc ::alcoholicz::GlData::OneLines {command target user host handle channel arg
 
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [getopt::parse $argv {{limit integer}} option]} message]} {
-        CmdSendHelp $channel channel $command $message
-        return
-    }
+    getopt::parse $argv {{limit integer}} option
     set limit [GetResultLimit $option(limit)]
-    SendTargetTheme $target oneLinesHead
 
+    SendTargetTheme $target oneLinesHead
     set count 0
     if {[StructOpen "oneliners.log" handle]} {
         while {$count < $limit && [StructRead $handle data]} {

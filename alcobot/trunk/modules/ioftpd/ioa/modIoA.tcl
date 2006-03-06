@@ -54,15 +54,10 @@ proc ::alcoholicz::IoA::Nukes {command target user host handle channel argv} {
 
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [getopt::parse $argv {{limit integer}} option]} message]} {
-        CmdSendHelp $channel channel $command $message
-        return
-    }
+    set pattern [join [getopt::parse $argv {{limit integer}} option]]
     set limit [GetResultLimit $option(limit)]
-    set pattern [join $pattern]
-    SendTargetTheme $target nukesHead
 
-    # Read nukes log file.
+    SendTargetTheme $target nukesHead
     set data [list]
     if {$limit > 0 && [OpenFile $nukesFile handle]} {
         set range [expr {$limit - 1}]
@@ -106,14 +101,10 @@ proc ::alcoholicz::IoA::OneLines {command target user host handle channel argv} 
 
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [getopt::parse $argv {{limit integer}} option]} message]} {
-        CmdSendHelp $channel channel $command $message
-        return
-    }
+    getopt::parse $argv {{limit integer}} option
     set limit [GetResultLimit $option(limit)]
-    SendTargetTheme $target oneLinesHead
 
-    # Read one-lines log file.
+    SendTargetTheme $target oneLinesHead
     set data [list]
     if {$limit > 0 && [OpenFile $onelinesFile handle]} {
         set range [expr {$limit - 1}]
@@ -175,18 +166,13 @@ proc ::alcoholicz::IoA::Search {command target user host handle channel argv} {
 
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [getopt::parse $argv {{limit integer}} option]} message]} {
-        CmdSendHelp $channel channel $command $message
-        return
-    }
-    if {[set pattern [join $pattern]] eq ""} {
-        CmdSendHelp $channel channel $command "you must specify a pattern"
-        return
+    set pattern [join [getopt::parse $argv {{limit integer}} option]]
+    if {$pattern eq ""} {
+        throw CMDHELP "you must specify a pattern"
     }
     set limit [GetResultLimit $option(limit)]
-    SendTargetTheme $target searchHead [list $pattern]
 
-    # Read search log file.
+    SendTargetTheme $target searchHead [list $pattern]
     set data [list]
     if {$limit > 0 && [OpenFile $searchFile handle]} {
         set range [expr {$limit - 1}]
@@ -230,15 +216,10 @@ proc ::alcoholicz::IoA::Unnukes {command target user host handle channel argv} {
 
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [getopt::parse $argv {{limit integer}} option]} message]} {
-        CmdSendHelp $channel channel $command $message
-        return
-    }
+    set pattern [join [getopt::parse $argv {{limit integer}} option]]
     set limit [GetResultLimit $option(limit)]
-    set pattern [join $pattern]
-    SendTargetTheme $target unnukesHead
 
-    # Read unnukes log file.
+    SendTargetTheme $target unnukesHead
     set data [list]
     if {$limit > 0 && [OpenFile $unnukesFile handle]} {
         set range [expr {$limit - 1}]

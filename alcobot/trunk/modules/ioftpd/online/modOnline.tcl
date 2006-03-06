@@ -156,10 +156,7 @@ proc ::alcoholicz::Online::Users {event command target user host handle channel 
     variable msgWindow
 
     if {$event eq "SPEED"} {
-        if {[llength $argv] != 1} {
-            CmdSendHelp $channel channel $command
-            return
-        }
+        if {[llength $argv] != 1} {throw CMDHELP}
         SendTargetTheme $target speedHead $argv
     } elseif {$event eq "WHO"} {
         SendTargetTheme $target whoHead

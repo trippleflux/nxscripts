@@ -125,15 +125,11 @@ proc ::alcoholicz::PreTimes::LogEvent {event destSection pathSection path data} 
 proc ::alcoholicz::PreTimes::Search {command target user host handle channel argv} {
     # Parse command options.
     set option(limit) -1
-    if {[catch {set pattern [getopt::parse $argv {{limit integer} {section arg}} option]} message]} {
-        CmdSendHelp $channel channel $command $message
-        return
+    set pattern [join [getopt::parse $argv {{limit integer} {section arg}} option]]
+    if {$pattern eq ""} {
+        throw CMDHELP "you must specify a pattern"
     }
-    if {[set pattern [join $pattern]] eq ""} {
-        CmdSendHelp $channel channel $command "you must specify a pattern"
-        return
-    }
-    set option(limit) [GetResultLimit $option(limit)]
+    set limit [GetResultLimit $option(limit)]
 
     # Build SQL query.
     set query "SELECT * FROM pretimes WHERE "
@@ -141,7 +137,7 @@ proc ::alcoholicz::PreTimes::Search {command target user host handle channel arg
         set section [SqlEscape $option(section)]
         append query "UPPER(section)=UPPER('$section') AND "
     }
-    append query "release LIKE '[SqlGetPattern $pattern]' ORDER BY pretime DESC LIMIT $option(limit)"
+    append query "release LIKE '[SqlGetPattern $pattern]' ORDER BY pretime DESC LIMIT $limit"
 
     set count 0; set multi 0
     if {[DbConnect]} {

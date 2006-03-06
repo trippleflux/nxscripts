@@ -23,16 +23,12 @@ namespace eval ::alcoholicz::Groups {
 #
 proc ::alcoholicz::Groups::ChangeAffils {event command target user host handle channel argv} {
     variable groupsHandle
-    if {[llength $argv] != 2} {
-        # Channel commands should display the usage message in the
-        # channel they were invoked from, not the output target.
-        CmdSendHelp $channel channel $command
-        return
-    }
-    config::read $groupsHandle
 
+    if {[llength $argv] != 2} {throw CMDHELP}
     set section [lindex $argv 0]
     set group [lindex $argv 1]
+
+    config::read $groupsHandle
     set groupList [config::get $groupsHandle Affils $section]
 
     if {$event eq "ADD"} {
@@ -75,14 +71,12 @@ proc ::alcoholicz::Groups::ChangeAffils {event command target user host handle c
 #
 proc ::alcoholicz::Groups::ChangeBanned {event command target user host handle channel argv} {
     variable groupsHandle
-    if {[llength $argv] != 2} {
-        CmdSendHelp $channel channel $command
-        return
-    }
-    config::read $groupsHandle
 
+    if {[llength $argv] != 2} {throw CMDHELP}
     set section [lindex $argv 0]
     set group [lindex $argv 1]
+
+    config::read $groupsHandle
     set groupList [config::get $groupsHandle Banned $section]
 
     if {$event eq "ADD"} {
