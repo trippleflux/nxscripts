@@ -628,17 +628,22 @@ proc ::alcoholicz::ModuleLoadEx {modName modInfoList} {
 #
 proc ::alcoholicz::ModuleUnload {modName} {
     variable modules
+
     if {![info exists modules($modName)]} {
         error "module not loaded"
     }
-
     foreach {desc context depends location tclFiles varFiles} $modules($modName) {break}
-    set failed [catch {${context}::Unload} message]
 
-    # The namespace context must only be deleted if it's
-    # not the global namespace or the bot's namespace.
-    if {$context ne "" && $context ne [namespace current]} {
-        catch {namespace delete $context}
+    if {[llength $tclFiles]} {
+        set failed [catch {${context}::Unload} message]
+
+        # The namespace context must only be deleted if it's
+        # not the global namespace or the bot's namespace.
+        if {$context ne "" && $context ne [namespace current]} {
+            catch {namespace delete $context}
+        }
+    } else {
+        set failed 0
     }
 
     unset modules($modName)
@@ -883,7 +888,6 @@ proc ::alcoholicz::SendSection {section text} {
             putserv "PRIVMSG $channel :$line"
         }
     }
-    return
 }
 
 ####
@@ -1559,26 +1563,19 @@ proc ::alcoholicz::InitMain {} {
 
     set configFile [file join $scriptPath "AlcoBot.conf"]
     if {[catch {InitConfig $configFile} message]} {
-        LogError Config $message
-        die
+        LogError Config $message; die
     }
-
     set modules [ListParse [Config::Get $configHandle General modules]]
     if {[catch {InitModules $modules} message]} {
-        LogError Modules $message
-        die
+        LogError Modules $message; die
     }
-
     set varFile [file join $scriptPath "AlcoBot.vars"]
     if {[catch {VarLoad $varFile} message]} {
-        LogError Variables $message
-        die
+        LogError Variables $message; die
     }
-
     set themeFile [Config::Get $configHandle General themeFile]
     if {[catch {InitTheme $themeFile} message]} {
-        LogError Theme $message
-        die
+        LogError Theme $message; die
     }
 
     Config::Free $configHandle
