@@ -33,8 +33,8 @@ namespace eval ::alcoholicz {
 # Context Array Variables
 #
 # chanSections  - Channel sections.
-# cmdFlags      - Command flags.
 # cmdNames      - Commands created with "CmdCreate".
+# cmdOptions    - Command options.
 # colours       - Section colour mappings.
 # events        - Events grouped by their function.
 # format        - Text formatting definitions.
@@ -184,9 +184,9 @@ proc ::alcoholicz::CmdCreate {type name script args} {
 # Retrieve a list of flags for the given command.
 #
 proc ::alcoholicz::CmdGetFlags {command} {
-    variable cmdFlags
-    if {[info exists cmdFlags($command)]} {
-        return $cmdFlags($command)
+    variable cmdOptions
+    if {[info exists cmdOptions($command)]} {
+        return $cmdOptions($command)
     }
     return [list]
 }
@@ -259,7 +259,7 @@ proc ::alcoholicz::CmdRemove {type name} {
 # Tcl list and provides more information when a command evaluation fails.
 #
 proc ::alcoholicz::CmdChannelProc {command user host handle channel text} {
-    variable cmdFlags
+    variable cmdOptions
     variable cmdNames
     set target "PRIVMSG $channel"
 
@@ -313,7 +313,7 @@ proc ::alcoholicz::CmdChannelProc {command user host handle channel text} {
 # Tcl list and provides more information when a command evaluation fails.
 #
 proc ::alcoholicz::CmdPrivateProc {command user host handle text} {
-    variable cmdFlags
+    variable cmdOptions
     variable cmdNames
 
     foreach {enabled name value} [CmdGetFlags $command] {
@@ -1282,11 +1282,11 @@ proc ::alcoholicz::DccAdmin {handle idx text} {
 proc ::alcoholicz::InitConfig {filePath} {
     variable configFile
     variable configHandle
-    variable cmdFlags
     variable defaultSection
+    variable cmdOptions
     variable chanSections
     variable pathSections
-    unset -nocomplain cmdFlags chanSections pathSections
+    unset -nocomplain cmdOptions chanSections pathSections
 
     # Update configuration path before reading the file.
     set configFile $filePath
@@ -1307,17 +1307,18 @@ proc ::alcoholicz::InitConfig {filePath} {
         error "Unable to set FTP daemon: $message"
     }
 
+    # Read command options.
     foreach {name value} [Config::GetEx $configHandle Commands] {
-        set flags [list]
-        foreach flag [ListParse $value] {
-            # Parse command flags into a list.
-            if {[regexp -- {^(\+|\-)(\w+)=?(.*)$} $flag dummy prefix flag setting]} {
-                lappend flags [string equal "+" $prefix] $flag $setting
-            } else {
-                LogWarning Config "Invalid flag for command \"$name\": $flag"
-            }
+        set nameSplit [split $name "."]
+        if {[llength $nameSplit] != 2} {
+            LogWarning Config "Invalid command definition \"$name\"."
+
+        } elseif {[lsearch -exact {channel private} [lindex $nameSplit 0]] == -1} {
+            LogWarning Config "Invalid command type \"[lindex $nameSplit 0]\" for \"$name\"."
+
+        } else {
+            set cmdOptions($nameSplit) [ListParse $value]
         }
-        set cmdFlags($name) $flags
     }
 
     # Read channel and path sections.
