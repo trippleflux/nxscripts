@@ -159,6 +159,13 @@ proc ::alcoholicz::CmdCreate {type name script args} {
         }
     }
 
+    # Look up the user-defined prefix.
+    foreach {enabled option value} [CmdGetOptions $type $name] {
+        if {$option eq "prefix"} {
+            set prefix $value; break
+        }
+    }
+
     # Bind the command and its aliases.
     set binds [list]
     foreach command $names {
@@ -282,6 +289,7 @@ proc ::alcoholicz::CmdChannelProc {command user host handle channel text} {
                 LogDebug CmdChannel "Matched negation flag \"$name\" for command \"$::lastbind\", returning."
                 return
             }
+            # Break on first match.
             break
         }
     }
@@ -327,6 +335,7 @@ proc ::alcoholicz::CmdPrivateProc {command user host handle text} {
                 LogDebug CmdMessage "Matched negation flag \"$name\" for command \"$::lastbind\", returning."
                 return
             }
+            # Break on first match.
             break
         }
     }
@@ -1314,7 +1323,17 @@ proc ::alcoholicz::InitConfig {filePath} {
             LogWarning Config "Invalid command type \"[lindex $nameSplit 0]\" for \"$name\"."
 
         } else {
-            set cmdOptions($nameSplit) [ListParse $value]
+            set options [list]
+            foreach entry [ListParse $value] {
+                # Parse options into a list.
+                if {[regexp -- {^(!?)(\w+)=?(.*)$} $entry dummy prefix option value]} {
+                    set enabled [expr {$prefix eq "!" ? 0 : 1}]
+                    lappend options $enabled $option $value
+                } else {
+                    LogWarning Config "Invalid option for command \"$name\": $entry"
+                }
+            }
+            set cmdOptions($nameSplit) $options
         }
     }
 
