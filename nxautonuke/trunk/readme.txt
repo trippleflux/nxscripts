@@ -67,10 +67,18 @@ expressions, see: http://www.tcl.tk/man/tcl8.4/TclCmd/re_syntax.htm
   set anuke(MP3Match) {^-\[.*\]-\[.+ in \d+ files with \d+ tracks - (.+) (\d+) (\d+)kbps\]-\[race won by .+\]-$}
   set anuke(MP3Order) {genre year bitrate}
 
+- ioSFV Incomplete Tag:
+  -[%%%%%.....] - 5F Of 10F done - 50% complete - [SITE]-
+  set anuke(IncTag)   {-\[*\] - *F Of *F done - * complete - \[*\]-}
+
 - Project-ZS MP3 Tag:
   [SITE] - ( 62.7MB 11F - COMPLETE - Death Metal 2005 ) - [SITE]
   set anuke(MP3Match) {^\[.*\] - \( .* - COMPLETE - (.+) (\d+) \) - \[.*\]$}
   set anuke(MP3Order) {genre year}
+
+- Project-ZS Incomplete Tag:
+  [SITE] - 50% Complete - [SITE]
+  set anuke(IncTag)   {\[*\] - *% Complete - \[*\]}
 
 
 ################################################################################

@@ -295,9 +295,18 @@ proc ::nxAutoNuke::CheckEmpty {realPath} {
 
 proc ::nxAutoNuke::CheckInc {realPath} {
     global anuke
+    # Check for incomplete tags.
+    foreach entry [glob -nocomplain -types d -directory $realPath "*"] {
+        set dirName [file tail $entry]
+        if {[string match -nocase $anuke(IncTag) $dirName]} {
+            return 1
+        }
+    }
+    # Check for .bad or .missing files.
     foreach entry [glob -nocomplain -types f -directory $realPath "*"] {
         set fileName [file tail $entry]
-        if {[string match $anuke(BadExt) $fileName] || [string match $anuke(MissingExt) $fileName]} {
+        if {[string match -nocase $anuke(BadExt) $fileName] ||
+                [string match -nocase $anuke(MissingExt) $fileName]} {
             return 1
         }
     }
