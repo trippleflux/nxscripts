@@ -26,37 +26,37 @@
 #
 #### Colour
 #
-# Format : <section>,<number> = <colour>
-# Example: APPS,1 = 03
+# Format : <number>.<section> = <colour>
+# Example: 1.APPS = 03
 #
 # - The 'DEFAULT' entry is used if the announce is not section oriented
 #   or there are no colours defined for the specific section.
-# - The section colour identifier is '[c#]' (i.e. for 'APPS,2' the colour
+# - The section colour identifier is '[c#]' (i.e. for '2.APPS' the colour
 #   identifier would be '[c2]').
 # - There is no limit to the number of section colours you may define.
 #
 [Colour]
 # Section colour one [c1].
-DEFAULT,1 = 14
-STAFF,1   = 14
-0DAY,1    = 04
-APPS,1    = 04
-DVDR,1    = 03
-GAMES,1   = 07
-MP3,1     = 12
-REQS,1    = 15
-SVCD,1    = 05
-TV,1      = 07
-VCD,1     = 06
-XVID,1    = 12
+1.DEFAULT = 14
+1.STAFF   = 14
+1.0DAY    = 04
+1.APPS    = 04
+1.DVDR    = 03
+1.GAMES   = 07
+1.MP3     = 12
+1.REQS    = 15
+1.SVCD    = 05
+1.TV      = 07
+1.VCD     = 06
+1.XVID    = 12
 
 # Section colour two [c2].
-DEFAULT,2 = 15
-STAFF,2   = 15
-APPS,2    = 14
-DVDR,2    = 14
-GAMES,2   = 14
-XVID,2    = 14
+2.DEFAULT = 15
+2.STAFF   = 15
+2.APPS    = 14
+2.DVDR    = 14
+2.GAMES   = 14
+2.XVID    = 14
 
 #### Format
 #
@@ -92,7 +92,7 @@ speedGiga = [b]%.2(speed)[b]GB/s
 #   and %(siteName). All other variables are specific to each theme entry.
 #
 [Theme]
-# ioFTPD events.
+# ioFTPD events
 NEWDIR         = [b][[c1]%(section)[c]][b] New Release: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group).
 DELDIR         = [b][[c1]%(section)[c]][b] Directory Deleted: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group).
 LOGIN          = [b][[c1]Login[c]][b] [b]%(user)[b]/%(group) has logged in.
@@ -102,10 +102,10 @@ LOGOUT         = [b][[c1]Logout[c]][b] [b]%(user)[b]/%(group) has logged out.
 PRENEW         = [b][[c1]%(section)[c]][b] New Release: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago.
 PRELATE        = [b][[c1]%(section)[c]][b] New Release: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago, older than the %(limit) limit.
 
-# Error events.
+# Error events
 ERROR          = [b][[c1]Error[c]][b] %(message)
 
-# Sysop events.
+# Sysop events
 GADDUSER       = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] added user [b]%(user)[b] to group [b]%(group)[b].
 RENUSER        = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] renamed user [b]%(user)[b] to [b]%(newUser)[b].
 DELUSER        = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] deleted user [b]%(user)[b].
@@ -120,7 +120,7 @@ CHGRPADD       = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] added [b]%(user)[b] to gro
 CHGRPDEL       = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] removed [b]%(user)[b] from group [b]%(group)[b].
 SYSOP          = [b][[c1]SysOp[c]][b] %(message)
 
-# nxAutoNuke events.
+# nxAutoNuke events
 ANUKEALLOWED   = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] is not from an allowed group, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
 ANUKEBANNED    = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] is a banned release ([b]%(banned)[b]), it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
 ANUKEDISKS     = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] has [b]%(disks)[b] disks, exceeding the maximum of [b]%(maxDisks)[b] disks, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
@@ -131,7 +131,7 @@ ANUKEKEYWORD   = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] is
 ANUKEMP3       = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] the MP3 %(type) [b]%(banned)[b] is banned, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
 ANUKESIZE      = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] must be a %(type) of [b]%.1(mbytes)[b]MB, it will be nuked [b]%(multi)[b]x in %(remaining). Uploaders: %(uploaders)
 
-# nxTools events.
+# nxTools events
 APPROVE        = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] was approved by [b]%(user)[b]/%(group).
 NEWDATE        = [b][[c1]%(section)[c]][b] A new day has come, change your current dir to %(releasePath)[b]%(releaseName)[b].
 NUKE           = [b][[c1]%(section)[c]][b] %(releasePath)[b]%(releaseName)[b] was nuked [b]%(multi)x[b] by [b]%(user)[b]/%(group) for [b]%(reason)[b]. Nukees: %(nukees)
@@ -153,7 +153,7 @@ REQDEL         = [b][[c1]Request[c]][b] [b]%(request)[b] (ID #%(id)) deleted by 
 REQFILL        = [b][[c1]Request[c]][b] [b]%(request)[b] (ID #%(id)) filled by [b]%(user)[b]/%(group) after %(age).
 REQWIPE        = [b][[c1]Request[c]][b] [b]%(request)[b] was auto-wiped since it's older than %(maxAge).
 
-# ioSFV, ioZS, and Project-ZS events.
+# ioSFV, ioZS, and Project-ZS events
 COMPLETE      = [b][[c1]%(section)[c]][b] %(message)
 HALFWAY       = [b][[c1]%(section)[c]][b] %(message)
 INCOMPLETE    = [b][[c1]%(section)[c]][b] %(message)
@@ -164,7 +164,7 @@ STATS         = [b][[c1]%(section)[c]][b] %(message)
 UPDATE        = [b][[c1]%(section)[c]][b] %(message)
 WARN          = [b][[c1]%(section)[c]][b] %(message)
 
-# Command argument help.
+# Command help
 commandHelp    = [b][[c1]Usage[c]][b] %(command) %(arguments) - %(message)
 commandUsage   = [b][[c1]Usage[c]][b] %(command) %(arguments)
 

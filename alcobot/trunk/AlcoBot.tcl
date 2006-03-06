@@ -1314,7 +1314,7 @@ proc ::alcoholicz::InitConfig {filePath} {
             if {[regexp -- {^(\+|\-)(\w+)=?(.*)$} $flag dummy prefix flag setting]} {
                 lappend flags [string equal "+" $prefix] $flag $setting
             } else {
-                LogWarning InitConfig "Invalid flag for command \"$name\": $flag"
+                LogWarning Config "Invalid flag for command \"$name\": $flag"
             }
         }
         set cmdFlags($name) $flags
@@ -1325,10 +1325,12 @@ proc ::alcoholicz::InitConfig {filePath} {
         set options [ListParse $value]
         if {[llength $options] == 2} {
             set chanSections($name) $options
+
         } elseif {[llength $options] == 3} {
             set pathSections($name) $options
+
         } else {
-            LogWarning InitConfig "Wrong number of options for section \"$name\": $value"
+            LogWarning Config "Wrong number of options for section \"$name\"."
         }
     }
 
@@ -1462,10 +1464,12 @@ proc ::alcoholicz::InitTheme {themeFile} {
 
     # Process colour entries.
     foreach {name value} [Config::GetEx $handle Colour] {
-        if {![regexp -- {^(\S+),(\d+)$} $name result section num]} {
-            LogWarning InitTheme "Invalid colour entry \"$name\"."
+        if {![regexp -- {^(\d+)\.(\S+)$} $name result num section]} {
+            LogWarning Theme "Invalid colour entry \"$name\"."
+
         } elseif {![string is digit -strict $value] || $value < 0 || $value > 15} {
-            LogWarning InitTheme "Invalid colour value \"$value\" for \"$name\", must be from 0 to 15."
+            LogWarning Theme "Invalid colour value \"$value\" for \"$name\", must be from 0 to 15."
+
         } else {
             # Create a mapping of section colours to use with "string map". The
             # colour index must be zero-padded to two digits to avoid conflicts
@@ -1488,12 +1492,12 @@ proc ::alcoholicz::InitTheme {themeFile} {
             }
             set format($name) [VarReplaceBase $value 0]
         } else {
-            LogDebug InitTheme "Unknown format type \"$name\"."
+            LogDebug Theme "Unknown format type \"$name\"."
         }
     }
     if {[llength $known]} {
         foreach name $known {set format($name) ""}
-        LogWarning InitTheme "Missing format entries: [ListConvert $known]."
+        LogWarning Theme "Missing format entries: [ListConvert $known]."
     }
 
     # Process theme entries.
@@ -1512,7 +1516,7 @@ proc ::alcoholicz::InitTheme {themeFile} {
     }
     if {[llength $known]} {
         foreach name $known {set theme($name) ""}
-        LogWarning InitTheme "Missing theme entries: [ListConvert [lsort $known]]."
+        LogWarning Theme "Missing theme entries: [ListConvert [lsort $known]]."
     }
 
     Config::Close $handle
@@ -1567,10 +1571,7 @@ proc ::alcoholicz::InitMain {} {
     return
 }
 
-# This Tcl version check is here for a reason - do not remove it. If you
-# think removing this check in order for AlcoBot to work on an older Tcl is
-# clever, it's not. In fact, you are a moron. AlcoBot uses several features
-# which are specific to Tcl 8.4.
+# This Tcl version check is here for a reason - do not remove it.
 if {[catch {package require Tcl 8.4} error]} {
     LogError TclVersion "You must be using Tcl v8.4, or newer."
     die

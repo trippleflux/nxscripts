@@ -26,37 +26,37 @@
 #
 #### Colour
 #
-# Format : <section>,<number> = <colour>
-# Example: APPS,1 = 03
+# Format : <number>.<section> = <colour>
+# Example: 1.APPS = 03
 #
 # - The 'DEFAULT' entry is used if the announce is not section oriented
 #   or there are no colours defined for the specific section.
-# - The section colour identifier is '[c#]' (i.e. for 'APPS,2' the colour
+# - The section colour identifier is '[c#]' (i.e. for '2.APPS' the colour
 #   identifier would be '[c2]').
 # - There is no limit to the number of section colours you may define.
 #
 [Colour]
 # Section colour one [c1].
-DEFAULT,1 = 14
-STAFF,1   = 14
-0DAY,1    = 04
-APPS,1    = 04
-DVDR,1    = 03
-GAMES,1   = 07
-MP3,1     = 12
-REQS,1    = 15
-SVCD,1    = 05
-TV,1      = 07
-VCD,1     = 06
-XVID,1    = 12
+1.DEFAULT = 14
+1.STAFF   = 14
+1.0DAY    = 04
+1.APPS    = 04
+1.DVDR    = 03
+1.GAMES   = 07
+1.MP3     = 12
+1.REQS    = 15
+1.SVCD    = 05
+1.TV      = 07
+1.VCD     = 06
+1.XVID    = 12
 
 # Section colour two [c2].
-DEFAULT,2 = 15
-STAFF,2   = 15
-APPS,2    = 14
-DVDR,2    = 14
-GAMES,2   = 14
-XVID,2    = 14
+2.DEFAULT = 15
+2.STAFF   = 15
+2.APPS    = 14
+2.DVDR    = 14
+2.GAMES   = 14
+2.XVID    = 14
 
 #### Format
 #
@@ -191,7 +191,7 @@ USERTOP_JOIN   = "\n"
 GROUPTOP       = [b][[c1]%(section)[c]][b] %(pos). [b]%(group)[b] [%(size)/[b]%(files)[b]F/[b]%.1(percent)[b]%/%(speed)]
 GROUPTOP_JOIN  = "\n"
 
-# Command argument help
+# Command help
 commandHelp    = [b][[c1]Usage[c]][b] %(command) %(arguments) - %(message)
 commandUsage   = [b][[c1]Usage[c]][b] %(command) %(arguments)
 
