@@ -20,7 +20,7 @@ namespace eval ::alcoholicz {
 
     namespace export b c u r o \
         LogDebug LogInfo LogError LogWarning GetFtpDaemon \
-        CmdCreate CmdGetFlags CmdGetList CmdSendHelp CmdRemove \
+        CmdCreate CmdGetList CmdGetOptions CmdSendHelp CmdRemove \
         FlagGetValue FlagExists FlagIsDisabled FlagIsEnabled FlagCheckEvent FlagCheckSection \
         ModuleFind ModuleHash ModuleInfo ModuleLoad ModuleUnload ModuleRead \
         ScriptExecute ScriptRegister ScriptUnregister \
@@ -155,7 +155,6 @@ proc ::alcoholicz::CmdCreate {type name script args} {
             -args     {set argDesc $value}
             -category {set category $value}
             -desc     {set cmdDesc $value}
-            -prefix   {set prefix $value}
             default   {error "invalid option \"$option\""}
         }
     }
@@ -179,19 +178,6 @@ proc ::alcoholicz::CmdCreate {type name script args} {
 }
 
 ####
-# CmdGetFlags
-#
-# Retrieve a list of flags for the given command.
-#
-proc ::alcoholicz::CmdGetFlags {command} {
-    variable cmdOptions
-    if {[info exists cmdOptions($command)]} {
-        return $cmdOptions($command)
-    }
-    return [list]
-}
-
-####
 # CmdGetList
 #
 # Retrieve a list of commands created with "CmdCreate".
@@ -200,6 +186,19 @@ proc ::alcoholicz::CmdGetFlags {command} {
 proc ::alcoholicz::CmdGetList {typePattern namePattern} {
     variable cmdNames
     return [array get cmdNames [list $typePattern $namePattern]]
+}
+
+####
+# CmdGetOptions
+#
+# Retrieve a list of flags for the given command.
+#
+proc ::alcoholicz::CmdGetOptions {type name} {
+    variable cmdOptions
+    if {[info exists cmdOptions([list $type $name])]} {
+        return $cmdOptions([list $type $name])
+    }
+    return [list]
 }
 
 ####
@@ -259,11 +258,10 @@ proc ::alcoholicz::CmdRemove {type name} {
 # Tcl list and provides more information when a command evaluation fails.
 #
 proc ::alcoholicz::CmdChannelProc {command user host handle channel text} {
-    variable cmdOptions
     variable cmdNames
     set target "PRIVMSG $channel"
 
-    foreach {enabled name value} [CmdGetFlags $command] {
+    foreach {enabled name value} [CmdGetOptions "channel" $command] {
         set result 0
         switch -- $name {
             all     {set result 1}
@@ -313,10 +311,10 @@ proc ::alcoholicz::CmdChannelProc {command user host handle channel text} {
 # Tcl list and provides more information when a command evaluation fails.
 #
 proc ::alcoholicz::CmdPrivateProc {command user host handle text} {
-    variable cmdOptions
     variable cmdNames
+    set target "PRIVMSG $user"
 
-    foreach {enabled name value} [CmdGetFlags $command] {
+    foreach {enabled name value} [CmdGetOptions "private" $command] {
         set result 0
         switch -- $name {
             all   {set result 1}
@@ -333,7 +331,6 @@ proc ::alcoholicz::CmdPrivateProc {command user host handle text} {
         }
     }
     set argv [ListParse $text]
-    set target "PRIVMSG $user"
 
     # Eval is used to expand arguments to the callback procedure,
     # e.g. "CmdCreate private !foo [list MessageFooCmd abc 123]".
