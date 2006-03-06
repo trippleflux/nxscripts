@@ -26,6 +26,9 @@ namespace eval ::Ftp {
     if {![info exists nextHandle]} {
         set nextHandle 0
     }
+
+    # For SSL/TLS support.
+    catch {package require tls 1.5}
 }
 
 ####

@@ -1365,6 +1365,13 @@ proc ::alcoholicz::InitConfig {filePath} {
 proc ::alcoholicz::InitLibraries {rootPath} {
     global auto_path
 
+    # Some users reported that "auto_path" was not always set,
+    # which is bizarre considering Tcl initialises this variable.
+    if {![info exists auto_path] || [lsearch -exact $auto_path $libPath] == -1} {
+        # Add the libs directory to the package search path.
+        lappend auto_path $libPath
+    }
+
     set libPath [file join $rootPath "libs"]
     foreach script {constants.tcl libUtil.tcl libConfig.tcl libFtp.tcl libGetOpt.tcl libTree.tcl} {
         set script [file join $libPath $script]
@@ -1373,15 +1380,6 @@ proc ::alcoholicz::InitLibraries {rootPath} {
         }
     }
 
-    # Some users reported that "auto_path" was not always set,
-    # which is bizarre considering Tcl initialises this variable.
-    if {![info exists auto_path] || [lsearch -exact $auto_path $libPath] == -1} {
-        # Add the libs directory to the package search path.
-        lappend auto_path $libPath
-    }
-
-    # The TLS extension is optional, but AlcoExt is required.
-    catch {package require tls 1.5}
     package require AlcoExt 0.5
 }
 
