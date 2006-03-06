@@ -25,7 +25,7 @@ namespace eval ::alcoholicz::Bouncer {
 #
 # Display bouncer status.
 #
-proc ::alcoholicz::Bouncer::Command {command target user host handle channel argv} {
+proc ::alcoholicz::Bouncer::Command {target user host channel argv} {
     variable bouncers
     SendTargetTheme $target bouncerHead
     set offline 0; set online 0; set unknown 0

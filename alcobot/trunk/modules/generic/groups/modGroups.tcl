@@ -21,7 +21,7 @@ namespace eval ::alcoholicz::Groups {
 #
 # Implements a channel command to add or remove affiliated groups.
 #
-proc ::alcoholicz::Groups::ChangeAffils {event command target user host handle channel argv} {
+proc ::alcoholicz::Groups::ChangeAffils {event target user host channel argv} {
     variable groupsHandle
 
     if {[llength $argv] != 2} {throw CMDHELP}
@@ -69,7 +69,7 @@ proc ::alcoholicz::Groups::ChangeAffils {event command target user host handle c
 #
 # Implements a channel command to add or remove banned groups.
 #
-proc ::alcoholicz::Groups::ChangeBanned {event command target user host handle channel argv} {
+proc ::alcoholicz::Groups::ChangeBanned {event target user host channel argv} {
     variable groupsHandle
 
     if {[llength $argv] != 2} {throw CMDHELP}
@@ -117,7 +117,7 @@ proc ::alcoholicz::Groups::ChangeBanned {event command target user host handle c
 #
 # Implements a channel command to display affiliated groups.
 #
-proc ::alcoholicz::Groups::ListAffils {command target user host handle channel argv} {
+proc ::alcoholicz::Groups::ListAffils {target user host channel argv} {
     variable groupsHandle
     Config::Read $groupsHandle
     set sections [lsort [Config::Keys $groupsHandle Affils]]
@@ -140,7 +140,7 @@ proc ::alcoholicz::Groups::ListAffils {command target user host handle channel a
 #
 # Implements a channel command to display banned groups.
 #
-proc ::alcoholicz::Groups::ListBanned {command target user host handle channel argv} {
+proc ::alcoholicz::Groups::ListBanned {target user host channel argv} {
     variable groupsHandle
     Config::Read $groupsHandle
     set sections [lsort [Config::Keys $groupsHandle Banned]]

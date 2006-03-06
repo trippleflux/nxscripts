@@ -108,7 +108,7 @@ proc ::alcoholicz::GlData::StructClose {handle} {
 #
 # Search the dupelog for a release, command: !dupe [-limit <num>] <pattern>.
 #
-proc ::alcoholicz::GlData::Dupe {command target user host handle channel argv} {
+proc ::alcoholicz::GlData::Dupe {target user host channel argv} {
     variable logsPath
 
     # Parse command options.
@@ -163,7 +163,7 @@ proc ::alcoholicz::GlData::Dupe {command target user host handle channel argv} {
 #
 # Display recent releases, command: !new [-limit <num>] [pattern].
 #
-proc ::alcoholicz::GlData::New {command target user host handle channel argv} {
+proc ::alcoholicz::GlData::New {target user host channel argv} {
     variable structFormat
 
     # Parse command options.
@@ -204,7 +204,7 @@ proc ::alcoholicz::GlData::New {command target user host handle channel argv} {
 #
 # Search the dirlog for a release, command: !search [-limit <num>] <pattern>.
 #
-proc ::alcoholicz::GlData::Search {command target user host handle channel argv} {
+proc ::alcoholicz::GlData::Search {target user host channel argv} {
     variable structFormat
 
     # Parse command options.
@@ -243,7 +243,7 @@ proc ::alcoholicz::GlData::Search {command target user host handle channel argv}
 #
 # Remove a file the dupefile log, command: !undupe <pattern>.
 #
-proc ::alcoholicz::GlData::Undupe {command target user host handle channel argv} {
+proc ::alcoholicz::GlData::Undupe {target user host channel argv} {
     variable logsPath
     variable tempPath
     variable undupeChars
@@ -309,7 +309,7 @@ proc ::alcoholicz::GlData::Undupe {command target user host handle channel argv}
 #
 # Display recent nukes, command: !nukes [-limit <num>] [pattern].
 #
-proc ::alcoholicz::GlData::Nukes {command target user host handle channel argv} {
+proc ::alcoholicz::GlData::Nukes {target user host channel argv} {
     variable structFormat
 
     # Parse command options.
@@ -346,7 +346,7 @@ proc ::alcoholicz::GlData::Nukes {command target user host handle channel argv} 
 #
 # Display recent unnukes, command: !unnukes [-limit <num>] [pattern].
 #
-proc ::alcoholicz::GlData::Unnukes {command target user host handle channel argv} {
+proc ::alcoholicz::GlData::Unnukes {target user host channel argv} {
     variable structFormat
 
     # Parse command options.
@@ -383,7 +383,7 @@ proc ::alcoholicz::GlData::Unnukes {command target user host handle channel argv
 #
 # Display recent one-lines, command: !onel [-limit <num>].
 #
-proc ::alcoholicz::GlData::OneLines {command target user host handle channel argv} {
+proc ::alcoholicz::GlData::OneLines {target user host channel argv} {
     variable structFormat
 
     # Parse command options.

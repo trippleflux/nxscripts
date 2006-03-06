@@ -47,7 +47,7 @@ proc ::alcoholicz::Online::IsHidden {user group path} {
 #
 # Implements a channel command to display current site bandwidth.
 #
-proc ::alcoholicz::Online::Bandwidth {event command target user host handle channel argv} {
+proc ::alcoholicz::Online::Bandwidth {event target user host channel argv} {
     variable hideCount
     variable session
 
@@ -102,7 +102,7 @@ proc ::alcoholicz::Online::Bandwidth {event command target user host handle chan
 #
 # Implements a channel command to display the status of current users.
 #
-proc ::alcoholicz::Online::Status {event command target user host handle channel argv} {
+proc ::alcoholicz::Online::Status {event target user host channel argv} {
     variable session
 
     switch -- $event {
@@ -154,7 +154,7 @@ proc ::alcoholicz::Online::Status {event command target user host handle channel
 #
 # Implements a channel command to display current users.
 #
-proc ::alcoholicz::Online::Users {event command target user host handle channel argv} {
+proc ::alcoholicz::Online::Users {event target user host channel argv} {
     variable session
 
     if {$event eq "SPEED"} {

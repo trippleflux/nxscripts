@@ -49,7 +49,7 @@ proc ::alcoholicz::IoA::ParseTime {value} {
 #
 # Display recent nukes, command: !nukes [-limit <num>] [pattern].
 #
-proc ::alcoholicz::IoA::Nukes {command target user host handle channel argv} {
+proc ::alcoholicz::IoA::Nukes {target user host channel argv} {
     variable nukesFile
 
     # Parse command options.
@@ -96,7 +96,7 @@ proc ::alcoholicz::IoA::Nukes {command target user host handle channel argv} {
 #
 # Display recent one-lines, command: !onel [-limit <num>].
 #
-proc ::alcoholicz::IoA::OneLines {command target user host handle channel argv} {
+proc ::alcoholicz::IoA::OneLines {target user host channel argv} {
     variable onelinesFile
 
     # Parse command options.
@@ -135,7 +135,7 @@ proc ::alcoholicz::IoA::OneLines {command target user host handle channel argv} 
 #
 # Display current requests, command: !requests.
 #
-proc ::alcoholicz::IoA::Requests {command target user host handle channel argv} {
+proc ::alcoholicz::IoA::Requests {target user host channel argv} {
     variable requestsFile
     SendTargetTheme $target requestsHead
 
@@ -160,7 +160,7 @@ proc ::alcoholicz::IoA::Requests {command target user host handle channel argv} 
 #
 # Search for a release, command: !search [-limit <num>] <pattern>.
 #
-proc ::alcoholicz::IoA::Search {command target user host handle channel argv} {
+proc ::alcoholicz::IoA::Search {target user host channel argv} {
     variable searchFile
     variable searchSort
 
@@ -211,7 +211,7 @@ proc ::alcoholicz::IoA::Search {command target user host handle channel argv} {
 #
 # Display recent unnukes, command: !unnukes [-limit <num>] [pattern].
 #
-proc ::alcoholicz::IoA::Unnukes {command target user host handle channel argv} {
+proc ::alcoholicz::IoA::Unnukes {target user host channel argv} {
     variable unnukesFile
 
     # Parse command options.

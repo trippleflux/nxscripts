@@ -236,7 +236,7 @@ proc ::alcoholicz::Invite::Process {ircUser ircHost ftpUser ftpGroup ftpGroupLis
 #
 # Private message command, !invite <FTP user> <password>.
 #
-proc ::alcoholicz::Invite::Command {command target user host handle argv} {
+proc ::alcoholicz::Invite::Command {target user host argv} {
     variable userCheck
 
     if {[llength $argv] != 2} {throw CMDHELP}

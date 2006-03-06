@@ -62,7 +62,7 @@ proc ::alcoholicz::NxTools::DbBusyHandler {tries} {
 #
 # Search for a release, command: !dupe [-limit <num>] [-section <name>] <pattern>.
 #
-proc ::alcoholicz::NxTools::Dupe {command target user host handle channel argv} {
+proc ::alcoholicz::NxTools::Dupe {target user host channel argv} {
     upvar ::alcoholicz::pathSections pathSections
 
     # Parse command options.
@@ -110,7 +110,7 @@ proc ::alcoholicz::NxTools::Dupe {command target user host handle channel argv} 
 #
 # Display recent releases, command: !new [-limit <num>] [section].
 #
-proc ::alcoholicz::NxTools::New {command target user host handle channel argv} {
+proc ::alcoholicz::NxTools::New {target user host channel argv} {
     upvar ::alcoholicz::pathSections pathSections
 
     # Parse command options.
@@ -156,7 +156,7 @@ proc ::alcoholicz::NxTools::New {command target user host handle channel argv} {
 #
 # Remove a file or directory from the dupe database, command: !undupe [-directory] <pattern>.
 #
-proc ::alcoholicz::NxTools::Undupe {command target user host handle channel argv} {
+proc ::alcoholicz::NxTools::Undupe {target user host channel argv} {
     variable undupeChars
     variable undupeWild
 
@@ -205,7 +205,7 @@ proc ::alcoholicz::NxTools::Undupe {command target user host handle channel argv
 #
 # Display recent nukes, command: !nukes [-limit <num>] [pattern].
 #
-proc ::alcoholicz::NxTools::Nukes {command target user host handle channel argv} {
+proc ::alcoholicz::NxTools::Nukes {target user host channel argv} {
     # Parse command options.
     set option(limit) -1
     set pattern [join [GetOpt::Parse $argv {{limit integer}} option]]
@@ -240,7 +240,7 @@ proc ::alcoholicz::NxTools::Nukes {command target user host handle channel argv}
 #
 # Display top nuked users, command: !nukes [-limit <num>] [group].
 #
-proc ::alcoholicz::NxTools::NukeTop {command target user host handle channel argv} {
+proc ::alcoholicz::NxTools::NukeTop {target user host channel argv} {
     # Parse command options.
     set option(limit) -1
     set group [join [GetOpt::Parse $argv {{limit integer}} option]]
@@ -274,7 +274,7 @@ proc ::alcoholicz::NxTools::NukeTop {command target user host handle channel arg
 #
 # Display recent unnukes, command: !unnukes [-limit <num>] [pattern].
 #
-proc ::alcoholicz::NxTools::Unnukes {command target user host handle channel argv} {
+proc ::alcoholicz::NxTools::Unnukes {target user host channel argv} {
     # Parse command options.
     set option(limit) -1
     set pattern [join [GetOpt::Parse $argv {{limit integer}} option]]
@@ -309,7 +309,7 @@ proc ::alcoholicz::NxTools::Unnukes {command target user host handle channel arg
 #
 # Display approved releases, command: !approved.
 #
-proc ::alcoholicz::NxTools::Approved {command target user host handle channel argv} {
+proc ::alcoholicz::NxTools::Approved {target user host channel argv} {
     SendTargetTheme $target approveHead
 
     set count 0
@@ -332,7 +332,7 @@ proc ::alcoholicz::NxTools::Approved {command target user host handle channel ar
 #
 # Display recent one-lines, command: !onel [-limit <num>].
 #
-proc ::alcoholicz::NxTools::OneLines {command target user host handle channel argv} {
+proc ::alcoholicz::NxTools::OneLines {target user host channel argv} {
     # Parse command options.
     set option(limit) -1
     GetOpt::Parse $argv {{limit integer}} option
@@ -359,7 +359,7 @@ proc ::alcoholicz::NxTools::OneLines {command target user host handle channel ar
 #
 # Display current requests, command: !requests.
 #
-proc ::alcoholicz::NxTools::Requests {command target user host handle channel argv} {
+proc ::alcoholicz::NxTools::Requests {target user host channel argv} {
     SendTargetTheme $target requestsHead
 
     set count 0
@@ -382,7 +382,7 @@ proc ::alcoholicz::NxTools::Requests {command target user host handle channel ar
 #
 # Send SITE commands to the FTP server and display the response.
 #
-proc ::alcoholicz::NxTools::SiteCmd {event command target user host handle channel argv} {
+proc ::alcoholicz::NxTools::SiteCmd {event target user host channel argv} {
     if {[llength $argv] != 1} {
         throw CMDHELP
     }

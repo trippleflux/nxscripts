@@ -22,7 +22,7 @@ namespace eval ::alcoholicz::SiteCmd {
 #
 # Channel command allowing IRC users to send SITE commands.
 #
-proc ::alcoholicz::SiteCmd::Command {command target user host handle channel argv} {
+proc ::alcoholicz::SiteCmd::Command {target user host channel argv} {
     if {[llength $argv] < 1} {throw CMDHELP}
     set name "SITE [join $argv]"
     SendTargetTheme $target siteHead [list $name]

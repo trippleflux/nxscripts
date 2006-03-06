@@ -21,7 +21,7 @@ namespace eval ::alcoholicz::Help {
 #
 # Implements a channel command to display supported commands.
 #
-proc ::alcoholicz::Help::Command {command target user host handle channel argv} {
+proc ::alcoholicz::Help::Command {target user host channel argv} {
     SendTargetTheme $target helpHead
 
     foreach {name value} [CmdGetList channel *] {

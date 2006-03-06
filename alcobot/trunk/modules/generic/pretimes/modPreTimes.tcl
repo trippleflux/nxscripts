@@ -122,7 +122,7 @@ proc ::alcoholicz::PreTimes::LogEvent {event destSection pathSection path data} 
 #
 # Search for a release, command: !pre [-limit <num>] [-section <name>] <pattern>.
 #
-proc ::alcoholicz::PreTimes::Search {command target user host handle channel argv} {
+proc ::alcoholicz::PreTimes::Search {target user host channel argv} {
     # Parse command options.
     set option(limit) -1
     set pattern [join [GetOpt::Parse $argv {{limit integer} {section arg}} option]]

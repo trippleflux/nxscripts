@@ -24,7 +24,7 @@ namespace eval ::alcoholicz::Free {
 #
 # Implements a channel command to display available drive space.
 #
-proc ::alcoholicz::Free::Command {command target user host handle channel argv} {
+proc ::alcoholicz::Free::Command {target user host channel argv} {
     variable volumeList
 
     set argc [llength $argv]

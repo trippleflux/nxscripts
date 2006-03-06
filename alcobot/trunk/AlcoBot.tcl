@@ -293,7 +293,7 @@ proc ::alcoholicz::CmdChannelProc {command user host handle channel text} {
     # e.g. "CmdCreate channel !foo [list ChanFooCmd abc 123]".
     set script [lindex $cmdNames([list "channel" $command]) 4]
 
-    if {[catch {eval $script [list $command $target $user $host $handle $channel $argv]} message]} {
+    if {[catch {eval $script [list $target $user $host $channel $argv]} message]} {
         global errorCode errorInfo
 
         if {$errorCode eq "CMDHELP" || $errorCode eq "GETOPT"} {
@@ -339,7 +339,7 @@ proc ::alcoholicz::CmdPrivateProc {command user host handle text} {
     # e.g. "CmdCreate private !foo [list MessageFooCmd abc 123]".
     set script [lindex $cmdNames([list "private" $command]) 4]
 
-    if {[catch {eval $script [list $command $target $user $host $handle $argv]} message]} {
+    if {[catch {eval $script [list $target $user $host $argv]} message]} {
         global errorCode errorInfo
 
         if {$errorCode eq "CMDHELP" || $errorCode eq "GETOPT"} {
