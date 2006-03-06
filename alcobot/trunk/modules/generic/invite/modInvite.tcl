@@ -439,7 +439,7 @@ proc ::alcoholicz::Invite::Load {firstLoad} {
         }
     }
 
-    CmdCreate message invite [namespace current]::Command \
+    CmdCreate private invite [namespace current]::Command \
         -category "General" -args "<FTP user> <invite password>" \
         -prefix   "!"       -desc "Invite yourself into the channel."
 
