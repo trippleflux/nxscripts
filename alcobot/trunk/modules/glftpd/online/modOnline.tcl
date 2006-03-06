@@ -249,42 +249,44 @@ proc ::alcoholicz::Online::Load {firstLoad} {
     }
     glftpd config $session -etc $etcPath -version $version
 
-    if {[Config::Exists $configHandle Module::Online cmdPrefix]} {
-        set prefix [Config::Get $configHandle Module::Online cmdPrefix]
-    } else {
-        set prefix $::alcoholicz::cmdPrefix
-    }
-
     # Bandwidth commands.
     CmdCreate channel bw   [list [namespace current]::Bandwidth ALL] \
-        -category "Online" -prefix $prefix -desc "Total bandwidth usage."
+        -category "Online" \
+        -desc "Total bandwidth usage."
 
     CmdCreate channel bwdn [list [namespace current]::Bandwidth DN] \
-        -category "Online" -prefix $prefix -desc "Outgoing bandwidth usage."
+        -category "Online" \
+        -desc "Outgoing bandwidth usage."
 
     CmdCreate channel bwup [list [namespace current]::Bandwidth UP] \
-        -category "Online" -prefix $prefix -desc "Incoming bandwidth usage."
+        -category "Online" \
+        -desc "Incoming bandwidth usage."
 
     # Status commands.
     CmdCreate channel idlers    [list [namespace current]::Status ID] \
-        -aliases "idle" -category "Online" -prefix $prefix \
-        -desc    "Users currently idling."
+        -category "Online" \
+        -aliases "idle" \
+        -desc "Users currently idling."
 
     CmdCreate channel leechers  [list [namespace current]::Status DN] \
-        -aliases "dn" -category "Online" -prefix $prefix \
-        -desc    "Users currently downloading."
+        -category "Online" \
+        -aliases "dn" \
+        -desc "Users currently downloading."
 
     CmdCreate channel uploaders [list [namespace current]::Status UP] \
-        -aliases "up" -category "Online" -prefix $prefix \
-        -desc    "Users currently uploading."
+        -category "Online" \
+        -aliases "up" \
+        -desc "Users currently uploading."
 
     # User list commands.
     CmdCreate channel speed [list [namespace current]::Users SPEED] \
-        -category "Online" -args "<user>" -prefix $prefix \
-        -desc     "Status of a given user."
+        -category "Online" \
+        -args "<user>" \
+        -desc "Status of a given user."
 
     CmdCreate channel who   [list [namespace current]::Users WHO] \
-        -category "Online" -prefix $prefix -desc "Who is online."
+        -category "Online" \
+        -desc "Who is online."
 }
 
 ####

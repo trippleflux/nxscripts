@@ -440,8 +440,9 @@ proc ::alcoholicz::Invite::Load {firstLoad} {
     }
 
     CmdCreate private invite [namespace current]::Command \
-        -category "General" -args "<FTP user> <invite password>" \
-        -prefix   "!"       -desc "Invite yourself into the channel."
+        -category "General" \
+        -args "<FTP user> <invite password>" \
+        -desc "Invite yourself into the channel."
 
     # Register event callbacks.
     bind raw  -|- 311 [namespace current]::Whois

@@ -181,35 +181,35 @@ proc ::alcoholicz::Groups::Load {firstLoad} {
         Config::Change $groupsHandle -path $groupsFile
     }
 
-    if {[Config::Exists $configHandle Module::Groups cmdPrefix]} {
-        set prefix [Config::Get $configHandle Module::Groups cmdPrefix]
-    } else {
-        set prefix $::alcoholicz::cmdPrefix
-    }
-
     # User commands (list groups).
     CmdCreate channel affils [namespace current]::ListAffils \
-        -category "General" -desc "List affiliated groups." -prefix $prefix
+        -category "General" \
+        -desc "List affiliated groups."
 
     CmdCreate channel banned [namespace current]::ListBanned \
-        -category "General" -desc "List banned groups." -prefix $prefix
+        -category "General" \
+        -desc "List banned groups."
 
     # Administration commands (add/remove groups).
     CmdCreate channel addaffil [list [namespace current]::ChangeAffils ADD] \
-        -category "Admin" -args "<section> <group>" \
-        -prefix   $prefix -desc "Add an affiliated group."
+        -category "Admin" \
+        -args "<section> <group>" \
+        -desc "Add an affiliated group."
 
     CmdCreate channel delaffil [list [namespace current]::ChangeAffils DEL] \
-        -category "Admin" -args "<section> <group>" \
-        -prefix   $prefix -desc "Remove an affiliated group."
+        -category "Admin" \
+        -args "<section> <group>" \
+        -desc "Remove an affiliated group."
 
     CmdCreate channel addban   [list [namespace current]::ChangeBanned ADD] \
-        -category "Admin" -args "<section> <group>" \
-        -prefix   $prefix -desc "Add a banned group."
+        -category "Admin" \
+        -args "<section> <group>" \
+        -desc "Add a banned group."
 
     CmdCreate channel delban   [list [namespace current]::ChangeBanned DEL] \
-        -category "Admin" -args "<section> <group>" \
-        -prefix   $prefix -desc "Remove a banned group."
+        -category "Admin" \
+        -args "<section> <group>" \
+        -desc "Remove a banned group."
 }
 
 ####

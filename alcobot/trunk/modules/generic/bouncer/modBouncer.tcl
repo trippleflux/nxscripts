@@ -143,19 +143,12 @@ proc ::alcoholicz::Bouncer::Load {firstLoad} {
     }
     if {!$index} {error "no bouncers defined"}
 
-    # Create channel command.
-    if {[Config::Exists $configHandle Module::Bouncer cmdPrefix]} {
-        set prefix [Config::Get $configHandle Module::Bouncer cmdPrefix]
-    } else {
-        set prefix $::alcoholicz::cmdPrefix
-    }
-
     CmdCreate channel bnc [namespace current]::Command \
-        -category "General" -prefix $prefix -desc "Display bouncer status."
+        -category "General" \
+        -desc "Display bouncer status."
 
     # Reset the bouncer check index.
     set checkIndex 0
-
     if {$firstLoad} {
         set timerId [timer 1 [namespace current]::CheckTimer]
     }

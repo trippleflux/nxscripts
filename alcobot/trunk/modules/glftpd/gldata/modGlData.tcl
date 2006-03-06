@@ -452,42 +452,43 @@ proc ::alcoholicz::GlData::Load {firstLoad} {
         error "the directory \"$logsPath\" does not exist"
     }
 
-    if {[Config::Exists $configHandle Module::GlData cmdPrefix]} {
-        set prefix [Config::Get $configHandle Module::GlData cmdPrefix]
-    } else {
-        set prefix $::alcoholicz::cmdPrefix
-    }
-
     # Directory commands.
     CmdCreate channel dupe   [namespace current]::Dupe \
-        -category "Data"  -args "\[-limit <num>\] <pattern>" \
-        -prefix   $prefix -desc "Search the dupe database for a release."
+        -category "Data" \
+        -args "\[-limit <num>\] <pattern>" \
+        -desc "Search the dupe database for a release."
 
     CmdCreate channel new    [namespace current]::New \
-        -category "Data"  -args "\[-limit <num>\] \[pattern\]" \
-        -prefix   $prefix -desc "Display new releases."
+        -category "Data" \
+        -args "\[-limit <num>\] \[pattern\]" \
+        -desc "Display new releases."
 
     CmdCreate channel search [namespace current]::Search \
-        -category "Data"  -args "\[-limit <num>\] <pattern>" \
-        -prefix   $prefix -desc "Search the site for a release."
+        -category "Data" \
+        -args "\[-limit <num>\] <pattern>" \
+        -desc "Search the site for a release."
 
     CmdCreate channel undupe [namespace current]::Undupe \
-        -category "Data"  -args "<pattern>" \
-        -prefix   $prefix -desc "Undupe files and directories."
+        -category "Data" \
+        -args "<pattern>" \
+        -desc "Undupe files and directories."
 
     # Nuke commands.
     CmdCreate channel nukes   [namespace current]::Nukes \
-        -category "Data"  -args "\[-limit <num>\] \[pattern\]" \
-        -prefix   $prefix -desc "Display recent nukes."
+        -category "Data" \
+        -args "\[-limit <num>\] \[pattern\]" \
+        -desc "Display recent nukes."
 
     CmdCreate channel unnukes [namespace current]::Unnukes \
-        -category "Data"  -args "\[-limit <num>\] \[pattern\]" \
-        -prefix   $prefix -desc "Display recent unnukes."
+        -category "Data" \
+        -args "\[-limit <num>\] \[pattern\]" \
+        -desc "Display recent unnukes."
 
     # Other commands.
     CmdCreate channel onel    [namespace current]::OneLines \
-        -category "General" -args "\[-limit <num>\]" \
-        -prefix   $prefix   -desc "Display recent one-lines."
+        -category "General" \
+        -args "\[-limit <num>\]" \
+        -desc "Display recent one-lines."
 }
 
 ####

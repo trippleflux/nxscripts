@@ -292,30 +292,29 @@ proc ::alcoholicz::IoA::Load {firstLoad} {
     set utcTime [expr {![IsTrue $localTime]}]
 
     # Create channel commands.
-    if {[Config::Exists $configHandle Module::IoA cmdPrefix]} {
-        set prefix [Config::Get $configHandle Module::IoA cmdPrefix]
-    } else {
-        set prefix $::alcoholicz::cmdPrefix
-    }
-
     CmdCreate channel nukes    [namespace current]::Nukes \
-        -category "Data"  -args "\[-limit <num>\] \[pattern\]" \
-        -prefix   $prefix -desc "Display recent nukes."
+        -category "Data" \
+        -args "\[-limit <num>\] \[pattern\]" \
+        -desc "Display recent nukes."
 
     CmdCreate channel onel     [namespace current]::OneLines \
-        -category "General" -args "\[-limit <num>\]" \
-        -prefix   $prefix   -desc "Display recent one-lines."
+        -category "General" \
+        -args "\[-limit <num>\]" \
+        -desc "Display recent one-lines."
 
     CmdCreate channel requests [namespace current]::Requests \
-        -category "General" -desc "Display current requests." -prefix $prefix
+        -category "General" \
+        -desc "Display current requests."
 
     CmdCreate channel search   [namespace current]::Search \
-        -category "Data"  -args "\[-limit <num>\] <pattern>" \
-        -prefix   $prefix -desc "Search for a release."
+        -category "Data" \
+        -args "\[-limit <num>\] <pattern>" \
+        -desc "Search for a release."
 
     CmdCreate channel unnukes  [namespace current]::Unnukes \
-        -category "Data"  -args "\[-limit <num>\] \[pattern\]" \
-        -prefix   $prefix -desc "Display recent unnukes."
+        -category "Data" \
+        -args "\[-limit <num>\] \[pattern\]" \
+        -desc "Display recent unnukes."
 }
 
 ####

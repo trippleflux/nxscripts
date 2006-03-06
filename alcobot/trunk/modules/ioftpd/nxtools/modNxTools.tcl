@@ -460,67 +460,72 @@ proc ::alcoholicz::NxTools::Load {firstLoad} {
     }
     set undupeWild [IsTrue $undupeWild]
 
-    if {[Config::Exists $configHandle Module::NxTools cmdPrefix]} {
-        set prefix [Config::Get $configHandle Module::NxTools cmdPrefix]
-    } else {
-        set prefix $::alcoholicz::cmdPrefix
-    }
-
     # Directory commands.
     CmdCreate channel dupe   [namespace current]::Dupe \
-        -category "Data"  -args "\[-limit <num>\] \[-section <name>\] <pattern>" \
-        -prefix   $prefix -desc "Search for a release."
+        -category "Data" \
+        -args "\[-limit <num>\] \[-section <name>\] <pattern>" \
+        -desc "Search for a release."
 
     CmdCreate channel new    [namespace current]::New \
-        -category "Data"  -args "\[-limit <num>\] \[section\]" \
-        -prefix   $prefix -desc "Display new releases."
+        -category "Data" \
+        -args "\[-limit <num>\] \[section\]" \
+        -desc "Display new releases."
 
     CmdCreate channel undupe [namespace current]::Undupe \
-        -category "Data"  -args "\[-directory\] <pattern>" \
-        -prefix   $prefix -desc "Undupe files and directories."
+        -category "Data" \
+        -args "\[-directory\] <pattern>" \
+        -desc "Undupe files and directories."
 
     # Nuke commands.
     CmdCreate channel nukes   [namespace current]::Nukes \
-        -category "Data"  -args "\[-limit <num>\] \[pattern\]" \
-        -prefix   $prefix -desc "Display recent nukes."
+        -category "Data" \
+        -args "\[-limit <num>\] \[pattern\]" \
+        -desc "Display recent nukes."
 
     CmdCreate channel nuketop [namespace current]::NukeTop \
-        -category "Data"  -args "\[-limit <num>\] \[group\]" \
-        -prefix   $prefix -desc "Display top nuked users."
+        -category "Data" \
+        -args "\[-limit <num>\] \[group\]" \
+        -desc "Display top nuked users."
 
     CmdCreate channel unnukes [namespace current]::Unnukes \
-        -category "Data"  -args "\[-limit <num>\] \[pattern\]" \
-        -prefix   $prefix -desc "Display recent unnukes."
+        -category "Data" \
+        -args "\[-limit <num>\] \[pattern\]" \
+        -desc "Display recent unnukes."
 
     # Request commands.
     CmdCreate channel requests [namespace current]::Requests \
-        -category "Request" -desc "Display current requests." \
-        -prefix   $prefix
+        -category "Request" \
+        -desc "Display current requests." \
 
     CmdCreate channel request [list [namespace current]::SiteCmd REQADD] \
-        -category "Request" -args "<request/id>" \
-        -prefix   $prefix   -desc "Add a request."
+        -category "Request" \
+        -args "<request/id>" \
+        -desc "Add a request."
 
     CmdCreate channel reqdel  [list [namespace current]::SiteCmd REQDEL] \
-        -category "Request" -args "<request/id>" \
-        -prefix   $prefix   -desc "Remove a request."
+        -category "Request" \
+        -args "<request/id>" \
+        -desc "Remove a request."
 
     CmdCreate channel reqfill [list [namespace current]::SiteCmd REQFILL] \
-        -category "Request" -args "<request/id>" \
-        -prefix   $prefix   -desc "Mark a request as filled."
+        -category "Request" \
+        -args "<request/id>" \
+        -desc "Mark a request as filled."
 
     # Other commands.
     CmdCreate channel approve [list [namespace current]::SiteCmd APPROVE] \
-        -category "General" -args "<release>" \
-        -prefix   $prefix   -desc "Approve a release."
+        -category "General" \
+        -args "<release>" \
+        -desc "Approve a release."
 
     CmdCreate channel approved [namespace current]::Approved \
-        -category "General" -desc "Display approved releases." \
-        -prefix   $prefix
+        -category "General" \
+        -desc "Display approved releases."
 
     CmdCreate channel onel     [namespace current]::OneLines \
-        -category "General" -args "\[-limit <num>\]" \
-        -prefix   $prefix   -desc "Display recent one-lines."
+        -category "General" \
+        -args "\[-limit <num>\]" \
+        -desc "Display recent one-lines."
 }
 
 ####

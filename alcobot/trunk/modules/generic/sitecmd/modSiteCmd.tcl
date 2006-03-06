@@ -59,17 +59,10 @@ proc ::alcoholicz::SiteCmd::Callback {target connection response} {
 # Module initialisation procedure, called when the module is loaded.
 #
 proc ::alcoholicz::SiteCmd::Load {firstLoad} {
-    upvar ::alcoholicz::configHandle configHandle
-
-    if {[Config::Exists $configHandle Module::SiteCmd cmdPrefix]} {
-        set prefix [Config::Get $configHandle Module::SiteCmd cmdPrefix]
-    } else {
-        set prefix $::alcoholicz::cmdPrefix
-    }
-
     CmdCreate channel site [namespace current]::Command \
-        -category "Admin" -args "<command>" \
-        -prefix   $prefix -desc "Issue a SITE command."
+        -category "Admin" \
+        -args "<command>" \
+        -desc "Issue a SITE command."
 }
 
 ####

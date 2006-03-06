@@ -211,15 +211,10 @@ proc ::alcoholicz::PreTimes::Load {firstLoad} {
     }
 
     if {[IsTrue $searchPres]} {
-        if {[Config::Exists $configHandle Module::PreTimes cmdPrefix]} {
-            set prefix [Config::Get $configHandle Module::PreTimes cmdPrefix]
-        } else {
-            set prefix $::alcoholicz::cmdPrefix
-        }
-
         CmdCreate channel pre [namespace current]::Search \
-            -category "General" -args "\[-limit <num>\] \[-section <name>\] <pattern>" \
-            -prefix   $prefix   -desc "Search pre time database."
+            -category "General" \
+            -args "\[-limit <num>\] \[-section <name>\] <pattern>" \
+            -desc "Search pre time database."
     }
 
     if {!$firstLoad} {

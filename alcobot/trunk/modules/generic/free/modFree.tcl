@@ -88,8 +88,10 @@ proc ::alcoholicz::Free::Load {firstLoad} {
     }
 
     CmdCreate channel free [namespace current]::Command \
-        -aliases  "df"      -args "\[section\]" \
-        -category "General" -desc "Display free disk space."
+        -category "General" \
+        -aliases "df" \
+        -args "\[section\]" \
+        -desc "Display free disk space."
 }
 
 ####

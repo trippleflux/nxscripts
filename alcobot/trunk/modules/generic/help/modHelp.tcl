@@ -72,8 +72,10 @@ proc ::alcoholicz::Help::Command {target user host channel argv} {
 # Module initialisation procedure, called when the module is loaded.
 #
 proc ::alcoholicz::Help::Load {firstLoad} {
-    CmdCreate channel help [namespace current]::Command -category "General" \
-        -desc "Display a command list." -args "\[category\] \[category\] ..."
+    CmdCreate channel help [namespace current]::Command \
+        -category "General" \
+        -args "\[category\] \[category\] ..." \
+        -desc "Display a command list."
 }
 
 ####
