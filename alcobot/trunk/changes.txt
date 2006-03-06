@@ -1,6 +1,13 @@
 AlcoBot v1.1.0 (not yet released):
-  NEW: All script variable definitions have been moved to modules.
-  CHG: Huge library changes; the config, ftp, getopt, and tree namespaces are not imported.
+  NEW: Commands can throw CMDHELP and GETOPT errors to display command usage.
+  NEW: Redesigned the command option system ([Commands] in the config): prefixes
+       are configurable per command, new permission options, and the command type
+       must be declared (channel or private).
+  NEW: Script variable definitions are now modules (update your config).
+  CHG: Changed the section colour format (update your theme).
+  CHG: Moved the variable system to the bot's core.
+  CHG: Removed the "varFiles" option from the configuration file.
+  CHG: Renamed all library commands and dropped the namespace exports.
 
 AlcoBot v1.0.0 (Feb 23, 2006):
   NEW: Improved installation instructions.
