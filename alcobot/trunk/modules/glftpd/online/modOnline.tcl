@@ -225,12 +225,12 @@ proc ::alcoholicz::Online::Load {firstLoad} {
 
     # Retrieve configuration options.
     foreach option {rootPath shmKey version} {
-        set $option [config::get $configHandle Ftpd $option]
+        set $option [Config::Get $configHandle Ftpd $option]
     }
     foreach option {hideUsers hideGroups hidePaths} {
-        set $option [ListParse [config::get $configHandle Module::Online $option]]
+        set $option [ListParse [Config::Get $configHandle Module::Online $option]]
     }
-    set hideCount [IsTrue [config::get $configHandle Module::Online hideCount]]
+    set hideCount [IsTrue [Config::Get $configHandle Module::Online hideCount]]
 
     set etcPath [file join $rootPath "etc"]
     if {![file isdirectory $etcPath]} {
@@ -249,8 +249,8 @@ proc ::alcoholicz::Online::Load {firstLoad} {
     }
     glftpd config $session -etc $etcPath -version $version
 
-    if {[config::exists $configHandle Module::Online cmdPrefix]} {
-        set prefix [config::get $configHandle Module::Online cmdPrefix]
+    if {[Config::Exists $configHandle Module::Online cmdPrefix]} {
+        set prefix [Config::Get $configHandle Module::Online cmdPrefix]
     } else {
         set prefix $::alcoholicz::cmdPrefix
     }

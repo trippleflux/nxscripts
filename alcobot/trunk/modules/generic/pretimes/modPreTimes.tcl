@@ -125,7 +125,7 @@ proc ::alcoholicz::PreTimes::LogEvent {event destSection pathSection path data} 
 proc ::alcoholicz::PreTimes::Search {command target user host handle channel argv} {
     # Parse command options.
     set option(limit) -1
-    set pattern [join [getopt::parse $argv {{limit integer} {section arg}} option]]
+    set pattern [join [GetOpt::Parse $argv {{limit integer} {section arg}} option]]
     if {$pattern eq ""} {
         throw CMDHELP "you must specify a pattern"
     }
@@ -190,7 +190,7 @@ proc ::alcoholicz::PreTimes::Load {firstLoad} {
     }
 
     foreach option {addOnPre dataSource defLimit searchPres showOnNew} {
-        set $option [config::get $configHandle Module::PreTimes $option]
+        set $option [Config::Get $configHandle Module::PreTimes $option]
     }
     if {![string is digit -strict $defLimit]} {
         set defLimit 0
@@ -211,8 +211,8 @@ proc ::alcoholicz::PreTimes::Load {firstLoad} {
     }
 
     if {[IsTrue $searchPres]} {
-        if {[config::exists $configHandle Module::PreTimes cmdPrefix]} {
-            set prefix [config::get $configHandle Module::PreTimes cmdPrefix]
+        if {[Config::Exists $configHandle Module::PreTimes cmdPrefix]} {
+            set prefix [Config::Get $configHandle Module::PreTimes cmdPrefix]
         } else {
             set prefix $::alcoholicz::cmdPrefix
         }

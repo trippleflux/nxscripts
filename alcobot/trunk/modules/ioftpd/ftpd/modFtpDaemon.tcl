@@ -49,7 +49,7 @@ proc ::alcoholicz::FtpDaemon::FtpNotify {connection success} {
     if {$success} {
         LogInfo "FTP connection established."
     } else {
-        LogInfo "FTP connection failed - [ftp::error $connection]"
+        LogInfo "FTP connection failed - [Ftp::GetError $connection]"
     }
 }
 
@@ -65,11 +65,11 @@ proc ::alcoholicz::FtpDaemon::FtpTimer {} {
     # Wrap the FTP connection code in a catch statement in case the FTP
     # library throws an error. The Eggdrop timer must be recreated.
     if {[catch {
-        if {[ftp::status $connection] == 2} {
-            ftp::command $connection "NOOP"
+        if {[Ftp::GetStatus $connection] == 2} {
+            Ftp::Command $connection "NOOP"
         } else {
             LogError FtpServer "FTP handle not connected, attemping to reconnect."
-            ftp::connect $connection
+            Ftp::Connect $connection
         }
     } message]} {
         LogError FtpTimer $message
@@ -346,7 +346,7 @@ proc ::alcoholicz::FtpDaemon::Load {firstLoad} {
 
     # Retrieve configuration options.
     foreach option {deleteFlag msgWindow host port user passwd secure} {
-        set $option [config::get $configHandle Ftpd $option]
+        set $option [Config::Get $configHandle Ftpd $option]
     }
     if {[string length $deleteFlag] != 1} {
         error "invalid flag \"$deleteFlag\": must be one character"
@@ -365,11 +365,11 @@ proc ::alcoholicz::FtpDaemon::Load {firstLoad} {
     if {$firstLoad} {
         set timerId [timer 1 [namespace current]::FtpTimer]
     } else {
-        ftp::close $connection
+        Ftp::Close $connection
     }
-    set connection [ftp::open $host $port $user $passwd \
+    set connection [Ftp::Open $host $port $user $passwd \
         -notify [namespace current]::FtpNotify -secure $secure]
-    ftp::connect $connection
+    Ftp::Connect $connection
 }
 
 ####
@@ -382,7 +382,7 @@ proc ::alcoholicz::FtpDaemon::Unload {} {
     variable timerId
 
     if {$connection ne ""} {
-        ftp::close $connection
+        Ftp::Close $connection
         set connection ""
     }
     if {$timerId ne ""} {

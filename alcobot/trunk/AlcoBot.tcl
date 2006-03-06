@@ -946,10 +946,10 @@ proc ::alcoholicz::VarLoad {filePath} {
     variable replace
     variable variables
 
-    set handle [config::open $filePath]
-    config::read $handle
+    set handle [Config::Open $filePath]
+    Config::Read $handle
 
-    foreach {name value} [config::getex $handle Events] {
+    foreach {name value} [Config::GetEx $handle Events] {
         # Allow underscores for convenience.
         if {![string is wordchar -strict $name]} {
             LogError VarLoad "Invalid event group name \"$name\" in \"$filePath\": must be alphanumeric."
@@ -961,9 +961,9 @@ proc ::alcoholicz::VarLoad {filePath} {
         eval lappend [list events($name)] $value
     }
 
-    array set replace [config::getex $handle Replace]
-    array set variables [config::getex $handle Variables]
-    config::close $handle
+    array set replace [Config::GetEx $handle Replace]
+    array set variables [Config::GetEx $handle Variables]
+    Config::Close $handle
 }
 
 ####
@@ -1291,14 +1291,14 @@ proc ::alcoholicz::InitConfig {filePath} {
     # Update configuration path before reading the file.
     set configFile $filePath
     if {[info exists configHandle]} {
-        config::change $configHandle -path $configFile
+        Config::Change $configHandle -path $configFile
     } else {
-        set configHandle [config::open $configFile -align 2]
+        set configHandle [Config::Open $configFile -align 2]
     }
-    config::read $configHandle
+    Config::Read $configHandle
 
     foreach option {cmdPrefix debugMode localTime ftpDaemon siteName siteTag} {
-        variable $option [config::get $configHandle General $option]
+        variable $option [Config::Get $configHandle General $option]
     }
     set debugMode [IsTrue $debugMode]
     set localTime [IsTrue $localTime]
@@ -1307,7 +1307,7 @@ proc ::alcoholicz::InitConfig {filePath} {
         error "Unable to set FTP daemon: $message"
     }
 
-    foreach {name value} [config::getex $configHandle Commands] {
+    foreach {name value} [Config::GetEx $configHandle Commands] {
         set flags [list]
         foreach flag [ListParse $value] {
             # Parse command flags into a list.
@@ -1321,7 +1321,7 @@ proc ::alcoholicz::InitConfig {filePath} {
     }
 
     # Read channel and path sections.
-    foreach {name value} [config::getex $configHandle Sections] {
+    foreach {name value} [Config::GetEx $configHandle Sections] {
         set options [ListParse $value]
         if {[llength $options] == 2} {
             set chanSections($name) $options
@@ -1385,23 +1385,23 @@ proc ::alcoholicz::InitModules {modList} {
     unset -nocomplain cmdNames events replace variables
 
     # Locate and read all module definition files.
-    set modInfo [tree::create]
+    set modInfo [Tree::Create]
     foreach modName $modList {
         if {[catch {
             set defFile [file join [ModuleFind $modName] "module.def"]
-            tree::set modInfo $modName [ModuleRead $defFile]
+            Tree::Set modInfo $modName [ModuleRead $defFile]
         } message]} {
             LogInfo "Unable to load module \"$modName\": $message"
         }
     }
 
     # Reorder the modules based on their dependencies.
-    set loadOrder [tree::keys $modInfo]
+    set loadOrder [Tree::Keys $modInfo]
     foreach modName $loadOrder {
         # The module's index changes as the list is reordered.
         set modIndex [lsearch -exact $loadOrder $modName]
 
-        foreach depName [tree::get $modInfo $modName depends] {
+        foreach depName [Tree::Get $modInfo $modName depends] {
             set depIndex [lsearch -exact $loadOrder $depName]
 
             if {$depIndex > $modIndex} {
@@ -1427,7 +1427,7 @@ proc ::alcoholicz::InitModules {modList} {
 
     # Load all modules listed in the configuration file.
     foreach modName $loadOrder {
-        if {[catch {ModuleLoadEx $modName [tree::get $modInfo $modName]} message]} {
+        if {[catch {ModuleLoadEx $modName [Tree::Get $modInfo $modName]} message]} {
             LogInfo "Unable to load module \"$modName\": $message"
         } else {
             LogInfo "Module Loaded: $modName"
@@ -1457,11 +1457,11 @@ proc ::alcoholicz::InitTheme {themeFile} {
     unset -nocomplain colours format theme
 
     set themeFile [file join $scriptPath "themes" $themeFile]
-    set handle [config::open $themeFile]
-    config::read $handle
+    set handle [Config::Open $themeFile]
+    Config::Read $handle
 
     # Process colour entries.
-    foreach {name value} [config::getex $handle Colour] {
+    foreach {name value} [Config::GetEx $handle Colour] {
         if {![regexp -- {^(\S+),(\d+)$} $name result section num]} {
             LogWarning InitTheme "Invalid colour entry \"$name\"."
         } elseif {![string is digit -strict $value] || $value < 0 || $value > 15} {
@@ -1477,7 +1477,7 @@ proc ::alcoholicz::InitTheme {themeFile} {
 
     # Process format entries.
     set known {prefix date time sizeKilo sizeMega sizeGiga sizeTera speedKilo speedGiga speedMega}
-    foreach {name value} [config::getex $handle Format] {
+    foreach {name value} [Config::GetEx $handle Format] {
         set index [lsearch -exact $known $name]
         if {$index != -1} {
             set known [lreplace $known $index $index]
@@ -1498,7 +1498,7 @@ proc ::alcoholicz::InitTheme {themeFile} {
 
     # Process theme entries.
     set known [array names variables]
-    foreach {name value} [config::getex $handle Theme] {
+    foreach {name value} [Config::GetEx $handle Theme] {
         set index [lsearch -exact $known $name]
         if {$index != -1} {
             set known [lreplace $known $index $index]
@@ -1515,7 +1515,7 @@ proc ::alcoholicz::InitTheme {themeFile} {
         LogWarning InitTheme "Missing theme entries: [ListConvert [lsort $known]]."
     }
 
-    config::close $handle
+    Config::Close $handle
 }
 
 ####
@@ -1544,7 +1544,7 @@ proc ::alcoholicz::InitMain {} {
         die
     }
 
-    set modules [ListParse [config::get $configHandle General modules]]
+    set modules [ListParse [Config::Get $configHandle General modules]]
     if {[catch {InitModules $modules} message]} {
         LogError Modules $message
         die
@@ -1556,13 +1556,13 @@ proc ::alcoholicz::InitMain {} {
         die
     }
 
-    set themeFile [config::get $configHandle General themeFile]
+    set themeFile [Config::Get $configHandle General themeFile]
     if {[catch {InitTheme $themeFile} message]} {
         LogError Theme $message
         die
     }
 
-    config::free $configHandle
+    Config::Free $configHandle
     LogInfo "Sitebot loaded, configured for [GetFtpDaemon]."
     return
 }

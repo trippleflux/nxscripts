@@ -12,12 +12,12 @@
 #   Implements a command-line option parser.
 #
 # Procedures:
-#   getopt::element <list> <element> [type]
-#   getopt::index   <list> <element>
-#   getopt::parse   <argList> <optList> <resultVar>
+#   GetOpt::Element <list> <element> [type]
+#   GetOpt::Index   <list> <element>
+#   GetOpt::Parse   <argList> <optList> <resultVar>
 #
 
-namespace eval ::getopt {
+namespace eval ::GetOpt {
     variable charClasses
     if {![info exists charClasses]} {
         # Create a list of known character classes.
@@ -29,13 +29,13 @@ namespace eval ::getopt {
 }
 
 ####
-# getopt::element
+# GetOpt::Element
 #
-# Simple wrapper around ::getopt::index, an error is thrown if no
+# Simple wrapper around ::GetOpt::Index, an error is thrown if no
 # match is found.
 #
-proc ::getopt::element {list element {type "option"}} {
-    set index [::getopt::index $list $element]
+proc ::GetOpt::Element {list element {type "option"}} {
+    set index [::GetOpt::Index $list $element]
     if {$index == -1} {
         throw GETOPT "invalid $type \"$element\", must be [ListConvert $list or]"
     }
@@ -43,13 +43,13 @@ proc ::getopt::element {list element {type "option"}} {
 }
 
 ####
-# getopt::index
+# GetOpt::Index
 #
 # Returns the index of an element in a list. A partial match is performed
 # if there is no exact match. If the element exists in the list, the index
 # is returned. If there is no unique match, -1 is returned.
 #
-proc ::getopt::index {list element} {
+proc ::GetOpt::Index {list element} {
     # Check for an exact match.
     set index [lsearch -exact $list $element]
     if {$index == -1} {
@@ -68,7 +68,7 @@ proc ::getopt::index {list element} {
 }
 
 ####
-# getopt::parse
+# GetOpt::Parse
 #
 # Parses command line options from an argument list.
 #
@@ -90,13 +90,13 @@ proc ::getopt::index {list element} {
 #
 # set argList "-limit 5 -match glob *some pattern*"
 # set optList {{limit integer} {match arg {exact glob regexp}}}
-# set pattern [::getopt::parse $argList $optList result]
+# set pattern [::GetOpt::Parse $argList $optList result]
 #
 # $result(limit) = 5
 # $result(match) = glob
 # $pattern       = *some pattern*"
 #
-proc ::getopt::parse {argList optList resultVar} {
+proc ::GetOpt::Parse {argList optList resultVar} {
     variable charClasses
     upvar $resultVar result
 
@@ -146,7 +146,7 @@ proc ::getopt::parse {argList optList resultVar} {
         }
 
         if {[string index $arg 0] eq "-"} {
-            set index [::getopt::index $optNames [string range $arg 1 end]]
+            set index [::GetOpt::Index $optNames [string range $arg 1 end]]
             if {$index == -1} {
                 throw GETOPT "invalid option \"$arg\""
             }
@@ -162,7 +162,7 @@ proc ::getopt::parse {argList optList resultVar} {
 
                 if {$optType eq "arg"} {
                     if {$optCount > 2} {
-                        set value [::getopt::element $optValues $value "value"]
+                        set value [::GetOpt::Element $optValues $value "value"]
                     }
                 } elseif {![string is $optType -strict $value]} {
                     throw GETOPT "the option \"$arg\" requires a $optType type value"

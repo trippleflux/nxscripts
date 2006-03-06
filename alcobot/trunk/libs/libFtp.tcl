@@ -12,16 +12,16 @@
 #   Implements a FTP client library to interact with FTP servers.
 #
 # Procedures:
-#   ftp::open       <host> <port> <user> <passwd> [-notify <script>] [-secure <type>]
-#   ftp::close      <handle>
-#   ftp::error      <handle>
-#   ftp::status     <handle>
-#   ftp::connect    <handle>
-#   ftp::disconnect <handle>
-#   ftp::command    <handle> <command> [callback]
+#   Ftp::Open       <host> <port> <user> <passwd> [-notify <script>] [-secure <type>]
+#   Ftp::Close      <handle>
+#   Ftp::GetError   <handle>
+#   Ftp::GetStatus  <handle>
+#   Ftp::Connect    <handle>
+#   Ftp::Disconnect <handle>
+#   Ftp::Command    <handle> <command> [callback]
 #
 
-namespace eval ::ftp {
+namespace eval ::Ftp {
     variable nextHandle
     if {![info exists nextHandle]} {
         set nextHandle 0
@@ -29,10 +29,10 @@ namespace eval ::ftp {
 }
 
 ####
-# ftp::open
+# Ftp::Open
 #
 # Creates a new FTP client handle. This handle is used by every FTP procedure
-# and must be closed using ::ftp::close.
+# and must be closed using ::Ftp::Close.
 #
 # Secure Options:
 # none     - Regular connection.
@@ -40,7 +40,7 @@ namespace eval ::ftp {
 # ssl      - Explicit SSL connection (AUTH SSL).
 # tls      - Explicit TLS connection (AUTH TLS).
 #
-proc ::ftp::open {host port user passwd args} {
+proc ::Ftp::Open {host port user passwd args} {
     variable nextHandle
 
     set notify ""; set secure ""
@@ -108,11 +108,11 @@ proc ::ftp::open {host port user passwd args} {
 }
 
 ####
-# ftp::close
+# Ftp::Close
 #
 # Closes and invalidates the specified handle.
 #
-proc ::ftp::close {handle} {
+proc ::Ftp::Close {handle} {
     Acquire $handle ftp
     Shutdown $handle
     unset -nocomplain ftp
@@ -120,31 +120,31 @@ proc ::ftp::close {handle} {
 }
 
 ####
-# ftp::error
+# Ftp::GetError
 #
 # Returns the last error message.
 #
-proc ::ftp::error {handle} {
+proc ::Ftp::GetError {handle} {
     Acquire $handle ftp
     return $ftp(error)
 }
 
 ####
-# ftp::status
+# Ftp::GetStatus
 #
 # Returns the connection status.
 #
-proc ::ftp::status {handle} {
+proc ::Ftp::GetStatus {handle} {
     Acquire $handle ftp
     return $ftp(status)
 }
 
 ####
-# ftp::connect
+# Ftp::Connect
 #
 # Connects to the FTP server.
 #
-proc ::ftp::connect {handle} {
+proc ::Ftp::Connect {handle} {
     Acquire $handle ftp
 
     if {$ftp(sock) ne ""} {
@@ -163,18 +163,18 @@ proc ::ftp::connect {handle} {
 }
 
 ####
-# ftp::disconnect
+# Ftp::Disconnect
 #
 # Disconnects from the FTP server.
 #
-proc ::ftp::disconnect {handle} {
+proc ::Ftp::Disconnect {handle} {
     Acquire $handle ftp
     Shutdown $handle
     return
 }
 
 ####
-# ftp::command
+# Ftp::Command
 #
 # Sends a command to the FTP server. The server's response can be retrieved
 # by specifying a callback, since this library operates asynchronously.
@@ -186,12 +186,12 @@ proc ::ftp::disconnect {handle} {
 #     }
 # }
 #
-# set handle [ftp::open localhost 21 user pass]
-# ftp::connect $handle
-# ftp::command $handle "SITE WHO" SiteWhoCallback
-# ftp::close $handle
+# set handle [Ftp::Open localhost 21 user pass]
+# Ftp::Connect $handle
+# Ftp::Command $handle "SITE WHO" SiteWhoCallback
+# Ftp::Close $handle
 #
-proc ::ftp::command {handle command {callback ""}} {
+proc ::Ftp::Command {handle command {callback ""}} {
     Acquire $handle ftp
 
     if {$ftp(status) != 2} {
@@ -211,7 +211,7 @@ proc ::ftp::command {handle command {callback ""}} {
 #
 # Validate and acquire a FTP handle.
 #
-proc ::ftp::Acquire {handle handleVar} {
+proc ::Ftp::Acquire {handle handleVar} {
     if {![regexp -- {ftp\d+} $handle] || ![array exists [namespace current]::$handle]} {
         throw FTP "invalid ftp handle \"$handle\""
     }
@@ -223,7 +223,7 @@ proc ::ftp::Acquire {handle handleVar} {
 #
 # Logs a debug message.
 #
-proc ::ftp::Debug {function message} {
+proc ::Ftp::Debug {function message} {
     ::alcoholicz::LogDebug $function $message
 }
 
@@ -232,7 +232,7 @@ proc ::ftp::Debug {function message} {
 #
 # Evaluates a callback script.
 #
-proc ::ftp::Evaluate {script args} {
+proc ::Ftp::Evaluate {script args} {
     if {$script ne "" && [catch {eval $script $args} message]} {
         Debug FtpEvaluate $message
     }
@@ -243,7 +243,7 @@ proc ::ftp::Evaluate {script args} {
 #
 # Sends a command to the FTP control channel.
 #
-proc ::ftp::Send {handle command} {
+proc ::Ftp::Send {handle command} {
     upvar [namespace current]::$handle ftp
     Debug FtpSend "Sending command \"$command\" ($handle)."
 
@@ -260,9 +260,9 @@ proc ::ftp::Send {handle command} {
 # Shutdown
 #
 # Shuts down the FTP connection. The error parameter is an empty string
-# when the connection is closed intentionally with ::ftp::close or ::ftp::disconnect.
+# when the connection is closed intentionally with ::Ftp::Close or ::Ftp::Disconnect.
 #
-proc ::ftp::Shutdown {handle {error ""}} {
+proc ::Ftp::Shutdown {handle {error ""}} {
     upvar [namespace current]::$handle ftp
     Debug FtpShutdown "Connection closed ($handle): $error"
 
@@ -274,7 +274,7 @@ proc ::ftp::Shutdown {handle {error ""}} {
         # Send the QUIT command and terminate the socket.
         catch {puts $ftp(sock) "QUIT"}
         catch {flush $ftp(sock)}
-        catch {::close $ftp(sock)}
+        catch {close $ftp(sock)}
         set ftp(sock) ""
 
         # Update connection status, error message, and evaluate the notify callback.
@@ -292,7 +292,7 @@ proc ::ftp::Shutdown {handle {error ""}} {
 # Verifies the connection's state and begins the SSL negotiation for
 # FTP servers using implicit SSL.
 #
-proc ::ftp::Verify {handle} {
+proc ::Ftp::Verify {handle} {
     upvar [namespace current]::$handle ftp
     if {![info exists ftp]} {
         Debug FtpVerify "Handle \"$handle\" does not exist."
@@ -335,7 +335,7 @@ proc ::ftp::Verify {handle} {
 #
 # FTP client event handler.
 #
-proc ::ftp::Handler {handle {direct 0}} {
+proc ::Ftp::Handler {handle {direct 0}} {
     upvar [namespace current]::$handle ftp
     if {![info exists ftp]} {
         Debug FtpHandler "Handle \"$handle\" does not exist."

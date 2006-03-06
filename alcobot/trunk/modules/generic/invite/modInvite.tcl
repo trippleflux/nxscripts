@@ -410,7 +410,7 @@ proc ::alcoholicz::Invite::Load {firstLoad} {
     }
 
     foreach option {dataSource hostCheck userCheck warnSection} {
-        set $option [config::get $configHandle Module::Invite $option]
+        set $option [Config::Get $configHandle Module::Invite $option]
     }
     set hostCheck [IsTrue $hostCheck]
     set userCheck [IsTrue $userCheck]
@@ -423,7 +423,7 @@ proc ::alcoholicz::Invite::Load {firstLoad} {
 
     # Parse invite channels.
     unset -nocomplain channels
-    foreach entry [ListParse [config::get $configHandle Module::Invite channels]] {
+    foreach entry [ListParse [Config::Get $configHandle Module::Invite channels]] {
         set entry [split $entry]
         if {![llength $entry]} {
             LogError ModInvite "Invalid channel definition \"[join $entry]\"."

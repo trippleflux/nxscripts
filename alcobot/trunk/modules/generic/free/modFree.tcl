@@ -83,7 +83,7 @@ proc ::alcoholicz::Free::Load {firstLoad} {
     upvar ::alcoholicz::configHandle configHandle
 
     set volumeList [list]
-    foreach {name value} [config::getex $configHandle Module::Free] {
+    foreach {name value} [Config::GetEx $configHandle Module::Free] {
         lappend volumeList $name $value
     }
 

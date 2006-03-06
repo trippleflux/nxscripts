@@ -113,7 +113,7 @@ proc ::alcoholicz::GlData::Dupe {command target user host handle channel argv} {
 
     # Parse command options.
     set option(limit) -1
-    set pattern [join [getopt::parse $argv {{limit integer}} option]]
+    set pattern [join [GetOpt::Parse $argv {{limit integer}} option]]
     if {$pattern eq ""} {
         throw CMDHELP "you must specify a pattern"
     }
@@ -168,7 +168,7 @@ proc ::alcoholicz::GlData::New {command target user host handle channel argv} {
 
     # Parse command options.
     set option(limit) -1
-    set pattern [join [getopt::parse $argv {{limit integer}} option]]
+    set pattern [join [GetOpt::Parse $argv {{limit integer}} option]]
     set limit [GetResultLimit $option(limit)]
     SendTargetTheme $target newHead
 
@@ -209,7 +209,7 @@ proc ::alcoholicz::GlData::Search {command target user host handle channel argv}
 
     # Parse command options.
     set option(limit) -1
-    set pattern [join [getopt::parse $argv {{limit integer}} option]]
+    set pattern [join [GetOpt::Parse $argv {{limit integer}} option]]
     if {$pattern eq ""} {
         throw CMDHELP "you must specify a pattern"
     }
@@ -314,7 +314,7 @@ proc ::alcoholicz::GlData::Nukes {command target user host handle channel argv} 
 
     # Parse command options.
     set option(limit) -1
-    set pattern [join [getopt::parse $argv {{limit integer}} option]]
+    set pattern [join [GetOpt::Parse $argv {{limit integer}} option]]
     set limit [GetResultLimit $option(limit)]
 
     SendTargetTheme $target nukesHead
@@ -351,7 +351,7 @@ proc ::alcoholicz::GlData::Unnukes {command target user host handle channel argv
 
     # Parse command options.
     set option(limit) -1
-    set pattern [join [getopt::parse $argv {{limit integer}} option]]
+    set pattern [join [GetOpt::Parse $argv {{limit integer}} option]]
     set limit [GetResultLimit $option(limit)]
 
     SendTargetTheme $target unnukesHead
@@ -388,7 +388,7 @@ proc ::alcoholicz::GlData::OneLines {command target user host handle channel arg
 
     # Parse command options.
     set option(limit) -1
-    getopt::parse $argv {{limit integer}} option
+    GetOpt::Parse $argv {{limit integer}} option
     set limit [GetResultLimit $option(limit)]
 
     SendTargetTheme $target oneLinesHead
@@ -440,20 +440,20 @@ proc ::alcoholicz::GlData::Load {firstLoad} {
 
     # Retrieve configuration options.
     foreach option {tempPath undupeChars undupeWild} {
-        set $option [config::get $configHandle Module::GlData $option]
+        set $option [Config::Get $configHandle Module::GlData $option]
     }
     if {![file isdirectory $tempPath]} {
         error "the directory \"$tempPath\" does not exist"
     }
     set undupeWild [IsTrue $undupeWild]
 
-    set logsPath [file join [config::get $configHandle Ftpd dataPath] "logs"]
+    set logsPath [file join [Config::Get $configHandle Ftpd dataPath] "logs"]
     if {![file isdirectory $logsPath]} {
         error "the directory \"$logsPath\" does not exist"
     }
 
-    if {[config::exists $configHandle Module::GlData cmdPrefix]} {
-        set prefix [config::get $configHandle Module::GlData cmdPrefix]
+    if {[Config::Exists $configHandle Module::GlData cmdPrefix]} {
+        set prefix [Config::Get $configHandle Module::GlData cmdPrefix]
     } else {
         set prefix $::alcoholicz::cmdPrefix
     }

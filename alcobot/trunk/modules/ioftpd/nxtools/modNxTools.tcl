@@ -68,7 +68,7 @@ proc ::alcoholicz::NxTools::Dupe {command target user host handle channel argv} 
     # Parse command options.
     set option(limit) -1
     set optList [list {limit integer} [list section arg [lsort [array names pathSections]]]]
-    set pattern [join [getopt::parse $argv $optList option]]
+    set pattern [join [GetOpt::Parse $argv $optList option]]
     if {$pattern eq ""} {
         throw CMDHELP "you must specify a pattern"
     }
@@ -115,7 +115,7 @@ proc ::alcoholicz::NxTools::New {command target user host handle channel argv} {
 
     # Parse command options.
     set option(limit) -1
-    set section [join [getopt::parse $argv {{limit integer}} option]]
+    set section [join [GetOpt::Parse $argv {{limit integer}} option]]
     set limit [GetResultLimit $option(limit)]
 
     if {$section eq ""} {
@@ -123,7 +123,7 @@ proc ::alcoholicz::NxTools::New {command target user host handle channel argv} {
     } else {
         # Validate the specified section name.
         set names [lsort [array names pathSections]]
-        set section [getopt::element $names $section section]
+        set section [GetOpt::Element $names $section section]
 
         set matchPath [SqlToLike [lindex $pathSections($section) 0]]
         set sectionQuery "WHERE DirPath LIKE '${matchPath}%' ESCAPE '\\'"
@@ -161,7 +161,7 @@ proc ::alcoholicz::NxTools::Undupe {command target user host handle channel argv
     variable undupeWild
 
     # Parse command options.
-    set pattern [join [getopt::parse $argv {directory} option]]
+    set pattern [join [GetOpt::Parse $argv {directory} option]]
     if {$pattern eq ""} {
         throw CMDHELP "you must specify a pattern"
     }
@@ -208,7 +208,7 @@ proc ::alcoholicz::NxTools::Undupe {command target user host handle channel argv
 proc ::alcoholicz::NxTools::Nukes {command target user host handle channel argv} {
     # Parse command options.
     set option(limit) -1
-    set pattern [join [getopt::parse $argv {{limit integer}} option]]
+    set pattern [join [GetOpt::Parse $argv {{limit integer}} option]]
     set limit [GetResultLimit $option(limit)]
 
     if {$pattern eq ""} {
@@ -243,7 +243,7 @@ proc ::alcoholicz::NxTools::Nukes {command target user host handle channel argv}
 proc ::alcoholicz::NxTools::NukeTop {command target user host handle channel argv} {
     # Parse command options.
     set option(limit) -1
-    set group [join [getopt::parse $argv {{limit integer}} option]]
+    set group [join [GetOpt::Parse $argv {{limit integer}} option]]
     set limit [GetResultLimit $option(limit)]
 
     if {$group eq ""} {
@@ -277,7 +277,7 @@ proc ::alcoholicz::NxTools::NukeTop {command target user host handle channel arg
 proc ::alcoholicz::NxTools::Unnukes {command target user host handle channel argv} {
     # Parse command options.
     set option(limit) -1
-    set pattern [join [getopt::parse $argv {{limit integer}} option]]
+    set pattern [join [GetOpt::Parse $argv {{limit integer}} option]]
     set limit [GetResultLimit $option(limit)]
 
     if {$pattern eq ""} {
@@ -335,7 +335,7 @@ proc ::alcoholicz::NxTools::Approved {command target user host handle channel ar
 proc ::alcoholicz::NxTools::OneLines {command target user host handle channel argv} {
     # Parse command options.
     set option(limit) -1
-    getopt::parse $argv {{limit integer}} option
+    GetOpt::Parse $argv {{limit integer}} option
     set limit [GetResultLimit $option(limit)]
 
     SendTargetTheme $target oneLinesHead
@@ -416,8 +416,8 @@ proc ::alcoholicz::NxTools::SiteCmd {event command target user host handle chann
 
     # Send the SITE command.
     set connection [GetFtpConnection]
-    if {[ftp::status $connection] == 2} {
-        ftp::command $connection $command [list [namespace current]::SiteCallback $target $theme]
+    if {[Ftp::GetStatus $connection] == 2} {
+        Ftp::Command $connection $command [list [namespace current]::SiteCallback $target $theme]
     } else {
         SendTargetTheme $target $theme [list "Not connected to the FTP server."]
     }
@@ -453,15 +453,15 @@ proc ::alcoholicz::NxTools::Load {firstLoad} {
 
     # Retrieve configuration options.
     foreach option {dataPath undupeChars undupeWild} {
-        set $option [config::get $configHandle Module::NxTools $option]
+        set $option [Config::Get $configHandle Module::NxTools $option]
     }
     if {![file isdirectory $dataPath]} {
         error "The database directory \"$dataPath\" does not exist."
     }
     set undupeWild [IsTrue $undupeWild]
 
-    if {[config::exists $configHandle Module::NxTools cmdPrefix]} {
-        set prefix [config::get $configHandle Module::NxTools cmdPrefix]
+    if {[Config::Exists $configHandle Module::NxTools cmdPrefix]} {
+        set prefix [Config::Get $configHandle Module::NxTools cmdPrefix]
     } else {
         set prefix $::alcoholicz::cmdPrefix
     }
