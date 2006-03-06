@@ -167,25 +167,37 @@ expressions, see: http://www.tcl.tk/man/tcl8.4/TclCmd/re_syntax.htm
   set anuke(ImdbMatch) {^\[IMDB\] - (.+) \((\d+)\) - ([\d\.]+) of 10 - \[IMDB\]$}
   set anuke(ImdbOrder) {genre year rating}
 
+- ioBanana v2.0 IMDB Tag:
+  [iMDB]-8.0 with 68,600 votes - Action - 3,661 screens-[iMDB]
+  set anuke(ImdbMatch) {^\[iMDB\]-([\d\.]+) with \S+ votes - (.+) - \S+ screens-\[iMDB\]$}
+  set anuke(ImdbOrder) {rating genre}
+
+- ioBanana v2.0 MP3 Tag:
+  [100% Complete]-[12F @ 82.2MB at 161kBps]-[Death Metal from 2005 at 256kbps]-[SITE]
+  set anuke(MP3Match) {^\[.*\]-\[.*\]-\[(.+) from (\d+) at (\d+)kbps\]-\[.+\]$}
+  set anuke(MP3Order) {genre year bitrate}
+
+- ioBanana v2.0 Incomplete Tag:
+  [50.0% Incomplete With 50F]-[SITE]
+  set anuke(IncTag)   {\[* Incomplete With *F\]-\[*\]}
+
 - ioSFV MP3 Tag:
   -[100%]-[62.71MB in 11 files with 11 tracks - Death Metal 2005 256kbps]-[race won by user]-
   set anuke(MP3Match) {^-\[.*\]-\[.+ in \d+ files with \d+ tracks - (.+) (\d+) (\d+)kbps\]-\[race won by .+\]-$}
   set anuke(MP3Order) {genre year bitrate}
+
+- ioSFV Incomplete Tag:
+  -[%%%%%.....] - 5F Of 10F done - 50% complete - [SITE]-
+  set anuke(IncTag)   {-\[*\] - *F Of *F done - * complete - \[*\]-}
 
 - Project-ZS MP3 Tag:
   [SITE] - ( 62.7MB 11F - COMPLETE - Death Metal 2005 ) - [SITE]
   set anuke(MP3Match) {^\[.*\] - \( .* - COMPLETE - (.+) (\d+) \) - \[.*\]$}
   set anuke(MP3Order) {genre year}
 
-- ioBanana v2.0 release-1 IMDB Tag:
-  [iMDB]-8.0 with 68,600 votes - Action - 3,661 screens-[iMDB]
-  set anuke(ImdbMatch) {^\[iMDB\]-([\d\.]+) with \S+ votes - (.+) - \S+ screens-\[iMDB\]$}
-  set anuke(ImdbOrder) {rating genre}
-
-- ioBanana v2.0 release-1 MP3 Tag:
-  [100% Complete]-[12F @ 82.2MB at 161kBps]-[Death Metal from 2005 at 256kbps]-[XL]
-  set anuke(MP3Match) {^\[.*\]-\[.*\]-\[(.+) from (\d+) at (\d+)kbps\]-\[.+\]$}
-  set anuke(MP3Order) {genre year bitrate}
+- Project-ZS Incomplete Tag:
+  [SITE] - 50% Complete - [SITE]
+  set anuke(IncTag)   {\[*\] - *% Complete - \[*\]}
 
 
 ################################################################################

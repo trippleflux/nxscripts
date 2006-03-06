@@ -3,6 +3,7 @@
 ################################################################################
 
 nxAutoNuke-ioA v2.3.1 (not released):
+  NEW: Check for incomplete directory tags.
   CHG: The init.itcl script is no longer used for loading library files.
 
 nxAutoNuke-ioA v2.3.0 (Oct 29, 2005):
