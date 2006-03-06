@@ -24,7 +24,7 @@ namespace eval ::alcoholicz::Help {
 proc ::alcoholicz::Help::Command {target user host channel argv} {
     SendTargetTheme $target helpHead
 
-    foreach {name value} [CmdGetList channel *] {
+    foreach {name value} [CmdGetList "channel" "*"] {
         foreach {argDesc cmdDesc category binds script} $value {break}
 
         # Check if this command is present in the listed catagories.
@@ -35,7 +35,7 @@ proc ::alcoholicz::Help::Command {target user host channel argv} {
 
         # Check if the user has access to the command.
         set display 1
-        foreach {enabled name value} [CmdGetFlags [lindex $name 1]] {
+        foreach {enabled name value} [CmdGetOptions "channel" [lindex $name 1]] {
             set result 0
             switch -- $name {
                 all     {set result 1}
