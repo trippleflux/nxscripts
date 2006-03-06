@@ -39,7 +39,7 @@ interp alias {} IsFalse {} string is false -strict
 #
 # Throw an error with the given error-code and message.
 #
-proc throw {code message} {error $message "" $code}
+proc ::throw {code {message ""}} {error $message "" $code}
 
 ####
 # GetResultLimit
