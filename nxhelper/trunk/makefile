@@ -205,7 +205,7 @@ OBJECT_FILES=\
     $(PKG_INTDIR)\nxHelper.res
 
 CFLAGS  = -c $(cdebug) $(cflags) $(cvarsmt) $(PKG_CFLAGS) $(TCL_CFLAGS) $(INCLUDE_DIRS)
-LFLAGS  = $(ldebug) $(dlllflags) $(conlibsmt) $(PKG_LFLAGS) $(TCL_STUBLIB)
+LFLAGS  = $(ldebug) $(dlllflags) $(conlibsmt) $(PKG_LFLAGS) shlwapi.lib $(TCL_STUBLIB)
 RFLAGS  = $(rcflags) $(rcvars) $(PKG_CFLAGS)
 
 # -------------------------------------------------------------------------

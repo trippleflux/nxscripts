@@ -23,15 +23,11 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <shlwapi.h>
-#pragma comment (lib,"shlwapi.lib")
 
 /* Common includes. */
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <assert.h>
+#include <string.h>
 #include <tchar.h>
-#include <time.h>
 
 #define STRSAFE_LIB
 #define STRSAFE_NO_CB_FUNCTIONS
@@ -48,9 +44,9 @@
 #define TCL_STORAGE_CLASS DLLEXPORT
 
 /* nxHelper includes. */
-#include <nxMacros.h>
-#include <nxMP3Info.h>
-#include <nxUtil.h>
+#include "nxMacros.h"
+#include "nxMP3Info.h"
+#include "nxUtil.h"
 
 /* Object commands */
 Tcl_ObjCmdProc Base64ObjCmd;
