@@ -54,11 +54,26 @@ static const unsigned char map[256] = {
 #define Base64EncodeGetDestLength(length) ((4 * ((length + 2) / 3)) + 1)
 #define Base64DecodeGetDestLength(length) (length)
 
-static int Base64Decode(unsigned char *source, unsigned long sourceLength,
-                        unsigned char *dest, unsigned long *destLength);
-static int Base64Encode(unsigned char *source, unsigned long sourceLength,
-                        unsigned char *dest, unsigned long *destLength);
-static char *Base64GetError(unsigned short status);
+static int
+Base64Decode(
+    unsigned char *source,
+    unsigned long sourceLength,
+    unsigned char *dest,
+    unsigned long *destLength
+    );
+
+static int
+Base64Encode(
+    unsigned char *source,
+    unsigned long sourceLength,
+    unsigned char *dest,
+    unsigned long *destLength
+    );
+
+static char *
+Base64GetError(
+    unsigned short status
+    );
 
 
 /*
@@ -78,10 +93,13 @@ static char *Base64GetError(unsigned short status);
  * Remarks:
  *   None.
  */
-
 static int
-Base64Decode(unsigned char *source, unsigned long sourceLength,
-             unsigned char *dest, unsigned long *destLength)
+Base64Decode(
+    unsigned char *source,
+    unsigned long sourceLength,
+    unsigned char *dest,
+    unsigned long *destLength
+    )
 {
     unsigned long t, x, y, z;
     unsigned char c;
@@ -126,7 +144,6 @@ Base64Decode(unsigned char *source, unsigned long sourceLength,
     return BASE64_SUCCESS;
 }
 
-
 /*
  * Base64Encode
  *
@@ -144,10 +161,13 @@ Base64Decode(unsigned char *source, unsigned long sourceLength,
  * Remarks:
  *   None.
  */
-
 static int
-Base64Encode(unsigned char *source, unsigned long sourceLength,
-             unsigned char *dest, unsigned long *destLength)
+Base64Encode(
+    unsigned char *source,
+    unsigned long sourceLength,
+    unsigned char *dest,
+    unsigned long *destLength
+    )
 {
     unsigned long i, len2, leven;
     unsigned char *p;
@@ -185,9 +205,24 @@ Base64Encode(unsigned char *source, unsigned long sourceLength,
     return BASE64_SUCCESS;
 }
 
-
+/*
+ * Base64GetError
+ *
+ *   Retrieve an error message.
+ *
+ * Arguments:
+ *   status - A base64 status code.
+ *
+ * Returns:
+ *   A human-readable error message.
+ *
+ * Remarks:
+ *   None.
+ */
 static char *
-Base64GetError(unsigned short status)
+Base64GetError(
+    unsigned short status
+    )
 {
     switch (status) {
         case BASE64_SUCCESS : return "no error";
@@ -197,7 +232,6 @@ Base64GetError(unsigned short status)
     }
 }
 
-
 /*
  * Base64ObjCmd
  *
@@ -215,9 +249,13 @@ Base64GetError(unsigned short status)
  * Remarks:
  *   None.
  */
-
 int
-Base64ObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+Base64ObjCmd(
+    ClientData dummy,
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[]
+    )
 {
     int index;
     int sourceLength;

@@ -41,7 +41,10 @@ static Tcl_ThreadDataKey dataKey;
  *   None.
  */
 char *
-TclSetWinError(Tcl_Interp *interp, unsigned long errorCode)
+TclSetWinError(
+    Tcl_Interp *interp,
+    unsigned long errorCode
+    )
 {
     char errorId[12];
     ThreadSpecificData *tsdPtr = TCL_TSD_INIT(&dataKey);
@@ -89,7 +92,10 @@ TclSetWinError(Tcl_Interp *interp, unsigned long errorCode)
  *   None.
  */
 int
-PartialSwitchCompare(Tcl_Obj *objPtr, const char *switchName)
+PartialSwitchCompare(
+    Tcl_Obj *objPtr,
+    const char *switchName
+    )
 {
     int optionLength;
     char *option = Tcl_GetStringFromObj(objPtr, &optionLength);
@@ -119,7 +125,12 @@ PartialSwitchCompare(Tcl_Obj *objPtr, const char *switchName)
  *   None.
  */
 int
-SleepObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+SleepObjCmd(
+    ClientData dummy,
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[]
+    )
 {
     long ms;
 

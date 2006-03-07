@@ -27,12 +27,27 @@
 
 #include <nxHelper.h>
 
-_inline unsigned long TouchFile(TCHAR *filePath, FILETIME *touchTime, unsigned short options);
-static unsigned long RecursiveTouch(TCHAR *CurentPath, FILETIME *touchTime, unsigned short options);
+__forceinline unsigned long
+TouchFile(
+    TCHAR *filePath,
+    FILETIME *touchTime,
+    unsigned short options
+    );
+
+static unsigned long
+RecursiveTouch(
+    TCHAR *CurentPath,
+    FILETIME *touchTime,
+    unsigned short options
+    );
 
 
-_inline unsigned long
-TouchFile(TCHAR *filePath, FILETIME *touchTime, unsigned short options)
+__forceinline unsigned long
+TouchFile(
+    TCHAR *filePath,
+    FILETIME *touchTime,
+    unsigned short options
+    )
 {
     HANDLE fileHandle = CreateFile(filePath,
         GENERIC_WRITE,
@@ -61,9 +76,12 @@ TouchFile(TCHAR *filePath, FILETIME *touchTime, unsigned short options)
     }
 }
 
-
 static unsigned long
-RecursiveTouch(TCHAR *CurentPath, FILETIME *touchTime, unsigned short options)
+RecursiveTouch(
+    TCHAR *CurentPath,
+    FILETIME *touchTime,
+    unsigned short options
+    )
 {
     TCHAR filePath[MAX_PATH];
     unsigned long status = ERROR_SUCCESS;
@@ -106,7 +124,6 @@ RecursiveTouch(TCHAR *CurentPath, FILETIME *touchTime, unsigned short options)
     return status;
 }
 
-
 /*
  * TouchObjCmd
  *
@@ -124,9 +141,13 @@ RecursiveTouch(TCHAR *CurentPath, FILETIME *touchTime, unsigned short options)
  * Remarks:
  *   None.
  */
-
 int
-TouchObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+TouchObjCmd(
+    ClientData dummy,
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[]
+    )
 {
     FILETIME touchTime;
     int i;

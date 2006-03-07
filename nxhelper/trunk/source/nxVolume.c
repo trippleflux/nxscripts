@@ -32,8 +32,18 @@
 
 #include <nxHelper.h>
 
-static BOOL GetVolumeInfo(TCHAR *volumePath, VolumeInfo *volumeInfo);
-static BOOL GetVolumeSize(TCHAR *volumePath, ULONGLONG *bytesFree, ULONGLONG *bytesTotal);
+static BOOL
+GetVolumeInfo(
+    TCHAR *volumePath,
+    VolumeInfo *volumeInfo
+    );
+
+static BOOL
+GetVolumeSize(
+    TCHAR *volumePath,
+    ULONGLONG *bytesFree,
+    ULONGLONG *bytesTotal
+    );
 
 
 /*
@@ -56,7 +66,11 @@ static BOOL GetVolumeSize(TCHAR *volumePath, ULONGLONG *bytesFree, ULONGLONG *by
  *   None.
  */
 static BOOL
-GetVolumeSize(TCHAR *volumePath, ULONGLONG *bytesFree, ULONGLONG *bytesTotal)
+GetVolumeSize(
+    TCHAR *volumePath,
+    ULONGLONG *bytesFree,
+    ULONGLONG *bytesTotal
+    )
 {
     BOOL result;
 
@@ -111,7 +125,10 @@ GetVolumeSize(TCHAR *volumePath, ULONGLONG *bytesFree, ULONGLONG *bytesTotal)
  *   None.
  */
 static BOOL
-GetVolumeInfo(TCHAR *volumePath, VolumeInfo *volumeInfo)
+GetVolumeInfo(
+    TCHAR *volumePath,
+    VolumeInfo *volumeInfo
+    )
 {
     if (!GetVolumeInformation(volumePath,
         volumeInfo->name, VOLUME_NAME_BUFFER,
@@ -147,7 +164,12 @@ GetVolumeInfo(TCHAR *volumePath, VolumeInfo *volumeInfo)
  *   None.
  */
 int
-VolumeObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+VolumeObjCmd(
+    ClientData dummy,
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[]
+    )
 {
     int index;
     const static char *options[] = {"info", "type", NULL};

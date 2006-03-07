@@ -31,8 +31,17 @@
 
 #include <nxHelper.h>
 
-static int ZlibDeflateObj(Tcl_Obj *sourceObj, Tcl_Obj *destObj, int level);
-static int ZlibInflateObj(Tcl_Obj *sourceObj, Tcl_Obj *destObj);
+static int
+ZlibDeflateObj(
+    Tcl_Obj *sourceObj,
+    Tcl_Obj *destObj,
+    int level
+    );
+
+static int
+ZlibInflateObj(
+    Tcl_Obj *sourceObj,
+    Tcl_Obj *destObj);
 
 
 /*
@@ -51,9 +60,12 @@ static int ZlibInflateObj(Tcl_Obj *sourceObj, Tcl_Obj *destObj);
  * Remarks:
  *   None.
  */
-
 static int
-ZlibDeflateObj(Tcl_Obj *sourceObj, Tcl_Obj *destObj, int level)
+ZlibDeflateObj(
+    Tcl_Obj *sourceObj,
+    Tcl_Obj *destObj,
+    int level
+    )
 {
     int status;
     z_stream stream;
@@ -98,7 +110,6 @@ ZlibDeflateObj(Tcl_Obj *sourceObj, Tcl_Obj *destObj, int level)
     return status;
 }
 
-
 /*
  * ZlibInflateObj
  *
@@ -114,9 +125,11 @@ ZlibDeflateObj(Tcl_Obj *sourceObj, Tcl_Obj *destObj, int level)
  * Remarks:
  *   None.
  */
-
 static int
-ZlibInflateObj(Tcl_Obj *sourceObj, Tcl_Obj *destObj)
+ZlibInflateObj(
+    Tcl_Obj *sourceObj,
+    Tcl_Obj *destObj
+    )
 {
     int bufferFactor;
     int bufferLength;
@@ -178,7 +191,6 @@ ZlibInflateObj(Tcl_Obj *sourceObj, Tcl_Obj *destObj)
     return status;
 }
 
-
 /*
  * ZlibObjCmd
  *
@@ -196,9 +208,13 @@ ZlibInflateObj(Tcl_Obj *sourceObj, Tcl_Obj *destObj)
  * Remarks:
  *   None.
  */
-
 int
-ZlibObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+ZlibObjCmd(
+    ClientData dummy,
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[]
+    )
 {
     int index;
     static const char *options[] = {"adler32", "crc32", "deflate", "inflate", NULL};

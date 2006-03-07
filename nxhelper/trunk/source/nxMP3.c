@@ -56,9 +56,13 @@
  * Remarks:
  *   None.
  */
-
 int
-Mp3ObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+Mp3ObjCmd(
+    ClientData dummy,
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[]
+    )
 {
     int status = TCL_ERROR;
     MP3INFO MP3Info;

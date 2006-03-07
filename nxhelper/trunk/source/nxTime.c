@@ -29,24 +29,29 @@
 
 
 unsigned long
-FileTimeToPosixEpoch(const FILETIME *FileTime)
+FileTimeToPosixEpoch(
+    const FILETIME *FileTime
+    )
 {
     ULONGLONG epochTime = ((ULONGLONG)FileTime->dwHighDateTime << 32) + FileTime->dwLowDateTime;
     return (unsigned long)((epochTime - 116444736000000000) / 10000000);
 }
 
-
 void
-PosixEpochToFileTime(unsigned long epochTime, FILETIME *fileTime)
+PosixEpochToFileTime(
+    unsigned long epochTime,
+    FILETIME *fileTime
+    )
 {
     ULONGLONG timeNs = UInt32x32To64(epochTime, 10000000) + 116444736000000000;
     fileTime->dwLowDateTime = (DWORD)timeNs;
     fileTime->dwHighDateTime = (DWORD)(timeNs >> 32);
 }
 
-
 BOOL
-GetTimeZoneBias(long *bias)
+GetTimeZoneBias(
+    long *bias
+    )
 {
     TIME_ZONE_INFORMATION timeZoneInfo;
 
@@ -59,7 +64,6 @@ GetTimeZoneBias(long *bias)
     return FALSE;
 }
 
-
 /*
  * TimeObjCmd
  *
@@ -77,13 +81,21 @@ GetTimeZoneBias(long *bias)
  * Remarks:
  *   None.
  */
-
 int
-TimeObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+TimeObjCmd(
+    ClientData dummy,
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[]
+    )
 {
     int index;
-    const static char *options[] = {"dst", /*"local", "utc",*/ "zone", NULL};
-    enum options {OPTION_DST, /*OPTION_LOCAL, OPTION_UTC,*/ OPTION_ZONE};
+    const static char *options[] = {
+        "dst", /*"local", "utc",*/ "zone", NULL
+    };
+    enum options {
+        OPTION_DST, /*OPTION_LOCAL, OPTION_UTC,*/ OPTION_ZONE
+    };
 
     if (objc < 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "option ?args?");
