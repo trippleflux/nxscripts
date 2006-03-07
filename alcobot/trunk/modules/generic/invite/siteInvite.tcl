@@ -61,7 +61,7 @@
 #      custom-invpasswd !8 *
 #
 
-namespace eval ::siteInvite {
+namespace eval ::Invite {
     # dataSource - Name of the ODBC data source.
     # logPath    - Path to the FTP daemon's log directory.
     variable dataSource "Alcoholicz"
@@ -94,7 +94,7 @@ interp alias {} IsTrue {} string is true -strict
 #
 # Convert an argument string into a Tcl list, respecting quoted text segments.
 #
-proc ::siteInvite::ListParse {argStr} {
+proc ::Invite::ListParse {argStr} {
     set argList [list]
     set length [string length $argStr]
 
@@ -122,7 +122,7 @@ proc ::siteInvite::ListParse {argStr} {
 #
 # Connect to the ODBC data source.
 #
-proc ::siteInvite::DbConnect {} {
+proc ::Invite::DbConnect {} {
     variable dataSource
 
     if {[catch {database connect [namespace current]::db "DSN=$dataSource"} message]} {
@@ -145,7 +145,7 @@ proc ::siteInvite::DbConnect {} {
 #
 # Write a formatted line to the client's FTP control channel.
 #
-proc ::siteInvite::LinePuts {text} {
+proc ::Invite::LinePuts {text} {
     iputs [format "| %-60s |" $text]
 }
 
@@ -155,10 +155,10 @@ proc ::siteInvite::LinePuts {text} {
 # Creates a PKCS #5 v2 hash with a 4 byte salt and hashed 100 rounds with SHA-256.
 # Format: <hex encoded salt>$<hex encoded hash>
 #
-proc ::siteInvite::MakeHash {password} {
-    set salt [::alcoholicz::crypt rand 4]
-    set hash [::alcoholicz::crypt pkcs5 -v2 -rounds 100 sha256 $salt $password]
-    return [join [list [::alcoholicz::encode hex $salt] [::alcoholicz::encode hex $hash]] "$"]
+proc ::Invite::MakeHash {password} {
+    set salt [crypt rand 4]
+    set hash [crypt pkcs5 -v2 -rounds 100 sha256 $salt $password]
+    return [join [list [encode hex $salt] [encode hex $hash]] "$"]
 }
 
 ####
@@ -166,7 +166,7 @@ proc ::siteInvite::MakeHash {password} {
 #
 # Escape SQL quote characters with a backslash.
 #
-proc ::siteInvite::SqlEscape {string} {
+proc ::Invite::SqlEscape {string} {
     return [string map {\\ \\\\ ` \\` ' \\' \" \\\"} $string]
 }
 
@@ -175,7 +175,7 @@ proc ::siteInvite::SqlEscape {string} {
 #
 # Set the IRC nick-name for a user.
 #
-proc ::siteInvite::SetIrcUser {ftpUser ircUser} {
+proc ::Invite::SetIrcUser {ftpUser ircUser} {
     set ftpUser [SqlEscape $ftpUser]
     set ircUser [SqlEscape $ircUser]
 
@@ -190,7 +190,7 @@ proc ::siteInvite::SetIrcUser {ftpUser ircUser} {
 #
 # Set the invite password for a user.
 #
-proc ::siteInvite::SetPassword {ftpUser password} {
+proc ::Invite::SetPassword {ftpUser password} {
     set ftpUser [SqlEscape $ftpUser]
     set hash [SqlEscape [MakeHash $password]]
 
@@ -205,7 +205,7 @@ proc ::siteInvite::SetPassword {ftpUser password} {
 #
 # Change and update IRC invite user options.
 #
-proc ::siteInvite::Admin {argList} {
+proc ::Invite::Admin {argList} {
     variable hostCheck
     variable userCheck
 
@@ -355,7 +355,7 @@ proc ::siteInvite::Admin {argList} {
 #
 # Invites a user into the IRC channels.
 #
-proc ::siteInvite::Invite {argList} {
+proc ::Invite::Invite {argList} {
     global user group groups flags
     variable hostCheck
     variable userCheck
@@ -408,7 +408,7 @@ proc ::siteInvite::Invite {argList} {
 #
 # Allows a user to set his or her own password.
 #
-proc ::siteInvite::Passwd {argList} {
+proc ::Invite::Passwd {argList} {
     global user
     variable passLength
     variable passFlags
@@ -454,7 +454,7 @@ proc ::siteInvite::Passwd {argList} {
 #
 # Script entry point.
 #
-proc ::siteInvite::Main {} {
+proc ::Invite::Main {} {
     variable isWindows
     variable logPath
 
@@ -473,9 +473,10 @@ proc ::siteInvite::Main {} {
         set flags   $env(FLAGS)
 
         # Emulate ioFTPD's Tcl commands.
-        proc iputs {text} {puts stdout $text}
-        proc putlog {text} {
-            set filePath [file join $::siteInvite::logPath "glftpd.log"]
+        proc ::Invite::iputs {text} {puts stdout $text}
+        proc ::Invite::putlog {text} {
+            variable logPath
+            set filePath [file join $logPath "glftpd.log"]
             set timeStamp [clock format [clock seconds] -format "%a %b %d %T %Y" -gmt 0]
             if {![catch {set handle [open $filePath a]} error]} {
                 puts $handle [format "%.24s %s" $timeStamp $text]
@@ -515,4 +516,4 @@ proc ::siteInvite::Main {} {
     return $result
 }
 
-::siteInvite::Main
+::Invite::Main
