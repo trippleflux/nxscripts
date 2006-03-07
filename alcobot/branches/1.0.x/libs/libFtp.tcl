@@ -28,6 +28,9 @@ namespace eval ::alcoholicz {
     }
     namespace export FtpOpen FtpClose FtpGetError FtpGetStatus \
         FtpConnect FtpDisconnect FtpCommand
+
+    # For SSL/TLS support.
+    catch {package require tls 1.5}
 }
 
 ####

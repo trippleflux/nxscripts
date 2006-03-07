@@ -1064,14 +1064,7 @@ proc ::alcoholicz::InitConfig {filePath} {
 #
 proc ::alcoholicz::InitLibraries {rootPath} {
     global auto_path
-
     set libPath [file join $rootPath "libs"]
-    foreach script {constants.tcl libCommon.tcl libConfig.tcl libFtp.tcl libGetOpt.tcl libTree.tcl} {
-        set script [file join $libPath $script]
-        if {[catch {source $script} message]} {
-            error "couldn't source script \"$script\": $message"
-        }
-    }
 
     # Some users reported that "auto_path" was not always set,
     # which is bizarre considering Tcl initialises this variable.
@@ -1080,8 +1073,13 @@ proc ::alcoholicz::InitLibraries {rootPath} {
         lappend auto_path $libPath
     }
 
-    # The TLS extension is optional, but AlcoExt is required.
-    catch {package require tls 1.5}
+    foreach script {constants.tcl libCommon.tcl libConfig.tcl libFtp.tcl libGetOpt.tcl libTree.tcl} {
+        set script [file join $libPath $script]
+        if {[catch {source $script} message]} {
+            error "couldn't source script \"$script\": $message"
+        }
+    }
+
     package require AlcoExt 0.5
 }
 
