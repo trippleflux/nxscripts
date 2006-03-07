@@ -473,9 +473,10 @@ proc ::siteInvite::Main {} {
         set flags   $env(FLAGS)
 
         # Emulate ioFTPD's Tcl commands.
-        proc iputs {text} {puts stdout $text}
-        proc putlog {text} {
-            set filePath [file join $::siteInvite::logPath "glftpd.log"]
+        proc ::siteInvite::iputs {text} {puts stdout $text}
+        proc ::siteInvite::putlog {text} {
+            variable logPath
+            set filePath [file join $logPath "glftpd.log"]
             set timeStamp [clock format [clock seconds] -format "%a %b %d %T %Y" -gmt 0]
             if {![catch {set handle [open $filePath a]} error]} {
                 puts $handle [format "%.24s %s" $timeStamp $text]
