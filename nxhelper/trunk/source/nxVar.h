@@ -16,7 +16,7 @@
 #define _NXVAR_H_
 
 void
-VarTableClear(
+VarClearTable(
     void
     );
 

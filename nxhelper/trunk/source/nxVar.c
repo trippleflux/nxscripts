@@ -12,14 +12,19 @@
  *   Implements global-interp variable functions.
  *
  *   Tcl Commands:
- *     ::nx::var exists <variable>
- *     ::nx::var get    <variable>
+ *     ::nx::var exists <key>
+ *     ::nx::var get    <key>
  *     ::nx::var list
- *     ::nx::var set    <variable> <value>
- *     ::nx::var unset  <variable>
+ *     ::nx::var set    <key> <value>
+ *     ::nx::var unset  [-nocomplain] <key>
  */
 
 #include <nxHelper.h>
+
+typedef struct {
+    int length;
+    unsigned char *data;
+} VarValue;
 
 /* Tcl command functions. */
 
@@ -58,17 +63,9 @@ VarUnset(
     Tcl_Obj *CONST objv[]
     );
 
-/* Utility functions. */
-
-static Tcl_HashEntry *
-VarTableGet(
-    Tcl_Interp *interp,
-    Tcl_Obj *objPtr
-    );
-
 
 /*
- * VarTableClear
+ * VarClearTable
  *
  *	 Clear all variable hash table entries.
  *
@@ -79,57 +76,24 @@ VarTableGet(
  *	 None.
  */
 void
-VarTableClear(
+VarClearTable(
     void
     )
 {
     Tcl_HashSearch search;
-    Tcl_HashEntry *entryPtr;
+    Tcl_HashEntry *hashEntry;
 
-    for (entryPtr = Tcl_FirstHashEntry(varTable, &search);
-            entryPtr != NULL;
-            entryPtr = Tcl_NextHashEntry(&search)) {
+    for (hashEntry = Tcl_FirstHashEntry(varTable, &search);
+            hashEntry != NULL;
+            hashEntry = Tcl_NextHashEntry(&search)) {
 
-        ckfree((char *)Tcl_GetHashValue(entryPtr));
-        Tcl_DeleteHashEntry(entryPtr);
+        ckfree((char *)Tcl_GetHashValue(hashEntry));
+        Tcl_DeleteHashEntry(hashEntry);
     }
-}
-
-/*
- * VarTableGet
- *
- *	 Looks up a variable's hash table entry.
- *
- * Arguments:
- *	 interp - Interpreter to use for error reporting.
- *	 objPtr - The string value of this object is used to search the hash table.
- *
- * Returns:
- *	 If the variable exists, the address of the variable's hash table entry is
- *	 returned. If the variable does not exist, NULL is returned and an error
- *	 message is left in the interpreter's result.
- */
-static Tcl_HashEntry *
-VarTableGet(
-    Tcl_Interp *interp,
-    Tcl_Obj *objPtr
-    )
-{
-    char *variable;
-    Tcl_HashEntry *hashEntryPtr;
-
-    variable = Tcl_GetString(objPtr);
-    hashEntryPtr = Tcl_FindHashEntry(varTable, variable);
-
-    if (hashEntryPtr == NULL) {
-        Tcl_ResetResult(interp);
-        Tcl_AppendResult(interp, "invalid variable \"", variable, "\"", NULL);
-    }
-
-    return hashEntryPtr;
 }
 
 
+/* ::nx::var exists <key> */
 static int
 VarExists(
     Tcl_Interp *interp,
@@ -137,9 +101,27 @@ VarExists(
     Tcl_Obj *CONST objv[]
     )
 {
+    char *name;
+    Tcl_HashEntry *hashEntry;
+    Tcl_Obj *resultObj;
+
+    if (objc != 3) {
+        Tcl_WrongNumArgs(interp, 2, objv, "key");
+        return TCL_ERROR;
+    }
+    name = Tcl_GetString(objv[2]);
+    resultObj = Tcl_GetObjResult(interp);
+
+    /* Look-up the variable's hash table entry. */
+    Tcl_MutexLock(&varMutex);
+    hashEntry = Tcl_FindHashEntry(varTable, name);
+    Tcl_MutexUnlock(&varMutex);
+
+    Tcl_SetBooleanObj(resultObj, (hashEntry != NULL) ? 1 : 0);
     return TCL_OK;
 }
 
+/* ::nx::var get <key> */
 static int
 VarGet(
     Tcl_Interp *interp,
@@ -147,9 +129,37 @@ VarGet(
     Tcl_Obj *CONST objv[]
     )
 {
+    char *name;
+    Tcl_HashEntry *hashEntry;
+    Tcl_Obj *resultObj;
+    VarValue *value;
+
+    if (objc != 3) {
+        Tcl_WrongNumArgs(interp, 2, objv, "key");
+        return TCL_ERROR;
+    }
+    name = Tcl_GetString(objv[2]);
+    resultObj = Tcl_GetObjResult(interp);
+
+    /* Look-up the variable's hash table entry. */
+    Tcl_MutexLock(&varMutex);
+    hashEntry = Tcl_FindHashEntry(varTable, name);
+
+    if (hashEntry != NULL) {
+        /* Duplicate variable value. */
+        value = (VarValue *)Tcl_GetHashValue(hashEntry);
+        Tcl_SetByteArrayObj(resultObj, value->data, value->length);
+    }
+    Tcl_MutexUnlock(&varMutex);
+
+    if (hashEntry == NULL) {
+        Tcl_AppendResult(interp, "invalid key \"", name, "\"", NULL);
+        return TCL_ERROR;
+    }
     return TCL_OK;
 }
 
+/* ::nx::var list */
 static int
 VarList(
     Tcl_Interp *interp,
@@ -157,9 +167,32 @@ VarList(
     Tcl_Obj *CONST objv[]
     )
 {
+    char *name;
+    Tcl_HashEntry *hashEntry;
+    Tcl_HashSearch hashSearch;
+    Tcl_Obj *resultObj;
+
+    if (objc != 2) {
+        Tcl_WrongNumArgs(interp, 2, objv, NULL);
+        return TCL_ERROR;
+    }
+    resultObj = Tcl_GetObjResult(interp);
+
+    /* Create a list of all variables. */
+    Tcl_MutexLock(&varMutex);
+    for (hashEntry = Tcl_FirstHashEntry(varTable, &hashSearch);
+            hashEntry != NULL;
+            hashEntry = Tcl_NextHashEntry(&hashSearch)) {
+
+        name = Tcl_GetHashKey(varTable, hashEntry);
+        Tcl_ListObjAppendElement(NULL, resultObj, Tcl_NewStringObj(name, -1));
+    }
+    Tcl_MutexUnlock(&varMutex);
+
     return TCL_OK;
 }
 
+/* ::nx::var set <key> <value> */
 static int
 VarSet(
     Tcl_Interp *interp,
@@ -167,9 +200,40 @@ VarSet(
     Tcl_Obj *CONST objv[]
     )
 {
+    char *name;
+    int dataLength;
+    int newEntry;
+    Tcl_HashEntry *hashEntry;
+    unsigned char *data;
+    VarValue *value;
+
+    if (objc != 4) {
+        Tcl_WrongNumArgs(interp, 2, objv, "key value");
+        return TCL_ERROR;
+    }
+    name = Tcl_GetString(objv[2]);
+    data = Tcl_GetByteArrayFromObj(objv[3], &dataLength);
+
+    /* Allocate and populate the VarValue structure. */
+    value = (VarValue *)ckalloc(sizeof(VarValue) + dataLength);
+    value->data = (unsigned char *)&value[1];
+    value->length = dataLength;
+    memcpy(value->data, data, dataLength);
+
+    /* Create a hash table entry and update its value. */
+    Tcl_MutexLock(&varMutex);
+    hashEntry = Tcl_CreateHashEntry(varTable, name, &newEntry);
+    if (newEntry == 0) {
+        /* Free the current value. */
+        ckfree((char *)Tcl_GetHashValue(hashEntry));
+    }
+    Tcl_SetHashValue(hashEntry, (ClientData)value);
+    Tcl_MutexUnlock(&varMutex);
+
     return TCL_OK;
 }
 
+/* ::nx::var unset [-nocomplain] <key> */
 static int
 VarUnset(
     Tcl_Interp *interp,
@@ -177,6 +241,41 @@ VarUnset(
     Tcl_Obj *CONST objv[]
     )
 {
+    char *name;
+    int complain = 1;
+    Tcl_HashEntry *hashEntry;
+
+    switch (objc) {
+        case 3: {
+            break;
+        }
+        case 4: {
+            if (PartialSwitchCompare(objv[2], "-nocomplain")) {
+                complain = 0;
+                break;
+            }
+        }
+        default: {
+            Tcl_WrongNumArgs(interp, 2, objv, "?-nocomplain? key");
+            return TCL_ERROR;
+        }
+    }
+    name = Tcl_GetString(objv[2]);
+
+    /* Remove the hash table entry. */
+    Tcl_MutexLock(&varMutex);
+    hashEntry = Tcl_FindHashEntry(varTable, name);
+
+    if (hashEntry != NULL) {
+        ckfree((char *)Tcl_GetHashValue(hashEntry));
+        Tcl_DeleteHashEntry(hashEntry);
+    }
+    Tcl_MutexUnlock(&varMutex);
+
+    if (complain && hashEntry == NULL) {
+        Tcl_AppendResult(interp, "invalid key \"", name, "\"", NULL);
+        return TCL_ERROR;
+    }
     return TCL_OK;
 }
 
@@ -211,7 +310,7 @@ VarObjCmd(
     };
 
     if (objc < 2) {
-        Tcl_WrongNumArgs(interp, 1, objv, "option arg ?arg ...?");
+        Tcl_WrongNumArgs(interp, 1, objv, "option ?arg ...?");
         return TCL_ERROR;
     }
 
