@@ -16,8 +16,8 @@
 #define _NXVAR_H_
 
 void
-VarFree(
-    Tcl_HashTable *tablePtr
+VarTableClear(
+    void
     );
 
 Tcl_ObjCmdProc VarObjCmd;

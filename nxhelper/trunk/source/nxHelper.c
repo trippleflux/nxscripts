@@ -187,7 +187,7 @@ ExitHandler(
     /* Var clean-up. */
     Tcl_MutexLock(&varMutex);
     if (varTable != NULL) {
-        VarFree(varTable);
+        VarTableClear();
         Tcl_DeleteHashTable(varTable);
 
         ckfree((char *)varTable);
