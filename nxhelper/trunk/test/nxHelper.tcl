@@ -9,7 +9,7 @@
 #   neoxed (neoxed@gmail.com) May 22, 2005
 #
 # Abstract:
-#   Test exercises for nxHelper functions.
+#   Basic regression tests for nxHelper.
 #
 
 load nxHelper.dll
