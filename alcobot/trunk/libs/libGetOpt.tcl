@@ -25,7 +25,7 @@ namespace eval ::GetOpt {
         regexp -- {must be (.+)$} $charClasses dummy charClasses
         regsub -all -- {, (or )?} $charClasses { } charClasses
     }
-    namespace import -force ::alcoholicz::ListConvert
+    namespace import -force ::Bot::ListConvert
 }
 
 ####

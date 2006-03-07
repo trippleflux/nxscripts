@@ -12,7 +12,7 @@
 #   Variable constants; options that would not be modified in most cases.
 #
 
-namespace eval ::alcoholicz {
+namespace eval ::Bot {
     # Default and maximum number of results for commands to return.
     variable defaultResults 5
     variable maximumResults 20

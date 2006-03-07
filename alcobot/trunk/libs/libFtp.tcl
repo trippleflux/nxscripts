@@ -227,7 +227,7 @@ proc ::Ftp::Acquire {handle handleVar} {
 # Logs a debug message.
 #
 proc ::Ftp::Debug {function message} {
-    ::alcoholicz::LogDebug $function $message
+    ::Bot::LogDebug $function $message
 }
 
 ####

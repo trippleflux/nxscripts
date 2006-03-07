@@ -12,7 +12,7 @@
 #   Implements a module to display online statistics.
 #
 
-namespace eval ::alcoholicz::Online {
+namespace eval ::Bot::Online {
     if {![info exists [namespace current]::hideUsers]} {
         variable hideCount  0
         variable hideUsers  [list]
@@ -20,7 +20,7 @@ namespace eval ::alcoholicz::Online {
         variable hidePaths  [list]
         variable session ""
     }
-    namespace import -force ::alcoholicz::*
+    namespace import -force ::Bot::*
 }
 
 ####
@@ -28,7 +28,7 @@ namespace eval ::alcoholicz::Online {
 #
 # Checks if the given user's name, group, or current path are hidden.
 #
-proc ::alcoholicz::Online::IsHidden {user group path} {
+proc ::Bot::Online::IsHidden {user group path} {
     variable hideUsers
     variable hideGroups
     variable hidePaths
@@ -47,7 +47,7 @@ proc ::alcoholicz::Online::IsHidden {user group path} {
 #
 # Implements a channel command to display current site bandwidth.
 #
-proc ::alcoholicz::Online::Bandwidth {event target user host channel argv} {
+proc ::Bot::Online::Bandwidth {event target user host channel argv} {
     variable hideCount
     variable session
 
@@ -102,7 +102,7 @@ proc ::alcoholicz::Online::Bandwidth {event target user host channel argv} {
 #
 # Implements a channel command to display the status of current users.
 #
-proc ::alcoholicz::Online::Status {event target user host channel argv} {
+proc ::Bot::Online::Status {event target user host channel argv} {
     variable session
 
     switch -- $event {
@@ -154,7 +154,7 @@ proc ::alcoholicz::Online::Status {event target user host channel argv} {
 #
 # Implements a channel command to display current users.
 #
-proc ::alcoholicz::Online::Users {event target user host channel argv} {
+proc ::Bot::Online::Users {event target user host channel argv} {
     variable session
 
     if {$event eq "SPEED"} {
@@ -215,13 +215,13 @@ proc ::alcoholicz::Online::Users {event target user host channel argv} {
 #
 # Module initialisation procedure, called when the module is loaded.
 #
-proc ::alcoholicz::Online::Load {firstLoad} {
+proc ::Bot::Online::Load {firstLoad} {
     variable session
     variable hideCount
     variable hideUsers
     variable hideGroups
     variable hidePaths
-    upvar ::alcoholicz::configHandle configHandle
+    upvar ::Bot::configHandle configHandle
 
     # Retrieve configuration options.
     foreach option {rootPath shmKey version} {
@@ -294,7 +294,7 @@ proc ::alcoholicz::Online::Load {firstLoad} {
 #
 # Module finalisation procedure, called before the module is unloaded.
 #
-proc ::alcoholicz::Online::Unload {} {
+proc ::Bot::Online::Unload {} {
     variable session
 
     if {$session ne ""} {

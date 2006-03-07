@@ -12,8 +12,8 @@
 #   Implements a module to display supported commands.
 #
 
-namespace eval ::alcoholicz::Help {
-    namespace import -force ::alcoholicz::*
+namespace eval ::Bot::Help {
+    namespace import -force ::Bot::*
 }
 
 ####
@@ -21,7 +21,7 @@ namespace eval ::alcoholicz::Help {
 #
 # Implements a channel command to display supported commands.
 #
-proc ::alcoholicz::Help::Command {target user host channel argv} {
+proc ::Bot::Help::Command {target user host channel argv} {
     SendTargetTheme $target helpHead
 
     foreach {name value} [CmdGetList "channel" "*"] {
@@ -71,7 +71,7 @@ proc ::alcoholicz::Help::Command {target user host channel argv} {
 #
 # Module initialisation procedure, called when the module is loaded.
 #
-proc ::alcoholicz::Help::Load {firstLoad} {
+proc ::Bot::Help::Load {firstLoad} {
     CmdCreate channel help [namespace current]::Command \
         -category "General" \
         -args "\[category\] \[category\] ..." \
@@ -83,5 +83,5 @@ proc ::alcoholicz::Help::Load {firstLoad} {
 #
 # Module finalisation procedure, called before the module is unloaded.
 #
-proc ::alcoholicz::Help::Unload {} {
+proc ::Bot::Help::Unload {} {
 }

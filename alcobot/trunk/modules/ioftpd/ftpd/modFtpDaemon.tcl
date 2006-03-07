@@ -26,7 +26,7 @@
 #   GroupNameToId    <groupName>
 #
 
-namespace eval ::alcoholicz::FtpDaemon {
+namespace eval ::Bot::FtpDaemon {
     if {![info exists [namespace current]::connection]} {
         variable connection ""
         variable deleteFlag ""
@@ -34,7 +34,7 @@ namespace eval ::alcoholicz::FtpDaemon {
         variable msgWindow ""
         variable timerId ""
     }
-    namespace import -force ::alcoholicz::*
+    namespace import -force ::Bot::*
     namespace export GetFlagTypes GetFtpConnection \
         UserExists UserList UserInfo UserIdToName UserNameToId \
         GroupExists GroupList GroupInfo GroupIdToName GroupNameToId
@@ -45,7 +45,7 @@ namespace eval ::alcoholicz::FtpDaemon {
 #
 # Called when the initial connection succeeds or fails.
 #
-proc ::alcoholicz::FtpDaemon::FtpNotify {connection success} {
+proc ::Bot::FtpDaemon::FtpNotify {connection success} {
     if {$success} {
         LogInfo "FTP connection established."
     } else {
@@ -58,7 +58,7 @@ proc ::alcoholicz::FtpDaemon::FtpNotify {connection success} {
 #
 # Checks the status of the FTP connection every minute.
 #
-proc ::alcoholicz::FtpDaemon::FtpTimer {} {
+proc ::Bot::FtpDaemon::FtpTimer {} {
     variable connection
     variable timerId
 
@@ -84,7 +84,7 @@ proc ::alcoholicz::FtpDaemon::FtpTimer {} {
 #
 # Resolve a list of group IDs to their group names.
 #
-proc ::alcoholicz::FtpDaemon::ResolveGIDs {idList} {
+proc ::Bot::FtpDaemon::ResolveGIDs {idList} {
     variable msgWindow
 
     set nameList [list]
@@ -101,7 +101,7 @@ proc ::alcoholicz::FtpDaemon::ResolveGIDs {idList} {
 #
 # Retrieves flag types, results are saved to the given variable name.
 #
-proc ::alcoholicz::FtpDaemon::GetFlagTypes {varName} {
+proc ::Bot::FtpDaemon::GetFlagTypes {varName} {
     variable deleteFlag
 
     upvar $varName flags
@@ -113,7 +113,7 @@ proc ::alcoholicz::FtpDaemon::GetFlagTypes {varName} {
 #
 # Retrieves the main FTP connection handle.
 #
-proc ::alcoholicz::FtpDaemon::GetFtpConnection {} {
+proc ::Bot::FtpDaemon::GetFtpConnection {} {
     variable connection
     return $connection
 }
@@ -123,7 +123,7 @@ proc ::alcoholicz::FtpDaemon::GetFtpConnection {} {
 #
 # Retrieves a list of users.
 #
-proc ::alcoholicz::FtpDaemon::UserList {} {
+proc ::Bot::FtpDaemon::UserList {} {
     variable etcPath
 
     set filePath [file join $etcPath "UserIdTable"]
@@ -150,7 +150,7 @@ proc ::alcoholicz::FtpDaemon::UserList {} {
 #
 # Checks if the given user exists.
 #
-proc ::alcoholicz::FtpDaemon::UserExists {userName} {
+proc ::Bot::FtpDaemon::UserExists {userName} {
     variable msgWindow
 
     if {[catch {set exists [ioftpd user exists $msgWindow $userName]} message]} {
@@ -184,7 +184,7 @@ proc ::alcoholicz::FtpDaemon::UserExists {userName} {
 #  - wkdn     <30 ints>
 #  - wkup     <30 ints>
 #
-proc ::alcoholicz::FtpDaemon::UserInfo {userName varName} {
+proc ::Bot::FtpDaemon::UserInfo {userName varName} {
     variable msgWindow
     upvar $varName user
 
@@ -209,7 +209,7 @@ proc ::alcoholicz::FtpDaemon::UserInfo {userName varName} {
 #
 # Resolve a user ID to its corresponding user name.
 #
-proc ::alcoholicz::FtpDaemon::UserIdToName {userId} {
+proc ::Bot::FtpDaemon::UserIdToName {userId} {
     variable msgWindow
 
     if {[catch {ioftpd user toname $msgWindow $userId} result]} {
@@ -224,7 +224,7 @@ proc ::alcoholicz::FtpDaemon::UserIdToName {userId} {
 #
 # Resolve a user name to its corresponding user ID.
 #
-proc ::alcoholicz::FtpDaemon::UserNameToId {userName} {
+proc ::Bot::FtpDaemon::UserNameToId {userName} {
     variable msgWindow
 
     if {[catch {ioftpd user toid $msgWindow $userName} result]} {
@@ -239,7 +239,7 @@ proc ::alcoholicz::FtpDaemon::UserNameToId {userName} {
 #
 # Retrieves a list of groups.
 #
-proc ::alcoholicz::FtpDaemon::GroupList {} {
+proc ::Bot::FtpDaemon::GroupList {} {
     variable etcPath
 
     set filePath [file join $etcPath "GroupIdTable"]
@@ -266,7 +266,7 @@ proc ::alcoholicz::FtpDaemon::GroupList {} {
 #
 # Checks if the given group exists.
 #
-proc ::alcoholicz::FtpDaemon::GroupExists {groupName} {
+proc ::Bot::FtpDaemon::GroupExists {groupName} {
     variable msgWindow
 
     if {[catch {set exists [ioftpd group exists $msgWindow $groupName]} message]} {
@@ -285,7 +285,7 @@ proc ::alcoholicz::FtpDaemon::GroupExists {groupName} {
 #  - leech <leech slots>
 #  - ratio <ratio slots>
 #
-proc ::alcoholicz::FtpDaemon::GroupInfo {groupName varName} {
+proc ::Bot::FtpDaemon::GroupInfo {groupName varName} {
     variable msgWindow
     upvar $varName group
 
@@ -306,7 +306,7 @@ proc ::alcoholicz::FtpDaemon::GroupInfo {groupName varName} {
 #
 # Resolve a group ID to its corresponding group name.
 #
-proc ::alcoholicz::FtpDaemon::GroupIdToName {groupId} {
+proc ::Bot::FtpDaemon::GroupIdToName {groupId} {
     variable msgWindow
 
     if {[catch {ioftpd group toname $msgWindow $groupId} result]} {
@@ -321,7 +321,7 @@ proc ::alcoholicz::FtpDaemon::GroupIdToName {groupId} {
 #
 # Resolve a group name to its corresponding group ID.
 #
-proc ::alcoholicz::FtpDaemon::GroupNameToId {groupName} {
+proc ::Bot::FtpDaemon::GroupNameToId {groupName} {
     variable msgWindow
 
     if {[catch {ioftpd group toid $msgWindow $groupName} result]} {
@@ -336,13 +336,13 @@ proc ::alcoholicz::FtpDaemon::GroupNameToId {groupName} {
 #
 # Module initialisation procedure, called when the module is loaded.
 #
-proc ::alcoholicz::FtpDaemon::Load {firstLoad} {
+proc ::Bot::FtpDaemon::Load {firstLoad} {
     variable connection
     variable deleteFlag
     variable etcPath
     variable msgWindow
     variable timerId
-    upvar ::alcoholicz::configHandle configHandle
+    upvar ::Bot::configHandle configHandle
 
     # Retrieve configuration options.
     foreach option {deleteFlag msgWindow host port user passwd secure} {
@@ -377,7 +377,7 @@ proc ::alcoholicz::FtpDaemon::Load {firstLoad} {
 #
 # Module finalisation procedure, called before the module is unloaded.
 #
-proc ::alcoholicz::FtpDaemon::Unload {} {
+proc ::Bot::FtpDaemon::Unload {} {
     variable connection
     variable timerId
 

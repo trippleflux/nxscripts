@@ -7,7 +7,7 @@
 # varFile - Variable definition file.
 #
 desc=Sample Module
-context=::alcoholicz::Sample
+context=::Bot::Sample
 depends=
 tclFiles=modSample.tcl
 varFiles=

@@ -12,12 +12,12 @@
 #   Implements a module to display bouncer status.
 #
 
-namespace eval ::alcoholicz::Bouncer {
+namespace eval ::Bot::Bouncer {
     if {![info exists [namespace current]::checkIndex]} {
         variable checkIndex 0
         variable timerId ""
     }
-    namespace import -force ::alcoholicz::*
+    namespace import -force ::Bot::*
 }
 
 ####
@@ -25,7 +25,7 @@ namespace eval ::alcoholicz::Bouncer {
 #
 # Display bouncer status.
 #
-proc ::alcoholicz::Bouncer::Command {target user host channel argv} {
+proc ::Bot::Bouncer::Command {target user host channel argv} {
     variable bouncers
     SendTargetTheme $target bouncerHead
     set offline 0; set online 0; set unknown 0
@@ -59,7 +59,7 @@ proc ::alcoholicz::Bouncer::Command {target user host channel argv} {
 #
 # Checks the status of a bouncer every minute.
 #
-proc ::alcoholicz::Bouncer::CheckTimer {} {
+proc ::Bot::Bouncer::CheckTimer {} {
     variable bouncers
     variable checkIndex
     variable timerId
@@ -87,7 +87,7 @@ proc ::alcoholicz::Bouncer::CheckTimer {} {
 #
 # Notified by the FTP library when the connection succeeds or fails.
 #
-proc ::alcoholicz::Bouncer::Notify {index connection success} {
+proc ::Bot::Bouncer::Notify {index connection success} {
     variable bouncers
 
     if {[info exists bouncers($index)]} {
@@ -112,11 +112,11 @@ proc ::alcoholicz::Bouncer::Notify {index connection success} {
 #
 # Module initialisation procedure, called when the module is loaded.
 #
-proc ::alcoholicz::Bouncer::Load {firstLoad} {
+proc ::Bot::Bouncer::Load {firstLoad} {
     variable bouncers
     variable checkIndex
     variable timerId
-    upvar ::alcoholicz::configHandle configHandle
+    upvar ::Bot::configHandle configHandle
 
     set index 0
     foreach {name value} [Config::GetEx $configHandle Module::Bouncer] {
@@ -159,7 +159,7 @@ proc ::alcoholicz::Bouncer::Load {firstLoad} {
 #
 # Module finalisation procedure, called before the module is unloaded.
 #
-proc ::alcoholicz::Bouncer::Unload {} {
+proc ::Bot::Bouncer::Unload {} {
     variable bouncers
     variable timerId
 

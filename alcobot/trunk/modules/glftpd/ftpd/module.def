@@ -1,6 +1,6 @@
 # Module Definition File
 desc=glFTPD
-context=::alcoholicz::FtpDaemon
+context=::Bot::FtpDaemon
 depends=
 tclFiles=modFtpDaemon.tcl
 varFiles=modFtpDaemon.vars

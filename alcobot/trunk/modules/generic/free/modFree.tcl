@@ -12,11 +12,11 @@
 #   Implements a module to display available drive space.
 #
 
-namespace eval ::alcoholicz::Free {
+namespace eval ::Bot::Free {
     if {![info exists [namespace current]::volumeList]} {
         variable volumeList [list]
     }
-    namespace import -force ::alcoholicz::*
+    namespace import -force ::Bot::*
 }
 
 ####
@@ -24,7 +24,7 @@ namespace eval ::alcoholicz::Free {
 #
 # Implements a channel command to display available drive space.
 #
-proc ::alcoholicz::Free::Command {target user host channel argv} {
+proc ::Bot::Free::Command {target user host channel argv} {
     variable volumeList
 
     set argc [llength $argv]
@@ -78,9 +78,9 @@ proc ::alcoholicz::Free::Command {target user host channel argv} {
 #
 # Module initialisation procedure, called when the module is loaded.
 #
-proc ::alcoholicz::Free::Load {firstLoad} {
+proc ::Bot::Free::Load {firstLoad} {
     variable volumeList
-    upvar ::alcoholicz::configHandle configHandle
+    upvar ::Bot::configHandle configHandle
 
     set volumeList [list]
     foreach {name value} [Config::GetEx $configHandle Module::Free] {
@@ -99,5 +99,5 @@ proc ::alcoholicz::Free::Load {firstLoad} {
 #
 # Module finalisation procedure, called before the module is unloaded.
 #
-proc ::alcoholicz::Free::Unload {} {
+proc ::Bot::Free::Unload {} {
 }

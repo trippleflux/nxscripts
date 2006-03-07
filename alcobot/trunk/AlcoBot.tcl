@@ -12,7 +12,7 @@
 #   Implements the event handler, module system, and initialisation procedures.
 #
 
-namespace eval ::alcoholicz {
+namespace eval ::Bot {
     variable debugMode 0
     variable ftpDaemon 0
     variable localTime 0
@@ -63,32 +63,32 @@ namespace eval ::alcoholicz {
 # r - Reverse
 # o - Reset
 #
-proc ::alcoholicz::b {} {return \002}
-proc ::alcoholicz::c {} {return \003}
-proc ::alcoholicz::u {} {return \037}
-proc ::alcoholicz::r {} {return \026}
-proc ::alcoholicz::o {} {return \015}
+proc ::Bot::b {} {return \002}
+proc ::Bot::c {} {return \003}
+proc ::Bot::u {} {return \037}
+proc ::Bot::r {} {return \026}
+proc ::Bot::o {} {return \015}
 
 ####
 # Logging
 #
 # Logging facility for debug, error, and warning messages.
 #
-proc ::alcoholicz::LogInfo {message} {
+proc ::Bot::LogInfo {message} {
     putlog "\[[b]AlcoBot[b]\] $message"
 }
 
-proc ::alcoholicz::LogDebug {function message} {
-    if {$::alcoholicz::debugMode} {
+proc ::Bot::LogDebug {function message} {
+    if {$::Bot::debugMode} {
         putlog "\[[b]AlcoBot[b]\] Debug :: $function - $message"
     }
 }
 
-proc ::alcoholicz::LogError {function message} {
+proc ::Bot::LogError {function message} {
     putlog "\[[b]AlcoBot[b]\] Error :: $function - $message"
 }
 
-proc ::alcoholicz::LogWarning {function message} {
+proc ::Bot::LogWarning {function message} {
     putlog "\[[b]AlcoBot[b]\] Warning :: $function - $message"
 }
 
@@ -97,7 +97,7 @@ proc ::alcoholicz::LogWarning {function message} {
 #
 # Retrieve the FTP daemon name.
 #
-proc ::alcoholicz::GetFtpDaemon {} {
+proc ::Bot::GetFtpDaemon {} {
     variable ftpDaemon
     switch -- $ftpDaemon {
         1 {return "glFTPD"}
@@ -112,7 +112,7 @@ proc ::alcoholicz::GetFtpDaemon {} {
 # Define the FTP daemon to use, only glFTPD and ioFTPD are supported. This
 # procedure is not exported because it's meant for internal use only.
 #
-proc ::alcoholicz::SetFtpDaemon {name} {
+proc ::Bot::SetFtpDaemon {name} {
     variable ftpDaemon
     switch -glob -- [string tolower $name] {
         {gl*} {set ftpDaemon 1}
@@ -131,7 +131,7 @@ proc ::alcoholicz::SetFtpDaemon {name} {
 #
 # Create a channel command.
 #
-proc ::alcoholicz::CmdCreate {type name script args} {
+proc ::Bot::CmdCreate {type name script args} {
     variable cmdNames
     variable cmdPrefix
 
@@ -190,7 +190,7 @@ proc ::alcoholicz::CmdCreate {type name script args} {
 # Retrieve a list of commands created with "CmdCreate".
 # List: {type command} {argDesc cmdDesc category binds script} ...
 #
-proc ::alcoholicz::CmdGetList {typePattern namePattern} {
+proc ::Bot::CmdGetList {typePattern namePattern} {
     variable cmdNames
     return [array get cmdNames [list $typePattern $namePattern]]
 }
@@ -200,7 +200,7 @@ proc ::alcoholicz::CmdGetList {typePattern namePattern} {
 #
 # Retrieve a list of flags for the given command.
 #
-proc ::alcoholicz::CmdGetOptions {type name} {
+proc ::Bot::CmdGetOptions {type name} {
     variable cmdOptions
     if {[info exists cmdOptions([list $type $name])]} {
         return $cmdOptions([list $type $name])
@@ -213,7 +213,7 @@ proc ::alcoholicz::CmdGetOptions {type name} {
 #
 # Send a command help message to the specified target.
 #
-proc ::alcoholicz::CmdSendHelp {dest type name {message ""}} {
+proc ::Bot::CmdSendHelp {dest type name {message ""}} {
     global lastbind
     variable cmdNames
 
@@ -234,7 +234,7 @@ proc ::alcoholicz::CmdSendHelp {dest type name {message ""}} {
 #
 # Remove a channel command created with "CmdCreate".
 #
-proc ::alcoholicz::CmdRemove {type name} {
+proc ::Bot::CmdRemove {type name} {
     variable cmdNames
 
     if {![info exists cmdNames([list $type $name])]} {
@@ -264,7 +264,7 @@ proc ::alcoholicz::CmdRemove {type name} {
 # Wrapper for Eggdrop "bind pub" commands. Parses the text argument into a
 # Tcl list and provides more information when a command evaluation fails.
 #
-proc ::alcoholicz::CmdChannelProc {command user host handle channel text} {
+proc ::Bot::CmdChannelProc {command user host handle channel text} {
     variable cmdNames
     set target "PRIVMSG $channel"
 
@@ -318,7 +318,7 @@ proc ::alcoholicz::CmdChannelProc {command user host handle channel text} {
 # Wrapper for Eggdrop "bind msg" commands. Parses the text argument into a
 # Tcl list and provides more information when a command evaluation fails.
 #
-proc ::alcoholicz::CmdPrivateProc {command user host handle text} {
+proc ::Bot::CmdPrivateProc {command user host handle text} {
     variable cmdNames
     set target "PRIVMSG $user"
 
@@ -369,7 +369,7 @@ proc ::alcoholicz::CmdPrivateProc {command user host handle text} {
 # present, the value is stored in the given variable and non-zero is returned.
 # If the flag is not listed or does not have a value, zero is returned.
 #
-proc ::alcoholicz::FlagGetValue {flagList flagName valueVar} {
+proc ::Bot::FlagGetValue {flagList flagName valueVar} {
     upvar $valueVar value
     foreach flag $flagList {
         # Parse: [!]<name>=<value>
@@ -385,7 +385,7 @@ proc ::alcoholicz::FlagGetValue {flagList flagName valueVar} {
 #
 # Check if the given flag exists.
 #
-proc ::alcoholicz::FlagExists {flagList flagName} {
+proc ::Bot::FlagExists {flagList flagName} {
     foreach flag $flagList {
         # Parse: [!]<name>[=<value>]
         if {[regexp -- {^(?:!?)(\w+)} $flag dummy name] && $name eq $flagName} {
@@ -400,7 +400,7 @@ proc ::alcoholicz::FlagExists {flagList flagName} {
 #
 # Check if the given flag exists and is disabled.
 #
-proc ::alcoholicz::FlagIsDisabled {flagList flagName} {
+proc ::Bot::FlagIsDisabled {flagList flagName} {
     foreach flag $flagList {
         # Parse: [!]<name>[=<value>]
         if {![regexp -- {^(!?)(\w+)} $flag dummy prefix name]} {continue}
@@ -417,7 +417,7 @@ proc ::alcoholicz::FlagIsDisabled {flagList flagName} {
 #
 # Check if the given flag exists and is enabled.
 #
-proc ::alcoholicz::FlagIsEnabled {flagList flagName} {
+proc ::Bot::FlagIsEnabled {flagList flagName} {
     foreach flag $flagList {
         # Parse: [!]<name>[=<value>]
         if {![regexp -- {^(!?)(\w+)} $flag dummy prefix name]} {continue}
@@ -434,7 +434,7 @@ proc ::alcoholicz::FlagIsEnabled {flagList flagName} {
 #
 # Check if the given event is enabled in the flag list.
 #
-proc ::alcoholicz::FlagCheckEvent {flagList event} {
+proc ::Bot::FlagCheckEvent {flagList event} {
     variable events
     foreach flag $flagList {
         # Parse: [!]<name>[=<value>]
@@ -453,7 +453,7 @@ proc ::alcoholicz::FlagCheckEvent {flagList event} {
 #
 # Check if the given event is enabled in a channel or path section.
 #
-proc ::alcoholicz::FlagCheckSection {section event} {
+proc ::Bot::FlagCheckSection {section event} {
     return [FlagCheckEvent [GetFlagsFromSection $section] $event]
 }
 
@@ -467,7 +467,7 @@ proc ::alcoholicz::FlagCheckSection {section event} {
 # Returns the directory path of where a given module resides. An
 # error is raised if the module cannot be located.
 #
-proc ::alcoholicz::ModuleFind {modName} {
+proc ::Bot::ModuleFind {modName} {
     variable ftpDaemon
     variable scriptPath
 
@@ -491,7 +491,7 @@ proc ::alcoholicz::ModuleFind {modName} {
 # Calculate the MD5 check-sum of a given file. Even though the MD5 hash
 # algorithm is considered broken, it is still suitable for this purpose.
 #
-proc ::alcoholicz::ModuleHash {filePath} {
+proc ::Bot::ModuleHash {filePath} {
     set fileHandle [open $filePath r]
     fconfigure $fileHandle -translation binary
     set hash [crypt start md5]
@@ -512,7 +512,7 @@ proc ::alcoholicz::ModuleHash {filePath} {
 #
 # Retrieve information about loaded modules.
 #
-proc ::alcoholicz::ModuleInfo {option args} {
+proc ::Bot::ModuleInfo {option args} {
     variable modules
 
     set argc [llength $args]
@@ -552,7 +552,7 @@ proc ::alcoholicz::ModuleInfo {option args} {
 # Read and initialise the given module. An error is raised if the module
 # cannot be found or an unexpected error occurs while loading it.
 #
-proc ::alcoholicz::ModuleLoad {modName} {
+proc ::Bot::ModuleLoad {modName} {
     variable modules
 
     # Locate the module and read its definition file.
@@ -567,7 +567,7 @@ proc ::alcoholicz::ModuleLoad {modName} {
 # and parameter checks up to the caller. Module writers are strongly encouraged
 # to use ModuleLoad instead.
 #
-proc ::alcoholicz::ModuleLoadEx {modName modInfoList} {
+proc ::Bot::ModuleLoadEx {modName modInfoList} {
     variable modules
     array set modInfo $modInfoList
 
@@ -626,7 +626,7 @@ proc ::alcoholicz::ModuleLoadEx {modName modInfoList} {
 # Unload and finalise the given module. An error is raised if the
 # module is not loaded or an unexpected error occurs while unloading it.
 #
-proc ::alcoholicz::ModuleUnload {modName} {
+proc ::Bot::ModuleUnload {modName} {
     variable modules
 
     if {![info exists modules($modName)]} {
@@ -660,7 +660,7 @@ proc ::alcoholicz::ModuleUnload {modName} {
 # raised if the module definition file cannot be read or is missing critical
 # information.
 #
-proc ::alcoholicz::ModuleRead {filePath} {
+proc ::Bot::ModuleRead {filePath} {
     set location [file dirname $filePath]
     set required [list desc context depends tclFiles varFiles]
 
@@ -723,7 +723,7 @@ proc ::alcoholicz::ModuleRead {filePath} {
 #
 # Run all registered scripts for the specified event type.
 #
-proc ::alcoholicz::ScriptExecute {type event args} {
+proc ::Bot::ScriptExecute {type event args} {
     variable scripts
     set varName scripts([list $type $event])
 
@@ -751,7 +751,7 @@ proc ::alcoholicz::ScriptExecute {type event args} {
 #
 # Register an event callback script.
 #
-proc ::alcoholicz::ScriptRegister {type event script {alwaysExec 0}} {
+proc ::Bot::ScriptRegister {type event script {alwaysExec 0}} {
     variable scripts
     set varName scripts([list $type $event])
 
@@ -770,7 +770,7 @@ proc ::alcoholicz::ScriptRegister {type event script {alwaysExec 0}} {
 #
 # Unregister an event callback script.
 #
-proc ::alcoholicz::ScriptUnregister {type event script} {
+proc ::Bot::ScriptUnregister {type event script} {
     variable scripts
     set varName scripts([list $type $event])
 
@@ -794,7 +794,7 @@ proc ::alcoholicz::ScriptUnregister {type event script} {
 #
 # Retrieve the flags from a channel or path section.
 #
-proc ::alcoholicz::GetFlagsFromSection {section} {
+proc ::Bot::GetFlagsFromSection {section} {
     variable chanSections
     variable pathSections
 
@@ -813,7 +813,7 @@ proc ::alcoholicz::GetFlagsFromSection {section} {
 # Retrieve the destination section name for an event. An empty string
 # is returned if no matching section is found.
 #
-proc ::alcoholicz::GetSectionFromEvent {section event} {
+proc ::Bot::GetSectionFromEvent {section event} {
     variable chanSections
 
     if {$section ne "" && [FlagCheckSection $section $event]} {
@@ -843,7 +843,7 @@ proc ::alcoholicz::GetSectionFromEvent {section event} {
 # Retrieve the path-section name from a given virtual path. An empty string
 # is returned if no matching section path is found.
 #
-proc ::alcoholicz::GetSectionFromPath {fullPath} {
+proc ::Bot::GetSectionFromPath {fullPath} {
     variable pathSections
     set bestMatch 0
     set pathSection ""
@@ -870,7 +870,7 @@ proc ::alcoholicz::GetSectionFromPath {fullPath} {
 #
 # Send text to all channels for the given channel or path section.
 #
-proc ::alcoholicz::SendSection {section text} {
+proc ::Bot::SendSection {section text} {
     variable chanSections
     variable pathSections
 
@@ -896,7 +896,7 @@ proc ::alcoholicz::SendSection {section text} {
 # Replace theme values and send the text to all channels for the given
 # channel or path section.
 #
-proc ::alcoholicz::SendSectionTheme {section type {valueList ""}} {
+proc ::Bot::SendSectionTheme {section type {valueList ""}} {
     variable theme
     variable variables
 
@@ -914,7 +914,7 @@ proc ::alcoholicz::SendSectionTheme {section type {valueList ""}} {
 #
 # Send text to the given target.
 #
-proc ::alcoholicz::SendTarget {target text} {
+proc ::Bot::SendTarget {target text} {
     foreach line [split $text "\n"] {
         putserv "$target :$line"
     }
@@ -925,7 +925,7 @@ proc ::alcoholicz::SendTarget {target text} {
 #
 # Replace theme values and send the text to the given target.
 #
-proc ::alcoholicz::SendTargetTheme {target type {valueList ""} {section ""}} {
+proc ::Bot::SendTargetTheme {target type {valueList ""} {section ""}} {
     variable defaultSection
     variable theme
     variable variables
@@ -951,7 +951,7 @@ proc ::alcoholicz::SendTargetTheme {target type {valueList ""} {section ""}} {
 #
 # Loads a variable definition file.
 #
-proc ::alcoholicz::VarLoad {filePath} {
+proc ::Bot::VarLoad {filePath} {
     variable events
     variable replace
     variable variables
@@ -981,7 +981,7 @@ proc ::alcoholicz::VarLoad {filePath} {
 #
 # Formats a given variable according to its substitution type.
 #
-proc ::alcoholicz::VarFormat {valueVar name type width precision} {
+proc ::Bot::VarFormat {valueVar name type width precision} {
     variable sizeDivisor
     upvar $valueVar value
 
@@ -1026,7 +1026,7 @@ proc ::alcoholicz::VarFormat {valueVar name type width precision} {
 #
 # Substitute a list of variables and values in a given string.
 #
-proc ::alcoholicz::VarReplace {input varList valueList} {
+proc ::Bot::VarReplace {input varList valueList} {
     set inputLength [string length $input]
     set output ""
 
@@ -1147,14 +1147,14 @@ proc ::alcoholicz::VarReplace {input varList valueList} {
 #
 # Replaces static content and control codes (i.e. bold, colour, and underline).
 #
-proc ::alcoholicz::VarReplaceBase {text {doPrefix 1}} {
+proc ::Bot::VarReplaceBase {text {doPrefix 1}} {
     # Replace static variables.
     set vars {siteName:z siteTag:z}
-    set values [list $::alcoholicz::siteName $::alcoholicz::siteTag]
+    set values [list $::Bot::siteName $::Bot::siteTag]
 
     if {$doPrefix} {
         lappend vars prefix:z
-        lappend values $::alcoholicz::format(prefix)
+        lappend values $::Bot::format(prefix)
     }
     set text [VarReplace $text $vars $values]
 
@@ -1168,7 +1168,7 @@ proc ::alcoholicz::VarReplaceBase {text {doPrefix 1}} {
 #
 # Replace dynamic content, such as the current date, time, and section colours.
 #
-proc ::alcoholicz::VarReplaceCommon {text section} {
+proc ::Bot::VarReplaceCommon {text section} {
     variable colours
     variable defaultSection
 
@@ -1201,18 +1201,16 @@ proc ::alcoholicz::VarReplaceCommon {text section} {
 ################################################################################
 
 # Command aliases.
-bind dcc n "alc"        ::alcoholicz::DccAdmin
-bind dcc n "alco"       ::alcoholicz::DccAdmin
-bind dcc n "alcobot"    ::alcoholicz::DccAdmin
-bind dcc n "alcohol"    ::alcoholicz::DccAdmin
-bind dcc n "alcoholicz" ::alcoholicz::DccAdmin
+bind dcc n "alc"        ::Bot::DccAdmin
+bind dcc n "alco"       ::Bot::DccAdmin
+bind dcc n "alcobot"    ::Bot::DccAdmin
 
 ####
 # DccAdmin
 #
 # Bot administration command, used from Eggdrop's party-line.
 #
-proc ::alcoholicz::DccAdmin {handle idx text} {
+proc ::Bot::DccAdmin {handle idx text} {
     variable scriptPath
 
     set argv [ListParse $text]
@@ -1289,7 +1287,7 @@ proc ::alcoholicz::DccAdmin {handle idx text} {
 # Read the given configuration file. All previously existing configuration
 # data is discarded, so modules may have to update internal values.
 #
-proc ::alcoholicz::InitConfig {filePath} {
+proc ::Bot::InitConfig {filePath} {
     variable configFile
     variable configHandle
     variable defaultSection
@@ -1366,7 +1364,7 @@ proc ::alcoholicz::InitConfig {filePath} {
 # Load all library scripts and Tcl extensions. An error is raised if a
 # required script or extension could not be loaded.
 #
-proc ::alcoholicz::InitLibraries {rootPath} {
+proc ::Bot::InitLibraries {rootPath} {
     global auto_path
 
     # Some users reported that "auto_path" was not always set,
@@ -1393,7 +1391,7 @@ proc ::alcoholicz::InitLibraries {rootPath} {
 # Load the given modules. Any pre-existing modules that are not listed
 # in the "modList" parameter will be unloaded.
 #
-proc ::alcoholicz::InitModules {modList} {
+proc ::Bot::InitModules {modList} {
     variable cmdNames
     variable events
     variable modules
@@ -1468,7 +1466,7 @@ proc ::alcoholicz::InitModules {modList} {
 #
 # Read the given theme file.
 #
-proc ::alcoholicz::InitTheme {themeFile} {
+proc ::Bot::InitTheme {themeFile} {
     variable colours
     variable format
     variable theme
@@ -1546,7 +1544,7 @@ proc ::alcoholicz::InitTheme {themeFile} {
 # Loads all bot subsystems. Eggdrop is terminated if a critical initialisation
 # stage fails; an error message will be displayed explaining the failure.
 #
-proc ::alcoholicz::InitMain {} {
+proc ::Bot::InitMain {} {
     variable configHandle
     variable scriptPath
     LogInfo "Starting..."
@@ -1588,4 +1586,4 @@ if {[catch {package require Tcl 8.4} error]} {
     die
 }
 
-::alcoholicz::InitMain
+::Bot::InitMain

@@ -12,15 +12,15 @@
 #   Implements a module to interact with glFTPD's binary data files.
 #
 
-namespace eval ::alcoholicz::GlData {
+namespace eval ::Bot::GlData {
     if {![info exists [namespace current]::logsPath]} {
         variable logsPath ""
         variable tempPath ""
         variable undupeChars 5
         variable undupeWild 0
     }
-    namespace import -force ::alcoholicz::*
-    namespace import -force ::alcoholicz::FtpDaemon::*
+    namespace import -force ::Bot::*
+    namespace import -force ::Bot::FtpDaemon::*
 }
 
 ####
@@ -28,7 +28,7 @@ namespace eval ::alcoholicz::GlData {
 #
 # Opens a binary file located in glFTPD's log directory.
 #
-proc ::alcoholicz::GlData::OpenBinaryFile {filePath {mode "r"}} {
+proc ::Bot::GlData::OpenBinaryFile {filePath {mode "r"}} {
     variable logsPath
     if {[catch {set handle [open $filePath $mode]} message]} {
         LogError ModGlData $message
@@ -43,7 +43,7 @@ proc ::alcoholicz::GlData::OpenBinaryFile {filePath {mode "r"}} {
 #
 # Opens glFTPD binary structure file for reading.
 #
-proc ::alcoholicz::GlData::StructOpen {fileName handleVar {backwards 1}} {
+proc ::Bot::GlData::StructOpen {fileName handleVar {backwards 1}} {
     variable logsPath
     variable structHandles
     variable structLength
@@ -73,7 +73,7 @@ proc ::alcoholicz::GlData::StructOpen {fileName handleVar {backwards 1}} {
 #
 # Reads an entry from a glFTPD binary file.
 #
-proc ::alcoholicz::GlData::StructRead {handle dataVar} {
+proc ::Bot::GlData::StructRead {handle dataVar} {
     variable structHandles
     upvar $dataVar data
     foreach {backwards structName structLength} $structHandles($handle) {break}
@@ -97,7 +97,7 @@ proc ::alcoholicz::GlData::StructRead {handle dataVar} {
 #
 # Closes a glFTPD binary file.
 #
-proc ::alcoholicz::GlData::StructClose {handle} {
+proc ::Bot::GlData::StructClose {handle} {
     variable structHandles
     unset structHandles($handle)
     close $handle
@@ -108,7 +108,7 @@ proc ::alcoholicz::GlData::StructClose {handle} {
 #
 # Search the dupelog for a release, command: !dupe [-limit <num>] <pattern>.
 #
-proc ::alcoholicz::GlData::Dupe {target user host channel argv} {
+proc ::Bot::GlData::Dupe {target user host channel argv} {
     variable logsPath
 
     # Parse command options.
@@ -163,7 +163,7 @@ proc ::alcoholicz::GlData::Dupe {target user host channel argv} {
 #
 # Display recent releases, command: !new [-limit <num>] [pattern].
 #
-proc ::alcoholicz::GlData::New {target user host channel argv} {
+proc ::Bot::GlData::New {target user host channel argv} {
     variable structFormat
 
     # Parse command options.
@@ -204,7 +204,7 @@ proc ::alcoholicz::GlData::New {target user host channel argv} {
 #
 # Search the dirlog for a release, command: !search [-limit <num>] <pattern>.
 #
-proc ::alcoholicz::GlData::Search {target user host channel argv} {
+proc ::Bot::GlData::Search {target user host channel argv} {
     variable structFormat
 
     # Parse command options.
@@ -243,7 +243,7 @@ proc ::alcoholicz::GlData::Search {target user host channel argv} {
 #
 # Remove a file the dupefile log, command: !undupe <pattern>.
 #
-proc ::alcoholicz::GlData::Undupe {target user host channel argv} {
+proc ::Bot::GlData::Undupe {target user host channel argv} {
     variable logsPath
     variable tempPath
     variable undupeChars
@@ -309,7 +309,7 @@ proc ::alcoholicz::GlData::Undupe {target user host channel argv} {
 #
 # Display recent nukes, command: !nukes [-limit <num>] [pattern].
 #
-proc ::alcoholicz::GlData::Nukes {target user host channel argv} {
+proc ::Bot::GlData::Nukes {target user host channel argv} {
     variable structFormat
 
     # Parse command options.
@@ -346,7 +346,7 @@ proc ::alcoholicz::GlData::Nukes {target user host channel argv} {
 #
 # Display recent unnukes, command: !unnukes [-limit <num>] [pattern].
 #
-proc ::alcoholicz::GlData::Unnukes {target user host channel argv} {
+proc ::Bot::GlData::Unnukes {target user host channel argv} {
     variable structFormat
 
     # Parse command options.
@@ -383,7 +383,7 @@ proc ::alcoholicz::GlData::Unnukes {target user host channel argv} {
 #
 # Display recent one-lines, command: !onel [-limit <num>].
 #
-proc ::alcoholicz::GlData::OneLines {target user host channel argv} {
+proc ::Bot::GlData::OneLines {target user host channel argv} {
     variable structFormat
 
     # Parse command options.
@@ -415,14 +415,14 @@ proc ::alcoholicz::GlData::OneLines {target user host channel argv} {
 #
 # Module initialisation procedure, called when the module is loaded.
 #
-proc ::alcoholicz::GlData::Load {firstLoad} {
+proc ::Bot::GlData::Load {firstLoad} {
     variable logsPath
     variable tempPath
     variable undupeChars
     variable undupeWild
     variable structFormat
     variable structLength
-    upvar ::alcoholicz::configHandle configHandle
+    upvar ::Bot::configHandle configHandle
 
     # For 32-bit little endian systems.
     array set structFormat {
@@ -496,5 +496,5 @@ proc ::alcoholicz::GlData::Load {firstLoad} {
 #
 # Module finalisation procedure, called before the module is unloaded.
 #
-proc ::alcoholicz::GlData::Unload {} {
+proc ::Bot::GlData::Unload {} {
 }

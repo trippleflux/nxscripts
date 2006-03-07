@@ -12,7 +12,7 @@
 #   Implements a module to display online statistics.
 #
 
-namespace eval ::alcoholicz::Online {
+namespace eval ::Bot::Online {
     if {![info exists [namespace current]::hideUsers]} {
         variable hideCount  0
         variable hideUsers  [list]
@@ -20,7 +20,7 @@ namespace eval ::alcoholicz::Online {
         variable hidePaths  [list]
         variable msgWindow  ""
     }
-    namespace import -force ::alcoholicz::*
+    namespace import -force ::Bot::*
 }
 
 ####
@@ -28,7 +28,7 @@ namespace eval ::alcoholicz::Online {
 #
 # Checks if the given user's name, group, or current path are hidden.
 #
-proc ::alcoholicz::Online::IsHidden {user group vpath} {
+proc ::Bot::Online::IsHidden {user group vpath} {
     variable hideUsers
     variable hideGroups
     variable hidePaths
@@ -47,7 +47,7 @@ proc ::alcoholicz::Online::IsHidden {user group vpath} {
 #
 # Implements a channel command to display current site bandwidth.
 #
-proc ::alcoholicz::Online::Bandwidth {event target user host channel argv} {
+proc ::Bot::Online::Bandwidth {event target user host channel argv} {
     variable hideCount
     variable msgWindow
 
@@ -100,7 +100,7 @@ proc ::alcoholicz::Online::Bandwidth {event target user host channel argv} {
 #
 # Implements a channel command to display the status of current users.
 #
-proc ::alcoholicz::Online::Status {event target user host channel argv} {
+proc ::Bot::Online::Status {event target user host channel argv} {
     variable msgWindow
 
     switch -- $event {
@@ -152,7 +152,7 @@ proc ::alcoholicz::Online::Status {event target user host channel argv} {
 #
 # Implements a channel command to display current users.
 #
-proc ::alcoholicz::Online::Users {event target user host channel argv} {
+proc ::Bot::Online::Users {event target user host channel argv} {
     variable msgWindow
 
     if {$event eq "SPEED"} {
@@ -211,13 +211,13 @@ proc ::alcoholicz::Online::Users {event target user host channel argv} {
 #
 # Module initialisation procedure, called when the module is loaded.
 #
-proc ::alcoholicz::Online::Load {firstLoad} {
+proc ::Bot::Online::Load {firstLoad} {
     variable hideCount
     variable hideUsers
     variable hideGroups
     variable hidePaths
     variable msgWindow
-    upvar ::alcoholicz::configHandle configHandle
+    upvar ::Bot::configHandle configHandle
 
     set msgWindow [Config::Get $configHandle Ftpd msgWindow]
     if {[catch {ioftpd info $msgWindow io}]} {
@@ -274,5 +274,5 @@ proc ::alcoholicz::Online::Load {firstLoad} {
 #
 # Module finalisation procedure, called before the module is unloaded.
 #
-proc ::alcoholicz::Online::Unload {} {
+proc ::Bot::Online::Unload {} {
 }

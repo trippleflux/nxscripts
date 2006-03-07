@@ -12,8 +12,8 @@
 #   Implements a example module to give developers a starting point.
 #
 
-namespace eval ::alcoholicz::Sample {
-    namespace import -force ::alcoholicz::*
+namespace eval ::Bot::Sample {
+    namespace import -force ::Bot::*
 }
 
 ####
@@ -21,7 +21,7 @@ namespace eval ::alcoholicz::Sample {
 #
 # Module initialisation procedure, called when the module is loaded.
 #
-proc ::alcoholicz::Sample::Load {firstLoad} {
+proc ::Bot::Sample::Load {firstLoad} {
 }
 
 ####
@@ -29,5 +29,5 @@ proc ::alcoholicz::Sample::Load {firstLoad} {
 #
 # Module finalisation procedure, called before the module is unloaded.
 #
-proc ::alcoholicz::Sample::Unload {} {
+proc ::Bot::Sample::Unload {} {
 }

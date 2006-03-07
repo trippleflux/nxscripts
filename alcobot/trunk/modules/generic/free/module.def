@@ -1,6 +1,6 @@
 # Module Definition File
 desc=Free Space
-context=::alcoholicz::Free
+context=::Bot::Free
 depends=
 tclFiles=modFree.tcl
 varFiles=modFree.vars

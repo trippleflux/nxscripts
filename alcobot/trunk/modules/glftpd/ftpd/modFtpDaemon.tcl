@@ -26,14 +26,14 @@
 #   GroupNameToId    <groupName>
 #
 
-namespace eval ::alcoholicz::FtpDaemon {
+namespace eval ::Bot::FtpDaemon {
     if {![info exists [namespace current]::connection]} {
         variable connection ""
         variable dataPath ""
         variable rootPath ""
         variable timerId ""
     }
-    namespace import -force ::alcoholicz::*
+    namespace import -force ::Bot::*
     namespace export GetFlagTypes GetFtpConnection \
         UserExists UserList UserInfo UserIdToName UserNameToId \
         GroupExists GroupList GroupInfo GroupIdToName GroupNameToId
@@ -44,7 +44,7 @@ namespace eval ::alcoholicz::FtpDaemon {
 #
 # Called when the initial connection succeeds or fails.
 #
-proc ::alcoholicz::FtpDaemon::FtpNotify {connection success} {
+proc ::Bot::FtpDaemon::FtpNotify {connection success} {
     if {$success} {
         LogInfo "FTP connection established."
     } else {
@@ -57,7 +57,7 @@ proc ::alcoholicz::FtpDaemon::FtpNotify {connection success} {
 #
 # Checks the status of the FTP connection every minute.
 #
-proc ::alcoholicz::FtpDaemon::FtpTimer {} {
+proc ::Bot::FtpDaemon::FtpTimer {} {
     variable connection
     variable timerId
 
@@ -83,7 +83,7 @@ proc ::alcoholicz::FtpDaemon::FtpTimer {} {
 #
 # Checks if the size or modification time of a file has changed.
 #
-proc ::alcoholicz::FtpDaemon::FileChanged {filePath} {
+proc ::Bot::FtpDaemon::FileChanged {filePath} {
     variable change
 
     file stat $filePath stat
@@ -104,7 +104,7 @@ proc ::alcoholicz::FtpDaemon::FileChanged {filePath} {
 #
 # Updates internal user list.
 #
-proc ::alcoholicz::FtpDaemon::UpdateUsers {} {
+proc ::Bot::FtpDaemon::UpdateUsers {} {
     variable users
     variable rootPath
 
@@ -131,7 +131,7 @@ proc ::alcoholicz::FtpDaemon::UpdateUsers {} {
 #
 # Updates internal group list.
 #
-proc ::alcoholicz::FtpDaemon::UpdateGroups {} {
+proc ::Bot::FtpDaemon::UpdateGroups {} {
     variable groups
     variable rootPath
 
@@ -158,7 +158,7 @@ proc ::alcoholicz::FtpDaemon::UpdateGroups {} {
 #
 # Retrieves flag types, results are saved to the given variable name.
 #
-proc ::alcoholicz::FtpDaemon::GetFlagTypes {varName} {
+proc ::Bot::FtpDaemon::GetFlagTypes {varName} {
     upvar $varName flags
     array set flags [list deleted "6" gadmin "2" siteop "1"]
 }
@@ -168,7 +168,7 @@ proc ::alcoholicz::FtpDaemon::GetFlagTypes {varName} {
 #
 # Retrieves the main FTP connection handle.
 #
-proc ::alcoholicz::FtpDaemon::GetFtpConnection {} {
+proc ::Bot::FtpDaemon::GetFtpConnection {} {
     variable connection
     return $connection
 }
@@ -178,7 +178,7 @@ proc ::alcoholicz::FtpDaemon::GetFtpConnection {} {
 #
 # Retrieves a list of users.
 #
-proc ::alcoholicz::FtpDaemon::UserList {} {
+proc ::Bot::FtpDaemon::UserList {} {
     variable users
 
     if {[catch {UpdateUsers} message]} {
@@ -192,7 +192,7 @@ proc ::alcoholicz::FtpDaemon::UserList {} {
 #
 # Checks if the given user exists.
 #
-proc ::alcoholicz::FtpDaemon::UserExists {userName} {
+proc ::Bot::FtpDaemon::UserExists {userName} {
     variable users
 
     if {[catch {UpdateUsers} message]} {
@@ -225,7 +225,7 @@ proc ::alcoholicz::FtpDaemon::UserExists {userName} {
 #  - wkdn     <30 ints>
 #  - wkup     <30 ints>
 #
-proc ::alcoholicz::FtpDaemon::UserInfo {userName varName} {
+proc ::Bot::FtpDaemon::UserInfo {userName varName} {
     variable dataPath
     variable users
     upvar $varName dest
@@ -311,7 +311,7 @@ proc ::alcoholicz::FtpDaemon::UserInfo {userName varName} {
 #
 # Resolve a user ID to its corresponding user name.
 #
-proc ::alcoholicz::FtpDaemon::UserIdToName {userId} {
+proc ::Bot::FtpDaemon::UserIdToName {userId} {
     variable users
 
     if {[catch {UpdateUsers} message]} {
@@ -329,7 +329,7 @@ proc ::alcoholicz::FtpDaemon::UserIdToName {userId} {
 #
 # Resolve a user name to its corresponding user ID.
 #
-proc ::alcoholicz::FtpDaemon::UserNameToId {userName} {
+proc ::Bot::FtpDaemon::UserNameToId {userName} {
     variable users
 
     if {[catch {UpdateUsers} message]} {
@@ -345,7 +345,7 @@ proc ::alcoholicz::FtpDaemon::UserNameToId {userName} {
 #
 # Retrieves a list of groups.
 #
-proc ::alcoholicz::FtpDaemon::GroupList {} {
+proc ::Bot::FtpDaemon::GroupList {} {
     variable groups
 
     if {[catch {UpdateGroups} message]} {
@@ -359,7 +359,7 @@ proc ::alcoholicz::FtpDaemon::GroupList {} {
 #
 # Checks if the given group exists.
 #
-proc ::alcoholicz::FtpDaemon::GroupExists {groupName} {
+proc ::Bot::FtpDaemon::GroupExists {groupName} {
     variable groups
 
     if {[catch {UpdateGroups} message]} {
@@ -377,7 +377,7 @@ proc ::alcoholicz::FtpDaemon::GroupExists {groupName} {
 #  - leech <leech slots>
 #  - ratio <ratio slots>
 #
-proc ::alcoholicz::FtpDaemon::GroupInfo {groupName varName} {
+proc ::Bot::FtpDaemon::GroupInfo {groupName varName} {
     variable dataPath
     variable groups
     upvar $varName dest
@@ -421,7 +421,7 @@ proc ::alcoholicz::FtpDaemon::GroupInfo {groupName varName} {
 #
 # Resolve a group ID to its corresponding group name.
 #
-proc ::alcoholicz::FtpDaemon::GroupIdToName {groupId} {
+proc ::Bot::FtpDaemon::GroupIdToName {groupId} {
     variable groups
 
     if {[catch {UpdateGroups} message]} {
@@ -439,7 +439,7 @@ proc ::alcoholicz::FtpDaemon::GroupIdToName {groupId} {
 #
 # Resolve a group name to its corresponding group ID.
 #
-proc ::alcoholicz::FtpDaemon::GroupNameToId {groupName} {
+proc ::Bot::FtpDaemon::GroupNameToId {groupName} {
     variable groups
 
     if {[catch {UpdateGroups} message]} {
@@ -455,7 +455,7 @@ proc ::alcoholicz::FtpDaemon::GroupNameToId {groupName} {
 #
 # Handle NUKE and UNNUKE log events.
 #
-proc ::alcoholicz::FtpDaemon::NukeEvent {event destSection pathSection path data} {
+proc ::Bot::FtpDaemon::NukeEvent {event destSection pathSection path data} {
     # glFTPD v2.x quotes each nukee separately when logging nukes, while AlcoBot's
     # theming system expects them to be quoted together. So we have to do a bit
     # of work to keep the two compatible.
@@ -474,13 +474,13 @@ proc ::alcoholicz::FtpDaemon::NukeEvent {event destSection pathSection path data
 #
 # Module initialisation procedure, called when the module is loaded.
 #
-proc ::alcoholicz::FtpDaemon::Load {firstLoad} {
+proc ::Bot::FtpDaemon::Load {firstLoad} {
     variable change
     variable connection
     variable dataPath
     variable rootPath
     variable timerId
-    upvar ::alcoholicz::configHandle configHandle
+    upvar ::Bot::configHandle configHandle
 
     # Retrieve configuration options.
     foreach option {dataPath rootPath host port user passwd secure version} {
@@ -519,7 +519,7 @@ proc ::alcoholicz::FtpDaemon::Load {firstLoad} {
 #
 # Module finalisation procedure, called before the module is unloaded.
 #
-proc ::alcoholicz::FtpDaemon::Unload {} {
+proc ::Bot::FtpDaemon::Unload {} {
     variable connection
     variable timerId
 

@@ -12,7 +12,7 @@
 #   Implements commonly used library functions.
 #
 
-namespace eval ::alcoholicz {
+namespace eval ::Bot {
     namespace export GetResultLimit \
         ListConvert ListExists ListParse ListRemove \
         IsSubDir PathParse PathParseSection PathStrip \
@@ -46,7 +46,7 @@ proc ::throw {code {message ""}} {error $message "" $code}
 #
 # Checks the number of requested results.
 #
-proc ::alcoholicz::GetResultLimit {results} {
+proc ::Bot::GetResultLimit {results} {
     variable defaultResults
     variable maximumResults
 
@@ -68,7 +68,7 @@ proc ::alcoholicz::GetResultLimit {results} {
 #
 # Convert a Tcl list into a human-readable list.
 #
-proc ::alcoholicz::ListConvert {list {word "and"}} {
+proc ::Bot::ListConvert {list {word "and"}} {
     if {[llength $list] < 2} {
         return [join $list]
     }
@@ -86,7 +86,7 @@ proc ::alcoholicz::ListConvert {list {word "and"}} {
 # was not added to lsearch until Tcl 8.5, so this function is provided for
 # backwards compatibility with Tcl 8.4.
 #
-proc ::alcoholicz::ListExists {list element} {
+proc ::Bot::ListExists {list element} {
     foreach entry $list {
         if {[string equal -nocase $entry $element]} {return 1}
     }
@@ -98,7 +98,7 @@ proc ::alcoholicz::ListExists {list element} {
 #
 # Parses an argument string into a list, respecting quoted text segments.
 #
-proc ::alcoholicz::ListParse {argStr} {
+proc ::Bot::ListParse {argStr} {
     set argList [list]
     set length [string length $argStr]
 
@@ -126,7 +126,7 @@ proc ::alcoholicz::ListParse {argStr} {
 #
 # Removes an element from a list.
 #
-proc ::alcoholicz::ListRemove {list element} {
+proc ::Bot::ListRemove {list element} {
     set index [lsearch -exact $list $element]
     if {$index != -1} {
         set list [lreplace $list $index $index]
@@ -143,7 +143,7 @@ proc ::alcoholicz::ListRemove {list element} {
 #
 # Check if the path's base directory is a known release sub-directory.
 #
-proc ::alcoholicz::IsSubDir {path} {
+proc ::Bot::IsSubDir {path} {
     variable subDirList
     set path [file tail $path]
     foreach subDir $subDirList {
@@ -157,7 +157,7 @@ proc ::alcoholicz::IsSubDir {path} {
 #
 # Removes leading, trailing, and duplicate path separators.
 #
-proc ::alcoholicz::PathStrip {path} {
+proc ::Bot::PathStrip {path} {
     regsub -all -- {[\\/]+} $path "/" path
     return [string trim $path "/"]
 }
@@ -167,7 +167,7 @@ proc ::alcoholicz::PathStrip {path} {
 #
 # Parses elements from a directory path, with subdirectory support.
 #
-proc ::alcoholicz::PathParse {fullPath {basePath ""}} {
+proc ::Bot::PathParse {fullPath {basePath ""}} {
     set basePath [split [PathStrip $basePath] "/"]
     set fullPath [split [PathStrip $fullPath] "/"]
     set fullPath [lrange $fullPath [llength $basePath] end]
@@ -193,7 +193,7 @@ proc ::alcoholicz::PathParse {fullPath {basePath ""}} {
 #
 # Basic PathParse wrapper, uses the section path as the base path.
 #
-proc ::alcoholicz::PathParseSection {fullPath useSection} {
+proc ::Bot::PathParseSection {fullPath useSection} {
     set basePath ""
 
     if {$useSection} {
@@ -217,7 +217,7 @@ proc ::alcoholicz::PathParseSection {fullPath useSection} {
 # FTPD style permissions checks: -user, =group, flags, and an
 # exclamation character is used for negations.
 #
-proc ::alcoholicz::PermCheck {rightsList userName groupList flags} {
+proc ::Bot::PermCheck {rightsList userName groupList flags} {
     foreach right $rightsList {
         regexp -- {^(!?[=-]?)(.+)} $right result prefix right
         switch -- $prefix {
@@ -237,7 +237,7 @@ proc ::alcoholicz::PermCheck {rightsList userName groupList flags} {
 #
 # Check if any of the required flags are present in the current flags.
 #
-proc ::alcoholicz::PermMatchFlags {currentFlags needFlags} {
+proc ::Bot::PermMatchFlags {currentFlags needFlags} {
     set currentFlags [split $currentFlags {}]
     foreach flag [split $needFlags {}] {
         if {[lsearch -glob $currentFlags $flag] != -1} {return 1}
@@ -254,7 +254,7 @@ proc ::alcoholicz::PermMatchFlags {currentFlags needFlags} {
 #
 # Escape SQL quote characters with a backslash.
 #
-proc ::alcoholicz::SqlEscape {string} {
+proc ::Bot::SqlEscape {string} {
     return [string map {\\ \\\\ ` \\` ' \\' \" \\\"} $string]
 }
 
@@ -264,7 +264,7 @@ proc ::alcoholicz::SqlEscape {string} {
 # Prepend, append, and replace all spaces with wildcards then convert
 # standard wildcard characters to SQL LIKE characters.
 #
-proc ::alcoholicz::SqlGetPattern {pattern} {
+proc ::Bot::SqlGetPattern {pattern} {
     set pattern "*$pattern*"
     regsub -all -- {[\s\*]+} $pattern "*" pattern
     return [SqlToLike $pattern]
@@ -275,7 +275,7 @@ proc ::alcoholicz::SqlGetPattern {pattern} {
 #
 # Convert standard wildcard characters to SQL LIKE characters.
 #
-proc ::alcoholicz::SqlToLike {pattern} {
+proc ::Bot::SqlToLike {pattern} {
     set pattern [SqlEscape $pattern]
     return [string map {* % ? _} [string map {% \\% _ \\_} $pattern]]
 }
@@ -290,7 +290,7 @@ proc ::alcoholicz::SqlToLike {pattern} {
 # Formats an integer time value into a human-readable date. If a time value
 # is not given, the current date will be used.
 #
-proc ::alcoholicz::FormatDate {{clockVal ""}} {
+proc ::Bot::FormatDate {{clockVal ""}} {
     variable format
     variable localTime
 
@@ -306,7 +306,7 @@ proc ::alcoholicz::FormatDate {{clockVal ""}} {
 # Formats an integer time value into a human-readable time. If a time value
 # is not given, the current time will be used.
 #
-proc ::alcoholicz::FormatTime {{clockVal ""}} {
+proc ::Bot::FormatTime {{clockVal ""}} {
     variable format
     variable localTime
 
@@ -321,7 +321,7 @@ proc ::alcoholicz::FormatTime {{clockVal ""}} {
 #
 # Formats a time duration into a human-readable format.
 #
-proc ::alcoholicz::FormatDuration {seconds} {
+proc ::Bot::FormatDuration {seconds} {
     if {$seconds < 0} {
         set seconds [expr {-$seconds}]
     }
@@ -339,7 +339,7 @@ proc ::alcoholicz::FormatDuration {seconds} {
 #
 # Formats a time duration into a human-readable format.
 #
-proc ::alcoholicz::FormatDurationLong {seconds} {
+proc ::Bot::FormatDurationLong {seconds} {
     if {$seconds < 0} {
         set seconds [expr {-$seconds}]
     }
@@ -361,7 +361,7 @@ proc ::alcoholicz::FormatDurationLong {seconds} {
 #
 # Formats a value in kilobytes into a human-readable amount.
 #
-proc ::alcoholicz::FormatSize {size} {
+proc ::Bot::FormatSize {size} {
     variable format
     variable sizeDivisor
     foreach unit {sizeKilo sizeMega sizeGiga sizeTera} {
@@ -376,7 +376,7 @@ proc ::alcoholicz::FormatSize {size} {
 #
 # Formats a value in kilobytes per second into a human-readable speed.
 #
-proc ::alcoholicz::FormatSpeed {speed {seconds 0}} {
+proc ::Bot::FormatSpeed {speed {seconds 0}} {
     variable format
     variable speedDivisor
     if {$seconds > 0} {set speed [expr {double($speed) / $seconds}]}

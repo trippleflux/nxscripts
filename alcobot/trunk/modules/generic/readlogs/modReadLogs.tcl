@@ -12,14 +12,14 @@
 #   Implements a module to read and announce log entries.
 #
 
-namespace eval ::alcoholicz::ReadLogs {
+namespace eval ::Bot::ReadLogs {
     if {![info exists [namespace current]::excludePaths]} {
         variable excludePaths [list]
         variable logCount 0
         variable logList [list]
         variable timerId ""
     }
-    namespace import -force ::alcoholicz::*
+    namespace import -force ::Bot::*
 }
 
 ####
@@ -27,7 +27,7 @@ namespace eval ::alcoholicz::ReadLogs {
 #
 # Add a log file to the monitoring list.
 #
-proc ::alcoholicz::ReadLogs::AddLog {logType logFile} {
+proc ::Bot::ReadLogs::AddLog {logType logFile} {
     variable logCount
     variable logList
     variable logOffset
@@ -56,7 +56,7 @@ proc ::alcoholicz::ReadLogs::AddLog {logType logFile} {
 #
 # Check if a given path is excluded from announcing.
 #
-proc ::alcoholicz::ReadLogs::IsPathExcluded {path} {
+proc ::Bot::ReadLogs::IsPathExcluded {path} {
     variable excludePaths
     foreach pattern $excludePaths {
         if {[string match -nocase $pattern $path]} {return 1}
@@ -69,7 +69,7 @@ proc ::alcoholicz::ReadLogs::IsPathExcluded {path} {
 #
 # Parse glFTPD login.log entries.
 #
-proc ::alcoholicz::ReadLogs::ParseLogin {line eventVar dataVar} {
+proc ::Bot::ReadLogs::ParseLogin {line eventVar dataVar} {
     upvar $eventVar event $dataVar data
 
     # Note: In some glFTPD versions there is an extra space before
@@ -100,7 +100,7 @@ proc ::alcoholicz::ReadLogs::ParseLogin {line eventVar dataVar} {
 #
 # Parse ioFTPD and glFTPD sysop.log entries.
 #
-proc ::alcoholicz::ReadLogs::ParseSysop {line eventVar dataVar} {
+proc ::Bot::ReadLogs::ParseSysop {line eventVar dataVar} {
     variable reSysop
     upvar $eventVar event $dataVar data
 
@@ -119,7 +119,7 @@ proc ::alcoholicz::ReadLogs::ParseSysop {line eventVar dataVar} {
 #
 # Log timer, executed every second to check for new log file entries.
 #
-proc ::alcoholicz::ReadLogs::Timer {} {
+proc ::Bot::ReadLogs::Timer {} {
     variable timerId
     if {[catch {Update}]} {
         LogError ModReadLogs "Unhandled error, please report to developers:\n$::errorInfo"
@@ -133,11 +133,11 @@ proc ::alcoholicz::ReadLogs::Timer {} {
 #
 # Check for new log entries.
 #
-proc ::alcoholicz::ReadLogs::Update {} {
+proc ::Bot::ReadLogs::Update {} {
     variable logList
     variable logOffset
     variable reBase
-    upvar ::alcoholicz::variables variables
+    upvar ::Bot::variables variables
 
     # This log reading code was taken from Project-ZS-NG's sitebot,
     # which was, coincidently, also written by me (neoxed).
@@ -218,7 +218,7 @@ proc ::alcoholicz::ReadLogs::Update {} {
             set pathSection [GetSectionFromPath $path]
         } else {
             set path ""
-            set pathSection $::alcoholicz::defaultSection
+            set pathSection $::Bot::defaultSection
         }
 
         set destSection [GetSectionFromEvent $pathSection $event]
@@ -242,19 +242,19 @@ proc ::alcoholicz::ReadLogs::Update {} {
 #
 # Module initialisation procedure, called when the module is loaded.
 #
-proc ::alcoholicz::ReadLogs::Load {firstLoad} {
+proc ::Bot::ReadLogs::Load {firstLoad} {
     variable excludePaths
     variable logCount
     variable logList
     variable reBase
     variable reSysop
     variable timerId
-    upvar ::alcoholicz::configHandle configHandle
+    upvar ::Bot::configHandle configHandle
 
     # Regular expression patterns used to remove the time-stamp
     # from log entries and extract meaningful data.
     unset -nocomplain reBase reSysop
-    if {$::alcoholicz::ftpDaemon == 1} {
+    if {$::Bot::ftpDaemon == 1} {
         # Base patterns for log types.
         set reBase(0) {^\w+ \w+ \s?\d+ \d+:\d+:\d+ \d{4} (\S+): (.+)}
         set reBase(1) {^\w+ \w+ \s?\d+ \d+:\d+:\d+ \d{4} \[(\d+)\s*\] (.+)}
@@ -276,7 +276,7 @@ proc ::alcoholicz::ReadLogs::Load {firstLoad} {
         set reSysop(CHGRPDEL) {^'(\S+)': successfully removed from '(\S+)' by (\S+)$}
         set reSysop(GIVE)     {^'(\S+)' \S+ transferred (\d+)K to (\S+)$}
         set reSysop(TAKE)     {^'(\S+)' \S+ took (\d+)K from (\S+)$}
-    } elseif {$::alcoholicz::ftpDaemon == 2} {
+    } elseif {$::Bot::ftpDaemon == 2} {
         # Base patterns for log types.
         set reBase(0) {^\d+-\d+-\d{4} \d+:\d+:\d+ (\S+): (.+)}
         set reBase(1) {^\d+-\d+-\d{4} \d+:\d+:\d+ ()(.+)}
@@ -297,7 +297,7 @@ proc ::alcoholicz::ReadLogs::Load {firstLoad} {
         set reSysop(CHGRPADD) {^'(\S+)' added user '(\S+)' to group '(\S+)'\.$}
         set reSysop(CHGRPDEL) {^'(\S+)' removed user '(\S+)' from group '(\S+)'\.$}
     } else {
-        error "unknown FTP daemon \"$::alcoholicz::ftpDaemon\""
+        error "unknown FTP daemon \"$::Bot::ftpDaemon\""
     }
 
     # Reset the log count, list, and timer ID on rehash/reload.
@@ -328,7 +328,7 @@ proc ::alcoholicz::ReadLogs::Load {firstLoad} {
 #
 # Module finalisation procedure, called before the module is unloaded.
 #
-proc ::alcoholicz::ReadLogs::Unload {} {
+proc ::Bot::ReadLogs::Unload {} {
     variable timerId
 
     if {$timerId ne ""} {

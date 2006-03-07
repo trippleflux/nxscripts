@@ -12,12 +12,12 @@
 #   Implements a module to display and search for release pre times.
 #
 
-namespace eval ::alcoholicz::PreTimes {
+namespace eval ::Bot::PreTimes {
     if {![info exists [namespace current]::dataSource]} {
         variable dataSource ""
         variable defLimit 5
     }
-    namespace import -force ::alcoholicz::*
+    namespace import -force ::Bot::*
 }
 
 ####
@@ -25,7 +25,7 @@ namespace eval ::alcoholicz::PreTimes {
 #
 # Connect to the ODBC data source.
 #
-proc ::alcoholicz::PreTimes::DbConnect {} {
+proc ::Bot::PreTimes::DbConnect {} {
     variable dataSource
 
     # If the TclODBC 'object' already exists, return.
@@ -53,9 +53,9 @@ proc ::alcoholicz::PreTimes::DbConnect {} {
 #
 # Handle NEWDIR and PRE log events.
 #
-proc ::alcoholicz::PreTimes::LogEvent {event destSection pathSection path data} {
+proc ::Bot::PreTimes::LogEvent {event destSection pathSection path data} {
     variable defLimit
-    upvar ::alcoholicz::variables variables
+    upvar ::Bot::variables variables
 
     # Record the time now for accuracy.
     set now [clock seconds]
@@ -122,7 +122,7 @@ proc ::alcoholicz::PreTimes::LogEvent {event destSection pathSection path data} 
 #
 # Search for a release, command: !pre [-limit <num>] [-section <name>] <pattern>.
 #
-proc ::alcoholicz::PreTimes::Search {target user host channel argv} {
+proc ::Bot::PreTimes::Search {target user host channel argv} {
     # Parse command options.
     set option(limit) -1
     set pattern [join [GetOpt::Parse $argv {{limit integer} {section arg}} option]]
@@ -180,10 +180,10 @@ proc ::alcoholicz::PreTimes::Search {target user host channel argv} {
 #
 # Module initialisation procedure, called when the module is loaded.
 #
-proc ::alcoholicz::PreTimes::Load {firstLoad} {
+proc ::Bot::PreTimes::Load {firstLoad} {
     variable defLimit
     variable dataSource
-    upvar ::alcoholicz::configHandle configHandle
+    upvar ::Bot::configHandle configHandle
 
     if {$firstLoad} {
         package require tclodbc
@@ -229,7 +229,7 @@ proc ::alcoholicz::PreTimes::Load {firstLoad} {
 #
 # Module finalisation procedure, called before the module is unloaded.
 #
-proc ::alcoholicz::PreTimes::Unload {} {
+proc ::Bot::PreTimes::Unload {} {
     # Remove event callbacks.
     ScriptUnregister pre PRE     [namespace current]::LogEvent
     ScriptUnregister pre PRE-MP3 [namespace current]::LogEvent
