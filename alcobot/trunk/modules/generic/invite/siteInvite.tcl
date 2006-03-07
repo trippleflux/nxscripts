@@ -489,7 +489,7 @@ proc ::siteInvite::Main {} {
     if {![info exists logPath] || ![file exists $logPath]} {
         LinePuts "Invalid log path, check configuration."
 
-    } elseif {[catch {package require AlcoExt} message]} {
+    } elseif {[catch {package require AlcoExt 0.6} message]} {
         LinePuts $message
 
     } elseif {[catch {package require tclodbc} message]} {

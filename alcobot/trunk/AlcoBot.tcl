@@ -1382,7 +1382,7 @@ proc ::Bot::InitLibraries {rootPath} {
         }
     }
 
-    package require AlcoExt 0.5
+    package require AlcoExt 0.6
 }
 
 ####
