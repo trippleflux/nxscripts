@@ -22,8 +22,8 @@
 #include <nxHelper.h>
 
 typedef struct {
-    int length;
-    unsigned char *data;
+    int length;             /* Length of data, in bytes. */
+    unsigned char *data;    /* Value, do NOT free this member. */
 } KeyValue;
 
 /* Tcl command functions. */
@@ -117,7 +117,7 @@ KeyGet(
     hashEntry = Tcl_FindHashEntry(keyTable, name);
 
     if (hashEntry != NULL) {
-        /* Duplicate value. */
+        /* Copy value to the result object. */
         value = (KeyValue *)Tcl_GetHashValue(hashEntry);
         Tcl_SetByteArrayObj(resultObj, value->data, value->length);
     }
@@ -185,7 +185,7 @@ KeySet(
     name = Tcl_GetString(objv[2]);
     data = Tcl_GetByteArrayFromObj(objv[3], &dataLength);
 
-    /* Allocate and populate the KeyValue structure. */
+    /* Allocate and fill the value structure. */
     value = (KeyValue *)ckalloc(sizeof(KeyValue) + dataLength);
     value->data = (unsigned char *)&value[1];
     value->length = dataLength;
