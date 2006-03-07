@@ -14,17 +14,29 @@
 
 #include <nxHelper.h>
 
+/* Initialise global variables */
+Fn_GetDiskFreeSpaceEx getDiskFreeSpaceExPtr = NULL;
+Tcl_HashTable *varTable = NULL;
+
+/* Local variables */
 static BOOL initialised = FALSE;
 static HMODULE kernelModule;
-TCL_DECLARE_MUTEX(initMutex)
+static Tcl_Mutex initMutex;
 
-/* Global variables. */
-OSVERSIONINFO osVersion;
-Fn_GetDiskFreeSpaceEx getDiskFreeSpaceExPtr = NULL;
+EXTERN int
+Nxhelper_Init(
+    Tcl_Interp *interp
+    );
 
-EXTERN int Nxhelper_Init(Tcl_Interp *interp);
-EXTERN int Nxhelper_SafeInit(Tcl_Interp *interp);
-static void Nxhelper_Exit(ClientData dummy);
+EXTERN int
+Nxhelper_SafeInit(
+    Tcl_Interp *interp
+    );
+
+static void
+ExitHandler(
+    ClientData dummy
+    );
 
 
 /*
@@ -42,7 +54,9 @@ static void Nxhelper_Exit(ClientData dummy);
  *   None.
  */
 int
-Nxhelper_Init(Tcl_Interp *interp)
+Nxhelper_Init(
+    Tcl_Interp *interp
+    )
 {
     /* Wide integer support was added in Tcl 8.4. */
 #ifdef USE_TCL_STUBS
@@ -85,8 +99,6 @@ Nxhelper_Init(Tcl_Interp *interp)
                 getDiskFreeSpaceExPtr = (Fn_GetDiskFreeSpaceEx)
                     GetProcAddress(kernelModule, "GetDiskFreeSpaceExA");
 #endif /* UNICODE */
-            } else {
-                getDiskFreeSpaceExPtr = NULL;
             }
 
             /*
@@ -97,18 +109,32 @@ Nxhelper_Init(Tcl_Interp *interp)
             SetErrorMode(SetErrorMode(0) | SEM_FAILCRITICALERRORS);
 
             /* An exit handler should be registered once. */
-            Tcl_CreateExitHandler(Nxhelper_Exit, NULL);
+            Tcl_CreateExitHandler(ExitHandler, NULL);
 
             initialised = TRUE;
         }
         Tcl_MutexUnlock(&initMutex);
     }
 
+    /* Create the hash table used for the "::nx::var" command. */
+    if (varTable == NULL) {
+        Tcl_MutexLock(&varMutex);
+
+        /* Check again now that we're in the mutex. */
+        if (varTable == NULL) {
+            varTable = (Tcl_HashTable *)ckalloc(sizeof(Tcl_HashTable));
+            Tcl_InitHashTable(varTable, TCL_STRING_KEYS);
+        }
+
+        Tcl_MutexUnlock(&varMutex);
+    }
+
     Tcl_CreateObjCommand(interp, "::nx::base64", Base64ObjCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::nx::mp3",    Mp3ObjCmd,    NULL, NULL);
-    Tcl_CreateObjCommand(interp, "::nx::sleep",  SleepObjCmd,   NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::nx::sleep",  SleepObjCmd,  NULL, NULL);
     Tcl_CreateObjCommand(interp, "::nx::time",   TimeObjCmd,   NULL, NULL);
     Tcl_CreateObjCommand(interp, "::nx::touch",  TouchObjCmd,  NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::nx::var",    VarObjCmd,    NULL, NULL);
     Tcl_CreateObjCommand(interp, "::nx::volume", VolumeObjCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::nx::zlib",   ZlibObjCmd,   NULL, NULL);
 
@@ -130,13 +156,15 @@ Nxhelper_Init(Tcl_Interp *interp)
  *   None.
  */
 int
-Nxhelper_SafeInit(Tcl_Interp *interp)
+Nxhelper_SafeInit(
+    Tcl_Interp *interp
+    )
 {
     return Nxhelper_Init(interp);
 }
 
 /*
- * Nxhelper_Exit
+ * ExitHandler
  *
  *   Cleans up library on exit, frees all state structures.
  *
@@ -150,8 +178,11 @@ Nxhelper_SafeInit(Tcl_Interp *interp)
  *   None.
  */
 static void
-Nxhelper_Exit(ClientData dummy)
+ExitHandler(
+    ClientData dummy
+    )
 {
+    /* Init clean-up. */
     Tcl_MutexLock(&initMutex);
     if (kernelModule != NULL) {
         FreeLibrary(kernelModule);
@@ -161,6 +192,17 @@ Nxhelper_Exit(ClientData dummy)
     getDiskFreeSpaceExPtr = NULL;
     initialised = FALSE;
     Tcl_MutexUnlock(&initMutex);
+
+    /* Var clean-up. */
+    Tcl_MutexLock(&varMutex);
+    if (varTable != NULL) {
+        VarFree(varTable);
+        Tcl_DeleteHashTable(varTable);
+
+        ckfree((char *)varTable);
+        varTable = NULL;
+    }
+    Tcl_MutexUnlock(&varMutex);
 
 #ifdef TCL_MEM_DEBUG
     Tcl_DumpActiveMemory("MemDump.txt");

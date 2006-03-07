@@ -35,6 +35,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include <tchar.h>
 #include <time.h>
 
@@ -43,6 +44,9 @@
 #include <strsafe.h>
 
 /* Library includes. */
+#ifndef TCL_THREADS
+#   error "TCL_THREADS not defined."
+#endif
 #include <tcl.h>
 #include <zlib.h>
 #undef TCL_STORAGE_CLASS
@@ -57,10 +61,10 @@
 #include <nxTime.h>
 #include <nxTouch.h>
 #include <nxUtil.h>
+#include <nxVar.h>
 #include <nxVolume.h>
 #include <nxZlib.h>
 
-/* Global variables. */
 typedef BOOL (WINAPI *Fn_GetDiskFreeSpaceEx)(
     LPCTSTR lpDirectoryName,
     PULARGE_INTEGER lpFreeBytesAvailableToCaller,
@@ -68,7 +72,12 @@ typedef BOOL (WINAPI *Fn_GetDiskFreeSpaceEx)(
     PULARGE_INTEGER lpTotalNumberOfFreeBytes
 );
 
+/* "::nx::volume" globals */
 Fn_GetDiskFreeSpaceEx getDiskFreeSpaceExPtr;
 OSVERSIONINFO osVersion;
+
+/* "::nx::var" globals */
+Tcl_Mutex varMutex;
+Tcl_HashTable *varTable;
 
 #endif /* _NXHELPER_H_ */
