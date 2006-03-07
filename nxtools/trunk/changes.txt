@@ -2,6 +2,11 @@
 #                             nxTools - Change Log                             #
 ################################################################################
 
+nxTools v1.0.3 (not released):
+  CHG: Updated nxHelper to v2.3.0, new global-interp key functions.
+  FIX: Possible crashes using "SITE OPEN/CLOSE" due to ioFTPD's buggy
+       global-interp "var get/set" command.
+
 nxTools v1.0.2 (Feb 23, 2006):
   NEW: Added text templates for SITE WHO, see the text/Who.* files.
   NEW: Option to set the default number of results for SITE DUPE/NEW/etc.

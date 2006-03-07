@@ -44,12 +44,11 @@ proc ::nxTools::Close::Main {argv} {
     switch -- $event {
         CLOSE {
             iputs ".-\[Close\]-----------------------------------------------------------------."
-            if {[catch {set closeInfo [var get nxToolsClosed]}]} {
+            if {[catch {set closeInfo [::nx::key get siteClosed]}]} {
                 set reason [join [lrange $argList 1 end]]
-                if {![string length $reason]} {set reason "No Reason"}
-                set closeInfo [list [clock seconds] $reason]
+                if {$reason eq ""} {set reason "No Reason"}
+                ::nx::key set siteClosed [list [clock seconds] $reason]
 
-                var set nxToolsClosed $closeInfo
                 LinePuts "Server is now closed for: $reason."
                 putlog "CLOSE: \"$user\" \"$group\" \"$reason\""
 
@@ -70,7 +69,7 @@ proc ::nxTools::Close::Main {argv} {
             iputs "'------------------------------------------------------------------------'"
         }
         LOGIN {
-            if {![ExcemptCheck $user $group $flags] && ![catch {set closeInfo [var get nxToolsClosed]}]} {
+            if {![ExcemptCheck $user $group $flags] && ![catch {set closeInfo [::nx::key get siteClosed]}]} {
                 set duration [expr {[clock seconds] - [lindex $closeInfo 0]}]
                 iputs -nobuffer "530 Server Closed: [lindex $closeInfo 1] (since [FormatDuration $duration] ago)"
                 set result 1
@@ -78,13 +77,13 @@ proc ::nxTools::Close::Main {argv} {
         }
         OPEN {
             iputs ".-\[Open\]-----------------------------------------------------------------."
-            if {[catch {set closeInfo [var get nxToolsClosed]}]} {
+            if {[catch {set closeInfo [::nx::key get siteClosed]}]} {
                 LinePuts "Server is currently open, use \"SITE CLOSE \[reason\]\" to close it."
             } else {
                 set duration [expr {[clock seconds] - [lindex $closeInfo 0]}]
                 LinePuts "Server is now open, closed for [FormatDuration $duration]."
                 putlog "OPEN: \"$user\" \"$group\" \"$duration\" \"[lindex $closeInfo 1]\""
-                catch {var unset nxToolsClosed}
+                ::nx::key unset -nocomplain siteClosed
             }
             iputs "'------------------------------------------------------------------------'"
         }

@@ -2,6 +2,10 @@
 #                             nxTools - Upgrading                              #
 ################################################################################
 
+1.0.2  -> 1.0.3
+ - Replace ioFTPD\scripts\nxLib.tcl and all Tcl files in ioFTPD\scripts\nxTools\.
+ - Replace the nxHelper.dll and tclsqlite3.dll files in ioFTPD\system\.
+
 1.0.1  -> 1.0.2
  - Replace ioFTPD\scripts\nxLib.tcl and all Tcl files in ioFTPD\scripts\nxTools\.
  - Replace the nxHelper.dll and tclsqlite3.dll files in ioFTPD\system\.
