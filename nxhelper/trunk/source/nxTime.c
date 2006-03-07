@@ -93,8 +93,8 @@ TimeObjCmd(
     const static char *options[] = {
         "dst", /*"local", "utc",*/ "zone", NULL
     };
-    enum options {
-        OPTION_DST, /*OPTION_LOCAL, OPTION_UTC,*/ OPTION_ZONE
+    enum optionIndices {
+        OPTION_DST = 0, /*OPTION_LOCAL, OPTION_UTC,*/ OPTION_ZONE
     };
 
     if (objc < 2) {
@@ -105,7 +105,7 @@ TimeObjCmd(
         return TCL_ERROR;
     }
 
-    switch ((enum options) index) {
+    switch ((enum optionIndices) index) {
         case OPTION_DST: {
             TIME_ZONE_INFORMATION timeZoneInfo;
 

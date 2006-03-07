@@ -172,8 +172,12 @@ VolumeObjCmd(
     )
 {
     int index;
-    const static char *options[] = {"info", "type", NULL};
-    enum options {OPTION_INFO, OPTION_TYPE};
+    const static char *options[] = {
+        "info", "type", NULL
+    };
+    enum optionIndices {
+        OPTION_INFO = 0, OPTION_TYPE
+    };
 
     if (objc < 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "option ?args?");
@@ -184,7 +188,7 @@ VolumeObjCmd(
         return TCL_ERROR;
     }
 
-    switch ((enum options) index) {
+    switch ((enum optionIndices) index) {
         case OPTION_INFO: {
             Tcl_Obj *fieldObj;
             Tcl_Obj *valueObj;

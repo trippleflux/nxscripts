@@ -217,8 +217,12 @@ ZlibObjCmd(
     )
 {
     int index;
-    static const char *options[] = {"adler32", "crc32", "deflate", "inflate", NULL};
-    enum options {OPTION_ADLER32, OPTION_CRC32, OPTION_DEFLATE, OPTION_INFLATE};
+    static const char *options[] = {
+        "adler32", "crc32", "deflate", "inflate", NULL
+    };
+    enum optionIndices {
+        OPTION_ADLER32 = 0, OPTION_CRC32, OPTION_DEFLATE, OPTION_INFLATE
+    };
 
     if (objc < 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "option arg ?arg ...?");
@@ -228,7 +232,7 @@ ZlibObjCmd(
         return TCL_ERROR;
     }
 
-    switch ((enum options) index) {
+    switch ((enum optionIndices) index) {
         case OPTION_ADLER32:
         case OPTION_CRC32: {
             int dataLength;
@@ -242,7 +246,7 @@ ZlibObjCmd(
 
             data = Tcl_GetByteArrayFromObj(objv[2], &dataLength);
 
-            switch ((enum options) index) {
+            switch ((enum optionIndices) index) {
                 case OPTION_ADLER32: {
                     checksum = adler32(0, Z_NULL, 0);
                     checksum = adler32(checksum, data, dataLength);

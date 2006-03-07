@@ -263,8 +263,12 @@ Base64ObjCmd(
     unsigned char *source;
     unsigned long destLength;
     unsigned short status;
-    static const char *options[] = {"decode", "encode", NULL};
-    enum options {OPTION_DECODE, OPTION_ENCODE};
+    static const char *options[] = {
+        "decode", "encode", NULL
+    };
+    enum optionIndices {
+        OPTION_DECODE = 0, OPTION_ENCODE
+    };
 
     if (objc != 3) {
         Tcl_WrongNumArgs(interp, 1, objv, "option data");
@@ -274,7 +278,7 @@ Base64ObjCmd(
         return TCL_ERROR;
     }
 
-    switch ((enum options) index) {
+    switch ((enum optionIndices) index) {
         case OPTION_DECODE: {
             source = Tcl_GetStringFromObj(objv[2], &sourceLength);
 
