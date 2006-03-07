@@ -184,7 +184,7 @@ ExitHandler(
     initialised = FALSE;
     Tcl_MutexUnlock(&initMutex);
 
-    /* Var clean-up. */
+    /* Key clean-up. */
     Tcl_MutexLock(&keyMutex);
     if (keyTable != NULL) {
         KeyClearTable();
