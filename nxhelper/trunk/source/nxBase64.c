@@ -279,7 +279,7 @@ Base64ObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
         }
     }
 
-    /* This point should never be reached. */
-    Tcl_Panic("unexpected fallthrough");
+    /* This point is never reached. */
+    assert(0);
     return TCL_ERROR;
 }
