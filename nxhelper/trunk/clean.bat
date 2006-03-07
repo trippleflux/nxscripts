@@ -1,7 +1,7 @@
 @ECHO OFF
 ::
 :: nxHelper - Tcl extension for nxTools.
-:: Copyright (c) 2005 neoxed
+:: Copyright (c) 2004-2006 neoxed
 ::
 :: File Name:
 ::   clean.bat

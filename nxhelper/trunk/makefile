@@ -1,6 +1,6 @@
 #
-# AlcoExt - Alcoholicz Tcl extension.
-# Copyright (c) 2005 Alcoholicz Scripting Team
+# nxHelper - Tcl extension for nxTools.
+# Copyright (c) 2004-2006 neoxed
 #
 # File Name:
 #   makefile
