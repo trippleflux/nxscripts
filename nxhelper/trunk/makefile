@@ -192,14 +192,14 @@ OBJECT_FILES=\
     $(PKG_INTDIR)\inftrees.obj\
     $(PKG_INTDIR)\trees.obj\
     $(PKG_INTDIR)\zutil.obj\
-    $(PKG_INTDIR)\nxHelper.obj\
     $(PKG_INTDIR)\nxBase64.obj\
+    $(PKG_INTDIR)\nxHelper.obj\
+    $(PKG_INTDIR)\nxKey.obj\
     $(PKG_INTDIR)\nxMP3.obj\
     $(PKG_INTDIR)\nxMP3Info.obj\
     $(PKG_INTDIR)\nxTime.obj\
     $(PKG_INTDIR)\nxTouch.obj\
     $(PKG_INTDIR)\nxUtil.obj\
-    $(PKG_INTDIR)\nxVar.obj\
     $(PKG_INTDIR)\nxVolume.obj\
     $(PKG_INTDIR)\nxZlib.obj\
     $(PKG_INTDIR)\nxHelper.res

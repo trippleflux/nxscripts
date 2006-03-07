@@ -57,11 +57,11 @@
 #include <nxMP3Info.h>
 
 #include <nxBase64.h>
+#include <nxKey.h>
 #include <nxMP3.h>
 #include <nxTime.h>
 #include <nxTouch.h>
 #include <nxUtil.h>
-#include <nxVar.h>
 #include <nxVolume.h>
 #include <nxZlib.h>
 
@@ -76,8 +76,8 @@ typedef BOOL (WINAPI *Fn_GetDiskFreeSpaceEx)(
 Fn_GetDiskFreeSpaceEx getDiskFreeSpaceExPtr;
 OSVERSIONINFO osVersion;
 
-/* "::nx::var" globals */
-Tcl_Mutex varMutex;
-Tcl_HashTable *varTable;
+/* "::nx::key" globals */
+Tcl_Mutex keyMutex;
+Tcl_HashTable *keyTable;
 
 #endif /* _NXHELPER_H_ */

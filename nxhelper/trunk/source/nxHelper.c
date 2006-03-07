@@ -16,7 +16,7 @@
 
 /* Initialise global variables */
 Fn_GetDiskFreeSpaceEx getDiskFreeSpaceExPtr = NULL;
-Tcl_HashTable *varTable = NULL;
+Tcl_HashTable *keyTable = NULL;
 
 /* Local variables */
 static BOOL initialised = FALSE;
@@ -113,25 +113,25 @@ Nxhelper_Init(
         Tcl_MutexUnlock(&initMutex);
     }
 
-    /* Create the hash table used for the "::nx::var" command. */
-    if (varTable == NULL) {
-        Tcl_MutexLock(&varMutex);
+    /* Create the hash table used for the "::nx::key" command. */
+    if (keyTable == NULL) {
+        Tcl_MutexLock(&keyMutex);
 
         /* Check again now that we're in the mutex. */
-        if (varTable == NULL) {
-            varTable = (Tcl_HashTable *)ckalloc(sizeof(Tcl_HashTable));
-            Tcl_InitHashTable(varTable, TCL_STRING_KEYS);
+        if (keyTable == NULL) {
+            keyTable = (Tcl_HashTable *)ckalloc(sizeof(Tcl_HashTable));
+            Tcl_InitHashTable(keyTable, TCL_STRING_KEYS);
         }
 
-        Tcl_MutexUnlock(&varMutex);
+        Tcl_MutexUnlock(&keyMutex);
     }
 
     Tcl_CreateObjCommand(interp, "::nx::base64", Base64ObjCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::nx::key",    KeyObjCmd,    NULL, NULL);
     Tcl_CreateObjCommand(interp, "::nx::mp3",    Mp3ObjCmd,    NULL, NULL);
     Tcl_CreateObjCommand(interp, "::nx::sleep",  SleepObjCmd,  NULL, NULL);
     Tcl_CreateObjCommand(interp, "::nx::time",   TimeObjCmd,   NULL, NULL);
     Tcl_CreateObjCommand(interp, "::nx::touch",  TouchObjCmd,  NULL, NULL);
-    Tcl_CreateObjCommand(interp, "::nx::var",    VarObjCmd,    NULL, NULL);
     Tcl_CreateObjCommand(interp, "::nx::volume", VolumeObjCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::nx::zlib",   ZlibObjCmd,   NULL, NULL);
 
@@ -185,15 +185,15 @@ ExitHandler(
     Tcl_MutexUnlock(&initMutex);
 
     /* Var clean-up. */
-    Tcl_MutexLock(&varMutex);
-    if (varTable != NULL) {
-        VarClearTable();
-        Tcl_DeleteHashTable(varTable);
+    Tcl_MutexLock(&keyMutex);
+    if (keyTable != NULL) {
+        KeyClearTable();
+        Tcl_DeleteHashTable(keyTable);
 
-        ckfree((char *)varTable);
-        varTable = NULL;
+        ckfree((char *)keyTable);
+        keyTable = NULL;
     }
-    Tcl_MutexUnlock(&varMutex);
+    Tcl_MutexUnlock(&keyMutex);
 
 #ifdef TCL_MEM_DEBUG
     Tcl_DumpActiveMemory("MemDump.txt");

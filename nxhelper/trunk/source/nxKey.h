@@ -3,23 +3,23 @@
  * Copyright (c) 2004-2006 neoxed
  *
  * File Name:
- *   nxVar.h
+ *   nxKey.h
  *
  * Author:
  *   neoxed (neoxed@gmail.com) Mar 7, 2006
  *
  * Abstract:
- *   Variable command definitions.
+ *   Key command definitions.
  */
 
-#ifndef _NXVAR_H_
-#define _NXVAR_H_
+#ifndef _NXKEY_H_
+#define _NXKEY_H_
 
 void
-VarClearTable(
+KeyClearTable(
     void
     );
 
-Tcl_ObjCmdProc VarObjCmd;
+Tcl_ObjCmdProc KeyObjCmd;
 
-#endif /* _NXVAR_H_ */
+#endif /* _NXKEY_H_ */
