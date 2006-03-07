@@ -23,6 +23,36 @@
 
 #include <nxHelper.h>
 
+/* Status codes. */
+#define BASE64_SUCCESS  0
+#define BASE64_INVALID  1
+#define BASE64_OVERFLOW 2
+
+/* Required destination length. */
+#define Base64EncodeGetDestLength(length) ((4 * ((length + 2) / 3)) + 1)
+#define Base64DecodeGetDestLength(length) (length)
+
+static int
+Base64Decode(
+    unsigned char *source,
+    unsigned long sourceLength,
+    unsigned char *dest,
+    unsigned long *destLength
+    );
+
+static int
+Base64Encode(
+    unsigned char *source,
+    unsigned long sourceLength,
+    unsigned char *dest,
+    unsigned long *destLength
+    );
+
+static char *
+Base64GetError(
+    unsigned short status
+    );
+
 static const char *codes =
 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -50,30 +80,6 @@ static const unsigned char map[256] = {
     255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
     255, 255, 255, 255
 };
-
-#define Base64EncodeGetDestLength(length) ((4 * ((length + 2) / 3)) + 1)
-#define Base64DecodeGetDestLength(length) (length)
-
-static int
-Base64Decode(
-    unsigned char *source,
-    unsigned long sourceLength,
-    unsigned char *dest,
-    unsigned long *destLength
-    );
-
-static int
-Base64Encode(
-    unsigned char *source,
-    unsigned long sourceLength,
-    unsigned char *dest,
-    unsigned long *destLength
-    );
-
-static char *
-Base64GetError(
-    unsigned short status
-    );
 
 
 /*

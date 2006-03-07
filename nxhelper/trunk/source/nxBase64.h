@@ -15,10 +15,6 @@
 #ifndef _NXBASE64_H_
 #define _NXBASE64_H_
 
-#define BASE64_SUCCESS  0
-#define BASE64_INVALID  1
-#define BASE64_OVERFLOW 2
-
 Tcl_ObjCmdProc Base64ObjCmd;
 
 #endif /* _NXBASE64_H_ */

@@ -15,12 +15,6 @@
 #ifndef _NXTOUCH_H_
 #define _NXTOUCH_H_
 
-#define TOUCH_FLAG_ATIME     0x0001
-#define TOUCH_FLAG_MTIME     0x0002
-#define TOUCH_FLAG_CTIME     0x0004
-#define TOUCH_FLAG_ISDIR     0x0008
-#define TOUCH_FLAG_RECURSE   0x0010
-
 Tcl_ObjCmdProc TouchObjCmd;
 
 #endif /* _NXTOUCH_H_ */
