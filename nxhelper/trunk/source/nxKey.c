@@ -231,7 +231,7 @@ KeyUnset(
             return TCL_ERROR;
         }
     }
-    name = Tcl_GetString(objv[2]);
+    name = Tcl_GetString(objv[objc-1]);
 
     /* Remove the hash table entry. */
     Tcl_MutexLock(&keyMutex);

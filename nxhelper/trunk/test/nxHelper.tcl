@@ -70,7 +70,7 @@ if {[::nx::key get world] ne [list kind of big]} {
     error "value is wrong"
 }
 
-::nx::key unset universe
+::nx::key unset -nocomplain universe
 if {[::nx::key exists universe]} {
     error "this key was unset"
 }
