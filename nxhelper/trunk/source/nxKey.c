@@ -64,35 +64,6 @@ KeyUnset(
     );
 
 
-/*
- * KeyClearTable
- *
- *	 Clear all key hash table entries.
- *
- * Arguments:
- *	 None.
- *
- * Returns:
- *	 None.
- */
-void
-KeyClearTable(
-    void
-    )
-{
-    Tcl_HashSearch search;
-    Tcl_HashEntry *hashEntry;
-
-    for (hashEntry = Tcl_FirstHashEntry(keyTable, &search);
-            hashEntry != NULL;
-            hashEntry = Tcl_NextHashEntry(&search)) {
-
-        ckfree((char *)Tcl_GetHashValue(hashEntry));
-        Tcl_DeleteHashEntry(hashEntry);
-    }
-}
-
-
 /* ::nx::key exists <name> */
 static int
 KeyExists(
@@ -277,6 +248,35 @@ KeyUnset(
         return TCL_ERROR;
     }
     return TCL_OK;
+}
+
+
+/*
+ * KeyClearTable
+ *
+ *	 Clear all key hash table entries.
+ *
+ * Arguments:
+ *	 None.
+ *
+ * Returns:
+ *	 None.
+ */
+void
+KeyClearTable(
+    void
+    )
+{
+    Tcl_HashSearch search;
+    Tcl_HashEntry *hashEntry;
+
+    for (hashEntry = Tcl_FirstHashEntry(keyTable, &search);
+            hashEntry != NULL;
+            hashEntry = Tcl_NextHashEntry(&search)) {
+
+        ckfree((char *)Tcl_GetHashValue(hashEntry));
+        Tcl_DeleteHashEntry(hashEntry);
+    }
 }
 
 /*
