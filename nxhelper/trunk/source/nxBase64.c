@@ -89,9 +89,6 @@ Base64GetError(
  *
  * Returns:
  *   A base64 status code; BASE64_SUCCESS will be returned if successful.
- *
- * Remarks:
- *   None.
  */
 static int
 Base64Decode(
@@ -157,9 +154,6 @@ Base64Decode(
  *
  * Returns:
  *   A base64 status code; BASE64_SUCCESS will be returned if successful.
- *
- * Remarks:
- *   None.
  */
 static int
 Base64Encode(
@@ -215,9 +209,6 @@ Base64Encode(
  *
  * Returns:
  *   A human-readable error message.
- *
- * Remarks:
- *   None.
  */
 static char *
 Base64GetError(
@@ -245,9 +236,6 @@ Base64GetError(
  *
  * Returns:
  *   A standard Tcl result.
- *
- * Remarks:
- *   None.
  */
 int
 Base64ObjCmd(

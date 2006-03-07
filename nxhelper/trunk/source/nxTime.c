@@ -77,9 +77,6 @@ GetTimeZoneBias(
  *
  * Returns:
  *   A standard Tcl result.
- *
- * Remarks:
- *   None.
  */
 int
 TimeObjCmd(

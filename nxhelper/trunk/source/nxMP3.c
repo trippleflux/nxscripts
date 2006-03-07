@@ -52,9 +52,6 @@
  *
  * Returns:
  *   A standard Tcl result.
- *
- * Remarks:
- *   None.
  */
 int
 Mp3ObjCmd(

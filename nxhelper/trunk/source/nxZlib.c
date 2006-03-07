@@ -56,9 +56,6 @@ ZlibInflateObj(
  *
  * Returns:
  *   A zlib status code; Z_OK is returned if successful.
- *
- * Remarks:
- *   None.
  */
 static int
 ZlibDeflateObj(
@@ -121,9 +118,6 @@ ZlibDeflateObj(
  *
  * Returns:
  *   A zlib status code; Z_OK is returned if successful.
- *
- * Remarks:
- *   None.
  */
 static int
 ZlibInflateObj(
@@ -204,9 +198,6 @@ ZlibInflateObj(
  *
  * Returns:
  *   A standard Tcl result.
- *
- * Remarks:
- *   None.
  */
 int
 ZlibObjCmd(

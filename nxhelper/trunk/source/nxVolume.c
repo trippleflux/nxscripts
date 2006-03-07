@@ -61,9 +61,6 @@ GetVolumeSize(
  * Returns:
  *   If the function succeeds, the return value is non-zero.
  *   If the function fails, the return value is zero.
- *
- * Remarks:
- *   None.
  */
 static BOOL
 GetVolumeSize(
@@ -120,9 +117,6 @@ GetVolumeSize(
  * Returns:
  *   If the function succeeds, the return value is non-zero.
  *   If the function fails, the return value is zero.
- *
- * Remarks:
- *   None.
  */
 static BOOL
 GetVolumeInfo(
@@ -159,9 +153,6 @@ GetVolumeInfo(
  *
  * Returns:
  *   A standard Tcl result.
- *
- * Remarks:
- *   None.
  */
 int
 VolumeObjCmd(

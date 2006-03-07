@@ -36,9 +36,6 @@ static Tcl_ThreadDataKey dataKey;
  *
  * Returns:
  *   The message that is associated with the error code.
- *
- * Remarks:
- *   None.
  */
 char *
 TclSetWinError(
@@ -87,9 +84,6 @@ TclSetWinError(
  * Returns:
  *   If "name" and the string value of "objPtr" match partially or completely,
  *   the return value is non-zero. If they do not match, the return value is zero.
- *
- * Remarks:
- *   None.
  */
 int
 PartialSwitchCompare(
@@ -120,9 +114,6 @@ PartialSwitchCompare(
  *
  * Returns:
  *   A standard Tcl result.
- *
- * Remarks:
- *   None.
  */
 int
 SleepObjCmd(

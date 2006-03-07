@@ -30,9 +30,6 @@
  *
  * Returns:
  *   None.
- *
- * Remarks:
- *   None.
  */
 void
 VarFree(
@@ -64,9 +61,6 @@ VarFree(
  *
  * Returns:
  *   A standard Tcl result.
- *
- * Remarks:
- *   None.
  */
 int
 VarObjCmd(

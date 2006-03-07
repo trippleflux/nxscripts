@@ -49,9 +49,6 @@ ExitHandler(
  *
  * Returns:
  *   A standard Tcl result.
- *
- * Remarks:
- *   None.
  */
 int
 Nxhelper_Init(
@@ -151,9 +148,6 @@ Nxhelper_Init(
  *
  * Returns:
  *   A standard Tcl result.
- *
- * Remarks:
- *   None.
  */
 int
 Nxhelper_SafeInit(
@@ -172,9 +166,6 @@ Nxhelper_SafeInit(
  *   dummy - Not used.
  *
  * Returns:
- *   None.
- *
- * Remarks:
  *   None.
  */
 static void
