@@ -16,13 +16,7 @@
 #define _NXHELPER_H_
 
 #define UNICODE
-
-/* Unicode macros. */
-#if defined(_UNICODE) && !defined(UNICODE)
-#define UNICODE
-#elif defined(UNICODE) && !defined(_UNICODE)
 #define _UNICODE
-#endif
 
 /* Windows includes. */
 #define _WIN32_WINNT 0x0400
@@ -44,27 +38,36 @@
 #include <strsafe.h>
 
 /* Library includes. */
+#include <tcl.h>
+#include <zlib.h>
+
 #ifndef TCL_THREADS
 #   error "TCL_THREADS not defined."
 #endif
-#include <tcl.h>
-#include <zlib.h>
 #undef TCL_STORAGE_CLASS
 #define TCL_STORAGE_CLASS DLLEXPORT
 
 /* nxHelper includes. */
 #include <nxMacros.h>
 #include <nxMP3Info.h>
-
-#include <nxBase64.h>
-#include <nxKey.h>
-#include <nxMP3.h>
-#include <nxTime.h>
-#include <nxTouch.h>
 #include <nxUtil.h>
-#include <nxVolume.h>
-#include <nxZlib.h>
 
+/* Object commands */
+Tcl_ObjCmdProc Base64ObjCmd;
+Tcl_ObjCmdProc KeyObjCmd;
+Tcl_ObjCmdProc Mp3ObjCmd;
+Tcl_ObjCmdProc SleepObjCmd;
+Tcl_ObjCmdProc TimeObjCmd;
+Tcl_ObjCmdProc TouchObjCmd;
+Tcl_ObjCmdProc VolumeObjCmd;
+Tcl_ObjCmdProc ZlibObjCmd;
+
+/* "::nx::key" globals */
+Tcl_Mutex keyMutex;
+Tcl_HashTable *keyTable;
+void KeyClearTable(void);
+
+/* "::nx::volume" globals */
 typedef BOOL (WINAPI *Fn_GetDiskFreeSpaceEx)(
     LPCTSTR lpDirectoryName,
     PULARGE_INTEGER lpFreeBytesAvailableToCaller,
@@ -72,12 +75,7 @@ typedef BOOL (WINAPI *Fn_GetDiskFreeSpaceEx)(
     PULARGE_INTEGER lpTotalNumberOfFreeBytes
 );
 
-/* "::nx::volume" globals */
 Fn_GetDiskFreeSpaceEx getDiskFreeSpaceExPtr;
 OSVERSIONINFO osVersion;
-
-/* "::nx::key" globals */
-Tcl_Mutex keyMutex;
-Tcl_HashTable *keyTable;
 
 #endif /* _NXHELPER_H_ */

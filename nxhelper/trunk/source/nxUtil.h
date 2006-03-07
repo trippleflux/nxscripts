@@ -27,6 +27,20 @@ PartialSwitchCompare(
     const char *switchName
     );
 
-Tcl_ObjCmdProc SleepObjCmd;
+BOOL
+GetTimeZoneBias(
+    long *bias
+    );
+
+unsigned long
+FileTimeToPosixEpoch(
+    const FILETIME *fileTime
+    );
+
+void
+PosixEpochToFileTime(
+    unsigned long epochTime,
+    FILETIME *fileTime
+    );
 
 #endif /* _NXUTIL_H_ */

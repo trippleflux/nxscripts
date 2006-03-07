@@ -27,43 +27,6 @@
 
 #include <nxHelper.h>
 
-
-unsigned long
-FileTimeToPosixEpoch(
-    const FILETIME *FileTime
-    )
-{
-    ULONGLONG epochTime = ((ULONGLONG)FileTime->dwHighDateTime << 32) + FileTime->dwLowDateTime;
-    return (unsigned long)((epochTime - 116444736000000000) / 10000000);
-}
-
-void
-PosixEpochToFileTime(
-    unsigned long epochTime,
-    FILETIME *fileTime
-    )
-{
-    ULONGLONG timeNs = UInt32x32To64(epochTime, 10000000) + 116444736000000000;
-    fileTime->dwLowDateTime = (DWORD)timeNs;
-    fileTime->dwHighDateTime = (DWORD)(timeNs >> 32);
-}
-
-BOOL
-GetTimeZoneBias(
-    long *bias
-    )
-{
-    TIME_ZONE_INFORMATION timeZoneInfo;
-
-    if (GetTimeZoneInformation(&timeZoneInfo) != TIME_ZONE_ID_INVALID) {
-        *bias = timeZoneInfo.Bias * 60;
-        return TRUE;
-    }
-
-    *bias = 0;
-    return FALSE;
-}
-
 /*
  * TimeObjCmd
  *
