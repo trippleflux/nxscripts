@@ -1366,6 +1366,7 @@ proc ::Bot::InitConfig {filePath} {
 #
 proc ::Bot::InitLibraries {rootPath} {
     global auto_path
+    set libPath [file join $rootPath "libs"]
 
     # Some users reported that "auto_path" was not always set,
     # which is bizarre considering Tcl initialises this variable.
@@ -1374,7 +1375,6 @@ proc ::Bot::InitLibraries {rootPath} {
         lappend auto_path $libPath
     }
 
-    set libPath [file join $rootPath "libs"]
     foreach script {constants.tcl libUtil.tcl libConfig.tcl libFtp.tcl libGetOpt.tcl libTree.tcl} {
         set script [file join $libPath $script]
         if {[catch {source $script} message]} {
