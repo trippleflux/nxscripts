@@ -11,8 +11,8 @@ PKG_DESC    = nxHelper Tcl Library
 # - Ex. <major>.<minor>.<patch>
 #
 PKG_MAJOR   = 2
-PKG_MINOR   = 2
-PKG_PATCH   = 5
+PKG_MINOR   = 3
+PKG_PATCH   = 0
 
 ### Package Status
 #
