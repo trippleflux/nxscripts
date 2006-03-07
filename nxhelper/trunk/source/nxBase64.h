@@ -19,6 +19,6 @@
 #define BASE64_INVALID  1
 #define BASE64_OVERFLOW 2
 
-int Base64ObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+Tcl_ObjCmdProc Base64ObjCmd;
 
 #endif /* _NXBASE64_H_ */

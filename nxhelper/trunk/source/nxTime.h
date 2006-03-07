@@ -15,10 +15,22 @@
 #ifndef _NXTIME_H_
 #define _NXTIME_H_
 
-BOOL GetTimeZoneBias(long *bias);
-unsigned long FileTimeToPosixEpoch(const FILETIME *fileTime);
-void PosixEpochToFileTime(unsigned long epochTime, FILETIME *fileTime);
+BOOL
+GetTimeZoneBias(
+    long *bias
+    );
 
-int TimeObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+unsigned long
+FileTimeToPosixEpoch(
+    const FILETIME *fileTime
+    );
+
+void
+PosixEpochToFileTime(
+    unsigned long epochTime,
+    FILETIME *fileTime
+    );
+
+Tcl_ObjCmdProc TimeObjCmd;
 
 #endif /* _NXTIME_H_ */

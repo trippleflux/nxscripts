@@ -15,6 +15,6 @@
 #ifndef _NXMP3_H_
 #define _NXMP3_H_
 
-int Mp3ObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+Tcl_ObjCmdProc Mp3ObjCmd;
 
 #endif /* _NXMP3_H_ */

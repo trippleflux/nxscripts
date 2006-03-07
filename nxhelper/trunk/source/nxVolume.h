@@ -30,6 +30,6 @@ typedef struct {
     TCHAR     name[VOLUME_NAME_BUFFER];
 } VolumeInfo;
 
-int VolumeObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+Tcl_ObjCmdProc VolumeObjCmd;
 
 #endif /* _NXVOLUME_H_ */

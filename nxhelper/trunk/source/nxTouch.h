@@ -21,6 +21,6 @@
 #define TOUCH_FLAG_ISDIR     0x0008
 #define TOUCH_FLAG_RECURSE   0x0010
 
-int TouchObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+Tcl_ObjCmdProc TouchObjCmd;
 
 #endif /* _NXTOUCH_H_ */

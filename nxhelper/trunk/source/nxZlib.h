@@ -15,6 +15,6 @@
 #ifndef _INFZLIB_H_
 #define _INFZLIB_H_
 
-int ZlibObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+Tcl_ObjCmdProc ZlibObjCmd;
 
 #endif /* _INFZLIB_H_ */

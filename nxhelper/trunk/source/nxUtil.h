@@ -15,8 +15,18 @@
 #ifndef _NXUTIL_H_
 #define _NXUTIL_H_
 
-char *TclSetWinError(Tcl_Interp *interp, unsigned long errorCode);
-int PartialSwitchCompare(Tcl_Obj *objPtr, const char *switchName);
-int SleepObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+char *
+TclSetWinError(
+    Tcl_Interp *interp,
+    unsigned long errorCode
+    );
+
+int
+PartialSwitchCompare(
+    Tcl_Obj *objPtr,
+    const char *switchName
+    );
+
+Tcl_ObjCmdProc SleepObjCmd;
 
 #endif /* _NXUTIL_H_ */
