@@ -12,8 +12,8 @@
  *   Common include file.
  */
 
-#ifndef __NXHELPER_H__
-#define __NXHELPER_H__
+#ifndef _NXHELPER_H_
+#define _NXHELPER_H_
 
 #define UNICODE
 
@@ -71,4 +71,4 @@ typedef BOOL (WINAPI *Fn_GetDiskFreeSpaceEx)(
 Fn_GetDiskFreeSpaceEx getDiskFreeSpaceExPtr;
 OSVERSIONINFO osVersion;
 
-#endif /* __NXHELPER_H__ */
+#endif /* _NXHELPER_H_ */

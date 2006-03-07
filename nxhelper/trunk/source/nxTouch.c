@@ -27,11 +27,11 @@
 
 #include <nxHelper.h>
 
-__inline unsigned long TouchFile(TCHAR *filePath, FILETIME *touchTime, unsigned short options);
+_inline unsigned long TouchFile(TCHAR *filePath, FILETIME *touchTime, unsigned short options);
 static unsigned long RecursiveTouch(TCHAR *CurentPath, FILETIME *touchTime, unsigned short options);
 
 
-__inline unsigned long
+_inline unsigned long
 TouchFile(TCHAR *filePath, FILETIME *touchTime, unsigned short options)
 {
     HANDLE fileHandle = CreateFile(filePath,

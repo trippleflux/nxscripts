@@ -12,9 +12,9 @@
  *   Zlib command definitions.
  */
 
-#ifndef __INFZLIB_H__
-#define __INFZLIB_H__
+#ifndef _INFZLIB_H_
+#define _INFZLIB_H_
 
 int ZlibObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
-#endif /* __INFZLIB_H__ */
+#endif /* _INFZLIB_H_ */

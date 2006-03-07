@@ -12,8 +12,8 @@
  *   Miscellaneous macros.
  */
 
-#ifndef __NXMACROS_H__
-#define __NXMACROS_H__
+#ifndef _NXMACROS_H_
+#define _NXMACROS_H_
 
 #ifdef ARRAYSIZE
 #   undef ARRAYSIZE
@@ -46,4 +46,4 @@
 #define Tcl_SetTStringObj Tcl_SetStringObj
 #endif
 
-#endif /* __MACROS_H__ */
+#endif /* _MACROS_H_ */

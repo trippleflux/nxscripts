@@ -12,8 +12,8 @@
  *   Volume command definitions.
  */
 
-#ifndef __NXVOLUME_H__
-#define __NXVOLUME_H__
+#ifndef _NXVOLUME_H_
+#define _NXVOLUME_H_
 
 /* Buffer size constants. */
 #define VOLUME_NAME_BUFFER  MAX_PATH
@@ -32,4 +32,4 @@ typedef struct {
 
 int VolumeObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
-#endif /* __NXVOLUME_H__ */
+#endif /* _NXVOLUME_H_ */

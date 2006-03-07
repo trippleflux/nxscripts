@@ -6,7 +6,7 @@ static VOID MP3CopyTag(PBYTE Source, PCHAR String, ULONG Length);
 static LONG MP3GetFrameBitrate(MP3INFO *MP3Info);
 static BOOL MP3ValidVbrHeader(PBYTE VbrBuffer, PLONG Frames);
 
-__forceinline ULONG MP3GetFrameHeader(PBYTE FrameBuffer)
+_forceinline ULONG MP3GetFrameHeader(PBYTE FrameBuffer)
 {
     return (
         ((FrameBuffer[0] & 255) << 24) |

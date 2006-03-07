@@ -12,8 +12,8 @@
  *   Time command definitions.
  */
 
-#ifndef __NXTIME_H__
-#define __NXTIME_H__
+#ifndef _NXTIME_H_
+#define _NXTIME_H_
 
 BOOL GetTimeZoneBias(long *bias);
 unsigned long FileTimeToPosixEpoch(const FILETIME *fileTime);
@@ -21,4 +21,4 @@ void PosixEpochToFileTime(unsigned long epochTime, FILETIME *fileTime);
 
 int TimeObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
-#endif /* __NXTIME_H__ */
+#endif /* _NXTIME_H_ */

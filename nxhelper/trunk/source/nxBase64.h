@@ -12,8 +12,8 @@
  *   Base64 command definitions.
  */
 
-#ifndef __NXBASE64_H__
-#define __NXBASE64_H__
+#ifndef _NXBASE64_H_
+#define _NXBASE64_H_
 
 #define BASE64_SUCCESS  0
 #define BASE64_INVALID  1
@@ -21,4 +21,4 @@
 
 int Base64ObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
-#endif /* __NXBASE64_H__ */
+#endif /* _NXBASE64_H_ */

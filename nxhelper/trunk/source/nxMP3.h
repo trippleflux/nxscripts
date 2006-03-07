@@ -12,9 +12,9 @@
  *   MP3 command definitions.
  */
 
-#ifndef __NXMP3_H__
-#define __NXMP3_H__
+#ifndef _NXMP3_H_
+#define _NXMP3_H_
 
 int Mp3ObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
-#endif /* __NXMP3_H__ */
+#endif /* _NXMP3_H_ */

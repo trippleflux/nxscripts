@@ -1,5 +1,5 @@
-#ifndef __NXMP3INFO_H__
-#define __NXMP3INFO_H__
+#ifndef _NXMP3INFO_H_
+#define _NXMP3INFO_H_
 
 /* Size of read buffer in bytes (must be at least 12). */
 #define MP3_BUFFER    512
@@ -57,4 +57,4 @@ LONG MP3GetLength(MP3INFO *MP3Info);
 PCHAR MP3GetMode(MP3INFO *MP3Info);
 FLOAT MP3GetVersion(MP3INFO *MP3Info);
 
-#endif /* __NXMP3INFO_H__ */
+#endif /* _NXMP3INFO_H_ */

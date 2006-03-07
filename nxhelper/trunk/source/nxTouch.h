@@ -12,8 +12,8 @@
  *   Touch command definitions.
  */
 
-#ifndef __NXTOUCH_H__
-#define __NXTOUCH_H__
+#ifndef _NXTOUCH_H_
+#define _NXTOUCH_H_
 
 #define TOUCH_FLAG_ATIME     0x0001
 #define TOUCH_FLAG_MTIME     0x0002
@@ -23,4 +23,4 @@
 
 int TouchObjCmd(ClientData dummy, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
-#endif /* __NXTOUCH_H__ */
+#endif /* _NXTOUCH_H_ */
