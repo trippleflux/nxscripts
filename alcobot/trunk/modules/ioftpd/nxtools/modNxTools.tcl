@@ -12,15 +12,15 @@
 #   Implements a module to interact with nxTools' databases.
 #
 
-namespace eval ::Bot::NxTools {
+namespace eval ::Bot::Mod::NxTools {
     if {![info exists [namespace current]::dataPath]} {
         variable dataPath ""
         variable undupeChars 5
         variable undupeWild 0
     }
     namespace import -force ::Bot::*
-    namespace import -force ::Bot::FtpDaemon::GetFtpConnection
-    namespace import -force ::Bot::Invite::GetFtpUser
+    namespace import -force ::Bot::Mod::Ftpd::GetFtpConnection
+    namespace import -force ::Bot::Mod::Invite::GetFtpUser
 }
 
 ####
@@ -28,7 +28,7 @@ namespace eval ::Bot::NxTools {
 #
 # Open a nxTools SQLite database file.
 #
-proc ::Bot::NxTools::DbOpenFile {fileName} {
+proc ::Bot::Mod::NxTools::DbOpenFile {fileName} {
     variable dataPath
 
     set filePath [file join $dataPath $fileName]
@@ -50,7 +50,7 @@ proc ::Bot::NxTools::DbOpenFile {fileName} {
 #
 # Callback invoked by SQLite if it tries to open a locked database.
 #
-proc ::Bot::NxTools::DbBusyHandler {tries} {
+proc ::Bot::Mod::NxTools::DbBusyHandler {tries} {
     # Give up after 50 attempts, although it should succeed after 1-5.
     if {$tries > 50} {return 1}
     after 200
@@ -62,7 +62,7 @@ proc ::Bot::NxTools::DbBusyHandler {tries} {
 #
 # Search for a release, command: !dupe [-limit <num>] [-section <name>] <pattern>.
 #
-proc ::Bot::NxTools::Dupe {target user host channel argv} {
+proc ::Bot::Mod::NxTools::Dupe {target user host channel argv} {
     upvar ::Bot::pathSections pathSections
 
     # Parse command options.
@@ -110,7 +110,7 @@ proc ::Bot::NxTools::Dupe {target user host channel argv} {
 #
 # Display recent releases, command: !new [-limit <num>] [section].
 #
-proc ::Bot::NxTools::New {target user host channel argv} {
+proc ::Bot::Mod::NxTools::New {target user host channel argv} {
     upvar ::Bot::pathSections pathSections
 
     # Parse command options.
@@ -156,7 +156,7 @@ proc ::Bot::NxTools::New {target user host channel argv} {
 #
 # Remove a file or directory from the dupe database, command: !undupe [-directory] <pattern>.
 #
-proc ::Bot::NxTools::Undupe {target user host channel argv} {
+proc ::Bot::Mod::NxTools::Undupe {target user host channel argv} {
     variable undupeChars
     variable undupeWild
 
@@ -205,7 +205,7 @@ proc ::Bot::NxTools::Undupe {target user host channel argv} {
 #
 # Display recent nukes, command: !nukes [-limit <num>] [pattern].
 #
-proc ::Bot::NxTools::Nukes {target user host channel argv} {
+proc ::Bot::Mod::NxTools::Nukes {target user host channel argv} {
     # Parse command options.
     set option(limit) -1
     set pattern [join [GetOpt::Parse $argv {{limit integer}} option]]
@@ -240,7 +240,7 @@ proc ::Bot::NxTools::Nukes {target user host channel argv} {
 #
 # Display top nuked users, command: !nukes [-limit <num>] [group].
 #
-proc ::Bot::NxTools::NukeTop {target user host channel argv} {
+proc ::Bot::Mod::NxTools::NukeTop {target user host channel argv} {
     # Parse command options.
     set option(limit) -1
     set group [join [GetOpt::Parse $argv {{limit integer}} option]]
@@ -274,7 +274,7 @@ proc ::Bot::NxTools::NukeTop {target user host channel argv} {
 #
 # Display recent unnukes, command: !unnukes [-limit <num>] [pattern].
 #
-proc ::Bot::NxTools::Unnukes {target user host channel argv} {
+proc ::Bot::Mod::NxTools::Unnukes {target user host channel argv} {
     # Parse command options.
     set option(limit) -1
     set pattern [join [GetOpt::Parse $argv {{limit integer}} option]]
@@ -309,7 +309,7 @@ proc ::Bot::NxTools::Unnukes {target user host channel argv} {
 #
 # Display approved releases, command: !approved.
 #
-proc ::Bot::NxTools::Approved {target user host channel argv} {
+proc ::Bot::Mod::NxTools::Approved {target user host channel argv} {
     SendTargetTheme $target approveHead
 
     set count 0
@@ -332,7 +332,7 @@ proc ::Bot::NxTools::Approved {target user host channel argv} {
 #
 # Display recent one-lines, command: !onel [-limit <num>].
 #
-proc ::Bot::NxTools::OneLines {target user host channel argv} {
+proc ::Bot::Mod::NxTools::OneLines {target user host channel argv} {
     # Parse command options.
     set option(limit) -1
     GetOpt::Parse $argv {{limit integer}} option
@@ -359,7 +359,7 @@ proc ::Bot::NxTools::OneLines {target user host channel argv} {
 #
 # Display current requests, command: !requests.
 #
-proc ::Bot::NxTools::Requests {target user host channel argv} {
+proc ::Bot::Mod::NxTools::Requests {target user host channel argv} {
     SendTargetTheme $target requestsHead
 
     set count 0
@@ -382,7 +382,7 @@ proc ::Bot::NxTools::Requests {target user host channel argv} {
 #
 # Send SITE commands to the FTP server and display the response.
 #
-proc ::Bot::NxTools::SiteCmd {event target user host channel argv} {
+proc ::Bot::Mod::NxTools::SiteCmd {event target user host channel argv} {
     if {[llength $argv] != 1} {
         throw CMDHELP
     }
@@ -428,7 +428,7 @@ proc ::Bot::NxTools::SiteCmd {event target user host channel argv} {
 #
 # SITE command callback, display the server's response.
 #
-proc ::Bot::NxTools::SiteCallback {target theme connection response} {
+proc ::Bot::Mod::NxTools::SiteCallback {target theme connection response} {
     # Ignore the header, foot, and the "command successful" message.
     foreach {code message} [lrange $response 2 end-4] {
         set message [string trim $message "| \t"]
@@ -441,7 +441,7 @@ proc ::Bot::NxTools::SiteCallback {target theme connection response} {
 #
 # Module initialisation procedure, called when the module is loaded.
 #
-proc ::Bot::NxTools::Load {firstLoad} {
+proc ::Bot::Mod::NxTools::Load {firstLoad} {
     variable dataPath
     variable undupeChars
     variable undupeWild
@@ -533,5 +533,5 @@ proc ::Bot::NxTools::Load {firstLoad} {
 #
 # Module finalisation procedure, called before the module is unloaded.
 #
-proc ::Bot::NxTools::Unload {} {
+proc ::Bot::Mod::NxTools::Unload {} {
 }

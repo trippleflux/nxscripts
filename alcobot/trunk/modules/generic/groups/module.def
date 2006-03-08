@@ -1,6 +1,6 @@
 # Module Definition File
 desc=Group List
-context=::Bot::Groups
+context=::Bot::Mod::Groups
 depends=
 tclFiles=modGroups.tcl
 varFiles=modGroups.vars

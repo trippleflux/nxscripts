@@ -12,7 +12,7 @@
 #   Implements a module to display affiliated and banned groups.
 #
 
-namespace eval ::Bot::Groups {
+namespace eval ::Bot::Mod::Groups {
     namespace import -force ::Bot::*
 }
 
@@ -21,7 +21,7 @@ namespace eval ::Bot::Groups {
 #
 # Implements a channel command to add or remove affiliated groups.
 #
-proc ::Bot::Groups::ChangeAffils {event target user host channel argv} {
+proc ::Bot::Mod::Groups::ChangeAffils {event target user host channel argv} {
     variable groupsHandle
 
     if {[llength $argv] != 2} {throw CMDHELP}
@@ -69,7 +69,7 @@ proc ::Bot::Groups::ChangeAffils {event target user host channel argv} {
 #
 # Implements a channel command to add or remove banned groups.
 #
-proc ::Bot::Groups::ChangeBanned {event target user host channel argv} {
+proc ::Bot::Mod::Groups::ChangeBanned {event target user host channel argv} {
     variable groupsHandle
 
     if {[llength $argv] != 2} {throw CMDHELP}
@@ -117,7 +117,7 @@ proc ::Bot::Groups::ChangeBanned {event target user host channel argv} {
 #
 # Implements a channel command to display affiliated groups.
 #
-proc ::Bot::Groups::ListAffils {target user host channel argv} {
+proc ::Bot::Mod::Groups::ListAffils {target user host channel argv} {
     variable groupsHandle
     Config::Read $groupsHandle
     set sections [lsort [Config::Keys $groupsHandle Affils]]
@@ -140,7 +140,7 @@ proc ::Bot::Groups::ListAffils {target user host channel argv} {
 #
 # Implements a channel command to display banned groups.
 #
-proc ::Bot::Groups::ListBanned {target user host channel argv} {
+proc ::Bot::Mod::Groups::ListBanned {target user host channel argv} {
     variable groupsHandle
     Config::Read $groupsHandle
     set sections [lsort [Config::Keys $groupsHandle Banned]]
@@ -163,7 +163,7 @@ proc ::Bot::Groups::ListBanned {target user host channel argv} {
 #
 # Module initialisation procedure, called when the module is loaded.
 #
-proc ::Bot::Groups::Load {firstLoad} {
+proc ::Bot::Mod::Groups::Load {firstLoad} {
     variable groupsHandle
     upvar ::Bot::configHandle configHandle
 
@@ -217,7 +217,7 @@ proc ::Bot::Groups::Load {firstLoad} {
 #
 # Module finalisation procedure, called before the module is unloaded.
 #
-proc ::Bot::Groups::Unload {} {
+proc ::Bot::Mod::Groups::Unload {} {
     variable groupsHandle
     if {[info exists groupsHandle]} {
         Config::Close $groupsHandle

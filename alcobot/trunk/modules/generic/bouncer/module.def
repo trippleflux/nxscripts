@@ -1,6 +1,6 @@
 # Module Definition File
 desc=Bouncer Status
-context=::Bot::Bouncer
+context=::Bot::Mod::Bouncer
 depends=
 tclFiles=modBouncer.tcl
 varFiles=modBouncer.vars

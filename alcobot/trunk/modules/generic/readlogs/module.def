@@ -1,6 +1,6 @@
 # Module Definition File
 desc=Log Reading
-context=::Bot::ReadLogs
+context=::Bot::Mod::ReadLogs
 depends=
 tclFiles=modReadLogs.tcl
 varFiles=

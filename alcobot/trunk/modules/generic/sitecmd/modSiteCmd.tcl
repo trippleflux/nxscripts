@@ -12,9 +12,9 @@
 #   Implements a module to issue SITE commands from IRC.
 #
 
-namespace eval ::Bot::SiteCmd {
+namespace eval ::Bot::Mod::SiteCmd {
     namespace import -force ::Bot::*
-    namespace import -force ::Bot::FtpDaemon::GetFtpConnection
+    namespace import -force ::Bot::Mod::Ftpd::GetFtpConnection
 }
 
 ####
@@ -22,7 +22,7 @@ namespace eval ::Bot::SiteCmd {
 #
 # Channel command allowing IRC users to send SITE commands.
 #
-proc ::Bot::SiteCmd::Command {target user host channel argv} {
+proc ::Bot::Mod::SiteCmd::Command {target user host channel argv} {
     if {[llength $argv] < 1} {throw CMDHELP}
     set name "SITE [join $argv]"
     SendTargetTheme $target siteHead [list $name]
@@ -41,7 +41,7 @@ proc ::Bot::SiteCmd::Command {target user host channel argv} {
 #
 # SITE command callback, display the server's response.
 #
-proc ::Bot::SiteCmd::Callback {target connection response} {
+proc ::Bot::Mod::SiteCmd::Callback {target connection response} {
     set code [lindex $response end-1]
     if {[string index $code 0] == 2} {
         set message "Command successful."
@@ -58,7 +58,7 @@ proc ::Bot::SiteCmd::Callback {target connection response} {
 #
 # Module initialisation procedure, called when the module is loaded.
 #
-proc ::Bot::SiteCmd::Load {firstLoad} {
+proc ::Bot::Mod::SiteCmd::Load {firstLoad} {
     CmdCreate channel site [namespace current]::Command \
         -category "Admin" \
         -args "<command>" \
@@ -70,5 +70,5 @@ proc ::Bot::SiteCmd::Load {firstLoad} {
 #
 # Module finalisation procedure, called before the module is unloaded.
 #
-proc ::Bot::SiteCmd::Unload {} {
+proc ::Bot::Mod::SiteCmd::Unload {} {
 }

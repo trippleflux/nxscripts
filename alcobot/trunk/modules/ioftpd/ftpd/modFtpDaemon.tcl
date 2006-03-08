@@ -26,7 +26,7 @@
 #   GroupNameToId    <groupName>
 #
 
-namespace eval ::Bot::FtpDaemon {
+namespace eval ::Bot::Mod::Ftpd {
     if {![info exists [namespace current]::connection]} {
         variable connection ""
         variable deleteFlag ""
@@ -45,7 +45,7 @@ namespace eval ::Bot::FtpDaemon {
 #
 # Called when the initial connection succeeds or fails.
 #
-proc ::Bot::FtpDaemon::FtpNotify {connection success} {
+proc ::Bot::Mod::Ftpd::FtpNotify {connection success} {
     if {$success} {
         LogInfo "FTP connection established."
     } else {
@@ -58,7 +58,7 @@ proc ::Bot::FtpDaemon::FtpNotify {connection success} {
 #
 # Checks the status of the FTP connection every minute.
 #
-proc ::Bot::FtpDaemon::FtpTimer {} {
+proc ::Bot::Mod::Ftpd::FtpTimer {} {
     variable connection
     variable timerId
 
@@ -84,7 +84,7 @@ proc ::Bot::FtpDaemon::FtpTimer {} {
 #
 # Resolve a list of group IDs to their group names.
 #
-proc ::Bot::FtpDaemon::ResolveGIDs {idList} {
+proc ::Bot::Mod::Ftpd::ResolveGIDs {idList} {
     variable msgWindow
 
     set nameList [list]
@@ -101,7 +101,7 @@ proc ::Bot::FtpDaemon::ResolveGIDs {idList} {
 #
 # Retrieves flag types, results are saved to the given variable name.
 #
-proc ::Bot::FtpDaemon::GetFlagTypes {varName} {
+proc ::Bot::Mod::Ftpd::GetFlagTypes {varName} {
     variable deleteFlag
 
     upvar $varName flags
@@ -113,7 +113,7 @@ proc ::Bot::FtpDaemon::GetFlagTypes {varName} {
 #
 # Retrieves the main FTP connection handle.
 #
-proc ::Bot::FtpDaemon::GetFtpConnection {} {
+proc ::Bot::Mod::Ftpd::GetFtpConnection {} {
     variable connection
     return $connection
 }
@@ -123,7 +123,7 @@ proc ::Bot::FtpDaemon::GetFtpConnection {} {
 #
 # Retrieves a list of users.
 #
-proc ::Bot::FtpDaemon::UserList {} {
+proc ::Bot::Mod::Ftpd::UserList {} {
     variable etcPath
 
     set filePath [file join $etcPath "UserIdTable"]
@@ -150,7 +150,7 @@ proc ::Bot::FtpDaemon::UserList {} {
 #
 # Checks if the given user exists.
 #
-proc ::Bot::FtpDaemon::UserExists {userName} {
+proc ::Bot::Mod::Ftpd::UserExists {userName} {
     variable msgWindow
 
     if {[catch {set exists [ioftpd user exists $msgWindow $userName]} message]} {
@@ -184,7 +184,7 @@ proc ::Bot::FtpDaemon::UserExists {userName} {
 #  - wkdn     <30 ints>
 #  - wkup     <30 ints>
 #
-proc ::Bot::FtpDaemon::UserInfo {userName varName} {
+proc ::Bot::Mod::Ftpd::UserInfo {userName varName} {
     variable msgWindow
     upvar $varName user
 
@@ -209,7 +209,7 @@ proc ::Bot::FtpDaemon::UserInfo {userName varName} {
 #
 # Resolve a user ID to its corresponding user name.
 #
-proc ::Bot::FtpDaemon::UserIdToName {userId} {
+proc ::Bot::Mod::Ftpd::UserIdToName {userId} {
     variable msgWindow
 
     if {[catch {ioftpd user toname $msgWindow $userId} result]} {
@@ -224,7 +224,7 @@ proc ::Bot::FtpDaemon::UserIdToName {userId} {
 #
 # Resolve a user name to its corresponding user ID.
 #
-proc ::Bot::FtpDaemon::UserNameToId {userName} {
+proc ::Bot::Mod::Ftpd::UserNameToId {userName} {
     variable msgWindow
 
     if {[catch {ioftpd user toid $msgWindow $userName} result]} {
@@ -239,7 +239,7 @@ proc ::Bot::FtpDaemon::UserNameToId {userName} {
 #
 # Retrieves a list of groups.
 #
-proc ::Bot::FtpDaemon::GroupList {} {
+proc ::Bot::Mod::Ftpd::GroupList {} {
     variable etcPath
 
     set filePath [file join $etcPath "GroupIdTable"]
@@ -266,7 +266,7 @@ proc ::Bot::FtpDaemon::GroupList {} {
 #
 # Checks if the given group exists.
 #
-proc ::Bot::FtpDaemon::GroupExists {groupName} {
+proc ::Bot::Mod::Ftpd::GroupExists {groupName} {
     variable msgWindow
 
     if {[catch {set exists [ioftpd group exists $msgWindow $groupName]} message]} {
@@ -285,7 +285,7 @@ proc ::Bot::FtpDaemon::GroupExists {groupName} {
 #  - leech <leech slots>
 #  - ratio <ratio slots>
 #
-proc ::Bot::FtpDaemon::GroupInfo {groupName varName} {
+proc ::Bot::Mod::Ftpd::GroupInfo {groupName varName} {
     variable msgWindow
     upvar $varName group
 
@@ -306,7 +306,7 @@ proc ::Bot::FtpDaemon::GroupInfo {groupName varName} {
 #
 # Resolve a group ID to its corresponding group name.
 #
-proc ::Bot::FtpDaemon::GroupIdToName {groupId} {
+proc ::Bot::Mod::Ftpd::GroupIdToName {groupId} {
     variable msgWindow
 
     if {[catch {ioftpd group toname $msgWindow $groupId} result]} {
@@ -321,7 +321,7 @@ proc ::Bot::FtpDaemon::GroupIdToName {groupId} {
 #
 # Resolve a group name to its corresponding group ID.
 #
-proc ::Bot::FtpDaemon::GroupNameToId {groupName} {
+proc ::Bot::Mod::Ftpd::GroupNameToId {groupName} {
     variable msgWindow
 
     if {[catch {ioftpd group toid $msgWindow $groupName} result]} {
@@ -336,7 +336,7 @@ proc ::Bot::FtpDaemon::GroupNameToId {groupName} {
 #
 # Module initialisation procedure, called when the module is loaded.
 #
-proc ::Bot::FtpDaemon::Load {firstLoad} {
+proc ::Bot::Mod::Ftpd::Load {firstLoad} {
     variable connection
     variable deleteFlag
     variable etcPath
@@ -377,7 +377,7 @@ proc ::Bot::FtpDaemon::Load {firstLoad} {
 #
 # Module finalisation procedure, called before the module is unloaded.
 #
-proc ::Bot::FtpDaemon::Unload {} {
+proc ::Bot::Mod::Ftpd::Unload {} {
     variable connection
     variable timerId
 

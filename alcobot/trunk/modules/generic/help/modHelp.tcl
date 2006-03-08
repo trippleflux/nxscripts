@@ -12,7 +12,7 @@
 #   Implements a module to display supported commands.
 #
 
-namespace eval ::Bot::Help {
+namespace eval ::Bot::Mod::Help {
     namespace import -force ::Bot::*
 }
 
@@ -21,7 +21,7 @@ namespace eval ::Bot::Help {
 #
 # Implements a channel command to display supported commands.
 #
-proc ::Bot::Help::Command {target user host channel argv} {
+proc ::Bot::Mod::Help::Command {target user host channel argv} {
     SendTargetTheme $target helpHead
 
     foreach {name value} [CmdGetList "channel" "*"] {
@@ -71,7 +71,7 @@ proc ::Bot::Help::Command {target user host channel argv} {
 #
 # Module initialisation procedure, called when the module is loaded.
 #
-proc ::Bot::Help::Load {firstLoad} {
+proc ::Bot::Mod::Help::Load {firstLoad} {
     CmdCreate channel help [namespace current]::Command \
         -category "General" \
         -args "\[category\] \[category\] ..." \
@@ -83,5 +83,5 @@ proc ::Bot::Help::Load {firstLoad} {
 #
 # Module finalisation procedure, called before the module is unloaded.
 #
-proc ::Bot::Help::Unload {} {
+proc ::Bot::Mod::Help::Unload {} {
 }

@@ -12,7 +12,7 @@
 #   Implements a module to display bouncer status.
 #
 
-namespace eval ::Bot::Bouncer {
+namespace eval ::Bot::Mod::Bouncer {
     if {![info exists [namespace current]::checkIndex]} {
         variable checkIndex 0
         variable timerId ""
@@ -25,7 +25,7 @@ namespace eval ::Bot::Bouncer {
 #
 # Display bouncer status.
 #
-proc ::Bot::Bouncer::Command {target user host channel argv} {
+proc ::Bot::Mod::Bouncer::Command {target user host channel argv} {
     variable bouncers
     SendTargetTheme $target bouncerHead
     set offline 0; set online 0; set unknown 0
@@ -59,7 +59,7 @@ proc ::Bot::Bouncer::Command {target user host channel argv} {
 #
 # Checks the status of a bouncer every minute.
 #
-proc ::Bot::Bouncer::CheckTimer {} {
+proc ::Bot::Mod::Bouncer::CheckTimer {} {
     variable bouncers
     variable checkIndex
     variable timerId
@@ -87,7 +87,7 @@ proc ::Bot::Bouncer::CheckTimer {} {
 #
 # Notified by the FTP library when the connection succeeds or fails.
 #
-proc ::Bot::Bouncer::Notify {index connection success} {
+proc ::Bot::Mod::Bouncer::Notify {index connection success} {
     variable bouncers
 
     if {[info exists bouncers($index)]} {
@@ -112,7 +112,7 @@ proc ::Bot::Bouncer::Notify {index connection success} {
 #
 # Module initialisation procedure, called when the module is loaded.
 #
-proc ::Bot::Bouncer::Load {firstLoad} {
+proc ::Bot::Mod::Bouncer::Load {firstLoad} {
     variable bouncers
     variable checkIndex
     variable timerId
@@ -159,7 +159,7 @@ proc ::Bot::Bouncer::Load {firstLoad} {
 #
 # Module finalisation procedure, called before the module is unloaded.
 #
-proc ::Bot::Bouncer::Unload {} {
+proc ::Bot::Mod::Bouncer::Unload {} {
     variable bouncers
     variable timerId
 

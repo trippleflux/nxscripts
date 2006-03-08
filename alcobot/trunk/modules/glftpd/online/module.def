@@ -1,6 +1,6 @@
 # Module Definition File
 desc=Online Stats
-context=::Bot::Online
+context=::Bot::Mod::Online
 depends=
 tclFiles=modOnline.tcl
 varFiles=modOnline.vars

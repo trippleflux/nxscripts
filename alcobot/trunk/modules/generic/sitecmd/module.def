@@ -1,6 +1,6 @@
 # Module Definition File
 desc=Site Command
-context=::Bot::SiteCmd
+context=::Bot::Mod::SiteCmd
 depends=ftpd
 tclFiles=modSiteCmd.tcl
 varFiles=modSiteCmd.vars

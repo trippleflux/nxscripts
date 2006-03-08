@@ -12,7 +12,7 @@
 #   Implements a module to interact with ioA's log files.
 #
 
-namespace eval ::Bot::IoA {
+namespace eval ::Bot::Mod::IoA {
     namespace import -force ::Bot::*
 }
 
@@ -21,7 +21,7 @@ namespace eval ::Bot::IoA {
 #
 # Open a log file for reading.
 #
-proc ::Bot::IoA::OpenFile {filePath handleVar} {
+proc ::Bot::Mod::IoA::OpenFile {filePath handleVar} {
     upvar $handleVar handle
     if {[catch {set handle [open $filePath]} message]} {
         LogError ModIoA $message
@@ -35,7 +35,7 @@ proc ::Bot::IoA::OpenFile {filePath handleVar} {
 #
 # Parse a time stamp value in the form of "MMDD-hh:mm".
 #
-proc ::Bot::IoA::ParseTime {value} {
+proc ::Bot::Mod::IoA::ParseTime {value} {
     variable utcTime
 
     foreach {date time} [split $value "-"] {break}
@@ -49,7 +49,7 @@ proc ::Bot::IoA::ParseTime {value} {
 #
 # Display recent nukes, command: !nukes [-limit <num>] [pattern].
 #
-proc ::Bot::IoA::Nukes {target user host channel argv} {
+proc ::Bot::Mod::IoA::Nukes {target user host channel argv} {
     variable nukesFile
 
     # Parse command options.
@@ -96,7 +96,7 @@ proc ::Bot::IoA::Nukes {target user host channel argv} {
 #
 # Display recent one-lines, command: !onel [-limit <num>].
 #
-proc ::Bot::IoA::OneLines {target user host channel argv} {
+proc ::Bot::Mod::IoA::OneLines {target user host channel argv} {
     variable onelinesFile
 
     # Parse command options.
@@ -135,7 +135,7 @@ proc ::Bot::IoA::OneLines {target user host channel argv} {
 #
 # Display current requests, command: !requests.
 #
-proc ::Bot::IoA::Requests {target user host channel argv} {
+proc ::Bot::Mod::IoA::Requests {target user host channel argv} {
     variable requestsFile
     SendTargetTheme $target requestsHead
 
@@ -160,7 +160,7 @@ proc ::Bot::IoA::Requests {target user host channel argv} {
 #
 # Search for a release, command: !search [-limit <num>] <pattern>.
 #
-proc ::Bot::IoA::Search {target user host channel argv} {
+proc ::Bot::Mod::IoA::Search {target user host channel argv} {
     variable searchFile
     variable searchSort
 
@@ -211,7 +211,7 @@ proc ::Bot::IoA::Search {target user host channel argv} {
 #
 # Display recent unnukes, command: !unnukes [-limit <num>] [pattern].
 #
-proc ::Bot::IoA::Unnukes {target user host channel argv} {
+proc ::Bot::Mod::IoA::Unnukes {target user host channel argv} {
     variable unnukesFile
 
     # Parse command options.
@@ -258,7 +258,7 @@ proc ::Bot::IoA::Unnukes {target user host channel argv} {
 #
 # Module initialisation procedure, called when the module is loaded.
 #
-proc ::Bot::IoA::Load {firstLoad} {
+proc ::Bot::Mod::IoA::Load {firstLoad} {
     variable utcTime
     variable nukesFile
     variable onelinesFile
@@ -322,5 +322,5 @@ proc ::Bot::IoA::Load {firstLoad} {
 #
 # Module finalisation procedure, called before the module is unloaded.
 #
-proc ::Bot::IoA::Unload {} {
+proc ::Bot::Mod::IoA::Unload {} {
 }

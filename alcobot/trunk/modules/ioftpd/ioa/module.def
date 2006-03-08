@@ -1,6 +1,6 @@
 # Module Definition File
 desc=ioA Support
-context=::Bot::IoA
+context=::Bot::Mod::IoA
 depends=
 tclFiles=modIoA.tcl
 varFiles=modIoA.vars

@@ -12,7 +12,7 @@
 #   Implements a module to display available drive space.
 #
 
-namespace eval ::Bot::Free {
+namespace eval ::Bot::Mod::Free {
     if {![info exists [namespace current]::volumeList]} {
         variable volumeList [list]
     }
@@ -24,7 +24,7 @@ namespace eval ::Bot::Free {
 #
 # Implements a channel command to display available drive space.
 #
-proc ::Bot::Free::Command {target user host channel argv} {
+proc ::Bot::Mod::Free::Command {target user host channel argv} {
     variable volumeList
 
     set argc [llength $argv]
@@ -78,7 +78,7 @@ proc ::Bot::Free::Command {target user host channel argv} {
 #
 # Module initialisation procedure, called when the module is loaded.
 #
-proc ::Bot::Free::Load {firstLoad} {
+proc ::Bot::Mod::Free::Load {firstLoad} {
     variable volumeList
     upvar ::Bot::configHandle configHandle
 
@@ -99,5 +99,5 @@ proc ::Bot::Free::Load {firstLoad} {
 #
 # Module finalisation procedure, called before the module is unloaded.
 #
-proc ::Bot::Free::Unload {} {
+proc ::Bot::Mod::Free::Unload {} {
 }

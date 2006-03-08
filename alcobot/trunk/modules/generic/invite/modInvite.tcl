@@ -16,7 +16,7 @@
 #   GetIrcUser <ftpUser>
 #
 
-namespace eval ::Bot::Invite {
+namespace eval ::Bot::Mod::Invite {
     if {![info exists [namespace current]::dataSource]} {
         variable dataSource ""
         variable hostCheck 0
@@ -24,7 +24,7 @@ namespace eval ::Bot::Invite {
         variable warnSection ""
     }
     namespace import -force ::Bot::*
-    namespace import -force ::Bot::FtpDaemon::*
+    namespace import -force ::Bot::Mod::Ftpd::*
     namespace export GetFtpUser GetIrcUser
 }
 
@@ -33,7 +33,7 @@ namespace eval ::Bot::Invite {
 #
 # Connect to the ODBC data source.
 #
-proc ::Bot::Invite::DbConnect {} {
+proc ::Bot::Mod::Invite::DbConnect {} {
     variable dataSource
 
     # If the TclODBC 'object' already exists, return.
@@ -61,7 +61,7 @@ proc ::Bot::Invite::DbConnect {} {
 #
 # Looks up the FTP user-name for the given IRC nick-name.
 #
-proc ::Bot::Invite::GetFtpUser {ircUser} {
+proc ::Bot::Mod::Invite::GetFtpUser {ircUser} {
     if {![DbConnect]} {
         error "invite database is offline"
     }
@@ -83,7 +83,7 @@ proc ::Bot::Invite::GetFtpUser {ircUser} {
 #
 # Looks up the IRC nick-name for the given FTP user-name.
 #
-proc ::Bot::Invite::GetIrcUser {ftpUser} {
+proc ::Bot::Mod::Invite::GetIrcUser {ftpUser} {
     if {![DbConnect]} {
         error "invite database is offline"
     }
@@ -105,7 +105,7 @@ proc ::Bot::Invite::GetIrcUser {ftpUser} {
 #
 # Compares a hash created with "MakeHash" with the given password.
 #
-proc ::Bot::Invite::CheckHash {hash password} {
+proc ::Bot::Mod::Invite::CheckHash {hash password} {
     # Convert the hex-encoded hash to binary form.
     set hashSplit [split $hash "$"]
 
@@ -133,7 +133,7 @@ proc ::Bot::Invite::CheckHash {hash password} {
 # Creates a PKCS #5 v2 hash with a 4 byte salt and hashed 100 rounds with SHA-256.
 # Format: <hex encoded salt>$<hex encoded hash>
 #
-proc ::Bot::Invite::MakeHash {password} {
+proc ::Bot::Mod::Invite::MakeHash {password} {
     set salt [crypt rand 4]
     set hash [crypt pkcs5 -v2 -rounds 100 sha256 $salt $password]
     return [join [list [encode hex $salt] [encode hex $hash]] "$"]
@@ -144,7 +144,7 @@ proc ::Bot::Invite::MakeHash {password} {
 #
 # Checks if the specified user is on an invite channel.
 #
-proc ::Bot::Invite::OnChannels {ircUser {ignoreChannel ""}} {
+proc ::Bot::Mod::Invite::OnChannels {ircUser {ignoreChannel ""}} {
     variable channels
     foreach channel [array names channels] {
         if {[string equal -nocase $ignoreChannel $channel]} {continue}
@@ -158,7 +158,7 @@ proc ::Bot::Invite::OnChannels {ircUser {ignoreChannel ""}} {
 #
 # Send a themed message to the user and warning section.
 #
-proc ::Bot::Invite::SendTheme {user type {valueList ""}} {
+proc ::Bot::Mod::Invite::SendTheme {user type {valueList ""}} {
     variable warnSection
 
     if {$warnSection ne ""} {
@@ -177,7 +177,7 @@ proc ::Bot::Invite::SendTheme {user type {valueList ""}} {
 # Processes an invite request, performs IRC name and host checks
 # if enabled before inviting the specified IRC user.
 #
-proc ::Bot::Invite::Process {ircUser ircHost ftpUser ftpGroup ftpGroupList ftpFlags} {
+proc ::Bot::Mod::Invite::Process {ircUser ircHost ftpUser ftpGroup ftpGroupList ftpFlags} {
     variable channels
     variable hostCheck
     variable userCheck
@@ -236,7 +236,7 @@ proc ::Bot::Invite::Process {ircUser ircHost ftpUser ftpGroup ftpGroupList ftpFl
 #
 # Private message command, !invite <FTP user> <password>.
 #
-proc ::Bot::Invite::Command {target user host argv} {
+proc ::Bot::Mod::Invite::Command {target user host argv} {
     variable userCheck
 
     if {[llength $argv] != 2} {throw CMDHELP}
@@ -284,7 +284,7 @@ proc ::Bot::Invite::Command {target user host argv} {
 #
 # Updates the online status of IRC users.
 #
-proc ::Bot::Invite::ChanEvent {event args} {
+proc ::Bot::Mod::Invite::ChanEvent {event args} {
     variable channels
 
     set time [clock seconds]
@@ -334,7 +334,7 @@ proc ::Bot::Invite::ChanEvent {event args} {
 #
 # Handle "INVITE" log events.
 #
-proc ::Bot::Invite::LogEvent {event destSection pathSection path data} {
+proc ::Bot::Mod::Invite::LogEvent {event destSection pathSection path data} {
     variable hostCheck
 
     if {$event eq "INVITE"} {
@@ -369,7 +369,7 @@ proc ::Bot::Invite::LogEvent {event destSection pathSection path data} {
 #
 # Raw event callback, executed when Eggdrop receives a "311" reply.
 #
-proc ::Bot::Invite::Whois {server code text} {
+proc ::Bot::Mod::Invite::Whois {server code text} {
     variable whois
 
     # WHOIS reply (#311): "<nick> <user> <ident> <host> * :<real name>"
@@ -395,7 +395,7 @@ proc ::Bot::Invite::Whois {server code text} {
 #
 # Module initialisation procedure, called when the module is loaded.
 #
-proc ::Bot::Invite::Load {firstLoad} {
+proc ::Bot::Mod::Invite::Load {firstLoad} {
     variable channels
     variable dataSource
     variable hostCheck
@@ -467,7 +467,7 @@ proc ::Bot::Invite::Load {firstLoad} {
 #
 # Module finalisation procedure, called before the module is unloaded.
 #
-proc ::Bot::Invite::Unload {} {
+proc ::Bot::Mod::Invite::Unload {} {
     # Remove event callbacks.
     unbind raw  -|- 311 [namespace current]::Whois
     unbind join -|- "*" [list [namespace current]::ChanEvent JOIN]

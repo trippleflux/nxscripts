@@ -26,7 +26,7 @@
 #   GroupNameToId    <groupName>
 #
 
-namespace eval ::Bot::FtpDaemon {
+namespace eval ::Bot::Mod::Ftpd {
     if {![info exists [namespace current]::connection]} {
         variable connection ""
         variable dataPath ""
@@ -44,7 +44,7 @@ namespace eval ::Bot::FtpDaemon {
 #
 # Called when the initial connection succeeds or fails.
 #
-proc ::Bot::FtpDaemon::FtpNotify {connection success} {
+proc ::Bot::Mod::Ftpd::FtpNotify {connection success} {
     if {$success} {
         LogInfo "FTP connection established."
     } else {
@@ -57,7 +57,7 @@ proc ::Bot::FtpDaemon::FtpNotify {connection success} {
 #
 # Checks the status of the FTP connection every minute.
 #
-proc ::Bot::FtpDaemon::FtpTimer {} {
+proc ::Bot::Mod::Ftpd::FtpTimer {} {
     variable connection
     variable timerId
 
@@ -83,7 +83,7 @@ proc ::Bot::FtpDaemon::FtpTimer {} {
 #
 # Checks if the size or modification time of a file has changed.
 #
-proc ::Bot::FtpDaemon::FileChanged {filePath} {
+proc ::Bot::Mod::Ftpd::FileChanged {filePath} {
     variable change
 
     file stat $filePath stat
@@ -104,7 +104,7 @@ proc ::Bot::FtpDaemon::FileChanged {filePath} {
 #
 # Updates internal user list.
 #
-proc ::Bot::FtpDaemon::UpdateUsers {} {
+proc ::Bot::Mod::Ftpd::UpdateUsers {} {
     variable users
     variable rootPath
 
@@ -131,7 +131,7 @@ proc ::Bot::FtpDaemon::UpdateUsers {} {
 #
 # Updates internal group list.
 #
-proc ::Bot::FtpDaemon::UpdateGroups {} {
+proc ::Bot::Mod::Ftpd::UpdateGroups {} {
     variable groups
     variable rootPath
 
@@ -158,7 +158,7 @@ proc ::Bot::FtpDaemon::UpdateGroups {} {
 #
 # Retrieves flag types, results are saved to the given variable name.
 #
-proc ::Bot::FtpDaemon::GetFlagTypes {varName} {
+proc ::Bot::Mod::Ftpd::GetFlagTypes {varName} {
     upvar $varName flags
     array set flags [list deleted "6" gadmin "2" siteop "1"]
 }
@@ -168,7 +168,7 @@ proc ::Bot::FtpDaemon::GetFlagTypes {varName} {
 #
 # Retrieves the main FTP connection handle.
 #
-proc ::Bot::FtpDaemon::GetFtpConnection {} {
+proc ::Bot::Mod::Ftpd::GetFtpConnection {} {
     variable connection
     return $connection
 }
@@ -178,7 +178,7 @@ proc ::Bot::FtpDaemon::GetFtpConnection {} {
 #
 # Retrieves a list of users.
 #
-proc ::Bot::FtpDaemon::UserList {} {
+proc ::Bot::Mod::Ftpd::UserList {} {
     variable users
 
     if {[catch {UpdateUsers} message]} {
@@ -192,7 +192,7 @@ proc ::Bot::FtpDaemon::UserList {} {
 #
 # Checks if the given user exists.
 #
-proc ::Bot::FtpDaemon::UserExists {userName} {
+proc ::Bot::Mod::Ftpd::UserExists {userName} {
     variable users
 
     if {[catch {UpdateUsers} message]} {
@@ -225,7 +225,7 @@ proc ::Bot::FtpDaemon::UserExists {userName} {
 #  - wkdn     <30 ints>
 #  - wkup     <30 ints>
 #
-proc ::Bot::FtpDaemon::UserInfo {userName varName} {
+proc ::Bot::Mod::Ftpd::UserInfo {userName varName} {
     variable dataPath
     variable users
     upvar $varName dest
@@ -311,7 +311,7 @@ proc ::Bot::FtpDaemon::UserInfo {userName varName} {
 #
 # Resolve a user ID to its corresponding user name.
 #
-proc ::Bot::FtpDaemon::UserIdToName {userId} {
+proc ::Bot::Mod::Ftpd::UserIdToName {userId} {
     variable users
 
     if {[catch {UpdateUsers} message]} {
@@ -329,7 +329,7 @@ proc ::Bot::FtpDaemon::UserIdToName {userId} {
 #
 # Resolve a user name to its corresponding user ID.
 #
-proc ::Bot::FtpDaemon::UserNameToId {userName} {
+proc ::Bot::Mod::Ftpd::UserNameToId {userName} {
     variable users
 
     if {[catch {UpdateUsers} message]} {
@@ -345,7 +345,7 @@ proc ::Bot::FtpDaemon::UserNameToId {userName} {
 #
 # Retrieves a list of groups.
 #
-proc ::Bot::FtpDaemon::GroupList {} {
+proc ::Bot::Mod::Ftpd::GroupList {} {
     variable groups
 
     if {[catch {UpdateGroups} message]} {
@@ -359,7 +359,7 @@ proc ::Bot::FtpDaemon::GroupList {} {
 #
 # Checks if the given group exists.
 #
-proc ::Bot::FtpDaemon::GroupExists {groupName} {
+proc ::Bot::Mod::Ftpd::GroupExists {groupName} {
     variable groups
 
     if {[catch {UpdateGroups} message]} {
@@ -377,7 +377,7 @@ proc ::Bot::FtpDaemon::GroupExists {groupName} {
 #  - leech <leech slots>
 #  - ratio <ratio slots>
 #
-proc ::Bot::FtpDaemon::GroupInfo {groupName varName} {
+proc ::Bot::Mod::Ftpd::GroupInfo {groupName varName} {
     variable dataPath
     variable groups
     upvar $varName dest
@@ -421,7 +421,7 @@ proc ::Bot::FtpDaemon::GroupInfo {groupName varName} {
 #
 # Resolve a group ID to its corresponding group name.
 #
-proc ::Bot::FtpDaemon::GroupIdToName {groupId} {
+proc ::Bot::Mod::Ftpd::GroupIdToName {groupId} {
     variable groups
 
     if {[catch {UpdateGroups} message]} {
@@ -439,7 +439,7 @@ proc ::Bot::FtpDaemon::GroupIdToName {groupId} {
 #
 # Resolve a group name to its corresponding group ID.
 #
-proc ::Bot::FtpDaemon::GroupNameToId {groupName} {
+proc ::Bot::Mod::Ftpd::GroupNameToId {groupName} {
     variable groups
 
     if {[catch {UpdateGroups} message]} {
@@ -455,7 +455,7 @@ proc ::Bot::FtpDaemon::GroupNameToId {groupName} {
 #
 # Handle NUKE and UNNUKE log events.
 #
-proc ::Bot::FtpDaemon::NukeEvent {event destSection pathSection path data} {
+proc ::Bot::Mod::Ftpd::NukeEvent {event destSection pathSection path data} {
     # glFTPD v2.x quotes each nukee separately when logging nukes, while AlcoBot's
     # theming system expects them to be quoted together. So we have to do a bit
     # of work to keep the two compatible.
@@ -474,7 +474,7 @@ proc ::Bot::FtpDaemon::NukeEvent {event destSection pathSection path data} {
 #
 # Module initialisation procedure, called when the module is loaded.
 #
-proc ::Bot::FtpDaemon::Load {firstLoad} {
+proc ::Bot::Mod::Ftpd::Load {firstLoad} {
     variable change
     variable connection
     variable dataPath
@@ -519,7 +519,7 @@ proc ::Bot::FtpDaemon::Load {firstLoad} {
 #
 # Module finalisation procedure, called before the module is unloaded.
 #
-proc ::Bot::FtpDaemon::Unload {} {
+proc ::Bot::Mod::Ftpd::Unload {} {
     variable connection
     variable timerId
 

@@ -12,7 +12,7 @@
 #   Implements a module to display online statistics.
 #
 
-namespace eval ::Bot::Online {
+namespace eval ::Bot::Mod::Online {
     if {![info exists [namespace current]::hideUsers]} {
         variable hideCount  0
         variable hideUsers  [list]
@@ -28,7 +28,7 @@ namespace eval ::Bot::Online {
 #
 # Checks if the given user's name, group, or current path are hidden.
 #
-proc ::Bot::Online::IsHidden {user group vpath} {
+proc ::Bot::Mod::Online::IsHidden {user group vpath} {
     variable hideUsers
     variable hideGroups
     variable hidePaths
@@ -47,7 +47,7 @@ proc ::Bot::Online::IsHidden {user group vpath} {
 #
 # Implements a channel command to display current site bandwidth.
 #
-proc ::Bot::Online::Bandwidth {event target user host channel argv} {
+proc ::Bot::Mod::Online::Bandwidth {event target user host channel argv} {
     variable hideCount
     variable msgWindow
 
@@ -100,7 +100,7 @@ proc ::Bot::Online::Bandwidth {event target user host channel argv} {
 #
 # Implements a channel command to display the status of current users.
 #
-proc ::Bot::Online::Status {event target user host channel argv} {
+proc ::Bot::Mod::Online::Status {event target user host channel argv} {
     variable msgWindow
 
     switch -- $event {
@@ -152,7 +152,7 @@ proc ::Bot::Online::Status {event target user host channel argv} {
 #
 # Implements a channel command to display current users.
 #
-proc ::Bot::Online::Users {event target user host channel argv} {
+proc ::Bot::Mod::Online::Users {event target user host channel argv} {
     variable msgWindow
 
     if {$event eq "SPEED"} {
@@ -211,7 +211,7 @@ proc ::Bot::Online::Users {event target user host channel argv} {
 #
 # Module initialisation procedure, called when the module is loaded.
 #
-proc ::Bot::Online::Load {firstLoad} {
+proc ::Bot::Mod::Online::Load {firstLoad} {
     variable hideCount
     variable hideUsers
     variable hideGroups
@@ -274,5 +274,5 @@ proc ::Bot::Online::Load {firstLoad} {
 #
 # Module finalisation procedure, called before the module is unloaded.
 #
-proc ::Bot::Online::Unload {} {
+proc ::Bot::Mod::Online::Unload {} {
 }

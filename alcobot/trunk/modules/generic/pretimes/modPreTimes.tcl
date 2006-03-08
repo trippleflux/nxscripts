@@ -12,7 +12,7 @@
 #   Implements a module to display and search for release pre times.
 #
 
-namespace eval ::Bot::PreTimes {
+namespace eval ::Bot::Mod::PreTimes {
     if {![info exists [namespace current]::dataSource]} {
         variable dataSource ""
         variable defLimit 5
@@ -25,7 +25,7 @@ namespace eval ::Bot::PreTimes {
 #
 # Connect to the ODBC data source.
 #
-proc ::Bot::PreTimes::DbConnect {} {
+proc ::Bot::Mod::PreTimes::DbConnect {} {
     variable dataSource
 
     # If the TclODBC 'object' already exists, return.
@@ -53,7 +53,7 @@ proc ::Bot::PreTimes::DbConnect {} {
 #
 # Handle NEWDIR and PRE log events.
 #
-proc ::Bot::PreTimes::LogEvent {event destSection pathSection path data} {
+proc ::Bot::Mod::PreTimes::LogEvent {event destSection pathSection path data} {
     variable defLimit
     upvar ::Bot::variables variables
 
@@ -122,7 +122,7 @@ proc ::Bot::PreTimes::LogEvent {event destSection pathSection path data} {
 #
 # Search for a release, command: !pre [-limit <num>] [-section <name>] <pattern>.
 #
-proc ::Bot::PreTimes::Search {target user host channel argv} {
+proc ::Bot::Mod::PreTimes::Search {target user host channel argv} {
     # Parse command options.
     set option(limit) -1
     set pattern [join [GetOpt::Parse $argv {{limit integer} {section arg}} option]]
@@ -180,7 +180,7 @@ proc ::Bot::PreTimes::Search {target user host channel argv} {
 #
 # Module initialisation procedure, called when the module is loaded.
 #
-proc ::Bot::PreTimes::Load {firstLoad} {
+proc ::Bot::Mod::PreTimes::Load {firstLoad} {
     variable defLimit
     variable dataSource
     upvar ::Bot::configHandle configHandle
@@ -229,7 +229,7 @@ proc ::Bot::PreTimes::Load {firstLoad} {
 #
 # Module finalisation procedure, called before the module is unloaded.
 #
-proc ::Bot::PreTimes::Unload {} {
+proc ::Bot::Mod::PreTimes::Unload {} {
     # Remove event callbacks.
     ScriptUnregister pre PRE     [namespace current]::LogEvent
     ScriptUnregister pre PRE-MP3 [namespace current]::LogEvent

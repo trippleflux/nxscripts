@@ -12,7 +12,7 @@
 #   Implements a module to interact with glFTPD's binary data files.
 #
 
-namespace eval ::Bot::GlData {
+namespace eval ::Bot::Mod::GlData {
     if {![info exists [namespace current]::logsPath]} {
         variable logsPath ""
         variable tempPath ""
@@ -20,7 +20,7 @@ namespace eval ::Bot::GlData {
         variable undupeWild 0
     }
     namespace import -force ::Bot::*
-    namespace import -force ::Bot::FtpDaemon::*
+    namespace import -force ::Bot::Mod::Ftpd::*
 }
 
 ####
@@ -28,7 +28,7 @@ namespace eval ::Bot::GlData {
 #
 # Opens a binary file located in glFTPD's log directory.
 #
-proc ::Bot::GlData::OpenBinaryFile {filePath {mode "r"}} {
+proc ::Bot::Mod::GlData::OpenBinaryFile {filePath {mode "r"}} {
     variable logsPath
     if {[catch {set handle [open $filePath $mode]} message]} {
         LogError ModGlData $message
@@ -43,7 +43,7 @@ proc ::Bot::GlData::OpenBinaryFile {filePath {mode "r"}} {
 #
 # Opens glFTPD binary structure file for reading.
 #
-proc ::Bot::GlData::StructOpen {fileName handleVar {backwards 1}} {
+proc ::Bot::Mod::GlData::StructOpen {fileName handleVar {backwards 1}} {
     variable logsPath
     variable structHandles
     variable structLength
@@ -73,7 +73,7 @@ proc ::Bot::GlData::StructOpen {fileName handleVar {backwards 1}} {
 #
 # Reads an entry from a glFTPD binary file.
 #
-proc ::Bot::GlData::StructRead {handle dataVar} {
+proc ::Bot::Mod::GlData::StructRead {handle dataVar} {
     variable structHandles
     upvar $dataVar data
     foreach {backwards structName structLength} $structHandles($handle) {break}
@@ -97,7 +97,7 @@ proc ::Bot::GlData::StructRead {handle dataVar} {
 #
 # Closes a glFTPD binary file.
 #
-proc ::Bot::GlData::StructClose {handle} {
+proc ::Bot::Mod::GlData::StructClose {handle} {
     variable structHandles
     unset structHandles($handle)
     close $handle
@@ -108,7 +108,7 @@ proc ::Bot::GlData::StructClose {handle} {
 #
 # Search the dupelog for a release, command: !dupe [-limit <num>] <pattern>.
 #
-proc ::Bot::GlData::Dupe {target user host channel argv} {
+proc ::Bot::Mod::GlData::Dupe {target user host channel argv} {
     variable logsPath
 
     # Parse command options.
@@ -163,7 +163,7 @@ proc ::Bot::GlData::Dupe {target user host channel argv} {
 #
 # Display recent releases, command: !new [-limit <num>] [pattern].
 #
-proc ::Bot::GlData::New {target user host channel argv} {
+proc ::Bot::Mod::GlData::New {target user host channel argv} {
     variable structFormat
 
     # Parse command options.
@@ -204,7 +204,7 @@ proc ::Bot::GlData::New {target user host channel argv} {
 #
 # Search the dirlog for a release, command: !search [-limit <num>] <pattern>.
 #
-proc ::Bot::GlData::Search {target user host channel argv} {
+proc ::Bot::Mod::GlData::Search {target user host channel argv} {
     variable structFormat
 
     # Parse command options.
@@ -243,7 +243,7 @@ proc ::Bot::GlData::Search {target user host channel argv} {
 #
 # Remove a file the dupefile log, command: !undupe <pattern>.
 #
-proc ::Bot::GlData::Undupe {target user host channel argv} {
+proc ::Bot::Mod::GlData::Undupe {target user host channel argv} {
     variable logsPath
     variable tempPath
     variable undupeChars
@@ -309,7 +309,7 @@ proc ::Bot::GlData::Undupe {target user host channel argv} {
 #
 # Display recent nukes, command: !nukes [-limit <num>] [pattern].
 #
-proc ::Bot::GlData::Nukes {target user host channel argv} {
+proc ::Bot::Mod::GlData::Nukes {target user host channel argv} {
     variable structFormat
 
     # Parse command options.
@@ -346,7 +346,7 @@ proc ::Bot::GlData::Nukes {target user host channel argv} {
 #
 # Display recent unnukes, command: !unnukes [-limit <num>] [pattern].
 #
-proc ::Bot::GlData::Unnukes {target user host channel argv} {
+proc ::Bot::Mod::GlData::Unnukes {target user host channel argv} {
     variable structFormat
 
     # Parse command options.
@@ -383,7 +383,7 @@ proc ::Bot::GlData::Unnukes {target user host channel argv} {
 #
 # Display recent one-lines, command: !onel [-limit <num>].
 #
-proc ::Bot::GlData::OneLines {target user host channel argv} {
+proc ::Bot::Mod::GlData::OneLines {target user host channel argv} {
     variable structFormat
 
     # Parse command options.
@@ -415,7 +415,7 @@ proc ::Bot::GlData::OneLines {target user host channel argv} {
 #
 # Module initialisation procedure, called when the module is loaded.
 #
-proc ::Bot::GlData::Load {firstLoad} {
+proc ::Bot::Mod::GlData::Load {firstLoad} {
     variable logsPath
     variable tempPath
     variable undupeChars
@@ -496,5 +496,5 @@ proc ::Bot::GlData::Load {firstLoad} {
 #
 # Module finalisation procedure, called before the module is unloaded.
 #
-proc ::Bot::GlData::Unload {} {
+proc ::Bot::Mod::GlData::Unload {} {
 }

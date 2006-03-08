@@ -12,7 +12,7 @@
 #   Implements a module to read and announce log entries.
 #
 
-namespace eval ::Bot::ReadLogs {
+namespace eval ::Bot::Mod::ReadLogs {
     if {![info exists [namespace current]::excludePaths]} {
         variable excludePaths [list]
         variable logCount 0
@@ -27,7 +27,7 @@ namespace eval ::Bot::ReadLogs {
 #
 # Add a log file to the monitoring list.
 #
-proc ::Bot::ReadLogs::AddLog {logType logFile} {
+proc ::Bot::Mod::ReadLogs::AddLog {logType logFile} {
     variable logCount
     variable logList
     variable logOffset
@@ -56,7 +56,7 @@ proc ::Bot::ReadLogs::AddLog {logType logFile} {
 #
 # Check if a given path is excluded from announcing.
 #
-proc ::Bot::ReadLogs::IsPathExcluded {path} {
+proc ::Bot::Mod::ReadLogs::IsPathExcluded {path} {
     variable excludePaths
     foreach pattern $excludePaths {
         if {[string match -nocase $pattern $path]} {return 1}
@@ -69,7 +69,7 @@ proc ::Bot::ReadLogs::IsPathExcluded {path} {
 #
 # Parse glFTPD login.log entries.
 #
-proc ::Bot::ReadLogs::ParseLogin {line eventVar dataVar} {
+proc ::Bot::Mod::ReadLogs::ParseLogin {line eventVar dataVar} {
     upvar $eventVar event $dataVar data
 
     # Note: In some glFTPD versions there is an extra space before
@@ -100,7 +100,7 @@ proc ::Bot::ReadLogs::ParseLogin {line eventVar dataVar} {
 #
 # Parse ioFTPD and glFTPD sysop.log entries.
 #
-proc ::Bot::ReadLogs::ParseSysop {line eventVar dataVar} {
+proc ::Bot::Mod::ReadLogs::ParseSysop {line eventVar dataVar} {
     variable reSysop
     upvar $eventVar event $dataVar data
 
@@ -119,7 +119,7 @@ proc ::Bot::ReadLogs::ParseSysop {line eventVar dataVar} {
 #
 # Log timer, executed every second to check for new log file entries.
 #
-proc ::Bot::ReadLogs::Timer {} {
+proc ::Bot::Mod::ReadLogs::Timer {} {
     variable timerId
     if {[catch {Update}]} {
         LogError ModReadLogs "Unhandled error, please report to developers:\n$::errorInfo"
@@ -133,7 +133,7 @@ proc ::Bot::ReadLogs::Timer {} {
 #
 # Check for new log entries.
 #
-proc ::Bot::ReadLogs::Update {} {
+proc ::Bot::Mod::ReadLogs::Update {} {
     variable logList
     variable logOffset
     variable reBase
@@ -242,7 +242,7 @@ proc ::Bot::ReadLogs::Update {} {
 #
 # Module initialisation procedure, called when the module is loaded.
 #
-proc ::Bot::ReadLogs::Load {firstLoad} {
+proc ::Bot::Mod::ReadLogs::Load {firstLoad} {
     variable excludePaths
     variable logCount
     variable logList
@@ -328,7 +328,7 @@ proc ::Bot::ReadLogs::Load {firstLoad} {
 #
 # Module finalisation procedure, called before the module is unloaded.
 #
-proc ::Bot::ReadLogs::Unload {} {
+proc ::Bot::Mod::ReadLogs::Unload {} {
     variable timerId
 
     if {$timerId ne ""} {
