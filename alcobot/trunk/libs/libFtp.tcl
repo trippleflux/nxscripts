@@ -12,8 +12,8 @@
 #   Implements a FTP client library to interact with FTP servers.
 #
 # Procedures:
-#   Ftp::Init       <logProc>
-#   Ftp::Open       <host> <port> <user> <passwd> [-notify <script>] [-secure <type>]
+#   Ftp::Init       <logCallback>
+#   Ftp::Open       <host> <port> <user> <passwd> [-notify <callback>] [-secure <type>]
 #   Ftp::Close      <handle>
 #   Ftp::GetError   <handle>
 #   Ftp::GetStatus  <handle>
