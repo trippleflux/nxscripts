@@ -13,7 +13,7 @@
 #
 
 namespace eval ::Bot {
-    namespace export GetResultLimit \
+    namespace export GetResultLimit GlobEscape \
         ListConvert ListExists ListParse ListRemove \
         IsSubDir PathParse PathParseSection PathStrip \
         PermCheck PermMatchFlags \
@@ -57,6 +57,15 @@ proc ::Bot::GetResultLimit {results} {
         return $maximumResults
     }
     return $results
+}
+
+####
+# GlobEscape
+#
+# Escapes a glob pattern (*, ?, []).
+#
+proc ::Bot::GlobEscape {string} {
+    return [string map {* \\* ? \\? \\ \\\\ \[ \\\[ \] \\\]} $string]
 }
 
 ################################################################################

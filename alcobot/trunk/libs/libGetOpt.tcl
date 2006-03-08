@@ -25,6 +25,7 @@ namespace eval ::GetOpt {
         regexp -- {must be (.+)$} $charClasses dummy charClasses
         regsub -all -- {, (or )?} $charClasses { } charClasses
     }
+    namespace import -force ::Bot::GlobEscape
     namespace import -force ::Bot::ListConvert
 }
 
@@ -54,8 +55,7 @@ proc ::GetOpt::Index {list element} {
     set index [lsearch -exact $list $element]
     if {$index == -1} {
         # Check for a partial match (e.g. -foo will match -foobar).
-        set element [string map {* \\* ? \\? \\ \\\\ \[ \\\[ \] \\\]} $element]
-        append element "*"
+        set element [GlobEscape $element]; append element "*"
         set index [lsearch -all -glob $list $element]
 
         # If there is more than one partial match, a more specific
