@@ -9,7 +9,7 @@
 #   neoxed (neoxed@gmail.com) Oct 7, 2005
 #
 # Abstract:
-#   Implements a module to display online statistics.
+#   Implements a module to display online users and bandwidth usage.
 #
 
 namespace eval ::Bot::Mod::Online {

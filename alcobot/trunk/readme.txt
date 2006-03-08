@@ -366,7 +366,7 @@ before use. Read the following installation instructions:
   ############################################################
 
   FTPD: glFTPD/ioFTPD
-  Info: Display online statistics.
+  Info: Display online users and bandwidth usage.
   Path: modules/*ftpd/online
 
   1. Add "online" to the module list in AlcoBot.conf.
