@@ -12,6 +12,7 @@
 #   Implements a FTP client library to interact with FTP servers.
 #
 # Procedures:
+#   Ftp::Init       <logProc>
 #   Ftp::Open       <host> <port> <user> <passwd> [-notify <script>] [-secure <type>]
 #   Ftp::Close      <handle>
 #   Ftp::GetError   <handle>
@@ -22,13 +23,27 @@
 #
 
 namespace eval ::Ftp {
+    variable logCallback
     variable nextHandle
-    if {![info exists nextHandle]} {
+    if {![info exists logCallback]} {
+        set logCallback ""
         set nextHandle 0
     }
+}
 
-    # For SSL/TLS support.
-    catch {package require tls 1.5}
+####
+# Ftp::Init
+#
+# Initialises the FTP library.
+#
+proc ::Ftp::Init {logProc} {
+    # Log callback (disabled if "").
+    variable logCallback $logProc
+
+    # Required for SSL/TLS support.
+    if {[catch {package require tls 1.5} message]} {
+        Debug FtpInit "SSL/TLS support disabled: $message"
+    }
 }
 
 ####
@@ -58,7 +73,7 @@ proc ::Ftp::Open {host port user passwd args} {
                 implicit - ssl - tls {
                     # Make sure the TLS package (http://tls.sf.net) is present.
                     if {[catch {package present tls} message]} {
-                        throw FTP "SSL/TLS support not available, install the Tcl-TLS package"
+                        throw FTP "SSL/TLS not available"
                     }
                 }
                 default {
@@ -227,7 +242,10 @@ proc ::Ftp::Acquire {handle handleVar} {
 # Logs a debug message.
 #
 proc ::Ftp::Debug {function message} {
-    ::Bot::LogDebug $function $message
+    variable logCallback
+    if {$logCallback ne ""} {
+        eval [list $logCallback $function $message]
+    }
 }
 
 ####
