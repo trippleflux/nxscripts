@@ -27,7 +27,7 @@ TCL_DECLARE_MUTEX(initMutex)
 // efficient approach, but higher level synchronization methods are more
 // difficult due to the lack of consistency between platforms.
 //
-TCL_DECLARE_MUTEX(stateMutex)
+TCL_DECLARE_MUTEX(stateListMutex)
 
 #ifdef _WINDOWS
 OSVERSIONINFOA osVersion;
@@ -188,7 +188,7 @@ Alcoext_Init(
     stateListPtr->next   = NULL;
     stateListPtr->prev   = NULL;
 
-    Tcl_MutexLock(&stateMutex);
+    Tcl_MutexLock(&stateListMutex);
     // Insert at the list head.
     if (stateListHead == NULL) {
         stateListHead = stateListPtr;
@@ -197,7 +197,7 @@ Alcoext_Init(
         stateListHead->prev = stateListPtr;
         stateListHead = stateListPtr;
     }
-    Tcl_MutexUnlock(&stateMutex);
+    Tcl_MutexUnlock(&stateListMutex);
 
     // Clean up state on interpreter deletion.
     Tcl_CallWhenDeleted(interp, InterpDeleteHandler, (ClientData)statePtr);
@@ -268,10 +268,12 @@ Alcoext_Unload(
     int flags
     )
 {
+    DebugPrint("Unload: interp=%p flags=%d\n", interp, flags);
+
     if (flags == TCL_UNLOAD_DETACH_FROM_INTERPRETER) {
         StateList *stateListPtr;
 
-        Tcl_MutexLock(&stateMutex);
+        Tcl_MutexLock(&stateListMutex);
         for (stateListPtr = stateListHead; stateListPtr != NULL; stateListPtr = stateListPtr->next) {
 
             if (interp == stateListPtr->interp) {
@@ -291,10 +293,11 @@ Alcoext_Unload(
                 break;
             }
         }
-        Tcl_MutexUnlock(&stateMutex);
+        Tcl_MutexUnlock(&stateListMutex);
         return TCL_OK;
 
     } else if (flags == TCL_UNLOAD_DETACH_FROM_PROCESS) {
+
         ExitHandler(NULL);
         return TCL_OK;
     }
@@ -345,6 +348,8 @@ FreeState(
     ExtState *statePtr
     )
 {
+    DebugPrint("FreeState: statePtr=%p\n", statePtr);
+
     if (statePtr != NULL) {
         CryptCloseHandles(statePtr->cryptTable);
         Tcl_DeleteHashTable(statePtr->cryptTable);
@@ -357,7 +362,6 @@ FreeState(
 #endif // !_WINDOWS
 
         ckfree((char *)statePtr);
-        statePtr = NULL;
     }
 }
 
@@ -380,6 +384,8 @@ ExitHandler(
     ClientData dummy
     )
 {
+    DebugPrint("ExitHandler: none\n");
+
     Tcl_MutexLock(&initMutex);
 #ifdef _WINDOWS
     if (winProcs.module != NULL) {
@@ -391,7 +397,7 @@ ExitHandler(
     initialised = 0;
     Tcl_MutexUnlock(&initMutex);
 
-    Tcl_MutexLock(&stateMutex);
+    Tcl_MutexLock(&stateListMutex);
     if (stateListHead != NULL) {
         StateList *stateListPtr;
         StateList *nextStateListPtr;
@@ -405,7 +411,7 @@ ExitHandler(
         }
         stateListHead = NULL;
     }
-    Tcl_MutexUnlock(&stateMutex);
+    Tcl_MutexUnlock(&stateListMutex);
 
 #ifdef TCL_MEM_DEBUG
     Tcl_DumpActiveMemory("MemDump.txt");
@@ -436,11 +442,12 @@ InterpDeleteHandler(
     ExtState *statePtr = (ExtState *)clientData;
     StateList *stateListPtr;
 
+    DebugPrint("InterpDeleteHandler: interp=%p statePtr=%p\n", interp, statePtr);
     if (statePtr == NULL) {
         return;
     }
 
-    Tcl_MutexLock(&stateMutex);
+    Tcl_MutexLock(&stateListMutex);
     for (stateListPtr = stateListHead; stateListPtr != NULL; stateListPtr = stateListPtr->next) {
 
         if (statePtr == stateListPtr->state) {
@@ -461,7 +468,7 @@ InterpDeleteHandler(
             break;
         }
     }
-    Tcl_MutexUnlock(&stateMutex);
+    Tcl_MutexUnlock(&stateListMutex);
 
     FreeState(statePtr);
 }
