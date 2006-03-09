@@ -1,6 +1,8 @@
 AlcoExt v0.6.0 (not yet released):
   CHG: Greatly improved the Windows build system.
   CHG: Moved all commands out of the "::alcoholicz" namespace.
+  FIX: Decreasing the reference count of unshared objects in "volume info" and
+       "ioftpd info" caused a bizarre error in memory-debug builds of Tcl 8.5.
   FIX: Double-free when unloading the extension with Tcl 8.5's "unload" command.
   FIX: Minor errors in the regression tests.
 

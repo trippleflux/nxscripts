@@ -2264,7 +2264,6 @@ IoInfoCmd(
     Tcl_SetStringObj(fieldObj, (name), -1);                                               \
     if (Tcl_ObjSetVar2(interp, objv[3], fieldObj, valueObj, TCL_LEAVE_ERR_MSG) == NULL) { \
         Tcl_DecrRefCount(fieldObj);                                                       \
-        Tcl_DecrRefCount(valueObj);                                                       \
         return TCL_ERROR;                                                                 \
     }
 
