@@ -306,6 +306,7 @@ proc ::nxTools::Nuke::Main {argv} {
             }
 
             set newPath [file join $parentPath $newName]
+            set renameFailed 0
             if {![string equal -nocase $realPath $newPath]} {
                 # In order to prevent users from re-entering the
                 # directory while nuking, it will be chmodded to 000.
@@ -317,12 +318,10 @@ proc ::nxTools::Nuke::Main {argv} {
 
                 KickUsers [file join $virtualPath "*"]
                 if {[catch {file rename -force -- $realPath $newPath} error]} {
-                    set renameFail 1
                     ErrorLog NukeRename $error
                     iputs "|------------------------------------------------------------------------|"
                     LinePuts "Unable to rename directory, ask a siteop to rename it manually."
-                } else {
-                    set renameFail 0
+                    set renameFailed 1
                 }
             }
 
@@ -359,7 +358,7 @@ proc ::nxTools::Nuke::Main {argv} {
             } else {ErrorLog NukeDb $error}
 
             # Save the nuke ID and multiplier for later use (ie. unnuke).
-            UpdateRecord [expr {$renameFail ? $realPath : $newPath}] "2|$nukeStatus|$nukeId|$user|$group|$multi|$reason"
+            UpdateRecord [expr {$renameFailed ? $realPath : $newPath}] "2|$nukeStatus|$nukeId|$user|$group|$multi|$reason"
             iputs "'------------------------------------------------------------------------'"
         }
         NUKES - UNNUKES {
