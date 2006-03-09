@@ -33,7 +33,7 @@
 #define TOUCH_FLAG_ISDIR     0x0008
 #define TOUCH_FLAG_RECURSE   0x0010
 
-__forceinline unsigned long
+FORCEINLINE unsigned long
 TouchFile(
     TCHAR *filePath,
     FILETIME *touchTime,
@@ -48,7 +48,7 @@ RecursiveTouch(
     );
 
 
-__forceinline unsigned long
+FORCEINLINE unsigned long
 TouchFile(
     TCHAR *filePath,
     FILETIME *touchTime,
