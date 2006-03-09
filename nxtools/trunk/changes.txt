@@ -7,6 +7,7 @@ nxTools v1.0.3 (not released):
   FIX: Possible crashes using "SITE OPEN/CLOSE" due to ioFTPD's buggy
        global-interp "var get/set" command.
   FIX: The unnuke command failed when unnuking a directory without a nuke prefix.
+  FIX: Update the nuke record for the new and old directory names if the rename fails.
 
 nxTools v1.0.2 (Feb 23, 2006):
   NEW: Added text templates for SITE WHO, see the text/Who.* files.

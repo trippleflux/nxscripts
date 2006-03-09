@@ -358,7 +358,9 @@ proc ::nxTools::Nuke::Main {argv} {
             } else {ErrorLog NukeDb $error}
 
             # Save the nuke ID and multiplier for later use (ie. unnuke).
-            UpdateRecord [expr {$renameFailed ? $realPath : $newPath}] "2|$nukeStatus|$nukeId|$user|$group|$multi|$reason"
+            set record "2|$nukeStatus|$nukeId|$user|$group|$multi|$reason"
+            if {$renameFailed} {UpdateRecord $realPath $record}
+            UpdateRecord $newPath $record
             iputs "'------------------------------------------------------------------------'"
         }
         NUKES - UNNUKES {
