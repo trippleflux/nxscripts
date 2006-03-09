@@ -1,6 +1,7 @@
 AlcoExt v0.6.0 (not yet released):
   CHG: Greatly improved the Windows build system.
   CHG: Moved all commands out of the "::alcoholicz" namespace.
+  FIX: Double-free when unloading the extension with Tcl 8.5's "unload" command.
   FIX: Minor errors in the regression tests.
 
 AlcoExt v0.5.0 (Feb 23, 2006):

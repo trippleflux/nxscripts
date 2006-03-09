@@ -464,11 +464,15 @@ InterpDeleteHandler(
                 stateListPtr->next->prev = stateListPtr->prev;
             }
 
+            //
+            // Tcl 8.5 calls the unload function before the interp deletion
+            // handler. Since all states are freed in the unload function,
+            // we must only free states present in the global state list.
+            //
+            FreeState(stateListPtr->state);
             ckfree((char *)stateListPtr);
             break;
         }
     }
     Tcl_MutexUnlock(&stateListMutex);
-
-    FreeState(statePtr);
 }
