@@ -59,6 +59,8 @@ GetVolumeInfo(
         Tcl_ResetResult(interp);
         Tcl_AppendResult(interp, "unable to retrieve mount information for \"",
             Tcl_GetString(pathObj), "\": ", Tcl_PosixError(interp), NULL);
+
+        Tcl_DecrRefCount(transPathObj);
         return TCL_ERROR;
     }
 
@@ -77,6 +79,7 @@ GetVolumeInfo(
     strncpy(volumeInfo->type, F_TYPENAME(fsInfo), ARRAYSIZE(volumeInfo->type));
     volumeInfo->type[ARRAYSIZE(volumeInfo->type)-1] = '\0';
 
+    Tcl_DecrRefCount(transPathObj);
     return TCL_OK;
 }
 

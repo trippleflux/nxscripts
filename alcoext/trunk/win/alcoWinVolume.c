@@ -146,6 +146,8 @@ GetVolumeInfo(
         Tcl_ResetResult(interp);
         Tcl_AppendResult(interp, "unable to retrieve volume information for \"",
             Tcl_GetString(pathObj), "\": ", TclSetWinError(interp, GetLastError()), NULL);
+
+        Tcl_DecrRefCount(transPathObj);
         return TCL_ERROR;
     }
 
@@ -164,6 +166,7 @@ GetVolumeInfo(
     }
     StringCchCopyA(volumeInfo->type, ARRAYSIZE(volumeInfo->type), type);
 
+    Tcl_DecrRefCount(transPathObj);
     return TCL_OK;
 }
 
