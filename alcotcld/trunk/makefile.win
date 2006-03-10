@@ -135,7 +135,9 @@ TCL_H   = $(TCL_DIR)\include\tcl.h
 !error Unable to find tcl.h; the TCL_DIR variable is incorrect.
 !endif
 
-!if [nmakehlp -g $(TCL_H) TCL_VERSION] == 83
+!if [nmakehlp -g $(TCL_H) TCL_VERSION] == 0
+!error Unable to retrieve version from "$(TCL_H)".
+!elseif [nmakehlp -g $(TCL_H) TCL_VERSION] == 83
 TCL_DOTVERSION	= 8.3
 !elseif [nmakehlp -g $(TCL_H) TCL_VERSION] == 84
 TCL_DOTVERSION	= 8.4
@@ -145,8 +147,6 @@ TCL_DOTVERSION	= 8.5
 TCL_DOTVERSION	= 8.6
 !elseif [nmakehlp -g $(TCL_H) TCL_VERSION] == 90
 TCL_DOTVERSION	= 9.0
-!elseif [nmakehlp -g $(TCL_H) TCL_VERSION] == 0
-!error Unable to retrieve version from "$(TCL_H)".
 !else
 !error Unknown version of Tcl, check "$(TCL_H)".
 !endif
