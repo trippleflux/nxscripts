@@ -304,8 +304,8 @@ proc ::nxTools::Nuke::Main {argv} {
                 set virtualPath [TrimTag $virtualPath]
                 set newName [file tail $virtualPath]
             }
-
             set newPath [file join $parentPath $newName]
+
             set renameFailed 0
             if {![string equal -nocase $realPath $newPath]} {
                 # In order to prevent users from re-entering the
@@ -318,10 +318,10 @@ proc ::nxTools::Nuke::Main {argv} {
 
                 KickUsers [file join $virtualPath "*"]
                 if {[catch {file rename -force -- $realPath $newPath} error]} {
+                    set renameFailed 1
                     ErrorLog NukeRename $error
                     iputs "|------------------------------------------------------------------------|"
                     LinePuts "Unable to rename directory, ask a siteop to rename it manually."
-                    set renameFailed 1
                 }
             }
 
