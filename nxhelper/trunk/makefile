@@ -143,19 +143,29 @@ TCL_H   = $(TCL_DIR)\include\tcl.h
 !error Unable to find tcl.h; the TCL_DIR variable is incorrect.
 !endif
 
-!if [nmakehlp -v $(TCL_H) ""] == 0
-!include version.vc
+!if [nmakehlp -g $(TCL_H) TCL_VERSION] == 83
+TCL_DOTVERSION	= 8.3
+!elseif [nmakehlp -g $(TCL_H) TCL_VERSION] == 84
+TCL_DOTVERSION	= 8.4
+!elseif [nmakehlp -g $(TCL_H) TCL_VERSION] == 85
+TCL_DOTVERSION	= 8.5
+!elseif [nmakehlp -g $(TCL_H) TCL_VERSION] == 86
+TCL_DOTVERSION	= 8.6
+!elseif [nmakehlp -g $(TCL_H) TCL_VERSION] == 90
+TCL_DOTVERSION	= 9.0
+!elseif [nmakehlp -g $(TCL_H) TCL_VERSION] == 0
+!error Unable to retrieve version from "$(TCL_H)".
 !else
-TCL_DOTVERSION  = 8.4
-TCL_VERSION = $(TCL_DOTVERSION:.=)
+!error Unknown version of Tcl, check "$(TCL_H)".
 !endif
 
-TCL_LIB      = "$(TCL_DIR)\bin\tcl$(TCL_VERSION)$(TCL_SUFFIX).dll"
-TCL_SH       = "$(TCL_DIR)\bin\tclsh$(TCL_VERSION)$(TCL_SUFFIX).exe"
-TCL_STUBLIB  = "$(TCL_DIR)\lib\tclstub$(TCL_VERSION).lib"
-TCL_IMPLIB   = "$(TCL_DIR)\lib\tcl$(TCL_VERSION)$(TCL_SUFFIX).lib"
-TCL_LIBRARY  = $(TCL_DIR)\lib
-TCL_INCLUDES = $(TCL_DIR)\include
+TCL_VERSION = $(TCL_DOTVERSION:.=)
+TCL_LIB     = "$(TCL_DIR)\bin\tcl$(TCL_VERSION)$(TCL_SUFFIX).dll"
+TCL_SH      = "$(TCL_DIR)\bin\tclsh$(TCL_VERSION)$(TCL_SUFFIX).exe"
+TCL_STUBLIB = "$(TCL_DIR)\lib\tclstub$(TCL_VERSION).lib"
+TCL_IMPLIB  = "$(TCL_DIR)\lib\tcl$(TCL_VERSION)$(TCL_SUFFIX).lib"
+TCL_LIBRARY = $(TCL_DIR)\lib
+TCL_INCLUDES= $(TCL_DIR)\include
 
 !message *** Tcl Version: $(TCL_DOTVERSION)
 !message *** Tcl Stub: $(TCL_STUBLIB)
@@ -242,7 +252,6 @@ distclean: clean
     @IF EXIST Release RMDIR /Q /S Release
     @IF EXIST nmakehlp.exe DEL /F nmakehlp.exe
     @IF EXIST nmakehlp.obj DEL /F nmakehlp.obj
-    @IF EXIST version.vc DEL /F version.vc
 
 install: library package-index
 	@ECHO Installing to: $(PKG_INSTALL_DIR)
