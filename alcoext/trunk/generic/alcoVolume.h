@@ -35,7 +35,7 @@ typedef struct {
 int
 GetVolumeInfo(
     Tcl_Interp *interp,
-    char *volumePath,
+    Tcl_Obj *pathObj,
     VolumeInfo *volumeInfo
     );
 

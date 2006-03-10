@@ -25,7 +25,7 @@ GetVolumeInfo
 Arguments:
     interp     - Interpreter to use for error reporting.
 
-    volumePath - A pointer to a string that specifies the volume.
+    pathObj    - A pointer to an object that specifies the volume.
 
     volumeInfo - A pointer to a "VolumeInfo" structure.
 
@@ -36,20 +36,29 @@ Return Value:
 int
 GetVolumeInfo(
     Tcl_Interp *interp,
-    char *volumePath,
+    Tcl_Obj *pathObj,
     VolumeInfo *volumeInfo
     )
 {
+    char *path;
+    Tcl_Obj *transPathObj;
     struct STATFS_T fsInfo;
 
     assert(interp     != NULL);
-    assert(volumePath != NULL);
+    assert(pathObj    != NULL);
     assert(volumeInfo != NULL);
 
-    if (STATFS_FN(volumePath, &fsInfo) != 0) {
+    transPathObj = Tcl_FSGetTranslatedPath(interp, pathObj);
+    if (transPathObj == NULL) {
+        return TCL_ERROR;
+    } else {
+        path = Tcl_GetString(transPathObj);
+    }
+
+    if (STATFS_FN(path, &fsInfo) != 0) {
         Tcl_ResetResult(interp);
         Tcl_AppendResult(interp, "unable to retrieve mount information for \"",
-            volumePath, "\": ", Tcl_PosixError(interp), NULL);
+            Tcl_GetString(pathObj), "\": ", Tcl_PosixError(interp), NULL);
         return TCL_ERROR;
     }
 

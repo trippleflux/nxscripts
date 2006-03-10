@@ -107,7 +107,7 @@ GetVolumeInfo
 Arguments:
     interp     - Interpreter to use for error reporting.
 
-    volumePath - A pointer to a string that specifies the volume.
+    pathObj    - A pointer to an object that specifies the volume.
 
     volumeInfo - A pointer to a "VolumeInfo" structure.
 
@@ -118,35 +118,43 @@ Return Value:
 int
 GetVolumeInfo(
     Tcl_Interp *interp,
-    char *volumePath,
+    Tcl_Obj *pathObj,
     VolumeInfo *volumeInfo
     )
 {
+    char *path;
     char *type;
+    Tcl_Obj *transPathObj;
 
     assert(interp     != NULL);
-    assert(volumePath != NULL);
+    assert(pathObj    != NULL);
     assert(volumeInfo != NULL);
 
-    if (!GetVolumeInformationA(volumePath,
-        volumeInfo->name, ARRAYSIZE(volumeInfo->name),
-        &volumeInfo->id,
-        &volumeInfo->length,
-        &volumeInfo->flags,
-        NULL, 0)) {
+    transPathObj = Tcl_FSGetTranslatedPath(interp, pathObj);
+    if (transPathObj == NULL) {
+        return TCL_ERROR;
+    } else {
+        path = Tcl_GetString(transPathObj);
+    }
 
+    if (!GetVolumeInformationA(path,
+            volumeInfo->name, ARRAYSIZE(volumeInfo->name),
+            &volumeInfo->id,
+            &volumeInfo->length,
+            &volumeInfo->flags,
+            NULL, 0)) {
         Tcl_ResetResult(interp);
         Tcl_AppendResult(interp, "unable to retrieve volume information for \"",
-            volumePath, "\": ", TclSetWinError(interp, GetLastError()), NULL);
+            Tcl_GetString(pathObj), "\": ", TclSetWinError(interp, GetLastError()), NULL);
         return TCL_ERROR;
     }
 
-    if (!GetVolumeSize(volumePath, &volumeInfo->free, &volumeInfo->total)) {
+    if (!GetVolumeSize(path, &volumeInfo->free, &volumeInfo->total)) {
         volumeInfo->free = 0;
         volumeInfo->total = 0;
     }
 
-    switch (GetDriveTypeA(volumePath)) {
+    switch (GetDriveTypeA(path)) {
         case DRIVE_CDROM:     type = "CD-ROM";    break;
         case DRIVE_FIXED:     type = "Fixed";     break;
         case DRIVE_RAMDISK:   type = "RAM-Disk";  break;

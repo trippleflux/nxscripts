@@ -268,7 +268,7 @@ VolumeObjCmd(
             }
 
             memset(&volumeInfo, 0, sizeof(VolumeInfo));
-            if (GetVolumeInfo(interp, Tcl_GetString(objv[2]), &volumeInfo) != TCL_OK) {
+            if (GetVolumeInfo(interp, objv[2], &volumeInfo) != TCL_OK) {
                 return TCL_ERROR;
             }
 
