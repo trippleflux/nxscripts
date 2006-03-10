@@ -191,6 +191,8 @@ proc ::nxAutoNuke::Nuke {realPath virtualPath nukerUser nukerGroup multi reason}
 
     set newName "$nuke(Prefix)[file tail $virtualPath]"
     set newPath [file join $parentPath $newName]
+
+    set renameFailed 0
     if {![string equal -nocase $realPath $newPath]} {
         # In order to prevent users from re-entering the
         # directory while nuking, it will be chmodded to 000.
@@ -202,10 +204,8 @@ proc ::nxAutoNuke::Nuke {realPath virtualPath nukerUser nukerGroup multi reason}
 
         KickUsers [file join $virtualPath "*"]
         if {[catch {file rename -force -- $realPath $newPath} error]} {
-            set renameFail 1
+            set renameFailed 1
             ErrorLog AutoNukeRename $error
-        } else {
-            set renameFail 0
         }
     }
 
@@ -242,7 +242,9 @@ proc ::nxAutoNuke::Nuke {realPath virtualPath nukerUser nukerGroup multi reason}
     } else {ErrorLog AutoNukeDb $error}
 
     # Save the nuke ID and multiplier for later use (ie. unnuke).
-    UpdateRecord [expr {$renameFail ? $realPath : $newPath}] "2|0|$nukeId|$nukerUser|$nukerGroup|$multi|$reason"
+    set record "2|0|$nukeId|$nukerUser|$nukerGroup|$multi|$reason"
+    if {$renameFailed} {UpdateRecord $realPath $record}
+    UpdateRecord $newPath $record
     return 1
 }
 
