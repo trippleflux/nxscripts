@@ -39,9 +39,9 @@ Abstract:
     ioftpd who          <msgWindow> <fields>       - Query online users.
 
     VFS Commands:
+    ioftpd vfs flush    <msgWindow> <path>
     ioftpd vfs read     <msgWindow> <path> [-uid] [-gid] [-chmod]
     ioftpd vfs write    <msgWindow> <path> [-recurse <bool>] [-uid <uid>] [-gid <gid>] [-chmod <chmod>]
-    ioftpd vfs flush    <msgWindow> <path>
 
 --*/
 
@@ -58,105 +58,6 @@ Abstract:
 #include "ioftpd\GroupFile.h"
 #include "ioftpd\WinMessages.h"
 #include "ioftpd\DataCopy.h"
-
-//
-// Tcl command functions.
-//
-
-static int
-IoGroupCmd(
-    Tcl_Interp *interp,
-    int objc,
-    Tcl_Obj *CONST objv[]
-    );
-
-static int
-IoInfoCmd(
-    Tcl_Interp *interp,
-    int objc,
-    Tcl_Obj *CONST objv[]
-    );
-
-static int
-IoKickCmd(
-    Tcl_Interp *interp,
-    int objc,
-    Tcl_Obj *CONST objv[]
-    );
-
-static int
-IoKillCmd(
-    Tcl_Interp *interp,
-    int objc,
-    Tcl_Obj *CONST objv[]
-    );
-
-static int
-IoUserCmd(
-    Tcl_Interp *interp,
-    int objc,
-    Tcl_Obj *CONST objv[]
-    );
-
-static int
-IoVfsCmd(
-    Tcl_Interp *interp,
-    int objc,
-    Tcl_Obj *CONST objv[]
-    );
-
-static int
-IoWhoCmd(
-    Tcl_Interp *interp,
-    int objc,
-    Tcl_Obj *CONST objv[]
-    );
-
-//
-// Shared memory structures and functions.
-//
-
-typedef struct {
-    HWND  messageWnd;       // Handle to ioFTPD's message window.
-    DWORD processId;        // Current process ID.
-} ShmSession;
-
-typedef struct {
-    DC_MESSAGE *message;    // Data-copy message structure.
-    void       *block;      // Allocated memory block.
-    void       *remote;     // ???
-    HANDLE     event;       // Event handle.
-    HANDLE     memMap;      // Memory mapping handle.
-    DWORD      bytes;       // Size of the memory block, in bytes.
-} ShmMemory;
-
-static int
-ShmInit(
-    Tcl_Interp *interp,
-    Tcl_Obj *windowObj,
-    ShmSession *session
-    );
-
-static ShmMemory *
-ShmAlloc(
-    Tcl_Interp *interp,
-    ShmSession *session,
-    DWORD bytes
-    );
-
-static void
-ShmFree(
-    ShmSession *session,
-    ShmMemory *memory
-    );
-
-static DWORD
-ShmQuery(
-    ShmSession *session,
-    ShmMemory *memory,
-    DWORD queryType,
-    DWORD timeOut
-    );
 
 //
 // Row data parsing functions.
@@ -226,7 +127,53 @@ static const RowData groupRowDef[] = {
 };
 
 //
-// Helper functions.
+// Shared memory structures and functions.
+//
+
+typedef struct {
+    HWND  messageWnd;       // Handle to ioFTPD's message window.
+    DWORD processId;        // Current process ID.
+} ShmSession;
+
+typedef struct {
+    DC_MESSAGE *message;    // Data-copy message structure.
+    void       *block;      // Allocated memory block.
+    void       *remote;     // ???
+    HANDLE     event;       // Event handle.
+    HANDLE     memMap;      // Memory mapping handle.
+    DWORD      bytes;       // Size of the memory block, in bytes.
+} ShmMemory;
+
+static int
+ShmInit(
+    Tcl_Interp *interp,
+    Tcl_Obj *windowObj,
+    ShmSession *session
+    );
+
+static ShmMemory *
+ShmAlloc(
+    Tcl_Interp *interp,
+    ShmSession *session,
+    DWORD bytes
+    );
+
+static void
+ShmFree(
+    ShmSession *session,
+    ShmMemory *memory
+    );
+
+static DWORD
+ShmQuery(
+    ShmSession *session,
+    ShmMemory *memory,
+    DWORD queryType,
+    DWORD timeOut
+    );
+
+//
+// Group, user, and VFS functions.
 //
 
 static int
@@ -344,7 +291,10 @@ VfsFlush(
     const char *dirPath
     );
 
-// Flags for GetOnlineFields
+//
+// Online data functions.
+//
+
 #define ONLINE_GET_GROUPID  0x0001
 #define ONLINE_GET_USERNAME 0x0002
 
@@ -356,10 +306,6 @@ GetOnlineFields(
     int fieldCount,
     unsigned short flags
     );
-
-//
-// Who fields.
-//
 
 static const char *whoFields[] = {
     "action",
@@ -408,250 +354,58 @@ enum {
     WHO_VPATH
 };
 
-
-/*++
+//
+// Tcl command functions.
+//
 
-ShmInit
-
-    Initialise a shared memory session.
-
-Arguments:
-    interp      - Interpreter to use for error reporting.
-
-    windowObj   - Object containing the name of ioFTPD's message window.
-
-    session     - Pointer to the ShmSession structure to be initialised.
-
-Return Value:
-    A standard Tcl result.
-
---*/
 static int
-ShmInit(
+IoGroupCmd(
     Tcl_Interp *interp,
-    Tcl_Obj *windowObj,
-    ShmSession *session
-    )
-{
-    char *windowName;
+    int objc,
+    Tcl_Obj *CONST objv[]
+    );
 
-    assert(interp    != NULL);
-    assert(session   != NULL);
-    assert(windowObj != NULL);
-
-    windowName = Tcl_GetString(windowObj);
-    session->messageWnd = FindWindowA(windowName, NULL);
-    session->processId  = GetCurrentProcessId();
-
-    if (session->messageWnd == NULL) {
-        Tcl_ResetResult(interp);
-        Tcl_AppendResult(interp, "unable to find window \"", windowName,
-            "\": ", TclSetWinError(interp, GetLastError()), NULL);
-        return TCL_ERROR;
-    }
-
-    return TCL_OK;
-}
-
-/*++
-
-ShmAlloc
-
-    Allocates shared memory.
-
-Arguments:
-    interp      - Interpreter to use for error reporting.
-
-    session     - Pointer to an initialised ShmSession structure.
-
-    bytes       - Number of bytes to be allocated.
-
-Return Value:
-    If the function succeeds, the return value is a pointer to a ShmMemory
-    structure. This structure should be freed by the ShmFree function when
-    it is no longer needed. If the function fails, the return value is NULL.
-
---*/
-static ShmMemory *
-ShmAlloc(
+static int
+IoInfoCmd(
     Tcl_Interp *interp,
-    ShmSession *session,
-    DWORD bytes
-    )
-{
-    DC_MESSAGE *message = NULL;
-    ShmMemory *memory;
-    BOOL success = FALSE;
-    HANDLE event  = NULL;
-    HANDLE memMap = NULL;
-    void *remote;
+    int objc,
+    Tcl_Obj *CONST objv[]
+    );
 
-    assert(interp  != NULL);
-    assert(session != NULL);
-    assert(bytes > 0);
+static int
+IoKickCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[]
+    );
 
-    event = CreateEvent(NULL, FALSE, FALSE, NULL);
-    if (event == NULL) {
-        Tcl_ResetResult(interp);
-        Tcl_AppendResult(interp, "unable to create event: ",
-            TclSetWinError(interp, GetLastError()), NULL);
-        return NULL;
-    }
+static int
+IoKillCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[]
+    );
 
-    memory = (ShmMemory *)ckalloc(sizeof(ShmMemory));
-    bytes += sizeof(DC_MESSAGE);
+static int
+IoUserCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[]
+    );
 
-    // Allocate memory in local process.
-    memMap = CreateFileMapping(INVALID_HANDLE_VALUE, NULL,
-        PAGE_READWRITE|SEC_COMMIT, 0, bytes, NULL);
+static int
+IoVfsCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[]
+    );
 
-    if (memMap != NULL) {
-        message = (DC_MESSAGE *)MapViewOfFile(memMap,
-            FILE_MAP_READ|FILE_MAP_WRITE, 0, 0, bytes);
-
-        if (message != NULL) {
-            // Initialise data-copy message structure.
-            message->hEvent       = event;
-            message->hObject      = NULL;
-            message->lpMemoryBase = (void *)message;
-            message->lpContext    = &message[1];
-
-            SetLastError(ERROR_SUCCESS);
-            remote = (void *)SendMessage(session->messageWnd, WM_DATACOPY_FILEMAP,
-                (WPARAM)session->processId, (LPARAM)memMap);
-
-            if (remote != NULL) {
-                success = TRUE;
-            } else if (GetLastError() == ERROR_SUCCESS) {
-                // I'm not sure if the SendMessage function updates the
-                // system error code on failure, since MSDN does not mention
-                // this behaviour. So this bullshit error will suffice.
-                SetLastError(ERROR_INVALID_PARAMETER);
-            }
-        }
-    }
-
-    if (success) {
-        // Update memory allocation structure.
-        memory->message = message;
-        memory->block   = &message[1];
-        memory->remote  = remote;
-        memory->event   = event;
-        memory->memMap  = memMap;
-        memory->bytes   = bytes - sizeof(DC_MESSAGE);
-    } else {
-        // Leave an error message in the interpreter's result.
-        Tcl_ResetResult(interp);
-        Tcl_AppendResult(interp, "unable to map memory: ",
-            TclSetWinError(interp, GetLastError()), NULL);
-
-        // Free objects and resources.
-        if (message != NULL) {
-            UnmapViewOfFile(message);
-        }
-        if (memMap != NULL) {
-            CloseHandle(memMap);
-        }
-        if (event != NULL) {
-            CloseHandle(event);
-        }
-
-        ckfree((char *)memory);
-        memory = NULL;
-    }
-
-    return memory;
-}
-
-/*++
-
-ShmFree
-
-    Frees shared memory.
-
-Arguments:
-    session - Pointer to an initialised ShmSession structure.
-
-    memory  - Pointer to an ShmMemory structure allocated by the
-              ShmAlloc function.
-
-Return Value:
-    None.
-
---*/
-static void
-ShmFree(
-    ShmSession *session,
-    ShmMemory *memory
-    )
-{
-    assert(session != NULL);
-    assert(memory  != NULL);
-
-    // Free objects and resources.
-    UnmapViewOfFile(memory->message);
-
-    if (memory->event != NULL) {
-        CloseHandle(memory->event);
-    }
-    if (memory->memMap != NULL) {
-        CloseHandle(memory->memMap);
-    }
-
-    PostMessage(session->messageWnd, WM_DATACOPY_FREE, 0, (LPARAM)memory->remote);
-    ckfree((char *)memory);
-}
-
-/*++
-
-ShmQuery
-
-    Queries the ioFTPD daemon.
-
-Arguments:
-    session     - Pointer to an initialised ShmSession structure.
-
-    memory      - Pointer to an ShmMemory structure allocated by the
-                  ShmAlloc function.
-
-    queryType   - Query identifier, defined in DataCopy.h.
-
-    timeOut     - Time-out interval, in milliseconds.
-
-Return Value:
-    If the function succeeds, the return value is zero. If the function
-    fails, the return value is non-zero.
-
---*/
-static DWORD
-ShmQuery(
-    ShmSession *session,
-    ShmMemory *memory,
-    DWORD queryType,
-    DWORD timeOut
-    )
-{
-    assert(session != NULL);
-    assert(memory  != NULL);
-
-    memory->message->dwReturn     = (DWORD)-1;
-    memory->message->dwIdentifier = queryType;
-    PostMessage(session->messageWnd, WM_SHMEM, 0, (LPARAM)memory->remote);
-
-    if (timeOut && memory->event != NULL) {
-        if (WaitForSingleObject(memory->event, timeOut) == WAIT_TIMEOUT) {
-            DebugPrint("ShmQuery: Timed out (%lu)\n", GetLastError());
-            return (DWORD)-1;
-        }
-
-        DebugPrint("ShmQuery: Return=%lu\n", memory->message->dwReturn);
-        return memory->message->dwReturn;
-    }
-
-    // No timeout or event, return value cannot be checked.
-    DebugPrint("ShmQuery: No event or time out!\n");
-    return (DWORD)-1;
-}
+static int
+IoWhoCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[]
+    );
 
 
 /*++
@@ -921,6 +675,251 @@ RowDataSet(
     }
 
     return TCL_OK;
+}
+
+
+/*++
+
+ShmInit
+
+    Initialise a shared memory session.
+
+Arguments:
+    interp      - Interpreter to use for error reporting.
+
+    windowObj   - Object containing the name of ioFTPD's message window.
+
+    session     - Pointer to the ShmSession structure to be initialised.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
+static int
+ShmInit(
+    Tcl_Interp *interp,
+    Tcl_Obj *windowObj,
+    ShmSession *session
+    )
+{
+    char *windowName;
+
+    assert(interp    != NULL);
+    assert(session   != NULL);
+    assert(windowObj != NULL);
+
+    windowName = Tcl_GetString(windowObj);
+    session->messageWnd = FindWindowA(windowName, NULL);
+    session->processId  = GetCurrentProcessId();
+
+    if (session->messageWnd == NULL) {
+        Tcl_ResetResult(interp);
+        Tcl_AppendResult(interp, "unable to find window \"", windowName,
+            "\": ", TclSetWinError(interp, GetLastError()), NULL);
+        return TCL_ERROR;
+    }
+
+    return TCL_OK;
+}
+
+/*++
+
+ShmAlloc
+
+    Allocates shared memory.
+
+Arguments:
+    interp      - Interpreter to use for error reporting.
+
+    session     - Pointer to an initialised ShmSession structure.
+
+    bytes       - Number of bytes to be allocated.
+
+Return Value:
+    If the function succeeds, the return value is a pointer to a ShmMemory
+    structure. This structure should be freed by the ShmFree function when
+    it is no longer needed. If the function fails, the return value is NULL.
+
+--*/
+static ShmMemory *
+ShmAlloc(
+    Tcl_Interp *interp,
+    ShmSession *session,
+    DWORD bytes
+    )
+{
+    DC_MESSAGE *message = NULL;
+    ShmMemory *memory;
+    BOOL success = FALSE;
+    HANDLE event  = NULL;
+    HANDLE memMap = NULL;
+    void *remote;
+
+    assert(interp  != NULL);
+    assert(session != NULL);
+    assert(bytes > 0);
+
+    event = CreateEvent(NULL, FALSE, FALSE, NULL);
+    if (event == NULL) {
+        Tcl_ResetResult(interp);
+        Tcl_AppendResult(interp, "unable to create event: ",
+            TclSetWinError(interp, GetLastError()), NULL);
+        return NULL;
+    }
+
+    memory = (ShmMemory *)ckalloc(sizeof(ShmMemory));
+    bytes += sizeof(DC_MESSAGE);
+
+    // Allocate memory in local process.
+    memMap = CreateFileMapping(INVALID_HANDLE_VALUE, NULL,
+        PAGE_READWRITE|SEC_COMMIT, 0, bytes, NULL);
+
+    if (memMap != NULL) {
+        message = (DC_MESSAGE *)MapViewOfFile(memMap,
+            FILE_MAP_READ|FILE_MAP_WRITE, 0, 0, bytes);
+
+        if (message != NULL) {
+            // Initialise data-copy message structure.
+            message->hEvent       = event;
+            message->hObject      = NULL;
+            message->lpMemoryBase = (void *)message;
+            message->lpContext    = &message[1];
+
+            SetLastError(ERROR_SUCCESS);
+            remote = (void *)SendMessage(session->messageWnd, WM_DATACOPY_FILEMAP,
+                (WPARAM)session->processId, (LPARAM)memMap);
+
+            if (remote != NULL) {
+                success = TRUE;
+            } else if (GetLastError() == ERROR_SUCCESS) {
+                // I'm not sure if the SendMessage function updates the
+                // system error code on failure, since MSDN does not mention
+                // this behaviour. So this bullshit error will suffice.
+                SetLastError(ERROR_INVALID_PARAMETER);
+            }
+        }
+    }
+
+    if (success) {
+        // Update memory allocation structure.
+        memory->message = message;
+        memory->block   = &message[1];
+        memory->remote  = remote;
+        memory->event   = event;
+        memory->memMap  = memMap;
+        memory->bytes   = bytes - sizeof(DC_MESSAGE);
+    } else {
+        // Leave an error message in the interpreter's result.
+        Tcl_ResetResult(interp);
+        Tcl_AppendResult(interp, "unable to map memory: ",
+            TclSetWinError(interp, GetLastError()), NULL);
+
+        // Free objects and resources.
+        if (message != NULL) {
+            UnmapViewOfFile(message);
+        }
+        if (memMap != NULL) {
+            CloseHandle(memMap);
+        }
+        if (event != NULL) {
+            CloseHandle(event);
+        }
+
+        ckfree((char *)memory);
+        memory = NULL;
+    }
+
+    return memory;
+}
+
+/*++
+
+ShmFree
+
+    Frees shared memory.
+
+Arguments:
+    session - Pointer to an initialised ShmSession structure.
+
+    memory  - Pointer to an ShmMemory structure allocated by the
+              ShmAlloc function.
+
+Return Value:
+    None.
+
+--*/
+static void
+ShmFree(
+    ShmSession *session,
+    ShmMemory *memory
+    )
+{
+    assert(session != NULL);
+    assert(memory  != NULL);
+
+    // Free objects and resources.
+    UnmapViewOfFile(memory->message);
+
+    if (memory->event != NULL) {
+        CloseHandle(memory->event);
+    }
+    if (memory->memMap != NULL) {
+        CloseHandle(memory->memMap);
+    }
+
+    PostMessage(session->messageWnd, WM_DATACOPY_FREE, 0, (LPARAM)memory->remote);
+    ckfree((char *)memory);
+}
+
+/*++
+
+ShmQuery
+
+    Queries the ioFTPD daemon.
+
+Arguments:
+    session     - Pointer to an initialised ShmSession structure.
+
+    memory      - Pointer to an ShmMemory structure allocated by the
+                  ShmAlloc function.
+
+    queryType   - Query identifier, defined in DataCopy.h.
+
+    timeOut     - Time-out interval, in milliseconds.
+
+Return Value:
+    If the function succeeds, the return value is zero. If the function
+    fails, the return value is non-zero.
+
+--*/
+static DWORD
+ShmQuery(
+    ShmSession *session,
+    ShmMemory *memory,
+    DWORD queryType,
+    DWORD timeOut
+    )
+{
+    assert(session != NULL);
+    assert(memory  != NULL);
+
+    memory->message->dwReturn     = (DWORD)-1;
+    memory->message->dwIdentifier = queryType;
+    PostMessage(session->messageWnd, WM_SHMEM, 0, (LPARAM)memory->remote);
+
+    if (timeOut && memory->event != NULL) {
+        if (WaitForSingleObject(memory->event, timeOut) == WAIT_TIMEOUT) {
+            DebugPrint("ShmQuery: Timed out (%lu)\n", GetLastError());
+            return (DWORD)-1;
+        }
+
+        DebugPrint("ShmQuery: Return=%lu\n", memory->message->dwReturn);
+        return memory->message->dwReturn;
+    }
+
+    // No timeout or event, return value cannot be checked.
+    DebugPrint("ShmQuery: No event or time out!\n");
+    return (DWORD)-1;
 }
 
 
