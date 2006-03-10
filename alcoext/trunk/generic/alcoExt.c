@@ -60,6 +60,8 @@ Alcoext_Init(
     ExtState *statePtr;
     StateList *stateListPtr;
 
+    DebugPrint("Init: interp=%p\n", interp);
+
     // Wide integer support was added in Tcl 8.4.
 #ifdef USE_TCL_STUBS
     if (Tcl_InitStubs(interp, "8.4", 0) == NULL) {
@@ -442,7 +444,7 @@ InterpDeleteHandler(
     ExtState *statePtr = (ExtState *)clientData;
     StateList *stateListPtr;
 
-    DebugPrint("InterpDeleteHandler: interp=%p statePtr=%p\n", interp, statePtr);
+    DebugPrint("InterpDelete: interp=%p statePtr=%p\n", interp, statePtr);
     if (statePtr == NULL) {
         return;
     }
