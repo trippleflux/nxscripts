@@ -1,6 +1,6 @@
 # Module Definition File
 desc=nxTools Support
 context=::Bot::Mod::NxTools
-depends=ftpd invite
+depends=ftpconn invite
 tclFiles=modNxTools.tcl
 varFiles=modNxTools.vars

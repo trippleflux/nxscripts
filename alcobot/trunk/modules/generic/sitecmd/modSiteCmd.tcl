@@ -14,7 +14,7 @@
 
 namespace eval ::Bot::Mod::SiteCmd {
     namespace import -force ::Bot::*
-    namespace import -force ::Bot::Mod::Ftpd::GetFtpConnection
+    namespace import -force ::Bot::Mod::FtpConn::GetFtpConnection
 }
 
 ####

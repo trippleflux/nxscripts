@@ -13,7 +13,6 @@
 #
 # Exported Procedures:
 #   GetFlagTypes     <varName>
-#   GetFtpConnection
 #   UserList
 #   UserExists       <userName>
 #   UserInfo         <userName> <varName>
@@ -27,55 +26,16 @@
 #
 
 namespace eval ::Bot::Mod::Ftpd {
-    if {![info exists [namespace current]::connection]} {
-        variable connection ""
-        variable dataPath ""
-        variable rootPath ""
-        variable timerId ""
+    variable dataPath
+    variable rootPath
+    if {![info exists dataPath]} {
+        set dataPath ""
+        set rootPath ""
     }
     namespace import -force ::Bot::*
-    namespace export GetFlagTypes GetFtpConnection \
+    namespace export GetFlagTypes \
         UserExists UserList UserInfo UserIdToName UserNameToId \
         GroupExists GroupList GroupInfo GroupIdToName GroupNameToId
-}
-
-####
-# FtpNotify
-#
-# Called when the initial connection succeeds or fails.
-#
-proc ::Bot::Mod::Ftpd::FtpNotify {connection success} {
-    if {$success} {
-        LogInfo "FTP connection established."
-    } else {
-        LogInfo "FTP connection failed - [Ftp::GetError $connection]"
-    }
-}
-
-####
-# FtpTimer
-#
-# Checks the status of the FTP connection every minute.
-#
-proc ::Bot::Mod::Ftpd::FtpTimer {} {
-    variable connection
-    variable timerId
-
-    # Wrap the FTP connection code in a catch statement in case the FTP
-    # library throws an error. The Eggdrop timer must be recreated.
-    if {[catch {
-        if {[Ftp::GetStatus $connection] == 2} {
-            Ftp::Command $connection "NOOP"
-        } else {
-            LogError FtpServer "FTP handle not connected, attemping to reconnect."
-            Ftp::Connect $connection
-        }
-    } message]} {
-        LogError FtpTimer $message
-    }
-
-    set timerId [timer 1 [namespace current]::FtpTimer]
-    return
 }
 
 ####
@@ -161,16 +121,6 @@ proc ::Bot::Mod::Ftpd::UpdateGroups {} {
 proc ::Bot::Mod::Ftpd::GetFlagTypes {varName} {
     upvar $varName flags
     array set flags [list deleted "6" gadmin "2" siteop "1"]
-}
-
-####
-# GetFtpConnection
-#
-# Retrieves the main FTP connection handle.
-#
-proc ::Bot::Mod::Ftpd::GetFtpConnection {} {
-    variable connection
-    return $connection
 }
 
 ####
@@ -476,14 +426,12 @@ proc ::Bot::Mod::Ftpd::NukeEvent {event destSection pathSection path data} {
 #
 proc ::Bot::Mod::Ftpd::Load {firstLoad} {
     variable change
-    variable connection
     variable dataPath
     variable rootPath
-    variable timerId
     upvar ::Bot::configHandle configHandle
 
     # Retrieve configuration options.
-    foreach option {dataPath rootPath host port user passwd secure version} {
+    foreach option {dataPath rootPath version} {
         set $option [Config::Get $configHandle Ftpd $option]
     }
     if {![file isdirectory $dataPath]} {
@@ -495,16 +443,6 @@ proc ::Bot::Mod::Ftpd::Load {firstLoad} {
     if {[package vcompare $version 2.0] == -1} {
         error "you must be using glFTPD v2.0 or later"
     }
-
-    # Open a connection to the FTP server.
-    if {$firstLoad} {
-        set timerId [timer 1 [namespace current]::FtpTimer]
-    } else {
-        Ftp::Close $connection
-    }
-    set connection [Ftp::Open $host $port $user $passwd \
-        -notify [namespace current]::FtpNotify -secure $secure]
-    Ftp::Connect $connection
 
     # Register event callbacks.
     ScriptRegister pre NUKE   [namespace current]::NukeEvent
@@ -520,19 +458,7 @@ proc ::Bot::Mod::Ftpd::Load {firstLoad} {
 # Module finalisation procedure, called before the module is unloaded.
 #
 proc ::Bot::Mod::Ftpd::Unload {} {
-    variable connection
-    variable timerId
-
     # Remove event callbacks.
     ScriptUnregister pre NUKE   [namespace current]::NukeEvent
     ScriptUnregister pre UNNUKE [namespace current]::NukeEvent
-
-    if {$connection ne ""} {
-        Ftp::Close $connection
-        set connection ""
-    }
-    if {$timerId ne ""} {
-        catch {killtimer $timerId}
-        set timerId ""
-    }
 }

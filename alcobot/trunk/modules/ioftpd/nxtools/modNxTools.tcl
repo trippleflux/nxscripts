@@ -19,7 +19,7 @@ namespace eval ::Bot::Mod::NxTools {
         variable undupeWild 0
     }
     namespace import -force ::Bot::*
-    namespace import -force ::Bot::Mod::Ftpd::GetFtpConnection
+    namespace import -force ::Bot::Mod::FtpConn::GetFtpConnection
     namespace import -force ::Bot::Mod::Invite::GetFtpUser
 }
 

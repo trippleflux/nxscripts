@@ -1,0 +1,6 @@
+# Module Definition File
+desc=FTP Connection
+context=::Bot::Mod::FtpConn
+depends=
+tclFiles=modFtpConn.tcl
+varFiles=

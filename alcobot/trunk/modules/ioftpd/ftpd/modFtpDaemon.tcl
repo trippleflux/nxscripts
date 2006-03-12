@@ -13,7 +13,6 @@
 #
 # Exported Procedures:
 #   GetFlagTypes     <varName>
-#   GetFtpConnection
 #   UserList
 #   UserExists       <userName>
 #   UserInfo         <userName> <varName>
@@ -27,56 +26,18 @@
 #
 
 namespace eval ::Bot::Mod::Ftpd {
-    if {![info exists [namespace current]::connection]} {
-        variable connection ""
-        variable deleteFlag ""
-        variable etcPath ""
-        variable msgWindow ""
-        variable timerId ""
+    variable deleteFlag
+    variable etcPath
+    variable msgWindow
+    if {![info exists deleteFlag]} {
+        set deleteFlag ""
+        set etcPath ""
+        set msgWindow ""
     }
     namespace import -force ::Bot::*
-    namespace export GetFlagTypes GetFtpConnection \
+    namespace export GetFlagTypes \
         UserExists UserList UserInfo UserIdToName UserNameToId \
         GroupExists GroupList GroupInfo GroupIdToName GroupNameToId
-}
-
-####
-# FtpNotify
-#
-# Called when the initial connection succeeds or fails.
-#
-proc ::Bot::Mod::Ftpd::FtpNotify {connection success} {
-    if {$success} {
-        LogInfo "FTP connection established."
-    } else {
-        LogInfo "FTP connection failed - [Ftp::GetError $connection]"
-    }
-}
-
-####
-# FtpTimer
-#
-# Checks the status of the FTP connection every minute.
-#
-proc ::Bot::Mod::Ftpd::FtpTimer {} {
-    variable connection
-    variable timerId
-
-    # Wrap the FTP connection code in a catch statement in case the FTP
-    # library throws an error. The Eggdrop timer must be recreated.
-    if {[catch {
-        if {[Ftp::GetStatus $connection] == 2} {
-            Ftp::Command $connection "NOOP"
-        } else {
-            LogError FtpServer "FTP handle not connected, attemping to reconnect."
-            Ftp::Connect $connection
-        }
-    } message]} {
-        LogError FtpTimer $message
-    }
-
-    set timerId [timer 1 [namespace current]::FtpTimer]
-    return
 }
 
 ####
@@ -106,16 +67,6 @@ proc ::Bot::Mod::Ftpd::GetFlagTypes {varName} {
 
     upvar $varName flags
     array set flags [list deleted $deleteFlag gadmin "G2" siteop "M1"]
-}
-
-####
-# GetFtpConnection
-#
-# Retrieves the main FTP connection handle.
-#
-proc ::Bot::Mod::Ftpd::GetFtpConnection {} {
-    variable connection
-    return $connection
 }
 
 ####
@@ -337,17 +288,14 @@ proc ::Bot::Mod::Ftpd::GroupNameToId {groupName} {
 # Module initialisation procedure, called when the module is loaded.
 #
 proc ::Bot::Mod::Ftpd::Load {firstLoad} {
-    variable connection
     variable deleteFlag
     variable etcPath
     variable msgWindow
-    variable timerId
     upvar ::Bot::configHandle configHandle
 
     # Retrieve configuration options.
-    foreach option {deleteFlag msgWindow host port user passwd secure} {
-        set $option [Config::Get $configHandle Ftpd $option]
-    }
+    set deleteFlag [Config::Get $configHandle Ftpd deleteFlag]
+    set msgWindow [Config::Get $configHandle Ftpd msgWindow]
     if {[string length $deleteFlag] != 1} {
         error "invalid flag \"$deleteFlag\": must be one character"
     }
@@ -360,16 +308,6 @@ proc ::Bot::Mod::Ftpd::Load {firstLoad} {
     if {![file isdirectory $etcPath]} {
         error "the directory \"$etcPath\" does not exist"
     }
-
-    # Open a connection to the FTP server.
-    if {$firstLoad} {
-        set timerId [timer 1 [namespace current]::FtpTimer]
-    } else {
-        Ftp::Close $connection
-    }
-    set connection [Ftp::Open $host $port $user $passwd \
-        -notify [namespace current]::FtpNotify -secure $secure]
-    Ftp::Connect $connection
 }
 
 ####
@@ -378,15 +316,4 @@ proc ::Bot::Mod::Ftpd::Load {firstLoad} {
 # Module finalisation procedure, called before the module is unloaded.
 #
 proc ::Bot::Mod::Ftpd::Unload {} {
-    variable connection
-    variable timerId
-
-    if {$connection ne ""} {
-        Ftp::Close $connection
-        set connection ""
-    }
-    if {$timerId ne ""} {
-        catch {killtimer $timerId}
-        set timerId ""
-    }
 }
