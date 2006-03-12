@@ -87,7 +87,7 @@ proc ::Bot::Mod::FtpConn::Load {firstLoad} {
 
     # Retrieve configuration options.
     foreach option {host port user passwd secure} {
-        set $option [Config::Get $configHandle Ftpd $option]
+        set $option [Config::Get $configHandle Module::FtpConn $option]
     }
 
     # Open a connection to the FTP server.
