@@ -16,13 +16,18 @@ Abstract:
 
 #include <tcld.h>
 
-static int    cmdArgc = 0;
-static char **cmdArgv = NULL;
+//
+// NT service functions and variables.
+//
 
-// NT service related functions and variables.
 static char *serviceName = NULL;
 static HANDLE stopEvent  = NULL;
 static SERVICE_STATUS_HANDLE serviceStatusHandle;
+
+static const SERVICE_TABLE_ENTRYA serviceTable[] = {
+    {"AlcoTcld", ServiceMain},
+    {NULL, NULL}
+};
 
 static void WINAPI
 ServiceMain(
@@ -42,10 +47,18 @@ ServiceUpdateStatus(
     DWORD waitHint
     );
 
+//
+// Tcl functions and variables.
+//
 
-// Tcl related functions and variables.
+static int    cmdArgc = 0;
+static char **cmdArgv = NULL;
 static HANDLE tclThread = NULL;
-static Tcl_ExitProc TclExitHandler;
+
+static void
+TclExitHandler(
+    ClientData dummy
+    );
 
 static DWORD WINAPI
 TclThread(
@@ -75,10 +88,6 @@ main(
     )
 {
     char currentPath[512];
-    SERVICE_TABLE_ENTRYA serviceTable[] = {
-        {"",   ServiceMain},
-        {NULL, NULL}
-    };
 
     DEBUGLOG("main: Starting...\n");
 
