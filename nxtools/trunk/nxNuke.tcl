@@ -75,8 +75,11 @@ proc ::nxTools::Nuke::UpdateRecord {realPath {buffer ""}} {
 proc ::nxTools::Nuke::UpdateUser {isNuke userName multi size files stats creditSection statSection} {
     set creditSection [expr {$creditSection + 1}]
     set statSection [expr {$statSection * 3 + 1}]
-    set groupName "NoGroup"
-    set newUserFile ""
+    set newUserFile [list]
+
+    # Default user values.
+    set groupName "NoGroup"; set ratio -1
+    set creditsOld 0; set creditsNew 0; set creditsDiff 0
 
     if {[userfile open $userName] == 0} {
         userfile lock
