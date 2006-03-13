@@ -16,12 +16,6 @@ Abstract:
 
 #include <tcld.h>
 
-static void
-TclLogError(
-    const char *message,
-    Tcl_Obj *objPtr
-    );
-
 
 /*++
 
@@ -196,7 +190,7 @@ Return Value:
     None.
 
 --*/
-static void
+void
 TclLogError(
     const char *message,
     Tcl_Obj *objPtr

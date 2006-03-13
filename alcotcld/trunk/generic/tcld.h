@@ -56,4 +56,10 @@ TclInit(
     Tcl_ExitProc *exitProc
     );
 
+void
+TclLogError(
+    const char *message,
+    Tcl_Obj *objPtr
+    );
+
 #endif // _TCLD_H_
