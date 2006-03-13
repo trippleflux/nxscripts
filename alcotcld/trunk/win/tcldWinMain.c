@@ -17,17 +17,8 @@ Abstract:
 #include <tcld.h>
 
 //
-// NT service functions and variables.
+// NT service functions.
 //
-
-static char *serviceName = NULL;
-static HANDLE stopEvent  = NULL;
-static SERVICE_STATUS_HANDLE serviceStatusHandle;
-
-static const SERVICE_TABLE_ENTRYA serviceTable[] = {
-    {"AlcoTcld", ServiceMain},
-    {NULL, NULL}
-};
 
 static void WINAPI
 ServiceMain(
@@ -48,12 +39,8 @@ ServiceUpdateStatus(
     );
 
 //
-// Tcl functions and variables.
+// Tcl functions.
 //
-
-static int    cmdArgc = 0;
-static char **cmdArgv = NULL;
-static HANDLE tclThread = NULL;
 
 static void
 TclExitHandler(
@@ -64,6 +51,22 @@ static DWORD WINAPI
 TclThread(
     void *param
     );
+
+//
+// Local variables.
+//
+
+static char *serviceName = NULL;
+static HANDLE stopEvent  = NULL;
+static SERVICE_STATUS_HANDLE serviceStatusHandle;
+static const SERVICE_TABLE_ENTRYA serviceTable[] = {
+    {"AlcoTcld", ServiceMain},
+    {NULL, NULL}
+};
+
+static int    cmdArgc = 0;
+static char **cmdArgv = NULL;
+static HANDLE tclThread = NULL;
 
 
 /*++
