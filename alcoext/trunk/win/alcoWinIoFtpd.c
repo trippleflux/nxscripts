@@ -412,15 +412,14 @@ IoWhoCmd(
 
 RowDataGet
 
-    Parses row data from a data structure into a Tcl list.
+    Parses data structure members into a Tcl list.
 
 Arguments:
-    rowData     - Pointer to the row definition structure.
+    rowData     - Row definition structure.
 
-    data        - Pointer to a buffer (usually a data structure) containing
-                  the data to be parsed.
+    data        - Buffer containing the data to be parsed.
 
-    listObj     - Pointer to a Tcl object which receives the parsed data as a list.
+    listObj     - Tcl object that receives the output.
 
 Return Value:
     A standard Tcl result.
@@ -516,17 +515,16 @@ RowDataGet(
 
 RowDataSet
 
-    Parses row data from a Tcl list into a data structure.
+    Parses Tcl list elements into a data structure.
 
 Arguments:
     interp      - Interpreter to use for error reporting.
 
-    listObj     - Pointer to a Tcl object containing the list to be parsed.
+    listObj     - Tcl list object to be parsed.
 
-    rowData     - Pointer to the row definition structure.
+    rowData     - Row definition structure.
 
-    data        - Pointer to a buffer (usually a data structure) which
-                  receives the parsed data as a list.
+    data        - Buffer that receives the output.
 
 Return Value:
     A standard Tcl result.
@@ -1704,7 +1702,7 @@ VfsFlush(
     assert(session != NULL);
     assert(memory  != NULL);
     assert(dirPath != NULL);
-    assert(memory->bytes >= strlen(dirPath) + sizeof(char));
+    assert(memory->bytes >= strlen(dirPath) + 1);
     DebugPrint("VfsFlush: dirPath=%s\n", dirPath);
 
     StringCchCopyA((char *)memory->block, (size_t)memory->bytes, dirPath);
@@ -1719,6 +1717,7 @@ VfsFlush(
     return TCL_ERROR;
 }
 
+
 /*++
 
 GetOnlineFields
