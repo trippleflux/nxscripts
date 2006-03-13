@@ -48,7 +48,7 @@ DebugLog(
     va_list argList;
 
     va_start(argList, format);
-    logHandle = fopen("Debug.log", "a");
+    logHandle = fopen("debug.log", "a");
     if (logHandle != NULL) {
 #ifdef _WINDOWS
         SYSTEMTIME now;
@@ -186,7 +186,7 @@ Tcl_Interp *TclInit(int argc, char **argv, int service, Tcl_ExitProc *exitProc)
 
 TclLogError
 
-    Displays an error message to stderr and logs it to Error.log.
+    Displays an error message to stderr and logs it to error.log.
 
 Arguments:
     message - Pointer to a buffer containing a string which explains the error.
@@ -214,8 +214,8 @@ TclLogError(
         Tcl_WriteChars(channel, "\n", 1);
     }
 
-    // Write message to Error.log.
-    channel = Tcl_OpenFileChannel(NULL, "Error.log", "a", 0644);
+    // Write message to error.log.
+    channel = Tcl_OpenFileChannel(NULL, "error.log", "a", 0644);
     if (channel != NULL) {
         char timeStamp[64];
 #ifdef _WINDOWS
