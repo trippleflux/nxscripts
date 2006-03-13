@@ -433,7 +433,7 @@ ZlibObjCmd(
                 level, compressionFormats[index].window);
 
             if (status != Z_OK) {
-                ZlipSetError(interp, "unable to compact data: ", status);
+                ZlipSetError(interp, "unable to compress data: ", status);
                 return TCL_ERROR;
             }
             return TCL_OK;
@@ -455,7 +455,7 @@ ZlibObjCmd(
                 compressionFormats[index].window);
 
             if (status != Z_OK) {
-                ZlipSetError(interp, "unable to expand data: ", status);
+                ZlipSetError(interp, "unable to decompress data: ", status);
                 return TCL_ERROR;
             }
             return TCL_OK;
