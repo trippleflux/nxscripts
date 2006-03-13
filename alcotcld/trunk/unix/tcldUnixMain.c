@@ -37,7 +37,7 @@ main(
     char **argv
     )
 {
-    int background = -1;
+    int background;
     char *currentPath;
     Tcl_Interp *interp;
     Tcl_Obj *resultObj;
@@ -70,7 +70,14 @@ main(
     // in order for the process to be forked into the background.
     //
     resultObj = Tcl_GetObjResult(interp);
-    if (Tcl_GetBooleanFromObj(NULL, resultObj, &background) == TCL_OK && background) {
+
+    if (Tcl_GetBooleanFromObj(interp, resultObj, &background) != TCL_OK) {
+        TclLogError("Invalid return value:\n",
+            Tcl_GetVar2Ex(interp, "errorInfo", NULL, TCL_GLOBAL_ONLY));
+        return 1;
+    }
+
+    if (background) {
         pid_t pid = fork();
 
         if (pid == -1) {
