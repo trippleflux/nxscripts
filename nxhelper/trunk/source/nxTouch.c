@@ -162,7 +162,7 @@ TouchObjCmd(
     const static char *switches[] = {
         "-atime", "-ctime", "-mtime", "-recurse", "--", NULL
     };
-    enum switches {
+    enum switchIndices {
         OPTION_ATIME, OPTION_CTIME, OPTION_MTIME, OPTION_RECURSE, OPTION_LAST
     };
 
@@ -183,7 +183,7 @@ TouchObjCmd(
             return TCL_ERROR;
         }
 
-        switch ((enum switches) index) {
+        switch ((enum switchIndices) index) {
             case OPTION_ATIME: {
                 options |= TOUCH_FLAG_ATIME;
                 break;
