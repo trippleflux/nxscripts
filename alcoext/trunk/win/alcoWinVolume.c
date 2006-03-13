@@ -133,9 +133,8 @@ GetVolumeInfo(
     transPathObj = Tcl_FSGetTranslatedPath(interp, pathObj);
     if (transPathObj == NULL) {
         return TCL_ERROR;
-    } else {
-        path = Tcl_GetString(transPathObj);
     }
+    path = Tcl_GetString(transPathObj);
 
     if (!GetVolumeInformationA(path,
             volumeInfo->name, ARRAYSIZE(volumeInfo->name),

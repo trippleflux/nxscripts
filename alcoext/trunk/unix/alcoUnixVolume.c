@@ -51,9 +51,8 @@ GetVolumeInfo(
     transPathObj = Tcl_FSGetTranslatedPath(interp, pathObj);
     if (transPathObj == NULL) {
         return TCL_ERROR;
-    } else {
-        path = Tcl_GetString(transPathObj);
     }
+    path = Tcl_GetString(transPathObj);
 
     if (STATFS_FN(path, &fsInfo) != 0) {
         Tcl_ResetResult(interp);
