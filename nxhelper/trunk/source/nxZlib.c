@@ -19,172 +19,315 @@
  *     ::nx::zlib crc32 <data>
  *       - Returns the CRC32 checksum of "data".
  *
- *     ::nx::zlib deflate [-level 0-9] <data>
- *       - Compresses "data" using the zlib compression algorithm.
- *       - The -level switch sets the compression level, "fast" (1) by default.
- *       - An error is raised if the data cannot be compressed.
+ *     ::nx::zlib compress [-level 0-9] <format> <data>
+ *       - Compresses data in the specified format.
+ *       - Supported formats: gzip, zlib, and zlib-raw.
+ *       - The "-level" switch sets the compression level, one by default.
  *
- *     ::nx::zlib inflate <data>
- *       - Inflates gzip or zlib compressed data.
- *       - An error is raised if the data cannot be decompressed.
+ *     ::nx::zlib decompress <format> <data>
+ *       - Decompresses data from the specified format.
+ *       - Supported formats: gzip, zlib, and zlib-raw.
+ *       - An error is raised if the given data cannot be decompressed.
  */
 
 #include <nxHelper.h>
 
-static int
-ZlibDeflateObj(
-    Tcl_Obj *sourceObj,
-    Tcl_Obj *destObj,
-    int level
+/*
+ * Zlib function prototypes.
+ */
+
+static voidpf
+ZlibAlloc(
+    voidpf opaque,
+    uInt items,
+    uInt size
+    );
+
+static void
+ZlibFree(
+    voidpf opaque,
+    voidpf address
     );
 
 static int
-ZlibInflateObj(
+ZlibCompressObj(
     Tcl_Obj *sourceObj,
-    Tcl_Obj *destObj);
+    Tcl_Obj *destObj,
+    int level,
+    int window
+    );
+
+static int
+ZlibDecompressObj(
+    Tcl_Obj *sourceObj,
+    Tcl_Obj *destObj,
+    int window
+    );
+
+static void
+ZlipSetError(
+    Tcl_Interp *interp,
+    const char *message,
+    int status
+    );
+
+/*
+ * Compression format table.
+ */
+
+struct {
+    char *name;
+    int window;
+} static const compressionFormats[] = {
+    {"gzip",     MAX_WBITS + 16},
+    {"zlib",     MAX_WBITS},
+    {"zlib-raw", -MAX_WBITS},
+    {NULL}
+};
 
 
 /*
- * ZlibDeflateObj
+ * ZlibAlloc
  *
- *   Compresses data using the zlib compression algorithm.
+ *   Allocates an array in memory.
+ *
+ * Arguments:
+ *   opaque  - Not used.
+ *   items   - Number of items to allocate.
+ *   size    - Size of each element, in bytes.
+ *
+ * Return Value:
+ *   If the function succeeds, the return value is a pointer to the allocated
+ *   memory block. If the function fails, the return value is NULL.
+ *
+ * Remarks:
+ *   This function provides Zlib access to Tcl's memory allocation system.
+ */
+static voidpf
+ZlibAlloc(
+    voidpf opaque,
+    uInt items,
+    uInt size
+    )
+{
+    return (voidpf)attemptckalloc((int)(items * size));
+}
+
+/*
+ * ZlibFree
+ *
+ *   Frees a block of memory allocated by ZlibAlloc.
+ *
+ * Arguments:
+ *   opaque  - Not used.
+ *   address - Pointer to the memory block to be freed.
+ *
+ * Return Value:
+ *   None.
+ *
+ * Remarks:
+ *   This function provides Zlib access to Tcl's memory allocation system.
+ */
+static void
+ZlibFree(
+    voidpf opaque,
+    voidpf address
+    )
+{
+    ckfree((char *)address);
+}
+
+/*
+ * ZlibCompressObj
+ *
+ *   Compresses data using the Zlib compression algorithm.
  *
  * Arguments:
  *   sourceObj - Pointer to a Tcl object containing the data to be compressed.
  *   destObj   - Pointer to a Tcl object to receive the compressed data.
  *   level     - Compression level.
+ *   window    - Maximum window size for Zlib.
  *
- * Returns:
- *   A zlib status code; Z_OK is returned if successful.
+ * Return Value:
+ *   A Zlib status code; Z_OK is returned if successful.
  */
 static int
-ZlibDeflateObj(
+ZlibCompressObj(
     Tcl_Obj *sourceObj,
     Tcl_Obj *destObj,
-    int level
+    int level,
+    int window
     )
 {
     int status;
     z_stream stream;
 
-    stream.next_in = Tcl_GetByteArrayFromObj(sourceObj, &(stream.avail_in));
+    assert(sourceObj != NULL);
+    assert(destObj   != NULL);
 
     /*
-     * The opaque, zalloc, and zfree struct members must
-     * be initialized to zero before calling deflateInit().
+     * The next_in, opaque, zalloc, and zfree data structure members
+     * must be initialised prior to calling deflateInit2().
      */
-    stream.opaque = (voidpf) Z_NULL;
-    stream.zalloc = (alloc_func) Z_NULL;
-    stream.zfree  = (free_func) Z_NULL;
+    stream.next_in = Tcl_GetByteArrayFromObj(sourceObj, (int *)&stream.avail_in);
+    stream.opaque  = NULL;
+    stream.zalloc  = ZlibAlloc;
+    stream.zfree   = ZlibFree;
 
-    /* The stream must be initialized prior to calling deflateBound(). */
-    status = deflateInit(&stream, level);
+    status = deflateInit2(&stream, level, Z_DEFLATED, window,
+        MAX_MEM_LEVEL, Z_DEFAULT_STRATEGY);
     if (status != Z_OK) {
         return status;
     }
 
-    /*
-     * deflateBound() returns the buffer size required for a single-pass deflation.
-     * NOTE: This function was added in zlib v1.2x.
-     */
     stream.avail_out = deflateBound(&stream, stream.avail_in);
-    stream.next_out = Tcl_SetByteArrayLength(destObj, stream.avail_out);
 
     /*
-     * The Z_FINISH flag instructs zlib to compress all data in a single
+     * deflateBound() does not always return a sufficient buffer size when
+     * compressing data into the Gzip format. So this kludge will do...
+     */
+    if (window > 15) {
+        stream.avail_out *= 2;
+    }
+
+    stream.next_out = Tcl_SetByteArrayLength(destObj, (int)stream.avail_out);
+
+    /*
+     * The Z_FINISH flag instructs Zlib to compress all data in a single
      * pass, flush it to the output buffer, and return with Z_STREAM_END if
      * successful.
      */
     status = deflate(&stream, Z_FINISH);
-    if (status != Z_STREAM_END) {
-        deflateEnd(&stream);
-        return (status == Z_OK) ? Z_BUF_ERROR : status;
+    deflateEnd(&stream);
+
+    if (status == Z_STREAM_END) {
+        Tcl_SetByteArrayLength(destObj, (int)stream.total_out);
+        return Z_OK;
     }
 
-    status = deflateEnd(&stream);
-    Tcl_SetByteArrayLength(destObj, (status == Z_OK ? stream.total_out : 0));
+    return (status == Z_OK) ? Z_BUF_ERROR : status;
+}
+
+/*
+ * ZlibDecompressObj
+ *
+ *   Decompresses Zlib compressed data.
+ *
+ * Arguments:
+ *   sourceObj - Pointer to a Tcl object containing the data to be decompressed.
+ *   destObj   - Pointer to a Tcl object to receive the decompressed data.
+ *   window    - Maximum window size for Zlib.
+ *
+ * Return Value:
+ *   A Zlib status code; Z_OK is returned if successful.
+ */
+static int
+ZlibDecompressObj(
+    Tcl_Obj *sourceObj,
+    Tcl_Obj *destObj,
+    int window
+    )
+{
+    int status;
+    uInt destLength;
+    uInt factor;
+    uInt sourceLength;
+    unsigned char *dest;
+    z_stream stream;
+
+    assert(sourceObj != NULL);
+    assert(destObj   != NULL);
+
+    /*
+     * The avail_in, next_in, opaque, zalloc, and zfree data structure
+     * members must be initialised prior to calling inflateInit2().
+     */
+    stream.next_in = Tcl_GetByteArrayFromObj(sourceObj, (int *)&sourceLength);
+    if (sourceLength < 1) {
+        return Z_DATA_ERROR;
+    }
+
+    stream.avail_in = sourceLength;
+    stream.opaque   = NULL;
+    stream.zalloc   = ZlibAlloc;
+    stream.zfree    = ZlibFree;
+
+    status = inflateInit2(&stream, window);
+    if (status != Z_OK) {
+        return status;
+    }
+
+    /* Double the destination buffer size each attempt. */
+    for (factor = 1; factor < 20; factor++) {
+        destLength = sourceLength * (1 << factor);
+        dest = Tcl_SetByteArrayLength(destObj, (int)destLength);
+
+        stream.next_out  = dest + stream.total_out;
+        stream.avail_out = destLength - stream.total_out;
+
+        /*
+         * inflate() returns:
+         * - Z_STREAM_END if all input data has been exhausted.
+         * - Z_OK if the inflation was successful but there is remaining input data.
+         * - Otherwise an error has occurred while inflating the data.
+         */
+        status = inflate(&stream, Z_SYNC_FLUSH);
+        if (status != Z_OK) {
+            break;
+        }
+
+        /*
+         * If inflate() returns Z_OK without exhausting the output buffer,
+         * it's assumed we've unexpectedly reached the stream's end.
+         */
+        if (stream.avail_out > 0) {
+            status = Z_STREAM_ERROR;
+            break;
+        }
+
+        /* Increase the destination buffer size and try again. */
+        status = Z_BUF_ERROR;
+    }
+
+    inflateEnd(&stream);
+
+    if (status == Z_STREAM_END) {
+        /* Update the object's length. */
+        Tcl_SetByteArrayLength(destObj, (int)stream.total_out);
+        return Z_OK;
+    }
 
     return status;
 }
 
 /*
- * ZlibInflateObj
+ * ZlipSetError
  *
- *   Decompresses gzip or zlib compressed data.
+ *   Sets the interpreter's result to a human-readable error message.
  *
  * Arguments:
- *   sourceObj - Pointer to a Tcl object containing the data to be decompressed.
- *   destObj   - Pointer to a Tcl object to receive the decompressed data.
+ *   interp  - Interpreter to use for error reporting.
+ *   message - Message describing the failed operation.
+ *   status  - Zlib status code.
  *
- * Returns:
- *   A zlib status code; Z_OK is returned if successful.
+ * Return Value:
+ *   None.
  */
-static int
-ZlibInflateObj(
-    Tcl_Obj *sourceObj,
-    Tcl_Obj *destObj
+static void
+ZlipSetError(
+    Tcl_Interp *interp,
+    const char *message,
+    int status
     )
 {
-    int bufferFactor;
-    int bufferLength;
-    int dataLength;
-    int status;
-    unsigned char *buffer;
-    z_stream stream;
+    assert(interp  != NULL);
+    assert(message != NULL);
 
-    stream.next_in = Tcl_GetByteArrayFromObj(sourceObj, &dataLength);
-    if (dataLength < 1) {
-        return Z_DATA_ERROR;
-    }
-
-    /*
-     * The opaque, zalloc, and zfree struct members must
-     * be initialized to zero before calling inflateInit().
-     */
-    stream.opaque = (voidpf) Z_NULL;
-    stream.zalloc = (alloc_func) Z_NULL;
-    stream.zfree  = (free_func) Z_NULL;
-    stream.avail_in = dataLength;
-
-    status = inflateInit(&stream);
-    if (status != Z_OK) {
-        return status;
-    }
-
-    /* Increase the buffer size by a factor of two each attempt. */
-    for (bufferFactor = 1; bufferFactor < 20; bufferFactor++) {
-        bufferLength = dataLength * (1 << bufferFactor);
-        buffer = Tcl_SetByteArrayLength(destObj, bufferLength);
-
-        stream.next_out  = buffer + stream.total_out;
-        stream.avail_out = bufferLength - stream.total_out;
-
-        status = inflate(&stream, Z_SYNC_FLUSH);
-
-        /* inflate() returns Z_STREAM_END when all input data has been processed. */
-        if (status == Z_STREAM_END) {
-            status = Z_OK;
-            break;
-        }
-
-        /*
-         * If inflate() returns Z_OK with avail_out at zero, it must be
-         * called again with a larger buffer to process remaining data.
-         */
-        if (status == Z_OK && stream.avail_out == 0) {
-            status = Z_BUF_ERROR;
-        } else {
-            inflateEnd(&stream);
-            return (status == Z_OK) ? Z_BUF_ERROR : status;
-        }
-    }
-
-    inflateEnd(&stream);
-    Tcl_SetByteArrayLength(destObj, (status == Z_OK ? stream.total_out : 0));
-
-    return status;
+    Tcl_ResetResult(interp);
+    Tcl_AppendResult(interp, message, zError(status), NULL);
 }
 
+
 /*
  * ZlibObjCmd
  *
@@ -209,12 +352,13 @@ ZlibObjCmd(
 {
     int index;
     static const char *options[] = {
-        "adler32", "crc32", "deflate", "inflate", NULL
+        "adler32", "compress", "crc32", "decompress", NULL
     };
     enum optionIndices {
-        OPTION_ADLER32 = 0, OPTION_CRC32, OPTION_DEFLATE, OPTION_INFLATE
+        OPTION_ADLER32 = 0, OPTION_COMPRESS, OPTION_CRC32, OPTION_DECOMPRESS
     };
 
+    /* Check arguments. */
     if (objc < 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "option arg ?arg ...?");
         return TCL_ERROR;
@@ -248,68 +392,72 @@ ZlibObjCmd(
                     checksum = crc32(checksum, data, dataLength);
                     break;
                 }
-                default: {
-                    /* To keep GCC from complaining... */
-                    break;
-                }
             }
 
             Tcl_SetLongObj(Tcl_GetObjResult(interp), (long)checksum);
             return TCL_OK;
         }
-        case OPTION_DEFLATE: {
+        case OPTION_COMPRESS: {
             int level = Z_BEST_SPEED;  /* Use the quickest compression level by default. */
             int status;
 
             switch (objc) {
-                case 3: {
+                case 4: {
                     break;
                 }
-                case 5: {
+                case 6: {
                     if (PartialSwitchCompare(objv[2], "-level")) {
                         if (Tcl_GetIntFromObj(interp, objv[3], &level) != TCL_OK) {
                             return TCL_ERROR;
                         }
                         if (level < 0 || level > 9) {
                             Tcl_AppendResult(interp, "invalid compression level \"",
-                                Tcl_GetStringFromObj(objv[3], NULL), "\": must be between 0 and 9", NULL);
+                                Tcl_GetString(objv[3]), "\": must be between 0 and 9", NULL);
                             return TCL_ERROR;
                         }
                         break;
                     }
                 }
                 default: {
-                    Tcl_WrongNumArgs(interp, 2, objv, "?-level 0-9? data");
+                    Tcl_WrongNumArgs(interp, 2, objv, "?-level 0-9? format data");
                     return TCL_ERROR;
                 }
             }
 
-            status = ZlibDeflateObj(objv[objc-1], Tcl_GetObjResult(interp), level);
-
-            if (status != Z_OK) {
-                Tcl_ResetResult(interp);
-                Tcl_AppendResult(interp, "unable to deflate data: ", zError(status), NULL);
+            if (Tcl_GetIndexFromObjStruct(interp, objv[objc-2], compressionFormats,
+                    sizeof(compressionFormats[0]), "format", TCL_EXACT, &index) != TCL_OK) {
                 return TCL_ERROR;
             }
 
+            status = ZlibCompressObj(objv[objc-1], Tcl_GetObjResult(interp),
+                level, compressionFormats[index].window);
+
+            if (status != Z_OK) {
+                ZlipSetError(interp, "unable to compact data: ", status);
+                return TCL_ERROR;
+            }
             return TCL_OK;
         }
-        case OPTION_INFLATE: {
+        case OPTION_DECOMPRESS: {
             int status;
 
-            if (objc != 3) {
-                Tcl_WrongNumArgs(interp, 2, objv, "data");
+            if (objc != 4) {
+                Tcl_WrongNumArgs(interp, 2, objv, "format data");
                 return TCL_ERROR;
             }
 
-            status = ZlibInflateObj(objv[2], Tcl_GetObjResult(interp));
+            if (Tcl_GetIndexFromObjStruct(interp, objv[2], compressionFormats,
+                    sizeof(compressionFormats[0]), "format", TCL_EXACT, &index) != TCL_OK) {
+                return TCL_ERROR;
+            }
+
+            status = ZlibDecompressObj(objv[3], Tcl_GetObjResult(interp),
+                compressionFormats[index].window);
 
             if (status != Z_OK) {
-                Tcl_ResetResult(interp);
-                Tcl_AppendResult(interp, "unable to inflate data: ", zError(status), NULL);
+                ZlipSetError(interp, "unable to expand data: ", status);
                 return TCL_ERROR;
             }
-
             return TCL_OK;
         }
     }
