@@ -157,7 +157,7 @@ Tcl_Interp *TclInit(int argc, char **argv, int service, Tcl_ExitProc *exitProc)
     char *argList;
     Tcl_DString argString;
     Tcl_Interp *interp;
-    Tcl_Obj *intObj;
+    Tcl_Obj *objPtr;
 
     // The second command-line argument must be a Tcl script.
     if (argc < 2) {
@@ -179,10 +179,10 @@ Tcl_Interp *TclInit(int argc, char **argv, int service, Tcl_ExitProc *exitProc)
     }
 
     // Set the "argc", "argv", and "argv0" global variables.
-    intObj = Tcl_NewIntObj(argc-1);
-    Tcl_IncrRefCount(intObj);
-    Tcl_SetVar2Ex(interp, "argc", NULL, intObj, TCL_GLOBAL_ONLY);
-    Tcl_DecrRefCount(intObj);
+    objPtr = Tcl_NewIntObj(argc-1);
+    Tcl_IncrRefCount(objPtr);
+    Tcl_SetVar2Ex(interp, "argc", NULL, objPtr, TCL_GLOBAL_ONLY);
+    Tcl_DecrRefCount(objPtr);
 
     argList = Tcl_Merge(argc-1, (CONST char **) argv+1);
     Tcl_ExternalToUtfDString(NULL, argList, -1, &argString);
@@ -195,10 +195,10 @@ Tcl_Interp *TclInit(int argc, char **argv, int service, Tcl_ExitProc *exitProc)
     Tcl_DStringFree(&argString);
 
     // Set tcl_service, to indicate whether the process is running as a NT service.
-    intObj = Tcl_NewBooleanObj(service);
-    Tcl_IncrRefCount(intObj);
-    Tcl_SetVar2Ex(interp, "tcl_service", NULL, intObj, TCL_GLOBAL_ONLY);
-    Tcl_DecrRefCount(intObj);
+    objPtr = Tcl_NewBooleanObj(service);
+    Tcl_IncrRefCount(objPtr);
+    Tcl_SetVar2Ex(interp, "tcl_service", NULL, objPtr, TCL_GLOBAL_ONLY);
+    Tcl_DecrRefCount(objPtr);
 
     //
     // Create an exit callback to handle unexpected exit requests, allowing
