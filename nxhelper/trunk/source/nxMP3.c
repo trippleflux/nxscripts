@@ -128,33 +128,28 @@ Mp3ObjCmd(
             fieldObj = Tcl_NewObj();
             Tcl_IncrRefCount(fieldObj);
 
-            /* Easier then repeating this... */
-            #define TCL_STORE_ARRAY(fieldObj, valueObj) \
-            if (Tcl_ObjSetVar2(interp, objv[2], fieldObj, valueObj, TCL_LEAVE_ERR_MSG) == NULL) { \
-                Tcl_DecrRefCount(fieldObj); \
-                Tcl_DecrRefCount(valueObj); \
-                return TCL_ERROR; \
-            }
+/* Easier then repeating this... */
+#define TCL_STORE_ARRAY(name, value)                                                      \
+    valueObj = (value);                                                                   \
+    Tcl_SetStringObj(fieldObj, (name), -1);                                               \
+    if (Tcl_ObjSetVar2(interp, objv[2], fieldObj, valueObj, TCL_LEAVE_ERR_MSG) == NULL) { \
+        Tcl_DecrRefCount(fieldObj);                                                       \
+        return TCL_ERROR;                                                                 \
+    }
 
-            /* Set all 'double' values. */
             for (i = 0; doubleValues[i].field != NULL; i++) {
-                Tcl_SetStringObj(fieldObj, doubleValues[i].field, -1);
-                valueObj = Tcl_NewDoubleObj(doubleValues[i].value);
-                TCL_STORE_ARRAY(fieldObj, valueObj);
+                TCL_STORE_ARRAY(doubleValues[i].field,
+                    Tcl_NewDoubleObj(doubleValues[i].value));
             }
 
-            /* Set all 'long' values. */
             for (i = 0; longValues[i].field != NULL; i++) {
-                Tcl_SetStringObj(fieldObj, longValues[i].field, -1);
-                valueObj = Tcl_NewLongObj(longValues[i].value);
-                TCL_STORE_ARRAY(fieldObj, valueObj);
+                TCL_STORE_ARRAY(longValues[i].field,
+                    Tcl_NewLongObj(longValues[i].value));
             }
 
-            /* Set all 'string' values. */
             for (i = 0; stringValues[i].field != NULL; i++) {
-                Tcl_SetStringObj(fieldObj, stringValues[i].field, -1);
-                valueObj = Tcl_NewStringObj(stringValues[i].value, -1);
-                TCL_STORE_ARRAY(fieldObj, valueObj);
+                TCL_STORE_ARRAY(stringValues[i].field,
+                    Tcl_NewStringObj(stringValues[i].value, -1));
             }
 
             Tcl_DecrRefCount(fieldObj);
