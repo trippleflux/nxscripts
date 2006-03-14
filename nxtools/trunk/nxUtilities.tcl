@@ -24,7 +24,7 @@ namespace eval ::nxTools::Utils {
 # User Procedures
 ######################################################################
 
-proc ::nxTools::Utils::ChangeCredits {userName change {section 0}} {
+proc ::nxTools::Utils::ChangeCredits {userName change section} {
     incr section
     if {[regexp -- {^(\+|\-)?(\d+)$} $change result method amount] && [userfile open $userName] == 0} {
         set newUserFile ""
