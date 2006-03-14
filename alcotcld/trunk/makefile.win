@@ -184,6 +184,7 @@ INCLUDE_DIRS=\
 OBJECT_FILES=\
     $(PKG_INTDIR)\tcldInit.obj\
     $(PKG_INTDIR)\tcldWinMain.obj\
+    $(PKG_INTDIR)\tcldWinUtil.obj\
     $(PKG_INTDIR)\tcld.res
 
 CFLAGS  = -c $(cdebug) $(cflags) $(cvarsmt) $(PKG_CFLAGS) $(TCL_CFLAGS) $(INCLUDE_DIRS)

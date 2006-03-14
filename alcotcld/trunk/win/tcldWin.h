@@ -17,10 +17,6 @@ Abstract:
 #ifndef _TCLDWIN_H_
 #define _TCLDWIN_H_
 
-#if defined(DEBUG) && !defined(_DEBUG)
-#   define _DEBUG
-#endif
-
 #ifndef _WINDOWS
 #   define _WINDOWS
 #endif
@@ -29,12 +25,8 @@ Abstract:
 #include <windows.h>
 #include <shlwapi.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include <stdio.h>
-#include <memory.h>
-#include <signal.h>
-#include <string.h>
-#include <wchar.h>
+#include <stdarg.h>
 
 #define STRSAFE_LIB
 #define STRSAFE_NO_CB_FUNCTIONS
@@ -49,5 +41,7 @@ Abstract:
 #       define inline
 #   endif
 #endif // inline
+
+#include "tcldWinUtil.h"
 
 #endif // _TCLDWIN_H_
