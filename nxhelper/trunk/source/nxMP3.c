@@ -155,14 +155,14 @@ Mp3ObjCmd(
             Tcl_DecrRefCount(fieldObj);
             status = TCL_OK;
         } else {
-            Tcl_AppendResult(interp, "unable to read \"", Tcl_GetString(objv[1]),
-            "\": not a valid MP3 file", NULL);
+            Tcl_AppendResult(interp, "unable to read \"",
+                Tcl_GetString(objv[1]), "\": not a valid MP3 file", NULL);
         }
 
         MP3CloseFile(&MP3Info);
     } else {
-        Tcl_AppendResult(interp, "unable to open \"", Tcl_GetString(objv[1]), "\": ",
-            TclSetWinError(interp, GetLastError()), NULL);
+        Tcl_AppendResult(interp, "unable to open \"",  Tcl_GetString(objv[1]),
+            "\": ", TclSetWinError(interp, GetLastError()), NULL);
     }
 
     return status;
