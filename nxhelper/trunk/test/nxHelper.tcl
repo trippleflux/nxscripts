@@ -29,11 +29,13 @@ foreach test $testStrings {
     }
 }
 
-foreach test $testStrings {
-    set deflated [::nx::zlib deflate $test]
-    set inflated [::nx::zlib inflate $deflated]
-    if {$test ne $inflated} {
-        error "zlib: deflate/inflate failed for \"$test\""
+foreach type {gzip zlib zlib-raw} {
+    foreach test $testStrings {
+        set compressed [::nx::zlib compress $type $test]
+        set decompressed [::nx::zlib decompress $type $compressed]
+        if {$test ne $decompressed} {
+            error "zlib: compress/decompress on $type failed for \"$test\""
+        }
     }
 }
 
@@ -50,10 +52,8 @@ foreach test $testStrings {
 unset volC volD
 
 # MP3
-::nx::mp3 test.mp3 mp3A
-::nx::mp3 test.mp3 mp3B
-
-unset mp3A mp3B
+::nx::mp3 test.mp3 mp3
+unset mp3
 
 # Key
 ::nx::key set world {kind of big}
