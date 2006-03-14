@@ -195,7 +195,7 @@ Tcl_Interp *TclInit(int argc, char **argv, int service, Tcl_ExitProc *exitProc)
     Tcl_DStringFree(&argString);
 
     // Set tcl_service, to indicate whether the process is running as a NT service.
-    intObj = Tcl_NewIntObj(service != 0);
+    intObj = Tcl_NewBooleanObj(service);
     Tcl_IncrRefCount(intObj);
     Tcl_SetVar2Ex(interp, "tcl_service", NULL, intObj, TCL_GLOBAL_ONLY);
     Tcl_DecrRefCount(intObj);
