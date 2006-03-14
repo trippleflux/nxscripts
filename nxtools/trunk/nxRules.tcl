@@ -21,21 +21,6 @@ namespace eval ::nxTools::Rules {
     namespace import -force ::nxLib::*
 }
 
-# Rules Procedures
-######################################################################
-
-proc ::nxTools::Rules::WordWrap {text width} {
-    set result ""
-    while {[string length $text] > $width} {
-        set index [string last { } $text $width]
-        if {$index < 0} {set index $width}
-        lappend result [string trim [string range $text 0 $index]]
-        set text [string range $text [expr {$index + 1}] end]
-    }
-    if {[string length $text]} {lappend result $text}
-    return $result
-}
-
 # Rules Main
 ######################################################################
 

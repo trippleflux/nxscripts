@@ -81,6 +81,17 @@ proc ::nxTools::Pre::ConfigWrite {configFile} {
     return 1
 }
 
+proc ::nxTools::Pre::DisplayAreas {areaList} {
+    set areas [JoinLiteral [lsort -ascii $areaList]]
+    set prefix "Areas : "
+    set prefixLen [string length $prefix]
+
+    foreach line [WordWrap $areas [expr {70 - $prefixLen}]] {
+        LinePuts "$prefix$line"
+        set prefix [string repeat " " $prefixLen]
+    }
+}
+
 proc ::nxTools::Pre::ResolvePath {userName groupName realPath} {
     set bestMatch 0
     set resolvePath "/"
@@ -220,10 +231,7 @@ proc ::nxTools::Pre::Edit {argList} {
     global pre
     if {![ConfigRead $pre(ConfigFile)]} {return 1}
     if {![llength $argList]} {
-        LinePuts "Syntax: SITE EDITPRE <option> <area> \[value\]"
-        LinePuts "Option: addarea delarea addgrp delgrp addpath delpath hidepath view"
-        LinePuts "Areas : [lsort -ascii [array names preArea]]"
-        return 1
+        set argList "help"
     }
     foreach {option target value} $argList {break}
 
@@ -464,7 +472,7 @@ proc ::nxTools::Pre::Edit {argList} {
                     LinePuts " - For more detailed help, try \"SITE EDITPRE HELP\" <option>"
                     LinePuts "Syntax: SITE EDITPRE <option> <area> \[value\]"
                     LinePuts "Option: addarea delarea addgrp delgrp addpath delpath hidepath view"
-                    LinePuts "Areas : [lsort -ascii [array names preArea]]"
+                    DisplayAreas [array names preArea]
                 }
             }
         }
@@ -769,7 +777,7 @@ proc ::nxTools::Pre::Main {argv} {
                 LinePuts "Syntax: SITE PRE <area> <directory>"
                 LinePuts "        SITE PRE HISTORY \[-max <limit>\] \[group\]"
                 LinePuts "        SITE PRE STATS \[-max <limit>\] \[group\]"
-                LinePuts "Areas : [lsort -ascii [array names preArea]]"
+                DisplayAreas [array names preArea]
             }
             iputs "'------------------------------------------------------------------------'"
         } elseif {$subEvent eq "HISTORY"} {
