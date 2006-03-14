@@ -100,6 +100,18 @@ proc ::nxLib::StripChars {string} {
     return [string trim $string "."]
 }
 
+proc ::nxLib::WordWrap {text width} {
+    set result [list]
+    while {[string length $text] > $width} {
+        set index [string last { } $text $width]
+        if {$index < 0} {set index $width}
+        lappend result [string trim [string range $text 0 $index]]
+        set text [string range $text [expr {$index + 1}] end]
+    }
+    if {[string length $text]} {lappend result $text}
+    return $result
+}
+
 # DataBase Procedures
 ######################################################################
 
