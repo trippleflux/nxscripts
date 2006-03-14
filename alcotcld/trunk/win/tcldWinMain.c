@@ -92,32 +92,32 @@ main(
 {
     char currentPath[512];
 
-    DEBUGLOG("main: Starting...\n");
-
     // Change working directory to the image location.
     if (GetModuleFileNameA(NULL, currentPath, ARRAYSIZE(currentPath))) {
         PathRemoveFileSpecA(currentPath);
         if (!SetCurrentDirectoryA(currentPath)) {
-            DEBUGLOG("main: Unable to change directory to %s, error %lu.\n",
+            LogError("Unable to change directory to \"%s\" (error %lu).\n",
                 currentPath, GetLastError());
+            return 1;
         }
     } else {
-        DEBUGLOG("main: GetModuleFileName() failed with %lu.\n", GetLastError());
+        LogError("Unable to retrieve process path (error %lu).\n", GetLastError());
+        return 1;
     }
 
-    // Needed for TclThread.
+    // Needed for TclThread().
     cmdArgc = argc;
     cmdArgv = argv;
 
     if (!StartServiceCtrlDispatcherA(serviceTable)) {
-        DWORD errorId = GetLastError();
+        DWORD error = GetLastError();
 
         //
         // If StartServiceCtrlDispatcher fails with ERROR_FAILED_SERVICE_CONTROLLER_CONNECT
         // the application was not started by the Service Control Manager, so we'll
         // continue to run as a console application.
         //
-        if (errorId == ERROR_FAILED_SERVICE_CONTROLLER_CONNECT) {
+        if (error == ERROR_FAILED_SERVICE_CONTROLLER_CONNECT) {
             Tcl_Interp *interp = TclInit(argc, argv, FALSE, NULL);
             if (interp == NULL) {
                 return 1;
@@ -128,7 +128,7 @@ main(
                 Sleep(5000);
             }
         } else {
-            DEBUGLOG("main: StartServiceCtrlDispatcher() failed with %lu.\n", errorId);
+            DebugPrint("main: StartServiceCtrlDispatcher() failed with %lu.\n", error);
             return 1;
         }
     }
@@ -159,7 +159,7 @@ ServiceMain(
     )
 {
     DWORD threadId;
-    DEBUGLOG("ServiceMain: Service starting...\n", argc);
+    DebugPrint("ServiceMain: Service starting...\n", argc);
 
     serviceName = argv[0];
     serviceStatusHandle = RegisterServiceCtrlHandlerA(serviceName, ServiceHandler);
@@ -167,27 +167,32 @@ ServiceMain(
     // Signal this event to notify threads to clean-up and exit.
     stopEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
     if (stopEvent == NULL) {
-        DEBUGLOG("ServiceMain: CreateEvent() failed with %lu.\n", GetLastError());
+        DebugPrint("ServiceMain: CreateEvent() failed with %lu.\n", GetLastError());
         ServiceUpdateStatus(SERVICE_STOPPED, 1, 0);
 
     } else {
         DWORD result;
 
-        DEBUGLOG("ServiceMain: Creating thread for Tcl...\n");
+        // Redirect standard channels for Tcl.
+        freopen("nul", "r", stdin);
+        freopen("nul", "w", stdout);
+        freopen("nul", "w", stderr);
+
+        DebugPrint("ServiceMain: Creating thread for Tcl...\n");
         tclThread = CreateThread(NULL, 0, TclThread, NULL, 0, &threadId);
         if (tclThread == NULL) {
-            DEBUGLOG("ServiceMain: CreateThread() failed with %lu.\n", GetLastError());
+            DebugPrint("ServiceMain: CreateThread() failed with %lu.\n", GetLastError());
             ServiceUpdateStatus(SERVICE_STOPPED, 1, 0);
 
         } else {
-            DEBUGLOG("ServiceMain: Entering running state.\n");
+            DebugPrint("ServiceMain: Entering running state.\n");
             ServiceUpdateStatus(SERVICE_RUNNING, NO_ERROR, 0);
 
             // Wait for the stop event to be signaled.
             while (WaitForSingleObject(stopEvent, 1000) != WAIT_OBJECT_0) {
-                DEBUGLOG("ServiceMain: Still waiting...\n");
+                DebugPrint("ServiceMain: Still waiting...\n");
             }
-            DEBUGLOG("ServiceMain: Stop event signaled, waiting for Tcl thread to exit.\n");
+            DebugPrint("ServiceMain: Stop event signaled, waiting for Tcl thread to exit.\n");
 
             // Wait for the Tcl thread to exit.
             for (;;) {
@@ -197,7 +202,7 @@ ServiceMain(
                     continue;
                 }
                 if (result == WAIT_FAILED) {
-                    DEBUGLOG("ServiceMain: WaitForSingleObject() failed with %lu.\n", GetLastError());
+                    DebugPrint("ServiceMain: WaitForSingleObject() failed with %lu.\n", GetLastError());
                 }
                 break;
             }
@@ -205,7 +210,7 @@ ServiceMain(
             CloseHandle(stopEvent);
             CloseHandle(tclThread);
 
-            DEBUGLOG("ServiceMain: Shutdown completed successfully.\n");
+            DebugPrint("ServiceMain: Shutdown completed successfully.\n");
             ServiceUpdateStatus(SERVICE_STOPPED, NO_ERROR, 0);
         }
     }
@@ -232,7 +237,7 @@ ServiceHandler(
     DWORD currentState;
     DWORD waitHint;
 
-    DEBUGLOG("ServiceHandler: Received control code %lu.\n", controlCode);
+    DebugPrint("ServiceHandler: Received control code %lu.\n", controlCode);
 
     switch (controlCode) {
         case SERVICE_CONTROL_SHUTDOWN:
@@ -260,7 +265,7 @@ ServiceHandler(
         // service has been requested to stop.
         //
         if (!SetEvent(stopEvent)) {
-            DEBUGLOG("ServiceHandler: SetEvent() failed with %lu.\n", GetLastError());
+            DebugPrint("ServiceHandler: SetEvent() failed with %lu.\n", GetLastError());
         }
     }
 }
@@ -289,7 +294,7 @@ ServiceUpdateStatus(
 {
     SERVICE_STATUS status;
 
-    DEBUGLOG("ServiceUpdateStatus: State=%lu Exit=%lu Wait=%lu\n",
+    DebugPrint("ServiceUpdateStatus: State=%lu Exit=%lu Wait=%lu\n",
         currentState, exitCode, waitHint);
 
     // Disable control requests until the service is running.
@@ -307,7 +312,7 @@ ServiceUpdateStatus(
     status.dwWaitHint                = waitHint;
 
     if (!SetServiceStatus(serviceStatusHandle, &status)) {
-        DEBUGLOG("ServiceUpdateStatus: SetServiceStatus() failed with %lu.\n", GetLastError());
+        DebugPrint("ServiceUpdateStatus: SetServiceStatus() failed with %lu.\n", GetLastError());
     }
 }
 
@@ -330,10 +335,10 @@ TclExitHandler(
     ClientData dummy
     )
 {
-    DEBUGLOG("TclExitHandler: Exit handler called, signaling stop event.\n");
+    DebugPrint("TclExitHandler: Exit handler called, signaling stop event.\n");
 
     if (!SetEvent(stopEvent)) {
-        DEBUGLOG("TclExitHandler: SetEvent() failed with %lu.\n", GetLastError());
+        DebugPrint("TclExitHandler: SetEvent() failed with %lu.\n", GetLastError());
     }
 }
 
@@ -361,7 +366,7 @@ TclThread(
     )
 {
     Tcl_Interp *interp;
-    DEBUGLOG("TclThread: Starting...\n");
+    DebugPrint("TclThread: Starting...\n");
 
     interp = TclInit(cmdArgc, cmdArgv, TRUE, TclExitHandler);
     if (interp == NULL) {
@@ -372,17 +377,17 @@ TclThread(
         // - The specified file contains Tcl syntax errors.
         //
         if (!SetEvent(stopEvent)) {
-            DEBUGLOG("TclThread: SetEvent() failed with %lu.\n", GetLastError());
+            DebugPrint("TclThread: SetEvent() failed with %lu.\n", GetLastError());
         }
 
-        DEBUGLOG("TclThread: TclInit failed, exiting thread.\n");
+        DebugPrint("TclThread: TclInit failed, exiting thread.\n");
         return 1;
     }
 
     while (WaitForSingleObject(stopEvent, 1000) != WAIT_OBJECT_0) {
-        DEBUGLOG("TclThread: Still waiting...\n");
+        DebugPrint("TclThread: Still waiting...\n");
     }
-    DEBUGLOG("TclThread: Stop event signaled, exiting thread.\n");
+    DebugPrint("TclThread: Stop event signaled, exiting thread.\n");
 
     // Delete the interpreter if it still exists.
     if (!Tcl_InterpDeleted(interp)) {

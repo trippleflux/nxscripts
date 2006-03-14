@@ -40,13 +40,18 @@ Abstract:
 #undef ARRAYSIZE
 #define ARRAYSIZE(a) (sizeof(a) / sizeof(a[0]))
 
-// DEBUGLOG - Write a message to the debug log.
-#ifdef DEBUG
-void DebugLog(const char *format, ...);
-#   define DEBUGLOG DebugLog
-#else
-#   define DEBUGLOG
-#endif
+
+void
+LogError(
+    const char *format,
+    ...
+    );
+
+void
+TclLogError(
+    const char *message,
+    Tcl_Obj *objPtr
+    );
 
 Tcl_Interp *
 TclInit(
@@ -54,12 +59,6 @@ TclInit(
     char **argv,
     int service,
     Tcl_ExitProc *exitProc
-    );
-
-void
-TclLogError(
-    const char *message,
-    Tcl_Obj *objPtr
     );
 
 #endif // _TCLD_H_

@@ -42,8 +42,6 @@ main(
     Tcl_Interp *interp;
     Tcl_Obj *resultObj;
 
-    DEBUGLOG("main: Starting...\n");
-
     // Change working directory to the image location.
     currentPath = strdup(argv[0]);
     if (currentPath != NULL) {
@@ -51,13 +49,15 @@ main(
         if (p != NULL) {
             *p = '\0';
             if (setcwd(p) != 0) {
-                DEBUGLOG("main: Unable to change directory to %s: %s.\n",
+                LogError("Unable to change directory to \"%s\": %s.\n",
                     currentPath, strerror(errno));
+                return 1;
             }
         }
         free(currentPath);
     } else {
-        DEBUGLOG("main: strdup() failed: %s.\n", strerror(errno));
+        LogError("Unable to change directory: %s.\n", strerror(errno));
+        return 1;
     }
 
     interp = TclInit(argc, argv, FALSE, NULL);
@@ -81,14 +81,14 @@ main(
         pid_t pid = fork();
 
         if (pid == -1) {
-            fprintf(stderr, "Unable to fork process: %s\n", strerror(errno));
+            LogError("Unable to fork process: %s.\n", strerror(errno));
             return 1;
         } else if (pid != 0) {
             printf("Forked process into the background (PID: %d).\n", pid);
             return 0;
         }
     } else {
-        fprintf(stderr, "Script returned %d, not forking process.\n", background);
+        LogError("Script returned %d, not forking process.\n", background);
     }
 
     // Wait forever.

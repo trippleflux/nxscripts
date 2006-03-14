@@ -19,21 +19,21 @@ Abstract:
 
 /*++
 
-DebugLog
+LogError
 
-    Writes an entry to the applications debug log file.
+    Writes an entry to the applications error log file.
 
 Arguments:
     format  - Pointer to a buffer containing a printf-style format string.
+
     ...     - Arguments to insert into 'format'.
 
 Return Value:
     None.
 
 --*/
-#ifdef DEBUG
 void
-DebugLog(
+LogError(
     const char *format,
     ...
     )
@@ -42,15 +42,14 @@ DebugLog(
     va_list argList;
 
     va_start(argList, format);
-    logHandle = fopen("debug.log", "a");
+    logHandle = fopen("error.log", "a");
     if (logHandle != NULL) {
 #ifdef _WINDOWS
         SYSTEMTIME now;
         GetSystemTime(&now);
 
-        fprintf(logHandle, "%04d-%02d-%02d %02d:%02d:%02d [%5lu] ",
-            now.wYear, now.wMonth, now.wDay, now.wHour, now.wMinute, now.wSecond,
-            GetCurrentThreadId());
+        fprintf(logHandle, "%04d-%02d-%02d %02d:%02d:%02d - ",
+            now.wYear, now.wMonth, now.wDay, now.wHour, now.wMinute, now.wSecond);
 #else
         time_t timer;
         struct tm *now;
@@ -67,7 +66,68 @@ DebugLog(
     }
     va_end(argList);
 }
-#endif // DEBUG
+
+/*++
+
+TclLogError
+
+    Displays an error message to stderr and logs it to error.log.
+
+Arguments:
+    message  - Pointer to a buffer containing a string which explains the error.
+
+    errorObj - Pointer to a Tcl object containing the error text.
+
+Return Value:
+    None.
+
+--*/
+void
+TclLogError(
+    const char *message,
+    Tcl_Obj *errorObj
+    )
+{
+    Tcl_Channel channel;
+
+    // Write message to stderr.
+    channel = Tcl_GetStdChannel(TCL_STDERR);
+    if (channel != NULL) {
+        Tcl_WriteChars(channel, message, -1);
+        Tcl_WriteObj(channel, errorObj);
+        Tcl_WriteChars(channel, "\n", 1);
+    }
+
+    // Write message to error.log.
+    channel = Tcl_OpenFileChannel(NULL, "error.log", "a", 0644);
+    if (channel != NULL) {
+        char timeStamp[64];
+
+#ifdef _WINDOWS
+        SYSTEMTIME now;
+        GetSystemTime(&now);
+
+        StringCchPrintfA(timeStamp, ARRAYSIZE(timeStamp), "%04d-%02d-%02d %02d:%02d:%02d - ",
+            now.wYear, now.wMonth, now.wDay, now.wHour, now.wMinute, now.wSecond);
+#else
+        time_t timer;
+        struct tm *now;
+        time(&timer);
+        now = localtime(&timer);
+
+        snprintf(timeStamp, ARRAYSIZE(timeStamp), "%04d-%02d-%02d %02d:%02d:%02d - ",
+            now->tm_year+1900, now->tm_mon, now->tm_mday,
+            now->tm_hour, now->tm_min, now->tm_sec);
+        timeStamp[ARRAYSIZE(timeStamp)-1] = '\0';
+#endif // _WINDOWS
+
+        Tcl_WriteChars(channel, timeStamp, -1);
+        Tcl_WriteChars(channel, message, -1);
+        Tcl_WriteObj(channel, errorObj);
+        Tcl_WriteChars(channel, "\n\n", 2);
+        Tcl_Close(NULL, channel);
+    }
+}
 
 /*++
 
@@ -77,8 +137,11 @@ TclInit
 
 Arguments:
     argc     - Number of command-line arguments.
+
     argv     - Array of pointers to strings that represent command-line arguments.
+
     service  - Boolean to indicate whether the process is running as an NT service.
+
     exitProc - Pointer to a Tcl exit handler function. This argument can be NULL.
 
 Return Value:
@@ -98,19 +161,9 @@ Tcl_Interp *TclInit(int argc, char **argv, int service, Tcl_ExitProc *exitProc)
 
     // The second command-line argument must be a Tcl script.
     if (argc < 2) {
-        DEBUGLOG("TclInit: Invalid command-line arguments.\n");
         fprintf(stderr, "Usage: %s <script file> [arguments]\n", argv[0]);
         return NULL;
     }
-
-#ifdef _WINDOWS
-    // Redirect standard channels for Tcl.
-    if (service) {
-        freopen("nul", "r", stdin);
-        freopen("nul", "w", stdout);
-        freopen("nul", "w", stderr);
-    }
-#endif
 
     // Initialise Tcl and create an interpreter.
     Tcl_FindExecutable(argv[0]);
@@ -172,68 +225,5 @@ Tcl_Interp *TclInit(int argc, char **argv, int service, Tcl_ExitProc *exitProc)
     // Tcl_EvalFile() succeeds. The result is used to determine whether or
     // not we fork the process into the background (nix only).
     //
-
     return interp;
-}
-
-/*++
-
-TclLogError
-
-    Displays an error message to stderr and logs it to error.log.
-
-Arguments:
-    message - Pointer to a buffer containing a string which explains the error.
-    objPtr  - Pointer to a Tcl object containing the error text.
-
-Return Value:
-    None.
-
---*/
-void
-TclLogError(
-    const char *message,
-    Tcl_Obj *objPtr
-    )
-{
-    Tcl_Channel channel;
-
-    DEBUGLOG("TclLogError: %s%s\n", message, Tcl_GetString(objPtr));
-
-    // Write message to stderr.
-    channel = Tcl_GetStdChannel(TCL_STDERR);
-    if (channel != NULL) {
-        Tcl_WriteChars(channel, message, -1);
-        Tcl_WriteObj(channel, objPtr);
-        Tcl_WriteChars(channel, "\n", 1);
-    }
-
-    // Write message to error.log.
-    channel = Tcl_OpenFileChannel(NULL, "error.log", "a", 0644);
-    if (channel != NULL) {
-        char timeStamp[64];
-#ifdef _WINDOWS
-        SYSTEMTIME now;
-        GetSystemTime(&now);
-
-        StringCchPrintfA(timeStamp, ARRAYSIZE(timeStamp), "%04d-%02d-%02d %02d:%02d:%02d - ",
-            now.wYear, now.wMonth, now.wDay, now.wHour, now.wMinute, now.wSecond);
-#else
-        time_t timer;
-        struct tm *now;
-        time(&timer);
-        now = localtime(&timer);
-
-        snprintf(timeStamp, ARRAYSIZE(timeStamp), "%04d-%02d-%02d %02d:%02d:%02d - ",
-            now->tm_year+1900, now->tm_mon, now->tm_mday,
-            now->tm_hour, now->tm_min, now->tm_sec);
-        timeStamp[ARRAYSIZE(timeStamp)-1] = '\0';
-#endif // _WINDOWS
-
-        Tcl_WriteChars(channel, timeStamp, -1);
-        Tcl_WriteChars(channel, message, -1);
-        Tcl_WriteObj(channel, objPtr);
-        Tcl_WriteChars(channel, "\n\n", 2);
-        Tcl_Close(NULL, channel);
-    }
 }
