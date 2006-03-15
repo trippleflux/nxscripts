@@ -79,7 +79,7 @@ main(
     resultObj = Tcl_GetObjResult(interp);
 
     if (Tcl_GetBooleanFromObj(interp, resultObj, &result) != TCL_OK) {
-        TclLogError("Invalid return value:\n",
+        LogErrorObj("Invalid return value:\n",
             Tcl_GetVar2Ex(interp, "errorInfo", NULL, TCL_GLOBAL_ONLY));
         return 1;
     }

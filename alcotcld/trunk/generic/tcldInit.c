@@ -63,7 +63,7 @@ LogError(
 
 /*++
 
-TclLogError
+LogErrorObj
 
     Displays an error message to stderr if running interactively, otherwise
     the message is written to error.log.
@@ -78,7 +78,7 @@ Return Value:
 
 --*/
 void
-TclLogError(
+LogErrorObj(
     const char *message,
     Tcl_Obj *errorObj
     )
@@ -171,7 +171,7 @@ Tcl_Interp *TclInit(int argc, char **argv, int service, Tcl_ExitProc *exitProc)
     // continue and function normally (for the most part anyway).
     //
     if (Tcl_Init(interp) != TCL_OK) {
-        TclLogError("Tcl initialisation failed:\n", Tcl_GetObjResult(interp));
+        LogErrorObj("Tcl initialisation failed:\n", Tcl_GetObjResult(interp));
     }
 
     // Set the "argc", "argv", and "argv0" global variables.
@@ -206,7 +206,7 @@ Tcl_Interp *TclInit(int argc, char **argv, int service, Tcl_ExitProc *exitProc)
     }
 
     if (Tcl_EvalFile(interp, argv[1]) != TCL_OK) {
-        TclLogError("Script evaluation failed:\n",
+        LogErrorObj("Script evaluation failed:\n",
             Tcl_GetVar2Ex(interp, "errorInfo", NULL, TCL_GLOBAL_ONLY));
 
         // Delete the interpreter if it still exists.

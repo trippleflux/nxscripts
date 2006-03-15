@@ -48,7 +48,7 @@ LogError(
     );
 
 void
-TclLogError(
+LogErrorObj(
     const char *message,
     Tcl_Obj *objPtr
     );
