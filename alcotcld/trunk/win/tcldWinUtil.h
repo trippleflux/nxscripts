@@ -27,4 +27,10 @@ DebugPrint(
 #   define DebugPrint
 #endif
 
+//
+// Determine if the given file exists.
+//
+#define FileExists(path) \
+    (GetFileAttributesA(path) != INVALID_FILE_ATTRIBUTES)
+
 #endif // _TCLDWINUTIL_H_

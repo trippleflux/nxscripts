@@ -56,4 +56,6 @@ Abstract:
 #   include <sys/limits.h>
 #endif
 
+#include "tcldUnixUtil.h"
+
 #endif // _TCLDUNIX_H_

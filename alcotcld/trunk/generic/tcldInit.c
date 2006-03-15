@@ -171,7 +171,11 @@ Tcl_Interp *TclInit(int argc, char **argv, int service, Tcl_ExitProc *exitProc)
 
     // The second command-line argument must be a Tcl script.
     if (argc < 2) {
-        fprintf(stderr, "Usage: %s <script file> [arguments]\n", argv[0]);
+        LogError("Usage: %s <script file> [arguments]\n", argv[0]);
+        return NULL;
+    }
+    if (!FileExists(argv[1])) {
+        LogError("The file \"%s\" does not exist.\n", argv[1]);
         return NULL;
     }
 
