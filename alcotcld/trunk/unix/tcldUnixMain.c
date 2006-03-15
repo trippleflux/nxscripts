@@ -24,6 +24,7 @@ main
 
 Arguments:
     argc    - Number of command-line arguments.
+
     argv    - Array of pointers to strings that represent command-line arguments.
 
 Return Value:

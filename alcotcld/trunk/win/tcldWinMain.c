@@ -77,6 +77,7 @@ main
 
 Arguments:
     argc    - Number of command-line arguments.
+
     argv    - Array of pointers to strings that represent command-line arguments.
 
 Return Value:
@@ -123,7 +124,7 @@ main(
                 return 1;
             }
 
-            // Wait forever...
+            // Wait forever.
             for (;;) {
                 Sleep(5000);
             }
@@ -145,6 +146,7 @@ ServiceMain
 
 Arguments:
     argc    - Number of arguments in the argv array.
+
     argv    - Array of pointers to strings that represent arguments passed to
               the process by the process that call StartService.
 
@@ -198,7 +200,7 @@ ServiceMain(
             for (;;) {
                 result = WaitForSingleObject(tclThread, 1000);
                 if (result == WAIT_TIMEOUT) {
-                    // Retry...
+                    // Retry.
                     continue;
                 }
                 if (result == WAIT_FAILED) {
@@ -278,7 +280,9 @@ ServiceUpdateStatus
 
 Arguments:
     currentState - Current state of the service.
+
     exitCode     - Service exit code.
+
     waitHint     - Estimated time required for a operation, in milliseconds.
 
 Return Value:
