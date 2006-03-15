@@ -45,30 +45,17 @@ LogError(
 
     va_start(argList, format);
     if (!inBackground) {
+        // Write message to stderr.
         vfprintf(stderr, format, argList);
     } else {
-        FILE *logHandle = fopen("error.log", "a");
+        FILE *handle;
 
-        if (logHandle != NULL) {
-#ifdef _WINDOWS
-            SYSTEMTIME now;
-            GetSystemTime(&now);
-
-            fprintf(logHandle, "%04d-%02d-%02d %02d:%02d:%02d - ",
-                now.wYear, now.wMonth, now.wDay, now.wHour, now.wMinute, now.wSecond);
-#else
-            time_t timer;
-            struct tm *now;
-            time(&timer);
-            now = localtime(&timer);
-
-            fprintf(logHandle, "%04d-%02d-%02d %02d:%02d:%02d - ",
-                now->tm_year+1900, now->tm_mon, now->tm_mday,
-                now->tm_hour, now->tm_min, now->tm_sec);
-#endif // _WINDOWS
-
-            vfprintf(logHandle, format, argList);
-            fclose(logHandle);
+        // Write message to error.log.
+        handle = fopen("error.log", "a");
+        if (handle != NULL) {
+            WriteTime(handle);
+            vfprintf(handle, format, argList);
+            fclose(handle);
         }
     }
     va_end(argList);
@@ -96,9 +83,9 @@ TclLogError(
     Tcl_Obj *errorObj
     )
 {
-    Tcl_Channel channel;
-
     if (!inBackground) {
+        Tcl_Channel channel;
+
         // Write message to stderr.
         channel = Tcl_GetStdChannel(TCL_STDERR);
         if (channel != NULL) {
@@ -107,34 +94,29 @@ TclLogError(
             Tcl_WriteChars(channel, "\n", 1);
         }
     } else {
+        char *stringPtr;
+        FILE *handle;
+
         // Write message to error.log.
-        channel = Tcl_OpenFileChannel(NULL, "error.log", "a", 0644);
-        if (channel != NULL) {
-            char timeStamp[64];
+        handle = fopen("error.log", "a");
+        if (handle != NULL) {
+            WriteTime(handle);
+            fputs(message, handle);
 
-#ifdef _WINDOWS
-            SYSTEMTIME now;
-            GetSystemTime(&now);
+            stringPtr = Tcl_GetString(errorObj);
+            if (*stringPtr) {
+                char *format = "                    %.*s\n";
+                char *p;
 
-            StringCchPrintfA(timeStamp, ARRAYSIZE(timeStamp), "%04d-%02d-%02d %02d:%02d:%02d - ",
-                now.wYear, now.wMonth, now.wDay, now.wHour, now.wMinute, now.wSecond);
-#else
-            time_t timer;
-            struct tm *now;
-            time(&timer);
-            now = localtime(&timer);
+                // Align the error message after the timestamp (column wise).
+                while (*stringPtr && (p = strchr(stringPtr, '\n')) != NULL) {
+                    fprintf(handle, format, p - stringPtr, stringPtr);
+                    stringPtr = p + 1;
+                }
+                fprintf(handle, format, p - stringPtr, stringPtr);
+            }
 
-            snprintf(timeStamp, ARRAYSIZE(timeStamp), "%04d-%02d-%02d %02d:%02d:%02d - ",
-                now->tm_year+1900, now->tm_mon, now->tm_mday,
-                now->tm_hour, now->tm_min, now->tm_sec);
-            timeStamp[ARRAYSIZE(timeStamp)-1] = '\0';
-#endif // _WINDOWS
-
-            Tcl_WriteChars(channel, timeStamp, -1);
-            Tcl_WriteChars(channel, message, -1);
-            Tcl_WriteObj(channel, errorObj);
-            Tcl_WriteChars(channel, "\n\n", 2);
-            Tcl_Close(NULL, channel);
+            fclose(handle);
         }
     }
 }

@@ -33,4 +33,17 @@ DebugPrint(
 #define FileExists(path) \
     (GetFileAttributesA(path) != INVALID_FILE_ATTRIBUTES)
 
+//
+// Writes a timestamp to the given file.
+//
+#define WriteTime(handle)                                 \
+    do {                                                  \
+        SYSTEMTIME now;                                   \
+        GetSystemTime(&now);                              \
+                                                          \
+        fprintf(handle, "%04d-%02d-%02d %02d:%02d:%02d ", \
+            now.wYear, now.wMonth, now.wDay,              \
+            now.wHour, now.wMinute, now.wSecond);         \
+    } while (0);
+
 #endif // _TCLDWINUTIL_H_

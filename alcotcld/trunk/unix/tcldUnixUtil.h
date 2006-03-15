@@ -23,4 +23,19 @@ Abstract:
 #define FileExists(path) \
     (access(path, F_OK) == 0)
 
+//
+// Writes a timestamp to the given file.
+//
+#define WriteTime(handle)                                 \
+    do {                                                  \
+        time_t timer;                                     \
+        struct tm *now;                                   \
+        time(&timer);                                     \
+        now = localtime(&timer);                          \
+                                                          \
+        fprintf(handle, "%04d-%02d-%02d %02d:%02d:%02d ", \
+            now->tm_year+1900, now->tm_mon, now->tm_mday, \
+            now->tm_hour, now->tm_min, now->tm_sec);      \
+    } while (0);
+
 #endif // _TCLDUNIXUTIL_H_
