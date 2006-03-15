@@ -56,4 +56,11 @@ PartialSwitchCompare(
     const char *switchName
     );
 
+int
+TranslatePathFromObj(
+    Tcl_Interp *interp,
+    Tcl_Obj *objPtr,
+    Tcl_DString *buffer
+    );
+
 #endif // _ALCOUTIL_H_

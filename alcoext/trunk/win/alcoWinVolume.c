@@ -124,17 +124,16 @@ GetVolumeInfo(
 {
     char *path;
     char *type;
-    Tcl_Obj *transPathObj;
+    Tcl_DString buffer;
 
     assert(interp     != NULL);
     assert(pathObj    != NULL);
     assert(volumeInfo != NULL);
 
-    transPathObj = Tcl_FSGetTranslatedPath(interp, pathObj);
-    if (transPathObj == NULL) {
+    if (TranslatePathFromObj(interp, pathObj, &buffer) != TCL_OK) {
         return TCL_ERROR;
     }
-    path = Tcl_GetString(transPathObj);
+    path = Tcl_DStringValue(&buffer);
 
     if (!GetVolumeInformationA(path,
             volumeInfo->name, ARRAYSIZE(volumeInfo->name),
@@ -146,7 +145,7 @@ GetVolumeInfo(
         Tcl_AppendResult(interp, "unable to retrieve volume information for \"",
             Tcl_GetString(pathObj), "\": ", TclSetWinError(interp, GetLastError()), NULL);
 
-        Tcl_DecrRefCount(transPathObj);
+        Tcl_DStringFree(&buffer);
         return TCL_ERROR;
     }
 
@@ -165,7 +164,7 @@ GetVolumeInfo(
     }
     StringCchCopyA(volumeInfo->type, ARRAYSIZE(volumeInfo->type), type);
 
-    Tcl_DecrRefCount(transPathObj);
+    Tcl_DStringFree(&buffer);
     return TCL_OK;
 }
 

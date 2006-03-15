@@ -41,25 +41,24 @@ GetVolumeInfo(
     )
 {
     char *path;
-    Tcl_Obj *transPathObj;
+    Tcl_DString buffer;
     struct STATFS_T fsInfo;
 
     assert(interp     != NULL);
     assert(pathObj    != NULL);
     assert(volumeInfo != NULL);
 
-    transPathObj = Tcl_FSGetTranslatedPath(interp, pathObj);
-    if (transPathObj == NULL) {
+    if (TranslatePathFromObj(interp, pathObj, &buffer) != TCL_OK) {
         return TCL_ERROR;
     }
-    path = Tcl_GetString(transPathObj);
+    path = Tcl_DStringValue(&buffer);
 
     if (STATFS_FN(path, &fsInfo) != 0) {
         Tcl_ResetResult(interp);
         Tcl_AppendResult(interp, "unable to retrieve mount information for \"",
             Tcl_GetString(pathObj), "\": ", Tcl_PosixError(interp), NULL);
 
-        Tcl_DecrRefCount(transPathObj);
+        Tcl_DStringFree(&buffer);
         return TCL_ERROR;
     }
 
@@ -78,7 +77,7 @@ GetVolumeInfo(
     strncpy(volumeInfo->type, F_TYPENAME(fsInfo), ARRAYSIZE(volumeInfo->type));
     volumeInfo->type[ARRAYSIZE(volumeInfo->type)-1] = '\0';
 
-    Tcl_DecrRefCount(transPathObj);
+    Tcl_DStringFree(&buffer);
     return TCL_OK;
 }
 

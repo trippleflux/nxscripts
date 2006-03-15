@@ -1,4 +1,5 @@
 AlcoExt v0.6.0 (not yet released):
+  NEW: Paths are translated to the system's native representation.
   CHG: Greatly improved the Windows build system.
   CHG: Moved all commands out of the "::alcoholicz" namespace.
   FIX: Decreasing the reference count of unshared objects in "volume info" and

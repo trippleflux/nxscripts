@@ -103,3 +103,63 @@ PartialSwitchCompare(
     //
     return (optionLength > 2 && strncmp(switchName, option, optionLength) == 0);
 }
+
+/*++
+
+TranslatePathFromObj
+
+    Translates a file path from a given object.
+
+Arguments:
+    interp  - Interpreter to use for error reporting.
+
+    objPtr  - Object containing the file path to be translated.
+
+    buffer  - Dynamic string buffer to receive the translated path.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
+int
+TranslatePathFromObj(
+    Tcl_Interp *interp,
+    Tcl_Obj *objPtr,
+    Tcl_DString *buffer
+    )
+{
+    char *path;
+    int pathLenth;
+    Tcl_Obj *translatedObj;
+
+    assert(interp  != NULL);
+    assert(objPtr != NULL);
+    assert(buffer  != NULL);
+
+    translatedObj = Tcl_FSGetTranslatedPath(interp, objPtr);
+    if (translatedObj == NULL) {
+        return TCL_ERROR;
+    }
+
+    // Create a dynamic string from the translated path.
+    Tcl_DStringInit(buffer);
+    path = Tcl_GetStringFromObj(translatedObj, &pathLenth);
+    Tcl_DStringAppend(buffer, path, pathLenth);
+    Tcl_DecrRefCount(translatedObj);
+
+#ifdef _WINDOWS
+    {
+        char *p = Tcl_DStringValue(buffer);
+
+        // Convert forward slashes to backslashes for Windows paths.
+        while (*p) {
+            if (*p == '/') {
+                *p = '\\';
+            }
+            p++;
+        }
+    }
+#endif // _WINDOWS
+
+    return TCL_OK;
+}
