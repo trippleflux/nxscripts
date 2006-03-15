@@ -27,6 +27,14 @@ PartialSwitchCompare(
     const char *switchName
     );
 
+int
+TranslatePathFromObj(
+    Tcl_Interp *interp,
+    Tcl_Obj *objPtr,
+    Tcl_DString *buffer
+    );
+
+
 BOOL
 GetTimeZoneBias(
     long *bias
