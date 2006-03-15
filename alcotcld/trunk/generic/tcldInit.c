@@ -16,12 +16,15 @@ Abstract:
 
 #include <tcld.h>
 
+int inBackground = 0;
+
 
 /*++
 
 LogError
 
-    Writes an entry to the applications error log file.
+    Displays an error message to stderr if running interactively, otherwise
+    the message is written to error.log.
 
 Arguments:
     format  - Pointer to a buffer containing a printf-style format string.
@@ -38,31 +41,35 @@ LogError(
     ...
     )
 {
-    FILE *logHandle;
     va_list argList;
 
     va_start(argList, format);
-    logHandle = fopen("error.log", "a");
-    if (logHandle != NULL) {
+    if (!inBackground) {
+        vfprintf(stderr, format, argList);
+    } else {
+        FILE *logHandle = fopen("error.log", "a");
+
+        if (logHandle != NULL) {
 #ifdef _WINDOWS
-        SYSTEMTIME now;
-        GetSystemTime(&now);
+            SYSTEMTIME now;
+            GetSystemTime(&now);
 
-        fprintf(logHandle, "%04d-%02d-%02d %02d:%02d:%02d - ",
-            now.wYear, now.wMonth, now.wDay, now.wHour, now.wMinute, now.wSecond);
+            fprintf(logHandle, "%04d-%02d-%02d %02d:%02d:%02d - ",
+                now.wYear, now.wMonth, now.wDay, now.wHour, now.wMinute, now.wSecond);
 #else
-        time_t timer;
-        struct tm *now;
-        time(&timer);
-        now = localtime(&timer);
+            time_t timer;
+            struct tm *now;
+            time(&timer);
+            now = localtime(&timer);
 
-        fprintf(logHandle, "%04d-%02d-%02d %02d:%02d:%02d - ",
-            now->tm_year+1900, now->tm_mon, now->tm_mday,
-            now->tm_hour, now->tm_min, now->tm_sec);
+            fprintf(logHandle, "%04d-%02d-%02d %02d:%02d:%02d - ",
+                now->tm_year+1900, now->tm_mon, now->tm_mday,
+                now->tm_hour, now->tm_min, now->tm_sec);
 #endif // _WINDOWS
 
-        vfprintf(logHandle, format, argList);
-        fclose(logHandle);
+            vfprintf(logHandle, format, argList);
+            fclose(logHandle);
+        }
     }
     va_end(argList);
 }
@@ -71,7 +78,8 @@ LogError(
 
 TclLogError
 
-    Displays an error message to stderr and logs it to error.log.
+    Displays an error message to stderr if running interactively, otherwise
+    the message is written to error.log.
 
 Arguments:
     message  - Pointer to a buffer containing a string which explains the error.
@@ -90,42 +98,44 @@ TclLogError(
 {
     Tcl_Channel channel;
 
-    // Write message to stderr.
-    channel = Tcl_GetStdChannel(TCL_STDERR);
-    if (channel != NULL) {
-        Tcl_WriteChars(channel, message, -1);
-        Tcl_WriteObj(channel, errorObj);
-        Tcl_WriteChars(channel, "\n", 1);
-    }
-
-    // Write message to error.log.
-    channel = Tcl_OpenFileChannel(NULL, "error.log", "a", 0644);
-    if (channel != NULL) {
-        char timeStamp[64];
+    if (!inBackground) {
+        // Write message to stderr.
+        channel = Tcl_GetStdChannel(TCL_STDERR);
+        if (channel != NULL) {
+            Tcl_WriteChars(channel, message, -1);
+            Tcl_WriteObj(channel, errorObj);
+            Tcl_WriteChars(channel, "\n", 1);
+        }
+    } else {
+        // Write message to error.log.
+        channel = Tcl_OpenFileChannel(NULL, "error.log", "a", 0644);
+        if (channel != NULL) {
+            char timeStamp[64];
 
 #ifdef _WINDOWS
-        SYSTEMTIME now;
-        GetSystemTime(&now);
+            SYSTEMTIME now;
+            GetSystemTime(&now);
 
-        StringCchPrintfA(timeStamp, ARRAYSIZE(timeStamp), "%04d-%02d-%02d %02d:%02d:%02d - ",
-            now.wYear, now.wMonth, now.wDay, now.wHour, now.wMinute, now.wSecond);
+            StringCchPrintfA(timeStamp, ARRAYSIZE(timeStamp), "%04d-%02d-%02d %02d:%02d:%02d - ",
+                now.wYear, now.wMonth, now.wDay, now.wHour, now.wMinute, now.wSecond);
 #else
-        time_t timer;
-        struct tm *now;
-        time(&timer);
-        now = localtime(&timer);
+            time_t timer;
+            struct tm *now;
+            time(&timer);
+            now = localtime(&timer);
 
-        snprintf(timeStamp, ARRAYSIZE(timeStamp), "%04d-%02d-%02d %02d:%02d:%02d - ",
-            now->tm_year+1900, now->tm_mon, now->tm_mday,
-            now->tm_hour, now->tm_min, now->tm_sec);
-        timeStamp[ARRAYSIZE(timeStamp)-1] = '\0';
+            snprintf(timeStamp, ARRAYSIZE(timeStamp), "%04d-%02d-%02d %02d:%02d:%02d - ",
+                now->tm_year+1900, now->tm_mon, now->tm_mday,
+                now->tm_hour, now->tm_min, now->tm_sec);
+            timeStamp[ARRAYSIZE(timeStamp)-1] = '\0';
 #endif // _WINDOWS
 
-        Tcl_WriteChars(channel, timeStamp, -1);
-        Tcl_WriteChars(channel, message, -1);
-        Tcl_WriteObj(channel, errorObj);
-        Tcl_WriteChars(channel, "\n\n", 2);
-        Tcl_Close(NULL, channel);
+            Tcl_WriteChars(channel, timeStamp, -1);
+            Tcl_WriteChars(channel, message, -1);
+            Tcl_WriteObj(channel, errorObj);
+            Tcl_WriteChars(channel, "\n\n", 2);
+            Tcl_Close(NULL, channel);
+        }
     }
 }
 

@@ -61,4 +61,8 @@ TclInit(
     Tcl_ExitProc *exitProc
     );
 
+
+// True when the process is in the background.
+int inBackground;
+
 #endif // _TCLD_H_
