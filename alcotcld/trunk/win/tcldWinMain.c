@@ -93,6 +93,12 @@ main(
 {
     char currentPath[512];
 
+    // If the stderr or stdout channels do not exist,
+    // assume we're running in the background.
+    if (GetStdHandle(STD_ERROR_HANDLE) == NULL || GetStdHandle(STD_OUTPUT_HANDLE) == NULL) {
+        inBackground = 1;
+    }
+
     // Change working directory to the image location.
     if (GetModuleFileNameA(NULL, currentPath, ARRAYSIZE(currentPath))) {
         PathRemoveFileSpecA(currentPath);

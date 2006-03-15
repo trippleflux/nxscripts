@@ -38,10 +38,16 @@ main(
     char **argv
     )
 {
-    int background;
+    int result;
     char *currentPath;
     Tcl_Interp *interp;
     Tcl_Obj *resultObj;
+
+    // If the stderr or stdout channels do not exist,
+    // assume we're running in the background.
+    if (!isatty(fileno(stderr)) || !isatty(fileno(stdout))) {
+        inBackground = 1;
+    }
 
     // Change working directory to the image location.
     currentPath = strdup(argv[0]);
@@ -72,13 +78,13 @@ main(
     //
     resultObj = Tcl_GetObjResult(interp);
 
-    if (Tcl_GetBooleanFromObj(interp, resultObj, &background) != TCL_OK) {
+    if (Tcl_GetBooleanFromObj(interp, resultObj, &result) != TCL_OK) {
         TclLogError("Invalid return value:\n",
             Tcl_GetVar2Ex(interp, "errorInfo", NULL, TCL_GLOBAL_ONLY));
         return 1;
     }
 
-    if (background) {
+    if (result) {
         pid_t pid = fork();
 
         if (pid == -1) {
@@ -89,7 +95,7 @@ main(
             return 0;
         }
     } else {
-        LogError("Script returned %d, not forking process.\n", background);
+        LogError("Script returned %d, not forking process.\n", result);
     }
 
     // Wait forever.
