@@ -40,8 +40,8 @@ Abstract:
 
     VFS Commands:
     ioftpd vfs flush    <msgWindow> <path>
-    ioftpd vfs read     <msgWindow> <path> [-uid] [-gid] [-chmod]
-    ioftpd vfs write    <msgWindow> <path> [-recurse <bool>] [-uid <uid>] [-gid <gid>] [-chmod <chmod>]
+    ioftpd vfs read     <msgWindow> <path> [-uid|-gid|-chmod]
+    ioftpd vfs write    <msgWindow> <path> [-uid <uid>] [-gid <gid>] [-chmod <chmod>]
 
 --*/
 
@@ -58,6 +58,9 @@ Abstract:
 #include "ioftpd\GroupFile.h"
 #include "ioftpd\WinMessages.h"
 #include "ioftpd\DataCopy.h"
+
+// Maximum size of a directory context.
+#define MAX_CONTEXT 1024
 
 //
 // Row data parsing functions.
@@ -175,6 +178,12 @@ ShmQuery(
 //
 // Group, user, and VFS functions.
 //
+
+typedef struct {
+    UINT32 userId;
+    UINT32 groupId;
+    DWORD  fileMode;
+} VfsPerm;
 
 static int
 GroupCreate(
@@ -1717,6 +1726,66 @@ VfsFlush(
     return TCL_ERROR;
 }
 
+/*++
+
+VfsRead
+
+    Retrieves the ownership and permissions for a file or directory.
+
+Arguments:
+    session     - Pointer to an initialised ShmSession structure.
+
+    memory      - Pointer to an ShmMemory structure allocated by the ShmAlloc
+                  function. Must be at least MAX_CONTEXT + DC_VFS + pathLength + 1.
+
+    path        - The file or directory path to query.
+
+    pathLength  - Length of the path, in bytes.
+
+    vfsPerm     - Pointer to a VfsPerm structure.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
+static int
+VfsRead(
+    ShmSession *session,
+    ShmMemory *memory,
+    const char *path,
+    int pathLength,
+    VfsPerm *vfsPerm
+    )
+{
+    char *queryPath;
+    DC_VFS *dcVfs;
+
+    assert(session != NULL);
+    assert(memory  != NULL);
+    assert(path    != NULL);
+    assert(vfsPerm != NULL);
+    assert(memory->bytes >= MAX_CONTEXT + sizeof(DC_VFS) + pathLength + 1);
+    DebugPrint("VfsRead: path=%s vfsPerm=%p\n", path, vfsPerm);
+
+    // Initialise the DC_VFS structure.
+    dcVfs = (DC_VFS *)memory->block;
+    dcVfs->dwBuffer = MAX_CONTEXT;
+    queryPath = (char *)memory->block + sizeof(DC_VFS) + MAX_CONTEXT;
+    CopyMemory(queryPath, path, pathLength + 1);
+
+    if (!ShmQuery(session, memory, DC_FILEINFO_READ, 5000)) {
+        vfsPerm->userId   = dcVfs->Uid;
+        vfsPerm->groupId  = dcVfs->Gid;
+        vfsPerm->fileMode = dcVfs->dwFileMode;
+
+        DebugPrint("VfsRead: OKAY\n");
+        return TCL_OK;
+    }
+
+    DebugPrint("VfsRead: FAIL\n");
+    return TCL_ERROR;
+}
+
 
 /*++
 
@@ -1985,8 +2054,9 @@ IoGroupCmd(
         GROUP_RENAME, GROUP_SET, GROUP_TO_ID, GROUP_TO_NAME
     };
 
+    // Check arguments.
     if (objc < 4) {
-        Tcl_WrongNumArgs(interp, 2, objv, "option arg ?arg ...?");
+        Tcl_WrongNumArgs(interp, 2, objv, "option msgWindow ?arg ...?");
         return TCL_ERROR;
     }
 
@@ -2393,8 +2463,9 @@ IoUserCmd(
         USER_RENAME, USER_SET, USER_TO_ID, USER_TO_NAME
     };
 
+    // Check arguments.
     if (objc < 4) {
-        Tcl_WrongNumArgs(interp, 2, objv, "option arg ?arg ...?");
+        Tcl_WrongNumArgs(interp, 2, objv, "option msgWindow ?arg ...?");
         return TCL_ERROR;
     }
 
@@ -2615,9 +2686,10 @@ IoVfsCmd(
     char *path;
     int index;
     int pathLength;
-    int result;
-    ShmMemory *memory;
+    int result = TCL_ERROR;
+    ShmMemory *memory = NULL;
     ShmSession session;
+    Tcl_DString buffer;
     static const char *options[] = {
         "flush", "read", "write", NULL
     };
@@ -2625,8 +2697,9 @@ IoVfsCmd(
         VFS_FLUSH = 0, VFS_READ, VFS_WRITE
     };
 
+    // Check arguments.
     if (objc < 5) {
-        Tcl_WrongNumArgs(interp, 2, objv, "option arg arg ?arg ...?");
+        Tcl_WrongNumArgs(interp, 2, objv, "option msgWindow path ?arg ...?");
         return TCL_ERROR;
     }
 
@@ -2634,39 +2707,71 @@ IoVfsCmd(
             ShmInit(interp, objv[3], &session) != TCL_OK) {
         return TCL_ERROR;
     }
-    path = Tcl_GetStringFromObj(objv[4], &pathLength);
+
+    // Translate the provided path.
+    if (TranslatePathFromObj(interp, objv[4], &buffer) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    path = Tcl_DStringValue(&buffer);
+    pathLength = Tcl_DStringLength(&buffer);
 
     switch ((enum optionIndices) index) {
         case VFS_FLUSH: {
             if (objc != 5) {
                 Tcl_WrongNumArgs(interp, 3, objv, "msgWindow path");
-                return TCL_ERROR;
+                goto end;
             }
 
             memory = ShmAlloc(interp, &session, pathLength + sizeof(char));
-            if (memory == NULL) {
-                return TCL_ERROR;
-            }
+            if (memory != NULL) {
+                result = VfsFlush(&session, memory, path);
 
-            result = VfsFlush(&session, memory, path);
-            if (result != TCL_OK) {
-                Tcl_AppendResult(interp, "unable to flush path \"", path, "\"", NULL);
+                if (result != TCL_OK) {
+                    Tcl_AppendResult(interp, "unable to flush path \"", path, "\"", NULL);
+                }
             }
-
-            ShmFree(&session, memory);
-            return result;
+            break;
         }
-        case VFS_READ:
+        case VFS_READ: {
+            VfsPerm vfsPerm;
+
+            if (objc < 5 || objc > 6) {
+                Tcl_WrongNumArgs(interp, 3, objv, "msgWindow path ?switch?");
+                goto end;
+            }
+
+            memory = ShmAlloc(interp, &session, MAX_CONTEXT + sizeof(DC_VFS) + pathLength + 1);
+            if (memory == NULL) {
+                goto end;
+            }
+
+            if (VfsRead(&session, memory, path, pathLength, &vfsPerm) != TCL_OK) {
+                Tcl_AppendResult(interp, "unable to read path \"",
+                    Tcl_GetString(objv[4]), "\"", NULL);
+                goto end;
+            }
+
+            // TODO
+
+            DebugPrint("uid  =%d\n", vfsPerm.userId);
+            DebugPrint("gid  =%d\n", vfsPerm.groupId);
+            DebugPrint("chmod=%d\n", vfsPerm.fileMode);
+
+            break;
+        }
         case VFS_WRITE: {
             // TODO
-            Tcl_SetResult(interp, "not implemented", TCL_STATIC);
-            return TCL_ERROR;
+            break;
         }
     }
 
-    // This point is never reached.
-    assert(0);
-    return TCL_ERROR;
+end:
+
+    Tcl_DStringFree(&buffer);
+    if (memory != NULL) {
+        ShmFree(&session, memory);
+    }
+    return result;
 }
 
 /*++
@@ -2707,11 +2812,8 @@ IoWhoCmd(
         return TCL_ERROR;
     }
 
-    if (ShmInit(interp, objv[2], &session) != TCL_OK) {
-        return TCL_ERROR;
-    }
-
-    if (Tcl_ListObjGetElements(interp, objv[3], &elementCount, &elementObjs) != TCL_OK) {
+    if (ShmInit(interp, objv[2], &session) != TCL_OK ||
+            Tcl_ListObjGetElements(interp, objv[3], &elementCount, &elementObjs) != TCL_OK) {
         return TCL_ERROR;
     }
 
