@@ -32,13 +32,10 @@ Abstract:
 
 #include <alcoExt.h>
 
-typedef struct {
+static const struct {
     char *name;         // Flag's name.
     unsigned long flag; // Bit used for comparison.
-} VolumeFlagList;
-
-// Flag names should be in alphabetical order.
-static const VolumeFlagList volumeFlags[] = {
+} volumeFlags[] = {
 #ifdef _WINDOWS
     {"acl",             FS_PERSISTENT_ACLS},
     {"caseIsPreserved", FS_CASE_IS_PRESERVED},
