@@ -387,17 +387,16 @@ ExitHandler(
     )
 {
     DebugPrint("ExitHandler: none\n");
+    initialised = 0;
 
-    Tcl_MutexLock(&initMutex);
 #ifdef _WINDOWS
+    Tcl_MutexLock(&initMutex);
     if (winProcs.module != NULL) {
         FreeLibrary(winProcs.module);
     }
     ZeroMemory(&winProcs, sizeof(WinProcs));
-#endif // _WINDOWS
-
-    initialised = 0;
     Tcl_MutexUnlock(&initMutex);
+#endif // _WINDOWS
 
     Tcl_MutexLock(&stateListMutex);
     if (stateListHead != NULL) {
