@@ -19,14 +19,9 @@ Abstract:
 #include <alcoExt.h>
 
 static unsigned char initialised = 0;
-static StateList *stateListHead = NULL;
+static ExtState *stateHead = NULL;
 
 TCL_DECLARE_MUTEX(initMutex)
-//
-// Access to the state list is guarded with a mutex. This is not the most
-// efficient approach, but higher level synchronization methods are more
-// difficult due to the lack of consistency between platforms.
-//
 TCL_DECLARE_MUTEX(stateListMutex)
 
 #ifdef _WINDOWS
@@ -34,7 +29,7 @@ OSVERSIONINFOA osVersion;
 WinProcs winProcs;
 #endif // _WINDOWS
 
-static void FreeState(ExtState *statePtr);
+static void FreeState(ExtState *state);
 static Tcl_ExitProc         ExitHandler;
 static Tcl_InterpDeleteProc InterpDeleteHandler;
 
@@ -57,8 +52,7 @@ Alcoext_Init(
     Tcl_Interp *interp
     )
 {
-    ExtState *statePtr;
-    StateList *stateListPtr;
+    ExtState *state;
 
     DebugPrint("Init: interp=%p\n", interp);
 
@@ -168,59 +162,50 @@ Alcoext_Init(
     }
 
     // Allocate state structure.
-    statePtr = (ExtState *)ckalloc(sizeof(ExtState));
-    statePtr->interp = interp;
+    state = (ExtState *)ckalloc(sizeof(ExtState));
+    state->interp = interp;
+    state->next   = NULL;
+    state->prev   = NULL;
 
-    statePtr->cryptTable = (Tcl_HashTable *)ckalloc(sizeof(Tcl_HashTable));
-    Tcl_InitHashTable(statePtr->cryptTable, TCL_STRING_KEYS);
+    state->cryptTable = (Tcl_HashTable *)ckalloc(sizeof(Tcl_HashTable));
+    Tcl_InitHashTable(state->cryptTable, TCL_STRING_KEYS);
 
 #ifndef _WINDOWS
-    statePtr->glftpdTable = (Tcl_HashTable *)ckalloc(sizeof(Tcl_HashTable));
-    Tcl_InitHashTable(statePtr->glftpdTable, TCL_STRING_KEYS);
+    state->glftpdTable = (Tcl_HashTable *)ckalloc(sizeof(Tcl_HashTable));
+    Tcl_InitHashTable(state->glftpdTable, TCL_STRING_KEYS);
 #endif // !_WINDOWS
-
-    //
-    // Since callbacks registered with Tcl_CallWhenDeleted() are not executed in
-    // certain situations (calling Tcl_Finalize() or invoking the "exit" command),
-    // these resources must be freed by an exit handler registered with
-    // Tcl_CreateExitHandler().
-    //
-    stateListPtr = (StateList *)ckalloc(sizeof(StateList));
-    stateListPtr->state  = statePtr;
-    stateListPtr->next   = NULL;
-    stateListPtr->prev   = NULL;
 
     Tcl_MutexLock(&stateListMutex);
     // Insert at the list head.
-    if (stateListHead == NULL) {
-        stateListHead = stateListPtr;
+    if (stateHead == NULL) {
+        stateHead = state;
     } else {
-        stateListPtr->next = stateListHead;
-        stateListHead->prev = stateListPtr;
-        stateListHead = stateListPtr;
+        state->next = stateHead;
+        stateHead->prev = state;
+        stateHead = state;
     }
     Tcl_MutexUnlock(&stateListMutex);
 
     // Clean up state on interpreter deletion.
-    Tcl_CallWhenDeleted(interp, InterpDeleteHandler, (ClientData)statePtr);
+    Tcl_CallWhenDeleted(interp, InterpDeleteHandler, (ClientData)state);
 
     // Create Tcl commands.
-    statePtr->cmds[0] = Tcl_CreateObjCommand(interp, "compress", CompressObjCmd, NULL, NULL);
-    statePtr->cmds[1] = Tcl_CreateObjCommand(interp, "crypt",    CryptObjCmd,    (ClientData)statePtr, NULL);
-    statePtr->cmds[2] = Tcl_CreateObjCommand(interp, "decode",   EncodingObjCmd, (ClientData)decodeFuncts, NULL);
-    statePtr->cmds[3] = Tcl_CreateObjCommand(interp, "encode",   EncodingObjCmd, (ClientData)encodeFuncts, NULL);
+    state->cmds[0] = Tcl_CreateObjCommand(interp, "compress", CompressObjCmd, NULL, NULL);
+    state->cmds[1] = Tcl_CreateObjCommand(interp, "crypt",    CryptObjCmd,    (ClientData)state, NULL);
+    state->cmds[2] = Tcl_CreateObjCommand(interp, "decode",   EncodingObjCmd, (ClientData)decodeFuncts, NULL);
+    state->cmds[3] = Tcl_CreateObjCommand(interp, "encode",   EncodingObjCmd, (ClientData)encodeFuncts, NULL);
 
     //
     // These commands are not created for safe interpreters because
     // they interact with the file system and/or other processes.
     //
     if (!Tcl_IsSafe(interp)) {
-        statePtr->cmds[4] = Tcl_CreateObjCommand(interp, "volume", VolumeObjCmd, NULL, NULL);
+        state->cmds[4] = Tcl_CreateObjCommand(interp, "volume", VolumeObjCmd, NULL, NULL);
 
 #ifdef _WINDOWS
-        statePtr->cmds[5] = Tcl_CreateObjCommand(interp, "ioftpd", IoFtpdObjCmd, NULL, NULL);
+        state->cmds[5] = Tcl_CreateObjCommand(interp, "ioftpd", IoFtpdObjCmd, NULL, NULL);
 #else // _WINDOWS
-        statePtr->cmds[5] = Tcl_CreateObjCommand(interp, "glftpd", GlFtpdObjCmd, (ClientData)statePtr, NULL);
+        state->cmds[5] = Tcl_CreateObjCommand(interp, "glftpd", GlFtpdObjCmd, (ClientData)state, NULL);
 #endif // _WINDOWS
     }
 
@@ -273,25 +258,24 @@ Alcoext_Unload(
     DebugPrint("Unload: interp=%p flags=%d\n", interp, flags);
 
     if (flags == TCL_UNLOAD_DETACH_FROM_INTERPRETER) {
-        StateList *stateListPtr;
+        ExtState *stateList;
 
         Tcl_MutexLock(&stateListMutex);
-        for (stateListPtr = stateListHead; stateListPtr != NULL; stateListPtr = stateListPtr->next) {
+        for (stateList = stateHead; stateList != NULL; stateList = stateList->next) {
 
-            if (interp == stateListPtr->state->interp) {
+            if (interp == stateList->interp) {
                 // Remove the interpreter's state from the list.
-                if (stateListPtr->next != NULL) {
-                    stateListPtr->next->prev = stateListPtr->prev;
+                if (stateList->next != NULL) {
+                    stateList->next->prev = stateList->prev;
                 }
-                if (stateListPtr->prev != NULL) {
-                    stateListPtr->prev->next = stateListPtr->next;
+                if (stateList->prev != NULL) {
+                    stateList->prev->next = stateList->next;
                 }
-                if (stateListHead == stateListPtr) {
-                    stateListHead = stateListPtr->next;
+                if (stateHead == stateList) {
+                    stateHead = stateList->next;
                 }
 
-                FreeState(stateListPtr->state);
-                ckfree((char *)stateListPtr);
+                FreeState(stateList);
                 break;
             }
         }
@@ -339,7 +323,7 @@ FreeState
     Deletes hash tables and frees state structure.
 
 Arguments:
-    statePtr - Pointer to a "ExtState" structure.
+    state - Pointer to a "ExtState" structure.
 
 Return Value:
     None.
@@ -347,31 +331,33 @@ Return Value:
 --*/
 static void
 FreeState(
-    ExtState *statePtr
+    ExtState *state
     )
 {
-    DebugPrint("FreeState: statePtr=%p\n", statePtr);
+    DebugPrint("FreeState: state=%p\n", state);
 
-    if (statePtr != NULL) {
+    if (state != NULL) {
+#if 0
         int i;
 
         // Delete commands.
-        for (i = 0; i < ARRAYSIZE(statePtr->cmds); i++) {
-            Tcl_DeleteCommandFromToken(statePtr->interp, statePtr->cmds[i]);
+        for (i = 0; i < ARRAYSIZE(state->cmds); i++) {
+            Tcl_DeleteCommandFromToken(state->interp, state->cmds[i]);
         }
+#endif
 
         // Delete hash tables.
-        CryptCloseHandles(statePtr->cryptTable);
-        Tcl_DeleteHashTable(statePtr->cryptTable);
-        ckfree((char *)statePtr->cryptTable);
+        CryptCloseHandles(state->cryptTable);
+        Tcl_DeleteHashTable(state->cryptTable);
+        ckfree((char *)state->cryptTable);
 
 #ifndef _WINDOWS
-        GlCloseHandles(statePtr->glftpdTable);
-        Tcl_DeleteHashTable(statePtr->glftpdTable);
-        ckfree((char *)statePtr->glftpdTable);
+        GlCloseHandles(state->glftpdTable);
+        Tcl_DeleteHashTable(state->glftpdTable);
+        ckfree((char *)state->glftpdTable);
 #endif // !_WINDOWS
 
-        ckfree((char *)statePtr);
+        ckfree((char *)state);
     }
 }
 
@@ -407,18 +393,16 @@ ExitHandler(
 #endif // _WINDOWS
 
     Tcl_MutexLock(&stateListMutex);
-    if (stateListHead != NULL) {
-        StateList *stateListPtr;
-        StateList *nextStateListPtr;
+    if (stateHead != NULL) {
+        ExtState *stateList;
+        ExtState *nextState;
 
         // Free all states structures.
-        for (stateListPtr = stateListHead; stateListPtr != NULL; stateListPtr = nextStateListPtr) {
-            nextStateListPtr = stateListPtr->next;
-
-            FreeState(stateListPtr->state);
-            ckfree((char *)stateListPtr);
+        for (stateList = stateHead; stateList != NULL; stateList = nextState) {
+            nextState = stateList->next;
+            FreeState(stateList);
         }
-        stateListHead = NULL;
+        stateHead = NULL;
     }
     Tcl_MutexUnlock(&stateListMutex);
 
@@ -448,29 +432,29 @@ InterpDeleteHandler(
     Tcl_Interp *interp
     )
 {
-    ExtState *statePtr = (ExtState *)clientData;
-    StateList *stateListPtr;
+    ExtState *state = (ExtState *)clientData;
+    ExtState *stateList;
 
-    DebugPrint("InterpDelete: interp=%p statePtr=%p\n", interp, statePtr);
-    if (statePtr == NULL) {
+    DebugPrint("InterpDelete: interp=%p state=%p\n", interp, state);
+    if (state == NULL) {
         return;
     }
 
     Tcl_MutexLock(&stateListMutex);
-    for (stateListPtr = stateListHead; stateListPtr != NULL; stateListPtr = stateListPtr->next) {
+    for (stateList = stateHead; stateList != NULL; stateList = stateList->next) {
 
-        if (statePtr == stateListPtr->state) {
+        if (state == stateList) {
             // Remove the interpreter's state from the list.
-            if (stateListPtr->prev == NULL) {
-                stateListHead = stateListPtr->next;
-                if (stateListPtr->next != NULL) {
-                    stateListHead->prev = NULL;
+            if (stateList->prev == NULL) {
+                stateHead = stateList->next;
+                if (stateList->next != NULL) {
+                    stateHead->prev = NULL;
                 }
-            } else if (stateListPtr->next == NULL) {
-                stateListPtr->prev->next = NULL;
+            } else if (stateList->next == NULL) {
+                stateList->prev->next = NULL;
             } else {
-                stateListPtr->prev->next = stateListPtr->next;
-                stateListPtr->next->prev = stateListPtr->prev;
+                stateList->prev->next = stateList->next;
+                stateList->next->prev = stateList->prev;
             }
 
             //
@@ -478,8 +462,7 @@ InterpDeleteHandler(
             // handler. Since all states are freed in the unload function,
             // we must only free states present in the global state list.
             //
-            FreeState(stateListPtr->state);
-            ckfree((char *)stateListPtr);
+            FreeState(stateList);
             break;
         }
     }

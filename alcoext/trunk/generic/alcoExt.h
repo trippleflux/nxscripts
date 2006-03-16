@@ -38,20 +38,16 @@ typedef int (Tcl_PackageUnloadProc) _ANSI_ARGS_((Tcl_Interp *interp, int flags))
 #endif
 
 // Extension state structure per interpreter.
-typedef struct {
+typedef struct ExtState {
     Tcl_Interp *interp;         // Interpreter this state belongs to.
     Tcl_Command cmds[6];        // Commands created in the interpreter.
     Tcl_HashTable *cryptTable;  // Table of hash and PRNG handles.
 #ifndef _WINDOWS
     Tcl_HashTable *glftpdTable; // Table of glftpd handles.
 #endif // !_WINDOWS
+    struct ExtState *next;      // Next state structure.
+    struct ExtState *prev;      // Previous state structure.
 } ExtState;
-
-typedef struct StateList {
-    ExtState *state;
-    struct StateList *next;
-    struct StateList *prev;
-} StateList;
 
 #include <tomcrypt.h>
 
