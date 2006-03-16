@@ -281,9 +281,9 @@ Alcoext_Unload(
         }
         Tcl_MutexUnlock(&stateListMutex);
         return TCL_OK;
+    }
 
-    } else if (flags == TCL_UNLOAD_DETACH_FROM_PROCESS) {
-
+    if (flags == TCL_UNLOAD_DETACH_FROM_PROCESS) {
         ExitHandler(NULL);
         return TCL_OK;
     }
@@ -334,31 +334,28 @@ FreeState(
     ExtState *state
     )
 {
+
+    assert(state != NULL);
     DebugPrint("FreeState: state=%p\n", state);
 
-    if (state != NULL) {
 #if 0
-        int i;
-
-        // Delete commands.
-        for (i = 0; i < ARRAYSIZE(state->cmds); i++) {
-            Tcl_DeleteCommandFromToken(state->interp, state->cmds[i]);
-        }
+    int i;
+    for (i = 0; i < ARRAYSIZE(state->cmds); i++) {
+        Tcl_DeleteCommandFromToken(state->interp, state->cmds[i]);
+    }
 #endif
 
-        // Delete hash tables.
-        CryptCloseHandles(state->cryptTable);
-        Tcl_DeleteHashTable(state->cryptTable);
-        ckfree((char *)state->cryptTable);
+    CryptCloseHandles(state->cryptTable);
+    Tcl_DeleteHashTable(state->cryptTable);
+    ckfree((char *)state->cryptTable);
 
 #ifndef _WINDOWS
-        GlCloseHandles(state->glftpdTable);
-        Tcl_DeleteHashTable(state->glftpdTable);
-        ckfree((char *)state->glftpdTable);
+    GlCloseHandles(state->glftpdTable);
+    Tcl_DeleteHashTable(state->glftpdTable);
+    ckfree((char *)state->glftpdTable);
 #endif // !_WINDOWS
 
-        ckfree((char *)state);
-    }
+    ckfree((char *)state);
 }
 
 /*++
