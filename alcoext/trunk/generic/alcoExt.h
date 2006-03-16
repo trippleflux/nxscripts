@@ -37,8 +37,10 @@ typedef int (Tcl_PackageUnloadProc) _ANSI_ARGS_((Tcl_Interp *interp, int flags))
 #   include "../unix/alcoUnix.h"
 #endif
 
-// Extension state structure.
+// Extension state structure per interpreter.
 typedef struct {
+    Tcl_Interp *interp;         // Interpreter this state belongs to.
+    Tcl_Command cmds[6];        // Commands created in the interpreter.
     Tcl_HashTable *cryptTable;  // Table of hash and PRNG handles.
 #ifndef _WINDOWS
     Tcl_HashTable *glftpdTable; // Table of glftpd handles.
@@ -46,7 +48,6 @@ typedef struct {
 } ExtState;
 
 typedef struct StateList {
-    Tcl_Interp *interp;
     ExtState *state;
     struct StateList *next;
     struct StateList *prev;

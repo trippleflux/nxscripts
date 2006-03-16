@@ -1,10 +1,11 @@
 AlcoExt v0.6.0 (not yet released):
+  NEW: Delete registered commands when the extension is unloaded (Tcl 8.5).
   NEW: Paths are translated to the system's native representation.
   CHG: Greatly improved the Windows build system.
   CHG: Moved all commands out of the "::alcoholicz" namespace.
   FIX: Decreasing the reference count of unshared objects in "volume info" and
-       "ioftpd info" caused a bizarre error in memory-debug builds of Tcl 8.5.
-  FIX: Double-free when unloading the extension with Tcl 8.5's "unload" command.
+       "ioftpd info" caused a bizarre error in memory-debug builds (Tcl 8.5).
+  FIX: Double-free when unloading the extension (Tcl 8.5).
   FIX: Minor errors in the regression tests.
 
 AlcoExt v0.5.0 (Feb 23, 2006):

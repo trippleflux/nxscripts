@@ -167,9 +167,9 @@ Alcoext_Init(
         Tcl_MutexUnlock(&initMutex);
     }
 
-    // Allocate state structures.
-    stateListPtr = (StateList *)ckalloc(sizeof(StateList));
+    // Allocate state structure.
     statePtr = (ExtState *)ckalloc(sizeof(ExtState));
+    statePtr->interp = interp;
 
     statePtr->cryptTable = (Tcl_HashTable *)ckalloc(sizeof(Tcl_HashTable));
     Tcl_InitHashTable(statePtr->cryptTable, TCL_STRING_KEYS);
@@ -185,7 +185,7 @@ Alcoext_Init(
     // these resources must be freed by an exit handler registered with
     // Tcl_CreateExitHandler().
     //
-    stateListPtr->interp = interp;
+    stateListPtr = (StateList *)ckalloc(sizeof(StateList));
     stateListPtr->state  = statePtr;
     stateListPtr->next   = NULL;
     stateListPtr->prev   = NULL;
@@ -205,22 +205,22 @@ Alcoext_Init(
     Tcl_CallWhenDeleted(interp, InterpDeleteHandler, (ClientData)statePtr);
 
     // Create Tcl commands.
-    Tcl_CreateObjCommand(interp, "compress", CompressObjCmd, (ClientData)NULL, NULL);
-    Tcl_CreateObjCommand(interp, "crypt",    CryptObjCmd,    (ClientData)statePtr, NULL);
-    Tcl_CreateObjCommand(interp, "decode",   EncodingObjCmd, (ClientData)decodeFuncts, NULL);
-    Tcl_CreateObjCommand(interp, "encode",   EncodingObjCmd, (ClientData)encodeFuncts, NULL);
+    statePtr->cmds[0] = Tcl_CreateObjCommand(interp, "compress", CompressObjCmd, NULL, NULL);
+    statePtr->cmds[1] = Tcl_CreateObjCommand(interp, "crypt",    CryptObjCmd,    (ClientData)statePtr, NULL);
+    statePtr->cmds[2] = Tcl_CreateObjCommand(interp, "decode",   EncodingObjCmd, (ClientData)decodeFuncts, NULL);
+    statePtr->cmds[3] = Tcl_CreateObjCommand(interp, "encode",   EncodingObjCmd, (ClientData)encodeFuncts, NULL);
 
     //
     // These commands are not created for safe interpreters because
     // they interact with the file system and/or other processes.
     //
     if (!Tcl_IsSafe(interp)) {
-        Tcl_CreateObjCommand(interp, "volume", VolumeObjCmd, (ClientData)NULL, NULL);
+        statePtr->cmds[4] = Tcl_CreateObjCommand(interp, "volume", VolumeObjCmd, NULL, NULL);
 
 #ifdef _WINDOWS
-        Tcl_CreateObjCommand(interp, "ioftpd", IoFtpdObjCmd, (ClientData)NULL, NULL);
+        statePtr->cmds[5] = Tcl_CreateObjCommand(interp, "ioftpd", IoFtpdObjCmd, NULL, NULL);
 #else // _WINDOWS
-        Tcl_CreateObjCommand(interp, "glftpd", GlFtpdObjCmd, (ClientData)statePtr, NULL);
+        statePtr->cmds[5] = Tcl_CreateObjCommand(interp, "glftpd", GlFtpdObjCmd, (ClientData)statePtr, NULL);
 #endif // _WINDOWS
     }
 
@@ -278,7 +278,7 @@ Alcoext_Unload(
         Tcl_MutexLock(&stateListMutex);
         for (stateListPtr = stateListHead; stateListPtr != NULL; stateListPtr = stateListPtr->next) {
 
-            if (interp == stateListPtr->interp) {
+            if (interp == stateListPtr->state->interp) {
                 // Remove the interpreter's state from the list.
                 if (stateListPtr->next != NULL) {
                     stateListPtr->next->prev = stateListPtr->prev;
@@ -353,6 +353,14 @@ FreeState(
     DebugPrint("FreeState: statePtr=%p\n", statePtr);
 
     if (statePtr != NULL) {
+        int i;
+
+        // Delete commands.
+        for (i = 0; i < ARRAYSIZE(statePtr->cmds); i++) {
+            Tcl_DeleteCommandFromToken(statePtr->interp, statePtr->cmds[i]);
+        }
+
+        // Delete hash tables.
         CryptCloseHandles(statePtr->cryptTable);
         Tcl_DeleteHashTable(statePtr->cryptTable);
         ckfree((char *)statePtr->cryptTable);
