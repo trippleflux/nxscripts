@@ -135,7 +135,7 @@ GetOnlineFields(
 // User and group functions.
 //
 
-inline int
+static int
 ParseFields(
     const char *line,
     int delims,
@@ -251,7 +251,7 @@ Return Value:
     A standard Tcl result.
 
 --*/
-inline int
+static int
 ParseFields(
     const char *line,
     int delims,
