@@ -162,14 +162,12 @@ static CryptModeProc EncryptCTR;
 static CryptModeProc EncryptECB;
 static CryptModeProc EncryptOFB;
 
-typedef struct {
+static const struct {
     char *name;               // Name of cipher mode.
     CryptModeProc *decrypt;   // Pointer to the cipher mode's decryption function.
     CryptModeProc *encrypt;   // Pointer to the cipher mode's encryption function.
-    unsigned char requiresIv; // Boolean to indicate if the cipher mode requires
-} CryptCipherMode;            // an initialisation vector.
-
-static const CryptCipherMode cipherModes[] = {
+    unsigned char requiresIv; // Boolean to indicate if the cipher mode requires an IV.
+} cipherModes[] = {
     {"cbc", DecryptCBC, EncryptCBC, 1},
     {"cfb", DecryptCFB, EncryptCFB, 1},
     {"ctr", DecryptCTR, EncryptCTR, 1},
