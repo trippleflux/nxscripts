@@ -177,6 +177,7 @@ ExitHandler(
     getDiskFreeSpaceExPtr = NULL;
     initialised = FALSE;
     Tcl_MutexUnlock(&initMutex);
+    Tcl_MutexFinalize(&initMutex);
 
     /* Key clean-up. */
     Tcl_MutexLock(&keyMutex);
@@ -188,6 +189,7 @@ ExitHandler(
         keyTable = NULL;
     }
     Tcl_MutexUnlock(&keyMutex);
+    Tcl_MutexFinalize(&keyMutex);
 
 #ifdef TCL_MEM_DEBUG
     Tcl_DumpActiveMemory("MemDump.txt");
