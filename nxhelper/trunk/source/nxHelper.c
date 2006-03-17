@@ -23,15 +23,8 @@ static BOOL initialised = FALSE;
 static HMODULE kernelModule;
 static Tcl_Mutex initMutex;
 
-EXTERN int
-Nxhelper_Init(
-    Tcl_Interp *interp
-    );
-
-EXTERN int
-Nxhelper_SafeInit(
-    Tcl_Interp *interp
-    );
+EXTERN Tcl_PackageInitProc Nxhelper_Init;
+EXTERN Tcl_PackageInitProc Nxhelper_SafeInit;
 
 static void
 ExitHandler(
