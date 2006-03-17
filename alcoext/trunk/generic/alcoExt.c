@@ -182,24 +182,24 @@ Alcoext_Unload(
     DebugPrint("Unload: interp=%p flags=%d\n", interp, flags);
 
     if (flags == TCL_UNLOAD_DETACH_FROM_INTERPRETER) {
-        ExtState *stateList;
+        ExtState *state;
 
         Tcl_MutexLock(&stateListMutex);
-        for (stateList = stateHead; stateList != NULL; stateList = stateList->next) {
+        for (state = stateHead; state != NULL; state = state->next) {
 
-            if (interp == stateList->interp) {
+            if (interp == state->interp) {
                 // Remove the interpreter's state from the list.
-                if (stateList->next != NULL) {
-                    stateList->next->prev = stateList->prev;
+                if (state->next != NULL) {
+                    state->next->prev = state->prev;
                 }
-                if (stateList->prev != NULL) {
-                    stateList->prev->next = stateList->next;
+                if (state->prev != NULL) {
+                    state->prev->next = state->next;
                 }
-                if (stateHead == stateList) {
-                    stateHead = stateList->next;
+                if (stateHead == state) {
+                    stateHead = state->next;
                 }
 
-                FreeState(stateList, 1, 1);
+                FreeState(state, 1, 1);
                 break;
             }
         }
@@ -390,13 +390,13 @@ Finalise(
 
     Tcl_MutexLock(&stateListMutex);
     if (stateHead != NULL) {
-        ExtState *stateList;
-        ExtState *nextState;
+        ExtState *state;
+        ExtState *stateNext;
 
         // Free all states structures.
-        for (stateList = stateHead; stateList != NULL; stateList = nextState) {
-            nextState = stateList->next;
-            FreeState(stateList, removeCmds, 1);
+        for (state = stateHead; state != NULL; state = stateNext) {
+            stateNext = state->next;
+            FreeState(state, removeCmds, 1);
         }
         stateHead = NULL;
     }
@@ -506,26 +506,26 @@ InterpDeleteHandler(
     Tcl_Interp *interp
     )
 {
-    ExtState *state = (ExtState *)clientData;
-    ExtState *stateList;
+    ExtState *state;
+    ExtState *stateCurrent = (ExtState *)clientData;
 
-    DebugPrint("InterpDelete: interp=%p state=%p\n", interp, state);
+    DebugPrint("InterpDelete: interp=%p state=%p\n", interp, stateCurrent);
 
     Tcl_MutexLock(&stateListMutex);
-    for (stateList = stateHead; stateList != NULL; stateList = stateList->next) {
+    for (state = stateHead; state != NULL; state = state->next) {
 
-        if (state == stateList) {
+        if (state == stateCurrent) {
             // Remove the interpreter's state from the list.
-            if (stateList->prev == NULL) {
-                stateHead = stateList->next;
-                if (stateList->next != NULL) {
+            if (state->prev == NULL) {
+                stateHead = state->next;
+                if (state->next != NULL) {
                     stateHead->prev = NULL;
                 }
-            } else if (stateList->next == NULL) {
-                stateList->prev->next = NULL;
+            } else if (state->next == NULL) {
+                state->prev->next = NULL;
             } else {
-                stateList->prev->next = stateList->next;
-                stateList->next->prev = stateList->prev;
+                state->prev->next = state->next;
+                state->next->prev = state->prev;
             }
 
             //
@@ -533,7 +533,7 @@ InterpDeleteHandler(
             // handler. Since all states are freed in the unload function,
             // we must only free states present in the global state list.
             //
-            FreeState(stateList, 0, 0);
+            FreeState(state, 0, 0);
             break;
         }
     }
