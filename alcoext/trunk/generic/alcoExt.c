@@ -210,22 +210,23 @@ Alcoext_Unload(
             }
         }
         Tcl_MutexUnlock(&stateListMutex);
-        return TCL_OK;
-    }
 
-    if (flags == TCL_UNLOAD_DETACH_FROM_PROCESS) {
+    } else if (flags == TCL_UNLOAD_DETACH_FROM_PROCESS) {
         //
         // During Tcl's finalisation process (after the extension has been
         // unloaded), it will invoke all registered exit handlers.
         //
         Tcl_DeleteExitHandler(ExitHandler, NULL);
-
         Finalise(1);
-        return TCL_OK;
+
+    } else {
+        // Unknown "flags" value.
+        return TCL_ERROR;
     }
 
-    // Unknown "flags" value.
-    return TCL_ERROR;
+    // Unregister the package (there is no Tcl_PkgForget(), or similar).
+    Tcl_Eval(interp, "package forget " PACKAGE_NAME);
+    return TCL_OK;
 }
 
 /*++
