@@ -3,13 +3,13 @@
 # Copyright (c) 2005-2006 Alcoholicz Scripting Team
 #
 # Module Name:
-#   misc.test
+#   init.test
 #
 # Author:
 #   neoxed (neoxed@gmail.com) May 25, 2005
 #
 # Abstract:
-#   Test resource clean up and synchronization in threaded interpreters.
+#   Test extension initialisation and synchronization in threaded interpreters.
 #
 
 set currentPath [file dirname [file normalize [info script]]]
@@ -19,10 +19,10 @@ testConstraint threaded  [expr {[info exists tcl_platform(threaded)] && $tcl_pla
 testConstraint threadPkg [expr {![catch {package require Thread}]}]
 
 ################################################################################
-# load                                                                         #
+# init                                                                         #
 ################################################################################
 
-test misc-1.1 {load: delete and exit handler} {
+test init-1.1 {load: delete and exit handler} {
     set interpList [list]
     # Create 20 interpreters and load the extension in each.
     for {set i 0} {$i < 20} {incr i} {
@@ -43,7 +43,7 @@ test misc-1.1 {load: delete and exit handler} {
     llength $interpList
 } {17}
 
-test misc-1.2 {load: delete and exit handler} {threaded threadPkg} {
+test init-1.2 {load: delete and exit handler} {threaded threadPkg} {
     # TODO: write a threaded version of test init-1.1.
 } {}
 
