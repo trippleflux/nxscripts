@@ -385,6 +385,7 @@ Finalise(
     Tcl_MutexUnlock(&initMutex);
 #endif // _WINDOWS
 
+    Tcl_MutexFinalize(&initMutex);
     initialised = 0;
 
     Tcl_MutexLock(&stateListMutex);
@@ -400,6 +401,7 @@ Finalise(
         stateHead = NULL;
     }
     Tcl_MutexUnlock(&stateListMutex);
+    Tcl_MutexFinalize(&stateListMutex);
 
 #ifdef TCL_MEM_DEBUG
     Tcl_DumpActiveMemory("MemDump.txt");
