@@ -75,15 +75,9 @@ Alcoext_Init(
     DebugPrint("Init: interp=%p\n", interp);
 
     // Wide integer support was added in Tcl 8.4.
-#ifdef USE_TCL_STUBS
     if (Tcl_InitStubs(interp, "8.4", 0) == NULL) {
         return TCL_ERROR;
     }
-#else // USE_TCL_STUBS
-    if (Tcl_PkgRequire(interp, "Tcl", "8.4", 0) == NULL) {
-        return TCL_ERROR;
-    }
-#endif // USE_TCL_STUBS
 
     if (Tcl_PkgProvide(interp, PACKAGE_NAME, PACKAGE_VERSION) != TCL_OK) {
         return TCL_ERROR;
@@ -217,7 +211,7 @@ Alcoext_Unload(
         Finalise(1);
 
     } else {
-        // Unknown "flags" value.
+        // Unknown flags value.
         return TCL_ERROR;
     }
 
