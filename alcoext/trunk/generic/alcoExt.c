@@ -30,8 +30,19 @@ WinProcs winProcs;
 #endif // _WINDOWS
 
 static void
+Initialise(
+    void
+    );
+
+static void
+Finalise(
+    int removeCmds
+    );
+
+static void
 FreeState(
     ExtState *state,
+    int removeCmds,
     int removeProc
     );
 
@@ -76,95 +87,7 @@ Alcoext_Init(
         return TCL_ERROR;
     }
 
-    //
-    // Check if the library is already initialised before locking
-    // the global initialisation mutex (improves loading time).
-    //
-    if (!initialised) {
-        Tcl_MutexLock(&initMutex);
-
-        // Check initialisation status again now that we're in the mutex.
-        if (!initialised) {
-#ifdef _WINDOWS
-            // Initialise the OS version structure.
-            osVersion.dwOSVersionInfoSize = sizeof(OSVERSIONINFOA);
-            GetVersionExA(&osVersion);
-
-            ZeroMemory(&winProcs, sizeof(WinProcs));
-            winProcs.module = LoadLibraryA("kernel32.dll");
-
-            if (winProcs.module != NULL) {
-                //
-                // These functions must be resolved on run-time for backwards
-                // compatibility on older Windows systems (earlier than NT v5).
-                //
-                winProcs.getDiskFreeSpaceEx = (GetDiskFreeSpaceExProc)
-                    GetProcAddress(winProcs.module, "GetDiskFreeSpaceExA");
-
-                winProcs.findFirstVolumeMountPoint = (FindFirstVolumeMountPointProc)
-                    GetProcAddress(winProcs.module, "FindFirstVolumeMountPointA");
-                winProcs.findNextVolumeMountPoint = (FindNextVolumeMountPointProc)
-                    GetProcAddress(winProcs.module, "FindNextVolumeMountPointA");
-                winProcs.findVolumeMountPointClose = (FindVolumeMountPointCloseProc)
-                    GetProcAddress(winProcs.module, "FindVolumeMountPointClose");
-
-                winProcs.getVolumeNameForVolumeMountPoint = (GetVolumeNameForVolumeMountPointProc)
-                    GetProcAddress(winProcs.module, "GetVolumeNameForVolumeMountPointA");
-            }
-
-            //
-            // If GetVolumeInformation() is called on a floppy drive or a CD-ROM
-            // drive that does not have a disk inserted, the system will display
-            // a message box asking the user to insert one.
-            //
-            SetErrorMode(SetErrorMode(0) | SEM_FAILCRITICALERRORS);
-#endif // _WINDOWS
-
-            // An exit handler must only be registered once.
-            Tcl_CreateExitHandler(ExitHandler, NULL);
-
-            // Register ciphers, hashes, and PRNGs for LibTomCrypt.
-            register_cipher(&des3_desc);
-            register_cipher(&aes_desc);
-            register_cipher(&anubis_desc);
-            register_cipher(&blowfish_desc);
-            register_cipher(&cast5_desc);
-            register_cipher(&des_desc);
-            register_cipher(&khazad_desc);
-            register_cipher(&noekeon_desc);
-            register_cipher(&rc2_desc);
-            register_cipher(&rc5_desc);
-            register_cipher(&rc6_desc);
-            register_cipher(&saferp_desc);
-            register_cipher(&safer_k128_desc);
-            register_cipher(&safer_k64_desc);
-            register_cipher(&safer_sk128_desc);
-            register_cipher(&safer_sk64_desc);
-            register_cipher(&skipjack_desc);
-            register_cipher(&twofish_desc);
-            register_cipher(&xtea_desc);
-            register_hash(&md2_desc);
-            register_hash(&md4_desc);
-            register_hash(&md5_desc);
-            register_hash(&rmd128_desc);
-            register_hash(&rmd160_desc);
-            register_hash(&sha1_desc);
-            register_hash(&sha224_desc);
-            register_hash(&sha256_desc);
-            register_hash(&sha384_desc);
-            register_hash(&sha512_desc);
-            register_hash(&tiger_desc);
-            register_hash(&whirlpool_desc);
-            register_prng(&fortuna_desc);
-            register_prng(&rc4_desc);
-            register_prng(&sober128_desc);
-            register_prng(&sprng_desc);
-            register_prng(&yarrow_desc);
-
-            initialised = 1;
-        }
-        Tcl_MutexUnlock(&initMutex);
-    }
+    Initialise();
 
     // Allocate state structure.
     state = (ExtState *)ckalloc(sizeof(ExtState));
@@ -262,13 +185,6 @@ Alcoext_Unload(
 {
     DebugPrint("Unload: interp=%p flags=%d\n", interp, flags);
 
-#if 0
-    int i;
-    for (i = 0; i < ARRAYSIZE(state->cmds); i++) {
-        Tcl_DeleteCommandFromToken(state->interp, state->cmds[i]);
-    }
-#endif
-
     if (flags == TCL_UNLOAD_DETACH_FROM_INTERPRETER) {
         ExtState *stateList;
 
@@ -287,7 +203,7 @@ Alcoext_Unload(
                     stateHead = stateList->next;
                 }
 
-                FreeState(stateList, 1);
+                FreeState(stateList, 1, 1);
                 break;
             }
         }
@@ -297,12 +213,12 @@ Alcoext_Unload(
 
     if (flags == TCL_UNLOAD_DETACH_FROM_PROCESS) {
         //
-        // During Tcl's finailisation process (after the extension has been
+        // During Tcl's finalisation process (after the extension has been
         // unloaded), it will invoke all registered exit handlers.
         //
         Tcl_DeleteExitHandler(ExitHandler, NULL);
 
-        ExitHandler(NULL);
+        Finalise(1);
         return TCL_OK;
     }
 
@@ -336,12 +252,177 @@ Alcoext_SafeUnload(
 
 /*++
 
+Initialise
+
+    Initialises the library; allocating and registering resources.
+
+Arguments:
+    None.
+
+Return Value:
+    None.
+
+--*/
+static void
+Initialise(
+    void
+    )
+{
+    DebugPrint("Initialise: initialised=%d\n", initialised);
+
+    //
+    // Check if the library is already initialised before locking
+    // the global initialisation mutex (improves loading time).
+    //
+    if (initialised) {
+        return;
+    }
+
+    Tcl_MutexLock(&initMutex);
+
+    // Check initialisation status again now that we're in the mutex.
+    if (!initialised) {
+#ifdef _WINDOWS
+        // Initialise the OS version structure.
+        osVersion.dwOSVersionInfoSize = sizeof(OSVERSIONINFOA);
+        GetVersionExA(&osVersion);
+
+        ZeroMemory(&winProcs, sizeof(WinProcs));
+        winProcs.module = LoadLibraryA("kernel32.dll");
+
+        if (winProcs.module != NULL) {
+            //
+            // These functions must be resolved on run-time for backwards
+            // compatibility on older Windows systems (earlier than NT v5).
+            //
+            winProcs.getDiskFreeSpaceEx = (GetDiskFreeSpaceExProc)
+                GetProcAddress(winProcs.module, "GetDiskFreeSpaceExA");
+
+            winProcs.findFirstVolumeMountPoint = (FindFirstVolumeMountPointProc)
+                GetProcAddress(winProcs.module, "FindFirstVolumeMountPointA");
+            winProcs.findNextVolumeMountPoint = (FindNextVolumeMountPointProc)
+                GetProcAddress(winProcs.module, "FindNextVolumeMountPointA");
+            winProcs.findVolumeMountPointClose = (FindVolumeMountPointCloseProc)
+                GetProcAddress(winProcs.module, "FindVolumeMountPointClose");
+
+            winProcs.getVolumeNameForVolumeMountPoint = (GetVolumeNameForVolumeMountPointProc)
+                GetProcAddress(winProcs.module, "GetVolumeNameForVolumeMountPointA");
+        }
+
+        //
+        // If GetVolumeInformation() is called on a floppy drive or a CD-ROM
+        // drive that does not have a disk inserted, the system will display
+        // a message box asking the user to insert one.
+        //
+        SetErrorMode(SetErrorMode(0) | SEM_FAILCRITICALERRORS);
+#endif // _WINDOWS
+
+        // An exit handler must only be registered once.
+        Tcl_CreateExitHandler(ExitHandler, NULL);
+
+        // Register ciphers, hashes, and PRNGs for LibTomCrypt.
+        register_cipher(&des3_desc);
+        register_cipher(&aes_desc);
+        register_cipher(&anubis_desc);
+        register_cipher(&blowfish_desc);
+        register_cipher(&cast5_desc);
+        register_cipher(&des_desc);
+        register_cipher(&khazad_desc);
+        register_cipher(&noekeon_desc);
+        register_cipher(&rc2_desc);
+        register_cipher(&rc5_desc);
+        register_cipher(&rc6_desc);
+        register_cipher(&saferp_desc);
+        register_cipher(&safer_k128_desc);
+        register_cipher(&safer_k64_desc);
+        register_cipher(&safer_sk128_desc);
+        register_cipher(&safer_sk64_desc);
+        register_cipher(&skipjack_desc);
+        register_cipher(&twofish_desc);
+        register_cipher(&xtea_desc);
+        register_hash(&md2_desc);
+        register_hash(&md4_desc);
+        register_hash(&md5_desc);
+        register_hash(&rmd128_desc);
+        register_hash(&rmd160_desc);
+        register_hash(&sha1_desc);
+        register_hash(&sha224_desc);
+        register_hash(&sha256_desc);
+        register_hash(&sha384_desc);
+        register_hash(&sha512_desc);
+        register_hash(&tiger_desc);
+        register_hash(&whirlpool_desc);
+        register_prng(&fortuna_desc);
+        register_prng(&rc4_desc);
+        register_prng(&sober128_desc);
+        register_prng(&sprng_desc);
+        register_prng(&yarrow_desc);
+
+        initialised = 1;
+    }
+    Tcl_MutexUnlock(&initMutex);
+}
+
+/*++
+
+Finalise
+
+    Finalises the library; freeing all held resources.
+
+Arguments:
+    removeCmds - Remove extension commands from all interpreters.
+
+Return Value:
+    None.
+
+--*/
+static void
+Finalise(
+    int removeCmds
+    )
+{
+    DebugPrint("Finalise: removeCmds=%d\n", removeCmds);
+
+#ifdef _WINDOWS
+    Tcl_MutexLock(&initMutex);
+    if (winProcs.module != NULL) {
+        FreeLibrary(winProcs.module);
+    }
+    ZeroMemory(&winProcs, sizeof(WinProcs));
+    Tcl_MutexUnlock(&initMutex);
+#endif // _WINDOWS
+
+    initialised = 0;
+
+    Tcl_MutexLock(&stateListMutex);
+    if (stateHead != NULL) {
+        ExtState *stateList;
+        ExtState *nextState;
+
+        // Free all states structures.
+        for (stateList = stateHead; stateList != NULL; stateList = nextState) {
+            nextState = stateList->next;
+            FreeState(stateList, removeCmds, 1);
+        }
+        stateHead = NULL;
+    }
+    Tcl_MutexUnlock(&stateListMutex);
+
+#ifdef TCL_MEM_DEBUG
+    Tcl_DumpActiveMemory("MemDump.txt");
+#endif
+}
+
+/*++
+
 FreeState
 
     Deletes hash tables and frees state structure.
 
 Arguments:
     state      - Pointer to a "ExtState" structure.
+
+    removeCmds - Remove registered commands.
 
     removeProc - Remove the interp deletion callback.
 
@@ -352,12 +433,20 @@ Return Value:
 static void
 FreeState(
     ExtState *state,
+    int removeCmds,
     int removeProc
     )
 {
-
     assert(state != NULL);
-    DebugPrint("FreeState: state=%p removeProc=%d\n", state, removeProc);
+    DebugPrint("FreeState: state=%p removeCmds=%d removeProc=%d\n",
+        state, removeCmds, removeProc);
+
+    if (removeCmds) {
+        int i;
+        for (i = 0; i < ARRAYSIZE(state->cmds); i++) {
+            Tcl_DeleteCommandFromToken(state->interp, state->cmds[i]);
+        }
+    }
 
     if (removeProc) {
         //
@@ -402,34 +491,7 @@ ExitHandler(
     )
 {
     DebugPrint("ExitHandler: none\n");
-    initialised = 0;
-
-#ifdef _WINDOWS
-    Tcl_MutexLock(&initMutex);
-    if (winProcs.module != NULL) {
-        FreeLibrary(winProcs.module);
-    }
-    ZeroMemory(&winProcs, sizeof(WinProcs));
-    Tcl_MutexUnlock(&initMutex);
-#endif // _WINDOWS
-
-    Tcl_MutexLock(&stateListMutex);
-    if (stateHead != NULL) {
-        ExtState *stateList;
-        ExtState *nextState;
-
-        // Free all states structures.
-        for (stateList = stateHead; stateList != NULL; stateList = nextState) {
-            nextState = stateList->next;
-            FreeState(stateList, 1);
-        }
-        stateHead = NULL;
-    }
-    Tcl_MutexUnlock(&stateListMutex);
-
-#ifdef TCL_MEM_DEBUG
-    Tcl_DumpActiveMemory("MemDump.txt");
-#endif
+    Finalise(0);
 }
 
 /*++
@@ -457,9 +519,6 @@ InterpDeleteHandler(
     ExtState *stateList;
 
     DebugPrint("InterpDelete: interp=%p state=%p\n", interp, state);
-    if (state == NULL) {
-        return;
-    }
 
     Tcl_MutexLock(&stateListMutex);
     for (stateList = stateHead; stateList != NULL; stateList = stateList->next) {
@@ -483,7 +542,7 @@ InterpDeleteHandler(
             // handler. Since all states are freed in the unload function,
             // we must only free states present in the global state list.
             //
-            FreeState(stateList, 0);
+            FreeState(stateList, 0, 0);
             break;
         }
     }

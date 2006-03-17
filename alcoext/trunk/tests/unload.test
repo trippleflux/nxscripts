@@ -15,10 +15,30 @@
 set currentPath [file dirname [file normalize [info script]]]
 source [file join $currentPath "loader.tcl"]
 
+testConstraint multiProcess [expr {![tcltest::singleProcess]}]
 testConstraint haveUnload [expr {[llength [info commands unload]] == 1}]
 
+proc CheckCmds {commands} {
+    global tcl_platform
+
+    set check [list compress crypt decode encode volume]
+    if {$tcl_platform(platform) eq "windows"} {
+        lappend check ioftpd
+    } else {
+        lappend check glftpd
+    }
+
+    set count 0
+    foreach name $check {
+        if {[lsearch -exact $commands $name] != -1} {
+            incr count
+        }
+    }
+    return $count
+}
+
 ################################################################################
-# unload                                                                       #
+# exit/interp-deletion handlers                                                #
 ################################################################################
 
 test unload-1.1 {unload extension from process} {haveUnload} {
@@ -36,6 +56,26 @@ test unload-1.2 {interp deletion handler} {haveUnload} {
     interp eval $interp [list unload -- $libFile]
     interp delete $interp
 } {}
+
+################################################################################
+# command deletion                                                             #
+################################################################################
+
+test unload-2.1 {unload extension from process} {haveUnload multiProcess} {
+    load $libFile
+    set before [CheckCmds [info commands]]
+    unload -- $libFile
+    set after [CheckCmds [info commands]]
+    list $before $after
+} {6 0}
+
+test unload-2.1 {unload extension from interp} {haveUnload multiProcess} {
+    load $libFile
+    set before [CheckCmds [info commands]]
+    unload -keeplibrary -- $libFile
+    set after [CheckCmds [info commands]]
+    list $before $after
+} {6 0}
 
 
 ::tcltest::cleanupTests
