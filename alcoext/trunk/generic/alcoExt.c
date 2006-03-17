@@ -317,9 +317,6 @@ Initialise(
         SetErrorMode(SetErrorMode(0) | SEM_FAILCRITICALERRORS);
 #endif // _WINDOWS
 
-        // An exit handler must only be registered once.
-        Tcl_CreateExitHandler(ExitHandler, NULL);
-
         // Register ciphers, hashes, and PRNGs for LibTomCrypt.
         register_cipher(&des3_desc);
         register_cipher(&aes_desc);
@@ -357,6 +354,8 @@ Initialise(
         register_prng(&sober128_desc);
         register_prng(&sprng_desc);
         register_prng(&yarrow_desc);
+
+        Tcl_CreateExitHandler(ExitHandler, NULL);
 
         initialised = 1;
     }
@@ -438,8 +437,8 @@ FreeState(
     )
 {
     assert(state != NULL);
-    DebugPrint("FreeState: state=%p removeCmds=%d removeProc=%d\n",
-        state, removeCmds, removeProc);
+    DebugPrint("FreeState: state=%p state->interp=%p removeCmds=%d removeProc=%d\n",
+        state, state->interp, removeCmds, removeProc);
 
     if (removeCmds) {
         int i;
