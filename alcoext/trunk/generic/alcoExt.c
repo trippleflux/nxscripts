@@ -18,16 +18,18 @@ Abstract:
 
 #include <alcoExt.h>
 
+// Globals
+#ifdef _WINDOWS
+OSVERSIONINFOA osVersion;
+WinProcs winProcs;
+#endif // _WINDOWS
+
+// Locals
 static unsigned char initialised = 0;
 static ExtState *stateHead = NULL;
 
 TCL_DECLARE_MUTEX(initMutex)
 TCL_DECLARE_MUTEX(stateListMutex)
-
-#ifdef _WINDOWS
-OSVERSIONINFOA osVersion;
-WinProcs winProcs;
-#endif // _WINDOWS
 
 static void
 Initialise(
