@@ -444,14 +444,14 @@ proc ::nxTools::Dupe::SiteApprove {event argList} {
     return 0
 }
 
-proc ::nxTools::Dupe::SiteDupe {limit pattern} {
+proc ::nxTools::Dupe::SiteDupe {fileRoot limit pattern} {
     global misc
     if {[catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} error]} {
         ErrorLog SiteDupe $error
         return 1
     }
     foreach fileExt {Header Body None Footer} {
-        set template($fileExt) [ReadFile [file join $misc(Templates) "Dupe.$fileExt"]]
+        set template($fileExt) [ReadFile [file join $misc(Templates) "$fileRoot.$fileExt"]]
     }
     OutputText $template(Header)
     set count 0
@@ -723,7 +723,7 @@ proc ::nxTools::Dupe::Main {argv} {
         }
         DUPE {
             if {$argLength > 1 && [GetOptions [lrange $argList 1 end] limit pattern]} {
-                set result [SiteDupe $limit $pattern]
+                set result [SiteDupe "Dupe" $limit $pattern]
             } else {
                 iputs "Syntax: SITE DUPE \[-max <limit>\] <release>"
             }
@@ -744,6 +744,13 @@ proc ::nxTools::Dupe::Main {argv} {
         }
         REBUILD {
             set result [RebuildDb]
+        }
+        SEARCH {
+            if {$argLength > 1 && [GetOptions [lrange $argList 1 end] limit pattern]} {
+                set result [SiteDupe "Search" $limit $pattern]
+            } else {
+                iputs "Syntax: SITE SEARCH \[-max <limit>\] <release>"
+            }
         }
         UNDUPE {
             if {$argLength > 1} {

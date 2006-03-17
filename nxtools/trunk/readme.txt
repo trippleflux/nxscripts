@@ -93,6 +93,7 @@ dupe        = TCL ..\scripts\nxTools\nxDupe.tcl DUPE
 fdupe       = TCL ..\scripts\nxTools\nxDupe.tcl FDUPE
 new         = TCL ..\scripts\nxTools\nxDupe.tcl NEW
 rebuild     = TCL ..\scripts\nxTools\nxDupe.tcl REBUILD
+search      = TCL ..\scripts\nxTools\nxDupe.tcl SEARCH
 undupe      = TCL ..\scripts\nxTools\nxDupe.tcl UNDUPE
 wipe        = TCL ..\scripts\nxTools\nxDupe.tcl WIPE
 nuke        = TCL ..\scripts\nxTools\nxNuke.tcl NUKE
@@ -157,6 +158,7 @@ resetstats  = M1
 resetuser   = M1
 rotatelogs  = M1
 rules       = !A *
+search      = !A *
 size        = M1V
 syslog      = M1
 take        = M1
@@ -502,6 +504,14 @@ Legend:
      - SITE RULES
      - SITE RULES APPS
 
+- SITE SEARCH [-max <limit>] <release>
+    Description:
+     - Search the directory dupe log for a specific release.
+     - Same as 'SITE DUPE' but with simpler output.
+    Examples:
+     - SITE SEARCH *Something*Cool*
+     - SITE SEARCH -max 30 *Something*Cool*
+
 - SITE SIZE <directory>
     Description:
      - Displays the number of files, directories, and the total size of the
@@ -643,6 +653,12 @@ and their available cookies are:
       Rules.SingleLine : %(num) %(punishment) %(rule) %(section)
       Rules.MultiLine  : %(num) %(punishment) %(rule) %(section)
       Rules.Footer     : %(sections)
+
+  - Search Directory Database (SITE SEARCH)
+      Search.Header    : N/A
+      Search.Body      : %(sec) %(min) %(hour) %(day) %(month) %(year2) %(year4) %(num) %(user) %(group) %(release) %(path)
+      Search.None      : N/A
+      Search.Footer    : %(found) %(total)
 
   - Viewing Who's Online (SITE WHO)
       Who.Header       : N/A

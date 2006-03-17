@@ -4,6 +4,7 @@
 
 nxTools v1.0.3 (not released):
   NEW: Display pre areas on multiple lines if necessary (word wrapping).
+  NEW: SITE SEARCH, same as SITE DUPE but with simpler output.
   CHG: Updated nxHelper to v2.3.0, new global-interp key functions.
   FIX: Possible crashes using "SITE OPEN/CLOSE" due to ioFTPD's buggy
        global-interp "var get/set" command.
