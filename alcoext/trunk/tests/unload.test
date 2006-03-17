@@ -21,14 +21,16 @@ testConstraint haveUnload [expr {[llength [info commands unload]] == 1}]
 # unload                                                                       #
 ################################################################################
 
-test unload-1.1 {unload: unload extension from interp} {haveUnload} {
-    set interp [interp create]
-    interp eval $interp [list load $libFile]
-    interp eval $interp [list unload -keeplibrary -- $libFile]
-    interp delete $interp
+test unload-1.1 {unload extension from process} {haveUnload} {
+    unload -- $libFile
 } {}
 
-test unload-1.2 {unload: unload extension from process} {haveUnload} {
+test unload-1.1 {unload extension from interp} {haveUnload} {
+    load $libFile
+    unload -keeplibrary -- $libFile
+} {}
+
+test unload-1.2 {interp deletion handler} {haveUnload} {
     set interp [interp create]
     interp eval $interp [list load $libFile]
     interp eval $interp [list unload -- $libFile]

@@ -29,8 +29,13 @@ OSVERSIONINFOA osVersion;
 WinProcs winProcs;
 #endif // _WINDOWS
 
-static void FreeState(ExtState *state);
-static Tcl_ExitProc         ExitHandler;
+static void
+FreeState(
+    ExtState *state,
+    int removeProc
+    );
+
+static Tcl_ExitProc ExitHandler;
 static Tcl_InterpDeleteProc InterpDeleteHandler;
 
 
@@ -257,6 +262,13 @@ Alcoext_Unload(
 {
     DebugPrint("Unload: interp=%p flags=%d\n", interp, flags);
 
+#if 0
+    int i;
+    for (i = 0; i < ARRAYSIZE(state->cmds); i++) {
+        Tcl_DeleteCommandFromToken(state->interp, state->cmds[i]);
+    }
+#endif
+
     if (flags == TCL_UNLOAD_DETACH_FROM_INTERPRETER) {
         ExtState *stateList;
 
@@ -275,7 +287,7 @@ Alcoext_Unload(
                     stateHead = stateList->next;
                 }
 
-                FreeState(stateList);
+                FreeState(stateList, 1);
                 break;
             }
         }
@@ -284,6 +296,12 @@ Alcoext_Unload(
     }
 
     if (flags == TCL_UNLOAD_DETACH_FROM_PROCESS) {
+        //
+        // During Tcl's finailisation process (after the extension has been
+        // unloaded), it will invoke all registered exit handlers.
+        //
+        Tcl_DeleteExitHandler(ExitHandler, NULL);
+
         ExitHandler(NULL);
         return TCL_OK;
     }
@@ -323,7 +341,9 @@ FreeState
     Deletes hash tables and frees state structure.
 
 Arguments:
-    state - Pointer to a "ExtState" structure.
+    state      - Pointer to a "ExtState" structure.
+
+    removeProc - Remove the interp deletion callback.
 
 Return Value:
     None.
@@ -331,20 +351,24 @@ Return Value:
 --*/
 static void
 FreeState(
-    ExtState *state
+    ExtState *state,
+    int removeProc
     )
 {
 
     assert(state != NULL);
-    DebugPrint("FreeState: state=%p\n", state);
+    DebugPrint("FreeState: state=%p removeProc=%d\n", state, removeProc);
 
-#if 0
-    int i;
-    for (i = 0; i < ARRAYSIZE(state->cmds); i++) {
-        Tcl_DeleteCommandFromToken(state->interp, state->cmds[i]);
+    if (removeProc) {
+        //
+        // Once the interpreter is deleted (after the extension has been
+        // unloaded), Tcl will invoke all registered interp deletion handlers.
+        //
+        Tcl_DontCallWhenDeleted(state->interp,
+            InterpDeleteHandler, (ClientData)state);
     }
-#endif
 
+    // Free hash tables.
     CryptCloseHandles(state->cryptTable);
     Tcl_DeleteHashTable(state->cryptTable);
     ckfree((char *)state->cryptTable);
@@ -397,7 +421,7 @@ ExitHandler(
         // Free all states structures.
         for (stateList = stateHead; stateList != NULL; stateList = nextState) {
             nextState = stateList->next;
-            FreeState(stateList);
+            FreeState(stateList, 1);
         }
         stateHead = NULL;
     }
@@ -459,7 +483,7 @@ InterpDeleteHandler(
             // handler. Since all states are freed in the unload function,
             // we must only free states present in the global state list.
             //
-            FreeState(stateList);
+            FreeState(stateList, 0);
             break;
         }
     }
