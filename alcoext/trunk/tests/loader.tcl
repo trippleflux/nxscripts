@@ -3,7 +3,7 @@
 # Copyright (c) 2005-2006 Alcoholicz Scripting Team
 #
 # Module Name:
-#   loader.tcl
+#   Test Loader
 #
 # Author:
 #   neoxed (neoxed@gmail.com) Feb 14, 2005

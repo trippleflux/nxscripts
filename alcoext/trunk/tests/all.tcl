@@ -3,7 +3,7 @@
 # Copyright (c) 2005-2006 Alcoholicz Scripting Team
 #
 # Module Name:
-#   all.tcl
+#   All Tests
 #
 # Author:
 #   neoxed (neoxed@gmail.com) May 25, 2005
