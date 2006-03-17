@@ -15,9 +15,8 @@
 set currentPath [file dirname [file normalize [info script]]]
 source [file join $currentPath "loader.tcl"]
 
-testConstraint threaded   [expr {[info exists tcl_platform(threaded)] && $tcl_platform(threaded)}]
-testConstraint threadPkg  [expr {![catch {package require Thread}]}]
-testConstraint haveUnload [expr {[llength [info commands unload]] == 1}]
+testConstraint threaded  [expr {[info exists tcl_platform(threaded)] && $tcl_platform(threaded)}]
+testConstraint threadPkg [expr {![catch {package require Thread}]}]
 
 ################################################################################
 # load                                                                         #
@@ -46,24 +45,6 @@ test misc-1.1 {load: delete and exit handler} {
 
 test misc-1.2 {load: delete and exit handler} {threaded threadPkg} {
     # TODO: write a threaded version of test init-1.1.
-} {}
-
-################################################################################
-# unload                                                                       #
-################################################################################
-
-test misc-2.1 {unload: unload extension from interp} {haveUnload} {
-    set interp [interp create]
-    interp eval $interp [list load $libFile]
-    interp eval $interp [list unload -keeplibrary -- $libFile]
-    interp delete $interp
-} {}
-
-test misc-2.2 {unload: unload extension from process} {haveUnload} {
-    set interp [interp create]
-    interp eval $interp [list load $libFile]
-    interp eval $interp [list unload -- $libFile]
-    interp delete $interp
 } {}
 
 
