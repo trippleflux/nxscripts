@@ -212,10 +212,7 @@ Alcoext_Unload(
         Tcl_MutexUnlock(&stateListMutex);
 
     } else if (flags == TCL_UNLOAD_DETACH_FROM_PROCESS) {
-        //
-        // During Tcl's finalisation process (after the extension has been
-        // unloaded), it will invoke all registered exit handlers.
-        //
+        // Remove registered exit handlers.
         Tcl_DeleteExitHandler(ExitHandler, NULL);
         Finalise(1);
 
@@ -452,10 +449,6 @@ FreeState(
     }
 
     if (removeProc) {
-        //
-        // Once the interpreter is deleted (after the extension has been
-        // unloaded), Tcl will invoke all registered interp deletion handlers.
-        //
         Tcl_DontCallWhenDeleted(state->interp,
             InterpDeleteHandler, (ClientData)state);
     }
