@@ -57,8 +57,8 @@ typedef struct ExtState {
 #include "alcoUtil.h"
 #include "alcoVolume.h"
 
-EXTERN Tcl_PackageInitProc   Alcoext_Init;
-EXTERN Tcl_PackageInitProc   Alcoext_SafeInit;
+EXTERN Tcl_PackageInitProc Alcoext_Init;
+EXTERN Tcl_PackageInitProc Alcoext_SafeInit;
 EXTERN Tcl_PackageUnloadProc Alcoext_Unload;
 EXTERN Tcl_PackageUnloadProc Alcoext_SafeUnload;
 

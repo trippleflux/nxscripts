@@ -161,8 +161,7 @@ Alcoext_SafeInit(
 
 Alcoext_Unload
 
-    Unload the extension from a process or interpreter. As proposed
-    in Tcl TIP #100 (http://www.tcl.tk/cgi-bin/tct/tip/100.html).
+    Unloads the extension from a process or interpreter.
 
 Arguments:
     interp - Current interpreter.
@@ -224,7 +223,7 @@ Alcoext_Unload(
 
 Alcoext_SafeUnload
 
-    Unload the extension from a process or safe interpreter.
+    Unloads the extension from a process or safe interpreter.
 
 Arguments:
     interp - Current interpreter.
