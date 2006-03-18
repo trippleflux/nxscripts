@@ -331,6 +331,7 @@ OBJECT_FILES=\
     $(PKG_INTDIR)\alcoUtil.obj\
     $(PKG_INTDIR)\alcoVolume.obj\
     $(PKG_INTDIR)\alcoWinIoFtpd.obj\
+    $(PKG_INTDIR)\alcoWinIoShm.obj\
     $(PKG_INTDIR)\alcoWinUtil.obj\
     $(PKG_INTDIR)\alcoWinVolume.obj\
     $(PKG_INTDIR)\alcoExt.res
