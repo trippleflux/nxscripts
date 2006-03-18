@@ -337,7 +337,7 @@ RowDataGet(
             }
         }
 
-    endOfRow:
+endOfRow:
         assert(rowObj != NULL);
         Tcl_ListObjAppendElement(NULL, listObj, rowObj);
     }
@@ -1564,7 +1564,6 @@ IoVfsCmd(
     }
 
 end:
-
     Tcl_DStringFree(&buffer);
     if (memory != NULL) {
         ShmFree(&session, memory);
@@ -1630,12 +1629,12 @@ IoWhoCmd(
             flags |= ONLINE_GET_USERNAME;
         }
 
-        fields[i] = (unsigned char) fieldIndex;
+        fields[i] = (unsigned char)fieldIndex;
     }
 
     result = GetOnlineFields(&session, interp, fields, elementCount, flags);
 
-    end:
+end:
     ckfree((char *)fields);
     return result;
 }
