@@ -226,12 +226,12 @@ distclean: clean
     @IF EXIST nmakehlp.exe DEL /F nmakehlp.exe
     @IF EXIST nmakehlp.obj DEL /F nmakehlp.obj
 
-$(PKG_OUTFILE): $(OBJECT_FILES)
+$(PKG_OUTFILE): create-config $(OBJECT_FILES)
     $(LINK) $(LFLAGS) -out:$@ @<<
 $**
 <<
 
-binary: setup create-config $(PKG_OUTFILE)
+binary: setup $(PKG_OUTFILE)
     @COPY /Y "$(TCL_LIB)" "$(PKG_OUTDIR)" > NUL
 
 create-config: setup
