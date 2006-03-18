@@ -394,12 +394,12 @@ install: library create-index
     @COPY /Y "$(PKG_OUTFILE)" "$(PKG_INSTALL_DIR)\$(PKG_INSTALL_FILE)" >NUL
     @COPY /Y "$(PKG_INTDIR)\pkgIndex.tcl" "$(PKG_INSTALL_DIR)" >NUL
 
-$(PKG_OUTFILE): $(OBJECT_FILES)
+$(PKG_OUTFILE): create-config $(OBJECT_FILES)
     $(LINK) $(LFLAGS) -out:$@ @<<
 $**
 <<
 
-library: setup create-config $(PKG_OUTFILE)
+library: setup $(PKG_OUTFILE)
 
 create-config: setup
     @TYPE << >"$(PKG_INTDIR)\config.h"
