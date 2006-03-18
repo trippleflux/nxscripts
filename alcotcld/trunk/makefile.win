@@ -48,7 +48,7 @@ PKG_VERSION_DOT = $(PKG_MAJOR).$(PKG_MINOR).$(PKG_PATCH)
 PKG_VERSION_RES = $(PKG_MAJOR),$(PKG_MINOR),$(PKG_PATCH),$(PKG_STATUS)
 
 # Compiler and linker flags.
-PKG_CFLAGS      = "-DPACKAGE_NAME=\"$(PKG_NAME)\"" "-DPACKAGE_VERSION=\"$(PKG_VERSION_DOT)\""  "-DPACKAGE_VERSION_RES=$(PKG_VERSION_RES)"
+PKG_CFLAGS      = -DHAVE_CONFIG_H
 PKG_LFLAGS      = /NODEFAULTLIB:msvcrt /OPT:NOWIN98
 TCL_CFLAGS      =
 
@@ -173,13 +173,13 @@ PKG_FILE    = $(PKG_NAME)$(PKG_SUFFIX).exe
 PKG_OUTFILE = $(PKG_OUTDIR)\$(PKG_FILE)
 PKG_INTDIR  = $(PKG_OUTDIR)\$(PKG_OPTIONS:, =)
 
-# Append file and option definitions to cflags.
-PKG_CFLAGS  = $(PKG_CFLAGS) "-DPACKAGE_FILE=\"$(PKG_FILE)\"" "-DPACKAGE_OPTIONS=\"$(PKG_OPTIONS)\""
+# -------------------------------------------------------------------------
 
 INCLUDE_DIRS=\
     -I"$(TCL_INCLUDES)"\
     -I"$(GENERIC_DIR)"\
-    -I"$(WIN_DIR)"
+    -I"$(WIN_DIR)"\
+    -I"$(PKG_INTDIR)"
 
 OBJECT_FILES=\
     $(PKG_INTDIR)\tcldInit.obj\
@@ -189,7 +189,7 @@ OBJECT_FILES=\
 
 CFLAGS  = -c $(cdebug) $(cflags) $(cvarsmt) $(PKG_CFLAGS) $(TCL_CFLAGS) $(INCLUDE_DIRS)
 LFLAGS  = $(ldebug) $(conlflags) $(conlibsmt) shlwapi.lib $(PKG_LFLAGS) $(TCL_IMPLIB)
-RFLAGS  = $(rcflags) $(rcvars) $(PKG_CFLAGS)
+RFLAGS  = $(rcflags) $(rcvars) $(PKG_CFLAGS) $(INCLUDE_DIRS)
 
 # -------------------------------------------------------------------------
 
@@ -231,8 +231,18 @@ $(PKG_OUTFILE): $(OBJECT_FILES)
 $**
 <<
 
-binary: setup $(PKG_OUTFILE)
+binary: setup create-config $(PKG_OUTFILE)
     @COPY /Y "$(TCL_LIB)" "$(PKG_OUTDIR)" > NUL
+
+create-config: setup
+    @TYPE << >"$(PKG_INTDIR)\config.h"
+// Package configuration.
+#define PACKAGE_NAME        "$(PKG_NAME)"
+#define PACKAGE_VERSION     "$(PKG_VERSION_DOT)"
+#define PACKAGE_VERSION_RES $(PKG_VERSION_RES)
+#define PACKAGE_FILE        "$(PKG_FILE)"
+#define PACKAGE_OPTIONS     "$(PKG_OPTIONS)"
+<<
 
 setup:
     @IF NOT EXIST "$(PKG_OUTDIR)" MKDIR "$(PKG_OUTDIR)"
