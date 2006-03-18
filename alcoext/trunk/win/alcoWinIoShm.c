@@ -4,7 +4,7 @@ AlcoExt - Alcoholicz Tcl extension.
 Copyright (c) 2005-2006 Alcoholicz Scripting Team
 
 Module Name:
-    ioFTPD Shmem
+    ioFTPD Shared Memory
 
 Author:
     neoxed (neoxed@gmail.com) Mar 17, 2006
@@ -1087,7 +1087,7 @@ Arguments:
     session     - Pointer to an initialised ShmSession structure.
 
     memory      - Pointer to an ShmMemory structure allocated by the ShmAlloc
-                  function. Must be at least MAX_CONTEXT + DC_VFS + pathLength + 1.
+                  function. Must be at least sizeof(DC_VFS) + pathLength + 1.
 
     path        - The file or directory path to query.
 
@@ -1114,7 +1114,7 @@ VfsRead(
     assert(memory  != NULL);
     assert(path    != NULL);
     assert(vfsPerm != NULL);
-    assert(memory->bytes >= MAX_CONTEXT + sizeof(DC_VFS) + pathLength + 1);
+    assert(memory->bytes >= sizeof(DC_VFS) + pathLength + 1);
     DebugPrint("VfsRead: path=%s vfsPerm=%p\n", path, vfsPerm);
 
     // Initialise the DC_VFS structure.
@@ -1145,7 +1145,7 @@ Arguments:
     session     - Pointer to an initialised ShmSession structure.
 
     memory      - Pointer to an ShmMemory structure allocated by the ShmAlloc
-                  function. Must be at least MAX_CONTEXT + DC_VFS + pathLength + 1.
+                  function. Must be at least sizeof(DC_VFS) + pathLength + 1.
 
     path        - The file or directory path to query.
 
@@ -1172,7 +1172,7 @@ VfsWrite(
     assert(memory  != NULL);
     assert(path    != NULL);
     assert(vfsPerm != NULL);
-    assert(memory->bytes >= MAX_CONTEXT + sizeof(DC_VFS) + pathLength + 1);
+    assert(memory->bytes >= sizeof(DC_VFS) + pathLength + 1);
     DebugPrint("VfsWrite: path=%s vfsPerm=%p\n", path, vfsPerm);
 
     // Initialise the DC_VFS structure.

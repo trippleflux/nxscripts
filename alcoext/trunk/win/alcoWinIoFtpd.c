@@ -4,7 +4,7 @@ AlcoExt - Alcoholicz Tcl extension.
 Copyright (c) 2005-2006 Alcoholicz Scripting Team
 
 Module Name:
-    ioFTPD
+    ioFTPD Tcl Commands
 
 Author:
     neoxed (neoxed@gmail.com) Apr 16, 2005
@@ -1470,7 +1470,7 @@ IoVfsCmd(
                 goto end;
             }
 
-            memory = ShmAlloc(interp, &session, MAX_CONTEXT + sizeof(DC_VFS) + pathLength + 1);
+            memory = ShmAlloc(interp, &session, sizeof(DC_VFS) + pathLength + 1);
             if (memory == NULL) {
                 goto end;
             }
@@ -1519,7 +1519,7 @@ IoVfsCmd(
                 goto end;
             }
 
-            memory = ShmAlloc(interp, &session, MAX_CONTEXT + sizeof(DC_VFS) + pathLength + 1);
+            memory = ShmAlloc(interp, &session, sizeof(DC_VFS) + pathLength + 1);
             if (memory == NULL) {
                 goto end;
             }

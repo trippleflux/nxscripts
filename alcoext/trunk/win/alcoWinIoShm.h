@@ -181,9 +181,6 @@ GroupNameToId(
 // VFS functions.
 //
 
-// Maximum size of a directory context.
-#define MAX_CONTEXT 1024
-
 typedef struct {
     UINT32 userId;
     UINT32 groupId;
