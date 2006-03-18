@@ -57,6 +57,8 @@ ShmInit(
     assert(interp    != NULL);
     assert(session   != NULL);
     assert(windowObj != NULL);
+    DebugPrint("ShmInit: interp=%p windowObj=%p session=%p \n",
+        interp, windowObj, session);
 
     windowName = Tcl_GetString(windowObj);
     session->messageWnd = FindWindowA(windowName, NULL);
@@ -108,6 +110,7 @@ ShmAlloc(
     assert(interp  != NULL);
     assert(session != NULL);
     assert(bytes > 0);
+    DebugPrint("ShmAlloc: interp=%p session=%p bytes=%lu\n", interp, session, bytes);
 
     event = CreateEvent(NULL, FALSE, FALSE, NULL);
     if (event == NULL) {
@@ -206,6 +209,7 @@ ShmFree(
 {
     assert(session != NULL);
     assert(memory  != NULL);
+    DebugPrint("ShmFree: session=%p memory=%p\n", session, memory);
 
     // Free objects and resources.
     UnmapViewOfFile(memory->message);
@@ -252,6 +256,8 @@ ShmQuery(
 {
     assert(session != NULL);
     assert(memory  != NULL);
+    DebugPrint("ShmQuery: session=%p memory=%p queryType=%lu timeOut=%lu\n",
+        session, memory, queryType, timeOut);
 
     memory->message->dwReturn     = (DWORD)-1;
     memory->message->dwIdentifier = queryType;
@@ -1113,7 +1119,7 @@ VfsRead(
 
     // Initialise the DC_VFS structure.
     dcVfs = (DC_VFS *)memory->block;
-    dcVfs->dwBuffer = MAX_CONTEXT + pathLength + 1;
+    dcVfs->dwBuffer = pathLength + 1;
     CopyMemory(dcVfs->pBuffer, path, pathLength + 1);
 
     if (!ShmQuery(session, memory, DC_FILEINFO_READ, 5000)) {
@@ -1133,7 +1139,7 @@ VfsRead(
 
 VfsWrite
 
-    Retrieves the ownership and permissions for a file or directory.
+    Sets the ownership and permissions for a file or directory.
 
 Arguments:
     session     - Pointer to an initialised ShmSession structure.
@@ -1171,10 +1177,10 @@ VfsWrite(
 
     // Initialise the DC_VFS structure.
     dcVfs = (DC_VFS *)memory->block;
-    dcVfs->Uid = vfsPerm->userId;
-    dcVfs->Gid = vfsPerm->groupId;
+    dcVfs->Uid        = vfsPerm->userId;
+    dcVfs->Gid        = vfsPerm->groupId;
     dcVfs->dwFileMode = vfsPerm->fileMode;
-    dcVfs->dwBuffer = MAX_CONTEXT + pathLength + 1;
+    dcVfs->dwBuffer   = pathLength + 1;
     CopyMemory(dcVfs->pBuffer, path, pathLength + 1);
 
     if (!ShmQuery(session, memory, DC_FILEINFO_WRITE, 5000)) {
