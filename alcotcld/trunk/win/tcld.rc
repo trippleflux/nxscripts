@@ -30,12 +30,12 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "Comments",         "Build Options: " PACKAGE_OPTIONS
-            VALUE "FileDescription",  PACKAGE_DESC
+            VALUE "FileDescription",  "Alcoholicz Tcl Daemon"
             VALUE "FileVersion",      PACKAGE_VERSION
             VALUE "InternalName",     PACKAGE_NAME
             VALUE "LegalCopyright",   "Copyright (c) 2005-2006 Alcoholicz Scripting Team"
             VALUE "OriginalFilename", PACKAGE_FILE
-            VALUE "ProductName",      PACKAGE_DESC
+            VALUE "ProductName",      PACKAGE_NAME
             VALUE "ProductVersion",   PACKAGE_VERSION
         END
     END
