@@ -1456,7 +1456,8 @@ IoVfsCmd(
                 result = VfsFlush(&session, memory, path);
 
                 if (result != TCL_OK) {
-                    Tcl_AppendResult(interp, "unable to flush path \"", path, "\"", NULL);
+                    Tcl_AppendResult(interp, "unable to flush path \"",
+                        Tcl_GetString(objv[4]), "\"", NULL);
                 }
             }
             break;
