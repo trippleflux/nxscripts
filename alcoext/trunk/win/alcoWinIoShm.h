@@ -4,7 +4,7 @@ AlcoExt - Alcoholicz Tcl extension.
 Copyright (c) 2005-2006 Alcoholicz Scripting Team
 
 Module Name:
-    ioFTPD Shmem
+    ioFTPD Shared Memory
 
 Author:
     neoxed (neoxed@gmail.com) Mar 17, 2006
