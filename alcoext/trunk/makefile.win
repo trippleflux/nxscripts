@@ -52,12 +52,9 @@ PKG_VERSION_DOT = $(PKG_MAJOR).$(PKG_MINOR).$(PKG_PATCH)
 PKG_VERSION_RES = $(PKG_MAJOR),$(PKG_MINOR),$(PKG_PATCH),$(PKG_STATUS)
 
 # Compiler and linker flags.
-PKG_CFLAGS      = -DHAVE_CONFIG_H
+PKG_CFLAGS      = -DHAVE_CONFIG_H -DBZ_NO_STDIO
 PKG_LFLAGS      = /NODEFAULTLIB:msvcrt /OPT:NOWIN98
-BZIP2_CFLAGS    =
-TOMCRYPT_CFLAGS =
-ZLIB_CFLAGS     =
-TCL_CFLAGS      = -DBZ_NO_STDIO -DUSE_TCL_STUBS
+TCL_CFLAGS      = -DUSE_TCL_STUBS
 
 # File suffixes.
 TCL_SUFFIX      = tg
@@ -341,17 +338,17 @@ RFLAGS  = $(rcflags) $(rcvars) $(PKG_CFLAGS) $(INCLUDE_DIRS)
 # -------------------------------------------------------------------------
 
 {$(BZIP2_DIR)}.c{$(PKG_INTDIR)}.obj::
-    $(CC) $(CFLAGS) $(BZIP2_CFLAGS) -Fo$(PKG_INTDIR)\ @<<
+    $(CC) $(CFLAGS) -Fo$(PKG_INTDIR)\ @<<
 $<
 <<
 
 {$(TOMCRYPT_DIR)}.c{$(PKG_INTDIR)}.obj::
-    $(CC) $(CFLAGS) $(TOMCRYPT_CFLAGS) -Fo$(PKG_INTDIR)\ @<<
+    $(CC) $(CFLAGS) -Fo$(PKG_INTDIR)\ @<<
 $<
 <<
 
 {$(ZLIB_DIR)}.c{$(PKG_INTDIR)}.obj::
-    $(CC) $(CFLAGS) $(ZLIB_CFLAGS) -Fo$(PKG_INTDIR)\ @<<
+    $(CC) $(CFLAGS) -Fo$(PKG_INTDIR)\ @<<
 $<
 <<
 
