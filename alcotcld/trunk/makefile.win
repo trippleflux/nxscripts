@@ -63,9 +63,7 @@ PKG_SUFFIX      = DMTCP
 PKG_OPTIONS = Debug
 PKG_OUTDIR  = Debug
 # Make sure NODEBUG is not defined for debug builds.
-!ifdef NODEBUG
 !undef NODEBUG
-!endif
 !else
 NODEBUG     = 1
 PKG_OPTIONS = Release
