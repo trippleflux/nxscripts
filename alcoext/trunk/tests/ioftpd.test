@@ -703,7 +703,21 @@ test ioftpd-7.12 {ioftpd vfs: attributes, set gid} {win msgWndExists} {
     expr {$before == $after}
 } {1}
 
-test ioftpd-7.13 {ioftpd vfs: flush, valid path} {win msgWndExists} {
+test ioftpd-7.13 {ioftpd vfs: attributes, set chmod} {win msgWndExists} {
+    ioftpd vfs attributes $msgWindow $currentPath -chmod "777"
+    set after [ioftpd vfs attributes $msgWindow $currentPath -chmod]
+    string equal $after "777"
+} {1}
+
+test ioftpd-7.14 {ioftpd vfs: attributes, bad uid} {win msgWndExists} {
+    list [catch {ioftpd vfs attributes $msgWindow $currentPath -uid .} msg] $msg
+} {1 {expected integer but got "."}}
+
+test ioftpd-7.15 {ioftpd vfs: attributes, bad gid} {win msgWndExists} {
+    list [catch {ioftpd vfs attributes $msgWindow $currentPath -gid .} msg] $msg
+} {1 {expected integer but got "."}}
+
+test ioftpd-7.16 {ioftpd vfs: flush, valid path} {win msgWndExists} {
     ioftpd vfs flush $msgWindow $currentPath
 } {}
 
