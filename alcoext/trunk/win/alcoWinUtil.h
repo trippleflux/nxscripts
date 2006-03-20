@@ -86,19 +86,19 @@ TclSetWinError(
     unsigned long errorCode
     );
 
-static int
+int
 TclGetOctalFromObj(
     Tcl_Interp *interp,
     Tcl_Obj *objPtr,
     unsigned long *octalPtr
     );
 
-static Tcl_Obj *
+Tcl_Obj *
 TclNewOctalObj(
     unsigned long octal
     );
 
-static void
+void
 TclSetOctalObj(
     Tcl_Obj *objPtr,
     unsigned long octal

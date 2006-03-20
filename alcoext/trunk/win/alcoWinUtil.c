@@ -150,7 +150,7 @@ Return Value:
     A standard Tcl result.
 
 --*/
-static int
+int
 TclGetOctalFromObj(
     Tcl_Interp *interp,
     Tcl_Obj *objPtr,
@@ -187,7 +187,7 @@ Return Value:
     A pointer to a newly created object.
 
 --*/
-static Tcl_Obj *
+Tcl_Obj *
 TclNewOctalObj(
     unsigned long octal
     )
@@ -212,7 +212,7 @@ Return Value:
     None.
 
 --*/
-static void
+void
 TclSetOctalObj(
     Tcl_Obj *objPtr,
     unsigned long octal
