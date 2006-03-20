@@ -29,6 +29,61 @@ static Tcl_ThreadDataKey dataKey;
 
 /*++
 
+EpochToFileTime
+
+    Convert a POSIX epoch time to a FILETIME structure.
+
+Arguments:
+    epochTime   - POSIX epoch time.
+
+    fileTime    - Pointer to a FILETIME structure.
+
+Return Value:
+    None.
+
+--*/
+void
+EpochToFileTime(
+    long epochTime,
+    FILETIME *fileTime
+    )
+{
+    ULONGLONG timeNs;
+    assert(fileTime != NULL);
+
+    timeNs = UInt32x32To64(epochTime, 10000000) + 116444736000000000;
+    fileTime->dwLowDateTime = (DWORD)timeNs;
+    fileTime->dwHighDateTime = (DWORD)(timeNs >> 32);
+}
+
+/*++
+
+FileTimeToEpoch
+
+    Convert a FILETIME structure to a POSIX epoch time.
+
+Arguments:
+    fileTime    - Pointer to a FILETIME structure.
+
+Return Value:
+    The POSIX epoch time.
+
+--*/
+long
+FileTimeToEpoch(
+    const FILETIME *fileTime
+    )
+{
+    ULONGLONG epochTime;
+    assert(fileTime != NULL);
+
+    epochTime = ((ULONGLONG)fileTime->dwHighDateTime << 32) + fileTime->dwLowDateTime;
+    return (long)((epochTime - 116444736000000000) / 10000000);
+}
+
+
+/*++
+
 TclSetWinError
 
     Sets the interpreter's errorCode variable.
@@ -57,12 +112,12 @@ TclSetWinError(
     StringCchPrintfA(errorId, ARRAYSIZE(errorId), "%lu", errorCode);
 
     if (FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM,
-        NULL,
-        errorCode,
-        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        tsdPtr->message,
-        ARRAYSIZE(tsdPtr->message),
-        NULL) == 0) {
+            NULL,
+            errorCode,
+            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+            tsdPtr->message,
+            ARRAYSIZE(tsdPtr->message),
+            NULL) == 0) {
         StringCchCopyA(tsdPtr->message, ARRAYSIZE(tsdPtr->message), "unknown error");
     } else {
         size_t length;
@@ -80,55 +135,92 @@ TclSetWinError(
 
 /*++
 
-FileTimeToEpoch
+TclGetOctalFromObj
 
-    Convert a FILETIME structure to a POSIX epoch time.
+    Retrieves an octal value from the given object.
 
 Arguments:
-    fileTime    - Pointer to a FILETIME structure.
+    interp   - Interpreter to use for error reporting.
+
+    objPtr   - Object to retrieve the octal value from.
+
+    octalPtr - Address to store the octal value.
 
 Return Value:
-    The POSIX epoch time.
+    A standard Tcl result.
 
 --*/
-long
-FileTimeToEpoch(
-    const FILETIME *fileTime
+static int
+TclGetOctalFromObj(
+    Tcl_Interp *interp,
+    Tcl_Obj *objPtr,
+    unsigned long *octalPtr
     )
 {
-    ULONGLONG epochTime;
-    assert(fileTime != NULL);
+    char *input;
 
-    epochTime = ((ULONGLONG)fileTime->dwHighDateTime << 32) + fileTime->dwLowDateTime;
-    return (long)((epochTime - 116444736000000000) / 10000000);
+    assert(interp   != NULL);
+    assert(objPtr   != NULL);
+    assert(octalPtr != NULL);
+
+    input = Tcl_GetString(objPtr);
+    *octalPtr = strtoul(input, NULL, 8);
+
+    if (errno == ERANGE) {
+        Tcl_ResetResult(interp);
+        Tcl_AppendResult(interp, "expected octal but got \"", input, "\"", NULL);
+        return TCL_ERROR;
+    }
+    return TCL_OK;
 }
-
 
 /*++
 
-EpochToFileTime
+TclNewOctalObj
 
-    Convert a POSIX epoch time to a FILETIME structure.
+    Creates a new object from an octal value.
 
 Arguments:
-    epochTime   - POSIX epoch time.
+    octal   - The octal value to use.
 
-    fileTime    - Pointer to a FILETIME structure.
+Return Value:
+    A pointer to a newly created object.
+
+--*/
+static Tcl_Obj *
+TclNewOctalObj(
+    unsigned long octal
+    )
+{
+    char value[12];
+    StringCchPrintfA(value, ARRAYSIZE(value), "%lo", octal);
+    return Tcl_NewStringObj(value, -1);
+}
+
+/*++
+
+TclSetOctalObj
+
+    Sets the object to an octal value.
+
+Arguments:
+    objPtr  - Object to replace.
+
+    octal   - The octal value to use.
 
 Return Value:
     None.
 
 --*/
-void
-EpochToFileTime(
-    long epochTime,
-    FILETIME *fileTime
+static void
+TclSetOctalObj(
+    Tcl_Obj *objPtr,
+    unsigned long octal
     )
 {
-    ULONGLONG timeNs;
-    assert(fileTime != NULL);
+    char value[12];
+    assert(objPtr != NULL);
 
-    timeNs = UInt32x32To64(epochTime, 10000000) + 116444736000000000;
-    fileTime->dwLowDateTime = (DWORD)timeNs;
-    fileTime->dwHighDateTime = (DWORD)(timeNs >> 32);
+    StringCchPrintfA(value, ARRAYSIZE(value), "%lo", octal);
+    Tcl_SetStringObj(objPtr, value, -1);
 }

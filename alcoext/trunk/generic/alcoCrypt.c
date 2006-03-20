@@ -1261,7 +1261,7 @@ CryptInfoCmd(
 
     switch ((enum optionIndices) index) {
         case OPTION_CIPHERS: {
-            // Create a list of supported ciphers.
+            // List of supported ciphers.
             for (index = 0; index < TAB_SIZE && cipher_descriptor[index].name != NULL; index++) {
                 Tcl_ListObjAppendElement(NULL, resultPtr,
                     Tcl_NewStringObj(cipher_descriptor[index].name, -1));
@@ -1273,7 +1273,7 @@ CryptInfoCmd(
             Tcl_HashEntry *hashEntryPtr;
             Tcl_HashSearch hashSearch;
 
-            // Create a list of open crypt handles.
+            // List of crypt handles.
             for (hashEntryPtr = Tcl_FirstHashEntry(statePtr->cryptTable, &hashSearch);
                     hashEntryPtr != NULL;
                     hashEntryPtr = Tcl_NextHashEntry(&hashSearch)) {
@@ -1284,7 +1284,7 @@ CryptInfoCmd(
             return TCL_OK;
         }
         case OPTION_HASHES: {
-            // Create a list of supported hashes.
+            // List of supported hashes.
             for (index = 0; index < TAB_SIZE && hash_descriptor[index].name != NULL; index++) {
                 Tcl_ListObjAppendElement(NULL, resultPtr,
                     Tcl_NewStringObj(hash_descriptor[index].name, -1));
@@ -1292,7 +1292,7 @@ CryptInfoCmd(
             return TCL_OK;
         }
         case OPTION_MODES: {
-            // Create a list of supported cipher modes.
+            // List of supported cipher modes.
             for (index = 0; cipherModes[index].name != NULL; index++) {
                 Tcl_ListObjAppendElement(NULL, resultPtr,
                     Tcl_NewStringObj(cipherModes[index].name, -1));
@@ -1300,7 +1300,7 @@ CryptInfoCmd(
             return TCL_OK;
         }
         case OPTION_PRNGS: {
-            // Create a list of supported PRNGs.
+            // List of supported PRNGs.
             for (index = 0; index < TAB_SIZE && prng_descriptor[index].name != NULL; index++) {
                 Tcl_ListObjAppendElement(NULL, resultPtr,
                     Tcl_NewStringObj(prng_descriptor[index].name, -1));

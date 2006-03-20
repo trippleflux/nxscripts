@@ -60,10 +60,9 @@ typedef struct {
 } WinProcs;
 
 
-long
-FileTimeToEpoch(
-    const FILETIME *fileTime
-    );
+//
+// Time conversion functions.
+//
 
 void
 EpochToFileTime(
@@ -71,10 +70,38 @@ EpochToFileTime(
     FILETIME *fileTime
     );
 
+long
+FileTimeToEpoch(
+    const FILETIME *fileTime
+    );
+
+
+//
+// Tcl wrapper functions.
+//
+
 char *
 TclSetWinError(
     Tcl_Interp *interp,
     unsigned long errorCode
+    );
+
+static int
+TclGetOctalFromObj(
+    Tcl_Interp *interp,
+    Tcl_Obj *objPtr,
+    unsigned long *octalPtr
+    );
+
+static Tcl_Obj *
+TclNewOctalObj(
+    unsigned long octal
+    );
+
+static void
+TclSetOctalObj(
+    Tcl_Obj *objPtr,
+    unsigned long octal
     );
 
 #endif // _ALCOWINUTIL_H_
