@@ -193,7 +193,7 @@ TclNewOctalObj(
     )
 {
     char value[12];
-    StringCchPrintfA(value, ARRAYSIZE(value), "%lo", octal);
+    StringCchPrintfA(value, ARRAYSIZE(value), "%03lo", octal);
     return Tcl_NewStringObj(value, -1);
 }
 
@@ -221,6 +221,6 @@ TclSetOctalObj(
     char value[12];
     assert(objPtr != NULL);
 
-    StringCchPrintfA(value, ARRAYSIZE(value), "%lo", octal);
+    StringCchPrintfA(value, ARRAYSIZE(value), "%03lo", octal);
     Tcl_SetStringObj(objPtr, value, -1);
 }

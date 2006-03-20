@@ -1527,7 +1527,6 @@ IoVfsAttrsCmd(
     int i;
     int index;
     int result;
-    Tcl_Obj *resultObj;
     VfsPerm vfsPerm;
     static const char *switches[] = {
         "-chmod", "-gid", "-uid", NULL
@@ -1550,11 +1549,11 @@ IoVfsAttrsCmd(
     // Cmd: ioftpd vfs attributes <msgWindow> <path>
     //
     if (objc == 5) {
-        resultObj = Tcl_NewObj();
-        Tcl_ListObjAppendElement(NULL, resultObj, Tcl_NewLongObj((long)vfsPerm.userId));
-        Tcl_ListObjAppendElement(NULL, resultObj, Tcl_NewLongObj((long)vfsPerm.groupId));
-        Tcl_ListObjAppendElement(NULL, resultObj, Tcl_NewLongObj((long)vfsPerm.fileMode));
-        Tcl_SetObjResult(interp, resultObj);
+        Tcl_Obj *listObj = Tcl_NewObj();
+        Tcl_ListObjAppendElement(NULL, listObj, Tcl_NewLongObj((long)vfsPerm.userId));
+        Tcl_ListObjAppendElement(NULL, listObj, Tcl_NewLongObj((long)vfsPerm.groupId));
+        Tcl_ListObjAppendElement(NULL, listObj, TclNewOctalObj(vfsPerm.fileMode));
+        Tcl_SetObjResult(interp, listObj);
         return TCL_OK;
     }
 
@@ -1563,24 +1562,27 @@ IoVfsAttrsCmd(
     // Cmd: ioftpd vfs attributes <msgWindow> <path> -switch
     //
     if (objc == 6) {
+        Tcl_Obj *resultObj;
+
         if (Tcl_GetIndexFromObj(interp, objv[5], switches, "switch", 0, &index) != TCL_OK) {
             return TCL_ERROR;
         }
+        resultObj = Tcl_GetObjResult(interp);
+
         switch ((enum optionIndices) index) {
             case SWITCH_CHMOD: {
-                resultObj = Tcl_NewLongObj((long)vfsPerm.fileMode);
+                TclSetOctalObj(resultObj, vfsPerm.fileMode);
                 break;
             }
             case SWITCH_GID: {
-                resultObj = Tcl_NewLongObj((long)vfsPerm.groupId);
+                Tcl_SetLongObj(resultObj, (long)vfsPerm.groupId);
                 break;
             }
             case SWITCH_UID: {
-                resultObj = Tcl_NewLongObj((long)vfsPerm.userId);
+                Tcl_SetLongObj(resultObj, (long)vfsPerm.userId);
                 break;
             }
         }
-        Tcl_SetObjResult(interp, resultObj);
         return TCL_OK;
     }
 
@@ -1597,7 +1599,7 @@ IoVfsAttrsCmd(
 
         switch ((enum optionIndices) index) {
             case SWITCH_CHMOD: {
-                result = Tcl_GetLongFromObj(interp, objv[i], (long *)&vfsPerm.fileMode);
+                result = TclGetOctalFromObj(interp, objv[i], &vfsPerm.fileMode);
                 break;
             }
             case SWITCH_GID: {

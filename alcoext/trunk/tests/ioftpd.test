@@ -684,8 +684,8 @@ test ioftpd-7.9 {ioftpd vfs: attributes, get gid} {win msgWndExists} {
 
 test ioftpd-7.10 {ioftpd vfs: attributes, get chmod} {win msgWndExists} {
     set result [ioftpd vfs attributes $msgWindow $currentPath -chmod]
-    string is integer -strict $result
-} {1}
+    string length $result
+} {3}
 
 test ioftpd-7.11 {ioftpd vfs: attributes, set uid} {win msgWndExists} {
     set before [ioftpd vfs attributes $msgWindow $currentPath -uid]
