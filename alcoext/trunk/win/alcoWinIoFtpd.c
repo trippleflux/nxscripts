@@ -39,9 +39,10 @@ Abstract:
     ioftpd who          <msgWindow> <fields>       - Query online users.
 
     VFS Commands:
-    ioftpd vfs flush    <msgWindow> <path>
-    ioftpd vfs read     <msgWindow> <path> [-uid|-gid|-chmod]
-    ioftpd vfs write    <msgWindow> <path> [-uid <uid>] [-gid <gid>] [-chmod <chmod>]
+    ioftpd vfs attributes <msgWindow> <path>
+    ioftpd vfs attributes <msgWindow> <path> -switch
+    ioftpd vfs attributes <msgWindow> <path> -switch value
+    ioftpd vfs flush      <msgWindow> <path>
 
 --*/
 
@@ -232,6 +233,16 @@ IoVfsCmd(
     Tcl_Interp *interp,
     int objc,
     Tcl_Obj *CONST objv[]
+    );
+
+static int
+IoVfsAttrsCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[],
+    ShmSession *session,
+    ShmMemory *memory,
+    Tcl_DString *path
     );
 
 static int
@@ -1414,16 +1425,10 @@ IoVfsCmd(
     ShmSession session;
     Tcl_DString buffer;
     static const char *options[] = {
-        "flush", "read", "write", NULL
-    };
-    static const char *switches[] = {
-        "-chmod", "-gid", "-uid", NULL
+        "attributes", "flush", NULL
     };
     enum optionIndices {
-        VFS_FLUSH = 0, VFS_READ, VFS_WRITE
-    };
-    enum switchIndices {
-        SWITCH_CHMOD = 0, SWITCH_GID, SWITCH_UID
+        VFS_ATTRIBS = 0, VFS_FLUSH
     };
 
     // Check arguments.
@@ -1445,129 +1450,175 @@ IoVfsCmd(
     pathLength = Tcl_DStringLength(&buffer);
 
     switch ((enum optionIndices) index) {
+        case VFS_ATTRIBS: {
+            if (objc != 6 && !(objc & 1)) {
+                Tcl_WrongNumArgs(interp, 3, objv, "msgWindow path ?switch? ?value? ?switch value?...");
+            } else {
+                memory = ShmAlloc(interp, &session, sizeof(DC_VFS) + pathLength + 1);
+                if (memory != NULL) {
+                    result = IoVfsAttrsCmd(interp, objc, objv, &session, memory, &buffer);
+                }
+            }
+            break;
+        }
         case VFS_FLUSH: {
             if (objc != 5) {
                 Tcl_WrongNumArgs(interp, 3, objv, "msgWindow path");
-                goto end;
-            }
-
-            memory = ShmAlloc(interp, &session, pathLength + sizeof(char));
-            if (memory != NULL) {
-                result = VfsFlush(&session, memory, path);
-
-                if (result != TCL_OK) {
-                    Tcl_AppendResult(interp, "unable to flush path \"",
-                        Tcl_GetString(objv[4]), "\"", NULL);
-                }
-            }
-            break;
-        }
-        case VFS_READ: {
-            VfsPerm vfsPerm;
-            Tcl_Obj *resultObj;
-
-            if (objc > 6) {
-                Tcl_WrongNumArgs(interp, 3, objv, "msgWindow path ?switch?");
-                goto end;
-            }
-
-            memory = ShmAlloc(interp, &session, sizeof(DC_VFS) + pathLength + 1);
-            if (memory == NULL) {
-                goto end;
-            }
-
-            if (VfsRead(&session, memory, path, pathLength, &vfsPerm) != TCL_OK) {
-                Tcl_AppendResult(interp, "unable to read permissions from \"",
-                    Tcl_GetString(objv[4]), "\"", NULL);
-                goto end;
-            }
-
-            if (objc == 6) {
-                if (Tcl_GetIndexFromObj(interp, objv[5], switches, "switch", 0, &index) != TCL_OK) {
-                    goto end;
-                }
-                switch ((enum optionIndices) index) {
-                    case SWITCH_CHMOD: {
-                        resultObj = Tcl_NewLongObj((long)vfsPerm.fileMode);
-                        break;
-                    }
-                    case SWITCH_GID: {
-                        resultObj = Tcl_NewLongObj((long)vfsPerm.groupId);
-                        break;
-                    }
-                    case SWITCH_UID: {
-                        resultObj = Tcl_NewLongObj((long)vfsPerm.userId);
-                        break;
-                    }
-                }
             } else {
-                resultObj = Tcl_NewObj();
-                Tcl_ListObjAppendElement(NULL, resultObj, Tcl_NewLongObj((long)vfsPerm.userId));
-                Tcl_ListObjAppendElement(NULL, resultObj, Tcl_NewLongObj((long)vfsPerm.groupId));
-                Tcl_ListObjAppendElement(NULL, resultObj, Tcl_NewLongObj((long)vfsPerm.fileMode));
-            }
+                memory = ShmAlloc(interp, &session, pathLength + sizeof(char));
+                if (memory != NULL) {
+                    result = VfsFlush(&session, memory, path);
 
-            Tcl_SetObjResult(interp, resultObj);
-            result = TCL_OK;
+                    if (result != TCL_OK) {
+                        Tcl_AppendResult(interp, "unable to flush path \"",
+                            Tcl_GetString(objv[4]), "\"", NULL);
+                    }
+                }
+            }
             break;
         }
-        case VFS_WRITE: {
-            int i;
-            VfsPerm vfsPerm;
-
-            if (objc < 7 || !(objc & 1)) {
-                Tcl_WrongNumArgs(interp, 3, objv, "msgWindow path option value ...");
-                goto end;
-            }
-
-            memory = ShmAlloc(interp, &session, sizeof(DC_VFS) + pathLength + 1);
-            if (memory == NULL) {
-                goto end;
-            }
-
-            if (VfsRead(&session, memory, path, pathLength, &vfsPerm) != TCL_OK) {
-                Tcl_AppendResult(interp, "unable to read permissions from \"",
-                    Tcl_GetString(objv[4]), "\"", NULL);
-                goto end;
-            }
-
-            for (i = 5; i < objc; i++) {
-                if (Tcl_GetIndexFromObj(interp, objv[i], switches, "switch", 0, &index) != TCL_OK) {
-                    goto end;
-                }
-                i++;
-                switch ((enum optionIndices) index) {
-                    case SWITCH_CHMOD: {
-                        result = Tcl_GetLongFromObj(interp, objv[i], (long *)&vfsPerm.fileMode);
-                        break;
-                    }
-                    case SWITCH_GID: {
-                        result = Tcl_GetLongFromObj(interp, objv[i], (long *)&vfsPerm.groupId);
-                        break;
-                    }
-                    case SWITCH_UID: {
-                        result = Tcl_GetLongFromObj(interp, objv[i], (long *)&vfsPerm.userId);
-                        break;
-                    }
-                }
-                if (result != TCL_OK) {
-                    goto end;
-                }
-            }
-
-            result = VfsWrite(&session, memory, path, pathLength, &vfsPerm);
-            if (result != TCL_OK) {
-                Tcl_AppendResult(interp, "unable to write permissions to \"",
-                    Tcl_GetString(objv[4]), "\"", NULL);
-            }
-            break;
+        default: {
+            // This point is never reached.
+            assert(0);
+            return TCL_ERROR;
         }
     }
 
-end:
     Tcl_DStringFree(&buffer);
     if (memory != NULL) {
         ShmFree(&session, memory);
+    }
+    return result;
+}
+
+/*++
+
+IoVfsAttrsCmd
+
+    Manipulate ioFTPD's file and directory permissions.
+
+Arguments:
+    interp  - Current interpreter.
+
+    objc    - Number of arguments.
+
+    objv    - Argument objects.
+
+    session - Pointer to an initialised ShmSession structure.
+
+    memory  - Pointer to an allocated ShmMemory structure.
+
+    path    - Path to manipulate.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
+static int
+IoVfsAttrsCmd(
+    Tcl_Interp *interp,
+    int objc,
+    Tcl_Obj *CONST objv[],
+    ShmSession *session,
+    ShmMemory *memory,
+    Tcl_DString *path
+    )
+{
+    int i;
+    int index;
+    int result;
+    Tcl_Obj *resultObj;
+    VfsPerm vfsPerm;
+    static const char *switches[] = {
+        "-chmod", "-gid", "-uid", NULL
+    };
+    enum switchIndices {
+        SWITCH_CHMOD = 0, SWITCH_GID, SWITCH_UID
+    };
+
+    // Read VFS permissions beforehand.
+    result = VfsRead(session, memory, Tcl_DStringValue(path),
+            Tcl_DStringLength(path), &vfsPerm);
+    if (result != TCL_OK) {
+        Tcl_AppendResult(interp, "unable to read permissions from \"",
+            Tcl_GetString(objv[4]), "\"", NULL);
+        return TCL_ERROR;
+    }
+
+    //
+    // Retrieve all values.
+    // Cmd: ioftpd vfs attributes <msgWindow> <path>
+    //
+    if (objc == 5) {
+        resultObj = Tcl_NewObj();
+        Tcl_ListObjAppendElement(NULL, resultObj, Tcl_NewLongObj((long)vfsPerm.userId));
+        Tcl_ListObjAppendElement(NULL, resultObj, Tcl_NewLongObj((long)vfsPerm.groupId));
+        Tcl_ListObjAppendElement(NULL, resultObj, Tcl_NewLongObj((long)vfsPerm.fileMode));
+        Tcl_SetObjResult(interp, resultObj);
+        return TCL_OK;
+    }
+
+    //
+    // Retrieve the value of an option.
+    // Cmd: ioftpd vfs attributes <msgWindow> <path> -switch
+    //
+    if (objc == 6) {
+        if (Tcl_GetIndexFromObj(interp, objv[5], switches, "switch", 0, &index) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        switch ((enum optionIndices) index) {
+            case SWITCH_CHMOD: {
+                resultObj = Tcl_NewLongObj((long)vfsPerm.fileMode);
+                break;
+            }
+            case SWITCH_GID: {
+                resultObj = Tcl_NewLongObj((long)vfsPerm.groupId);
+                break;
+            }
+            case SWITCH_UID: {
+                resultObj = Tcl_NewLongObj((long)vfsPerm.userId);
+                break;
+            }
+        }
+        Tcl_SetObjResult(interp, resultObj);
+        return TCL_OK;
+    }
+
+    //
+    // Change one or more options.
+    // Cmd: ioftpd vfs attributes <msgWindow> <path> -switch value
+    // Cmd: ioftpd vfs attributes <msgWindow> <path> -switch value -switch value
+    //
+    for (i = 5; i < objc; i++) {
+        if (Tcl_GetIndexFromObj(interp, objv[i], switches, "switch", 0, &index) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        i++;
+
+        switch ((enum optionIndices) index) {
+            case SWITCH_CHMOD: {
+                result = Tcl_GetLongFromObj(interp, objv[i], (long *)&vfsPerm.fileMode);
+                break;
+            }
+            case SWITCH_GID: {
+                result = Tcl_GetLongFromObj(interp, objv[i], (long *)&vfsPerm.groupId);
+                break;
+            }
+            case SWITCH_UID: {
+                result = Tcl_GetLongFromObj(interp, objv[i], (long *)&vfsPerm.userId);
+                break;
+            }
+        }
+        if (result != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
+
+    result = VfsWrite(session, memory, Tcl_DStringValue(path),
+        Tcl_DStringLength(path), &vfsPerm);
+    if (result != TCL_OK) {
+        Tcl_AppendResult(interp, "unable to write permissions to \"",
+            Tcl_GetString(objv[4]), "\"", NULL);
     }
     return result;
 }

@@ -653,71 +653,59 @@ test ioftpd-7.2 {ioftpd vfs: not enough args} {win} {
 
 test ioftpd-7.3 {ioftpd vfs: invalid sub-option} {win} {
     list [catch {ioftpd vfs . a b} msg] $msg
-} {1 {bad option ".": must be flush, read, or write}}
+} {1 {bad option ".": must be attributes or flush}}
 
-test ioftpd-7.4 {ioftpd vfs: flush, valid path} {win msgWndExists} {
-    ioftpd vfs flush $msgWindow $currentPath
-} {}
+test ioftpd-7.4 {ioftpd vfs: attributes, wrong number of args} {win msgWndExists} {
+    list [catch {ioftpd vfs attributes $msgWindow . a b c} msg] $msg
+} {1 {wrong # args: should be "ioftpd vfs attributes msgWindow path ?switch? ?value? ?switch value?..."}}
 
-test ioftpd-7.5 {ioftpd vfs: read, too many args} {win msgWndExists} {
-    list [catch {ioftpd vfs read $msgWindow a b c} msg] $msg
-} {1 {wrong # args: should be "ioftpd vfs read msgWindow path ?switch?"}}
-
-test ioftpd-7.6 {ioftpd vfs: read, invalid switch} {win msgWndExists} {
-    list [catch {ioftpd vfs read $msgWindow $currentPath -fake} msg] $msg
+test ioftpd-7.5 {ioftpd vfs: attributes, invalid switch} {win msgWndExists} {
+    list [catch {ioftpd vfs attributes $msgWindow $currentPath -fake} msg] $msg
 } {1 {bad switch "-fake": must be -chmod, -gid, or -uid}}
 
-test ioftpd-7.7 {ioftpd vfs: read, check -uid} {win msgWndExists} {
-    set result [ioftpd vfs read $msgWindow $currentPath -uid]
-    string is integer -strict $result
-} {1}
+test ioftpd-7.6 {ioftpd vfs: attributes, invalid path} {win msgWndExists} {
+    list [catch {ioftpd vfs attributes $msgWindow ":invalid:" -uid 0} msg] $msg
+} {1 {unable to read permissions from ":invalid:"}}
 
-test ioftpd-7.8 {ioftpd vfs: read, check -uid} {win msgWndExists} {
-    set result [ioftpd vfs read $msgWindow $currentPath -gid]
-    string is integer -strict $result
-} {1}
-
-test ioftpd-7.9 {ioftpd vfs: read, check -uid} {win msgWndExists} {
-    set result [ioftpd vfs read $msgWindow $currentPath -chmod]
-    string is integer -strict $result
-} {1}
-
-test ioftpd-7.10 {ioftpd vfs: read, all} {win msgWndExists} {
-    set result [ioftpd vfs read $msgWindow $currentPath]
+test ioftpd-7.7 {ioftpd vfs: attributes, get all} {win msgWndExists} {
+    set result [ioftpd vfs attributes $msgWindow $currentPath]
     llength $result
 } {3}
 
-test ioftpd-7.11 {ioftpd vfs: write, not enough args} {win msgWndExists} {
-    list [catch {ioftpd vfs write $msgWindow $currentPath} msg] $msg
-} {1 {wrong # args: should be "ioftpd vfs write msgWindow path option value ..."}}
+test ioftpd-7.8 {ioftpd vfs: attributes, get uid} {win msgWndExists} {
+    set result [ioftpd vfs attributes $msgWindow $currentPath -uid]
+    string is integer -strict $result
+} {1}
 
-test ioftpd-7.12 {ioftpd vfs: write, missing switch value} {win msgWndExists} {
-    list [catch {ioftpd vfs write $msgWindow $currentPath -uid} msg] $msg
-} {1 {wrong # args: should be "ioftpd vfs write msgWindow path option value ..."}}
+test ioftpd-7.9 {ioftpd vfs: attributes, get gid} {win msgWndExists} {
+    set result [ioftpd vfs attributes $msgWindow $currentPath -gid]
+    string is integer -strict $result
+} {1}
 
-test ioftpd-7.13 {ioftpd vfs: write, invalid switch} {win msgWndExists} {
-    list [catch {ioftpd vfs write $msgWindow $currentPath -fake .} msg] $msg
-} {1 {bad switch "-fake": must be -chmod, -gid, or -uid}}
+test ioftpd-7.10 {ioftpd vfs: attributes, get chmod} {win msgWndExists} {
+    set result [ioftpd vfs attributes $msgWindow $currentPath -chmod]
+    string is integer -strict $result
+} {1}
 
-test ioftpd-7.14 {ioftpd vfs: write, invalid path} {win msgWndExists} {
-    list [catch {ioftpd vfs write $msgWindow ":invalid:" -uid 0} msg] $msg
-} {1 {unable to read permissions from ":invalid:"}}
-
-test ioftpd-7.15 {ioftpd vfs: write, set uid} {win msgWndExists} {
-    set before [ioftpd vfs read $msgWindow $currentPath -uid]
+test ioftpd-7.11 {ioftpd vfs: attributes, set uid} {win msgWndExists} {
+    set before [ioftpd vfs attributes $msgWindow $currentPath -uid]
     incr before
-    ioftpd vfs write $msgWindow $currentPath -uid $before
-    set after [ioftpd vfs read $msgWindow $currentPath -uid]
+    ioftpd vfs attributes $msgWindow $currentPath -uid $before
+    set after [ioftpd vfs attributes $msgWindow $currentPath -uid]
     expr {$before == $after}
 } {1}
 
-test ioftpd-7.16 {ioftpd vfs: write, set gid} {win msgWndExists} {
-    set before [ioftpd vfs read $msgWindow $currentPath -gid]
+test ioftpd-7.12 {ioftpd vfs: attributes, set gid} {win msgWndExists} {
+    set before [ioftpd vfs attributes $msgWindow $currentPath -gid]
     incr before
-    ioftpd vfs write $msgWindow $currentPath -gid $before
-    set after [ioftpd vfs read $msgWindow $currentPath -gid]
+    ioftpd vfs attributes $msgWindow $currentPath -gid $before
+    set after [ioftpd vfs attributes $msgWindow $currentPath -gid]
     expr {$before == $after}
 } {1}
+
+test ioftpd-7.13 {ioftpd vfs: flush, valid path} {win msgWndExists} {
+    ioftpd vfs flush $msgWindow $currentPath
+} {}
 
 ################################################################################
 # ioftpd who                                                                   #
