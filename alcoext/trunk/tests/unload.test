@@ -22,7 +22,6 @@ source [file join $currentPath "loader.tcl"]
 #
 return
 
-testConstraint multiProcess [expr {![tcltest::singleProcess]}]
 testConstraint haveUnload [expr {[llength [info commands unload]] == 1}]
 
 proc CheckCmds {commands} {
@@ -59,7 +58,7 @@ test unload-1.3 {interp deletion handler} {haveUnload} {
 # command deletion                                                             #
 ################################################################################
 
-test unload-2.1 {unload extension from process} {haveUnload multiProcess} {
+test unload-2.1 {unload extension from process} {haveUnload} {
     set result [CheckCmds [info commands]]
     load $libFile
     lappend result [CheckCmds [info commands]]
@@ -70,7 +69,7 @@ test unload-2.1 {unload extension from process} {haveUnload multiProcess} {
     set result
 } {0 6 0}
 
-test unload-2.2 {unload extension from another interp} {haveUnload multiProcess} {
+test unload-2.2 {unload extension from another interp} {haveUnload} {
     set result [CheckCmds [info commands]]
     load $libFile
     lappend result [CheckCmds [info commands]]
@@ -88,7 +87,7 @@ test unload-2.2 {unload extension from another interp} {haveUnload multiProcess}
     set result
 } {0 6 6 0 6 0}
 
-test unload-2.3 {unload extension from interp} {haveUnload multiProcess} {
+test unload-2.3 {unload extension from interp} {haveUnload} {
     set result [CheckCmds [info commands]]
     load $libFile
     lappend result [CheckCmds [info commands]]
