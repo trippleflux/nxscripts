@@ -26,7 +26,7 @@ namespace eval ::Bot {
         ScriptExecute ScriptRegister ScriptUnregister \
         GetFlagsFromSection GetSectionFromEvent GetSectionFromPath \
         SendSection SendSectionTheme SendTarget SendTargetTheme \
-        VarLoad VarReplace VarReplaceBase VarReplaceCommon
+        VarFileLoad VarFileUnload VarReplace VarReplaceBase VarReplaceCommon
 }
 
 #
@@ -616,7 +616,7 @@ proc ::Bot::ModuleLoadEx {modName modInfoList} {
     }
 
     foreach {name hash} $modInfo(varFiles) {
-        VarLoad [file join $modInfo(location) $name]
+        VarFileLoad [file join $modInfo(location) $name]
     }
 }
 
@@ -947,11 +947,11 @@ proc ::Bot::SendTargetTheme {target type {valueList ""} {section ""}} {
 ################################################################################
 
 ####
-# VarLoad
+# VarFileLoad
 #
 # Loads a variable definition file.
 #
-proc ::Bot::VarLoad {filePath} {
+proc ::Bot::VarFileLoad {filePath} {
     variable events
     variable replace
     variable variables
@@ -962,7 +962,7 @@ proc ::Bot::VarLoad {filePath} {
     foreach {name value} [Config::GetEx $handle Events] {
         # Allow underscores for convenience.
         if {![string is wordchar -strict $name]} {
-            LogError VarLoad "Invalid event group name \"$name\" in \"$filePath\": must be alphanumeric."
+            LogError VarFileLoad "Invalid event group name \"$name\" in \"$filePath\": must be alphanumeric."
             continue
         }
 
@@ -970,9 +970,42 @@ proc ::Bot::VarLoad {filePath} {
         # the config value must be appended to, not replaced.
         eval lappend [list events($name)] $value
     }
-
     array set replace [Config::GetEx $handle Replace]
     array set variables [Config::GetEx $handle Variables]
+
+    Config::Close $handle
+}
+
+####
+# VarFileUnload
+#
+# Unloads a variable definition file.
+#
+proc ::Bot::VarFileUnload {filePath} {
+    variable events
+    variable replace
+    variable variables
+
+    set handle [Config::Open $filePath]
+    Config::Read $handle
+
+    foreach {name value} [Config::GetEx $handle Events] {
+        if {[info exists events($name)]} {
+            foreach event $value {
+                set events($name) [ListRemove $events($name) $event]
+            }
+            if {![llength $events($name)]} {
+                unset events($name)
+            }
+        }
+    }
+    foreach name [Config::Keys $handle Replace] {
+        unset -nocomplain replace($name)
+    }
+    foreach name [Config::Keys $handle Variables] {
+        unset -nocomplain variables($name)
+    }
+
     Config::Close $handle
 }
 
@@ -1570,7 +1603,7 @@ proc ::Bot::InitMain {} {
         LogError Modules $message; die
     }
     set varFile [file join $scriptPath "AlcoBot.vars"]
-    if {[catch {VarLoad $varFile} message]} {
+    if {[catch {VarFileLoad $varFile} message]} {
         LogError Variables $message; die
     }
     set themeFile [Config::Get $configHandle General themeFile]
