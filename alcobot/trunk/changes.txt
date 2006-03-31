@@ -1,8 +1,9 @@
 AlcoBot v1.1.0 (not yet released):
   NEW: Commands can throw CMDHELP and GETOPT errors to display command usage.
-  NEW: Redesigned the command option system ([Commands] in the config): prefixes
-       are configurable per command, new permission options, and the command type
-       must be declared (channel or private).
+  NEW: Modules clean-up after themselves, so they can be unloaded at any time.
+  NEW: Multiple prefixes can be specified for commands (e.g. !bw and !sitebw).
+  NEW: Redesigned the command option system: prefixes are configurable per
+       command, new permission options, and the command type must be declared.
   NEW: Script variable definitions are now modules (update your config).
   CHG: Changed the section colour format (update your theme).
   CHG: Moved the variable system to the bot's core.
