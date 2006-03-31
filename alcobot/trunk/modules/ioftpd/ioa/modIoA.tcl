@@ -13,6 +13,9 @@
 #
 
 namespace eval ::Bot::Mod::IoA {
+    if {![info exists [namespace current]::cmdTokens]} {
+        variable cmdTokens [list]
+    }
     namespace import -force ::Bot::*
 }
 
@@ -259,6 +262,7 @@ proc ::Bot::Mod::IoA::Unnukes {target user host channel argv} {
 # Module initialisation procedure, called when the module is loaded.
 #
 proc ::Bot::Mod::IoA::Load {firstLoad} {
+    variable cmdTokens
     variable utcTime
     variable nukesFile
     variable onelinesFile
@@ -292,29 +296,26 @@ proc ::Bot::Mod::IoA::Load {firstLoad} {
     set utcTime [expr {![IsTrue $localTime]}]
 
     # Create channel commands.
-    CmdCreate channel nukes    [namespace current]::Nukes \
-        -category "Data" \
-        -args "\[-limit <num>\] \[pattern\]" \
-        -desc "Display recent nukes."
+    set cmdTokens [list]
 
-    CmdCreate channel onel     [namespace current]::OneLines \
-        -category "General" \
+    lappend cmdTokens [CmdCreate channel nukes [namespace current]::Nukes \
+        -args "\[-limit <num>\] \[pattern\]" \
+        -category "Data" -desc "Display recent nukes."]
+
+    lappend cmdTokens [CmdCreate channel onel [namespace current]::OneLines \
         -args "\[-limit <num>\]" \
-        -desc "Display recent one-lines."
+        -category "General" -desc "Display recent one-lines."]
 
-    CmdCreate channel requests [namespace current]::Requests \
-        -category "General" \
-        -desc "Display current requests."
+    lappend cmdTokens [CmdCreate channel requests [namespace current]::Requests \
+        -category "General" -desc "Display current requests."]
 
-    CmdCreate channel search   [namespace current]::Search \
-        -category "Data" \
+    lappend cmdTokens [CmdCreate channel search [namespace current]::Search \
         -args "\[-limit <num>\] <pattern>" \
-        -desc "Search for a release."
+        -category "Data" -desc "Search for a release."]
 
-    CmdCreate channel unnukes  [namespace current]::Unnukes \
-        -category "Data" \
+    lappend cmdTokens [CmdCreate channel unnukes [namespace current]::Unnukes \
         -args "\[-limit <num>\] \[pattern\]" \
-        -desc "Display recent unnukes."
+        -category "Data" -desc "Display recent unnukes."]
 }
 
 ####
@@ -323,4 +324,8 @@ proc ::Bot::Mod::IoA::Load {firstLoad} {
 # Module finalisation procedure, called before the module is unloaded.
 #
 proc ::Bot::Mod::IoA::Unload {} {
+    variable cmdTokens
+    foreach token $cmdTokens {
+        CmdRemoveByToken $token
+    }
 }

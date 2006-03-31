@@ -13,7 +13,8 @@
 #
 
 namespace eval ::Bot::Mod::NxTools {
-    if {![info exists [namespace current]::dataPath]} {
+    if {![info exists [namespace current]::cmdTokens]} {
+        variable cmdTokens [list]
         variable dataPath ""
         variable undupeChars 5
         variable undupeWild 0
@@ -442,6 +443,7 @@ proc ::Bot::Mod::NxTools::SiteCallback {target theme connection response} {
 # Module initialisation procedure, called when the module is loaded.
 #
 proc ::Bot::Mod::NxTools::Load {firstLoad} {
+    variable cmdTokens
     variable dataPath
     variable undupeChars
     variable undupeWild
@@ -459,73 +461,56 @@ proc ::Bot::Mod::NxTools::Load {firstLoad} {
         error "The database directory \"$dataPath\" does not exist."
     }
     set undupeWild [IsTrue $undupeWild]
+    set cmdTokens [list]
 
     # Directory commands.
-    CmdCreate channel dupe   [namespace current]::Dupe \
-        -category "Data" \
+    lappend cmdTokens [CmdCreate channel dupe [namespace current]::Dupe \
         -args "\[-limit <num>\] \[-section <name>\] <pattern>" \
-        -desc "Search for a release."
+        -category "Data" -desc "Search for a release."]
 
-    CmdCreate channel new    [namespace current]::New \
-        -category "Data" \
+    lappend cmdTokens [CmdCreate channel new [namespace current]::New \
         -args "\[-limit <num>\] \[section\]" \
-        -desc "Display new releases."
+        -category "Data" -desc "Display new releases."]
 
-    CmdCreate channel undupe [namespace current]::Undupe \
-        -category "Data" \
+    lappend cmdTokens [CmdCreate channel undupe [namespace current]::Undupe \
         -args "\[-directory\] <pattern>" \
-        -desc "Undupe files and directories."
+        -category "Data" -desc "Undupe files and directories."]
 
     # Nuke commands.
-    CmdCreate channel nukes   [namespace current]::Nukes \
-        -category "Data" \
+    lappend cmdTokens [CmdCreate channel nukes [namespace current]::Nukes \
         -args "\[-limit <num>\] \[pattern\]" \
-        -desc "Display recent nukes."
+        -category "Data" -desc "Display recent nukes."]
 
-    CmdCreate channel nuketop [namespace current]::NukeTop \
-        -category "Data" \
+    lappend cmdTokens [CmdCreate channel nuketop [namespace current]::NukeTop \
         -args "\[-limit <num>\] \[group\]" \
-        -desc "Display top nuked users."
+        -category "Data" -desc "Display top nuked users."]
 
-    CmdCreate channel unnukes [namespace current]::Unnukes \
-        -category "Data" \
+    lappend cmdTokens [CmdCreate channel unnukes [namespace current]::Unnukes \
         -args "\[-limit <num>\] \[pattern\]" \
-        -desc "Display recent unnukes."
+        -category "Data" -desc "Display recent unnukes."]
 
     # Request commands.
-    CmdCreate channel requests [namespace current]::Requests \
-        -category "Request" \
-        -desc "Display current requests." \
+    lappend cmdTokens [CmdCreate channel requests [namespace current]::Requests \
+        -category "Request" -desc "Display current requests."]
 
-    CmdCreate channel request [list [namespace current]::SiteCmd REQADD] \
-        -category "Request" \
-        -args "<request/id>" \
-        -desc "Add a request."
+    lappend cmdTokens [CmdCreate channel request [list [namespace current]::SiteCmd REQADD] \
+        -args "<request/id>" -category "Request" -desc "Add a request."]
 
-    CmdCreate channel reqdel  [list [namespace current]::SiteCmd REQDEL] \
-        -category "Request" \
-        -args "<request/id>" \
-        -desc "Remove a request."
+    lappend cmdTokens [CmdCreate channel reqdel [list [namespace current]::SiteCmd REQDEL] \
+        -args "<request/id>" -category "Request" -desc "Remove a request."]
 
-    CmdCreate channel reqfill [list [namespace current]::SiteCmd REQFILL] \
-        -category "Request" \
-        -args "<request/id>" \
-        -desc "Mark a request as filled."
+    lappend cmdTokens [CmdCreate channel reqfill [list [namespace current]::SiteCmd REQFILL] \
+        -args "<request/id>" -category "Request" -desc "Mark a request as filled."]
 
     # Other commands.
-    CmdCreate channel approve [list [namespace current]::SiteCmd APPROVE] \
-        -category "General" \
-        -args "<release>" \
-        -desc "Approve a release."
+    lappend cmdTokens [CmdCreate channel approve [list [namespace current]::SiteCmd APPROVE] \
+        -args "<release>" -category "General" -desc "Approve a release."]
 
-    CmdCreate channel approved [namespace current]::Approved \
-        -category "General" \
-        -desc "Display approved releases."
+    lappend cmdTokens [CmdCreate channel approved [namespace current]::Approved \
+        -category "General" -desc "Display approved releases."]
 
-    CmdCreate channel onel     [namespace current]::OneLines \
-        -category "General" \
-        -args "\[-limit <num>\]" \
-        -desc "Display recent one-lines."
+    lappend cmdTokens [CmdCreate channel onel [namespace current]::OneLines \
+        -args "\[-limit <num>\]" -category "General" -desc "Display recent one-lines."]
 }
 
 ####
@@ -534,4 +519,8 @@ proc ::Bot::Mod::NxTools::Load {firstLoad} {
 # Module finalisation procedure, called before the module is unloaded.
 #
 proc ::Bot::Mod::NxTools::Unload {} {
+    variable cmdTokens
+    foreach token $cmdTokens {
+        CmdRemoveByToken $token
+    }
 }

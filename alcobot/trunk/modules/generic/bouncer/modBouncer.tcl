@@ -15,6 +15,7 @@
 namespace eval ::Bot::Mod::Bouncer {
     if {![info exists [namespace current]::checkIndex]} {
         variable checkIndex 0
+        variable cmdToken ""
         variable timerId ""
     }
     namespace import -force ::Bot::*
@@ -115,6 +116,7 @@ proc ::Bot::Mod::Bouncer::Notify {index connection success} {
 proc ::Bot::Mod::Bouncer::Load {firstLoad} {
     variable bouncers
     variable checkIndex
+    variable cmdToken
     variable timerId
     upvar ::Bot::configHandle configHandle
 
@@ -143,9 +145,8 @@ proc ::Bot::Mod::Bouncer::Load {firstLoad} {
     }
     if {!$index} {error "no bouncers defined"}
 
-    CmdCreate channel bnc [namespace current]::Command \
-        -category "General" \
-        -desc "Display bouncer status."
+    set cmdToken [CmdCreate channel bnc [namespace current]::Command \
+        -category "General" -desc "Display bouncer status."]
 
     # Reset the bouncer check index.
     set checkIndex 0
@@ -161,12 +162,16 @@ proc ::Bot::Mod::Bouncer::Load {firstLoad} {
 #
 proc ::Bot::Mod::Bouncer::Unload {} {
     variable bouncers
+    variable cmdToken
     variable timerId
 
-    foreach index [array names bouncers] {
-        Ftp::Close [lindex $bouncers($index) 5]
-        unset bouncers($index)
+    CmdRemoveByToken $cmdToken
+
+    foreach name [array names bouncers] {
+        Ftp::Close [lindex $bouncers($name) 5]
     }
+    unset bouncers
+
     if {$timerId ne ""} {
         catch {killtimer $timerId}
         set timerId ""

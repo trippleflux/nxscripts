@@ -17,7 +17,9 @@
 #
 
 namespace eval ::Bot::Mod::Invite {
-    if {![info exists [namespace current]::dataSource]} {
+    if {![info exists [namespace current]::channels]} {
+        variable channels [list]
+        variable cmdToken ""
         variable dataSource ""
         variable hostCheck 0
         variable userCheck 0
@@ -397,6 +399,7 @@ proc ::Bot::Mod::Invite::Whois {server code text} {
 #
 proc ::Bot::Mod::Invite::Load {firstLoad} {
     variable channels
+    variable cmdToken
     variable dataSource
     variable hostCheck
     variable userCheck
@@ -439,10 +442,9 @@ proc ::Bot::Mod::Invite::Load {firstLoad} {
         }
     }
 
-    CmdCreate private invite [namespace current]::Command \
-        -category "General" \
+    set cmdToken [CmdCreate private invite [namespace current]::Command \
         -args "<FTP user> <invite password>" \
-        -desc "Invite yourself into the channel."
+        -category "General" -desc "Invite yourself into the channel."]
 
     # Register event callbacks.
     bind raw  -|- 311 [namespace current]::Whois
@@ -468,6 +470,9 @@ proc ::Bot::Mod::Invite::Load {firstLoad} {
 # Module finalisation procedure, called before the module is unloaded.
 #
 proc ::Bot::Mod::Invite::Unload {} {
+    variable cmdToken
+    CmdRemoveByToken $cmdToken
+
     # Remove event callbacks.
     unbind raw  -|- 311 [namespace current]::Whois
     unbind join -|- "*" [list [namespace current]::ChanEvent JOIN]
@@ -479,5 +484,6 @@ proc ::Bot::Mod::Invite::Unload {} {
     ScriptUnregister pre DELUSER [namespace current]::LogEvent
     ScriptUnregister pre PURGED  [namespace current]::LogEvent
 
+    # Close ODBC connection.
     catch {db disconnect}
 }

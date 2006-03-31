@@ -13,7 +13,8 @@
 #
 
 namespace eval ::Bot::Mod::PreTimes {
-    if {![info exists [namespace current]::dataSource]} {
+    if {![info exists [namespace current]::cmdToken]} {
+        variable cmdToken ""
         variable dataSource ""
         variable defLimit 5
     }
@@ -181,6 +182,7 @@ proc ::Bot::Mod::PreTimes::Search {target user host channel argv} {
 # Module initialisation procedure, called when the module is loaded.
 #
 proc ::Bot::Mod::PreTimes::Load {firstLoad} {
+    variable cmdToken
     variable defLimit
     variable dataSource
     upvar ::Bot::configHandle configHandle
@@ -211,10 +213,11 @@ proc ::Bot::Mod::PreTimes::Load {firstLoad} {
     }
 
     if {[IsTrue $searchPres]} {
-        CmdCreate channel pre [namespace current]::Search \
-            -category "General" \
+        set cmdToken [CmdCreate channel pre [namespace current]::Search \
             -args "\[-limit <num>\] \[-section <name>\] <pattern>" \
-            -desc "Search pre time database."
+            -category "General" -desc "Search pre time database."]
+    } else {
+        CmdRemoveByToken $cmdToken
     }
 
     if {!$firstLoad} {
@@ -230,10 +233,14 @@ proc ::Bot::Mod::PreTimes::Load {firstLoad} {
 # Module finalisation procedure, called before the module is unloaded.
 #
 proc ::Bot::Mod::PreTimes::Unload {} {
+    variable cmdToken
+    CmdRemoveByToken $cmdToken
+
     # Remove event callbacks.
     ScriptUnregister pre PRE     [namespace current]::LogEvent
     ScriptUnregister pre PRE-MP3 [namespace current]::LogEvent
     ScriptUnregister pre NEWDIR  [namespace current]::LogEvent
 
+    # Close ODBC connection.
     catch {db disconnect}
 }

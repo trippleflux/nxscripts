@@ -13,7 +13,8 @@
 #
 
 namespace eval ::Bot::Mod::GlData {
-    if {![info exists [namespace current]::logsPath]} {
+    if {![info exists [namespace current]::cmdTokens]} {
+        variable cmdTokens [list]
         variable logsPath ""
         variable tempPath ""
         variable undupeChars 5
@@ -416,6 +417,7 @@ proc ::Bot::Mod::GlData::OneLines {target user host channel argv} {
 # Module initialisation procedure, called when the module is loaded.
 #
 proc ::Bot::Mod::GlData::Load {firstLoad} {
+    variable cmdTokens
     variable logsPath
     variable tempPath
     variable undupeChars
@@ -451,44 +453,38 @@ proc ::Bot::Mod::GlData::Load {firstLoad} {
     if {![file isdirectory $logsPath]} {
         error "the directory \"$logsPath\" does not exist"
     }
+    set cmdTokens [list]
 
     # Directory commands.
-    CmdCreate channel dupe   [namespace current]::Dupe \
-        -category "Data" \
+    lappend cmdTokens [CmdCreate channel dupe [namespace current]::Dupe \
         -args "\[-limit <num>\] <pattern>" \
-        -desc "Search the dupe database for a release."
+        -category "Data" -desc "Search the dupe database for a release."]
 
-    CmdCreate channel new    [namespace current]::New \
-        -category "Data" \
+    lappend cmdTokens [CmdCreate channel new [namespace current]::New \
         -args "\[-limit <num>\] \[pattern\]" \
-        -desc "Display new releases."
+        -category "Data" -desc "Display new releases."]
 
-    CmdCreate channel search [namespace current]::Search \
-        -category "Data" \
+    lappend cmdTokens [CmdCreate channel search [namespace current]::Search \
         -args "\[-limit <num>\] <pattern>" \
-        -desc "Search the site for a release."
+        -category "Data" -desc "Search the site for a release."]
 
-    CmdCreate channel undupe [namespace current]::Undupe \
-        -category "Data" \
+    lappend cmdTokens [CmdCreate channel undupe [namespace current]::Undupe \
         -args "<pattern>" \
-        -desc "Undupe files and directories."
+        -category "Data" -desc "Undupe files and directories."]
 
     # Nuke commands.
-    CmdCreate channel nukes   [namespace current]::Nukes \
-        -category "Data" \
+    lappend cmdTokens [CmdCreate channel nukes [namespace current]::Nukes \
         -args "\[-limit <num>\] \[pattern\]" \
-        -desc "Display recent nukes."
+        -category "Data" -desc "Display recent nukes."]
 
-    CmdCreate channel unnukes [namespace current]::Unnukes \
-        -category "Data" \
+    lappend cmdTokens [CmdCreate channel unnukes [namespace current]::Unnukes \
         -args "\[-limit <num>\] \[pattern\]" \
-        -desc "Display recent unnukes."
+        -category "Data" -desc "Display recent unnukes."]
 
     # Other commands.
-    CmdCreate channel onel    [namespace current]::OneLines \
-        -category "General" \
+    lappend cmdTokens [CmdCreate channel onel [namespace current]::OneLines \
         -args "\[-limit <num>\]" \
-        -desc "Display recent one-lines."
+        -category "General" -desc "Display recent one-lines."]
 }
 
 ####
@@ -497,4 +493,8 @@ proc ::Bot::Mod::GlData::Load {firstLoad} {
 # Module finalisation procedure, called before the module is unloaded.
 #
 proc ::Bot::Mod::GlData::Unload {} {
+    variable cmdTokens
+    foreach token $cmdTokens {
+        CmdRemoveByToken $token
+    }
 }

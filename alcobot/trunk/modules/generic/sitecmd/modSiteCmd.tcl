@@ -13,6 +13,9 @@
 #
 
 namespace eval ::Bot::Mod::SiteCmd {
+    if {![info exists [namespace current]::cmdToken]} {
+        variable cmdToken ""
+    }
     namespace import -force ::Bot::*
     namespace import -force ::Bot::Mod::FtpConn::GetFtpConnection
 }
@@ -59,10 +62,9 @@ proc ::Bot::Mod::SiteCmd::Callback {target connection response} {
 # Module initialisation procedure, called when the module is loaded.
 #
 proc ::Bot::Mod::SiteCmd::Load {firstLoad} {
-    CmdCreate channel site [namespace current]::Command \
-        -category "Admin" \
-        -args "<command>" \
-        -desc "Issue a SITE command."
+    variable cmdToken
+    set cmdToken [CmdCreate channel site [namespace current]::Command \
+        -args "<command>" -category "Admin" -desc "Issue a SITE command."]
 }
 
 ####
@@ -71,4 +73,6 @@ proc ::Bot::Mod::SiteCmd::Load {firstLoad} {
 # Module finalisation procedure, called before the module is unloaded.
 #
 proc ::Bot::Mod::SiteCmd::Unload {} {
+    variable cmdToken
+    CmdRemoveByToken $cmdToken
 }

@@ -13,6 +13,9 @@
 #
 
 namespace eval ::Bot::Mod::Help {
+    if {![info exists [namespace current]::cmdToken]} {
+        variable cmdToken ""
+    }
     namespace import -force ::Bot::*
 }
 
@@ -72,10 +75,10 @@ proc ::Bot::Mod::Help::Command {target user host channel argv} {
 # Module initialisation procedure, called when the module is loaded.
 #
 proc ::Bot::Mod::Help::Load {firstLoad} {
-    CmdCreate channel help [namespace current]::Command \
-        -category "General" \
+    variable cmdToken
+    set cmdToken [CmdCreate channel help [namespace current]::Command \
         -args "\[category\] \[category\] ..." \
-        -desc "Display a command list."
+        -category "General" -desc "Display a command list."]
 }
 
 ####
@@ -84,4 +87,6 @@ proc ::Bot::Mod::Help::Load {firstLoad} {
 # Module finalisation procedure, called before the module is unloaded.
 #
 proc ::Bot::Mod::Help::Unload {} {
+    variable cmdToken
+    CmdRemoveByToken $cmdToken
 }

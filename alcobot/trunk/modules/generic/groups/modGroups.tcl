@@ -13,6 +13,10 @@
 #
 
 namespace eval ::Bot::Mod::Groups {
+    if {![info exists [namespace current]::cmdTokens]} {
+        variable cmdTokens [list]
+        variable groupsHandle ""
+    }
     namespace import -force ::Bot::*
 }
 
@@ -164,6 +168,7 @@ proc ::Bot::Mod::Groups::ListBanned {target user host channel argv} {
 # Module initialisation procedure, called when the module is loaded.
 #
 proc ::Bot::Mod::Groups::Load {firstLoad} {
+    variable cmdTokens
     variable groupsHandle
     upvar ::Bot::configHandle configHandle
 
@@ -180,36 +185,31 @@ proc ::Bot::Mod::Groups::Load {firstLoad} {
     } else {
         Config::Change $groupsHandle -path $groupsFile
     }
+    set cmdTokens [list]
 
     # User commands (list groups).
-    CmdCreate channel affils [namespace current]::ListAffils \
-        -category "General" \
-        -desc "List affiliated groups."
+    lappend cmdTokens [CmdCreate channel affils [namespace current]::ListAffils \
+        -category "General" -desc "List affiliated groups."]
 
-    CmdCreate channel banned [namespace current]::ListBanned \
-        -category "General" \
-        -desc "List banned groups."
+    lappend cmdTokens [CmdCreate channel banned [namespace current]::ListBanned \
+        -category "General" -desc "List banned groups."]
 
     # Administration commands (add/remove groups).
-    CmdCreate channel addaffil [list [namespace current]::ChangeAffils ADD] \
-        -category "Admin" \
+    lappend cmdTokens [CmdCreate channel addaffil [list [namespace current]::ChangeAffils ADD] \
         -args "<section> <group>" \
-        -desc "Add an affiliated group."
+        -category "Admin" -desc "Add an affiliated group."]
 
-    CmdCreate channel delaffil [list [namespace current]::ChangeAffils DEL] \
-        -category "Admin" \
+    lappend cmdTokens [CmdCreate channel delaffil [list [namespace current]::ChangeAffils DEL] \
         -args "<section> <group>" \
-        -desc "Remove an affiliated group."
+        -category "Admin" -desc "Remove an affiliated group."]
 
-    CmdCreate channel addban   [list [namespace current]::ChangeBanned ADD] \
-        -category "Admin" \
+    lappend cmdTokens [CmdCreate channel addban [list [namespace current]::ChangeBanned ADD] \
         -args "<section> <group>" \
-        -desc "Add a banned group."
+        -category "Admin" -desc "Add a banned group."]
 
-    CmdCreate channel delban   [list [namespace current]::ChangeBanned DEL] \
-        -category "Admin" \
+    lappend cmdTokens [CmdCreate channel delban [list [namespace current]::ChangeBanned DEL] \
         -args "<section> <group>" \
-        -desc "Remove a banned group."
+        -category "Admin" -desc "Remove a banned group."]
 }
 
 ####
@@ -218,7 +218,12 @@ proc ::Bot::Mod::Groups::Load {firstLoad} {
 # Module finalisation procedure, called before the module is unloaded.
 #
 proc ::Bot::Mod::Groups::Unload {} {
+    variable cmdTokens
     variable groupsHandle
+
+    foreach token $cmdTokens {
+        CmdRemoveByToken $token
+    }
     if {[info exists groupsHandle]} {
         Config::Close $groupsHandle
     }

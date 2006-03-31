@@ -13,7 +13,8 @@
 #
 
 namespace eval ::Bot::Mod::Free {
-    if {![info exists [namespace current]::volumeList]} {
+    if {![info exists [namespace current]::cmdToken]} {
+        variable cmdToken ""
         variable volumeList [list]
     }
     namespace import -force ::Bot::*
@@ -79,6 +80,7 @@ proc ::Bot::Mod::Free::Command {target user host channel argv} {
 # Module initialisation procedure, called when the module is loaded.
 #
 proc ::Bot::Mod::Free::Load {firstLoad} {
+    variable cmdToken
     variable volumeList
     upvar ::Bot::configHandle configHandle
 
@@ -87,11 +89,9 @@ proc ::Bot::Mod::Free::Load {firstLoad} {
         lappend volumeList $name $value
     }
 
-    CmdCreate channel free [namespace current]::Command \
-        -category "General" \
-        -aliases "df" \
-        -args "\[section\]" \
-        -desc "Display free disk space."
+    set cmdToken [CmdCreate channel free [namespace current]::Command \
+        -aliases "df" -args "\[section\]" \
+        -category "General" -desc "Display free disk space."]
 }
 
 ####
@@ -100,4 +100,6 @@ proc ::Bot::Mod::Free::Load {firstLoad} {
 # Module finalisation procedure, called before the module is unloaded.
 #
 proc ::Bot::Mod::Free::Unload {} {
+    variable cmdToken
+    CmdRemoveByToken $cmdToken
 }

@@ -13,7 +13,8 @@
 #
 
 namespace eval ::Bot::Mod::Online {
-    if {![info exists [namespace current]::hideUsers]} {
+    if {![info exists [namespace current]::cmdTokens]} {
+        variable cmdTokens [list]
         variable hideCount  0
         variable hideUsers  [list]
         variable hideGroups [list]
@@ -212,6 +213,7 @@ proc ::Bot::Mod::Online::Users {event target user host channel argv} {
 # Module initialisation procedure, called when the module is loaded.
 #
 proc ::Bot::Mod::Online::Load {firstLoad} {
+    variable cmdTokens
     variable hideCount
     variable hideUsers
     variable hideGroups
@@ -228,45 +230,34 @@ proc ::Bot::Mod::Online::Load {firstLoad} {
         set $option [ListParse [Config::Get $configHandle Module::Online $option]]
     }
     set hideCount [IsTrue [Config::Get $configHandle Module::Online hideCount]]
+    set cmdTokens [list]
 
     # Bandwidth commands.
-    CmdCreate channel bw   [list [namespace current]::Bandwidth ALL] \
-        -category "Online" \
-        -desc "Total bandwidth usage."
+    lappend cmdTokens [CmdCreate channel bw [list [namespace current]::Bandwidth ALL] \
+        -category "Online" -desc "Total bandwidth usage."]
 
-    CmdCreate channel bwdn [list [namespace current]::Bandwidth DN] \
-        -category "Online" \
-        -desc "Outgoing bandwidth usage."
+    lappend cmdTokens [CmdCreate channel bwdn [list [namespace current]::Bandwidth DN] \
+        -category "Online" -desc "Outgoing bandwidth usage."]
 
-    CmdCreate channel bwup [list [namespace current]::Bandwidth UP] \
-        -category "Online" \
-        -desc "Incoming bandwidth usage."
+    lappend cmdTokens [CmdCreate channel bwup [list [namespace current]::Bandwidth UP] \
+        -category "Online" -desc "Incoming bandwidth usage."]
 
     # Status commands.
-    CmdCreate channel idlers    [list [namespace current]::Status ID] \
-        -category "Online" \
-        -aliases "idle" \
-        -desc "Users currently idling."
+    lappend cmdTokens [CmdCreate channel idlers [list [namespace current]::Status ID] \
+        -aliases "idle" -category "Online" -desc "Users currently idling."]
 
-    CmdCreate channel leechers  [list [namespace current]::Status DN] \
-        -category "Online" \
-        -aliases "dn" \
-        -desc "Users currently downloading."
+    lappend cmdTokens [CmdCreate channel leechers [list [namespace current]::Status DN] \
+        -aliases "dn" -category "Online" -desc "Users currently downloading."]
 
-    CmdCreate channel uploaders [list [namespace current]::Status UP] \
-        -category "Online" \
-        -aliases "up" \
-        -desc "Users currently uploading."
+    lappend cmdTokens [CmdCreate channel uploaders [list [namespace current]::Status UP] \
+        -aliases "up" -category "Online" -desc "Users currently uploading."]
 
     # User list commands.
-    CmdCreate channel speed [list [namespace current]::Users SPEED] \
-        -category "Online" \
-        -args "<user>" \
-        -desc "Status of a given user."
+    lappend cmdTokens [CmdCreate channel speed [list [namespace current]::Users SPEED] \
+        -args "<user>" -category "Online" -desc "Status of a given user."]
 
-    CmdCreate channel who   [list [namespace current]::Users WHO] \
-        -category "Online" \
-        -desc "Who is online."
+    lappend cmdTokens [CmdCreate channel who [list [namespace current]::Users WHO] \
+        -category "Online" -desc "Who is online."]
 }
 
 ####
@@ -275,4 +266,8 @@ proc ::Bot::Mod::Online::Load {firstLoad} {
 # Module finalisation procedure, called before the module is unloaded.
 #
 proc ::Bot::Mod::Online::Unload {} {
+    variable cmdTokens
+    foreach token $cmdTokens {
+        CmdRemoveByToken $token
+    }
 }
