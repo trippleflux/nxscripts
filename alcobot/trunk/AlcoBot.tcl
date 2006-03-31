@@ -674,8 +674,8 @@ proc ::Bot::ModuleUnload {modName} {
     }
 
     # Unload variable definitions.
-    foreach {name hash} $modInfo(varFiles) {
-        VarFileUnload [file join $modInfo(location) $name]
+    foreach {name hash} $varFiles {
+        VarFileUnload [file join $location $name]
     }
 
     unset modules($modName)
