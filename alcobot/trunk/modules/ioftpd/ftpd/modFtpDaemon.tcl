@@ -26,13 +26,10 @@
 #
 
 namespace eval ::Bot::Mod::Ftpd {
-    variable deleteFlag
-    variable etcPath
-    variable msgWindow
-    if {![info exists deleteFlag]} {
-        set deleteFlag ""
-        set etcPath ""
-        set msgWindow ""
+    if {![info exists [namespace current]::deleteFlag]} {
+        variable deleteFlag ""
+        variable etcPath ""
+        variable msgWindow ""
     }
     namespace import -force ::Bot::*
     namespace export GetFlagTypes \

@@ -16,11 +16,9 @@
 #
 
 namespace eval ::Bot::Mod::FtpConn {
-    variable connection
-    variable timerId
-    if {![info exists connection]} {
-        set connection ""
-        set timerId ""
+    if {![info exists [namespace current]::connection]} {
+        variable connection ""
+        variable timerId ""
     }
     namespace import -force ::Bot::*
     namespace export GetFtpConnection

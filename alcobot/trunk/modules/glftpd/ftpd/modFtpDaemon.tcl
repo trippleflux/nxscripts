@@ -26,11 +26,9 @@
 #
 
 namespace eval ::Bot::Mod::Ftpd {
-    variable dataPath
-    variable rootPath
-    if {![info exists dataPath]} {
-        set dataPath ""
-        set rootPath ""
+    if {![info exists [namespace current]::dataPath]} {
+        variable dataPath ""
+        variable rootPath ""
     }
     namespace import -force ::Bot::*
     namespace export GetFlagTypes \
