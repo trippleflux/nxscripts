@@ -148,7 +148,7 @@ proc ::Bot::CmdCreate {type name script args} {
 
     foreach {option value} $args {
         switch -- $option {
-            -aliases  {eval lappend suffixes $value}
+            -alias    {lappend suffixes $value}
             -args     {set argDesc $value}
             -category {set category $value}
             -desc     {set cmdDesc $value}
