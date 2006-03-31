@@ -13,6 +13,8 @@
 #
 
 namespace eval ::Bot {
+    variable cmdCount
+    if {![info exists cmdCount]} {set cmdCount 0}
     variable debugMode 0
     variable ftpDaemon 0
     variable localTime 0
@@ -30,7 +32,7 @@ namespace eval ::Bot {
 }
 
 #
-# Context Array Variables
+# Context Arrays
 #
 # chanSections  - Channel sections.
 # cmdNames      - Commands created with "CmdCreate".
@@ -45,8 +47,9 @@ namespace eval ::Bot {
 # theme         - Event theme definitions.
 # variables     - Event variable definitions.
 #
-# Context Scalar Variables
+# Context Variables
 #
+# cmdCount      - Counter incremented each time a command is created.
 # configFile    - Fully qualified path to the configuration file.
 # configHandle  - Handle to the configuration file, valid only during init.
 # debugMode     - Boolean value to indicate if we're running in debug mode.
@@ -132,6 +135,7 @@ proc ::Bot::SetFtpDaemon {name} {
 # Create and register a command.
 #
 proc ::Bot::CmdCreate {type name script args} {
+    variable cmdCount
     variable cmdNames
     variable cmdPrefix
 
@@ -156,7 +160,7 @@ proc ::Bot::CmdCreate {type name script args} {
         }
     }
 
-    # Look up user-defined  command prefixes.
+    # Look up user-defined command prefixes.
     foreach {enabled option value} [CmdGetOptions $type $name] {
         if {$option eq "prefix"} {
             lappend prefixes $value
@@ -182,22 +186,9 @@ proc ::Bot::CmdCreate {type name script args} {
     }
 
     # List: argDesc cmdDesc category binds script token
-    set token [CmdGenToken]
+    set token [format "cmd%d" $cmdCount]; incr cmdCount
     set cmdNames([list $type $name]) [list $argDesc $cmdDesc $category $binds $script $token]
     return $token
-}
-
-####
-# CmdGenToken
-#
-# Generate a unique identifier for a command.
-#
-proc ::Bot::CmdGenToken {} {
-    set hash [crypt start md5]
-    crypt update $hash [clock seconds]  ;# Time stamp
-    crypt update $hash [clock clicks]   ;# System counter
-    crypt update $hash [crypt rand 128] ;# System entropy
-    return [encode hex [crypt end $hash]]
 }
 
 ####
