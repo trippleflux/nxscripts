@@ -143,12 +143,12 @@ proc ::Bot::CmdCreate {type name script args} {
     set argDesc  ""
     set cmdDesc  ""
     set category ""
-    set names  [list $name]
-    set prefix $cmdPrefix
+    set prefixes [list]
+    set suffixes [list $name]
 
     foreach {option value} $args {
         switch -- $option {
-            -aliases  {eval lappend names $value}
+            -aliases  {eval lappend suffixes $value}
             -args     {set argDesc $value}
             -category {set category $value}
             -desc     {set cmdDesc $value}
@@ -156,24 +156,29 @@ proc ::Bot::CmdCreate {type name script args} {
         }
     }
 
-    # Look up the user-defined prefix.
+    # Look up user-defined  command prefixes.
     foreach {enabled option value} [CmdGetOptions $type $name] {
         if {$option eq "prefix"} {
-            set prefix $value; break
+            lappend prefixes $value
         }
+    }
+    if {![llength $prefixes]} {
+        set prefixes [list $cmdPrefix]
     }
 
     # Bind the command and its aliases.
     set binds [list]
-    foreach command $names {
-        set command [string tolower "$prefix$command"]
+    foreach prefix $prefixes {
+        foreach suffix $suffixes {
+            set command [string tolower "$prefix$suffix"]
 
-        if {$type eq "channel"} {
-            bind pub -|- $command [list [namespace current]::CmdChannelProc $name]
-        } elseif {$type eq "private"} {
-            bind msg -|- $command [list [namespace current]::CmdPrivateProc $name]
+            if {$type eq "channel"} {
+                bind pub -|- $command [list [namespace current]::CmdChannelProc $name]
+            } elseif {$type eq "private"} {
+                bind msg -|- $command [list [namespace current]::CmdPrivateProc $name]
+            }
+            lappend binds $command
         }
-        lappend binds $command
     }
 
     # List: argDesc cmdDesc category binds script token
