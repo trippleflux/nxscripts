@@ -20,7 +20,7 @@ namespace eval ::Bot {
 
     namespace export b c u r o \
         LogDebug LogInfo LogError LogWarning GetFtpDaemon \
-        CmdCreate CmdGetList CmdGetOptions CmdSendHelp CmdRemove \
+        CmdCreate CmdGetList CmdGetOptions CmdSendHelp CmdRemove CmdRemoveByToken \
         FlagGetValue FlagExists FlagIsDisabled FlagIsEnabled FlagCheckEvent FlagCheckSection \
         ModuleFind ModuleHash ModuleInfo ModuleLoad ModuleUnload ModuleRead \
         ScriptExecute ScriptRegister ScriptUnregister \
@@ -129,7 +129,7 @@ proc ::Bot::SetFtpDaemon {name} {
 ####
 # CmdCreate
 #
-# Create a channel command.
+# Create and register a command.
 #
 proc ::Bot::CmdCreate {type name script args} {
     variable cmdNames
@@ -138,9 +138,6 @@ proc ::Bot::CmdCreate {type name script args} {
     # Check arguments.
     if {$type ne "channel" && $type ne "private"} {
         error "invalid command type \"$type\""
-    }
-    if {[info exists cmdNames([list $type $name])]} {
-        error "the $type command \"$name\" already exists"
     }
 
     set argDesc  ""
@@ -179,16 +176,30 @@ proc ::Bot::CmdCreate {type name script args} {
         lappend binds $command
     }
 
-    # List: argDesc cmdDesc category binds script
-    set cmdNames([list $type $name]) [list $argDesc $cmdDesc $category $binds $script]
-    return
+    # List: argDesc cmdDesc category binds script token
+    set token [CmdGenToken]
+    set cmdNames([list $type $name]) [list $argDesc $cmdDesc $category $binds $script $token]
+    return $token
+}
+
+####
+# CmdGenToken
+#
+# Generate a unique identifier for a command.
+#
+proc ::Bot::CmdGenToken {} {
+    set hash [crypt start md5]
+    crypt update $hash [clock seconds]  ;# Time stamp
+    crypt update $hash [clock clicks]   ;# System counter
+    crypt update $hash [crypt rand 128] ;# System entropy
+    return [encode hex [crypt end $hash]]
 }
 
 ####
 # CmdGetList
 #
 # Retrieve a list of commands created with "CmdCreate".
-# List: {type command} {argDesc cmdDesc category binds script} ...
+# List: {type command} {argDesc cmdDesc category binds script token} ...
 #
 proc ::Bot::CmdGetList {typePattern namePattern} {
     variable cmdNames
@@ -232,7 +243,7 @@ proc ::Bot::CmdSendHelp {dest type name {message ""}} {
 ####
 # CmdRemove
 #
-# Remove a channel command created with "CmdCreate".
+# Remove a command.
 #
 proc ::Bot::CmdRemove {type name} {
     variable cmdNames
@@ -256,6 +267,20 @@ proc ::Bot::CmdRemove {type name} {
 
     unset cmdNames([list $type $name])
     return
+}
+
+####
+# CmdRemoveByToken
+#
+# Remove a command by it's unique identifier.
+#
+proc ::Bot::CmdRemoveByToken {token} {
+    variable cmdNames
+    foreach {name data} [array get cmdNames] {
+        if {$token eq [lindex $data 5]} {
+            eval CmdRemove $name; return
+        }
+    }
 }
 
 ####
@@ -503,8 +528,9 @@ proc ::Bot::ModuleHash {filePath} {
             crypt update $hash $data
         }
     }
+
     close $fileHandle
-    return [crypt end $hash]
+    return [encode hex [crypt end $hash]]
 }
 
 ####
@@ -634,16 +660,22 @@ proc ::Bot::ModuleUnload {modName} {
     }
     foreach {desc context depends location tclFiles varFiles} $modules($modName) {break}
 
+    # Unload Tcl scripts.
     if {[llength $tclFiles]} {
         set failed [catch {${context}::Unload} message]
-
-        # The namespace context must only be deleted if it's
-        # not the global namespace or the bot's namespace.
-        if {$context ne "" && $context ne [namespace current]} {
-            catch {namespace delete $context}
-        }
     } else {
         set failed 0
+    }
+
+    # The namespace context must only be deleted if it's
+    # not the global namespace or the bot's namespace.
+    if {$context ne "" && $context ne [namespace current]} {
+        catch {namespace delete $context}
+    }
+
+    # Unload variable definitions.
+    foreach {name hash} $modInfo(varFiles) {
+        VarFileUnload [file join $modInfo(location) $name]
     }
 
     unset modules($modName)
@@ -1156,8 +1188,7 @@ proc ::Bot::VarReplace {input varList valueList} {
                 continue
             }
 
-            # Variable names must be composed of alphanumeric
-            # and/or connector characters (a-z, A-Z, 0-9, and _).
+            # Variable names must be consist of alphanumeric characters.
             if {[string is wordchar -strict $varName] && [set valueIndex [lsearch -glob $varList ${varName}:?]] != -1} {
                 set value [lindex $valueList $valueIndex]
                 set type [string index [lindex $varList $valueIndex] end]
@@ -1266,7 +1297,7 @@ proc ::Bot::DccAdmin {handle idx text} {
 
         putdcc $idx "[b]Commands:[b]"
         foreach name [lsort [array names cmdNames]] {
-            foreach {argDesc cmdDesc category binds script} $cmdNames($name) {break}
+            foreach {argDesc cmdDesc category binds script token} $cmdNames($name) {break}
             putdcc $idx "[join $name { }] - [b]Binds:[b] [join $binds {, }] [b]Category:[b] $category"
         }
 
@@ -1428,15 +1459,8 @@ proc ::Bot::InitLibraries {rootPath} {
 # in the "modList" parameter will be unloaded.
 #
 proc ::Bot::InitModules {modList} {
-    variable cmdNames
-    variable events
     variable modules
-    variable replace
-    variable variables
-
     set prevModules [array names modules]
-    array set prevCommands [array get cmdNames]
-    unset -nocomplain cmdNames events replace variables
 
     # Locate and read all module definition files.
     set modInfo [Tree::Create]
@@ -1485,14 +1509,6 @@ proc ::Bot::InitModules {modList} {
             LogInfo "Unable to load module \"$modName\": $message"
         } else {
             LogInfo "Module Loaded: $modName"
-        }
-    }
-
-    # Remove unreferenced commands.
-    foreach name [array names prevCommands] {
-        if {![info exists cmdNames($name)]} {
-            set cmdNames($name) $prevCommands($name)
-            CmdRemove [lindex $name 0] [lindex $name 1]
         }
     }
 }

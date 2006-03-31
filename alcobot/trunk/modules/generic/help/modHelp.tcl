@@ -25,7 +25,7 @@ proc ::Bot::Mod::Help::Command {target user host channel argv} {
     SendTargetTheme $target helpHead
 
     foreach {name value} [CmdGetList "channel" "*"] {
-        foreach {argDesc cmdDesc category binds script} $value {break}
+        foreach {argDesc cmdDesc category binds script token} $value {break}
 
         # Check if this command is present in the listed catagories.
         if {$cmdDesc eq "" || ([llength $argv] && ![ListExists $argv $category])} {
