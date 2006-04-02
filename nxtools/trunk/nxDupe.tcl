@@ -593,14 +593,17 @@ proc ::nxTools::Dupe::SiteUndupe {argList} {
     set pattern [SqlWildToLike $pattern]
 
     if {![catch {DbOpenFile [namespace current]::DupeDb "${dbName}.db"} error]} {
+        set rowIds [list]
         set total [DupeDb eval "SELECT count(*) FROM $dbName"]
-        DupeDb eval {BEGIN}
+
         DupeDb eval "SELECT $colName,rowid FROM $dbName WHERE $colName LIKE '$pattern' ESCAPE '\\' ORDER BY $colName ASC" values {
             incr removed
             LinePuts "Unduped: $values($colName)"
-            DupeDb eval "DELETE FROM $dbName WHERE rowid=$values(rowid)"
+            lappend rowIds $values(rowid)
         }
-        DupeDb eval {COMMIT}
+        if {[llength $rowIds]} {
+            DupeDb eval "DELETE FROM $dbName WHERE rowid IN ([join $rowIds ,])"
+        }
         DupeDb close
     }
 
