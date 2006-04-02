@@ -186,14 +186,16 @@ proc ::Bot::Mod::NxTools::Undupe {target user host channel argv} {
 
     set count 0
     if {[DbOpenFile "${tableName}.db"]} {
-        db eval {BEGIN}
+        set rowIds [list]
         db eval "SELECT $colName,rowid FROM $tableName WHERE $colName \
                 LIKE '[SqlToLike $pattern]' ESCAPE '\\' ORDER BY $colName ASC" values {
             incr count
             SendTargetTheme $target undupeBody [list $values($colName) $count]
-            db eval "DELETE FROM $tableName WHERE rowid=$values(rowid)"
+            lappend rowIds $values(rowid)
         }
-        db eval {COMMIT}
+        if {[llength $rowIds]} {
+            db eval "DELETE FROM $tableName WHERE rowid IN ([join $rowIds ,])"
+        }
         db close
     }
 
