@@ -7,7 +7,7 @@ AlcoBot v1.1.0 (not yet released):
   NEW: Script variable definitions are now modules.
   CHG: Changed the section colour format (update your theme).
   CHG: Moved sitebot connection code from the "ftpd" module to "ftpconn".
-  CHG: Moved the variable system to the bot's core.
+  CHG: Moved the formatting and variable systems to the bot's core.
   CHG: Removed the "varFiles" option from the configuration file.
   CHG: Renamed all library commands and dropped the namespace exports.
 

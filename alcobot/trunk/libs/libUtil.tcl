@@ -17,8 +17,7 @@ namespace eval ::Bot {
         ListConvert ListExists ListParse ListRemove \
         IsSubDir PathParse PathParseSection PathStrip \
         PermCheck PermMatchFlags \
-        SqlEscape SqlGetPattern SqlToLike \
-        FormatDate FormatTime FormatDuration FormatDurationLong FormatSize FormatSpeed \
+        SqlEscape SqlGetPattern SqlToLike
 }
 
 ################################################################################
@@ -287,111 +286,4 @@ proc ::Bot::SqlGetPattern {pattern} {
 proc ::Bot::SqlToLike {pattern} {
     set pattern [SqlEscape $pattern]
     return [string map {* % ? _} [string map {% \\% _ \\_} $pattern]]
-}
-
-################################################################################
-# Formatting                                                                   #
-################################################################################
-
-####
-# FormatDate
-#
-# Formats an integer time value into a human-readable date. If a time value
-# is not given, the current date will be used.
-#
-proc ::Bot::FormatDate {{clockVal ""}} {
-    variable format
-    variable localTime
-
-    if {![string is digit -strict $clockVal]} {
-        set clockVal [clock seconds]
-    }
-    return [clock format $clockVal -format $format(date) -gmt [expr {!$localTime}]]
-}
-
-####
-# FormatTime
-#
-# Formats an integer time value into a human-readable time. If a time value
-# is not given, the current time will be used.
-#
-proc ::Bot::FormatTime {{clockVal ""}} {
-    variable format
-    variable localTime
-
-    if {![string is digit -strict $clockVal]} {
-        set clockVal [clock seconds]
-    }
-    return [clock format $clockVal -format $format(time) -gmt [expr {!$localTime}]]
-}
-
-####
-# FormatDuration
-#
-# Formats a time duration into a human-readable format.
-#
-proc ::Bot::FormatDuration {seconds} {
-    if {$seconds < 0} {
-        set seconds [expr {-$seconds}]
-    }
-    set duration [list]
-    foreach div {31536000 604800 86400 3600 60 1} unit {y w d h m s} {
-        set num [expr {$seconds / $div}]
-        if {$num > 0} {lappend duration "[b]$num[b]$unit"}
-        set seconds [expr {$seconds % $div}]
-    }
-    if {[llength $duration]} {return [join $duration]} else {return "[b]0[b]s"}
-}
-
-####
-# FormatDurationLong
-#
-# Formats a time duration into a human-readable format.
-#
-proc ::Bot::FormatDurationLong {seconds} {
-    if {$seconds < 0} {
-        set seconds [expr {-$seconds}]
-    }
-    set duration [list]
-    foreach div {31536000 604800 86400 3600 60 1} unit {year week day hour min sec} {
-        set num [expr {$seconds / $div}]
-        if {$num > 1} {
-            lappend duration "[b]$num[b] ${unit}s"
-        } elseif {$num == 1} {
-            lappend duration "[b]$num[b] $unit"
-        }
-        set seconds [expr {$seconds % $div}]
-    }
-    if {[llength $duration]} {return [join $duration {, }]} else {return "[b]0[b] secs"}
-}
-
-####
-# FormatSize
-#
-# Formats a value in kilobytes into a human-readable amount.
-#
-proc ::Bot::FormatSize {size} {
-    variable format
-    variable sizeDivisor
-    foreach unit {sizeKilo sizeMega sizeGiga sizeTera} {
-        if {abs($size) < $sizeDivisor} {break}
-        set size [expr {double($size) / double($sizeDivisor)}]
-    }
-    return [VarReplace $format($unit) "size:n" $size]
-}
-
-####
-# FormatSpeed
-#
-# Formats a value in kilobytes per second into a human-readable speed.
-#
-proc ::Bot::FormatSpeed {speed {seconds 0}} {
-    variable format
-    variable speedDivisor
-    if {$seconds > 0} {set speed [expr {double($speed) / $seconds}]}
-    foreach unit {speedKilo speedMega speedGiga} {
-        if {abs($speed) < $speedDivisor} {break}
-        set speed [expr {double($speed) / double($speedDivisor)}]
-    }
-    return [VarReplace $format($unit) "speed:n" $speed]
 }
