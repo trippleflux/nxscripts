@@ -4,8 +4,9 @@ AlcoBot v1.1.0 (not yet released):
   NEW: Multiple prefixes can be specified for commands (e.g. !bw and !sitebw).
   NEW: Redesigned the command option system: prefixes are configurable per
        command, new permission options, and the command type must be declared.
-  NEW: Script variable definitions are now modules (update your config).
+  NEW: Script variable definitions are now modules.
   CHG: Changed the section colour format (update your theme).
+  CHG: Moved sitebot connection code from the "ftpd" module to "ftpconn".
   CHG: Moved the variable system to the bot's core.
   CHG: Removed the "varFiles" option from the configuration file.
   CHG: Renamed all library commands and dropped the namespace exports.
