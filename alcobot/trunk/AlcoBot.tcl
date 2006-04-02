@@ -1546,18 +1546,13 @@ proc ::Bot::InitTheme {themeFile} {
     # Process format entries.
     set known {prefix date time sizeKilo sizeMega sizeGiga sizeTera speedKilo speedGiga speedMega}
     foreach {name value} [Config::GetEx $handle Format] {
-        set index [lsearch -exact $known $name]
-        if {$index != -1} {
-            set known [lreplace $known $index $index]
+        set known [ListRemove $known $name]
 
-            # Remove quotes around the format value, if present.
-            if {[string index $value 0] eq "\"" && [string index $value end] eq "\""} {
-                set value [string range $value 1 end-1]
-            }
-            set format($name) [VarReplaceBase $value 0]
-        } else {
-            LogDebug Theme "Unknown format type \"$name\"."
+        # Remove quotes around the format value, if present.
+        if {[string index $value 0] eq "\"" && [string index $value end] eq "\""} {
+            set value [string range $value 1 end-1]
         }
+        set format($name) [VarReplaceBase $value 0]
     }
     if {[llength $known]} {
         foreach name $known {set format($name) ""}
@@ -1567,16 +1562,13 @@ proc ::Bot::InitTheme {themeFile} {
     # Process theme entries.
     set known [array names variables]
     foreach {name value} [Config::GetEx $handle Theme] {
-        set index [lsearch -exact $known $name]
-        if {$index != -1} {
-            set known [lreplace $known $index $index]
+        set known [ListRemove $known $name]
 
-            # Remove quotes around the theme value, if present.
-            if {[string index $value 0] eq "\"" && [string index $value end] eq "\""} {
-                set value [string range $value 1 end-1]
-            }
-            set theme($name) [VarReplaceBase $value]
+        # Remove quotes around the theme value, if present.
+        if {[string index $value 0] eq "\"" && [string index $value end] eq "\""} {
+            set value [string range $value 1 end-1]
         }
+        set theme($name) [VarReplaceBase $value]
     }
     if {[llength $known]} {
         foreach name $known {set theme($name) ""}
