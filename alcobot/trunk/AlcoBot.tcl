@@ -585,9 +585,7 @@ proc ::Bot::ModuleLoad {modName} {
 ####
 # ModuleLoadEx
 #
-# Performs the actual module initialisation. This procedure leaves dependency
-# and parameter checks up to the caller. Module writers are strongly encouraged
-# to use ModuleLoad instead.
+# Performs the actual module initialisation and loading procedures.
 #
 proc ::Bot::ModuleLoadEx {modName modInfoList} {
     variable modules
@@ -600,45 +598,49 @@ proc ::Bot::ModuleLoadEx {modName modInfoList} {
         }
     }
 
+    # Check if a full module initialisation is required.
     set firstLoad 1
-    if {[llength $modInfo(tclFiles)]} {
-        # Check if a full module initialisation is required.
-        if {[info exists modules($modName)]} {
-            if {$modInfo(tclFiles) eq [lindex $modules($modName) 4]} {
-                set firstLoad 0
-            } else {
-                LogDebug ModuleLoadEx "File checksums changed, reloading module."
-                catch {ModuleUnload $modName}
-            }
-        }
-
-        # Source all script files.
-        foreach {name hash} $modInfo(tclFiles) {
-            set path [file join $modInfo(location) $name]
-            if {[catch {source $path} message]} {
-                error "can't source file \"$path\": $message"
-            }
+    if {[info exists modules($modName)]} {
+        if {$modInfo(tclFiles) eq [lindex $modules($modName) 4]} {
+            set firstLoad 0
+        } else {
+            LogDebug ModuleLoadEx "File checksums changed, reloading module."
+            catch {ModuleUnload $modName}
         }
     }
 
     # Remove trailing namespace identifiers from the context.
     set modInfo(context) [string trimright $modInfo(context) ":"]
 
+    # Format: desc context depends location tclFiles varFiles
     set modules($modName) [list $modInfo(desc) $modInfo(context) $modInfo(depends) \
         $modInfo(location) $modInfo(tclFiles) $modInfo(varFiles)]
 
-    if {[llength $modInfo(tclFiles)]} {
-        if {[catch {${modInfo(context)}::Load $firstLoad} message]} {
-            # Unload the module since initialisation failed.
-            if {[catch {ModuleUnload $modName} unloadMsg]} {
-                LogDebug ModuleLoadEx "Unable to unload \"$modName\": $message"
+    if {[catch {
+        # Read all script files.
+        foreach {name hash} $modInfo(tclFiles) {
+            set path [file join $modInfo(location) $name]
+            if {[catch {source $path} message]} {
+                error "can't source file \"$path\": $message"
             }
+        }
+
+        # Initialise the module.
+        if {$modInfo(context) ne "" && [catch {${modInfo(context)}::Load $firstLoad} message]} {
             error "initialisation failed: $message"
         }
-    }
 
-    foreach {name hash} $modInfo(varFiles) {
-        VarFileLoad [file join $modInfo(location) $name]
+        # Read all variable files.
+        foreach {name hash} $modInfo(varFiles) {
+            VarFileLoad [file join $modInfo(location) $name]
+        }
+    } message]} {
+        if {[catch {ModuleUnload $modName} messageDebug]} {
+            LogDebug ModuleLoadEx "Unable to unload \"$modName\": $messageDebug"
+        }
+
+        # Raise an error after cleaning up the module.
+        error $message
     }
 }
 
@@ -656,22 +658,22 @@ proc ::Bot::ModuleUnload {modName} {
     }
     foreach {desc context depends location tclFiles varFiles} $modules($modName) {break}
 
-    # Unload Tcl scripts.
-    if {[llength $tclFiles]} {
+    # Unload script files.
+    if {$context ne ""} {
         set failed [catch {${context}::Unload} message]
+
+        # Do not delete the bot's namespace.
+        if {$context ne [namespace current]} {
+            catch {namespace delete $context}
+        }
     } else {
         set failed 0
     }
 
-    # The namespace context must only be deleted if it's
-    # not the global namespace or the bot's namespace.
-    if {$context ne "" && $context ne [namespace current]} {
-        catch {namespace delete $context}
-    }
-
-    # Unload variable definitions.
+    # Unload variable files.
     foreach {name hash} $varFiles {
-        VarFileUnload [file join $location $name]
+        set path [file join $location $name]
+        if {[catch {VarFileUnload $path} message]} {set failed 1}
     }
 
     unset modules($modName)
