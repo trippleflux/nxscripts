@@ -102,7 +102,7 @@ proc ::Ftp::Open {host port user passwd args} {
     # ftp(user)   - Client user name.
     # ftp(passwd) - Client password.
     # ftp(notify) - Callback to notify when connected.
-    # ftp(secure) - Connect securely, using SSL or TLS.
+    # ftp(secure) - Connection security.
     # ftp(error)  - Last error message.
     # ftp(queue)  - Event queue (FIFO).
     # ftp(sock)   - Socket channel.
