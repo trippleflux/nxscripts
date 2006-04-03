@@ -517,8 +517,7 @@ CmdDeleted(
     )
 {
     DebugPrint("CmdDeleted: clientData=%p\n", clientData);
-    // TODO: fix this
-    //*((Tcl_Command)clientData) = NULL;
+    *((Tcl_Command *)clientData) = NULL;
 }
 
 /*++
