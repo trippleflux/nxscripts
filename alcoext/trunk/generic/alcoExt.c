@@ -49,7 +49,8 @@ FreeState(
     );
 
 static Tcl_ExitProc ExitHandler;
-static Tcl_InterpDeleteProc InterpDeleteHandler;
+static Tcl_CmdDeleteProc CmdDeleted;
+static Tcl_InterpDeleteProc InterpDeleted;
 
 
 /*++
@@ -70,7 +71,9 @@ Alcoext_Init(
     Tcl_Interp *interp
     )
 {
+    int i;
     ExtState *state;
+    Tcl_CmdInfo cmdInfo;
 
     DebugPrint("Init: interp=%p\n", interp);
 
@@ -111,26 +114,34 @@ Alcoext_Init(
     Tcl_MutexUnlock(&stateListMutex);
 
     // Clean up state on interpreter deletion.
-    Tcl_CallWhenDeleted(interp, InterpDeleteHandler, (ClientData)state);
+    Tcl_CallWhenDeleted(interp, InterpDeleted, (ClientData)state);
 
     // Create Tcl commands.
-    state->cmds[0] = Tcl_CreateObjCommand(interp, "compress", CompressObjCmd, NULL, NULL);
-    state->cmds[1] = Tcl_CreateObjCommand(interp, "crypt",    CryptObjCmd,    (ClientData)state, NULL);
-    state->cmds[2] = Tcl_CreateObjCommand(interp, "decode",   EncodingObjCmd, (ClientData)decodeFuncts, NULL);
-    state->cmds[3] = Tcl_CreateObjCommand(interp, "encode",   EncodingObjCmd, (ClientData)encodeFuncts, NULL);
+    state->cmds[0] = Tcl_CreateObjCommand(interp, "compress", CompressObjCmd, NULL, CmdDeleted);
+    state->cmds[1] = Tcl_CreateObjCommand(interp, "crypt",    CryptObjCmd,    (ClientData)state, CmdDeleted);
+    state->cmds[2] = Tcl_CreateObjCommand(interp, "decode",   EncodingObjCmd, (ClientData)decodeFuncts, CmdDeleted);
+    state->cmds[3] = Tcl_CreateObjCommand(interp, "encode",   EncodingObjCmd, (ClientData)encodeFuncts, CmdDeleted);
 
     //
     // These commands are not created for safe interpreters because
     // they interact with the file system and/or other processes.
     //
     if (!Tcl_IsSafe(interp)) {
-        state->cmds[4] = Tcl_CreateObjCommand(interp, "volume", VolumeObjCmd, NULL, NULL);
+        state->cmds[4] = Tcl_CreateObjCommand(interp, "volume", VolumeObjCmd, NULL, CmdDeleted);
 
 #ifdef _WINDOWS
-        state->cmds[5] = Tcl_CreateObjCommand(interp, "ioftpd", IoFtpdObjCmd, NULL, NULL);
+        state->cmds[5] = Tcl_CreateObjCommand(interp, "ioftpd", IoFtpdObjCmd, NULL, CmdDeleted);
 #else // _WINDOWS
-        state->cmds[5] = Tcl_CreateObjCommand(interp, "glftpd", GlFtpdObjCmd, (ClientData)state, NULL);
+        state->cmds[5] = Tcl_CreateObjCommand(interp, "glftpd", GlFtpdObjCmd, (ClientData)state, CmdDeleted);
 #endif // _WINDOWS
+    }
+
+    // Pass the address of the command token to the deletion handler.
+    for (i = 0; i < ARRAYSIZE(state->cmds); i++) {
+        if (Tcl_GetCommandInfoFromToken(state->cmds[i], &cmdInfo)) {
+            cmdInfo.deleteData = (ClientData)&state->cmds[i];
+            Tcl_SetCommandInfoFromToken(state->cmds[i], &cmdInfo);
+        }
     }
 
     return TCL_OK;
@@ -438,13 +449,15 @@ FreeState(
     if (removeCmds) {
         int i;
         for (i = 0; i < ARRAYSIZE(state->cmds); i++) {
+            if (state->cmds[i] == NULL) {
+                continue;
+            }
             Tcl_DeleteCommandFromToken(state->interp, state->cmds[i]);
         }
     }
 
     if (removeProc) {
-        Tcl_DontCallWhenDeleted(state->interp,
-            InterpDeleteHandler, (ClientData)state);
+        Tcl_DontCallWhenDeleted(state->interp, InterpDeleted, (ClientData)state);
     }
 
     // Free hash tables.
@@ -486,7 +499,31 @@ ExitHandler(
 
 /*++
 
-InterpDeleteHandler
+CmdDeleted
+
+    Sets the address of a command token to null, otherwise the command
+    will be deleted again during unload (causing Tcl to crash).
+
+Arguments:
+    clientData - Address of a command token.
+
+Return Value:
+    None.
+
+--*/
+static void
+CmdDeleted(
+    ClientData clientData
+    )
+{
+    DebugPrint("CmdDeleted: clientData=%p\n", clientData);
+    // TODO: fix this
+    //*((Tcl_Command)clientData) = NULL;
+}
+
+/*++
+
+InterpDeleted
 
     Frees the state structure for an interpreter that is being deleted.
 
@@ -500,7 +537,7 @@ Return Value:
 
 --*/
 static void
-InterpDeleteHandler(
+InterpDeleted(
     ClientData clientData,
     Tcl_Interp *interp
     )
@@ -508,7 +545,7 @@ InterpDeleteHandler(
     ExtState *state;
     ExtState *stateCurrent = (ExtState *)clientData;
 
-    DebugPrint("InterpDelete: interp=%p state=%p\n", interp, stateCurrent);
+    DebugPrint("InterpDeleted: interp=%p state=%p\n", interp, stateCurrent);
 
     Tcl_MutexLock(&stateListMutex);
     for (state = stateHead; state != NULL; state = state->next) {
