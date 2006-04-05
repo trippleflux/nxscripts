@@ -102,7 +102,6 @@ ShmAlloc(
 {
     DC_MESSAGE *message = NULL;
     ShmMemory *memory;
-    BOOL success = FALSE;
     HANDLE event  = NULL;
     HANDLE memMap = NULL;
     void *remote;
@@ -143,46 +142,42 @@ ShmAlloc(
                 (WPARAM)session->processId, (LPARAM)memMap);
 
             if (remote != NULL) {
-                success = TRUE;
-            } else if (GetLastError() == ERROR_SUCCESS) {
-                // I'm not sure if the SendMessage function updates the
-                // system error code on failure, since MSDN does not mention
-                // this behaviour. So this bullshit error will suffice.
+                // Populate memory allocation structure.
+                memory->message = message;
+                memory->block   = &message[1];
+                memory->remote  = remote;
+                memory->event   = event;
+                memory->memMap  = memMap;
+                memory->bytes   = bytes - sizeof(DC_MESSAGE);
+                return memory;
+            }
+
+            // I'm not sure if the SendMessage function updates the system error
+            // code on failure, since MSDN does not mention this behaviour. So
+            // this error code will suffice.
+            if (GetLastError() == ERROR_SUCCESS) {
                 SetLastError(ERROR_INVALID_PARAMETER);
             }
         }
     }
 
-    if (success) {
-        // Update memory allocation structure.
-        memory->message = message;
-        memory->block   = &message[1];
-        memory->remote  = remote;
-        memory->event   = event;
-        memory->memMap  = memMap;
-        memory->bytes   = bytes - sizeof(DC_MESSAGE);
-    } else {
-        // Leave an error message in the interpreter's result.
-        Tcl_ResetResult(interp);
-        Tcl_AppendResult(interp, "unable to map memory: ",
-            TclSetWinError(interp, GetLastError()), NULL);
+    // Leave an error message in the interpreter's result.
+    Tcl_ResetResult(interp);
+    Tcl_AppendResult(interp, "unable to map memory: ",
+        TclSetWinError(interp, GetLastError()), NULL);
 
-        // Free objects and resources.
-        if (message != NULL) {
-            UnmapViewOfFile(message);
-        }
-        if (memMap != NULL) {
-            CloseHandle(memMap);
-        }
-        if (event != NULL) {
-            CloseHandle(event);
-        }
-
-        ckfree((char *)memory);
-        memory = NULL;
+    // Free objects and resources.
+    if (message != NULL) {
+        UnmapViewOfFile(message);
     }
-
-    return memory;
+    if (memMap != NULL) {
+        CloseHandle(memMap);
+    }
+    if (event != NULL) {
+        CloseHandle(event);
+    }
+    ckfree((char *)memory);
+    return NULL;
 }
 
 /*++
