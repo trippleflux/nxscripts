@@ -2,6 +2,10 @@
 #                         nxAutoNuke-ioA - Change Log                          #
 ################################################################################
 
+nxAutoNuke-ioA v2.4.0 (not released yet):
+  NEW: Announce warning types for a release once, per execution and/or release.
+  CHG: Several options renamed, be sure to update your configuration file.
+
 nxAutoNuke-ioA v2.3.1 (Mar 6, 2006):
   NEW: Check for incomplete directory tags.
   CHG: The init.itcl script is no longer used for loading library files.
