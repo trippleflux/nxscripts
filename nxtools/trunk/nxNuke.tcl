@@ -61,7 +61,7 @@ proc ::nxTools::Nuke::UpdateRecord {realPath {buffer ""}} {
     if {[catch {set handle [open $realPath $openMode]} error]} {
         ErrorLog NukeRecord $error
     } elseif {![string length $buffer]} {
-        set record [read $handle]
+        gets $handle record
         close $handle
     } else {
         puts $handle $buffer
@@ -69,7 +69,7 @@ proc ::nxTools::Nuke::UpdateRecord {realPath {buffer ""}} {
     }
 
     catch {file attributes $realPath -hidden 1}
-    return [string trim $record]
+    return $record
 }
 
 proc ::nxTools::Nuke::UpdateUser {isNuke userName multi size files stats creditSection statSection} {
