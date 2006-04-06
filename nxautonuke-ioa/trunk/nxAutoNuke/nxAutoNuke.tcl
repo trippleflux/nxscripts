@@ -33,27 +33,26 @@ proc ::nxAutoNuke::GetName {virtualPath} {
     return $release
 }
 
-proc ::nxAutoNuke::UpdateRecord {realPath {buffer ""}} {
+proc ::nxAutoNuke::UpdateRecord {recordPath {data ""}} {
+    set mode [expr {$data eq "" ? "RDONLY CREAT" : "w"}]
     set record ""
-    set realPath [file join $realPath ".ioFTPD.nxNuke"]
-    set openMode [expr {$buffer eq "" ? "RDONLY CREAT" : "w"}]
 
     # Tcl cannot open hidden files, so the
     # hidden attribute must be removed first.
-    catch {file attributes $realPath -hidden 0}
+    catch {file attributes $recordPath -hidden 0}
 
-    if {[catch {set handle [open $realPath $openMode]} error]} {
-        ErrorLog AutoNukeRecord $error
-    } elseif {![string length $buffer]} {
-        set record [read $handle]
+    if {[catch {set handle [open $recordPath $mode]} error]} {
+        ErrorLog AutoNuke $error
+    } elseif {![string length $data]} {
+        gets $handle record
         close $handle
     } else {
-        puts $handle $buffer
+        puts $handle $data
         close $handle
     }
 
-    catch {file attributes $realPath -hidden 1}
-    return [string trim $record]
+    catch {file attributes $recordPath -hidden 1}
+    return $record
 }
 
 proc ::nxAutoNuke::UpdateUser {userName multi size files stats creditSection statSection} {
@@ -115,7 +114,7 @@ proc ::nxAutoNuke::Nuke {realPath virtualPath nukerUser nukerGroup multi reason}
 
     # Check if there is an available nuke record.
     set nukeId ""
-    set record [UpdateRecord $realPath]
+    set record [UpdateRecord [file join $realPath ".ioFTPD.nxNuke"]]
     set recordSplit [split $record "|"]
 
     # Record versions:
@@ -208,7 +207,7 @@ proc ::nxAutoNuke::Nuke {realPath virtualPath nukerUser nukerGroup multi reason}
         KickUsers [file join $virtualPath "*"]
         if {[catch {file rename -force -- $realPath $newPath} error]} {
             set renameFailed 1
-            ErrorLog AutoNukeRename $error
+            ErrorLog AutoNuke $error
         }
     }
 
@@ -242,12 +241,12 @@ proc ::nxAutoNuke::Nuke {realPath virtualPath nukerUser nukerGroup multi reason}
         NukeDb eval {COMMIT}
 
         NukeDb close
-    } else {ErrorLog AutoNukeDb $error}
+    } else {ErrorLog AutoNuke $error}
 
     # Save the nuke ID and multiplier for later use (ie. unnuke).
     set record "2|0|$nukeId|$nukerUser|$nukerGroup|$multi|$reason"
-    if {$renameFailed} {UpdateRecord $realPath $record}
-    UpdateRecord $newPath $record
+    if {$renameFailed} {UpdateRecord [file join $realPath ".ioFTPD.nxNuke"] $record}
+    UpdateRecord [file join $newPath ".ioFTPD.nxNuke"] $record
     return 1
 }
 
@@ -519,26 +518,60 @@ proc ::nxAutoNuke::SplitSettings {type settings} {
     return $checkList
 }
 
-proc ::nxAutoNuke::NukeCheck {realPath virtualPath dirAge} {
+proc ::nxAutoNuke::NukeAllowed {realPath} {
+    variable nukedList
+
+    # Check if the release was nuked.
+    set check [string tolower $realPath]
+    if {[lsearch -exact $nukedList $check] != -1} {
+        return 0
+    }
+
+    lappend nukedList $check
+    return 1
+}
+
+proc ::nxAutoNuke::WarnAllowed {type realPath} {
     global anuke
-    variable check
     variable nukedList
     variable warnedList
 
-    # Skip the release if it was already nuked.
-    set checkPath [string tolower $realPath]
-    if {[lsearch -exact $nukedList $checkPath] != -1} {return}
+    # Check if the release was nuked or the warning type was announced.
+    set check [string tolower $realPath]
+    if {[lsearch -exact $nukedList $check] != -1 ||
+            ([info exists warnedList($type)] &&
+            [lsearch -exact $warnedList($type) $check] != -1)} {
+        return 0
+    }
+
+    # Check if the warning was announced earlier (from a previous execution).
+    if {[IsTrue $anuke(WarnOnce)]} {
+        set recordPath [file join $realPath ".ioFTPD.nxAutoNuke"]
+        set record [UpdateRecord $recordPath]
+        if {[lsearch -exact $record $type] != -1} {
+            return 0
+        }
+        UpdateRecord $recordPath [lappend record $type]
+    }
+
+    lappend warnedList($type) $check
+    return 1
+}
+
+proc ::nxAutoNuke::NukeCheck {realPath virtualPath dirAge} {
+    global anuke
+    variable check
+
+    # Format the reason.
+    lappend check(Cookies) %(age) [expr {$dirAge / 60}]
+    set check(Reason) [StripChars [string map $check(Cookies) $check(Reason)]]
 
     set nukeSecs [expr {$check(NukeMins) * 60}]
     set warnSecs [expr {$check(WarnMins) * 60}]
 
-    if {$dirAge >= $nukeSecs} {
-        # Nuke the release.
-        lappend check(Cookies) %(age) [expr {$dirAge / 60}]
-        set check(Reason) [StripChars [string map $check(Cookies) $check(Reason)]]
-
-        # Nuke the entire release if anuke(SubDirs) is false.
-        if {![IsTrue $anuke(SubDirs)] && [IsDiskPath $virtualPath]} {
+    if {$dirAge >= $nukeSecs && [NukeAllowed $realPath]} {
+        # Nuke the entire release if anuke(SubDir) is false.
+        if {![IsTrue $anuke(SubDir)] && [IsDiskPath $virtualPath]} {
             set realPath [file dirname $realPath]
             set virtualPath [file dirname $virtualPath]
         }
@@ -547,22 +580,16 @@ proc ::nxAutoNuke::NukeCheck {realPath virtualPath dirAge} {
         if {![Nuke $realPath $virtualPath $anuke(UserName) $anuke(GroupName) $check(Multi) $check(Reason)]} {
             LinePuts "- Unable to nuke the the release, check nxError.log for details."
         }
-        lappend nukedList $checkPath
-    } elseif {$dirAge >= $warnSecs && [lsearch -exact $warnedList $checkPath] == -1} {
+    } elseif {$dirAge >= $warnSecs && [WarnAllowed $check(Type) $realPath]} {
         # Obtain a list of nuked users.
-        if {[IsTrue $anuke(WarnUsers)]} {
+        if {[IsTrue $anuke(UserList)]} {
             set userList [GetUserList $realPath]
         } else {
             set userList "Disabled"
         }
 
-        # Log the warning.
-        lappend check(Cookies) %(age) [expr {$dirAge / 60}]
-        set check(Reason) [StripChars [string map $check(Cookies) $check(Reason)]]
-
         LinePuts "- Warning: [GetName $virtualPath] - $check(Reason)"
         putlog "$check(WarnType): \"$virtualPath\" $check(WarnData)\"$dirAge\" \"[expr {$nukeSecs - $dirAge}]\" \"$nukeSecs\" \"$check(Multi)\" \"$userList\""
-        lappend warnedList $checkPath
     }
     return
 }
@@ -572,6 +599,10 @@ proc ::nxAutoNuke::NukeCheck {realPath virtualPath dirAge} {
 
 proc ::nxAutoNuke::Main {} {
     global anuke misc user group
+    variable check
+    variable nukedList
+    variable warnedList
+
     # A userfile and VFS file will have to be opened so that resolve works under ioFTPD's scheduler.
     if {![info exists user] && ![info exists group]} {
         if {[userfile open $misc(MountUser)] != 0} {
@@ -585,25 +616,26 @@ proc ::nxAutoNuke::Main {} {
     iputs ".-\[AutoNuke\]-------------------------------------------------------------."
     LinePuts "Checking [expr {[llength $anuke(Sections)] / 3}] auto-nuke sections."
 
-    variable check
-    variable nukedList  [list]
-    variable warnedList [list]
-
+    # Initialise variables and options.
     set anuke(ImdbOrder) [string tolower $anuke(ImdbOrder)]
     set anuke(MP3Order) [string tolower $anuke(MP3Order)]
+    set nukedList [list]
+    unset -nocomplain warnedList
 
-    # Check variables:
     #
-    # check(Settings) - Check settings         (user defined).
-    # check(Multi)    - Nuke multiplier        (user defined).
-    # check(WarnMins) - Minutes until warning  (user defined).
-    # check(NukeMins) - Minutes until nuke     (user defined).
-    # check(Cookies)  - List of reason cookies (script defined).
-    # check(Reason)   - Nuke reason template   (script defined).
-    # check(WarnType) - Warning log event type (script defined).
-    # check(WarnData) - Warning log check data (script defined).
+    # Check Variables:
     #
-    # Release check variables:
+    # check(Type)     - Type of auto-nuke check.
+    # check(Settings) - Settings specific to the check type.
+    # check(Multi)    - Nuke multiplier.
+    # check(WarnMins) - Minutes until the warning is announced.
+    # check(NukeMins) - Minutes until the release is nuked.
+    # check(Cookies)  - List of reason cookies.
+    # check(Reason)   - Nuke reason template.
+    # check(WarnType) - Warning log event type.
+    # check(WarnData) - Warning log check data.
+    #
+    # Release Specific Variables:
     #
     # release(Age)         - Age of release, in seconds.
     # release(Name)        - Release name.
@@ -611,7 +643,7 @@ proc ::nxAutoNuke::Main {} {
     # release(VirtualPath) - Release virtual path.
     # release(PathList)    - Release subdirectory list.
     #
-    # Disk check variables:
+    # Disk Specific Variables:
     #
     # disk(Age)         - Age of disk subdirectory, in seconds.
     # disk(Name)        - Name of disk subdirectory.
@@ -656,13 +688,13 @@ proc ::nxAutoNuke::Main {} {
         }
 
         foreach configLine $check(SettingsList) {
-            foreach {checkType check(Settings) check(Multi) check(WarnMins) check(NukeMins)} $configLine {break}
-            set checkType [string tolower $checkType]
+            foreach {check(Type) check(Settings) check(Multi) check(WarnMins) check(NukeMins)} $configLine {break}
+            set check(Type) [string tolower $check(Type)]
 
             # Split IMDB and MP3 check settings.
-            if {$checkType eq "imdb" || $checkType eq "mp3"} {
-                set check(Settings) [SplitSettings $checkType $check(Settings)]
-            } elseif {$checkType eq "keyword"} {
+            if {$check(Type) eq "imdb" || $check(Type) eq "mp3"} {
+                set check(Settings) [SplitSettings $check(Type) $check(Settings)]
+            } elseif {$check(Type) eq "keyword"} {
                 set check(Settings) [string tolower $check(Settings)]
             }
 
@@ -692,14 +724,14 @@ proc ::nxAutoNuke::Main {} {
                 array set check [list Cookies "" Reason "" WarnType "" WarnData ""]
                 set release(VirtualPath) [file join $check(VirtualPath) $release(Name)]
 
-                if {[info exists releaseChecks($checkType)]} {
-                    foreach {check(WarnType) check(Reason) checkProc} $releaseChecks($checkType) {break}
+                if {[info exists releaseChecks($check(Type))]} {
+                    foreach {check(WarnType) check(Reason) checkProc} $releaseChecks($check(Type)) {break}
 
                     if {[eval $checkProc]} {
                         NukeCheck $release(RealPath) $release(VirtualPath) $release(Age)
                     }
-                } elseif {[info exists diskChecks($checkType)]} {
-                    foreach {check(WarnType) check(Reason) checkProc} $diskChecks($checkType) {break}
+                } elseif {[info exists diskChecks($check(Type))]} {
+                    foreach {check(WarnType) check(Reason) checkProc} $diskChecks($check(Type)) {break}
 
                     # Check each release subdirectory.
                     foreach disk(RealPath) $release(PathList) {
@@ -718,7 +750,7 @@ proc ::nxAutoNuke::Main {} {
                         }
                     }
                 } else {
-                    ErrorLog AutoNuke "Invalid auto-nuke type \"$checkType\" in line: \"$configLine\""
+                    ErrorLog AutoNuke "Invalid auto-nuke type \"$check(Type)\" in line: \"$configLine\""
                     break
                 }
             }
