@@ -520,13 +520,10 @@ proc ::nxAutoNuke::SplitSettings {type settings} {
 
 proc ::nxAutoNuke::NukeAllowed {realPath} {
     variable nukedList
-
-    # Check if the release was nuked.
     set check [string tolower $realPath]
     if {[lsearch -exact $nukedList $check] != -1} {
         return 0
     }
-
     lappend nukedList $check
     return 1
 }
