@@ -335,7 +335,7 @@ proc ::nxAutoNuke::CheckImdb {checkList realPath} {
         set nuke 0
         switch -- $type {
             genre {
-                # Banned genre(s).
+                # Banned genres.
                 if {[string length $genre] && [string match -nocase $value $genre]} {
                     set nuke 1
                 }
@@ -347,7 +347,7 @@ proc ::nxAutoNuke::CheckImdb {checkList realPath} {
                 }
             }
             year {
-                # Accepted year(s).
+                # Accepted years.
                 if {[string length $year] && ![string match -nocase $value $year]} {
                     set nuke 1
                 }
@@ -415,13 +415,13 @@ proc ::nxAutoNuke::CheckMP3 {checkList realPath} {
                 }
             }
             genre {
-                # Banned genre(s).
+                # Banned genres.
                 if {[string length $genre] && [string match -nocase $value $genre]} {
                     set nuke 1
                 }
             }
             year {
-                # Accepted year(s).
+                # Accepted years.
                 if {[string length $year] && ![string match -nocase $value $year]} {
                     set nuke 1
                 }
@@ -588,7 +588,6 @@ proc ::nxAutoNuke::NukeCheck {realPath virtualPath dirAge} {
         LinePuts "- Warning: [GetName $virtualPath] - $check(Reason)"
         putlog "$check(WarnType): \"$virtualPath\" $check(WarnData)\"$dirAge\" \"[expr {$nukeSecs - $dirAge}]\" \"$nukeSecs\" \"$check(Multi)\" \"$userList\""
     }
-    return
 }
 
 # AutoNuke Main
