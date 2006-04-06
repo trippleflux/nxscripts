@@ -2,7 +2,7 @@
 #                             nxTools - Change Log                             #
 ################################################################################
 
-nxTools v1.0.3 (not released):
+nxTools v1.0.3 (Apr 5, 2006):
   NEW: Display pre areas on multiple lines if necessary (word wrapping).
   NEW: SITE SEARCH, same as SITE DUPE but with simpler output.
   CHG: Updated nxHelper to v2.3.0, new global-interp key functions.
