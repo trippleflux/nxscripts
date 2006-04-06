@@ -2,9 +2,10 @@
 #                           nxAutoNuke - Change Log                            #
 ################################################################################
 
-nxAutoNuke v2.4.0 (not released yet):
+nxAutoNuke v2.4.0 (Apr 5, 2006):
   NEW: Announce warning types for a release once, per execution and/or release.
   CHG: Several options renamed, be sure to update your configuration file.
+  FIX: Properly update nuke records when directory renaming fails.
 
 nxAutoNuke v2.3.1 (Mar 6, 2006):
   NEW: Check for incomplete directory tags.
