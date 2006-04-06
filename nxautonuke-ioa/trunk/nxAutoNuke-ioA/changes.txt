@@ -2,7 +2,7 @@
 #                         nxAutoNuke-ioA - Change Log                          #
 ################################################################################
 
-nxAutoNuke-ioA v2.4.0 (not released yet):
+nxAutoNuke-ioA v2.4.0 (Apr 5, 2006):
   NEW: Announce warning types for a release once, per execution and/or release.
   CHG: Several options renamed, be sure to update your configuration file.
 
