@@ -1725,7 +1725,6 @@ proc ::Bot::InitMain {} {
         LogError Theme $message; die
     }
 
-    Config::Free $configHandle
     LogInfo "Sitebot loaded, configured for [GetFtpDaemon]."
     return
 }
