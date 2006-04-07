@@ -33,29 +33,29 @@ namespace eval ::Bot {
 }
 
 #
-# Context Arrays
+# Context Arrays:
 #
-# chanSections  - Channel sections.
-# cmdNames      - Commands created with "CmdCreate".
-# cmdOptions    - Command options.
-# colours       - Section colour mappings.
-# events        - Events grouped by their function.
-# format        - Text formatting definitions.
-# modules       - Loaded modules.
-# pathSections  - Path sections.
-# replace       - Static variable replacements.
-# scripts       - Callback scripts.
-# theme         - Event theme definitions.
-# variables     - Event variable definitions.
+#   chanSections  - Channel sections.
+#   cmdNames      - Commands created with "CmdCreate".
+#   cmdOptions    - Command options.
+#   colours       - Section colour mappings.
+#   events        - Events grouped by their function.
+#   format        - Text formatting definitions.
+#   modules       - Loaded modules.
+#   pathSections  - Path sections.
+#   replace       - Static variable replacements.
+#   scripts       - Callback scripts.
+#   theme         - Event theme definitions.
+#   variables     - Event variable definitions.
 #
-# Context Variables
+# Context Variables:
 #
-# cmdCount      - Counter incremented each time a command is created.
-# configFile    - Fully qualified path to the configuration file.
-# configHandle  - Handle to the configuration file, valid only during init.
-# debugMode     - Boolean value to indicate if we're running in debug mode.
-# ftpDaemon     - FTP daemon identifier: 1=glFTPD and 2=ioFTPD.
-# localTime     - Format time values in local time, otherwise UTC is used.
+#   cmdCount      - Counter incremented each time a command is created.
+#   configFile    - Fully qualified path to the configuration file.
+#   configHandle  - Handle to the configuration file, valid only during init.
+#   debugMode     - Boolean value to indicate if we're running in debug mode.
+#   ftpDaemon     - FTP daemon identifier: 1=glFTPD and 2=ioFTPD.
+#   localTime     - Format time values in local time, otherwise UTC is used.
 #
 
 ####
@@ -1371,9 +1371,9 @@ proc ::Bot::VarReplaceCommon {text section} {
 ################################################################################
 
 # Command aliases.
-bind dcc n "alc"        ::Bot::DccAdmin
-bind dcc n "alco"       ::Bot::DccAdmin
-bind dcc n "alcobot"    ::Bot::DccAdmin
+bind dcc n "alc"     ::Bot::DccAdmin
+bind dcc n "alco"    ::Bot::DccAdmin
+bind dcc n "alcobot" ::Bot::DccAdmin
 
 ####
 # DccAdmin

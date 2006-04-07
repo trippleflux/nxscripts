@@ -49,7 +49,7 @@ proc ::Bot::Mod::Help::Command {target user host channel argv} {
             }
             if {$result} {
                 if {!$enabled} {set display 0}
-                 break
+                break
             }
         }
 
