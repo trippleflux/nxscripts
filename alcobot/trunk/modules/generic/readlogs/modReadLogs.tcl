@@ -230,7 +230,7 @@ proc ::Bot::Mod::ReadLogs::Update {} {
             LogDebug ModReadLogs "Event disabled or callback returned false, skipping announce."
             continue
         }
-        SendSectionTheme $destSection $event $line
+        SendSectionTheme $destSection Module::ReadLogs $event $line
 
         # Post-command scripts are only executed if the announce was successful.
         ScriptExecute post $event $destSection $pathSection $path $line

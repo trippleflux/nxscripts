@@ -60,7 +60,7 @@ proc ::Bot::Mod::IoA::Nukes {target user host channel argv} {
     set pattern [join [GetOpt::Parse $argv {{limit integer}} option]]
     set limit [GetResultLimit $option(limit)]
 
-    SendTargetTheme $target nukesHead
+    SendTargetTheme $target Module::IoA nukesHead
     set data [list]
     if {$limit > 0 && [OpenFile $nukesFile handle]} {
         set range [expr {$limit - 1}]
@@ -85,13 +85,13 @@ proc ::Bot::Mod::IoA::Nukes {target user host channel argv} {
             set time [ParseTime $time]
             set age [expr {[clock seconds] - $time}]
 
-            SendTargetTheme $target nukesBody [list $count \
-                $nuker $release $time $multi $reason $size $age]
+            SendTargetTheme $target Module::IoA nukesBody \
+                [list $count $nuker $release $time $multi $reason $size $age]
         }
     } else {
-        SendTargetTheme $target nukesNone
+        SendTargetTheme $target Module::IoA nukesNone
     }
-    SendTargetTheme $target nukesFoot
+    SendTargetTheme $target Module::IoA nukesFoot
 }
 
 ####
@@ -107,7 +107,7 @@ proc ::Bot::Mod::IoA::OneLines {target user host channel argv} {
     GetOpt::Parse $argv {{limit integer}} option
     set limit [GetResultLimit $option(limit)]
 
-    SendTargetTheme $target oneLinesHead
+    SendTargetTheme $target Module::IoA oneLinesHead
     set data [list]
     if {$limit > 0 && [OpenFile $onelinesFile handle]} {
         set range [expr {$limit - 1}]
@@ -125,12 +125,12 @@ proc ::Bot::Mod::IoA::OneLines {target user host channel argv} {
         set count 0
         foreach item $data {
             incr count
-            SendTargetTheme $target oneLinesBody [list $count $item]
+            SendTargetTheme $target Module::IoA oneLinesBody [list $count $item]
         }
     } else {
-        SendTargetTheme $target oneLinesNone
+        SendTargetTheme $target Module::IoA oneLinesNone
     }
-    SendTargetTheme $target oneLinesFoot
+    SendTargetTheme $target Module::IoA oneLinesFoot
 }
 
 ####
@@ -140,7 +140,7 @@ proc ::Bot::Mod::IoA::OneLines {target user host channel argv} {
 #
 proc ::Bot::Mod::IoA::Requests {target user host channel argv} {
     variable requestsFile
-    SendTargetTheme $target requestsHead
+    SendTargetTheme $target Module::IoA requestsHead
 
     # Read requests log file.
     set count 0
@@ -148,14 +148,14 @@ proc ::Bot::Mod::IoA::Requests {target user host channel argv} {
         while {![eof $handle]} {
             if {[gets $handle line] > 1} {
                 incr count
-                SendTargetTheme $target requestsBody [list $count $line]
+                SendTargetTheme $target Module::IoA requestsBody [list $count $line]
             }
         }
         close $handle
     }
 
-    if {!$count} {SendTargetTheme $target requestsNone}
-    SendTargetTheme $target requestsFoot
+    if {!$count} {SendTargetTheme $target Module::IoA requestsNone}
+    SendTargetTheme $target Module::IoA requestsFoot
 }
 
 ####
@@ -175,7 +175,7 @@ proc ::Bot::Mod::IoA::Search {target user host channel argv} {
     }
     set limit [GetResultLimit $option(limit)]
 
-    SendTargetTheme $target searchHead [list $pattern]
+    SendTargetTheme $target Module::IoA searchHead [list $pattern]
     set data [list]
     if {$limit > 0 && [OpenFile $searchFile handle]} {
         set range [expr {$limit - 1}]
@@ -200,13 +200,13 @@ proc ::Bot::Mod::IoA::Search {target user host channel argv} {
             set time [expr {(wide($time) - 116444736000000000) / 10000000}]
             set age [expr {[clock seconds] - $time}]
 
-            SendTargetTheme $target searchBody [list $count \
-                [file join $path $release] $time $age]
+            SendTargetTheme $target Module::IoA searchBody \
+                [list $count [file join $path $release] $time $age]
         }
     } else {
-        SendTargetTheme $target searchNone [list $pattern]
+        SendTargetTheme $target Module::IoA searchNone [list $pattern]
     }
-    SendTargetTheme $target searchFoot
+    SendTargetTheme $target Module::IoA searchFoot
 }
 
 ####
@@ -222,7 +222,7 @@ proc ::Bot::Mod::IoA::Unnukes {target user host channel argv} {
     set pattern [join [GetOpt::Parse $argv {{limit integer}} option]]
     set limit [GetResultLimit $option(limit)]
 
-    SendTargetTheme $target unnukesHead
+    SendTargetTheme $target Module::IoA unnukesHead
     set data [list]
     if {$limit > 0 && [OpenFile $unnukesFile handle]} {
         set range [expr {$limit - 1}]
@@ -247,13 +247,13 @@ proc ::Bot::Mod::IoA::Unnukes {target user host channel argv} {
             set time [ParseTime $time]
             set age [expr {[clock seconds] - $time}]
 
-            SendTargetTheme $target unnukesBody [list $count \
-                $unnuker $release $time $multi $reason $size $age]
+            SendTargetTheme $target Module::IoA unnukesBody \
+                [list $count $unnuker $release $time $multi $reason $size $age]
         }
     } else {
-        SendTargetTheme $target unnukesNone
+        SendTargetTheme $target Module::IoA unnukesNone
     }
-    SendTargetTheme $target unnukesFoot
+    SendTargetTheme $target Module::IoA unnukesFoot
 }
 
 ####

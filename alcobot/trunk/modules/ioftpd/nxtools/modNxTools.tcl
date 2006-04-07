@@ -82,7 +82,7 @@ proc ::Bot::Mod::NxTools::Dupe {target user host channel argv} {
     } else {
         set sectionQuery ""
     }
-    SendTargetTheme $target dupeHead [list $pattern]
+    SendTargetTheme $target Module::NxTools dupeHead [list $pattern]
 
     set count 0
     if {[DbOpenFile "DupeDirs.db"]} {
@@ -96,14 +96,14 @@ proc ::Bot::Mod::NxTools::Dupe {target user host channel argv} {
 
             incr count
             set age [expr {[clock seconds] - $values(TimeStamp)}]
-            SendTargetTheme $target dupeBody [list $values(UserName) $values(GroupName) \
+            SendTargetTheme $target Module::NxTools dupeBody [list $values(UserName) $values(GroupName) \
                 $section $virtualPath $values(TimeStamp) $age $count]
         }
         db close
     }
 
-    if {!$count} {SendTargetTheme $target dupeNone [list $pattern]}
-    SendTargetTheme $target dupeFoot
+    if {!$count} {SendTargetTheme $target Module::NxTools dupeNone [list $pattern]}
+    SendTargetTheme $target Module::NxTools dupeFoot
 }
 
 ####
@@ -129,7 +129,7 @@ proc ::Bot::Mod::NxTools::New {target user host channel argv} {
         set matchPath [SqlToLike [lindex $pathSections($section) 0]]
         set sectionQuery "WHERE DirPath LIKE '${matchPath}%' ESCAPE '\\'"
     }
-    SendTargetTheme $target newHead
+    SendTargetTheme $target Module::NxTools newHead
 
     set count 0
     if {[DbOpenFile "DupeDirs.db"]} {
@@ -142,14 +142,14 @@ proc ::Bot::Mod::NxTools::New {target user host channel argv} {
 
             incr count
             set age [expr {[clock seconds] - $values(TimeStamp)}]
-            SendTargetTheme $target newBody [list $values(UserName) $values(GroupName) \
+            SendTargetTheme $target Module::NxTools newBody [list $values(UserName) $values(GroupName) \
                 $section $virtualPath $values(TimeStamp) $age $count]
         }
         db close
     }
 
-    if {!$count} {SendTargetTheme $target newNone}
-    SendTargetTheme $target newFoot
+    if {!$count} {SendTargetTheme $target Module::NxTools newNone}
+    SendTargetTheme $target Module::NxTools newFoot
 }
 
 ####
@@ -174,7 +174,7 @@ proc ::Bot::Mod::NxTools::Undupe {target user host channel argv} {
             throw CMDHELP "you must specify at least $undupeChars alphanumeric chars with wildcards"
         }
     }
-    SendTargetTheme $target undupeHead [list $pattern]
+    SendTargetTheme $target Module::NxTools undupeHead [list $pattern]
 
     if {[info exists option(directory)]} {
         set colName "DirName"
@@ -190,7 +190,7 @@ proc ::Bot::Mod::NxTools::Undupe {target user host channel argv} {
         db eval "SELECT $colName,rowid FROM $tableName WHERE $colName \
                 LIKE '[SqlToLike $pattern]' ESCAPE '\\' ORDER BY $colName ASC" values {
             incr count
-            SendTargetTheme $target undupeBody [list $values($colName) $count]
+            SendTargetTheme $target Module::NxTools undupeBody [list $values($colName) $count]
             lappend rowIds $values(rowid)
         }
         if {[llength $rowIds]} {
@@ -199,8 +199,8 @@ proc ::Bot::Mod::NxTools::Undupe {target user host channel argv} {
         db close
     }
 
-    if {!$count} {SendTargetTheme $target undupeNone [list $pattern]}
-    SendTargetTheme $target undupeFoot
+    if {!$count} {SendTargetTheme $target Module::NxTools undupeNone [list $pattern]}
+    SendTargetTheme $target Module::NxTools undupeFoot
 }
 
 ####
@@ -219,7 +219,7 @@ proc ::Bot::Mod::NxTools::Nukes {target user host channel argv} {
     } else {
         set matchQuery "AND Release LIKE '[SqlGetPattern $pattern]' ESCAPE '\\'"
     }
-    SendTargetTheme $target nukesHead
+    SendTargetTheme $target Module::NxTools nukesHead
 
     set count 0
     if {[DbOpenFile "Nukes.db"]} {
@@ -227,15 +227,15 @@ proc ::Bot::Mod::NxTools::Nukes {target user host channel argv} {
                 ORDER BY TimeStamp DESC LIMIT $limit" values {
             incr count
             set age [expr {[clock seconds] - $values(TimeStamp)}]
-            SendTargetTheme $target nukesBody [list $values(UserName) $values(GroupName) \
+            SendTargetTheme $target Module::NxTools nukesBody [list $values(UserName) $values(GroupName) \
                 $values(Release) $values(TimeStamp) $values(Multi) $values(Reason) \
                 $values(Files) $values(Size) $age $count]
         }
         db close
     }
 
-    if {!$count} {SendTargetTheme $target nukesNone}
-    SendTargetTheme $target nukesFoot
+    if {!$count} {SendTargetTheme $target Module::NxTools nukesNone}
+    SendTargetTheme $target Module::NxTools nukesFoot
 }
 
 ####
@@ -254,7 +254,7 @@ proc ::Bot::Mod::NxTools::NukeTop {target user host channel argv} {
     } else {
         set groupQuery "GroupName='[SqlEscape $group]' AND"
     }
-    SendTargetTheme $target nuketopHead
+    SendTargetTheme $target Module::NxTools nuketopHead
 
     set count 0
     if {[DbOpenFile "Nukes.db"]} {
@@ -262,14 +262,14 @@ proc ::Bot::Mod::NxTools::NukeTop {target user host channel argv} {
                 WHERE $groupQuery (SELECT count(*) FROM Nukes WHERE NukeId=Users.NukeId AND Status=0) \
                 GROUP BY UserName ORDER BY Nuked DESC LIMIT $limit" values {
             incr count
-            SendTargetTheme $target nuketopBody [list $values(UserName) \
+            SendTargetTheme $target Module::NxTools nuketopBody [list $values(UserName) \
                 $values(GroupName) $values(Credits) $values(Nuked) $count]
         }
         db close
     }
 
-    if {!$count} {SendTargetTheme $target nuketopNone}
-    SendTargetTheme $target nuketopFoot
+    if {!$count} {SendTargetTheme $target Module::NxTools nuketopNone}
+    SendTargetTheme $target Module::NxTools nuketopFoot
 }
 
 ####
@@ -288,7 +288,7 @@ proc ::Bot::Mod::NxTools::Unnukes {target user host channel argv} {
     } else {
         set matchQuery "AND Release LIKE '[SqlGetPattern $pattern]' ESCAPE '\\'"
     }
-    SendTargetTheme $target unnukesHead
+    SendTargetTheme $target Module::NxTools unnukesHead
 
     set count 0
     if {[DbOpenFile "Nukes.db"]} {
@@ -296,15 +296,15 @@ proc ::Bot::Mod::NxTools::Unnukes {target user host channel argv} {
                 ORDER BY TimeStamp DESC LIMIT $limit" values {
             incr count
             set age [expr {[clock seconds] - $values(TimeStamp)}]
-            SendTargetTheme $target unnukesBody [list $values(UserName) $values(GroupName) \
+            SendTargetTheme $target Module::NxTools unnukesBody [list $values(UserName) $values(GroupName) \
                 $values(Release) $values(TimeStamp) $values(Multi) $values(Reason) \
                 $values(Files) $values(Size) $age $count]
         }
         db close
     }
 
-    if {!$count} {SendTargetTheme $target unnukesNone}
-    SendTargetTheme $target unnukesFoot
+    if {!$count} {SendTargetTheme $target Module::NxTools unnukesNone}
+    SendTargetTheme $target Module::NxTools unnukesFoot
 }
 
 ####
@@ -313,21 +313,21 @@ proc ::Bot::Mod::NxTools::Unnukes {target user host channel argv} {
 # Display approved releases, command: !approved.
 #
 proc ::Bot::Mod::NxTools::Approved {target user host channel argv} {
-    SendTargetTheme $target approveHead
+    SendTargetTheme $target Module::NxTools approveHead
 
     set count 0
     if {[DbOpenFile "Approves.db"]} {
         db eval {SELECT * FROM Approves ORDER BY Release ASC} values {
             incr count
             set age [expr {[clock seconds] - $values(TimeStamp)}]
-            SendTargetTheme $target approveBody [list $values(UserName) \
+            SendTargetTheme $target Module::NxTools approveBody [list $values(UserName) \
                 $values(GroupName) $values(Release) $age $count]
         }
         db close
     }
 
-    if {!$count} {SendTargetTheme $target approveNone}
-    SendTargetTheme $target approveFoot
+    if {!$count} {SendTargetTheme $target Module::NxTools approveNone}
+    SendTargetTheme $target Module::NxTools approveFoot
 }
 
 ####
@@ -341,20 +341,20 @@ proc ::Bot::Mod::NxTools::OneLines {target user host channel argv} {
     GetOpt::Parse $argv {{limit integer}} option
     set limit [GetResultLimit $option(limit)]
 
-    SendTargetTheme $target oneLinesHead
+    SendTargetTheme $target Module::NxTools oneLinesHead
     set count 0
     if {[DbOpenFile "OneLines.db"]} {
         db eval {SELECT * FROM OneLines ORDER BY TimeStamp DESC LIMIT $limit} values {
             incr count
             set age [expr {[clock seconds] - $values(TimeStamp)}]
-            SendTargetTheme $target oneLinesBody [list $values(UserName) \
+            SendTargetTheme $target Module::NxTools oneLinesBody [list $values(UserName) \
                 $values(GroupName) $values(Message) $values(TimeStamp) $age $count]
         }
         db close
     }
 
-    if {!$count} {SendTargetTheme $target oneLinesNone}
-    SendTargetTheme $target oneLinesFoot
+    if {!$count} {SendTargetTheme $target Module::NxTools oneLinesNone}
+    SendTargetTheme $target Module::NxTools oneLinesFoot
 }
 
 ####
@@ -363,21 +363,21 @@ proc ::Bot::Mod::NxTools::OneLines {target user host channel argv} {
 # Display current requests, command: !requests.
 #
 proc ::Bot::Mod::NxTools::Requests {target user host channel argv} {
-    SendTargetTheme $target requestsHead
+    SendTargetTheme $target Module::NxTools requestsHead
 
     set count 0
     if {[DbOpenFile "Requests.db"]} {
         db eval {SELECT * FROM Requests WHERE Status=0 ORDER BY RequestId DESC} values {
             incr count
             set age [expr {[clock seconds] - $values(TimeStamp)}]
-            SendTargetTheme $target requestsBody [list $values(UserName) \
+            SendTargetTheme $target Module::NxTools requestsBody [list $values(UserName) \
                 $values(GroupName) $values(Request) $values(RequestId) $age $count]
         }
         db close
     }
 
-    if {!$count} {SendTargetTheme $target requestsNone}
-    SendTargetTheme $target requestsFoot
+    if {!$count} {SendTargetTheme $target Module::NxTools requestsNone}
+    SendTargetTheme $target Module::NxTools requestsFoot
 }
 
 ####
@@ -412,7 +412,7 @@ proc ::Bot::Mod::NxTools::SiteCmd {event target user host channel argv} {
         }
     }
     if {[catch {set ftpUser [GetFtpUser $user]} message]} {
-        SendTargetTheme $target $theme [list $message]
+        SendTargetTheme $target Module::NxTools $theme [list $message]
         return
     }
     append command " $ftpUser \"[lindex $argv 0]\""
@@ -422,7 +422,7 @@ proc ::Bot::Mod::NxTools::SiteCmd {event target user host channel argv} {
     if {[Ftp::GetStatus $connection] == 2} {
         Ftp::Command $connection $command [list [namespace current]::SiteCallback $target $theme]
     } else {
-        SendTargetTheme $target $theme [list "Not connected to the FTP server."]
+        SendTargetTheme $target Module::NxTools $theme [list "Not connected to the FTP server."]
     }
 }
 
@@ -435,7 +435,7 @@ proc ::Bot::Mod::NxTools::SiteCallback {target theme connection response} {
     # Ignore the header, foot, and the "command successful" message.
     foreach {code message} [lrange $response 2 end-4] {
         set message [string trim $message "| \t"]
-        SendTargetTheme $target $theme [list $message]
+        SendTargetTheme $target Module::NxTools $theme [list $message]
     }
 }
 

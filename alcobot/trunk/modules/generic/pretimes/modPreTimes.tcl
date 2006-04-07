@@ -85,7 +85,9 @@ proc ::Bot::Mod::PreTimes::LogEvent {event destSection pathSection path data} {
             } else {
                 set event "PRENEW"
             }
-            SendSectionTheme $destSection $event [lappend data $preTime $age $limit]
+
+            lappend data $preTime $age $limit
+            SendSectionTheme $destSection Module::ReadLogs $event $data
             return 0
         }
     } elseif {$event eq "PRE" || $event eq "PRE-MP3"} {
@@ -147,7 +149,7 @@ proc ::Bot::Mod::PreTimes::Search {target user host channel argv} {
         # If there's more than one row, send the output to
         # $target. Otherwise the output is sent to the channel.
         if {[llength $result] > 1} {
-            SendTargetTheme $target preHead [list $pattern]
+            SendTargetTheme $target Module::PreTimes head [list $pattern]
             set multi 1
         } else {
             set target "PRIVMSG $channel"
@@ -160,20 +162,20 @@ proc ::Bot::Mod::PreTimes::Search {target user host channel argv} {
             set age [expr {[clock seconds] - $preTime}]
 
             if {$nuked} {
-                SendTargetTheme $target preNuke [list $preTime $section \
-                    $release $files $size $disks $age $nukeTime $reason $count]
+                SendTargetTheme $target Module::PreTimes nuke \
+                    [list $preTime $section $release $files $size $disks $age $nukeTime $reason $count]
             } else {
-                SendTargetTheme $target preBody [list $preTime $section \
-                    $release $files $size $disks $age $count]
+                SendTargetTheme $target Module::PreTimes body \
+                    [list $preTime $section $release $files $size $disks $age $count]
             }
         }
     }
 
     if {!$count} {
         # Always send this message to the channel.
-        SendTargetTheme "PRIVMSG $channel" preNone [list $pattern]
+        SendTargetTheme "PRIVMSG $channel" none [list $pattern]
     }
-    if {$multi} {SendTargetTheme $target preFoot}
+    if {$multi} {SendTargetTheme $target Module::PreTimes foot}
 }
 
 ####

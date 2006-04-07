@@ -413,7 +413,7 @@ proc ::Bot::Mod::Ftpd::NukeEvent {event destSection pathSection path data} {
     set nukees [join [lrange $data 4 end]]
     set data [lreplace $data 4 end $nukees]
 
-    SendSectionTheme $destSection $event $data
+    SendSectionTheme $destSection Module::ReadLogs $event $data
     return 0
 }
 

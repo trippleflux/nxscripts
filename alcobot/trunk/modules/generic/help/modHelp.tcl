@@ -25,7 +25,7 @@ namespace eval ::Bot::Mod::Help {
 # Implements a channel command to display supported commands.
 #
 proc ::Bot::Mod::Help::Command {target user host channel argv} {
-    SendTargetTheme $target helpHead
+    SendTargetTheme $target Module::Help head
 
     foreach {name value} [CmdGetList "channel" "*"] {
         foreach {argDesc cmdDesc category binds script token} $value {break}
@@ -60,13 +60,13 @@ proc ::Bot::Mod::Help::Command {target user host channel argv} {
 
     # Display all commands by category and alphabetically.
     foreach category [lsort [array names output]] {
-        SendTargetTheme $target helpType [list $category]
+        SendTargetTheme $target Module::Help type [list $category]
 
         foreach value [lsort -index 0 $output($category)] {
-            SendTargetTheme $target helpBody $value
+            SendTargetTheme $target Module::Help body $value
         }
     }
-    SendTargetTheme $target helpFoot
+    SendTargetTheme $target Module::Help foot
 }
 
 ####

@@ -92,7 +92,7 @@ proc ::Bot::Mod::Online::Bandwidth {event target user host channel argv} {
     set speedTotal [expr {$speedDn + $speedUp}]
     set usersTotal [expr {$usersDn + $usersUp + $usersIdle}]
 
-    SendTargetTheme $target $theme [list $speedDn $speedUp $speedTotal \
+    SendTargetTheme $target Module::Online $theme [list $speedDn $speedUp $speedTotal \
         $usersDn $usersUp $usersIdle $usersTotal]
 }
 
@@ -122,7 +122,7 @@ proc ::Bot::Mod::Online::Status {event target user host channel argv} {
             return
         }
     }
-    SendTargetTheme $target ${theme}Head
+    SendTargetTheme $target Module::Online ${theme}Head
     set total 0.0; set users 0
 
     if {![catch {set online [ioftpd who $msgWindow "status user group idletime size speed vpath realdatapath"]} message]} {
@@ -133,19 +133,20 @@ proc ::Bot::Mod::Online::Status {event target user host channel argv} {
             incr users
             switch -- $status {
                 0 - 3 {
-                    SendTargetTheme $target ${theme}Body [list $user $group $idle $vpath]
+                    SendTargetTheme $target Module::Online ${theme}Body \
+                        [list $user $group $idle $vpath]
                 }
                 1 - 2 {
                     set total [expr {$total + $speed}]
-                    SendTargetTheme $target ${theme}Body [list $user $group \
-                        $size $speed $vpath [file tail $dataPath]]
+                    SendTargetTheme $target Module::Online ${theme}Body \
+                        [list $user $group $size $speed $vpath [file tail $dataPath]]
                 }
             }
         }
     } else {
         LogError ModOnline $message
     }
-    SendTargetTheme $target ${theme}Foot [list $total $users]
+    SendTargetTheme $target Module::Online ${theme}Foot [list $total $users]
 }
 
 ####
@@ -158,9 +159,9 @@ proc ::Bot::Mod::Online::Users {event target user host channel argv} {
 
     if {$event eq "SPEED"} {
         if {[llength $argv] != 1} {throw CMDHELP}
-        SendTargetTheme $target speedHead $argv
+        SendTargetTheme $target Module::Online speedHead $argv
     } elseif {$event eq "WHO"} {
-        SendTargetTheme $target whoHead
+        SendTargetTheme $target Module::Online whoHead
     } else {
         LogError ModOnline "Unknown users event \"$event\"."
         return
@@ -177,19 +178,20 @@ proc ::Bot::Mod::Online::Users {event target user host channel argv} {
             switch -- $status {
                 0 - 3 {
                     incr usersIdle
-                    SendTargetTheme $target ${theme}Idle [list $user $group $idle $vpath]
+                    SendTargetTheme $target Module::Online ${theme}Idle \
+                        [list $user $group $idle $vpath]
                 }
                 1 {
                     incr usersDn
                     set speedDn [expr {$speedDn + $speed}]
-                    SendTargetTheme $target ${theme}Download [list $user $group \
-                        $size $speed $vpath [file tail $dataPath]]
+                    SendTargetTheme $target Module::Online ${theme}Download \
+                        [list $user $group $size $speed $vpath [file tail $dataPath]]
                 }
                 2 {
                     incr usersUp
                     set speedUp [expr {$speedUp + $speed}]
-                    SendTargetTheme $target ${theme}Upload [list $user $group \
-                        $size $speed $vpath [file tail $dataPath]]
+                    SendTargetTheme $target Module::Online ${theme}Upload \
+                        [list $user $group $size $speed $vpath [file tail $dataPath]]
                 }
             }
         }
@@ -200,10 +202,10 @@ proc ::Bot::Mod::Online::Users {event target user host channel argv} {
     set usersTotal [expr {$usersDn + $usersUp + $usersIdle}]
 
     if {$usersTotal} {
-        SendTargetTheme $target ${theme}Foot [list $speedDn $speedUp $speedTotal \
-            $usersDn $usersUp $usersIdle $usersTotal]
+        SendTargetTheme $target Module::Online ${theme}Foot \
+            [list $speedDn $speedUp $speedTotal $usersDn $usersUp $usersIdle $usersTotal]
     } else {
-        SendTargetTheme $target ${theme}None
+        SendTargetTheme $target Module::Online ${theme}None
     }
 }
 

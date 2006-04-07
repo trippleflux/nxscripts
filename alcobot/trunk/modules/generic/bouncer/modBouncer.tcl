@@ -28,7 +28,7 @@ namespace eval ::Bot::Mod::Bouncer {
 #
 proc ::Bot::Mod::Bouncer::Command {target user host channel argv} {
     variable bouncers
-    SendTargetTheme $target bouncerHead
+    SendTargetTheme $target Module::Bouncer head
     set offline 0; set online 0; set unknown 0
 
     for {set index 0} {[info exists bouncers($index)]} {incr index} {
@@ -38,21 +38,21 @@ proc ::Bot::Mod::Bouncer::Command {target user host channel argv} {
         switch -- $status {
             1 {
                 lappend values [expr {[clock seconds] - $time}]
-                set theme "bouncerOffline"; incr offline
+                set theme "offline"; incr offline
             }
             2 {
                 lappend values [expr {[clock seconds] - $time}]
-                set theme "bouncerOnline"; incr online
+                set theme "online"; incr online
             }
             default {
-                set theme "bouncerUnknown"; incr unknown
+                set theme "unknown"; incr unknown
             }
         }
-        SendTargetTheme $target $theme $values
+        SendTargetTheme $target Module::Bouncer $theme $values
     }
 
-    SendTargetTheme $target bouncerFoot [list $offline $online $unknown \
-        [expr {$offline + $online + $unknown}]]
+    SendTargetTheme $target Module::Bouncer bouncerFoot \
+        [list $offline $online $unknown [expr {$offline + $online + $unknown}]]
 }
 
 ####

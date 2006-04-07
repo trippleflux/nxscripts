@@ -33,7 +33,7 @@ proc ::Bot::Mod::Free::Command {target user host channel argv} {
 
     # Only display the header and footer if no section was specified.
     if {!$argc} {
-        SendTargetTheme $target freeHead
+        SendTargetTheme $target Module::Free head
     }
 
     set count 0; set free 0; set used 0; set total 0
@@ -51,8 +51,8 @@ proc ::Bot::Mod::Free::Command {target user host channel argv} {
         set percentFree [expr {(double($info(free)) / double($info(total))) * 100.0}]
         set percentUsed [expr {(double($info(used)) / double($info(total))) * 100.0}]
 
-        SendTargetTheme $target freeBody [list $info(free) $info(used) $info(total) \
-            $percentFree $percentUsed [join $sections]]
+        SendTargetTheme $target Module::Free body \
+            [list $info(free) $info(used) $info(total) $percentFree $percentUsed [join $sections]]
 
         # Update volume totals.
         incr count
@@ -69,8 +69,8 @@ proc ::Bot::Mod::Free::Command {target user host channel argv} {
             set percentFree 0.0; set percentUsed 0.0
         }
 
-        SendTargetTheme $target freeFoot [list $free $used $total \
-            $percentFree $percentUsed $count]
+        SendTargetTheme $target Module::Free foot \
+            [list $free $used $total $percentFree $percentUsed $count]
     }
 }
 

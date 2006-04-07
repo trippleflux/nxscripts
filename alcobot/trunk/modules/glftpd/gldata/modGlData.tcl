@@ -120,7 +120,7 @@ proc ::Bot::Mod::GlData::Dupe {target user host channel argv} {
     }
     set limit [GetResultLimit $option(limit)]
 
-    SendTargetTheme $target dupeHead [list $pattern]
+    SendTargetTheme $target Module::GlData dupeHead [list $pattern]
     set data [list]
     if {![catch {set handle [open [file join $logsPath "dupelog"] r]} message]} {
         set range [expr {$limit - 1}]
@@ -151,12 +151,12 @@ proc ::Bot::Mod::GlData::Dupe {target user host channel argv} {
             set time  [clock scan "$month/$day/$year"]
             set release [string range $item 7 end]
 
-            SendTargetTheme $target dupeBody [list $count $release $time]
+            SendTargetTheme $target Module::GlData dupeBody [list $count $release $time]
         }
     } else {
-        SendTargetTheme $target dupeNone [list $pattern]
+        SendTargetTheme $target Module::GlData dupeNone [list $pattern]
     }
-    SendTargetTheme $target dupeFoot
+    SendTargetTheme $target Module::GlData dupeFoot
 }
 
 ####
@@ -171,7 +171,7 @@ proc ::Bot::Mod::GlData::New {target user host channel argv} {
     set option(limit) -1
     set pattern [join [GetOpt::Parse $argv {{limit integer}} option]]
     set limit [GetResultLimit $option(limit)]
-    SendTargetTheme $target newHead
+    SendTargetTheme $target Module::GlData newHead
 
     set count 0
     if {[StructOpen "dirlog" handle]} {
@@ -188,7 +188,7 @@ proc ::Bot::Mod::GlData::New {target user host channel argv} {
                     set user [UserIdToName $userId]
                     set group [GroupIdToName $groupId]
 
-                    SendTargetTheme $target newBody [list $count \
+                    SendTargetTheme $target Module::GlData newBody [list $count \
                         $user $group $path $time $age $files $bytes]
                 }
             }
@@ -196,8 +196,8 @@ proc ::Bot::Mod::GlData::New {target user host channel argv} {
         StructClose $handle
     }
 
-    if {!$count} {SendTargetTheme $target newNone}
-    SendTargetTheme $target newFoot
+    if {!$count} {SendTargetTheme $target Module::GlData newNone}
+    SendTargetTheme $target Module::GlData newFoot
 }
 
 ####
@@ -216,7 +216,7 @@ proc ::Bot::Mod::GlData::Search {target user host channel argv} {
     }
     set limit [GetResultLimit $option(limit)]
 
-    SendTargetTheme $target searchHead [list $pattern]
+    SendTargetTheme $target Module::GlData searchHead [list $pattern]
     set count 0
     if {[StructOpen "dirlog" handle]} {
         while {$count < $limit && [StructRead $handle data]} {
@@ -227,7 +227,7 @@ proc ::Bot::Mod::GlData::Search {target user host channel argv} {
                     set user [UserIdToName $userId]
                     set group [GroupIdToName $groupId]
 
-                    SendTargetTheme $target newBody [list $count \
+                    SendTargetTheme $target Module::GlData newBody [list $count \
                         $user $group $path $time $age $files $bytes]
                 }
             }
@@ -235,8 +235,8 @@ proc ::Bot::Mod::GlData::Search {target user host channel argv} {
         StructClose $handle
     }
 
-    if {!$count} {SendTargetTheme $target searchNone [list $pattern]}
-    SendTargetTheme $target searchFoot
+    if {!$count} {SendTargetTheme $target Module::GlData searchNone [list $pattern]}
+    SendTargetTheme $target Module::GlData searchFoot
 }
 
 ####
@@ -265,7 +265,7 @@ proc ::Bot::Mod::GlData::Undupe {target user host channel argv} {
     }
     set patternEsc [string map {[ \\[ ] \\]} $pattern]
 
-    SendTargetTheme $target undupeHead [list $pattern]
+    SendTargetTheme $target Module::GlData undupeHead [list $pattern]
     set count 0
     if {[StructOpen "dupefile" handle 0]} {
         # Open a temporary file for writing.
@@ -278,7 +278,7 @@ proc ::Bot::Mod::GlData::Undupe {target user host channel argv} {
                     # Write all non-matching entries to the temporary file.
                     if {[string match -nocase $patternEsc $file]} {
                         incr count
-                        SendTargetTheme $target undupeBody [list $count $file $time]
+                        SendTargetTheme $target Module::GlData undupeBody [list $count $file $time]
                     } else {
                         puts -nonewline $tempHandle $data
                     }
@@ -301,8 +301,8 @@ proc ::Bot::Mod::GlData::Undupe {target user host channel argv} {
         catch {file delete -- $tempFile}
     }
 
-    if {!$count} {SendTargetTheme $target undupeNone [list $pattern]}
-    SendTargetTheme $target undupeFoot
+    if {!$count} {SendTargetTheme $target Module::GlData undupeNone [list $pattern]}
+    SendTargetTheme $target Module::GlData undupeFoot
 }
 
 ####
@@ -318,7 +318,7 @@ proc ::Bot::Mod::GlData::Nukes {target user host channel argv} {
     set pattern [join [GetOpt::Parse $argv {{limit integer}} option]]
     set limit [GetResultLimit $option(limit)]
 
-    SendTargetTheme $target nukesHead
+    SendTargetTheme $target Module::GlData nukesHead
     set count 0
     if {[StructOpen "nukelog" handle]} {
         while {$count < $limit && [StructRead $handle data]} {
@@ -330,7 +330,7 @@ proc ::Bot::Mod::GlData::Nukes {target user host channel argv} {
                     incr count
                     set age [expr {[clock seconds] - $time}]
 
-                    SendTargetTheme $target nukesBody [list $count \
+                    SendTargetTheme $target Module::GlData nukesBody [list $count \
                         $nuker $path $time $age $multi $reason $bytes]
                 }
             }
@@ -338,8 +338,8 @@ proc ::Bot::Mod::GlData::Nukes {target user host channel argv} {
         StructClose $handle
     }
 
-    if {!$count} {SendTargetTheme $target nukesNone}
-    SendTargetTheme $target nukesFoot
+    if {!$count} {SendTargetTheme $target Module::GlData nukesNone}
+    SendTargetTheme $target Module::GlData nukesFoot
 }
 
 ####
@@ -355,7 +355,7 @@ proc ::Bot::Mod::GlData::Unnukes {target user host channel argv} {
     set pattern [join [GetOpt::Parse $argv {{limit integer}} option]]
     set limit [GetResultLimit $option(limit)]
 
-    SendTargetTheme $target unnukesHead
+    SendTargetTheme $target Module::GlData unnukesHead
     set count 0
     if {[StructOpen "nukelog" handle]} {
         while {$count < $limit && [StructRead $handle data]} {
@@ -367,7 +367,7 @@ proc ::Bot::Mod::GlData::Unnukes {target user host channel argv} {
                     incr count
                     set age [expr {[clock seconds] - $time}]
 
-                    SendTargetTheme $target unnukesBody [list $count \
+                    SendTargetTheme $target Module::GlData unnukesBody [list $count \
                         $unnuker $path $time $age $multi $reason $bytes]
                 }
             }
@@ -375,8 +375,8 @@ proc ::Bot::Mod::GlData::Unnukes {target user host channel argv} {
         StructClose $handle
     }
 
-    if {!$count} {SendTargetTheme $target unnukesNone}
-    SendTargetTheme $target unnukesFoot
+    if {!$count} {SendTargetTheme $target Module::GlData unnukesNone}
+    SendTargetTheme $target Module::GlData unnukesFoot
 }
 
 ####
@@ -392,7 +392,7 @@ proc ::Bot::Mod::GlData::OneLines {target user host channel argv} {
     GetOpt::Parse $argv {{limit integer}} option
     set limit [GetResultLimit $option(limit)]
 
-    SendTargetTheme $target oneLinesHead
+    SendTargetTheme $target Module::GlData oneLinesHead
     set count 0
     if {[StructOpen "oneliners.log" handle]} {
         while {$count < $limit && [StructRead $handle data]} {
@@ -400,15 +400,15 @@ proc ::Bot::Mod::GlData::OneLines {target user host channel argv} {
                 incr count
                 set age [expr {[clock seconds] - $time}]
 
-                SendTargetTheme $target oneLinesBody [list $count \
+                SendTargetTheme $target Module::GlData oneLinesBody [list $count \
                     $user $group $message $time $age]
             }
         }
         StructClose $handle
     }
 
-    if {!$count} {SendTargetTheme $target oneLinesNone}
-    SendTargetTheme $target oneLinesFoot
+    if {!$count} {SendTargetTheme $target Module::GlData oneLinesNone}
+    SendTargetTheme $target Module::GlData oneLinesFoot
 }
 
 ####

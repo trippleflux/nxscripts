@@ -125,17 +125,17 @@ proc ::Bot::Mod::Groups::ListAffils {target user host channel argv} {
     variable groupsHandle
     Config::Read $groupsHandle
     set sections [lsort [Config::Keys $groupsHandle Affils]]
-    SendTargetTheme $target affilsHead
+    SendTargetTheme $target Module::Groups affilsHead
 
     set groupList [list]
     foreach section $sections {
         set groups [Config::Get $groupsHandle Affils $section]
-        SendTargetTheme $target affilsBody [list [join [lsort $groups]] $section]
+        SendTargetTheme $target Module::Groups affilsBody [list [join [lsort $groups]] $section]
         eval lappend groupList $groups
     }
 
     set groupList [lsort -unique $groupList]
-    SendTargetTheme $target affilsFoot [list [llength $groupList] [llength $sections]]
+    SendTargetTheme $target Module::Groups affilsFoot [list [llength $groupList] [llength $sections]]
     Config::Free $groupsHandle
 }
 
@@ -148,17 +148,17 @@ proc ::Bot::Mod::Groups::ListBanned {target user host channel argv} {
     variable groupsHandle
     Config::Read $groupsHandle
     set sections [lsort [Config::Keys $groupsHandle Banned]]
-    SendTargetTheme $target bannedHead
+    SendTargetTheme $target Module::Groups bannedHead
 
     set groupList [list]
     foreach section $sections {
         set groups [Config::Get $groupsHandle Banned $section]
-        SendTargetTheme $target bannedBody [list [join [lsort $groups]] $section]
+        SendTargetTheme $target Module::Groups bannedBody [list [join [lsort $groups]] $section]
         eval lappend groupList $groups
     }
 
     set groupList [lsort -unique $groupList]
-    SendTargetTheme $target bannedFoot [list [llength $groupList] [llength $sections]]
+    SendTargetTheme $target Module::Groups bannedFoot [list [llength $groupList] [llength $sections]]
     Config::Free $groupsHandle
 }
 

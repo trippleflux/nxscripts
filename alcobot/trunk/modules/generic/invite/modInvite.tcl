@@ -164,13 +164,13 @@ proc ::Bot::Mod::Invite::SendTheme {user type {valueList ""}} {
     variable warnSection
 
     if {$warnSection ne ""} {
-        SendSectionTheme $warnSection $type $valueList
+        SendSectionTheme $warnSection Module::Invite $type $valueList
     }
-    if {[string equal -length 9 "inviteBad" $type]} {
+    if {[string equal -length 7 "invalid" $type]} {
         # Display a less verbose message to the possible intruder.
-        set type "inviteBad"
+        set type "invalid"
     }
-    SendTargetTheme "PRIVMSG $user" $type $valueList
+    SendTargetTheme "PRIVMSG $user" Module::Invite $type $valueList
 }
 
 ####
@@ -186,7 +186,7 @@ proc ::Bot::Mod::Invite::Process {ircUser ircHost ftpUser ftpGroup ftpGroupList 
 
     set time [clock seconds]
     if {![DbConnect]} {
-        SendTheme $ircUser inviteDbDown [list $ftpUser $ircUser]
+        SendTheme $ircUser databaseDown [list $ftpUser $ircUser]
         return
     }
 
@@ -200,7 +200,7 @@ proc ::Bot::Mod::Invite::Process {ircUser ircHost ftpUser ftpGroup ftpGroupList 
             }
         }
         if {!$valid} {
-            SendTheme $ircUser inviteBadHost [list $ftpUser $ircUser $ircHost]
+            SendTheme $ircUser invalidHost [list $ftpUser $ircUser $ircHost]
             return
         }
     }
@@ -222,14 +222,15 @@ proc ::Bot::Mod::Invite::Process {ircUser ircHost ftpUser ftpGroup ftpGroupList 
         if {![validchan $channel] || ![botonchan $channel] || ![botisop $channel]} {
             lappend failed $channel
         } else {
-            SendTargetTheme "PRIVMSG $channel" INVITE [list $ftpUser $ftpGroup $ircUser]
+            SendTargetTheme "PRIVMSG $channel" Module::ReadLogs INVITE \
+                [list $ftpUser $ftpGroup $ircUser]
             putquick "INVITE $ircUser $channel"
         }
     }
 
     if {[llength $failed]} {
         set failed [ListConvert [lsort $failed]]
-        SendTheme $ircUser inviteFailed [list $ftpUser $ircUser $failed]
+        SendTheme $ircUser needOps [list $ftpUser $ircUser $failed]
     }
 }
 
@@ -251,13 +252,13 @@ proc ::Bot::Mod::Invite::Command {target user host argv} {
 
         # Validate password.
         if {![llength $result] || ![CheckHash [lindex $result 1] $password]} {
-            SendTheme $user inviteBadPass [list $ftpUser $user $host]
+            SendTheme $user invalidPass [list $ftpUser $user $host]
             return
         }
 
         # Validate IRC username.
         if {$userCheck && ![string equal -nocase [lindex $result 0] $user]} {
-            SendTheme $user inviteBadUser [list $ftpUser $user $host]
+            SendTheme $user invalidUser [list $ftpUser $user $host]
             return
         }
 
@@ -270,14 +271,14 @@ proc ::Bot::Mod::Invite::Command {target user host argv} {
                 db "DELETE FROM invite_users WHERE ftp_user='$ftpUserEsc'"
                 db "DELETE FROM invite_hosts WHERE ftp_user='$ftpUserEsc'"
 
-                SendTheme $user inviteBadUser [list $ftpUser $user $host]
+                SendTheme $user invalidUser [list $ftpUser $user $host]
             } else {
                 set ftpGroup [lindex $uinfo(groups) 0]
                 Process $user $host $ftpUser $ftpGroup $uinfo(groups) $uinfo(flags)
             }
         }
     } else {
-        SendTheme $user inviteDbDown [list $ftpUser $user]
+        SendTheme $user databaseDown [list $ftpUser $user]
     }
 }
 

@@ -28,11 +28,11 @@ namespace eval ::Bot::Mod::SiteCmd {
 proc ::Bot::Mod::SiteCmd::Command {target user host channel argv} {
     if {[llength $argv] < 1} {throw CMDHELP}
     set name "SITE [join $argv]"
-    SendTargetTheme $target siteHead [list $name]
+    SendTargetTheme $target Module::SiteCmd head [list $name]
 
     set connection [GetFtpConnection]
     if {[Ftp::GetStatus $connection] != 2} {
-        SendTargetTheme $target siteBody [list "Not connected to the FTP server."]
+        SendTargetTheme $target Module::SiteCmd body [list "Not connected to the FTP server."]
         return
     }
 
@@ -52,8 +52,8 @@ proc ::Bot::Mod::SiteCmd::Callback {target connection response} {
         set message "Command failed."
     }
 
-    SendTargetTheme $target siteBody [list $message]
-    SendTargetTheme $target siteFoot
+    SendTargetTheme $target Module::SiteCmd body [list $message]
+    SendTargetTheme $target Module::SiteCmd foot
 }
 
 ####
