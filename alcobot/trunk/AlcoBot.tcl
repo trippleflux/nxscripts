@@ -232,9 +232,9 @@ proc ::Bot::CmdSendHelp {dest type name {message ""}} {
 
     set argDesc [lindex $cmdNames([list $type $name]) 0]
     if {$message ne ""} {
-        SendTargetTheme "PRIVMSG $dest" commandHelp  [list $argDesc $lastbind $message]
+        SendTargetTheme "PRIVMSG $dest" Core commandHelp  [list $argDesc $lastbind $message]
     } else {
-        SendTargetTheme "PRIVMSG $dest" commandUsage [list $argDesc $lastbind]
+        SendTargetTheme "PRIVMSG $dest" Core commandUsage [list $argDesc $lastbind]
     }
 }
 
@@ -1353,7 +1353,7 @@ proc ::Bot::VarReplaceBase {text {doPrefix 1}} {
 #
 # Replace dynamic content, such as the current date, time, and section colours.
 #
-proc ::Bot::VarReplaceCommon {text section} {
+proc ::Bot::VarReplaceCommon {text {section ""}} {
     variable colours
     variable defaultSection
 

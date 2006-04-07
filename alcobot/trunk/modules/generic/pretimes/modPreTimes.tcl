@@ -173,7 +173,7 @@ proc ::Bot::Mod::PreTimes::Search {target user host channel argv} {
 
     if {!$count} {
         # Always send this message to the channel.
-        SendTargetTheme "PRIVMSG $channel" none [list $pattern]
+        SendTargetTheme "PRIVMSG $channel" Module::PreTimes none [list $pattern]
     }
     if {$multi} {SendTargetTheme $target Module::PreTimes foot}
 }
