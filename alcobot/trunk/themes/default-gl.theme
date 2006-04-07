@@ -91,7 +91,11 @@ speedGiga = [b]%.2(speed)[b]GB/s
 # - There are three variables common to all entries: %(prefix), %(siteName),
 #   and %(siteName). All other variables are specific to each theme entry.
 #
-[Theme]
+[Theme::Core]
+commandHelp    = [b][[c1]Usage[c]][b] %(command) %(arguments) - %(message)
+commandUsage   = [b][[c1]Usage[c]][b] %(command) %(arguments)
+
+[Theme::Module::ReadLogs]
 # glFTPD events
 NEWDIR         = [b][[c1]%(section)[c]][b] New Release: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group).
 DELDIR         = [b][[c1]%(section)[c]][b] Directory Deleted: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group).
@@ -104,9 +108,12 @@ REQFILLED      = [b][[c1]Request[c]][b] [b]%(request)[b] filled by [b]%(user)[b]
 WIPE           = [b][[c1]%(section)[c]][b] Wiped: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group).
 WIPE-r         = [b][[c1]%(section)[c]][b] Wiped: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group).
 
-# ModPreTimes events
+# PreTimes module events
 PRENEW         = [b][[c1]%(section)[c]][b] New Release: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago.
 PRELATE        = [b][[c1]%(section)[c]][b] New Release: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago, older than the %(limit) limit.
+
+# Invite module events
+INVITE         = [b][[c1]Invite[c]][b] [b]%(user)[b]/%(group) invited himself as [b]%(nick)[b].
 
 # Error events
 ERROR          = [b][[c1]Error[c]][b] %(message)
@@ -191,23 +198,19 @@ USERTOP_JOIN   = "\n"
 GROUPTOP       = [b][[c1]%(section)[c]][b] %(pos). [b]%(group)[b] [%(size)/[b]%(files)[b]F/[b]%.1(percent)[b]%/%(speed)]
 GROUPTOP_JOIN  = "\n"
 
-# Command help
-commandHelp    = [b][[c1]Usage[c]][b] %(command) %(arguments) - %(message)
-commandUsage   = [b][[c1]Usage[c]][b] %(command) %(arguments)
+[Theme::Module::Bouncer]
+head           = [b][[c1]BNC[c]][b] FTP Bouncer Status:
+offline        = [b][[c1]BNC[c]][b] %(name) - Host: %(host):%(port) - Status: [c]4[b]Offline[b][c] (checked %(age) ago).
+online         = [b][[c1]BNC[c]][b] %(name) - Host: %(host):%(port) - Status: [c]3[b]Online[b][c] (checked %(age) ago).
+unknown        = [b][[c1]BNC[c]][b] %(name) - Host: %(host):%(port) - Status: [c]4[b]Unknown[b][c].
+foot           =
 
-# Module: bouncer
-bouncerHead    = [b][[c1]BNC[c]][b] FTP Bouncer Status:
-bouncerOffline = [b][[c1]BNC[c]][b] %(name) - Host: %(host):%(port) - Status: [c]4[b]Offline[b][c] (checked %(age) ago).
-bouncerOnline  = [b][[c1]BNC[c]][b] %(name) - Host: %(host):%(port) - Status: [c]3[b]Online[b][c] (checked %(age) ago).
-bouncerUnknown = [b][[c1]BNC[c]][b] %(name) - Host: %(host):%(port) - Status: [c]4[b]Unknown[b][c].
-bouncerFoot    =
+[Theme::Module::Free]
+head           = [b][[c1]Free[c]][b] Total Space:
+body           = [b][[c1]Free[c]][b] %(sections): %(free) free of %(total)
+foot           = [b][[c1]Free[c]][b] TOTAL: %(free) free of %(total)
 
-# Module: free
-freeHead       = [b][[c1]Free[c]][b] Total Space:
-freeBody       = [b][[c1]Free[c]][b] %(sections): %(free) free of %(total)
-freeFoot       = [b][[c1]Free[c]][b] TOTAL: %(free) free of %(total)
-
-# Module: gldata
+[Theme::Module::GlData]
 dupeHead       = [b]Dupe:[b]
 dupeBody       = [%02(num)] %(releaseDate) - [b]%(releaseName)[b]
 dupeNone       = No releases found matching "%(pattern)".
@@ -243,7 +246,7 @@ oneLinesBody   = [%(messageDate)] [b]%(message)[b] by [b]%(user)[b]/%(group).
 oneLinesNone   = No messages found.
 oneLinesFoot   =
 
-# Module: groups
+[Theme::Module::Groups]
 affilsHead     = [b]Affiliated Groups:[b]
 affilsBody     = [b][[c1]%(section)[c]][b] %(groups)
 affilsFoot     = Total: [b]%(groupCount)[b] affil(s) in [b]%(sectionCount)[b] section(s).
@@ -252,22 +255,21 @@ bannedHead     = [b]Banned Groups:[b]
 bannedBody     = [b][[c1]%(section)[c]][b] %(groups)
 bannedFoot     = Total: [b]%(groupCount)[b] banned group(s) in [b]%(sectionCount)[b] section(s).
 
-# Module: help
-helpHead       = [b]Supported Commands:[b]
-helpType       = [u]%(type) Commands:[u]
-helpBody       = %(command) %(arguments) - %(description)
-helpFoot       =
+[Theme::Module::Help]
+head           = [b]Supported Commands:[b]
+type           = [u]%(type) Commands:[u]
+body           = %(command) %(arguments) - %(description)
+foot           =
 
-# Module: invite
-inviteBad      = [b][[c1]Invite[c]][b] Incorrect username, password, or IRC host.
-inviteBadHost  = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) using an unknown IRC host.
-inviteBadPass  = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) used an incorrect account or password.
-inviteBadUser  = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) used the wrong IRC nickname.
-inviteDbDown   = [b][[c1]Invite[c]][b] Database offline, unable to invite [b]%(nick)[b].
-inviteFailed   = [b][[c1]Invite[c]][b] I need ops in [b]%(channels)[b] to invite [b]%(nick)[b].
-INVITE         = [b][[c1]Invite[c]][b] [b]%(user)[b]/%(group) invited himself as [b]%(nick)[b].
+[Theme::Module::Invite]
+bad            = [b][[c1]Invite[c]][b] Incorrect username, password, or IRC host.
+badHost        = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) using an unknown IRC host.
+badPass        = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) used an incorrect account or password.
+badUser        = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) used the wrong IRC nickname.
+dbDown         = [b][[c1]Invite[c]][b] Database offline, unable to invite [b]%(nick)[b].
+failed         = [b][[c1]Invite[c]][b] I need ops in [b]%(channels)[b] to invite [b]%(nick)[b].
 
-# Module: online
+[Theme::Module::Online]
 bandwidth      = [b][[c1]Bandwidth[c]][b] Leechers: [b]%(usersDn)[b] at %(speedDn) - Uploaders: [b]%(usersUp)[b] at %(speedUp) - Idlers: [b]%(usersIdle)[b] - Total: %(speedTotal) with [b]%(usersTotal)[b]/[b]%(usersMax)[b] online.
 bandwidthDn    = [b][[c1]Bandwidth[c]][b] [b]%(usersDn)[b] download(s) at %(speedDn).
 bandwidthUp    = [b][[c1]Bandwidth[c]][b] [b]%(usersUp)[b] upload(s) at %(speedUp).
@@ -298,14 +300,14 @@ whoUpload      = [b]-[b] [b]%(user)[b]/%(group) is uploading [b]%(file)[b] at %(
 whoNone        = [b]-[b] There is no one online.
 whoFoot        =
 
-# Module: pretimes
-preHead        =
-preBody        = [b][[c1]Pre[c]][b] [b]%(release)[b] (%(size)/[b]%(files)[b]F) released %(age) ago (%(preDate) %(preTime))
-preNuke        = [b][[c1]Pre[c]][b] [b]%(release)[b] (%(size)/[b]%(files)[b]F) released %(age) ago (%(preDate) %(preTime)) nuked for [b]%(reason)[b]
-preNone        = [b][[c1]Pre[c]][b] No releases found matching "%(pattern)".
-preFoot        =
+[Theme::Module::PreTimes]
+head           =
+body           = [b][[c1]Pre[c]][b] [b]%(release)[b] (%(size)/[b]%(files)[b]F) released %(age) ago (%(preDate) %(preTime))
+nuke           = [b][[c1]Pre[c]][b] [b]%(release)[b] (%(size)/[b]%(files)[b]F) released %(age) ago (%(preDate) %(preTime)) nuked for [b]%(reason)[b]
+none           = [b][[c1]Pre[c]][b] No releases found matching "%(pattern)".
+foot           =
 
-# Module: sitecmd
-siteHead       = [b][[c1]SiteCmd[c]][b] Sending: [b]%(command)[b]
-siteBody       = [b][[c1]SiteCmd[c]][b] %(message)
-siteFoot       =
+[Theme::Module::SiteCmd]
+head           = [b][[c1]SiteCmd[c]][b] Sending: [b]%(command)[b]
+body           = [b][[c1]SiteCmd[c]][b] %(message)
+foot           =

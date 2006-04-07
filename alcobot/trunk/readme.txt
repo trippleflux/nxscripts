@@ -158,7 +158,7 @@ for AlcoBot to recognize them. Read the following installation instructions:
      [Unnuke]
      UnNuke_Log       = ""%vfs" "%user" "%group" "%.0multi" "%reason" "%.3size" "%nukees""
 
-  3. Load the "ioa" module; see section 4 of this manual for more information.
+  3. Load the "ioa" module; see section 4 of this document for more information.
 
   ############################################################
   # iojZS                                                    #
@@ -212,7 +212,7 @@ for AlcoBot to recognize them. Read the following installation instructions:
   Info: Site command package, written by neoxed.
   URL : http://www.iozs.com
 
-  1. Load the "nxtools" module; see section 4 of this manual for more information.
+  1. Load the "nxtools" module; see section 4 of this document for more information.
 
   ############################################################
   # php_psio                                                 #
@@ -346,8 +346,7 @@ before use. Read the following installation instructions:
 
   1. Add "ioa" to the module list in AlcoBot.conf.
   2. Configure the [Module::IoA] section in AlcoBot.conf.
-  3. Edit the theme entries for use with ioA, see "variables.txt" for a list of cookies.
-  4. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
+  3. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
 
   ############################################################
   # nxtools                                                  #
