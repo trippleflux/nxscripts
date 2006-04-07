@@ -168,6 +168,7 @@ proc ::Bot::CmdCreate {type name script args} {
         }
     }
     if {![llength $prefixes]} {
+        # No custom prefixes defined, use the default one.
         set prefixes [list $cmdPrefix]
     }
 
@@ -957,7 +958,6 @@ proc ::Bot::SendTarget {target text} {
 # Replace theme values and send the text to the given target.
 #
 proc ::Bot::SendTargetTheme {target type {valueList ""} {section ""}} {
-    variable defaultSection
     variable theme
     variable variables
 
@@ -1706,8 +1706,8 @@ proc ::Bot::InitMain {} {
     }
 
     LogInfo "Loading configuration..."
-    set configFile [file join $scriptPath "AlcoBot.conf"]
-    if {[catch {InitConfig $configFile} message]} {
+    set path [file join $scriptPath "AlcoBot.conf"]
+    if {[catch {InitConfig $path} message]} {
         LogError Config $message; die
     }
 
@@ -1716,12 +1716,12 @@ proc ::Bot::InitMain {} {
     if {[catch {InitModules $modules} message]} {
         LogError Modules $message; die
     }
-    set varFile [file join $scriptPath "AlcoBot.vars"]
-    if {[catch {VarFileLoad $varFile} message]} {
+    set path [file join $scriptPath "AlcoBot.vars"]
+    if {[catch {VarFileLoad $path} message]} {
         LogError Variables $message; die
     }
-    set themeFile [Config::Get $configHandle General themeFile]
-    if {[catch {InitTheme $themeFile} message]} {
+    set path [Config::Get $configHandle General themeFile]
+    if {[catch {InitTheme $path} message]} {
         LogError Theme $message; die
     }
 
