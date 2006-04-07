@@ -56,19 +56,9 @@ Format: %[width].[precision](variableName)
     siteTag  - Site tag (defined in AlcoBot.conf)
 }
 
-proc IndexFile {handle desc filePath} {
-    puts "- Indexing file: $filePath"
-    puts $handle "############################################################"
-    puts $handle [format "# %-56s #" $desc]
-    puts $handle "############################################################"
-    puts $handle ""
-
-    set config [Config::Open $filePath]
-    Config::Read $config
-    foreach section [Config::Sections $config Variables::*] {
-        array set variables [Config::GetEx $config $section]
-    }
-    Config::Close $config
+proc ParseGroup {handle group data} {
+    puts $handle [format {  [Theme::%s]} $group]
+    array set variables $data
 
     # Find the longest theme name.
     set longest 0
@@ -115,18 +105,42 @@ proc IndexFile {handle desc filePath} {
         }
 
         set nameList [join [lsort $nameList] {, }]
-        puts $handle [format "%-*s - %s" $longest $themeName $nameList]
+        puts $handle [format "  %-*s - %s" $longest $themeName $nameList]
     }
 
     puts $handle ""
     return
 }
 
-# Index module variable definition files.
-foreach filePath [lsort [glob ./modules/*/*/*.vars]] {
-    set fileSplit [file split $filePath]
-    set desc "Module: [lindex $fileSplit end-1] ([lindex $fileSplit end-2])"
-    IndexFile $handle $desc $filePath
+set fileTree [Tree::Create]
+foreach type [lsort [glob -nocomplain -types d "modules/*"]] {
+    # Write module type header.
+    puts $handle "######################################################################"
+    puts $handle [format "# %-66s #" [file tail $type]]
+    puts $handle "######################################################################"
+    puts $handle ""
+    puts $handle "- Modules located in \"$type\"."
+    puts $handle ""
+
+    foreach path [lsort [glob -nocomplain -types f [file join $type "*/*.vars"]]] {
+        puts "- Reading file: [file tail $path]"
+
+        # Write module header.
+        set pathSplit [file split $path]
+        puts $handle "  ############################################################"
+        puts $handle [format "  # %-56s #" [lindex $pathSplit end-1]]
+        puts $handle "  ############################################################"
+        puts $handle ""
+
+        # Read variable definition file.
+        set config [Config::Open $path]
+        Config::Read $config
+        foreach section [lsort [Config::Sections $config Variables::*]] {
+            set group [string range $section 11 end]
+            ParseGroup $handle $group [Config::GetEx $config $section]
+        }
+        Config::Close $config
+    }
 }
 
 puts "- Finished."
