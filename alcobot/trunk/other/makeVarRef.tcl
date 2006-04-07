@@ -41,11 +41,19 @@ puts $handle "##################################################################
 puts $handle {
 Format: %[width].[precision](variableName)
 
-- All variable names are in camel casing (lower-case for the first word and the
-  first character of all subsequent words is capitalized).
+- All variable names are in camel casing (lower-case for the first word
+  and the first character of all subsequent words is capitalized).
 
-- The 'width' and 'precision' fields work just as they do in the C printf()
+- The "width" and "precision" fields work just as they do in the C printf()
   function.
+
+- There are several variables common to all theme entries:
+
+    nowDate  - Current date
+    nowTime  - Current time
+    prefix   - Theme prefix (defined in [Theme::Core])
+    siteName - Site name (defined in AlcoBot.conf)
+    siteTag  - Site tag (defined in AlcoBot.conf)
 }
 
 proc IndexFile {handle desc filePath} {
@@ -57,7 +65,9 @@ proc IndexFile {handle desc filePath} {
 
     set config [Config::Open $filePath]
     Config::Read $config
-    array set variables [Config::GetEx $config Variables]
+    foreach section [Config::Sections $config Variables::*] {
+        array set variables [Config::GetEx $config $section]
+    }
     Config::Close $config
 
     # Find the longest theme name.
