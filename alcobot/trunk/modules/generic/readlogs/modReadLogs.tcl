@@ -137,7 +137,6 @@ proc ::Bot::Mod::ReadLogs::Update {} {
     variable logList
     variable logOffset
     variable reBase
-    upvar ::Bot::variables variables
 
     # This log reading code was taken from Project-ZS-NG's sitebot,
     # which was, coincidently, also written by me (neoxed).
@@ -200,14 +199,14 @@ proc ::Bot::Mod::ReadLogs::Update {} {
         }
         LogDebug ModReadLogs "Received event: $event (log: $logType)."
 
-        if {![info exists variables($event)]} {
+        if {[catch {set varList [VarGetEntry Module::ReadLogs $event]} message]} {
             LogDebug ModReadLogs "No variable definition for event, skipping announce."
             continue
         }
 
         # If the event's variable definition contains a section-path cookie,
         # assume it's a section oriented announce (e.g. NEWDIR and DELDIR).
-        set index [lsearch -glob $variables($event) "*:P"]
+        set index [lsearch -glob $varList "*:P"]
         if {$index != -1} {
             set path "/[PathStrip [lindex $line $index]]"
 

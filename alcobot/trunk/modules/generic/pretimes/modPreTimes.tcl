@@ -56,7 +56,6 @@ proc ::Bot::Mod::PreTimes::DbConnect {} {
 #
 proc ::Bot::Mod::PreTimes::LogEvent {event destSection pathSection path data} {
     variable defLimit
-    upvar ::Bot::variables variables
 
     # Record the time now for accuracy.
     set now [clock seconds]
@@ -95,15 +94,17 @@ proc ::Bot::Mod::PreTimes::LogEvent {event destSection pathSection path data} {
         set disks 0; set files 0; set kiloBytes 0
 
         # Retrieve the files, size, and disk count from the log data.
-        if {[set index [lsearch -exact $variables($event) "disks:n"]] != -1} {
+        set varList [VarGetEntry Module::ReadLogs $event]
+
+        if {[set index [lsearch -exact $varList "disks:n"]] != -1} {
             set disks [lindex $data $index]
         }
-        if {[set index [lsearch -exact $variables($event) "files:n"]] != -1} {
+        if {[set index [lsearch -exact $varList "files:n"]] != -1} {
             set files [lindex $data $index]
         }
-        if {[set index [lsearch -exact $variables($event) "size:k"]] != -1} {
+        if {[set index [lsearch -exact $varList "size:k"]] != -1} {
             set kiloBytes [lindex $data $index]
-        } elseif {[set index [lsearch -exact $variables($event) "size:m"]] != -1} {
+        } elseif {[set index [lsearch -exact $varList "size:m"]] != -1} {
             set kiloBytes [expr {[lindex $data $index] * 1024.0}]
         }
 

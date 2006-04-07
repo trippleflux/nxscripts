@@ -29,7 +29,7 @@ namespace eval ::Bot {
         GetFlagsFromSection GetSectionFromEvent GetSectionFromPath \
         SendSection SendSectionTheme SendTarget SendTargetTheme \
         FormatDate FormatTime FormatDuration FormatDurationLong FormatSize FormatSpeed \
-        VarFileLoad VarFileUnload VarReplace VarReplaceBase VarReplaceCommon
+        VarGetEntry VarGetGroups VarGetNames VarFileLoad VarFileUnload VarReplace VarReplaceBase VarReplaceCommon
 }
 
 #
@@ -1085,6 +1085,52 @@ proc ::Bot::FormatSpeed {speed {seconds 0}} {
 ################################################################################
 # Variables                                                                    #
 ################################################################################
+
+####
+# VarGetEntry
+#
+# Retrieves a variable definition.
+#
+proc ::Bot::VarGetEntry {varGroup varName} {
+    variable variables
+
+    set name [list $varGroup $varName]
+    if {![info exists variables($name)]} {
+        error "no variable definition for \"$varName\" in \"$varGroup\""
+    }
+    return $variables($name)
+}
+
+####
+# VarGetGroups
+#
+# Retrieves a list of variable groups.
+#
+proc ::Bot::VarGetGroups {{groupPattern "*"}} {
+    variable variables
+
+    set result [list]
+    foreach name [array names variables [list $groupPattern "*"]] {
+        lappend result [lindex $name 0]
+    }
+    return $result
+}
+
+####
+# VarGetNames
+#
+# Retrieves a list of variable names in a group.
+#
+proc ::Bot::VarGetNames {varGroup {namePattern "*"}} {
+    variable variables
+
+    set result [list]
+    set varGroup [GlobEscape $varGroup]
+    foreach name [array names variables [list $varGroup $namePattern]] {
+        lappend result [lindex $name 1]
+    }
+    return $result
+}
 
 ####
 # VarFileLoad
