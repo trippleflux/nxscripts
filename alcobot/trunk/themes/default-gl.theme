@@ -206,7 +206,7 @@ unknown        = [b][[c1]BNC[c]][b] %(name) - Host: %(host):%(port) - Status: [c
 foot           =
 
 [Theme::Module::Free]
-head           = [b][[c1]Free[c]][b] Total Space:
+head           =
 body           = [b][[c1]Free[c]][b] %(sections): %(free) free of %(total)
 foot           = [b][[c1]Free[c]][b] TOTAL: %(free) free of %(total)
 
