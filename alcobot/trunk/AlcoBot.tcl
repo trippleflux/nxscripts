@@ -45,8 +45,8 @@ namespace eval ::Bot {
 #   pathSections  - Path sections.
 #   replace       - Static variable replacements.
 #   scripts       - Callback scripts.
-#   theme         - Event theme definitions.
-#   variables     - Event variable definitions.
+#   themes        - Theme definitions.
+#   variables     - Variable definitions.
 #
 # Context Variables:
 #
@@ -928,17 +928,18 @@ proc ::Bot::SendSection {section text} {
 # Replace theme values and send the text to all channels for the given
 # channel or path section.
 #
-proc ::Bot::SendSectionTheme {section type {valueList ""}} {
-    variable theme
+proc ::Bot::SendSectionTheme {section themeGroup themeName {valueList ""}} {
+    variable themes
     variable variables
 
-    if {![info exists theme($type)] || ![info exists variables($type)]} {
-        LogError SendSectionTheme "Missing theme or variable definition for \"$type\"."
+    set name [list $themeGroup $themeName]
+    if {![info exists themes($name)] || ![info exists variables($name)]} {
+        LogError SendSectionTheme "Missing theme or variable definition for \"$themeName\" in \"$themeGroup\"."
         return
     }
 
-    set text [VarReplaceCommon $theme($type) $section]
-    SendSection $section [VarReplace $text $variables($type) $valueList]
+    set text [VarReplaceCommon $themes($name) $section]
+    SendSection $section [VarReplace $text $variables($name) $valueList]
 }
 
 ####
@@ -957,20 +958,21 @@ proc ::Bot::SendTarget {target text} {
 #
 # Replace theme values and send the text to the given target.
 #
-proc ::Bot::SendTargetTheme {target type {valueList ""} {section ""}} {
-    variable theme
+proc ::Bot::SendTargetTheme {target themeGroup themeName {valueList ""}} {
+    variable themes
     variable variables
 
-    if {![info exists theme($type)] || ![info exists variables($type)]} {
-        LogError SendTargetTheme "Missing theme or variable definition for \"$type\"."
+    set name [list $themeGroup $themeName]
+    if {![info exists themes($name)] || ![info exists variables($name)]} {
+        LogError SendTargetTheme "Missing theme or variable definition for \"$themeName\" in \"$themeGroup\"."
         return
     }
 
     # Replace section colours and common items before the value list, in
     # case the values introduce colour codes (e.g. a user named "[b]ill",
     # since "[b]" is also the bold code).
-    set text [VarReplaceCommon $theme($type) $section]
-    SendTarget $target [VarReplace $text $variables($type) $valueList]
+    set text [VarReplaceCommon $themes($name)]
+    SendTarget $target [VarReplace $text $variables($name) $valueList]
 }
 
 ################################################################################
@@ -1108,8 +1110,15 @@ proc ::Bot::VarFileLoad {filePath} {
         # the config value must be appended to, not replaced.
         eval lappend [list events($name)] $value
     }
+
     array set replace [Config::GetEx $handle Replace]
-    array set variables [Config::GetEx $handle Variables]
+
+    foreach section [Config::Sections $handle Variables::*] {
+        set group [string range $section 11 end]
+        foreach {name value} [Config::GetEx $handle $section] {
+            set variables([list $group $name]) $value
+        }
+    }
 
     Config::Close $handle
 }
@@ -1128,20 +1137,26 @@ proc ::Bot::VarFileUnload {filePath} {
     Config::Read $handle
 
     foreach {name value} [Config::GetEx $handle Events] {
-        if {[info exists events($name)]} {
-            foreach event $value {
-                set events($name) [ListRemove $events($name) $event]
-            }
-            if {![llength $events($name)]} {
-                unset events($name)
-            }
+        if {![info exists events($name)]} {continue}
+        foreach event $value {
+            set events($name) [ListRemove $events($name) $event]
+        }
+
+        # Remove the event group if it's empty.
+        if {![llength $events($name)]} {
+            unset events($name)
         }
     }
+
     foreach name [Config::Keys $handle Replace] {
         unset -nocomplain replace($name)
     }
-    foreach name [Config::Keys $handle Variables] {
-        unset -nocomplain variables($name)
+
+    foreach section [Config::Sections $handle Variables::*] {
+        set group [string range $section 11 end]
+        foreach name [Config::Keys $handle $section] {
+            unset -nocomplain variables([list $group $name])
+        }
     }
 
     Config::Close $handle
@@ -1215,13 +1230,13 @@ proc ::Bot::VarReplace {input varList valueList} {
                 lappend valueList [FormatDate $value] [FormatTime $value]
             }
         } elseif {[llength $varName] > 1} {
-            variable theme
+            variable themes
             variable variables
 
             set value [ListParse $value]
             foreach {varName loopName} $varName {
                 set joinName "${loopName}_JOIN"
-                if {![info exists theme($loopName)] || ![info exists theme($joinName)]} {
+                if {![info exists themes($loopName)] || ![info exists themes($joinName)]} {
                     LogError VarReplace "Missing theme definition for \"$loopName\" or \"$joinName\"."
                     continue
                 }
@@ -1231,10 +1246,10 @@ proc ::Bot::VarReplace {input varList valueList} {
                 set valueCount [llength $value]
                 for {set i 0} {$i < $valueCount} {incr i $varCount} {
                     set values [lrange $value $i [expr {$i + $varCount - 1}]]
-                    lappend data [VarReplace $theme($loopName) $variables($loopName) $values]
+                    lappend data [VarReplace $themes($loopName) $variables($loopName) $values]
                 }
                 lappend varList $varName
-                lappend valueList [join $data $theme($joinName)]
+                lappend valueList [join $data $themes($joinName)]
             }
         } else {
             incr index; continue
@@ -1627,10 +1642,10 @@ proc ::Bot::InitModules {modList} {
 proc ::Bot::InitTheme {themeFile} {
     variable colours
     variable format
-    variable theme
-    variable scriptPath
+    variable themes
     variable variables
-    unset -nocomplain colours format theme
+    variable scriptPath
+    unset -nocomplain colours format themes
 
     set themeFile [file join $scriptPath "themes" $themeFile]
     set handle [Config::Open $themeFile]
@@ -1671,17 +1686,22 @@ proc ::Bot::InitTheme {themeFile} {
 
     # Process theme entries.
     set known [array names variables]
-    foreach {name value} [Config::GetEx $handle Theme] {
-        set known [ListRemove $known $name]
+    foreach section [Config::Sections $handle Theme::*] {
+        set group [string range $section 7 end]
 
-        # Remove quotes around the theme value, if present.
-        if {[string index $value 0] eq "\"" && [string index $value end] eq "\""} {
-            set value [string range $value 1 end-1]
+        foreach {name value} [Config::GetEx $handle $section] {
+            set name [list $group $name]
+            set known [ListRemove $known $name]
+
+            # Remove quotes around the theme value, if present.
+            if {[string index $value 0] eq "\"" && [string index $value end] eq "\""} {
+                set value [string range $value 1 end-1]
+            }
+            set themes($name) [VarReplaceBase $value]
         }
-        set theme($name) [VarReplaceBase $value]
     }
     if {[llength $known]} {
-        foreach name $known {set theme($name) ""}
+        foreach name $known {set themes($name) ""}
         LogWarning Theme "Missing theme entries: [ListConvert [lsort $known]]."
     }
 
