@@ -55,7 +55,12 @@ proc ::Bot::Mod::Groups::ChangeAffils {event target user host channel argv} {
         }
 
         # Remove group from the section's affil list.
-        Config::Set $groupsHandle Affils $section [lreplace $groupList $index $index]
+        set groupList [lreplace $groupList $index $index]
+        if {[llength $groupList]} {
+            Config::Set $groupsHandle Affils $section $groupList
+        } else {
+            Config::Unset $groupsHandle Affils $section
+        }
         if {[catch {Config::Write $groupsHandle} message]} {
             SendTarget $target "Unable to update groups file: $message"
         } else {
@@ -103,7 +108,12 @@ proc ::Bot::Mod::Groups::ChangeBanned {event target user host channel argv} {
         }
 
         # Remove group from the section's ban list.
-        Config::Set $groupsHandle Banned $section [lreplace $groupList $index $index]
+        set groupList [lreplace $groupList $index $index]
+        if {[llength $groupList]} {
+            Config::Set $groupsHandle Banned $section $groupList
+        } else {
+            Config::Unset $groupsHandle Banned $section
+        }
         if {[catch {Config::Write $groupsHandle} message]} {
             SendTarget $target "Unable to update groups file: $message"
         } else {
