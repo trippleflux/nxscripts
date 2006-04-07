@@ -108,13 +108,6 @@ REQFILLED      = [b][[c1]Request[c]][b] [b]%(request)[b] filled by [b]%(user)[b]
 WIPE           = [b][[c1]%(section)[c]][b] Wiped: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group).
 WIPE-r         = [b][[c1]%(section)[c]][b] Wiped: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group).
 
-# PreTimes module events
-PRENEW         = [b][[c1]%(section)[c]][b] New Release: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago.
-PRELATE        = [b][[c1]%(section)[c]][b] New Release: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago, older than the %(limit) limit.
-
-# Invite module events
-INVITE         = [b][[c1]Invite[c]][b] [b]%(user)[b]/%(group) invited himself as [b]%(nick)[b].
-
 # Error events
 ERROR          = [b][[c1]Error[c]][b] %(message)
 
@@ -145,6 +138,13 @@ CHGRPDEL       = [b][[c1]SysOp[c]][b] [b]%(siteop)[b] removed [b]%(user)[b] from
 SYSOP          = [b][[c1]SysOp[c]][b] %(message)
 GIVE           = [b][[c1]Give[c]][b] [b]%(user)[b] gave %(credits) of credits to [b]%(target)[b].
 TAKE           = [b][[c1]Take[c]][b] [b]%(user)[b] took %(credits) of credits from [b]%(target)[b].
+
+# Invite events
+INVITE         = [b][[c1]Invite[c]][b] [b]%(user)[b]/%(group) invited himself as [b]%(nick)[b].
+
+# Pretimes events
+PRENEW         = [b][[c1]%(section)[c]][b] New Release: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago.
+PRELATE        = [b][[c1]%(section)[c]][b] New Release: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago, older than the %(limit) limit.
 
 # Zipscript: bad file events
 BAD_FILE_0SIZE     = [b][[c1]%(section)[c1]][b] [b]%(user)[b]/%(group) uploaded a zero byte file in [b]%(releaseName)[b].

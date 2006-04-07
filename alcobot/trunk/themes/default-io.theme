@@ -102,13 +102,6 @@ DELDIR         = [b][[c1]%(section)[c]][b] Directory Deleted: %(releasePath)[b]%
 LOGIN          = [b][[c1]Login[c]][b] [b]%(user)[b]/%(group) has logged in.
 LOGOUT         = [b][[c1]Logout[c]][b] [b]%(user)[b]/%(group) has logged out.
 
-# PreTimes module events
-PRENEW         = [b][[c1]%(section)[c]][b] New Release: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago.
-PRELATE        = [b][[c1]%(section)[c]][b] New Release: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago, older than the %(limit) limit.
-
-# Invite module events
-INVITE         = [b][[c1]Invite[c]][b] [b]%(user)[b]/%(group) invited himself as [b]%(nick)[b].
-
 # Error events
 ERROR          = [b][[c1]Error[c]][b] %(message)
 
@@ -160,7 +153,14 @@ REQDEL         = [b][[c1]Request[c]][b] [b]%(request)[b] (ID #%(id)) deleted by 
 REQFILL        = [b][[c1]Request[c]][b] [b]%(request)[b] (ID #%(id)) filled by [b]%(user)[b]/%(group) after %(age).
 REQWIPE        = [b][[c1]Request[c]][b] [b]%(request)[b] was auto-wiped since it's older than %(maxAge).
 
-# ioSFV, ioZS, and Project-ZS events
+# Invite events
+INVITE         = [b][[c1]Invite[c]][b] [b]%(user)[b]/%(group) invited himself as [b]%(nick)[b].
+
+# Pretimes events
+PRENEW         = [b][[c1]%(section)[c]][b] New Release: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago.
+PRELATE        = [b][[c1]%(section)[c]][b] New Release: %(releasePath)[b]%(releaseName)[b] by [b]%(user)[b]/%(group) :: pred %(age) ago, older than the %(limit) limit.
+
+# Zipscript events
 COMPLETE       = [b][[c1]%(section)[c]][b] %(message)
 HALFWAY        = [b][[c1]%(section)[c]][b] %(message)
 INCOMPLETE     = [b][[c1]%(section)[c]][b] %(message)
