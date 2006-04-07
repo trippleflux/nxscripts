@@ -199,12 +199,12 @@ body           = %(command) %(arguments) - %(description)
 foot           =
 
 [Theme::Module::Invite]
-bad            = [b][[c1]Invite[c]][b] Incorrect username, password, or IRC host.
-badHost        = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) using an unknown IRC host.
-badPass        = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) used an incorrect account or password.
-badUser        = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) used the wrong IRC nickname.
-dbDown         = [b][[c1]Invite[c]][b] Database offline, unable to invite [b]%(nick)[b].
-failed         = [b][[c1]Invite[c]][b] I need ops in [b]%(channels)[b] to invite [b]%(nick)[b].
+databaseDown   = [b][[c1]Invite[c]][b] Database offline, unable to invite [b]%(nick)[b].
+invalid        = [b][[c1]Invite[c]][b] Incorrect username, password, or IRC host.
+invalidHost    = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) using an unknown IRC host.
+invalidPass    = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) used an incorrect account or password.
+invalidUser    = [b][[c1]Invite[c]][b] [b]%(nick)[b] (FTP user: [b]%(user)[b]) used the wrong IRC nickname.
+needOps        = [b][[c1]Invite[c]][b] I need ops in [b]%(channels)[b] to invite [b]%(nick)[b].
 
 [Theme::Module::IoA]
 nukesHead      = [b]Nukes:[b]
