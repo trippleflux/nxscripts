@@ -1462,9 +1462,9 @@ proc ::Bot::DccAdmin {handle idx text} {
         }
 
         putdcc $idx "[b]Modules:[b]"
-        foreach name [lsort [array names modules]] {
-            foreach {desc context depends location tclFiles varFiles} $modules($name) {break}
-            putdcc $idx "$name - [b]Info:[b] $desc [b]Depends:[b] [ListConvert $depends] [b]Path:[b] $location"
+        foreach name [lsort [Tree::Keys $modules]] {
+            array set module [Tree::Get $modules $name]
+            putdcc $idx "$name - [b]Info:[b] $module(desc) [b]Depends:[b] [ListConvert $module(depends)] [b]Path:[b] $module(location)"
         }
 
         putdcc $idx "[b]Sections:[b]"
