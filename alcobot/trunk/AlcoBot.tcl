@@ -41,7 +41,6 @@ namespace eval ::Bot {
 #   colours       - Section colour mappings.
 #   events        - Events grouped by their function.
 #   format        - Text formatting definitions.
-#   modules       - Loaded modules.
 #   pathSections  - Path sections.
 #   replace       - Static variable replacements.
 #   scripts       - Callback scripts.
@@ -56,6 +55,7 @@ namespace eval ::Bot {
 #   debugMode     - Boolean value to indicate if we're running in debug mode.
 #   ftpDaemon     - FTP daemon identifier: 1=glFTPD and 2=ioFTPD.
 #   localTime     - Format time values in local time, otherwise UTC is used.
+#   modules       - Loaded modules.
 #
 
 ####
@@ -545,14 +545,14 @@ proc ::Bot::ModuleInfo {option args} {
             if {$argc != 1} {
                 error "wrong # args: must be \"ModuleInfo loaded moduleName\""
             }
-            return [info exists modules([lindex $args 0])]
+            return [Tree::Exists $modules [lindex $args 0]]
         }
         list {
             if {$argc == 0} {
-                return [array names modules]
+                return [Tree::Keys $modules]
             }
             if {$argc == 1} {
-                return [array names modules [lindex $args 0]]
+                return [Tree::Keys $modules [lindex $args 0]]
             }
             error "wrong # args: must be \"ModuleInfo list ?pattern?\""
         }
@@ -561,10 +561,10 @@ proc ::Bot::ModuleInfo {option args} {
                 error "wrong # args: must be \"ModuleInfo query moduleName\""
             }
             set modName [lindex $args 0]
-            if {![info exists modules($modName)]} {
+            if {![Tree::Exists $modules $modName]} {
                 error "module not loaded"
             }
-            return $modules($modName)
+            return [Tree::Get $modules $modName]
         }
     }
     error "unknown option \"$option\": must be loaded, list, or query"
@@ -577,9 +577,6 @@ proc ::Bot::ModuleInfo {option args} {
 # cannot be found or an unexpected error occurs while loading it.
 #
 proc ::Bot::ModuleLoad {modName} {
-    variable modules
-
-    # Locate the module and read its definition file.
     set modPath [ModuleFind $modName]
     ModuleLoadEx $modName [ModuleRead [file join $modPath "module.def"]]
 }
@@ -589,21 +586,21 @@ proc ::Bot::ModuleLoad {modName} {
 #
 # Performs the actual module initialisation and loading procedures.
 #
-proc ::Bot::ModuleLoadEx {modName modInfoList} {
+proc ::Bot::ModuleLoadEx {modName modDefinition} {
     variable modules
-    array set modInfo $modInfoList
+    array set module $modDefinition
 
     # Refuse to load the module if a dependency is not present.
-    foreach modDepend $modInfo(depends) {
-        if {![info exists modules($modDepend)]} {
+    foreach modDepend $module(depends) {
+        if {![Tree::Exists $modules $modDepend]} {
             error "missing module dependency \"$modDepend\""
         }
     }
 
     # Check if a full module initialisation is required.
     set firstLoad 1
-    if {[info exists modules($modName)]} {
-        if {$modInfo(tclFiles) eq [lindex $modules($modName) 4]} {
+    if {[Tree::Exists $modules $modName]} {
+        if {$module(tclFiles) eq [Tree::Get $modules $modName tclFiles]} {
             set firstLoad 0
         } else {
             LogDebug ModuleLoadEx "File checksums changed, reloading module."
@@ -611,30 +608,26 @@ proc ::Bot::ModuleLoadEx {modName modInfoList} {
         }
     }
 
-    # Remove trailing namespace identifiers from the context.
-    set modInfo(context) [string trimright $modInfo(context) ":"]
-
-    # Format: desc context depends location tclFiles varFiles
-    set modules($modName) [list $modInfo(desc) $modInfo(context) $modInfo(depends) \
-        $modInfo(location) $modInfo(tclFiles) $modInfo(varFiles)]
+    set module(context) [string trimright $module(context) ":"]
+    Tree::Set modules $modName [array get module]
 
     if {[catch {
         # Read all script files.
-        foreach {name hash} $modInfo(tclFiles) {
-            set path [file join $modInfo(location) $name]
+        foreach {name hash} $module(tclFiles) {
+            set path [file join $module(location) $name]
             if {[catch {source $path} message]} {
                 error "can't source file \"$path\": $message"
             }
         }
 
         # Initialise the module.
-        if {$modInfo(context) ne "" && [catch {${modInfo(context)}::Load $firstLoad} message]} {
+        if {$module(context) ne "" && [catch {${module(context)}::Load $firstLoad} message]} {
             error "initialisation failed: $message"
         }
 
         # Read all variable files.
-        foreach {name hash} $modInfo(varFiles) {
-            VarFileLoad [file join $modInfo(location) $name]
+        foreach {name hash} $module(varFiles) {
+            VarFileLoad [file join $module(location) $name]
         }
     } message]} {
         if {[catch {ModuleUnload $modName} messageDebug]} {
@@ -655,30 +648,30 @@ proc ::Bot::ModuleLoadEx {modName modInfoList} {
 proc ::Bot::ModuleUnload {modName} {
     variable modules
 
-    if {![info exists modules($modName)]} {
+    if {![Tree::Exists $modules $modName]} {
         error "module not loaded"
     }
-    foreach {desc context depends location tclFiles varFiles} $modules($modName) {break}
+    array set module [Tree::Get $modules $modName]
 
     # Unload script files.
-    if {$context ne ""} {
-        set failed [catch {${context}::Unload} message]
+    if {$module(context) ne ""} {
+        set failed [catch {${module(context)}::Unload} message]
 
         # Do not delete the bot's namespace.
-        if {$context ne [namespace current]} {
-            catch {namespace delete $context}
+        if {$module(context) ne [namespace current]} {
+            catch {namespace delete $module(context)}
         }
     } else {
         set failed 0
     }
 
     # Unload variable files.
-    foreach {name hash} $varFiles {
-        set path [file join $location $name]
+    foreach {name hash} $module(varFiles) {
+        set path [file join $module(location) $name]
         if {[catch {VarFileUnload $path} message]} {set failed 1}
     }
 
-    unset modules($modName)
+    Tree::Unset modules $modName
 
     # Raise an error after cleaning up the module.
     if {$failed} {error "finalisation failed: $message"}
@@ -694,7 +687,7 @@ proc ::Bot::ModuleUnload {modName} {
 #
 proc ::Bot::ModuleRead {filePath} {
     set location [file dirname $filePath]
-    set required [list desc context depends tclFiles varFiles]
+    set required {desc context depends tclFiles varFiles}
 
     set handle [open $filePath r]
     foreach line [split [read -nonewline $handle] "\n"] {
@@ -704,14 +697,14 @@ proc ::Bot::ModuleRead {filePath} {
         set option [string range $line 0 [expr {$index - 1}]]
 
         if {[lsearch -exact $required $option] != -1} {
-            set modInfo($option) [string range $line [incr index] end]
+            set module($option) [string range $line [incr index] end]
         }
     }
     close $handle
 
     # Perform all module information checks after the file was
     # read, in case the same option was defined multiple times.
-    foreach option [array names modInfo] {
+    foreach option [array names module] {
         set required [ListRemove $required $option]
     }
     if {[llength $required]} {
@@ -720,7 +713,7 @@ proc ::Bot::ModuleRead {filePath} {
 
     # Resolve and hash all script files.
     set tclFiles [list]
-    foreach name [ListParse $modInfo(tclFiles)] {
+    foreach name [ListParse $module(tclFiles)] {
         set path [file join $location $name]
         if {![file isfile $path]} {
             error "the script file \"$path\" does not exist"
@@ -730,7 +723,7 @@ proc ::Bot::ModuleRead {filePath} {
 
     # Resolve and hash all variable files.
     set varFiles [list]
-    foreach name [ListParse $modInfo(varFiles)] {
+    foreach name [ListParse $module(varFiles)] {
         set path [file join $location $name]
         if {![file isfile $path]} {
             error "the variable file \"$path\" does not exist"
@@ -739,11 +732,11 @@ proc ::Bot::ModuleRead {filePath} {
     }
 
     # Update module information.
-    set modInfo(location) $location
-    set modInfo(tclFiles) $tclFiles
-    set modInfo(varFiles) $varFiles
+    set module(location) $location
+    set module(tclFiles) $tclFiles
+    set module(varFiles) $varFiles
 
-    return [array get modInfo]
+    return [array get module]
 }
 
 ################################################################################
@@ -1627,7 +1620,11 @@ proc ::Bot::InitLibraries {rootPath} {
 #
 proc ::Bot::InitModules {modList} {
     variable modules
-    set prevModules [array names modules]
+
+    if {![info exists modules]} {
+        set modules [Tree::Create]
+    }
+    set prevModules [Tree::Keys $modules]
 
     # Locate and read all module definition files.
     set modInfo [Tree::Create]
