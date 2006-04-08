@@ -610,6 +610,15 @@ proc ::Bot::ModuleLoadEx {modName modDefinition} {
         }
     }
 
+    if {$firstLoad} {
+        set module(refCount) 0
+    } else {
+        # Reset the reference count if it's less than zero.
+        set module(refCount) [Tree::Get $modules $modName refCount]
+        if {$module(refCount) < 0} {
+            set module(refCount) 0
+        }
+    }
     set module(context) [string trimright $module(context) ":"]
     Tree::Set modules $modName [array get module]
 
@@ -641,6 +650,14 @@ proc ::Bot::ModuleLoadEx {modName modDefinition} {
         # Raise an error after cleaning up the module.
         error $message
     }
+
+    # Increase the reference count of all dependencies.
+    if {$firstLoad} {
+        foreach depName $module(depends) {
+            set refCount [Tree::Get $modules $depName refCount]
+            Tree::Set modules $depName refCount [incr refCount]
+        }
+    }
 }
 
 ####
@@ -656,6 +673,18 @@ proc ::Bot::ModuleUnload {modName} {
         error "module not loaded"
     }
     array set module [Tree::Get $modules $modName]
+
+    if {$module(refCount) > 0} {
+        error "module still referenced"
+    }
+
+    # Decrease the reference count of all dependencies.
+    foreach depName $module(depends) {
+        if {[Tree::Exists $modules $depName]} {
+            set refCount [Tree::Get $modules $depName refCount]
+            Tree::Set modules $depName refCount [incr refCount -1]
+        }
+    }
 
     # Unload script files.
     if {$module(context) ne ""} {
@@ -1661,7 +1690,10 @@ proc ::Bot::InitModules {modList} {
         set prevModules [ListRemove $prevModules $modName]
     }
 
-    # Remove unreferenced modules.
+    # Reset module reference counts and remove unreferenced modules.
+    foreach modName [Tree::Keys $modules] {
+        Tree::Set modules $modName refCount -1
+    }
     foreach modName $prevModules {
         if {[catch {ModuleUnload $modName} message]} {
             LogInfo "Unable to unload module \"$modName\": $message"
@@ -1676,6 +1708,17 @@ proc ::Bot::InitModules {modList} {
             LogInfo "Unable to load module \"$modName\": $message"
         } else {
             LogInfo "Module Loaded: $modName"
+        }
+    }
+
+    # Remove modules with a reference count less than zero (garbage collecting).
+    Tree::For {modName modData} $modules {
+        if {[Tree::Get $modData refCount] >= 0} {continue}
+
+        if {[catch {ModuleUnload $modName} message]} {
+            LogInfo "Unable to unload module \"$modName\": $message"
+        } else {
+            LogInfo "Module Unloaded: $modName"
         }
     }
 }
