@@ -29,7 +29,7 @@ namespace eval ::Bot {
         GetFlagsFromSection GetSectionFromEvent GetSectionFromPath \
         SendSection SendSectionTheme SendTarget SendTargetTheme \
         FormatDate FormatTime FormatDuration FormatDurationLong FormatSize FormatSpeed \
-        VarGetEntry VarGetGroups VarGetNames VarFileLoad VarFileUnload VarReplace VarReplaceBase VarReplaceCommon
+        VarGetEntry VarGetGroups VarGetNames VarFileLoad VarFileUnload VarReplace VarReplaceDynamic VarReplaceStatic
 }
 
 #
@@ -960,7 +960,7 @@ proc ::Bot::SendSectionTheme {section themeGroup themeName {valueList ""}} {
         return
     }
 
-    set text [VarReplaceCommon $themes($name) $section]
+    set text [VarReplaceDynamic $themes($name) $section]
     SendSection $section [VarReplace $text $variables($name) $valueList]
 }
 
@@ -993,7 +993,7 @@ proc ::Bot::SendTargetTheme {target themeGroup themeName {valueList ""}} {
     # Replace section colours and common items before the value list, in
     # case the values introduce colour codes (e.g. a user named "[b]ill",
     # since "[b]" is also the bold code).
-    set text [VarReplaceCommon $themes($name)]
+    set text [VarReplaceDynamic $themes($name)]
     SendTarget $target [VarReplace $text $variables($name) $valueList]
 }
 
@@ -1396,32 +1396,11 @@ proc ::Bot::VarReplace {input varList valueList} {
 }
 
 ####
-# VarReplaceBase
-#
-# Replaces static content and control codes (i.e. bold, colour, and underline).
-#
-proc ::Bot::VarReplaceBase {text {doPrefix 1}} {
-    # Replace static variables.
-    set vars {siteName:z siteTag:z}
-    set values [list $::Bot::siteName $::Bot::siteTag]
-
-    if {$doPrefix} {
-        lappend vars prefix:z
-        lappend values $::Bot::format(prefix)
-    }
-    set text [VarReplace $text $vars $values]
-
-    # Mapping for control code replacement.
-    set map [list {[b]} [b] {[c]} [c] {[o]} [o] {[r]} [r] {[u]} [u]]
-    return [subst -nocommands -novariables [string map $map $text]]
-}
-
-####
-# VarReplaceCommon
+# VarReplaceDynamic
 #
 # Replace dynamic content, such as the current date, time, and section colours.
 #
-proc ::Bot::VarReplaceCommon {text {section ""}} {
+proc ::Bot::VarReplaceDynamic {text {section ""}} {
     variable colours
     variable defaultSection
 
@@ -1444,9 +1423,30 @@ proc ::Bot::VarReplaceCommon {text {section ""}} {
     if {[info exists colours($section)]} {
         set text [string map $colours($section) $text]
     } else {
-        LogDebug VarReplaceCommon "No section colours defined for \"$section\"."
+        LogDebug VarReplaceDynamic "No section colours defined for \"$section\"."
     }
     return [VarReplace $text $vars $values]
+}
+
+####
+# VarReplaceStatic
+#
+# Replaces static content and control codes (i.e. bold, colour, and underline).
+#
+proc ::Bot::VarReplaceStatic {text {doPrefix 1}} {
+    # Replace static variables.
+    set vars {siteName:z siteTag:z}
+    set values [list $::Bot::siteName $::Bot::siteTag]
+
+    if {$doPrefix} {
+        lappend vars prefix:z
+        lappend values $::Bot::format(prefix)
+    }
+    set text [VarReplace $text $vars $values]
+
+    # Mapping for control code replacement.
+    set map [list {[b]} [b] {[c]} [c] {[o]} [o] {[r]} [r] {[u]} [u]]
+    return [subst -nocommands -novariables [string map $map $text]]
 }
 
 ################################################################################
@@ -1762,7 +1762,7 @@ proc ::Bot::InitTheme {themeFile} {
         if {[string index $value 0] eq "\"" && [string index $value end] eq "\""} {
             set value [string range $value 1 end-1]
         }
-        set format($name) [VarReplaceBase $value 0]
+        set format($name) [VarReplaceStatic $value 0]
     }
     if {[llength $known]} {
         foreach name $known {set format($name) ""}
@@ -1782,7 +1782,7 @@ proc ::Bot::InitTheme {themeFile} {
             if {[string index $value 0] eq "\"" && [string index $value end] eq "\""} {
                 set value [string range $value 1 end-1]
             }
-            set themes($name) [VarReplaceBase $value]
+            set themes($name) [VarReplaceStatic $value]
         }
     }
     if {[llength $known]} {
