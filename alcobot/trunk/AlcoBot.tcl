@@ -600,7 +600,9 @@ proc ::Bot::ModuleLoadEx {modName modDefinition} {
     # Check if a full module initialisation is required.
     set firstLoad 1
     if {[Tree::Exists $modules $modName]} {
-        if {$module(tclFiles) eq [Tree::Get $modules $modName tclFiles]} {
+        array set prev [Tree::Get $modules $modName]
+
+        if {$module(tclFiles) eq $prev(tclFiles) && $module(varFiles) eq $prev(varFiles)} {
             set firstLoad 0
         } else {
             LogDebug ModuleLoadEx "File checksums changed, reloading module."
@@ -614,8 +616,7 @@ proc ::Bot::ModuleLoadEx {modName modDefinition} {
         set module(refCount) 0
     } else {
         # Reset the reference count if it's less than zero.
-        set module(refCount) [Tree::Get $modules $modName refCount]
-        if {$module(refCount) < 0} {
+        if {[set module(refCount) $prev(refCount)] < 0} {
             set module(refCount) 0
         }
     }
