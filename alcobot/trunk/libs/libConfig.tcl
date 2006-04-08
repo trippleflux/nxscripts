@@ -24,6 +24,7 @@
 #   Config::Exists   <handle> <section> [key]
 #   Config::Get      <handle> <section> <key>
 #   Config::GetEx    <handle> <section> [pattern]
+#   Config::GetMulti <handle> <section> <key> ...
 #   Config::Set      <handle> <section> [<key> <value>]
 #   Config::Unset    <handle> <section> [key]
 #
@@ -296,13 +297,28 @@ proc ::Config::Get {handle section key} {
 #
 proc ::Config::GetEx {handle section {pattern "*"}} {
     Acquire $handle config
-    set pairList [list]
+    set result [list]
     Tree::For {key keyTree} [Tree::GetNaive $config(tree) $section data] {
         if {[string match $pattern $key]} {
-            lappend pairList $key [Tree::Get $keyTree value]
+            lappend result $key [Tree::Get $keyTree value]
         }
     }
-    return $pairList
+    return $result
+}
+
+####
+# Config::GetMulti
+#
+# Returns a list of key and value pairs from the specified section.
+#
+proc ::Config::GetMulti {handle section args} {
+    Acquire $handle config
+    set result [list]
+    set keyTree [Tree::GetNaive $config(tree) $section data]
+    foreach key $args {
+        lappend result $key [Tree::GetNaive $keyTree $key value]
+    }
+    return $result
 }
 
 ####

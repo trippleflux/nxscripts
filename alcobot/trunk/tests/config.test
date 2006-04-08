@@ -483,36 +483,76 @@ test config-10.6 {Config::GetEx: invalid section} {
 } {}
 
 ################################################################################
+# Config::GetMulti                                                             #
+################################################################################
+
+test config-11.1 {Config::GetMulti: no args} {
+    list [catch {Config::GetMulti} msg] $msg
+} {1 {wrong # args: should be "Config::GetMulti handle section args"}}
+
+test config-11.2 {Config::GetMulti: invalid handle} {
+    list [catch {Config::GetMulti {} a b} msg] $msg
+} {1 {invalid config handle ""}}
+
+test config-11.3 {Config::GetMulti: invalid handle} {
+    list [catch {Config::GetMulti configTEST a b} msg] $msg
+} {1 {invalid config handle "configTEST"}}
+
+test config-11.4 {Config::GetMulti: no keys} {
+    set handle [Config::Open test.conf]
+    Config::Read $handle
+    set result [Config::GetMulti $handle sectionOne]
+    Config::Close $handle
+    set result
+} {}
+
+test config-11.5 {Config::GetMulti: valid section, several keys} {
+    set handle [Config::Open test.conf]
+    Config::Read $handle
+    set result [Config::GetMulti $handle sectionOne something fake multiple]
+    Config::Close $handle
+    set result
+} {something true fake {} multiple true}
+
+test config-11.6 {Config::GetMulti: invalid section} {
+    set handle [Config::Open test.conf]
+    Config::Read $handle
+    set result [Config::GetMulti $handle unknownSection something]
+    Config::Close $handle
+    set result
+} {something {}}
+
+################################################################################
 # Config::Set                                                                  #
 ################################################################################
 
-test config-11.1 {Config::Set: no args} {
+test config-12.1 {Config::Set: no args} {
     list [catch {Config::Set} msg] $msg
 } {1 {wrong # args: should be "Config::Set handle section args"}}
 
-test config-11.2 {Config::Set: invalid handle} {
+test config-12.2 {Config::Set: invalid handle} {
     list [catch {Config::Set {} a b c} msg] $msg
 } {1 {invalid config handle ""}}
 
-test config-11.3 {Config::Set: invalid handle} {
+test config-12.3 {Config::Set: invalid handle} {
     list [catch {Config::Set configTEST a b c} msg] $msg
 } {1 {invalid config handle "configTEST"}}
 
-test config-11.4 {Config::Set: arg handling} {
+test config-12.4 {Config::Set: arg handling} {
     set handle [Config::Open test.conf]
     set result [list [catch {Config::Set $handle a b} msg] $msg]
     Config::Close $handle
     set result
 } {1 {wrong # args: must be "Config::Set handle section ?key value?"}}
 
-test config-11.5 {Config::Set: arg handling} {
+test config-12.5 {Config::Set: arg handling} {
     set handle [Config::Open test.conf]
     set result [list [catch {Config::Set $handle a b c d} msg] $msg]
     Config::Close $handle
     set result
 } {1 {wrong # args: must be "Config::Set handle section ?key value?"}}
 
-test config-11.6 {Config::Set: change existing key} {
+test config-12.6 {Config::Set: change existing key} {
     set handle [Config::Open test.conf]
     Config::Read $handle
     set result [list [Config::Set $handle sectionOne something false]]
@@ -521,7 +561,7 @@ test config-11.6 {Config::Set: change existing key} {
     set result
 } {false 1}
 
-test config-11.7 {Config::Set: existing section, new key} {
+test config-12.7 {Config::Set: existing section, new key} {
     set handle [Config::Open test.conf]
     Config::Read $handle
     set result [list [Config::Set $handle sectionOne reallyReallyReallyLongKeyName newValue]]
@@ -530,7 +570,7 @@ test config-11.7 {Config::Set: existing section, new key} {
     set result
 } {newValue 1}
 
-test config-11.8 {Config::Set: new section} {
+test config-12.8 {Config::Set: new section} {
     set handle [Config::Open test.conf]
     Config::Read $handle
     set result [list [Config::Set $handle newSection]]
@@ -539,7 +579,7 @@ test config-11.8 {Config::Set: new section} {
     set result
 } {{} 1}
 
-test config-11.9 {Config::Set: new section, new key} {
+test config-12.9 {Config::Set: new section, new key} {
     set handle [Config::Open test.conf]
     Config::Read $handle
     set result [list [Config::Set $handle newSection newKey newValue]]
@@ -552,19 +592,19 @@ test config-11.9 {Config::Set: new section, new key} {
 # Config::Unset                                                                #
 ################################################################################
 
-test config-12.1 {Config::Unset: no args} {
+test config-13.1 {Config::Unset: no args} {
     list [catch {Config::Unset} msg] $msg
 } {1 {wrong # args: should be "Config::Unset handle section ?key?"}}
 
-test config-12.2 {Config::Unset: invalid handle} {
+test config-13.2 {Config::Unset: invalid handle} {
     list [catch {Config::Unset {} a b} msg] $msg
 } {1 {invalid config handle ""}}
 
-test config-12.3 {Config::Unset: invalid handle} {
+test config-13.3 {Config::Unset: invalid handle} {
     list [catch {Config::Unset configTEST a b} msg] $msg
 } {1 {invalid config handle "configTEST"}}
 
-test config-12.4 {Config::Unset: remove valid section} {
+test config-13.4 {Config::Unset: remove valid section} {
     set handle [Config::Open test.conf]
     Config::Read $handle
     Config::Unset $handle sectionOne
@@ -573,7 +613,7 @@ test config-12.4 {Config::Unset: remove valid section} {
     set result
 } {0}
 
-test config-12.5 {Config::Unset: remove invalid section} {
+test config-13.5 {Config::Unset: remove invalid section} {
     set handle [Config::Open test.conf]
     Config::Read $handle
     Config::Unset $handle unknownSection
@@ -582,7 +622,7 @@ test config-12.5 {Config::Unset: remove invalid section} {
     set result
 } {0}
 
-test config-12.6 {Config::Unset: remove valid key} {
+test config-13.6 {Config::Unset: remove valid key} {
     set handle [Config::Open test.conf]
     Config::Read $handle
     Config::Unset $handle sectionOne something
@@ -591,7 +631,7 @@ test config-12.6 {Config::Unset: remove valid key} {
     set result
 } {0}
 
-test config-12.7 {Config::Unset: remove invalid key} {
+test config-13.7 {Config::Unset: remove invalid key} {
     set handle [Config::Open test.conf]
     Config::Read $handle
     Config::Unset $handle sectionOne unknownKey
