@@ -136,10 +136,7 @@ proc ::Bot::ListParse {argStr} {
 #
 proc ::Bot::ListRemove {list element} {
     set index [lsearch -exact $list $element]
-    if {$index != -1} {
-        set list [lreplace $list $index $index]
-    }
-    return $list
+    return [lreplace $list $index $index]
 }
 
 ################################################################################

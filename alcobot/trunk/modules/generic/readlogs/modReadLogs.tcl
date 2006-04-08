@@ -299,12 +299,9 @@ proc ::Bot::Mod::ReadLogs::Load {firstLoad} {
         error "unknown FTP daemon \"$::Bot::ftpDaemon\""
     }
 
-    # Reset the log count, list, and timer ID on rehash/reload.
+    # Monitor all defined log files.
     set logCount 0
     set logList [list]
-    set timerId ""
-
-    # Monitor all user-defined log files.
     foreach type {main error login sysop} option {mainLogs errorLogs loginLogs sysopLogs} {
         foreach filePath [ListParse [Config::Get $configHandle Module::ReadLogs $option]] {
             if {[catch {AddLog $type $filePath} error]} {
