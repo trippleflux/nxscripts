@@ -515,20 +515,15 @@ proc ::Bot::ModuleFind {modName} {
 # algorithm is considered broken, it is still suitable for this purpose.
 #
 proc ::Bot::ModuleHash {filePath} {
-    set fileHandle [open $filePath r]
-    fconfigure $fileHandle -translation binary
+    set handle [open $filePath r]
+    fconfigure $handle -translation binary
+
     set hash [crypt start md5]
-
-    while {![eof $fileHandle]} {
-        # Process 8KB of data each iteration.
-        set data [read $fileHandle 8192]
-        if {[string length $data]} {
-            crypt update $hash $data
-        }
+    while {![eof $handle]} {
+        crypt update $hash [read $handle 8192]
     }
-
-    close $fileHandle
-    return [encode hex [crypt end $hash]]
+    close $handle
+    return [crypt end $hash]
 }
 
 ####
