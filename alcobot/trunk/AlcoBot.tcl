@@ -591,9 +591,9 @@ proc ::Bot::ModuleLoadEx {modName modDefinition} {
     array set module $modDefinition
 
     # Refuse to load the module if a dependency is not present.
-    foreach modDepend $module(depends) {
-        if {![Tree::Exists $modules $modDepend]} {
-            error "missing module dependency \"$modDepend\""
+    foreach depName $module(depends) {
+        if {![Tree::Exists $modules $depName]} {
+            error "missing module dependency \"$depName\""
         }
     }
 
@@ -604,7 +604,9 @@ proc ::Bot::ModuleLoadEx {modName modDefinition} {
             set firstLoad 0
         } else {
             LogDebug ModuleLoadEx "File checksums changed, reloading module."
-            catch {ModuleUnload $modName}
+            if {[catch {ModuleUnload $modName} debug]} {
+                LogDebug ModuleLoadEx "Unable to unload \"$modName\": debug"
+            }
         }
     }
 
@@ -612,11 +614,18 @@ proc ::Bot::ModuleLoadEx {modName modDefinition} {
     Tree::Set modules $modName [array get module]
 
     if {[catch {
-        # Read all script files.
-        foreach {name hash} $module(tclFiles) {
-            set path [file join $module(location) $name]
-            if {[catch {source $path} message]} {
-                error "can't source file \"$path\": $message"
+        if {$firstLoad} {
+            # Read all script files.
+            foreach {name hash} $module(tclFiles) {
+                set path [file join $module(location) $name]
+                if {[catch {source $path} message]} {
+                    error "can't source file \"$path\": $message"
+                }
+            }
+
+            # Read all variable files.
+            foreach {name hash} $module(varFiles) {
+                VarFileLoad [file join $module(location) $name]
             }
         }
 
@@ -624,14 +633,9 @@ proc ::Bot::ModuleLoadEx {modName modDefinition} {
         if {$module(context) ne "" && [catch {${module(context)}::Load $firstLoad} message]} {
             error "initialisation failed: $message"
         }
-
-        # Read all variable files.
-        foreach {name hash} $module(varFiles) {
-            VarFileLoad [file join $module(location) $name]
-        }
     } message]} {
-        if {[catch {ModuleUnload $modName} messageDebug]} {
-            LogDebug ModuleLoadEx "Unable to unload \"$modName\": $messageDebug"
+        if {[catch {ModuleUnload $modName} debug]} {
+            LogDebug ModuleLoadEx "Unable to unload \"$modName\": $debug"
         }
 
         # Raise an error after cleaning up the module.
@@ -1620,7 +1624,6 @@ proc ::Bot::InitLibraries {rootPath} {
 #
 proc ::Bot::InitModules {modList} {
     variable modules
-
     if {![info exists modules]} {
         set modules [Tree::Create]
     }
