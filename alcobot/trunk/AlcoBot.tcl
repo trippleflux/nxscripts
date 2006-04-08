@@ -719,7 +719,7 @@ proc ::Bot::ModuleRead {filePath} {
     set required {desc context depends tclFiles varFiles}
 
     set handle [open $filePath r]
-    foreach line [split [read -nonewline $handle] "\n"] {
+    foreach line [split [read $handle] "\n"] {
         if {[string index $line 0] eq "#" || [set index [string first "=" $line]] == -1} {
             continue
         }
@@ -1445,7 +1445,7 @@ proc ::Bot::VarReplaceStatic {text {doPrefix 1}} {
     set text [VarReplace $text $vars $values]
 
     # Mapping for control code replacement.
-    set map [list {[b]} [b] {[c]} [c] {[o]} [o] {[r]} [r] {[u]} [u]]
+    set map [list {[b]} \002 {[c]} \003 {[o]} \015 {[r]} \026 {[u]} \037]
     return [subst -nocommands -novariables [string map $map $text]]
 }
 

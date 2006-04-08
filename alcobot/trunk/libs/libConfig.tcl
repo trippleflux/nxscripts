@@ -156,14 +156,14 @@ proc ::Config::Read {handle} {
     set comments [list]
     set section ""
 
-    foreach line [split [read -nonewline $fileHandle] "\n"] {
+    foreach line [split [read $fileHandle] "\n"] {
         set line [string trim $line]
 
         if {[string index $line 0] eq $config(comment)} {
             lappend comments $line
         } elseif {[string match {\[*\]} $line]} {
             set section [string range $line 1 end-1]
-            if {![string length $section]} {continue}
+            if {$section eq ""} {continue}
 
             # The section key must only be created once,
             # in case a section is defined multiple times.
@@ -178,7 +178,7 @@ proc ::Config::Read {handle} {
             }
         } elseif {[set index [string first "=" $line]] != -1} {
             set key [string trimright [string range $line 0 [expr {$index - 1}]]]
-            if {![string length $key] || ![string length $section]} {continue}
+            if {$key eq "" || $section eq ""} {continue}
 
             # The length of the longest key is used to align all
             # values when commiting the configuration file to disk.
@@ -342,10 +342,10 @@ proc ::Config::Set {handle section args} {
 #
 proc ::Config::Unset {handle section {key ""}} {
     Acquire $handle config
-    if {[string length $key]} {
-        ::Tree::Unset config(tree) $section data $key
-    } else {
+    if {$key eq ""} {
         ::Tree::Unset config(tree) $section
+    } else {
+        ::Tree::Unset config(tree) $section data $key
     }
     return
 }
