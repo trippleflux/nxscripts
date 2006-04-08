@@ -69,11 +69,11 @@ proc ::Config::Open {filePath args} {
 
     set handle "config$nextHandle"
     upvar [namespace current]::$handle config
-    array set config [list       \
-        align   $align           \
-        comment $comment         \
-        tree    [::Tree::Create] \
-        path    $filePath        \
+    array set config [list     \
+        align   $align         \
+        comment $comment       \
+        tree    [Tree::Create] \
+        path    $filePath      \
     ]
 
     incr nextHandle
@@ -137,7 +137,7 @@ proc ::Config::Close {handle} {
 #
 proc ::Config::Free {handle} {
     Acquire $handle config
-    set config(tree) [::Tree::Create]
+    set config(tree) [Tree::Create]
     return
 }
 
@@ -152,7 +152,7 @@ proc ::Config::Read {handle} {
     set fileHandle [open $config(path) r]
 
     # Clear the tree structure before reading new data.
-    set config(tree) [::Tree::Create]
+    set config(tree) [Tree::Create]
     set comments [list]
     set section ""
 
@@ -167,13 +167,13 @@ proc ::Config::Read {handle} {
 
             # The section key must only be created once,
             # in case a section is defined multiple times.
-            if {![::Tree::Exists $config(tree) $section]} {
-                ::Tree::Set config(tree) $section [::Tree::Create data [::Tree::Create] length 0]
+            if {![Tree::Exists $config(tree) $section]} {
+                Tree::Set config(tree) $section [Tree::Create data [Tree::Create] length 0]
             }
 
             if {[llength $comments]} {
-                set comments [concat [::Tree::GetNaive $config(tree) $section comments] $comments]
-                ::Tree::Set config(tree) $section comments $comments
+                set comments [concat [Tree::GetNaive $config(tree) $section comments] $comments]
+                Tree::Set config(tree) $section comments $comments
                 set comments [list]
             }
         } elseif {[set index [string first "=" $line]] != -1} {
@@ -182,18 +182,18 @@ proc ::Config::Read {handle} {
 
             # The length of the longest key is used to align all
             # values when commiting the configuration file to disk.
-            if {[string length $key] > [::Tree::Get $config(tree) $section length]} {
-                ::Tree::Set config(tree) $section length [string length $key]
+            if {[string length $key] > [Tree::Get $config(tree) $section length]} {
+                Tree::Set config(tree) $section length [string length $key]
             }
 
             # Key comments must be placed before the line, not at the end.
-            set keyTree [::Tree::Create value [string trimleft [string range $line [incr index] end]]]
+            set keyTree [Tree::Create value [string trimleft [string range $line [incr index] end]]]
 
             if {[llength $comments]} {
-                ::Tree::Set keyTree comments $comments
+                Tree::Set keyTree comments $comments
                 set comments [list]
             }
-            ::Tree::Set config(tree) $section data $key $keyTree
+            Tree::Set config(tree) $section data $key $keyTree
         }
     }
 
@@ -211,23 +211,23 @@ proc ::Config::Write {handle} {
     Acquire $handle config
     set fileHandle [open $config(path) w]
 
-    ::Tree::For {section sectionTree} $config(tree) {
+    Tree::For {section sectionTree} $config(tree) {
         if {$config(align)} {
-            set length [::Tree::Get $sectionTree length]
+            set length [Tree::Get $sectionTree length]
             incr length [expr {$config(align) - 1}]
         }
 
-        if {[::Tree::Exists $sectionTree comments]} {
-            puts $fileHandle [join [::Tree::Get $sectionTree comments] "\n"]
+        if {[Tree::Exists $sectionTree comments]} {
+            puts $fileHandle [join [Tree::Get $sectionTree comments] "\n"]
         }
         puts $fileHandle "\[$section\]"
 
-        ::Tree::For {key keyTree} [::Tree::Get $sectionTree data] {
-            if {[::Tree::Exists $keyTree comments]} {
-                puts $fileHandle [join [::Tree::Get $keyTree comments] "\n"]
+        Tree::For {key keyTree} [Tree::Get $sectionTree data] {
+            if {[Tree::Exists $keyTree comments]} {
+                puts $fileHandle [join [Tree::Get $keyTree comments] "\n"]
             }
 
-            set value [::Tree::Get $keyTree value]
+            set value [Tree::Get $keyTree value]
             if {$config(align)} {
                 # Align values to the longest key name.
                 puts $fileHandle [format "%-*s=%s" $length $key $value]
@@ -250,7 +250,7 @@ proc ::Config::Write {handle} {
 #
 proc ::Config::Keys {handle section {pattern "*"}} {
     Acquire $handle config
-    return [::Tree::Keys [::Tree::GetNaive $config(tree) $section data] $pattern]
+    return [Tree::Keys [Tree::GetNaive $config(tree) $section data] $pattern]
 }
 
 ####
@@ -261,7 +261,7 @@ proc ::Config::Keys {handle section {pattern "*"}} {
 #
 proc ::Config::Sections {handle {pattern "*"}} {
     Acquire $handle config
-    return [::Tree::Keys $config(tree) $pattern]
+    return [Tree::Keys $config(tree) $pattern]
 }
 
 ####
@@ -272,9 +272,9 @@ proc ::Config::Sections {handle {pattern "*"}} {
 proc ::Config::Exists {handle section {key ""}} {
     Acquire $handle config
     if {[string length $key]} {
-        return [::Tree::Exists $config(tree) $section data $key]
+        return [Tree::Exists $config(tree) $section data $key]
     } else {
-        return [::Tree::Exists $config(tree) $section]
+        return [Tree::Exists $config(tree) $section]
     }
 }
 
@@ -285,7 +285,7 @@ proc ::Config::Exists {handle section {key ""}} {
 #
 proc ::Config::Get {handle section key} {
     Acquire $handle config
-    return [::Tree::GetNaive $config(tree) $section data $key value]
+    return [Tree::GetNaive $config(tree) $section data $key value]
 }
 
 ####
@@ -297,9 +297,9 @@ proc ::Config::Get {handle section key} {
 proc ::Config::GetEx {handle section {pattern "*"}} {
     Acquire $handle config
     set pairList [list]
-    ::Tree::For {key keyTree} [::Tree::GetNaive $config(tree) $section data] {
+    Tree::For {key keyTree} [Tree::GetNaive $config(tree) $section data] {
         if {[string match $pattern $key]} {
-            lappend pairList $key [::Tree::Get $keyTree value]
+            lappend pairList $key [Tree::Get $keyTree value]
         }
     }
     return $pairList
@@ -319,17 +319,17 @@ proc ::Config::Set {handle section args} {
     }
 
     # Initialise the section if it does not exist.
-    if {![::Tree::Exists $config(tree) $section]} {
-        ::Tree::Set config(tree) $section [::Tree::Create data [::Tree::Create] length 0]
+    if {![Tree::Exists $config(tree) $section]} {
+        Tree::Set config(tree) $section [Tree::Create data [Tree::Create] length 0]
     }
 
     # Set the key's value and update the length if necessary.
     if {$argc == 2} {
         foreach {key value} $args {break}
-        if {[string length $key] > [::Tree::Get $config(tree) $section length]} {
-            ::Tree::Set config(tree) $section length [string length $key]
+        if {[string length $key] > [Tree::Get $config(tree) $section length]} {
+            Tree::Set config(tree) $section length [string length $key]
         }
-        ::Tree::Set config(tree) $section data $key value $value
+        Tree::Set config(tree) $section data $key value $value
         return $value
     }
     return
@@ -343,9 +343,9 @@ proc ::Config::Set {handle section args} {
 proc ::Config::Unset {handle section {key ""}} {
     Acquire $handle config
     if {$key eq ""} {
-        ::Tree::Unset config(tree) $section
+        Tree::Unset config(tree) $section
     } else {
-        ::Tree::Unset config(tree) $section data $key
+        Tree::Unset config(tree) $section data $key
     }
     return
 }
