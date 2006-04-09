@@ -194,28 +194,32 @@ proc ::Bot::Mod::PreTimes::Load {firstLoad} {
         package require tclodbc
     }
 
-    foreach option {addOnPre dataSource defLimit searchPres showOnNew} {
-        set $option [Config::Get $configHandle Module::PreTimes $option]
-    }
-    if {![string is digit -strict $defLimit]} {
+    # Retrieve configuration options.
+    array set option [Config::GetMulti $configHandle Module::PreTimes \
+        addOnPre dataSource defLimit searchPres showOnNew]
+
+    set dataSource $option(dataSource)
+    if {[string is digit -strict $option(defLimit)]} {
+        set defLimit $option(defLimit)
+    } else {
         set defLimit 0
     }
 
     # Register event callbacks.
-    if {[IsTrue $addOnPre]} {
+    if {[IsTrue $option(addOnPre)]} {
         ScriptRegister   pre PRE     [namespace current]::LogEvent True
         ScriptRegister   pre PRE-MP3 [namespace current]::LogEvent True
     } else {
         ScriptUnregister pre PRE     [namespace current]::LogEvent
         ScriptUnregister pre PRE-MP3 [namespace current]::LogEvent
     }
-    if {[IsTrue $showOnNew]} {
+    if {[IsTrue $option(showOnNew)]} {
         ScriptRegister   pre NEWDIR [namespace current]::LogEvent True
     } else {
         ScriptUnregister pre NEWDIR [namespace current]::LogEvent
     }
 
-    if {[IsTrue $searchPres]} {
+    if {[IsTrue $option(searchPres)]} {
         set cmdToken [CmdCreate channel pre [namespace current]::Search \
             -args "\[-limit <num>\] \[-section <name>\] <pattern>" \
             -category "General" -desc "Search pre time database."]

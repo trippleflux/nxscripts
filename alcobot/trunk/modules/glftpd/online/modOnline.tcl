@@ -228,33 +228,32 @@ proc ::Bot::Mod::Online::Load {firstLoad} {
     upvar ::Bot::configHandle configHandle
 
     # Retrieve configuration options.
-    foreach option {rootPath shmKey version} {
-        set $option [Config::Get $configHandle Ftpd $option]
-    }
-    foreach option {hideUsers hideGroups hidePaths} {
-        set $option [ListParse [Config::Get $configHandle Module::Online $option]]
-    }
-    set hideCount [IsTrue [Config::Get $configHandle Module::Online hideCount]]
+    array set option [Config::GetMulti $configHandle Ftpd rootPath shmKey version]
 
-    set etcPath [file join $rootPath "etc"]
+    set etcPath [file join $option(rootPath) "etc"]
     if {![file isdirectory $etcPath]} {
         error "the directory \"$etcPath\" does not exist"
     }
-
-    if {![scan $shmKey "%lx" shmKey]} {
-        error "invalid shared memory key \"$shmKey\""
+    if {![scan $option(shmKey) "%lx" option(shmKey)]} {
+        error "invalid shared memory key \"$option(shmKey)\""
     }
+
+    foreach {name value} [Config::GetMulti $configHandle Module::Online hideUsers hideGroups hidePaths] {
+        variable $name [ListParse $value]
+    }
+    set hideCount [IsTrue [Config::Get $configHandle Module::Online hideCount]]
 
     # Open a glFTPD session handle.
     if {$session eq ""} {
-        set session [glftpd open $shmKey]
+        set session [glftpd open $option(shmKey)]
     } else {
-        glftpd config $session -key $shmKey
+        glftpd config $session -key $option(shmKey)
     }
-    glftpd config $session -etc $etcPath -version $version
-    set cmdTokens [list]
+    glftpd config $session -etc $etcPath -version $option(version)
 
     # Bandwidth commands.
+    set cmdTokens [list]
+
     lappend cmdTokens [CmdCreate channel bw [list [namespace current]::Bandwidth ALL] \
         -category "Online" -desc "Total bandwidth usage."]
 

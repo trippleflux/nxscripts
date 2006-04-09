@@ -599,6 +599,7 @@ proc ::Bot::ModuleLoadEx {modName modDefinition} {
 
         if {$module(tclFiles) eq $prev(tclFiles) && $module(varFiles) eq $prev(varFiles)} {
             set firstLoad 0
+            set module(refCount) $prev(refCount)
         } else {
             LogDebug ModuleLoadEx "File checksums changed, reloading module."
             if {[catch {ModuleUnload $modName} debug]} {
@@ -609,11 +610,9 @@ proc ::Bot::ModuleLoadEx {modName modDefinition} {
 
     if {$firstLoad} {
         set module(refCount) 0
-    } else {
+    } elseif {$module(refCount) < 0} {
         # Reset the reference count if it's less than zero.
-        if {[set module(refCount) $prev(refCount)] < 0} {
-            set module(refCount) 0
-        }
+        set module(refCount) 0
     }
     set module(context) [string trimright $module(context) ":"]
     Tree::Set modules $modName [array get module]
@@ -1558,13 +1557,15 @@ proc ::Bot::InitConfig {filePath} {
     }
     Config::Read $configHandle
 
-    foreach option {cmdPrefix debugMode localTime ftpDaemon siteName siteTag} {
-        variable $option [Config::Get $configHandle General $option]
+    # Retrieve configuration options.
+    foreach {name value} [Config::GetMulti $configHandle General cmdPrefix siteName siteTag] {
+        variable $name $value
     }
-    set debugMode [IsTrue $debugMode]
-    set localTime [IsTrue $localTime]
+    array set option [Config::GetMulti $configHandle General debugMode localTime ftpDaemon]
 
-    if {[catch {SetFtpDaemon $ftpDaemon} message]} {
+    variable debugMode [IsTrue $option(debugMode)]
+    variable localTime [IsTrue $option(localTime)]
+    if {[catch {SetFtpDaemon $option(ftpDaemon)} message]} {
         error "Unable to set FTP daemon: $message"
     }
 
@@ -1581,9 +1582,9 @@ proc ::Bot::InitConfig {filePath} {
             set options [list]
             foreach entry [ListParse $value] {
                 # Parse options into a list.
-                if {[regexp -- {^(!?)(\w+)=?(.*)$} $entry dummy prefix option value]} {
+                if {[regexp -- {^(!?)(\w+)=?(.*)$} $entry dummy prefix optName value]} {
                     set enabled [expr {$prefix eq "!" ? 0 : 1}]
-                    lappend options $enabled $option $value
+                    lappend options $enabled $optName $value
                 } else {
                     LogWarning Config "Invalid option for command \"$name\": $entry"
                 }
@@ -1815,18 +1816,20 @@ proc ::Bot::InitMain {} {
     if {[catch {InitConfig $path} message]} {
         LogError Config $message; die
     }
+    array set option [Config::GetMulti $configHandle General modules themeFile]
 
     LogInfo "Loading modules..."
-    set modules [ListParse [Config::Get $configHandle General modules]]
-    if {[catch {InitModules $modules} message]} {
+    if {[catch {InitModules [ListParse $option(modules)]} message]} {
         LogError Modules $message; die
     }
-    set path [file join $scriptPath "AlcoBot.vars"]
-    if {[catch {VarFileLoad $path} message]} {
+
+    LogInfo "Loading variables..."
+    if {[catch {VarFileLoad [file join $scriptPath "AlcoBot.vars"]} message]} {
         LogError Variables $message; die
     }
-    set path [Config::Get $configHandle General themeFile]
-    if {[catch {InitTheme $path} message]} {
+
+    LogInfo "Loading theme..."
+    if {[catch {InitTheme $option(themeFile)} message]} {
         LogError Theme $message; die
     }
 

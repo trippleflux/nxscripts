@@ -413,11 +413,13 @@ proc ::Bot::Mod::Invite::Load {firstLoad} {
         package require tclodbc
     }
 
-    foreach option {dataSource hostCheck userCheck warnSection} {
-        set $option [Config::Get $configHandle Module::Invite $option]
-    }
-    set hostCheck [IsTrue $hostCheck]
-    set userCheck [IsTrue $userCheck]
+    # Retrieve configuration options.
+    array set option [Config::GetMulti $configHandle Module::Invite \
+        channels dataSource hostCheck userCheck warnSection]
+    set dataSource  $option(dataSource)
+    set warnSection $option(warnSection)
+    set hostCheck   [IsTrue $option(hostCheck)]
+    set userCheck   [IsTrue $option(userCheck)]
 
     # Check if the defined section exists.
     if {$warnSection ne "" && ![info exists chanSections($warnSection)] && ![info exists pathSections($warnSection)]} {
@@ -427,7 +429,7 @@ proc ::Bot::Mod::Invite::Load {firstLoad} {
 
     # Parse invite channels.
     unset -nocomplain channels
-    foreach entry [ListParse [Config::Get $configHandle Module::Invite channels]] {
+    foreach entry [ListParse $option(channels)] {
         set entry [split $entry]
         if {![llength $entry]} {
             LogError ModInvite "Invalid channel definition \"[join $entry]\"."

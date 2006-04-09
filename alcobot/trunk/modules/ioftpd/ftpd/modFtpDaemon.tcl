@@ -290,14 +290,14 @@ proc ::Bot::Mod::Ftpd::Load {firstLoad} {
     variable msgWindow
     upvar ::Bot::configHandle configHandle
 
-    # Retrieve configuration options.
+    # Retrieve the delete flag.
     set deleteFlag [Config::Get $configHandle Ftpd deleteFlag]
-    set msgWindow [Config::Get $configHandle Ftpd msgWindow]
     if {[string length $deleteFlag] != 1} {
         error "invalid flag \"$deleteFlag\": must be one character"
     }
 
     # Locate ioFTPD's "etc" directory.
+    set msgWindow [Config::Get $configHandle Ftpd msgWindow]
     if {[catch {ioftpd info $msgWindow io}]} {
         error "the message window \"$msgWindow\" does not exist"
     }

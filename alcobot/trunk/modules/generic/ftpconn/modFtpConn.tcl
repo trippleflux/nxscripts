@@ -84,9 +84,8 @@ proc ::Bot::Mod::FtpConn::Load {firstLoad} {
     upvar ::Bot::configHandle configHandle
 
     # Retrieve configuration options.
-    foreach option {host port user passwd secure} {
-        set $option [Config::Get $configHandle Module::FtpConn $option]
-    }
+    array set option [Config::GetMulti $configHandle Module::FtpConn \
+        host port user passwd secure]
 
     # Open a connection to the FTP server.
     if {$firstLoad} {
@@ -94,8 +93,8 @@ proc ::Bot::Mod::FtpConn::Load {firstLoad} {
     } else {
         Ftp::Close $connection
     }
-    set connection [Ftp::Open $host $port $user $passwd \
-        -notify [namespace current]::Notify -secure $secure]
+    set connection [Ftp::Open $option(host) $option(port) $option(user) $option(passwd) \
+        -notify [namespace current]::Notify -secure $option(secure)]
     Ftp::Connect $connection
 }
 

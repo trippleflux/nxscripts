@@ -32,15 +32,6 @@ proc ::Bot::Mod::ReadLogs::AddLog {logType logFile} {
     variable logList
     variable logOffset
 
-    # Sanity checks.
-    switch -- $logType {
-        main  {set logType 0}
-        error {set logType 1}
-        login {set logType 2}
-        sysop {set logType 3}
-        default {error "unknown log type \"logType\""}
-    }
-
     if {![file isfile $logFile] || ![file readable $logFile]} {
         error "file not readable \"$logFile\""
     }
@@ -150,7 +141,7 @@ proc ::Bot::Mod::ReadLogs::Update {} {
 
         set offset [file size $logFile]
         if {$logOffset($logId) < $offset} {
-            if {![catch {set handle [open $logFile r]} error]} {
+            if {![catch {set handle [open $logFile r]} message]} {
                 seek $handle $logOffset($logId)
                 set data [read -nonewline $handle]
 
@@ -168,7 +159,7 @@ proc ::Bot::Mod::ReadLogs::Update {} {
                     }
                 }
             } else {
-                LogError ModReadLogs "Unable to open log file \"$logFile\": $error"
+                LogError ModReadLogs "Unable to open log file \"$logFile\": $message"
             }
         }
         set logOffset($logId) $offset
@@ -299,19 +290,22 @@ proc ::Bot::Mod::ReadLogs::Load {firstLoad} {
         error "unknown FTP daemon \"$::Bot::ftpDaemon\""
     }
 
+    array set option [Config::GetMulti $configHandle Module::ReadLogs \
+        excludePaths mainLogs errorLogs loginLogs sysopLogs]
+
+    # Paths to exclude from announcing.
+    set excludePaths [ListParse $option(excludePaths)]
+
     # Monitor all defined log files.
     set logCount 0
     set logList [list]
-    foreach type {main error login sysop} option {mainLogs errorLogs loginLogs sysopLogs} {
-        foreach filePath [ListParse [Config::Get $configHandle Module::ReadLogs $option]] {
-            if {[catch {AddLog $type $filePath} error]} {
-                LogError ModReadLogs "Unable to add log file: $error"
+    foreach name {mainLogs errorLogs loginLogs sysopLogs} type {0 1 2 3} {
+        foreach filePath [ListParse $option($name)] {
+            if {[catch {AddLog $type $filePath} message]} {
+                LogError ModReadLogs "Unable to add log file: $message"
             }
         }
     }
-
-    # Paths to exclude from announcing.
-    set excludePaths [ListParse [Config::Get $configHandle Module::ReadLogs excludePaths]]
 
     if {$firstLoad} {
         set timerId [utimer 1 [namespace current]::Timer]

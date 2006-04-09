@@ -223,18 +223,20 @@ proc ::Bot::Mod::Online::Load {firstLoad} {
     variable msgWindow
     upvar ::Bot::configHandle configHandle
 
+    # Retrieve configuration options.
     set msgWindow [Config::Get $configHandle Ftpd msgWindow]
     if {[catch {ioftpd info $msgWindow io}]} {
         error "the message window \"$msgWindow\" does not exist"
     }
 
-    foreach option {hideUsers hideGroups hidePaths} {
-        set $option [ListParse [Config::Get $configHandle Module::Online $option]]
+    foreach {name value} [Config::GetMulti $configHandle Module::Online hideUsers hideGroups hidePaths] {
+        variable $name [ListParse $value]
     }
     set hideCount [IsTrue [Config::Get $configHandle Module::Online hideCount]]
-    set cmdTokens [list]
 
     # Bandwidth commands.
+    set cmdTokens [list]
+
     lappend cmdTokens [CmdCreate channel bw [list [namespace current]::Bandwidth ALL] \
         -category "Online" -desc "Total bandwidth usage."]
 

@@ -37,8 +37,8 @@ proc ::Bot::Mod::NxTools::DbOpenFile {fileName} {
         LogError ModNxTools "Unable to open \"$filePath\": the file does not exist"
         return 0
     }
-    if {[catch {sqlite3 [namespace current]::db $filePath} error]} {
-        LogError ModNxTools "Unable to open \"$filePath\": $error"
+    if {[catch {sqlite3 [namespace current]::db $filePath} message]} {
+        LogError ModNxTools "Unable to open \"$filePath\": $message"
         return 0
     }
 
@@ -463,9 +463,10 @@ proc ::Bot::Mod::NxTools::Load {firstLoad} {
         error "The database directory \"$dataPath\" does not exist."
     }
     set undupeWild [IsTrue $undupeWild]
-    set cmdTokens [list]
 
     # Directory commands.
+    set cmdTokens [list]
+
     lappend cmdTokens [CmdCreate channel dupe [namespace current]::Dupe \
         -args "\[-limit <num>\] \[-section <name>\] <pattern>" \
         -category "Data" -desc "Search for a release."]
