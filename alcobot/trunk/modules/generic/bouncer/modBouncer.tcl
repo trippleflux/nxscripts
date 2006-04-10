@@ -170,7 +170,7 @@ proc ::Bot::Mod::Bouncer::Unload {} {
     foreach name [array names bouncers] {
         Ftp::Close [lindex $bouncers($name) 5]
     }
-    unset bouncers
+    unset -nocomplain bouncers
 
     if {$timerId ne ""} {
         catch {killtimer $timerId}
