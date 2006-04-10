@@ -1134,8 +1134,9 @@ proc ::Bot::VarGetGroups {{groupPattern "*"}} {
 
     set result [list]
     foreach name [array names variables [list $groupPattern "*"]] {
+        set name [lindex $name 0]
         if {[lsearch -exact $result $name] == -1} {
-            lappend result [lindex $name 0]
+            lappend result $name
         }
     }
     return $result
