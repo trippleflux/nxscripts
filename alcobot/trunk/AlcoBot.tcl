@@ -696,7 +696,9 @@ proc ::Bot::ModuleUnload {modName} {
     # Unload variable files.
     foreach {name hash} $module(varFiles) {
         set path [file join $module(location) $name]
-        if {[catch {VarFileUnload $path} message]} {set failed 1}
+        if {[catch {VarFileUnload $path} debug]} {
+            LogDebug ModuleUnload "Unable to unload variable file \"$name\": $debug"
+        }
     }
 
     Tree::Unset modules $modName

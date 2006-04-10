@@ -234,7 +234,8 @@ proc ::Bot::Mod::Groups::Unload {} {
     foreach token $cmdTokens {
         CmdRemoveByToken $token
     }
-    if {[info exists groupsHandle]} {
+    if {$groupsHandle ne ""} {
         Config::Close $groupsHandle
+        set groupsHandle ""
     }
 }
