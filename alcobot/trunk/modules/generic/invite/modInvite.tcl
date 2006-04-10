@@ -477,12 +477,12 @@ proc ::Bot::Mod::Invite::Unload {} {
     CmdRemoveByToken $cmdToken
 
     # Remove event callbacks.
-    unbind raw  -|- 311 [namespace current]::Whois
-    unbind join -|- "*" [list [namespace current]::ChanEvent JOIN]
-    unbind kick -|- "*" [list [namespace current]::ChanEvent KICK]
-    unbind nick -|- "*" [list [namespace current]::ChanEvent NICK]
-    unbind part -|- "*" [list [namespace current]::ChanEvent PART]
-    unbind sign -|- "*" [list [namespace current]::ChanEvent QUIT]
+    catch {unbind raw  -|- 311 [namespace current]::Whois}
+    catch {unbind join -|- "*" [list [namespace current]::ChanEvent JOIN]}
+    catch {unbind kick -|- "*" [list [namespace current]::ChanEvent KICK]}
+    catch {unbind nick -|- "*" [list [namespace current]::ChanEvent NICK]}
+    catch {unbind part -|- "*" [list [namespace current]::ChanEvent PART]}
+    catch {unbind sign -|- "*" [list [namespace current]::ChanEvent QUIT]}
     ScriptUnregister pre INVITE  [namespace current]::LogEvent
     ScriptUnregister pre DELUSER [namespace current]::LogEvent
     ScriptUnregister pre PURGED  [namespace current]::LogEvent
