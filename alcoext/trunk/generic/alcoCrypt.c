@@ -628,14 +628,11 @@ CryptProcessCmd(
                 // Instead of switching through the index obtained by Tcl_GetIndexFromObj,
                 // we ordered the counter modes in accordance to their defined values.
                 //
-                // counterModes[CTR_COUNTER_LITTLE_ENDIAN] == "littleEndian"
-                // counterModes[CTR_COUNTER_BIG_ENDIAN]    == "bigEndian"
-                //
-                assert(CTR_COUNTER_LITTLE_ENDIAN == 0);
-                assert(CTR_COUNTER_BIG_ENDIAN    == 1);
+                assert(!strcmp(counterModes[CTR_COUNTER_LITTLE_ENDIAN], "littleEndian"));
+                assert(!strcmp(counterModes[CTR_COUNTER_BIG_ENDIAN],    "bigEndian"));
 
-                if (Tcl_GetIndexFromObj(interp, objv[i], counterModes, "counter mode",
-                    TCL_EXACT, &counterMode) != TCL_OK) {
+                if (Tcl_GetIndexFromObj(interp, objv[i], counterModes,
+                        "counter mode", TCL_EXACT, &counterMode) != TCL_OK) {
                     return TCL_ERROR;
                 }
                 break;
