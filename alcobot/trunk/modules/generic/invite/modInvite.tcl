@@ -138,7 +138,7 @@ proc ::Bot::Mod::Invite::CheckHash {hash password} {
 proc ::Bot::Mod::Invite::MakeHash {password} {
     set salt [crypt rand 4]
     set hash [crypt pkcs5 -v2 -rounds 100 sha256 $salt $password]
-    return [join [list [encode hex $salt] [encode hex $hash]] "$"]
+    return [format {%s$%s} [encode hex $salt] [encode hex $hash]]
 }
 
 ####
