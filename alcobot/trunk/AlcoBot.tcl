@@ -1634,7 +1634,7 @@ proc ::Bot::InitLibraries {rootPath} {
         lappend auto_path $libPath
     }
 
-    foreach script {constants.tcl libUtil.tcl libConfig.tcl libFtp.tcl libGetOpt.tcl libTree.tcl} {
+    foreach script {constants.tcl libUtil.tcl libConfig.tcl libDb.tcl libFtp.tcl libGetOpt.tcl libTree.tcl} {
         set script [file join $libPath $script]
         if {[catch {source $script} message]} {
             error "couldn't source script \"$script\": $message"
