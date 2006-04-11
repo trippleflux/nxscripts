@@ -459,8 +459,9 @@ proc ::Invite::Main {} {
     variable logPath
 
     if {$::tcl_platform(platform) eq "windows"} {
+        global args
         set isWindows 1
-        set argList [ListParse [expr {[info exists ::args] ? $::args : ""}]]
+        set argList [ListParse [expr {[info exists args] ? $args : ""}]]
     } else {
         global env user group groups flags
         set isWindows 0

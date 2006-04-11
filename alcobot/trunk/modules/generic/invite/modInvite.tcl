@@ -247,7 +247,8 @@ proc ::Bot::Mod::Invite::Command {target user host argv} {
     set password [lindex $argv 1]
 
     if {[DbConnect]} {
-        set result [db "SELECT irc_user, password FROM invite_users WHERE ftp_user='[SqlEscape $ftpUser]'"]
+        set ftpUserEsc [SqlEscape $ftpUser]
+        set result [db "SELECT irc_user, password FROM invite_users WHERE ftp_user='$ftpUserEsc'"]
         set result [lindex $result 0]
 
         # Validate password.
@@ -416,15 +417,14 @@ proc ::Bot::Mod::Invite::Load {firstLoad} {
     # Retrieve configuration options.
     array set option [Config::GetMulti $configHandle Module::Invite \
         channels dataSource hostCheck userCheck warnSection]
-    set dataSource  $option(dataSource)
-    set warnSection $option(warnSection)
-    set hostCheck   [IsTrue $option(hostCheck)]
-    set userCheck   [IsTrue $option(userCheck)]
+    set dataSource $option(dataSource)
+    set hostCheck  [IsTrue $option(hostCheck)]
+    set userCheck  [IsTrue $option(userCheck)]
 
     # Check if the defined section exists.
+    set warnSection $option(warnSection)
     if {$warnSection ne "" && ![info exists chanSections($warnSection)] && ![info exists pathSections($warnSection)]} {
-        LogError ModInvite "Invalid channel section \"$warnSection\"."
-        set warnSection ""
+        error "Invalid channel section \"$warnSection\"."
     }
 
     # Parse invite channels.
