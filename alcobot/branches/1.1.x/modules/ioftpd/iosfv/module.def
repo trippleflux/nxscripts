@@ -1,0 +1,6 @@
+# Module Definition File
+desc=ioSFV Variables
+context=
+depends=
+tclFiles=
+varFiles=modIoSfv.vars

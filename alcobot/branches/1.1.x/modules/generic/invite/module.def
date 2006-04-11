@@ -1,0 +1,6 @@
+# Module Definition File
+desc=Invite Users
+context=::Bot::Mod::Invite
+depends=ftpd
+tclFiles=modInvite.tcl
+varFiles=modInvite.vars

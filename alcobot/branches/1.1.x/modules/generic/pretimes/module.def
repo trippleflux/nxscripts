@@ -1,0 +1,6 @@
+# Module Definition File
+desc=Pre Times
+context=::Bot::Mod::PreTimes
+depends=
+tclFiles=modPreTimes.tcl
+varFiles=modPreTimes.vars
