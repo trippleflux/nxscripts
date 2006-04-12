@@ -47,12 +47,14 @@ proc ::Db::Open {connString args} {
     variable nextHandle
     variable driverMap
 
-    # TODO: parse connString
-    # <driver>://<user>:<passwd>@<host>:<port>/<dbname>
-    #
-    #
-    #
+    # Parse database URI string.
+    # Format: <driver>://<user>:<passwd>@<host>:<port>/<dbname>
+    array set uri [SplitURI $connString]
 
+    if {![info exists driverMap($uri(scheme))]} {
+        error "unknown driver \"$uri(scheme)\""
+    }
+    set driver $driverMap($uri(scheme))
     ::Db::${driver}::Init
 
     set handle "db$nextHandle"
@@ -200,6 +202,26 @@ proc ::Db::MySQL::Disconnect {object} {
     ::mysql::close $object
 }
 
+# Comparison Functions
+
+proc ::Db::MySQL::Func::Like {value pattern {escape "\\"}} {
+    return "$value LIKE $pattern ESCAPE '$escape'"
+}
+
+proc ::Db::MySQL::Func::NotLike {value pattern {escape "\\"}} {
+    return "$value NOT LIKE $pattern ESCAPE '$escape'"
+}
+
+proc ::Db::MySQL::Func::RegExp {value pattern} {
+    return "$value REGEXP $pattern"
+}
+
+proc ::Db::MySQL::Func::NotRegExp {value pattern} {
+    return "$value NOT REGEXP $pattern"
+}
+
+# Quoting Functions
+
 proc ::Db::MySQL::Func::Escape {value} {
     return [::mysql::escape $value]
 }
@@ -231,6 +253,26 @@ proc ::Db::PostgreSQL::Disconnect {object} {
     pg_disconnect $object
 }
 
+# Comparison Functions
+
+proc ::Db::PostgreSQL::Func::Like {value pattern {escape "\\"}} {
+    return "$value LIKE $pattern ESCAPE '$escape'"
+}
+
+proc ::Db::PostgreSQL::Func::NotLike {value pattern {escape "\\"}} {
+    return "$value NOT LIKE $pattern ESCAPE '$escape'"
+}
+
+proc ::Db::PostgreSQL::Func::RegExp {value pattern} {
+    return "$value ~* $pattern"
+}
+
+proc ::Db::PostgreSQL::Func::NotRegExp {value pattern} {
+    return "$value !~* $pattern"
+}
+
+# Quoting Functions
+
 proc ::Db::PostgreSQL::Func::Escape {value} {
     return [pg_escape_string $value]
 }
@@ -255,11 +297,41 @@ proc ::Db::SQLite::Init {} {
 }
 
 proc ::Db::SQLite::Connect {options} {
+    set object "::Db::SQLite::db[clock clicks]"
+    sqlite3 $object TODO
+
+    # The value and pattern arguments are passed to Tcl in reverse.
+    #
+    # SQL Query: 'value' REGEXP 'pattern'
+    # Tcl Sees : REGEXP $pattern $value
+    #
+    $object function REGEXP {regexp -nocase --}
+    return $object
 }
 
 proc ::Db::SQLite::Disconnect {object} {
     $object close
 }
+
+# Comparison Functions
+
+proc ::Db::SQLite::Func::Like {value pattern {escape "\\"}} {
+    return "$value LIKE $pattern ESCAPE '$escape'"
+}
+
+proc ::Db::SQLite::Func::NotLike {value pattern {escape "\\"}} {
+    return "$value NOT LIKE $pattern ESCAPE '$escape'"
+}
+
+proc ::Db::SQLite::Func::RegExp {value pattern} {
+    return "$value REGEXP $pattern"
+}
+
+proc ::Db::SQLite::Func::NotRegExp {value pattern} {
+    return "$value NOT REGEXP $pattern"
+}
+
+# Quoting Functions
 
 proc ::Db::SQLite::Func::Escape {value} {
     return [string map {\\ \\\\ ` \\` ' \\' \" \\\"} $value]
