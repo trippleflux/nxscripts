@@ -49,6 +49,11 @@ proc ::Db::Open {connString args} {
 
     # TODO: parse connString
     # <driver>://<user>:<passwd>@<host>:<port>/<dbname>
+    #
+    #
+    #
+
+    ::Db::${driver}::Init
 
     set handle "db$nextHandle"
     upvar [namespace current]::$handle db
@@ -75,6 +80,11 @@ proc ::Db::Open {connString args} {
 #
 proc ::Db::Close {handle} {
     Acquire $handle db
+    if ($db(object) ne ""} {
+        ::Db::$db(driver)::Disconnect $db(object)
+    }
+    unset -nocomplain db
+    return
 }
 
 ####
@@ -84,6 +94,8 @@ proc ::Db::Close {handle} {
 #
 proc ::Db::Connect {handle} {
     Acquire $handle db
+    set db(object) [::Db::$db(driver)::Connect $db(options)]
+    return
 }
 
 ####
@@ -93,6 +105,11 @@ proc ::Db::Connect {handle} {
 #
 proc ::Db::Disconnect {handle} {
     Acquire $handle db
+    if ($db(object) ne ""} {
+        ::Db::$db(driver)::Disconnect $db(object)
+        set db(object) ""
+    }
+    return
 }
 
 ####
@@ -152,16 +169,35 @@ proc ::Db::Acquire {handle handleVar} {
     uplevel 1 [list upvar [namespace current]::$handle $handleVar]
 }
 
+####
+# SplitURI
+#
+# Splits the given URL into its constituents.
+#
+proc ::Db::SplitURI {url} {
+    # RFC 1738:	scheme = 1*[ lowalpha | digit | "+" | "-" | "." ]
+    if {![regexp -- {^([a-z0-9+.-]+):} $url result scheme]} {
+        throw DB "invalid URI scheme \"$url\""
+    }
+
+    # TODO
+}
+
 ################################################################################
 # MySQL Driver                                                                 #
 ################################################################################
 
 namespace eval ::Db::MySQL::Func {}
 
+proc ::Db::MySQL::Init {} {
+    package require mysqltcl 3
+}
+
 proc ::Db::MySQL::Connect {options} {
 }
 
 proc ::Db::MySQL::Disconnect {object} {
+    ::mysql::close $object
 }
 
 proc ::Db::MySQL::Func::Escape {value} {
@@ -184,10 +220,15 @@ proc ::Db::MySQL::Func::QuoteString {value} {
 
 namespace eval ::Db::PostgreSQL::Func {}
 
+proc ::Db::PostgreSQL::Init {} {
+    package require Pgtcl 1.5
+}
+
 proc ::Db::PostgreSQL::Connect {options} {
 }
 
 proc ::Db::PostgreSQL::Disconnect {object} {
+    pg_disconnect $object
 }
 
 proc ::Db::PostgreSQL::Func::Escape {value} {
@@ -209,10 +250,15 @@ proc ::Db::PostgreSQL::Func::QuoteString {value} {
 
 namespace eval ::Db::SQLite::Func {}
 
+proc ::Db::SQLite::Init {} {
+    package require sqlite3
+}
+
 proc ::Db::SQLite::Connect {options} {
 }
 
 proc ::Db::SQLite::Disconnect {object} {
+    $object close
 }
 
 proc ::Db::SQLite::Func::Escape {value} {

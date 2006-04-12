@@ -79,13 +79,19 @@ AlcoBot is a modular sitebot written in Tcl for ioFTPD and glFTPD.
        FreeBSD: portupgrade -N tcltls
        Source : http://sourceforge.net/project/showfiles.php?group_id=13248
 
-     unixODBC - ODBC support for modInvite and modPreTimes.
-       Debian : apt-get install unixodbc-dev
-       FreeBSD: portupgrade -N unixODBC
-       Source : http://www.unixodbc.org
+    MySQLTcl  - MySQL database support.
+       Debian : apt-get install mysqltcl
+       FreeBSD: portupgrade -N mysqltcl
+       Source : http://www.xdobry.de/mysqltcl/
 
-     TclODBC  - ODBC support for modInvite and modPreTimes.
-       Source : http://sourceforge.net/project/showfiles.php?group_id=13173
+    pgTcl     - PostgreSQL database support.
+       Debian : apt-get install libpgtcl
+       Source : http://gborg.postgresql.org/project/pgtclng/projdisplay.php
+
+    TclSQLite - SQLite database support.
+       Debian : apt-get install libsqlite3-tcl
+       FreeBSD: portupgrade -N sqlite3
+       Source : http://www.sqlite.org/download.html
 
   4. Download and install Eggdrop.
 
