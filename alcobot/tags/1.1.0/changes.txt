@@ -1,0 +1,115 @@
+AlcoBot v1.1.0 (Apr 12, 2006):
+  NEW: Commands can throw CMDHELP and GETOPT errors to display command usage.
+  NEW: Modules are reference counted, so dependencies won't be unloaded early.
+  NEW: Modules clean-up after themselves, so they can be unloaded at any time.
+  NEW: Multiple prefixes can be specified for commands (e.g. !bw and !sitebw).
+  NEW: Redesigned the command option system: prefixes are configurable per
+       command, new permission options, and the command type must be declared.
+  NEW: Script variable definitions are now modules.
+  NEW: Variable definitions and theme entries are now in groups according to
+       the module they interface with (improves ioA/nxTools support).
+  CHG: Changed the section colour format.
+  CHG: Moved sitebot connection code from the "ftpd" module to "ftpconn".
+  CHG: Moved the formatting and variable systems to the bot's core.
+  CHG: Removed the "varFiles" option from the configuration file.
+  CHG: Renamed all library commands and dropped the namespace exports.
+  FIX: The groups module didn't remove sections with no groups.
+
+AlcoBot v1.0.0 (Feb 23, 2006):
+  NEW: Improved installation instructions.
+  NEW: Option to include or exclude hidden users in bandwidth stats (!bw/!bwdn/!bwup).
+  NEW: The module load order is automatically rearranged so dependencies are loaded first.
+  CHG: Dependency checks are performed by ModuleLoadEx now, rather than ModuleLoad.
+  FIX: Division-by-zero error in the free module if the total size of a volume is zero.
+  FIX: Forgot to include the required "UnNuke_Log" setting for ioA.
+  FIX: Inconsistencies in the FTP library's event handler during the login sequence.
+
+AlcoBot v0.7.0 (Jan 7, 2006):
+  NEW: Check for "DNS" fields in glFTPD v2.01 user-files.
+  NEW: Completed Project-ZS-NG support, for glFTPD only.
+  NEW: Module for ioA support, named "ioa".
+  NEW: Module to issue SITE commands from IRC, named "sitecmd".
+  NEW: Module to query glFTPD's data files, named "gldata".
+  NEW: Option to format time values in UTC or local time.
+  NEW: Option to prohibit wildcards in the undupe search pattern.
+  NEW: Substitution type for sizes logged in megabytes.
+  NEW: Support for nxAutoNuke v2.3 (the ANUKESIZE event).
+  NEW: The onel command now supports "-limit" switch in the nxtools module.
+  NEW: Uniform FTPD functions to resolve user names, user IDs, group names, and group IDs.
+  CHG: Moved nxTools event definitions to the nxtools module.
+  CHG: Renamed "latest" and "search" themes to "new" and "dupe", respectively.
+  CHG: Renamed the "GlFtpd" and "IoFtpd" configuration sections to "Ftpd".
+  CHG: Renamed the "ips" array element to "hosts" for the UserInfo function.
+  CHG: The nxtools module no longer reads nxTools.cfg on start-up.
+  FIX: Declare namespace variables before checking their existence.
+  FIX: Grammatical errors in command descriptions (patch by iwi).
+  FIX: Inconsistencies in the time duration functions (patch by iwi).
+  FIX: Nukees were not displayed properly on NUKE and UNNUKE log events for glFTPD.
+  FIX: The invite module passed the wrong number of arguments to ScriptUnregister (patch by iwi).
+
+AlcoBot v0.6.0 (Oct 23, 2005):
+  NEW: Added a "notify" callback to the FTP library (connection success).
+  NEW: Bouncer module, to display the status of FTP bouncers.
+  NEW: Expanded zipscript support to include iojZS (jeza) and php_psio (SnypeTEST).
+  NEW: The "ftpd" module will indicate if the FTP connection succeeded or failed.
+  CHG: A trailing path separator is appended to %(releaseFull) and %(releasePath).
+  CHG: Debug mode is disabled by default in the sample configuration files.
+  FIX: Forgot to add the "UPDATE" log type to the "zipscript" event group.
+  FIX: "SITE INVADMIN USER" would fail if the same IRC and FTP user were used repeatedly.
+  FIX: The command help message displayed the command name instead of the binding.
+  FIX: The default colours are used if there are no available section colours.
+
+AlcoBot v0.5.0 (Oct 12, 2005):
+  NEW: Add, fill, or remove requests from IRC with the !request, !reqfill, and !reqdel commands.
+  NEW: Added command aliases !dn and !up for !leechers and !uploaders, respectively.
+  NEW: Approve releases from IRC with the !approve command.
+  NEW: Asynchronous FTP client library with SSL and TLS support.
+  NEW: Expanded zipscript support to include ioSFV (_tUFF) and Project-ZS (Caladan/esmandil).
+  NEW: File containing all available variables (variables.txt).
+  NEW: List commands on the configuration dump, ".alcobot dump".
+  NEW: Rewrote the command interface, proper support for aliases and flag checking.
+  NEW: The "ftpd" module now maintains a connection to the FTP server.
+  CHG: Removed the "cmdPrefix" option from [Module::Free].
+  CHG: Removed the pre time announces from nxTools.
+  CHG: The option names in [Commands] are the base names of commands instead of a pattern.
+  FIX: Handling of patterns with reserved characters (!dupe, !new, !nukes, !unnukes, !pre).
+  FIX: ioZS support, the escape sequences are now properly substituted.
+  FIX: Parsing sub-list (loop) values with reserved characters.
+
+AlcoBot v0.4.0 (Oct 7, 2005):
+  NEW: Online stats module, to view bandwidth usage and user activity.
+  NEW: Support for alternative user/group stores (e.g. ioShareDb). Access
+       to ioFTPD's user and group files is now done using shared memory.
+  NEW: Tcl version check, to ensure Tcl v8.4, or newer, is present.
+  CHG: The ioFTPD directory is now found automatically using the message window,
+       so the "rootPath" ioFTPD configuration option is no longer necessary.
+  FIX: Login/logout announce for glFTPD when users do not have a tagline.
+
+AlcoBot v0.3.0 (Oct 1, 2005):
+  NEW: FTP commands for the invite module: SITE INVITE/INVPASSWD/INVADMIN.
+  NEW: Invite module, allows users to join the site channel.
+  NEW: Multi-line messages, use "\n" to split announcements onto separate lines.
+  NEW: Support for "message" commands.
+  NEW: Uniform FTP daemon API for access to user and group files.
+  FIX: Blank lines are no longer sent when a theme entry is disabled.
+  FIX: Module dependency checks always failed.
+  FIX: Use lower/upper case string functions provided by the SQL server, since
+       not all DBMS engines support Unicode characters as well as Tcl.
+
+AlcoBot v0.2.0 (Sep 19, 2005):
+  NEW: Added installation instructions for modules.
+  NEW: Command-line style option parsing library.
+  NEW: DCC command to dump the configuration, ".alcobot dump".
+  NEW: Help module, to display support commands.
+  NEW: nxTools module for ioFTPD, to interact with nxTools' databases.
+  NEW: Pre times module, to search and display release pre times.
+  NEW: Variable and theme definitions for nxAutoNuke.
+  CHG: Modules now have separate variable definition files.
+  CHG: Moved to a less restrictive license (modified BSD).
+  CHG: The section parameter to the !free command is now case-insensitive.
+  CHG: The varFiles and themeFile options use file names instead of relative paths.
+  FIX: The bot failed to load if auto_path was not set.
+  FIX: The DCC command list did not display the full command names.
+
+AlcoBot v0.1.0 (Aug 29, 2005):
+  CHG: Initial release.

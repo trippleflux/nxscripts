@@ -1,0 +1,6 @@
+# Module Definition File
+desc=ioFTPD
+context=::Bot::Mod::Ftpd
+depends=
+tclFiles=modFtpDaemon.tcl
+varFiles=modFtpDaemon.vars
