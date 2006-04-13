@@ -68,6 +68,14 @@ proc ::Config::Open {filePath args} {
         }
     }
 
+    #
+    # Config Handle Contents
+    #
+    # ftp(align)   - Key alignment.
+    # ftp(comment) - Comment character.
+    # ftp(tree)    - Config data tree.
+    # ftp(path)    - Path to the config file.
+    #
     set handle "config$nextHandle"
     upvar [namespace current]::$handle config
     array set config [list     \
@@ -365,6 +373,10 @@ proc ::Config::Unset {handle section {key ""}} {
     }
     return
 }
+
+################################################################################
+# Internal Procedures                                                          #
+################################################################################
 
 ####
 # Acquire

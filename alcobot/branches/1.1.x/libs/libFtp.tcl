@@ -49,8 +49,8 @@ proc ::Ftp::Init {logProc} {
 ####
 # Ftp::Open
 #
-# Creates a new FTP client handle. This handle is used by every FTP procedure
-# and must be closed using ::Ftp::Close.
+# Creates a new FTP client handle. This handle is used by every library
+# procedure and must be closed using Ftp::Close.
 #
 # Secure Options:
 # none     - Regular connection.
@@ -224,6 +224,10 @@ proc ::Ftp::Command {handle command {callback ""}} {
     return
 }
 
+################################################################################
+# Internal Procedures                                                          #
+################################################################################
+
 ####
 # Acquire
 #
@@ -281,7 +285,7 @@ proc ::Ftp::Send {handle command} {
 # Shutdown
 #
 # Shuts down the FTP connection. The error parameter is an empty string
-# when the connection is closed intentionally with ::Ftp::Close or ::Ftp::Disconnect.
+# when the connection is closed intentionally with Ftp::Close or Ftp::Disconnect.
 #
 proc ::Ftp::Shutdown {handle {error ""}} {
     upvar [namespace current]::$handle ftp
