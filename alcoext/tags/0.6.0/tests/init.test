@@ -1,0 +1,52 @@
+#
+# AlcoExt - Alcoholicz Tcl extension.
+# Copyright (c) 2005-2006 Alcoholicz Scripting Team
+#
+# Module Name:
+#   Init Tests
+#
+# Author:
+#   neoxed (neoxed@gmail.com) May 25, 2005
+#
+# Abstract:
+#   Test extension initialisation and synchronization in threaded interpreters.
+#
+
+set currentPath [file dirname [file normalize [info script]]]
+source [file join $currentPath "loader.tcl"]
+
+testConstraint threaded  [expr {[info exists tcl_platform(threaded)] && $tcl_platform(threaded)}]
+testConstraint threadPkg [expr {![catch {package require Thread}]}]
+
+################################################################################
+# init                                                                         #
+################################################################################
+
+test init-1.1 {load: delete and exit handler} {
+    set interpList [list]
+    # Create 20 interpreters and load the extension in each.
+    for {set i 0} {$i < 20} {incr i} {
+        set interp [interp create]
+        interp eval $interp [list load $libFile]
+        lappend interpList $interp
+    }
+
+    # Remove three random interps to test exit handler.
+    set interpList [lreplace $interpList 15 15]
+    set interpList [lreplace $interpList 10 10]
+    set interpList [lreplace $interpList 5 5]
+
+    # Delete the 17 remaining interpreters to test delete handler.
+    foreach interp $interpList {
+        interp delete $interp
+    }
+    llength $interpList
+} {17}
+
+test init-1.2 {load: delete and exit handler} {threaded threadPkg} {
+    # TODO: write a threaded version of test init-1.1.
+} {}
+
+
+::tcltest::cleanupTests
+return

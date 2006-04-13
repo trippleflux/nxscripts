@@ -1,0 +1,42 @@
+################################################################################
+#                                 Library Notes                                #
+################################################################################
+
+    Some libraries require minor modifications or specific compilation
+procedures for inclusion with AlcoExt.
+
+
+############################################################
+# Bzip2                                                    #
+############################################################
+
+1) Download the latest source archive from http://www.bzip.org.
+
+2) TODO
+
+
+############################################################
+# TomCrypt                                                 #
+############################################################
+
+1) Download the latest source archive from http://libtomcrypt.org.
+
+2) Copy all the source files to the "tomcrypt" directory.
+
+3) Revert any changes made to "tomcrypt_custom.h".
+
+4) Apply the "tomcrypt.patch" patch file.
+
+5) Commit the changed files.
+
+Diff Command:
+
+svn diff http://svn.alcoholicz.com/trunk/ext/libs/tomcrypt/@506 http://svn.alcoholicz.com/ext/trunk/libs/tomcrypt/
+
+############################################################
+# Zlib                                                     #
+############################################################
+
+1) Download the latest source archive from http://www.zlib.org.
+
+2) TODO

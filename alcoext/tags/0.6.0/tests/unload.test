@@ -1,0 +1,103 @@
+#
+# AlcoExt - Alcoholicz Tcl extension.
+# Copyright (c) 2005-2006 Alcoholicz Scripting Team
+#
+# Module Name:
+#   Unload Tests
+#
+# Author:
+#   neoxed (neoxed@gmail.com) Mar 16, 2006
+#
+# Abstract:
+#   Tests for Tcl 8.5's extension unloading support.
+#
+
+set currentPath [file dirname [file normalize [info script]]]
+source [file join $currentPath "loader.tcl"]
+
+#
+# TODO:
+# - SF bug 1452058: unload -keeplibrary prevents re-loading the extension
+# - Reinstate this regression test once it is resolved.
+#
+return
+
+testConstraint haveUnload [expr {[llength [info commands unload]] == 1}]
+
+proc CheckCmds {commands} {
+    set result 0
+    foreach name {compress crypt decode encode volume ioftpd glftpd} {
+        if {[lsearch -exact $commands $name] != -1} {
+            incr result
+        }
+    }
+    return $result
+}
+
+################################################################################
+# exit/interp-deletion handlers                                                #
+################################################################################
+
+test unload-1.1 {unload extension from process} {haveUnload} {
+    unload -- $libFile
+} {}
+
+test unload-1.2 {unload extension from interp} {haveUnload} {
+    load $libFile
+    unload -keeplibrary -- $libFile
+} {}
+
+test unload-1.3 {interp deletion handler} {haveUnload} {
+    set interp [interp create]
+    interp eval $interp [list load $libFile]
+    interp eval $interp [list unload -- $libFile]
+    interp delete $interp
+} {}
+
+################################################################################
+# command deletion                                                             #
+################################################################################
+
+test unload-2.1 {unload extension from process} {haveUnload} {
+    set result [CheckCmds [info commands]]
+    load $libFile
+    lappend result [CheckCmds [info commands]]
+
+    unload -- $libFile
+    lappend result [CheckCmds [info commands]]
+
+    set result
+} {0 6 0}
+
+test unload-2.2 {unload extension from another interp} {haveUnload} {
+    set result [CheckCmds [info commands]]
+    load $libFile
+    lappend result [CheckCmds [info commands]]
+
+    set i [interp create]
+    $i eval [list load $libFile]
+    lappend result [CheckCmds [$i eval info commands]]
+    $i eval [list unload  -- $libFile]
+    lappend result [CheckCmds [$i eval info commands]]
+
+    lappend result [CheckCmds [info commands]]
+    unload -- $libFile
+    lappend result [CheckCmds [info commands]]
+
+    set result
+} {0 6 6 0 6 0}
+
+test unload-2.3 {unload extension from interp} {haveUnload} {
+    set result [CheckCmds [info commands]]
+    load $libFile
+    lappend result [CheckCmds [info commands]]
+
+    unload -keeplibrary -- $libFile
+    lappend result [CheckCmds [info commands]]
+
+    set result
+} {0 6 0}
+
+
+::tcltest::cleanupTests
+return

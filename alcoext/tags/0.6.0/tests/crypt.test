@@ -1,0 +1,982 @@
+#
+# AlcoExt - Alcoholicz Tcl extension.
+# Copyright (c) 2005-2006 Alcoholicz Scripting Team
+#
+# Module Name:
+#   Crypt Tests
+#
+# Author:
+#   neoxed (neoxed@gmail.com) May 25, 2005
+#
+# Abstract:
+#   Crypt command test suite.
+#
+
+set currentPath [file dirname [file normalize [info script]]]
+source [file join $currentPath "loader.tcl"]
+
+# Source crypt test vectors.
+source [file join $currentPath "crypt" "cipher.tv"]
+source [file join $currentPath "crypt" "hash.tv"]
+source [file join $currentPath "crypt" "hmac.tv"]
+source [file join $currentPath "crypt" "omac.tv"]
+source [file join $currentPath "crypt" "pmac.tv"]
+
+# Algorithm definitions.
+# algo    keyMin keyMax block rounds
+set cipherList {
+3des        24    24     8      16
+aes         16    32     16     10
+anubis      16    40     16     12
+blowfish    8     56     8      16
+cast5       5     16     8      16
+des         8     8      8      16
+khazad      16    16     8      8
+noekeon     16    16     16     16
+rc2         8     128    8      16
+rc5         8     128    8      12
+rc6         8     128    16     20
+safer+      16    32     16     8
+safer-k64   8     8      8      8
+safer-sk64  8     8      8      8
+safer-k128  16    16     8      8
+safer-sk128 16    16     8      8
+skipjack    10    10     8      32
+twofish     16    32     16     16
+xtea        16    16     8      32
+}
+
+set testData {
+"\x32\xF8\x62\x06\xBB\x4E\x52\x5B\x32\xF8"
+"\xD4\x41\x13\x20\x32\xBD\xAC\x67\x15\xF4\x45\x3C\xBC\x24\x34\xD8"
+"\x6B\x6F\x32\xE5\xEA\xC2\xF4\x24\x07\x4C\x33\xF7\xC9\x88\xD5\xFE\x6B\x6F\x32\xE5\xEA\xC2\xF4\x24"
+"\xB3\xE9\x5F\x51\x95\xBA\x64\x6D\xAF\x33\x3A\xA8\x91\x30\x45\x1F\xB3\xE9\x5F\x51\x95\xBA\x64\x6D\xAF\x33\x3A\xA8\x91\x30\x45\x1F"
+"\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37\x33\xC2\x62\xF5\x8B\xF0\xD9\x1D\xF2\x04\x7E\x79\x9B\xAA\x5F\x37"
+}
+
+####
+# GetTclEntropy
+#
+# Retrieve entropy from the Tcl interpreter.
+#
+proc GetTclEntropy {} {
+    # Lame attempt at gathering entropy from Tcl,
+    # never use this in a production environment!
+    set stuff [expr {pow(2,31) * rand() + ([clock clicks]/2)}]
+    append stuff [clock seconds]
+    return [string range $stuff 0 15]
+}
+
+####
+# ZeroPadData
+#
+# Pad the given data to a multiple of the block length.
+#
+proc ZeroPadData {blockLen data} {
+    set dataLen [string length $data]
+    set padding [expr {(($dataLen + $blockLen - 1) / $blockLen) * $blockLen}]
+    if {$padding > $dataLen} {
+        append data [string repeat "\0" [expr {$padding - $dataLen}]]
+    }
+    return $data
+}
+
+####
+# InList
+#
+# Check if given list element is present.
+#
+proc InList {list element} {
+    # Similar to Tcl 8.5's "in" operator.
+    expr {[lsearch -exact $list $element] != -1}
+}
+
+################################################################################
+# crypt                                                                        #
+################################################################################
+
+test crypt-1.1 {crypt: no args} {
+    list [catch {crypt} msg] $msg
+} {1 {wrong # args: should be "crypt option arg ?arg ...?"}}
+
+test crypt-1.2 {crypt: one arg} {
+    list [catch {crypt .} msg] $msg
+} {1 {bad option ".": must be decrypt, encrypt, end, hash, info, pkcs5, prng, rand, start, or update}}
+
+test crypt-1.3 {crypt: invalid option} {
+    list [catch {crypt . a} msg] $msg
+} {1 {bad option ".": must be decrypt, encrypt, end, hash, info, pkcs5, prng, rand, start, or update}}
+
+################################################################################
+# crypt decrypt                                                                #
+################################################################################
+
+test crypt-2.1 {crypt decrypt: no args} {
+    list [catch {crypt decrypt} msg] $msg
+} {1 {wrong # args: should be "crypt decrypt ?switches? cipher key data"}}
+
+test crypt-2.2 {crypt decrypt: too many args} {
+    list [catch {crypt decrypt a b c d} msg] $msg
+} {1 {wrong # args: should be "crypt decrypt ?switches? cipher key data"}}
+
+test crypt-2.3 {crypt decrypt: invalid switch} {
+    list [catch {crypt decrypt -fake .} msg] $msg
+} {1 {bad switch "-fake": must be -counter, -iv, -mode, or -rounds}}
+
+test crypt-2.4 {crypt decrypt: no switch argument} {
+    list [catch {crypt decrypt -iv . -mode} msg] $msg
+} {1 {wrong # args: should be "crypt decrypt ?switches? cipher key data"}}
+
+test crypt-2.5 {crypt decrypt: invalid counter mode} {
+    list [catch {crypt decrypt -counter .} msg] $msg
+} {1 {bad counter mode ".": must be littleEndian or bigEndian}}
+
+test crypt-2.6 {crypt decrypt: invalid cipher mode} {
+    list [catch {crypt decrypt -mode .} msg] $msg
+} {1 {bad mode ".": must be cbc, cfb, ctr, ecb, or ofb}}
+
+test crypt-2.7 {crypt decrypt: invalid rounds} {
+    list [catch {crypt decrypt -rounds .} msg] $msg
+} {1 {expected integer but got "."}}
+
+test crypt-2.8 {crypt decrypt: invalid rounds} {
+    list [catch {crypt decrypt -rounds -1} msg] $msg
+} {1 {invalid round count "-1": must be 0 or greater}}
+
+test crypt-2.9 {crypt decrypt: CBC requires an IV} {
+    list [catch {crypt decrypt -mode cbc blowfish a b} msg] $msg
+} {1 {cbc mode requires an initialisation vector}}
+
+test crypt-2.10 {crypt decrypt: CFB requires an IV} {
+    list [catch {crypt decrypt -mode cfb blowfish a b} msg] $msg
+} {1 {cfb mode requires an initialisation vector}}
+
+test crypt-2.11 {crypt decrypt: CTR requires an IV} {
+    list [catch {crypt decrypt -mode ctr blowfish a b} msg] $msg
+} {1 {ctr mode requires an initialisation vector}}
+
+test crypt-2.12 {crypt decrypt: ECB does not require an IV} {
+    list [catch {crypt decrypt -iv blah -mode ecb blowfish a b} msg] $msg
+} {1 {ecb mode does not require an initialisation vector}}
+
+test crypt-2.13 {crypt decrypt: OFB requires an IV} {
+    list [catch {crypt decrypt -mode ofb blowfish a b} msg] $msg
+} {1 {ofb mode requires an initialisation vector}}
+
+test crypt-2.14 {crypt decrypt: ECB mode tests} {
+    foreach algo [array names cipherTest] {
+        set n 1
+        foreach {key plain cipher} $cipherTest($algo) {
+            set result [crypt decrypt $algo $key $cipher]
+
+            if {$plain ne $result} {
+                return "ECB $algo (vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - cipher=[encode hex $cipher]\n\
+                    - needed=[encode hex $plain]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+################################################################################
+# crypt encrypt                                                                #
+################################################################################
+
+test crypt-3.1 {crypt encrypt: no args} {
+    list [catch {crypt encrypt} msg] $msg
+} {1 {wrong # args: should be "crypt encrypt ?switches? cipher key data"}}
+
+test crypt-3.2 {crypt decrypt: ECB mode tests} {
+    foreach algo [array names cipherTest] {
+        set n 1
+        foreach {key plain cipher} $cipherTest($algo) {
+            set result [crypt encrypt $algo $key $plain]
+
+            if {$cipher ne $result} {
+                return "ECB $algo (vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - needed=[encode hex $cipher]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-3.3 {crypt decrypt: more ECB mode tests} {
+    foreach {algo minKey maxKey blockLength defRounds} $cipherList {
+        set key [string repeat "ab" [expr {$maxKey / 2}]]
+
+        set n 1
+        foreach plain $testData {
+            # Plain-text is padded to a multiple of a cipher's block-length in ECB mode.
+            set plainLen [string length $plain]
+            set plainPad [ZeroPadData $blockLength $plain]
+
+            set cipher [crypt encrypt -mode ecb $algo $key $plainPad]
+            set result [crypt decrypt -mode ecb $algo $key $cipher]
+
+            # Trim padding (if any).
+            incr plainLen -1
+            set result [string range $result 0 $plainLen]
+
+            if {$plain ne $result} {
+                return "ECB $algo (block-length $blockLength, vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-3.4 {crypt decrypt: CBC mode tests} {
+    foreach {algo minKey maxKey blockLength defRounds} $cipherList {
+        set iv  [string repeat "\0" $blockLength]
+        set key [string repeat "ab" [expr {$maxKey / 2}]]
+
+        set n 1
+        foreach plain $testData {
+            # Plain-text is padded to a multiple of a cipher's block-length in ECB mode.
+            set plainLen [string length $plain]
+            set plainPad [ZeroPadData $blockLength $plain]
+
+            set cipher [crypt encrypt -iv $iv -mode cbc $algo $key $plainPad]
+            set result [crypt decrypt -iv $iv -mode cbc $algo $key $cipher]
+
+            # Trim padding (if any).
+            incr plainLen -1
+            set result [string range $result 0 $plainLen]
+
+            if {$plain ne $result} {
+                return "CBC $algo (block-length $blockLength, vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-3.5 {crypt decrypt: CFB mode tests} {
+    foreach {algo minKey maxKey blockLength defRounds} $cipherList {
+        set iv  [string repeat "\0" $blockLength]
+        set key [string repeat "ab" [expr {$maxKey / 2}]]
+
+        set n 1
+        foreach plain $testData {
+            set cipher [crypt encrypt -iv $iv -mode cfb $algo $key $plain]
+            set result [crypt decrypt -iv $iv -mode cfb $algo $key $cipher]
+
+            if {$plain ne $result} {
+                return "CFB $algo (block-length $blockLength, vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-3.6 {crypt decrypt: CTR mode tests} {
+    foreach {algo minKey maxKey blockLength defRounds} $cipherList {
+        set iv  [string repeat "\0" $blockLength]
+        set key [string repeat "ab" [expr {$maxKey / 2}]]
+
+        set n 1
+        foreach plain $testData {
+            set cipher [crypt encrypt -iv $iv -mode ctr $algo $key $plain]
+            set result [crypt decrypt -iv $iv -mode ctr $algo $key $cipher]
+
+            if {$plain ne $result} {
+                return "CTR $algo (block-length $blockLength, vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-3.7 {crypt decrypt: OFB mode tests} {
+    foreach {algo minKey maxKey blockLength defRounds} $cipherList {
+        set iv  [string repeat "\0" $blockLength]
+        set key [string repeat "ab" [expr {$maxKey / 2}]]
+
+        set n 1
+        foreach plain $testData {
+            set cipher [crypt encrypt -iv $iv -mode ofb $algo $key $plain]
+            set result [crypt decrypt -iv $iv -mode ofb $algo $key $cipher]
+
+            if {$plain ne $result} {
+                return "OFB $algo (block-length $blockLength, vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+################################################################################
+# crypt hash                                                                   #
+################################################################################
+
+test crypt-4.1 {crypt hash: no args} {
+    list [catch {crypt hash} msg] $msg
+} {1 {wrong # args: should be "crypt hash ?switches? algorithm data"}}
+
+test crypt-4.2 {crypt hash: too many args} {
+    list [catch {crypt hash a b c} msg] $msg
+} {1 {wrong # args: should be "crypt hash ?switches? algorithm data"}}
+
+test crypt-4.3 {crypt hash: too many args} {
+    list [catch {crypt hash -hmac a b c d} msg] $msg
+} {1 {wrong # args: should be "crypt hash ?switches? algorithm data"}}
+
+test crypt-4.4 {crypt hash: invalid switch} {
+    list [catch {crypt hash -fake a b c} msg] $msg
+} {1 {bad switch "-fake": must be -hmac, -omac, -pelican, or -pmac}}
+
+test crypt-4.5 {crypt hash: invalid hash} {
+    list [catch {crypt hash . a} msg] $msg
+} {1 {bad hash ".": must be md2, md4, md5, rmd128, rmd160, sha1, sha224, sha256, sha384, sha512, tiger, or whirlpool}}
+
+test crypt-4.6 {crypt hash: invalid cipher, with -omac} {
+    list [catch {crypt hash -omac a . b} msg] $msg
+} {1 {bad cipher ".": must be 3des, aes, anubis, blowfish, cast5, des, khazad, noekeon, rc2, rc5, rc6, safer+, safer-k128, safer-k64, safer-sk128, safer-sk64, skipjack, twofish, or xtea}}
+
+test crypt-4.7 {crypt hash: invalid cipher, with -pelican} {
+    list [catch {crypt hash -pelican a . b} msg] $msg
+} {1 {bad cipher ".": must be 3des, aes, anubis, blowfish, cast5, des, khazad, noekeon, rc2, rc5, rc6, safer+, safer-k128, safer-k64, safer-sk128, safer-sk64, skipjack, twofish, or xtea}}
+
+test crypt-4.8 {crypt hash: invalid cipher, with -pmac} {
+    list [catch {crypt hash -pmac a . b} msg] $msg
+} {1 {bad cipher ".": must be 3des, aes, anubis, blowfish, cast5, des, khazad, noekeon, rc2, rc5, rc6, safer+, safer-k128, safer-k64, safer-sk128, safer-sk64, skipjack, twofish, or xtea}}
+
+test crypt-4.9 {crypt hash: hash tests} {
+    foreach algo [array names hashTest] {
+        set n 1
+        foreach {plain hash} $hashTest($algo) {
+            set result [crypt hash $algo $plain]
+
+            if {$hash ne $result} {
+                return "hash $algo (vector $n):\n\
+                    - plain =[encode hex $plain]\n\
+                    - needed=[encode hex $hash]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-4.10 {crypt hash: HMAC tests} {
+    foreach algo [array names hmacTest] {
+        set n 1
+        foreach {key plain hash} $hmacTest($algo) {
+            set result [crypt hash -hmac $key $algo $plain]
+
+            if {$hash ne $result} {
+                return "HMAC $algo (vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - needed=[encode hex $hash]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-4.11 {crypt hash: OMAC tests} {
+    foreach algo [array names omacTest] {
+        set n 1
+        foreach {key plain hash} $omacTest($algo) {
+            set result [crypt hash -omac $key $algo $plain]
+
+            if {$hash ne $result} {
+                return "OMAC $algo (vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - needed=[encode hex $hash]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-4.12 {crypt hash: PMAC tests} {
+    foreach algo [array names pmacTest] {
+        set n 1
+        foreach {key plain hash} $pmacTest($algo) {
+            set result [crypt hash -pmac $key $algo $plain]
+
+            if {$hash ne $result} {
+                return "PMAC $algo (vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - needed=[encode hex $hash]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-4.13 {crypt hash: pelican MAC only accepts AES} {
+    list [catch {crypt hash -pelican a blowfish c} msg] $msg
+} {1 {unable to hash data: invalid cipher specified}}
+
+test crypt-4.14 {crypt hash: pelican MAC test} {
+    encode hex [crypt hash -pelican "testtesttesttest" aes "testtesttesttest"]
+} {70C760C804A0CE77B73CC122AC7243FD}
+
+################################################################################
+# crypt start                                                                  #
+################################################################################
+
+test crypt-5.1 {crypt start: no args} {
+    list [catch {crypt start} msg] $msg
+} {1 {wrong # args: should be "crypt start ?switches? algorithm"}}
+
+test crypt-5.2 {crypt start: too many args} {
+    list [catch {crypt start a b} msg] $msg
+} {1 {wrong # args: should be "crypt start ?switches? algorithm"}}
+
+test crypt-5.3 {crypt start: too many args} {
+    list [catch {crypt start -hmac a b c} msg] $msg
+} {1 {wrong # args: should be "crypt start ?switches? algorithm"}}
+
+test crypt-5.4 {crypt start: invalid switch} {
+    list [catch {crypt start -fake a b} msg] $msg
+} {1 {bad switch "-fake": must be -hmac, -omac, -pelican, or -pmac}}
+
+test crypt-5.5 {crypt start: invalid hash} {
+    list [catch {crypt start .} msg] $msg
+} {1 {bad hash ".": must be md2, md4, md5, rmd128, rmd160, sha1, sha224, sha256, sha384, sha512, tiger, or whirlpool}}
+
+test crypt-5.6 {crypt start: invalid cipher, with -omac} {
+    list [catch {crypt start -omac a .} msg] $msg
+} {1 {bad cipher ".": must be 3des, aes, anubis, blowfish, cast5, des, khazad, noekeon, rc2, rc5, rc6, safer+, safer-k128, safer-k64, safer-sk128, safer-sk64, skipjack, twofish, or xtea}}
+
+test crypt-5.7 {crypt start: invalid cipher, with -pelican} {
+    list [catch {crypt start -pelican a .} msg] $msg
+} {1 {bad cipher ".": must be 3des, aes, anubis, blowfish, cast5, des, khazad, noekeon, rc2, rc5, rc6, safer+, safer-k128, safer-k64, safer-sk128, safer-sk64, skipjack, twofish, or xtea}}
+
+test crypt-5.8 {crypt start: invalid cipher, with -pmac} {
+    list [catch {crypt start -pmac a .} msg] $msg
+} {1 {bad cipher ".": must be 3des, aes, anubis, blowfish, cast5, des, khazad, noekeon, rc2, rc5, rc6, safer+, safer-k128, safer-k64, safer-sk128, safer-sk64, skipjack, twofish, or xtea}}
+
+test crypt-5.9 {crypt start: handle format} {
+    -match regexp
+    -body {
+        set handle [crypt start md5]
+        crypt end $handle
+        set handle
+    }
+    -result {hash\w+}
+}
+
+test crypt-5.10 {crypt start: check handle list} {
+    set handlesBefore [crypt info handles]
+    set handle [crypt start md5]
+    set handlesAfter [crypt info handles]
+    crypt end $handle
+
+    set result [list [InList $handlesBefore $handle] [InList $handlesAfter $handle]]
+    unset handlesBefore handlesAfter
+    set result
+} {0 1}
+
+################################################################################
+# crypt update                                                                 #
+################################################################################
+
+test crypt-6.1 {crypt update: no args} {
+    list [catch {crypt update} msg] $msg
+} {1 {wrong # args: should be "crypt update handle data"}}
+
+test crypt-6.2 {crypt update: too many args} {
+    list [catch {crypt update a b c} msg] $msg
+} {1 {wrong # args: should be "crypt update handle data"}}
+
+test crypt-6.3 {crypt update: invalid handle} {
+    list [catch {crypt update . a} msg] $msg
+} {1 {invalid hash handle "."}}
+
+test crypt-6.4 {crypt update: hash tests} {
+    foreach algo [array names hashTest] {
+        set n 1
+        foreach {plain hash} $hashTest($algo) {
+            set handle [crypt start $algo]
+            crypt update $handle $plain
+            set result [crypt end $handle]
+
+            if {$hash ne $result} {
+                return "hash $algo (vector $n):\n\
+                    - plain =[encode hex $plain]\n\
+                    - needed=[encode hex $hash]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-6.5 {crypt update: hash tests, two updates} {
+    foreach algo [array names hashTest] {
+        set n 1
+        foreach {plain hash} $hashTest($algo) {
+            set handle [crypt start $algo]
+            set index [expr {[string length $plain] / 2}]
+            crypt update $handle [string range $plain 0 $index]
+            crypt update $handle [string range $plain [incr index] end]
+            set result [crypt end $handle]
+
+            if {$hash ne $result} {
+                return "hash $algo (vector $n):\n\
+                    - plain =[encode hex $plain]\n\
+                    - needed=[encode hex $hash]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-6.6 {crypt update: HMAC tests} {
+    foreach algo [array names hmacTest] {
+        set n 1
+        foreach {key plain hash} $hmacTest($algo) {
+            set handle [crypt start -hmac $key $algo]
+            crypt update $handle $plain
+            set result [crypt end $handle]
+
+            if {$hash ne $result} {
+                return "HMAC $algo (vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - needed=[encode hex $hash]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-6.7 {crypt update: HMAC tests, two updates} {
+    foreach algo [array names hmacTest] {
+        set n 1
+        foreach {key plain hash} $hmacTest($algo) {
+            set handle [crypt start -hmac $key $algo]
+            set index [expr {[string length $plain] / 2}]
+            crypt update $handle [string range $plain 0 $index]
+            crypt update $handle [string range $plain [incr index] end]
+            set result [crypt end $handle]
+
+            if {$hash ne $result} {
+                return "HMAC $algo (vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - needed=[encode hex $hash]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-6.8 {crypt update: OMAC tests} {
+    foreach algo [array names omacTest] {
+        set n 1
+        foreach {key plain hash} $omacTest($algo) {
+            set handle [crypt start -omac $key $algo]
+            crypt update $handle $plain
+            set result [crypt end $handle]
+
+            if {$hash ne $result} {
+                return "OMAC $algo (vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - needed=[encode hex $hash]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-6.9 {crypt update: OMAC tests, two updates} {
+    foreach algo [array names omacTest] {
+        set n 1
+        foreach {key plain hash} $omacTest($algo) {
+            set handle [crypt start -omac $key $algo]
+            set index [expr {[string length $plain] / 2}]
+            crypt update $handle [string range $plain 0 $index]
+            crypt update $handle [string range $plain [incr index] end]
+            set result [crypt end $handle]
+
+            if {$hash ne $result} {
+                return "OMAC $algo (vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - needed=[encode hex $hash]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-6.10 {crypt update: PMAC tests} {
+    foreach algo [array names pmacTest] {
+        set n 1
+        foreach {key plain hash} $pmacTest($algo) {
+            set handle [crypt start -pmac $key $algo]
+            crypt update $handle $plain
+            set result [crypt end $handle]
+
+            if {$hash ne $result} {
+                return "PMAC $algo (vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - needed=[encode hex $hash]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+test crypt-6.11 {crypt update: PMAC tests, two updates} {
+    foreach algo [array names pmacTest] {
+        set n 1
+        foreach {key plain hash} $pmacTest($algo) {
+            set handle [crypt start -pmac $key $algo]
+            set index [expr {[string length $plain] / 2}]
+            crypt update $handle [string range $plain 0 $index]
+            crypt update $handle [string range $plain [incr index] end]
+            set result [crypt end $handle]
+
+            if {$hash ne $result} {
+                return "PMAC $algo (vector $n):\n\
+                    - key   =[encode hex $key]\n\
+                    - plain =[encode hex $plain]\n\
+                    - needed=[encode hex $hash]\n\
+                    - result=[encode hex $result]"
+            }
+            incr n
+        }
+    }
+} {}
+
+################################################################################
+# crypt end                                                                    #
+################################################################################
+
+test crypt-7.1 {crypt end: no args} {
+    list [catch {crypt end} msg] $msg
+} {1 {wrong # args: should be "crypt end handle"}}
+
+test crypt-7.2 {crypt end: too many args} {
+    list [catch {crypt end a b} msg] $msg
+} {1 {wrong # args: should be "crypt end handle"}}
+
+test crypt-7.3 {crypt end: invalid handle} {
+    list [catch {crypt end .} msg] $msg
+} {1 {invalid hash handle "."}}
+
+test crypt-7.4 {crypt end: check close} {
+    set handlesStart [crypt info handles]
+    set handle [crypt start md5]
+    set handlesMiddle [crypt info handles]
+    crypt end $handle
+    set handlesEnd [crypt info handles]
+
+    set result [list [llength $handlesStart] [llength $handlesMiddle] [llength $handlesEnd]]
+    unset handlesStart handlesMiddle handlesEnd
+    set result
+} {0 1 0}
+
+################################################################################
+# crypt info                                                                   #
+################################################################################
+
+test crypt-8.1 {crypt info: no args} {
+    list [catch {crypt info} msg] $msg
+} {1 {wrong # args: should be "crypt info option"}}
+
+test crypt-8.2 {crypt info: too many args} {
+    list [catch {crypt info a b} msg] $msg
+} {1 {wrong # args: should be "crypt info option"}}
+
+test crypt-8.3 {crypt info: invalid option} {
+    list [catch {crypt info .} msg] $msg
+} {1 {bad option ".": must be ciphers, handles, hashes, modes, or prngs}}
+
+test crypt-8.5 {crypt info: cipher count} {
+    llength [crypt info ciphers]
+} {19}
+
+test crypt-8.4 {crypt info: ciphers must be in alphabetical order} {
+    string equal [crypt info ciphers] [lsort [crypt info ciphers]]
+} {1}
+
+test crypt-8.6 {crypt info: handles} {
+    llength [crypt info handles]
+} {0}
+
+test crypt-8.7 {crypt info: handles} {
+    set handleOne [crypt start md5]
+    set handleTwo [crypt start tiger]
+    set handles [crypt info handles]
+    crypt end $handleOne
+    crypt end $handleTwo
+
+    set result [list [llength $handles] [llength [crypt info handles]]]
+    unset handles
+    set result
+} {2 0}
+
+test crypt-8.8 {crypt info: hash count} {
+    llength [crypt info hashes]
+} {12}
+
+test crypt-8.9 {crypt info: hashes must be in alphabetical order} {
+    string equal [crypt info hashes] [lsort [crypt info hashes]]
+} {1}
+
+test crypt-8.10 {crypt info: mode list} {
+    llength [crypt info modes]
+} {5}
+
+test crypt-8.11 {crypt info: modes must be in alphabetical order} {
+    string equal [crypt info modes] [lsort [crypt info modes]]
+} {1}
+
+test crypt-8.12 {crypt info: PRNG count} {
+    llength [crypt info prngs]
+} {5}
+
+test crypt-8.13 {crypt info: PRNGs must be in alphabetical order} {
+    string equal [crypt info prngs] [lsort [crypt info prngs]]
+} {1}
+
+################################################################################
+# crypt pkcs5                                                                  #
+################################################################################
+
+test crypt-9.1 {crypt pkcs5: no args} {
+    list [catch {crypt pkcs5} msg] $msg
+} {1 {wrong # args: should be "crypt pkcs5 ?switches? hash salt password"}}
+
+test crypt-9.2 {crypt pkcs5: too many args} {
+    list [catch {crypt pkcs5 a b c d} msg] $msg
+} {1 {wrong # args: should be "crypt pkcs5 ?switches? hash salt password"}}
+
+test crypt-9.3 {crypt pkcs5: invalid switch} {
+    list [catch {crypt pkcs5 -fake a b c} msg] $msg
+} {1 {bad switch "-fake": must be -v1, -v2, or -rounds}}
+
+test crypt-9.4 {crypt pkcs5: -rounds switch} {
+    list [catch {crypt pkcs5 -rounds . a b c} msg] $msg
+} {1 {expected integer but got "."}}
+
+test crypt-9.5 {crypt pkcs5: -rounds switch} {
+    list [catch {crypt pkcs5 -rounds -1 a b c} msg] $msg
+} {1 {invalid round count "-1": must be greater than 0}}
+
+test crypt-9.6 {crypt pkcs5: v1 salt must be 8 bytes} {
+    list [catch {crypt pkcs5 -v1 md5 a b} msg] $msg
+} {1 {unable to hash password: invalid salt length}}
+
+test crypt-9.7 {crypt pkcs5: v1} {
+    encode hex [crypt pkcs5 -v1 md5 [string repeat "\0" 8] test]
+} {B369450CA718ACB4B079A19E5D8AE004}
+
+test crypt-9.8 {crypt pkcs5: v2} {
+    encode hex [crypt pkcs5 -v2 md5 [string repeat "\0" 4] test]
+} {BF0BA55416BCEF9D16EDD3DD3BB8DC77}
+
+test crypt-9.9 {crypt pkcs5: default to v2} {
+    encode hex [crypt pkcs5 md5 [string repeat "\0" 4] test]
+} {BF0BA55416BCEF9D16EDD3DD3BB8DC77}
+
+################################################################################
+# crypt rand                                                                   #
+################################################################################
+
+test crypt-10.1 {crypt rand: no args} {
+    list [catch {crypt rand} msg] $msg
+} {1 {wrong # args: should be "crypt rand bytes"}}
+
+test crypt-10.2 {crypt rand: too many args} {
+    list [catch {crypt rand a b} msg] $msg
+} {1 {wrong # args: should be "crypt rand bytes"}}
+
+test crypt-10.3 {crypt rand: invalid byte count} {
+    list [catch {crypt rand a} msg] $msg
+} {1 {expected integer but got "a"}}
+
+test crypt-10.4 {crypt rand: invalid byte count} {
+    list [catch {crypt rand -1} msg] $msg
+} {1 {invalid byte count "-1": must be greater than 0}}
+
+test crypt-10.5 {crypt rand: invalid byte count} {
+    list [catch {crypt rand 0} msg] $msg
+} {1 {invalid byte count "0": must be greater than 0}}
+
+test crypt-10.6 {crypt rand: retrieve 24 bytes} {
+    string length [crypt rand 24]
+} {24}
+
+################################################################################
+# crypt prng                                                                  #
+################################################################################
+
+test crypt-11.1 {crypt prng: no args} {
+    list [catch {crypt prng } msg] $msg
+} {1 {wrong # args: should be "crypt prng type"}}
+
+test crypt-11.2 {crypt prng: too many args} {
+    list [catch {crypt prng a b} msg] $msg
+} {1 {wrong # args: should be "crypt prng type"}}
+
+test crypt-11.3 {crypt prng: invalid option} {
+    list [catch {crypt prng .} msg] $msg
+} {1 {bad prng ".": must be fortuna, rc4, sober128, sprng, or yarrow}}
+
+test crypt-11.4 {crypt prng: handle format} {
+    -match regexp
+    -body {
+        set handle [crypt prng yarrow]
+        close $handle
+        set handle
+    }
+    -result {prng\w+}
+}
+
+test crypt-11.5 {crypt prng: check handle list} {
+    set handlesStart [file channels]
+    set handle [crypt prng yarrow]
+    set handlesMiddle [file channels]
+    close $handle
+    set handlesEnd [file channels]
+
+    set result [list [InList $handlesStart $handle] [InList $handlesMiddle $handle] [InList $handlesEnd $handle]]
+    unset handlesStart handlesMiddle handlesEnd
+    set result
+} {0 1 0}
+
+test crypt-11.6 {crypt prng: default options} {
+    set handle [crypt prng yarrow]
+    set result [list]
+    lappend result [fconfigure $handle -blocking]
+    lappend result [fconfigure $handle -buffering]
+    lappend result [fconfigure $handle -ready]
+    lappend result [fconfigure $handle -translation]
+    close $handle
+    set result
+} {0 none 0 {lf lf}}
+
+test crypt-11.7 {crypt prng: change to blocking} {
+    set handle [crypt prng yarrow]
+    set result [list [catch {fconfigure $handle -blocking 1} msg] $msg]
+    close $handle
+    set result
+} {1 {error setting blocking mode: invalid argument}}
+
+test crypt-11.8 {crypt prng: change to nonblocking} {
+    set handle [crypt prng yarrow]
+    fconfigure $handle -blocking 0
+    close $handle
+} {}
+
+test crypt-11.9 {crypt prng: read before prng is ready} {
+    set handle [crypt prng yarrow]
+    puts -nonewline $handle [crypt rand 32]
+    set result [list [catch {read $handle 8}] $::errorCode]
+    close $handle
+    set result
+} {1 {POSIX EACCES {permission denied}}}
+
+test crypt-11.10 {crypt prng: one source of entropy} {
+    foreach type [crypt info prngs] {
+        set handle [crypt prng $type]
+        puts -nonewline $handle [crypt rand 32]
+        fconfigure $handle -ready 1
+
+        foreach amount {0 3 7 35 92 214} {
+            set data [read $handle $amount]
+            if {[string length $data] != $amount} {
+                return "expected $amount bytes from $type, got [string length $data]"
+            }
+        }
+        close $handle
+    }
+    unset -nocomplain type
+} {}
+
+test crypt-11.11 {crypt prng: multiple sources of entropy} {
+    foreach type [crypt info prngs] {
+        set handle [crypt prng $type]
+        puts -nonewline $handle [GetTclEntropy]
+        puts -nonewline $handle [crypt rand 32]
+        puts -nonewline $handle [GetTclEntropy]
+        puts -nonewline $handle [crypt rand 16]
+        fconfigure $handle -ready 1
+
+        foreach amount {0 3 7 35 92 214} {
+            set data [read $handle $amount]
+            if {[string length $data] != $amount} {
+                return "expected $amount bytes from $type, got [string length $data]"
+            }
+        }
+        close $handle
+    }
+    unset -nocomplain type
+} {}
+
+################################################################################
+# crypt leak test                                                              #
+################################################################################
+
+test crypt-12.1 {crypt: leak test} {
+    set handleList [list]
+    # Ensure remaining crypt handles are freed during finalization.
+    for {set i 0} {$i < 20} {incr i} {
+        # These must not be closed!
+        lappend handleList [crypt start md5]
+    }
+    list [llength $handleList] [llength [crypt info handles]]
+} {20 20}
+
+test crypt-12.2 {crypt: leak test, separate interp} {singleTestInterp} {
+    set interp [interp create]
+    interp eval $interp [list load $libFile]
+
+    interp eval $interp {
+        set handleList [list]
+
+        for {set i 0} {$i < 20} {incr i} {
+            # These must not be closed!
+            lappend handleList [crypt start md5]
+        }
+        list [llength $handleList] [llength [crypt info handles]]
+    }
+} {20 20}
+
+
+::tcltest::cleanupTests
+return
