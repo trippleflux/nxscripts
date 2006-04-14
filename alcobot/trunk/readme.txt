@@ -86,7 +86,7 @@ AlcoBot is a modular sitebot written in Tcl for ioFTPD and glFTPD.
 
     pgTcl     - PostgreSQL database support.
        Debian : apt-get install libpgtcl
-       Source : http://gborg.postgresql.org/project/pgtclng/projdisplay.php
+       Source : http://gborg.postgresql.org/project/pgtclng/download/download.php
 
     TclSQLite - SQLite database support.
        Debian : apt-get install libsqlite3-tcl
