@@ -44,7 +44,7 @@ namespace eval ::Db {
 # procedure and must be closed using Db::Close.
 #
 # URI Format:
-#  <driver>://<user>:<passwd>@<host>:<port>/<dbname>
+#  <driver>://<user>:<password>@<host>:<port>/<dbname>
 #
 # Example:
 #  sqlite3:data/my.db
@@ -58,7 +58,15 @@ proc ::Db::Open {connString args} {
     array set uri [ParseURI $connString]
     if {![info exists driverMap($uri(scheme))]} {
         throw DB "unknown driver \"$uri(scheme)\""
+
     }
+
+    # Make sure the "params" element always exists.
+    if {![info exists uri(params)]} {
+        set uri(params) [list]
+    }
+
+    # Initialise the driver.
     set driver $driverMap($uri(scheme))
     ::Db::${driver}::Init
 
@@ -68,9 +76,9 @@ proc ::Db::Open {connString args} {
     #
     # Database Handle Contents
     #
-    # db(driver)  - Driver name.
-    # db(object)  - Database object.
-    # db(options) - Optional parameters.
+    # db(driver)  - Driver namespace context.
+    # db(object)  - Database object, used by the database extension.
+    # db(options) - List of connection options (host, params, password, path, port, scheme, and user).
     #
     array set db [list          \
         driver  $driver         \
@@ -249,9 +257,9 @@ proc ::Db::ParseURI {url} {
 
     if {[info exists uri(host)]} {
         # scheme://user@host
-        # scheme://user:pass@host
+        # scheme://user:password@host
         if {[ParseTuple $uri(host) "@" uri(user) uri(host)]} {
-            ParseTuple $uri(user) ":" uri(user) uri(pass)
+            ParseTuple $uri(user) ":" uri(user) uri(password)
         }
         # scheme://host:port
         ParseTuple $uri(host) ":" uri(host) uri(port)
@@ -277,13 +285,41 @@ proc ::Db::ParseURI {url} {
 # MySQL Driver                                                                 #
 ################################################################################
 
-namespace eval ::Db::MySQL::Func {}
+namespace eval ::Db::MySQL {
+    namespace eval Func {}
+    variable params {compress encoding foundrows interactive localfiles multiresult multistatement noschema odbc socket ssl sslca sslcapath sslcert sslcipher sslkey}
+}
 
 proc ::Db::MySQL::Init {} {
     package require mysqltcl 3
 }
 
 proc ::Db::MySQL::Connect {options} {
+    variable params
+    array set option $options
+
+    set connInfo [list]
+    foreach {name value} $options {
+        if {[lsearch -exact {host password port user} $name] != -1} {
+            lappend connInfo "-$name" $value
+        } elseif {$name eq "path"} {
+            # Remove the leading slash, if present.
+            if {[string index $value 0] eq "/"} {
+                set value [string range $value 1 end]
+            }
+            lappend connInfo "-db" $value
+        }
+    }
+
+    # Optional parameters.
+    foreach {name value} $option(params) {
+        if {[lsearch -exact $params $name] == -1} {
+            throw DB "unsupported parameter \"$name\""
+        }
+        lappend connInfo "-$name" $value
+    }
+
+    return [eval ::mysql::connect $connInfo]
 }
 
 proc ::Db::MySQL::Disconnect {object} {
@@ -328,13 +364,41 @@ proc ::Db::MySQL::Func::QuoteString {value} {
 # PostgreSQL Driver                                                            #
 ################################################################################
 
-namespace eval ::Db::PostgreSQL::Func {}
+namespace eval ::Db::PostgreSQL {
+    namespace eval Func {}
+    variable params {connect_timeout krbsrvname requiressl service sslmode}
+}
 
 proc ::Db::PostgreSQL::Init {} {
     package require Pgtcl 1.5
 }
 
 proc ::Db::PostgreSQL::Connect {options} {
+    variable params
+    array set option $options
+
+    set connInfo [list]
+    foreach {name value} $options {
+        if {[lsearch -exact {host password port user} $name] != -1} {
+            lappend connInfo "$name=[pg_quote $value]"
+        } elseif {$name eq "path"} {
+            # Remove the leading slash, if present.
+            if {[string index $value 0] eq "/"} {
+                set value [string range $value 1 end]
+            }
+            lappend connInfo "dbname=[pg_quote $value]"
+        }
+    }
+
+    # Optional parameters.
+    foreach {name value} $option(params) {
+        if {[lsearch -exact $params $name] == -1} {
+            throw DB "unsupported parameter \"$name\""
+        }
+        lappend connInfo "$name=[pg_quote $value]"
+    }
+
+    return [pg_connect -conninfo [join $connInfo]]
 }
 
 proc ::Db::PostgreSQL::Disconnect {object} {
@@ -386,6 +450,7 @@ proc ::Db::SQLite::Init {} {
 
 proc ::Db::SQLite::Connect {options} {
     array set option $options
+
     if {$option(path) ne ":memory:"} {
         set option(path) [file normalize $option(path)]
     }

@@ -15,6 +15,10 @@
 package require tcltest 2
 namespace import -force ::tcltest::*
 
+testConstraint mysqltcl [expr {![catch {package require mysqltcl}]}]
+testConstraint pgtcl    [expr {![catch {package require Pgtcl}]}]
+testConstraint sqlite3  [expr {![catch {package require sqlite3}]}]
+
 proc SortPair {pair} {
     array set entries $pair
     set result [list]
@@ -32,7 +36,7 @@ test db-1.1 {ParseTuple: separator not present} {
     Db::ParseTuple "foobar" ":" name value
 } {0}
 
-test db-1.2 {ParseTuple: separator not present} {
+test db-1.2 {ParseTuple: separator present} {
     set result [Db::ParseTuple "foo:bar" ":" name value]
     list $result $name $value
 } {1 foo bar}
@@ -75,11 +79,11 @@ test db-2.8 {ParseURI: no password} {
 
 test db-2.9 {ParseURI: user and password} {
     SortPair [Db::ParseURI "postgres://neo:xed@localhost:9431/db"]
-} {host localhost pass xed path /db port 9431 scheme postgres user neo}
+} {host localhost password xed path /db port 9431 scheme postgres user neo}
 
 test db-2.10 {ParseURI: credentials and parameters} {
     SortPair [Db::ParseURI "postgres://neo:xed@localhost:9431/db?ssl=true&timeout=10000"]
-} {host localhost params {ssl true timeout 10000} pass xed path /db port 9431 scheme postgres user neo}
+} {host localhost params {ssl true timeout 10000} password xed path /db port 9431 scheme postgres user neo}
 
 
 ::tcltest::cleanupTests
