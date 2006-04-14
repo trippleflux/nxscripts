@@ -70,7 +70,7 @@ AlcoBot is a modular sitebot written in Tcl for ioFTPD and glFTPD.
 
   2. Download and install the AlcoExt Tcl extension.
 
-     Source : http://www.alcoholicz.com/wiki/Downloads
+     Source : http://www.alcoholicz.com
 
   3. The following packages are optional, but highly recommended.
 
