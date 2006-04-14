@@ -1,0 +1,84 @@
+#
+# AlcoBot - Alcoholicz site bot.
+# Copyright (c) 2005-2006 Alcoholicz Scripting Team
+#
+# Module Name:
+#   Database Tests
+#
+# Author:
+#   neoxed (neoxed@gmail.com) Apr 13, 2005
+#
+# Abstract:
+#   Implements regression tests for the database library.
+#
+
+source ../libs/libDb.tcl
+
+package require tcltest 2
+namespace import -force ::tcltest::*
+
+proc SortPair {pair} {
+    array set entries $pair
+    set result [list]
+    foreach name [lsort [array names entries]] {
+        lappend result $name $entries($name)
+    }
+    return $result
+}
+
+################################################################################
+# Db::ParseTuple                                                               #
+################################################################################
+
+test db-1.1 {ParseTuple: separator not present} {
+    Db::ParseTuple "foobar" ":" name value
+} {0}
+
+test db-1.2 {ParseTuple: separator not present} {
+    set result [Db::ParseTuple "foo:bar" ":" name value]
+    list $result $name $value
+} {1 foo bar}
+
+################################################################################
+# Db::ParseURI                                                                 #
+################################################################################
+
+test db-2.1 {ParseURI: relative file path} {
+    SortPair [Db::ParseURI "sqlite:relative/path"]
+} {path relative/path scheme sqlite}
+
+test db-2.2 {ParseURI: absolute file path, legacy} {
+    SortPair [Db::ParseURI "sqlite:/absolute/path"]
+} {path /absolute/path scheme sqlite}
+
+test db-2.3 {ParseURI: absolute file path and parameters} {
+    SortPair [Db::ParseURI "sqlite:///absolute/path?timeout=10000"]
+} {params {timeout 10000} path /absolute/path scheme sqlite}
+
+test db-2.4 {ParseURI: absolute file path, standard} {
+    SortPair [Db::ParseURI "sqlite:///absolute/path"]
+} {path /absolute/path scheme sqlite}
+
+test db-2.5 {ParseURI: host and path} {
+    SortPair [Db::ParseURI "postgres://localhost/db"]
+} {host localhost path /db scheme postgres}
+
+test db-2.6 {ParseURI: host, port, and path} {
+    SortPair [Db::ParseURI "postgres://localhost:9431/db"]
+} {host localhost path /db port 9431 scheme postgres}
+
+test db-2.7 {ParseURI: no password} {
+    SortPair [Db::ParseURI "postgres://neoxed@localhost:9431/db"]
+} {host localhost path /db port 9431 scheme postgres user neoxed}
+
+test db-2.8 {ParseURI: user and password} {
+    SortPair [Db::ParseURI "postgres://neo:xed@localhost:9431/db"]
+} {host localhost pass xed path /db port 9431 scheme postgres user neo}
+
+test db-2.9 {ParseURI: credentials and parameters} {
+    SortPair [Db::ParseURI "postgres://neo:xed@localhost:9431/db?ssl=true&timeout=10000"]
+} {host localhost params {ssl true timeout 10000} pass xed path /db port 9431 scheme postgres user neo}
+
+
+::tcltest::cleanupTests
+return

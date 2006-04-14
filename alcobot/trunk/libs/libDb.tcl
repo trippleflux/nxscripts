@@ -49,7 +49,7 @@ proc ::Db::Open {connString args} {
 
     # Parse database URI string.
     # Format: <driver>://<user>:<passwd>@<host>:<port>/<dbname>
-    array set uri [SplitURI $connString]
+    array set uri [ParseURI $connString]
 
     if {![info exists driverMap($uri(scheme))]} {
         error "unknown driver \"$uri(scheme)\""
@@ -82,7 +82,7 @@ proc ::Db::Open {connString args} {
 #
 proc ::Db::Close {handle} {
     Acquire $handle db
-    if ($db(object) ne ""} {
+    if {$db(object) ne ""} {
         ::Db::$db(driver)::Disconnect $db(object)
     }
     unset -nocomplain db
@@ -96,6 +96,9 @@ proc ::Db::Close {handle} {
 #
 proc ::Db::Connect {handle} {
     Acquire $handle db
+    if {$db(object) ne ""} {
+        throw DB "database connection open, disconnect first"
+    }
     set db(object) [::Db::$db(driver)::Connect $db(options)]
     return
 }
@@ -107,7 +110,7 @@ proc ::Db::Connect {handle} {
 #
 proc ::Db::Disconnect {handle} {
     Acquire $handle db
-    if ($db(object) ne ""} {
+    if {$db(object) ne ""} {
         ::Db::$db(driver)::Disconnect $db(object)
         set db(object) ""
     }
@@ -117,7 +120,24 @@ proc ::Db::Disconnect {handle} {
 ####
 # Db::GenSQL
 #
-# Generates a SQL statement
+# Generates a SQL statement.
+#
+# Functions:
+#  Like        <value> <pattern> [escape char]
+#  NotLike     <value> <pattern> [escape char]
+#  RegExp      <value> <pattern>
+#  NotRegExp   <value> <pattern>
+#  Escape      <value>
+#  QuoteName   <value>
+#  QuoteString <value>
+#
+# Example:
+#  set match "a%z"
+#  set input {SELECT [QuoteName group] WHERE [Like [QuoteName user] [QuoteString $match]];}
+#  set query [Db::GenSQL $handle $input]
+#
+#  Would generate the following for MySQL:
+#  SELECT `group` WHERE `user` LIKE 'a%z';
 #
 proc ::Db::GenSQL {handle statement} {
     Acquire $handle db
@@ -172,17 +192,75 @@ proc ::Db::Acquire {handle handleVar} {
 }
 
 ####
-# SplitURI
+# ParseTuple
+#
+# Parses a name and value tuple.
+#
+proc ::Db::ParseTuple {input separator nameVar valueVar} {
+    upvar $nameVar name $valueVar value
+    set index [string first $separator $input]
+    if {$index != -1} {
+        set name  [string range $input 0 [expr {$index - 1}]]
+        set value [string range $input [expr {$index + 1}] end]
+        return 1
+    }
+    return 0
+}
+
+####
+# ParseURI
 #
 # Splits the given URL into its constituents.
 #
-proc ::Db::SplitURI {url} {
+proc ::Db::ParseURI {url} {
     # RFC 1738:	scheme = 1*[ lowalpha | digit | "+" | "-" | "." ]
-    if {![regexp -- {^([a-z0-9+.-]+):} $url result scheme]} {
+    if {![regexp -- {^([a-z0-9+.-]+):} $url dummy result(scheme)]} {
         throw DB "invalid URI scheme \"$url\""
     }
+    set index [string first ":" $url]
+    set rest [string range $url [incr index] end]
 
-    # TODO
+    # Count the slashes after the scheme.
+    set slashes 0
+    while {[string index $rest $slashes] eq "/"} {incr slashes}
+
+    if {$slashes == 0} {
+        # scheme:path
+        set result(path) $rest
+    } elseif {$slashes == 1 || $slashes == 3} {
+        # scheme:/path
+        # scheme:///path
+        set rest [string range $rest $slashes end]
+    } else {
+        # scheme://host
+        # scheme://host/path
+        set rest [string range $rest 2 end]
+        if {![ParseTuple $rest "/" result(host) rest]} {
+            set result(host) $rest; set rest ""
+        }
+    }
+
+    if {[info exists result(host)]} {
+        # scheme://user@host
+        # scheme://user:pass@host
+        if {[ParseTuple $result(host) "@" result(user) result(host)]} {
+            ParseTuple $result(user) ":" result(user) result(pass)
+        }
+        # scheme://host:port
+        ParseTuple $result(host) ":" result(host) result(port)
+    }
+
+    if {![info exists result(path)]} {
+        set result(path) "/$rest"
+    }
+    if {[ParseTuple $result(path) "?" result(path) params]} {
+        foreach param [split $params "&"] {
+            if {[ParseTuple $param "=" name value]} {
+                lappend result(params) $name $value
+            }
+        }
+    }
+    return [array get result]
 }
 
 ################################################################################
@@ -306,6 +384,7 @@ proc ::Db::SQLite::Connect {options} {
     # Tcl Sees : REGEXP $pattern $value
     #
     $object function REGEXP {regexp -nocase --}
+
     return $object
 }
 
