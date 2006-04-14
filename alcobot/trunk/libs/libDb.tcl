@@ -43,16 +43,21 @@ namespace eval ::Db {
 # Creates a new database client handle. This handle is used by every library
 # procedure and must be closed using Db::Close.
 #
+# URI Format:
+#  <driver>://<user>:<passwd>@<host>:<port>/<dbname>
+#
+# Example:
+#  sqlite3:data/my.db
+#  sqlite3:/home/user/data/my.db
+#  postgres://alco:bot@localhost:9431/alcoholicz
+#
 proc ::Db::Open {connString args} {
     variable nextHandle
     variable driverMap
 
-    # Parse database URI string.
-    # Format: <driver>://<user>:<passwd>@<host>:<port>/<dbname>
     array set uri [ParseURI $connString]
-
     if {![info exists driverMap($uri(scheme))]} {
-        error "unknown driver \"$uri(scheme)\""
+        throw DB "unknown driver \"$uri(scheme)\""
     }
     set driver $driverMap($uri(scheme))
     ::Db::${driver}::Init
@@ -63,12 +68,14 @@ proc ::Db::Open {connString args} {
     #
     # Database Handle Contents
     #
-    # db(driver) - Driver name.
-    # db(object) - Database object.
+    # db(driver)  - Driver name.
+    # db(object)  - Database object.
+    # db(options) - Optional parameters.
     #
-    array set db [list \
-        driver $driver \
-        object ""      \
+    array set db [list          \
+        driver  $driver         \
+        object  ""              \
+        options [array get uri] \
     ]
 
     incr nextHandle
@@ -214,19 +221,19 @@ proc ::Db::ParseTuple {input separator nameVar valueVar} {
 #
 proc ::Db::ParseURI {url} {
     # RFC 1738:	scheme = 1*[ lowalpha | digit | "+" | "-" | "." ]
-    if {![regexp -- {^([a-z0-9+.-]+):} $url dummy result(scheme)]} {
+    if {![regexp -- {^([a-z0-9+.-]+):} $url dummy uri(scheme)]} {
         throw DB "invalid URI scheme \"$url\""
     }
     set index [string first ":" $url]
     set rest [string range $url [incr index] end]
 
-    # Count the slashes after the scheme.
+    # Count the slashes after "scheme:".
     set slashes 0
     while {[string index $rest $slashes] eq "/"} {incr slashes}
 
     if {$slashes == 0} {
         # scheme:path
-        set result(path) $rest
+        set uri(path) $rest
     } elseif {$slashes == 1 || $slashes == 3} {
         # scheme:/path
         # scheme:///path
@@ -235,32 +242,35 @@ proc ::Db::ParseURI {url} {
         # scheme://host
         # scheme://host/path
         set rest [string range $rest 2 end]
-        if {![ParseTuple $rest "/" result(host) rest]} {
-            set result(host) $rest; set rest ""
+        if {![ParseTuple $rest "/" uri(host) rest]} {
+            set uri(host) $rest; set rest ""
         }
     }
 
-    if {[info exists result(host)]} {
+    if {[info exists uri(host)]} {
         # scheme://user@host
         # scheme://user:pass@host
-        if {[ParseTuple $result(host) "@" result(user) result(host)]} {
-            ParseTuple $result(user) ":" result(user) result(pass)
+        if {[ParseTuple $uri(host) "@" uri(user) uri(host)]} {
+            ParseTuple $uri(user) ":" uri(user) uri(pass)
         }
         # scheme://host:port
-        ParseTuple $result(host) ":" result(host) result(port)
+        ParseTuple $uri(host) ":" uri(host) uri(port)
     }
 
-    if {![info exists result(path)]} {
-        set result(path) "/$rest"
+    if {![info exists uri(path)]} {
+        set uri(path) "/$rest"
     }
-    if {[ParseTuple $result(path) "?" result(path) params]} {
+    if {[ParseTuple $uri(path) "?" uri(path) params]} {
         foreach param [split $params "&"] {
             if {[ParseTuple $param "=" name value]} {
-                lappend result(params) $name $value
+                # Design Note:
+                # The "value" may contain HTML escapes (e.g. %xx). To keep the
+                # code small and simple, I won't implement an un-escape routine.
+                lappend uri(params) $name $value
             }
         }
     }
-    return [array get result]
+    return [array get uri]
 }
 
 ################################################################################
@@ -375,8 +385,12 @@ proc ::Db::SQLite::Init {} {
 }
 
 proc ::Db::SQLite::Connect {options} {
+    array set option $options
+    if {$option(path) ne ":memory:"} {
+        set option(path) [file normalize $option(path)]
+    }
     set object "::Db::SQLite::db[clock clicks]"
-    sqlite3 $object TODO
+    sqlite3 $object $option(path)
 
     # The value and pattern arguments are passed to Tcl in reverse.
     #
