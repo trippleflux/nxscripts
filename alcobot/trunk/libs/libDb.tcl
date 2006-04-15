@@ -12,7 +12,7 @@
 #   Implements a database abstraction layer.
 #
 # Procedures:
-#   Db::Open
+#   Db::Open        <connString>
 #   Db::Close       <handle>
 #   Db::Connect     <handle>
 #   Db::Disconnect  <handle>
@@ -58,7 +58,6 @@ proc ::Db::Open {connString args} {
     array set uri [ParseURI $connString]
     if {![info exists driverMap($uri(scheme))]} {
         throw DB "unknown driver \"$uri(scheme)\""
-
     }
 
     # Make sure the "params" element always exists.
@@ -239,18 +238,13 @@ proc ::Db::ParseURI {url} {
     set slashes 0
     while {[string index $rest $slashes] eq "/"} {incr slashes}
 
-    if {$slashes == 0} {
+    if {!$slashes} {
         # scheme:path
         set uri(path) $rest
-    } elseif {$slashes == 1 || $slashes == 3} {
-        # scheme:/path
-        # scheme:///path
-        set rest [string range $rest $slashes end]
     } else {
-        # scheme://host
+        set rest [string range $rest $slashes end]
         # scheme://host/path
-        set rest [string range $rest 2 end]
-        if {![ParseTuple $rest "/" uri(host) rest]} {
+        if {$slashes == 2 && ![ParseTuple $rest "/" uri(host) rest]} {
             set uri(host) $rest; set rest ""
         }
     }
@@ -272,8 +266,8 @@ proc ::Db::ParseURI {url} {
         foreach param [split $params "&"] {
             if {[ParseTuple $param "=" name value]} {
                 # Design Note:
-                # The "value" may contain HTML escapes (e.g. %xx). To keep the
-                # code small and simple, I won't implement an un-escape routine.
+                # The "value" may contain escapes (e.g. %xx). To keep the code
+                # small and simple, I won't implement an un-escape routine.
                 lappend uri(params) $name $value
             }
         }
@@ -298,16 +292,16 @@ proc ::Db::MySQL::Connect {options} {
     variable params
     array set option $options
 
-    set connInfo [list]
+    set connOptions [list]
     foreach {name value} $options {
         if {[lsearch -exact {host password port user} $name] != -1} {
-            lappend connInfo "-$name" $value
+            lappend connOptions "-$name" $value
         } elseif {$name eq "path"} {
             # Remove the leading slash, if present.
             if {[string index $value 0] eq "/"} {
                 set value [string range $value 1 end]
             }
-            lappend connInfo "-db" $value
+            lappend connOptions "-db" $value
         }
     }
 
@@ -316,10 +310,10 @@ proc ::Db::MySQL::Connect {options} {
         if {[lsearch -exact $params $name] == -1} {
             throw DB "unsupported parameter \"$name\""
         }
-        lappend connInfo "-$name" $value
+        lappend connOptions "-$name" $value
     }
 
-    return [eval ::mysql::connect $connInfo]
+    return [eval ::mysql::connect $connOptions]
 }
 
 proc ::Db::MySQL::Disconnect {object} {
@@ -377,16 +371,16 @@ proc ::Db::PostgreSQL::Connect {options} {
     variable params
     array set option $options
 
-    set connInfo [list]
+    set connOptions [list]
     foreach {name value} $options {
         if {[lsearch -exact {host password port user} $name] != -1} {
-            lappend connInfo "$name=[pg_quote $value]"
+            lappend connOptions "$name=[pg_quote $value]"
         } elseif {$name eq "path"} {
             # Remove the leading slash, if present.
             if {[string index $value 0] eq "/"} {
                 set value [string range $value 1 end]
             }
-            lappend connInfo "dbname=[pg_quote $value]"
+            lappend connOptions "dbname=[pg_quote $value]"
         }
     }
 
@@ -395,10 +389,10 @@ proc ::Db::PostgreSQL::Connect {options} {
         if {[lsearch -exact $params $name] == -1} {
             throw DB "unsupported parameter \"$name\""
         }
-        lappend connInfo "$name=[pg_quote $value]"
+        lappend connOptions "$name=[pg_quote $value]"
     }
 
-    return [pg_connect -conninfo [join $connInfo]]
+    return [pg_connect -conninfo [join $connOptions]]
 }
 
 proc ::Db::PostgreSQL::Disconnect {object} {
