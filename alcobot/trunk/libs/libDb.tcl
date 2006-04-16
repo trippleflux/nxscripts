@@ -238,13 +238,18 @@ proc ::Db::ParseURI {url} {
     set slashes 0
     while {[string index $rest $slashes] eq "/"} {incr slashes}
 
-    if {!$slashes} {
+    if {$slashes == 0} {
         # scheme:path
         set uri(path) $rest
-    } else {
+    } elseif {$slashes == 1 || $slashes == 3} {
+        # scheme:/path
+        # scheme:///path
         set rest [string range $rest $slashes end]
+    } else {
+        # scheme://host
         # scheme://host/path
-        if {$slashes == 2 && ![ParseTuple $rest "/" uri(host) rest]} {
+        set rest [string range $rest 2 end]
+        if {![ParseTuple $rest "/" uri(host) rest]} {
             set uri(host) $rest; set rest ""
         }
     }
