@@ -20,7 +20,7 @@
 #   Tree::Keys     <tree> [pattern]
 #   Tree::Values   <tree> [pattern]
 #   Tree::Get      <tree> <key> [<key> ...]
-#   Tree::GetNaive <tree> <key> [<key> ...]
+#   Tree::GetQuiet <tree> <key> [<key> ...]
 #   Tree::Set      <tree> <key> [<key> ...] <value>
 #   Tree::Unset    <tree> <key> [<key> ...]
 #
@@ -120,17 +120,17 @@ proc ::Tree::Get {tree key args} {
 }
 
 ####
-# Tree::GetNaive
+# Tree::GetQuiet
 #
-# A variation of ::Tree::Get that returns an empty string when a nonexistent key is
+# A variation of Tree::Get that returns an empty string when a nonexistent key is
 # specified. This simplifies implementations that consider the key's existence to
 # be irrelevant.
 #
-proc ::Tree::GetNaive {tree key args} {
+proc ::Tree::GetQuiet {tree key args} {
     foreach {name node} $tree {
         if {$key eq $name} {
             if {![llength $args]} {return $node}
-            return [eval ::Tree::GetNaive [list $node] $args]
+            return [eval ::Tree::GetQuiet [list $node] $args]
         }
     }
     return {}

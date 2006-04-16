@@ -124,56 +124,56 @@ test tree-3.12 {Get command} {
 } {1 {wrong # args: should be "Tree::Get tree key args"}}
 
 ################################################################################
-# Tree::GetNaive                                                               #
+# Tree::GetQuiet                                                               #
 ################################################################################
 
-test tree-3.1 {GetNaive command} {
-    Tree::GetNaive {a b} a
+test tree-3.1 {GetQuiet command} {
+    Tree::GetQuiet {a b} a
 } {b}
 
-test tree-3.2 {GetNaive command} {
-    Tree::GetNaive {a b c d} a
+test tree-3.2 {GetQuiet command} {
+    Tree::GetQuiet {a b c d} a
 } {b}
 
-test tree-3.3 {GetNaive command} {
-    Tree::GetNaive {a b c d} c
+test tree-3.3 {GetQuiet command} {
+    Tree::GetQuiet {a b c d} c
 } {d}
 
-test tree-3.4 {GetNaive command} {
-    list [catch {Tree::GetNaive {a b c d} b} msg] $msg
+test tree-3.4 {GetQuiet command} {
+    list [catch {Tree::GetQuiet {a b c d} b} msg] $msg
 } {0 {}}
 
-test tree-3.5 {GetNaive command} {
-    Tree::GetNaive {a {p q r s} b {u v x y}} a p
+test tree-3.5 {GetQuiet command} {
+    Tree::GetQuiet {a {p q r s} b {u v x y}} a p
 } {q}
 
-test tree-3.6 {GetNaive command} {
-    Tree::GetNaive {a {p q r s} b {u v x y}} a r
+test tree-3.6 {GetQuiet command} {
+    Tree::GetQuiet {a {p q r s} b {u v x y}} a r
 } {s}
 
-test tree-3.7 {GetNaive command} {
-    Tree::GetNaive {a {p q r s} b {u v x y}} b u
+test tree-3.7 {GetQuiet command} {
+    Tree::GetQuiet {a {p q r s} b {u v x y}} b u
 } {v}
 
-test tree-3.8 {GetNaive command} {
-    Tree::GetNaive {a {p q r s} b {u v x y}} b x
+test tree-3.8 {GetQuiet command} {
+    Tree::GetQuiet {a {p q r s} b {u v x y}} b x
 } {y}
 
-test tree-3.9 {GetNaive command} {
-    list [catch {Tree::GetNaive {a {p q r s} b {u v x y}} a z} msg] $msg
+test tree-3.9 {GetQuiet command} {
+    list [catch {Tree::GetQuiet {a {p q r s} b {u v x y}} a z} msg] $msg
 } {0 {}}
 
-test tree-3.10 {GetNaive command} {
-    list [catch {Tree::GetNaive {a {p q r s} b {u v x y}} c z} msg] $msg
+test tree-3.10 {GetQuiet command} {
+    list [catch {Tree::GetQuiet {a {p q r s} b {u v x y}} c z} msg] $msg
 } {0 {}}
 
-test tree-3.11 {GetNaive command} {
-    Tree::GetNaive [Tree::Create a b c d] a
+test tree-3.11 {GetQuiet command} {
+    Tree::GetQuiet [Tree::Create a b c d] a
 } {b}
 
-test tree-3.12 {GetNaive command} {
-    list [catch {Tree::GetNaive} msg] $msg
-} {1 {wrong # args: should be "Tree::GetNaive tree key args"}}
+test tree-3.12 {GetQuiet command} {
+    list [catch {Tree::GetQuiet} msg] $msg
+} {1 {wrong # args: should be "Tree::GetQuiet tree key args"}}
 
 ################################################################################
 # Tree::Keys                                                                   #

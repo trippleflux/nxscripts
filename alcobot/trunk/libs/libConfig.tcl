@@ -181,7 +181,7 @@ proc ::Config::Read {handle} {
             }
 
             if {[llength $comments]} {
-                set comments [concat [Tree::GetNaive $config(tree) $section comments] $comments]
+                set comments [concat [Tree::GetQuiet $config(tree) $section comments] $comments]
                 Tree::Set config(tree) $section comments $comments
                 set comments [list]
             }
@@ -259,7 +259,7 @@ proc ::Config::Write {handle} {
 #
 proc ::Config::Keys {handle section {pattern "*"}} {
     Acquire $handle config
-    return [Tree::Keys [Tree::GetNaive $config(tree) $section data] $pattern]
+    return [Tree::Keys [Tree::GetQuiet $config(tree) $section data] $pattern]
 }
 
 ####
@@ -294,7 +294,7 @@ proc ::Config::Exists {handle section {key ""}} {
 #
 proc ::Config::Get {handle section key} {
     Acquire $handle config
-    return [Tree::GetNaive $config(tree) $section data $key value]
+    return [Tree::GetQuiet $config(tree) $section data $key value]
 }
 
 ####
@@ -306,7 +306,7 @@ proc ::Config::Get {handle section key} {
 proc ::Config::GetEx {handle section {pattern "*"}} {
     Acquire $handle config
     set result [list]
-    Tree::For {key keyTree} [Tree::GetNaive $config(tree) $section data] {
+    Tree::For {key keyTree} [Tree::GetQuiet $config(tree) $section data] {
         if {[string match $pattern $key]} {
             lappend result $key [Tree::Get $keyTree value]
         }
@@ -322,9 +322,9 @@ proc ::Config::GetEx {handle section {pattern "*"}} {
 proc ::Config::GetMulti {handle section args} {
     Acquire $handle config
     set result [list]
-    set keyTree [Tree::GetNaive $config(tree) $section data]
+    set keyTree [Tree::GetQuiet $config(tree) $section data]
     foreach key $args {
-        lappend result $key [Tree::GetNaive $keyTree $key value]
+        lappend result $key [Tree::GetQuiet $keyTree $key value]
     }
     return $result
 }
