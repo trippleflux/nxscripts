@@ -1744,7 +1744,7 @@ proc ::Bot::InitTheme {themeFile} {
 
     # Process colour entries.
     foreach {name value} [Config::GetEx $handle Colour] {
-        if {![regexp -- {^(\d+)\.(\S+)$} $name result num section]} {
+        if {![regexp -- {^(\d+)\.(.+)$} $name result num section]} {
             LogWarning Theme "Invalid colour entry \"$name\"."
 
         } elseif {![string is digit -strict $value] || $value < 0 || $value > 15} {
