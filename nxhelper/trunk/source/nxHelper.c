@@ -32,7 +32,6 @@ ExitHandler(
     );
 
 
-#ifdef _WINDOWS
 /*
  * DllMain
  *
@@ -58,7 +57,6 @@ DllMain(
     }
     return TRUE;
 }
-#endif /* _WINDOWS */
 
 
 /*
