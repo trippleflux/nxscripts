@@ -53,6 +53,38 @@ static Tcl_CmdDeleteProc CmdDeleted;
 static Tcl_InterpDeleteProc InterpDeleted;
 
 
+#ifdef _WINDOWS
+/*++
+
+DllMain
+
+    DLL entry point; disables thread library calls.
+
+Arguments:
+    instance - Handle to the DLL module.
+
+    reason   - Reason the entry point is being called.
+
+    reserved - Not used.
+
+Return Value:
+    Always returns non-zero (success).
+
+--*/
+BOOL WINAPI
+DllMain(
+    HINSTANCE instance,
+    DWORD reason,
+    LPVOID reserved
+    )
+{
+    if (reason == DLL_PROCESS_ATTACH) {
+        DisableThreadLibraryCalls(instance);
+    }
+    return TRUE;
+}
+#endif // _WINDOWS
+
 /*++
 
 Alcoext_Init
