@@ -334,7 +334,7 @@ proc ::nxTools::Dupe::RaceLinks {virtualPath} {
     } else {ErrorLog RaceLinksMkDir $error}
 
     # Remove older links.
-    set linkCount [LinkDb eval {SELECT count(*) FROM Links WHERE LinkType=0}]
+    set linkCount [LinkDb eval {SELECT COUNT(*) FROM Links WHERE LinkType=0}]
     if {$linkCount > $latest(RaceLinks)} {
         set linkCount [expr {$linkCount - $latest(RaceLinks)}]
         # The link type for pre tags is "0".
@@ -377,7 +377,7 @@ proc ::nxTools::Dupe::SiteApprove {event argList} {
             iputs ".-\[Approve\]--------------------------------------------------------------."
             if {![MatchFlags $approve(Flags) $flags]} {
                 LinePuts "Only siteops may approve releases."
-            } elseif {[ApproveDb eval {SELECT count(*) FROM Approves WHERE StrCaseEq(Release,$release)}]} {
+            } elseif {[ApproveDb eval {SELECT COUNT(*) FROM Approves WHERE StrCaseEq(Release,$release)}]} {
                 LinePuts "This release is already approved."
             } else {
                 # If the release already exists in the dupe database, approve that one.
@@ -466,7 +466,7 @@ proc ::nxTools::Dupe::SiteDupe {fileRoot limit pattern} {
 
     if {!$count} {OutputText $template(None)}
     if {$count == $limit} {
-        set total [DirDb eval "SELECT count(*) FROM DupeDirs WHERE DirName LIKE '$pattern' ESCAPE '\\'"]
+        set total [DirDb eval "SELECT COUNT(*) FROM DupeDirs WHERE DirName LIKE '$pattern' ESCAPE '\\'"]
     } else {
         set total $count
     }
@@ -498,7 +498,7 @@ proc ::nxTools::Dupe::SiteFileDupe {limit pattern} {
 
     if {!$count} {OutputText $template(None)}
     if {$count == $limit} {
-        set total [FileDb eval "SELECT count(*) FROM DupeFiles WHERE FileName LIKE '$pattern' ESCAPE '\\'"]
+        set total [FileDb eval "SELECT COUNT(*) FROM DupeFiles WHERE FileName LIKE '$pattern' ESCAPE '\\'"]
     } else {
         set total $count
     }
@@ -594,7 +594,7 @@ proc ::nxTools::Dupe::SiteUndupe {argList} {
 
     if {![catch {DbOpenFile [namespace current]::DupeDb "${dbName}.db"} error]} {
         set rowIds [list]
-        set total [DupeDb eval "SELECT count(*) FROM $dbName"]
+        set total [DupeDb eval "SELECT COUNT(*) FROM $dbName"]
 
         DupeDb eval "SELECT $colName,rowid FROM $dbName WHERE $colName LIKE '$pattern' ESCAPE '\\' ORDER BY $colName ASC" values {
             incr removed

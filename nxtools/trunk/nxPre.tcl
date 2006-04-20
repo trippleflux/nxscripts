@@ -167,7 +167,7 @@ proc ::nxTools::Pre::UpdateLinks {virtualPath} {
     } else {ErrorLog PreLinksMkDir $error}
 
     # Remove older links.
-    set linkCount [LinkDb eval {SELECT count(*) FROM Links WHERE LinkType=1}]
+    set linkCount [LinkDb eval {SELECT COUNT(*) FROM Links WHERE LinkType=1}]
     if {$linkCount > $latest(PreLinks)} {
         set linkCount [expr {$linkCount - $latest(PreLinks)}]
         # The link type for pre tags is "1".
@@ -523,7 +523,8 @@ proc ::nxTools::Pre::Stats {argList} {
     iputs "|------------------------------------------------------------------------|"
     set count 0
     if {![catch {DbOpenFile [namespace current]::PreDb "Pres.db"} error]} {
-        PreDb eval "SELECT GroupName, count(*) AS Pres, round(sum(Files)) AS Files, sum(Size) AS Amount FROM Pres $whereClause GROUP BY GroupName ORDER BY Pres DESC LIMIT $limit" values {
+        PreDb eval "SELECT GroupName, COUNT(*) AS Pres, CAST(SUM(Files) AS INTEGER) AS Files,
+                SUM(Size) AS Amount FROM Pres $whereClause GROUP BY GroupName ORDER BY Pres DESC LIMIT $limit" values {
             iputs [format "| %02d | %-29.29s | %9d | %8dF | %9s |" [incr count] $values(GroupName) $values(Pres) $values(Files) [FormatSize $values(Amount)]]
         }
         PreDb close

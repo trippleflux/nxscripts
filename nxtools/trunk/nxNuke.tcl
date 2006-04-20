@@ -421,8 +421,8 @@ proc ::nxTools::Nuke::Main {argv} {
             set count 0
 
             if {![catch {DbOpenFile [namespace current]::NukeDb "Nukes.db"} error]} {
-                NukeDb eval "SELECT UserName, GroupName, count(*) AS Nuked, sum(Amount) AS Amount FROM Users \
-                        WHERE $groupMatch (SELECT count(*) FROM Nukes WHERE NukeId=Users.NukeId AND Status=0) \
+                NukeDb eval "SELECT UserName, GroupName, COUNT(*) AS Nuked, SUM(Amount) AS Amount FROM Users \
+                        WHERE $groupMatch (SELECT COUNT(*) FROM Nukes WHERE NukeId=Users.NukeId AND Status=0) \
                         GROUP BY UserName ORDER BY Nuked DESC LIMIT $limit" values {
                     incr count
                     iputs [format "| %-10.10s | %-10.10s | %11d | %30.30s |" $values(UserName) $values(GroupName) $values(Nuked) [FormatSize $values(Amount)]]

@@ -159,7 +159,7 @@ proc ::nxTools::Db::Create {dbList} {
 
         db eval "PRAGMA user_version=$dbSchema($dbName)"
         foreach {table query} $dbTables($dbName) {
-            if {[db eval "SELECT count(*) FROM sqlite_master WHERE name='$table' AND type='table'"]} {
+            if {[db eval "SELECT COUNT(*) FROM sqlite_master WHERE name='$table' AND type='table'"]} {
                 LinePuts "- Table \"$table\" exists."
             } else {
                 LinePuts "- Creating table \"$table\"."

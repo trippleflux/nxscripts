@@ -37,7 +37,7 @@ proc ::nxTools::Req::CheckLimit {userName groupName} {
             if {$target ne $groupName} {continue}
 
             # Group request limits are only checked when 'target' has a group prefix (=).
-            if {$groupLimit >= 0 && [ReqDb eval {SELECT count(*) FROM Requests WHERE Status=0 AND GroupName=$target}] >= $groupLimit} {
+            if {$groupLimit >= 0 && [ReqDb eval {SELECT COUNT(*) FROM Requests WHERE Status=0 AND GroupName=$target}] >= $groupLimit} {
                 LinePuts "You have reached your group's request limit of $groupLimit request(s)."
                 return 0
             }
@@ -46,7 +46,7 @@ proc ::nxTools::Req::CheckLimit {userName groupName} {
             set groupMatch ""
         } else {continue}
 
-        if {$userLimit >= 0 && [ReqDb eval "SELECT count(*) FROM Requests WHERE Status=0 AND UserName='[SqlEscape $userName]' $groupMatch"] >= $userLimit} {
+        if {$userLimit >= 0 && [ReqDb eval "SELECT COUNT(*) FROM Requests WHERE Status=0 AND UserName='[SqlEscape $userName]' $groupMatch"] >= $userLimit} {
             LinePuts "You have reached your individual request limit of $userLimit request(s)."
             return 0
         }
@@ -54,7 +54,7 @@ proc ::nxTools::Req::CheckLimit {userName groupName} {
         if {$timeLimit >= 0 && $timePeriod >= 0} {
             set timeStamp [expr {[clock seconds] - ($timePeriod * 86400)}]
 
-            if {[ReqDb eval {SELECT count(*) FROM Requests WHERE TimeStamp > $timeStamp AND UserName=$userName}] >= $timeLimit} {
+            if {[ReqDb eval {SELECT COUNT(*) FROM Requests WHERE TimeStamp > $timeStamp AND UserName=$userName}] >= $timeLimit} {
                 LinePuts "Only $timeLimit request(s) can be made every $timePeriod day(s)."
                 set lastReq [ReqDb eval {SELECT TimeStamp FROM Requests WHERE UserName=$userName ORDER BY TimeStamp DESC LIMIT 1}]
                 set timeLeft [FormatDuration [expr {$lastReq - $timeStamp}]]
@@ -121,13 +121,13 @@ proc ::nxTools::Req::Add {userName groupName request} {
     }
 
     if {$result == 0} {
-        if {[ReqDb eval {SELECT count(*) FROM Requests WHERE Status=0 AND StrCaseEq(Request,$request)}]} {
+        if {[ReqDb eval {SELECT COUNT(*) FROM Requests WHERE Status=0 AND StrCaseEq(Request,$request)}]} {
             LinePuts "This item is already requested."
             set result 1
         } elseif {[CheckLimit $userName $groupName]} {
             set requestId 1
-            ReqDb eval {SELECT (max(RequestId)+1) AS NextId FROM Requests WHERE Status=0} values {
-                # The max() function returns NULL if there are no matching records.
+            ReqDb eval {SELECT (MAX(RequestId)+1) AS NextId FROM Requests WHERE Status=0} values {
+                # The MAX() function returns NULL if there are no matching records.
                 if {[string length $values(NextId)]} {
                     set requestId $values(NextId)
                 }
