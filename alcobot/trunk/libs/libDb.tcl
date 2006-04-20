@@ -16,6 +16,10 @@
 #   Db::Close       <handle>
 #   Db::Connect     <handle>
 #   Db::Disconnect  <handle>
+#   Db::Exec        <handle> <statement>
+#   Db::Select      <handle> -list  <statement>
+#   Db::Select      <handle> -llist <statement>
+#   Db::GenSQL      <handle> <script>
 #   Db::Escape      <handle> <value>
 #   Db::QuoteName   <handle> <value>
 #   Db::QuoteString <handle> <value>
@@ -49,12 +53,13 @@ namespace eval ::Db {
 # Example:
 #  sqlite3:data/my.db
 #  sqlite3:/home/user/data/my.db
-#  postgres://alco:bot@localhost:9431/alcoholicz
+#  postgres://user:pass@localhost:9431/alcoholicz
 #
 proc ::Db::Open {connString args} {
     variable nextHandle
     variable driverMap
 
+    # Parse arguments.
     array set uri [ParseURI $connString]
     if {![info exists driverMap($uri(scheme))]} {
         throw DB "unknown driver \"$uri(scheme)\""
@@ -132,6 +137,31 @@ proc ::Db::Disconnect {handle} {
 }
 
 ####
+# Db::Exec
+#
+# Executes the given SQL statement and returns the number of affected rows.
+#
+proc ::Db::Exec {handle statement} {
+    Acquire $handle db
+    return [::Db::$db(driver)::Exec $db(object) $statement]
+}
+
+####
+# Db::Select
+#
+# Executes the given SQL statement and returns the results.
+#
+proc ::Db::Select {handle type statement} {
+    Acquire $handle db
+    if {$type eq "-list"} {
+        return [::Db::$db(driver)::SelectList $db(object) $statement]
+    } elseif {$type eq "-llist"} {
+        return [::Db::$db(driver)::SelectNestedList $db(object) $statement]
+    }
+    throw DB "unknown result type \"$type\": must be -list or -llist"
+}
+
+####
 # Db::GenSQL
 #
 # Generates a SQL statement.
@@ -150,13 +180,13 @@ proc ::Db::Disconnect {handle} {
 #  set input {SELECT [QuoteName group] WHERE [Like [QuoteName user] [QuoteString $match]];}
 #  set query [Db::GenSQL $handle $input]
 #
-#  Would generate the following for MySQL:
+#  Would generate the following statement for MySQL:
 #  SELECT `group` WHERE `user` LIKE 'a%z';
 #
-proc ::Db::GenSQL {handle statement} {
+proc ::Db::GenSQL {handle script} {
     Acquire $handle db
-    regsub -all -- {([^\B]\[)} $statement "\\1::Db::$db(driver)::Func::" statement
-    return [uplevel [list subst $statement]]
+    regsub -all -- {([^\B]\[)} $script "\\1::Db::$db(driver)::Func::" script
+    return [uplevel [list subst $script]]
 }
 
 ####
@@ -325,6 +355,18 @@ proc ::Db::MySQL::Disconnect {object} {
     ::mysql::close $object
 }
 
+proc ::Db::MySQL::Exec {object statement} {
+    return [::mysql::exec $object $statement]
+}
+
+proc ::Db::MySQL::SelectList {object statement} {
+    return [::mysql::sel $object $statement -flatlist]
+}
+
+proc ::Db::MySQL::SelectNestedList {object statement} {
+    return [::mysql::sel $object $statement -list]
+}
+
 # Comparison Functions
 
 proc ::Db::MySQL::Func::Like {value pattern {escape "\\"}} {
@@ -404,6 +446,34 @@ proc ::Db::PostgreSQL::Disconnect {object} {
     pg_disconnect $object
 }
 
+proc ::Db::PostgreSQL::GetResult {object statement option} {
+    set handle [pg_exec $object $statement]
+
+    # Check if the statemented failed.
+    if {[pg_result $handle -status] eq "PGRES_FATAL_ERROR"} {
+        set result [pg_result $handle -error]
+        pg_result $handle -clear
+        throw DB $result
+    }
+
+    # Retrieve the desired result option.
+    set result [pg_result $handle $option]
+    pg_result $handle -clear
+    return $result
+}
+
+proc ::Db::PostgreSQL::Exec {object statement} {
+    return [GetResult $object $statement -cmdTuples]
+}
+
+proc ::Db::PostgreSQL::SelectList {object statement} {
+    return [GetResult $object $statement -list]
+}
+
+proc ::Db::PostgreSQL::SelectNestedList {object statement} {
+    return [GetResult $object $statement -llist]
+}
+
 # Comparison Functions
 
 proc ::Db::PostgreSQL::Func::Like {value pattern {escape "\\"}} {
@@ -460,7 +530,6 @@ proc ::Db::SQLite::Connect {options} {
     #
     # SQL Query: 'value' REGEXP 'pattern'
     # Tcl Sees : REGEXP $pattern $value
-    #
     $object function REGEXP {regexp -nocase --}
 
     return $object
@@ -468,6 +537,25 @@ proc ::Db::SQLite::Connect {options} {
 
 proc ::Db::SQLite::Disconnect {object} {
     $object close
+}
+
+proc ::Db::SQLite::Exec {object statement} {
+    $object eval $statement
+    return [$object changes]
+}
+
+proc ::Db::SQLite::SelectList {object statement} {
+    return [$object eval $statement]
+}
+
+proc ::Db::SQLite::SelectNestedList {object statement} {
+    set result [list]
+    $object eval $statement row {
+        set rowList [list]
+        foreach name $row(*) {lappend rowList $row($name)}
+        lappend result $rowList
+    }
+    return $result
 }
 
 # Comparison Functions
