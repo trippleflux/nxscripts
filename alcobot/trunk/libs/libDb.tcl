@@ -17,8 +17,7 @@
 #   Db::Connect     <handle>
 #   Db::Disconnect  <handle>
 #   Db::Exec        <handle> <statement>
-#   Db::Select      <handle> -list  <statement>
-#   Db::Select      <handle> -llist <statement>
+#   Db::Select      <handle> <type> <statement>
 #   Db::GenSQL      <handle> <script>
 #   Db::Escape      <handle> <value>
 #   Db::QuoteName   <handle> <value>
@@ -53,7 +52,7 @@ namespace eval ::Db {
 # Example:
 #  sqlite3:data/my.db
 #  sqlite3:/home/user/data/my.db
-#  postgres://user:pass@localhost:9431/alcoholicz
+#  postgres://user:pass@localhost:5432/alcoholicz
 #
 proc ::Db::Open {connString args} {
     variable nextHandle
@@ -348,23 +347,23 @@ proc ::Db::MySQL::Connect {options} {
         lappend connOptions "-$name" $value
     }
 
-    return [eval ::mysql::connect $connOptions]
+    return [eval mysql::connect $connOptions]
 }
 
 proc ::Db::MySQL::Disconnect {object} {
-    ::mysql::close $object
+    mysql::close $object
 }
 
 proc ::Db::MySQL::Exec {object statement} {
-    return [::mysql::exec $object $statement]
+    return [mysql::exec $object $statement]
 }
 
 proc ::Db::MySQL::SelectList {object statement} {
-    return [::mysql::sel $object $statement -flatlist]
+    return [mysql::sel $object $statement -flatlist]
 }
 
 proc ::Db::MySQL::SelectNestedList {object statement} {
-    return [::mysql::sel $object $statement -list]
+    return [mysql::sel $object $statement -list]
 }
 
 # Comparison Functions
@@ -388,16 +387,16 @@ proc ::Db::MySQL::Func::NotRegExp {value pattern} {
 # Quoting Functions
 
 proc ::Db::MySQL::Func::Escape {value} {
-    return [::mysql::escape $value]
+    return [mysql::escape $value]
 }
 
 proc ::Db::MySQL::Func::QuoteName {value} {
-    set value [::mysql::escape $value]
+    set value [mysql::escape $value]
     return "`$value`"
 }
 
 proc ::Db::MySQL::Func::QuoteString {value} {
-    set value [::mysql::escape $value]
+    set value [mysql::escape $value]
     return "'$value'"
 }
 
@@ -449,7 +448,7 @@ proc ::Db::PostgreSQL::Disconnect {object} {
 proc ::Db::PostgreSQL::GetResult {object statement option} {
     set handle [pg_exec $object $statement]
 
-    # Check if the statemented failed.
+    # Check if the statement failed.
     if {[pg_result $handle -status] eq "PGRES_FATAL_ERROR"} {
         set result [pg_result $handle -error]
         pg_result $handle -clear
