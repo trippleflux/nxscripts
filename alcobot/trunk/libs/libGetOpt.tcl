@@ -36,7 +36,7 @@ namespace eval ::GetOpt {
 # match is found.
 #
 proc ::GetOpt::Element {list element {type "option"}} {
-    set index [::GetOpt::Index $list $element]
+    set index [Index $list $element]
     if {$index == -1} {
         throw GETOPT "invalid $type \"$element\", must be [ListConvert $list or]"
     }
@@ -90,7 +90,7 @@ proc ::GetOpt::Index {list element} {
 #
 # set argList "-limit 5 -match glob *some pattern*"
 # set optList {{limit integer} {match arg {exact glob regexp}}}
-# set pattern [::GetOpt::Parse $argList $optList result]
+# set pattern [GetOpt::Parse $argList $optList result]
 #
 # $result(limit) = 5
 # $result(match) = glob
@@ -146,7 +146,7 @@ proc ::GetOpt::Parse {argList optList resultVar} {
         }
 
         if {[string index $arg 0] eq "-"} {
-            set index [::GetOpt::Index $optNames [string range $arg 1 end]]
+            set index [Index $optNames [string range $arg 1 end]]
             if {$index == -1} {
                 throw GETOPT "invalid option \"$arg\""
             }
@@ -162,7 +162,7 @@ proc ::GetOpt::Parse {argList optList resultVar} {
 
                 if {$optType eq "arg"} {
                     if {$optCount > 2} {
-                        set value [::GetOpt::Element $optValues $value "value"]
+                        set value [Element $optValues $value "value"]
                     }
                 } elseif {![string is $optType -strict $value]} {
                     throw GETOPT "the option \"$arg\" requires a $optType type value"
