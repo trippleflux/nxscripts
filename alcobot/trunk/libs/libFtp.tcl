@@ -38,20 +38,17 @@ namespace eval ::Ftp {
 #  -debug   <callback>
 #  -notify  <callback>
 #  -secure  <none|implicit|ssl|tls>
-#  -timeout <seconds>
 #
 proc ::Ftp::Open {host port user passwd args} {
     variable nextHandle
 
     set debug ""; set notify ""; set secure ""
-    foreach {option value} $args {
-        if {$option eq "-debug"} {
+    foreach {name value} $args {
+        if {$name eq "-debug"} {
             set debug $value
-
-        } elseif {$option eq "-notify"} {
+        } elseif {$name eq "-notify"} {
             set notify $value
-
-        } elseif {$option eq "-secure"} {
+        } elseif {$name eq "-secure"} {
             switch -- $value {
                 {} {}
                 none {set value ""}
@@ -65,9 +62,8 @@ proc ::Ftp::Open {host port user passwd args} {
                 }
             }
             set secure $value
-
         } else {
-            throw FTP "invalid switch \"$option\": must be -debug, -notify, or -secure"
+            throw FTP "invalid switch \"$name\": must be -debug, -notify, or -secure"
         }
     }
     set handle "ftp$nextHandle"
