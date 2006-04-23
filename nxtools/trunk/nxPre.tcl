@@ -523,8 +523,9 @@ proc ::nxTools::Pre::Stats {argList} {
     iputs "|------------------------------------------------------------------------|"
     set count 0
     if {![catch {DbOpenFile [namespace current]::PreDb "Pres.db"} error]} {
-        PreDb eval "SELECT GroupName, COUNT(*) AS Pres, CAST(SUM(Files) AS INTEGER) AS Files,
-                SUM(Size) AS Amount FROM Pres $whereClause GROUP BY GroupName ORDER BY Pres DESC LIMIT $limit" values {
+        PreDb eval "SELECT GroupName, COUNT(*) AS Pres, CAST(SUM(Files) AS INT) AS Files,
+                SUM(Size) AS Amount FROM Pres $whereClause
+                GROUP BY GroupName ORDER BY Pres DESC LIMIT $limit" values {
             iputs [format "| %02d | %-29.29s | %9d | %8dF | %9s |" [incr count] $values(GroupName) $values(Pres) $values(Files) [FormatSize $values(Amount)]]
         }
         PreDb close
