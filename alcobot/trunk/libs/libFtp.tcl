@@ -12,8 +12,7 @@
 #   Implements a FTP client library to interact with FTP servers.
 #
 # Procedures:
-#   Ftp::Init       <logCallback>
-#   Ftp::Open       <host> <port> <user> <passwd> [-notify <callback>] [-secure <type>]
+#   Ftp::Open       <host> <port> <user> <passwd> [options ...]
 #   Ftp::Close      <handle>
 #   Ftp::GetError   <handle>
 #   Ftp::GetStatus  <handle>
@@ -23,26 +22,9 @@
 #
 
 namespace eval ::Ftp {
-    variable logCallback
     variable nextHandle
-    if {![info exists logCallback]} {
-        set logCallback ""
+    if {![info exists nextHandle]} {
         set nextHandle 0
-    }
-}
-
-####
-# Ftp::Init
-#
-# Initialises the FTP library.
-#
-proc ::Ftp::Init {logProc} {
-    # Log callback (disabled if "").
-    variable logCallback $logProc
-
-    # Required for SSL/TLS support.
-    if {[catch {package require tls 1.5} message]} {
-        Debug FtpInit "SSL/TLS support disabled: $message"
     }
 }
 
@@ -52,18 +34,21 @@ proc ::Ftp::Init {logProc} {
 # Creates a new FTP client handle. This handle is used by every library
 # procedure and must be closed using Ftp::Close.
 #
-# Secure Options:
-# none     - Regular connection.
-# implicit - Implicit SSL connection.
-# ssl      - Explicit SSL connection (AUTH SSL).
-# tls      - Explicit TLS connection (AUTH TLS).
+# Options:
+#  -debug   <callback>
+#  -notify  <callback>
+#  -secure  <none|implicit|ssl|tls>
+#  -timeout <seconds>
 #
 proc ::Ftp::Open {host port user passwd args} {
     variable nextHandle
 
-    set notify ""; set secure ""
+    set debug ""; set notify ""; set secure ""
     foreach {option value} $args {
-        if {$option eq "-notify"} {
+        if {$option eq "-debug"} {
+            set debug $value
+
+        } elseif {$option eq "-notify"} {
             set notify $value
 
         } elseif {$option eq "-secure"} {
@@ -71,9 +56,8 @@ proc ::Ftp::Open {host port user passwd args} {
                 {} {}
                 none {set value ""}
                 implicit - ssl - tls {
-                    # Make sure the TLS package (http://tls.sf.net) is present.
-                    if {[catch {package present tls} message]} {
-                        throw FTP "SSL/TLS not available"
+                    if {[catch {package require tls 1.5} message]} {
+                        throw FTP "SSL/TLS not available: $message"
                     }
                 }
                 default {
@@ -82,15 +66,10 @@ proc ::Ftp::Open {host port user passwd args} {
             }
             set secure $value
 
-        } elseif {$option eq "-timeout"} {
-            # TODO: Connection timeout.
-            throw FTP "timeout not implemented"
-
         } else {
-            throw FTP "invalid switch \"$option\": must be -notify, -secure, or -timeout"
+            throw FTP "invalid switch \"$option\": must be -debug, -notify, or -secure"
         }
     }
-
     set handle "ftp$nextHandle"
     upvar [namespace current]::$handle ftp
 
@@ -101,8 +80,9 @@ proc ::Ftp::Open {host port user passwd args} {
     # ftp(port)   - Remote server port.
     # ftp(user)   - Client user name.
     # ftp(passwd) - Client password.
-    # ftp(notify) - Callback to notify when connected.
-    # ftp(secure) - Connection security.
+    # ftp(debug)  - Debug logging callback.
+    # ftp(notify) - Connection notification callback.
+    # ftp(secure) - Security method.
     # ftp(error)  - Last error message.
     # ftp(queue)  - Event queue (FIFO).
     # ftp(sock)   - Socket channel.
@@ -113,6 +93,7 @@ proc ::Ftp::Open {host port user passwd args} {
         port   $port    \
         user   $user    \
         passwd $passwd  \
+        debug  $debug   \
         notify $notify  \
         secure $secure  \
         error  ""       \
@@ -166,7 +147,7 @@ proc ::Ftp::Connect {handle} {
     Acquire $handle ftp
 
     if {$ftp(sock) ne ""} {
-        throw FTP "ftp connection open, disconnect first"
+        throw FTP "already connected, disconnect first"
     }
     set ftp(error) ""
     set ftp(status) 1
@@ -245,10 +226,9 @@ proc ::Ftp::Acquire {handle handleVar} {
 #
 # Logs a debug message.
 #
-proc ::Ftp::Debug {function message} {
-    variable logCallback
-    if {$logCallback ne ""} {
-        eval [list $logCallback $function $message]
+proc ::Ftp::Debug {script function message} {
+    if {$script ne ""} {
+        eval $script [list $function $message]
     }
 }
 
@@ -257,9 +237,9 @@ proc ::Ftp::Debug {function message} {
 #
 # Evaluates a callback script.
 #
-proc ::Ftp::Evaluate {script args} {
+proc ::Ftp::Evaluate {debug script args} {
     if {$script ne "" && [catch {eval $script $args} message]} {
-        Debug FtpEvaluate $message
+        Debug $debug FtpEvaluate $message
     }
 }
 
@@ -270,14 +250,12 @@ proc ::Ftp::Evaluate {script args} {
 #
 proc ::Ftp::Send {handle command} {
     upvar [namespace current]::$handle ftp
-    Debug FtpSend "Sending command \"$command\" ($handle)."
+    Debug $ftp(debug) FtpSend "Sending command \"$command\"."
 
-    if {[info exists ftp]} {
-        if {[catch {puts $ftp(sock) $command} message]} {
-            Shutdown $handle "unable to send command - $message"
-        } else {
-            catch {flush $ftp(sock)}
-        }
+    if {[catch {puts $ftp(sock) $command} message]} {
+        Shutdown $handle "unable to send command - $message"
+    } else {
+        catch {flush $ftp(sock)}
     }
 }
 
@@ -289,25 +267,23 @@ proc ::Ftp::Send {handle command} {
 #
 proc ::Ftp::Shutdown {handle {error ""}} {
     upvar [namespace current]::$handle ftp
-    Debug FtpShutdown "Connection closed ($handle): $error"
+    Debug $ftp(debug) FtpShutdown "Connection closed: $error"
 
-    if {[info exists ftp]} {
-        # Remove channel events before closing the channel.
-        catch {fileevent $ftp(sock) readable {}}
-        catch {fileevent $ftp(sock) writable {}}
+    # Remove channel events before closing the channel.
+    catch {fileevent $ftp(sock) readable {}}
+    catch {fileevent $ftp(sock) writable {}}
 
-        # Send the QUIT command and terminate the socket.
-        catch {puts $ftp(sock) "QUIT"}
-        catch {flush $ftp(sock)}
-        catch {close $ftp(sock)}
-        set ftp(sock) ""
+    # Send the QUIT command and terminate the socket.
+    catch {puts $ftp(sock) "QUIT"}
+    catch {flush $ftp(sock)}
+    catch {close $ftp(sock)}
+    set ftp(sock) ""
 
-        # Update connection status, error message, and evaluate the notify callback.
-        set ftp(status) 0
-        if {$error ne ""} {
-            set ftp(error) $error
-            Evaluate $ftp(notify) $handle 0
-        }
+    # Update connection status, error message, and evaluate the notify callback.
+    set ftp(status) 0
+    if {$error ne ""} {
+        set ftp(error) $error
+        Evaluate $ftp(debug) $ftp(notify) $handle 0
     }
 }
 
@@ -319,10 +295,7 @@ proc ::Ftp::Shutdown {handle {error ""}} {
 #
 proc ::Ftp::Verify {handle} {
     upvar [namespace current]::$handle ftp
-    if {![info exists ftp]} {
-        Debug FtpVerify "Handle \"$handle\" does not exist."
-        return
-    }
+    if {![info exists ftp]} {return}
 
     # Disable the writable channel event.
     fileevent $ftp(sock) writable {}
@@ -334,7 +307,7 @@ proc ::Ftp::Verify {handle} {
     }
 
     set peer [fconfigure $ftp(sock) -peername]
-    Debug FtpVerify "Connected to [lindex $peer 0]:[lindex $peer 2] ($handle)."
+    Debug $ftp(debug) FtpVerify "Connected to [lindex $peer 0]:[lindex $peer 2]."
 
     # Perform SSL negotiation for FTP servers using implicit SSL.
     # TODO: Implicit is broken.
@@ -362,10 +335,8 @@ proc ::Ftp::Verify {handle} {
 #
 proc ::Ftp::Handler {handle {direct 0}} {
     upvar [namespace current]::$handle ftp
-    if {![info exists ftp]} {
-        Debug FtpHandler "Handle \"$handle\" does not exist."
-        return
-    }
+    if {![info exists ftp]} {return}
+
     set replyCode 0
     set replyBase 0
     set buffer [list]
@@ -384,7 +355,7 @@ proc ::Ftp::Handler {handle {direct 0}} {
         if {[regexp -- {^(\d+)( |-)?(.*)$} $line result replyCode multi message]} {
             lappend buffer $replyCode $message
         } else {
-            Debug FtpHandler "Invalid server response \"$line\"."
+            Debug $ftp(debug) FtpHandler "Invalid server response \"$line\"."
             set multi ""
         }
 
@@ -416,7 +387,7 @@ proc ::Ftp::Handler {handle {direct 0}} {
         # invoked directly (i.e. not by a channel writable event).
         return
     }
-    Debug FtpHandler "Reply code \"$replyCode\" and message \"$message\" ($handle)."
+    Debug $ftp(debug) FtpHandler "Reply code \"$replyCode\" and message \"$message\"."
 
     #
     # Variables:
@@ -438,7 +409,7 @@ proc ::Ftp::Handler {handle {direct 0}} {
         # Pop the event from queue.
         set ftp(queue) [lrange $ftp(queue) 1 end]
 
-        Debug FtpHandler "Event: $eventName ($handle)"
+        Debug $ftp(debug) FtpHandler "Event: $eventName"
         switch -- $eventName {
             auth {
                 # Receive hello response and send AUTH.
@@ -491,7 +462,7 @@ proc ::Ftp::Handler {handle {direct 0}} {
                 # Receive PASS response.
                 if {$replyBase == 2} {
                     set ftp(status) 2
-                    Evaluate $ftp(notify) $handle 1
+                    Evaluate $ftp(debug) $ftp(notify) $handle 1
                     set nextEvent 1
                 } else {
                     Shutdown $handle "unable to login - $message"
@@ -505,11 +476,11 @@ proc ::Ftp::Handler {handle {direct 0}} {
             }
             quote_sent {
                 # Receive command.
-                Evaluate [lindex $event 1] $handle $buffer
+                Evaluate $ftp(debug) [lindex $event 1] $handle $buffer
                 set nextEvent 1
             }
             default {
-                Debug FtpHandler "Invalid event name \"$eventName\"."
+                Debug $ftp(debug) FtpHandler "Unknown event name \"$eventName\"."
             }
         }
 

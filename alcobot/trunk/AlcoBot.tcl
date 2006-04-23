@@ -1641,9 +1641,6 @@ proc ::Bot::InitLibraries {rootPath} {
         }
     }
 
-    # Set the log handler.
-    Ftp::Init "::Bot::LogDebug"
-
     package require AlcoExt 0.6
 }
 
