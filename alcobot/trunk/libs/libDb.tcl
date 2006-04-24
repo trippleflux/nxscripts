@@ -12,7 +12,7 @@
 #   Implements a database abstraction layer.
 #
 # Procedures:
-#   Db::Open        <connString>
+#   Db::Open        <connString> [options ...]
 #   Db::Close       <handle>
 #   Db::Connect     <handle>
 #   Db::Disconnect  <handle>
@@ -46,8 +46,12 @@ namespace eval ::Db {
 # Creates a new database client handle. This handle is used by every library
 # procedure and must be closed using Db::Close.
 #
-# URI Format:
+# Connection String:
 #  <driver>://<user>:<password>@<host>:<port>/<dbname>
+#
+# Options:
+#  -debug <callback>
+#  -ping  <minutes>
 #
 # Example:
 #  sqlite3:data/my.db
@@ -62,6 +66,20 @@ proc ::Db::Open {connString args} {
     array set uri [ParseURI $connString]
     if {![info exists driverMap($uri(scheme))]} {
         throw DB "unknown driver \"$uri(scheme)\""
+    }
+    set debug ""; set ping 0
+
+    foreach {name value} $args {
+        if {$name eq "-debug"} {
+            set debug $value
+        } elseif {$name eq "-ping"} {
+            if {![string is digit -strict $value]} {
+                throw DB "expected digit but got \"$value\""
+            }
+            set ping $value
+        } else {
+            throw DB "invalid switch \"$name\": must be -debug or -ping"
+        }
     }
 
     # Make sure the "params" element always exists.
@@ -78,14 +96,20 @@ proc ::Db::Open {connString args} {
     #
     # Database Handle Contents
     #
+    # db(debug)   - Debug logging callback.
     # db(driver)  - Driver namespace context.
     # db(object)  - Database object, used by the database extension.
     # db(options) - List of connection options (host, params, password, path, port, scheme, and user).
+    # db(ping)    - How often to ping the database, in minutes.
+    # db(timerId) - Timer identifier.
     #
     array set db [list          \
+        debug   $debug          \
         driver  $driver         \
         object  ""              \
         options [array get uri] \
+        ping    $ping           \
+        timerId ""              \
     ]
 
     incr nextHandle
@@ -99,7 +123,11 @@ proc ::Db::Open {connString args} {
 #
 proc ::Db::Close {handle} {
     Acquire $handle db
+    if {$db(timerId) ne ""} {
+        catch {killtimer $db(timerId)}
+    }
     if {$db(object) ne ""} {
+        Debug $db(debug) DbDisconnect "Closing the $db(driver) connection."
         ::Db::$db(driver)::Disconnect $db(object)
     }
     unset -nocomplain db
@@ -114,9 +142,15 @@ proc ::Db::Close {handle} {
 proc ::Db::Connect {handle} {
     Acquire $handle db
     if {$db(object) ne ""} {
-        throw DB "database connection open, disconnect first"
+        throw DB "already connected, disconnect first"
     }
+    Debug $db(debug) DbConnect "Attempting to open a $db(driver) connection."
     set db(object) [::Db::$db(driver)::Connect $db(options)]
+
+    if {$db(ping) > 0} {
+        # Check the connection every few minutes.
+        set db(timerId) [timer $db(ping) [list ::Db::Ping $handle]]
+    }
     return
 }
 
@@ -127,7 +161,12 @@ proc ::Db::Connect {handle} {
 #
 proc ::Db::Disconnect {handle} {
     Acquire $handle db
+    if {$db(timerId) ne ""} {
+        catch {killtimer $db(timerId)}
+        set db(timerId) ""
+    }
     if {$db(object) ne ""} {
+        Debug $db(debug) DbDisconnect "Closing the $db(driver) connection."
         ::Db::$db(driver)::Disconnect $db(object)
         set db(object) ""
     }
@@ -156,7 +195,7 @@ proc ::Db::Select {handle type statement} {
     } elseif {$type eq "-llist"} {
         return [::Db::$db(driver)::SelectNestedList $db(object) $statement]
     }
-    throw DB "unknown result type \"$type\": must be -list or -llist"
+    throw DB "invalid type \"$type\": must be -list or -llist"
 }
 
 ####
@@ -231,6 +270,51 @@ proc ::Db::Acquire {handle handleVar} {
         throw DB "invalid database handle \"$handle\""
     }
     uplevel 1 [list upvar ::Db::$handle $handleVar]
+}
+
+####
+# Debug
+#
+# Logs a debug message.
+#
+proc ::Db::Debug {script function message} {
+    if {$script ne ""} {
+        eval $script [list $function $message]
+    }
+}
+
+####
+# Ping
+#
+# Pings the server and re-connects if the connection closed.
+#
+proc ::Db::Ping {handle} {
+    upvar ::Db::$handle db
+    if {![info exists db]} {return}
+
+    if {$db(object) eq ""} {
+        set retry 1
+    } elseif {![::Db::$db(driver)::Ping $db(object)]} {
+        set retry 1
+        Debug $db(debug) DbPing "Unable to ping server, attempting to re-connect."
+
+        catch {::Db::$db(driver)::Disconnect $db(object)}
+        set db(object) ""
+    } else {
+        set retry 0
+    }
+
+    if {$retry} {
+        if {[catch {set db(object) [::Db::$db(driver)::Connect $db(options)]} message]} {
+            Debug $db(debug) DbPing "Re-connect failed: $message"
+        } else {
+            Debug $db(debug) DbPing "Re-connect succeeded."
+        }
+    }
+
+    # Restart the timer for the next ping interval.
+    set db(timerId) [timer $db(ping) [list ::Db::Ping $handle]]
+    return
 }
 
 ####
@@ -353,6 +437,10 @@ proc ::Db::MySQL::Disconnect {object} {
     mysql::close $object
 }
 
+proc ::Db::MySQL::Ping {object} {
+    return [mysql::ping $object]
+}
+
 proc ::Db::MySQL::Exec {object statement} {
     return [mysql::exec $object $statement]
 }
@@ -442,6 +530,15 @@ proc ::Db::PostgreSQL::Connect {options} {
 
 proc ::Db::PostgreSQL::Disconnect {object} {
     pg_disconnect $object
+}
+
+proc ::Db::PostgreSQL::Ping {object} {
+    # If this query fails, it's probably safe to assume
+    # that the connection to the server has closed.
+    if {[catch {pg_execute $object "SELECT 1"} message]} {
+        return 0
+    }
+    return 1
 }
 
 proc ::Db::PostgreSQL::GetResult {object statement option} {
@@ -535,6 +632,10 @@ proc ::Db::SQLite::Connect {options} {
 
 proc ::Db::SQLite::Disconnect {object} {
     $object close
+}
+
+proc ::Db::SQLite::Ping {object} {
+    return 1
 }
 
 proc ::Db::SQLite::Exec {object statement} {
