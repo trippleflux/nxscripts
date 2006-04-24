@@ -27,6 +27,7 @@
 #   Db::Select      <handle> <type> <statement>
 #   Db::GenSQL      <handle> <script>
 #   Db::Escape      <handle> <value>
+#   Db::Pattern     <handle> <value>
 #   Db::QuoteName   <handle> <value> [value ...]
 #   Db::QuoteString <handle> <value> [value ...]
 #
@@ -267,6 +268,22 @@ proc ::Db::Escape {handle value} {
 }
 
 ####
+# Db::Pattern
+#
+# Converts a wild-card pattern into SQL LIKE pattern.
+#
+proc ::Db::Pattern {handle value} {
+    Acquire $handle db
+    # Replace spaces and multiple stars.
+    set value "*$value*"
+    regsub -all -- {[\s\*]+} $value "*" value
+
+    # Map wild-card characters to LIKE characters.
+    set value [::Db::$db(driver)::Func::Escape $value]
+    return [string map {* % ? _} [string map {% \\% _ \\_} $value]]
+}
+
+####
 # Db::QuoteName
 #
 # Escapes and quotes an identifier (e.g. a column or row).
@@ -309,10 +326,12 @@ proc ::Db::Acquire {handle handleVar} {
 #
 proc ::Db::ConnOpen {handle} {
     upvar ::Db::$handle db
-    if {[catch {set db(object) [::Db::$db(driver)::Connect $db(options)]} db(error)]} {
-        Debug $db(debug) DbConnect "Connection to $db(driver) failed: $db(error)"
+    if {[catch {set db(object) [::Db::$db(driver)::Connect $db(options)]} message]} {
+        Debug $db(debug) DbConnect "Connection to $db(driver) failed: $message"
+        set db(error) $message
     } else {
         Debug $db(debug) DbConnect "Connection to $db(driver) succeeded."
+        set db(error) ""
         Evaluate $db(debug) $db(notify) $handle 1
     }
 }
@@ -325,10 +344,9 @@ proc ::Db::ConnOpen {handle} {
 proc ::Db::ConnClose {handle} {
     upvar ::Db::$handle db
     Debug $db(debug) DbDisconnect "Closing the $db(driver) connection."
-    Evaluate $db(debug) $db(notify) $handle 0
 
     if {[catch {::Db::$db(driver)::Disconnect $db(object)} message]} {
-        Debug $db(debug) DbDisconnect "Disconnection from $db(driver) failed: $message"
+        Debug $db(debug) DbDisconnect "Disconnecting from $db(driver) failed: $message"
     }
     set db(object) ""
 }
@@ -519,11 +537,11 @@ proc ::Db::MySQL::SelectNestedList {object statement} {
 # Comparison Functions
 
 proc ::Db::MySQL::Func::Like {value pattern {escape "\\"}} {
-    return "$value LIKE $pattern ESCAPE '$escape'"
+    return "$value LIKE $pattern ESCAPE [QuoteString $escape]"
 }
 
 proc ::Db::MySQL::Func::NotLike {value pattern {escape "\\"}} {
-    return "$value NOT LIKE $pattern ESCAPE '$escape'"
+    return "$value NOT LIKE $pattern ESCAPE [QuoteString $escape]"
 }
 
 proc ::Db::MySQL::Func::RegExp {value pattern} {
@@ -641,11 +659,11 @@ proc ::Db::PostgreSQL::SelectNestedList {object statement} {
 # Comparison Functions
 
 proc ::Db::PostgreSQL::Func::Like {value pattern {escape "\\"}} {
-    return "$value LIKE $pattern ESCAPE '$escape'"
+    return "$value LIKE $pattern ESCAPE [QuoteString $escape]"
 }
 
 proc ::Db::PostgreSQL::Func::NotLike {value pattern {escape "\\"}} {
-    return "$value NOT LIKE $pattern ESCAPE '$escape'"
+    return "$value NOT LIKE $pattern ESCAPE [QuoteString $escape]"
 }
 
 proc ::Db::PostgreSQL::Func::RegExp {value pattern} {
@@ -734,11 +752,11 @@ proc ::Db::SQLite::SelectNestedList {object statement} {
 # Comparison Functions
 
 proc ::Db::SQLite::Func::Like {value pattern {escape "\\"}} {
-    return "$value LIKE $pattern ESCAPE '$escape'"
+    return "$value LIKE $pattern ESCAPE [QuoteString $escape]"
 }
 
 proc ::Db::SQLite::Func::NotLike {value pattern {escape "\\"}} {
-    return "$value NOT LIKE $pattern ESCAPE '$escape'"
+    return "$value NOT LIKE $pattern ESCAPE [QuoteString $escape]"
 }
 
 proc ::Db::SQLite::Func::RegExp {value pattern} {
