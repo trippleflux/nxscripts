@@ -335,11 +335,9 @@ before use. Read the following installation instructions:
   Path: modules/generic/invite
 
   1. Add "invite" to the module list in AlcoBot.conf.
-  2. Create an ODBC DSN connection to your database. Use the table schema
-     provided in invite.sql, which is located in the module's directory.
-  3. Configure the [Module::Invite] section in AlcoBot.conf.
-  4. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
-  5. Instructions for installing the SITE commands are in the top of the
+  2. Configure the [Module::Invite] section in AlcoBot.conf.
+  3. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
+  4. Instructions for installing the SITE commands are in the top of the
      siteInvite.tcl file, which is located in the module's directory.
 
   ############################################################
@@ -387,10 +385,8 @@ before use. Read the following installation instructions:
   Path: modules/generic/pretimes
 
   1. Add "pretimes" to the module list in AlcoBot.conf.
-  2. Create an ODBC DSN connection to your database. Use the table schema
-     provided in pretimes.sql, which is located in the module's directory.
-  3. Configure the [Module::PreTimes] section in AlcoBot.conf.
-  4. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
+  2. Configure the [Module::PreTimes] section in AlcoBot.conf.
+  3. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
 
   ############################################################
   # readlogs                                                 #
@@ -412,9 +408,8 @@ before use. Read the following installation instructions:
   Info: Issue SITE commands from IRC.
   Path: modules/generic/sitecmd
 
-  1. Add "online" to the module list in AlcoBot.conf.
-  2. Configure the [Module::SiteCmd] section in AlcoBot.conf.
-  3. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
+  1. Add "sitecmd" to the module list in AlcoBot.conf.
+  2. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
 
 
 ################################################################################
