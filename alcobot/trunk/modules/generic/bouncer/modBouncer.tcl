@@ -51,7 +51,7 @@ proc ::Bot::Mod::Bouncer::Command {target user host channel argv} {
         SendTargetTheme $target Module::Bouncer $theme $values
     }
 
-    SendTargetTheme $target Module::Bouncer bouncerFoot \
+    SendTargetTheme $target Module::Bouncer foot \
         [list $offline $online $unknown [expr {$offline + $online + $unknown}]]
 }
 
