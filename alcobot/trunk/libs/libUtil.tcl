@@ -249,38 +249,3 @@ proc ::Bot::PermMatchFlags {currentFlags needFlags} {
     }
     return 0
 }
-
-################################################################################
-# SQL Procedures                                                               #
-################################################################################
-
-####
-# SqlEscape
-#
-# Escape SQL quote characters with a backslash.
-#
-proc ::Bot::SqlEscape {string} {
-    return [string map {\\ \\\\ ` \\` ' \\' \" \\\"} $string]
-}
-
-####
-# SqlGetPattern
-#
-# Prepend, append, and replace all spaces with wildcards then convert
-# standard wildcard characters to SQL LIKE characters.
-#
-proc ::Bot::SqlGetPattern {pattern} {
-    set pattern "*$pattern*"
-    regsub -all -- {[\s\*]+} $pattern "*" pattern
-    return [SqlToLike $pattern]
-}
-
-####
-# SqlToLike
-#
-# Convert standard wildcard characters to SQL LIKE characters.
-#
-proc ::Bot::SqlToLike {pattern} {
-    set pattern [SqlEscape $pattern]
-    return [string map {* % ? _} [string map {% \\% _ \\_} $pattern]]
-}

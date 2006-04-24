@@ -24,6 +24,10 @@ namespace eval ::Bot::Mod::NxTools {
     namespace import -force ::Bot::Mod::Invite::GetFtpUser
 }
 
+################################################################################
+# Databaseedures                                                               #
+################################################################################
+
 ####
 # DbOpenFile
 #
@@ -59,6 +63,41 @@ proc ::Bot::Mod::NxTools::DbBusyHandler {tries} {
 }
 
 ####
+# DbEscape
+#
+# Escape SQL quote characters with a backslash.
+#
+proc ::Bot::DbEscape {string} {
+    return [string map {\\ \\\\ ` \\` ' \\' \" \\\"} $string]
+}
+
+####
+# DbPattern
+#
+# Prepend, append, and replace all spaces with wildcards then convert
+# standard wildcard characters to SQL LIKE characters.
+#
+proc ::Bot::DbPattern {pattern} {
+    set pattern "*$pattern*"
+    regsub -all -- {[\s\*]+} $pattern "*" pattern
+    return [DbToLike $pattern]
+}
+
+####
+# DbToLike
+#
+# Convert standard wildcard characters to SQL LIKE characters.
+#
+proc ::Bot::DbToLike {pattern} {
+    set pattern [DbEscape $pattern]
+    return [string map {* % ? _} [string map {% \\% _ \\_} $pattern]]
+}
+
+################################################################################
+# Module Procedures                                                            #
+################################################################################
+
+####
 # Dupe
 #
 # Search for a release, command: !dupe [-limit <num>] [-section <name>] <pattern>.
@@ -77,7 +116,7 @@ proc ::Bot::Mod::NxTools::Dupe {target user host channel argv} {
 
     if {[info exists option(section)]} {
         set section $option(section)
-        set matchPath [SqlToLike [lindex $pathSections($section) 0]]
+        set matchPath [DbToLike [lindex $pathSections($section) 0]]
         set sectionQuery "AND DirPath LIKE '${matchPath}%' ESCAPE '\\'"
     } else {
         set sectionQuery ""
@@ -86,7 +125,7 @@ proc ::Bot::Mod::NxTools::Dupe {target user host channel argv} {
 
     set count 0
     if {[DbOpenFile "DupeDirs.db"]} {
-        db eval "SELECT * FROM DupeDirs WHERE DirName LIKE '[SqlGetPattern $pattern]' ESCAPE '\\' \
+        db eval "SELECT * FROM DupeDirs WHERE DirName LIKE '[DbPattern $pattern]' ESCAPE '\\' \
                 $sectionQuery ORDER BY TimeStamp DESC LIMIT $limit" values {
             # Retrieve the section name.
             set virtualPath [file join $values(DirPath) $values(DirName)]
@@ -126,7 +165,7 @@ proc ::Bot::Mod::NxTools::New {target user host channel argv} {
         set names [lsort [array names pathSections]]
         set section [GetOpt::Element $names $section section]
 
-        set matchPath [SqlToLike [lindex $pathSections($section) 0]]
+        set matchPath [DbToLike [lindex $pathSections($section) 0]]
         set sectionQuery "WHERE DirPath LIKE '${matchPath}%' ESCAPE '\\'"
     }
     SendTargetTheme $target Module::NxTools newHead
@@ -188,7 +227,7 @@ proc ::Bot::Mod::NxTools::Undupe {target user host channel argv} {
     if {[DbOpenFile "${tableName}.db"]} {
         set rowIds [list]
         db eval "SELECT $colName,rowid FROM $tableName WHERE $colName \
-                LIKE '[SqlToLike $pattern]' ESCAPE '\\' ORDER BY $colName ASC" values {
+                LIKE '[DbToLike $pattern]' ESCAPE '\\' ORDER BY $colName ASC" values {
             incr count
             SendTargetTheme $target Module::NxTools undupeBody [list $values($colName) $count]
             lappend rowIds $values(rowid)
@@ -217,7 +256,7 @@ proc ::Bot::Mod::NxTools::Nukes {target user host channel argv} {
     if {$pattern eq ""} {
         set matchQuery ""
     } else {
-        set matchQuery "AND Release LIKE '[SqlGetPattern $pattern]' ESCAPE '\\'"
+        set matchQuery "AND Release LIKE '[DbPattern $pattern]' ESCAPE '\\'"
     }
     SendTargetTheme $target Module::NxTools nukesHead
 
@@ -252,7 +291,7 @@ proc ::Bot::Mod::NxTools::NukeTop {target user host channel argv} {
     if {$group eq ""} {
         set groupQuery ""
     } else {
-        set groupQuery "GroupName='[SqlEscape $group]' AND"
+        set groupQuery "GroupName='[DbEscape $group]' AND"
     }
     SendTargetTheme $target Module::NxTools nuketopHead
 
@@ -286,7 +325,7 @@ proc ::Bot::Mod::NxTools::Unnukes {target user host channel argv} {
     if {$pattern eq ""} {
         set matchQuery ""
     } else {
-        set matchQuery "AND Release LIKE '[SqlGetPattern $pattern]' ESCAPE '\\'"
+        set matchQuery "AND Release LIKE '[DbPattern $pattern]' ESCAPE '\\'"
     }
     SendTargetTheme $target Module::NxTools unnukesHead
 
