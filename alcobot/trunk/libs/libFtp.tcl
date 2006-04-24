@@ -11,6 +11,11 @@
 # Abstract:
 #   Implements a FTP client library to interact with FTP servers.
 #
+# Error Handling:
+#   Errors thrown with the "FTP" error code indicate user errors, e.g. trying
+#   to send commands to a closed connection. Errors thrown without the "FTP"
+#   error code indicate an implementation problem.
+#
 # Procedures:
 #   Ftp::Open       <host> <port> <user> <passwd> [options ...]
 #   Ftp::Close      <handle>
@@ -58,12 +63,12 @@ proc ::Ftp::Open {host port user passwd args} {
                     }
                 }
                 default {
-                    throw FTP "invalid value \"$value\": must be none, implicit, ssl, or tls"
+                    error "invalid value \"$value\": must be none, implicit, ssl, or tls"
                 }
             }
             set secure $value
         } else {
-            throw FTP "invalid switch \"$name\": must be -debug, -notify, or -secure"
+            error "invalid switch \"$name\": must be -debug, -notify, or -secure"
         }
     }
     set handle "ftp$nextHandle"
@@ -143,7 +148,7 @@ proc ::Ftp::Connect {handle} {
     Acquire $handle ftp
 
     if {$ftp(sock) ne ""} {
-        throw FTP "already connected, disconnect first"
+        error "already connected, disconnect first"
     }
     set ftp(error) ""
     set ftp(status) 1
@@ -212,7 +217,7 @@ proc ::Ftp::Command {handle command {callback ""}} {
 #
 proc ::Ftp::Acquire {handle handleVar} {
     if {![regexp -- {ftp\d+} $handle] || ![array exists ::Ftp::$handle]} {
-        throw FTP "invalid ftp handle \"$handle\""
+        error "invalid ftp handle \"$handle\""
     }
     uplevel 1 [list upvar ::Ftp::$handle $handleVar]
 }

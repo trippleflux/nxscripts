@@ -74,11 +74,11 @@ proc ::Db::Open {connString args} {
             set debug $value
         } elseif {$name eq "-ping"} {
             if {![string is digit -strict $value]} {
-                throw DB "expected digit but got \"$value\""
+                error "expected digit but got \"$value\""
             }
             set ping $value
         } else {
-            throw DB "invalid switch \"$name\": must be -debug or -ping"
+            error "invalid switch \"$name\": must be -debug, -notify, or -ping"
         }
     }
 
@@ -142,7 +142,7 @@ proc ::Db::Close {handle} {
 proc ::Db::Connect {handle} {
     Acquire $handle db
     if {$db(object) ne ""} {
-        throw DB "already connected, disconnect first"
+        error "already connected, disconnect first"
     }
     Debug $db(debug) DbConnect "Attempting to open a $db(driver) connection."
     set db(object) [::Db::$db(driver)::Connect $db(options)]
@@ -195,7 +195,7 @@ proc ::Db::Select {handle type statement} {
     } elseif {$type eq "-llist"} {
         return [::Db::$db(driver)::SelectNestedList $db(object) $statement]
     }
-    throw DB "invalid type \"$type\": must be -list or -llist"
+    error "invalid type \"$type\": must be -list or -llist"
 }
 
 ####
@@ -267,7 +267,7 @@ proc ::Db::QuoteString {handle value} {
 #
 proc ::Db::Acquire {handle handleVar} {
     if {![regexp -- {db\d+} $handle] || ![array exists ::Db::$handle]} {
-        throw DB "invalid database handle \"$handle\""
+        error "invalid database handle \"$handle\""
     }
     uplevel 1 [list upvar ::Db::$handle $handleVar]
 }
@@ -548,7 +548,7 @@ proc ::Db::PostgreSQL::GetResult {object statement option} {
     if {[pg_result $handle -status] eq "PGRES_FATAL_ERROR"} {
         set result [pg_result $handle -error]
         pg_result $handle -clear
-        throw DB $result
+        error $result
     }
 
     # Retrieve the desired result option.

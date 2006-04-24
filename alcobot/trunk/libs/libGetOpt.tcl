@@ -11,6 +11,11 @@
 # Abstract:
 #   Implements a command-line option parser.
 #
+# Error Handling:
+#   Errors thrown with the "GETOPT" error code indicate user errors, e.g. a
+#   user supplying an invalid or unknown command switch. Errors thrown without
+#   the "GETOPT" error code indicate an implementation problem.
+#
 # Procedures:
 #   GetOpt::Element <list> <element> [type]
 #   GetOpt::Index   <list> <element>
@@ -101,7 +106,7 @@ proc ::GetOpt::Parse {argList optList resultVar} {
     upvar $resultVar result
 
     if {[info exists result] && ![array exists result]} {
-        throw GETOPT "the variable \"$resultVar\" is not an array"
+        error "the variable \"$resultVar\" is not an array"
     }
 
     # Create a list of option names.
@@ -113,28 +118,22 @@ proc ::GetOpt::Parse {argList optList resultVar} {
             1 {}
             2 {
                 if {[lsearch -exact $types [lindex $option 1]] == -1} {
-                    throw GETOPT "invalid option definition \"$option\": \
+                    error "invalid option definition \"$option\": \
                         bad type \"[lindex $option 1]\", must be [ListConvert $types or]"
                 }
             }
             3 {
                 if {[lindex $option 1] ne "arg"} {
-                    throw GETOPT "invalid option definition \"$option\": \
+                    error "invalid option definition \"$option\": \
                         value lists can only be used with the \"arg\" type"
                 }
             }
             default {
-                throw GETOPT "invalid option definition \"$option\": wrong number of arguments"
+                error "invalid option definition \"$option\": wrong number of arguments"
             }
         }
         lappend optNames [lindex $option 0]
     }
-
-    #
-    # Errors thrown before this point indicate implementation problems, errors
-    # thrown after this point indicate user errors. For example, the argument
-    # list may contain an option that is invalid or undefined.
-    #
 
     while {[set argCount [llength $argList]]} {
         set arg [lindex $argList 0]

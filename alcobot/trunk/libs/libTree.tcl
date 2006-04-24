@@ -13,6 +13,11 @@
 #   Tcl's arrays and dictionaries, this method retains the original order of
 #   its keys and nodes.
 #
+# Error Handling:
+#   Errors thrown with the "TREE" error code indicate user errors, e.g.
+#   requesting the node of an unknown key. Errors thrown without the "TREE"
+#   error code indicate an implementation problem.
+#
 # Procedures:
 #   Tree::Create   [<key> <value> ...]
 #   Tree::Exists   <tree> <key> [<key> ...]
@@ -35,7 +40,7 @@ namespace eval ::Tree {}
 #
 proc ::Tree::Create {args} {
     if {[llength $args] & 1} {
-        throw TREE "unbalanced list"
+        error "unbalanced list"
     }
     return $args
 }
@@ -65,7 +70,7 @@ proc ::Tree::Exists {tree key args} {
 #
 proc ::Tree::For {vars tree body} {
     if {[llength $vars] != 2} {
-        throw TREE "must have exactly two variable names"
+        error "must have exactly two variable names"
     }
     uplevel 1 [list foreach $vars $tree $body]
 }
