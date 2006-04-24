@@ -19,6 +19,8 @@
 # Procedures:
 #   Db::Open        <connString> [options ...]
 #   Db::Close       <handle>
+#   Db::GetError    <handle>
+#   Db::GetStatus   <handle>
 #   Db::Connect     <handle>
 #   Db::Disconnect  <handle>
 #   Db::Exec        <handle> <statement>
@@ -106,6 +108,7 @@ proc ::Db::Open {connString args} {
     #
     # db(debug)   - Debug logging callback.
     # db(driver)  - Driver namespace context.
+    # db(error)   - Last error message.
     # db(notify)  - Connection notification callback.
     # db(object)  - Database object, used by the database extension.
     # db(options) - List of connection options (host, params, password, path, port, scheme, and user).
@@ -115,6 +118,7 @@ proc ::Db::Open {connString args} {
     array set db [list          \
         debug   $debug          \
         driver  $driver         \
+        error   ""              \
         notify  $notify         \
         object  ""              \
         options [array get uri] \
@@ -139,6 +143,26 @@ proc ::Db::Close {handle} {
     if {$db(object) ne ""} {ConnClose $handle}
     unset -nocomplain db
     return
+}
+
+####
+# Db::GetError
+#
+# Returns the last error message.
+#
+proc ::Db::GetError {handle} {
+    Acquire $handle db
+    return $db(error)
+}
+
+####
+# Db::GetStatus
+#
+# Returns the connection status.
+#
+proc ::Db::GetStatus {handle} {
+    Acquire $handle db
+    return [expr {$db(object) ne ""}]
 }
 
 ####
@@ -285,9 +309,8 @@ proc ::Db::Acquire {handle handleVar} {
 #
 proc ::Db::ConnOpen {handle} {
     upvar ::Db::$handle db
-    if {[catch {set db(object) [::Db::$db(driver)::Connect $db(options)]} message]} {
-        Debug $db(debug) DbConnect "Connection to $db(driver) failed: $message"
-        error $message
+    if {[catch {set db(object) [::Db::$db(driver)::Connect $db(options)]} db(error)]} {
+        Debug $db(debug) DbConnect "Connection to $db(driver) failed: $db(error)"
     } else {
         Debug $db(debug) DbConnect "Connection to $db(driver) succeeded."
         Evaluate $db(debug) $db(notify) $handle 1
@@ -350,9 +373,7 @@ proc ::Db::Ping {handle} {
     } else {
         set retry 0
     }
-    if {$retry} {
-        catch {ConnOpen $handle}
-    }
+    if {$retry} {ConnOpen $handle}
 
     # Restart the timer for the next ping interval.
     set db(timerId) [timer $db(ping) [list ::Db::Ping $handle]]
