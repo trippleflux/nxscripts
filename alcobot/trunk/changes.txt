@@ -1,4 +1,4 @@
-AlcoBot v1.1.0 (not yet released):
+AlcoBot v1.1.0 (Apr 12, 2006):
   NEW: Commands can throw CMDHELP and GETOPT errors to display command usage.
   NEW: Modules are reference counted, so dependencies won't be unloaded early.
   NEW: Modules clean-up after themselves, so they can be unloaded at any time.
