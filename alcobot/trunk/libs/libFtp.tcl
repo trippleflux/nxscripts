@@ -67,7 +67,7 @@ proc ::Ftp::Open {host port user passwd args} {
         }
     }
     set handle "ftp$nextHandle"
-    upvar [namespace current]::$handle ftp
+    upvar ::Ftp::$handle ftp
 
     #
     # FTP Handle Contents
@@ -153,7 +153,7 @@ proc ::Ftp::Connect {handle} {
     # the socket is connected or if the connection failed.
     set ftp(sock) [socket -async $ftp(host) $ftp(port)]
 
-    fileevent $ftp(sock) writable [list [namespace current]::Verify $handle]
+    fileevent $ftp(sock) writable [list ::Ftp::Verify $handle]
     return
 }
 
@@ -211,10 +211,10 @@ proc ::Ftp::Command {handle command {callback ""}} {
 # Validate and acquire a FTP handle.
 #
 proc ::Ftp::Acquire {handle handleVar} {
-    if {![regexp -- {ftp\d+} $handle] || ![array exists [namespace current]::$handle]} {
+    if {![regexp -- {ftp\d+} $handle] || ![array exists ::Ftp::$handle]} {
         throw FTP "invalid ftp handle \"$handle\""
     }
-    uplevel 1 [list upvar [namespace current]::$handle $handleVar]
+    uplevel 1 [list upvar ::Ftp::$handle $handleVar]
 }
 
 ####
@@ -245,7 +245,7 @@ proc ::Ftp::Evaluate {debug script args} {
 # Sends a command to the FTP control channel.
 #
 proc ::Ftp::Send {handle command} {
-    upvar [namespace current]::$handle ftp
+    upvar ::Ftp::$handle ftp
     Debug $ftp(debug) FtpSend "Sending command \"$command\"."
 
     if {[catch {puts $ftp(sock) $command} message]} {
@@ -262,7 +262,7 @@ proc ::Ftp::Send {handle command} {
 # when the connection is closed intentionally with Ftp::Close or Ftp::Disconnect.
 #
 proc ::Ftp::Shutdown {handle {error ""}} {
-    upvar [namespace current]::$handle ftp
+    upvar ::Ftp::$handle ftp
     Debug $ftp(debug) FtpShutdown "Connection closed: $error"
 
     # Remove channel events before closing the channel.
@@ -290,7 +290,7 @@ proc ::Ftp::Shutdown {handle {error ""}} {
 # FTP servers using implicit SSL.
 #
 proc ::Ftp::Verify {handle} {
-    upvar [namespace current]::$handle ftp
+    upvar ::Ftp::$handle ftp
     if {![info exists ftp]} {return}
 
     # Disable the writable channel event.
@@ -321,7 +321,7 @@ proc ::Ftp::Verify {handle} {
 
     # Set channel options and event handlers.
     fconfigure $ftp(sock) -buffering line -blocking 0 -translation {auto crlf}
-    fileevent $ftp(sock) readable [list [namespace current]::Handler $handle]
+    fileevent $ftp(sock) readable [list ::Ftp::Handler $handle]
 }
 
 ####
@@ -330,7 +330,7 @@ proc ::Ftp::Verify {handle} {
 # FTP client event handler.
 #
 proc ::Ftp::Handler {handle {direct 0}} {
-    upvar [namespace current]::$handle ftp
+    upvar ::Ftp::$handle ftp
     if {![info exists ftp]} {return}
 
     set replyCode 0

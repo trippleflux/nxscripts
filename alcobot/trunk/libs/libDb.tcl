@@ -74,8 +74,7 @@ proc ::Db::Open {connString args} {
     ::Db::${driver}::Init
 
     set handle "db$nextHandle"
-    upvar [namespace current]::$handle db
-
+    upvar ::Db::$handle db
     #
     # Database Handle Contents
     #
@@ -228,10 +227,10 @@ proc ::Db::QuoteString {handle value} {
 # Validate and acquire a database handle.
 #
 proc ::Db::Acquire {handle handleVar} {
-    if {![regexp -- {db\d+} $handle] || ![array exists [namespace current]::$handle]} {
+    if {![regexp -- {db\d+} $handle] || ![array exists ::Db::$handle]} {
         throw DB "invalid database handle \"$handle\""
     }
-    uplevel 1 [list upvar [namespace current]::$handle $handleVar]
+    uplevel 1 [list upvar ::Db::$handle $handleVar]
 }
 
 ####

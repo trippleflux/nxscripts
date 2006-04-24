@@ -67,6 +67,8 @@ proc ::Config::Open {filePath args} {
             default {throw CONFIG "invalid switch \"$option\": must be -align or -comment"}
         }
     }
+    set handle "config$nextHandle"
+    upvar ::Config::$handle config
 
     #
     # Config Handle Contents
@@ -76,8 +78,6 @@ proc ::Config::Open {filePath args} {
     # ftp(tree)    - Config data tree.
     # ftp(path)    - Path to the config file.
     #
-    set handle "config$nextHandle"
-    upvar [namespace current]::$handle config
     array set config [list     \
         align   $align         \
         comment $comment       \
@@ -384,8 +384,8 @@ proc ::Config::Unset {handle section {key ""}} {
 # Validate and acquire a configuration handle.
 #
 proc ::Config::Acquire {handle handleVar} {
-    if {![regexp -- {config\d+} $handle] || ![array exists [namespace current]::$handle]} {
+    if {![regexp -- {config\d+} $handle] || ![array exists ::Config::$handle]} {
         throw CONFIG "invalid config handle \"$handle\""
     }
-    uplevel 1 [list upvar [namespace current]::$handle $handleVar]
+    uplevel 1 [list upvar ::Config::$handle $handleVar]
 }
