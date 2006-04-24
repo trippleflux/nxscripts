@@ -25,8 +25,8 @@
 #   Db::Select      <handle> <type> <statement>
 #   Db::GenSQL      <handle> <script>
 #   Db::Escape      <handle> <value>
-#   Db::QuoteName   <handle> <value>
-#   Db::QuoteString <handle> <value>
+#   Db::QuoteName   <handle> <value> [value ...]
+#   Db::QuoteString <handle> <value> [value ...]
 #
 
 namespace eval ::Db {
@@ -215,8 +215,8 @@ proc ::Db::Select {handle type statement} {
 #  RegExp      <value> <pattern>
 #  NotRegExp   <value> <pattern>
 #  Escape      <value>
-#  QuoteName   <value>
-#  QuoteString <value>
+#  QuoteName   <value> [value ...]
+#  QuoteString <value> [value ...]
 #
 # Example:
 #  set match "a%z"
@@ -247,9 +247,9 @@ proc ::Db::Escape {handle value} {
 #
 # Escapes and quotes an identifier (e.g. a column or row).
 #
-proc ::Db::QuoteName {handle value} {
+proc ::Db::QuoteName {handle args} {
     Acquire $handle db
-    return [::Db::$db(driver)::Func::QuoteName $value]
+    return [eval ::Db::$db(driver)::Func::QuoteName $args]
 }
 
 ####
@@ -257,9 +257,9 @@ proc ::Db::QuoteName {handle value} {
 #
 # Escapes and quotes a string constant.
 #
-proc ::Db::QuoteString {handle value} {
+proc ::Db::QuoteString {handle args} {
     Acquire $handle db
-    return [::Db::$db(driver)::Func::QuoteString $value]
+    return [eval ::Db::$db(driver)::Func::QuoteString $args]
 }
 
 ################################################################################
@@ -519,14 +519,20 @@ proc ::Db::MySQL::Func::Escape {value} {
     return [mysql::escape $value]
 }
 
-proc ::Db::MySQL::Func::QuoteName {value} {
-    set value [mysql::escape $value]
-    return "`$value`"
+proc ::Db::MySQL::Func::QuoteName {args} {
+    set result [list]
+    foreach value $args {
+        lappend result "`[mysql::escape $value]`"
+    }
+    return [join $result ","]
 }
 
-proc ::Db::MySQL::Func::QuoteString {value} {
-    set value [mysql::escape $value]
-    return "'$value'"
+proc ::Db::MySQL::Func::QuoteString {args} {
+    set result [list]
+    foreach value $args {
+        lappend result "'[mysql::escape $value]'"
+    }
+    return [join $result ","]
 }
 
 ################################################################################
@@ -635,13 +641,18 @@ proc ::Db::PostgreSQL::Func::Escape {value} {
     return [pg_escape_string $value]
 }
 
-proc ::Db::PostgreSQL::Func::QuoteName {value} {
-    set value [pg_escape_string $value]
-    return "\"$value\""
+proc ::Db::PostgreSQL::Func::QuoteName {args} {
+    set result [list]
+    foreach value $args {
+        lappend result "\"[pg_escape_string $value]\""
+    }
+    return [join $result ","]
 }
 
-proc ::Db::PostgreSQL::Func::QuoteString {value} {
-    return [pg_quote $value]
+proc ::Db::PostgreSQL::Func::QuoteString {args} {
+    set result [list]
+    foreach value $args {lappend result [pg_quote $value]}
+    return [join $result ","]
 }
 
 ################################################################################
@@ -723,12 +734,18 @@ proc ::Db::SQLite::Func::Escape {value} {
     return [string map {\\ \\\\ ` \\` ' \\' \" \\\"} $value]
 }
 
-proc ::Db::SQLite::Func::QuoteName {value} {
-    set value [string map {\\ \\\\ ` \\` ' \\' \" \\\"} $value]
-    return "\"$value\""
+proc ::Db::SQLite::Func::QuoteName {args} {
+    set result [list]
+    foreach value $args {
+        lappend result "\"[Escape $value]\""
+    }
+    return [join $result ","]
 }
 
-proc ::Db::SQLite::Func::QuoteString {value} {
-    set value [string map {\\ \\\\ ` \\` ' \\' \" \\\"} $value]
-    return "'$value'"
+proc ::Db::SQLite::Func::QuoteString {args} {
+    set result [list]
+    foreach value $args {
+        lappend result "'[Escape $value]'"
+    }
+    return [join $result ","]
 }
