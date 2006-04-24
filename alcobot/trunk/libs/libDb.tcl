@@ -11,6 +11,11 @@
 # Abstract:
 #   Implements a database abstraction layer.
 #
+# Error Handling:
+#   Errors thrown with the "DB" error code indicate user errors, e.g. using
+#   an unknown parameter in the URI string. Errors thrown without the "DB"
+#   error code indicate an implementation problem.
+#
 # Procedures:
 #   Db::Open        <connString> [options ...]
 #   Db::Close       <handle>
@@ -50,8 +55,9 @@ namespace eval ::Db {
 #  <driver>://<user>:<password>@<host>:<port>/<dbname>
 #
 # Options:
-#  -debug <callback>
-#  -ping  <minutes>
+#  -debug  <callback>
+#  -notify <callback>
+#  -ping   <minutes>
 #
 # Example:
 #  sqlite3:data/my.db
@@ -67,11 +73,13 @@ proc ::Db::Open {connString args} {
     if {![info exists driverMap($uri(scheme))]} {
         throw DB "unknown driver \"$uri(scheme)\""
     }
-    set debug ""; set ping 0
+    set debug ""; set notify ""; set ping 0
 
     foreach {name value} $args {
         if {$name eq "-debug"} {
             set debug $value
+        } elseif {$name eq "-notify"} {
+            set notify $value
         } elseif {$name eq "-ping"} {
             if {![string is digit -strict $value]} {
                 error "expected digit but got \"$value\""
@@ -98,6 +106,7 @@ proc ::Db::Open {connString args} {
     #
     # db(debug)   - Debug logging callback.
     # db(driver)  - Driver namespace context.
+    # db(notify)  - Connection notification callback.
     # db(object)  - Database object, used by the database extension.
     # db(options) - List of connection options (host, params, password, path, port, scheme, and user).
     # db(ping)    - How often to ping the database, in minutes.
@@ -106,6 +115,7 @@ proc ::Db::Open {connString args} {
     array set db [list          \
         debug   $debug          \
         driver  $driver         \
+        notify  $notify         \
         object  ""              \
         options [array get uri] \
         ping    $ping           \
@@ -126,10 +136,7 @@ proc ::Db::Close {handle} {
     if {$db(timerId) ne ""} {
         catch {killtimer $db(timerId)}
     }
-    if {$db(object) ne ""} {
-        Debug $db(debug) DbDisconnect "Closing the $db(driver) connection."
-        ::Db::$db(driver)::Disconnect $db(object)
-    }
+    if {$db(object) ne ""} {ConnClose $handle}
     unset -nocomplain db
     return
 }
@@ -144,11 +151,8 @@ proc ::Db::Connect {handle} {
     if {$db(object) ne ""} {
         error "already connected, disconnect first"
     }
-    Debug $db(debug) DbConnect "Attempting to open a $db(driver) connection."
-    set db(object) [::Db::$db(driver)::Connect $db(options)]
-
+    ConnOpen $handle
     if {$db(ping) > 0} {
-        # Check the connection every few minutes.
         set db(timerId) [timer $db(ping) [list ::Db::Ping $handle]]
     }
     return
@@ -165,11 +169,7 @@ proc ::Db::Disconnect {handle} {
         catch {killtimer $db(timerId)}
         set db(timerId) ""
     }
-    if {$db(object) ne ""} {
-        Debug $db(debug) DbDisconnect "Closing the $db(driver) connection."
-        ::Db::$db(driver)::Disconnect $db(object)
-        set db(object) ""
-    }
+    if {$db(object) ne ""} {ConnClose $handle}
     return
 }
 
@@ -273,6 +273,36 @@ proc ::Db::Acquire {handle handleVar} {
 }
 
 ####
+# ConnOpen
+#
+# Opens a new database connection.
+#
+proc ::Db::ConnOpen {handle} {
+    upvar ::Db::$handle db
+    if {[catch {set db(object) [::Db::$db(driver)::Connect $db(options)]} message]} {
+        Debug $db(debug) DbConnect "Connection to $db(driver) failed: $message"
+        error $message
+    } else {
+        Debug $db(debug) DbConnect "Connection to $db(driver) succeeded."
+        Evaluate $db(debug) $db(notify) $handle 1
+    }
+}
+
+####
+# ConnClose
+#
+# Closes an existing database connection.
+#
+proc ::Db::ConnClose {handle} {
+    upvar ::Db::$handle db
+    Debug $db(debug) DbDisconnect "Closing the $db(driver) connection."
+    Evaluate $db(debug) $db(notify) $handle 0
+
+    ::Db::$db(driver)::Disconnect $db(object)
+    set db(object) ""
+}
+
+####
 # Debug
 #
 # Logs a debug message.
@@ -280,6 +310,17 @@ proc ::Db::Acquire {handle handleVar} {
 proc ::Db::Debug {script function message} {
     if {$script ne ""} {
         eval $script [list $function $message]
+    }
+}
+
+####
+# Evaluate
+#
+# Evaluates a callback script.
+#
+proc ::Db::Evaluate {debug script args} {
+    if {$script ne "" && [catch {eval $script $args} message]} {
+        Debug $debug DbEvaluate $message
     }
 }
 
@@ -297,19 +338,12 @@ proc ::Db::Ping {handle} {
     } elseif {![::Db::$db(driver)::Ping $db(object)]} {
         set retry 1
         Debug $db(debug) DbPing "Unable to ping server, attempting to re-connect."
-
-        catch {::Db::$db(driver)::Disconnect $db(object)}
-        set db(object) ""
+        ConnClose $handle
     } else {
         set retry 0
     }
-
     if {$retry} {
-        if {[catch {set db(object) [::Db::$db(driver)::Connect $db(options)]} message]} {
-            Debug $db(debug) DbPing "Re-connect failed: $message"
-        } else {
-            Debug $db(debug) DbPing "Re-connect succeeded."
-        }
+        catch {ConnOpen $handle}
     }
 
     # Restart the timer for the next ping interval.
