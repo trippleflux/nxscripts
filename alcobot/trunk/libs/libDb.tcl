@@ -180,6 +180,9 @@ proc ::Db::Disconnect {handle} {
 #
 proc ::Db::Exec {handle statement} {
     Acquire $handle db
+    if {$db(object) eq ""} {
+        throw DB "not connected"
+    }
     return [::Db::$db(driver)::Exec $db(object) $statement]
 }
 
@@ -190,6 +193,9 @@ proc ::Db::Exec {handle statement} {
 #
 proc ::Db::Select {handle type statement} {
     Acquire $handle db
+    if {$db(object) eq ""} {
+        throw DB "not connected"
+    }
     if {$type eq "-list"} {
         return [::Db::$db(driver)::SelectList $db(object) $statement]
     } elseif {$type eq "-llist"} {
@@ -298,7 +304,9 @@ proc ::Db::ConnClose {handle} {
     Debug $db(debug) DbDisconnect "Closing the $db(driver) connection."
     Evaluate $db(debug) $db(notify) $handle 0
 
-    ::Db::$db(driver)::Disconnect $db(object)
+    if {[catch {::Db::$db(driver)::Disconnect $db(object)} message]} {
+        Debug $db(debug) DbDisconnect "Disconnection from $db(driver) failed: $message"
+    }
     set db(object) ""
 }
 
