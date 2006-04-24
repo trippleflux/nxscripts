@@ -15,38 +15,23 @@
 namespace eval ::Bot::Mod::PreTimes {
     if {![info exists [namespace current]::cmdToken]} {
         variable cmdToken ""
-        variable dataSource ""
+        variable dbHandle ""
         variable defLimit 5
     }
     namespace import -force ::Bot::*
 }
 
 ####
-# DbConnect
+# Notify
 #
-# Connect to the ODBC data source.
+# Called when the connection succeeds or fails.
 #
-proc ::Bot::Mod::PreTimes::DbConnect {} {
-    variable dataSource
-
-    # If the TclODBC 'object' already exists, return.
-    if {[llength [info commands [namespace current]::db]]} {
-        return 1
+proc ::Bot::Mod::PreTimes::Notify {handle success} {
+    if {$success} {
+        LogInfo "Database connection established."
+    } else {
+        LogInfo "Database connection failed - [Db::GetError $handle]"
     }
-
-    if {[catch {database connect [namespace current]::db "DSN=$dataSource"} message]} {
-        LogError ModPreTimes "Unable to connect to database \"$dataSource\": [lindex $message 2] ([lindex $message 0])"
-        return 0
-    }
-    db set timeout 0
-
-    # Check if the required table exists.
-    if {![llength [db tables "pretimes"]]} {
-        LogError ModInvite "The database \"$dataSource\" is missing the \"pretimes\" table."
-        db disconnect
-        return 0
-    }
-    return 1
 }
 
 ####
@@ -55,42 +40,42 @@ proc ::Bot::Mod::PreTimes::DbConnect {} {
 # Handle NEWDIR and PRE log events.
 #
 proc ::Bot::Mod::PreTimes::LogEvent {event destSection pathSection path data} {
+    variable dbHandle
     variable defLimit
 
-    # Record the time now for accuracy.
+    # Retrieve the time now for accuracy.
     set now [clock seconds]
 
     # Ignore sub-directories.
-    if {[IsSubDir $path] || ![DbConnect]} {return 1}
-    set release [SqlEscape [file tail $path]]
+    set release [file tail $path]
+    if {[IsSubDir $release] || ![Db::GetStatus $dbHandle]} {return 1}
 
     if {$event eq "NEWDIR"} {
         set flags [GetFlagsFromSection $destSection]
         if {[FlagIsDisabled $flags "pretime"]} {return 1}
 
-        set result [db "SELECT pretime FROM pretimes WHERE release='$release' LIMIT 1"]
+        set query {SELECT [QuoteName pretime] FROM [QuoteName pretimes] WHERE [QuoteName release]=[QuoteString $release] LIMIT 1}
+        set result [Db::Select $dbHandle -list [Db::GenSQL $dbHandle $query]]
         if {[llength $result]} {
-            set preTime [lindex $result 0 0]
+            set preTime [lindex $result 0]
 
             # Check for a section time limit.
             if {![FlagGetValue $flags "pretime" limit]} {
                 set limit $defLimit
             }
             set limit [expr {$limit * 60}]
-
             set age [expr {$now - $preTime}]
+
             if {$age > $limit} {
                 set event "PRELATE"
             } else {
                 set event "PRENEW"
             }
-
             lappend data $preTime $age $limit
             SendSectionTheme $destSection Module::ReadLogs $event $data
             return 0
         }
     } elseif {$event eq "PRE" || $event eq "PRE-MP3"} {
-        set section [SqlEscape $pathSection]
         set disks 0; set files 0; set kiloBytes 0
 
         # Retrieve the files, size, and disk count from the log data.
@@ -107,12 +92,10 @@ proc ::Bot::Mod::PreTimes::LogEvent {event destSection pathSection path data} {
         } elseif {[set index [lsearch -exact $varList "size:m"]] != -1} {
             set kiloBytes [expr {[lindex $data $index] * 1024.0}]
         }
+        set query {INSERT INTO [QuoteName pretimes] ([QuoteName pretime section release files kbytes disks]) }
+        append query {VALUES([QuoteString $now $pathSection $release $files $kiloBytes $disks])}
 
-        set disks [SqlEscape $disks]
-        set files [SqlEscape $files]
-        set kiloBytes [SqlEscape $kiloBytes]
-        if {[catch {db "INSERT INTO pretimes (pretime, section, release, files, kbytes, disks) \
-                VALUES('$now', '$section', '$release', '$files', '$kiloBytes', '$disks')"} message]} {
+        if {[catch {Db::Exec $dbHandle [Db::GenSQL $dbHandle $query]} message]} {
             LogError ModPreTime $message
         }
     } else {
@@ -127,6 +110,8 @@ proc ::Bot::Mod::PreTimes::LogEvent {event destSection pathSection path data} {
 # Search for a release, command: !pre [-limit <num>] [-section <name>] <pattern>.
 #
 proc ::Bot::Mod::PreTimes::Search {target user host channel argv} {
+    variable dbHandle
+
     # Parse command options.
     set option(limit) -1
     set pattern [join [GetOpt::Parse $argv {{limit integer} {section arg}} option]]
@@ -136,16 +121,16 @@ proc ::Bot::Mod::PreTimes::Search {target user host channel argv} {
     set limit [GetResultLimit $option(limit)]
 
     # Build SQL query.
-    set query "SELECT * FROM pretimes WHERE "
+    set query {SELECT * FROM [QuoteName pretimes] WHERE }
     if {[info exists option(section)]} {
-        set section [SqlEscape $option(section)]
-        append query "UPPER(section)=UPPER('$section') AND "
+        append query {UPPER([QuoteName section])=UPPER([QuoteString $option(section)]) AND }
     }
-    append query "release LIKE '[SqlGetPattern $pattern]' ORDER BY pretime DESC LIMIT $limit"
+    set likePattern [Db::Pattern $dbHandle $pattern]
+    append query {[Like [QuoteName release] '$likePattern'] ORDER BY [QuoteName pretime] DESC LIMIT $limit}
 
     set count 0; set multi 0
-    if {[DbConnect]} {
-        set result [db $query]
+    if {[Db::GetStatus $dbHandle]} {
+        set result [Db::Select $dbHandle -llist [Db::GenSQL $dbHandle $query]]
 
         # If there's more than one row, send the output to
         # $target. Otherwise the output is sent to the channel.
@@ -186,19 +171,14 @@ proc ::Bot::Mod::PreTimes::Search {target user host channel argv} {
 #
 proc ::Bot::Mod::PreTimes::Load {firstLoad} {
     variable cmdToken
+    variable dbHandle
     variable defLimit
-    variable dataSource
     upvar ::Bot::configHandle configHandle
-
-    if {$firstLoad} {
-        package require tclodbc
-    }
 
     # Retrieve configuration options.
     array set option [Config::GetMulti $configHandle Module::PreTimes \
-        addOnPre dataSource defLimit searchPres showOnNew]
+        addOnPre database defLimit searchPres showOnNew]
 
-    set dataSource $option(dataSource)
     if {[string is digit -strict $option(defLimit)]} {
         set defLimit $option(defLimit)
     } else {
@@ -228,10 +208,10 @@ proc ::Bot::Mod::PreTimes::Load {firstLoad} {
     }
 
     if {!$firstLoad} {
-        # Reconnect to the data source on reload.
-        catch {db disconnect}
+        Db::Close $dbHandle
     }
-    DbConnect
+    set dbHandle [Db::Open $option(database) -ping 3 -notify [namespace current]::Notify]
+    Db::Connect $dbHandle
 }
 
 ####
@@ -241,13 +221,16 @@ proc ::Bot::Mod::PreTimes::Load {firstLoad} {
 #
 proc ::Bot::Mod::PreTimes::Unload {} {
     variable cmdToken
+    variable dbHandle
+
+    if {$dbHandle ne ""} {
+        Db::Close $dbHandle
+        set dbHandle ""
+    }
     CmdRemoveByToken $cmdToken
 
     # Remove event callbacks.
     ScriptUnregister pre PRE     [namespace current]::LogEvent
     ScriptUnregister pre PRE-MP3 [namespace current]::LogEvent
     ScriptUnregister pre NEWDIR  [namespace current]::LogEvent
-
-    # Close ODBC connection.
-    catch {db disconnect}
 }
