@@ -14,7 +14,7 @@
 # Error Handling:
 #   Errors thrown with the "FTP" error code indicate user errors, e.g. trying
 #   to send commands to a closed connection. Errors thrown without the "FTP"
-#   error code indicate an implementation problem.
+#   error code indicate a caller implementation problem.
 #
 # Procedures:
 #   Ftp::Open       <host> <port> <user> <passwd> [options ...]

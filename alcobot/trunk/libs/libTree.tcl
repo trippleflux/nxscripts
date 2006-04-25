@@ -16,7 +16,7 @@
 # Error Handling:
 #   Errors thrown with the "TREE" error code indicate user errors, e.g.
 #   requesting the node of an unknown key. Errors thrown without the "TREE"
-#   error code indicate an implementation problem.
+#   error code indicate a caller implementation problem.
 #
 # Procedures:
 #   Tree::Create   [<key> <value> ...]

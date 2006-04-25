@@ -14,7 +14,7 @@
 # Error Handling:
 #   Errors thrown with the "GETOPT" error code indicate user errors, e.g. a
 #   user supplying an invalid or unknown command switch. Errors thrown without
-#   the "GETOPT" error code indicate an implementation problem.
+#   the "GETOPT" error code indicate a caller implementation problem.
 #
 # Procedures:
 #   GetOpt::Element <list> <element> [type]

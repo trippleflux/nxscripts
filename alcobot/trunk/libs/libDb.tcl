@@ -14,7 +14,7 @@
 # Error Handling:
 #   Errors thrown with the "DB" error code indicate user errors, e.g. using
 #   an unknown parameter in the URI string. Errors thrown without the "DB"
-#   error code indicate an implementation problem.
+#   error code indicate a caller implementation problem.
 #
 # Procedures:
 #   Db::Open        <connString> [options ...]
@@ -30,7 +30,7 @@
 #   Db::QuoteName   <handle> <value> [value ...]
 #   Db::QuoteString <handle> <value> [value ...]
 #
-# Functions:
+# Statement Functions:
 #   Like      <value> <pattern> [escape char]
 #   NotLike   <value> <pattern> [escape char]
 #   Regexp    <value> <pattern>
