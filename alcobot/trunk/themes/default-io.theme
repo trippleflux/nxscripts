@@ -315,11 +315,11 @@ whoNone        = [b]-[b] There is no one online.
 whoFoot        =
 
 [Theme::Module::PreTimes]
-head           =
-body           = [b][[c1]Pre[c]][b] [b]%(release)[b] (%(size)/[b]%(files)[b]F) released %(age) ago (%(preDate) %(preTime))
-nuke           = [b][[c1]Pre[c]][b] [b]%(release)[b] (%(size)/[b]%(files)[b]F) released %(age) ago (%(preDate) %(preTime)) nuked for [b]%(reason)[b]
-none           = [b][[c1]Pre[c]][b] No releases found matching "%(pattern)".
-foot           =
+searchHead     =
+searchBody     = [b][[c1]Pre[c]][b] [b]%(release)[b] (%(size)/[b]%(files)[b]F) - %(age) ago (%(preDate) %(preTime))
+searchNuke     = [b][[c1]Pre[c]][b] [b]%(release)[b] (%(size)/[b]%(files)[b]F) - Reason: [b]%(reason)[b] - %(age) ago (%(preDate) %(preTime))
+searchNone     = [b][[c1]Pre[c]][b] No releases found matching "%(pattern)".
+searchFoot     =
 
 [Theme::Module::SiteCmd]
 head           = [b][[c1]SiteCmd[c]][b] Sending: [b]%(command)[b]

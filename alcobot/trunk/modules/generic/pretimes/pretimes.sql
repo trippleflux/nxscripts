@@ -1,5 +1,5 @@
 --
--- Pre time table schema (same as the one used by nxTools).
+-- Pre time table schema.
 --
 
 CREATE TABLE `pretimes` (

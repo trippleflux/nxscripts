@@ -107,35 +107,46 @@ proc ::Bot::Mod::PreTimes::LogEvent {event destSection pathSection path data} {
 ####
 # Search
 #
-# Search for a release, command: !pre [-limit <num>] [-section <name>] <pattern>.
+# Search for a release, command: !pre [-limit <num>] [-match exact|regexp|wild] [-section <name>] <pattern>.
 #
 proc ::Bot::Mod::PreTimes::Search {target user host channel argv} {
     variable dbHandle
 
     # Parse command options.
     set option(limit) -1
-    set pattern [join [GetOpt::Parse $argv {{limit integer} {section arg}} option]]
+    set option(match) wild
+    set pattern [join [GetOpt::Parse $argv {{limit integer} {match arg {exact regexp wild}} {section arg}} option]]
     if {$pattern eq ""} {
         throw CMDHELP "you must specify a pattern"
     }
     set limit [GetResultLimit $option(limit)]
 
-    # Build SQL query.
-    set query {SELECT * FROM [Name pretimes] WHERE }
-    if {[info exists option(section)]} {
-        append query {UPPER([Name section])=UPPER([String $option(section)]) AND }
-    }
-    set likePattern [Db::Pattern $dbHandle $pattern]
-    append query {[Like [Name release] '$likePattern'] ORDER BY [Name pretime] DESC LIMIT $limit}
-
     set count 0; set multi 0
     if {[Db::GetStatus $dbHandle]} {
+        # Build search query.
+        set query {SELECT [Name pretime section release files kbytes disks nuked nuketime reason] FROM [Name pretimes] WHERE }
+        if {[info exists option(section)]} {
+            append query {UPPER([Name section])=UPPER([String $option(section)]) AND }
+        }
+        switch -- $option(match) {
+            exact {
+                append query {UPPER([Name release])=UPPER([String $pattern])}
+            }
+            regexp {
+                append query {[Regexp [Name release] [String $pattern]]}
+            }
+            wild {
+                set likePattern [Db::Pattern $dbHandle $pattern]
+                append query {[Like [Name release] '$likePattern']}
+            }
+        }
+        append query { ORDER BY [Name pretime] DESC LIMIT $limit}
         set result [Db::Select $dbHandle -llist $query]
 
         # If there's more than one row, send the output to
         # $target. Otherwise the output is sent to the channel.
         if {[llength $result] > 1} {
-            SendTargetTheme $target Module::PreTimes head [list $pattern]
+            SendTargetTheme $target Module::PreTimes searchHead [list $pattern]
             set multi 1
         } else {
             set target "PRIVMSG $channel"
@@ -144,14 +155,14 @@ proc ::Bot::Mod::PreTimes::Search {target user host channel argv} {
         # Display results.
         foreach row $result {
             incr count
-            foreach {id preTime section release files size disks nuked nukeTime reason} $row {break}
+            foreach {preTime section release files size disks nuked nukeTime reason} $row {break}
             set age [expr {[clock seconds] - $preTime}]
 
             if {$nuked} {
-                SendTargetTheme $target Module::PreTimes nuke \
+                SendTargetTheme $target Module::PreTimes searchNuke \
                     [list $preTime $section $release $files $size $disks $age $nukeTime $reason $count]
             } else {
-                SendTargetTheme $target Module::PreTimes body \
+                SendTargetTheme $target Module::PreTimes searchBody \
                     [list $preTime $section $release $files $size $disks $age $count]
             }
         }
@@ -159,9 +170,9 @@ proc ::Bot::Mod::PreTimes::Search {target user host channel argv} {
 
     if {!$count} {
         # Always send this message to the channel.
-        SendTargetTheme "PRIVMSG $channel" Module::PreTimes none [list $pattern]
+        SendTargetTheme "PRIVMSG $channel" Module::PreTimes searchNone [list $pattern]
     }
-    if {$multi} {SendTargetTheme $target Module::PreTimes foot}
+    if {$multi} {SendTargetTheme $target Module::PreTimes searchFoot}
 }
 
 ####
@@ -201,7 +212,7 @@ proc ::Bot::Mod::PreTimes::Load {firstLoad} {
 
     if {[IsTrue $option(searchPres)]} {
         set cmdToken [CmdCreate channel pre [namespace current]::Search \
-            -args "\[-limit <num>\] \[-section <name>\] <pattern>" \
+            -args "\[-limit <num>\] \[-match exact|regexp|wild\] \[-section <name>\] <pattern>" \
             -category "General" -desc "Search pre time database."]
     } else {
         CmdRemoveByToken $cmdToken
