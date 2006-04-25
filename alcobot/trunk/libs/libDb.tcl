@@ -25,11 +25,19 @@
 #   Db::Disconnect  <handle>
 #   Db::Exec        <handle> <statement>
 #   Db::Select      <handle> <type> <statement>
-#   Db::GenSQL      <handle> <script>
 #   Db::Escape      <handle> <value>
 #   Db::Pattern     <handle> <value>
 #   Db::QuoteName   <handle> <value> [value ...]
 #   Db::QuoteString <handle> <value> [value ...]
+#
+# Functions:
+#   Like      <value> <pattern> [escape char]
+#   NotLike   <value> <pattern> [escape char]
+#   Regexp    <value> <pattern>
+#   NotRegexp <value> <pattern>
+#   Escape    <value>
+#   Name      <value> [value ...]
+#   String    <value> [value ...]
 #
 
 namespace eval ::Db {
@@ -208,6 +216,10 @@ proc ::Db::Exec {handle statement} {
     if {$db(object) eq ""} {
         throw DB "not connected"
     }
+    # Generate a SQL statement.
+    regsub -all -- {([^\B]\[)} $statement "\\1::Db::$db(driver)::Func::" statement
+    set statement [uplevel [list subst $statement]]
+
     return [::Db::$db(driver)::Exec $db(object) $statement]
 }
 
@@ -221,40 +233,16 @@ proc ::Db::Select {handle type statement} {
     if {$db(object) eq ""} {
         throw DB "not connected"
     }
+    # Generate a SQL statement.
+    regsub -all -- {([^\B]\[)} $statement "\\1::Db::$db(driver)::Func::" statement
+    set statement [uplevel [list subst $statement]]
+
     if {$type eq "-list"} {
         return [::Db::$db(driver)::SelectList $db(object) $statement]
     } elseif {$type eq "-llist"} {
         return [::Db::$db(driver)::SelectNestedList $db(object) $statement]
     }
     error "invalid type \"$type\": must be -list or -llist"
-}
-
-####
-# Db::GenSQL
-#
-# Generates a SQL statement.
-#
-# Functions:
-#  Like      <value> <pattern> [escape char]
-#  NotLike   <value> <pattern> [escape char]
-#  Regexp    <value> <pattern>
-#  NotRegexp <value> <pattern>
-#  Escape    <value>
-#  Name      <value> [value ...]
-#  String    <value> [value ...]
-#
-# Example:
-#  set match "a%z"
-#  set input {SELECT [Name group] WHERE [Like [Name user] [String $match]];}
-#  set query [Db::GenSQL $handle $input]
-#
-#  Would generate the following statement for MySQL:
-#  SELECT `group` WHERE `user` LIKE 'a%z';
-#
-proc ::Db::GenSQL {handle script} {
-    Acquire $handle db
-    regsub -all -- {([^\B]\[)} $script "\\1::Db::$db(driver)::Func::" script
-    return [uplevel [list subst $script]]
 }
 
 ####

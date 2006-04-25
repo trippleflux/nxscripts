@@ -55,7 +55,7 @@ proc ::Bot::Mod::PreTimes::LogEvent {event destSection pathSection path data} {
         if {[FlagIsDisabled $flags "pretime"]} {return 1}
 
         set query {SELECT [Name pretime] FROM [Name pretimes] WHERE [Name release]=[String $release] LIMIT 1}
-        set result [Db::Select $dbHandle -list [Db::GenSQL $dbHandle $query]]
+        set result [Db::Select $dbHandle -list $query]
         if {[llength $result]} {
             set preTime [lindex $result 0]
 
@@ -95,7 +95,7 @@ proc ::Bot::Mod::PreTimes::LogEvent {event destSection pathSection path data} {
         set query {INSERT INTO [Name pretimes] ([Name pretime section release files kbytes disks]) \
             VALUES([String $now $pathSection $release $files $kiloBytes $disks])}
 
-        if {[catch {Db::Exec $dbHandle [Db::GenSQL $dbHandle $query]} message]} {
+        if {[catch {Db::Exec $dbHandle $query} message]} {
             LogError ModPreTime $message
         }
     } else {
@@ -130,7 +130,7 @@ proc ::Bot::Mod::PreTimes::Search {target user host channel argv} {
 
     set count 0; set multi 0
     if {[Db::GetStatus $dbHandle]} {
-        set result [Db::Select $dbHandle -llist [Db::GenSQL $dbHandle $query]]
+        set result [Db::Select $dbHandle -llist $query]
 
         # If there's more than one row, send the output to
         # $target. Otherwise the output is sent to the channel.
