@@ -320,9 +320,7 @@ proc ::Bot::Mod::ReadLogs::Load {firstLoad} {
 #
 proc ::Bot::Mod::ReadLogs::Unload {} {
     variable timerId
-
     if {$timerId ne ""} {
         catch {killutimer $timerId}
-        set timerId ""
     }
 }

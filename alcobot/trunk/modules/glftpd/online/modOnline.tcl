@@ -15,11 +15,11 @@
 namespace eval ::Bot::Mod::Online {
     if {![info exists [namespace current]::cmdTokens]} {
         variable cmdTokens [list]
-        variable hideCount  0
-        variable hideUsers  [list]
+        variable glHandle ""
+        variable hideCount 0
         variable hideGroups [list]
-        variable hidePaths  [list]
-        variable session ""
+        variable hidePaths [list]
+        variable hideUsers [list]
     }
     namespace import -force ::Bot::*
 }
@@ -50,7 +50,7 @@ proc ::Bot::Mod::Online::IsHidden {user group path} {
 #
 proc ::Bot::Mod::Online::Bandwidth {event target user host channel argv} {
     variable hideCount
-    variable session
+    variable glHandle
 
     switch -- $event {
         ALL {set theme "bandwidth"}
@@ -64,7 +64,7 @@ proc ::Bot::Mod::Online::Bandwidth {event target user host channel argv} {
     set speedDn 0.0; set speedUp 0.0
     set usersDn 0; set usersUp 0; set usersIdle 0
 
-    if {![catch {set online [glftpd who $session "status user group speed path"]} message]} {
+    if {![catch {set online [glftpd who $glHandle "status user group speed path"]} message]} {
         foreach entry $online {
             foreach {status user group speed path} $entry {break}
             if {!$hideCount && [IsHidden $user $group $path]} {continue}
@@ -86,7 +86,7 @@ proc ::Bot::Mod::Online::Bandwidth {event target user host channel argv} {
                 }
             }
         }
-        set usersMax [glftpd info maxusers $session]
+        set usersMax [glftpd info maxusers $glHandle]
     } else {
         LogError ModOnline $message
         set usersMax 0
@@ -104,7 +104,7 @@ proc ::Bot::Mod::Online::Bandwidth {event target user host channel argv} {
 # Implements a channel command to display the status of current users.
 #
 proc ::Bot::Mod::Online::Status {event target user host channel argv} {
-    variable session
+    variable glHandle
 
     switch -- $event {
         DN {
@@ -127,7 +127,7 @@ proc ::Bot::Mod::Online::Status {event target user host channel argv} {
     SendTargetTheme $target Module::Online ${theme}Head
     set total 0.0; set users 0
 
-    if {![catch {set online [glftpd who $session "status user group idletime size speed path"]} message]} {
+    if {![catch {set online [glftpd who $glHandle "status user group idletime size speed path"]} message]} {
         foreach entry [lsort -index 1 $online] {
             foreach {status user group idle size speed path} $entry {break}
             if {![eval $filter] || [IsHidden $user $group $path]} {continue}
@@ -157,7 +157,7 @@ proc ::Bot::Mod::Online::Status {event target user host channel argv} {
 # Implements a channel command to display current users.
 #
 proc ::Bot::Mod::Online::Users {event target user host channel argv} {
-    variable session
+    variable glHandle
 
     if {$event eq "SPEED"} {
         if {[llength $argv] != 1} {throw CMDHELP}
@@ -172,7 +172,7 @@ proc ::Bot::Mod::Online::Users {event target user host channel argv} {
     set usersDn 0; set usersUp 0; set usersIdle 0
     set theme [string tolower $event]
 
-    if {![catch {set online [glftpd who $session "status user group idletime size speed path"]} message]} {
+    if {![catch {set online [glftpd who $glHandle "status user group idletime size speed path"]} message]} {
         foreach entry [lsort -index 1 $online] {
             foreach {status user group idle size speed path} $entry {break}
             if {($event eq "SPEED" && $user ne [lindex $argv 0]) || [IsHidden $user $group $path]} {continue}
@@ -197,7 +197,7 @@ proc ::Bot::Mod::Online::Users {event target user host channel argv} {
                 }
             }
         }
-        set usersMax [glftpd info maxusers $session]
+        set usersMax [glftpd info maxusers $glHandle]
     } else {
         LogError ModOnline $message
         set usersMax 0
@@ -224,7 +224,7 @@ proc ::Bot::Mod::Online::Load {firstLoad} {
     variable hideUsers
     variable hideGroups
     variable hidePaths
-    variable session
+    variable glHandle
     upvar ::Bot::configHandle configHandle
 
     # Retrieve configuration options.
@@ -243,13 +243,13 @@ proc ::Bot::Mod::Online::Load {firstLoad} {
     }
     set hideCount [IsTrue [Config::Get $configHandle Module::Online hideCount]]
 
-    # Open a glFTPD session handle.
-    if {$session eq ""} {
-        set session [glftpd open $option(shmKey)]
+    # Open a glFTPD handle.
+    if {$glHandle eq ""} {
+        set glHandle [glftpd open $option(shmKey)]
     } else {
-        glftpd config $session -key $option(shmKey)
+        glftpd config $glHandle -key $option(shmKey)
     }
-    glftpd config $session -etc $etcPath -version $option(version)
+    glftpd config $glHandle -etc $etcPath -version $option(version)
 
     # Bandwidth commands.
     set cmdTokens [list]
@@ -288,13 +288,12 @@ proc ::Bot::Mod::Online::Load {firstLoad} {
 #
 proc ::Bot::Mod::Online::Unload {} {
     variable cmdTokens
-    variable session
+    variable glHandle
 
     foreach token $cmdTokens {
         CmdRemoveByToken $token
     }
-    if {$session ne ""} {
-        glftpd close $session
-        set session ""
+    if {$glHandle ne ""} {
+        glftpd close $glHandle
     }
 }

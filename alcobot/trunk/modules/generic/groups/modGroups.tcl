@@ -236,6 +236,5 @@ proc ::Bot::Mod::Groups::Unload {} {
     }
     if {$groupsHandle ne ""} {
         Config::Close $groupsHandle
-        set groupsHandle ""
     }
 }

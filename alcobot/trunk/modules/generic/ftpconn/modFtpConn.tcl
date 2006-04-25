@@ -94,7 +94,7 @@ proc ::Bot::Mod::FtpConn::Load {firstLoad} {
         Ftp::Close $connection
     }
     set connection [Ftp::Open $option(host) $option(port) $option(user) $option(passwd) \
-        -notify [namespace current]::Notify -secure $option(secure)]
+        -debug ::Bot::LogDebug -notify [namespace current]::Notify -secure $option(secure)]
     Ftp::Connect $connection
 }
 
@@ -109,10 +109,8 @@ proc ::Bot::Mod::FtpConn::Unload {} {
 
     if {$connection ne ""} {
         Ftp::Close $connection
-        set connection ""
     }
     if {$timerId ne ""} {
         catch {killtimer $timerId}
-        set timerId ""
     }
 }

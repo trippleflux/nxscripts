@@ -174,6 +174,5 @@ proc ::Bot::Mod::Bouncer::Unload {} {
 
     if {$timerId ne ""} {
         catch {killtimer $timerId}
-        set timerId ""
     }
 }

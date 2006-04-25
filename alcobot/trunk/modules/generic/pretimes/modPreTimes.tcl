@@ -210,7 +210,8 @@ proc ::Bot::Mod::PreTimes::Load {firstLoad} {
     if {!$firstLoad} {
         Db::Close $dbHandle
     }
-    set dbHandle [Db::Open $option(database) -ping 3 -notify [namespace current]::Notify]
+    set dbHandle [Db::Open $option(database) -debug ::Bot::LogDebug \
+        -ping 3 -notify [namespace current]::Notify]
     Db::Connect $dbHandle
 }
 
@@ -225,7 +226,6 @@ proc ::Bot::Mod::PreTimes::Unload {} {
 
     if {$dbHandle ne ""} {
         Db::Close $dbHandle
-        set dbHandle ""
     }
     CmdRemoveByToken $cmdToken
 
