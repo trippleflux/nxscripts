@@ -245,7 +245,7 @@ proc ::Db::Select {handle type statement} {
 #
 # Example:
 #  set match "a%z"
-#  set input {SELECT [QuoteName group] WHERE [Like [QuoteName user] [QuoteString $match]];}
+#  set input {SELECT [Name group] WHERE [Like [Name user] [String $match]];}
 #  set query [Db::GenSQL $handle $input]
 #
 #  Would generate the following statement for MySQL:
@@ -537,11 +537,11 @@ proc ::Db::MySQL::SelectNestedList {object statement} {
 # Comparison Functions
 
 proc ::Db::MySQL::Func::Like {value pattern {escape "\\"}} {
-    return "$value LIKE $pattern ESCAPE [QuoteString $escape]"
+    return "$value LIKE $pattern ESCAPE [String $escape]"
 }
 
 proc ::Db::MySQL::Func::NotLike {value pattern {escape "\\"}} {
-    return "$value NOT LIKE $pattern ESCAPE [QuoteString $escape]"
+    return "$value NOT LIKE $pattern ESCAPE [String $escape]"
 }
 
 proc ::Db::MySQL::Func::Regexp {value pattern} {
@@ -659,11 +659,11 @@ proc ::Db::PostgreSQL::SelectNestedList {object statement} {
 # Comparison Functions
 
 proc ::Db::PostgreSQL::Func::Like {value pattern {escape "\\"}} {
-    return "$value LIKE $pattern ESCAPE [QuoteString $escape]"
+    return "$value LIKE $pattern ESCAPE [String $escape]"
 }
 
 proc ::Db::PostgreSQL::Func::NotLike {value pattern {escape "\\"}} {
-    return "$value NOT LIKE $pattern ESCAPE [QuoteString $escape]"
+    return "$value NOT LIKE $pattern ESCAPE [String $escape]"
 }
 
 proc ::Db::PostgreSQL::Func::Regexp {value pattern} {
@@ -752,11 +752,11 @@ proc ::Db::SQLite::SelectNestedList {object statement} {
 # Comparison Functions
 
 proc ::Db::SQLite::Func::Like {value pattern {escape "\\"}} {
-    return "$value LIKE $pattern ESCAPE [QuoteString $escape]"
+    return "$value LIKE $pattern ESCAPE [String $escape]"
 }
 
 proc ::Db::SQLite::Func::NotLike {value pattern {escape "\\"}} {
-    return "$value NOT LIKE $pattern ESCAPE [QuoteString $escape]"
+    return "$value NOT LIKE $pattern ESCAPE [String $escape]"
 }
 
 proc ::Db::SQLite::Func::Regexp {value pattern} {

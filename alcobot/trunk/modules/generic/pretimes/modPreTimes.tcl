@@ -22,11 +22,11 @@ namespace eval ::Bot::Mod::PreTimes {
 }
 
 ####
-# Notify
+# DbNotify
 #
 # Called when the connection succeeds or fails.
 #
-proc ::Bot::Mod::PreTimes::Notify {handle success} {
+proc ::Bot::Mod::PreTimes::DbNotify {handle success} {
     if {$success} {
         LogInfo "Database connection established."
     } else {
@@ -54,7 +54,7 @@ proc ::Bot::Mod::PreTimes::LogEvent {event destSection pathSection path data} {
         set flags [GetFlagsFromSection $destSection]
         if {[FlagIsDisabled $flags "pretime"]} {return 1}
 
-        set query {SELECT [QuoteName pretime] FROM [QuoteName pretimes] WHERE [QuoteName release]=[QuoteString $release] LIMIT 1}
+        set query {SELECT [Name pretime] FROM [Name pretimes] WHERE [Name release]=[String $release] LIMIT 1}
         set result [Db::Select $dbHandle -list [Db::GenSQL $dbHandle $query]]
         if {[llength $result]} {
             set preTime [lindex $result 0]
@@ -92,8 +92,8 @@ proc ::Bot::Mod::PreTimes::LogEvent {event destSection pathSection path data} {
         } elseif {[set index [lsearch -exact $varList "size:m"]] != -1} {
             set kiloBytes [expr {[lindex $data $index] * 1024.0}]
         }
-        set query {INSERT INTO [QuoteName pretimes] ([QuoteName pretime section release files kbytes disks]) }
-        append query {VALUES([QuoteString $now $pathSection $release $files $kiloBytes $disks])}
+        set query {INSERT INTO [Name pretimes] ([Name pretime section release files kbytes disks]) \
+            VALUES([String $now $pathSection $release $files $kiloBytes $disks])}
 
         if {[catch {Db::Exec $dbHandle [Db::GenSQL $dbHandle $query]} message]} {
             LogError ModPreTime $message
@@ -121,12 +121,12 @@ proc ::Bot::Mod::PreTimes::Search {target user host channel argv} {
     set limit [GetResultLimit $option(limit)]
 
     # Build SQL query.
-    set query {SELECT * FROM [QuoteName pretimes] WHERE }
+    set query {SELECT * FROM [Name pretimes] WHERE }
     if {[info exists option(section)]} {
-        append query {UPPER([QuoteName section])=UPPER([QuoteString $option(section)]) AND }
+        append query {UPPER([Name section])=UPPER([String $option(section)]) AND }
     }
     set likePattern [Db::Pattern $dbHandle $pattern]
-    append query {[Like [QuoteName release] '$likePattern'] ORDER BY [QuoteName pretime] DESC LIMIT $limit}
+    append query {[Like [Name release] '$likePattern'] ORDER BY [Name pretime] DESC LIMIT $limit}
 
     set count 0; set multi 0
     if {[Db::GetStatus $dbHandle]} {
@@ -207,11 +207,12 @@ proc ::Bot::Mod::PreTimes::Load {firstLoad} {
         CmdRemoveByToken $cmdToken
     }
 
+    # Open a new database connection.
     if {!$firstLoad} {
         Db::Close $dbHandle
     }
     set dbHandle [Db::Open $option(database) -debug ::Bot::LogDebug \
-        -ping 3 -notify [namespace current]::Notify]
+        -ping 3 -notify [namespace current]::DbNotify]
     Db::Connect $dbHandle
 }
 
