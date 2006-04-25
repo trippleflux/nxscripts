@@ -235,13 +235,13 @@ proc ::Db::Select {handle type statement} {
 # Generates a SQL statement.
 #
 # Functions:
-#  Like        <value> <pattern> [escape char]
-#  NotLike     <value> <pattern> [escape char]
-#  RegExp      <value> <pattern>
-#  NotRegExp   <value> <pattern>
-#  Escape      <value>
-#  QuoteName   <value> [value ...]
-#  QuoteString <value> [value ...]
+#  Like      <value> <pattern> [escape char]
+#  NotLike   <value> <pattern> [escape char]
+#  Regexp    <value> <pattern>
+#  NotRegexp <value> <pattern>
+#  Escape    <value>
+#  Name      <value> [value ...]
+#  String    <value> [value ...]
 #
 # Example:
 #  set match "a%z"
@@ -290,7 +290,7 @@ proc ::Db::Pattern {handle value} {
 #
 proc ::Db::QuoteName {handle args} {
     Acquire $handle db
-    return [eval ::Db::$db(driver)::Func::QuoteName $args]
+    return [eval ::Db::$db(driver)::Func::Name $args]
 }
 
 ####
@@ -300,7 +300,7 @@ proc ::Db::QuoteName {handle args} {
 #
 proc ::Db::QuoteString {handle args} {
     Acquire $handle db
-    return [eval ::Db::$db(driver)::Func::QuoteString $args]
+    return [eval ::Db::$db(driver)::Func::String $args]
 }
 
 ################################################################################
@@ -544,11 +544,11 @@ proc ::Db::MySQL::Func::NotLike {value pattern {escape "\\"}} {
     return "$value NOT LIKE $pattern ESCAPE [QuoteString $escape]"
 }
 
-proc ::Db::MySQL::Func::RegExp {value pattern} {
+proc ::Db::MySQL::Func::Regexp {value pattern} {
     return "$value REGEXP $pattern"
 }
 
-proc ::Db::MySQL::Func::NotRegExp {value pattern} {
+proc ::Db::MySQL::Func::NotRegexp {value pattern} {
     return "$value NOT REGEXP $pattern"
 }
 
@@ -558,7 +558,7 @@ proc ::Db::MySQL::Func::Escape {value} {
     return [mysql::escape $value]
 }
 
-proc ::Db::MySQL::Func::QuoteName {args} {
+proc ::Db::MySQL::Func::Name {args} {
     set result [list]
     foreach value $args {
         lappend result "`[mysql::escape $value]`"
@@ -566,7 +566,7 @@ proc ::Db::MySQL::Func::QuoteName {args} {
     return [join $result ","]
 }
 
-proc ::Db::MySQL::Func::QuoteString {args} {
+proc ::Db::MySQL::Func::String {args} {
     set result [list]
     foreach value $args {
         lappend result "'[mysql::escape $value]'"
@@ -666,11 +666,11 @@ proc ::Db::PostgreSQL::Func::NotLike {value pattern {escape "\\"}} {
     return "$value NOT LIKE $pattern ESCAPE [QuoteString $escape]"
 }
 
-proc ::Db::PostgreSQL::Func::RegExp {value pattern} {
+proc ::Db::PostgreSQL::Func::Regexp {value pattern} {
     return "$value ~* $pattern"
 }
 
-proc ::Db::PostgreSQL::Func::NotRegExp {value pattern} {
+proc ::Db::PostgreSQL::Func::NotRegexp {value pattern} {
     return "$value !~* $pattern"
 }
 
@@ -680,7 +680,7 @@ proc ::Db::PostgreSQL::Func::Escape {value} {
     return [pg_escape_string $value]
 }
 
-proc ::Db::PostgreSQL::Func::QuoteName {args} {
+proc ::Db::PostgreSQL::Func::Name {args} {
     set result [list]
     foreach value $args {
         lappend result "\"[pg_escape_string $value]\""
@@ -688,7 +688,7 @@ proc ::Db::PostgreSQL::Func::QuoteName {args} {
     return [join $result ","]
 }
 
-proc ::Db::PostgreSQL::Func::QuoteString {args} {
+proc ::Db::PostgreSQL::Func::String {args} {
     set result [list]
     foreach value $args {lappend result [pg_quote $value]}
     return [join $result ","]
@@ -759,11 +759,11 @@ proc ::Db::SQLite::Func::NotLike {value pattern {escape "\\"}} {
     return "$value NOT LIKE $pattern ESCAPE [QuoteString $escape]"
 }
 
-proc ::Db::SQLite::Func::RegExp {value pattern} {
+proc ::Db::SQLite::Func::Regexp {value pattern} {
     return "$value REGEXP $pattern"
 }
 
-proc ::Db::SQLite::Func::NotRegExp {value pattern} {
+proc ::Db::SQLite::Func::NotRegexp {value pattern} {
     return "$value NOT REGEXP $pattern"
 }
 
@@ -773,7 +773,7 @@ proc ::Db::SQLite::Func::Escape {value} {
     return [string map {\\ \\\\ ` \\` ' \\' \" \\\"} $value]
 }
 
-proc ::Db::SQLite::Func::QuoteName {args} {
+proc ::Db::SQLite::Func::Name {args} {
     set result [list]
     foreach value $args {
         lappend result "\"[Escape $value]\""
@@ -781,7 +781,7 @@ proc ::Db::SQLite::Func::QuoteName {args} {
     return [join $result ","]
 }
 
-proc ::Db::SQLite::Func::QuoteString {args} {
+proc ::Db::SQLite::Func::String {args} {
     set result [list]
     foreach value $args {
         lappend result "'[Escape $value]'"
