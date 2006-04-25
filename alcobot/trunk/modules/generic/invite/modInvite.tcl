@@ -20,7 +20,7 @@ namespace eval ::Bot::Mod::Invite {
     if {![info exists [namespace current]::channels]} {
         variable channels [list]
         variable cmdToken ""
-        variable dataSource ""
+        variable dbHandle ""
         variable hostCheck 0
         variable userCheck 0
         variable warnSection ""
@@ -31,50 +31,23 @@ namespace eval ::Bot::Mod::Invite {
 }
 
 ####
-# DbConnect
-#
-# Connect to the ODBC data source.
-#
-proc ::Bot::Mod::Invite::DbConnect {} {
-    variable dataSource
-
-    # If the TclODBC 'object' already exists, return.
-    if {[llength [info commands [namespace current]::db]]} {
-        return 1
-    }
-
-    if {[catch {database connect [namespace current]::db "DSN=$dataSource"} message]} {
-        LogError ModInvite "Unable to connect to database \"$dataSource\": [lindex $message 2] ([lindex $message 0])"
-        return 0
-    }
-    db set timeout 0
-
-    # Check if the required tables exist.
-    if {![llength [db tables "invite_hosts"]] || ![llength [db tables "invite_users"]]} {
-        LogError ModInvite "The database \"$dataSource\" is missing the \"invite_hosts\" or \"invite_users\" table."
-        db disconnect
-        return 0
-    }
-    return 1
-}
-
-####
 # GetFtpUser
 #
 # Looks up the FTP user-name for the given IRC nick-name.
 #
 proc ::Bot::Mod::Invite::GetFtpUser {ircUser} {
-    if {![DbConnect]} {
+    variable dbHandle
+    if {![Db::GetStatus $dbHandle]} {
         error "invite database is offline"
     }
 
     # IRC nick-names are NOT case-senstive.
-    set result [db "SELECT ftp_user FROM invite_users WHERE online='1' \
-        AND UPPER(irc_user)=UPPER('[SqlEscape $ircUser]') LIMIT 1"]
+    set query {SELECT [Name ftp_user] FROM [Name invite_users] WHERE online=1 \
+        AND UPPER([Name irc_user])=UPPER([String $ircUser]) LIMIT 1}
+    set result [Db::Select $dbHandle -list $query]
 
     if {[llength $result]} {
-        # First row and first column.
-        return [lindex $result 0 0]
+        return [lindex $result 0]
     } else {
         error "unknown IRC user, please re-invite yourself"
     }
@@ -86,19 +59,33 @@ proc ::Bot::Mod::Invite::GetFtpUser {ircUser} {
 # Looks up the IRC nick-name for the given FTP user-name.
 #
 proc ::Bot::Mod::Invite::GetIrcUser {ftpUser} {
-    if {![DbConnect]} {
+    variable dbHandle
+    if {![Db::GetStatus $dbHandle]} {
         error "invite database is offline"
     }
 
     # FTP user-names are case-senstive.
-    set result [db "SELECT irc_user FROM invite_users WHERE online='1' \
-        AND ftp_user='[SqlEscape $ftpUser]' LIMIT 1"]
+    set query {SELECT [Name irc_user] FROM [Name invite_users] WHERE online=1 \
+        AND [Name ftp_user]=[String $ftpUser] LIMIT 1}
+    set result [Db::Select $dbHandle -list $query]
 
     if {[llength $result]} {
-        # First row and first column.
-        return [lindex $result 0 0]
+        return [lindex $result 0]
     } else {
         error "unknown FTP user, please re-invite yourself"
+    }
+}
+
+####
+# DbNotify
+#
+# Called when the connection succeeds or fails.
+#
+proc ::Bot::Mod::Invite::DbNotify {handle success} {
+    if {$success} {
+        LogInfo "Database connection established."
+    } else {
+        LogInfo "Database connection failed - [Db::GetError $handle]"
     }
 }
 
@@ -181,21 +168,24 @@ proc ::Bot::Mod::Invite::SendTheme {user type {valueList ""}} {
 #
 proc ::Bot::Mod::Invite::Process {ircUser ircHost ftpUser ftpGroup ftpGroupList ftpFlags} {
     variable channels
+    variable dbHandle
     variable hostCheck
     variable userCheck
 
     set time [clock seconds]
-    if {![DbConnect]} {
+    if {![Db::GetStatus $dbHandle]} {
         SendTheme $ircUser databaseDown [list $ftpUser $ircUser]
         return
     }
 
-    set ftpUserEsc [SqlEscape $ftpUser]
     if {$hostCheck} {
         # Validate IRC host.
         set valid 0
-        foreach row [db "SELECT hostmask FROM invite_hosts WHERE ftp_user='$ftpUserEsc'"] {
-            if {[string match -nocase [lindex $row 0] $ircHost]} {
+        set query {SELECT [Name hostmask] FROM [Name invite_hosts] \
+            WHERE [Name ftp_user]=[String $ftpUser]}
+
+        foreach hostMask [Db::Select $dbHandle -list $query] {
+            if {[string match -nocase $hostMask $ircHost]} {
                 set valid 1; break
             }
         }
@@ -207,12 +197,12 @@ proc ::Bot::Mod::Invite::Process {ircUser ircHost ftpUser ftpGroup ftpGroupList 
 
     # Update the user's IRC user name, online status, and time stamp.
     set online [OnChannels $ircUser]
-    set query "UPDATE invite_users SET "
+    set query {UPDATE [Name invite_users] SET }
     if {!$userCheck} {
-        append query "irc_user='[SqlEscape $ircUser]', "
+        append query {[Name irc_user]=[String $ircUser], }
     }
-    append query "online='$online', time='$time' WHERE ftp_user='$ftpUserEsc'"
-    db $query
+    append query {[Name online]=$online, [Name time]=$time WHERE [Name ftp_user]=[String $ftpUser]}
+    Db::Exec $dbHandle $query
 
     set failed [list]
     foreach channel [lsort [array names channels]] {
@@ -240,16 +230,17 @@ proc ::Bot::Mod::Invite::Process {ircUser ircHost ftpUser ftpGroup ftpGroupList 
 # Private message command, !invite <FTP user> <password>.
 #
 proc ::Bot::Mod::Invite::Command {target user host argv} {
+    variable dbHandle
     variable userCheck
 
     if {[llength $argv] != 2} {throw CMDHELP}
     set ftpUser [lindex $argv 0]
     set password [lindex $argv 1]
 
-    if {[DbConnect]} {
-        set ftpUserEsc [SqlEscape $ftpUser]
-        set result [db "SELECT irc_user, password FROM invite_users WHERE ftp_user='$ftpUserEsc'"]
-        set result [lindex $result 0]
+    if {[Db::GetStatus $dbHandle]} {
+        set query {SELECT [Name irc_user password] FROM [Name invite_users] \
+            WHERE [Name ftp_user]=[String $ftpUser]}
+        set result [Db::Select $dbHandle -list $query]
 
         # Validate password.
         if {![llength $result] || ![CheckHash [lindex $result 1] $password]} {
@@ -269,9 +260,12 @@ proc ::Bot::Mod::Invite::Command {target user host argv} {
 
             if {[PermMatchFlags $uinfo(flags) $type(deleted)]} {
                 # Remove the user's invite record if they are deleted.
-                db "DELETE FROM invite_users WHERE ftp_user='$ftpUserEsc'"
-                db "DELETE FROM invite_hosts WHERE ftp_user='$ftpUserEsc'"
+                set query {DELETE FROM [Name invite_hosts] WHERE [Name ftp_user]=[String $ftpUser]; \
+                           DELETE FROM [Name invite_users] WHERE [Name ftp_user]=[String $ftpUser];}
 
+                if {[catch {Db::Exec $dbHandle $query} message]} {
+                    LogError ModInvite $message
+                }
                 SendTheme $user invalidUser [list $ftpUser $user $host]
             } else {
                 set ftpGroup [lindex $uinfo(groups) 0]
@@ -290,6 +284,7 @@ proc ::Bot::Mod::Invite::Command {target user host argv} {
 #
 proc ::Bot::Mod::Invite::ChanEvent {event args} {
     variable channels
+    variable dbHandle
 
     set time [clock seconds]
     switch -- $event {
@@ -326,9 +321,13 @@ proc ::Bot::Mod::Invite::ChanEvent {event args} {
             set valid 1; break
         }
     }
-    if {$valid && [DbConnect]} {
-        set user [SqlEscape $user]
-        db "UPDATE invite_users SET online='$online', time='$time' WHERE UPPER(irc_user)=UPPER('$user')"
+    if {$valid && [Db::GetStatus $dbHandle]} {
+        set query {UPDATE [Name invite_users] SET [Name online]=$online, \
+            [Name time]=$time WHERE UPPER([Name irc_user])=UPPER([String $user])}
+
+        if {[catch {Db::Exec $dbHandle $query} message]} {
+            LogError ModInvite $message
+        }
     }
     return
 }
@@ -339,6 +338,7 @@ proc ::Bot::Mod::Invite::ChanEvent {event args} {
 # Handle "INVITE" log events.
 #
 proc ::Bot::Mod::Invite::LogEvent {event destSection pathSection path data} {
+    variable dbHandle
     variable hostCheck
 
     if {$event eq "INVITE"} {
@@ -357,10 +357,14 @@ proc ::Bot::Mod::Invite::LogEvent {event destSection pathSection path data} {
         }
     } elseif {$event eq "DELUSER" || $event eq "PURGED"} {
         # Remove invite record when a user is deleted or purged.
-        set ftpUserEsc [SqlEscape [lindex $data 1]]
-        if {[DbConnect]} {
-            db "DELETE FROM invite_users WHERE ftp_user='$ftpUserEsc'"
-            db "DELETE FROM invite_hosts WHERE ftp_user='$ftpUserEsc'"
+        set ftpUser [lindex $data 1]
+        if {[Db::GetStatus $dbHandle]} {
+            set query {DELETE FROM [Name invite_hosts] WHERE [Name ftp_user]=[String $ftpUser]; \
+                       DELETE FROM [Name invite_users] WHERE [Name ftp_user]=[String $ftpUser];}
+
+            if {[catch {Db::Exec $dbHandle $query} message]} {
+                LogError ModInvite $message
+            }
         }
     } else {
         LogError ModInvite "Unknown log event \"$event\"."
@@ -402,7 +406,7 @@ proc ::Bot::Mod::Invite::Whois {server code text} {
 proc ::Bot::Mod::Invite::Load {firstLoad} {
     variable channels
     variable cmdToken
-    variable dataSource
+    variable dbHandle
     variable hostCheck
     variable userCheck
     variable warnSection
@@ -410,14 +414,9 @@ proc ::Bot::Mod::Invite::Load {firstLoad} {
     upvar ::Bot::chanSections chanSections
     upvar ::Bot::pathSections pathSections
 
-    if {$firstLoad} {
-        package require tclodbc
-    }
-
     # Retrieve configuration options.
     array set option [Config::GetMulti $configHandle Module::Invite \
-        channels dataSource hostCheck userCheck warnSection]
-    set dataSource $option(dataSource)
+        channels database hostCheck userCheck warnSection]
     set hostCheck  [IsTrue $option(hostCheck)]
     set userCheck  [IsTrue $option(userCheck)]
 
@@ -460,11 +459,13 @@ proc ::Bot::Mod::Invite::Load {firstLoad} {
     ScriptRegister pre DELUSER [namespace current]::LogEvent True
     ScriptRegister pre PURGED  [namespace current]::LogEvent True
 
+    # Open a new database connection.
     if {!$firstLoad} {
-        # Reconnect to the data source on reload.
-        catch {db disconnect}
+        Db::Close $dbHandle
     }
-    DbConnect
+    set dbHandle [Db::Open $option(database) -debug ::Bot::LogDebug \
+        -ping 3 -notify [namespace current]::DbNotify]
+    Db::Connect $dbHandle
 }
 
 ####
@@ -474,6 +475,11 @@ proc ::Bot::Mod::Invite::Load {firstLoad} {
 #
 proc ::Bot::Mod::Invite::Unload {} {
     variable cmdToken
+    variable dbHandle
+
+    if {$dbHandle ne ""} {
+        Db::Close $dbHandle
+    }
     CmdRemoveByToken $cmdToken
 
     # Remove event callbacks.
@@ -486,7 +492,4 @@ proc ::Bot::Mod::Invite::Unload {} {
     ScriptUnregister pre INVITE  [namespace current]::LogEvent
     ScriptUnregister pre DELUSER [namespace current]::LogEvent
     ScriptUnregister pre PURGED  [namespace current]::LogEvent
-
-    # Close ODBC connection.
-    catch {db disconnect}
 }
