@@ -184,7 +184,11 @@ proc ::Db::Connect {handle} {
     if {$db(object) ne ""} {
         error "already connected, disconnect first"
     }
-    ConnOpen $handle
+    if {![ConnOpen $handle] && $db(notify) eq ""} {
+        # Throw an error if the current handle doesn't
+        # have a connection notification callback.
+        throw DB $db(error)
+    }
     if {$db(ping) > 0} {
         set db(timerId) [timer $db(ping) [list ::Db::Ping $handle]]
     }
@@ -315,13 +319,16 @@ proc ::Db::Acquire {handle handleVar} {
 proc ::Db::ConnOpen {handle} {
     upvar ::Db::$handle db
     if {[catch {set db(object) [::Db::$db(driver)::Connect $db(options)]} message]} {
+        set success 0
         Debug $db(debug) DbConnect "Connection to $db(driver) failed: $message"
-        set db(error) $message
     } else {
+        set message ""
+        set success 1
         Debug $db(debug) DbConnect "Connection to $db(driver) succeeded."
-        set db(error) ""
-        Evaluate $db(debug) $db(notify) $handle 1
     }
+    set db(error) $message
+    Evaluate $db(debug) $db(notify) $handle $success
+    return $success
 }
 
 ####
