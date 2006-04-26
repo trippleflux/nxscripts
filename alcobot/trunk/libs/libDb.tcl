@@ -654,11 +654,11 @@ proc ::Db::PostgreSQL::SelectNestedList {object statement} {
 # Comparison Functions
 
 proc ::Db::PostgreSQL::Func::Like {value pattern {escape "\\"}} {
-    return "$value LIKE $pattern ESCAPE [String $escape]"
+    return "$value ILIKE $pattern ESCAPE [String $escape]"
 }
 
 proc ::Db::PostgreSQL::Func::NotLike {value pattern {escape "\\"}} {
-    return "$value NOT LIKE $pattern ESCAPE [String $escape]"
+    return "$value NOT ILIKE $pattern ESCAPE [String $escape]"
 }
 
 proc ::Db::PostgreSQL::Func::Regexp {value pattern} {
