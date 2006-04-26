@@ -220,7 +220,7 @@ proc ::Db::Exec {handle statement} {
     if {$db(object) eq ""} {
         throw DB "not connected"
     }
-    # Generate a SQL statement.
+    # Generate the SQL statement.
     regsub -all -- {([^\B]\[)} $statement "\\1::Db::$db(driver)::Func::" statement
     set statement [uplevel [list subst $statement]]
 
@@ -237,7 +237,7 @@ proc ::Db::Select {handle type statement} {
     if {$db(object) eq ""} {
         throw DB "not connected"
     }
-    # Generate a SQL statement.
+    # Generate the SQL statement.
     regsub -all -- {([^\B]\[)} $statement "\\1::Db::$db(driver)::Func::" statement
     set statement [uplevel [list subst $statement]]
 
