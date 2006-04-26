@@ -79,16 +79,16 @@ AlcoBot is a modular sitebot written in Tcl for ioFTPD and glFTPD.
        FreeBSD: portupgrade -N tcltls
        Source : http://sourceforge.net/project/showfiles.php?group_id=13248
 
-    MySQLTcl  - MySQL database support.
+     MySQLTcl  - MySQL database support.
        Debian : apt-get install mysqltcl
        FreeBSD: portupgrade -N mysqltcl
        Source : http://www.xdobry.de/mysqltcl/
 
-    pgTcl     - PostgreSQL database support.
+     pgTcl     - PostgreSQL database support.
        Debian : apt-get install libpgtcl
        Source : http://gborg.postgresql.org/project/pgtclng/download/download.php
 
-    TclSQLite - SQLite database support.
+     TclSQLite - SQLite database support.
        Debian : apt-get install libsqlite3-tcl
        FreeBSD: portupgrade -N sqlite3
        Source : http://www.sqlite.org/download.html
@@ -334,10 +334,12 @@ before use. Read the following installation instructions:
   Info: Invite users into selected IRC channel(s).
   Path: modules/generic/invite
 
-  1. Add "invite" to the module list in AlcoBot.conf.
-  2. Configure the [Module::Invite] section in AlcoBot.conf.
-  3. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
-  4. Instructions for installing the SITE commands are in the top of the
+  1. Create a MySQL, PostgreSQL, or SQLite database. Import the required
+     table schema, invite.sql (located in the module's directory).
+  2. Add "invite" to the module list in AlcoBot.conf.
+  3. Configure the [Module::Invite] section in AlcoBot.conf.
+  4. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
+  5. Instructions for installing the SITE commands are in the top of the
      siteInvite.tcl file, which is located in the module's directory.
 
   ############################################################
@@ -384,9 +386,11 @@ before use. Read the following installation instructions:
   Info: Display and search for release pre times.
   Path: modules/generic/pretimes
 
-  1. Add "pretimes" to the module list in AlcoBot.conf.
-  2. Configure the [Module::PreTimes] section in AlcoBot.conf.
-  3. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
+  1. Create a MySQL, PostgreSQL, or SQLite database. Import the required
+     table schema, pretimes.sql (located in the module's directory).
+  2. Add "pretimes" to the module list in AlcoBot.conf.
+  3. Configure the [Module::PreTimes] section in AlcoBot.conf.
+  4. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
 
   ############################################################
   # readlogs                                                 #
