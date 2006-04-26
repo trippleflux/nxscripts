@@ -13,8 +13,8 @@
 #
 
 namespace eval ::Bot::Mod::PreTimes {
-    if {![info exists [namespace current]::cmdToken]} {
-        variable cmdToken ""
+    if {![info exists [namespace current]::cmdTokens]} {
+        variable cmdTokens [list]
         variable dbHandle ""
         variable defLimit 5
     }
@@ -105,6 +105,64 @@ proc ::Bot::Mod::PreTimes::LogEvent {event destSection pathSection path data} {
 }
 
 ####
+# Group
+#
+# Display pre statistics for a group, command: !pregroup <name>.
+#
+proc ::Bot::Mod::PreTimes::Group {target user host channel argv} {
+    variable dbHandle
+    if {![llength $argv]} {throw CMDHELP}
+    set group [join $argv]
+
+    if {[Db::GetStatus $dbHandle]} {
+        set pattern [string map {% \\% _ \\_} $group]
+        set pattern "%-$pattern"
+
+        # Stats queries.
+        set query(relCount)  {SELECT COUNT(*) FROM [Name pretimes] \
+            WHERE [Like [Name release] [String $pattern]]}
+
+        set query(nukeCount) {SELECT COUNT(*) FROM [Name pretimes] \
+            WHERE [Like [Name release] [String $pattern]] AND [Name nuked]=1}
+
+        # Release queries.
+        set query(first) {SELECT [Name pretime section release files kbytes disks] FROM [Name pretimes] \
+            WHERE [Like [Name release] [String $pattern]] ORDER BY [Name pretime] ASC LIMIT 1}
+
+        set query(last) {SELECT [Name pretime section release files kbytes disks] FROM [Name pretimes] \
+            WHERE [Like [Name release] [String $pattern]] ORDER BY [Name pretime] DESC LIMIT 1}
+
+        set query(nuke) {SELECT [Name pretime section release files kbytes disks nuketime reason] FROM [Name pretimes] \
+            WHERE [Like [Name release] [String $pattern]] AND [Name nuked]=1 ORDER BY [Name pretime] DESC LIMIT 1}
+
+        foreach {name value} [array get query] {
+            set result($name) [Db::Select $dbHandle -list $value]
+        }
+    } else {
+        array set result [list relCount 0 nukeCount 0 first {} last {} nuke {}]
+    }
+    SendTargetTheme $target Module::PreTimes groupHead [list $group]
+
+    set nukes $result(nukeCount)
+    set releases $result(relCount)
+    SendTargetTheme $target Module::PreTimes groupStats [list $group $releases $nukes \
+        [expr {$releases > 1 ? double($nukes)/double($releases) * 100.0 : 0.0}]]
+
+    if {$releases > 1} {
+        set age [expr {[clock seconds] - [lindex $result(first) 0]}]
+        SendTargetTheme $target Module::PreTimes groupFirst [lappend result(first) $age]
+
+        set age [expr {[clock seconds] - [lindex $result(last) 0]}]
+       SendTargetTheme $target Module::PreTimes groupLast [lappend result(last) $age]
+    }
+    if {$nukes > 1} {
+        set age [expr {[clock seconds] - [lindex $result(nuke) 0]}]
+       SendTargetTheme $target Module::PreTimes groupNuke [lappend result(nuke) $age]
+    }
+    SendTargetTheme $target Module::PreTimes groupFoot
+}
+
+####
 # Search
 #
 # Search for a release, command: !pre [-limit <num>] [-match exact|regexp|wild] [-section <name>] <pattern>.
@@ -181,7 +239,7 @@ proc ::Bot::Mod::PreTimes::Search {target user host channel argv} {
 # Module initialisation procedure, called when the module is loaded.
 #
 proc ::Bot::Mod::PreTimes::Load {firstLoad} {
-    variable cmdToken
+    variable cmdTokens
     variable dbHandle
     variable defLimit
     upvar ::Bot::configHandle configHandle
@@ -211,11 +269,18 @@ proc ::Bot::Mod::PreTimes::Load {firstLoad} {
     }
 
     if {[IsTrue $option(searchPres)]} {
-        set cmdToken [CmdCreate channel pre [namespace current]::Search \
+        set cmdTokens [list]
+
+        lappend cmdTokens [CmdCreate channel pre [namespace current]::Search \
             -args "\[-limit <num>\] \[-match exact|regexp|wild\] \[-section <name>\] <pattern>" \
-            -category "General" -desc "Search pre time database."]
+            -category "Pre" -desc "Search pre time database."]
+
+        lappend cmdTokens [CmdCreate channel pregroup [namespace current]::Group \
+            -args "<name>" -category "Pre" -desc "Group pre statistics."]
     } else {
-        CmdRemoveByToken $cmdToken
+        foreach token $cmdTokens {
+            CmdRemoveByToken $token
+        }
     }
 
     # Open a new database connection.
@@ -233,13 +298,15 @@ proc ::Bot::Mod::PreTimes::Load {firstLoad} {
 # Module finalisation procedure, called before the module is unloaded.
 #
 proc ::Bot::Mod::PreTimes::Unload {} {
-    variable cmdToken
+    variable cmdTokens
     variable dbHandle
 
+    foreach token $cmdTokens {
+        CmdRemoveByToken $token
+    }
     if {$dbHandle ne ""} {
         Db::Close $dbHandle
     }
-    CmdRemoveByToken $cmdToken
 
     # Remove event callbacks.
     ScriptUnregister pre PRE     [namespace current]::LogEvent

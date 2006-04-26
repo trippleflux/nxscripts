@@ -315,6 +315,13 @@ whoNone        = [b]-[b] There is no one online.
 whoFoot        =
 
 [Theme::Module::PreTimes]
+groupHead      =
+groupStats     = [b][[c1]Pre[c]][b] [b]%(group)[b] has [b]%(releases)[b] releases, [b]%(nukes)[b] of which are nuked ([b]%.2(average)[b]% average)
+groupFirst     = [b][[c1]Pre[c]][b] First Release: [b]%(release)[b] - %(age) ago (%(preDate) %(preTime))
+groupLast      = [b][[c1]Pre[c]][b] Last Release: [b]%(release)[b] - %(age) ago (%(preDate) %(preTime))
+groupNuke      = [b][[c1]Pre[c]][b] Last Nuke: [b]%(release)[b] - Reason: [b]%(reason)[b] - %(age) ago (%(preDate) %(preTime))
+groupFoot      =
+
 searchHead     =
 searchBody     = [b][[c1]Pre[c]][b] [b]%(release)[b] (%(size)/[b]%(files)[b]F) - %(age) ago (%(preDate) %(preTime))
 searchNuke     = [b][[c1]Pre[c]][b] [b]%(release)[b] (%(size)/[b]%(files)[b]F) - Reason: [b]%(reason)[b] - %(age) ago (%(preDate) %(preTime))
