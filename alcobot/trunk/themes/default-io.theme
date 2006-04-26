@@ -324,7 +324,7 @@ groupFoot      =
 
 searchHead     =
 searchBody     = [b][[c1]Pre[c]][b] [b]%(release)[b] (%(size)/[b]%(files)[b]F) - %(age) ago (%(preDate) %(preTime))
-searchNuke     = [b][[c1]Pre[c]][b] [b]%(release)[b] (%(size)/[b]%(files)[b]F) - Reason: [b]%(reason)[b] - %(age) ago (%(preDate) %(preTime))
+searchNuke     = [b][[c1]Pre[c]][b] [b]%(release)[b] (%(size)/[b]%(files)[b]F) - [c]4Nuked:[c] [b]%(reason)[b] - %(age) ago (%(preDate) %(preTime))
 searchNone     = [b][[c1]Pre[c]][b] No releases found matching "%(pattern)".
 searchFoot     =
 
