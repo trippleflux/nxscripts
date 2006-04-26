@@ -314,6 +314,10 @@ searchNuke     = [b][[c1]Pre[c]][b] [b]%(release)[b] (%(size)/[b]%(files)[b]F) -
 searchNone     = [b][[c1]Pre[c]][b] No releases found matching "%(pattern)".
 searchFoot     =
 
+totalHead      =
+totalBody      = [b][[c1]Pre[c]][b] [b]%(releases)[b] releases and [b]%(nukes)[b] nukes since %(age) ago (%(preDate) %(preTime))
+totalFoot      =
+
 [Theme::Module::SiteCmd]
 head           = [b][[c1]SiteCmd[c]][b] Sending: [b]%(command)[b]
 body           = [b][[c1]SiteCmd[c]][b] %(message)

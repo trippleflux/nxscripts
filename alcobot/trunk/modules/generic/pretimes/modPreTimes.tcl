@@ -119,10 +119,10 @@ proc ::Bot::Mod::PreTimes::Group {target user host channel argv} {
         set pattern "%-$pattern"
 
         # Stats queries.
-        set query(relCount)  {SELECT COUNT(*) FROM [Name pretimes] \
+        set query(rels) {SELECT COUNT(*) FROM [Name pretimes] \
             WHERE [Like [Name release] [String $pattern]]}
 
-        set query(nukeCount) {SELECT COUNT(*) FROM [Name pretimes] \
+        set query(nukes) {SELECT COUNT(*) FROM [Name pretimes] \
             WHERE [Like [Name release] [String $pattern]] AND [Name nuked]=1}
 
         # Release queries.
@@ -139,12 +139,11 @@ proc ::Bot::Mod::PreTimes::Group {target user host channel argv} {
             set result($name) [Db::Select $dbHandle -list $value]
         }
     } else {
-        array set result [list relCount 0 nukeCount 0 first {} last {} nuke {}]
+        array set result [list rels 0 nukes 0 first {} last {} nuke {}]
     }
     SendTargetTheme $target Module::PreTimes groupHead [list $group]
 
-    set nukes $result(nukeCount)
-    set releases $result(relCount)
+    set nukes $result(nukes); set releases $result(rels)
     SendTargetTheme $target Module::PreTimes groupStats [list $group $releases $nukes \
         [expr {$releases > 1 ? double($nukes)/double($releases) * 100.0 : 0.0}]]
 
@@ -234,6 +233,33 @@ proc ::Bot::Mod::PreTimes::Search {target user host channel argv} {
 }
 
 ####
+# Total
+#
+# Display database statistics, command: !predb.
+#
+proc ::Bot::Mod::PreTimes::Total {target user host channel argv} {
+    variable dbHandle
+
+    if {[Db::GetStatus $dbHandle]} {
+        set query(rels)  {SELECT COUNT(*) FROM [Name pretimes]}
+        set query(nukes) {SELECT COUNT(*) FROM [Name pretimes] WHERE [Name nuked]=1}
+        set query(first) {SELECT [Name pretime] FROM [Name pretimes] ORDER BY [Name pretime] ASC LIMIT 1}
+
+        foreach {name value} [array get query] {
+            set result($name) [Db::Select $dbHandle -list $value]
+        }
+    } else {
+        array set result [list rels 0 nukes 0 first 0]
+    }
+    set age [expr {[clock seconds] - $result(first)}]
+
+    SendTargetTheme $target Module::PreTimes totalHead
+    SendTargetTheme $target Module::PreTimes totalBody \
+        [list $result(rels) $result(nukes) $result(first) $age]
+    SendTargetTheme $target Module::PreTimes totalFoot
+}
+
+####
 # Load
 #
 # Module initialisation procedure, called when the module is loaded.
@@ -273,10 +299,13 @@ proc ::Bot::Mod::PreTimes::Load {firstLoad} {
 
         lappend cmdTokens [CmdCreate channel pre [namespace current]::Search \
             -args "\[-limit <num>\] \[-match exact|regexp|wild\] \[-section <name>\] <pattern>" \
-            -category "Pre" -desc "Search pre time database."]
+            -category "Pre" -desc "Search for a release."]
+
+        lappend cmdTokens [CmdCreate channel predb [namespace current]::Total \
+            -category "Pre" -desc "Display database statistics."]
 
         lappend cmdTokens [CmdCreate channel pregroup [namespace current]::Group \
-            -args "<name>" -category "Pre" -desc "Group pre statistics."]
+            -args "<name>" -category "Pre" -desc "Display group statistics."]
     } else {
         foreach token $cmdTokens {
             CmdRemoveByToken $token
