@@ -259,11 +259,11 @@ proc ::Bot::Mod::Invite::Command {target user host argv} {
             GetFlagTypes type
 
             if {[PermMatchFlags $uinfo(flags) $type(deleted)]} {
+                SendTheme $user invalidUser [list $ftpUser $user $host]
+
                 # Remove the user's invite record if they are deleted.
                 Db::Exec $dbHandle {DELETE FROM [Name invite_hosts] WHERE [Name ftp_user]=[String $ftpUser]}
                 Db::Exec $dbHandle {DELETE FROM [Name invite_users] WHERE [Name ftp_user]=[String $ftpUser]}
-
-                SendTheme $user invalidUser [list $ftpUser $user $host]
             } else {
                 set ftpGroup [lindex $uinfo(groups) 0]
                 Process $user $host $ftpUser $ftpGroup $uinfo(groups) $uinfo(flags)
