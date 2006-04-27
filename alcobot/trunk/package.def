@@ -11,7 +11,7 @@ PKG_DESC    = Alcoholicz Site Bot
 # - Ex. <major>.<minor>.<patch>
 #
 PKG_MAJOR   = 1
-PKG_MINOR   = 1
+PKG_MINOR   = 2
 PKG_PATCH   = 0
 
 ### Package Status

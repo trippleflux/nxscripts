@@ -1,3 +1,12 @@
+AlcoBot v1.2.0 (not released):
+  NEW: Command to display group pre statistics, !pregroup <name>.
+  NEW: Command to display pre database statistics, !predb.
+  NEW: Database abstraction layer library, replacing ODBC.
+  NEW: Pattern matching options for the pre search, -match exact|regexp|wild.
+  CHG: Debug log callbacks for the FTP library are per-handle instead of global.
+  CHG: Libraries only set the errorCode value when intentionally throwing exceptions.
+  CHG: Renamed tree library function "Tree::GetNaive" to "Tree::GetQuiet".
+
 AlcoBot v1.1.0 (Apr 12, 2006):
   NEW: Commands can throw CMDHELP and GETOPT errors to display command usage.
   NEW: Modules are reference counted, so dependencies won't be unloaded early.
