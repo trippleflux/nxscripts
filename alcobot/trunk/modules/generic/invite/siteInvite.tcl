@@ -62,11 +62,11 @@
 #
 
 namespace eval ::Invite {
-    # dataSource - Name of the ODBC data source.
-    # logPath    - Path to the FTP daemon's log directory.
-    variable dataSource "Alcoholicz"
+    # database   - Database URI string, see AlcoBot.conf for more information.
+    variable database   "mysql://user:password@host.com/alcoholicz"
 
-    # Uncomment the following line for your FTPD:
+    # logPath    - Path to the FTP daemon's log directory, uncomment the correct
+    #              line for your FTPD (ioFTPD then glFTPD, respectively).
     #variable logPath   "../logs/"
     #variable logPath   "/ftp-data/logs/"
 
@@ -118,29 +118,6 @@ proc ::Invite::ListParse {argStr} {
 }
 
 ####
-# DbConnect
-#
-# Connect to the ODBC data source.
-#
-proc ::Invite::DbConnect {} {
-    variable dataSource
-
-    if {[catch {database connect [namespace current]::db "DSN=$dataSource"} message]} {
-        LinePuts "Unable to connect to database \"$dataSource\"."
-        return 0
-    }
-    db set timeout 0
-
-    # Check if the required tables exist.
-    if {![llength [db tables "invite_hosts"]] || ![llength [db tables "invite_users"]]} {
-        LinePuts "The database \"$dataSource\" is missing the \"invite_hosts\" or \"invite_users\" table."
-        db disconnect
-        return 0
-    }
-    return 1
-}
-
-####
 # LinePuts
 #
 # Write a formatted line to the client's FTP control channel.
@@ -162,26 +139,22 @@ proc ::Invite::MakeHash {password} {
 }
 
 ####
-# SqlEscape
-#
-# Escape SQL quote characters with a backslash.
-#
-proc ::Invite::SqlEscape {string} {
-    return [string map {\\ \\\\ ` \\` ' \\' \" \\\"} $string]
-}
-
-####
 # SetIrcUser
 #
 # Set the IRC nick-name for a user.
 #
 proc ::Invite::SetIrcUser {ftpUser ircUser} {
-    set ftpUser [SqlEscape $ftpUser]
-    set ircUser [SqlEscape $ircUser]
+    variable dbHandle
 
-    # Probably the most portable way to do this.
-    if {![db "UPDATE invite_users SET irc_user='$ircUser' WHERE ftp_user='$ftpUser'"]} {
-        catch {db "INSERT INTO invite_users (ftp_user, irc_user) VALUES('$ftpUser', '$ircUser')"}
+    # Build queries.
+    set queryUpdate {UPDATE [Name invite_users] SET [Name irc_user]=[String $ircUser] \
+        WHERE [Name ftp_user]=[String $ftpUser]}
+
+    set queryInsert {INSERT INTO [Name invite_users] ([Name ftp_user irc_user]) \
+        VALUES([String $ftpUser $ircUser])}
+
+    if {![Db::Exec $dbHandle $queryUpdate]} {
+        Db::Exec $dbHandle $queryInsert
     }
 }
 
@@ -191,12 +164,18 @@ proc ::Invite::SetIrcUser {ftpUser ircUser} {
 # Set the invite password for a user.
 #
 proc ::Invite::SetPassword {ftpUser password} {
-    set ftpUser [SqlEscape $ftpUser]
-    set hash [SqlEscape [MakeHash $password]]
+    variable dbHandle
+    set hash [MakeHash $password]
 
-    # Probably the most portable way to do this.
-    if {![db "UPDATE invite_users SET password='$hash' WHERE ftp_user='$ftpUser'"]} {
-        catch {db "INSERT INTO invite_users (ftp_user, password) VALUES('$ftpUser', '$hash')"}
+    # Build queries.
+    set queryUpdate {UPDATE [Name invite_users] SET [Name password]=[String $hash] \
+        WHERE [Name ftp_user]=[String $ftpUser]}
+
+    set queryInsert {INSERT INTO [Name invite_users] ([Name ftp_user password]) \
+        VALUES([String $ftpUser $hash])}
+
+    if {![Db::Exec $dbHandle $queryUpdate]} {
+        Db::Exec $dbHandle $queryInsert
     }
 }
 
@@ -206,6 +185,7 @@ proc ::Invite::SetPassword {ftpUser password} {
 # Change and update IRC invite user options.
 #
 proc ::Invite::Admin {argList} {
+    variable dbHandle
     variable hostCheck
     variable userCheck
 
@@ -225,7 +205,6 @@ proc ::Invite::Admin {argList} {
     }
 
     set ftpUser [lindex $argList 1]
-    set ftpUserEsc [SqlEscape $ftpUser]
     switch -- $event {
         ADDHOST - ADDIP {
             if {![IsTrue $hostCheck]} {
@@ -242,8 +221,10 @@ proc ::Invite::Admin {argList} {
                 LinePuts "Invalid host-mask, must be \"ident@host\"."
                 return 1
             }
+            set query {REPLACE INTO [Name invite_hosts] ([Name ftp_user hostmask]) \
+                VALUES([String $ftpUser $hostMask])}
 
-            db "REPLACE INTO invite_hosts (ftp_user, hostmask) VALUES('$ftpUserEsc', '[SqlEscape $hostMask]')"
+            Db::Exec $dbHandle $query
             LinePuts "Added host-mask \"$hostMask\" to user \"$ftpUser\"."
         }
         DELHOST - DELIP {
@@ -252,8 +233,10 @@ proc ::Invite::Admin {argList} {
                 return 0
             }
             set hostMask [lindex $argList 2]
+            set query {DELETE FROM [Name invite_hosts] WHERE [Name ftp_user]=[String $ftpUser] \
+                AND [Name hostmask]=[String $hostMask]}
 
-            if {[db "DELETE FROM invite_hosts WHERE ftp_user='$ftpUserEsc' AND hostmask='[SqlEscape $hostMask]'"]} {
+            if {[Db::Exec $dbHandle $query]} {
                 LinePuts "Deleted host-mask \"$hostMask\" from user \"$ftpUser\"."
             } else {
                 LinePuts "Invalid host-mask \"$hostMask\" for user \"$ftpUser\"."
@@ -267,16 +250,18 @@ proc ::Invite::Admin {argList} {
             }
             LinePuts "Hosts for user \"$ftpUser\":"
             set count 0
+            set query {SELECT [Name hostmask] FROM [Name invite_hosts] \
+                WHERE [Name ftp_user]=[String $ftpUser] ORDER BY [Name hostmask] ASC}
 
-            foreach row [db "SELECT hostmask FROM invite_hosts WHERE ftp_user='$ftpUserEsc' ORDER BY hostmask ASC"] {
-                incr count
-                LinePuts "- [lindex $row 0]"
+            foreach hostmask [Db::Select $dbHandle -list $query] {
+                LinePuts "- $hostmask"; incr count
             }
             if {!$count} {LinePuts "- No hosts found."}
         }
         DELUSER {
-            if {[db "DELETE FROM invite_users WHERE ftp_user='$ftpUserEsc'"]} {
-                db "DELETE FROM invite_hosts WHERE ftp_user='$ftpUserEsc'"
+            set  count [Db::Exec $dbHandle {DELETE FROM [Name invite_hosts] WHERE [Name ftp_user]=[String $ftpUser]}]
+            incr count [Db::Exec $dbHandle {DELETE FROM [Name invite_users] WHERE [Name ftp_user]=[String $ftpUser]}]
+            if {$count} {
                 LinePuts "Deleted user \"$ftpUser\"."
             } else {
                 LinePuts "Invalid user \"$ftpUser\", check \"SITE INVADMIN USERS\"."
@@ -287,10 +272,11 @@ proc ::Invite::Admin {argList} {
             iputs "| FTP User       | IRC User       | Last Online                |"
             iputs "|--------------------------------------------------------------|"
             set count 0
+            set query {SELECT [Name ftp_user irc_user online time] \
+                FROM [Name invite_users] ORDER BY [Name ftp_user] ASC}
 
-            foreach row [db "SELECT ftp_user, irc_user, online, time FROM invite_users ORDER BY ftp_user ASC"] {
+            foreach {ftpUser ircUser online time} [Db::Select $dbHandle -list $query] {
                 incr count
-                foreach {ftpUser ircUser online time} $row {break}
                 if {!$time} {
                     set online "Never"
                 } elseif {$online} {
@@ -357,6 +343,7 @@ proc ::Invite::Admin {argList} {
 #
 proc ::Invite::Invite {argList} {
     global user group groups flags
+    variable dbHandle
     variable hostCheck
     variable userCheck
 
@@ -364,12 +351,11 @@ proc ::Invite::Invite {argList} {
         LinePuts "Usage: SITE INVITE <nick>"
         return 1
     }
-    set ftpUserEsc [SqlEscape $user]
     set ircUser [lindex $argList 0]
 
     # Check if the user has an invite record.
-    set result [db "SELECT irc_user, password FROM invite_users WHERE ftp_user='$ftpUserEsc'"]
-    set result [lindex $result 0]
+    set query {SELECT [Name irc_user password] FROM [Name invite_users] WHERE [Name ftp_user]=[String $user]}
+    set result [Db::Select $dbHandle -list $query]
     if {![llength $result] || [lindex $result 1] eq ""} {
         LinePuts "No invite password found for your FTP account."
         LinePuts "Please set a password using \"SITE INVPASSWD <password>\"."
@@ -392,7 +378,8 @@ proc ::Invite::Invite {argList} {
     }
 
     # Check if the user has any IRC hosts added.
-    if {[IsTrue $hostCheck] && ![db "SELECT count(*) FROM invite_hosts WHERE ftp_user='$ftpUserEsc'"]} {
+    set query {SELECT COUNT(*) FROM [Name invite_hosts] WHERE [Name ftp_user]=[String $user]}
+    if {[IsTrue $hostCheck] && ![Db::Select $dbHandle -list $query]} {
         LinePuts "Your account does not have any IRC hosts added."
         LinePuts "Ask a siteop to add your IRC host-mask."
         return 1
@@ -410,6 +397,7 @@ proc ::Invite::Invite {argList} {
 #
 proc ::Invite::Passwd {argList} {
     global user
+    variable dbHandle
     variable passLength
     variable passFlags
 
@@ -455,6 +443,8 @@ proc ::Invite::Passwd {argList} {
 # Script entry point.
 #
 proc ::Invite::Main {} {
+    variable database
+    variable dbHandle
     variable isWindows
     variable logPath
 
@@ -485,19 +475,20 @@ proc ::Invite::Main {} {
             } else {iputs $error}
         }
     }
+    set currentPath [file dirname [file normalize [info script]]]
 
     iputs ".-\[Invite\]-----------------------------------------------------."
     set result 1
-    if {![info exists logPath] || ![file exists $logPath]} {
+    if {![info exists logPath] || ![file isdirectory $logPath]} {
         LinePuts "Invalid log path, check configuration."
-
-    } elseif {[catch {package require AlcoExt 0.6} message]} {
+    } elseif {[catch {
+                package require AlcoExt 0.6
+                source [file join $currentPath "libDb.tcl"]
+                set dbHandle [Db::Open $database]
+                Db::Connect $dbHandle
+            } message]} {
         LinePuts $message
-
-    } elseif {[catch {package require tclodbc} message]} {
-        LinePuts $message
-
-    } elseif {[DbConnect]} {
+    } else {
         set event [string toupper [lindex $argList 0]]
         set argList [lrange $argList 1 end]
 
@@ -510,7 +501,7 @@ proc ::Invite::Main {} {
         } else {
             LinePuts "Unknown event \"$event\"."
         }
-        db disconnect
+        Db::Close $dbHandle
     }
 
     iputs "'--------------------------------------------------------------'"
