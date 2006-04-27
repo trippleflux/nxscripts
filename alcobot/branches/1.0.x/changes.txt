@@ -1,3 +1,7 @@
+AlcoBot v1.0.1 (not released):
+  CHG: The FTP library is responsible for loading the TLS extension.
+  FIX: The emulated ioFTPD commands should be created in the proper namespace context.
+
 AlcoBot v1.0.0 (Feb 23, 2006):
   NEW: Improved installation instructions.
   NEW: Option to include or exclude hidden users in bandwidth stats (!bw/!bwdn/!bwup).
