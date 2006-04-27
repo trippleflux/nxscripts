@@ -77,22 +77,9 @@ proc ::Bot::Mod::Invite::GetIrcUser {ftpUser} {
 }
 
 ####
-# DbNotify
-#
-# Called when the connection succeeds or fails.
-#
-proc ::Bot::Mod::Invite::DbNotify {handle success} {
-    if {$success} {
-        LogInfo "Database connection established."
-    } else {
-        LogInfo "Database connection failed - [Db::GetError $handle]"
-    }
-}
-
-####
 # CheckHash
 #
-# Compares a hash created with "MakeHash" with the given password.
+# Checks if a password matches the given hash.
 #
 proc ::Bot::Mod::Invite::CheckHash {hash password} {
     # Convert the hex-encoded hash to binary form.
@@ -117,15 +104,16 @@ proc ::Bot::Mod::Invite::CheckHash {hash password} {
 }
 
 ####
-# MakeHash
+# DbNotify
 #
-# Creates a PKCS #5 v2 hash with a 4 byte salt and hashed 100 rounds with SHA-256.
-# Format: <hex encoded salt>$<hex encoded hash>
+# Called when the connection succeeds or fails.
 #
-proc ::Bot::Mod::Invite::MakeHash {password} {
-    set salt [crypt rand 4]
-    set hash [crypt pkcs5 -v2 -rounds 100 sha256 $salt $password]
-    return [format {%s$%s} [encode hex $salt] [encode hex $hash]]
+proc ::Bot::Mod::Invite::DbNotify {handle success} {
+    if {$success} {
+        LogInfo "Database connection established."
+    } else {
+        LogInfo "Database connection failed - [Db::GetError $handle]"
+    }
 }
 
 ####
