@@ -443,21 +443,22 @@ proc ::Invite::Passwd {argList} {
 # Script entry point.
 #
 proc ::Invite::Main {} {
+    global auto_path tcl_platform
     variable database
     variable dbHandle
     variable isWindows
     variable logPath
 
-    if {$::tcl_platform(platform) eq "windows"} {
+    if {$tcl_platform(platform) eq "windows"} {
         global args
         set isWindows 1
         set argList [ListParse [expr {[info exists args] ? $args : ""}]]
     } else {
-        global env user group groups flags
+        global argv env user group groups flags
         set isWindows 0
 
         # Map variables.
-        set argList $::argv
+        set argList $argv
         set user    $env(USER)
         set group   $env(GROUP)
         set groups  [list $env(GROUP)]
@@ -475,7 +476,12 @@ proc ::Invite::Main {} {
             } else {iputs $error}
         }
     }
+
+    # Add the current directory to the package search path.
     set currentPath [file dirname [file normalize [info script]]]
+    if {![info exists auto_path] || [lsearch -exact $auto_path $currentPath] == -1} {
+        lappend auto_path $currentPath
+    }
 
     iputs ".-\[Invite\]-----------------------------------------------------."
     set result 1
