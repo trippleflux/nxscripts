@@ -260,12 +260,9 @@ proc ::Bot::Mod::Invite::Command {target user host argv} {
 
             if {[PermMatchFlags $uinfo(flags) $type(deleted)]} {
                 # Remove the user's invite record if they are deleted.
-                set query {DELETE FROM [Name invite_hosts] WHERE [Name ftp_user]=[String $ftpUser]; \
-                           DELETE FROM [Name invite_users] WHERE [Name ftp_user]=[String $ftpUser];}
+                Db::Exec $dbHandle {DELETE FROM [Name invite_hosts] WHERE [Name ftp_user]=[String $ftpUser]}
+                Db::Exec $dbHandle {DELETE FROM [Name invite_users] WHERE [Name ftp_user]=[String $ftpUser]}
 
-                if {[catch {Db::Exec $dbHandle $query} message]} {
-                    LogError ModInvite $message
-                }
                 SendTheme $user invalidUser [list $ftpUser $user $host]
             } else {
                 set ftpGroup [lindex $uinfo(groups) 0]
@@ -359,12 +356,8 @@ proc ::Bot::Mod::Invite::LogEvent {event destSection pathSection path data} {
         # Remove invite record when a user is deleted or purged.
         set ftpUser [lindex $data 1]
         if {[Db::GetStatus $dbHandle]} {
-            set query {DELETE FROM [Name invite_hosts] WHERE [Name ftp_user]=[String $ftpUser]; \
-                       DELETE FROM [Name invite_users] WHERE [Name ftp_user]=[String $ftpUser];}
-
-            if {[catch {Db::Exec $dbHandle $query} message]} {
-                LogError ModInvite $message
-            }
+            Db::Exec $dbHandle {DELETE FROM [Name invite_hosts] WHERE [Name ftp_user]=[String $ftpUser]}
+            Db::Exec $dbHandle {DELETE FROM [Name invite_users] WHERE [Name ftp_user]=[String $ftpUser]}
         }
     } else {
         LogError ModInvite "Unknown log event \"$event\"."
