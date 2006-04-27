@@ -1,3 +1,7 @@
+AlcoBot v1.1.1 (not released):
+  FIX: Allow any characters for section names in colour definitions.
+  FIX: The bouncer module used the wrong footer theme entry.
+
 AlcoBot v1.1.0 (Apr 12, 2006):
   NEW: Commands can throw CMDHELP and GETOPT errors to display command usage.
   NEW: Modules are reference counted, so dependencies won't be unloaded early.
