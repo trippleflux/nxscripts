@@ -64,7 +64,7 @@ proc ::Config::Open {filePath args} {
                 }
                 set comment $value
             }
-            default {error "invalid switch \"$option\": must be -align or -comment"}
+            default {error "invalid option \"$option\": must be -align or -comment"}
         }
     }
     set handle "config$nextHandle"
@@ -97,7 +97,7 @@ proc ::Config::Open {filePath args} {
 proc ::Config::Change {handle option args} {
     Acquire $handle config
     if {[lsearch -exact {-align -comment -path} $option] == -1} {
-        error "invalid switch \"$option\": must be -align, -comment, or -path"
+        error "invalid option \"$option\": must be -align, -comment, or -path"
     }
     regexp -- {-(\w+)} $option result option
 

@@ -24,7 +24,7 @@
 #   Db::Connect     <handle>
 #   Db::Disconnect  <handle>
 #   Db::Exec        <handle> <statement>
-#   Db::Select      <handle> <type> <statement>
+#   Db::Select      <handle> <option> <statement>
 #   Db::Escape      <handle> <value>
 #   Db::Pattern     <handle> <value>
 #   Db::QuoteName   <handle> <value> [value ...]
@@ -66,9 +66,9 @@ namespace eval ::Db {
 #  <driver>://<user>:<password>@<host>:<port>/<dbname>
 #
 # Options:
-#  -debug  <callback>
-#  -notify <callback>
-#  -ping   <minutes>
+#  -debug  <callback> - Debug logging callback.
+#  -notify <callback> - Connection notification callback.
+#  -ping   <minutes>  - Check the database connection.
 #
 # Example:
 #  sqlite3:data/my.db
@@ -97,7 +97,7 @@ proc ::Db::Open {connString args} {
             }
             set ping $value
         } else {
-            error "invalid switch \"$name\": must be -debug, -notify, or -ping"
+            error "invalid option \"$name\": must be -debug, -notify, or -ping"
         }
     }
 
@@ -232,7 +232,12 @@ proc ::Db::Exec {handle statement} {
 #
 # Executes the given SQL statement and returns the results.
 #
-proc ::Db::Select {handle type statement} {
+# Options:
+#  -list  - A list of values.
+#  -llist - A list of lists; the outer lists contains rows and the inner
+#           list contains the values for each column of the row.
+#
+proc ::Db::Select {handle option statement} {
     Acquire $handle db
     if {$db(object) eq ""} {
         throw DB "not connected"
@@ -241,12 +246,12 @@ proc ::Db::Select {handle type statement} {
     regsub -all -- {([^\B]\[)} $statement "\\1::Db::$db(driver)::Func::" statement
     set statement [uplevel [list subst $statement]]
 
-    if {$type eq "-list"} {
+    if {$option eq "-list"} {
         return [::Db::$db(driver)::SelectList $db(object) $statement]
-    } elseif {$type eq "-llist"} {
+    } elseif {$option eq "-llist"} {
         return [::Db::$db(driver)::SelectNestedList $db(object) $statement]
     }
-    error "invalid type \"$type\": must be -list or -llist"
+    error "invalid option \"$option\": must be -list or -llist"
 }
 
 ####

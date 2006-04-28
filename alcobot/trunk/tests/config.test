@@ -43,9 +43,9 @@ test config-1.3 {Open: no args} {
     list [catch {Config::Open} msg] $msg
 } {1 {wrong # args: should be "Config::Open filePath args"}}
 
-test config-1.4 {Open: invalid switches} {
+test config-1.4 {Open: invalid optiones} {
     list [catch {Config::Open test.conf -fake switch} msg] $msg
-} {1 {invalid switch "-fake": must be -align or -comment}}
+} {1 {invalid option "-fake": must be -align or -comment}}
 
 test config-1.5 {Open: -align switch} {
     list [catch {Config::Open test.conf -align a} msg] $msg
@@ -79,19 +79,19 @@ test config-2.3 {Change: invalid handle} {
     list [catch {Config::Change configTEST a} msg] $msg
 } {1 {invalid config handle "configTEST"}}
 
-test config-2.4 {Change: invalid switch} {
+test config-2.4 {Change: invalid option} {
     set handle [Config::Open test.conf]
     set result [list [catch {Config::Change $handle -fake 0} msg] $msg]
     Config::Close $handle
     set result
-} {1 {invalid switch "-fake": must be -align, -comment, or -path}}
+} {1 {invalid option "-fake": must be -align, -comment, or -path}}
 
-test config-2.5 {Change: invalid switch, no value} {
+test config-2.5 {Change: invalid option, no value} {
     set handle [Config::Open test.conf]
     set result [list [catch {Config::Change $handle -fake} msg] $msg]
     Config::Close $handle
     set result
-} {1 {invalid switch "-fake": must be -align, -comment, or -path}}
+} {1 {invalid option "-fake": must be -align, -comment, or -path}}
 
 test config-2.6 {Change: too many args} {
     set handle [Config::Open test.conf]

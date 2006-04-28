@@ -68,7 +68,7 @@ proc ::Ftp::Open {host port user passwd args} {
             }
             set secure $value
         } else {
-            error "invalid switch \"$name\": must be -debug, -notify, or -secure"
+            error "invalid option \"$name\": must be -debug, -notify, or -secure"
         }
     }
     set handle "ftp$nextHandle"
