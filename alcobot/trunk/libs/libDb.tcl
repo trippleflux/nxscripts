@@ -474,7 +474,7 @@ proc ::Db::ParseURI {url} {
 
 namespace eval ::Db::MySQL {
     namespace eval Func {}
-    variable params {compress encoding foundrows interactive localfiles multiresult multistatement noschema odbc socket ssl sslca sslcapath sslcert sslcipher sslkey}
+    variable params {compress encoding interactive socket ssl sslca sslcapath sslcert sslcipher sslkey}
 }
 
 proc ::Db::MySQL::Init {} {
@@ -485,7 +485,8 @@ proc ::Db::MySQL::Connect {options} {
     variable params
     array set option $options
 
-    set connOptions [list]
+    # MySQL does not allow multiple statements by default.
+    set connOptions [list "-multistatement" 1]
     foreach {name value} $options {
         if {[lsearch -exact {host password port user} $name] != -1} {
             lappend connOptions "-$name" $value
