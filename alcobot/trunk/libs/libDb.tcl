@@ -23,6 +23,7 @@
 #   Db::GetStatus   <handle>
 #   Db::Connect     <handle>
 #   Db::Disconnect  <handle>
+#   Db::Info        <handle> <option>
 #   Db::Exec        <handle> <statement>
 #   Db::Select      <handle> <option> <statement>
 #   Db::Escape      <handle> <value>
@@ -211,6 +212,28 @@ proc ::Db::Disconnect {handle} {
 }
 
 ####
+# Db::Info
+#
+# Retrieves information about the database connection.
+#
+# Options:
+#  -client    - Client version.
+#  -databases - List of all databases.
+#  -server    - Server version.
+#  -tables    - List of tables in the current database.
+#
+proc ::Db::Info {handle option} {
+    Acquire $handle db
+    if {$db(object) eq ""} {
+        throw DB "not connected"
+    }
+    if {[lsearch -exact {-client -databases -server -tables} $option] == -1} {
+        error "invalid option \"$option\": must be -client, -databases, -server or -tables"
+    }
+    return [::Db::$db(driver)::Info $db(object) [string range $option 1 end]]
+}
+
+####
 # Db::Exec
 #
 # Executes the given SQL statement and returns the number of affected rows.
@@ -325,11 +348,11 @@ proc ::Db::ConnOpen {handle} {
     upvar ::Db::$handle db
     if {[catch {set db(object) [::Db::$db(driver)::Connect $db(options)]} message]} {
         set success 0
-        Debug $db(debug) DbConnect "Connection to $db(driver) failed: $message"
+        Debug $db(debug) DbConnect "Unable to connect: $message"
     } else {
-        set message ""
-        set success 1
-        Debug $db(debug) DbConnect "Connection to $db(driver) succeeded."
+        set success 1; set message ""
+        set server [::Db::$db(driver)::Info $db(object) "server"]
+        Debug $db(debug) DbConnect "Successfully connected to $server."
     }
     set db(error) $message
     Evaluate $db(debug) $db(notify) $handle $success
@@ -523,6 +546,27 @@ proc ::Db::MySQL::Ping {object} {
     return [mysql::ping $object]
 }
 
+proc ::Db::MySQL::Info {object option} {
+    set result ""
+    switch -- $option {
+        client {
+            set result "MySQL Client v"
+            append result [mysql::baseinfo clientversion]
+        }
+        databases {
+            set result [mysql::info $object databases]
+        }
+        server {
+            set result "MySQL Server v"
+            append result [mysql::info $object serverversion]
+        }
+        tables {
+            set result [mysql::info $object tables]
+        }
+    }
+    return $result
+}
+
 proc ::Db::MySQL::Exec {object statement} {
     return [mysql::exec $object $statement]
 }
@@ -629,7 +673,27 @@ proc ::Db::PostgreSQL::Ping {object} {
     return 1
 }
 
-proc ::Db::PostgreSQL::GetResult {object statement option} {
+proc ::Db::PostgreSQL::Info {object option} {
+    set result ""
+    switch -- $option {
+        client {
+            set result "PostgreSQL Client"
+        }
+        databases {
+            set result [GetResult $object -list "SELECT datname FROM pg_database"]
+        }
+        server {
+            set result "PostgreSQL Server v"
+            append result [lindex [GetResult $object -list "SELECT version()"] 0]
+        }
+        tables {
+            set result [GetResult $object -list "SELECT tablename FROM pg_tables"]
+        }
+    }
+    return $result
+}
+
+proc ::Db::PostgreSQL::GetResult {object option statement} {
     set handle [pg_exec $object $statement]
 
     # Check if the statement failed.
@@ -646,15 +710,15 @@ proc ::Db::PostgreSQL::GetResult {object statement option} {
 }
 
 proc ::Db::PostgreSQL::Exec {object statement} {
-    return [GetResult $object $statement -cmdTuples]
+    return [GetResult $object -cmdTuples $statement]
 }
 
 proc ::Db::PostgreSQL::SelectList {object statement} {
-    return [GetResult $object $statement -list]
+    return [GetResult $object -list $statement]
 }
 
 proc ::Db::PostgreSQL::SelectNestedList {object statement} {
-    return [GetResult $object $statement -llist]
+    return [GetResult $object -llist $statement]
 }
 
 # Comparison Functions
@@ -725,6 +789,26 @@ proc ::Db::SQLite::Connect {options} {
 
 proc ::Db::SQLite::Disconnect {object} {
     $object close
+}
+
+proc ::Db::SQLite::Info {object option} {
+    set result ""
+    switch -- $option {
+        client - server {
+            set result "SQLite v"
+            append result [sqlite3 -version]
+        }
+        databases {
+            $object eval {PRAGMA database_list} row {
+                lappend result $row(name)
+            }
+        }
+        tables {
+            set result [$object eval "SELECT name FROM sqlite_master \
+                WHERE type IN ('table','view') AND name NOT LIKE 'sqlite_%'"]
+        }
+    }
+    return $result
 }
 
 proc ::Db::SQLite::Ping {object} {
