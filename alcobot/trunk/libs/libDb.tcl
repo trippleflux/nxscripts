@@ -32,6 +32,7 @@
 #   Db::QuoteString <handle> <value> [value ...]
 #
 # Statement Functions:
+#   Column    <name> <type> [-autoinc] [-default <value>] [-notnull] [-primary] [-unsigned]
 #   Like      <value> <pattern> [escape char]
 #   NotLike   <value> <pattern> [escape char]
 #   Regexp    <value> <pattern>
@@ -199,18 +200,18 @@ proc ::Db::Disconnect {handle} {
 # Retrieves information about the database connection.
 #
 # Options:
-#  -client    - Client version.
-#  -databases - List of all databases.
-#  -server    - Server version.
-#  -tables    - List of tables in the current database.
+#  client    - Client version.
+#  databases - List of all databases.
+#  server    - Server version.
+#  tables    - List of tables in the current database.
 #
 proc ::Db::Info {handle option} {
     Acquire $handle db
     if {$db(object) eq ""} {
         throw DB "not connected"
     }
-    set option [GetOpt::Element {-client -databases -server -tables} $option]
-    return [Db::$db(driver)::Info $db(object) [string range $option 1 end]]
+    set option [GetOpt::Element {client databases server tables} $option]
+    return [Db::$db(driver)::Info $db(object) $option]
 }
 
 ####
@@ -557,7 +558,33 @@ proc ::Db::MySQL::SelectNestedList {object statement} {
     return [mysql::sel $object $statement -list]
 }
 
-# Comparison Functions
+# Functions
+
+proc ::Db::MySQL::Func::Column {name type args} {
+    GetOpt::Parse $args {autoinc {default arg} notnull primary unsigned} option
+
+    # Set name and data-type.
+    set result [Name $name]
+    append result " " [string toupper $type]
+    if {[info exists option(unsigned)]} {
+        append result " UNSIGNED"
+    }
+
+    # Set constraints and options.
+    if {[info exists option(primary)]} {
+        append result " PRIMARY KEY"
+    }
+    if {[info exists option(autoinc)]} {
+        append result " AUTO_INCREMENT"
+    }
+    if {[info exists option(notnull)]} {
+        append result " NOT NULL"
+    }
+    if {[info exists option(default)]} {
+        append result " DEFAULT $option(default)"
+    }
+    return $result
+}
 
 proc ::Db::MySQL::Func::Like {value pattern {escape "\\"}} {
     return "$value LIKE $pattern ESCAPE [String $escape]"
@@ -574,8 +601,6 @@ proc ::Db::MySQL::Func::Regexp {value pattern} {
 proc ::Db::MySQL::Func::NotRegexp {value pattern} {
     return "$value NOT REGEXP $pattern"
 }
-
-# Quoting Functions
 
 proc ::Db::MySQL::Func::Escape {value} {
     return [mysql::escape $value]
@@ -696,7 +721,31 @@ proc ::Db::PostgreSQL::SelectNestedList {object statement} {
     return [GetResult $object -llist $statement]
 }
 
-# Comparison Functions
+# Functions
+
+proc ::Db::PostgreSQL::Func::Column {name type args} {
+    GetOpt::Parse $args {autoinc {default arg} notnull primary unsigned} option
+
+    # Set name and data-type.
+    set result [Name $name]
+    if {[IsTrue $option(autoinc)]} {
+        append result " SERIAL"
+    } else {
+        append result " " [string toupper $type]
+    }
+
+    # Set constraints and options.
+    if {[info exists option(primary)]} {
+        append result " PRIMARY KEY"
+    }
+    if {[info exists option(notnull)]} {
+        append result " NOT NULL"
+    }
+    if {[info exists option(default)]} {
+        append result " DEFAULT $option(default)"
+    }
+    return $result
+}
 
 proc ::Db::PostgreSQL::Func::Like {value pattern {escape "\\"}} {
     return "$value ILIKE $pattern ESCAPE [String $escape]"
@@ -713,8 +762,6 @@ proc ::Db::PostgreSQL::Func::Regexp {value pattern} {
 proc ::Db::PostgreSQL::Func::NotRegexp {value pattern} {
     return "$value !~* $pattern"
 }
-
-# Quoting Functions
 
 proc ::Db::PostgreSQL::Func::Escape {value} {
     return [pg_escape_string $value]
@@ -809,7 +856,37 @@ proc ::Db::SQLite::SelectNestedList {object statement} {
     return $result
 }
 
-# Comparison Functions
+# Functions
+
+proc ::Db::SQLite::Func::Column {name type args} {
+    GetOpt::Parse $args {autoinc {default arg} notnull primary unsigned} option
+
+    # Set name and data-type.
+    set result [Name $name]
+    set type [string toupper $type]
+    switch -glob -- $type {
+        "*INT*" {set type "INTEGER"}
+        "*CHAR*" -
+        "*CLOB*" -
+        "*TEXT*" {set type "TEXT"}
+    }
+    append result " " $type
+
+    # Set constraints and options.
+    if {[info exists option(primary)]} {
+        append result " PRIMARY KEY"
+    }
+    if {[info exists option(autoinc)]} {
+        append result " AUTOINCREMENT"
+    }
+    if {[info exists option(notnull)]} {
+        append result " NOT NULL"
+    }
+    if {[info exists option(default)]} {
+        append result " DEFAULT $option(default)"
+    }
+    return $result
+}
 
 proc ::Db::SQLite::Func::Like {value pattern {escape "\\"}} {
     return "$value LIKE $pattern ESCAPE [String $escape]"
@@ -826,8 +903,6 @@ proc ::Db::SQLite::Func::Regexp {value pattern} {
 proc ::Db::SQLite::Func::NotRegexp {value pattern} {
     return "$value NOT REGEXP $pattern"
 }
-
-# Quoting Functions
 
 proc ::Db::SQLite::Func::Escape {value} {
     return [string map {\\ \\\\ ` \\` ' \\' \" \\\"} $value]
