@@ -42,7 +42,7 @@ test getopt-1.3 {Element: partial match} {
 
 test getopt-1.4 {Element: no match} {
     list [catch {GetOpt::Element {zero one two three four} . blah} msg] $msg
-} {1 {invalid blah ".", must be zero, one, two, three, or four}}
+} {1 {invalid blah ".": must be zero, one, two, three, or four}}
 
 ################################################################################
 # GetOpt::Index                                                                #
@@ -88,7 +88,7 @@ test getopt-3.3 {Parse: invalid type} {
         list [catch {GetOpt::Parse "" {one {two .} three} result} msg] $msg
     }
     -match glob
-    -result {1 {invalid option definition "two .":  bad type ".", must be *}}
+    -result {1 {invalid option definition "two .":  bad type ".": must be *}}
 }
 
 test getopt-3.4 {Parse: invalid option} {
@@ -129,7 +129,7 @@ test getopt-3.10 {Parse: typed value} {
 test getopt-3.11 {Parse: invalid prefined value} {
     unset -nocomplain result
     list [catch {GetOpt::Parse "-one 5 -type . -three" {{one integer} {type arg {exact glob regexp}} three} result} msg] $msg
-} {1 {invalid value ".", must be exact, glob, or regexp}}
+} {1 {invalid value ".": must be exact, glob, or regexp}}
 
 test getopt-3.12 {Parse: prefined value, exact match} {
     unset -nocomplain result

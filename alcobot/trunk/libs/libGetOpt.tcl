@@ -37,13 +37,12 @@ namespace eval ::GetOpt {
 ####
 # GetOpt::Element
 #
-# Simple wrapper around ::GetOpt::Index, an error is thrown if no
-# match is found.
+# Simple wrapper around GetOpt::Index, an error is thrown if no match is found.
 #
 proc ::GetOpt::Element {list element {type "option"}} {
     set index [Index $list $element]
     if {$index == -1} {
-        throw GETOPT "invalid $type \"$element\", must be [ListConvert $list or]"
+        throw GETOPT "invalid $type \"$element\": must be [ListConvert $list or]"
     }
     return [lindex $list $index]
 }
@@ -119,7 +118,7 @@ proc ::GetOpt::Parse {argList optList resultVar} {
             2 {
                 if {[lsearch -exact $types [lindex $option 1]] == -1} {
                     error "invalid option definition \"$option\": \
-                        bad type \"[lindex $option 1]\", must be [ListConvert $types or]"
+                        bad type \"[lindex $option 1]\": must be [ListConvert $types or]"
                 }
             }
             3 {
