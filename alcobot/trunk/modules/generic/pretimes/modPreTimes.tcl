@@ -27,10 +27,28 @@ namespace eval ::Bot::Mod::PreTimes {
 # Called when the connection succeeds or fails.
 #
 proc ::Bot::Mod::PreTimes::DbNotify {handle success} {
-    if {$success} {
-        LogInfo "Database connection established."
-    } else {
+    if {!$success} {
         LogInfo "Database connection failed - [Db::GetError $handle]"
+        return
+    }
+    LogInfo "Database connection established."
+
+    if {[lsearch -exact [Db::Info $handle tables] "pretimes"] == -1} {
+        set query {CREATE TABLE [Name pretimes] (
+            [Column id       int          -autoinc -notnull -primary -unsigned],
+            [Column pretime  int          -default 0 -notnull],
+            [Column section  varchar(25)  -default NULL],
+            [Column release  varchar(255) -notnull],
+            [Column files    int          -default 0 -notnull -unsigned],
+            [Column kbytes   int          -default 0 -notnull -unsigned],
+            [Column disks    smallint     -default 0 -notnull -unsigned],
+            [Column nuked    smallint(1)  -default 0 -notnull],
+            [Column nuketime int          -default 0 -notnull],
+            [Column reason   varchar(255) -default NULL],
+            UNIQUE ([Name release])
+        )}
+        LogInfo "Creating the \"pretimes\" table."
+        Db::Exec $handle $query
     }
 }
 
@@ -115,6 +133,9 @@ proc ::Bot::Mod::PreTimes::Group {target user host channel argv} {
     set group [join $argv]
 
     if {[Db::GetStatus $dbHandle]} {
+        # It would be easier to create a temporary view and work from that,
+        # but MySQL added support for views in v5.0.1. I would like to maintain
+        # backwards compatibility to at least MySQL v4.0, so views are not viable.
         set pattern [string map {% \\% _ \\_} $group]
         set pattern "%-$pattern"
 
@@ -170,8 +191,7 @@ proc ::Bot::Mod::PreTimes::Search {target user host channel argv} {
     variable dbHandle
 
     # Parse command options.
-    set option(limit) -1
-    set option(match) wild
+    array set option [list limit -1 match "wild"]
     set pattern [join [GetOpt::Parse $argv {{limit integer} {match arg {exact regexp wild}} {section arg}} option]]
     if {$pattern eq ""} {
         throw CMDHELP "you must specify a pattern"

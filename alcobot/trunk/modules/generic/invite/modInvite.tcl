@@ -109,10 +109,34 @@ proc ::Bot::Mod::Invite::CheckHash {hash password} {
 # Called when the connection succeeds or fails.
 #
 proc ::Bot::Mod::Invite::DbNotify {handle success} {
-    if {$success} {
-        LogInfo "Database connection established."
-    } else {
+    if {!$success} {
         LogInfo "Database connection failed - [Db::GetError $handle]"
+        return
+    }
+    LogInfo "Database connection established."
+    set tables [Db::Info $handle tables]
+
+    if {[lsearch -exact $tables "invite_hosts"] == -1} {
+        set query {CREATE TABLE [Name invite_hosts] (
+            [Column ftp_user varchar(100) -notnull],
+            [Column hostmask varchar(255) -notnull],
+            PRIMARY KEY ([Name ftp_user hostmask])
+        )}
+        LogInfo "Creating the \"invite_hosts\" table."
+        Db::Exec $handle $query
+    }
+
+    if {[lsearch -exact $tables "invite_users"] == -1} {
+        set query {CREATE TABLE [Name invite_users] (
+            [Column ftp_user varchar(100) -notnull],
+            [Column irc_user varchar(100) -default NULL],
+            [Column online   smallint(1)  -default 0 -notnull],
+            [Column password varchar(100) -default NULL],
+            [Column time     int          -default 0 -notnull],
+            PRIMARY KEY ([Name ftp_user])
+        )}
+        LogInfo "Creating the \"invite_users\" table."
+        Db::Exec $handle $query
     }
 }
 

@@ -334,8 +334,8 @@ before use. Read the following installation instructions:
   Info: Invite users into selected IRC channel(s).
   Path: modules/generic/invite
 
-  1. Create a MySQL, PostgreSQL, or SQLite database. Import the required
-     table schema, invite.sql (located in the module's directory).
+  1. Create a MySQL, PostgreSQL, or SQLite database. The tables are
+     automatically created when AlcoBot connects to the database.
   2. Add "invite" to the module list in AlcoBot.conf.
   3. Configure the [Module::Invite] section in AlcoBot.conf.
   4. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
@@ -386,8 +386,8 @@ before use. Read the following installation instructions:
   Info: Display and search for release pre times.
   Path: modules/generic/pretimes
 
-  1. Create a MySQL, PostgreSQL, or SQLite database. Import the required
-     table schema, pretimes.sql (located in the module's directory).
+  1. Create a MySQL, PostgreSQL, or SQLite database. The tables are
+     automatically created when AlcoBot connects to the database.
   2. Add "pretimes" to the module list in AlcoBot.conf.
   3. Configure the [Module::PreTimes] section in AlcoBot.conf.
   4. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
