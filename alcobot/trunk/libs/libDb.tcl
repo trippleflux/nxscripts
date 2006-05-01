@@ -85,13 +85,9 @@ proc ::Db::Open {connString args} {
     if {![info exists driverMap($uri(scheme))]} {
         throw DB "unknown driver \"$uri(scheme)\""
     }
+    if {![info exists uri(params)]} {set uri(params) ""}
     array set option [list debug "" notify "" ping 0]
     GetOpt::Parse $args {{debug arg} {notify arg} {ping integer}} option
-
-    # Make sure the "params" element always exists.
-    if {![info exists uri(params)]} {
-        set uri(params) [list]
-    }
 
     # Initialise the driver.
     set driver $driverMap($uri(scheme))
@@ -295,7 +291,7 @@ proc ::Db::Pattern {handle value} {
 #
 proc ::Db::QuoteName {handle args} {
     Acquire $handle db
-    return [eval ::Db::$db(driver)::Func::Name $args]
+    return [eval Db::$db(driver)::Func::Name $args]
 }
 
 ####
@@ -305,7 +301,7 @@ proc ::Db::QuoteName {handle args} {
 #
 proc ::Db::QuoteString {handle args} {
     Acquire $handle db
-    return [eval ::Db::$db(driver)::Func::String $args]
+    return [eval Db::$db(driver)::Func::String $args]
 }
 
 ################################################################################
@@ -514,12 +510,9 @@ proc ::Db::MySQL::Connect {options} {
 
     # Optional parameters.
     foreach {name value} $option(params) {
-        if {[lsearch -exact $params $name] == -1} {
-            throw DB "unsupported parameter \"$name\""
-        }
+        set name [GetOpt::Element $params $name]
         lappend connOptions "-$name" $value
     }
-
     return [eval mysql::connect $connOptions]
 }
 
@@ -621,28 +614,25 @@ proc ::Db::PostgreSQL::Connect {options} {
     variable params
     array set option $options
 
-    set connOptions [list]
+    set connInfo ""
     foreach {name value} $options {
         if {[lsearch -exact {host password port user} $name] != -1} {
-            lappend connOptions "$name=[pg_quote $value]"
+            append connInfo " $name=" [pg_quote $value]
         } elseif {$name eq "path"} {
             # Remove the leading slash, if present.
             if {[string index $value 0] eq "/"} {
                 set value [string range $value 1 end]
             }
-            lappend connOptions "dbname=[pg_quote $value]"
+            append connInfo " dbname=" [pg_quote $value]
         }
     }
 
     # Optional parameters.
     foreach {name value} $option(params) {
-        if {[lsearch -exact $params $name] == -1} {
-            throw DB "unsupported parameter \"$name\""
-        }
-        lappend connOptions "$name=[pg_quote $value]"
+        set name [GetOpt::Element $params $name]
+        append connInfo " $name=" [pg_quote $value]
     }
-
-    return [pg_connect -conninfo [join $connOptions]]
+    return [pg_connect -conninfo $connInfo]
 }
 
 proc ::Db::PostgreSQL::Disconnect {object} {
