@@ -47,25 +47,12 @@ namespace eval ::Config {
 #
 proc ::Config::Open {filePath args} {
     variable nextHandle
-    set align 0
-    set comment "#"
 
-    foreach {option value} $args {
-        switch -- $option {
-            -align {
-                if {![string is digit -strict $value]} {
-                    error "expected digit but got \"$value\""
-                }
-                set align $value
-            }
-            -comment {
-                if {[string length $value] != 1} {
-                    error "invalid comment \"$value\": must be one character"
-                }
-                set comment $value
-            }
-            default {error "invalid option \"$option\": must be -align or -comment"}
-        }
+    # Parse arguments.
+    array set option [list align 0 comment "#"]
+    GetOpt::Parse $args {{align integer} {comment arg}} option
+    if {[string length $option(comment)] != 1} {
+        error "invalid comment \"$option(comment)\": must be one character"
     }
     set handle "config$nextHandle"
     upvar ::Config::$handle config
@@ -78,11 +65,11 @@ proc ::Config::Open {filePath args} {
     # ftp(tree)    - Config data tree.
     # ftp(path)    - Path to the config file.
     #
-    array set config [list     \
-        align   $align         \
-        comment $comment       \
-        tree    [Tree::Create] \
-        path    $filePath      \
+    array set config [list       \
+        align   $option(align)   \
+        comment $option(comment) \
+        tree    [Tree::Create]   \
+        path    $filePath        \
     ]
 
     incr nextHandle
@@ -96,9 +83,7 @@ proc ::Config::Open {filePath args} {
 #
 proc ::Config::Change {handle option args} {
     Acquire $handle config
-    if {[lsearch -exact {-align -comment -path} $option] == -1} {
-        error "invalid option \"$option\": must be -align, -comment, or -path"
-    }
+    set option [GetOpt::Element {-align -comment -path} $option]
     regexp -- {-(\w+)} $option result option
 
     set argc [llength $args]
@@ -108,8 +93,8 @@ proc ::Config::Change {handle option args} {
         set value [lindex $args 0]
         switch -- $option {
             align {
-                if {![string is digit -strict $value]} {
-                    error "expected digit but got \"$value\""
+                if {![string is integer -strict $value]} {
+                    error "expected integer but got \"$value\""
                 }
                 set config(align) $value
             }
@@ -122,10 +107,8 @@ proc ::Config::Change {handle option args} {
             path {set config(path) $value}
         }
         return $value
-    } else {
-        error "wrong # args: must be \"Config::Change handle option ?value?\""
     }
-    return
+    error "wrong # args: must be \"Config::Change handle option ?value?\""
 }
 
 ####

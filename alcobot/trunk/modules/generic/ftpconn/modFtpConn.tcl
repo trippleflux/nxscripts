@@ -86,6 +86,9 @@ proc ::Bot::Mod::FtpConn::Load {firstLoad} {
     # Retrieve configuration options.
     array set option [Config::GetMulti $configHandle Module::FtpConn \
         host port user passwd secure]
+    if {$option(secure) eq ""} {
+        set option(secure) "none"
+    }
 
     # Open a connection to the FTP server.
     if {$firstLoad} {

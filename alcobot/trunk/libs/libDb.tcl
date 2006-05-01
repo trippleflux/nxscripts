@@ -85,22 +85,8 @@ proc ::Db::Open {connString args} {
     if {![info exists driverMap($uri(scheme))]} {
         throw DB "unknown driver \"$uri(scheme)\""
     }
-    set debug ""; set notify ""; set ping 0
-
-    foreach {name value} $args {
-        if {$name eq "-debug"} {
-            set debug $value
-        } elseif {$name eq "-notify"} {
-            set notify $value
-        } elseif {$name eq "-ping"} {
-            if {![string is digit -strict $value]} {
-                error "expected digit but got \"$value\""
-            }
-            set ping $value
-        } else {
-            error "invalid option \"$name\": must be -debug, -notify, or -ping"
-        }
-    }
+    array set option [list debug "" notify "" ping 0]
+    GetOpt::Parse $args {{debug arg} {notify arg} {ping integer}} option
 
     # Make sure the "params" element always exists.
     if {![info exists uri(params)]} {
@@ -126,13 +112,13 @@ proc ::Db::Open {connString args} {
     # db(timerId) - Timer identifier.
     #
     array set db [list          \
-        debug   $debug          \
+        debug   $option(debug)  \
         driver  $driver         \
         error   ""              \
-        notify  $notify         \
+        notify  $option(notify) \
         object  ""              \
         options [array get uri] \
-        ping    $ping           \
+        ping    $option(ping)   \
         timerId ""              \
     ]
 
@@ -227,10 +213,8 @@ proc ::Db::Info {handle option} {
     if {$db(object) eq ""} {
         throw DB "not connected"
     }
-    if {[lsearch -exact {-client -databases -server -tables} $option] == -1} {
-        error "invalid option \"$option\": must be -client, -databases, -server or -tables"
-    }
-    return [::Db::$db(driver)::Info $db(object) [string range $option 1 end]]
+    set option [GetOpt::Element {-client -databases -server -tables} $option]
+    return [Db::$db(driver)::Info $db(object) [string range $option 1 end]]
 }
 
 ####
@@ -247,7 +231,7 @@ proc ::Db::Exec {handle statement} {
     regsub -all -- {([^\B]\[)} $statement "\\1::Db::$db(driver)::Func::" statement
     set statement [uplevel [list subst $statement]]
 
-    return [::Db::$db(driver)::Exec $db(object) $statement]
+    return [Db::$db(driver)::Exec $db(object) $statement]
 }
 
 ####
@@ -265,16 +249,17 @@ proc ::Db::Select {handle option statement} {
     if {$db(object) eq ""} {
         throw DB "not connected"
     }
+    set option [GetOpt::Element {-list -llist} $option]
+
     # Generate the SQL statement.
     regsub -all -- {([^\B]\[)} $statement "\\1::Db::$db(driver)::Func::" statement
     set statement [uplevel [list subst $statement]]
 
     if {$option eq "-list"} {
-        return [::Db::$db(driver)::SelectList $db(object) $statement]
+        return [Db::$db(driver)::SelectList $db(object) $statement]
     } elseif {$option eq "-llist"} {
-        return [::Db::$db(driver)::SelectNestedList $db(object) $statement]
+        return [Db::$db(driver)::SelectNestedList $db(object) $statement]
     }
-    error "invalid option \"$option\": must be -list or -llist"
 }
 
 ####
@@ -284,7 +269,7 @@ proc ::Db::Select {handle option statement} {
 #
 proc ::Db::Escape {handle value} {
     Acquire $handle db
-    return [::Db::$db(driver)::Func::Escape $value]
+    return [Db::$db(driver)::Func::Escape $value]
 }
 
 ####
@@ -299,7 +284,7 @@ proc ::Db::Pattern {handle value} {
     regsub -all -- {[\s\*]+} $value "*" value
 
     # Map wild-card characters to LIKE characters.
-    set value [::Db::$db(driver)::Func::Escape $value]
+    set value [Db::$db(driver)::Func::Escape $value]
     return [string map {* % ? _} [string map {% \\% _ \\_} $value]]
 }
 
@@ -346,12 +331,12 @@ proc ::Db::Acquire {handle handleVar} {
 #
 proc ::Db::ConnOpen {handle} {
     upvar ::Db::$handle db
-    if {[catch {set db(object) [::Db::$db(driver)::Connect $db(options)]} message]} {
+    if {[catch {set db(object) [Db::$db(driver)::Connect $db(options)]} message]} {
         set success 0
         Debug $db(debug) DbConnect "Unable to connect: $message"
     } else {
         set success 1; set message ""
-        set server [::Db::$db(driver)::Info $db(object) "server"]
+        set server [Db::$db(driver)::Info $db(object) "server"]
         Debug $db(debug) DbConnect "Successfully connected to $server."
     }
     set db(error) $message
@@ -407,7 +392,7 @@ proc ::Db::Ping {handle} {
 
     if {$db(object) eq ""} {
         set retry 1
-    } elseif {![::Db::$db(driver)::Ping $db(object)]} {
+    } elseif {![Db::$db(driver)::Ping $db(object)]} {
         set retry 1
         Debug $db(debug) DbPing "Unable to ping server, attempting to re-connect."
         ConnClose $handle

@@ -47,29 +47,11 @@ namespace eval ::Ftp {
 proc ::Ftp::Open {host port user passwd args} {
     variable nextHandle
 
-    set debug ""; set notify ""; set secure ""
-    foreach {name value} $args {
-        if {$name eq "-debug"} {
-            set debug $value
-        } elseif {$name eq "-notify"} {
-            set notify $value
-        } elseif {$name eq "-secure"} {
-            switch -- $value {
-                {} {}
-                none {set value ""}
-                implicit - ssl - tls {
-                    if {[catch {package require tls 1.5} message]} {
-                        throw FTP "SSL/TLS not available: $message"
-                    }
-                }
-                default {
-                    error "invalid value \"$value\": must be none, implicit, ssl, or tls"
-                }
-            }
-            set secure $value
-        } else {
-            error "invalid option \"$name\": must be -debug, -notify, or -secure"
-        }
+    # Parse arguments.
+    array set option [list debug "" notify "" secure "none"]
+    GetOpt::Parse $args {{debug arg} {notify arg} {secure arg {implicit none ssl tls}}} option
+    if {$option(secure) ne "none" && [catch {package require tls 1.5} message]} {
+        throw FTP "SSL/TLS not available: $message"
     }
     set handle "ftp$nextHandle"
     upvar ::Ftp::$handle ftp
@@ -89,18 +71,18 @@ proc ::Ftp::Open {host port user passwd args} {
     # ftp(sock)   - Socket channel.
     # ftp(status) - Connection status (0=disconnected, 1=connecting, 2=connected).
     #
-    array set ftp [list \
-        host   $host    \
-        port   $port    \
-        user   $user    \
-        passwd $passwd  \
-        debug  $debug   \
-        notify $notify  \
-        secure $secure  \
-        error  ""       \
-        queue  [list]   \
-        sock   ""       \
-        status 0        \
+    array set ftp [list        \
+        host   $host           \
+        port   $port           \
+        user   $user           \
+        passwd $passwd         \
+        debug  $option(debug)  \
+        notify $option(notify) \
+        secure $option(secure) \
+        error  ""              \
+        queue  [list]          \
+        sock   ""              \
+        status 0               \
     ]
 
     incr nextHandle

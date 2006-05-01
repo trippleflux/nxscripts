@@ -127,6 +127,7 @@ proc ::Bot::Mod::Bouncer::Load {firstLoad} {
         # Values: <host> <port> <user> <password> [secure]
         set value [ListParse $value]
         foreach {host port user passwd secure} $value {break}
+        if {$secure eq ""} {set secure "none"}
 
         if {([llength $value] != 4 && [llength $value] != 5) ||
                 ![string is digit -strict $port] ||
