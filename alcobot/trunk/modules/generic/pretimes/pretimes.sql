@@ -1,5 +1,5 @@
 --
--- Pre time table schema (MySQL syntax).
+-- Pre-times tables (MySQL syntax).
 --
 
 CREATE TABLE `pretimes` (

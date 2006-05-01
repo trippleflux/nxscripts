@@ -1,5 +1,5 @@
 --
--- Invite table schemas.
+-- Invite tables (MySQL syntax).
 --
 
 CREATE TABLE `invite_users` (
