@@ -454,7 +454,7 @@ proc ::Bot::Mod::NxTools::SiteCmd {event target user host channel argv} {
         SendTargetTheme $target Module::NxTools $theme [list $message]
         return
     }
-    append command " $ftpUser \"[lindex $argv 0]\""
+    append command " $ftpUser \"[join $argv]\""
 
     # Send the SITE command.
     set connection [GetFtpConnection]
