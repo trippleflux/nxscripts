@@ -72,7 +72,7 @@ proc ::Uri::Parse {url} {
     if {[GetTuple $uri(path) "?" uri(path) params]} {
         foreach param [split $params "&"] {
             if {[GetTuple $param "=" name value]} {
-                lappend uri(params) $name $value
+                lappend uri(params) $name [Unquote $value]
             }
         }
     }
