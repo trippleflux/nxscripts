@@ -42,6 +42,9 @@
 #   String    <value> [value ...]
 #
 
+package require alco::getopt 1.2
+package require alco::util 1.2
+
 namespace eval ::Db {
     variable nextHandle
     variable driverMap
@@ -923,3 +926,5 @@ proc ::Db::SQLite::Func::String {args} {
     }
     return [join $result ","]
 }
+
+package provide alco::db 1.2.0

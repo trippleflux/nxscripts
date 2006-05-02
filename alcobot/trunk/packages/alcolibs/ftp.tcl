@@ -26,6 +26,9 @@
 #   Ftp::Command    <handle> <command> [callback]
 #
 
+package require alco::getopt 1.2
+package require alco::util 1.2
+
 namespace eval ::Ftp {
     variable nextHandle
     if {![info exists nextHandle]} {
@@ -471,3 +474,5 @@ proc ::Ftp::Handler {handle {direct 0}} {
         if {!$nextEvent} {break}
     }
 }
+
+package provide alco::ftp 1.2.0

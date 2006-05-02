@@ -30,6 +30,8 @@
 #   Tree::Unset    <tree> <key> [<key> ...]
 #
 
+package require alco::util 1.2
+
 namespace eval ::Tree {}
 
 ####
@@ -202,3 +204,5 @@ proc ::Tree::Unset {treeVar key args} {
     }
     return $tree
 }
+
+package provide alco::tree 1.2.0

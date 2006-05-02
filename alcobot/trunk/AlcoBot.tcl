@@ -1618,33 +1618,6 @@ proc ::Bot::InitConfig {filePath} {
 }
 
 ####
-# InitLibraries
-#
-# Load all library scripts and Tcl extensions. An error is raised if a
-# required script or extension could not be loaded.
-#
-proc ::Bot::InitLibraries {rootPath} {
-    global auto_path
-    set libPath [file join $rootPath "libs"]
-
-    # Some users reported that "auto_path" was not always set,
-    # which is bizarre considering Tcl initialises this variable.
-    if {![info exists auto_path] || [lsearch -exact $auto_path $libPath] == -1} {
-        # Add the libs directory to the package search path.
-        lappend auto_path $libPath
-    }
-
-    foreach script {constants.tcl libUtil.tcl libConfig.tcl libDb.tcl libFtp.tcl libGetOpt.tcl libTree.tcl} {
-        set script [file join $libPath $script]
-        if {[catch {source $script} message]} {
-            error "couldn't source script \"$script\": $message"
-        }
-    }
-
-    package require AlcoExt 0.6
-}
-
-####
 # InitModules
 #
 # Load the given modules. Any pre-existing modules that are not listed
@@ -1720,6 +1693,34 @@ proc ::Bot::InitModules {modList} {
             LogInfo "Module Unloaded: $modName"
         }
     }
+}
+
+####
+# InitPackages
+#
+# Load all required Tcl packages.
+#
+proc ::Bot::InitPackages {rootPath} {
+    global auto_path
+    set pkgPath [file join $rootPath "packages"]
+
+    # Some users reported that "auto_path" was not always set,
+    # which is bizarre considering Tcl initialises this variable.
+    if {![info exists auto_path] || [lsearch -exact $auto_path $pkgPath] == -1} {
+        # Add the "packages" directory to the search path.
+        lappend auto_path $pkgPath
+    }
+
+    # Required libraries.
+    package require alco::config 1.2
+    package require alco::db     1.2
+    package require alco::ftp    1.2
+    package require alco::getopt 1.2
+    package require alco::tree   1.2
+    package require alco::util   1.2
+
+    # Required extensions.
+    package require AlcoExt 0.6
 }
 
 ####
@@ -1807,9 +1808,9 @@ proc ::Bot::InitMain {} {
     variable scriptPath
     LogInfo "Starting..."
 
-    LogInfo "Loading libraries..."
-    if {[catch {InitLibraries $scriptPath} message]} {
-        LogError Libraries $message
+    LogInfo "Loading packages..."
+    if {[catch {InitPackages $scriptPath} message]} {
+        LogError Packages $message
         die
     }
 

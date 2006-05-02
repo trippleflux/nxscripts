@@ -22,6 +22,8 @@
 #   GetOpt::Parse   <argList> <optList> <resultVar>
 #
 
+package require alco::util 1.2
+
 namespace eval ::GetOpt {
     variable charClasses
     if {![info exists charClasses]} {
@@ -181,3 +183,5 @@ proc ::GetOpt::Parse {argList optList resultVar} {
 
     return $argList
 }
+
+package provide alco::getopt 1.2.0

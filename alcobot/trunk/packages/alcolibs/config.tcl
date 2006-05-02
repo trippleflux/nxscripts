@@ -29,6 +29,9 @@
 #   Config::Unset    <handle> <section> [key]
 #
 
+package require alco::getopt 1.2
+package require alco::util 1.2
+
 namespace eval ::Config {
     variable nextHandle
     if {![info exists nextHandle]} {
@@ -365,3 +368,5 @@ proc ::Config::Acquire {handle handleVar} {
     }
     uplevel 1 [list upvar ::Config::$handle $handleVar]
 }
+
+package provide alco::config 1.2.0
