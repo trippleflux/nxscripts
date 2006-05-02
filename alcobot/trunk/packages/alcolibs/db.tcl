@@ -31,7 +31,7 @@
 #   Db::QuoteName   <handle> <value> [value ...]
 #   Db::QuoteString <handle> <value> [value ...]
 #
-# Statement Functions:
+# Statement Procedures:
 #   Column    <name> <type> [-autoinc] [-default <value>] [-notnull] [-primary] [-unsigned]
 #   Like      <value> <pattern> [escape char]
 #   NotLike   <value> <pattern> [escape char]
@@ -43,6 +43,7 @@
 #
 
 package require alco::getopt 1.2
+package require alco::uri 1.2
 package require alco::util 1.2
 
 namespace eval ::Db {
@@ -85,7 +86,7 @@ proc ::Db::Open {connString args} {
     variable driverMap
 
     # Parse arguments.
-    array set uri [ParseURI $connString]
+    array set uri [Uri::Parse $connString]
     if {![info exists driverMap($uri(scheme))]} {
         throw DB "unknown driver \"$uri(scheme)\""
     }
@@ -404,81 +405,6 @@ proc ::Db::Ping {handle} {
     # Restart the timer for the next ping interval.
     set db(timerId) [timer $db(ping) [list ::Db::Ping $handle]]
     return
-}
-
-####
-# ParseTuple
-#
-# Parses a name and value tuple.
-#
-proc ::Db::ParseTuple {input separator nameVar valueVar} {
-    upvar $nameVar name $valueVar value
-    set index [string first $separator $input]
-    if {$index != -1} {
-        set name  [string range $input 0 [expr {$index - 1}]]
-        set value [string range $input [expr {$index + 1}] end]
-        return 1
-    }
-    return 0
-}
-
-####
-# ParseURI
-#
-# Splits the given URL into its constituents.
-#
-proc ::Db::ParseURI {url} {
-    # RFC 1738:	scheme = 1*[ lowalpha | digit | "+" | "-" | "." ]
-    if {![regexp -- {^([a-z0-9+.-]+):} $url dummy uri(scheme)]} {
-        throw DB "invalid URI scheme \"$url\""
-    }
-    set index [string first ":" $url]
-    set rest [string range $url [incr index] end]
-
-    # Count the slashes after "scheme:".
-    set slashes 0
-    while {[string index $rest $slashes] eq "/"} {incr slashes}
-
-    if {$slashes == 0} {
-        # scheme:path
-        set uri(path) $rest
-    } elseif {$slashes == 1 || $slashes == 3} {
-        # scheme:/path
-        # scheme:///path
-        set rest [string range $rest $slashes end]
-    } else {
-        # scheme://host
-        # scheme://host/path
-        set rest [string range $rest 2 end]
-        if {![ParseTuple $rest "/" uri(host) rest]} {
-            set uri(host) $rest; set rest ""
-        }
-    }
-
-    if {[info exists uri(host)]} {
-        # scheme://user@host
-        # scheme://user:password@host
-        if {[ParseTuple $uri(host) "@" uri(user) uri(host)]} {
-            ParseTuple $uri(user) ":" uri(user) uri(password)
-        }
-        # scheme://host:port
-        ParseTuple $uri(host) ":" uri(host) uri(port)
-    }
-
-    if {![info exists uri(path)]} {
-        set uri(path) "/$rest"
-    }
-    if {[ParseTuple $uri(path) "?" uri(path) params]} {
-        foreach param [split $params "&"] {
-            if {[ParseTuple $param "=" name value]} {
-                # Design Note:
-                # The "value" may contain escapes (e.g. %xx). To keep the code
-                # small and simple, I won't implement an un-escape routine.
-                lappend uri(params) $name $value
-            }
-        }
-    }
-    return [array get uri]
 }
 
 ################################################################################

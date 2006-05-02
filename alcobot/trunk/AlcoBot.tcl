@@ -1717,6 +1717,7 @@ proc ::Bot::InitPackages {rootPath} {
     package require alco::ftp    1.2
     package require alco::getopt 1.2
     package require alco::tree   1.2
+    package require alco::uri    1.2
     package require alco::util   1.2
 
     # Required extensions.
