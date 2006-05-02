@@ -17,11 +17,195 @@ source [file join $currentPath "loader.tcl"]
 
 package require alco::db
 
-testConstraint mysqltcl [expr {![catch {package require mysqltcl}]}]
-testConstraint pgtcl    [expr {![catch {package require Pgtcl}]}]
-testConstraint sqlite3  [expr {![catch {package require sqlite3}]}]
+if {[catch {package require mysqltcl}]} {
+    testConstraint noMysql 1
+} else {
+    testConstraint haveMysql 1
+}
+if {[catch {package require Pgtcl}]} {
+    testConstraint noPostgresql 1
+} else {
+    testConstraint havePostgresql 1
+}
+if {[catch {package require sqlite3}]} {
+    testConstraint noSqlite 1
+} else {
+    testConstraint haveSqlite 1
+}
 
-# TODO
+################################################################################
+# Db::Open                                                                     #
+################################################################################
+
+test db-1.1 {Open: unknown driver} {
+    list [catch {Db::Open fake://host.com} msg] $msg
+} {1 {unknown driver "fake"}}
+
+test db-1.2 {Open: no mysql package} {noMysql} {
+    list [catch {Db::Open mysql://host.com} msg] $msg
+} {1 {can't find package mysqltcl 3}}
+
+test db-1.3 {Open: have mysql package} {
+    -constraints {haveMysql}
+    -match {regexp}
+    -body {
+        set handle [Db::Open mysql://host.com]
+        Db::Close $handle
+        set handle
+    }
+    -result {db\d+}
+}
+
+test db-1.4 {Open: no postgresql package} {noPostgresql} {
+    list [catch {Db::Open postgresql://host.com} msg] $msg
+} {1 {can't find package Pgtcl 1.5}}
+
+test db-1.5 {Open: have postgresql package} {
+    -constraints {havePostgresql}
+    -match {regexp}
+    -body {
+        set handle [Db::Open postgresql://host.com]
+        Db::Close $handle
+        set handle
+    }
+    -result {db\d+}
+}
+
+test db-1.6 {Open: no sqlite package} {noSqlite} {
+    list [catch {Db::Open sqlite:/file.db} msg] $msg
+} {1 {can't find package sqlite3}}
+
+test db-1.7 {Open: have postgresql package} {
+    -constraints {haveSqlite}
+    -match {regexp}
+    -body {
+        set handle [Db::Open sqlite:/file.db]
+        Db::Close $handle
+        set handle
+    }
+    -result {db\d+}
+}
+
+################################################################################
+# Db::Close                                                                    #
+################################################################################
+
+test db-2.1 {Close: invalid handle} {
+    list [catch {Db::Close blah} msg] $msg
+} {1 {invalid database handle "blah"}}
+
+################################################################################
+# Db::GetError                                                                 #
+################################################################################
+
+test db-3.1 {GetError: invalid handle} {
+    list [catch {Db::GetError blah} msg] $msg
+} {1 {invalid database handle "blah"}}
+
+test db-3.2 {GetError: empty message} {haveMysql} {
+    set handle [Db::Open mysql://host.com]
+    set result [Db::GetError $handle]
+    Db::Close $handle
+    set result
+} {}
+
+test db-3.3 {GetError: empty message} {havePostgresql} {
+    set handle [Db::Open postgresql://host.com]
+    set result [Db::GetError $handle]
+    Db::Close $handle
+    set result
+} {}
+
+test db-3.4 {GetError: empty message} {haveSqlite} {
+    set handle [Db::Open sqlite:/file.db]
+    set result [Db::GetError $handle]
+    Db::Close $handle
+    set result
+} {}
+
+################################################################################
+# Db::GetStatus                                                                #
+################################################################################
+
+test db-4.1 {GetStatus: invalid handle} {
+    list [catch {Db::GetStatus blah} msg] $msg
+} {1 {invalid database handle "blah"}}
+
+test db-4.2 {GetStatus: not connected} {haveMysql} {
+    set handle [Db::Open mysql://host.com]
+    set result [Db::GetStatus $handle]
+    Db::Close $handle
+    set result
+} {0}
+
+test db-4.3 {GetStatus: not connected} {havePostgresql} {
+    set handle [Db::Open postgresql://host.com]
+    set result [Db::GetStatus $handle]
+    Db::Close $handle
+    set result
+} {0}
+
+test db-4.4 {GetStatus: not connected} {haveSqlite} {
+    set handle [Db::Open sqlite:/file.db]
+    set result [Db::GetStatus $handle]
+    Db::Close $handle
+    set result
+} {0}
+
+################################################################################
+# Db::Connect                                                                  #
+################################################################################
+
+# Part 5
+
+################################################################################
+# Db::Disconnect                                                               #
+################################################################################
+
+# Part 6
+
+################################################################################
+# Db::Info                                                                     #
+################################################################################
+
+# Part 7
+
+################################################################################
+# Db::Exec                                                                     #
+################################################################################
+
+# Part 8
+
+################################################################################
+# Db::Select                                                                   #
+################################################################################
+
+# Part 9
+
+################################################################################
+# Db::Escape                                                                   #
+################################################################################
+
+# Part 10
+
+################################################################################
+# Db::Pattern                                                                  #
+################################################################################
+
+# Part 11
+
+################################################################################
+# Db::QuoteName                                                                #
+################################################################################
+
+# Part 12
+
+################################################################################
+# Db::QuoteString                                                              #
+################################################################################
+
+# Part 13
+
 
 ::tcltest::cleanupTests
 return
