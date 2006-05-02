@@ -1,0 +1,93 @@
+#
+# AlcoBot - Alcoholicz site bot.
+# Copyright (c) 2006 Alcoholicz Scripting Team
+#
+# Module Name:
+#   URI Tests
+#
+# Author:
+#   neoxed (neoxed@gmail.com) May 2, 2005
+#
+# Abstract:
+#   Implements regression tests for the URI library.
+#
+
+set currentPath [file dirname [file normalize [info script]]]
+source [file join $currentPath "loader.tcl"]
+
+package require alco::uri
+
+####
+# SortPair
+#
+# Sorts a paired list (name value name value etc.).
+#
+proc SortPair {pair} {
+    array set entries $pair
+    set result [list]
+    foreach name [lsort [array names entries]] {
+        lappend result $name $entries($name)
+    }
+    return $result
+}
+
+################################################################################
+# Uri::GetTuple                                                                #
+################################################################################
+
+test uri-1.1 {GetTuple: separator not present} {
+    Uri::GetTuple "foobar" ":" name value
+} {0}
+
+test uri-1.2 {GetTuple: separator present} {
+    set result [Uri::GetTuple "foo:bar" ":" name value]
+    list $result $name $value
+} {1 foo bar}
+
+################################################################################
+# Uri::Parse                                                                 #
+################################################################################
+
+test uri-2.1 {Parse: invalid scheme} {
+    list [catch {Uri::Parse "sqlite//something"} msg] $msg
+} {1 {invalid URI scheme "sqlite//something"}}
+
+test uri-2.2 {Parse: relative file path} {
+    SortPair [Uri::Parse "sqlite:relative/path"]
+} {path relative/path scheme sqlite}
+
+test uri-2.3 {Parse: absolute file path, legacy} {
+    SortPair [Uri::Parse "sqlite:/absolute/path"]
+} {path /absolute/path scheme sqlite}
+
+test uri-2.4 {Parse: absolute file path and parameters} {
+    SortPair [Uri::Parse "sqlite:///absolute/path?timeout=10000"]
+} {params {timeout 10000} path /absolute/path scheme sqlite}
+
+test uri-2.5 {Parse: absolute file path, standard} {
+    SortPair [Uri::Parse "sqlite:///absolute/path"]
+} {path /absolute/path scheme sqlite}
+
+test uri-2.6 {Parse: host and path} {
+    SortPair [Uri::Parse "postgres://localhost/db"]
+} {host localhost path /db scheme postgres}
+
+test uri-2.7 {Parse: host, port, and path} {
+    SortPair [Uri::Parse "postgres://localhost:9431/db"]
+} {host localhost path /db port 9431 scheme postgres}
+
+test uri-2.8 {Parse: no password} {
+    SortPair [Uri::Parse "postgres://neoxed@localhost:9431/db"]
+} {host localhost path /db port 9431 scheme postgres user neoxed}
+
+test uri-2.9 {Parse: user and password} {
+    SortPair [Uri::Parse "postgres://neo:xed@localhost:9431/db"]
+} {host localhost password xed path /db port 9431 scheme postgres user neo}
+
+test uri-2.10 {Parse: credentials and parameters} {
+    SortPair [Uri::Parse "postgres://neo:xed@localhost:9431/db?ssl=true&timeout=10000"]
+} {host localhost params {ssl true timeout 10000} password xed path /db port 9431 scheme postgres user neo}
+
+
+::tcltest::cleanupTests
+return

@@ -12,8 +12,8 @@
 #   Implements regression tests for flag parsing functions.
 #
 
-package require tcltest 2
-namespace import -force ::tcltest::*
+set currentPath [file dirname [file normalize [info script]]]
+source [file join $currentPath "loader.tcl"]
 
 ################################################################################
 # FlagGetValue                                                                 #

@@ -12,9 +12,16 @@
 #   Implements regression tests for option parsing functions.
 #
 
-package require tcltest 2
-namespace import -force ::tcltest::*
+set currentPath [file dirname [file normalize [info script]]]
+source [file join $currentPath "loader.tcl"]
 
+package require alco::getopt
+
+####
+# ArrayGetSort
+#
+# Sorts the result of "array get" alphabetically.
+#
 proc ArrayGetSort {varName} {
     upvar $varName var
     set contents [list]

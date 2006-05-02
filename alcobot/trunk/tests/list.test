@@ -12,8 +12,11 @@
 #   Implements regression tests for list functions.
 #
 
-package require tcltest 2
-namespace import -force ::tcltest::*
+set currentPath [file dirname [file normalize [info script]]]
+source [file join $currentPath "loader.tcl"]
+
+package require alco::util
+namespace import -force ::Bot::*
 
 ################################################################################
 # ListConvert                                                                  #
