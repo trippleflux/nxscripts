@@ -30,6 +30,7 @@
 #
 
 package require alco::getopt 1.2
+package require alco::tree 1.2
 package require alco::util 1.2
 
 namespace eval ::Config {
