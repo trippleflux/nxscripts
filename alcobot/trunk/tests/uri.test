@@ -45,7 +45,7 @@ test uri-1.2 {GetTuple: separator present} {
 } {1 foo bar}
 
 ################################################################################
-# Uri::Parse                                                                 #
+# Uri::Parse                                                                   #
 ################################################################################
 
 test uri-2.1 {Parse: invalid scheme} {
@@ -87,6 +87,34 @@ test uri-2.9 {Parse: user and password} {
 test uri-2.10 {Parse: credentials and parameters} {
     SortPair [Uri::Parse "postgres://neo:xed@localhost:9431/db?ssl=true&timeout=10000"]
 } {host localhost params {ssl true timeout 10000} password xed path /db port 9431 scheme postgres user neo}
+
+################################################################################
+# Uri::Quote                                                                   #
+################################################################################
+
+test uri-3.1 {Quote: null character} {
+    list [catch {Uri::Quote "test\0ing"} msg] $msg
+} {1 {invalid null character}}
+
+test uri-3.2 {Quote: alphanumeric} {
+    Uri::Quote ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz012345679
+} {ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz012345679}
+
+test uri-3.3 {Quote: spacing} {
+    Uri::Quote "still testing stuff\t"
+} {still%20testing%20stuff%09}
+
+################################################################################
+# Uri::Unquote                                                                 #
+################################################################################
+
+test uri-4.1 {Unquote: alphanumeric} {
+    Uri::Unquote ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz012345679
+} {ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz012345679}
+
+test uri-4.2 {Unquote: spacing} {
+    Uri::Unquote "still%20testing%20stuff%09"
+} "still testing stuff\t"
 
 
 ::tcltest::cleanupTests

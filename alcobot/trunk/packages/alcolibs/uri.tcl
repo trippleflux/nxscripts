@@ -90,11 +90,10 @@ proc ::Uri::Quote {value} {
     while {[regexp -indices -- "\[^$trans\]" $value indices]} {
         set index [lindex $indices 0]
         scan [string index $value $index] %c char
-        set rep %[format %.2X $char]
-        if {[string match $rep %00]} {
-            error "invalid character \"$char\""
+        if {$char == 0} {
+            error "invalid null character"
         }
-        append result [string range $value 0 [incr index -1]] $rep
+        append result [string range $value 0 [incr index -1]] %[format %.2X $char]
         set value [string range $value [incr index 2] end]
     }
     return [append result $value]
