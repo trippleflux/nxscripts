@@ -45,21 +45,17 @@ test config-1.3 {Open: no args} {
 
 test config-1.4 {Open: invalid optiones} {
     list [catch {Config::Open test.conf -fake switch} msg] $msg
-} {1 {invalid option "-fake": must be -align or -comment}}
+} {1 {invalid option "-fake"}}
 
 test config-1.5 {Open: -align switch} {
     list [catch {Config::Open test.conf -align a} msg] $msg
-} {1 {expected digit but got "a"}}
+} {1 {the option "-align" requires a integer type value}}
 
-test config-1.6 {Open: -align switch} {
-    list [catch {Config::Open test.conf -align -1} msg] $msg
-} {1 {expected digit but got "-1"}}
-
-test config-1.7 {Open: -comment switch} {
+test config-1.6 {Open: -comment switch} {
     list [catch {Config::Open test.conf -comment test} msg] $msg
 } {1 {invalid comment "test": must be one character}}
 
-test config-1.8 {Open: -comment switch} {
+test config-1.7 {Open: -comment switch} {
     list [catch {Config::Open test.conf -comment ""} msg] $msg
 } {1 {invalid comment "": must be one character}}
 
@@ -69,7 +65,7 @@ test config-1.8 {Open: -comment switch} {
 
 test config-2.1 {Change: no args} {
     list [catch {Config::Change} msg] $msg
-} {1 {wrong # args: should be "Config::Change handle option args"}}
+} {1 {wrong # args: should be "Config::Change handle args"}}
 
 test config-2.2 {Change: invalid handle} {
     list [catch {Config::Change {} a} msg] $msg
@@ -84,7 +80,7 @@ test config-2.4 {Change: invalid option} {
     set result [list [catch {Config::Change $handle -fake 0} msg] $msg]
     Config::Close $handle
     set result
-} {1 {invalid option "-fake": must be -align, -comment, or -path}}
+} {1 {invalid option "-fake"}}
 
 test config-2.5 {Change: invalid option, no value} {
     set handle [Config::Open test.conf]
@@ -93,21 +89,14 @@ test config-2.5 {Change: invalid option, no value} {
     set result
 } {1 {invalid option "-fake": must be -align, -comment, or -path}}
 
-test config-2.6 {Change: too many args} {
-    set handle [Config::Open test.conf]
-    set result [list [catch {Config::Change $handle -align a b} msg] $msg]
-    Config::Close $handle
-    set result
-} {1 {wrong # args: must be "Config::Change handle option ?value?"}}
-
-test config-2.7 {Change: get -align} {
+test config-2.6 {Change: get -align} {
     set handle [Config::Open test.conf -align 2]
     set result [Config::Change $handle -align]
     Config::Close $handle
     set result
 } {2}
 
-test config-2.8 {Change: set -align} {
+test config-2.7 {Change: set -align} {
     set handle [Config::Open test.conf -align 1]
     Config::Change $handle -align 0
     set result [Config::Change $handle -align]
@@ -115,21 +104,21 @@ test config-2.8 {Change: set -align} {
     set result
 } {0}
 
-test config-2.9 {Change: set -align, invalid} {
+test config-2.8 {Change: set -align, invalid} {
     set handle [Config::Open test.conf -align 1]
-    set result [list [catch {Config::Change $handle -align -1} msg] $msg]
+    set result [list [catch {Config::Change $handle -align a} msg] $msg]
     Config::Close $handle
     set result
-} {1 {expected digit but got "-1"}}
+} {1 {the option "-align" requires a integer type value}}
 
-test config-2.10 {Change: get -comment} {
+test config-2.9 {Change: get -comment} {
     set handle [Config::Open test.conf -comment {;}]
     set result [Config::Change $handle -comment]
     Config::Close $handle
     set result
 } {;}
 
-test config-2.11 {Change: set -comment} {
+test config-2.10 {Change: set -comment} {
     set handle [Config::Open test.conf -comment {;}]
     Config::Change $handle -comment {#}
     set result [Config::Change $handle -comment]
@@ -137,21 +126,21 @@ test config-2.11 {Change: set -comment} {
     set result
 } {#}
 
-test config-2.12 {Change: set -comment, invalid} {
+test config-2.11 {Change: set -comment, invalid} {
     set handle [Config::Open test.conf -comment {;}]
     set result [list [catch {Config::Change $handle -comment ""} msg] $msg]
     Config::Close $handle
     set result
 } {1 {invalid comment "": must be one character}}
 
-test config-2.13 {Change: get -path} {
+test config-2.12 {Change: get -path} {
     set handle [Config::Open other.conf]
     set result [Config::Change $handle -path]
     Config::Close $handle
     set result
 } {other.conf}
 
-test config-2.14 {Change: set -path} {
+test config-2.13 {Change: set -path} {
     set handle [Config::Open test.conf]
     Config::Change $handle -path other.conf
     set result [Config::Change $handle -path]

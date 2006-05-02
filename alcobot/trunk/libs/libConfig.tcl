@@ -81,34 +81,27 @@ proc ::Config::Open {filePath args} {
 #
 # Retrieve and modify options for a given configuration handle.
 #
-proc ::Config::Change {handle option args} {
+proc ::Config::Change {handle args} {
     Acquire $handle config
-    set option [GetOpt::Element {-align -comment -path} $option]
-    regexp -- {-(\w+)} $option result option
 
-    set argc [llength $args]
-    if {$argc == 0} {
-        return $config($option)
-    } elseif {$argc == 1} {
-        set value [lindex $args 0]
-        switch -- $option {
-            align {
-                if {![string is integer -strict $value]} {
-                    error "expected integer but got \"$value\""
-                }
-                set config(align) $value
-            }
-            comment {
-                if {[string length $value] != 1} {
-                    error "invalid comment \"$value\": must be one character"
-                }
-                set config(comment) $value
-            }
-            path {set config(path) $value}
-        }
-        return $value
+    # Retrieve an option.
+    if {[llength $args] == 1} {
+        set option [GetOpt::Element {-align -comment -path} [lindex $args 0]]
+        return $config([string range $option 1 end])
     }
-    error "wrong # args: must be \"Config::Change handle option ?value?\""
+
+    # Change options.
+    set prev [array get config]
+    if {[catch {
+        GetOpt::Parse $args {{align integer} {comment arg} {path arg}} config
+        if {[string length $config(comment)] != 1} {
+            error "invalid comment \"$config(comment)\": must be one character"
+        }
+    } message]} {
+        # Restore previous options.
+        array set config $prev
+        error $message
+    }
 }
 
 ####
