@@ -15,5 +15,5 @@
 set currentPath [file dirname [file normalize [info script]]]
 source [file join $currentPath "loader.tcl"]
 
-tcltest::runAllTests
+::tcltest::runAllTests
 return
