@@ -12,12 +12,16 @@
 #   Implements a URI handling library.
 #
 # Procedures:
-#   Uri::Parse <url>
+#   Uri::Parse   <url>
+#   Uri::Quote   <value>
+#   Uri::Unquote <value>
 #
 
 package require alco::util 1.2
 
-namespace eval ::Uri {}
+namespace eval ::Uri {
+    variable trans {a-zA-Z0-9$_.+!*'(,):=@;-}
+}
 
 ####
 # Uri::Parse
@@ -68,14 +72,49 @@ proc ::Uri::Parse {url} {
     if {[GetTuple $uri(path) "?" uri(path) params]} {
         foreach param [split $params "&"] {
             if {[GetTuple $param "=" name value]} {
-                # Design Note:
-                # The "value" may contain escapes (e.g. %xx). To keep the code
-                # small and simple, I won't implement an un-escape routine.
                 lappend uri(params) $name $value
             }
         }
     }
     return [array get uri]
+}
+
+####
+# Uri::Quote
+#
+# Replaces special characters using the "%xx" escape.
+#
+proc ::Uri::Quote {value} {
+    variable trans
+    set index 0; set result ""
+    while {[regexp -indices -- "\[^$trans\]" $value indices]} {
+        set index [lindex $indices 0]
+        scan [string index $value $index] %c char
+        set rep %[format %.2X $char]
+        if {[string match $rep %00]} {
+            error "invalid character \"$char\""
+        }
+        append result [string range $value 0 [incr index -1]] $rep
+        set value [string range $value [incr index 2] end]
+    }
+    return [append result $value]
+}
+
+####
+# Uri::Unquote
+#
+# Replaces "%xx" escapes by their single-character equivalent.
+#
+proc ::Uri::Unquote {value} {
+    set start 0; set result ""
+    while {[regexp -start $start -indices {%[0-9a-fA-F]{2}} $value match]} {
+        foreach {first last} $match {break}
+        append result [string range $value $start [expr {$first - 1}]]
+        append result [format %c 0x[string range $value [incr first] $last]]
+        set start [incr last]
+    }
+    append result [string range $value $start end]
+    return $result
 }
 
 ################################################################################
