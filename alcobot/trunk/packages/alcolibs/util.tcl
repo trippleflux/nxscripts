@@ -17,9 +17,6 @@ namespace eval ::Bot {
     variable defaultResults 5
     variable maximumResults 20
 
-    # Default section name.
-    variable defaultSection "DEFAULT"
-
     # Divisor to move from one size unit to the next (usually 1000 or 1024).
     variable sizeDivisor    1024
 

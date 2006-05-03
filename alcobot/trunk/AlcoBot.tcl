@@ -16,12 +16,12 @@ namespace eval ::Bot {
     variable cmdCount
     if {![info exists cmdCount]} {set cmdCount 0}
     variable debugMode 0
+    variable defaultSection "DEFAULT"
     variable ftpDaemon ""
     variable localTime 0
     variable scriptPath [file dirname [file normalize [info script]]]
 
-    namespace export b c u r o \
-        LogDebug LogInfo LogError LogWarning GetFtpDaemon \
+    namespace export b c u r o LogDebug LogInfo LogError LogWarning GetFtpDaemon \
         CmdCreate CmdGetList CmdGetOptions CmdSendHelp CmdRemove CmdRemoveByToken \
         FlagGetValue FlagExists FlagIsDisabled FlagIsEnabled FlagCheckEvent FlagCheckSection \
         ModuleFind ModuleHash ModuleInfo ModuleLoad ModuleUnload ModuleRead \
@@ -99,7 +99,7 @@ proc ::Bot::LogWarning {function message} {
 ####
 # GetFtpDaemon
 #
-# Retrieve the FTP daemon name.
+# Retrieves the FTPD name.
 #
 proc ::Bot::GetFtpDaemon {} {
     variable ftpDaemon
@@ -109,7 +109,7 @@ proc ::Bot::GetFtpDaemon {} {
 ####
 # SetFtpDaemon
 #
-# Define the FTP daemon to use (internal use only).
+# Sets the FTPD module directory (internal use only).
 #
 proc ::Bot::SetFtpDaemon {name} {
     variable ftpDaemon
