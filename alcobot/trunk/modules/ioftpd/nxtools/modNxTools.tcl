@@ -68,7 +68,7 @@ proc ::Bot::Mod::NxTools::DbBusyHandler {tries} {
 # Escape SQL quote characters with a backslash.
 #
 proc ::Bot::Mod::NxTools::DbEscape {string} {
-    return [string map {\\ \\\\ ` \\` ' \\' \" \\\"} $string]
+    return [string map {' ''} $string]
 }
 
 ####
@@ -114,29 +114,29 @@ proc ::Bot::Mod::NxTools::Dupe {target user host channel argv} {
     }
     set limit [GetResultLimit $option(limit)]
 
+    set query "SELECT * FROM DupeDirs WHERE DirName LIKE '[DbPattern $pattern]' ESCAPE '\\' "
     if {[info exists option(section)]} {
         set section $option(section)
-        set matchPath [DbToLike [lindex $pathSections($section) 0]]
-        set sectionQuery "AND DirPath LIKE '${matchPath}%' ESCAPE '\\'"
-    } else {
-        set sectionQuery ""
+        set matchPath [lindex $pathSections($section) 0]
+        append query "AND DirPath LIKE '[DbToLike $matchPath]%' ESCAPE '\\' "
     }
-    SendTargetTheme $target Module::NxTools dupeHead [list $pattern]
+    append query "ORDER BY TimeStamp DESC LIMIT $limit"
 
+    SendTargetTheme $target Module::NxTools dupeHead [list $pattern]
     set count 0
     if {[DbOpenFile "DupeDirs.db"]} {
-        db eval "SELECT * FROM DupeDirs WHERE DirName LIKE '[DbPattern $pattern]' ESCAPE '\\' \
-                $sectionQuery ORDER BY TimeStamp DESC LIMIT $limit" values {
+        db eval $query values {
             # Retrieve the section name.
             set virtualPath [file join $values(DirPath) $values(DirName)]
-            if {$sectionQuery eq "" && [set section [GetSectionFromPath $virtualPath]] eq ""} {
-                set section $::Bot::defaultSection
+            if {![info exists option(section)]} {
+                set section [GetSectionFromPath $virtualPath]
+                if {$section eq ""} {set section $::Bot::defaultSection}
             }
 
             incr count
             set age [expr {[clock seconds] - $values(TimeStamp)}]
-            SendTargetTheme $target Module::NxTools dupeBody [list $values(UserName) $values(GroupName) \
-                $section $virtualPath $values(TimeStamp) $age $count]
+            SendTargetTheme $target Module::NxTools dupeBody [list $values(UserName) \
+                $values(GroupName) $section $virtualPath $values(TimeStamp) $age $count]
         }
         db close
     }
@@ -158,31 +158,35 @@ proc ::Bot::Mod::NxTools::New {target user host channel argv} {
     set section [join [GetOpt::Parse $argv {{limit integer}} option]]
     set limit [GetResultLimit $option(limit)]
 
+    set query "SELECT * FROM DupeDirs "
     if {$section eq ""} {
-        set sectionQuery ""
+        set sectionLookup 1
     } else {
+        set sectionLookup 0
         # Validate the specified section name.
         set names [lsort [array names pathSections]]
-        set section [GetOpt::Element $names $section section]
+        set section [GetOpt::Element $names $section "section"]
 
-        set matchPath [DbToLike [lindex $pathSections($section) 0]]
-        set sectionQuery "WHERE DirPath LIKE '${matchPath}%' ESCAPE '\\'"
+        set matchPath [lindex $pathSections($section) 0]
+        append query "WHERE DirPath LIKE '[DbToLike $matchPath]%' ESCAPE '\\' "
     }
-    SendTargetTheme $target Module::NxTools newHead
+    append query "ORDER BY TimeStamp DESC LIMIT $limit"
 
+    SendTargetTheme $target Module::NxTools newHead
     set count 0
     if {[DbOpenFile "DupeDirs.db"]} {
-        db eval "SELECT * FROM DupeDirs $sectionQuery ORDER BY TimeStamp DESC LIMIT $limit" values {
+        db eval $query values {
             # Retrieve the section name.
             set virtualPath [file join $values(DirPath) $values(DirName)]
-            if {$sectionQuery eq "" && [set section [GetSectionFromPath $virtualPath]] eq ""} {
-                set section $::Bot::defaultSection
+            if {$sectionLookup} {
+                set section [GetSectionFromPath $virtualPath]
+                if {$section eq ""} {set section $::Bot::defaultSection}
             }
 
             incr count
             set age [expr {[clock seconds] - $values(TimeStamp)}]
-            SendTargetTheme $target Module::NxTools newBody [list $values(UserName) $values(GroupName) \
-                $section $virtualPath $values(TimeStamp) $age $count]
+            SendTargetTheme $target Module::NxTools newBody [list $values(UserName) \
+                $values(GroupName) $section $virtualPath $values(TimeStamp) $age $count]
         }
         db close
     }
@@ -253,22 +257,21 @@ proc ::Bot::Mod::NxTools::Nukes {target user host channel argv} {
     set pattern [join [GetOpt::Parse $argv {{limit integer}} option]]
     set limit [GetResultLimit $option(limit)]
 
-    if {$pattern eq ""} {
-        set matchQuery ""
-    } else {
-        set matchQuery "AND Release LIKE '[DbPattern $pattern]' ESCAPE '\\'"
+    set query "SELECT * FROM Nukes WHERE Status=0 "
+    if {$pattern ne ""} {
+        append query "AND Release LIKE '[DbPattern $pattern]' ESCAPE '\\' "
     }
-    SendTargetTheme $target Module::NxTools nukesHead
+    append query "ORDER BY TimeStamp DESC LIMIT $limit"
 
+    SendTargetTheme $target Module::NxTools nukesHead
     set count 0
     if {[DbOpenFile "Nukes.db"]} {
-        db eval "SELECT * FROM Nukes WHERE Status=0 $matchQuery \
-                ORDER BY TimeStamp DESC LIMIT $limit" values {
+        db eval $query values {
             incr count
             set age [expr {[clock seconds] - $values(TimeStamp)}]
-            SendTargetTheme $target Module::NxTools nukesBody [list $values(UserName) $values(GroupName) \
-                $values(Release) $values(TimeStamp) $values(Multi) $values(Reason) \
-                $values(Files) $values(Size) $age $count]
+            SendTargetTheme $target Module::NxTools nukesBody [list $values(UserName) \
+                $values(GroupName) $values(Release) $values(TimeStamp) $values(Multi) \
+                $values(Reason) $values(Files) $values(Size) $age $count]
         }
         db close
     }
@@ -288,18 +291,17 @@ proc ::Bot::Mod::NxTools::NukeTop {target user host channel argv} {
     set group [join [GetOpt::Parse $argv {{limit integer}} option]]
     set limit [GetResultLimit $option(limit)]
 
-    if {$group eq ""} {
-        set groupQuery ""
-    } else {
-        set groupQuery "GroupName='[DbEscape $group]' AND"
+    set query "SELECT UserName, GroupName, count(*) AS Nuked, sum(Amount) AS Credits FROM Users WHERE "
+    if {$group ne ""} {
+        append query "GroupName='[DbEscape $group]' AND "
     }
-    SendTargetTheme $target Module::NxTools nuketopHead
+    append query "(SELECT count(*) FROM Nukes WHERE NukeId=Users.NukeId AND Status=0) \
+        GROUP BY UserName ORDER BY Nuked DESC LIMIT $limit"
 
+    SendTargetTheme $target Module::NxTools nuketopHead
     set count 0
     if {[DbOpenFile "Nukes.db"]} {
-        db eval "SELECT UserName, GroupName, count(*) AS Nuked, sum(Amount) AS Credits FROM Users \
-                WHERE $groupQuery (SELECT count(*) FROM Nukes WHERE NukeId=Users.NukeId AND Status=0) \
-                GROUP BY UserName ORDER BY Nuked DESC LIMIT $limit" values {
+        db eval $query values {
             incr count
             SendTargetTheme $target Module::NxTools nuketopBody [list $values(UserName) \
                 $values(GroupName) $values(Credits) $values(Nuked) $count]
@@ -322,22 +324,21 @@ proc ::Bot::Mod::NxTools::Unnukes {target user host channel argv} {
     set pattern [join [GetOpt::Parse $argv {{limit integer}} option]]
     set limit [GetResultLimit $option(limit)]
 
-    if {$pattern eq ""} {
-        set matchQuery ""
-    } else {
-        set matchQuery "AND Release LIKE '[DbPattern $pattern]' ESCAPE '\\'"
+    set query "SELECT * FROM Nukes WHERE Status=1 "
+    if {$pattern ne ""} {
+        append query "AND Release LIKE '[DbPattern $pattern]' ESCAPE '\\' "
     }
-    SendTargetTheme $target Module::NxTools unnukesHead
+    append query "ORDER BY TimeStamp DESC LIMIT $limit"
 
+    SendTargetTheme $target Module::NxTools unnukesHead
     set count 0
     if {[DbOpenFile "Nukes.db"]} {
-        db eval "SELECT * FROM Nukes WHERE Status=1 $matchQuery \
-                ORDER BY TimeStamp DESC LIMIT $limit" values {
+        db eval $query values {
             incr count
             set age [expr {[clock seconds] - $values(TimeStamp)}]
-            SendTargetTheme $target Module::NxTools unnukesBody [list $values(UserName) $values(GroupName) \
-                $values(Release) $values(TimeStamp) $values(Multi) $values(Reason) \
-                $values(Files) $values(Size) $age $count]
+            SendTargetTheme $target Module::NxTools unnukesBody [list $values(UserName) \
+                $values(GroupName) $values(Release) $values(TimeStamp) $values(Multi) \
+                $values(Reason) $values(Files) $values(Size) $age $count]
         }
         db close
     }
