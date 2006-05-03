@@ -695,7 +695,7 @@ proc ::nxTools::Dupe::Main {argv} {
             if {[IsTrue $force(NfoFirst)] || [IsTrue $force(SfvFirst)] || [IsTrue $force(SampleFirst)]} {
                 set result [ForceCheck $virtualPath]
             }
-            if {$result == 0 && [IsTrue $dupe(CheckFiles)]} {
+            if {!result && [IsTrue $dupe(CheckFiles)]} {
                 set result [CheckFiles $virtualPath]
             }
         }
