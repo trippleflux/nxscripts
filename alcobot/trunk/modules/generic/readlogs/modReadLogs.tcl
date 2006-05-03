@@ -240,11 +240,12 @@ proc ::Bot::Mod::ReadLogs::Load {firstLoad} {
     variable reSysop
     variable timerId
     upvar ::Bot::configHandle configHandle
+    unset -nocomplain reBase reSysop
 
     # Regular expression patterns used to remove the time-stamp
     # from log entries and extract meaningful data.
-    unset -nocomplain reBase reSysop
-    if {$::Bot::ftpDaemon == 1} {
+    set ftpDaemon [GetFtpDaemon]
+    if {$ftpDaemon eq "glftpd"} {
         # Base patterns for log types.
         set reBase(0) {^\w+ \w+ \s?\d+ \d+:\d+:\d+ \d{4} (\S+): (.+)}
         set reBase(1) {^\w+ \w+ \s?\d+ \d+:\d+:\d+ \d{4} \[(\d+)\s*\] (.+)}
@@ -266,7 +267,7 @@ proc ::Bot::Mod::ReadLogs::Load {firstLoad} {
         set reSysop(CHGRPDEL) {^'(\S+)': successfully removed from '(\S+)' by (\S+)$}
         set reSysop(GIVE)     {^'(\S+)' \S+ transferred (\d+)K to (\S+)$}
         set reSysop(TAKE)     {^'(\S+)' \S+ took (\d+)K from (\S+)$}
-    } elseif {$::Bot::ftpDaemon == 2} {
+    } elseif {$ftpDaemon eq "ioftpd"} {
         # Base patterns for log types.
         set reBase(0) {^\d+-\d+-\d{4} \d+:\d+:\d+ (\S+): (.+)}
         set reBase(1) {^\d+-\d+-\d{4} \d+:\d+:\d+ ()(.+)}
@@ -287,7 +288,7 @@ proc ::Bot::Mod::ReadLogs::Load {firstLoad} {
         set reSysop(CHGRPADD) {^'(\S+)' added user '(\S+)' to group '(\S+)'\.$}
         set reSysop(CHGRPDEL) {^'(\S+)' removed user '(\S+)' from group '(\S+)'\.$}
     } else {
-        error "unknown FTP daemon \"$::Bot::ftpDaemon\""
+        error "unsupported FTP daemon \"$ftpDaemon\""
     }
 
     array set option [Config::GetMulti $configHandle Module::ReadLogs \

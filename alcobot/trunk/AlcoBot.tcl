@@ -16,7 +16,7 @@ namespace eval ::Bot {
     variable cmdCount
     if {![info exists cmdCount]} {set cmdCount 0}
     variable debugMode 0
-    variable ftpDaemon 0
+    variable ftpDaemon ""
     variable localTime 0
     variable scriptPath [file dirname [file normalize [info script]]]
 
@@ -53,7 +53,7 @@ namespace eval ::Bot {
 #   configFile    - Fully qualified path to the configuration file.
 #   configHandle  - Handle to the configuration file, valid only during init.
 #   debugMode     - Boolean value to indicate if we're running in debug mode.
-#   ftpDaemon     - FTP daemon identifier: 1=glFTPD and 2=ioFTPD.
+#   ftpDaemon     - FTP daemon name.
 #   localTime     - Format time values in local time, otherwise UTC is used.
 #   modules       - Loaded modules.
 #
@@ -103,27 +103,26 @@ proc ::Bot::LogWarning {function message} {
 #
 proc ::Bot::GetFtpDaemon {} {
     variable ftpDaemon
-    switch -- $ftpDaemon {
-        1 {return "glFTPD"}
-        2 {return "ioFTPD"}
-        default {error "unknown FTP daemon ID \"$ftpDaemon\""}
-    }
+    return $ftpDaemon
 }
 
 ####
 # SetFtpDaemon
 #
-# Define the FTP daemon to use, only glFTPD and ioFTPD are supported. This
-# procedure is not exported because it's meant for internal use only.
+# Define the FTP daemon to use (internal use only).
 #
 proc ::Bot::SetFtpDaemon {name} {
     variable ftpDaemon
-    switch -glob -- [string tolower $name] {
-        {gl*} {set ftpDaemon 1}
-        {io*} {set ftpDaemon 2}
-        default {error "unknown FTP daemon \"$name\""}
-    }
-    return $ftpDaemon
+    variable scriptPath
+
+    # Create a list of known FTPDs.
+    set path [file join $scriptPath modules]
+    set known [glob -directory $path -nocomplain -tails -types d "*"]
+    set known [ListRemove $known "generic"]
+
+    # Make sure the FTPD has a module directory.
+    set name [string tolower $name]
+    set ftpDaemon [GetOpt::Element $known $name "FTP daemon"]
 }
 
 ################################################################################
@@ -494,17 +493,13 @@ proc ::Bot::ModuleFind {modName} {
     variable ftpDaemon
     variable scriptPath
 
-    # Generic modules take precedence over daemon specific modules.
-    set dirList [list generic [lindex {{} glftpd ioftpd} $ftpDaemon]]
-
-    foreach modDir $dirList {
+    foreach modDir [list "generic" $ftpDaemon] {
         # Directory tree: ./modules/<type>/<module>/
         set modPath [file join $scriptPath modules $modDir $modName]
         if {[file isdirectory $modPath]} {
             return $modPath
         }
     }
-
     error "module not found"
 }
 
@@ -1564,12 +1559,9 @@ proc ::Bot::InitConfig {filePath} {
         variable $name $value
     }
     array set option [Config::GetMulti $configHandle General debugMode localTime ftpDaemon]
-
+    SetFtpDaemon $option(ftpDaemon)
     variable debugMode [IsTrue $option(debugMode)]
     variable localTime [IsTrue $option(localTime)]
-    if {[catch {SetFtpDaemon $option(ftpDaemon)} message]} {
-        error "Unable to set FTP daemon: $message"
-    }
 
     # Read command options.
     foreach {name value} [Config::GetEx $configHandle Commands] {
