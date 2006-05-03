@@ -538,7 +538,7 @@ proc ::Db::MySQL::Func::Escape {value} {
 proc ::Db::MySQL::Func::Name {args} {
     set result [list]
     foreach value $args {
-        lappend result "`[mysql::escape $value]`"
+        lappend result `[string map {` ``} $value]`
     }
     return [join $result ","]
 }
@@ -546,7 +546,7 @@ proc ::Db::MySQL::Func::Name {args} {
 proc ::Db::MySQL::Func::String {args} {
     set result [list]
     foreach value $args {
-        lappend result "'[mysql::escape $value]'"
+        lappend result '[mysql::escape $value]'
     }
     return [join $result ","]
 }
@@ -699,7 +699,7 @@ proc ::Db::PostgreSQL::Func::Escape {value} {
 proc ::Db::PostgreSQL::Func::Name {args} {
     set result [list]
     foreach value $args {
-        lappend result "\"[pg_escape_string $value]\""
+        lappend result \"[string map {\" \"\"} $value]\"
     }
     return [join $result ","]
 }
@@ -834,13 +834,13 @@ proc ::Db::SQLite::Func::NotRegexp {value pattern} {
 }
 
 proc ::Db::SQLite::Func::Escape {value} {
-    return [string map {\\ \\\\ ` \\` ' \\' \" \\\"} $value]
+    return [string map {' ''} $value]
 }
 
 proc ::Db::SQLite::Func::Name {args} {
     set result [list]
     foreach value $args {
-        lappend result "\"[Escape $value]\""
+        lappend result \"[string map {\" \"\"} $value]\"
     }
     return [join $result ","]
 }
@@ -848,7 +848,7 @@ proc ::Db::SQLite::Func::Name {args} {
 proc ::Db::SQLite::Func::String {args} {
     set result [list]
     foreach value $args {
-        lappend result "'[Escape $value]'"
+        lappend result '[string map {' ''} $value]'
     }
     return [join $result ","]
 }
