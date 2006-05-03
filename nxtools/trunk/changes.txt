@@ -3,6 +3,7 @@
 ################################################################################
 
 nxTools v1.0.4 (not released):
+  NEW: Check if the request was already filled before adding it.
   NEW: Extensions are now loaded using Tcl's package system.
   FIX: Properly quote string values in SQL statements.
   FIX: The "SITE PRE STATS" command was broken in v1.0.3.
