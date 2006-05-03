@@ -12,15 +12,10 @@
 #   Implements a configuration and extension loader.
 #
 
-set TclFiles {
+set nx(scripts) {
   {../scripts/nxAutoNuke/nxAutoNuke.cfg}
   {../scripts/nxTools/nxTools.cfg}
   {../scripts/nxLib.tcl}
-}
-
-set LibFiles {
-  {nxHelper.dll}
-  {tclsqlite3.dll}
 }
 
 ######################################################################
@@ -33,16 +28,14 @@ proc nxLoadError {type message} {
     }
 }
 
-foreach filePath $TclFiles {
-    set filePath [file normalize $filePath]
-    if {[catch {source $filePath} error]} {
-        nxLoadError LoadScript "unable to source \"$filePath\": $error"
+foreach name $nx(scripts) {
+    if {[catch {source [file normalize $name]} error]} {
+        nxLoadError LoadScript $error
     }
 }
 
-foreach filePath $LibFiles {
-    set filePath [file normalize $filePath]
-    if {[catch {load $filePath} error]} {
-        nxLoadError LoadExtension $error
+foreach name {nxHelper sqlite3} {
+    if {[catch {package require $name} error]} {
+        nxLoadError LoadPackage $error
     }
 }
