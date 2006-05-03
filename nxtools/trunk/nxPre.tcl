@@ -167,11 +167,11 @@ proc ::nxTools::Pre::UpdateLinks {virtualPath} {
     } else {ErrorLog PreLinksMkDir $error}
 
     # Remove older links.
-    set linkCount [LinkDb eval {SELECT COUNT(*) FROM Links WHERE LinkType=1}]
+    set linkCount [LinkDb onecolumn {SELECT COUNT(*) FROM Links WHERE LinkType=1}]
     if {$linkCount > $latest(PreLinks)} {
         set linkCount [expr {$linkCount - $latest(PreLinks)}]
         # The link type for pre tags is "1".
-        LinkDb eval "SELECT DirName,rowid FROM Links WHERE LinkType=1 ORDER BY TimeStamp ASC LIMIT $linkCount" values {
+        LinkDb eval {SELECT DirName,rowid FROM Links WHERE LinkType=1 ORDER BY TimeStamp ASC LIMIT $linkCount} values {
             RemoveTag [file join $latest(SymPath) $values(DirName)]
             LinkDb eval {DELETE FROM Links WHERE rowid=$values(rowid)}
         }
@@ -485,19 +485,20 @@ proc ::nxTools::Pre::History {argList} {
         iputs "Syntax: SITE PRE HISTORY \[-max <limit>\] \[group\]"
         return 1
     }
+    set query "SELECT Release,Size FROM Pres "
     if {[string length $pattern]} {
-        set whereClause "WHERE GroupName LIKE '[SqlWildToLike $pattern]' ESCAPE '\\'"
-    } else {
-        set whereClause ""
+        append query "WHERE GroupName LIKE '[DbToLike $pattern]' ESCAPE '\\' "
     }
+    append query "ORDER BY TimeStamp DESC LIMIT $limit"
 
     iputs ".-\[PreHistory\]-----------------------------------------------------------."
     iputs "| ## |  Release                                              |  Amount   |"
     iputs "|------------------------------------------------------------------------|"
     set count 0
     if {![catch {DbOpenFile [namespace current]::PreDb "Pres.db"} error]} {
-        PreDb eval "SELECT Release,Size FROM Pres $whereClause ORDER BY TimeStamp DESC LIMIT $limit" values {
-            iputs [format "| %02d | %-53.53s | %9s |" [incr count] $values(Release) [FormatSize $values(Size)]]
+        PreDb eval $query values {
+            iputs [format "| %02d | %-53.53s | %9s |" [incr count] \
+                $values(Release) [FormatSize $values(Size)]]
         }
         PreDb close
     } else {ErrorLog PreHistory $error}
@@ -512,21 +513,20 @@ proc ::nxTools::Pre::Stats {argList} {
         iputs "Syntax: SITE PRE STATS \[-max <limit>\] \[group\]"
         return 1
     }
+    set query "SELECT GroupName, COUNT(*) AS Pres, CAST(SUM(Files) AS INT) AS Files, SUM(Size) AS Amount FROM Pres "
     if {[string length $pattern]} {
-        set whereClause "WHERE GroupName LIKE '[SqlWildToLike $pattern]' ESCAPE '\\'"
-    } else {
-        set whereClause ""
+        append query "WHERE GroupName LIKE '[DbToLike $pattern]' ESCAPE '\\' "
     }
+    append query "GROUP BY GroupName ORDER BY Pres DESC LIMIT $limit"
 
     iputs ".-\[PreStats\]-------------------------------------------------------------."
     iputs "| ## |  Group                        |   Pres    |   Files   |  Amount   |"
     iputs "|------------------------------------------------------------------------|"
     set count 0
     if {![catch {DbOpenFile [namespace current]::PreDb "Pres.db"} error]} {
-        PreDb eval "SELECT GroupName, COUNT(*) AS Pres, CAST(SUM(Files) AS INT) AS Files,
-                SUM(Size) AS Amount FROM Pres $whereClause
-                GROUP BY GroupName ORDER BY Pres DESC LIMIT $limit" values {
-            iputs [format "| %02d | %-29.29s | %9d | %8dF | %9s |" [incr count] $values(GroupName) $values(Pres) $values(Files) [FormatSize $values(Amount)]]
+        PreDb eval $query values {
+            iputs [format "| %02d | %-29.29s | %9d | %8dF | %9s |" [incr count] \
+                $values(GroupName) $values(Pres) $values(Files) [FormatSize $values(Amount)]]
         }
         PreDb close
     } else {ErrorLog PreStats $error}
