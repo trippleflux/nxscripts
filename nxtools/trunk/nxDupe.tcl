@@ -334,11 +334,11 @@ proc ::nxTools::Dupe::RaceLinks {virtualPath} {
     } else {ErrorLog RaceLinksMkDir $error}
 
     # Remove older links.
-    set linkCount [LinkDb eval {SELECT COUNT(*) FROM Links WHERE LinkType=0}]
+    set linkCount [LinkDb onecolumn {SELECT COUNT(*) FROM Links WHERE LinkType=0}]
     if {$linkCount > $latest(RaceLinks)} {
         set linkCount [expr {$linkCount - $latest(RaceLinks)}]
         # The link type for pre tags is "0".
-        LinkDb eval "SELECT DirName,rowid FROM Links WHERE LinkType=0 ORDER BY TimeStamp ASC LIMIT $linkCount" values {
+        LinkDb eval {SELECT DirName,rowid FROM Links WHERE LinkType=0 ORDER BY TimeStamp ASC LIMIT $linkCount} values {
             RemoveTag [file join $latest(SymPath) $values(DirName)]
             LinkDb eval {DELETE FROM Links WHERE rowid=$values(rowid)}
         }
@@ -377,7 +377,7 @@ proc ::nxTools::Dupe::SiteApprove {event argList} {
             iputs ".-\[Approve\]--------------------------------------------------------------."
             if {![MatchFlags $approve(Flags) $flags]} {
                 LinePuts "Only siteops may approve releases."
-            } elseif {[ApproveDb eval {SELECT COUNT(*) FROM Approves WHERE StrCaseEq(Release,$release)}]} {
+            } elseif {[ApproveDb exists {SELECT 1 FROM Approves WHERE StrCaseEq(Release,$release)}]} {
                 LinePuts "This release is already approved."
             } else {
                 # If the release already exists in the dupe database, approve that one.
@@ -455,7 +455,7 @@ proc ::nxTools::Dupe::SiteDupe {fileRoot limit pattern} {
     }
     OutputText $template(Header)
     set count 0
-    set pattern [SqlGetPattern $pattern]
+    set pattern [DbPattern $pattern]
 
     DirDb eval "SELECT * FROM DupeDirs WHERE DirName LIKE '$pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $limit" values {
         incr count
@@ -487,7 +487,7 @@ proc ::nxTools::Dupe::SiteFileDupe {limit pattern} {
     }
     OutputText $template(Header)
     set count 0
-    set pattern [SqlGetPattern $pattern]
+    set pattern [DbPattern $pattern]
 
     FileDb eval "SELECT * FROM DupeFiles WHERE FileName LIKE '$pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $limit" values {
         incr count
@@ -541,7 +541,7 @@ proc ::nxTools::Dupe::SiteNew {limit showSection} {
         }
 
         set showAll 0
-        set whereClause "WHERE DirPath LIKE '[SqlWildToLike $matchPath]' ESCAPE '\\'"
+        set whereClause "WHERE DirPath LIKE '[DbToLike $matchPath]' ESCAPE '\\'"
     } else {
         set showAll 1
         set whereClause ""
@@ -590,7 +590,7 @@ proc ::nxTools::Dupe::SiteUndupe {argList} {
     }
     LinePuts "Searching for: $pattern"
     set removed 0; set total 0
-    set pattern [SqlWildToLike $pattern]
+    set pattern [DbToLike $pattern]
 
     if {![catch {DbOpenFile [namespace current]::DupeDb "${dbName}.db"} error]} {
         set rowIds [list]
