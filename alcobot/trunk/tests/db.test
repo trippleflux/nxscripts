@@ -156,31 +156,41 @@ test db-4.4 {GetStatus: sqlite, not connected} {haveSqlite} {
 # Db::Connect                                                                  #
 ################################################################################
 
-# Part 5
+test db-5.1 {Connect: invalid handle} {
+    list [catch {Db::Connect blah} msg] $msg
+} {1 {invalid database handle "blah"}}
 
 ################################################################################
 # Db::Disconnect                                                               #
 ################################################################################
 
-# Part 6
+test db-6.1 {Disconnect: invalid handle} {
+    list [catch {Db::Disconnect blah} msg] $msg
+} {1 {invalid database handle "blah"}}
 
 ################################################################################
 # Db::Info                                                                     #
 ################################################################################
 
-# Part 7
+test db-7.1 {Info: invalid handle} {
+    list [catch {Db::Info blah .} msg] $msg
+} {1 {invalid database handle "blah"}}
 
 ################################################################################
 # Db::Exec                                                                     #
 ################################################################################
 
-# Part 8
+test db-8.1 {Exec: invalid handle} {
+    list [catch {Db::Exec blah .} msg] $msg
+} {1 {invalid database handle "blah"}}
 
 ################################################################################
 # Db::Select                                                                   #
 ################################################################################
 
-# Part 9
+test db-9.1 {Select: invalid handle} {
+    list [catch {Db::Select blah . .} msg] $msg
+} {1 {invalid database handle "blah"}}
 
 ################################################################################
 # Db::Escape                                                                   #
