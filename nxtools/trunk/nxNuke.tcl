@@ -382,12 +382,12 @@ proc ::nxTools::Nuke::Main {argv} {
                 iputs "|------------------------------------------------------------------------|"
                 set nukeStatus 1
             }
-            set count 0
-            set pattern [SqlGetPattern $pattern]
+            set query "SELECT * FROM Nukes WHERE Status=$nukeStatus AND Release \
+                LIKE '[DbPattern $pattern]' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $limit"
 
+            set count 0
             if {![catch {DbOpenFile [namespace current]::NukeDb "Nukes.db"} error]} {
-                NukeDb eval "SELECT * FROM Nukes WHERE Status=$nukeStatus AND Release \
-                        LIKE '$pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $limit" values {
+                NukeDb eval $query values {
                     incr count
                     set nukeAge [FormatDuration [expr {[clock seconds] - $values(TimeStamp)}]]
                     iputs [format "| %-9.9s | %-12.12s | %-9.9s | %-31.31s |" [lrange $nukeAge 0 1] $values(UserName) $values(Multi)x $values(Reason)]
@@ -413,19 +413,20 @@ proc ::nxTools::Nuke::Main {argv} {
             iputs "|    User    |   Group    | Times Nuked |  Amount                        |"
             iputs "|------------------------------------------------------------------------|"
 
-            if {[string length $pattern]} {
-                set groupMatch "GroupName LIKE '[SqlWildToLike $pattern]' ESCAPE '\\' AND"
-            } else {
-                set groupMatch ""
+            set query "SELECT UserName, GroupName, COUNT(*) AS Nuked, \
+                CAST(SUM(Amount) AS INT) AS Amount FROM Users WHERE "
+            if {$pattern ne ""} {
+                append query "GroupName LIKE '[DbToLike $pattern]' ESCAPE '\\' AND "
             }
-            set count 0
+            append query "(SELECT COUNT(*) FROM Nukes WHERE NukeId=Users.NukeId AND Status=0) \
+                GROUP BY UserName ORDER BY Nuked DESC LIMIT $limit"
 
+            set count 0
             if {![catch {DbOpenFile [namespace current]::NukeDb "Nukes.db"} error]} {
-                NukeDb eval "SELECT UserName, GroupName, COUNT(*) AS Nuked, CAST(SUM(Amount) AS INT) AS Amount FROM Users \
-                        WHERE $groupMatch (SELECT COUNT(*) FROM Nukes WHERE NukeId=Users.NukeId AND Status=0) \
-                        GROUP BY UserName ORDER BY Nuked DESC LIMIT $limit" values {
+                NukeDb eval $query values {
                     incr count
-                    iputs [format "| %-10.10s | %-10.10s | %11d | %30.30s |" $values(UserName) $values(GroupName) $values(Nuked) [FormatSize $values(Amount)]]
+                    iputs [format "| %-10.10s | %-10.10s | %11d | %30.30s |" $values(UserName) \
+                        $values(GroupName) $values(Nuked) [FormatSize $values(Amount)]]
                 }
                 NukeDb close
             } else {ErrorLog NukeTop $error}
