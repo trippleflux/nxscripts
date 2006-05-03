@@ -43,7 +43,7 @@ test config-1.2 {Open: all switches} {
 
 test config-1.3 {Open: no args} {
     list [catch {Config::Open} msg] $msg
-} {1 {wrong # args: should be "Config::Open filePath args"}}
+} {1 {wrong # args: should be "Config::Open path args"}}
 
 test config-1.4 {Open: invalid optiones} {
     list [catch {Config::Open test.conf -fake switch} msg] $msg

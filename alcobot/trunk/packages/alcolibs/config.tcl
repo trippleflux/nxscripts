@@ -70,11 +70,11 @@ proc ::Config::Open {path args} {
     # ftp(tree)    - Config data tree.
     # ftp(path)    - Path to the config file.
     #
-    array set config [list             \
-        align   $option(align)         \
-        comment $option(comment)       \
-        tree    [Tree::Create]         \
-        path    [file normalize $path] \
+    array set config [list       \
+        align   $option(align)   \
+        comment $option(comment) \
+        tree    [Tree::Create]   \
+        path    $path            \
     ]
 
     incr nextHandle
@@ -95,17 +95,20 @@ proc ::Config::Change {handle args} {
         return $config([string range $option 1 end])
     }
 
-    # Change options.
-    set prev [array get config]
-    if {[catch {
-        GetOpt::Parse $args {{align integer} {comment arg} {path arg}} config
-        if {[string length $config(comment)] != 1} {
-            error "invalid comment \"$config(comment)\": must be one character"
+    # Modify options.
+    GetOpt::Parse $args {{align integer} {comment arg} {path arg}} option
+
+    if {[info exists option(align)]} {
+        set config(align) $option(align)
+    }
+    if {[info exists option(comment)]} {
+        if {[string length $option(comment)] != 1} {
+            error "invalid comment \"$option(comment)\": must be one character"
         }
-    } message]} {
-        # Restore previous options.
-        array set config $prev
-        error $message
+        set config(comment) $option(comment)
+    }
+    if {[info exists option(path)]} {
+        set config(path) $option(path)
     }
 }
 
