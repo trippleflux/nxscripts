@@ -133,18 +133,18 @@ proc ::nxLib::DbBusyHandler {tries} {
     return 0
 }
 
-proc ::nxLib::SqlGetPattern {pattern} {
+proc ::nxLib::DbEscape {value} {
+    return [string map {' ''} $value]
+}
+
+proc ::nxLib::DbPattern {pattern} {
     set pattern "*$pattern*"
     regsub -all -- {[\s\*]+} $pattern "*" pattern
-    return [SqlWildToLike $pattern]
+    return [DbToLike $pattern]
 }
 
-proc ::nxLib::SqlEscape {string} {
-    return [string map {\\ \\\\ ` \\` ' \\' \" \\\"} $string]
-}
-
-proc ::nxLib::SqlWildToLike {pattern} {
-    set pattern [SqlEscape $pattern]
+proc ::nxLib::DbToLike {pattern} {
+    set pattern [DbEscape $pattern]
     return [string map {* % ? _} [string map {% \\% _ \\_} $pattern]]
 }
 
