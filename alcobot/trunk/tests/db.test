@@ -39,7 +39,7 @@ if {[catch {package require sqlite3}]} {
 
 test db-1.1 {Open: unknown driver} {
     list [catch {Db::Open fake://host.com} msg] $msg
-} {1 {unknown driver "fake"}}
+} {1 {unknown scheme "fake"}}
 
 test db-1.2 {Open: no mysql package} {noMysql} {
     list [catch {Db::Open mysql://host.com} msg] $msg

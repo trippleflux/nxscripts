@@ -48,11 +48,11 @@ package require alco::util 1.2
 
 namespace eval ::Db {
     variable nextHandle
-    variable driverMap
+    variable schemeMap
     if {![info exists nextHandle]} {
         set nextHandle 0
     }
-    array set driverMap [list  \
+    array set schemeMap [list  \
         mysql       MySQL      \
         pgsql       PostgreSQL \
         postgres    PostgreSQL \
@@ -83,19 +83,19 @@ namespace eval ::Db {
 #
 proc ::Db::Open {connString args} {
     variable nextHandle
-    variable driverMap
+    variable schemeMap
 
     # Parse arguments.
     array set uri [Uri::Parse $connString]
-    if {![info exists driverMap($uri(scheme))]} {
-        throw DB "unknown driver \"$uri(scheme)\""
+    if {![info exists schemeMap($uri(scheme))]} {
+        throw DB "unknown scheme \"$uri(scheme)\""
     }
     if {![info exists uri(params)]} {set uri(params) ""}
     array set option [list debug "" notify "" ping 0]
     GetOpt::Parse $args {{debug arg} {notify arg} {ping integer}} option
 
     # Initialise the driver.
-    set driver $driverMap($uri(scheme))
+    set driver $schemeMap($uri(scheme))
     ::Db::${driver}::Init
 
     set handle "db$nextHandle"
