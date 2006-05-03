@@ -13,7 +13,7 @@
 #   INI-style configuration files.
 #
 # Procedures:
-#   Config::Open     <filePath> [-align <int>] [-comment <char>]
+#   Config::Open     <path> [options ...]
 #   Config::Change   <handle> <-align | -comment | -path> [value]
 #   Config::Close    <handle>
 #   Config::Free     <handle>
@@ -43,13 +43,14 @@ namespace eval ::Config {
 ####
 # Config::Open
 #
-# Create a new configuration library handle. This handle is used by every config
-# procedure and must be closed by ::Config::Close. The "-align int" switch determines
-# whether values will be aligned when writing the configuration file. If -align
-# is greater than one, additional padding is used (n-1). The "-comment char"
-# switch sets the comment character, "#" by default.
+# Create a new configuration file handle. This handle is used by every
+# library procedure and must be closed using Config::Close.
 #
-proc ::Config::Open {filePath args} {
+# Options:
+#  -align   <num>  - Aligns values when writing the configuration file.
+#  -comment <char> - Sets the comment character, "#" is used by default.
+#
+proc ::Config::Open {path args} {
     variable nextHandle
 
     # Parse arguments.
@@ -69,11 +70,11 @@ proc ::Config::Open {filePath args} {
     # ftp(tree)    - Config data tree.
     # ftp(path)    - Path to the config file.
     #
-    array set config [list       \
-        align   $option(align)   \
-        comment $option(comment) \
-        tree    [Tree::Create]   \
-        path    $filePath        \
+    array set config [list             \
+        align   $option(align)         \
+        comment $option(comment)       \
+        tree    [Tree::Create]         \
+        path    [file normalize $path] \
     ]
 
     incr nextHandle
