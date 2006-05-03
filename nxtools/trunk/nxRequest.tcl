@@ -114,14 +114,13 @@ proc ::nxTools::Req::Add {userName groupName request} {
     iputs ".-\[Request\]--------------------------------------------------------------."
     set result 0
 
-    if {[IsTrue $req(ReleaseNames)] && ![regexp -- {^[\w\.\-\(\)]+\-\w+$} $request]} {
+    set request [StripChars $request]
+    if {[IsTrue $req(ReleaseNames)] && ![regexp -- {^\S+-\S+$} $request]} {
         LinePuts "Invalid release format, must be: \"Release.Name-Group\"."
         set result 1
-    } else {
-        set request [StripChars $request]
     }
 
-    if {$result == 0} {
+    if {!$result} {
         if {[ReqDb exists {SELECT 1 FROM Requests WHERE Status=0 AND StrCaseEq(Request,$request)}]} {
             LinePuts "This item is already requested."
             set result 1

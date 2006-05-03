@@ -6,6 +6,7 @@ nxTools v1.0.4 (not released):
   NEW: Extensions are now loaded using Tcl's package system.
   FIX: Properly quote string values in SQL statements.
   FIX: The "SITE PRE STATS" command was broken in v1.0.3.
+  FIX: The release check for "SITE REQUEST" did not allow some valid names.
 
 nxTools v1.0.3 (Apr 5, 2006):
   NEW: Display pre areas on multiple lines if necessary (word wrapping).
