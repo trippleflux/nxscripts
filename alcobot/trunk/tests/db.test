@@ -75,7 +75,7 @@ test db-1.6 {Open: no sqlite package} {noSqlite} {
     list [catch {Db::Open sqlite:/file.db} msg] $msg
 } {1 {can't find package sqlite3}}
 
-test db-1.7 {Open: have postgresql package} {
+test db-1.7 {Open: have sqlite package} {
     -constraints {haveSqlite}
     -match {regexp}
     -body {
@@ -102,21 +102,21 @@ test db-3.1 {GetError: invalid handle} {
     list [catch {Db::GetError blah} msg] $msg
 } {1 {invalid database handle "blah"}}
 
-test db-3.2 {GetError: empty message} {haveMysql} {
+test db-3.2 {GetError: mysql, empty message} {haveMysql} {
     set handle [Db::Open mysql://host.com]
     set result [Db::GetError $handle]
     Db::Close $handle
     set result
 } {}
 
-test db-3.3 {GetError: empty message} {havePostgresql} {
+test db-3.3 {GetError: postgresql, empty message} {havePostgresql} {
     set handle [Db::Open postgresql://host.com]
     set result [Db::GetError $handle]
     Db::Close $handle
     set result
 } {}
 
-test db-3.4 {GetError: empty message} {haveSqlite} {
+test db-3.4 {GetError: sqlite, empty message} {haveSqlite} {
     set handle [Db::Open sqlite:/file.db]
     set result [Db::GetError $handle]
     Db::Close $handle
@@ -131,21 +131,21 @@ test db-4.1 {GetStatus: invalid handle} {
     list [catch {Db::GetStatus blah} msg] $msg
 } {1 {invalid database handle "blah"}}
 
-test db-4.2 {GetStatus: not connected} {haveMysql} {
+test db-4.2 {GetStatus: mysql, not connected} {haveMysql} {
     set handle [Db::Open mysql://host.com]
     set result [Db::GetStatus $handle]
     Db::Close $handle
     set result
 } {0}
 
-test db-4.3 {GetStatus: not connected} {havePostgresql} {
+test db-4.3 {GetStatus: postgresql, not connected} {havePostgresql} {
     set handle [Db::Open postgresql://host.com]
     set result [Db::GetStatus $handle]
     Db::Close $handle
     set result
 } {0}
 
-test db-4.4 {GetStatus: not connected} {haveSqlite} {
+test db-4.4 {GetStatus: sqlite, not connected} {haveSqlite} {
     set handle [Db::Open sqlite:/file.db]
     set result [Db::GetStatus $handle]
     Db::Close $handle
@@ -186,25 +186,159 @@ test db-4.4 {GetStatus: not connected} {haveSqlite} {
 # Db::Escape                                                                   #
 ################################################################################
 
-# Part 10
+test db-10.1 {Escape: invalid handle} {
+    list [catch {Db::Escape blah .} msg] $msg
+} {1 {invalid database handle "blah"}}
+
+test db-10.2 {Escape: mysql, apostrophes and quotations} {haveMysql} {
+    set handle [Db::Open mysql://host.com]
+    set result [Db::Escape $handle "joe's biz`arre \"test string\""]
+    Db::Close $handle
+    set result
+} {joe\'s biz`arre \"test string\"}
+
+test db-10.3 {Escape: postgresql, apostrophes and quotations} {havePostgresql} {
+    set handle [Db::Open postgresql://host.com]
+    set result [Db::Escape $handle "joe's biz`arre \"test string\""]
+    Db::Close $handle
+    set result
+} {joe''s biz`arre "test string"}
+
+test db-10.4 {Escape: sqlite, apostrophes and quotations} {haveSqlite} {
+    set handle [Db::Open sqlite:/file.db]
+    set result [Db::Escape $handle "joe's biz`arre \"test string\""]
+    Db::Close $handle
+    set result
+} {joe''s biz`arre "test string"}
 
 ################################################################################
 # Db::Pattern                                                                  #
 ################################################################################
 
-# Part 11
+test db-11.1 {Pattern: invalid handle} {
+    list [catch {Db::Pattern blah .} msg] $msg
+} {1 {invalid database handle "blah"}}
+
+test db-11.2 {Pattern: mysql, wild and like chars} {haveMysql} {
+    set handle [Db::Open mysql://host.com]
+    set result [Db::Pattern $handle "*s?me '_100%_' p?ttern*"]
+    Db::Close $handle
+    set result
+} {%s_me%\'\_100\%\_\'%p_ttern%}
+
+test db-11.3 {Pattern: postgresql, apostrophes and quotations} {havePostgresql} {
+    set handle [Db::Open postgresql://host.com]
+    set result [Db::Pattern $handle "*s?me '_100%_' p?ttern*"]
+    Db::Close $handle
+    set result
+} {%s_me%''\_100\%\_''%p_ttern%}
+
+test db-11.4 {Pattern: sqlite, apostrophes and quotations} {haveSqlite} {
+    set handle [Db::Open sqlite:/file.db]
+    set result [Db::Pattern $handle "*s?me '_100%_' p?ttern*"]
+    Db::Close $handle
+    set result
+} {%s_me%''\_100\%\_''%p_ttern%}
 
 ################################################################################
 # Db::QuoteName                                                                #
 ################################################################################
 
-# Part 12
+test db-12.1 {QuoteName: invalid handle} {
+    list [catch {Db::QuoteName blah .} msg] $msg
+} {1 {invalid database handle "blah"}}
+
+test db-12.2 {QuoteName: mysql, apostrophes and quotations} {haveMysql} {
+    set handle [Db::Open mysql://host.com]
+    set result [Db::QuoteName $handle "joe's biz`arre \"test string\""]
+    Db::Close $handle
+    set result
+} {`joe's biz``arre "test string"`}
+
+test db-12.3 {QuoteName: mysql, multiple arguments} {haveMysql} {
+    set handle [Db::Open mysql://host.com]
+    set result [Db::QuoteName $handle one two three]
+    Db::Close $handle
+    set result
+} {`one`,`two`,`three`}
+
+test db-12.4 {QuoteName: postgresql, apostrophes and quotations} {havePostgresql} {
+    set handle [Db::Open postgresql://host.com]
+    set result [Db::QuoteName $handle "joe's biz`arre \"test string\""]
+    Db::Close $handle
+    set result
+} {"joe's biz`arre ""test string"""}
+
+test db-12.5 {QuoteName: postgresql, multiple arguments} {havePostgresql} {
+    set handle [Db::Open postgresql://host.com]
+    set result [Db::QuoteName $handle one two three]
+    Db::Close $handle
+    set result
+} {"one","two","three"}
+
+test db-12.6 {QuoteName: sqlite, apostrophes and quotations} {haveSqlite} {
+    set handle [Db::Open sqlite:/file.db]
+    set result [Db::QuoteName $handle "joe's biz`arre \"test string\""]
+    Db::Close $handle
+    set result
+} {"joe's biz`arre ""test string"""}
+
+test db-12.7 {QuoteName: sqlite, multiple arguments} {haveSqlite} {
+    set handle [Db::Open sqlite:/file.db]
+    set result [Db::QuoteName $handle one two three]
+    Db::Close $handle
+    set result
+} {"one","two","three"}
 
 ################################################################################
 # Db::QuoteString                                                              #
 ################################################################################
 
-# Part 13
+test db-13.1 {QuoteString: invalid handle} {
+    list [catch {Db::QuoteString blah .} msg] $msg
+} {1 {invalid database handle "blah"}}
+
+test db-13.2 {QuoteString: mysql, apostrophes and quotations} {haveMysql} {
+    set handle [Db::Open mysql://host.com]
+    set result [Db::QuoteString $handle "joe's biz`arre \"test string\""]
+    Db::Close $handle
+    set result
+} {'joe\'s biz`arre \"test string\"'}
+
+test db-13.3 {QuoteString: mysql, multiple arguments} {haveMysql} {
+    set handle [Db::Open mysql://host.com]
+    set result [Db::QuoteString $handle one two three]
+    Db::Close $handle
+    set result
+} {'one','two','three'}
+
+test db-13.4 {QuoteString: postgresql, apostrophes and quotations} {havePostgresql} {
+    set handle [Db::Open postgresql://host.com]
+    set result [Db::QuoteString $handle "joe's biz`arre \"test string\""]
+    Db::Close $handle
+    set result
+} {'joe''s biz`arre "test string"'}
+
+test db-13.5 {QuoteString: postgresql, multiple arguments} {havePostgresql} {
+    set handle [Db::Open postgresql://host.com]
+    set result [Db::QuoteString $handle one two three]
+    Db::Close $handle
+    set result
+} {'one','two','three'}
+
+test db-13.6 {QuoteString: sqlite, apostrophes and quotations} {haveSqlite} {
+    set handle [Db::Open sqlite:/file.db]
+    set result [Db::QuoteString $handle "joe's biz`arre \"test string\""]
+    Db::Close $handle
+    set result
+} {'joe''s biz`arre "test string"'}
+
+test db-13.7 {QuoteString: sqlite, multiple arguments} {haveSqlite} {
+    set handle [Db::Open sqlite:/file.db]
+    set result [Db::QuoteString $handle one two three]
+    Db::Close $handle
+    set result
+} {'one','two','three'}
 
 
 ::tcltest::cleanupTests
