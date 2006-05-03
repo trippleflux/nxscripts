@@ -69,17 +69,12 @@ namespace eval ::Db {
 # procedure and must be closed using Db::Close.
 #
 # Connection String:
-#  <driver>://<user>:<password>@<host>:<port>/<dbname>
+#  <scheme>://<username>:<password>@<host>:<port>/<dbname>
 #
 # Options:
 #  -debug  <callback> - Debug logging callback.
 #  -notify <callback> - Connection notification callback.
 #  -ping   <minutes>  - Check the database connection.
-#
-# Example:
-#  sqlite3:data/my.db
-#  sqlite3:/home/user/data/my.db
-#  postgres://user:pass@localhost:5432/alcoholicz
 #
 proc ::Db::Open {connString args} {
     variable nextHandle
