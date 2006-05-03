@@ -621,10 +621,7 @@ proc ::Bot::ModuleLoadEx {modName modDefinition} {
         if {$firstLoad} {
             # Read all script files.
             foreach {name hash} $module(tclFiles) {
-                set path [file join $module(location) $name]
-                if {[catch {source $path} message]} {
-                    error "can't source file \"$path\": $message"
-                }
+                source [file join $module(location) $name]
             }
 
             # Read all variable files.
