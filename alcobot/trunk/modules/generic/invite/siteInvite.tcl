@@ -15,13 +15,13 @@
 # ioFTPD Installation:
 #   1. Copy the siteInvite.tcl file to ioFTPD\scripts\Invite\.
 #
-#   2. Copy the following files and directories to ioFTPD\scripts\Invite\.
+#   2. Copy the following directories to ioFTPD\scripts\Invite\.
 #
-#      Eggdrop\AlcoBot\libs\AlcoExt0.6\
-#      Eggdrop\AlcoBot\libs\mysqltcl3.0\
-#      Eggdrop\AlcoBot\libs\pgtcl1.5\
-#      Eggdrop\AlcoBot\libs\sqlite3\
-#      Eggdrop\AlcoBot\libs\libDb.tcl
+#      Eggdrop\AlcoBot\packages\AlcoExt0.6\
+#      Eggdrop\AlcoBot\packages\alcolibs\
+#      Eggdrop\AlcoBot\packages\mysqltcl3.0\
+#      Eggdrop\AlcoBot\packages\pgtcl1.5\
+#      Eggdrop\AlcoBot\packages\sqlite3\
 #
 #   3. Configure siteInvite.tcl and uncomment the logPath option for ioFTPD.
 #
@@ -46,10 +46,11 @@
 #      cp -R /usr/local/lib/tcl8.4 /glftpd/lib
 #      bash /glftpd/libcopy.sh
 #
-#   2. Copy the siteInvite.tcl and libs/libDb.tcl files to /glftpd/bin/.
+#   2. Copy the siteInvite.tcl file to /glftpd/bin/.
 #
-#   3. Copy the AlcoExt and any database extensions to glFTPD's chroot environment.
+#   3. Copy the following directories to glFTPD's chroot environment.
 #
+#      cp -R AlcoBot/packages/alcolibs  /glftpd/lib
 #      cp -R /usr/local/lib/AlcoExt0.6  /glftpd/lib
 #      cp -R /usr/local/lib/mysqltcl3.0 /glftpd/lib
 #      cp -R /usr/local/lib/pgtcl1.5    /glftpd/lib
@@ -496,7 +497,7 @@ proc ::Invite::Main {} {
         LinePuts "Invalid log path, check configuration."
     } elseif {[catch {
                 package require AlcoExt 0.6
-                source [file join $currentPath "libDb.tcl"]
+                package require alco::db 1.2
                 set dbHandle [Db::Open $database]
                 Db::Connect $dbHandle
             } message]} {
