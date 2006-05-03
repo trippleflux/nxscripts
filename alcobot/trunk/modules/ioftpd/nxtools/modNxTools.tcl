@@ -65,17 +65,16 @@ proc ::Bot::Mod::NxTools::DbBusyHandler {tries} {
 ####
 # DbEscape
 #
-# Escape SQL quote characters with a backslash.
+# Escapes the value for inclusion in a SQL string.
 #
-proc ::Bot::Mod::NxTools::DbEscape {string} {
-    return [string map {' ''} $string]
+proc ::Bot::Mod::NxTools::DbEscape {value} {
+    return [string map {' ''} $value]
 }
 
 ####
 # DbPattern
 #
-# Prepend, append, and replace all spaces with wildcards then convert
-# standard wildcard characters to SQL LIKE characters.
+# Replaces all spaces with wildcards and converts it to a SQL LIKE pattern.
 #
 proc ::Bot::Mod::NxTools::DbPattern {pattern} {
     set pattern "*$pattern*"
@@ -86,7 +85,7 @@ proc ::Bot::Mod::NxTools::DbPattern {pattern} {
 ####
 # DbToLike
 #
-# Convert standard wildcard characters to SQL LIKE characters.
+# Converts standard wildcard characters to SQL LIKE characters.
 #
 proc ::Bot::Mod::NxTools::DbToLike {pattern} {
     set pattern [DbEscape $pattern]
