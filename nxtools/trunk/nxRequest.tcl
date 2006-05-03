@@ -32,6 +32,7 @@ proc ::nxTools::Req::CheckLimit {userName groupName} {
         }
         foreach {target groupLimit userLimit timeLimit timePeriod} $reqLimit {break}
 
+        set query "SELECT COUNT(*) FROM Requests WHERE Status=0 AND UserName='[DbEscape $userName]'"
         if {[string index $target 0] eq "="} {
             set target [string range $target 1 end]
             if {$target ne $groupName} {continue}
@@ -41,12 +42,12 @@ proc ::nxTools::Req::CheckLimit {userName groupName} {
                 LinePuts "You have reached your group's request limit of $groupLimit request(s)."
                 return 0
             }
-            set groupMatch "AND GroupName='[SqlEscape $target]'"
-        } elseif {$target eq $userName || $target eq "*"} {
-            set groupMatch ""
-        } else {continue}
+            append query " AND GroupName='[DbEscape $target]'"
+        } elseif {$target ne $userName && $target ne "*"} {
+            continue
+        }
 
-        if {$userLimit >= 0 && [ReqDb eval "SELECT COUNT(*) FROM Requests WHERE Status=0 AND UserName='[SqlEscape $userName]' $groupMatch"] >= $userLimit} {
+        if {$userLimit >= 0 && [ReqDb onecolumn $query] >= $userLimit} {
             LinePuts "You have reached your individual request limit of $userLimit request(s)."
             return 0
         }
@@ -54,9 +55,9 @@ proc ::nxTools::Req::CheckLimit {userName groupName} {
         if {$timeLimit >= 0 && $timePeriod >= 0} {
             set timeStamp [expr {[clock seconds] - ($timePeriod * 86400)}]
 
-            if {[ReqDb eval {SELECT COUNT(*) FROM Requests WHERE TimeStamp > $timeStamp AND UserName=$userName}] >= $timeLimit} {
+            if {[ReqDb onecolumn {SELECT COUNT(*) FROM Requests WHERE TimeStamp > $timeStamp AND UserName=$userName}] >= $timeLimit} {
                 LinePuts "Only $timeLimit request(s) can be made every $timePeriod day(s)."
-                set lastReq [ReqDb eval {SELECT TimeStamp FROM Requests WHERE UserName=$userName ORDER BY TimeStamp DESC LIMIT 1}]
+                set lastReq [ReqDb onecolumn {SELECT TimeStamp FROM Requests WHERE UserName=$userName ORDER BY TimeStamp DESC LIMIT 1}]
                 set timeLeft [FormatDuration [expr {$lastReq - $timeStamp}]]
                 LinePuts "You have to wait $timeLeft until you can request again."
                 return 0
@@ -121,7 +122,7 @@ proc ::nxTools::Req::Add {userName groupName request} {
     }
 
     if {$result == 0} {
-        if {[ReqDb eval {SELECT COUNT(*) FROM Requests WHERE Status=0 AND StrCaseEq(Request,$request)}]} {
+        if {[ReqDb exists {SELECT 1 FROM Requests WHERE Status=0 AND StrCaseEq(Request,$request)}]} {
             LinePuts "This item is already requested."
             set result 1
         } elseif {[CheckLimit $userName $groupName]} {
@@ -148,8 +149,7 @@ proc ::nxTools::Req::Add {userName groupName request} {
 proc ::nxTools::Req::Update {event userName groupName flags request} {
     global misc req
     iputs ".-\[Request\]--------------------------------------------------------------."
-    set exists 0
-    set result 0
+    set exists 0; set result 0
     set request [StripChars $request]
 
     ReqDb eval {SELECT rowid,* FROM Requests WHERE Status=0 AND (RequestId=$request OR StrCaseEq(Request,$request)) LIMIT 1} values {set exists 1}

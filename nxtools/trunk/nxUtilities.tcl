@@ -165,8 +165,7 @@ proc ::nxTools::Utils::OneLines {message} {
     } else {
         iputs ".-\[OneLines\]-------------------------------------------------------------."
         set timeStamp [clock seconds]
-        OneDb eval {INSERT INTO OneLines(TimeStamp,UserName,GroupName,Message)
-            VALUES($timeStamp,$user,$group,$message)}
+        OneDb eval {INSERT INTO OneLines(TimeStamp,UserName,GroupName,Message) VALUES($timeStamp,$user,$group,$message)}
         LinePuts "Added message \"$message\" by $user/$group."
         iputs "'------------------------------------------------------------------------'"
     }
