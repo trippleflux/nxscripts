@@ -97,19 +97,10 @@ proc ::Config::Change {handle args} {
 
     # Modify options.
     GetOpt::Parse $args {{align integer} {comment arg} {path arg}} option
-
-    if {[info exists option(align)]} {
-        set config(align) $option(align)
+    if {[info exists option(comment)] && [string length $option(comment)] != 1} {
+        error "invalid comment \"$option(comment)\": must be one character"
     }
-    if {[info exists option(comment)]} {
-        if {[string length $option(comment)] != 1} {
-            error "invalid comment \"$option(comment)\": must be one character"
-        }
-        set config(comment) $option(comment)
-    }
-    if {[info exists option(path)]} {
-        set config(path) $option(path)
-    }
+    array set config [array get option]
 }
 
 ####
