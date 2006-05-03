@@ -38,6 +38,8 @@ cannot guarantee it will work on any other versions of ioFTPD.
 
  1. UnRAR and copy all files and directories, and place the files as follows:
 
+    ioFTPD\lib\nxHelper\*
+    ioFTPD\lib\sqlite3\*
     ioFTPD\scripts\init.itcl
     ioFTPD\scripts\nxLib.tcl
     ioFTPD\scripts\nxTools\data\*
@@ -54,8 +56,6 @@ cannot guarantee it will work on any other versions of ioFTPD.
     ioFTPD\scripts\nxTools\nxTools.cfg
     ioFTPD\scripts\nxTools\nxUtilities.tcl
     ioFTPD\scripts\nxTools\nxWeekly.cfg
-    ioFTPD\system\nxHelper.dll
-    ioFTPD\system\tclsqlite3.dll
 
  2. Modify the configuration files to your liking.
 
