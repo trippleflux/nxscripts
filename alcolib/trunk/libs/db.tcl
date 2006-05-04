@@ -607,8 +607,7 @@ proc ::Db::PostgreSQL::Info {object option} {
             set result [GetResult $object -list "SELECT datname FROM pg_database"]
         }
         -server {
-            set result "PostgreSQL Server v"
-            append result [lindex [GetResult $object -list "SELECT version()"] 0]
+            set result [lindex [GetResult $object -list "SELECT version()"] 0]
         }
         -tables {
             set result [GetResult $object -list "SELECT tablename FROM pg_tables"]
@@ -652,7 +651,7 @@ proc ::Db::PostgreSQL::Func::Column {name type args} {
 
     # Set name and data-type.
     set result [Name $name]
-    if {[IsTrue $option(autoinc)]} {
+    if {[info exists option(autoinc)]} {
         append result " SERIAL"
     } else {
         append result " " [string toupper $type]
