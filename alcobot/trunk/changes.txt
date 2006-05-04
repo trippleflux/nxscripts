@@ -3,10 +3,12 @@ AlcoBot v1.2.0 (not released):
   NEW: Command to display pre database statistics, !predb.
   NEW: Database abstraction layer library, replacing ODBC.
   NEW: Database tables are created automatically if they don't exist.
+  NEW: FTP servers are now specified using URI strings (bouncer and ftpconn modules).
   NEW: Pattern matching options for the pre search, -match exact|regexp|wild.
   NEW: Support for additional FTP daemons can be added by creating a module sub-directory.
   NEW: The !site command displays all output, unless the -quiet switch is used.
   CHG: Debug log callbacks for the FTP library are per-handle instead of global.
+  CHG: Improved test suite, now able to run outside of Eggdrop's interpreter.
   CHG: Libraries only set the errorCode value when intentionally throwing exceptions.
   CHG: Renamed tree library function "Tree::GetNaive" to "Tree::GetQuiet".
   FIX: Handle arguments consistently in the nxtools module.
