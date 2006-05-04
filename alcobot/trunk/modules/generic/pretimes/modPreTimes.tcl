@@ -42,7 +42,7 @@ proc ::Bot::Mod::PreTimes::DbNotify {handle success} {
             [Column files    int          -default 0 -notnull -unsigned],
             [Column kbytes   int          -default 0 -notnull -unsigned],
             [Column disks    smallint     -default 0 -notnull -unsigned],
-            [Column nuked    smallint(1)  -default 0 -notnull],
+            [Column nuked    smallint     -default 0 -notnull],
             [Column nuketime int          -default 0 -notnull],
             [Column reason   varchar(255) -default NULL],
             UNIQUE ([Name release])

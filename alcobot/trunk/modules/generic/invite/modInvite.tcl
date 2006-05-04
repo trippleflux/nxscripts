@@ -129,7 +129,7 @@ proc ::Bot::Mod::Invite::DbNotify {handle success} {
         set query {CREATE TABLE [Name invite_users] (
             [Column ftp_user varchar(100) -notnull],
             [Column irc_user varchar(100) -default NULL],
-            [Column online   smallint(1)  -default 0 -notnull],
+            [Column online   smallint     -default 0 -notnull],
             [Column password varchar(100) -default NULL],
             [Column time     int          -default 0 -notnull],
             PRIMARY KEY ([Name ftp_user])
