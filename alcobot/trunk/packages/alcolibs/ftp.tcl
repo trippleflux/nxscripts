@@ -38,10 +38,10 @@ namespace eval ::Ftp {
         set nextHandle 0
     }
     array set schemeMap [list \
-        ftp    ""             \
-        ftps   implicit       \
-        ftpssl ssl            \
-        ftptls tls            \
+        ftp    "off"         \
+        ftps   "implicit"     \
+        ftpssl "ssl"          \
+        ftptls "tls"          \
     ]
 }
 
@@ -75,7 +75,7 @@ proc ::Ftp::Open {connString args} {
 
     # Load the TLS extension.
     set option(secure) $schemeMap($uri(scheme))
-    if {$option(secure) ne "" && [catch {package require tls 1.5} message]} {
+    if {$option(secure) ne "off" && [catch {package require tls 1.5} message]} {
         throw FTP "SSL/TLS not available: $message"
     }
 
@@ -140,7 +140,7 @@ proc ::Ftp::Change {handle args} {
 
     # Modify options.
     GetOpt::Parse $args {{debug arg} {host arg} {notify arg} {password arg} \
-        {port integer} {secure arg {{} implicit ssl tls}} {user arg}} option
+        {port integer} {secure arg {implicit off ssl tls}} {user arg}} option
     array set ftp [array get option]
     return
 }
@@ -306,7 +306,6 @@ proc ::Ftp::Send {handle command} {
 #
 proc ::Ftp::Shutdown {handle {error ""}} {
     upvar ::Ftp::$handle ftp
-    Debug $ftp(debug) FtpShutdown "Connection closed: $error"
 
     # Remove channel events before closing the channel.
     catch {fileevent $ftp(sock) readable {}}
@@ -322,6 +321,7 @@ proc ::Ftp::Shutdown {handle {error ""}} {
     set ftp(status) 0
     if {$error ne ""} {
         set ftp(error) $error
+        Debug $ftp(debug) FtpShutdown "Connection closed: $error"
         Evaluate $ftp(debug) $ftp(notify) $handle 0
     }
 }
