@@ -14,7 +14,7 @@
 #
 # Procedures:
 #   Config::Open     <path> [options ...]
-#   Config::Change   <handle> <-align | -comment | -path> [value]
+#   Config::Change   <handle> [options ...]
 #   Config::Close    <handle>
 #   Config::Free     <handle>
 #   Config::Read     <handle>
