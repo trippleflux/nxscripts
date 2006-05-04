@@ -35,7 +35,7 @@ proc ::Bot::Mod::PreTimes::DbNotify {handle success} {
 
     if {[lsearch -exact $tables "pretimes"] == -1} {
         set query {CREATE TABLE [Name pretimes] (
-            [Column id       int          -autoinc -notnull -primary -unsigned],
+            [Column id       int          -autoinc -primary -unsigned],
             [Column pretime  int          -default 0 -notnull],
             [Column section  varchar(25)  -default NULL],
             [Column release  varchar(255) -notnull],
