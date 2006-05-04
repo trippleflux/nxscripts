@@ -17,7 +17,8 @@
 #   error code indicate a caller implementation problem.
 #
 # Procedures:
-#   Ftp::Open       <host> <port> <user> <passwd> [options ...]
+#   Ftp::Open       <connString> [options ...]
+#   Ftp::Change     <handle> [options ...]
 #   Ftp::Close      <handle>
 #   Ftp::GetError   <handle>
 #   Ftp::GetStatus  <handle>
@@ -27,13 +28,21 @@
 #
 
 package require alco::getopt 1.2
+package require alco::uri 1.2
 package require alco::util 1.2
 
 namespace eval ::Ftp {
     variable nextHandle
+    variable schemeMap
     if {![info exists nextHandle]} {
         set nextHandle 0
     }
+    array set schemeMap [list \
+        ftp    ""             \
+        ftps   implicit       \
+        ftpssl ssl            \
+        ftptls tls            \
+    ]
 }
 
 ####
@@ -42,54 +51,87 @@ namespace eval ::Ftp {
 # Creates a new FTP client handle. This handle is used by every library
 # procedure and must be closed using Ftp::Close.
 #
-# Options:
-#  -debug   <callback>
-#  -notify  <callback>
-#  -secure  <none|implicit|ssl|tls>
+# Connection String:
+#  <scheme>://<username>:<password>@<host>:<port>
 #
-proc ::Ftp::Open {host port user passwd args} {
+# Options:
+#  -debug  <callback>
+#  -notify <callback>
+#
+proc ::Ftp::Open {connString args} {
     variable nextHandle
+    variable schemeMap
+
+    # Set default values.
+    array set uri [list user "anonymous" password "anonymous" host "localhost" port 21]
+    array set option [list debug "" notify ""]
 
     # Parse arguments.
-    array set option [list debug "" notify "" secure "none"]
-    GetOpt::Parse $args {{debug arg} {notify arg} {secure arg {implicit none ssl tls}}} option
-    if {$option(secure) ne "none" && [catch {package require tls 1.5} message]} {
+    array set uri [Uri::Parse $connString]
+    if {![info exists schemeMap($uri(scheme))]} {
+        throw FTP "unknown scheme \"$uri(scheme)\""
+    }
+    GetOpt::Parse $args {{debug arg} {notify arg}} option
+
+    # Load the TLS extension.
+    set option(secure) $schemeMap($uri(scheme))
+    if {$option(secure) ne "" && [catch {package require tls 1.5} message]} {
         throw FTP "SSL/TLS not available: $message"
     }
+
     set handle "ftp$nextHandle"
     upvar ::Ftp::$handle ftp
-
     #
     # FTP Handle Contents
     #
-    # ftp(host)   - Remote server host.
-    # ftp(port)   - Remote server port.
-    # ftp(user)   - Client user name.
-    # ftp(passwd) - Client password.
-    # ftp(debug)  - Debug logging callback.
-    # ftp(notify) - Connection notification callback.
-    # ftp(secure) - Security method.
-    # ftp(error)  - Last error message.
-    # ftp(queue)  - Event queue (FIFO).
-    # ftp(sock)   - Socket channel.
-    # ftp(status) - Connection status (0=disconnected, 1=connecting, 2=connected).
+    # ftp(host)     - Remote server host.
+    # ftp(port)     - Remote server port.
+    # ftp(user)     - Client user name.
+    # ftp(password) - Client password.
+    # ftp(debug)    - Debug logging callback.
+    # ftp(notify)   - Connection notification callback.
+    # ftp(secure)   - Security method.
+    # ftp(error)    - Last error message.
+    # ftp(queue)    - Event queue (FIFO).
+    # ftp(sock)     - Socket channel.
+    # ftp(status)   - Connection status (0=disconnected, 1=connecting, 2=connected).
     #
-    array set ftp [list        \
-        host   $host           \
-        port   $port           \
-        user   $user           \
-        passwd $passwd         \
-        debug  $option(debug)  \
-        notify $option(notify) \
-        secure $option(secure) \
-        error  ""              \
-        queue  [list]          \
-        sock   ""              \
-        status 0               \
+    array set ftp [list          \
+        host     $uri(host)      \
+        port     $uri(port)      \
+        user     $uri(user)      \
+        password $uri(password)  \
+        debug    $option(debug)  \
+        notify   $option(notify) \
+        secure   $option(secure) \
+        error    ""              \
+        queue    [list]          \
+        sock     ""              \
+        status   0               \
     ]
 
     incr nextHandle
     return $handle
+}
+
+####
+# Ftp::Change
+#
+# Retrieve and modify options for a given FTP handle.
+#
+proc ::Ftp::Change {handle args} {
+    Acquire $handle ftp
+
+    # Retrieve an option.
+    if {[llength $args] == 1} {
+        set option [GetOpt::Element {-debug -host -notify -password -port -secure -user} [lindex $args 0]]
+        return $ftp([string range $option 1 end])
+    }
+
+    # Modify options.
+    GetOpt::Parse $args {{debug arg} {host arg} {notify arg} {password arg} \
+        {port integer} {secure arg {{} implicit ssl tls}} {user arg}} option
+    array set ftp [array get option]
 }
 
 ####
@@ -437,7 +479,7 @@ proc ::Ftp::Handler {handle {direct 0}} {
             user_sent {
                 # Receive USER response and send PASS.
                 if {$replyBase == 3} {
-                    Send $handle "PASS $ftp(passwd)"
+                    Send $handle "PASS $ftp(password)"
                     set ftp(queue) [linsert $ftp(queue) 0 pass_sent]
                 } else {
                     Shutdown $handle "unable to login - $message"

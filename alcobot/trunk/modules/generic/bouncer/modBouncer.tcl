@@ -32,7 +32,7 @@ proc ::Bot::Mod::Bouncer::Command {target user host channel argv} {
     set offline 0; set online 0; set unknown 0
 
     for {set index 0} {[info exists bouncers($index)]} {incr index} {
-        foreach {name host port status time connection} $bouncers($index) {break}
+        foreach {name host port status time handle} $bouncers($index) {break}
 
         set values [list $name $host $port]
         switch -- $status {
@@ -66,10 +66,10 @@ proc ::Bot::Mod::Bouncer::CheckTimer {} {
     variable timerId
 
     if {[info exists bouncers($checkIndex)]} {
-        set connection [lindex $bouncers($checkIndex) 5]
+        set handle [lindex $bouncers($checkIndex) 5]
 
-        if {[catch {Ftp::Connect $connection} message]} {
-            Notify $checkIndex $connection 0
+        if {[catch {Ftp::Connect $handle} message]} {
+            Notify $checkIndex $handle 0
         }
     }
     incr checkIndex
@@ -88,14 +88,14 @@ proc ::Bot::Mod::Bouncer::CheckTimer {} {
 #
 # Notified by the FTP library when the connection succeeds or fails.
 #
-proc ::Bot::Mod::Bouncer::Notify {index connection success} {
+proc ::Bot::Mod::Bouncer::Notify {index handle success} {
     variable bouncers
 
     if {[info exists bouncers($index)]} {
         if {!$success} {
             set name [lindex $bouncers($index) 0]
             set status 1
-            LogError ModBouncer "Bouncer \"$name\" is down: [Ftp::GetError $connection]"
+            LogError ModBouncer "Bouncer \"$name\" is down: [Ftp::GetError $handle]"
         } else {
             set status 2
         }
@@ -105,7 +105,7 @@ proc ::Bot::Mod::Bouncer::Notify {index connection success} {
         lset bouncers($index) 4 [clock seconds]
     }
 
-    Ftp::Disconnect $connection
+    Ftp::Disconnect $handle
 }
 
 ####
@@ -122,26 +122,14 @@ proc ::Bot::Mod::Bouncer::Load {firstLoad} {
 
     set index 0
     foreach {name value} [Config::GetEx $configHandle Module::Bouncer] {
-        if {$name eq "cmdPrefix"} {continue}
-
-        # Values: <host> <port> <user> <password> [secure]
-        set value [ListParse $value]
-        foreach {host port user passwd secure} $value {break}
-        if {$secure eq ""} {set secure "none"}
-
-        if {([llength $value] != 4 && [llength $value] != 5) ||
-                ![string is digit -strict $port] ||
-                [lsearch -exact {"" none ssl tls} $secure] == -1} {
-            LogError ModBouncer "Invalid options for bouncer \"$name\"."
-            continue
-        }
-
-        set connection [Ftp::Open $host $port $user $passwd -secure $secure \
+        set handle [Ftp::Open $value -debug ::Bot::LogDebug \
             -notify [list [namespace current]::Notify $index]]
+        set host [Ftp::Change $handle -host]
+        set port [Ftp::Change $handle -port]
 
-        # Values: <name> <host> <port> <status> <time> <connection>
+        # Values: <name> <host> <port> <status> <time> <handle>
         # Status: 0=unknown, 1=down, and 2=up.
-        set bouncers($index) [list $name $host $port 0 0 $connection]
+        set bouncers($index) [list $name $host $port 0 0 $handle]
         incr index
     }
     if {!$index} {error "no bouncers defined"}
