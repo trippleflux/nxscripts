@@ -150,6 +150,13 @@ test config-2.13 {Change: set -path} {
     set result
 } {other.conf}
 
+test config-2.14 {Change: get all options} {
+    set handle [Config::Open test.conf]
+    set result [Config::Change $handle]
+    Config::Close $handle
+    set result
+} {-align 0 -comment # -path test.conf}
+
 ################################################################################
 # Config::Close                                                                #
 ################################################################################
