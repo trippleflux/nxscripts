@@ -31,7 +31,7 @@ proc ::Bot::Mod::PreTimes::DbNotify {handle success} {
         LogInfo "Database connection failed - [Db::GetError $handle]"
         return
     }
-    set tables [Db::Info $handle tables]
+    set tables [Db::Info $handle -tables]
 
     if {[lsearch -exact $tables "pretimes"] == -1} {
         set query {CREATE TABLE [Name pretimes] (

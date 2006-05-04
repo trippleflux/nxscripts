@@ -199,17 +199,17 @@ proc ::Db::Disconnect {handle} {
 # Retrieves information about the database connection.
 #
 # Options:
-#  client    - Client version.
-#  databases - List of all databases.
-#  server    - Server version.
-#  tables    - List of tables in the current database.
+#  -client    - Client version.
+#  -databases - List of all databases.
+#  -server    - Server version.
+#  -tables    - List of tables in the current database.
 #
 proc ::Db::Info {handle option} {
     Acquire $handle db
     if {$db(object) eq ""} {
         throw DB "not connected"
     }
-    set option [GetOpt::Element {client databases server tables} $option]
+    set option [GetOpt::Element {-client -databases -server -tables} $option]
     return [Db::$db(driver)::Info $db(object) $option]
 }
 
@@ -332,7 +332,7 @@ proc ::Db::ConnOpen {handle} {
         Debug $db(debug) DbConnect "Unable to connect: $message"
     } else {
         set success 1; set message ""
-        set server [Db::$db(driver)::Info $db(object) "server"]
+        set server [Db::$db(driver)::Info $db(object) -server]
         Debug $db(debug) DbConnect "Successfully connected to $server."
     }
     set db(error) $message
@@ -452,18 +452,18 @@ proc ::Db::MySQL::Ping {object} {
 proc ::Db::MySQL::Info {object option} {
     set result ""
     switch -- $option {
-        client {
+        -client {
             set result "MySQL Client v"
             append result [mysql::baseinfo clientversion]
         }
-        databases {
+        -databases {
             set result [mysql::info $object databases]
         }
-        server {
+        -server {
             set result "MySQL Server v"
             append result [mysql::info $object serverversion]
         }
-        tables {
+        -tables {
             set result [mysql::info $object tables]
         }
     }
@@ -600,17 +600,17 @@ proc ::Db::PostgreSQL::Ping {object} {
 proc ::Db::PostgreSQL::Info {object option} {
     set result ""
     switch -- $option {
-        client {
+        -client {
             set result "PostgreSQL Client"
         }
-        databases {
+        -databases {
             set result [GetResult $object -list "SELECT datname FROM pg_database"]
         }
-        server {
+        -server {
             set result "PostgreSQL Server v"
             append result [lindex [GetResult $object -list "SELECT version()"] 0]
         }
-        tables {
+        -tables {
             set result [GetResult $object -list "SELECT tablename FROM pg_tables"]
         }
     }
@@ -740,16 +740,17 @@ proc ::Db::SQLite::Disconnect {object} {
 proc ::Db::SQLite::Info {object option} {
     set result ""
     switch -- $option {
-        client - server {
+        -client -
+        -server {
             set result "SQLite v"
             append result [sqlite3 -version]
         }
-        databases {
+        -databases {
             $object eval {PRAGMA database_list} row {
                 lappend result $row(name)
             }
         }
-        tables {
+        -tables {
             set result [$object eval "SELECT name FROM sqlite_master \
                 WHERE type IN ('table','view') AND name NOT LIKE 'sqlite_%'"]
         }

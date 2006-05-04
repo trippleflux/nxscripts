@@ -113,7 +113,7 @@ proc ::Bot::Mod::Invite::DbNotify {handle success} {
         LogInfo "Database connection failed - [Db::GetError $handle]"
         return
     }
-    set tables [Db::Info $handle tables]
+    set tables [Db::Info $handle -tables]
 
     if {[lsearch -exact $tables "invite_hosts"] == -1} {
         set query {CREATE TABLE [Name invite_hosts] (
