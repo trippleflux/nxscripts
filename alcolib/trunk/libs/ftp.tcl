@@ -121,10 +121,20 @@ proc ::Ftp::Open {connString args} {
 #
 proc ::Ftp::Change {handle args} {
     Acquire $handle ftp
+    set options {-debug -host -notify -password -port -secure -user}
 
-    # Retrieve an option.
+    # Retrieve all options.
+    if {[llength $args] == 0} {
+        set result [list]
+        foreach option $options {
+            lappend result $option $ftp([string range $option 1 end])
+        }
+        return $result
+    }
+
+    # Retrieve only the specified option.
     if {[llength $args] == 1} {
-        set option [GetOpt::Element {-debug -host -notify -password -port -secure -user} [lindex $args 0]]
+        set option [GetOpt::Element $options [lindex $args 0]]
         return $ftp([string range $option 1 end])
     }
 
@@ -132,6 +142,7 @@ proc ::Ftp::Change {handle args} {
     GetOpt::Parse $args {{debug arg} {host arg} {notify arg} {password arg} \
         {port integer} {secure arg {{} implicit ssl tls}} {user arg}} option
     array set ftp [array get option]
+    return
 }
 
 ####

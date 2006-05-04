@@ -88,10 +88,20 @@ proc ::Config::Open {path args} {
 #
 proc ::Config::Change {handle args} {
     Acquire $handle config
+    set options {-align -comment -path}
 
-    # Retrieve an option.
+    # Retrieve all options.
+    if {[llength $args] == 0} {
+        set result [list]
+        foreach option $options {
+            lappend result $option $config([string range $option 1 end])
+        }
+        return $result
+    }
+
+    # Retrieve only the specified option.
     if {[llength $args] == 1} {
-        set option [GetOpt::Element {-align -comment -path} [lindex $args 0]]
+        set option [GetOpt::Element $options [lindex $args 0]]
         return $config([string range $option 1 end])
     }
 
@@ -101,6 +111,7 @@ proc ::Config::Change {handle args} {
         error "invalid comment \"$option(comment)\": must be one character"
     }
     array set config [array get option]
+    return
 }
 
 ####
