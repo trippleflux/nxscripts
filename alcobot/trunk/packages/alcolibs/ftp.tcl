@@ -141,6 +141,9 @@ proc ::Ftp::Change {handle args} {
     # Modify options.
     GetOpt::Parse $args {{debug arg} {host arg} {notify arg} {password arg} \
         {port integer} {secure arg {implicit off ssl tls}} {user arg}} option
+    if {[info exists option(secure)] && $option(secure) ne "off" && [catch {package require tls 1.5} message]} {
+        throw FTP "SSL/TLS not available: $message"
+    }
     array set ftp [array get option]
     return
 }

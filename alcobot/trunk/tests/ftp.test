@@ -140,6 +140,23 @@ test ftp-2.9 {Change: set, invalid port value} {
     set result
 } {1 {the option "-port" requires a integer type value}}
 
+test ftp-2.10 {Change: set, no tls package} {noTls} {
+    set handle [Ftp::Open ftp://host.com]
+    set result [list [catch {Ftp::Change $handle -secure tls} msg] $msg]
+    Ftp::Close $handle
+    set result
+} {1 {SSL/TLS not available: can't find package tls 1.5}}
+
+test ftp-2.11 {Change: set, have tls package} {haveTls} {
+    set handle [Ftp::Open ftp://host.com]
+    set result [list]
+    lappend result [Ftp::Change $handle -secure]
+    Ftp::Change $handle -secure tls
+    lappend result [Ftp::Change $handle -secure]
+    Ftp::Close $handle
+    set result
+} {off tls}
+
 ################################################################################
 # Ftp::Close                                                                   #
 ################################################################################
