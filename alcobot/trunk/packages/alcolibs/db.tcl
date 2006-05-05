@@ -280,7 +280,7 @@ proc ::Db::Pattern {handle value} {
     regsub -all -- {[\s\*]+} $value "*" value
 
     # Map wild-card characters to LIKE characters.
-    set value [Db::$db(driver)::Func::Escape $value]
+    set value [Db::$db(driver)::Func::String $value]
     return [string map {* % ? _} [string map {% \\% _ \\_} $value]]
 }
 

@@ -234,21 +234,21 @@ test db-11.2 {Pattern: mysql, wild and like chars} {haveMysql} {
     set result [Db::Pattern $handle "*s?me '_100%_' p?ttern*"]
     Db::Close $handle
     set result
-} {%s_me%\'\_100\%\_\'%p_ttern%}
+} {'%s_me%\'\_100\%\_\'%p_ttern%'}
 
 test db-11.3 {Pattern: postgresql, apostrophes and quotations} {havePostgresql} {
     set handle [Db::Open postgresql://host.com]
     set result [Db::Pattern $handle "*s?me '_100%_' p?ttern*"]
     Db::Close $handle
     set result
-} {%s_me%''\_100\%\_''%p_ttern%}
+} {'%s_me%''\_100\%\_''%p_ttern%'}
 
 test db-11.4 {Pattern: sqlite, apostrophes and quotations} {haveSqlite} {
     set handle [Db::Open sqlite:/file.db]
     set result [Db::Pattern $handle "*s?me '_100%_' p?ttern*"]
     Db::Close $handle
     set result
-} {%s_me%''\_100\%\_''%p_ttern%}
+} {'%s_me%''\_100\%\_''%p_ttern%'}
 
 ################################################################################
 # Db::QuoteName                                                                #

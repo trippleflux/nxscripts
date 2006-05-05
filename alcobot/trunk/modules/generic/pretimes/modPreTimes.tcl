@@ -214,7 +214,7 @@ proc ::Bot::Mod::PreTimes::Search {target user host channel argv} {
             }
             wild {
                 set likePattern [Db::Pattern $dbHandle $pattern]
-                append query {[Like [Name release] '$likePattern']}
+                append query {[Like [Name release] $likePattern]}
             }
         }
         append query { ORDER BY [Name pretime] DESC LIMIT $limit}
