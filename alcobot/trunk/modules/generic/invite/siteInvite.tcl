@@ -71,7 +71,7 @@
 
 namespace eval ::Invite {
     # database   - Database URI string, see AlcoBot.conf for more information.
-    variable database   "mysql://user:password@host.com/alcoholicz"
+    variable database   "mysql://user:password@alcoholicz.com/database"
 
     # logPath    - Path to the FTP daemon's log directory, uncomment the correct
     #              line for your FTPD (ioFTPD then glFTPD, respectively).

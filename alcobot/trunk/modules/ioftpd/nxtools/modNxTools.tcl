@@ -536,7 +536,7 @@ proc ::Bot::Mod::NxTools::Load {firstLoad} {
         -category "Request" -desc "Display current requests."]
 
     lappend cmdTokens [CmdCreate channel request [list [namespace current]::SiteCmd REQADD] \
-        -args "<request/id>" -category "Request" -desc "Add a request."]
+        -args "<request>" -category "Request" -desc "Add a request."]
 
     lappend cmdTokens [CmdCreate channel reqdel [list [namespace current]::SiteCmd REQDEL] \
         -args "<request/id>" -category "Request" -desc "Remove a request."]
