@@ -2,7 +2,7 @@ AlcoBot v1.2.0 (not released):
   NEW: Command to display group pre statistics, !pregroup <name>.
   NEW: Command to display pre database statistics, !predb.
   NEW: Database abstraction layer library, replacing ODBC.
-  NEW: Database tables are created automatically if they don't exist.
+  NEW: Database tables are created automatically if they do not exist.
   NEW: FTP servers are now specified using URI strings (bouncer and ftpconn modules).
   NEW: Pattern matching options for the pre search, -match exact|regexp|wild.
   NEW: Support for additional FTP daemons can be added by creating a module sub-directory.
@@ -11,11 +11,11 @@ AlcoBot v1.2.0 (not released):
   CHG: Improved test suite, now able to run outside of Eggdrop's interpreter.
   CHG: Libraries only set the errorCode value when intentionally throwing exceptions.
   CHG: Renamed tree library function "Tree::GetNaive" to "Tree::GetQuiet".
-  FIX: Handle arguments consistently in the nxtools module.
+  FIX: Consistently handle arguments in the nxtools module.
 
 AlcoBot v1.1.0 (Apr 12, 2006):
   NEW: Commands can throw CMDHELP and GETOPT errors to display command usage.
-  NEW: Modules are reference counted, so dependencies won't be unloaded early.
+  NEW: Modules are reference counted, so dependencies will not be unloaded early.
   NEW: Modules clean-up after themselves, so they can be unloaded at any time.
   NEW: Multiple prefixes can be specified for commands (e.g. !bw and !sitebw).
   NEW: Redesigned the command option system: prefixes are configurable per
@@ -28,7 +28,7 @@ AlcoBot v1.1.0 (Apr 12, 2006):
   CHG: Moved the formatting and variable systems to the bot's core.
   CHG: Removed the "varFiles" option from the configuration file.
   CHG: Renamed all library commands and dropped the namespace exports.
-  FIX: The groups module didn't remove sections with no groups.
+  FIX: The groups module did not remove sections with no groups.
 
 AlcoBot v1.0.0 (Feb 23, 2006):
   NEW: Improved installation instructions.
