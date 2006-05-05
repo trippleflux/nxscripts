@@ -229,10 +229,10 @@ proc ::Invite::Admin {argList} {
                 LinePuts "Invalid host-mask, must be \"ident@host\"."
                 return 1
             }
-            set query {REPLACE INTO [Name invite_hosts] ([Name ftp_user hostmask]) \
+            set query {INSERT INTO [Name invite_hosts] ([Name ftp_user hostmask]) \
                 VALUES([String $ftpUser $hostMask])}
 
-            Db::Exec $dbHandle $query
+            catch {Db::Exec $dbHandle $query}
             LinePuts "Added host-mask \"$hostMask\" to user \"$ftpUser\"."
         }
         DELHOST - DELIP {
