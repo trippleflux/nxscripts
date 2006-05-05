@@ -262,7 +262,7 @@ proc ::Invite::Admin {argList} {
                 WHERE [Name ftp_user]=[String $ftpUser] ORDER BY [Name hostmask] ASC}
 
             foreach hostmask [Db::Select $dbHandle -list $query] {
-                LinePuts "- $hostmask"; incr count
+                LinePuts " $hostmask"; incr count
             }
             if {!$count} {LinePuts "- No hosts found."}
         }
