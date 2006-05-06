@@ -1,0 +1,123 @@
+#
+# AlcoBot - Alcoholicz site bot.
+# Copyright (c) 2005-2006 Alcoholicz Scripting Team
+#
+# Module Name:
+#   List Tests
+#
+# Author:
+#   neoxed (neoxed@gmail.com) Sep 4, 2005
+#
+# Abstract:
+#   Implements regression tests for list functions.
+#
+
+set currentPath [file dirname [file normalize [info script]]]
+source [file join $currentPath "loader.tcl"]
+
+package require alco::util
+namespace import -force ::Bot::*
+
+################################################################################
+# ListConvert                                                                  #
+################################################################################
+
+test list-3.1 {ListConvert: nothing} {
+    ListConvert [list]
+} {}
+
+test list-3.2 {ListConvert: one element} {
+    ListConvert [list one]
+} {one}
+
+test list-3.3 {ListConvert: two elements} {
+    ListConvert [list one two]
+} {one and two}
+
+test list-3.4 {ListConvert: two elements, or} {
+    ListConvert [list one two] or
+} {one or two}
+
+test list-3.5 {ListConvert: three elements} {
+    ListConvert [list one two three]
+} {one, two, and three}
+
+test list-3.6 {ListConvert: three elements, or} {
+    ListConvert [list one two three] or
+} {one, two, or three}
+
+test list-3.7 {ListConvert: four elements} {
+    ListConvert [list one two three four]
+} {one, two, three, and four}
+
+test list-3.8 {ListConvert: four elements, or} {
+    ListConvert [list one two three four] or
+} {one, two, three, or four}
+
+################################################################################
+# ListExists                                                                   #
+################################################################################
+
+test list-2.1 {ListExists: present} {
+    ListExists [list one two three] two
+} {1}
+
+test list-2.2 {ListExists: present, no case} {
+    ListExists [list one two three] TWO
+} {1}
+
+test list-2.3 {ListExists: not present} {
+    ListExists [list one two three] four
+} {0}
+
+################################################################################
+# ListParse                                                                    #
+################################################################################
+
+test list-3.1 {ListParse: nothing} {
+    ListParse {one two three four}
+} [list one two three four]
+
+test list-3.2 {ListParse: spacing} {
+    ListParse {    one        two     three       four        }
+} [list one two three four]
+
+test list-3.3 {ListParse: trailing char} {
+    ListParse {    one        two     three       four        .}
+} [list one two three four .]
+
+test list-3.4 {ListParse: quotes} {
+    ListParse {one "two three" four}
+} [list one {two three} four]
+
+test list-3.5 {ListParse: quotes and tabs} {
+    ListParse {one	"two	three"	four}
+} [list one {two	three} four]
+
+test list-3.6 {ListParse: quoted text} {
+    ListParse {one "two three four"}
+} [list one {two three four}]
+
+test list-3.7 {ListParse: open quote} {
+    ListParse "one \"two three four"
+} [list one {two three four}]
+
+test list-3.8 {ListParse: ending quote} {
+    ListParse "one two three four \""
+} [list one two three four {}]
+
+################################################################################
+# ListRemove                                                                   #
+################################################################################
+
+test list-4.1 {ListRemove: present} {
+    ListRemove [list one two three] two
+} {one three}
+
+test list-4.2 {ListRemove: not present} {
+    ListRemove [list one two three] four
+} {one two three}
+
+
+::tcltest::cleanupTests
+return

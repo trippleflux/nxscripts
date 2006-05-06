@@ -1,0 +1,6 @@
+# Module Definition File
+desc=ioZS Variables
+context=
+depends=
+tclFiles=
+varFiles=modIoZs.vars

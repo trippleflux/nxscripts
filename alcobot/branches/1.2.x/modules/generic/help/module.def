@@ -1,0 +1,6 @@
+# Module Definition File
+desc=Command Help
+context=::Bot::Mod::Help
+depends=
+tclFiles=modHelp.tcl
+varFiles=modHelp.vars
