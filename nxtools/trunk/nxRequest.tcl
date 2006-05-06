@@ -225,7 +225,7 @@ proc ::nxTools::Req::Wipe {} {
                     ErrorLog ReqWipe $error
                 }
                 LinePuts "Wiped: $values(Request) by $values(UserName)/$values(GroupName) (#$values(RequestId))."
-                putlog "REQWIPE: \"$values(UserName)\" \"$values(GroupName)\" \"$values(Request)\" \"$values(RequestId)\" \"$requestAge\" \"$req(MaximumAge)\""
+                putlog "REQWIPE: \"$values(UserName)\" \"$values(GroupName)\" \"$values(Request)\" \"$values(RequestId)\" \"$requestAge\" \"$maxAge\""
             }
             ReqDb eval {UPDATE Requests SET Status=2 WHERE rowid=$values(rowid)}
         }
