@@ -2,6 +2,10 @@
 #                         nxAutoNuke-ioA - Change Log                          #
 ################################################################################
 
+nxAutoNuke-ioA v2.4.1 (not released):
+  CHG: Iterate through directories first and then through nuke-checks, this
+       significantly speeds up the script on sections with many directories.
+
 nxAutoNuke-ioA v2.4.0 (Apr 5, 2006):
   NEW: Announce warning types for a release once, per execution and/or release.
   CHG: Several options renamed, be sure to update your configuration file.
