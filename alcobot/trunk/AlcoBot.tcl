@@ -1793,8 +1793,7 @@ proc ::Bot::InitMain {} {
 
     LogInfo "Loading packages..."
     if {[catch {InitPackages $scriptPath} message]} {
-        LogError Packages $message
-        die
+        LogError Packages $message; die
     }
 
     LogInfo "Loading configuration..."
