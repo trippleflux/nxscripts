@@ -579,7 +579,6 @@ proc ::nxAutoNuke::NukeCheck {realPath virtualPath dirAge} {
             LinePuts "- Unable to nuke the the release, check nxError.log for details."
         }
     } elseif {$dirAge >= $warnSecs && [WarnAllowed $check(Type) $realPath]} {
-        # Obtain a list of nuked users.
         if {[IsTrue $anuke(UserList)]} {
             set userList [GetUserList $realPath]
         } else {
@@ -587,7 +586,7 @@ proc ::nxAutoNuke::NukeCheck {realPath virtualPath dirAge} {
         }
 
         LinePuts "- Warning: [GetName $virtualPath] - $check(Reason)"
-        putlog "$check(WarnType): \"$virtualPath\" $check(WarnData)\"$dirAge\" \"[expr {$nukeSecs - $dirAge}]\" \"$nukeSecs\" \"$check(Multi)\" \"$userList\""
+        putlog "$check(WarnName): \"$virtualPath\" $check(WarnData)\"$dirAge\" \"[expr {$nukeSecs - $dirAge}]\" \"$nukeSecs\" \"$check(Multi)\" \"$userList\""
     }
 }
 
@@ -631,8 +630,8 @@ proc ::nxAutoNuke::Main {} {
     # check(NukeMins) - Minutes until the release is nuked.
     # check(Cookies)  - List of reason cookies.
     # check(Reason)   - Nuke reason template.
-    # check(WarnType) - Warning log event type.
-    # check(WarnData) - Warning log check data.
+    # check(WarnData) - Warning log data.
+    # check(WarnName) - Warning log event name.
     #
     # Release Specific Variables:
     #
@@ -722,14 +721,16 @@ proc ::nxAutoNuke::Main {} {
             set release(VirtualPath) [file join $sectionVirtualPath $release(Name)]
 
             foreach {check(Type) check(Options) check(Multi) check(WarnMins) check(NukeMins)} $settingsList {
+                array set check [list Cookies "" WarnData ""]
+
                 if {[info exists releaseChecks($check(Type))]} {
-                    foreach {check(WarnType) check(Reason) checkProc} $releaseChecks($check(Type)) {break}
+                    foreach {check(WarnName) check(Reason) checkProc} $releaseChecks($check(Type)) {break}
 
                     if {[eval $checkProc]} {
                         NukeCheck $release(RealPath) $release(VirtualPath) $release(Age)
                     }
                 } elseif {[info exists diskChecks($check(Type))]} {
-                    foreach {check(WarnType) check(Reason) checkProc} $diskChecks($check(Type)) {break}
+                    foreach {check(WarnName) check(Reason) checkProc} $diskChecks($check(Type)) {break}
 
                     # Check each release sub-directory.
                     foreach disk(RealPath) $release(PathList) {
