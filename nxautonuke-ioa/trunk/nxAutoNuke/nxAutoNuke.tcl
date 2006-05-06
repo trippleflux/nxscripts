@@ -317,7 +317,7 @@ proc ::nxAutoNuke::CheckInc {realPath} {
     return 0
 }
 
-proc ::nxAutoNuke::CheckImdb {checkList realPath} {
+proc ::nxAutoNuke::CheckImdb {options realPath} {
     global anuke
     variable check
     set found 0; set genre ""; set rating ""; set year ""
@@ -331,7 +331,7 @@ proc ::nxAutoNuke::CheckImdb {checkList realPath} {
     }
     if {!$found} {return 0}
 
-    foreach {type value} $checkList {
+    foreach {type value} $options {
         set nuke 0
         switch -- $type {
             genre {
@@ -384,7 +384,7 @@ proc ::nxAutoNuke::CheckKeyword {keywordList releaseName} {
     return 0
 }
 
-proc ::nxAutoNuke::CheckMP3 {checkList realPath} {
+proc ::nxAutoNuke::CheckMP3 {options realPath} {
     global anuke
     variable check
     set found 0; set bitrate 0; set genre ""; set year ""
@@ -398,7 +398,7 @@ proc ::nxAutoNuke::CheckMP3 {checkList realPath} {
     }
     if {!$found} {return 0}
 
-    foreach {type value} $checkList {
+    foreach {type value} $options {
         set nuke 0
         switch -- $type {
             bitrate {
@@ -441,13 +441,13 @@ proc ::nxAutoNuke::CheckMP3 {checkList realPath} {
     return 0
 }
 
-proc ::nxAutoNuke::CheckSize {settings realPath} {
+proc ::nxAutoNuke::CheckSize {options realPath} {
     variable check
 
-    set min [lindex $settings 0]
-    set max [lindex $settings 1]
+    set min [lindex $options 0]
+    set max [lindex $options 1]
     if {![string is double -strict $min] || ![string is double -strict $max]} {
-        ErrorLog AutoNuke "Invalid size setting \"$settings\"."
+        ErrorLog AutoNuke "Invalid size option \"$options\"."
         return 1
     }
     GetDirStats $realPath stats ".ioFTPD*"
@@ -505,17 +505,18 @@ proc ::nxAutoNuke::FindTags {realPath {tagTemplate "*"}} {
     return [glob -nocomplain -types d -directory $realPath $tagTemplate]
 }
 
-proc ::nxAutoNuke::SplitSettings {type settings} {
-    set checkList [list]
-    foreach entry $settings {
+proc ::nxAutoNuke::SplitOptions {type options} {
+    set result [list]
+    foreach entry $options {
         set value [split $entry ":"]
+
         if {[llength $value] == 2} {
-            lappend checkList [string tolower [lindex $value 0]] [lindex $value 1]
+            lappend result [string tolower [lindex $value 0]] [lindex $value 1]
         } else {
             ErrorLog AutoNuke "Invalid $type entry \"$entry\"."
         }
     }
-    return $checkList
+    return $result
 }
 
 proc ::nxAutoNuke::NukeAllowed {realPath} {
@@ -614,15 +615,17 @@ proc ::nxAutoNuke::Main {} {
 
     # Initialise variables and options.
     set anuke(ImdbOrder) [string tolower $anuke(ImdbOrder)]
-    set anuke(MP3Order) [string tolower $anuke(MP3Order)]
+    set anuke(MP3Order)  [string tolower $anuke(MP3Order)]
+    set maxAge [expr {$anuke(MaximumAge) * 60}]
     set nukedList [list]
+    set timeNow [clock seconds]
     unset -nocomplain warnedList
 
     #
     # Check Variables:
     #
     # check(Type)     - Type of auto-nuke check.
-    # check(Settings) - Settings specific to the check type.
+    # check(Options)  - Options specific to the check type.
     # check(Multi)    - Nuke multiplier.
     # check(WarnMins) - Minutes until the warning is announced.
     # check(NukeMins) - Minutes until the release is nuked.
@@ -637,89 +640,88 @@ proc ::nxAutoNuke::Main {} {
     # release(Name)        - Release name.
     # release(RealPath)    - Release physical path.
     # release(VirtualPath) - Release virtual path.
-    # release(PathList)    - Release subdirectory list.
+    # release(PathList)    - Release sub-directory list.
     #
     # Disk Specific Variables:
     #
-    # disk(Age)         - Age of disk subdirectory, in seconds.
-    # disk(Name)        - Name of disk subdirectory.
+    # disk(Age)         - Age of disk sub-directory, in seconds.
+    # disk(Name)        - Name of disk sub-directory.
     # disk(RealPath)    - Disk physical path.
     # disk(VirtualPath) - Disk virtual path.
     #
     array set releaseChecks [list \
-        allowed    [list ANUKEALLOWED $anuke(ReasonAllowed) {CheckAllowed $check(Settings) $release(Name)}] \
-        banned     [list ANUKEBANNED  $anuke(ReasonBanned)  {CheckBanned  $check(Settings) $release(Name)}] \
-        disks      [list ANUKEDISKS   $anuke(ReasonDisks)   {CheckDisks   $check(Settings) [llength $release(PathList)]}] \
-        imdb       [list ANUKEIMDB    $anuke(ReasonImdb)    {CheckImdb    $check(Settings) $release(RealPath)}] \
-        keyword    [list ANUKEKEYWORD $anuke(ReasonKeyword) {CheckKeyword $check(Settings) $release(Name)}] \
-        size       [list ANUKESIZE    $anuke(ReasonSize)    {CheckSize    $check(Settings) $release(RealPath)}] \
+        allowed    [list ANUKEALLOWED $anuke(ReasonAllowed) {CheckAllowed $check(Options) $release(Name)}] \
+        banned     [list ANUKEBANNED  $anuke(ReasonBanned)  {CheckBanned  $check(Options) $release(Name)}] \
+        disks      [list ANUKEDISKS   $anuke(ReasonDisks)   {CheckDisks   $check(Options) [llength $release(PathList)]}] \
+        imdb       [list ANUKEIMDB    $anuke(ReasonImdb)    {CheckImdb    $check(Options) $release(RealPath)}] \
+        keyword    [list ANUKEKEYWORD $anuke(ReasonKeyword) {CheckKeyword $check(Options) $release(Name)}] \
+        size       [list ANUKESIZE    $anuke(ReasonSize)    {CheckSize    $check(Options) $release(RealPath)}] \
     ]
     array set diskChecks [list \
         empty      [list ANUKEEMPTY   $anuke(ReasonEmpty)   {CheckEmpty $disk(RealPath)}] \
         incomplete [list ANUKEINC     $anuke(ReasonInc)     {CheckInc   $disk(RealPath)}] \
-        mp3        [list ANUKEMP3     $anuke(ReasonMP3)     {CheckMP3   $check(Settings) $disk(RealPath)}] \
+        mp3        [list ANUKEMP3     $anuke(ReasonMP3)     {CheckMP3   $check(Options) $disk(RealPath)}] \
     ]
 
-    # Timestamp used to format date cookies.
-    set timeNow [clock seconds]
-    set maxAge [expr {$anuke(MaximumAge) * 60}]
-
-    foreach {check(VirtualPath) check(DayOffset) check(SettingsList)} $anuke(Sections) {
-        # Sort the check settings so the earliest nuke time is processed first.
-        if {[catch {llength $check(SettingsList)} error] || \
-            [catch {set check(SettingsList) [lsort -increasing -integer -index 4 $check(SettingsList)]} error]} {
-            ErrorLog AutoNuke "invalid check settings for \"$check(VirtualPath)\": $error"
-            continue
-        }
-
+    foreach {sectionVirtualPath offset settings} $anuke(Sections) {
         # Convert virtual path date cookies.
-        set formatTime [expr {$timeNow + ($check(DayOffset) * 86400)}]
-        set check(VirtualPath) [clock format $formatTime -format $check(VirtualPath) -gmt [IsTrue $misc(UtcTime)]]
+        set formatTime [expr {$timeNow + ($offset * 86400)}]
+        set sectionVirtualPath [clock format $formatTime -format $sectionVirtualPath -gmt [IsTrue $misc(UtcTime)]]
         LinePuts ""
-        LinePuts "Checking path: $check(VirtualPath) (day offset: $check(DayOffset))"
-        set check(RealPath) [resolve pwd $check(VirtualPath)]
-        if {![file isdirectory $check(RealPath)]} {
+        LinePuts "Checking path: $sectionVirtualPath (day offset: $offset)"
+        set sectionRealPath [resolve pwd $sectionVirtualPath]
+        if {![file isdirectory $sectionRealPath]} {
             LinePuts "- The directory does not exist."
             continue
         }
 
-        foreach configLine $check(SettingsList) {
-            foreach {check(Type) check(Settings) check(Multi) check(WarnMins) check(NukeMins)} $configLine {break}
-            set check(Type) [string tolower $check(Type)]
+        # Process the earliest nuke times first.
+        if {[catch {set settings [lsort -increasing -integer -index 4 $settings]} error]} {
+            LinePuts "- Invalid settings, check your configuration."
+            ErrorLog AutoNuke "invalid settings for \"$sectionVirtualPath\": $error"
+            continue
+        }
 
-            # Split IMDB and MP3 check settings.
-            if {$check(Type) eq "imdb" || $check(Type) eq "mp3"} {
-                set check(Settings) [SplitSettings $check(Type) $check(Settings)]
-            } elseif {$check(Type) eq "keyword"} {
-                set check(Settings) [string tolower $check(Settings)]
+        # Parse the settings for each individual check.
+        set settingsList [list]
+        foreach entry $settings {
+            foreach {type options multi warnMins nukeMins} $entry {break}
+            set type [string tolower $type]
+
+            if {$type eq "imdb" || $type eq "mp3"} {
+                set options [SplitOptions $type $options]
+            } elseif {$type eq "keyword"} {
+                set options [string tolower $options]
+            }
+            lappend settingsList $type $options $multi $warnMins $nukeMins
+        }
+
+        foreach release(RealPath) [glob -nocomplain -types d -directory $sectionRealPath "*"] {
+            set release(Name) [file tail $release(RealPath)]
+
+            # Ignore exempted, approved, and old releases.
+            if {[ListMatchI $anuke(Exempts) $release(Name)] ||
+                    [llength [FindTags $release(RealPath) $anuke(ApproveTag)]] ||
+                    [catch {file stat $release(RealPath) stat}] ||
+                    [set release(Age) [expr {[clock seconds] - $stat(ctime)}]] > $maxAge} {
+                continue
             }
 
-            foreach release(RealPath) [glob -nocomplain -types d -directory $check(RealPath) "*"] {
-                set release(Name) [file tail $release(RealPath)]
-
-                # Ignore exempted, approved, and old releases.
-                if {[ListMatchI $anuke(Exempts) $release(Name)] || \
-                        [llength [FindTags $release(RealPath) $anuke(ApproveTag)]] || \
-                        [catch {file stat $release(RealPath) stat}] || \
-                        [set release(Age) [expr {[clock seconds] - $stat(ctime)}]] > $maxAge} {
-                    continue
+            # Find all disk sub-directories.
+            set release(PathList) [list]
+            foreach diskDir [glob -nocomplain -types d -directory $release(RealPath) "*"] {
+                if {![ListMatchI $anuke(Exempts) [file tail $diskDir]] && [IsDiskPath $diskDir]} {
+                    lappend release(PathList) $diskDir
                 }
+            }
 
-                # Find release subdirectories.
-                set release(PathList) [list]
-                foreach diskDir [glob -nocomplain -types d -directory $release(RealPath) "*"] {
-                    if {![ListMatchI $anuke(Exempts) [file tail $diskDir]] && [IsDiskPath $diskDir]} {
-                        lappend release(PathList) $diskDir
-                    }
-                }
-                # If there are no subdirectories present, check the release's root directory.
-                if {![llength $release(PathList)]} {
-                    lappend release(PathList) $release(RealPath)
-                }
+            # Use the root directory if there are no sub-directories.
+            if {![llength $release(PathList)]} {
+                lappend release(PathList) $release(RealPath)
+            }
+            set release(VirtualPath) [file join $sectionVirtualPath $release(Name)]
 
-                array set check [list Cookies "" Reason "" WarnType "" WarnData ""]
-                set release(VirtualPath) [file join $check(VirtualPath) $release(Name)]
-
+            foreach {check(Type) check(Options) check(Multi) check(WarnMins) check(NukeMins)} $settingsList {
                 if {[info exists releaseChecks($check(Type))]} {
                     foreach {check(WarnType) check(Reason) checkProc} $releaseChecks($check(Type)) {break}
 
@@ -729,10 +731,10 @@ proc ::nxAutoNuke::Main {} {
                 } elseif {[info exists diskChecks($check(Type))]} {
                     foreach {check(WarnType) check(Reason) checkProc} $diskChecks($check(Type)) {break}
 
-                    # Check each release subdirectory.
+                    # Check each release sub-directory.
                     foreach disk(RealPath) $release(PathList) {
                         if {[IsDiskPath $disk(RealPath)]} {
-                            # Retrieve the subdirectory's age.
+                            # Retrieve the sub-directory's age.
                             if {[catch {file stat $disk(RealPath) stat}]} {continue}
                             set disk(Age) [expr {[clock seconds] - $stat(ctime)}]
 
@@ -746,7 +748,7 @@ proc ::nxAutoNuke::Main {} {
                         }
                     }
                 } else {
-                    ErrorLog AutoNuke "Invalid auto-nuke type \"$check(Type)\" in line: \"$configLine\""
+                    ErrorLog AutoNuke "Invalid auto-nuke type \"$check(Type)\"."
                     break
                 }
             }
