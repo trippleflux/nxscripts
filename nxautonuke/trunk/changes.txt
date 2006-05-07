@@ -2,7 +2,7 @@
 #                           nxAutoNuke - Change Log                            #
 ################################################################################
 
-nxAutoNuke v2.4.1 (not released):
+nxAutoNuke v2.4.1 (May 6, 2006):
   CHG: Iterate through directories first and then through nuke-checks, this
        significantly speeds up the script on sections with many directories.
 
