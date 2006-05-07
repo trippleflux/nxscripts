@@ -2,7 +2,7 @@
 #                             nxTools - Change Log                             #
 ################################################################################
 
-nxTools v1.0.4 (not released):
+nxTools v1.0.4 (May 6, 2006):
   NEW: Check if the request was already filled before adding it.
   NEW: Extensions are now loaded using Tcl's package system.
   FIX: Properly quote string values in SQL statements.
