@@ -14,7 +14,7 @@
 
 # Setup autoconf.
 AC_PREREQ(2.59)
-AC_INIT([AlcoExt],[0.6])
+AC_INIT([AlcoExt],[0.7])
 AC_CONFIG_AUX_DIR([tclconfig])
 AC_CONFIG_HEADER([config.h])
 

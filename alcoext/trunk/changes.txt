@@ -1,3 +1,6 @@
+AlcoExt v0.7.0 (not released):
+  FIX: Tcl channel drivers require the "getHandleProc" method.
+
 AlcoExt v0.6.0 (Apr 12, 2006):
   NEW: Command to retrieve and set VFS attributes for ioFTPD.
   NEW: Paths are translated to the system's native representation.
