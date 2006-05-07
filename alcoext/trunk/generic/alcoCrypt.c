@@ -210,6 +210,7 @@ typedef struct {
 
 static Tcl_DriverBlockModeProc PrngSetBlocking;
 static Tcl_DriverCloseProc     PrngClose;
+static Tcl_DriverGetHandleProc PrngGetHandle;
 static Tcl_DriverInputProc     PrngInput;
 static Tcl_DriverOutputProc    PrngOutput;
 static Tcl_DriverGetOptionProc PrngGetOption;
@@ -226,7 +227,7 @@ static Tcl_ChannelType prngChannelType = {
     PrngSetOption,          // Set channel options.
     PrngGetOption,          // Get channel options.
     PrngWatch,              // Event notifier.
-    NULL,                   // Retrieve an OS handle.
+    PrngGetHandle,          // Retrieve an OS handle.
     NULL,                   // Close 2 proc.
     PrngSetBlocking,        // Set blocking or non-blocking mode.
     NULL,                   // Flush proc.
@@ -1610,6 +1611,34 @@ PrngClose(
     ckfree((char *)handlePtr);
 
     return 0;
+}
+
+/*++
+
+PrngGetHandle
+
+    Retrieves the handle associated with the given channel.
+
+Arguments:
+    instanceData - Pointer to a "PrngHandle" structure.
+
+    direction    - TCL_READABLE or TCL_WRITABLE
+
+    handlePtr    - Location to store the handle.
+
+Return Value:
+    A standard Tcl result.
+
+--*/
+static int
+PrngGetHandle(
+    ClientData instanceData,
+    int direction,
+    ClientData *handlePtr
+    )
+{
+    *handlePtr = (ClientData)&((PrngHandle *)instanceData)->state;
+    return TCL_OK;
 }
 
 /*++
