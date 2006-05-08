@@ -6,7 +6,7 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.org
+ * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
  */
 #include "tomcrypt.h"
 
@@ -59,7 +59,3 @@ int cfb_start(int cipher, const unsigned char *IV, const unsigned char *key,
 }
 
 #endif
-
-/* $Source: /cvs/libtom/libtomcrypt/src/modes/cfb/cfb_start.c,v $ */
-/* $Revision: 1.4 $ */
-/* $Date: 2005/10/08 10:31:48 $ */

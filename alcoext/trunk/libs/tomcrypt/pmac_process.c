@@ -6,7 +6,7 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.org
+ * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
  */
 #include "tomcrypt.h"
 
@@ -94,7 +94,3 @@ int pmac_process(pmac_state *pmac, const unsigned char *in, unsigned long inlen)
 }
 
 #endif
-
-/* $Source: /cvs/libtom/libtomcrypt/src/mac/pmac/pmac_process.c,v $ */
-/* $Revision: 1.6 $ */
-/* $Date: 2005/10/08 10:31:48 $ */

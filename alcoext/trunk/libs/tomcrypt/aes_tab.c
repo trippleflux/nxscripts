@@ -6,7 +6,7 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.org
+ * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
  */
 /* The precomputed tables for AES */
 /*
@@ -1018,7 +1018,3 @@ static const ulong32 rcon[] = {
     0x10000000UL, 0x20000000UL, 0x40000000UL, 0x80000000UL,
     0x1B000000UL, 0x36000000UL, /* for 128-bit blocks, Rijndael never uses more than 10 rcon values */
 };
-
-/* $Source: /cvs/libtom/libtomcrypt/src/ciphers/aes/aes_tab.c,v $ */
-/* $Revision: 1.3 $ */
-/* $Date: 2005/05/05 14:35:58 $ */

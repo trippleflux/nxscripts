@@ -52,7 +52,3 @@ int pkcs_5_alg2(const unsigned char *password, unsigned long password_len,
                 unsigned char *out,            unsigned long *outlen);
 
 #endif  /* PKCS_5 */
-
-/* $Source: /cvs/libtom/libtomcrypt/src/headers/tomcrypt_pkcs.h,v $ */
-/* $Revision: 1.5 $ */
-/* $Date: 2005/10/08 10:31:48 $ */

@@ -6,7 +6,7 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.org
+ * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
  */
 #include "tomcrypt.h"
 
@@ -86,8 +86,3 @@ int hmac_file(int hash, const char *fname,
 }
 
 #endif
-
-
-/* $Source: /cvs/libtom/libtomcrypt/src/mac/hmac/hmac_file.c,v $ */
-/* $Revision: 1.3 $ */
-/* $Date: 2005/05/05 14:35:58 $ */

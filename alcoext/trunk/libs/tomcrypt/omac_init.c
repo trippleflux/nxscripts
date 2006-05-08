@@ -6,7 +6,7 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.org
+ * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
  */
 #include "tomcrypt.h"
 
@@ -95,7 +95,3 @@ int omac_init(omac_state *omac, int cipher, const unsigned char *key, unsigned l
 }
 
 #endif
-
-/* $Source: /cvs/libtom/libtomcrypt/src/mac/omac/omac_init.c,v $ */
-/* $Revision: 1.6 $ */
-/* $Date: 2005/10/08 10:31:48 $ */

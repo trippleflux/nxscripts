@@ -6,7 +6,7 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.org
+ * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
  */
 #include "tomcrypt.h"
 
@@ -44,7 +44,3 @@ int find_cipher_any(const char *name, int blocklen, int keylen)
    LTC_MUTEX_UNLOCK(&ltc_cipher_mutex);
    return -1;
 }
-
-/* $Source: /cvs/libtom/libtomcrypt/src/misc/crypt/crypt_find_cipher_any.c,v $ */
-/* $Revision: 1.4 $ */
-/* $Date: 2005/06/19 18:00:28 $ */

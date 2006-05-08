@@ -228,11 +228,13 @@ int        ltc_ecc_is_valid_idx(int n);
 
 
 /* point ops (mp == montgomery digit) */
+#ifndef MECC_ACCEL
 /* R = 2P */
 int ltc_ecc_projective_dbl_point(ecc_point *P, ecc_point *R, void *modulus, void *mp);
 
 /* R = P + Q */
 int ltc_ecc_projective_add_point(ecc_point *P, ecc_point *Q, ecc_point *R, void *modulus, void *mp);
+#endif
 
 /* R = kG */
 int ltc_ecc_mulmod(void *k, ecc_point *G, ecc_point *R, void *modulus, int map);
@@ -466,7 +468,3 @@ int der_length_utctime(ltc_utctime *utctime, unsigned long *outlen);
 
 
 #endif
-
-/* $Source: /cvs/libtom/libtomcrypt/src/headers/tomcrypt_pk.h,v $ */
-/* $Revision: 1.58 $ */
-/* $Date: 2005/11/24 02:04:22 $ */

@@ -6,7 +6,7 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.org
+ * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
  */
 /**
    @param sha224.c
@@ -118,8 +118,3 @@ int  sha224_test(void)
   return CRYPT_OK;
  #endif
 }
-
-
-/* $Source: /cvs/libtom/libtomcrypt/src/hashes/sha2/sha224.c,v $ */
-/* $Revision: 1.6 $ */
-/* $Date: 2005/07/16 19:56:37 $ */

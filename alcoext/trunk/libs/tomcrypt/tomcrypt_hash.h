@@ -333,7 +333,3 @@ int func_name (hash_state * md, const unsigned char *in, unsigned long inlen)   
     }                                                                                       \
     return CRYPT_OK;                                                                        \
 }
-
-/* $Source: /cvs/libtom/libtomcrypt/src/headers/tomcrypt_hash.h,v $ */
-/* $Revision: 1.16 $ */
-/* $Date: 2005/07/30 23:13:00 $ */

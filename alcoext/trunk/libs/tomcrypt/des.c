@@ -6,7 +6,7 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.org
+ * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
  */
 #include "tomcrypt.h"
 
@@ -1895,8 +1895,3 @@ int des3_keysize(int *keysize)
 }
 
 #endif
-
-
-/* $Source: /cvs/libtom/libtomcrypt/src/ciphers/des.c,v $ */
-/* $Revision: 1.10 $ */
-/* $Date: 2006/01/26 15:07:25 $ */

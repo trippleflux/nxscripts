@@ -6,7 +6,7 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.org
+ * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
  */
 #include "tomcrypt.h"
 #include <stdarg.h>
@@ -83,7 +83,3 @@ LBL_ERR:
 }
 
 #endif
-
-/* $Source: /cvs/libtom/libtomcrypt/src/mac/pmac/pmac_memory_multi.c,v $ */
-/* $Revision: 1.4 $ */
-/* $Date: 2005/05/05 14:35:59 $ */

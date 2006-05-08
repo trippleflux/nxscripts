@@ -14,7 +14,3 @@ void burn_stack(unsigned long len);
 const char *error_to_string(int err);
 
 extern const char *crypt_build_settings;
-
-/* $Source: /cvs/libtom/libtomcrypt/src/headers/tomcrypt_misc.h,v $ */
-/* $Revision: 1.3 $ */
-/* $Date: 2005/07/17 23:59:02 $ */

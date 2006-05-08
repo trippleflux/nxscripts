@@ -15,7 +15,7 @@
  */
 
 /* detect x86-32 machines somewhat */
-#if defined(INTEL_CC) || (defined(_MSC_VER) && defined(WIN32)) || (defined(__GNUC__) && (defined(__DJGPP__) || defined(__CYGWIN__) || defined(__MINGW32__) || defined(__i386__)))
+#if !defined(__STRICT_ANSI__) && (defined(INTEL_CC) || (defined(_MSC_VER) && defined(WIN32)) || (defined(__GNUC__) && (defined(__DJGPP__) || defined(__CYGWIN__) || defined(__MINGW32__) || defined(__i386__))))
    #define ENDIAN_LITTLE
    #define ENDIAN_32BITWORD
    #define LTC_FAST
@@ -29,7 +29,7 @@
 #endif
 
 /* detect amd64 */
-#if defined(__x86_64__)
+#if !defined(__STRICT_ANSI__) && defined(__x86_64__)
    #define ENDIAN_LITTLE
    #define ENDIAN_64BITWORD
    #define LTC_FAST
@@ -37,7 +37,7 @@
 #endif
 
 /* detect PPC32 */
-#if defined(LTC_PPC32)
+#if !defined(__STRICT_ANSI__) && defined(LTC_PPC32)
    #define ENDIAN_BIG
    #define ENDIAN_32BITWORD
    #define LTC_FAST
@@ -80,7 +80,7 @@
 /* #define ENDIAN_64BITWORD */
 
 #if (defined(ENDIAN_BIG) || defined(ENDIAN_LITTLE)) && !(defined(ENDIAN_32BITWORD) || defined(ENDIAN_64BITWORD))
-    #error You must specify a word size as well as endianess in mycrypt_cfg.h
+    #error You must specify a word size as well as endianess in tomcrypt_cfg.h
 #endif
 
 #if !(defined(ENDIAN_BIG) || defined(ENDIAN_LITTLE))
@@ -88,8 +88,3 @@
 #endif
 
 #endif
-
-
-/* $Source: /cvs/libtom/libtomcrypt/src/headers/tomcrypt_cfg.h,v $ */
-/* $Revision: 1.14 $ */
-/* $Date: 2005/11/23 01:15:05 $ */

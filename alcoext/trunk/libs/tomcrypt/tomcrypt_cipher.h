@@ -702,6 +702,7 @@ int lrw_decrypt(const unsigned char *ct, unsigned char *pt, unsigned long len, s
 int lrw_getiv(unsigned char *IV, unsigned long *len, symmetric_LRW *lrw);
 int lrw_setiv(const unsigned char *IV, unsigned long len, symmetric_LRW *lrw);
 int lrw_done(symmetric_LRW *lrw);
+int lrw_test(void);
 
 /* don't call */
 int lrw_process(const unsigned char *pt, unsigned char *ct, unsigned long len, int mode, symmetric_LRW *lrw);
@@ -716,7 +717,3 @@ int unregister_cipher(const struct ltc_cipher_descriptor *cipher);
 int cipher_is_valid(int idx);
 
 LTC_MUTEX_PROTO(ltc_cipher_mutex)
-
-/* $Source: /cvs/libtom/libtomcrypt/src/headers/tomcrypt_cipher.h,v $ */
-/* $Revision: 1.28 $ */
-/* $Date: 2006/01/26 15:38:16 $ */

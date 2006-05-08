@@ -6,7 +6,7 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.org
+ * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
  */
 #include "tomcrypt.h"
 
@@ -48,7 +48,3 @@ int register_prng(const struct ltc_prng_descriptor *prng)
    LTC_MUTEX_UNLOCK(&ltc_prng_mutex);
    return -1;
 }
-
-/* $Source: /cvs/libtom/libtomcrypt/src/misc/crypt/crypt_register_prng.c,v $ */
-/* $Revision: 1.5 $ */
-/* $Date: 2005/06/19 18:00:28 $ */

@@ -6,7 +6,7 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.org
+ * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
  */
 #include "tomcrypt.h"
 
@@ -345,8 +345,3 @@ int yarrow_test(void)
 }
 
 #endif
-
-
-/* $Source: /cvs/libtom/libtomcrypt/src/prngs/yarrow.c,v $ */
-/* $Revision: 1.6 $ */
-/* $Date: 2005/11/08 16:36:50 $ */

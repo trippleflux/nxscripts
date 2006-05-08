@@ -6,7 +6,7 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.org
+ * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
  */
 #include "tomcrypt.h"
 
@@ -91,7 +91,3 @@ int cbc_decrypt(const unsigned char *ct, unsigned char *pt, unsigned long len, s
 }
 
 #endif
-
-/* $Source: /cvs/libtom/libtomcrypt/src/modes/cbc/cbc_decrypt.c,v $ */
-/* $Revision: 1.12 $ */
-/* $Date: 2005/10/08 10:31:48 $ */

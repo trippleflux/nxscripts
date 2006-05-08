@@ -6,7 +6,7 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.org
+ * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
  */
 #include "tomcrypt.h"
 
@@ -54,7 +54,3 @@ int ofb_start(int cipher, const unsigned char *IV, const unsigned char *key,
 }
 
 #endif
-
-/* $Source: /cvs/libtom/libtomcrypt/src/modes/ofb/ofb_start.c,v $ */
-/* $Revision: 1.3 $ */
-/* $Date: 2005/05/05 14:35:59 $ */

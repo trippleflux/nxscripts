@@ -6,7 +6,7 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.org
+ * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
  */
 
 #include "tomcrypt.h"
@@ -806,10 +806,3 @@ Hash of "Tiger - A Fast New Hash Function, by Ross Anderson and Eli Biham, proce
 Hash of "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-":
         00B83EB4E53440C5 76AC6AAEE0A74858 25FD15E70A59FFE4
 */
-
-
-
-
-/* $Source: /cvs/libtom/libtomcrypt/src/hashes/tiger.c,v $ */
-/* $Revision: 1.6 $ */
-/* $Date: 2005/07/16 19:56:37 $ */

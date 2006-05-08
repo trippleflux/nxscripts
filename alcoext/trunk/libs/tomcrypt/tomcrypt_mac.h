@@ -306,7 +306,3 @@ int pelican_memory(int cipher,
                          unsigned char *out, unsigned long *outlen);
 
 #endif
-
-/* $Source: /cvs/libtom/libtomcrypt/src/headers/tomcrypt_mac.h,v $ */
-/* $Revision: 1.15 $ */
-/* $Date: 2006/01/29 15:53:39 $ */
