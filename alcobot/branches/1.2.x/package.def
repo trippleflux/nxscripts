@@ -21,7 +21,7 @@ PKG_PATCH   = 0
 # 2 = Release Candidate
 # 3 = Final
 #
-PKG_STATUS  = 0
+PKG_STATUS  = 3
 
 ### Release Number
 #
