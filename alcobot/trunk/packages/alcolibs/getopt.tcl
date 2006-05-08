@@ -119,14 +119,12 @@ proc ::GetOpt::Parse {argList optList resultVar} {
             1 {}
             2 {
                 if {[lsearch -exact $types [lindex $option 1]] == -1} {
-                    error "invalid option definition \"$option\": \
-                        bad type \"[lindex $option 1]\": must be [ListConvert $types or]"
+                    error "invalid option definition \"$option\": bad type \"[lindex $option 1]\": must be [ListConvert $types or]"
                 }
             }
             3 {
                 if {[lindex $option 1] ne "arg"} {
-                    error "invalid option definition \"$option\": \
-                        value lists can only be used with the \"arg\" type"
+                    error "invalid option definition \"$option\": value lists can only be used with the \"arg\" type"
                 }
             }
             default {

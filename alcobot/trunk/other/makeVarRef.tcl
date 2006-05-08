@@ -26,10 +26,9 @@ if {![file isdirectory $basePath]} {
 }
 cd $basePath
 
-# Source required libraries.
-puts "- Loading libraries."
-source "libs/libTree.tcl"
-source "libs/libConfig.tcl"
+# Load required packages.
+lappend auto_path [file join [pwd] "packages" "alcolibs"]
+package require alco::config
 
 puts "- Opening \"variables.txt\" for writing."
 set handle [open "variables.txt" w]
@@ -112,7 +111,6 @@ proc ParseGroup {handle group data} {
     return
 }
 
-set fileTree [Tree::Create]
 foreach type [lsort [glob -nocomplain -types d "modules/*"]] {
     # Write module type header.
     puts $handle "######################################################################"
