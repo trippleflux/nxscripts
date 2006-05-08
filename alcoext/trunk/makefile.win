@@ -235,7 +235,6 @@ OBJECT_FILES=\
     $(PKG_INTDIR)\crypt_find_prng.obj\
     $(PKG_INTDIR)\crypt_hash_descriptor.obj\
     $(PKG_INTDIR)\crypt_hash_is_valid.obj\
-    $(PKG_INTDIR)\crypt_ltc_mp_descriptor.obj\
     $(PKG_INTDIR)\crypt_prng_descriptor.obj\
     $(PKG_INTDIR)\crypt_prng_is_valid.obj\
     $(PKG_INTDIR)\crypt_register_cipher.obj\

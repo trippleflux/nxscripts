@@ -35,7 +35,7 @@ TOMCRYPT_OBJS   = aes.o anubis.o base64_decode.o base64_encode.o blowfish.o\
                   crypt_find_cipher.o crypt_find_cipher_any.o crypt_find_cipher_id.o\
                   crypt_find_hash.o crypt_find_hash_any.o crypt_find_hash_id.o\
                   crypt_find_hash_oid.o crypt_find_prng.o crypt_hash_descriptor.o\
-                  crypt_hash_is_valid.o crypt_ltc_mp_descriptor.o crypt_prng_descriptor.o\
+                  crypt_hash_is_valid.o crypt_prng_descriptor.o\
                   crypt_prng_is_valid.o crypt_register_cipher.o crypt_register_hash.o\
                   crypt_register_prng.o crypt_unregister_cipher.o crypt_unregister_hash.o\
                   crypt_unregister_prng.o ctr_decrypt.o ctr_done.o ctr_encrypt.o\
@@ -49,7 +49,7 @@ TOMCRYPT_OBJS   = aes.o anubis.o base64_decode.o base64_encode.o blowfish.o\
                   pmac_process.o pmac_shift_xor.o rc2.o rc4.o rc5.o rc6.o rmd128.o\
                   rmd160.o rng_get_bytes.o safer.o safer_tab.o saferp.o sha1.o\
                   sha256.o sha512.o skipjack.o sober128.o sprng.o tiger.o twofish.o\
-                  whirl.o xtea.o yarrow.o zeromem.o\
+                  whirl.o xtea.o yarrow.o zeromem.o
 
 ZLIB_OBJS       = adler32.o crc32.o deflate.o inffast.o inflate.o inftrees.o trees.o zutil.o
 
@@ -298,9 +298,6 @@ crypt_hash_descriptor.o:
 
 crypt_hash_is_valid.o:
 	$(COMPILE) -c $(TOMCRYPT_DIR)/crypt_hash_is_valid.c
-
-crypt_ltc_mp_descriptor.o:
-	$(COMPILE) -c $(TOMCRYPT_DIR)/crypt_ltc_mp_descriptor.c
 
 crypt_prng_descriptor.o:
 	$(COMPILE) -c $(TOMCRYPT_DIR)/crypt_prng_descriptor.c
