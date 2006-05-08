@@ -62,7 +62,6 @@ set IU(UserFiles)	"D:/ioFTPD/users"
 set GroupList ""
 set UserList ""
 set GIDList ""
-set IU(Version) "1.0.1"
 
 ## Log and output text
 proc DebugLog {LogText} {
@@ -73,7 +72,7 @@ proc DebugLog {LogText} {
 		close $fp
 	} else {iputs -nobuffer "Error opening file \"../logs/nxImport.log\""}
 }
-DebugLog "nxImport v$IU(Version) starting..."
+DebugLog "nxImport starting..."
 
 ## Convert a text file to a list
 proc FileToList {FilePath} {
@@ -226,6 +225,6 @@ foreach {OldUID UserName} $UserList {
 	}
 }
 
-DebugLog "nxImport v$IU(Version) finished."
+DebugLog "nxImport finished."
 
 ## EOF

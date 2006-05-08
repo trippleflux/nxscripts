@@ -49,7 +49,6 @@ set IE(UserFiles)	"D:/ioFTPD/export/users"
 
 set GroupList ""
 set UserList ""
-set IE(Version) "1.0.0"
 
 ## Log and output text
 proc DebugLog {LogText} {
@@ -60,7 +59,7 @@ proc DebugLog {LogText} {
 		close $fp
 	} else {iputs -nobuffer "Error opening file \"../logs/nxExport.log\""}
 }
-DebugLog "nxExport v$IE(Version) starting..."
+DebugLog "nxExport starting..."
 
 ## Create export directories (if they don't exist)
 set CreateDirs [list [file dirname $IE(GroupIdTable)] [file dirname $IE(GroupIdTable)] $IE(GroupFiles) $IE(UserFiles)]
@@ -155,6 +154,6 @@ if {![file isdirectory $IE(UserFiles)]} {
 	}
 }
 
-DebugLog "nxExport v$IE(Version) finished."
+DebugLog "nxExport finished."
 
 ## EOF

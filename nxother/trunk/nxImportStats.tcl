@@ -55,7 +55,6 @@ set IU(UserFiles)	"D:/ioFTPD/users"
 
 set CurrUsers ""
 set UserList ""
-set IU(Version) "1.1.0"
 
 ## Log and output text
 proc DebugLog {LogText} {
@@ -66,7 +65,7 @@ set LogTime [clock format [clock seconds] -format "%m-%d-%Y %H:%M:%S"]
 		close $fp
 	} else {iputs -nobuffer "Error opening file \"../logs/nxImport.log\""}
 }
-DebugLog "nxImportStats v$IU(Version) starting..."
+DebugLog "nxImportStats starting..."
 
 ## Read users from the old UserIdTable
 DebugLog "Reading users from \"$IU(UserIdTable)\""
@@ -147,6 +146,6 @@ foreach {OldUID UserName} $UserList {
 	}
 }
 
-DebugLog "nxImportStats v$IU(Version) finished."
+DebugLog "nxImportStats finished."
 
 ## EOF
