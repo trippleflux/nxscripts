@@ -1,0 +1,99 @@
+#
+# AlcoBot - Alcoholicz site bot.
+# Copyright (c) 2005-2006 Alcoholicz Scripting Team
+#
+# Module Name:
+#   Script Callback Tests
+#
+# Author:
+#   neoxed (neoxed@gmail.com) Sep 11, 2005
+#
+# Abstract:
+#   Implements regression tests for script callback functions.
+#
+
+set currentPath [file dirname [file normalize [info script]]]
+source [file join $currentPath "loader.tcl"]
+
+set ::failCalled 0
+set ::successCalled 0
+
+proc ScriptFail {event} {
+    set ::failCalled 1
+    return false
+}
+
+proc ScriptSuccess {event} {
+    set ::successCalled 1
+    return true
+}
+
+################################################################################
+# ScriptRegister                                                               #
+################################################################################
+
+test script-1.1 {ScriptRegister: no args} {eggdrop} {
+    list [catch {ScriptRegister} msg] $msg
+} {1 {wrong # args: should be "ScriptRegister type event script ?alwaysExec?"}}
+
+test script-1.2 {ScriptRegister: add} {eggdrop} {
+    ScriptRegister test NOW ScriptSuccess False
+} {ScriptSuccess 0}
+
+test script-1.3 {ScriptRegister: add} {eggdrop} {
+    ScriptRegister test NOW ScriptFail True
+} {ScriptSuccess 0 ScriptFail 1}
+
+################################################################################
+# ScriptUnregister                                                             #
+################################################################################
+
+test script-2.1 {ScriptUnregister: no args} {eggdrop} {
+    list [catch {ScriptUnregister} msg] $msg
+} {1 {wrong # args: should be "ScriptUnregister type event script"}}
+
+test script-2.2 {ScriptUnregister: invalid script} {eggdrop} {
+    ScriptUnregister test NOW .
+} {ScriptSuccess 0 ScriptFail 1}
+
+test script-2.3 {ScriptUnregister: remove} {eggdrop} {
+    ScriptUnregister test NOW ScriptSuccess
+} {ScriptFail 1}
+
+test script-2.4 {ScriptUnregister: remove} {eggdrop} {
+    ScriptUnregister test NOW ScriptFail
+} {}
+
+################################################################################
+# ScriptExecute                                                                #
+################################################################################
+
+test script-3.1 {ScriptExecute: no args} {eggdrop} {
+    list [catch {ScriptExecute} msg] $msg
+} {1 {wrong # args: should be "ScriptExecute type event args"}}
+
+test script-3.2 {ScriptExecute: success} {eggdrop} {
+    set ::failCalled 0
+    set ::successCalled 0
+
+    ScriptRegister test NOW ScriptSuccess
+    set result [list [ScriptExecute test NOW] $::failCalled $::successCalled]
+    ScriptUnregister test NOW ScriptSuccess
+    set result
+} {1 0 1}
+
+
+test script-3.3 {ScriptExecute: fail} {eggdrop} {
+    set ::failCalled 0
+    set ::successCalled 0
+
+    ScriptRegister test NOW ScriptFail
+    set result [list [ScriptExecute test NOW] $::failCalled $::successCalled]
+    ScriptUnregister test NOW ScriptFail
+    set result
+} {0 1 0}
+
+
+unset -nocomplain ::failCalled ::successCalled
+::tcltest::cleanupTests
+return

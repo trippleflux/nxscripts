@@ -1,0 +1,159 @@
+#
+# AlcoBot - Alcoholicz site bot.
+# Copyright (c) 2005-2006 Alcoholicz Scripting Team
+#
+# Module Name:
+#   Option Parsing Tests
+#
+# Author:
+#   neoxed (neoxed@gmail.com) Sep 8, 2005
+#
+# Abstract:
+#   Implements regression tests for option parsing functions.
+#
+
+set currentPath [file dirname [file normalize [info script]]]
+source [file join $currentPath "loader.tcl"]
+
+package require alco::getopt
+
+####
+# ArrayGetSort
+#
+# Sorts the result of "array get" alphabetically.
+#
+proc ArrayGetSort {varName} {
+    upvar $varName var
+    set contents [list]
+    foreach name [lsort [array names var]] {
+        lappend contents $name $var($name)
+    }
+    return $contents
+}
+
+################################################################################
+# GetOpt::Element                                                              #
+################################################################################
+
+test getopt-1.1 {Element: no args} {
+    list [catch {GetOpt::Element} msg] $msg
+} {1 {wrong # args: should be "GetOpt::Element list element ?type?"}}
+
+test getopt-1.2 {Element: match} {
+    GetOpt::Element {zero one two three four} two
+} {two}
+
+test getopt-1.3 {Element: partial match} {
+    GetOpt::Element {zero one two three four} thr
+} {three}
+
+test getopt-1.4 {Element: no match} {
+    list [catch {GetOpt::Element {zero one two three four} . blah} msg] $msg
+} {1 {invalid blah ".": must be zero, one, two, three, or four}}
+
+################################################################################
+# GetOpt::Index                                                                #
+################################################################################
+
+test getopt-2.1 {Index: no args} {
+    list [catch {GetOpt::Index} msg] $msg
+} {1 {wrong # args: should be "GetOpt::Index list element"}}
+
+test getopt-2.2 {Index: exact match} {
+    GetOpt::Index {zero one two three four} two
+} {2}
+
+test getopt-2.3 {Index: no exact match} {
+    GetOpt::Index {zero one two three four} .
+} {-1}
+
+test getopt-2.4 {Index: unique partial match} {
+    GetOpt::Index {zero one two three four} thr
+} {3}
+
+test getopt-2.5 {Index: no unique partial match} {
+    GetOpt::Index {zero one two three four} t
+} {-1}
+
+################################################################################
+# GetOpt::Parse                                                                #
+################################################################################
+
+test getopt-3.1 {Parse: no args} {
+    list [catch {GetOpt::Parse} msg] $msg
+} {1 {wrong # args: should be "GetOpt::Parse argList optList resultVar"}}
+
+test getopt-3.2 {Parse: result variable as scalar} {
+    unset -nocomplain result
+    set result ""
+    list [catch {GetOpt::Parse "-one 5 blah blah" {{one integer}} result} msg] $msg
+} {1 {the variable "result" is not an array}}
+
+test getopt-3.3 {Parse: invalid definition} {
+    -body {
+        unset -nocomplain result
+        list [catch {GetOpt::Parse "" {one {two .} three} result} msg] $msg
+    }
+    -match glob
+    -result {1 {invalid option definition "two .": bad type ".": must be *}}
+}
+
+test getopt-3.4 {Parse: invalid definition} {
+    unset -nocomplain result
+    list [catch {GetOpt::Parse "" {one {two . {a b c}} three} result} msg] $msg
+} {1 {invalid option definition "two . {a b c}": value lists can only be used with the "arg" type}}
+
+test getopt-3.5 {Parse: invalid option} {
+    unset -nocomplain result
+    list [catch {GetOpt::Parse "-four blah blah" {one two three} result} msg] $msg
+} {1 {invalid option "-four"}}
+
+test getopt-3.6 {Parse: end of options} {
+    unset -nocomplain result
+    list [GetOpt::Parse "-one -- -three blah blah" {one two three} result] [ArrayGetSort result]
+} {{-three blah blah} {one {}}}
+
+test getopt-3.7 {Parse: options with no values} {
+    unset -nocomplain result
+    list [GetOpt::Parse "-one -three blah blah" {one two three} result] [ArrayGetSort result]
+} {{blah blah} {one {} three {}}}
+
+test getopt-3.8 {Parse: any value not present} {
+    unset -nocomplain result
+    list [catch {GetOpt::Parse "-two -one" {{one arg} two {three arg}} result} msg] $msg
+} {1 {the option "-one" requires a value}}
+
+test getopt-3.9 {Parse: any value} {
+    unset -nocomplain result
+    list [GetOpt::Parse "-one okay -three -- blah blah" {{one arg} two three} result] [ArrayGetSort result]
+} {{blah blah} {one okay three {}}}
+
+test getopt-3.10 {Parse: invalid typed value} {
+    unset -nocomplain result
+    list [catch {GetOpt::Parse "-one . -three" {{one integer} two three} result} msg] $msg
+} {1 {the option "-one" requires a integer type value}}
+
+test getopt-3.11 {Parse: typed value} {
+    unset -nocomplain result
+    list [GetOpt::Parse "-one 5 -three blah blah" {{one integer} two three} result] [ArrayGetSort result]
+} {{blah blah} {one 5 three {}}}
+
+test getopt-3.12 {Parse: invalid prefined value} {
+    unset -nocomplain result
+    list [catch {GetOpt::Parse "-one 5 -type . -three" {{one integer} {type arg {exact glob regexp}} three} result} msg] $msg
+} {1 {invalid value ".": must be exact, glob, or regexp}}
+
+test getopt-3.13 {Parse: prefined value, exact match} {
+    unset -nocomplain result
+    list [GetOpt::Parse "-one 5 -type regexp -three blah blah" {{one integer} {type arg {exact glob regexp}} three} result] [ArrayGetSort result]
+} {{blah blah} {one 5 three {} type regexp}}
+
+test getopt-3.14 {Parse: prefined value, partial match} {
+    unset -nocomplain result
+    list [GetOpt::Parse "-one 5 -type ex -three blah blah" {{one integer} {type arg {exact glob regexp}} three} result] [ArrayGetSort result]
+} {{blah blah} {one 5 three {} type exact}}
+
+
+unset -nocomplain result
+::tcltest::cleanupTests
+return

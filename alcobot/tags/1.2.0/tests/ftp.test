@@ -1,0 +1,231 @@
+#
+# AlcoBot - Alcoholicz site bot.
+# Copyright (c) 2006 Alcoholicz Scripting Team
+#
+# Module Name:
+#   FTP Client Tests
+#
+# Author:
+#   neoxed (neoxed@gmail.com) May 3, 2006
+#
+# Abstract:
+#   Implements regression tests for the FTP client library.
+#
+
+set currentPath [file dirname [file normalize [info script]]]
+source [file join $currentPath "loader.tcl"]
+
+package require alco::ftp
+
+if {[catch {package require tls}]} {
+    testConstraint noTls 1
+} else {
+    testConstraint haveTls 1
+}
+
+################################################################################
+# Ftp::Open                                                                    #
+################################################################################
+
+test ftp-1.1 {Open: unknown driver} {
+    list [catch {Ftp::Open fake://localhost} msg] $msg
+} {1 {unknown scheme "fake"}}
+
+test ftp-1.2 {Open: handle format} {
+    -match regexp
+    -body {
+        set handle [Ftp::Open ftp://host.com]
+        Ftp::Close $handle
+        set handle
+    }
+    -result {ftp\d+}
+}
+
+test ftp-1.3 {Open: unsecure} {
+    set handle [Ftp::Open ftp://host.com]
+    set result [Ftp::Change $handle -secure]
+    Ftp::Close $handle
+    set result
+} {off}
+
+test ftp-1.4 {Open: implicit} {noTls} {
+    list [catch {Ftp::Open ftps://localhost} msg] $msg
+} {1 {SSL/TLS not available: can't find package tls 1.5}}
+
+test ftp-1.5 {Open: implicit} {haveTls} {
+    set handle [Ftp::Open ftps://localhost]
+    set result [Ftp::Change $handle -secure]
+    Ftp::Close $handle
+    set result
+} {implicit}
+
+test ftp-1.6 {Open: explicit ssl} {haveTls} {
+    set handle [Ftp::Open ftpssl://localhost]
+    set result [Ftp::Change $handle -secure]
+    Ftp::Close $handle
+    set result
+} {ssl}
+
+test ftp-1.7 {Open: explicit tls} {haveTls} {
+    set handle [Ftp::Open ftptls://localhost]
+    set result [Ftp::Change $handle -secure]
+    Ftp::Close $handle
+    set result
+} {tls}
+
+################################################################################
+# Ftp::Change                                                                  #
+################################################################################
+
+test ftp-2.1 {Change: invalid handle} {
+    list [catch {Ftp::Change blah} msg] $msg
+} {1 {invalid ftp handle "blah"}}
+
+test ftp-2.2 {Change: get all, defaults} {
+    set handle [Ftp::Open ftp:]
+    set result [Ftp::Change $handle]
+    Ftp::Close $handle
+    set result
+} {-debug {} -host localhost -notify {} -password anonymous -port 21 -secure off -user anonymous}
+
+test ftp-2.3 {Change: get all, different} {
+    set handle [Ftp::Open ftp://test:suite@host.com:666 -debug MyDebug -notify MyNotify]
+    set result [Ftp::Change $handle]
+    Ftp::Close $handle
+    set result
+} {-debug MyDebug -host host.com -notify MyNotify -password suite -port 666 -secure off -user test}
+
+test ftp-2.4 {Change: get, invalid option} {
+    set handle [Ftp::Open ftp://host.com]
+    set result [list [catch {Ftp::Change $handle -fake} msg] $msg]
+    Ftp::Close $handle
+    set result
+} {1 {invalid option "-fake": must be -debug, -host, -notify, -password, -port, -secure, or -user}}
+
+test ftp-2.5 {Change: get, valid option} {
+    set handle [Ftp::Open ftp://host.com]
+    set result [Ftp::Change $handle -host]
+    Ftp::Close $handle
+    set result
+} {host.com}
+
+test ftp-2.6 {Change: set, invalid option} {
+    set handle [Ftp::Open ftp://host.com]
+    set result [list [catch {Ftp::Change $handle -fake 0} msg] $msg]
+    Ftp::Close $handle
+    set result
+} {1 {invalid option "-fake"}}
+
+test ftp-2.7 {Change: set, valid option} {
+    set handle [Ftp::Open ftp://host.com]
+    set result [list]
+    lappend result [Ftp::Change $handle -host]
+    Ftp::Change $handle -host host.ca
+    lappend result [Ftp::Change $handle -host]
+    Ftp::Close $handle
+    set result
+} {host.com host.ca}
+
+test ftp-2.8 {Change: set, invalid secure value} {
+    set handle [Ftp::Open ftp://host.com]
+    set result [list [catch {Ftp::Change $handle -secure .} msg] $msg]
+    Ftp::Close $handle
+    set result
+} {1 {invalid value ".": must be implicit, off, ssl, or tls}}
+
+test ftp-2.9 {Change: set, invalid port value} {
+    set handle [Ftp::Open ftp://host.com]
+    set result [list [catch {Ftp::Change $handle -port .} msg] $msg]
+    Ftp::Close $handle
+    set result
+} {1 {the option "-port" requires a integer type value}}
+
+test ftp-2.10 {Change: set, no tls package} {noTls} {
+    set handle [Ftp::Open ftp://host.com]
+    set result [list [catch {Ftp::Change $handle -secure tls} msg] $msg]
+    Ftp::Close $handle
+    set result
+} {1 {SSL/TLS not available: can't find package tls 1.5}}
+
+test ftp-2.11 {Change: set, have tls package} {haveTls} {
+    set handle [Ftp::Open ftp://host.com]
+    set result [list]
+    lappend result [Ftp::Change $handle -secure]
+    Ftp::Change $handle -secure tls
+    lappend result [Ftp::Change $handle -secure]
+    Ftp::Close $handle
+    set result
+} {off tls}
+
+################################################################################
+# Ftp::Close                                                                   #
+################################################################################
+
+test ftp-3.1 {Close: invalid handle} {
+    list [catch {Ftp::Close blah} msg] $msg
+} {1 {invalid ftp handle "blah"}}
+
+################################################################################
+# Ftp::GetError                                                                #
+################################################################################
+
+test ftp-4.1 {GetError: invalid handle} {
+    list [catch {Ftp::GetError blah} msg] $msg
+} {1 {invalid ftp handle "blah"}}
+
+test ftp-4.2 {GetError: empty message} {
+    set handle [Ftp::Open ftp://host.com]
+    set result [Ftp::GetError $handle]
+    Ftp::Close $handle
+    set result
+} {}
+
+################################################################################
+# Ftp::GetStatus                                                               #
+################################################################################
+
+test ftp-5.1 {GetStatus: invalid handle} {
+    list [catch {Ftp::GetStatus blah} msg] $msg
+} {1 {invalid ftp handle "blah"}}
+
+test ftp-5.2 {GetStatus: not connected} {
+    set handle [Ftp::Open ftp://host.com]
+    set result [Ftp::GetStatus $handle]
+    Ftp::Close $handle
+    set result
+} {0}
+
+################################################################################
+# Ftp::Connect                                                                 #
+################################################################################
+
+test ftp-6.1 {Connect: invalid handle} {
+    list [catch {Ftp::Connect blah} msg] $msg
+} {1 {invalid ftp handle "blah"}}
+
+################################################################################
+# Ftp::Disconnect                                                              #
+################################################################################
+
+test ftp-7.1 {Disconnect: invalid handle} {
+    list [catch {Ftp::Disconnect blah} msg] $msg
+} {1 {invalid ftp handle "blah"}}
+
+################################################################################
+# Ftp::Command                                                                 #
+################################################################################
+
+test ftp-8.1 {Command: invalid handle} {
+    list [catch {Ftp::Command blah .} msg] $msg
+} {1 {invalid ftp handle "blah"}}
+
+test ftp-8.2 {Command: not connected} {
+    set handle [Ftp::Open ftp://host.com]
+    set result [list [catch {Ftp::Command $handle .} msg] $msg]
+    Ftp::Close $handle
+    set result
+} {1 {not connected}}
+
+
+::tcltest::cleanupTests
+return
