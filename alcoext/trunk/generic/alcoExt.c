@@ -22,7 +22,7 @@ Abstract:
 #ifdef _WINDOWS
 OSVERSIONINFOA osVersion;
 WinProcs winProcs;
-#endif // _WINDOWS
+#endif
 
 // Locals
 static unsigned char initialised = 0;
@@ -53,7 +53,6 @@ static Tcl_CmdDeleteProc CmdDeleted;
 static Tcl_InterpDeleteProc InterpDeleted;
 
 
-#ifdef _WINDOWS
 /*++
 
 DllMain
@@ -71,6 +70,7 @@ Return Value:
     Always returns non-zero (success).
 
 --*/
+#ifdef _WINDOWS
 BOOL WINAPI
 DllMain(
     HINSTANCE instance,
@@ -132,7 +132,7 @@ Alcoext_Init(
 #ifndef _WINDOWS
     state->glftpdTable = (Tcl_HashTable *)ckalloc(sizeof(Tcl_HashTable));
     Tcl_InitHashTable(state->glftpdTable, TCL_STRING_KEYS);
-#endif // !_WINDOWS
+#endif
 
     Tcl_MutexLock(&stateListMutex);
     // Insert at the list head.
@@ -163,9 +163,9 @@ Alcoext_Init(
 
 #ifdef _WINDOWS
         state->cmds[5] = Tcl_CreateObjCommand(interp, "ioftpd", IoFtpdObjCmd, NULL, CmdDeleted);
-#else // _WINDOWS
+#else
         state->cmds[5] = Tcl_CreateObjCommand(interp, "glftpd", GlFtpdObjCmd, (ClientData)state, CmdDeleted);
-#endif // _WINDOWS
+#endif
     }
 
     // Pass the address of the command token to the deletion handler.
@@ -425,7 +425,7 @@ Finalise(
     }
     ZeroMemory(&winProcs, sizeof(WinProcs));
     Tcl_MutexUnlock(&initMutex);
-#endif // _WINDOWS
+#endif
 
     Tcl_MutexFinalize(&initMutex);
     initialised = 0;
@@ -501,7 +501,7 @@ FreeState(
     GlCloseHandles(state->glftpdTable);
     Tcl_DeleteHashTable(state->glftpdTable);
     ckfree((char *)state->glftpdTable);
-#endif // !_WINDOWS
+#endif
 
     ckfree((char *)state);
 }
