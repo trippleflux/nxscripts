@@ -81,9 +81,10 @@ foreach path [glob -nocomplain -directory $targetDir -types f "*"] {
     }
     if {$removeNewLines} {
         set newData [string trim $newData]
+        append newData "\n"
     }
 
-    puts $handle $newData
+    puts -nonewline $handle $newData
     close $handle
     lappend successList [file tail $path]
 }
