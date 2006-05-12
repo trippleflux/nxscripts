@@ -90,8 +90,7 @@ proc ::Bot::Mod::Free::Load {firstLoad} {
     }
 
     set cmdToken [CmdCreate channel free [namespace current]::Command \
-        -alias "df" -args "\[section\]" \
-        -category "General" -desc "Display free disk space."]
+        -args "\[section\]" -category "General" -desc "Display free disk space."]
 }
 
 ####

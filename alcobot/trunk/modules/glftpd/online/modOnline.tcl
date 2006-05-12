@@ -265,13 +265,13 @@ proc ::Bot::Mod::Online::Load {firstLoad} {
 
     # Status commands.
     lappend cmdTokens [CmdCreate channel idlers [list [namespace current]::Status ID] \
-        -alias "idle" -category "Online" -desc "Users currently idling."]
+        -category "Online" -desc "Users currently idling."]
 
     lappend cmdTokens [CmdCreate channel leechers [list [namespace current]::Status DN] \
-        -alias "dn" -category "Online" -desc "Users currently downloading."]
+        -category "Online" -desc "Users currently downloading."]
 
     lappend cmdTokens [CmdCreate channel uploaders [list [namespace current]::Status UP] \
-        -alias "up" -category "Online" -desc "Users currently uploading."]
+        -category "Online" -desc "Users currently uploading."]
 
     # User list commands.
     lappend cmdTokens [CmdCreate channel speed [list [namespace current]::Users SPEED] \

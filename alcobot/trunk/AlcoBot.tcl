@@ -148,7 +148,6 @@ proc ::Bot::CmdCreate {type name script args} {
 
     foreach {option value} $args {
         switch -- $option {
-            -alias    {lappend suffixes $value}
             -args     {set argDesc $value}
             -category {set category $value}
             -desc     {set cmdDesc $value}
@@ -160,6 +159,8 @@ proc ::Bot::CmdCreate {type name script args} {
     foreach {enabled option value} [CmdGetOptions $type $name] {
         if {$option eq "prefix"} {
             lappend prefixes $value
+        } elseif {$option eq "suffix"} {
+            lappend suffixes $value
         }
     }
     if {![llength $prefixes]} {
