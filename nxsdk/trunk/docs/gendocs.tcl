@@ -25,6 +25,12 @@ set inputFiles {
     "src/lib/*.h"
 }
 
+puts "\n\tGenerating Source Documents\n"
+
+puts "- Changing to base directory"
+set currentDir [pwd]
+cd $baseDir
+
 proc ReadFile {path} {
     set handle [open $path "r"]
     set data [read $handle]
@@ -32,7 +38,7 @@ proc ReadFile {path} {
     return $data
 }
 
-proc ParseBlocks {text} {
+proc ParseText {text} {
     set status 0
     set result [list]
 
@@ -83,23 +89,44 @@ proc ParseBlocks {text} {
     return $result
 }
 
-puts "\n\tGenerating Source Documents\n"
+proc ParseList {items} {
+    # Remove empty leading elements.
+    while {[llength $items] && [lindex $items 0] eq ""} {
+        set items [lreplace $items 0 0]
+    }
 
-puts "- Changing to base directory"
-set currentDir [pwd]
-cd $baseDir
+    # Remove empty trailing elements.
+    while {[llength $items] && [lindex $items end] eq ""} {
+        set items [lreplace $items end end]
+    }
+    return $items
+}
 
-puts "- Parsing source files"
+puts "- Reading source files"
 set funcList [list]
 set structList [list]
 
 foreach pattern $inputFiles {
     foreach path [glob -nocomplain $pattern] {
-        puts "  - Parsing file: $path"
+        puts "  - Reading file: $path"
         set text [ReadFile $path]
 
-        foreach {desc code} [ParseBlocks $text] {
-            # Detect between function and structure comments.
+        foreach {desc code} [ParseText $text] {
+            # Count and remove outer empty lines.
+            set beforeCount [llength $desc]
+            set desc [ParseList $desc]
+            set afterCount [llength $desc]
+
+            if {!$afterCount} {
+                puts "    - Empty comment block."
+                continue
+            }
+            set diffCount [expr {$beforeCount - $afterCount}]
+            if {$diffCount != 2} {
+                puts "    - Found $diffCount outer empty lines in a comment block, should be 2 empty lines."
+            }
+
+            # Detect function and structure comments.
             if {[lsearch -exact $desc "Arguments:"] != -1 && [lsearch -exact $desc "Return Value:"] != -1} {
                 lappend funcList $desc $code
 
@@ -117,29 +144,66 @@ foreach pattern $inputFiles {
 puts "- Changing back to original directory"
 cd $currentDir
 
-puts "- Transforming data"
-unset -nocomplain funcs structs
+puts "- Parsing structures"
+set structId 0
+set structMap [list]
+unset -nocomplain structs
 
 foreach {desc code} $structList {
+    set name [lindex $desc 0]
+    if {![string is wordchar -strict $name]} {
+        puts "  - Invalid structure name \"$name\"."
+        continue
+    }
+    if {[info exists structs($name)]} {
+        puts "  - Structure \"$name\" already defined."
+        continue
+    }
+
+    set target "struct[incr structId]"
+    lappend structMap $name "structs.htm#$target"
+    set structs($name) [list]
 }
+
+puts "- Parsing functions"
+set funcId 0
+set funcMap [list]
+unset -nocomplain funcs
 
 foreach {desc code} $funcList {
+    set name [lindex $desc 0]
+    if {![string is wordchar -strict $name]} {
+        puts "  - Invalid function name \"$name\"."
+        continue
+    }
+    if {[info exists funcs($name)]} {
+        puts "  - Function \"$name\" already defined."
+        continue
+    }
+
+    set target "func[incr structId]"
+    lappend structMap $name "funcs.htm#$target"
+    set funcs($name) [list]
 }
 
-puts "- Writing output file"
+puts "- Opening output file"
 set handle [open $outputFile "w"]
-set funcNames [lsort [array names funcs]]
-set structNames [lsort [array names structs]]
+puts $handle "Source Docs"
+puts $handle ""
 
 puts "- Writing index"
+set funcNames [lsort [array names funcs]]
 foreach name $funcNames {
 }
+
+set structNames [lsort [array names structs]]
 foreach name $structNames {
 }
 
 puts "- Writing descriptions"
 foreach name $funcNames {
 }
+
 foreach name $structNames {
 }
 
