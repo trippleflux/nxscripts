@@ -1,0 +1,27 @@
+EXPORTS
+  Io_ShmInit
+  Io_ShmAlloc
+  Io_ShmFree
+  Io_ShmQuery
+  Io_GetBinaryPath
+  Io_GetStartTime
+  Io_UserCreate
+  Io_UserRename
+  Io_UserDelete
+  Io_UserGetFile
+  Io_UserSetFile
+  Io_UserIdToName
+  Io_UserNameToId
+  Io_GroupCreate
+  Io_GroupRename
+  Io_GroupDelete
+  Io_GroupGetFile
+  Io_GroupSetFile
+  Io_GroupIdToName
+  Io_GroupNameToId
+  Io_GetOnlineData
+  Io_KickConnId
+  Io_KickUserId
+  Io_VfsFlush
+  Io_VfsRead
+  Io_VfsWrite
