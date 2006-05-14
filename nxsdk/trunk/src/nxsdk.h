@@ -4,26 +4,27 @@ nxSDK - ioFTPD Software Development Kit
 Copyright (c) 2006 neoxed
 
 Module Name:
-    Public Defintions
+    Main Header
 
 Author:
     neoxed (neoxed@gmail.com) May 13, 2006
 
 Abstract:
-    Include file for public use.
+    Main development kit header file.
 
 */
 
 #ifndef _NXSDK_H_
 #define _NXSDK_H_
 
-// ioFTPD includes
+// ioFTPD headers
 #include <ServerLimits.h>
 #include <UserFile.h>
 #include <GroupFile.h>
 #include <WinMessages.h>
 #include <DataCopy.h>
 
+// Calling convetion for exported functions
 #ifdef _MSC_VER
 #   define STDCALL __stdcall
 #else

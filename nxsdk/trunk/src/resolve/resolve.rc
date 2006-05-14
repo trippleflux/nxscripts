@@ -4,13 +4,13 @@ nxSDK - ioFTPD Software Development Kit
 Copyright (c) 2006 neoxed
 
 Module Name:
-    Resources
+    Resolve Resources
 
 Author:
     neoxed (neoxed@gmail.com) May 13, 2006
 
 Abstract:
-    Resolve version header.
+    Resolve version information.
 
 */
 

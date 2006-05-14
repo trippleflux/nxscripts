@@ -10,7 +10,7 @@ Author:
     neoxed (neoxed@gmail.com) May 13, 2006
 
 Abstract:
-    User related functions.
+    User management functions.
 
 */
 

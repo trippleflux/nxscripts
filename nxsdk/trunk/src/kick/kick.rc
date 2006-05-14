@@ -4,13 +4,13 @@ nxSDK - ioFTPD Software Development Kit
 Copyright (c) 2006 neoxed
 
 Module Name:
-    Resources
+    Kick Resources
 
 Author:
     neoxed (neoxed@gmail.com) May 13, 2006
 
 Abstract:
-    Kick version header.
+    Kick version information.
 
 */
 

@@ -10,7 +10,7 @@ Author:
     neoxed (neoxed@gmail.com) May 13, 2006
 
 Abstract:
-    An example tool to display online users.
+    Example tool to display online users.
 
 */
 

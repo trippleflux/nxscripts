@@ -4,7 +4,7 @@ nxSDK - ioFTPD Software Development Kit
 Copyright (c) 2006 neoxed
 
 Module Name:
-    Online
+    Online Data
 
 Author:
     neoxed (neoxed@gmail.com) May 13, 2006

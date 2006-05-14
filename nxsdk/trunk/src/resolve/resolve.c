@@ -10,7 +10,7 @@ Author:
     neoxed (neoxed@gmail.com) May 13, 2006
 
 Abstract:
-    An example tool to resolve group IDs, group names, user Ids, and user names.
+    Example tool to resolve group IDs, group names, user IDs, and user names.
 
 */
 

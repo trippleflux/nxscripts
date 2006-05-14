@@ -4,31 +4,32 @@ nxSDK - ioFTPD Software Development Kit
 Copyright (c) 2006 neoxed
 
 Module Name:
-    Common Include
+    Library Header
 
 Author:
     neoxed (neoxed@gmail.com) May 13, 2006
 
 Abstract:
-    Common include file.
+    Library common header file.
 
 */
 
 #ifndef _LIB_H_
 #define _LIB_H_
 
-// System includes
+// System headers
 #include <windows.h>
 #include <psapi.h>
 #include <strsafe.h>
 
-// Standard includes
+// Standard headers
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
 #include <assert.h>
 #include <time.h>
 
+// SDK headers
 #include <nxsdk.h>
 
 
