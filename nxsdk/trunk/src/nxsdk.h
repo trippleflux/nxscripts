@@ -1,4 +1,4 @@
-/*
+/*++
 
 nxSDK - ioFTPD Software Development Kit
 Copyright (c) 2006 neoxed
@@ -12,7 +12,7 @@ Author:
 Abstract:
     Include file for public use.
 
-*/
+--*/
 
 #ifndef _NXSDK_H_
 #define _NXSDK_H_
