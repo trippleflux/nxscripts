@@ -1,4 +1,4 @@
-/*++
+/*
 
 nxSDK - ioFTPD Software Development Kit
 Copyright (c) 2006 neoxed
@@ -12,7 +12,7 @@ Author:
 Abstract:
     An example tool to resolve group IDs, group names, user Ids, and user names.
 
---*/
+*/
 
 #include <windows.h>
 #include <stdio.h>

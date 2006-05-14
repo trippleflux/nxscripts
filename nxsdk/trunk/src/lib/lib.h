@@ -1,4 +1,4 @@
-/*++
+/*
 
 nxSDK - ioFTPD Software Development Kit
 Copyright (c) 2006 neoxed
@@ -12,7 +12,7 @@ Author:
 Abstract:
     Common include file.
 
---*/
+*/
 
 #ifndef _LIB_H_
 #define _LIB_H_
