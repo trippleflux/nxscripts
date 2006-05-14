@@ -148,6 +148,32 @@ proc ListToText {items} {
     return $result
 }
 
+proc ListToHtml {textList {join "\n"}} {
+    set result [list]
+    foreach para $textList {
+        lappend result "<p>$para</p>"
+    }
+    return [join $result $join]
+}
+
+################################################################################
+
+proc MapArgs {mapping argList} {
+    set result [list]
+    foreach {argName textList} $argList {
+        lappend result $argName [MapText $mapping $textList]
+    }
+    return $result
+}
+
+proc MapText {mapping textList} {
+    set result [list]
+    foreach para $textList {
+        lappend result [string map $mapping $para]
+    }
+    return $result
+}
+
 ################################################################################
 
 proc WriteHeader {handle title} {
@@ -172,12 +198,66 @@ proc WriteHeader {handle title} {
 }
 }
 
-proc WriteEntry {handle name link content} {
+proc WriteEntry {handle name anchor intro code args} {
+    array set opt $args
+    set joinStr "\n  "
+
     puts $handle "<!-- Start $name -->"
     puts $handle "<tr>"
     puts $handle "<td valign=\"top\">"
-    puts $handle "<h1><a name=\"$link\"></a>$name</h1>"
-    puts $handle $content
+    puts $handle "<h1><a name=\"$anchor\"></a>$name</h1>"
+    puts $handle ""
+
+    # Intro
+    puts $handle "<p>"
+    puts $handle [ListToHtml $intro]
+    puts $handle "</p>"
+    puts $handle ""
+
+    # Code
+    puts $handle "<pre class=\"syntax\">"
+    puts $handle TODO
+    puts $handle "</pre>"
+    puts $handle ""
+
+    # Arguments
+    if {[info exists opt(-args)] && [llength $opt(-args)]} {
+        puts $handle "<h4>Arguments</h4>"
+        puts $handle "<dl>"
+        foreach {argName argText} $opt(-args) {
+            puts $handle "  <dt><i>$argName</i></dt>"
+            puts $handle "  <dd>[ListToHtml $argText $joinStr]</dd>"
+        }
+        puts $handle "</dl>"
+        puts $handle ""
+    }
+
+    # Members
+    if {[info exists opt(-members)] && [llength $opt(-members)]} {
+        puts $handle "<h4>Members</h4>"
+        puts $handle "<dl>"
+        foreach {memberName memberText} $opt(-members) {
+            puts $handle "  <dt><i>$memberName</i></dt>"
+            puts $handle "  <dd>[ListToHtml $memberText $joinStr]</dd>"
+        }
+        puts $handle "</dl>"
+        puts $handle ""
+    }
+
+    # Return Values
+    if {[info exists opt(-retvals)] && [llength $opt(-retvals)]} {
+        puts $handle "<h4>Return Values</h4>"
+        puts $handle [ListToHtml $opt(-retvals)]
+        puts $handle ""
+    }
+
+    # Remarks
+    if {[info exists opt(-remarks)] && [llength $opt(-remarks)]} {
+        puts $handle "<h4>Remarks</h4>"
+        puts $handle [ListToHtml $opt(-remarks)]
+        puts $handle ""
+    }
+
     puts $handle "</td>"
     puts $handle "</tr>"
     puts $handle "<!-- End $name -->"
@@ -257,25 +337,27 @@ foreach {desc code} $funcList {
         continue
     }
 
+    # Parse comment
     set section "intro"
     array set text [list intro "" args "" remarks "" retvals ""]
     foreach line [lrange $desc 1 end] {
         switch -regexp -- $line {
-            {^Arguments:$}    {set section "args"}
-            {^Remarks:$}      {set section "remarks"}
+            {^Arguments:$}     {set section "args"}
+            {^Remarks:$}       {set section "remarks"}
             {^Return Values:$} {set section "retvals"}
-            {^[\s\w]+:$}      {puts "    - Unknown comment section \"$line\"."}
-            default           {lappend text($section) $line}
+            {^[\s\w]+:$}       {puts "    - Unknown comment section \"$line\"."}
+            default            {lappend text($section) $line}
         }
     }
-
     set text(intro)   [ListToText $text(intro)]
     set text(args)    [ListToArgs $text(args)]
     set text(remarks) [ListToText $text(remarks)]
     set text(retvals) [ListToText $text(retvals)]
 
-    set link "[string tolower $name]_func"
-    set funcs($name) [list $link $text(intro) $text(args) $text(remarks) $text(retvals)]
+    # Parse code
+
+    set anchor "[string tolower $name]_func"
+    set funcs($name) [list $anchor $code $text(intro) $text(args) $text(remarks) $text(retvals)]
 }
 
 foreach {desc code} $structList {
@@ -291,6 +373,7 @@ foreach {desc code} $structList {
         continue
     }
 
+    # Parse comment
     set section "intro"
     array set text [list intro "" members "" remarks ""]
     foreach line [lrange $desc 1 end] {
@@ -301,13 +384,14 @@ foreach {desc code} $structList {
             default      {lappend text($section) $line}
         }
     }
-
     set text(intro)   [ListToText $text(intro)]
     set text(members) [ListToArgs $text(members)]
     set text(remarks) [ListToText $text(remarks)]
 
-    set link "[string tolower $name]_struct"
-    set structs($name) [list $link $text(intro) $text(members) $text(remarks)]
+    # Parse code
+
+    set anchor "[string tolower $name]_struct"
+    set structs($name) [list $anchor $code $text(intro) $text(members) $text(remarks)]
 }
 
 ################################################################################
@@ -315,20 +399,53 @@ foreach {desc code} $structList {
 puts "- Transforming data"
 
 set funcLinks [list]
+set funcLinksMap [list]
 set funcNames [lsort [array names funcs]]
 set structLinks [list]
+set structLinksMap [list]
 set structNames [lsort [array names structs]]
 
+# Build a list of anchor names.
 foreach name $funcNames {
-    set link [lindex $funcs($name) 0]
-    lappend funcLinks $name $link
-    lappend funcLinkMap $name "functions.htm#$link"
+    set anchor [lindex $funcs($name) 0]
+    set target "functions.htm#$anchor"
+    lappend funcLinks $name $target
+    lappend funcLinksMap $name "<a href=\"$target\"><b>$name</b></a>"
 }
 
 foreach name $structNames {
-    set link [lindex $structs($name) 0]
-    lappend structLinks $name $link
-    lappend structLinkMap $name "structures.htm#$link"
+    set anchor [lindex $structs($name) 0]
+    set target "structures.htm#$anchor"
+    lappend structLinks $name $target
+    lappend structLinksMap $name "<a href=\"$target\"><b>$name</b></a>"
+}
+
+# Bold names and link references to other functions and structures.
+foreach name $funcNames {
+    foreach {anchor code intro args remarks retvals} $funcs($name) {break}
+
+    set mapping [list $name "<b>$name</b>"]
+    eval lappend mapping $funcLinksMap $structLinksMap
+
+    set intro   [MapText $mapping $intro]
+    set args    [MapArgs $mapping $args]
+    set remarks [MapText $mapping $remarks]
+    set retvals [MapText $mapping $retvals]
+
+    set funcs($name) [list $anchor $code $intro $args $remarks $retvals]
+}
+
+foreach name $structNames {
+    foreach {anchor code intro members remarks} $structs($name) {break}
+
+    set mapping [list $name "<b>$name</b>"]
+    eval lappend mapping $funcLinksMap $structLinksMap
+
+    set intro   [MapText $mapping $intro]
+    set members [MapArgs $mapping $members]
+    set remarks [MapText $mapping $remarks]
+
+    set structs($name) [list $anchor $code $intro $members $remarks]
 }
 
 ################################################################################
@@ -339,8 +456,9 @@ set handle [open "functions.htm" "w"]
 WriteHeader $handle "Functions"
 
 foreach name $funcNames {
-    foreach {link intro args remarks retvals} $funcs($name) {break}
-    WriteEntry $handle $name $link TODO
+    foreach {anchor code intro args remarks retvals} $funcs($name) {break}
+    WriteEntry $handle $name $anchor $intro $code \
+        -args $args -remarks $remarks -retvals $retvals
 }
 
 WriteFooter $handle
@@ -351,8 +469,9 @@ set handle [open "structures.htm" "w"]
 WriteHeader $handle "Structures"
 
 foreach name $structNames {
-    foreach {link intro members remarks} $structs($name) {break}
-    WriteEntry $handle $name $link TODO
+    foreach {anchor code intro members remarks} $structs($name) {break}
+    WriteEntry $handle $name $anchor $intro $code \
+        -members $members -remarks $remarks
 }
 
 WriteFooter $handle
