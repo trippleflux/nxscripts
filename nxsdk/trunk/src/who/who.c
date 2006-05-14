@@ -95,6 +95,7 @@ int main(int argc, char **argv)
 }
 
 static BOOL
+STDCALL
 DisplayUser(
     IO_SESSION *session,
     int connId,

@@ -37,6 +37,7 @@ Return Value:
 
 --*/
 BOOL
+STDCALL
 Io_GroupCreate(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -91,6 +92,7 @@ Return Value:
 
 --*/
 BOOL
+STDCALL
 Io_GroupRename(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -140,6 +142,7 @@ Return Value:
 
 --*/
 BOOL
+STDCALL
 Io_GroupDelete(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -188,6 +191,7 @@ Return Value:
 
 --*/
 BOOL
+STDCALL
 Io_GroupGetFile(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -241,6 +245,7 @@ Return Value:
 
 --*/
 BOOL
+STDCALL
 Io_GroupSetFile(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -307,6 +312,7 @@ Return Value:
 
 --*/
 BOOL
+STDCALL
 Io_GroupIdToName(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -359,6 +365,7 @@ Return Value:
 
 --*/
 BOOL
+STDCALL
 Io_GroupNameToId(
     IO_SESSION *session,
     IO_MEMORY *memory,

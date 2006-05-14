@@ -37,6 +37,7 @@ Return Value:
 
 --*/
 BOOL
+STDCALL
 Io_VfsRead(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -92,6 +93,7 @@ Return Value:
 
 --*/
 BOOL
+STDCALL
 Io_VfsWrite(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -145,6 +147,7 @@ Return Value:
 
 --*/
 BOOL
+STDCALL
 Io_VfsFlush(
     IO_SESSION *session,
     IO_MEMORY *memory,

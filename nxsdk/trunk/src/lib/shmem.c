@@ -32,6 +32,7 @@ Return Value:
 
 --*/
 BOOL
+STDCALL
 Io_ShmInit(
     const char *window,
     IO_SESSION *session
@@ -73,6 +74,7 @@ Return Value:
 
 --*/
 IO_MEMORY *
+STDCALL
 Io_ShmAlloc(
     IO_SESSION *session,
     DWORD bytes
@@ -168,6 +170,7 @@ Return Value:
 
 --*/
 void
+STDCALL
 Io_ShmFree(
     IO_SESSION *session,
     IO_MEMORY *memory
@@ -211,6 +214,7 @@ Return Value:
 
 --*/
 DWORD
+STDCALL
 Io_ShmQuery(
     IO_SESSION *session,
     IO_MEMORY *memory,

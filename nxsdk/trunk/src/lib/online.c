@@ -37,6 +37,7 @@ Return Value:
 
 --*/
 void
+STDCALL
 Io_GetOnlineData(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -96,6 +97,7 @@ Return Value:
 
 --*/
 void
+STDCALL
 Io_KickConnId(
     IO_SESSION *session,
     int connId
@@ -122,6 +124,7 @@ Return Value:
 
 --*/
 void
+STDCALL
 Io_KickUserId(
     IO_SESSION *session,
     int userId

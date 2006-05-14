@@ -24,6 +24,12 @@ Abstract:
 #include <WinMessages.h>
 #include <DataCopy.h>
 
+#ifdef _MSC_VER
+#   define STDCALL __stdcall
+#else
+#   define STDCALL
+#endif
+
 
 //
 // Shared memory functions
@@ -45,24 +51,28 @@ typedef struct {
 } IO_MEMORY;
 
 BOOL
+STDCALL
 Io_ShmInit(
     const char *window,
     IO_SESSION *session
     );
 
 IO_MEMORY *
+STDCALL
 Io_ShmAlloc(
     IO_SESSION *session,
     DWORD bytes
     );
 
 void
+STDCALL
 Io_ShmFree(
     IO_SESSION *session,
     IO_MEMORY *memory
     );
 
 DWORD
+STDCALL
 Io_ShmQuery(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -76,6 +86,7 @@ Io_ShmQuery(
 //
 
 BOOL
+STDCALL
 Io_GetBinaryPath(
     IO_SESSION *session,
     char *path,
@@ -83,6 +94,7 @@ Io_GetBinaryPath(
     );
 
 BOOL
+STDCALL
 Io_GetStartTime(
     IO_SESSION *session,
     FILETIME *startTime
@@ -94,6 +106,7 @@ Io_GetStartTime(
 //
 
 BOOL
+STDCALL
 Io_UserCreate(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -102,6 +115,7 @@ Io_UserCreate(
     );
 
 BOOL
+STDCALL
 Io_UserRename(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -110,6 +124,7 @@ Io_UserRename(
     );
 
 BOOL
+STDCALL
 Io_UserDelete(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -117,6 +132,7 @@ Io_UserDelete(
     );
 
 BOOL
+STDCALL
 Io_UserGetFile(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -125,6 +141,7 @@ Io_UserGetFile(
     );
 
 BOOL
+STDCALL
 Io_UserSetFile(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -132,6 +149,7 @@ Io_UserSetFile(
     );
 
 BOOL
+STDCALL
 Io_UserIdToName(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -140,6 +158,7 @@ Io_UserIdToName(
     );
 
 BOOL
+STDCALL
 Io_UserNameToId(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -153,6 +172,7 @@ Io_UserNameToId(
 //
 
 BOOL
+STDCALL
 Io_GroupCreate(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -161,6 +181,7 @@ Io_GroupCreate(
     );
 
 BOOL
+STDCALL
 Io_GroupRename(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -169,6 +190,7 @@ Io_GroupRename(
     );
 
 BOOL
+STDCALL
 Io_GroupDelete(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -176,6 +198,7 @@ Io_GroupDelete(
     );
 
 BOOL
+STDCALL
 Io_GroupGetFile(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -184,6 +207,7 @@ Io_GroupGetFile(
     );
 
 BOOL
+STDCALL
 Io_GroupSetFile(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -191,6 +215,7 @@ Io_GroupSetFile(
     );
 
 BOOL
+STDCALL
 Io_GroupIdToName(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -199,6 +224,7 @@ Io_GroupIdToName(
     );
 
 BOOL
+STDCALL
 Io_GroupNameToId(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -211,7 +237,7 @@ Io_GroupNameToId(
 // Online data functions
 //
 
-typedef BOOL (ONLINEDATA_ROUTINE)(
+typedef BOOL (STDCALL ONLINEDATA_ROUTINE)(
     IO_SESSION *session,
     int connId,
     ONLINEDATA *onlineData,
@@ -219,6 +245,7 @@ typedef BOOL (ONLINEDATA_ROUTINE)(
     );
 
 void
+STDCALL
 Io_GetOnlineData(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -227,12 +254,14 @@ Io_GetOnlineData(
     );
 
 void
+STDCALL
 Io_KickConnId(
     IO_SESSION *session,
     int connId
     );
 
 void
+STDCALL
 Io_KickUserId(
     IO_SESSION *session,
     int userId
@@ -250,6 +279,7 @@ typedef struct {
 } IO_VFS;
 
 BOOL
+STDCALL
 Io_VfsFlush(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -257,6 +287,7 @@ Io_VfsFlush(
     );
 
 BOOL
+STDCALL
 Io_VfsRead(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -265,6 +296,7 @@ Io_VfsRead(
     );
 
 BOOL
+STDCALL
 Io_VfsWrite(
     IO_SESSION *session,
     IO_MEMORY *memory,

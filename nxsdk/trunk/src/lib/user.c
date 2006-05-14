@@ -37,6 +37,7 @@ Return Value:
 
 --*/
 BOOL
+STDCALL
 Io_UserCreate(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -91,6 +92,7 @@ Return Value:
 
 --*/
 BOOL
+STDCALL
 Io_UserRename(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -140,6 +142,7 @@ Return Value:
 
 --*/
 BOOL
+STDCALL
 Io_UserDelete(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -188,6 +191,7 @@ Return Value:
 
 --*/
 BOOL
+STDCALL
 Io_UserGetFile(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -242,6 +246,7 @@ Return Value:
 
 --*/
 BOOL
+STDCALL
 Io_UserSetFile(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -308,6 +313,7 @@ Return Value:
 
 --*/
 BOOL
+STDCALL
 Io_UserIdToName(
     IO_SESSION *session,
     IO_MEMORY *memory,
@@ -360,6 +366,7 @@ Return Value:
 
 --*/
 BOOL
+STDCALL
 Io_UserNameToId(
     IO_SESSION *session,
     IO_MEMORY *memory,
