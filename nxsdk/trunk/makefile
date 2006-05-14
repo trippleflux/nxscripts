@@ -15,7 +15,7 @@
 ## Build options
 DEBUG       = 0
 MEMDEBUG    = 0
-MSVCRT      = 1
+MSVCRT      = 0
 IOFTPD_INC  = D:\ioFTPD\source\Include
 
 ## Release version.

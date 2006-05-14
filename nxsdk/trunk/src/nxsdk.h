@@ -113,7 +113,15 @@ ONLINEDATA_ROUTINE
     Callback routine used by Io_GetOnlineData.
 
 Members:
-    TODO
+    connId      - Connection identifier.
+
+    onlineData  - Pointer to connection's ONLINEDATA structure.
+
+    opaque      - Value passed to Io_GetOnlineData's opaque argument.
+
+Return Value:
+    ONLINEDATA_CONTINUE - Continues to the next online user.
+    ONLINEDATA_STOP     - Stops the operation and returns.
 
 --*/
 typedef BOOL (STDCALL ONLINEDATA_ROUTINE)(
@@ -121,6 +129,9 @@ typedef BOOL (STDCALL ONLINEDATA_ROUTINE)(
     ONLINEDATA *onlineData,
     void *opaque
     );
+
+#define ONLINEDATA_CONTINUE 1
+#define ONLINEDATA_STOP     0
 
 
 //

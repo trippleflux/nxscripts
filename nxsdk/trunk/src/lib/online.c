@@ -60,8 +60,8 @@ Io_GetOnlineData(
         DebugPrint("Io_GetOnlineData: offset=%d result=%lu\n", dcOnlineData->iOffset, result);
 
         if (result == 0) {
-            // Stop if the callback returns zero.
-            if (!routine(dcOnlineData->iOffset-1, &dcOnlineData->OnlineData, opaque)) {
+            if (routine(dcOnlineData->iOffset-1, &dcOnlineData->OnlineData, opaque) == ONLINEDATA_STOP) {
+                // The caller requested to stop.
                 break;
             }
 

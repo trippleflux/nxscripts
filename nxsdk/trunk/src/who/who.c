@@ -152,5 +152,5 @@ DisplayUser(
     }
 
     printf("| %3d | %-10s | %8s | %-26s |\n", connId, userName, status, clientIp);
-    return TRUE;
+    return ONLINEDATA_CONTINUE;
 }
