@@ -46,7 +46,7 @@ Io_GroupCreate(
     DWORD result;
 
     assert(memory    != NULL);
-    assert(memory->bytes >= sizeof(DC_NAMEID));
+    assert(memory->size >= sizeof(DC_NAMEID));
     assert(groupName != NULL);
     assert(groupId   != NULL);
     DebugPrint("Io_GroupCreate: groupName=%s groupId=0x%p\n", groupName, groupId);
@@ -96,7 +96,7 @@ Io_GroupRename(
     DC_RENAME *dcRename;
 
     assert(memory    != NULL);
-    assert(memory->bytes >= sizeof(DC_RENAME));
+    assert(memory->size >= sizeof(DC_RENAME));
     assert(groupName != NULL);
     assert(newName   != NULL);
     DebugPrint("Io_GroupRename: groupName=%s newName=%s\n", groupName, newName);
@@ -141,7 +141,7 @@ Io_GroupDelete(
     DC_NAMEID *dcNameId;
 
     assert(memory    != NULL);
-    assert(memory->bytes >= sizeof(DC_NAMEID));
+    assert(memory->size >= sizeof(DC_NAMEID));
     assert(groupName != NULL);
     DebugPrint("Io_GroupDelete: groupName=%s\n", groupName);
 
@@ -185,7 +185,7 @@ Io_GroupGetFile(
     )
 {
     assert(memory    != NULL);
-    assert(memory->bytes >= sizeof(GROUPFILE));
+    assert(memory->size >= sizeof(GROUPFILE));
     assert(groupFile != NULL);
     DebugPrint("Io_GroupGetFile: groupId=%d groupFile=0x%p\n", groupId, groupFile);
 
@@ -236,7 +236,7 @@ Io_GroupSetFile(
     BOOL status = FALSE;
 
     assert(memory    != NULL);
-    assert(memory->bytes >= sizeof(GROUPFILE));
+    assert(memory->size >= sizeof(GROUPFILE));
     assert(groupFile != NULL);
     DebugPrint("Io_GroupSetFile: groupFile=0x%p groupFile->Gid=%d\n", groupFile, groupFile->Gid);
 
@@ -300,7 +300,7 @@ Io_GroupIdToName(
     DC_NAMEID *dcNameId;
 
     assert(memory    != NULL);
-    assert(memory->bytes >= sizeof(DC_NAMEID));
+    assert(memory->size >= sizeof(DC_NAMEID));
     assert(groupName != NULL);
     DebugPrint("Io_GroupIdToName: groupId=%d groupName=0x%p\n", groupId, groupName);
 
@@ -350,7 +350,7 @@ Io_GroupNameToId(
     DWORD result;
 
     assert(memory    != NULL);
-    assert(memory->bytes >= sizeof(DC_NAMEID));
+    assert(memory->size >= sizeof(DC_NAMEID));
     assert(groupName != NULL);
     assert(groupId   != NULL);
     DebugPrint("Io_GroupNameToId: groupName=%s groupId=0x%p\n", groupName, groupId);

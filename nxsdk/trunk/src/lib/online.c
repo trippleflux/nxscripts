@@ -46,14 +46,14 @@ Io_GetOnlineData(
     DC_ONLINEDATA *dcOnlineData;
 
     assert(memory  != NULL);
-    assert(memory->bytes >= sizeof(DC_ONLINEDATA) + (MAX_PATH+1)*2);
+    assert(memory->size >= sizeof(DC_ONLINEDATA) + (MAX_PATH+1)*2);
     assert(routine != NULL);
     DebugPrint("Io_GetOnlineData: memory=%p routine=%p opaque=%p\n", memory, routine, opaque);
 
     // Initialise the data-copy online structure.
     dcOnlineData = (DC_ONLINEDATA *)memory->block;
     dcOnlineData->iOffset = 0;
-    dcOnlineData->dwSharedMemorySize = memory->bytes;
+    dcOnlineData->dwSharedMemorySize = memory->size;
 
     for (;;) {
         result = Io_ShmQuery(memory, DC_GET_ONLINEDATA, 5000);

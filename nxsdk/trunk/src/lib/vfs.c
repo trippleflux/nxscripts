@@ -47,7 +47,7 @@ Io_VfsRead(
     assert(memory  != NULL);
     assert(path    != NULL);
     assert(vfs != NULL);
-    assert(memory->bytes >= sizeof(DC_VFS) + strlen(path) + 1);
+    assert(memory->size >= sizeof(DC_VFS) + strlen(path) + 1);
     DebugPrint("Io_VfsRead: path=%s vfs=%p\n", path, vfs);
 
     // Initialise the DC_VFS structure.
@@ -99,7 +99,7 @@ Io_VfsWrite(
     assert(memory  != NULL);
     assert(path    != NULL);
     assert(vfs != NULL);
-    assert(memory->bytes >= sizeof(DC_VFS) + strlen(path) + 1);
+    assert(memory->size >= sizeof(DC_VFS) + strlen(path) + 1);
     DebugPrint("Io_VfsWrite: path=%s vfs=%p\n", path, vfs);
 
     // Initialise the DC_VFS structure.
@@ -145,10 +145,10 @@ Io_VfsFlush(
 {
     assert(memory  != NULL);
     assert(dirPath != NULL);
-    assert(memory->bytes >= strlen(dirPath) + 1);
+    assert(memory->size >= strlen(dirPath) + 1);
     DebugPrint("Io_VfsFlush: dirPath=%s\n", dirPath);
 
-    StringCchCopyA((char *)memory->block, (size_t)memory->bytes, dirPath);
+    StringCchCopyA((char *)memory->block, (size_t)memory->size, dirPath);
 
     // ioFTPD appears to return 1 on both success and failure.
     if (Io_ShmQuery(memory, DC_DIRECTORY_MARKDIRTY, 5000) == 1) {

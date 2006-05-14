@@ -72,7 +72,7 @@ Members:
 
     procId  - Current process ID.
 
-    bytes   - Size of the mapped memory block, in bytes.
+    size    - Size of the mapped memory block, in bytes.
 
 --*/
 typedef struct {
@@ -83,7 +83,7 @@ typedef struct {
     HANDLE     mapping;
     HWND       window;
     DWORD      procId;
-    DWORD      bytes;
+    DWORD      size;
 } IO_MEMORY;
 
 /*++
@@ -138,7 +138,7 @@ IO_MEMORY *
 STDCALL
 Io_ShmAlloc(
     IO_SESSION *session,
-    DWORD bytes
+    DWORD size
     );
 
 void

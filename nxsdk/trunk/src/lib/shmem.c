@@ -63,7 +63,7 @@ Io_ShmAlloc
 Arguments:
     session - Pointer to an initialised IO_SESSION structure.
 
-    bytes   - Number of bytes to be allocated.
+    size    - Size of the shared memory block to be allocated, in bytes.
 
 Remarks:
     The allocated IO_MEMORY structure must be freed by Io_ShmFree.
@@ -77,7 +77,7 @@ IO_MEMORY *
 STDCALL
 Io_ShmAlloc(
     IO_SESSION *session,
-    DWORD bytes
+    DWORD size
     )
 {
     DC_MESSAGE *message = NULL;
@@ -86,8 +86,8 @@ Io_ShmAlloc(
     HANDLE mapping = NULL;
 
     assert(session != NULL);
-    assert(bytes > 0);
-    DebugPrint("Io_ShmAlloc: session=%p bytes=%lu\n", session, bytes);
+    assert(size > 0);
+    DebugPrint("Io_ShmAlloc: session=%p size=%lu\n", session, size);
 
     memory = malloc(sizeof(IO_MEMORY));
     if (memory == NULL) {
@@ -96,15 +96,15 @@ Io_ShmAlloc(
 
     event = CreateEvent(NULL, FALSE, FALSE, NULL);
     if (event != NULL) {
-        bytes += sizeof(DC_MESSAGE);
+        size += sizeof(DC_MESSAGE);
 
         // Allocate memory in local process.
         mapping = CreateFileMapping(INVALID_HANDLE_VALUE, NULL,
-            PAGE_READWRITE|SEC_COMMIT, 0, bytes, NULL);
+            PAGE_READWRITE|SEC_COMMIT, 0, size, NULL);
 
         if (mapping != NULL) {
             message = (DC_MESSAGE *)MapViewOfFile(mapping,
-                FILE_MAP_READ|FILE_MAP_WRITE, 0, 0, bytes);
+                FILE_MAP_READ|FILE_MAP_WRITE, 0, 0, size);
 
             if (message != NULL) {
                 void *remote;
@@ -128,7 +128,7 @@ Io_ShmAlloc(
                     memory->mapping = mapping;
                     memory->window  = session->window;
                     memory->procId  = session->currentProcId;
-                    memory->bytes   = bytes - sizeof(DC_MESSAGE);
+                    memory->size    = size - sizeof(DC_MESSAGE);
                     return memory;
                 }
 

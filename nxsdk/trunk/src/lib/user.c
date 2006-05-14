@@ -46,7 +46,7 @@ Io_UserCreate(
     DWORD result;
 
     assert(memory   != NULL);
-    assert(memory->bytes >= sizeof(DC_NAMEID));
+    assert(memory->size >= sizeof(DC_NAMEID));
     assert(userName != NULL);
     assert(userId   != NULL);
     DebugPrint("Io_UserCreate: userName=%s userId=0x%p\n", userName, userId);
@@ -96,7 +96,7 @@ Io_UserRename(
     DC_RENAME *dcRename;
 
     assert(memory   != NULL);
-    assert(memory->bytes >= sizeof(DC_RENAME));
+    assert(memory->size >= sizeof(DC_RENAME));
     assert(userName != NULL);
     assert(newName  != NULL);
     DebugPrint("Io_UserRename: userName=%s newName=%s\n", userName, newName);
@@ -141,7 +141,7 @@ Io_UserDelete(
     DC_NAMEID *dcNameId;
 
     assert(memory   != NULL);
-    assert(memory->bytes >= sizeof(DC_NAMEID));
+    assert(memory->size >= sizeof(DC_NAMEID));
     assert(userName != NULL);
     DebugPrint("Io_UserDelete: userName=%s\n", userName);
 
@@ -185,7 +185,7 @@ Io_UserGetFile(
     )
 {
     assert(memory   != NULL);
-    assert(memory->bytes >= sizeof(USERFILE));
+    assert(memory->size >= sizeof(USERFILE));
     assert(userFile != NULL);
     DebugPrint("Io_UserGetFile: userId=%d userFile=0x%p\n", userId, userFile);
 
@@ -237,7 +237,7 @@ Io_UserSetFile(
     BOOL status = FALSE;
 
     assert(memory   != NULL);
-    assert(memory->bytes >= sizeof(USERFILE));
+    assert(memory->size >= sizeof(USERFILE));
     assert(userFile != NULL);
     DebugPrint("Io_UserSetFile: userFile=0x%p userFile->Uid=%d\n", userFile, userFile->Uid);
 
@@ -301,7 +301,7 @@ Io_UserIdToName(
     DC_NAMEID *dcNameId;
 
     assert(memory   != NULL);
-    assert(memory->bytes >= sizeof(DC_NAMEID));
+    assert(memory->size >= sizeof(DC_NAMEID));
     assert(userName != NULL);
     DebugPrint("Io_UserIdToName: userId=%d userName=0x%p\n", userId, userName);
 
@@ -351,7 +351,7 @@ Io_UserNameToId(
     DWORD result;
 
     assert(memory   != NULL);
-    assert(memory->bytes >= sizeof(DC_NAMEID));
+    assert(memory->size >= sizeof(DC_NAMEID));
     assert(userName != NULL);
     assert(userId   != NULL);
     DebugPrint("Io_UserNameToId: userName=%s userId=0x%p\n", userName, userId);
