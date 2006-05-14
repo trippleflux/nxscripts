@@ -122,8 +122,6 @@ DisplayUser(
     // Update totals and map the transfer status to a textual description.
     if (onlineData->dwIntervalLength > 0) {
         speed = (double)onlineData->dwBytesTransfered / (double)onlineData->dwIntervalLength;
-    } else {
-        speed = 0.0;
     }
 
     switch (onlineData->bTransferStatus) {
