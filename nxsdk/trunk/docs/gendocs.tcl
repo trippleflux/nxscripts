@@ -25,13 +25,7 @@ set inputFiles {
     "src/lib/*.h"
 }
 
-puts "\n\tGenerating Source Documents\n"
-
-puts "- Changing to base directory"
-set currentDir [pwd]
-cd $baseDir
-
-proc ReadFile {path} {
+proc BufferFile {path} {
     set handle [open $path "r"]
     set data [read $handle]
     close $handle
@@ -89,7 +83,7 @@ proc ParseText {text} {
     return $result
 }
 
-proc ParseList {items} {
+proc ListTrim {items} {
     # Remove empty leading elements.
     while {[llength $items] && [lindex $items 0] eq ""} {
         set items [lreplace $items 0 0]
@@ -102,6 +96,63 @@ proc ParseList {items} {
     return $items
 }
 
+proc ListToArgs {items} {
+    # Group arguments.
+    set count 0
+    foreach line [ListTrim $items] {
+        set line [string trimleft $line]
+
+        if {[regexp -- {^(\w+)\s+-\s+(.+)$} $line dummy name line]} {
+            incr count
+            lappend arg($count) $name $line
+        } elseif {$count} {
+            lappend arg($count) $line
+        } else {
+            puts "    - Found argument description before definition."
+        }
+    }
+
+    # Format the result: argOne {paraOne paraTwo} argTwo {paraOne paraTwo} ...
+    set count 1
+    set result [list]
+    while {[info exists arg($count)]} {
+        set name [lindex $arg($count) 0]
+        set text [lrange $arg($count) 1 end]
+        lappend result $name [ListToText $text]
+        incr count
+    }
+    return $result
+}
+
+proc ListToText {items} {
+    # Group paragraphs.
+    set count 0
+    foreach line [ListTrim $items] {
+        set line [string trimleft $line]
+
+        if {$line eq ""} {
+            incr count
+        } else {
+            lappend para($count) $line
+        }
+    }
+
+    # Format the result: paraOne paraTwo paraThree ...
+    set count 0
+    set result [list]
+    while {[info exists para($count)]} {
+        lappend result [join $para($count)]
+        incr count
+    }
+    return $result
+}
+
+puts "\n\tGenerating Source Documents\n"
+
+puts "- Changing to base directory"
+set currentDir [pwd]
+cd $baseDir
+
 puts "- Reading source files"
 set funcList [list]
 set structList [list]
@@ -110,10 +161,10 @@ foreach pattern $inputFiles {
     foreach path [glob -nocomplain $pattern] {
         puts "  - Reading file: $path"
 
-        foreach {desc code} [ParseText [ReadFile $path]] {
+        foreach {desc code} [ParseText [BufferFile $path]] {
             # Count and remove outer empty lines.
             set beforeCount [llength $desc]
-            set desc [ParseList $desc]
+            set desc [ListTrim $desc]
             set afterCount [llength $desc]
 
             if {!$afterCount} {
@@ -163,7 +214,7 @@ foreach {desc code} $structList {
 
     set section "intro"
     array set text [list intro "" members "" remarks ""]
-    foreach line $desc {
+    foreach line [lrange $desc 1 end] {
         switch -regexp -- $line {
             {^Members:$} {set section "members"}
             {^Remarks:$} {set section "remarks"}
@@ -171,6 +222,10 @@ foreach {desc code} $structList {
             default      {lappend text($section) $line}
         }
     }
+
+    set text(intro)   [ListToText $text(intro)]
+    set text(members) [ListToArgs $text(members)]
+    set text(remarks) [ListToText $text(remarks)]
 
     set target "struct[incr structId]"
     lappend structMap $name "structs.htm#$target"
@@ -197,7 +252,7 @@ foreach {desc code} $funcList {
 
     set section "intro"
     array set text [list intro "" args "" remarks "" retval ""]
-    foreach line $desc {
+    foreach line [lrange $desc 1 end] {
         switch -regexp -- $line {
             {^Arguments:$}    {set section "args"}
             {^Remarks:$}      {set section "remarks"}
@@ -207,9 +262,14 @@ foreach {desc code} $funcList {
         }
     }
 
+    set text(intro)   [ListToText $text(intro)]
+    set text(args)    [ListToArgs $text(args)]
+    set text(remarks) [ListToText $text(remarks)]
+    set text(retval)  [ListToText $text(retval)]
+
     set target "func[incr structId]"
     lappend structMap $name "funcs.htm#$target"
-    set funcs($name) [list]
+    set funcs($name) [list $target $text(intro) $text(args) $text(remarks) $text(retval)]
 }
 
 puts "- Opening output file"
@@ -227,10 +287,12 @@ foreach name $structNames {
 }
 
 puts "- Writing descriptions"
-foreach name $funcNames {
+foreach name $structNames {
+    foreach {target intro members remarks} $structs($name) {break}
 }
 
-foreach name $structNames {
+foreach name $funcNames {
+    foreach {target intro args remarks retval} $funcs($name) {break}
 }
 
 puts "- Finished"
