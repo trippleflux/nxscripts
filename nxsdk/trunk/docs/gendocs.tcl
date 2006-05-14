@@ -109,9 +109,8 @@ set structList [list]
 foreach pattern $inputFiles {
     foreach path [glob -nocomplain $pattern] {
         puts "  - Reading file: $path"
-        set text [ReadFile $path]
 
-        foreach {desc code} [ParseText $text] {
+        foreach {desc code} [ParseText [ReadFile $path]] {
             # Count and remove outer empty lines.
             set beforeCount [llength $desc]
             set desc [ParseList $desc]
@@ -151,18 +150,31 @@ unset -nocomplain structs
 
 foreach {desc code} $structList {
     set name [lindex $desc 0]
+    puts "  - Structure: $name"
+
     if {![string is wordchar -strict $name]} {
-        puts "  - Invalid structure name \"$name\"."
+        puts "    - Invalid structure name, skipping."
         continue
     }
     if {[info exists structs($name)]} {
-        puts "  - Structure \"$name\" already defined."
+        puts "    - Structure already defined, skipping."
         continue
+    }
+
+    set section "intro"
+    array set text [list intro "" members "" remarks ""]
+    foreach line $desc {
+        switch -regexp -- $line {
+            {^Members:$} {set section "members"}
+            {^Remarks:$} {set section "remarks"}
+            {^[\s\w]+:$} {puts "    - Unknown comment section \"$line\"."}
+            default      {lappend text($section) $line}
+        }
     }
 
     set target "struct[incr structId]"
     lappend structMap $name "structs.htm#$target"
-    set structs($name) [list]
+    set structs($name) [list $target $text(intro) $text(members) $text(remarks)]
 }
 
 puts "- Parsing functions"
@@ -172,13 +184,27 @@ unset -nocomplain funcs
 
 foreach {desc code} $funcList {
     set name [lindex $desc 0]
+    puts "  - Function: $name"
+
     if {![string is wordchar -strict $name]} {
-        puts "  - Invalid function name \"$name\"."
+        puts "    - Invalid function name, skipping."
         continue
     }
     if {[info exists funcs($name)]} {
-        puts "  - Function \"$name\" already defined."
+        puts "    - Function already defined, skipping."
         continue
+    }
+
+    set section "intro"
+    array set text [list intro "" args "" remarks "" retval ""]
+    foreach line $desc {
+        switch -regexp -- $line {
+            {^Arguments:$}    {set section "args"}
+            {^Remarks:$}      {set section "remarks"}
+            {^Return Value:$} {set section "retval"}
+            {^[\s\w]+:$}      {puts "    - Unknown comment section \"$line\"."}
+            default           {lappend text($section) $line}
+        }
     }
 
     set target "func[incr structId]"
