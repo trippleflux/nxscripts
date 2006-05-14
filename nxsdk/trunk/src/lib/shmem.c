@@ -23,9 +23,9 @@ Io_ShmInit
     Initialise a shared memory session.
 
 Arguments:
-    window  - Name of ioFTPD's message window.
+    windowName  - Name of ioFTPD's message window.
 
-    session - Pointer to the IO_SESSION structure to be initialised.
+    session     - Pointer to the IO_SESSION structure to be initialised.
 
 Return Value:
     A standard boolean result.
@@ -34,23 +34,23 @@ Return Value:
 BOOL
 STDCALL
 Io_ShmInit(
-    const char *window,
+    const char *windowName,
     IO_SESSION *session
     )
 {
-    assert(window  != NULL);
-    assert(session != NULL);
-    DebugPrint("Io_ShmInit: window=%s session=%p\n", window, session);
+    assert(windowName != NULL);
+    assert(session    != NULL);
+    DebugPrint("Io_ShmInit: windowName=%s session=%p\n", windowName, session);
 
-    session->messageWnd = FindWindowA(window, NULL);
-    if (session->messageWnd == NULL) {
+    session->window = FindWindowA(windowName, NULL);
+    if (session->window == NULL) {
         session->currentProcId = 0;
         session->remoteProcId  = 0;
         return FALSE;
     }
 
     session->currentProcId = GetCurrentProcessId();
-    GetWindowThreadProcessId(session->messageWnd, &session->remoteProcId);
+    GetWindowThreadProcessId(session->window, &session->remoteProcId);
     return TRUE;
 }
 
@@ -116,7 +116,7 @@ Io_ShmAlloc(
                 message->lpContext    = &message[1];
 
                 SetLastError(ERROR_SUCCESS);
-                remote = (void *)SendMessage(session->messageWnd, WM_DATACOPY_FILEMAP,
+                remote = (void *)SendMessage(session->window, WM_DATACOPY_FILEMAP,
                     (WPARAM)session->currentProcId, (LPARAM)mapping);
 
                 if (remote != NULL) {
@@ -124,9 +124,11 @@ Io_ShmAlloc(
                     memory->block   = &message[1];
                     memory->message = message;
                     memory->remote  = remote;
-                    memory->bytes   = bytes - sizeof(DC_MESSAGE);
                     memory->event   = event;
                     memory->mapping = mapping;
+                    memory->window  = session->window;
+                    memory->procId  = session->currentProcId;
+                    memory->bytes   = bytes - sizeof(DC_MESSAGE);
                     return memory;
                 }
 
@@ -161,8 +163,6 @@ Io_ShmFree
     Frees shared memory.
 
 Arguments:
-    session - Pointer to an initialised IO_SESSION structure.
-
     memory  - Pointer to an allocated IO_MEMORY structure.
 
 Return Value:
@@ -172,13 +172,11 @@ Return Value:
 void
 STDCALL
 Io_ShmFree(
-    IO_SESSION *session,
     IO_MEMORY *memory
     )
 {
-    assert(session != NULL);
-    assert(memory  != NULL);
-    DebugPrint("Io_ShmFree: session=%p memory=%p\n", session, memory);
+    assert(memory != NULL);
+    DebugPrint("Io_ShmFree: memory=%p\n", memory);
 
     // Free objects and resources.
     UnmapViewOfFile(memory->message);
@@ -190,7 +188,7 @@ Io_ShmFree(
         CloseHandle(memory->mapping);
     }
 
-    PostMessage(session->messageWnd, WM_DATACOPY_FREE, 0, (LPARAM)memory->remote);
+    PostMessage(memory->window, WM_DATACOPY_FREE, 0, (LPARAM)memory->remote);
     free(memory);
 }
 
@@ -201,8 +199,6 @@ Io_ShmQuery
     Queries the ioFTPD daemon.
 
 Arguments:
-    session - Pointer to an initialised IO_SESSION structure.
-
     memory  - Pointer to an allocated IO_MEMORY structure.
 
     queryId - Query identifier, defined in ioFTPD's DataCopy.h.
@@ -216,20 +212,17 @@ Return Value:
 DWORD
 STDCALL
 Io_ShmQuery(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     DWORD queryId,
     DWORD timeOut
     )
 {
-    assert(session != NULL);
     assert(memory  != NULL);
-    DebugPrint("Io_ShmQuery: session=%p memory=%p queryId=%lu timeOut=%lu\n",
-        session, memory, queryId, timeOut);
+    DebugPrint("Io_ShmQuery: memory=%p queryId=%lu timeOut=%lu\n", memory, queryId, timeOut);
 
     memory->message->dwReturn     = (DWORD)-1;
     memory->message->dwIdentifier = queryId;
-    PostMessage(session->messageWnd, WM_SHMEM, 0, (LPARAM)memory->remote);
+    PostMessage(memory->window, WM_SHMEM, 0, (LPARAM)memory->remote);
 
     if (timeOut && memory->event != NULL) {
         if (WaitForSingleObject(memory->event, timeOut) == WAIT_TIMEOUT) {

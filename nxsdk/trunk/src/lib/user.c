@@ -23,8 +23,6 @@ Io_UserCreate
     Creates a new user.
 
 Arguments:
-    session     - Pointer to an initialised IO_SESSION structure.
-
     memory      - Pointer to an allocated IO_MEMORY structure. The buffer
                   size must be large enough to hold the DC_NAMEID structure.
 
@@ -39,7 +37,6 @@ Return Value:
 BOOL
 STDCALL
 Io_UserCreate(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const char *userName,
     int *userId
@@ -48,7 +45,6 @@ Io_UserCreate(
     DC_NAMEID *dcNameId;
     DWORD result;
 
-    assert(session  != NULL);
     assert(memory   != NULL);
     assert(memory->bytes >= sizeof(DC_NAMEID));
     assert(userName != NULL);
@@ -59,7 +55,7 @@ Io_UserCreate(
     dcNameId = (DC_NAMEID *)memory->block;
     StringCchCopyA(dcNameId->tszName, ARRAYSIZE(dcNameId->tszName), userName);
 
-    result = Io_ShmQuery(session, memory, DC_CREATE_USER, 5000);
+    result = Io_ShmQuery(memory, DC_CREATE_USER, 5000);
     if (result != (DWORD)-1) {
         *userId = (int)result;
         DebugPrint("Io_UserCreate: OKAY\n");
@@ -78,8 +74,6 @@ Io_UserRename
     Renames an existing user.
 
 Arguments:
-    session     - Pointer to an initialised IO_SESSION structure.
-
     memory      - Pointer to an allocated IO_MEMORY structure. The buffer
                   size must be large enough to hold the DC_RENAME structure.
 
@@ -94,7 +88,6 @@ Return Value:
 BOOL
 STDCALL
 Io_UserRename(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const char *userName,
     const char *newName
@@ -102,7 +95,6 @@ Io_UserRename(
 {
     DC_RENAME *dcRename;
 
-    assert(session  != NULL);
     assert(memory   != NULL);
     assert(memory->bytes >= sizeof(DC_RENAME));
     assert(userName != NULL);
@@ -114,7 +106,7 @@ Io_UserRename(
     StringCchCopyA(dcRename->tszName,    ARRAYSIZE(dcRename->tszName),    userName);
     StringCchCopyA(dcRename->tszNewName, ARRAYSIZE(dcRename->tszNewName), newName);
 
-    if (!Io_ShmQuery(session, memory, DC_RENAME_USER, 5000)) {
+    if (!Io_ShmQuery(memory, DC_RENAME_USER, 5000)) {
         DebugPrint("Io_UserRename: OKAY\n");
         return TRUE;
     }
@@ -130,8 +122,6 @@ Io_UserDelete
     Deletes a user.
 
 Arguments:
-    session     - Pointer to an initialised IO_SESSION structure.
-
     memory      - Pointer to an allocated IO_MEMORY structure. The buffer
                   size must be large enough to hold the DC_NAMEID structure.
 
@@ -144,14 +134,12 @@ Return Value:
 BOOL
 STDCALL
 Io_UserDelete(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const char *userName
     )
 {
     DC_NAMEID *dcNameId;
 
-    assert(session  != NULL);
     assert(memory   != NULL);
     assert(memory->bytes >= sizeof(DC_NAMEID));
     assert(userName != NULL);
@@ -161,7 +149,7 @@ Io_UserDelete(
     dcNameId = (DC_NAMEID *)memory->block;
     StringCchCopyA(dcNameId->tszName, ARRAYSIZE(dcNameId->tszName), userName);
 
-    if (!Io_ShmQuery(session, memory, DC_DELETE_USER, 5000)) {
+    if (!Io_ShmQuery(memory, DC_DELETE_USER, 5000)) {
         DebugPrint("Io_UserDelete: OKAY\n");
         return TRUE;
     }
@@ -177,8 +165,6 @@ Io_UserGetFile
     Retrieves the USERFILE structure for a given a user ID.
 
 Arguments:
-    session     - Pointer to an initialised IO_SESSION structure.
-
     memory      - Pointer to an allocated IO_MEMORY structure. The buffer
                   size must be large enough to hold the USERFILE structure.
 
@@ -193,13 +179,11 @@ Return Value:
 BOOL
 STDCALL
 Io_UserGetFile(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     int userId,
     USERFILE *userFile
     )
 {
-    assert(session  != NULL);
     assert(memory   != NULL);
     assert(memory->bytes >= sizeof(USERFILE));
     assert(userFile != NULL);
@@ -208,11 +192,11 @@ Io_UserGetFile(
     // Set the requested user ID.
     ((USERFILE *)memory->block)->Uid = userId;
 
-    if (!Io_ShmQuery(session, memory, DC_USERFILE_OPEN, 5000)) {
+    if (!Io_ShmQuery(memory, DC_USERFILE_OPEN, 5000)) {
         CopyMemory(userFile, memory->block, sizeof(USERFILE));
 
         // Close the user-file before returning.
-        Io_ShmQuery(session, memory, DC_USERFILE_CLOSE, 5000);
+        Io_ShmQuery(memory, DC_USERFILE_CLOSE, 5000);
 
         DebugPrint("Io_UserGetFile: OKAY\n");
         return TRUE;
@@ -234,8 +218,6 @@ Io_UserSetFile
     Updates the USERFILE structure for a user.
 
 Arguments:
-    session     - Pointer to an initialised IO_SESSION structure.
-
     memory      - Pointer to an allocated IO_MEMORY structure. The buffer
                   size must be large enough to hold the USERFILE structure.
 
@@ -248,14 +230,12 @@ Return Value:
 BOOL
 STDCALL
 Io_UserSetFile(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const USERFILE *userFile
     )
 {
     BOOL status = FALSE;
 
-    assert(session  != NULL);
     assert(memory   != NULL);
     assert(memory->bytes >= sizeof(USERFILE));
     assert(userFile != NULL);
@@ -264,8 +244,8 @@ Io_UserSetFile(
     // Set the requested user ID.
     ((USERFILE *)memory->block)->Uid = userFile->Uid;
 
-    if (!Io_ShmQuery(session, memory, DC_USERFILE_OPEN, 5000)) {
-        if (!Io_ShmQuery(session, memory, DC_USERFILE_LOCK, 5000)) {
+    if (!Io_ShmQuery(memory, DC_USERFILE_OPEN, 5000)) {
+        if (!Io_ShmQuery(memory, DC_USERFILE_LOCK, 5000)) {
             //
             // Copy the USERFILE structure to the shared memory block
             // after locking, since the open call will overwrite it.
@@ -274,7 +254,7 @@ Io_UserSetFile(
             CopyMemory(memory->block, userFile, offsetof(USERFILE, lpInternal));
 
             // Unlock will update the user-file.
-            Io_ShmQuery(session, memory, DC_USERFILE_UNLOCK, 5000);
+            Io_ShmQuery(memory, DC_USERFILE_UNLOCK, 5000);
 
             status = TRUE;
             DebugPrint("Io_UserSetFile: OKAY\n");
@@ -283,7 +263,7 @@ Io_UserSetFile(
         }
 
         // Close the user-file before returning.
-        Io_ShmQuery(session, memory, DC_USERFILE_CLOSE, 5000);
+        Io_ShmQuery(memory, DC_USERFILE_CLOSE, 5000);
     } else {
         DebugPrint("Io_UserSetFile: OPEN FAIL\n");
     }
@@ -298,8 +278,6 @@ Io_UserIdToName
     Resolves a user ID to its corresponding user name.
 
 Arguments:
-    session     - Pointer to an initialised IO_SESSION structure.
-
     memory      - Pointer to an allocated IO_MEMORY structure. The buffer
                   size must be large enough to hold the DC_NAMEID structure.
 
@@ -315,7 +293,6 @@ Return Value:
 BOOL
 STDCALL
 Io_UserIdToName(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     int userId,
     char *userName
@@ -323,7 +300,6 @@ Io_UserIdToName(
 {
     DC_NAMEID *dcNameId;
 
-    assert(session  != NULL);
     assert(memory   != NULL);
     assert(memory->bytes >= sizeof(DC_NAMEID));
     assert(userName != NULL);
@@ -333,7 +309,7 @@ Io_UserIdToName(
     dcNameId = (DC_NAMEID *)memory->block;
     dcNameId->Id = userId;
 
-    if (!Io_ShmQuery(session, memory, DC_UID_TO_USER, 5000)) {
+    if (!Io_ShmQuery(memory, DC_UID_TO_USER, 5000)) {
         StringCchCopyA(userName, _MAX_NAME+1, dcNameId->tszName);
 
         DebugPrint("Io_UserIdToName: OKAY\n");
@@ -352,8 +328,6 @@ Io_UserNameToId
     Resolves a user name to its corresponding user ID.
 
 Arguments:
-    session     - Pointer to an initialised IO_SESSION structure.
-
     memory      - Pointer to an allocated IO_MEMORY structure. The buffer
                   size must be large enough to hold the DC_NAMEID structure.
 
@@ -368,7 +342,6 @@ Return Value:
 BOOL
 STDCALL
 Io_UserNameToId(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const char *userName,
     int *userId
@@ -377,7 +350,6 @@ Io_UserNameToId(
     DC_NAMEID *dcNameId;
     DWORD result;
 
-    assert(session  != NULL);
     assert(memory   != NULL);
     assert(memory->bytes >= sizeof(DC_NAMEID));
     assert(userName != NULL);
@@ -388,7 +360,7 @@ Io_UserNameToId(
     dcNameId = (DC_NAMEID *)memory->block;
     StringCchCopyA(dcNameId->tszName, ARRAYSIZE(dcNameId->tszName), userName);
 
-    result = Io_ShmQuery(session, memory, DC_USER_TO_UID, 5000);
+    result = Io_ShmQuery(memory, DC_USER_TO_UID, 5000);
     if (result != (DWORD)-1) {
         *userId = (int)result;
         DebugPrint("Io_UserNameToId: OKAY\n");

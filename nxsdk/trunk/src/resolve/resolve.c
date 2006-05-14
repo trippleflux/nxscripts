@@ -21,7 +21,6 @@ Abstract:
 #include <nxsdk.h>
 
 typedef BOOL (RESOLVE_ROUTINE)(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const char *input
     );
@@ -73,7 +72,7 @@ int main(int argc, char **argv)
     for (i = 0; i < sizeof(types)/sizeof(types[0]); i++) {
         if (strcmp(types[i].name, argv[2]) == 0) {
             // Resolve the ID/name.
-            result = types[i].routine(&session, memory, argv[3]);
+            result = types[i].routine(memory, argv[3]);
             break;
         }
     }
@@ -82,13 +81,12 @@ int main(int argc, char **argv)
         printf("Invalid argument \"%s\": must be gid, group, uid, or user.\n", argv[2]);
     }
 
-    Io_ShmFree(&session, memory);
+    Io_ShmFree(memory);
     return (result == TRUE) ? 0 : -1;
 }
 
 static BOOL
 ResolveGroupId(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const char *groupId
     )
@@ -97,7 +95,7 @@ ResolveGroupId(
     char name[_MAX_NAME+1];
 
     id = atoi(groupId);
-    if (!Io_GroupIdToName(session, memory, id, name)) {
+    if (!Io_GroupIdToName(memory, id, name)) {
         printf("The group ID \"%d\" does not exist.\n", id);
         return FALSE;
     }
@@ -108,14 +106,13 @@ ResolveGroupId(
 
 static BOOL
 ResolveGroupName(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const char *name
     )
 {
     int id;
 
-    if (!Io_GroupNameToId(session, memory, name, &id)) {
+    if (!Io_GroupNameToId(memory, name, &id)) {
         printf("The group name \"%s\" does not exist.\n", name);
         return FALSE;
     }
@@ -126,7 +123,6 @@ ResolveGroupName(
 
 static BOOL
 ResolveUserId(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const char *userId
     )
@@ -135,7 +131,7 @@ ResolveUserId(
     char name[_MAX_NAME+1];
 
     id = atoi(userId);
-    if (!Io_UserIdToName(session, memory, id, name)) {
+    if (!Io_UserIdToName(memory, id, name)) {
         printf("The user ID \"%d\" does not exist.\n", id);
         return FALSE;
     }
@@ -146,14 +142,13 @@ ResolveUserId(
 
 static BOOL
 ResolveUserName(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const char *name
     )
 {
     int id;
 
-    if (!Io_UserNameToId(session, memory, name, &id)) {
+    if (!Io_UserNameToId(memory, name, &id)) {
         printf("The user name \"%s\" does not exist.\n", name);
         return FALSE;
     }

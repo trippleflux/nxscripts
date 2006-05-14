@@ -23,8 +23,6 @@ Io_GroupCreate
     Creates a new group.
 
 Arguments:
-    session     - Pointer to an initialised IO_SESSION structure.
-
     memory      - Pointer to an allocated IO_MEMORY structure. The buffer
                   size must be large enough to hold the DC_NAMEID structure.
 
@@ -39,7 +37,6 @@ Return Value:
 BOOL
 STDCALL
 Io_GroupCreate(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const char *groupName,
     int *groupId
@@ -48,7 +45,6 @@ Io_GroupCreate(
     DC_NAMEID *dcNameId;
     DWORD result;
 
-    assert(session   != NULL);
     assert(memory    != NULL);
     assert(memory->bytes >= sizeof(DC_NAMEID));
     assert(groupName != NULL);
@@ -59,7 +55,7 @@ Io_GroupCreate(
     dcNameId = (DC_NAMEID *)memory->block;
     StringCchCopyA(dcNameId->tszName, ARRAYSIZE(dcNameId->tszName), groupName);
 
-    result = Io_ShmQuery(session, memory, DC_CREATE_GROUP, 5000);
+    result = Io_ShmQuery(memory, DC_CREATE_GROUP, 5000);
     if (result != (DWORD)-1) {
         *groupId = (int)result;
         DebugPrint("Io_GroupCreate: OKAY\n");
@@ -78,8 +74,6 @@ Io_GroupRename
     Renames an existing group.
 
 Arguments:
-    session     - Pointer to an initialised IO_SESSION structure.
-
     memory      - Pointer to an allocated IO_MEMORY structure. The buffer
                   size must be large enough to hold the DC_RENAME structure.
 
@@ -94,7 +88,6 @@ Return Value:
 BOOL
 STDCALL
 Io_GroupRename(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const char *groupName,
     const char *newName
@@ -102,7 +95,6 @@ Io_GroupRename(
 {
     DC_RENAME *dcRename;
 
-    assert(session   != NULL);
     assert(memory    != NULL);
     assert(memory->bytes >= sizeof(DC_RENAME));
     assert(groupName != NULL);
@@ -114,7 +106,7 @@ Io_GroupRename(
     StringCchCopyA(dcRename->tszName,    ARRAYSIZE(dcRename->tszName),    groupName);
     StringCchCopyA(dcRename->tszNewName, ARRAYSIZE(dcRename->tszNewName), newName);
 
-    if (!Io_ShmQuery(session, memory, DC_RENAME_GROUP, 5000)) {
+    if (!Io_ShmQuery(memory, DC_RENAME_GROUP, 5000)) {
         DebugPrint("Io_GroupRename: OKAY\n");
         return TRUE;
     }
@@ -130,8 +122,6 @@ Io_GroupDelete
     Deletes a group.
 
 Arguments:
-    session     - Pointer to an initialised IO_SESSION structure.
-
     memory      - Pointer to an allocated IO_MEMORY structure. The buffer
                   size must be large enough to hold the DC_NAMEID structure.
 
@@ -144,14 +134,12 @@ Return Value:
 BOOL
 STDCALL
 Io_GroupDelete(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const char *groupName
     )
 {
     DC_NAMEID *dcNameId;
 
-    assert(session   != NULL);
     assert(memory    != NULL);
     assert(memory->bytes >= sizeof(DC_NAMEID));
     assert(groupName != NULL);
@@ -161,7 +149,7 @@ Io_GroupDelete(
     dcNameId = (DC_NAMEID *)memory->block;
     StringCchCopyA(dcNameId->tszName, ARRAYSIZE(dcNameId->tszName), groupName);
 
-    if (!Io_ShmQuery(session, memory, DC_DELETE_GROUP, 5000)) {
+    if (!Io_ShmQuery(memory, DC_DELETE_GROUP, 5000)) {
         DebugPrint("Io_GroupDelete: OKAY\n");
         return TRUE;
     }
@@ -177,8 +165,6 @@ Io_GroupGetFile
     Retrieves the GROUPFILE structure for a given a group ID.
 
 Arguments:
-    session     - Pointer to an initialised IO_SESSION structure.
-
     memory      - Pointer to an allocated IO_MEMORY structure. The buffer
                   size must be large enough to hold the GROUPFILE structure.
 
@@ -193,13 +179,11 @@ Return Value:
 BOOL
 STDCALL
 Io_GroupGetFile(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     int groupId,
     GROUPFILE *groupFile
     )
 {
-    assert(session   != NULL);
     assert(memory    != NULL);
     assert(memory->bytes >= sizeof(GROUPFILE));
     assert(groupFile != NULL);
@@ -208,11 +192,11 @@ Io_GroupGetFile(
     // Set the requested group ID.
     ((GROUPFILE *)memory->block)->Gid = groupId;
 
-    if (!Io_ShmQuery(session, memory, DC_GROUPFILE_OPEN, 5000)) {
+    if (!Io_ShmQuery(memory, DC_GROUPFILE_OPEN, 5000)) {
         CopyMemory(groupFile, memory->block, sizeof(GROUPFILE));
 
         // Close the group-file before returning.
-        Io_ShmQuery(session, memory, DC_GROUPFILE_CLOSE, 5000);
+        Io_ShmQuery(memory, DC_GROUPFILE_CLOSE, 5000);
 
         DebugPrint("Io_GroupGetFile: OKAY\n");
         return TRUE;
@@ -233,8 +217,6 @@ Io_GroupSetFile
     Updates the GROUPFILE structure for a group.
 
 Arguments:
-    session     - Pointer to an initialised IO_SESSION structure.
-
     memory      - Pointer to an allocated IO_MEMORY structure. The buffer
                   size must be large enough to hold the GROUPFILE structure.
 
@@ -247,14 +229,12 @@ Return Value:
 BOOL
 STDCALL
 Io_GroupSetFile(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const GROUPFILE *groupFile
     )
 {
     BOOL status = FALSE;
 
-    assert(session   != NULL);
     assert(memory    != NULL);
     assert(memory->bytes >= sizeof(GROUPFILE));
     assert(groupFile != NULL);
@@ -263,8 +243,8 @@ Io_GroupSetFile(
     // Set the requested group ID.
     ((GROUPFILE *)memory->block)->Gid = groupFile->Gid;
 
-    if (!Io_ShmQuery(session, memory, DC_GROUPFILE_OPEN, 5000)) {
-        if (!Io_ShmQuery(session, memory, DC_GROUPFILE_LOCK, 5000)) {
+    if (!Io_ShmQuery(memory, DC_GROUPFILE_OPEN, 5000)) {
+        if (!Io_ShmQuery(memory, DC_GROUPFILE_LOCK, 5000)) {
             //
             // Copy the GROUPFILE structure to the shared memory block
             // after locking, since the open call will overwrite it.
@@ -273,7 +253,7 @@ Io_GroupSetFile(
             CopyMemory(memory->block, groupFile, offsetof(GROUPFILE, lpInternal));
 
             // Unlock will update the group-file.
-            Io_ShmQuery(session, memory, DC_GROUPFILE_UNLOCK, 5000);
+            Io_ShmQuery(memory, DC_GROUPFILE_UNLOCK, 5000);
 
             status = TRUE;
             DebugPrint("Io_GroupSetFile: OKAY\n");
@@ -282,7 +262,7 @@ Io_GroupSetFile(
         }
 
         // Close the group-file before returning.
-        Io_ShmQuery(session, memory, DC_GROUPFILE_CLOSE, 5000);
+        Io_ShmQuery(memory, DC_GROUPFILE_CLOSE, 5000);
     } else {
         DebugPrint("Io_GroupSetFile: OPEN FAIL\n");
     }
@@ -297,8 +277,6 @@ Io_GroupIdToName
     Resolves a group ID to its corresponding group name.
 
 Arguments:
-    session     - Pointer to an initialised IO_SESSION structure.
-
     memory      - Pointer to an allocated IO_MEMORY structure. The buffer
                   size must be large enough to hold the DC_NAMEID structure.
 
@@ -314,7 +292,6 @@ Return Value:
 BOOL
 STDCALL
 Io_GroupIdToName(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     int groupId,
     char *groupName
@@ -322,7 +299,6 @@ Io_GroupIdToName(
 {
     DC_NAMEID *dcNameId;
 
-    assert(session   != NULL);
     assert(memory    != NULL);
     assert(memory->bytes >= sizeof(DC_NAMEID));
     assert(groupName != NULL);
@@ -332,7 +308,7 @@ Io_GroupIdToName(
     dcNameId = (DC_NAMEID *)memory->block;
     dcNameId->Id = groupId;
 
-    if (!Io_ShmQuery(session, memory, DC_GID_TO_GROUP, 5000)) {
+    if (!Io_ShmQuery(memory, DC_GID_TO_GROUP, 5000)) {
         StringCchCopyA(groupName, _MAX_NAME+1, dcNameId->tszName);
 
         DebugPrint("Io_GroupIdToName: OKAY\n");
@@ -351,8 +327,6 @@ Io_GroupNameToId
     Resolves a group name to its corresponding group ID.
 
 Arguments:
-    session     - Pointer to an initialised IO_SESSION structure.
-
     memory      - Pointer to an allocated IO_MEMORY structure. The buffer
                   size must be large enough to hold the DC_NAMEID structure.
 
@@ -367,7 +341,6 @@ Return Value:
 BOOL
 STDCALL
 Io_GroupNameToId(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const char *groupName,
     int *groupId
@@ -376,7 +349,6 @@ Io_GroupNameToId(
     DC_NAMEID *dcNameId;
     DWORD result;
 
-    assert(session   != NULL);
     assert(memory    != NULL);
     assert(memory->bytes >= sizeof(DC_NAMEID));
     assert(groupName != NULL);
@@ -387,7 +359,7 @@ Io_GroupNameToId(
     dcNameId = (DC_NAMEID *)memory->block;
     StringCchCopyA(dcNameId->tszName, ARRAYSIZE(dcNameId->tszName), groupName);
 
-    result = Io_ShmQuery(session, memory, DC_GROUP_TO_GID, 5000);
+    result = Io_ShmQuery(memory, DC_GROUP_TO_GID, 5000);
     if (result != (DWORD)-1) {
         *groupId = (int)result;
         DebugPrint("Io_GroupNameToId: OKAY\n");

@@ -23,8 +23,6 @@ Io_VfsRead
     Retrieves the ownership and permissions for a file or directory.
 
 Arguments:
-    session - Pointer to an initialised IO_SESSION structure.
-
     memory  - Pointer to an allocated IO_MEMORY structure. The buffer
               size must be at least sizeof(DC_VFS) + strlen(path) + 1.
 
@@ -39,7 +37,6 @@ Return Value:
 BOOL
 STDCALL
 Io_VfsRead(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const char *path,
     IO_VFS *vfs
@@ -47,7 +44,6 @@ Io_VfsRead(
 {
     DC_VFS *dcVfs;
 
-    assert(session != NULL);
     assert(memory  != NULL);
     assert(path    != NULL);
     assert(vfs != NULL);
@@ -59,7 +55,7 @@ Io_VfsRead(
     dcVfs->dwBuffer = strlen(path) + 1;
     CopyMemory(dcVfs->pBuffer, path, dcVfs->dwBuffer);
 
-    if (!Io_ShmQuery(session, memory, DC_FILEINFO_READ, 5000)) {
+    if (!Io_ShmQuery(memory, DC_FILEINFO_READ, 5000)) {
         vfs->userId   = dcVfs->Uid;
         vfs->groupId  = dcVfs->Gid;
         vfs->fileMode = dcVfs->dwFileMode;
@@ -79,8 +75,6 @@ Io_VfsWrite
     Sets the ownership and permissions for a file or directory.
 
 Arguments:
-    session - Pointer to an initialised IO_SESSION structure.
-
     memory  - Pointer to an allocated IO_MEMORY structure. The buffer
               size must be at least sizeof(DC_VFS) + strlen(path) + 1.
 
@@ -95,7 +89,6 @@ Return Value:
 BOOL
 STDCALL
 Io_VfsWrite(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const char *path,
     const IO_VFS *vfs
@@ -103,7 +96,6 @@ Io_VfsWrite(
 {
     DC_VFS *dcVfs;
 
-    assert(session != NULL);
     assert(memory  != NULL);
     assert(path    != NULL);
     assert(vfs != NULL);
@@ -118,7 +110,7 @@ Io_VfsWrite(
     dcVfs->dwBuffer   = strlen(path) + 1;
     CopyMemory(dcVfs->pBuffer, path, dcVfs->dwBuffer);
 
-    if (!Io_ShmQuery(session, memory, DC_FILEINFO_WRITE, 5000)) {
+    if (!Io_ShmQuery(memory, DC_FILEINFO_WRITE, 5000)) {
         DebugPrint("Io_VfsWrite: OKAY\n");
         return TRUE;
     }
@@ -135,8 +127,6 @@ Io_VfsFlush
     Flush the directory cache for a specified path.
 
 Arguments:
-    session - Pointer to an initialised IO_SESSION structure.
-
     memory  - Pointer to an allocated IO_MEMORY structure. The memory
               buffer must be at least strlen(dirPath) + 1
 
@@ -149,12 +139,10 @@ Return Value:
 BOOL
 STDCALL
 Io_VfsFlush(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const char *dirPath
     )
 {
-    assert(session != NULL);
     assert(memory  != NULL);
     assert(dirPath != NULL);
     assert(memory->bytes >= strlen(dirPath) + 1);
@@ -163,7 +151,7 @@ Io_VfsFlush(
     StringCchCopyA((char *)memory->block, (size_t)memory->bytes, dirPath);
 
     // ioFTPD appears to return 1 on both success and failure.
-    if (Io_ShmQuery(session, memory, DC_DIRECTORY_MARKDIRTY, 5000) == 1) {
+    if (Io_ShmQuery(memory, DC_DIRECTORY_MARKDIRTY, 5000) == 1) {
         DebugPrint("Io_VfsFlush: OKAY\n");
         return TRUE;
     }

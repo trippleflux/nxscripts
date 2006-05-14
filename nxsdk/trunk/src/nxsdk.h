@@ -38,7 +38,7 @@ IO_SESSION
     Shared memory session structure.
 
 Members:
-    messageWnd      - Handle to ioFTPD's message window.
+    window          - Handle to ioFTPD's message window.
 
     currentProcId   - Current process ID.
 
@@ -46,7 +46,7 @@ Members:
 
 --*/
 typedef struct {
-    HWND  messageWnd;
+    HWND  window;
     DWORD currentProcId;
     DWORD remoteProcId;
 } IO_SESSION;
@@ -58,26 +58,32 @@ IO_MEMORY
     Shared memory block structure.
 
 Members:
-    block   - Block of mapped memory, allocated in the local process.
+    block   - Block of mapped memory, allocated in the current process.
 
     message - Data-copy message structure.
 
     remote  - Remote handle, used by ioFTPD.
 
-    bytes   - Size of the mapped memory block, in bytes.
-
-    event   - Event signaled when the request is complete.
+    event   - Handle to the request completion event.
 
     mapping - Handle to the mapped memory.
+
+    window  - Handle to ioFTPD's message window.
+
+    procId  - Current process ID.
+
+    bytes   - Size of the mapped memory block, in bytes.
 
 --*/
 typedef struct {
     void       *block;
     DC_MESSAGE *message;
     void       *remote;
-    DWORD      bytes;
     HANDLE     event;
     HANDLE     mapping;
+    HWND       window;
+    DWORD      procId;
+    DWORD      bytes;
 } IO_MEMORY;
 
 /*++
@@ -100,6 +106,22 @@ typedef struct {
     DWORD  fileMode;
 } IO_VFS;
 
+/*++
+
+ONLINEDATA_ROUTINE
+
+    Callback routine used by Io_GetOnlineData.
+
+Members:
+    TODO
+
+--*/
+typedef BOOL (STDCALL ONLINEDATA_ROUTINE)(
+    int connId,
+    ONLINEDATA *onlineData,
+    void *opaque
+    );
+
 
 //
 // Shared memory functions
@@ -108,7 +130,7 @@ typedef struct {
 BOOL
 STDCALL
 Io_ShmInit(
-    const char *window,
+    const char *windowName,
     IO_SESSION *session
     );
 
@@ -122,14 +144,12 @@ Io_ShmAlloc(
 void
 STDCALL
 Io_ShmFree(
-    IO_SESSION *session,
     IO_MEMORY *memory
     );
 
 DWORD
 STDCALL
 Io_ShmQuery(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     DWORD queryId,
     DWORD timeOut
@@ -163,7 +183,6 @@ Io_GetStartTime(
 BOOL
 STDCALL
 Io_UserCreate(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const char *userName,
     int *userId
@@ -172,7 +191,6 @@ Io_UserCreate(
 BOOL
 STDCALL
 Io_UserRename(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const char *userName,
     const char *newName
@@ -181,7 +199,6 @@ Io_UserRename(
 BOOL
 STDCALL
 Io_UserDelete(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const char *userName
     );
@@ -189,7 +206,6 @@ Io_UserDelete(
 BOOL
 STDCALL
 Io_UserGetFile(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     int userId,
     USERFILE *userFile
@@ -198,7 +214,6 @@ Io_UserGetFile(
 BOOL
 STDCALL
 Io_UserSetFile(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const USERFILE *userFile
     );
@@ -206,7 +221,6 @@ Io_UserSetFile(
 BOOL
 STDCALL
 Io_UserIdToName(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     int userId,
     char *userName
@@ -215,7 +229,6 @@ Io_UserIdToName(
 BOOL
 STDCALL
 Io_UserNameToId(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const char *userName,
     int *userId
@@ -229,7 +242,6 @@ Io_UserNameToId(
 BOOL
 STDCALL
 Io_GroupCreate(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const char *groupName,
     int *groupId
@@ -238,7 +250,6 @@ Io_GroupCreate(
 BOOL
 STDCALL
 Io_GroupRename(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const char *groupName,
     const char *newName
@@ -247,7 +258,6 @@ Io_GroupRename(
 BOOL
 STDCALL
 Io_GroupDelete(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const char *groupName
     );
@@ -255,7 +265,6 @@ Io_GroupDelete(
 BOOL
 STDCALL
 Io_GroupGetFile(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     int groupId,
     GROUPFILE *groupFile
@@ -264,7 +273,6 @@ Io_GroupGetFile(
 BOOL
 STDCALL
 Io_GroupSetFile(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const GROUPFILE *groupFile
     );
@@ -272,7 +280,6 @@ Io_GroupSetFile(
 BOOL
 STDCALL
 Io_GroupIdToName(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     int groupId,
     char *groupName
@@ -281,7 +288,6 @@ Io_GroupIdToName(
 BOOL
 STDCALL
 Io_GroupNameToId(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const char *groupName,
     int *groupId
@@ -292,17 +298,9 @@ Io_GroupNameToId(
 // Online data functions
 //
 
-typedef BOOL (STDCALL ONLINEDATA_ROUTINE)(
-    IO_SESSION *session,
-    int connId,
-    ONLINEDATA *onlineData,
-    void *opaque
-    );
-
 void
 STDCALL
 Io_GetOnlineData(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     ONLINEDATA_ROUTINE *routine,
     void *opaque
@@ -330,7 +328,6 @@ Io_KickUserId(
 BOOL
 STDCALL
 Io_VfsFlush(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const char *dirPath
     );
@@ -338,7 +335,6 @@ Io_VfsFlush(
 BOOL
 STDCALL
 Io_VfsRead(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const char *path,
     IO_VFS *vfs
@@ -347,7 +343,6 @@ Io_VfsRead(
 BOOL
 STDCALL
 Io_VfsWrite(
-    IO_SESSION *session,
     IO_MEMORY *memory,
     const char *path,
     const IO_VFS *vfs

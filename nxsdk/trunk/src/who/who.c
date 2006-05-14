@@ -62,7 +62,7 @@ int main(int argc, char **argv)
     // Allocate memory for user ID to name resolving.
     memUser = Io_ShmAlloc(&session, sizeof(DC_NAMEID));
     if (memUser == NULL) {
-        Io_ShmFree(&session, memOnline);
+        Io_ShmFree(memOnline);
         printf("Unable to allocate shared memory.\n");
         return -1;
     }
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
     // Retrieve online data.
     ZeroMemory(&whoData, sizeof(WHO_DATA));
     whoData.memUser = memUser;
-    Io_GetOnlineData(&session, memOnline, DisplayUser, &whoData);
+    Io_GetOnlineData(memOnline, DisplayUser, &whoData);
 
     printf("|----------------------------------------------------------|\n");
 
@@ -89,15 +89,14 @@ int main(int argc, char **argv)
 
     printf("`----------------------------------------------------------'\n");
 
-    Io_ShmFree(&session, memOnline);
-    Io_ShmFree(&session, memUser);
+    Io_ShmFree(memOnline);
+    Io_ShmFree(memUser);
     return 0;
 }
 
 static BOOL
 STDCALL
 DisplayUser(
-    IO_SESSION *session,
     int connId,
     ONLINEDATA *onlineData,
     void *opaque
@@ -111,7 +110,7 @@ DisplayUser(
     WHO_DATA *whoData = (WHO_DATA *)opaque;
 
     // Resolve the user ID to its name.
-    if (!Io_UserIdToName(session, whoData->memUser, onlineData->Uid, userName)) {
+    if (!Io_UserIdToName(whoData->memUser, onlineData->Uid, userName)) {
         StringCchCopyA(userName, sizeof(userName), "NoUser");
     }
 
