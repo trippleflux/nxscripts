@@ -158,6 +158,11 @@ proc ListToHtml {textList {join "\n"}} {
 
 ################################################################################
 
+proc EscapeChars {text} {
+    # Special HTML characters.
+    string map [list "&" "&amp" ">" "&gt;" "<" "&lt" "\"" "&quot;"] $text
+}
+
 proc MapArgs {mapping argList} {
     set result [list]
     foreach {argName textList} $argList {
@@ -169,7 +174,7 @@ proc MapArgs {mapping argList} {
 proc MapText {mapping textList} {
     set result [list]
     foreach para $textList {
-        lappend result [string map $mapping $para]
+        lappend result [string map $mapping [EscapeChars $para]]
     }
     return $result
 }
@@ -216,7 +221,7 @@ proc WriteEntry {handle name anchor intro code args} {
 
     # Code
     puts $handle "<pre class=\"syntax\">"
-    puts $handle TODO
+    puts $handle [join $code \n]
     puts $handle "</pre>"
     puts $handle ""
 
@@ -244,7 +249,7 @@ proc WriteEntry {handle name anchor intro code args} {
         puts $handle ""
     }
 
-    # Return Values
+    # Return values
     if {[info exists opt(-retvals)] && [llength $opt(-retvals)]} {
         puts $handle "<h4>Return Values</h4>"
         puts $handle [ListToHtml $opt(-retvals)]
@@ -355,6 +360,16 @@ foreach {desc code} $funcList {
     set text(retvals) [ListToText $text(retvals)]
 
     # Parse code
+    set result [list]
+    foreach line $code {
+        set check [string trimleft $line]
+        if {$check eq ")" || $check eq ");"} {
+            lappend result [EscapeChars ");"]
+            break
+        }
+        lappend result [EscapeChars $line]
+    }
+    set code $result
 
     set anchor "[string tolower $name]_func"
     set funcs($name) [list $anchor $code $text(intro) $text(args) $text(remarks) $text(retvals)]
@@ -389,6 +404,13 @@ foreach {desc code} $structList {
     set text(remarks) [ListToText $text(remarks)]
 
     # Parse code
+    set result [list]
+    foreach line $code {
+        lappend result [EscapeChars $line]
+        set check [string trimleft $line]
+        if {[string match "\} *;" $check]} {break}
+    }
+    set code $result
 
     set anchor "[string tolower $name]_struct"
     set structs($name) [list $anchor $code $text(intro) $text(members) $text(remarks)]
