@@ -89,7 +89,7 @@ Io_ShmAlloc(
     assert(size > 0);
     DebugPrint("Io_ShmAlloc: session=%p size=%lu\n", session, size);
 
-    memory = malloc(sizeof(IO_MEMORY));
+    memory = HeapAlloc(GetProcessHeap(), 0, sizeof(IO_MEMORY));
     if (memory == NULL) {
         return NULL;
     }
@@ -152,7 +152,7 @@ Io_ShmAlloc(
     if (event != NULL) {
         CloseHandle(event);
     }
-    free(memory);
+    HeapFree(GetProcessHeap(), 0, memory);
     return NULL;
 }
 
@@ -189,7 +189,7 @@ Io_ShmFree(
     }
 
     PostMessage(memory->window, WM_DATACOPY_FREE, 0, (LPARAM)memory->remote);
-    free(memory);
+    HeapFree(GetProcessHeap(), 0, memory);
 }
 
 /*++
@@ -217,7 +217,7 @@ Io_ShmQuery(
     DWORD timeOut
     )
 {
-    assert(memory  != NULL);
+    assert(memory != NULL);
     DebugPrint("Io_ShmQuery: memory=%p queryId=%lu timeOut=%lu\n", memory, queryId, timeOut);
 
     memory->message->dwReturn     = (DWORD)-1;

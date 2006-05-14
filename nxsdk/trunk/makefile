@@ -15,7 +15,7 @@
 ## Build options
 DEBUG       = 0
 MEMDEBUG    = 0
-MSVCRT      = 0
+MSVCRT      = 1
 IOFTPD_INC  = D:\ioFTPD\source\Include
 
 ## Release version.
@@ -80,6 +80,7 @@ tools: kick.exe resolve.exe who.exe
 
 # -------------------------------------------------------------------------
 
+DLL_OBJS = dllentry.obj lib.res
 LIB_OBJS = group.obj online.obj shmem.obj user.obj util.obj vfs.obj
 
 {src\lib\}.c{}.obj::
@@ -88,8 +89,8 @@ LIB_OBJS = group.obj online.obj shmem.obj user.obj util.obj vfs.obj
 {src\lib\}.rc{}.res:
 	$(RC) $(RFLAGS) /fo $@ $<
 
-nxsdk.dll: $(LIB_OBJS) lib.res
-    $(LD) $(LFLAGS) /DEF:src\lib\lib.def /DLL /OUT:$@ psapi.lib user32.lib @<<
+nxsdk.dll: $(DLL_OBJS) $(LIB_OBJS)
+    $(LD) $(LFLAGS) /DEF:src\lib\lib.def /DLL /ENTRY:DllEntry /OUT:$@ kernel32.lib psapi.lib user32.lib @<<
 $**
 <<
 
