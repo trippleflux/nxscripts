@@ -31,24 +31,79 @@ Abstract:
 #endif
 
 
+/*++
+
+IO_SESSION
+
+    Shared memory session structure.
+
+Members:
+    messageWnd      - Handle to ioFTPD's message window.
+
+    currentProcId   - Current process ID.
+
+    remoteProcId    - ioFTPD's process ID.
+
+--*/
+typedef struct {
+    HWND  messageWnd;
+    DWORD currentProcId;
+    DWORD remoteProcId;
+} IO_SESSION;
+
+/*++
+
+IO_MEMORY
+
+    Shared memory block structure.
+
+Members:
+    block   - Block of mapped memory, allocated in the local process.
+
+    message - Data-copy message structure.
+
+    remote  - Remote handle, used by ioFTPD.
+
+    bytes   - Size of the mapped memory block, in bytes.
+
+    event   - Event signaled when the request is complete.
+
+    mapping - Handle to the mapped memory.
+
+--*/
+typedef struct {
+    void       *block;
+    DC_MESSAGE *message;
+    void       *remote;
+    DWORD      bytes;
+    HANDLE     event;
+    HANDLE     mapping;
+} IO_MEMORY;
+
+/*++
+
+IO_VFS
+
+    Virtual file system ownership and permission.
+
+Members:
+    userId      - User identifier.
+
+    groupId     - Group identifier.
+
+    fileMode    - Octal value of chmod-style permissions.
+
+--*/
+typedef struct {
+    UINT32 userId;
+    UINT32 groupId;
+    DWORD  fileMode;
+} IO_VFS;
+
+
 //
 // Shared memory functions
 //
-
-typedef struct {
-    HWND  messageWnd;       // Handle to ioFTPD's message window.
-    DWORD currentProcId;    // Current process ID.
-    DWORD remoteProcId;     // ioFTPD's process ID.
-} IO_SESSION;
-
-typedef struct {
-    DC_MESSAGE *message;    // Data-copy message structure.
-    void       *block;      // Allocated memory block.
-    void       *remote;     // Remote handle, used by ioFTPD.
-    HANDLE     event;       // Event handle.
-    HANDLE     memMap;      // Memory mapping handle.
-    DWORD      bytes;       // Size of the memory block, in bytes.
-} IO_MEMORY;
 
 BOOL
 STDCALL
@@ -271,12 +326,6 @@ Io_KickUserId(
 //
 // VFS functions
 //
-
-typedef struct {
-    UINT32 userId;
-    UINT32 groupId;
-    DWORD  fileMode;
-} IO_VFS;
 
 BOOL
 STDCALL

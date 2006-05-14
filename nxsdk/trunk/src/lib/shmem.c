@@ -66,7 +66,7 @@ Arguments:
     bytes   - Number of bytes to be allocated.
 
 Remarks:
-    The allocated IO_MEMORY structure must be freed with by Io_ShmFree.
+    The allocated IO_MEMORY structure must be freed by Io_ShmFree.
 
 Return Value:
     If the function succeeds, the return value is a pointer to a IO_MEMORY
@@ -83,7 +83,7 @@ Io_ShmAlloc(
     DC_MESSAGE *message = NULL;
     IO_MEMORY *memory;
     HANDLE event;
-    HANDLE memMap = NULL;
+    HANDLE mapping = NULL;
 
     assert(session != NULL);
     assert(bytes > 0);
@@ -99,11 +99,11 @@ Io_ShmAlloc(
         bytes += sizeof(DC_MESSAGE);
 
         // Allocate memory in local process.
-        memMap = CreateFileMapping(INVALID_HANDLE_VALUE, NULL,
+        mapping = CreateFileMapping(INVALID_HANDLE_VALUE, NULL,
             PAGE_READWRITE|SEC_COMMIT, 0, bytes, NULL);
 
-        if (memMap != NULL) {
-            message = (DC_MESSAGE *)MapViewOfFile(memMap,
+        if (mapping != NULL) {
+            message = (DC_MESSAGE *)MapViewOfFile(mapping,
                 FILE_MAP_READ|FILE_MAP_WRITE, 0, 0, bytes);
 
             if (message != NULL) {
@@ -112,21 +112,21 @@ Io_ShmAlloc(
                 // Initialise data-copy message structure.
                 message->hEvent       = event;
                 message->hObject      = NULL;
-                message->lpMemoryBase = (void *)message;
+                message->lpMemoryBase = message;
                 message->lpContext    = &message[1];
 
                 SetLastError(ERROR_SUCCESS);
                 remote = (void *)SendMessage(session->messageWnd, WM_DATACOPY_FILEMAP,
-                    (WPARAM)session->currentProcId, (LPARAM)memMap);
+                    (WPARAM)session->currentProcId, (LPARAM)mapping);
 
                 if (remote != NULL) {
                     // Populate memory allocation structure.
-                    memory->message = message;
                     memory->block   = &message[1];
+                    memory->message = message;
                     memory->remote  = remote;
-                    memory->event   = event;
-                    memory->memMap  = memMap;
                     memory->bytes   = bytes - sizeof(DC_MESSAGE);
+                    memory->event   = event;
+                    memory->mapping = mapping;
                     return memory;
                 }
 
@@ -144,8 +144,8 @@ Io_ShmAlloc(
     if (message != NULL) {
         UnmapViewOfFile(message);
     }
-    if (memMap != NULL) {
-        CloseHandle(memMap);
+    if (mapping != NULL) {
+        CloseHandle(mapping);
     }
     if (event != NULL) {
         CloseHandle(event);
@@ -186,8 +186,8 @@ Io_ShmFree(
     if (memory->event != NULL) {
         CloseHandle(memory->event);
     }
-    if (memory->memMap != NULL) {
-        CloseHandle(memory->memMap);
+    if (memory->mapping != NULL) {
+        CloseHandle(memory->mapping);
     }
 
     PostMessage(session->messageWnd, WM_DATACOPY_FREE, 0, (LPARAM)memory->remote);
