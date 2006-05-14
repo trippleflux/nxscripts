@@ -76,7 +76,7 @@ Return Value:
 IO_MEMORY *
 STDCALL
 Io_ShmAlloc(
-    IO_SESSION *session,
+    const IO_SESSION *session,
     DWORD size
     )
 {

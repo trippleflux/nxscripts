@@ -94,7 +94,7 @@ Return Value:
 void
 STDCALL
 Io_KickConnId(
-    IO_SESSION *session,
+    const IO_SESSION *session,
     int connId
     )
 {
@@ -121,7 +121,7 @@ Return Value:
 void
 STDCALL
 Io_KickUserId(
-    IO_SESSION *session,
+    const IO_SESSION *session,
     int userId
     )
 {

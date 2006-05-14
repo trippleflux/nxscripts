@@ -36,7 +36,7 @@ Return Value:
 BOOL
 STDCALL
 Io_GetBinaryPath(
-    IO_SESSION *session,
+    const IO_SESSION *session,
     char *path,
     DWORD pathLength
     )
@@ -85,7 +85,7 @@ Return Value:
 BOOL
 STDCALL
 Io_GetStartTime(
-    IO_SESSION *session,
+    const IO_SESSION *session,
     FILETIME *startTime
     )
 {

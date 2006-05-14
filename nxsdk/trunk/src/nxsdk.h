@@ -149,7 +149,7 @@ Io_ShmInit(
 IO_MEMORY *
 STDCALL
 Io_ShmAlloc(
-    IO_SESSION *session,
+    const IO_SESSION *session,
     DWORD size
     );
 
@@ -175,7 +175,7 @@ Io_ShmQuery(
 BOOL
 STDCALL
 Io_GetBinaryPath(
-    IO_SESSION *session,
+    const IO_SESSION *session,
     char *path,
     DWORD pathLength
     );
@@ -183,7 +183,7 @@ Io_GetBinaryPath(
 BOOL
 STDCALL
 Io_GetStartTime(
-    IO_SESSION *session,
+    const IO_SESSION *session,
     FILETIME *startTime
     );
 
@@ -321,14 +321,14 @@ Io_GetOnlineData(
 void
 STDCALL
 Io_KickConnId(
-    IO_SESSION *session,
+    const IO_SESSION *session,
     int connId
     );
 
 void
 STDCALL
 Io_KickUserId(
-    IO_SESSION *session,
+    const IO_SESSION *session,
     int userId
     );
 
