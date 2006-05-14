@@ -90,11 +90,27 @@ set currentDir [pwd]
 cd $baseDir
 
 puts "- Parsing source files"
+set funcList [list]
+set structList [list]
+
 foreach pattern $inputFiles {
     foreach path [glob -nocomplain $pattern] {
         puts "  - Parsing file: $path"
         set text [ReadFile $path]
-        set data($path) [ParseBlocks $text]
+
+        foreach {desc code} [ParseBlocks $text] {
+            # Detect between function and structure comments.
+            if {[lsearch -exact $desc "Arguments:"] != -1 && [lsearch -exact $desc "Return Value:"] != -1} {
+                lappend funcList $desc $code
+
+            } elseif {[lsearch -exact $desc "Members:"] != -1} {
+                lappend structList $desc $code
+
+            } else {
+                set sections [join [lsearch -all -inline -regexp $desc {^[\s\w]+:$}] {, }]
+                puts "    - Unknown comment type, sections are \"$sections\"."
+            }
+        }
     }
 }
 
@@ -102,21 +118,31 @@ puts "- Changing back to original directory"
 cd $currentDir
 
 puts "- Transforming data"
-set handle [open $outputFile "w"]
-foreach path [lsort [array names data]] {
-    puts $handle "################################################################################"
-    puts $handle "# $path"
-    puts $handle "################################################################################"
+unset -nocomplain funcs structs
 
-    foreach {desc code} $data($path) {
-        foreach line $desc {puts $handle $line}
-        puts $handle "########################################"
-        foreach line $code {puts $handle $line}
-
-        puts $handle "############################################################"
-    }
+foreach {desc code} $structList {
 }
-close $handle
+
+foreach {desc code} $funcList {
+}
+
+puts "- Writing output file"
+set handle [open $outputFile "w"]
+set funcNames [lsort [array names funcs]]
+set structNames [lsort [array names structs]]
+
+puts "- Writing index"
+foreach name $funcNames {
+}
+foreach name $structNames {
+}
+
+puts "- Writing descriptions"
+foreach name $funcNames {
+}
+foreach name $structNames {
+}
 
 puts "- Finished"
+close $handle
 return 0
