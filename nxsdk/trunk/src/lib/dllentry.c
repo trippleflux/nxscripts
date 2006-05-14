@@ -18,7 +18,7 @@ Abstract:
 
 /*
 
-DllEntry
+DllMain
 
     DLL entry point.
 
@@ -35,7 +35,7 @@ Return Value:
 */
 BOOL
 WINAPI
-DllEntry(
+DllMain(
     HINSTANCE instance,
     DWORD reason,
     LPVOID reserved

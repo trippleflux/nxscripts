@@ -89,7 +89,7 @@ Io_ShmAlloc(
     assert(size > 0);
     DebugPrint("Io_ShmAlloc: session=%p size=%lu\n", session, size);
 
-    memory = HeapAlloc(GetProcessHeap(), 0, sizeof(IO_MEMORY));
+    memory = malloc(sizeof(IO_MEMORY));
     if (memory == NULL) {
         return NULL;
     }
@@ -152,7 +152,7 @@ Io_ShmAlloc(
     if (event != NULL) {
         CloseHandle(event);
     }
-    HeapFree(GetProcessHeap(), 0, memory);
+    free(memory);
     return NULL;
 }
 
@@ -189,7 +189,7 @@ Io_ShmFree(
     }
 
     PostMessage(memory->window, WM_DATACOPY_FREE, 0, (LPARAM)memory->remote);
-    HeapFree(GetProcessHeap(), 0, memory);
+    free(memory);
 }
 
 /*++

@@ -90,7 +90,7 @@ LIB_OBJS = group.obj online.obj shmem.obj user.obj util.obj vfs.obj
 	$(RC) $(RFLAGS) /fo $@ $<
 
 nxsdk.dll: $(DLL_OBJS) $(LIB_OBJS)
-    $(LD) $(LFLAGS) /DEF:src\lib\lib.def /DLL /ENTRY:DllEntry /OUT:$@ kernel32.lib psapi.lib user32.lib @<<
+    $(LD) $(LFLAGS) /DEF:src\lib\lib.def /DLL /OUT:$@ psapi.lib user32.lib @<<
 $**
 <<
 
