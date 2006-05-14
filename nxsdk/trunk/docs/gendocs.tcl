@@ -15,15 +15,14 @@
 # Base directory to change to.
 set baseDir ".."
 
-# Location for the output file.
-set outputFile "docs.txt"
-
 # Location of the input files.
 set inputFiles {
     "src/nxsdk.h"
     "src/lib/*.c"
     "src/lib/*.h"
 }
+
+################################################################################
 
 proc BufferFile {path} {
     set handle [open $path "r"]
@@ -82,6 +81,8 @@ proc ParseText {text} {
 
     return $result
 }
+
+################################################################################
 
 proc ListTrim {items} {
     # Remove empty leading elements.
@@ -147,6 +148,50 @@ proc ListToText {items} {
     return $result
 }
 
+################################################################################
+
+proc WriteHeader {handle title} {
+    puts $handle "<html>"
+    puts $handle "<head>"
+    puts $handle "  <title>$title</title>"
+    puts $handle {
+  <style>
+    body {
+      font-family:verdana,arial,helvetica;
+      margin:0;
+    }
+  </style>
+
+  <link rel="stylesheet" type="text/css" href="default.css" />
+  <link rel="stylesheet" type="text/css" href="ie4.css" />
+  <link rel="stylesheet" type="text/css" href="ie5.css" />
+</head>
+
+<body topmargin="0" leftmargin="0" marginheight="0" marginwidth="0" bgcolor="#FFFFFF" text="#000000">
+<table class="clsContainer" cellpadding="10" cellspacing="0" float="left" width="100%" border="1">
+}
+}
+
+proc WriteEntry {handle name link content} {
+    puts $handle "<!-- Start $name -->"
+    puts $handle "<tr>"
+    puts $handle "<td valign=\"top\">"
+    puts $handle "<h1><a name=\"$link\"></a>$name</h1>"
+    puts $handle $content
+    puts $handle "</td>"
+    puts $handle "</tr>"
+    puts $handle "<!-- End $name -->"
+    puts $handle ""
+}
+
+proc WriteFooter {handle} {
+    puts $handle "</table>"
+    puts $handle "</body>"
+    puts $handle "</html>"
+}
+
+################################################################################
+
 puts "\n\tGenerating Source Documents\n"
 
 puts "- Changing to base directory"
@@ -177,7 +222,7 @@ foreach pattern $inputFiles {
             }
 
             # Detect function and structure comments.
-            if {[lsearch -exact $desc "Arguments:"] != -1 && [lsearch -exact $desc "Return Value:"] != -1} {
+            if {[lsearch -exact $desc "Arguments:"] != -1 && [lsearch -exact $desc "Return Values:"] != -1} {
                 lappend funcList $desc $code
 
             } elseif {[lsearch -exact $desc "Members:"] != -1} {
@@ -194,10 +239,44 @@ foreach pattern $inputFiles {
 puts "- Changing back to original directory"
 cd $currentDir
 
-puts "- Parsing structures"
-set structId 0
-set structMap [list]
-unset -nocomplain structs
+################################################################################
+
+puts "- Parsing data"
+unset -nocomplain funcs structs
+
+foreach {desc code} $funcList {
+    set name [lindex $desc 0]
+    puts "  - Function: $name"
+
+    if {![string is wordchar -strict $name]} {
+        puts "    - Invalid function name, skipping."
+        continue
+    }
+    if {[info exists funcs($name)]} {
+        puts "    - Function already defined, skipping."
+        continue
+    }
+
+    set section "intro"
+    array set text [list intro "" args "" remarks "" retvals ""]
+    foreach line [lrange $desc 1 end] {
+        switch -regexp -- $line {
+            {^Arguments:$}    {set section "args"}
+            {^Remarks:$}      {set section "remarks"}
+            {^Return Values:$} {set section "retvals"}
+            {^[\s\w]+:$}      {puts "    - Unknown comment section \"$line\"."}
+            default           {lappend text($section) $line}
+        }
+    }
+
+    set text(intro)   [ListToText $text(intro)]
+    set text(args)    [ListToArgs $text(args)]
+    set text(remarks) [ListToText $text(remarks)]
+    set text(retvals) [ListToText $text(retvals)]
+
+    set link "[string tolower $name]_func"
+    set funcs($name) [list $link $text(intro) $text(args) $text(remarks) $text(retvals)]
+}
 
 foreach {desc code} $structList {
     set name [lindex $desc 0]
@@ -227,74 +306,57 @@ foreach {desc code} $structList {
     set text(members) [ListToArgs $text(members)]
     set text(remarks) [ListToText $text(remarks)]
 
-    set target "struct[incr structId]"
-    lappend structMap $name "structs.htm#$target"
-    set structs($name) [list $target $text(intro) $text(members) $text(remarks)]
+    set link "[string tolower $name]_struct"
+    set structs($name) [list $link $text(intro) $text(members) $text(remarks)]
 }
 
-puts "- Parsing functions"
-set funcId 0
-set funcMap [list]
-unset -nocomplain funcs
+################################################################################
 
-foreach {desc code} $funcList {
-    set name [lindex $desc 0]
-    puts "  - Function: $name"
+puts "- Transforming data"
 
-    if {![string is wordchar -strict $name]} {
-        puts "    - Invalid function name, skipping."
-        continue
-    }
-    if {[info exists funcs($name)]} {
-        puts "    - Function already defined, skipping."
-        continue
-    }
-
-    set section "intro"
-    array set text [list intro "" args "" remarks "" retval ""]
-    foreach line [lrange $desc 1 end] {
-        switch -regexp -- $line {
-            {^Arguments:$}    {set section "args"}
-            {^Remarks:$}      {set section "remarks"}
-            {^Return Value:$} {set section "retval"}
-            {^[\s\w]+:$}      {puts "    - Unknown comment section \"$line\"."}
-            default           {lappend text($section) $line}
-        }
-    }
-
-    set text(intro)   [ListToText $text(intro)]
-    set text(args)    [ListToArgs $text(args)]
-    set text(remarks) [ListToText $text(remarks)]
-    set text(retval)  [ListToText $text(retval)]
-
-    set target "func[incr structId]"
-    lappend structMap $name "funcs.htm#$target"
-    set funcs($name) [list $target $text(intro) $text(args) $text(remarks) $text(retval)]
-}
-
-puts "- Opening output file"
-set handle [open $outputFile "w"]
-puts $handle "Source Docs"
-puts $handle ""
-
-puts "- Writing index"
+set funcLinks [list]
 set funcNames [lsort [array names funcs]]
-foreach name $funcNames {
-}
-
+set structLinks [list]
 set structNames [lsort [array names structs]]
-foreach name $structNames {
-}
-
-puts "- Writing descriptions"
-foreach name $structNames {
-    foreach {target intro members remarks} $structs($name) {break}
-}
 
 foreach name $funcNames {
-    foreach {target intro args remarks retval} $funcs($name) {break}
+    set link [lindex $funcs($name) 0]
+    lappend funcLinks $name $link
+    lappend funcLinkMap $name "functions.htm#$link"
 }
+
+foreach name $structNames {
+    set link [lindex $structs($name) 0]
+    lappend structLinks $name $link
+    lappend structLinkMap $name "structures.htm#$link"
+}
+
+################################################################################
+
+puts "- Writing functions"
+
+set handle [open "functions.htm" "w"]
+WriteHeader $handle "Functions"
+
+foreach name $funcNames {
+    foreach {link intro args remarks retvals} $funcs($name) {break}
+    WriteEntry $handle $name $link TODO
+}
+
+WriteFooter $handle
+close $handle
+
+puts "- Writing structures"
+set handle [open "structures.htm" "w"]
+WriteHeader $handle "Structures"
+
+foreach name $structNames {
+    foreach {link intro members remarks} $structs($name) {break}
+    WriteEntry $handle $name $link TODO
+}
+
+WriteFooter $handle
+close $handle
 
 puts "- Finished"
-close $handle
 return 0
