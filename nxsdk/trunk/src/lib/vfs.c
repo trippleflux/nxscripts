@@ -23,8 +23,8 @@ Io_VfsRead
     Retrieves the ownership and permissions for a file or directory.
 
 Arguments:
-    memory  - Pointer to an allocated IO_MEMORY structure. The buffer
-              size must be at least sizeof(DC_VFS) + strlen(path) + 1.
+    memory  - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
+              buffer size must be at least sizeof(DC_VFS) + strlen(path) + 1.
 
     path    - The file or directory path to query.
 
@@ -75,8 +75,8 @@ Io_VfsWrite
     Sets the ownership and permissions for a file or directory.
 
 Arguments:
-    memory  - Pointer to an allocated IO_MEMORY structure. The buffer
-              size must be at least sizeof(DC_VFS) + strlen(path) + 1.
+    memory  - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
+              buffer size must be at least sizeof(DC_VFS) + strlen(path) + 1.
 
     path    - The file or directory path to query.
 
@@ -127,8 +127,8 @@ Io_VfsFlush
     Flush the directory cache for a specified path.
 
 Arguments:
-    memory  - Pointer to an allocated IO_MEMORY structure. The memory
-              buffer must be at least strlen(dirPath) + 1
+    memory  - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
+              buffer size must be at least strlen(dirPath) + 1
 
     dirPath - The directory path to flush.
 

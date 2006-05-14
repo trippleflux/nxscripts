@@ -23,8 +23,8 @@ Io_GroupCreate
     Creates a new group.
 
 Arguments:
-    memory      - Pointer to an allocated IO_MEMORY structure. The buffer
-                  size must be large enough to hold the DC_NAMEID structure.
+    memory      - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
+                  buffer size must be large enough to hold the DC_NAMEID structure.
 
     groupName   - The group name to create.
 
@@ -74,8 +74,8 @@ Io_GroupRename
     Renames an existing group.
 
 Arguments:
-    memory      - Pointer to an allocated IO_MEMORY structure. The buffer
-                  size must be large enough to hold the DC_RENAME structure.
+    memory      - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
+                  buffer size must be large enough to hold the DC_RENAME structure.
 
     groupName   - The group name to rename.
 
@@ -122,8 +122,8 @@ Io_GroupDelete
     Deletes a group.
 
 Arguments:
-    memory      - Pointer to an allocated IO_MEMORY structure. The buffer
-                  size must be large enough to hold the DC_NAMEID structure.
+    memory      - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
+                  buffer size must be large enough to hold the DC_NAMEID structure.
 
     groupName   - The group name to delete.
 
@@ -165,8 +165,8 @@ Io_GroupGetFile
     Retrieves the GROUPFILE structure for a given a group ID.
 
 Arguments:
-    memory      - Pointer to an allocated IO_MEMORY structure. The buffer
-                  size must be large enough to hold the GROUPFILE structure.
+    memory      - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
+                  buffer size must be large enough to hold the GROUPFILE structure.
 
     groupId     - The group ID to look up.
 
@@ -217,8 +217,8 @@ Io_GroupSetFile
     Updates the GROUPFILE structure for a group.
 
 Arguments:
-    memory      - Pointer to an allocated IO_MEMORY structure. The buffer
-                  size must be large enough to hold the GROUPFILE structure.
+    memory      - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
+                  buffer size must be large enough to hold the GROUPFILE structure.
 
     groupFile   - Pointer to an initialised GROUPFILE structure.
 
@@ -277,8 +277,8 @@ Io_GroupIdToName
     Resolves a group ID to its corresponding group name.
 
 Arguments:
-    memory      - Pointer to an allocated IO_MEMORY structure. The buffer
-                  size must be large enough to hold the DC_NAMEID structure.
+    memory      - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
+                  buffer size must be large enough to hold the DC_NAMEID structure.
 
     groupId     - The group ID to resolve.
 
@@ -327,8 +327,8 @@ Io_GroupNameToId
     Resolves a group name to its corresponding group ID.
 
 Arguments:
-    memory      - Pointer to an allocated IO_MEMORY structure. The buffer
-                  size must be large enough to hold the DC_NAMEID structure.
+    memory      - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
+                  buffer size must be large enough to hold the DC_NAMEID structure.
 
     groupName   - The group name to resolve.
 

@@ -23,8 +23,8 @@ Io_UserCreate
     Creates a new user.
 
 Arguments:
-    memory      - Pointer to an allocated IO_MEMORY structure. The buffer
-                  size must be large enough to hold the DC_NAMEID structure.
+    memory      - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
+                  buffer size must be large enough to hold the DC_NAMEID structure.
 
     userName    - The user name to create.
 
@@ -74,8 +74,8 @@ Io_UserRename
     Renames an existing user.
 
 Arguments:
-    memory      - Pointer to an allocated IO_MEMORY structure. The buffer
-                  size must be large enough to hold the DC_RENAME structure.
+    memory      - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
+                  buffer size must be large enough to hold the DC_RENAME structure.
 
     userName    - The user name to rename.
 
@@ -122,8 +122,8 @@ Io_UserDelete
     Deletes a user.
 
 Arguments:
-    memory      - Pointer to an allocated IO_MEMORY structure. The buffer
-                  size must be large enough to hold the DC_NAMEID structure.
+    memory      - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
+                  buffer size must be large enough to hold the DC_NAMEID structure.
 
     userName    - The user name to delete.
 
@@ -165,8 +165,8 @@ Io_UserGetFile
     Retrieves the USERFILE structure for a given a user ID.
 
 Arguments:
-    memory      - Pointer to an allocated IO_MEMORY structure. The buffer
-                  size must be large enough to hold the USERFILE structure.
+    memory      - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
+                  buffer size must be large enough to hold the USERFILE structure.
 
     userId      - The user ID to look up.
 
@@ -218,8 +218,8 @@ Io_UserSetFile
     Updates the USERFILE structure for a user.
 
 Arguments:
-    memory      - Pointer to an allocated IO_MEMORY structure. The buffer
-                  size must be large enough to hold the USERFILE structure.
+    memory      - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
+                  buffer size must be large enough to hold the USERFILE structure.
 
     userFile    - Pointer to an initialised USERFILE structure.
 
@@ -278,8 +278,8 @@ Io_UserIdToName
     Resolves a user ID to its corresponding user name.
 
 Arguments:
-    memory      - Pointer to an allocated IO_MEMORY structure. The buffer
-                  size must be large enough to hold the DC_NAMEID structure.
+    memory      - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
+                  buffer size must be large enough to hold the DC_NAMEID structure.
 
     userId      - The user ID to resolve.
 
@@ -328,8 +328,8 @@ Io_UserNameToId
     Resolves a user name to its corresponding user ID.
 
 Arguments:
-    memory      - Pointer to an allocated IO_MEMORY structure. The buffer
-                  size must be large enough to hold the DC_NAMEID structure.
+    memory      - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
+                  buffer size must be large enough to hold the DC_NAMEID structure.
 
     userName    - The user name to resolve.
 

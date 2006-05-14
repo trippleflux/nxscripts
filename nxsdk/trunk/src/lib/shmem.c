@@ -61,7 +61,7 @@ Io_ShmAlloc
     Allocates shared memory.
 
 Arguments:
-    session - Pointer to an initialised IO_SESSION structure.
+    session - Pointer to a IO_SESSION structure initialised by Io_ShmInit.
 
     size    - Size of the shared memory block to be allocated, in bytes.
 
@@ -163,7 +163,7 @@ Io_ShmFree
     Frees shared memory.
 
 Arguments:
-    memory  - Pointer to an allocated IO_MEMORY structure.
+    memory  - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc.
 
 Return Value:
     None.
@@ -199,7 +199,7 @@ Io_ShmQuery
     Queries the ioFTPD daemon.
 
 Arguments:
-    memory  - Pointer to an allocated IO_MEMORY structure.
+    memory  - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc.
 
     queryId - Query identifier, defined in ioFTPD's DataCopy.h.
 

@@ -23,7 +23,7 @@ Io_GetBinaryPath
     Retrieves the path to ioFTPD's executable.
 
 Arguments:
-    session     - Pointer to an initialised IO_SESSION structure.
+    session     - Pointer to a IO_SESSION structure initialised by Io_ShmInit.
 
     path        - Location to store the executable's path.
 
@@ -74,7 +74,7 @@ Io_GetStartTime
     Retrieves the time ioFTPD was started.
 
 Arguments:
-    session     - Pointer to an initialised IO_SESSION structure.
+    session     - Pointer to a IO_SESSION structure initialised by Io_ShmInit.
 
     startTime   - Location to store the start time.
 
