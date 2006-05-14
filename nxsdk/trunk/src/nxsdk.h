@@ -112,10 +112,10 @@ ONLINEDATA_ROUTINE
 
     Callback routine used by Io_GetOnlineData.
 
-Members:
+Arguments:
     connId      - Connection identifier.
 
-    onlineData  - Pointer to connection's ONLINEDATA structure.
+    onlineData  - Pointer to the connection's ONLINEDATA structure.
 
     opaque      - Value passed to Io_GetOnlineData's opaque argument.
 
