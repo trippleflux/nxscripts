@@ -1,5 +1,6 @@
 AlcoExt v0.7.0 (not released):
   CHG: Updated LibTomCrypt to v1.11.
+  FIX: Connection ID and user ID kicking for the "ioftpd" command.
   FIX: Tcl channel drivers require the "getHandleProc" method.
 
 AlcoExt v0.6.0 (Apr 12, 2006):

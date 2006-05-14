@@ -1114,7 +1114,7 @@ IoKickCmd(
         return TCL_ERROR;
     }
 
-    PostMessage(session.messageWnd, WM_KICK, (WPARAM)userId, 0);
+    PostMessage(session.messageWnd, WM_KICK, (WPARAM)userId, (LPARAM)userId);
     return TCL_OK;
 }
 
@@ -1155,7 +1155,7 @@ IoKillCmd(
         return TCL_ERROR;
     }
 
-    PostMessage(session.messageWnd, WM_KILL, (WPARAM)connId, 0);
+    PostMessage(session.messageWnd, WM_KILL, (WPARAM)connId, (LPARAM)connId);
     return TCL_OK;
 }
 
