@@ -16,17 +16,6 @@ Abstract:
 
 #include "lib.h"
 
-//
-// StringSize - Determiness the size of a null-terminated string,
-//              include the null character.
-//
-#define StringSize(string, length)                          \
-    {                                                       \
-        StringCchLengthA(string, STRSAFE_MAX_CCH, &length); \
-        length++;                                           \
-    }
-
-
 /*++
 
 Io_VfsFlush
@@ -53,22 +42,23 @@ Io_VfsFlush(
     const char *path
     )
 {
-    size_t pathSize;
+    size_t pathLength;
 
     // Validate arguments.
     if (memory == NULL || path == NULL) {
         SetLastError(ERROR_INVALID_PARAMETER);
         return FALSE;
     }
+    StringCchLengthA(path, STRSAFE_MAX_CCH, &pathLength);
+    pathLength++; // Include terminating null.
 
     // Check if the shared memory block is large enough.
-    StringSize(path, pathSize);
-    if (memory->size < pathSize) {
+    if (memory->size < pathLength) {
         SetLastError(ERROR_INSUFFICIENT_BUFFER);
         return FALSE;
     }
 
-    CopyMemory(memory->block, path, pathSize);
+    CopyMemory(memory->block, path, pathLength);
 
     // ioFTPD appears to return 1 on both success and failure.
     if (Io_ShmQuery(memory, DC_DIRECTORY_MARKDIRTY, 5000) == 1) {
@@ -110,24 +100,25 @@ Io_VfsRead(
     )
 {
     DC_VFS *dcVfs;
-    size_t pathSize;
+    size_t pathLength;
 
     // Validate arguments.
     if (memory == NULL || path == NULL || vfs == NULL) {
         SetLastError(ERROR_INVALID_PARAMETER);
         return FALSE;
     }
+    StringCchLengthA(path, STRSAFE_MAX_CCH, &pathLength);
+    pathLength++; // Include terminating null.
 
     // Check if the shared memory block is large enough.
-    StringSize(path, pathSize);
-    if (memory->size < sizeof(DC_VFS) + pathSize) {
+    if (memory->size < sizeof(DC_VFS) + pathLength) {
         SetLastError(ERROR_INSUFFICIENT_BUFFER);
         return FALSE;
     }
 
     // Initialise the DC_VFS structure.
     dcVfs = (DC_VFS *)memory->block;
-    dcVfs->dwBuffer = (DWORD)pathSize;
+    dcVfs->dwBuffer = (DWORD)pathLength;
     CopyMemory(dcVfs->pBuffer, path, dcVfs->dwBuffer);
 
     if (!Io_ShmQuery(memory, DC_FILEINFO_READ, 5000)) {
@@ -172,17 +163,18 @@ Io_VfsWrite(
     )
 {
     DC_VFS *dcVfs;
-    size_t pathSize;
+    size_t pathLength;
 
     // Validate arguments.
     if (memory == NULL || path == NULL || vfs == NULL) {
         SetLastError(ERROR_INVALID_PARAMETER);
         return FALSE;
     }
+    StringCchLengthA(path, STRSAFE_MAX_CCH, &pathLength);
+    pathLength++; // Include terminating null.
 
     // Check if the shared memory block is large enough.
-    StringSize(path, pathSize);
-    if (memory->size < sizeof(DC_VFS) + pathSize) {
+    if (memory->size < sizeof(DC_VFS) + pathLength) {
         SetLastError(ERROR_INSUFFICIENT_BUFFER);
         return FALSE;
     }
@@ -192,7 +184,7 @@ Io_VfsWrite(
     dcVfs->Uid        = vfs->userId;
     dcVfs->Gid        = vfs->groupId;
     dcVfs->dwFileMode = vfs->fileMode;
-    dcVfs->dwBuffer   = (DWORD)pathSize;
+    dcVfs->dwBuffer   = (DWORD)pathLength;
     CopyMemory(dcVfs->pBuffer, path, dcVfs->dwBuffer);
 
     if (!Io_ShmQuery(memory, DC_FILEINFO_WRITE, 5000)) {
