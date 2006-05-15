@@ -43,6 +43,7 @@ int main(int argc, char **argv)
         printf("Usage: %s <message window>\n", argv[0]);
         return -1;
     }
+    ZeroMemory(&whoTotal, sizeof(WHO_TOTAL));
 
     // Locate ioFTPD's message window.
     if (!Io_ShmInit(argv[1], &session)) {
@@ -62,11 +63,11 @@ int main(int argc, char **argv)
     printf("|-------------------------------------------------------------|\n");
 
     // Retrieve online data.
-    ZeroMemory(&whoTotal, sizeof(WHO_TOTAL));
     Io_GetOnlineDataEx(memory, DisplayUser, &whoTotal);
 
     printf("|-------------------------------------------------------------|\n");
 
+    // Display bandwidth and user totals.
     StringCchPrintfA(message, sizeof(message), "%d@%.0fKB/s", whoTotal.usersDn, whoTotal.speedDn);
     printf("| Dn: %-14s", message);
 
@@ -80,7 +81,9 @@ int main(int argc, char **argv)
 
     printf("`-------------------------------------------------------------'\n");
 
+    // Clean up.
     Io_ShmFree(memory);
+
     return 0;
 }
 
@@ -102,13 +105,14 @@ DisplayUser(
     StringCchPrintfA(clientIp, sizeof(clientIp), "%d.%d.%d.%d",
         ipData[0] & 0xFF, ipData[1] & 0xFF, ipData[2] & 0xFF, ipData[3] & 0xFF);
 
-    // Update who totals.
+    // Calculate the speed of the user in kilobytes/second.
     if (info->onlineData.dwIntervalLength > 0) {
         speed = (double)info->onlineData.dwBytesTransfered / (double)info->onlineData.dwIntervalLength;
     } else {
         speed = 0.0;
     }
 
+    // Update bandwidth and user totals.
     switch (info->onlineData.bTransferStatus) {
         case 0:
             status = "Idle";

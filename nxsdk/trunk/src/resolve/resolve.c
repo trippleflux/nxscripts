@@ -62,16 +62,16 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    // Allocate memory for user ID to name resolving.
+    // Allocate memory for user/group resolving.
     memory = Io_ShmAlloc(&session, sizeof(DC_NAMEID));
     if (memory == NULL) {
         printf("Unable to allocate shared memory.\n");
         return -1;
     }
 
+    // Call the resolve function.
     for (i = 0; i < sizeof(types)/sizeof(types[0]); i++) {
         if (strcmp(types[i].name, argv[2]) == 0) {
-            // Resolve the ID/name.
             result = types[i].proc(memory, argv[3]);
             break;
         }
@@ -81,7 +81,9 @@ int main(int argc, char **argv)
         printf("Invalid argument \"%s\": must be gid, group, uid, or user.\n", argv[2]);
     }
 
+    // Clean up.
     Io_ShmFree(memory);
+
     return (result == TRUE) ? 0 : -1;
 }
 
