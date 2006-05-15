@@ -89,7 +89,9 @@ Io_ShmAlloc(
 {
     DC_MESSAGE *message = NULL;
     IO_MEMORY *memory;
+    DWORD error;
     HANDLE event;
+    HANDLE heap;
     HANDLE mapping = NULL;
 
     // Validate arguments.
@@ -98,7 +100,8 @@ Io_ShmAlloc(
         return NULL;
     }
 
-    memory = HeapAlloc(GetProcessHeap(), 0, sizeof(IO_MEMORY));
+    heap   = GetProcessHeap();
+    memory = HeapAlloc(heap, 0, sizeof(IO_MEMORY));
     if (memory == NULL) {
         return NULL;
     }
@@ -145,11 +148,15 @@ Io_ShmAlloc(
                 // code on failure, since MSDN does not mention this behaviour. So
                 // this error code will suffice.
                 if (GetLastError() == ERROR_SUCCESS) {
-                    SetLastError(ERROR_INVALID_HANDLE);
+                    SetLastError(ERROR_INVALID_DATA);
                 }
             }
         }
     }
+
+    // Save the system error code at this point in case any
+    // of the functions called during clean up obstruct it.
+    error = GetLastError();
 
     // Free objects and resources.
     if (message != NULL) {
@@ -161,8 +168,10 @@ Io_ShmAlloc(
     if (event != NULL) {
         CloseHandle(event);
     }
-    HeapFree(GetProcessHeap(), 0, memory);
+    HeapFree(heap, 0, memory);
 
+    // Restore the system error code.
+    SetLastError(error);
     return NULL;
 }
 
