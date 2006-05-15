@@ -20,7 +20,6 @@ MP3 genres and years; IMDB genres, ratings, and years; maximum CD/DVD/Disk
 rules; empty directories; incomplete releases; banned keywords; and allowed
 groups. Nuke reasons are customizable using cookies.
 
-
 ################################################################################
 # 2. nxTools and AlcoBot Installation                                          #
 ################################################################################
@@ -48,7 +47,6 @@ autonuke    = TCL ..\scripts\nxAutoNuke\nxAutoNuke.tcl
 autonuke    = M1
 
 4. Rehash or restart ioFTPD.
-
 
 ################################################################################
 # 3. Directory Tags                                                            #
@@ -80,18 +78,22 @@ expressions, see: http://www.tcl.tk/man/tcl8.4/TclCmd/re_syntax.htm
   [SITE] - 50% Complete - [SITE]
   set anuke(IncTag)   {\[*\] - *% Complete - \[*\]}
 
-
 ################################################################################
 # 4. Bugs and Comments                                                         #
 ################################################################################
 
-   If you have any problems with this script; or you found a bug, spelling
-mistake or grammar error, please report it to me. If it's a technical issue,
-be sure you can reproduce the problem, so I can find a solution.
+   If you have any problems with this script, whether it is a bug, spelling
+mistake or grammatical error, please report it to me. If it is a technical issue,
+make sure you can reproduce the problem and provide us the necessary steps.
 
-IRC  : neoxed <#ioFTPD at EFnet>
-Email: neoxed@gmail.com
+IniCom Forum:
+http://www.inicom.net/forum/forumdisplay.php?f=157
 
+IRC Network:
+neoxed in #ioFTPD at EFnet
+
+E-mail:
+neoxed@gmail.com
 
 ################################################################################
 # 5. License                                                                   #

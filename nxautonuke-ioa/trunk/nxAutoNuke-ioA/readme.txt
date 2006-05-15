@@ -21,7 +21,6 @@ MP3 genres and years; IMDB genres, ratings, and years; maximum CD/DVD/Disk
 rules; empty directories; incomplete releases; banned keywords; and allowed
 groups. Nuke reasons are customizable using cookies.
 
-
 ################################################################################
 # 2. ioA and dZSbot Installation                                               #
 ################################################################################
@@ -90,7 +89,6 @@ set msgtypes(RACE) "ANUKEALLOWED ANUKEBANNED ANUKEDISKS ANUKEEMPTY ANUKEIMDB ANU
 
 7. Rehash or restart Windrop.
 
-
 ################################################################################
 # 3. ioA and ioBanana Installation                                             #
 ################################################################################
@@ -154,7 +152,6 @@ set announce(ANUKESIZE)    "-:[b]:[b] autonuke [b]:[b]:- %path/[b]%release[b] mu
 
 7. Rehash or restart Windrop.
 
-
 ################################################################################
 # 4. Directory Tags                                                            #
 ################################################################################
@@ -199,18 +196,22 @@ expressions, see: http://www.tcl.tk/man/tcl8.4/TclCmd/re_syntax.htm
   [SITE] - 50% Complete - [SITE]
   set anuke(IncTag)   {\[*\] - *% Complete - \[*\]}
 
-
 ################################################################################
 # 5. Bugs and Comments                                                         #
 ################################################################################
 
-   If you have any problems with this script; or you found a bug, spelling
-mistake or grammar error, please report it to me. If it's a technical issue,
-be sure you can reproduce the problem, so I can find a solution.
+   If you have any problems with this script, whether it is a bug, spelling
+mistake or grammatical error, please report it to me. If it is a technical issue,
+make sure you can reproduce the problem and provide us the necessary steps.
 
-IRC  : neoxed <#ioFTPD at EFnet>
-Email: neoxed@gmail.com
+IniCom Forum:
+http://www.inicom.net/forum/forumdisplay.php?f=157
 
+IRC Network:
+neoxed in #ioFTPD at EFnet
+
+E-mail:
+neoxed@gmail.com
 
 ################################################################################
 # 6. License                                                                   #
