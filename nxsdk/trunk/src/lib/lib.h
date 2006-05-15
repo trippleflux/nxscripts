@@ -33,9 +33,18 @@ Abstract:
 #include <nxsdk.h>
 
 
-// ARRAYSIZE - Returns the number of entries in an array.
 #undef ARRAYSIZE
+#undef MAX
+#undef MIN
+
+// ARRAYSIZE - Returns the number of entries in an array.
 #define ARRAYSIZE(a)    (sizeof(a) / sizeof(a[0]))
+
+// MAX - Returns the maximum of two numeric values.
+#define MAX(a, b)       (((a) > (b)) ? (a) : (b))
+
+// MIN - Returns the minimum of two numeric values.
+#define MIN(a, b)       (((a) < (b)) ? (a) : (b))
 
 // DebugPrint - Display debugging information to stdout.
 #if defined(DEBUG) && !defined(NDEBUG)
