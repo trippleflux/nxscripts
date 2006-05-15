@@ -72,6 +72,7 @@ Io_GroupCreate(
     }
 
     *groupId = -1;
+    SetLastError(ERROR_INVALID_GROUPNAME);
     return FALSE;
 }
 
@@ -128,6 +129,7 @@ Io_GroupRename(
         return TRUE;
     }
 
+    SetLastError(ERROR_INVALID_GROUPNAME);
     return FALSE;
 }
 
@@ -180,6 +182,7 @@ Io_GroupDelete(
         return TRUE;
     }
 
+    SetLastError(ERROR_INVALID_GROUPNAME);
     return FALSE;
 }
 

@@ -72,6 +72,7 @@ Io_UserCreate(
     }
 
     *userId = -1;
+    SetLastError(ERROR_BAD_USERNAME);
     return FALSE;
 }
 
@@ -128,6 +129,7 @@ Io_UserRename(
         return TRUE;
     }
 
+    SetLastError(ERROR_BAD_USERNAME);
     return FALSE;
 }
 
@@ -180,6 +182,7 @@ Io_UserDelete(
         return TRUE;
     }
 
+    SetLastError(ERROR_BAD_USERNAME);
     return FALSE;
 }
 
