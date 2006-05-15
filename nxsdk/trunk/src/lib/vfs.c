@@ -55,6 +55,7 @@ Io_VfsFlush(
 {
     size_t pathSize;
 
+    // Validate arguments.
     if (memory == NULL || path == NULL) {
         SetLastError(ERROR_INVALID_PARAMETER);
         return FALSE;
@@ -110,6 +111,7 @@ Io_VfsRead(
     DC_VFS *dcVfs;
     size_t pathSize;
 
+    // Validate arguments.
     if (memory == NULL || path == NULL || vfs == NULL) {
         SetLastError(ERROR_INVALID_PARAMETER);
         return FALSE;
@@ -170,6 +172,7 @@ Io_VfsWrite(
     DC_VFS *dcVfs;
     size_t pathSize;
 
+    // Validate arguments.
     if (memory == NULL || path == NULL || vfs == NULL) {
         SetLastError(ERROR_INVALID_PARAMETER);
         return FALSE;

@@ -48,12 +48,14 @@ Io_GetBinaryPath(
     HANDLE process;
     HMODULE module;
 
+    // Validate arguments.
     if (session == NULL || path == NULL) {
         SetLastError(ERROR_INVALID_PARAMETER);
         return FALSE;
     }
 
-    process = OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ, FALSE, session->remoteProcId);
+    process = OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ,
+        FALSE, session->remoteProcId);
     if (process == NULL) {
         return FALSE;
     }
@@ -96,6 +98,7 @@ Io_GetStartTime(
     FILETIME dummy;
     HANDLE process;
 
+    // Validate arguments.
     if (session == NULL || startTime == NULL) {
         SetLastError(ERROR_INVALID_PARAMETER);
         return FALSE;

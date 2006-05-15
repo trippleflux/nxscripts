@@ -57,6 +57,7 @@ Io_GetOnlineDataEx(
     IO_ONLINEDATAEX onlineDataEx;
     IO_SESSION session;
 
+    // Validate arguments.
     if (memory == NULL || callback == NULL) {
         SetLastError(ERROR_INVALID_PARAMETER);
         return FALSE;
@@ -160,6 +161,7 @@ Io_GetOnlineData(
     DWORD result;
     DC_ONLINEDATA *dcOnlineData;
 
+    // Validate arguments.
     if (memory == NULL || callback == NULL) {
         SetLastError(ERROR_INVALID_PARAMETER);
         return FALSE;
@@ -223,6 +225,7 @@ Io_KickConnId(
     int connId
     )
 {
+    // Validate arguments.
     if (session == NULL) {
         SetLastError(ERROR_INVALID_PARAMETER);
         return FALSE;
@@ -256,6 +259,7 @@ Io_KickUserId(
     int userId
     )
 {
+    // Validate arguments.
     if (session == NULL) {
         SetLastError(ERROR_INVALID_PARAMETER);
         return FALSE;
