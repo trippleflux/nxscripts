@@ -22,7 +22,6 @@ checker, nuker, pre script, request script, and various other tools and various
 statistical commands. Written in Tcl, which offers fast processing speed and
 easily customizable output.
 
-
 ################################################################################
 # 2. Requirements                                                              #
 ################################################################################
@@ -30,7 +29,6 @@ easily customizable output.
     nxTools should only be installed on Windows NT/2000/XP/2003 any other
 operating system is unsupported. This script was tested on Beta-v5.8.5r so I
 cannot guarantee it will work on any other versions of ioFTPD.
-
 
 ################################################################################
 # 3. Installation                                                              #
@@ -252,7 +250,6 @@ nxWeekly = 0 0 * 6 TCL ..\scripts\nxTools\nxUtilities.tcl WEEKLYSET
     %[execute(TCL ..\scripts\nxTools\nxDupe.tcl)(NEW -max 5 APPS)]
 
 10. Finished, for now at least. Be sure to keep your nxTools version up-to-date!
-
 
 ################################################################################
 # 4. Commands                                                                  #
@@ -598,7 +595,6 @@ Legend:
      - SITE WIPE some.old.rar
      - SITE WIPE Something.Very.Old-NX
 
-
 ################################################################################
 # 5. Text Templates                                                            #
 ################################################################################
@@ -667,7 +663,6 @@ and their available cookies are:
       Who.Upload       : %(user) %(group) %(tagline) %(file) %(speed)
       Who.Footer       : N/A
 
-
 ################################################################################
 # 6. Todo List                                                                 #
 ################################################################################
@@ -680,18 +675,22 @@ and their available cookies are:
 
 - Make SITE GINFO customizable.
 
-
 ################################################################################
 # 7. Bugs and Comments                                                         #
 ################################################################################
 
-    If you have any problems with this script; or you found a bug, spelling
-mistake or grammar error, please report it to me. If it's a technical issue,
-be sure you can reproduce the problem, so I can find a solution.
+   If you have any problems with this script, whether it is a bug, spelling
+mistake or grammatical error, please report it to me. If it is a technical issue,
+make sure you can reproduce the problem and provide us the necessary steps.
 
-IRC  : neoxed <#ioFTPD at EFnet>
-Email: neoxed@gmail.com
+IniCom Forum:
+http://www.inicom.net/forum/forumdisplay.php?f=157
 
+IRC Network:
+neoxed in #ioFTPD at EFnet
+
+E-mail:
+neoxed@gmail.com
 
 ################################################################################
 # 8. License                                                                   #
