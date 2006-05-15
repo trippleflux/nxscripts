@@ -1,2 +1,11 @@
+nxSDK v0.2.0 (not released):
+  NEW: Improved function documentation.
+  NEW: Io_GetOnlineDataEx function to retrieve extended online information.
+  CHG: Renamed several online types and constants for consistency.
+       - ONLINEDATA_ROUTINE to Io_OnlineDataRoutine
+       - ONLINEDATA_CONTINUE to IO_ONLINEDATA_CONTINUE
+       - ONLINEDATA_STOP to IO_ONLINEDATA_STOP
+  CHG: Simplified the "who" example application.
+
 nxSDK v0.1.0 (May 14, 2006):
   CHG: Initial release.

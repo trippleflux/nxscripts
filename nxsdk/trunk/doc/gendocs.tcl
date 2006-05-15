@@ -340,6 +340,8 @@ cd $currentDir
 ################################################################################
 
 puts "- Parsing data"
+set funcLinks [list]
+set structLinks [list]
 unset -nocomplain funcs structs
 
 foreach {desc code} $funcList {
@@ -385,6 +387,7 @@ foreach {desc code} $funcList {
     set code $result
 
     set anchor "#[string tolower $name]_func"
+    lappend funcLinks $name "<a href=\"functions.htm$anchor\"><b>$name</b></a>"
     set funcs($name) [list $anchor $code $text(intro) $text(args) $text(remarks) $text(retvals)]
 }
 
@@ -426,6 +429,7 @@ foreach {desc code} $structList {
     set code $result
 
     set anchor "#[string tolower $name]_struct"
+    lappend structLinks $name "<a href=\"structures.htm$anchor\"><b>$name</b></a>"
     set structs($name) [list $anchor $code $text(intro) $text(members) $text(remarks)]
 }
 
@@ -433,21 +437,8 @@ foreach {desc code} $structList {
 
 puts "- Transforming data"
 
-set funcLinks [list]
 set funcNames [lsort [array names funcs]]
-set structLinks [list]
 set structNames [lsort [array names structs]]
-
-# Build a list of anchor names.
-foreach name $funcNames {
-    set anchor [lindex $funcs($name) 0]
-    lappend funcLinks $name "<a href=\"functions.htm$anchor\"><b>$name</b></a>"
-}
-
-foreach name $structNames {
-    set anchor [lindex $structs($name) 0]
-    lappend structLinks $name "<a href=\"structures.htm$anchor\"><b>$name</b></a>"
-}
 
 # Bold names and link references to other functions and structures.
 foreach name $funcNames {
