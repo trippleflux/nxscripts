@@ -41,9 +41,11 @@ Io_ShmInit(
     IO_SESSION *session
     )
 {
-    assert(windowName != NULL);
-    assert(session    != NULL);
-    DebugPrint("Io_ShmInit: windowName=%s session=%p\n", windowName, session);
+    // Validate arguments.
+    if (windowName == NULL || session == NULL) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
 
     session->window = FindWindowA(windowName, NULL);
     if (session->window == NULL) {
@@ -90,11 +92,13 @@ Io_ShmAlloc(
     HANDLE event;
     HANDLE mapping = NULL;
 
-    assert(session != NULL);
-    assert(size > 0);
-    DebugPrint("Io_ShmAlloc: session=%p size=%lu\n", session, size);
+    // Validate arguments.
+    if (session == NULL) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return NULL;
+    }
 
-    memory = malloc(sizeof(IO_MEMORY));
+    memory = HeapAlloc(GetProcessHeap(), 0, sizeof(IO_MEMORY));
     if (memory == NULL) {
         return NULL;
     }
@@ -157,7 +161,8 @@ Io_ShmAlloc(
     if (event != NULL) {
         CloseHandle(event);
     }
-    free(memory);
+    HeapFree(GetProcessHeap(), 0, memory);
+
     return NULL;
 }
 
@@ -174,14 +179,17 @@ Return Values:
     None.
 
 --*/
-void
+BOOL
 STDCALL
 Io_ShmFree(
     IO_MEMORY *memory
     )
 {
-    assert(memory != NULL);
-    DebugPrint("Io_ShmFree: memory=%p\n", memory);
+    // Validate arguments.
+    if (memory == NULL) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
 
     // Free objects and resources.
     UnmapViewOfFile(memory->message);
@@ -193,8 +201,10 @@ Io_ShmFree(
         CloseHandle(memory->mapping);
     }
 
+    // Tell ioFTPD we're finished.
     PostMessage(memory->window, WM_DATACOPY_FREE, 0, (LPARAM)memory->remote);
-    free(memory);
+
+    return HeapFree(GetProcessHeap(), 0, memory);
 }
 
 /*++
@@ -211,7 +221,9 @@ Arguments:
     timeOut - Time out interval, in milliseconds.
 
 Return Values:
-    ioFTPD's query result, varies between query identifiers.
+    If the function succeeds, the return value varies between query identifiers.
+
+    If the function fails, the return value is "(DWORD)-1".
 
 --*/
 DWORD
@@ -222,8 +234,11 @@ Io_ShmQuery(
     DWORD timeOut
     )
 {
-    assert(memory != NULL);
-    DebugPrint("Io_ShmQuery: memory=%p queryId=%lu timeOut=%lu\n", memory, queryId, timeOut);
+    // Validate arguments.
+    if (memory == NULL) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
 
     memory->message->dwReturn     = (DWORD)-1;
     memory->message->dwIdentifier = queryId;
@@ -231,15 +246,11 @@ Io_ShmQuery(
 
     if (timeOut && memory->event != NULL) {
         if (WaitForSingleObject(memory->event, timeOut) == WAIT_TIMEOUT) {
-            DebugPrint("Io_ShmQuery: Timed out (%lu)\n", GetLastError());
             return (DWORD)-1;
         }
-
-        DebugPrint("Io_ShmQuery: Return=%lu\n", memory->message->dwReturn);
         return memory->message->dwReturn;
     }
 
     // No timeout or event, return value cannot be checked.
-    DebugPrint("Io_ShmQuery: No event or time out!\n");
     return (DWORD)-1;
 }

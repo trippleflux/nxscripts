@@ -211,7 +211,7 @@ Io_ShmAlloc(
     DWORD size
     );
 
-void
+BOOL
 STDCALL
 Io_ShmFree(
     IO_MEMORY *memory
