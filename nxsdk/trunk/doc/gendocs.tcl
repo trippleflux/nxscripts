@@ -17,9 +17,9 @@ set baseDir ".."
 
 # Location of the input files.
 set inputFiles {
-    "include/nxsdk.h"
     "src/lib/*.c"
     "src/lib/*.h"
+    "include/nxsdk.h"
 }
 
 ################################################################################
@@ -341,7 +341,9 @@ cd $currentDir
 
 puts "- Parsing data"
 set funcLinks [list]
+set funcNames [list]
 set structLinks [list]
+set structNames [list]
 unset -nocomplain funcs structs
 
 foreach {desc code} $funcList {
@@ -388,6 +390,7 @@ foreach {desc code} $funcList {
 
     set anchor "#[string tolower $name]_func"
     lappend funcLinks $name "<a href=\"functions.htm$anchor\"><b>$name</b></a>"
+    lappend funcNames $name
     set funcs($name) [list $anchor $code $text(intro) $text(args) $text(remarks) $text(retvals)]
 }
 
@@ -430,15 +433,13 @@ foreach {desc code} $structList {
 
     set anchor "#[string tolower $name]_struct"
     lappend structLinks $name "<a href=\"structures.htm$anchor\"><b>$name</b></a>"
+    lappend structNames $name
     set structs($name) [list $anchor $code $text(intro) $text(members) $text(remarks)]
 }
 
 ################################################################################
 
 puts "- Transforming data"
-
-set funcNames [lsort [array names funcs]]
-set structNames [lsort [array names structs]]
 
 # Bold names and link references to other functions and structures.
 foreach name $funcNames {
