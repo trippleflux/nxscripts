@@ -22,24 +22,22 @@ Abstract:
 #include <nxsdk.h>
 
 typedef struct {
-    IO_MEMORY *memUser;
     double speedDn;
     double speedUp;
-    INT usersDn;
-    INT usersUp;
-    INT usersIdle;
-} WHO_DATA;
+    int usersDn;
+    int usersUp;
+    int usersIdle;
+} WHO_TOTAL;
 
-static ONLINEDATA_ROUTINE DisplayUser;
+static Io_OnlineDataExProc DisplayUser;
 
 
 int main(int argc, char **argv)
 {
-    char message[64];
-    IO_MEMORY *memOnline;
-    IO_MEMORY *memUser;
+    char message[32];
+    IO_MEMORY *memory;
     IO_SESSION session;
-    WHO_DATA whoData;
+    WHO_TOTAL whoTotal;
 
     if (argc != 2) {
         printf("Usage: %s <message window>\n", argv[0]);
@@ -53,102 +51,91 @@ int main(int argc, char **argv)
     }
 
     // Allocate memory for online data.
-    memOnline = Io_ShmAlloc(&session, sizeof(DC_ONLINEDATA) + (MAX_PATH+1)*2);
-    if (memOnline == NULL) {
+    memory = Io_ShmAlloc(&session, sizeof(DC_ONLINEDATA) + (MAX_PATH+1)*2);
+    if (memory == NULL) {
         printf("Unable to allocate shared memory.\n");
         return -1;
     }
 
-    // Allocate memory for user ID to name resolving.
-    memUser = Io_ShmAlloc(&session, sizeof(DC_NAMEID));
-    if (memUser == NULL) {
-        Io_ShmFree(memOnline);
-        printf("Unable to allocate shared memory.\n");
-        return -1;
-    }
-
-    printf(".----------------------------------------------------------.\n");
-    printf("| CID |  Username  |  Status  | IP Address                 |\n");
-    printf("|----------------------------------------------------------|\n");
+    printf(".-------------------------------------------------------------.\n");
+    printf("| CID | User Name  | Group Name |  Status  | IP Address       |\n");
+    printf("|-------------------------------------------------------------|\n");
 
     // Retrieve online data.
-    ZeroMemory(&whoData, sizeof(WHO_DATA));
-    whoData.memUser = memUser;
-    Io_GetOnlineData(memOnline, DisplayUser, &whoData);
+    ZeroMemory(&whoTotal, sizeof(WHO_TOTAL));
+    Io_GetOnlineDataEx(memory, DisplayUser, &whoTotal);
 
-    printf("|----------------------------------------------------------|\n");
+    printf("|-------------------------------------------------------------|\n");
 
-    StringCchPrintfA(message, sizeof(message), "%d user(s) at %.1f KB/s", whoData.usersDn, whoData.speedDn);
-    printf("| Down: %-50s |\n", message);
+    StringCchPrintfA(message, sizeof(message), "%d@%.0fKB/s", whoTotal.usersDn, whoTotal.speedDn);
+    printf("| Dn: %-14s", message);
 
-    StringCchPrintfA(message, sizeof(message), "%d user(s) at %.1f KB/s", whoData.usersUp, whoData.speedUp);
-    printf("| Up  : %-50s |\n", message);
+    StringCchPrintfA(message, sizeof(message), "%d@%.0fKB/s", whoTotal.usersUp, whoTotal.speedUp);
+    printf("| Up: %-14s", message);
 
-    StringCchPrintfA(message, sizeof(message), "%d user(s)", whoData.usersIdle);
-    printf("| Idle: %-50s |\n", message);
+    StringCchPrintfA(message, sizeof(message), "%d@%.0fKB/s",
+        whoTotal.usersDn + whoTotal.usersUp + whoTotal.usersIdle,
+        whoTotal.speedDn + whoTotal.speedUp);
+    printf("| All: %-14s |\n", message);
 
-    printf("`----------------------------------------------------------'\n");
+    printf("`-------------------------------------------------------------'\n");
 
-    Io_ShmFree(memOnline);
-    Io_ShmFree(memUser);
+    Io_ShmFree(memory);
     return 0;
 }
 
 static BOOL
 STDCALL
 DisplayUser(
-    int connId,
-    ONLINEDATA *onlineData,
+    IO_ONLINEDATAEX *info,
     void *opaque
     )
 {
     BYTE *ipData;
     char *status;
     char clientIp[16];
-    char userName[_MAX_NAME+1];
-    double speed = 0.0;
-    WHO_DATA *whoData = (WHO_DATA *)opaque;
-
-    // Resolve the user ID to its name.
-    if (!Io_UserIdToName(whoData->memUser, onlineData->Uid, userName)) {
-        StringCchCopyA(userName, sizeof(userName), "NoUser");
-    }
+    double speed;
+    WHO_TOTAL *whoTotal = (WHO_TOTAL *)opaque;
 
     // Format the client IP.
-    ipData = (BYTE *)&onlineData->ulClientIp;
+    ipData = (BYTE *)&info->onlineData.ulClientIp;
     StringCchPrintfA(clientIp, sizeof(clientIp), "%d.%d.%d.%d",
         ipData[0] & 0xFF, ipData[1] & 0xFF, ipData[2] & 0xFF, ipData[3] & 0xFF);
 
-    // Update totals and map the transfer status to a textual description.
-    if (onlineData->dwIntervalLength > 0) {
-        speed = (double)onlineData->dwBytesTransfered / (double)onlineData->dwIntervalLength;
+    // Update who totals.
+    if (info->onlineData.dwIntervalLength > 0) {
+        speed = (double)info->onlineData.dwBytesTransfered / (double)info->onlineData.dwIntervalLength;
+    } else {
+        speed = 0.0;
     }
 
-    switch (onlineData->bTransferStatus) {
+    switch (info->onlineData.bTransferStatus) {
         case 0:
             status = "Idle";
-            whoData->usersIdle++;
+            whoTotal->usersIdle++;
             break;
         case 1:
             status = "Download";
-            whoData->usersDn++;
-            whoData->speedDn =+ speed;
+            whoTotal->usersDn++;
+            whoTotal->speedDn =+ speed;
             break;
         case 2:
             status = "Upload";
-            whoData->usersUp++;
-            whoData->speedUp =+ speed;
+            whoTotal->usersUp++;
+            whoTotal->speedUp =+ speed;
             break;
         case 3:
             status = "List";
-            whoData->usersIdle++;
+            whoTotal->usersIdle++;
             break;
         default:
             status = "Unknown";
-            whoData->usersIdle++;
+            whoTotal->usersIdle++;
             break;
     }
 
-    printf("| %3d | %-10s | %8s | %-26s |\n", connId, userName, status, clientIp);
-    return ONLINEDATA_CONTINUE;
+    printf("| %3d | %-10s | %-10s | %-8s | %-16s |\n",
+        info->connId, info->userName, info->groupName, status, clientIp);
+
+    return IO_ONLINEDATA_CONTINUE;
 }
