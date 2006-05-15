@@ -57,11 +57,16 @@ Io_GetOnlineDataEx(
     IO_ONLINEDATAEX onlineDataEx;
     IO_SESSION session;
 
-    assert(memory   != NULL);
-    assert(memory->size >= sizeof(DC_ONLINEDATA) + (MAX_PATH+1)*2);
-    assert(callback != NULL);
-    DebugPrint("Io_GetOnlineDataEx: memory=%p callback=%p opaque=%p\n",
-        memory, callback, opaque);
+    if (memory == NULL || callback == NULL) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+
+    // Check if the shared memory block is large enough.
+    if (memory->size < sizeof(DC_ONLINEDATA) + ((MAX_PATH + 1) * 2)) {
+        SetLastError(ERROR_INSUFFICIENT_BUFFER);
+        return FALSE;
+    }
 
     // Initialise a session structure.
     session.window = memory->window;
@@ -86,7 +91,7 @@ Io_GetOnlineDataEx(
         result = Io_ShmQuery(memory, DC_GET_ONLINEDATA, 5000);
         DebugPrint("Io_GetOnlineDataEx: offset=%d result=%lu\n", dcOnlineData->iOffset, result);
 
-        if (result == 0) {
+        if (!result) {
             // Initialise the IO_ONLINEDATAEX structure.
             onlineDataEx.connId = dcOnlineData->iOffset-1;
             CopyMemory(&onlineDataEx.onlineData, &dcOnlineData->OnlineData, sizeof(ONLINEDATA));
@@ -134,7 +139,9 @@ Arguments:
     opaque   - Argument passed to the callback, can be NULL if not required.
 
 Return Values:
-    None.
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false).
 
 Remarks:
     The Io_GetOnlineDataEx function retrieves the user name, group name,
@@ -142,7 +149,7 @@ Remarks:
     this additional information, you should use Io_GetOnlineDataEx.
 
 --*/
-void
+BOOL
 STDCALL
 Io_GetOnlineData(
     IO_MEMORY *memory,
@@ -153,11 +160,16 @@ Io_GetOnlineData(
     DWORD result;
     DC_ONLINEDATA *dcOnlineData;
 
-    assert(memory   != NULL);
-    assert(memory->size >= sizeof(DC_ONLINEDATA) + (MAX_PATH+1)*2);
-    assert(callback != NULL);
-    DebugPrint("Io_GetOnlineData: memory=%p callback=%p opaque=%p\n",
-        memory, callback, opaque);
+    if (memory == NULL || callback == NULL) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+
+    // Check if the shared memory block is large enough.
+    if (memory->size < sizeof(DC_ONLINEDATA) + ((MAX_PATH + 1) * 2)) {
+        SetLastError(ERROR_INSUFFICIENT_BUFFER);
+        return FALSE;
+    }
 
     // Initialise the data-copy structure for online information.
     dcOnlineData = (DC_ONLINEDATA *)memory->block;
@@ -168,7 +180,7 @@ Io_GetOnlineData(
         result = Io_ShmQuery(memory, DC_GET_ONLINEDATA, 5000);
         DebugPrint("Io_GetOnlineData: offset=%d result=%lu\n", dcOnlineData->iOffset, result);
 
-        if (result == 0) {
+        if (!result) {
             if (callback(dcOnlineData->iOffset-1, &dcOnlineData->OnlineData, opaque) == IO_ONLINEDATA_STOP) {
                 // The caller requested to stop.
                 break;
@@ -183,6 +195,8 @@ Io_GetOnlineData(
             dcOnlineData->iOffset++;
         }
     }
+
+    return TRUE;
 }
 
 /*++
@@ -197,19 +211,25 @@ Arguments:
     connId  - Specifies the connection ID to kick.
 
 Return Values:
-    None.
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false).
 
 --*/
-void
+BOOL
 STDCALL
 Io_KickConnId(
     const IO_SESSION *session,
     int connId
     )
 {
-    assert(session != NULL);
-    DebugPrint("Io_KickConnId: session=%p connId=%d\n", session, connId);
+    if (session == NULL) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+
     PostMessage(session->window, WM_KILL, (WPARAM)connId, (LPARAM)connId);
+    return TRUE;
 }
 
 /*++
@@ -224,17 +244,23 @@ Arguments:
     userId  - Specifies the user ID to kick.
 
 Return Values:
-    None.
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false).
 
 --*/
-void
+BOOL
 STDCALL
 Io_KickUserId(
     const IO_SESSION *session,
     int userId
     )
 {
-    assert(session != NULL);
-    DebugPrint("Io_KickUserId: session=%p userId=%d\n", session, userId);
+    if (session == NULL) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+
     PostMessage(session->window, WM_KICK, (WPARAM)userId, (LPARAM)userId);
+    return TRUE;
 }

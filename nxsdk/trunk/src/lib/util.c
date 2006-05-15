@@ -48,18 +48,16 @@ Io_GetBinaryPath(
     HANDLE process;
     HMODULE module;
 
-    assert(session != NULL);
-    assert(path    != NULL);
+    if (session == NULL || path == NULL) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
 
-    // Open the process for querying.
-    process = OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ, FALSE,
-        session->remoteProcId);
+    process = OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ, FALSE, session->remoteProcId);
     if (process == NULL) {
         return FALSE;
     }
 
-    // Look-up the image path.
-    ZeroMemory(path, pathLength);
     if (EnumProcessModules(process, &module, sizeof(module), &needed) &&
             GetModuleFileNameEx(process, module, path, pathLength)) {
         result = TRUE;
@@ -98,10 +96,11 @@ Io_GetStartTime(
     FILETIME dummy;
     HANDLE process;
 
-    assert(session   != NULL);
-    assert(startTime != NULL);
+    if (session == NULL || startTime == NULL) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
 
-    // Open the process for querying.
     process = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, session->remoteProcId);
     if (process == NULL) {
         return FALSE;

@@ -368,7 +368,7 @@ Io_GroupNameToId(
 // Online data functions
 //
 
-void
+BOOL
 STDCALL
 Io_GetOnlineData(
     IO_MEMORY *memory,
@@ -384,14 +384,14 @@ Io_GetOnlineDataEx(
     void *opaque
     );
 
-void
+BOOL
 STDCALL
 Io_KickConnId(
     const IO_SESSION *session,
     int connId
     );
 
-void
+BOOL
 STDCALL
 Io_KickUserId(
     const IO_SESSION *session,
