@@ -20,6 +20,7 @@ EXPORTS
   Io_GroupIdToName
   Io_GroupNameToId
   Io_GetOnlineData
+  Io_GetOnlineDataEx
   Io_KickConnId
   Io_KickUserId
   Io_VfsFlush

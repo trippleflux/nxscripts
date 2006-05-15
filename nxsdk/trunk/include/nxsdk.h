@@ -36,7 +36,7 @@ Abstract:
 
 IO_SESSION
 
-    Shared memory session structure.
+    Shared memory session.
 
 Members:
     window          - Handle to ioFTPD's message window.
@@ -56,7 +56,7 @@ typedef struct {
 
 IO_MEMORY
 
-    Shared memory block structure.
+    Shared memory block.
 
 Members:
     block   - Block of mapped memory, allocated in the current process.
@@ -89,6 +89,36 @@ typedef struct {
 
 /*++
 
+IO_ONLINEDATAEX
+
+    Extended online data.
+
+Members:
+    connId      - Specifies the connection ID.
+
+    userName    - A null-terminated string that specifies the user's name.
+
+    groupName   - A null-terminated string that specifies the user's primary
+                  group name.
+
+    userFile    - A USERFILE structure for the user.
+
+    groupFile   - A GROUPFILE structure for the user's primary group.
+
+    onlineData  - An ONLINEDATA structure for the user's connection.
+
+--*/
+typedef struct {
+    int        connId;
+    char       userName[_MAX_NAME+1];
+    char       groupName[_MAX_NAME+1];
+    USERFILE   userFile;
+    GROUPFILE  groupFile;
+    ONLINEDATA onlineData;
+} IO_ONLINEDATAEX;
+
+/*++
+
 IO_VFS
 
     Virtual file system ownership and permission.
@@ -107,33 +137,60 @@ typedef struct {
     DWORD  fileMode;
 } IO_VFS;
 
+
+//
+// Callback functions
+//
+
+#define IO_ONLINEDATA_STOP     0
+#define IO_ONLINEDATA_CONTINUE 1
+
 /*++
 
-ONLINEDATA_ROUTINE
+Io_OnlineDataRoutine
 
     Callback routine used by Io_GetOnlineData.
 
 Arguments:
-    connId      - Connection identifier.
+    connId      - Specifies the connection ID.
 
     onlineData  - Pointer to the connection's ONLINEDATA structure.
 
     opaque      - Value passed to Io_GetOnlineData's opaque argument.
 
 Return Values:
-    ONLINEDATA_CONTINUE - Continues to the next online user.
+    IO_ONLINEDATA_CONTINUE - Continues to the next online user.
 
-    ONLINEDATA_STOP     - Stops the operation and returns.
+    IO_ONLINEDATA_STOP     - Stops the operation and returns.
 
 --*/
-typedef BOOL (STDCALL ONLINEDATA_ROUTINE)(
+typedef BOOL (STDCALL Io_OnlineDataRoutine)(
     int connId,
     ONLINEDATA *onlineData,
     void *opaque
     );
 
-#define ONLINEDATA_CONTINUE 1
-#define ONLINEDATA_STOP     0
+/*++
+
+Io_OnlineDataExRoutine
+
+    Callback routine used by Io_GetOnlineDataEx.
+
+Arguments:
+    onlineDataEx - Pointer to the connection's IO_ONLINEDATAEX structure.
+
+    opaque       - Value passed to Io_GetOnlineDataEx's opaque argument.
+
+Return Values:
+    IO_ONLINEDATA_CONTINUE - Continues to the next online user.
+
+    IO_ONLINEDATA_STOP     - Stops the operation and returns.
+
+--*/
+typedef BOOL (STDCALL Io_OnlineDataExRoutine)(
+    IO_ONLINEDATAEX *onlineDataEx,
+    void *opaque
+    );
 
 
 //
@@ -315,7 +372,15 @@ void
 STDCALL
 Io_GetOnlineData(
     IO_MEMORY *memory,
-    ONLINEDATA_ROUTINE *routine,
+    Io_OnlineDataRoutine *routine,
+    void *opaque
+    );
+
+BOOL
+STDCALL
+Io_GetOnlineDataEx(
+    IO_MEMORY *memory,
+    Io_OnlineDataExRoutine *routine,
     void *opaque
     );
 
