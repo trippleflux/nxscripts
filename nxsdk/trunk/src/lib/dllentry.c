@@ -16,6 +16,9 @@ Abstract:
 
 #include "lib.h"
 
+// Silence C4100: unreferenced formal parameter
+#pragma warning(disable : 4100)
+
 /*
 
 DllMain
