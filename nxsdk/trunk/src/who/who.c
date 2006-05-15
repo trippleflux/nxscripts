@@ -58,32 +58,32 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    printf(".-------------------------------------------------------------.\n");
-    printf("| CID | User Name  | Group Name |  Status  | IP Address       |\n");
-    printf("|-------------------------------------------------------------|\n");
+    printf(".------------------------------------------------------------.\n");
+    printf("| CID | User Name  | Group Name |  Status  | IP Address      |\n");
+    printf("|------------------------------------------------------------|\n");
 
     // Retrieve online data.
     Io_GetOnlineDataEx(memory, DisplayUser, &whoTotal);
 
-    printf("|-------------------------------------------------------------|\n");
+    printf("|------------------------------------------------------------|\n");
 
     // Display download totals.
     StringCchPrintfA(message, sizeof(message), "%d@%.0fKB/s",
         whoTotal.usersDn, whoTotal.speedDn);
-    printf("| Dn: %-14s", message);
+    printf("| Dn: %-13s ", message);
 
     // Display upload totals.
     StringCchPrintfA(message, sizeof(message), "%d@%.0fKB/s",
         whoTotal.usersUp, whoTotal.speedUp);
-    printf("| Up: %-14s", message);
+    printf("| Up: %-13s ", message);
 
     // Display download, upload, and idle totals.
     StringCchPrintfA(message, sizeof(message), "%d@%.0fKB/s",
         whoTotal.usersDn + whoTotal.usersUp + whoTotal.usersIdle,
         whoTotal.speedDn + whoTotal.speedUp);
-    printf("| All: %-14s |\n", message);
+    printf("| All: %-13s |\n", message);
 
-    printf("`-------------------------------------------------------------'\n");
+    printf("`------------------------------------------------------------'\n");
 
     // Clean up.
     Io_ShmFree(memory);
@@ -142,7 +142,7 @@ DisplayUser(
             break;
     }
 
-    printf("| %3d | %-10s | %-10s | %-8s | %-16s |\n",
+    printf("| %3d | %-10s | %-10s | %-8s | %-15s |\n",
         info->connId, info->userName, info->groupName, status, clientIp);
 
     return IO_ONLINEDATA_CONTINUE;
