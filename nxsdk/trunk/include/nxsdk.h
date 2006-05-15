@@ -407,7 +407,7 @@ BOOL
 STDCALL
 Io_VfsFlush(
     IO_MEMORY *memory,
-    const char *dirPath
+    const char *path
     );
 
 BOOL
