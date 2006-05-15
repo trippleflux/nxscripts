@@ -61,7 +61,7 @@ Io_GetBinaryPath(
     }
 
     if (EnumProcessModules(process, &module, sizeof(module), &needed) &&
-            GetModuleFileNameEx(process, module, path, pathLength)) {
+            GetModuleFileNameExA(process, module, path, pathLength)) {
         result = TRUE;
     }
 

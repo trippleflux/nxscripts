@@ -103,12 +103,12 @@ Io_ShmAlloc(
         return NULL;
     }
 
-    event = CreateEvent(NULL, FALSE, FALSE, NULL);
+    event = CreateEventA(NULL, FALSE, FALSE, NULL);
     if (event != NULL) {
         size += sizeof(DC_MESSAGE);
 
         // Allocate memory in local process.
-        mapping = CreateFileMapping(INVALID_HANDLE_VALUE, NULL,
+        mapping = CreateFileMappingA(INVALID_HANDLE_VALUE, NULL,
             PAGE_READWRITE|SEC_COMMIT, 0, size, NULL);
 
         if (mapping != NULL) {
