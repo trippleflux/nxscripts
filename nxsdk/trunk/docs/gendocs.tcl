@@ -199,8 +199,22 @@ proc WriteHeader {handle title} {
 </head>
 
 <body topmargin="0" leftmargin="0" marginheight="0" marginwidth="0" bgcolor="#FFFFFF" text="#000000">
-<table class="clsContainer" cellpadding="10" cellspacing="0" float="left" width="100%" border="1">
+<table class="clsContainer" cellpadding="10" cellspacing="0" float="left" width="100%" border="1">}
+
+    puts $handle "<tr>"
+    puts $handle "<td valign=\"top\">"
+    puts $handle "  <center><h1>$title</h1></center>"
 }
+
+proc WriteIndex {handle anchors} {
+    puts $handle "  <p><ul>"
+    foreach {name target} $anchors {
+    puts $handle "  <li>$target</li>"
+    }
+    puts $handle "  </ul></p>"
+    puts $handle "</td>"
+    puts $handle "</tr>"
+    puts $handle ""
 }
 
 proc WriteEntry {handle name anchor intro code args} {
@@ -210,7 +224,7 @@ proc WriteEntry {handle name anchor intro code args} {
     puts $handle "<!-- Start $name -->"
     puts $handle "<tr>"
     puts $handle "<td valign=\"top\">"
-    puts $handle "<h1><a name=\"$anchor\"></a>$name</h1>"
+    puts $handle "<h2><a name=\"$anchor\"></a>$name</h2>"
     puts $handle ""
 
     # Intro
@@ -371,7 +385,7 @@ foreach {desc code} $funcList {
     }
     set code $result
 
-    set anchor "[string tolower $name]_func"
+    set anchor "#[string tolower $name]_func"
     set funcs($name) [list $anchor $code $text(intro) $text(args) $text(remarks) $text(retvals)]
 }
 
@@ -412,7 +426,7 @@ foreach {desc code} $structList {
     }
     set code $result
 
-    set anchor "[string tolower $name]_struct"
+    set anchor "#[string tolower $name]_struct"
     set structs($name) [list $anchor $code $text(intro) $text(members) $text(remarks)]
 }
 
@@ -421,25 +435,19 @@ foreach {desc code} $structList {
 puts "- Transforming data"
 
 set funcLinks [list]
-set funcLinksMap [list]
 set funcNames [lsort [array names funcs]]
 set structLinks [list]
-set structLinksMap [list]
 set structNames [lsort [array names structs]]
 
 # Build a list of anchor names.
 foreach name $funcNames {
     set anchor [lindex $funcs($name) 0]
-    set target "functions.htm#$anchor"
-    lappend funcLinks $name $target
-    lappend funcLinksMap $name "<a href=\"$target\"><b>$name</b></a>"
+    lappend funcLinks $name "<a href=\"functions.htm$anchor\"><b>$name</b></a>"
 }
 
 foreach name $structNames {
     set anchor [lindex $structs($name) 0]
-    set target "structures.htm#$anchor"
-    lappend structLinks $name $target
-    lappend structLinksMap $name "<a href=\"$target\"><b>$name</b></a>"
+    lappend structLinks $name "<a href=\"structures.htm$anchor\"><b>$name</b></a>"
 }
 
 # Bold names and link references to other functions and structures.
@@ -447,7 +455,7 @@ foreach name $funcNames {
     foreach {anchor code intro args remarks retvals} $funcs($name) {break}
 
     set mapping [list $name "<b>$name</b>"]
-    eval lappend mapping $funcLinksMap $structLinksMap
+    eval lappend mapping $funcLinks $structLinks
 
     set intro   [MapText $mapping $intro]
     set args    [MapArgs $mapping $args]
@@ -461,7 +469,7 @@ foreach name $structNames {
     foreach {anchor code intro members remarks} $structs($name) {break}
 
     set mapping [list $name "<b>$name</b>"]
-    eval lappend mapping $funcLinksMap $structLinksMap
+    eval lappend mapping $funcLinks $structLinks
 
     set intro   [MapText $mapping $intro]
     set members [MapArgs $mapping $members]
@@ -476,6 +484,7 @@ puts "- Writing functions"
 
 set handle [open "functions.htm" "w"]
 WriteHeader $handle "Functions"
+WriteIndex $handle $funcLinks
 
 foreach name $funcNames {
     foreach {anchor code intro args remarks retvals} $funcs($name) {break}
@@ -489,6 +498,7 @@ close $handle
 puts "- Writing structures"
 set handle [open "structures.htm" "w"]
 WriteHeader $handle "Structures"
+WriteIndex $handle $structLinks
 
 foreach name $structNames {
     foreach {anchor code intro members remarks} $structs($name) {break}
