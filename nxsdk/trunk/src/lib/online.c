@@ -89,9 +89,10 @@ Io_GetOnlineDataEx(
     dcOnlineData->iOffset = 0;
     dcOnlineData->dwSharedMemorySize = memory->size;
 
-    for (;;) {
+    while (dcOnlineData->iOffset >= 0) {
         result = Io_ShmQuery(memory, DC_GET_ONLINEDATA, 5000);
-        DebugPrint("Io_GetOnlineDataEx: offset=%d result=%lu\n", dcOnlineData->iOffset, result);
+        DebugPrint("Io_GetOnlineDataEx: offset=%d result=%lu size=%lu\n",
+            dcOnlineData->iOffset, result, dcOnlineData->dwSharedMemorySize);
 
         if (!result) {
             // Initialise the IO_ONLINEDATAEX structure.
@@ -112,7 +113,7 @@ Io_GetOnlineDataEx(
             }
 
         } else if (result == (DWORD)-1) {
-            // An error occured.
+            // An error occured or we've processed all online data.
             break;
 
         } else {
@@ -180,9 +181,10 @@ Io_GetOnlineData(
     dcOnlineData->iOffset = 0;
     dcOnlineData->dwSharedMemorySize = memory->size;
 
-    for (;;) {
+    while (dcOnlineData->iOffset >= 0) {
         result = Io_ShmQuery(memory, DC_GET_ONLINEDATA, 5000);
-        DebugPrint("Io_GetOnlineData: offset=%d result=%lu\n", dcOnlineData->iOffset, result);
+        DebugPrint("Io_GetOnlineData: offset=%d result=%lu size=%lu\n",
+            dcOnlineData->iOffset, result, dcOnlineData->dwSharedMemorySize);
 
         if (!result) {
             if (callback(dcOnlineData->iOffset-1, &dcOnlineData->OnlineData, opaque) == IO_ONLINEDATA_STOP) {
@@ -191,7 +193,7 @@ Io_GetOnlineData(
             }
 
         } else if (result == (DWORD)-1) {
-            // An error occured.
+            // An error occured or we've processed all online data.
             break;
 
         } else {
