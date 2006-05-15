@@ -44,7 +44,6 @@ RFLAGS      = /r
 # -------------------------------------------------------------------------
 
 !if $(MSVCRT)
-!message
 !message CRT Library: msvcrt (dynamic)
 CRTLIB      = /MD
 !else
@@ -56,10 +55,12 @@ CRTLIB      = /MT
 !message Debug Symbols: On
 CFLAGS      = $(CFLAGS) /Zi $(CRTLIB)d /DDEBUG
 LFLAGS      = $(LFLAGS) /DEBUG
+LIBENTRY    =
 !else
 !message Debug Symbols: Off
 CFLAGS      = $(CFLAGS) /Ox /GF $(CRTLIB) /DNDEBUG
 LFLAGS      = $(LFLAGS) /RELEASE /OPT:REF
+LIBENTRY    = /ENTRY:DllMain
 !endif
 
 VERSION     = $(VERSION).0
@@ -112,7 +113,7 @@ LIB_OBJS = group.obj online.obj shmem.obj user.obj util.obj vfs.obj
 	$(RC) $(RFLAGS) /fo $@ $<
 
 nxsdk.dll: $(DLL_OBJS) $(LIB_OBJS)
-    $(LD) $(LFLAGS) /DEF:src\lib\lib.def /DLL /ENTRY:DllMain /OUT:$@ kernel32.lib psapi.lib user32.lib @<<
+    $(LD) $(LFLAGS) /DEF:src\lib\lib.def /DLL $(LIBENTRY) /OUT:$@ kernel32.lib psapi.lib user32.lib @<<
 $**
 <<
 
