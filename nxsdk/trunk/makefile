@@ -73,13 +73,23 @@ default: all
 all: dynamic static tools
 
 clean:
-    @DEL /F *.dll *.ilk *.lib *.exp *.exe *.obj *.pdb *.res
+    @ECHO Deleting object files...
+    -@DEL /F *.dll *.ilk *.lib *.exp *.exe *.obj *.pdb *.res 2> nul
+    @ECHO Deleting binary files...
+    -@DEL /F bin\*.dll 2> nul
+    -@DEL /F bin\*.exe 2> nul
+    -@DEL /F lib\*.lib 2> nul
 
 release: all
+    ECHO Moving binary files...
+    @IF NOT EXIST bin MKDIR bin
     @MOVE /Y *.dll bin > nul
     @MOVE /Y *.exe bin > nul
+    @IF NOT EXIST lib MKDIR lib
     @MOVE /Y *.lib lib > nul
-    @DEL /F *.ilk *.exp *.obj *.res
+    @ECHO Deleting object files...
+    -@DEL /F *.ilk *.exp *.obj *.res 2> nul
+    @ECHO Generating documentation...
     @CD doc
     @TCLSH gendocs.tcl > nul
     @CD ..
