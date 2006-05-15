@@ -210,6 +210,7 @@ Io_GroupGetFile(
     ZeroMemory(groupFile, sizeof(GROUPFILE));
     groupFile->Gid = -1;
 
+    SetLastError(ERROR_NO_SUCH_GROUP);
     return FALSE;
 }
 
@@ -240,13 +241,13 @@ Io_GroupSetFile(
     const GROUPFILE *groupFile
     )
 {
-    BOOL status = FALSE;
+    DWORD error = ERROR_SUCCESS;
 
     assert(memory    != NULL);
     assert(memory->size >= sizeof(GROUPFILE));
     assert(groupFile != NULL);
 
-    // Set the requested group ID.
+    // Set the specified group ID.
     ((GROUPFILE *)memory->block)->Gid = groupFile->Gid;
 
     if (!Io_ShmQuery(memory, DC_GROUPFILE_OPEN, 5000)) {
@@ -261,15 +262,21 @@ Io_GroupSetFile(
 
             // Unlock will update the group-file.
             Io_ShmQuery(memory, DC_GROUPFILE_UNLOCK, 5000);
-
-            status = TRUE;
+        } else {
+            error = ERROR_LOCK_FAILED;
         }
 
         // Close the group-file before returning.
         Io_ShmQuery(memory, DC_GROUPFILE_CLOSE, 5000);
+    } else {
+        error = ERROR_NO_SUCH_GROUP;
     }
 
-    return status;
+    if (error == ERROR_SUCCESS) {
+        return TRUE;
+    }
+    SetLastError(error);
+    return FALSE;
 }
 
 /*++
@@ -285,7 +292,7 @@ Arguments:
 
     groupId     - Specifies the group ID to resolve.
 
-    userName    - Pointer to the buffer that receives the group's name. The
+    groupName   - Pointer to the buffer that receives the group's name. The
                   buffer must be able to hold "_MAX_NAME+1" characters.
 
 Return Values:
@@ -318,6 +325,7 @@ Io_GroupIdToName(
     }
 
     groupName[0] = '\0';
+    SetLastError(ERROR_NO_SUCH_GROUP);
     return FALSE;
 }
 
@@ -370,5 +378,6 @@ Io_GroupNameToId(
     }
 
     *groupId = -1;
+    SetLastError(ERROR_NO_SUCH_GROUP);
     return FALSE;
 }

@@ -211,6 +211,7 @@ Io_UserGetFile(
     userFile->Uid = -1;
     userFile->Gid = -1;
 
+    SetLastError(ERROR_NO_SUCH_USER);
     return FALSE;
 }
 
@@ -241,13 +242,13 @@ Io_UserSetFile(
     const USERFILE *userFile
     )
 {
-    BOOL status = FALSE;
+    DWORD error = ERROR_SUCCESS;
 
     assert(memory   != NULL);
     assert(memory->size >= sizeof(USERFILE));
     assert(userFile != NULL);
 
-    // Set the requested user ID.
+    // Set the specified user ID.
     ((USERFILE *)memory->block)->Uid = userFile->Uid;
 
     if (!Io_ShmQuery(memory, DC_USERFILE_OPEN, 5000)) {
@@ -262,15 +263,21 @@ Io_UserSetFile(
 
             // Unlock will update the user-file.
             Io_ShmQuery(memory, DC_USERFILE_UNLOCK, 5000);
-
-            status = TRUE;
+        } else {
+            error = ERROR_LOCK_FAILED;
         }
 
         // Close the user-file before returning.
         Io_ShmQuery(memory, DC_USERFILE_CLOSE, 5000);
+    } else {
+        error = ERROR_NO_SUCH_USER;
     }
 
-    return status;
+    if (error == ERROR_SUCCESS) {
+        return TRUE;
+    }
+    SetLastError(error);
+    return FALSE;
 }
 
 /*++
@@ -319,6 +326,7 @@ Io_UserIdToName(
     }
 
     userName[0] = '\0';
+    SetLastError(ERROR_NO_SUCH_USER);
     return FALSE;
 }
 
@@ -371,5 +379,6 @@ Io_UserNameToId(
     }
 
     *userId = -1;
+    SetLastError(ERROR_NO_SUCH_USER);
     return FALSE;
 }
