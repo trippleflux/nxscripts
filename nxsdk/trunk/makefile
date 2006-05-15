@@ -19,7 +19,7 @@ MSVCRT      = 0
 IOFTPD_INC  = D:\ioFTPD\source\Include
 
 ## Release version.
-VERSION     = 0.2.0
+VERSION     = 0.3.0
 
 ## Compiler options
 AR          = lib
