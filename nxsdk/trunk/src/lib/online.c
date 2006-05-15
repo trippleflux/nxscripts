@@ -24,13 +24,13 @@ Io_GetOnlineData
 
 Arguments:
     memory  - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
-              buffer size must be at least sizeof(DC_ONLINEDATA)+(MAX_PATH+1)*2.
+              buffer size must be at least "sizeof(DC_ONLINEDATA) + (MAX_PATH+1)*2".
 
     routine - Callback invoked for each online data entry.
 
     opaque  - Argument passed to the callback, can be null if not required.
 
-Return Value:
+Return Values:
     None.
 
 --*/
@@ -87,7 +87,7 @@ Arguments:
 
     connId  - Connection ID to kick.
 
-Return Value:
+Return Values:
     None.
 
 --*/
@@ -114,7 +114,7 @@ Arguments:
 
     userId  - User ID to kick.
 
-Return Value:
+Return Values:
     None.
 
 --*/

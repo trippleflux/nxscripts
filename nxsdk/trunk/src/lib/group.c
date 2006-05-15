@@ -30,8 +30,10 @@ Arguments:
 
     groupId     - Location to store the group ID of the created group.
 
-Return Value:
-    A standard boolean result.
+Return Values:
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false).
 
 --*/
 BOOL
@@ -81,8 +83,10 @@ Arguments:
 
     newName     - The new group name.
 
-Return Value:
-    A standard boolean result.
+Return Values:
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false).
 
 --*/
 BOOL
@@ -127,8 +131,10 @@ Arguments:
 
     groupName   - The group name to delete.
 
-Return Value:
-    A standard boolean result.
+Return Values:
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false).
 
 --*/
 BOOL
@@ -172,8 +178,10 @@ Arguments:
 
     groupFile   - Pointer to a buffer to receive the GROUPFILE structure.
 
-Return Value:
-    A standard boolean result.
+Return Values:
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false).
 
 --*/
 BOOL
@@ -222,8 +230,10 @@ Arguments:
 
     groupFile   - Pointer to an initialised GROUPFILE structure.
 
-Return Value:
-    A standard boolean result.
+Return Values:
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false).
 
 --*/
 BOOL
@@ -285,8 +295,10 @@ Arguments:
     groupName   - Pointer to a buffer to receive the user name. The
                   buffer must be able to hold _MAX_NAME+1 characters.
 
-Return Value:
-    A standard boolean result.
+Return Values:
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false).
 
 --*/
 BOOL
@@ -334,8 +346,10 @@ Arguments:
 
     groupId     - Location to store the group ID.
 
-Return Value:
-    A standard boolean result.
+Return Values:
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false).
 
 --*/
 BOOL

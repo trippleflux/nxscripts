@@ -27,8 +27,10 @@ Arguments:
 
     session     - Pointer to the IO_SESSION structure to be initialised.
 
-Return Value:
-    A standard boolean result.
+Return Values:
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false).
 
 --*/
 BOOL
@@ -68,9 +70,11 @@ Arguments:
 Remarks:
     The allocated IO_MEMORY structure must be freed by Io_ShmFree.
 
-Return Value:
+Return Values:
     If the function succeeds, the return value is a pointer to a IO_MEMORY
-    structure. If the function fails, the return value is NULL.
+    structure.
+
+    If the function fails, the return value is NULL.
 
 --*/
 IO_MEMORY *
@@ -165,7 +169,7 @@ Io_ShmFree
 Arguments:
     memory  - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc.
 
-Return Value:
+Return Values:
     None.
 
 --*/
@@ -205,7 +209,7 @@ Arguments:
 
     timeOut - Time-out interval, in milliseconds.
 
-Return Value:
+Return Values:
     ioFTPD's query result, varies between query identifiers.
 
 --*/

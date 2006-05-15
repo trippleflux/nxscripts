@@ -24,14 +24,16 @@ Io_VfsRead
 
 Arguments:
     memory  - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
-              buffer size must be at least sizeof(DC_VFS) + strlen(path) + 1.
+              buffer size must be at least "sizeof(DC_VFS) + strlen(path) + 1".
 
     path    - The file or directory path to query.
 
     vfs     - Pointer to a IO_VFS structure.
 
-Return Value:
-    A standard boolean result.
+Return Values:
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false).
 
 --*/
 BOOL
@@ -76,14 +78,16 @@ Io_VfsWrite
 
 Arguments:
     memory  - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
-              buffer size must be at least sizeof(DC_VFS) + strlen(path) + 1.
+              buffer size must be at least "sizeof(DC_VFS) + strlen(path) + 1".
 
     path    - The file or directory path to query.
 
     vfs     - Pointer to a IO_VFS structure.
 
-Return Value:
-    A standard boolean result.
+Return Values:
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false).
 
 --*/
 BOOL
@@ -128,12 +132,14 @@ Io_VfsFlush
 
 Arguments:
     memory  - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
-              buffer size must be at least strlen(dirPath) + 1
+              buffer size must be at least "strlen(dirPath) + 1".
 
     dirPath - The directory path to flush.
 
-Return Value:
-    A standard boolean result.
+Return Values:
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false).
 
 --*/
 BOOL

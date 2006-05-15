@@ -120,8 +120,9 @@ Arguments:
 
     opaque      - Value passed to Io_GetOnlineData's opaque argument.
 
-Return Value:
+Return Values:
     ONLINEDATA_CONTINUE - Continues to the next online user.
+
     ONLINEDATA_STOP     - Stops the operation and returns.
 
 --*/

@@ -29,8 +29,10 @@ Arguments:
 
     pathLength  - Length of the buffer pointed to by path, in characters.
 
-Return Value:
-    A standard boolean result.
+Return Values:
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false).
 
 --*/
 BOOL
@@ -78,8 +80,10 @@ Arguments:
 
     startTime   - Location to store the start time.
 
-Return Value:
-    A standard boolean result.
+Return Values:
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false).
 
 --*/
 BOOL

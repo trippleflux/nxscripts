@@ -29,8 +29,10 @@ Arguments:
 
     reserved - Not used.
 
-Return Value:
-    Always returns non-zero (success).
+Return Values:
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false).
 
 */
 BOOL
