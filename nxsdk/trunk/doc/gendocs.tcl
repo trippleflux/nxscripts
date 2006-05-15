@@ -17,7 +17,7 @@ set baseDir ".."
 
 # Location of the input files.
 set inputFiles {
-    "src/nxsdk.h"
+    "include/nxsdk.h"
     "src/lib/*.c"
     "src/lib/*.h"
 }

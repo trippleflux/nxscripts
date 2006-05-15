@@ -27,7 +27,7 @@ CC          = cl
 LD          = link
 RC          = rc
 AFLAGS      = /nologo
-CFLAGS      = /nologo /I "$(IOFTPD_INC)" -I ".\src" /W4
+CFLAGS      = /nologo /I "$(IOFTPD_INC)" -I ".\include" /W4
 LFLAGS      = /nologo
 RFLAGS      = /r
 
@@ -76,11 +76,11 @@ clean:
     @DEL /F *.dll *.ilk *.lib *.exp *.exe *.obj *.pdb *.res
 
 release: all
-    @MOVE /Y *.dll bins > nul
-    @MOVE /Y *.exe bins > nul
-    @MOVE /Y *.lib bins > nul
+    @MOVE /Y *.dll bin > nul
+    @MOVE /Y *.exe bin > nul
+    @MOVE /Y *.lib lib > nul
     @DEL /F *.ilk *.exp *.obj *.res
-    @CD docs
+    @CD doc
     @TCLSH gendocs.tcl > nul
     @CD ..
 
