@@ -37,20 +37,20 @@ all of the shared memory functions implemented in ioFTPD, such as:
   Application binaries and dynamic libraries.
 
   kick.exe
-   - Example application, demonstrates how to kick online users.
-   - Source code is located in src\kick\.
+    - Example application, demonstrates how to kick online users.
+    - Source code is located in src\kick\.
 
   nxsdk.dll
-   - SDK library, contains all the shared memory functions.
-   - Source code is located in src\lib\.
+    - SDK library, contains all the shared memory functions.
+    - Source code is located in src\lib\.
 
   resolve.exe
-   - Example application, demonstrates how to resolve users and groups.
-   - Source code is located in src\resolve\.
+    - Example application, demonstrates how to resolve users and groups.
+    - Source code is located in src\resolve\.
 
   who.exe
-   - Example application, demonstrates how to display online users.
-   - Source code is located in src\kick\.
+    - Example application, demonstrates how to display online users.
+    - Source code is located in src\kick\.
 
   ############################################################
   # doc\                                                     #
@@ -59,10 +59,10 @@ all of the shared memory functions implemented in ioFTPD, such as:
   SDK documentation.
 
   functions.htm
-   - Documents public data structures in nxSDK.
+    - Documents public data structures in nxSDK.
 
   structures.htm
-   - Documents exported functions in nxSDK.
+    - Documents exported functions in nxSDK.
 
   ############################################################
   # include\                                                 #
@@ -71,7 +71,7 @@ all of the shared memory functions implemented in ioFTPD, such as:
   SDK header files.
 
   nxsdk.h
-   - Header file, defines all public data structures and exported functions.
+    - Header file, defines all public data structures and exported functions.
 
   ############################################################
   # lib\                                                     #
@@ -80,10 +80,10 @@ all of the shared memory functions implemented in ioFTPD, such as:
   SDK libraries.
 
   nxsdk.lib
-   - Dynamic library (dependency on nxsdk.dll).
+    - Dynamic library (dependency on nxsdk.dll).
 
   nxsdk-static.lib
-   - Static libraries (no dependency on nxsdk.dll).
+    - Static libraries (no dependency on nxsdk.dll).
 
   ############################################################
   # src\                                                     #
@@ -92,16 +92,16 @@ all of the shared memory functions implemented in ioFTPD, such as:
   SDK source code.
 
   kick\
-   - Source code for the "kick" application.
+    - Source code for the "kick" application.
 
   lib\
-   - Source code for the library.
+    - Source code for the library.
 
   resolve\
-   - Source code for the "resolve" application.
+    - Source code for the "resolve" application.
 
   who\
-   - Source code for the "who" application.
+    - Source code for the "who" application.
 
 ################################################################################
 # 3. Developing                                                                #
