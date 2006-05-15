@@ -36,6 +36,11 @@ Return Values:
 
     If the function fails, the return value is zero (false).
 
+Remarks:
+    This function retrieves the user name, group name, user file, and group file,
+    for all online users - so it is slower. Use the Io_GetOnlineData function
+    if you do not require this additional information.
+
 --*/
 BOOL
 STDCALL
@@ -130,6 +135,11 @@ Arguments:
 
 Return Values:
     None.
+
+Remarks:
+    The Io_GetOnlineDataEx function retrieves the user name, group name,
+    user file, and group file in addition to the online data. If you require
+    this additional information, you should use Io_GetOnlineDataEx.
 
 --*/
 void
