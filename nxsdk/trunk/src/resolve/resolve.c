@@ -20,19 +20,19 @@ Abstract:
 #include <time.h>
 #include <nxsdk.h>
 
-typedef BOOL (RESOLVE_ROUTINE)(
+typedef BOOL (ResolveProc)(
     IO_MEMORY *memory,
     const char *input
     );
 
-static RESOLVE_ROUTINE ResolveGroupId;
-static RESOLVE_ROUTINE ResolveGroupName;
-static RESOLVE_ROUTINE ResolveUserId;
-static RESOLVE_ROUTINE ResolveUserName;
+static ResolveProc ResolveGroupId;
+static ResolveProc ResolveGroupName;
+static ResolveProc ResolveUserId;
+static ResolveProc ResolveUserName;
 
 struct {
     char *name;
-    RESOLVE_ROUTINE *routine;
+    ResolveProc *proc;
 } static const types[] = {
     {"gid",   ResolveGroupId},
     {"group", ResolveGroupName},
@@ -72,7 +72,7 @@ int main(int argc, char **argv)
     for (i = 0; i < sizeof(types)/sizeof(types[0]); i++) {
         if (strcmp(types[i].name, argv[2]) == 0) {
             // Resolve the ID/name.
-            result = types[i].routine(memory, argv[3]);
+            result = types[i].proc(memory, argv[3]);
             break;
         }
     }

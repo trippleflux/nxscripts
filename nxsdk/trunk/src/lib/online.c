@@ -23,13 +23,13 @@ Io_GetOnlineDataEx
     Retrieves extended online data.
 
 Arguments:
-    memory  - Pointer to an IO_MEMORY structure allocated by Io_ShmAlloc. The
-              buffer size must be at least "sizeof(DC_ONLINEDATA) + (MAX_PATH+1)*2".
+    memory   - Pointer to an IO_MEMORY structure allocated by Io_ShmAlloc. The
+               buffer size must be at least "sizeof(DC_ONLINEDATA) + (MAX_PATH+1)*2".
 
-    routine - Pointer to a Io_OnlineDataExRoutine callback function that is
-              called for each online user.
+    callback - Pointer to a Io_OnlineDataExProc callback function that is
+               called for each online user.
 
-    opaque  - Argument passed to the callback, can be NULL if not required.
+    opaque   - Argument passed to the callback, can be NULL if not required.
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).
@@ -41,7 +41,7 @@ BOOL
 STDCALL
 Io_GetOnlineDataEx(
     IO_MEMORY *memory,
-    Io_OnlineDataExRoutine *routine,
+    Io_OnlineDataExProc *callback,
     void *opaque
     )
 {
@@ -52,10 +52,11 @@ Io_GetOnlineDataEx(
     IO_ONLINEDATAEX onlineDataEx;
     IO_SESSION session;
 
-    assert(memory  != NULL);
+    assert(memory   != NULL);
     assert(memory->size >= sizeof(DC_ONLINEDATA) + (MAX_PATH+1)*2);
-    assert(routine != NULL);
-    DebugPrint("Io_GetOnlineDataEx: memory=%p routine=%p opaque=%p\n", memory, routine, opaque);
+    assert(callback != NULL);
+    DebugPrint("Io_GetOnlineDataEx: memory=%p callback=%p opaque=%p\n",
+        memory, callback, opaque);
 
     // Initialise a session structure.
     session.window = memory->window;
@@ -93,7 +94,7 @@ Io_GetOnlineDataEx(
             Io_GroupGetFile(memEx, onlineDataEx.userFile.Gid, &onlineDataEx.groupFile);
             Io_GroupIdToName(memEx, onlineDataEx.userFile.Gid, onlineDataEx.groupName);
 
-            if (routine(&onlineDataEx, opaque) == IO_ONLINEDATA_STOP) {
+            if (callback(&onlineDataEx, opaque) == IO_ONLINEDATA_STOP) {
                 // The caller requested to stop.
                 break;
             }
@@ -119,13 +120,13 @@ Io_GetOnlineData
     Retrieves online data.
 
 Arguments:
-    memory  - Pointer to an IO_MEMORY structure allocated by Io_ShmAlloc. The
-              buffer size must be at least "sizeof(DC_ONLINEDATA) + (MAX_PATH+1)*2".
+    memory   - Pointer to an IO_MEMORY structure allocated by Io_ShmAlloc. The
+               buffer size must be at least "sizeof(DC_ONLINEDATA) + (MAX_PATH+1)*2".
 
-    routine - Pointer to a Io_OnlineDataRoutine callback function that is
-              called for each online user.
+    callback - Pointer to a Io_OnlineDataProc callback function that is
+               called for each online user.
 
-    opaque  - Argument passed to the callback, can be NULL if not required.
+    opaque   - Argument passed to the callback, can be NULL if not required.
 
 Return Values:
     None.
@@ -135,17 +136,18 @@ void
 STDCALL
 Io_GetOnlineData(
     IO_MEMORY *memory,
-    Io_OnlineDataRoutine *routine,
+    Io_OnlineDataProc *callback,
     void *opaque
     )
 {
     DWORD result;
     DC_ONLINEDATA *dcOnlineData;
 
-    assert(memory  != NULL);
+    assert(memory   != NULL);
     assert(memory->size >= sizeof(DC_ONLINEDATA) + (MAX_PATH+1)*2);
-    assert(routine != NULL);
-    DebugPrint("Io_GetOnlineData: memory=%p routine=%p opaque=%p\n", memory, routine, opaque);
+    assert(callback != NULL);
+    DebugPrint("Io_GetOnlineData: memory=%p callback=%p opaque=%p\n",
+        memory, callback, opaque);
 
     // Initialise the data-copy structure for online information.
     dcOnlineData = (DC_ONLINEDATA *)memory->block;
@@ -157,7 +159,7 @@ Io_GetOnlineData(
         DebugPrint("Io_GetOnlineData: offset=%d result=%lu\n", dcOnlineData->iOffset, result);
 
         if (result == 0) {
-            if (routine(dcOnlineData->iOffset-1, &dcOnlineData->OnlineData, opaque) == IO_ONLINEDATA_STOP) {
+            if (callback(dcOnlineData->iOffset-1, &dcOnlineData->OnlineData, opaque) == IO_ONLINEDATA_STOP) {
                 // The caller requested to stop.
                 break;
             }

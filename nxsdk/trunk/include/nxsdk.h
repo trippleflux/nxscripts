@@ -147,9 +147,9 @@ typedef struct {
 
 /*++
 
-Io_OnlineDataRoutine
+Io_OnlineDataProc
 
-    Callback routine used by Io_GetOnlineData.
+    Callback function used by Io_GetOnlineData.
 
 Arguments:
     connId      - Specifies the connection ID.
@@ -164,7 +164,7 @@ Return Values:
     IO_ONLINEDATA_STOP     - Stops the operation and returns.
 
 --*/
-typedef BOOL (STDCALL Io_OnlineDataRoutine)(
+typedef BOOL (STDCALL Io_OnlineDataProc)(
     int connId,
     ONLINEDATA *onlineData,
     void *opaque
@@ -172,9 +172,9 @@ typedef BOOL (STDCALL Io_OnlineDataRoutine)(
 
 /*++
 
-Io_OnlineDataExRoutine
+Io_OnlineDataExProc
 
-    Callback routine used by Io_GetOnlineDataEx.
+    Callback function used by Io_GetOnlineDataEx.
 
 Arguments:
     onlineDataEx - Pointer to the connection's IO_ONLINEDATAEX structure.
@@ -187,7 +187,7 @@ Return Values:
     IO_ONLINEDATA_STOP     - Stops the operation and returns.
 
 --*/
-typedef BOOL (STDCALL Io_OnlineDataExRoutine)(
+typedef BOOL (STDCALL Io_OnlineDataExProc)(
     IO_ONLINEDATAEX *onlineDataEx,
     void *opaque
     );
@@ -372,7 +372,7 @@ void
 STDCALL
 Io_GetOnlineData(
     IO_MEMORY *memory,
-    Io_OnlineDataRoutine *routine,
+    Io_OnlineDataProc *callback,
     void *opaque
     );
 
@@ -380,7 +380,7 @@ BOOL
 STDCALL
 Io_GetOnlineDataEx(
     IO_MEMORY *memory,
-    Io_OnlineDataExRoutine *routine,
+    Io_OnlineDataExProc *callback,
     void *opaque
     );
 
