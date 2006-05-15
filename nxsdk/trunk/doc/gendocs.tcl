@@ -445,8 +445,8 @@ puts "- Transforming data"
 foreach name $funcNames {
     foreach {anchor code intro args remarks retvals} $funcs($name) {break}
 
-    set mapping [list $name "<b>$name</b>"]
-    eval lappend mapping $funcLinks $structLinks
+    set mapping [concat $funcLinks $structLinks]
+    lappend mapping $name "<b>$name</b>"
 
     set intro   [MapText $mapping $intro]
     set args    [MapArgs $mapping $args]
@@ -459,8 +459,8 @@ foreach name $funcNames {
 foreach name $structNames {
     foreach {anchor code intro members remarks} $structs($name) {break}
 
-    set mapping [list $name "<b>$name</b>"]
-    eval lappend mapping $funcLinks $structLinks
+    set mapping [concat $funcLinks $structLinks]
+    lappend mapping $name "<b>$name</b>"
 
     set intro   [MapText $mapping $intro]
     set members [MapArgs $mapping $members]
