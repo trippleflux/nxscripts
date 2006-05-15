@@ -23,12 +23,14 @@ Io_VfsRead
     Retrieves the ownership and permissions for a file or directory.
 
 Arguments:
-    memory  - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
+    memory  - Pointer to an IO_MEMORY structure allocated by Io_ShmAlloc. The
               buffer size must be at least "sizeof(DC_VFS) + strlen(path) + 1".
 
-    path    - The file or directory path to query.
+    path    - Pointer to a null-terminated string that specifies the path to
+              read VFS information from.
 
-    vfs     - Pointer to a IO_VFS structure.
+    vfs     - Pointer to an IO_VFS structure that receives the ownership and
+              permission information.
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).
@@ -77,12 +79,14 @@ Io_VfsWrite
     Sets the ownership and permissions for a file or directory.
 
 Arguments:
-    memory  - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
+    memory  - Pointer to an IO_MEMORY structure allocated by Io_ShmAlloc. The
               buffer size must be at least "sizeof(DC_VFS) + strlen(path) + 1".
 
-    path    - The file or directory path to query.
+    path    - Pointer to a null-terminated string that specifies the path to
+              write VFS information to.
 
-    vfs     - Pointer to a IO_VFS structure.
+    vfs     - Pointer to an IO_VFS structure that contains the new ownership
+              and permission information.
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).
@@ -128,13 +132,14 @@ Io_VfsWrite(
 
 Io_VfsFlush
 
-    Flush the directory cache for a specified path.
+    Flushes the directory cache for a specified path.
 
 Arguments:
-    memory  - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
+    memory  - Pointer to an IO_MEMORY structure allocated by Io_ShmAlloc. The
               buffer size must be at least "strlen(dirPath) + 1".
 
-    dirPath - The directory path to flush.
+    dirPath - Pointer to a null-terminated string that specifies the directory
+              path to be flushed.
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).

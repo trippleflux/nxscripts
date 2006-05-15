@@ -23,7 +23,7 @@ Io_GetOnlineData
     Retrieves online data.
 
 Arguments:
-    memory  - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
+    memory  - Pointer to an IO_MEMORY structure allocated by Io_ShmAlloc. The
               buffer size must be at least "sizeof(DC_ONLINEDATA) + (MAX_PATH+1)*2".
 
     routine - Callback invoked for each online data entry.
@@ -83,9 +83,9 @@ Io_KickConnId
     Kicks the specified connection ID.
 
 Arguments:
-    session - Pointer to a IO_SESSION structure initialised by Io_ShmInit.
+    session - Pointer to an IO_SESSION structure initialised by Io_ShmInit.
 
-    connId  - Connection ID to kick.
+    connId  - Specifies the connection ID to kick.
 
 Return Values:
     None.
@@ -110,9 +110,9 @@ Io_KickUserId
     Kicks the specified user ID.
 
 Arguments:
-    session - Pointer to a IO_SESSION structure initialised by Io_ShmInit.
+    session - Pointer to an IO_SESSION structure initialised by Io_ShmInit.
 
-    userId  - User ID to kick.
+    userId  - Specifies the user ID to kick.
 
 Return Values:
     None.

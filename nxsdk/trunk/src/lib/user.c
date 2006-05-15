@@ -23,12 +23,14 @@ Io_UserCreate
     Creates a new user.
 
 Arguments:
-    memory      - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
-                  buffer size must be large enough to hold the DC_NAMEID structure.
+    memory      - Pointer to an IO_MEMORY structure allocated by Io_ShmAlloc.
+                  The buffer size must be large enough to hold the DC_NAMEID
+                  structure.
 
-    userName    - The user name to create.
+    userName    - Pointer to a null-terminated string that specifies the user
+                  name to create.
 
-    userId      - Location to store the user ID of the created user.
+    userId      - Receives the user ID of the created user.
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).
@@ -76,12 +78,14 @@ Io_UserRename
     Renames an existing user.
 
 Arguments:
-    memory      - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
+    memory      - Pointer to an IO_MEMORY structure allocated by Io_ShmAlloc. The
                   buffer size must be large enough to hold the DC_RENAME structure.
 
-    userName    - The user name to rename.
+    userName    - Pointer to a null-terminated string that specifies an
+                  existing user name.
 
-    newName     - The new user name.
+    newName     - Pointer to a null-terminated string that specifies the new
+                  name for the user.
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).
@@ -126,10 +130,12 @@ Io_UserDelete
     Deletes a user.
 
 Arguments:
-    memory      - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
-                  buffer size must be large enough to hold the DC_NAMEID structure.
+    memory      - Pointer to an IO_MEMORY structure allocated by Io_ShmAlloc.
+                  The buffer size must be large enough to hold the DC_NAMEID
+                  structure.
 
-    userName    - The user name to delete.
+    userName    - Pointer to a null-terminated string that specifies the user
+                  to be deleted
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).
@@ -168,15 +174,17 @@ Io_UserDelete(
 
 Io_UserGetFile
 
-    Retrieves the USERFILE structure for a given a user ID.
+    Retrieves the USERFILE structure for a specified user ID.
 
 Arguments:
-    memory      - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
-                  buffer size must be large enough to hold the USERFILE structure.
+    memory      - Pointer to an IO_MEMORY structure allocated by Io_ShmAlloc.
+                  The buffer size must be large enough to hold the USERFILE
+                  structure.
 
-    userId      - The user ID to look up.
+    userId      - Specifies the user ID to look-up.
 
-    userFile    - Pointer to a buffer to receive the USERFILE structure.
+    userFile    - Pointer to a USERFILE structure that receives the user
+                  information.
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).
@@ -223,13 +231,15 @@ Io_UserGetFile(
 
 Io_UserSetFile
 
-    Updates the USERFILE structure for a user.
+    Updates the USERFILE structure for a specified user ID.
 
 Arguments:
-    memory      - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
-                  buffer size must be large enough to hold the USERFILE structure.
+    memory      - Pointer to an IO_MEMORY structure allocated by Io_ShmAlloc.
+                  The buffer size must be large enough to hold the USERFILE
+                  structure.
 
-    userFile    - Pointer to an initialised USERFILE structure.
+    userFile    - Pointer to a USERFILE structure that contains the new user
+                  information.
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).
@@ -259,6 +269,7 @@ Io_UserSetFile(
             //
             // Copy the USERFILE structure to the shared memory block
             // after locking, since the open call will overwrite it.
+            //
             // The lpInternal and lpParent members must not be changed!
             //
             CopyMemory(memory->block, userFile, offsetof(USERFILE, lpInternal));
@@ -288,13 +299,14 @@ Io_UserIdToName
     Resolves a user ID to its corresponding user name.
 
 Arguments:
-    memory      - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
-                  buffer size must be large enough to hold the DC_NAMEID structure.
+    memory      - Pointer to an IO_MEMORY structure allocated by Io_ShmAlloc.
+                  The buffer size must be large enough to hold the DC_NAMEID
+                  structure.
 
-    userId      - The user ID to resolve.
+    userId      - Specifies the user ID to resolve.
 
-    userName    - Pointer to a buffer to receive the user name. The
-                  buffer must be able to hold _MAX_NAME+1 characters.
+    userName    - Pointer to the buffer that receives the user's name. The
+                  buffer must be able to hold "_MAX_NAME+1" characters.
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).
@@ -340,12 +352,14 @@ Io_UserNameToId
     Resolves a user name to its corresponding user ID.
 
 Arguments:
-    memory      - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc. The
-                  buffer size must be large enough to hold the DC_NAMEID structure.
+    memory      - Pointer to an IO_MEMORY structure allocated by Io_ShmAlloc.
+                  The buffer size must be large enough to hold the DC_NAMEID
+                  structure.
 
-    userName    - The user name to resolve.
+    userName    - Pointer to a null-terminated string that specifies the user
+                  name to resolve.
 
-    userId      - Location to store the user ID.
+    userId      - Receives the user's ID.
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).

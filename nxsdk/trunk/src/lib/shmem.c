@@ -20,12 +20,13 @@ Abstract:
 
 Io_ShmInit
 
-    Initialise a shared memory session.
+    Initialises a shared memory session.
 
 Arguments:
     windowName  - Name of ioFTPD's message window.
 
-    session     - Pointer to the IO_SESSION structure to be initialised.
+    session     - Pointer to an IO_SESSION structure that receives the
+                  message window information.
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).
@@ -63,18 +64,18 @@ Io_ShmAlloc
     Allocates shared memory.
 
 Arguments:
-    session - Pointer to a IO_SESSION structure initialised by Io_ShmInit.
+    session - Pointer to an IO_SESSION structure initialised by Io_ShmInit.
 
-    size    - Size of the shared memory block to be allocated, in bytes.
-
-Remarks:
-    The allocated IO_MEMORY structure must be freed by Io_ShmFree.
+    size    - Size of the shared memory block to allocate, in bytes.
 
 Return Values:
-    If the function succeeds, the return value is a pointer to a IO_MEMORY
+    If the function succeeds, the return value is a pointer to an IO_MEMORY
     structure.
 
     If the function fails, the return value is NULL.
+
+Remarks:
+    The allocated IO_MEMORY structure must be freed by Io_ShmFree.
 
 --*/
 IO_MEMORY *
@@ -167,7 +168,7 @@ Io_ShmFree
     Frees shared memory.
 
 Arguments:
-    memory  - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc.
+    memory  - Pointer to an IO_MEMORY structure allocated by Io_ShmAlloc.
 
 Return Values:
     None.
@@ -200,14 +201,14 @@ Io_ShmFree(
 
 Io_ShmQuery
 
-    Queries the ioFTPD daemon.
+    Queries ioFTPD's message window.
 
 Arguments:
-    memory  - Pointer to a IO_MEMORY structure allocated by Io_ShmAlloc.
+    memory  - Pointer to an IO_MEMORY structure allocated by Io_ShmAlloc.
 
-    queryId - Query identifier, defined in ioFTPD's DataCopy.h.
+    queryId - Query identifier; defined in ioFTPD's DataCopy.h file.
 
-    timeOut - Time-out interval, in milliseconds.
+    timeOut - Time out interval, in milliseconds.
 
 Return Values:
     ioFTPD's query result, varies between query identifiers.
