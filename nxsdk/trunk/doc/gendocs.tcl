@@ -22,6 +22,13 @@ set inputFiles {
     "include/nxsdk.h"
 }
 
+# Keywords to bold.
+set keywords {
+    FILETIME
+    GetLastError
+    SetLastError
+}
+
 ################################################################################
 
 proc BufferFile {path} {
@@ -441,11 +448,16 @@ foreach {desc code} $structList {
 
 puts "- Transforming data"
 
-# Bold names and link references to other functions and structures.
+set keywordMap [list]
+foreach keyword $keywords {
+    lappend keywordMap $keyword "<b>$keyword</b>"
+}
+
+# Bold keywords, names, and link references to other functions and structures.
 foreach name $funcNames {
     foreach {anchor code intro args remarks retvals} $funcs($name) {break}
 
-    set mapping [concat $funcLinks $structLinks]
+    set mapping [concat $funcLinks $structLinks $keywordMap]
     lappend mapping $name "<b>$name</b>"
 
     set intro   [MapText $mapping $intro]
@@ -459,7 +471,7 @@ foreach name $funcNames {
 foreach name $structNames {
     foreach {anchor code intro members remarks} $structs($name) {break}
 
-    set mapping [concat $funcLinks $structLinks]
+    set mapping [concat $funcLinks $structLinks $keywordMap]
     lappend mapping $name "<b>$name</b>"
 
     set intro   [MapText $mapping $intro]
