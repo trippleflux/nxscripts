@@ -122,7 +122,7 @@ Alcoext_Init(
 
     // Allocate state structure.
     state = (ExtState *)ckalloc(sizeof(ExtState));
-    memset(&state, 0, sizeof(ExtState));
+    memset(state, 0, sizeof(ExtState));
     state->interp = interp;
 
     state->cryptTable = (Tcl_HashTable *)ckalloc(sizeof(Tcl_HashTable));
