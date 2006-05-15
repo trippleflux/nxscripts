@@ -193,7 +193,6 @@ proc WriteHeader {handle title} {
     }
   </style>
 
-  <link rel="stylesheet" type="text/css" href="default.css" />
   <link rel="stylesheet" type="text/css" href="ie4.css" />
   <link rel="stylesheet" type="text/css" href="ie5.css" />
 </head>
