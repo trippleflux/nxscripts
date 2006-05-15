@@ -49,10 +49,17 @@ Io_GroupCreate(
     DC_NAMEID *dcNameId;
     DWORD result;
 
-    assert(memory    != NULL);
-    assert(memory->size >= sizeof(DC_NAMEID));
-    assert(groupName != NULL);
-    assert(groupId   != NULL);
+    // Validate arguments.
+    if (memory == NULL || groupName == NULL || groupId == NULL) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+
+    // Check if the shared memory block is large enough.
+    if (memory->size < sizeof(DC_NAMEID)) {
+        SetLastError(ERROR_INSUFFICIENT_BUFFER);
+        return FALSE;
+    }
 
     // Initialise the DC_NAMEID structure.
     dcNameId = (DC_NAMEID *)memory->block;
@@ -100,10 +107,17 @@ Io_GroupRename(
 {
     DC_RENAME *dcRename;
 
-    assert(memory    != NULL);
-    assert(memory->size >= sizeof(DC_RENAME));
-    assert(groupName != NULL);
-    assert(newName   != NULL);
+    // Validate arguments.
+    if (memory == NULL || groupName == NULL || newName == NULL) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+
+    // Check if the shared memory block is large enough.
+    if (memory->size < sizeof(DC_RENAME)) {
+        SetLastError(ERROR_INSUFFICIENT_BUFFER);
+        return FALSE;
+    }
 
     // Initialise the DC_RENAME structure.
     dcRename = (DC_RENAME *)memory->block;
@@ -146,9 +160,17 @@ Io_GroupDelete(
 {
     DC_NAMEID *dcNameId;
 
-    assert(memory    != NULL);
-    assert(memory->size >= sizeof(DC_NAMEID));
-    assert(groupName != NULL);
+    // Validate arguments.
+    if (memory == NULL || groupName == NULL) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+
+    // Check if the shared memory block is large enough.
+    if (memory->size < sizeof(DC_NAMEID)) {
+        SetLastError(ERROR_INSUFFICIENT_BUFFER);
+        return FALSE;
+    }
 
     // Initialise the DC_NAMEID structure.
     dcNameId = (DC_NAMEID *)memory->block;
@@ -191,9 +213,17 @@ Io_GroupGetFile(
     GROUPFILE *groupFile
     )
 {
-    assert(memory    != NULL);
-    assert(memory->size >= sizeof(GROUPFILE));
-    assert(groupFile != NULL);
+    // Validate arguments.
+    if (memory == NULL || groupFile == NULL) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+
+    // Check if the shared memory block is large enough.
+    if (memory->size < sizeof(GROUPFILE)) {
+        SetLastError(ERROR_INSUFFICIENT_BUFFER);
+        return FALSE;
+    }
 
     // Set the specified group ID.
     ((GROUPFILE *)memory->block)->Gid = groupId;
@@ -243,9 +273,17 @@ Io_GroupSetFile(
 {
     DWORD error = ERROR_SUCCESS;
 
-    assert(memory    != NULL);
-    assert(memory->size >= sizeof(GROUPFILE));
-    assert(groupFile != NULL);
+    // Validate arguments.
+    if (memory == NULL || groupFile == NULL) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+
+    // Check if the shared memory block is large enough.
+    if (memory->size < sizeof(GROUPFILE)) {
+        SetLastError(ERROR_INSUFFICIENT_BUFFER);
+        return FALSE;
+    }
 
     // Set the specified group ID.
     ((GROUPFILE *)memory->block)->Gid = groupFile->Gid;
@@ -311,9 +349,17 @@ Io_GroupIdToName(
 {
     DC_NAMEID *dcNameId;
 
-    assert(memory    != NULL);
-    assert(memory->size >= sizeof(DC_NAMEID));
-    assert(groupName != NULL);
+    // Validate arguments.
+    if (memory == NULL || groupName == NULL) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+
+    // Check if the shared memory block is large enough.
+    if (memory->size < sizeof(DC_NAMEID)) {
+        SetLastError(ERROR_INSUFFICIENT_BUFFER);
+        return FALSE;
+    }
 
     // Initialise the DC_NAMEID structure.
     dcNameId = (DC_NAMEID *)memory->block;
@@ -362,10 +408,17 @@ Io_GroupNameToId(
     DC_NAMEID *dcNameId;
     DWORD result;
 
-    assert(memory    != NULL);
-    assert(memory->size >= sizeof(DC_NAMEID));
-    assert(groupName != NULL);
-    assert(groupId   != NULL);
+    // Validate arguments.
+    if (memory == NULL || groupName == NULL || groupId == NULL) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+
+    // Check if the shared memory block is large enough.
+    if (memory->size < sizeof(DC_NAMEID)) {
+        SetLastError(ERROR_INSUFFICIENT_BUFFER);
+        return FALSE;
+    }
 
     // Initialise the DC_NAMEID structure.
     dcNameId = (DC_NAMEID *)memory->block;

@@ -49,10 +49,17 @@ Io_UserCreate(
     DC_NAMEID *dcNameId;
     DWORD result;
 
-    assert(memory   != NULL);
-    assert(memory->size >= sizeof(DC_NAMEID));
-    assert(userName != NULL);
-    assert(userId   != NULL);
+    // Validate arguments.
+    if (memory == NULL || userName == NULL || userId == NULL) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+
+    // Check if the shared memory block is large enough.
+    if (memory->size < sizeof(DC_NAMEID)) {
+        SetLastError(ERROR_INSUFFICIENT_BUFFER);
+        return FALSE;
+    }
 
     // Initialise the DC_NAMEID structure.
     dcNameId = (DC_NAMEID *)memory->block;
@@ -100,10 +107,17 @@ Io_UserRename(
 {
     DC_RENAME *dcRename;
 
-    assert(memory   != NULL);
-    assert(memory->size >= sizeof(DC_RENAME));
-    assert(userName != NULL);
-    assert(newName  != NULL);
+    // Validate arguments.
+    if (memory == NULL || userName == NULL || newName == NULL) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+
+    // Check if the shared memory block is large enough.
+    if (memory->size < sizeof(DC_RENAME)) {
+        SetLastError(ERROR_INSUFFICIENT_BUFFER);
+        return FALSE;
+    }
 
     // Initialise the DC_RENAME structure.
     dcRename = (DC_RENAME *)memory->block;
@@ -146,9 +160,17 @@ Io_UserDelete(
 {
     DC_NAMEID *dcNameId;
 
-    assert(memory   != NULL);
-    assert(memory->size >= sizeof(DC_NAMEID));
-    assert(userName != NULL);
+    // Validate arguments.
+    if (memory == NULL || userName == NULL) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+
+    // Check if the shared memory block is large enough.
+    if (memory->size < sizeof(DC_NAMEID)) {
+        SetLastError(ERROR_INSUFFICIENT_BUFFER);
+        return FALSE;
+    }
 
     // Initialise the DC_NAMEID structure.
     dcNameId = (DC_NAMEID *)memory->block;
@@ -191,9 +213,17 @@ Io_UserGetFile(
     USERFILE *userFile
     )
 {
-    assert(memory   != NULL);
-    assert(memory->size >= sizeof(USERFILE));
-    assert(userFile != NULL);
+    // Validate arguments.
+    if (memory == NULL || userFile == NULL) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+
+    // Check if the shared memory block is large enough.
+    if (memory->size < sizeof(USERFILE)) {
+        SetLastError(ERROR_INSUFFICIENT_BUFFER);
+        return FALSE;
+    }
 
     // Set the specified user ID.
     ((USERFILE *)memory->block)->Uid = userId;
@@ -209,7 +239,6 @@ Io_UserGetFile(
     // Clear the user-file on failure.
     ZeroMemory(userFile, sizeof(USERFILE));
     userFile->Uid = -1;
-    userFile->Gid = -1;
 
     SetLastError(ERROR_NO_SUCH_USER);
     return FALSE;
@@ -244,9 +273,17 @@ Io_UserSetFile(
 {
     DWORD error = ERROR_SUCCESS;
 
-    assert(memory   != NULL);
-    assert(memory->size >= sizeof(USERFILE));
-    assert(userFile != NULL);
+    // Validate arguments.
+    if (memory == NULL || userFile == NULL) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+
+    // Check if the shared memory block is large enough.
+    if (memory->size < sizeof(USERFILE)) {
+        SetLastError(ERROR_INSUFFICIENT_BUFFER);
+        return FALSE;
+    }
 
     // Set the specified user ID.
     ((USERFILE *)memory->block)->Uid = userFile->Uid;
@@ -312,9 +349,17 @@ Io_UserIdToName(
 {
     DC_NAMEID *dcNameId;
 
-    assert(memory   != NULL);
-    assert(memory->size >= sizeof(DC_NAMEID));
-    assert(userName != NULL);
+    // Validate arguments.
+    if (memory == NULL || userName == NULL) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+
+    // Check if the shared memory block is large enough.
+    if (memory->size < sizeof(DC_NAMEID)) {
+        SetLastError(ERROR_INSUFFICIENT_BUFFER);
+        return FALSE;
+    }
 
     // Initialise the DC_NAMEID structure.
     dcNameId = (DC_NAMEID *)memory->block;
@@ -363,10 +408,17 @@ Io_UserNameToId(
     DC_NAMEID *dcNameId;
     DWORD result;
 
-    assert(memory   != NULL);
-    assert(memory->size >= sizeof(DC_NAMEID));
-    assert(userName != NULL);
-    assert(userId   != NULL);
+    // Validate arguments.
+    if (memory == NULL || userName == NULL || userId == NULL) {
+        SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+
+    // Check if the shared memory block is large enough.
+    if (memory->size < sizeof(DC_NAMEID)) {
+        SetLastError(ERROR_INSUFFICIENT_BUFFER);
+        return FALSE;
+    }
 
     // Initialise the DC_NAMEID structure.
     dcNameId = (DC_NAMEID *)memory->block;
