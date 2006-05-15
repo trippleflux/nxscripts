@@ -34,7 +34,8 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false).
+    If the function fails, the return value is zero (false). To get extended
+    error information, call GetLastError.
 
 Remarks:
     This function retrieves the user name, group name, user file, and group file,
@@ -142,7 +143,8 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false).
+    If the function fails, the return value is zero (false). To get extended
+    error information, call GetLastError.
 
 Remarks:
     The Io_GetOnlineDataEx function retrieves the user name, group name,
@@ -215,7 +217,8 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false).
+    If the function fails, the return value is zero (false). To get extended
+    error information, call GetLastError.
 
 --*/
 BOOL
@@ -249,7 +252,8 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false).
+    If the function fails, the return value is zero (false). To get extended
+    error information, call GetLastError.
 
 --*/
 BOOL

@@ -31,7 +31,8 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false).
+    If the function fails, the return value is zero (false). To get extended
+    error information, call GetLastError.
 
 --*/
 BOOL
@@ -74,7 +75,8 @@ Return Values:
     If the function succeeds, the return value is a pointer to an IO_MEMORY
     structure.
 
-    If the function fails, the return value is NULL.
+    If the function fails, the return value is NULL. To get extended error
+    information, call GetLastError.
 
 Remarks:
     The allocated IO_MEMORY structure must be freed by Io_ShmFree.
@@ -185,7 +187,10 @@ Arguments:
     memory  - Pointer to an IO_MEMORY structure allocated by Io_ShmAlloc.
 
 Return Values:
-    None.
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false). To get extended
+    error information, call GetLastError.
 
 --*/
 BOOL

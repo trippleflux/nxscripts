@@ -35,7 +35,8 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false).
+    If the function fails, the return value is zero (false). To get extended 
+    error information, call GetLastError.
 
 --*/
 BOOL
@@ -95,7 +96,8 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false).
+    If the function fails, the return value is zero (false). To get extended 
+    error information, call GetLastError.
 
 --*/
 BOOL
@@ -150,7 +152,8 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false).
+    If the function fails, the return value is zero (false). To get extended 
+    error information, call GetLastError.
 
 --*/
 BOOL
@@ -205,7 +208,8 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false).
+    If the function fails, the return value is zero (false). To get extended 
+    error information, call GetLastError.
 
 --*/
 BOOL
@@ -264,7 +268,8 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false).
+    If the function fails, the return value is zero (false). To get extended 
+    error information, call GetLastError.
 
 --*/
 BOOL
@@ -339,7 +344,8 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false).
+    If the function fails, the return value is zero (false). To get extended 
+    error information, call GetLastError.
 
 --*/
 BOOL
@@ -397,7 +403,8 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false).
+    If the function fails, the return value is zero (false). To get extended 
+    error information, call GetLastError.
 
 --*/
 BOOL
