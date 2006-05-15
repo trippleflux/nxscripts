@@ -10,7 +10,7 @@ Author:
     neoxed (neoxed@gmail.com) May 13, 2006
 
 Abstract:
-    Example tool to kick online users.
+    Example application, demonstrates how to kick online users.
 
 */
 
