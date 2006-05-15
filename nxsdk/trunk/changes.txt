@@ -1,4 +1,4 @@
-nxSDK v0.2.0 (not released):
+nxSDK v0.2.0 (May 15, 2006):
   NEW: Improved function documentation.
   NEW: Io_GetOnlineDataEx function to retrieve extended online information.
   CHG: Renamed several online types and constants for consistency.
