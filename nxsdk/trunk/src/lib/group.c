@@ -53,7 +53,6 @@ Io_GroupCreate(
     assert(memory->size >= sizeof(DC_NAMEID));
     assert(groupName != NULL);
     assert(groupId   != NULL);
-    DebugPrint("Io_GroupCreate: groupName=%s groupId=0x%p\n", groupName, groupId);
 
     // Initialise the DC_NAMEID structure.
     dcNameId = (DC_NAMEID *)memory->block;
@@ -62,12 +61,10 @@ Io_GroupCreate(
     result = Io_ShmQuery(memory, DC_CREATE_GROUP, 5000);
     if (result != (DWORD)-1) {
         *groupId = (int)result;
-        DebugPrint("Io_GroupCreate: OKAY\n");
         return TRUE;
     }
 
     *groupId = -1;
-    DebugPrint("Io_GroupCreate: FAIL\n");
     return FALSE;
 }
 
@@ -107,7 +104,6 @@ Io_GroupRename(
     assert(memory->size >= sizeof(DC_RENAME));
     assert(groupName != NULL);
     assert(newName   != NULL);
-    DebugPrint("Io_GroupRename: groupName=%s newName=%s\n", groupName, newName);
 
     // Initialise the DC_RENAME structure.
     dcRename = (DC_RENAME *)memory->block;
@@ -115,11 +111,9 @@ Io_GroupRename(
     StringCchCopyA(dcRename->tszNewName, ARRAYSIZE(dcRename->tszNewName), newName);
 
     if (!Io_ShmQuery(memory, DC_RENAME_GROUP, 5000)) {
-        DebugPrint("Io_GroupRename: OKAY\n");
         return TRUE;
     }
 
-    DebugPrint("Io_GroupRename: FAIL\n");
     return FALSE;
 }
 
@@ -155,18 +149,15 @@ Io_GroupDelete(
     assert(memory    != NULL);
     assert(memory->size >= sizeof(DC_NAMEID));
     assert(groupName != NULL);
-    DebugPrint("Io_GroupDelete: groupName=%s\n", groupName);
 
     // Initialise the DC_NAMEID structure.
     dcNameId = (DC_NAMEID *)memory->block;
     StringCchCopyA(dcNameId->tszName, ARRAYSIZE(dcNameId->tszName), groupName);
 
     if (!Io_ShmQuery(memory, DC_DELETE_GROUP, 5000)) {
-        DebugPrint("Io_GroupDelete: OKAY\n");
         return TRUE;
     }
 
-    DebugPrint("Io_GroupDelete: FAIL\n");
     return FALSE;
 }
 
@@ -203,9 +194,8 @@ Io_GroupGetFile(
     assert(memory    != NULL);
     assert(memory->size >= sizeof(GROUPFILE));
     assert(groupFile != NULL);
-    DebugPrint("Io_GroupGetFile: groupId=%d groupFile=0x%p\n", groupId, groupFile);
 
-    // Set the requested group ID.
+    // Set the specified group ID.
     ((GROUPFILE *)memory->block)->Gid = groupId;
 
     if (!Io_ShmQuery(memory, DC_GROUPFILE_OPEN, 5000)) {
@@ -213,8 +203,6 @@ Io_GroupGetFile(
 
         // Close the group-file before returning.
         Io_ShmQuery(memory, DC_GROUPFILE_CLOSE, 5000);
-
-        DebugPrint("Io_GroupGetFile: OKAY\n");
         return TRUE;
     }
 
@@ -222,7 +210,6 @@ Io_GroupGetFile(
     ZeroMemory(groupFile, sizeof(GROUPFILE));
     groupFile->Gid = -1;
 
-    DebugPrint("Io_GroupGetFile: FAIL\n");
     return FALSE;
 }
 
@@ -258,7 +245,6 @@ Io_GroupSetFile(
     assert(memory    != NULL);
     assert(memory->size >= sizeof(GROUPFILE));
     assert(groupFile != NULL);
-    DebugPrint("Io_GroupSetFile: groupFile=0x%p groupFile->Gid=%d\n", groupFile, groupFile->Gid);
 
     // Set the requested group ID.
     ((GROUPFILE *)memory->block)->Gid = groupFile->Gid;
@@ -277,15 +263,10 @@ Io_GroupSetFile(
             Io_ShmQuery(memory, DC_GROUPFILE_UNLOCK, 5000);
 
             status = TRUE;
-            DebugPrint("Io_GroupSetFile: OKAY\n");
-        } else {
-            DebugPrint("Io_GroupSetFile: LOCK FAIL\n");
         }
 
         // Close the group-file before returning.
         Io_ShmQuery(memory, DC_GROUPFILE_CLOSE, 5000);
-    } else {
-        DebugPrint("Io_GroupSetFile: OPEN FAIL\n");
     }
 
     return status;
@@ -326,7 +307,6 @@ Io_GroupIdToName(
     assert(memory    != NULL);
     assert(memory->size >= sizeof(DC_NAMEID));
     assert(groupName != NULL);
-    DebugPrint("Io_GroupIdToName: groupId=%d groupName=0x%p\n", groupId, groupName);
 
     // Initialise the DC_NAMEID structure.
     dcNameId = (DC_NAMEID *)memory->block;
@@ -334,13 +314,10 @@ Io_GroupIdToName(
 
     if (!Io_ShmQuery(memory, DC_GID_TO_GROUP, 5000)) {
         StringCchCopyA(groupName, _MAX_NAME+1, dcNameId->tszName);
-
-        DebugPrint("Io_GroupIdToName: OKAY\n");
         return TRUE;
     }
 
     groupName[0] = '\0';
-    DebugPrint("Io_GroupIdToName: FAIL\n");
     return FALSE;
 }
 
@@ -381,7 +358,6 @@ Io_GroupNameToId(
     assert(memory->size >= sizeof(DC_NAMEID));
     assert(groupName != NULL);
     assert(groupId   != NULL);
-    DebugPrint("Io_GroupNameToId: groupName=%s groupId=0x%p\n", groupName, groupId);
 
     // Initialise the DC_NAMEID structure.
     dcNameId = (DC_NAMEID *)memory->block;
@@ -390,11 +366,9 @@ Io_GroupNameToId(
     result = Io_ShmQuery(memory, DC_GROUP_TO_GID, 5000);
     if (result != (DWORD)-1) {
         *groupId = (int)result;
-        DebugPrint("Io_GroupNameToId: OKAY\n");
         return TRUE;
     }
 
     *groupId = -1;
-    DebugPrint("Io_GroupNameToId: FAIL\n");
     return FALSE;
 }

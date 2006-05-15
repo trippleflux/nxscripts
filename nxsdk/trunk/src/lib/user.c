@@ -53,7 +53,6 @@ Io_UserCreate(
     assert(memory->size >= sizeof(DC_NAMEID));
     assert(userName != NULL);
     assert(userId   != NULL);
-    DebugPrint("Io_UserCreate: userName=%s userId=0x%p\n", userName, userId);
 
     // Initialise the DC_NAMEID structure.
     dcNameId = (DC_NAMEID *)memory->block;
@@ -62,12 +61,10 @@ Io_UserCreate(
     result = Io_ShmQuery(memory, DC_CREATE_USER, 5000);
     if (result != (DWORD)-1) {
         *userId = (int)result;
-        DebugPrint("Io_UserCreate: OKAY\n");
         return TRUE;
     }
 
     *userId = -1;
-    DebugPrint("Io_UserCreate: FAIL\n");
     return FALSE;
 }
 
@@ -107,7 +104,6 @@ Io_UserRename(
     assert(memory->size >= sizeof(DC_RENAME));
     assert(userName != NULL);
     assert(newName  != NULL);
-    DebugPrint("Io_UserRename: userName=%s newName=%s\n", userName, newName);
 
     // Initialise the DC_RENAME structure.
     dcRename = (DC_RENAME *)memory->block;
@@ -115,11 +111,9 @@ Io_UserRename(
     StringCchCopyA(dcRename->tszNewName, ARRAYSIZE(dcRename->tszNewName), newName);
 
     if (!Io_ShmQuery(memory, DC_RENAME_USER, 5000)) {
-        DebugPrint("Io_UserRename: OKAY\n");
         return TRUE;
     }
 
-    DebugPrint("Io_UserRename: FAIL\n");
     return FALSE;
 }
 
@@ -155,18 +149,15 @@ Io_UserDelete(
     assert(memory   != NULL);
     assert(memory->size >= sizeof(DC_NAMEID));
     assert(userName != NULL);
-    DebugPrint("Io_UserDelete: userName=%s\n", userName);
 
     // Initialise the DC_NAMEID structure.
     dcNameId = (DC_NAMEID *)memory->block;
     StringCchCopyA(dcNameId->tszName, ARRAYSIZE(dcNameId->tszName), userName);
 
     if (!Io_ShmQuery(memory, DC_DELETE_USER, 5000)) {
-        DebugPrint("Io_UserDelete: OKAY\n");
         return TRUE;
     }
 
-    DebugPrint("Io_UserDelete: FAIL\n");
     return FALSE;
 }
 
@@ -203,9 +194,8 @@ Io_UserGetFile(
     assert(memory   != NULL);
     assert(memory->size >= sizeof(USERFILE));
     assert(userFile != NULL);
-    DebugPrint("Io_UserGetFile: userId=%d userFile=0x%p\n", userId, userFile);
 
-    // Set the requested user ID.
+    // Set the specified user ID.
     ((USERFILE *)memory->block)->Uid = userId;
 
     if (!Io_ShmQuery(memory, DC_USERFILE_OPEN, 5000)) {
@@ -213,8 +203,6 @@ Io_UserGetFile(
 
         // Close the user-file before returning.
         Io_ShmQuery(memory, DC_USERFILE_CLOSE, 5000);
-
-        DebugPrint("Io_UserGetFile: OKAY\n");
         return TRUE;
     }
 
@@ -223,7 +211,6 @@ Io_UserGetFile(
     userFile->Uid = -1;
     userFile->Gid = -1;
 
-    DebugPrint("Io_UserGetFile: FAIL\n");
     return FALSE;
 }
 
@@ -259,7 +246,6 @@ Io_UserSetFile(
     assert(memory   != NULL);
     assert(memory->size >= sizeof(USERFILE));
     assert(userFile != NULL);
-    DebugPrint("Io_UserSetFile: userFile=0x%p userFile->Uid=%d\n", userFile, userFile->Uid);
 
     // Set the requested user ID.
     ((USERFILE *)memory->block)->Uid = userFile->Uid;
@@ -278,15 +264,10 @@ Io_UserSetFile(
             Io_ShmQuery(memory, DC_USERFILE_UNLOCK, 5000);
 
             status = TRUE;
-            DebugPrint("Io_UserSetFile: OKAY\n");
-        } else {
-            DebugPrint("Io_UserSetFile: LOCK FAIL\n");
         }
 
         // Close the user-file before returning.
         Io_ShmQuery(memory, DC_USERFILE_CLOSE, 5000);
-    } else {
-        DebugPrint("Io_UserSetFile: OPEN FAIL\n");
     }
 
     return status;
@@ -327,7 +308,6 @@ Io_UserIdToName(
     assert(memory   != NULL);
     assert(memory->size >= sizeof(DC_NAMEID));
     assert(userName != NULL);
-    DebugPrint("Io_UserIdToName: userId=%d userName=0x%p\n", userId, userName);
 
     // Initialise the DC_NAMEID structure.
     dcNameId = (DC_NAMEID *)memory->block;
@@ -335,13 +315,10 @@ Io_UserIdToName(
 
     if (!Io_ShmQuery(memory, DC_UID_TO_USER, 5000)) {
         StringCchCopyA(userName, _MAX_NAME+1, dcNameId->tszName);
-
-        DebugPrint("Io_UserIdToName: OKAY\n");
         return TRUE;
     }
 
     userName[0] = '\0';
-    DebugPrint("Io_UserIdToName: FAIL\n");
     return FALSE;
 }
 
@@ -382,7 +359,6 @@ Io_UserNameToId(
     assert(memory->size >= sizeof(DC_NAMEID));
     assert(userName != NULL);
     assert(userId   != NULL);
-    DebugPrint("Io_UserNameToId: userName=%s userId=0x%p\n", userName, userId);
 
     // Initialise the DC_NAMEID structure.
     dcNameId = (DC_NAMEID *)memory->block;
@@ -391,11 +367,9 @@ Io_UserNameToId(
     result = Io_ShmQuery(memory, DC_USER_TO_UID, 5000);
     if (result != (DWORD)-1) {
         *userId = (int)result;
-        DebugPrint("Io_UserNameToId: OKAY\n");
         return TRUE;
     }
 
     *userId = -1;
-    DebugPrint("Io_UserNameToId: FAIL\n");
     return FALSE;
 }
