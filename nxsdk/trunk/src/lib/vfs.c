@@ -75,6 +75,7 @@ Io_VfsFlush(
         return TRUE;
     }
 
+    SetLastError(ERROR_FILE_NOT_FOUND);
     return FALSE;
 }
 
@@ -136,6 +137,7 @@ Io_VfsRead(
         return TRUE;
     }
 
+    SetLastError(ERROR_FILE_NOT_FOUND);
     return FALSE;
 }
 
@@ -197,5 +199,6 @@ Io_VfsWrite(
         return TRUE;
     }
 
+    SetLastError(ERROR_FILE_NOT_FOUND);
     return FALSE;
 }
