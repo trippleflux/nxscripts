@@ -33,6 +33,16 @@ RFLAGS      = /r
 
 # -------------------------------------------------------------------------
 
+!if !exist("makefile")
+!error You must run this makefile from the directory it is located in.
+!endif
+
+!if !exist("$(IOFTPD_INC)\ioFTPD.h")
+!error Unable to find ioFTPD.h; the IOFTPD_INC variable is incorrect.
+!endif
+
+# -------------------------------------------------------------------------
+
 !if $(MSVCRT)
 !message
 !message CRT Library: msvcrt (dynamic)
@@ -66,11 +76,13 @@ clean:
     @DEL /F *.dll *.ilk *.lib *.exp *.exe *.obj *.pdb *.res
 
 release: all
-    @MKDIR bins
     @MOVE /Y *.dll bins > nul
     @MOVE /Y *.exe bins > nul
     @MOVE /Y *.lib bins > nul
     @DEL /F *.ilk *.exp *.obj *.res
+    @CD docs
+    @TCLSH gendocs.tcl > nul
+    @CD ..
 
 dynamic: nxsdk.dll
 
