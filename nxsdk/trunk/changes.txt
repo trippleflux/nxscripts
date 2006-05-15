@@ -1,3 +1,14 @@
+nxSDK v0.3.0 (not released):
+  NEW: Function arguments are validated in both release and debug builds.
+  NEW: nxSDK library no longer links against C runtimes.
+  NEW: System error codes are set on failure (retrieved with GetLastError).
+  CHG: Function return types changed; recompile your applications.
+       - Io_GetOnlineData from void to BOOL.
+       - Io_KickConnId from void to BOOL.
+       - Io_KickUserId from void to BOOL.
+       - Io_ShmFree from void to BOOL.
+  CHG: Improved comments in example applications.
+
 nxSDK v0.2.0 (May 15, 2006):
   NEW: Improved function documentation.
   NEW: Io_GetOnlineDataEx function to retrieve extended online information.

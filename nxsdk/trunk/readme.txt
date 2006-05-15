@@ -112,6 +112,7 @@ all of the shared memory functions implemented in ioFTPD, such as:
 1. Include the required header files, in the following order.
 
    #include <windows.h>
+   #include <stdlib>
    #include <time.h>
    #include <nxsdk.h>
 

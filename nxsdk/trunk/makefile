@@ -74,7 +74,7 @@ all: dynamic static tools
 
 clean:
     @ECHO Deleting object files...
-    -@DEL /F *.dll *.ilk *.lib *.exp *.exe *.obj *.pdb *.res 2> nul
+    -@DEL /F *.cod *.dll *.ilk *.lib *.exp *.exe *.obj *.pdb *.res 2> nul
     @ECHO Deleting binary files...
     -@DEL /F bin\*.dll 2> nul
     -@DEL /F bin\*.exe 2> nul
@@ -88,7 +88,7 @@ release: all
     @IF NOT EXIST lib MKDIR lib
     @MOVE /Y *.lib lib > nul
     @ECHO Deleting object files...
-    -@DEL /F *.ilk *.exp *.obj *.res 2> nul
+    -@DEL /F *.cod *.ilk *.exp *.obj *.res 2> nul
     @ECHO Generating documentation...
     @CD doc
     @TCLSH gendocs.tcl > nul
@@ -112,7 +112,7 @@ LIB_OBJS = group.obj online.obj shmem.obj user.obj util.obj vfs.obj
 	$(RC) $(RFLAGS) /fo $@ $<
 
 nxsdk.dll: $(DLL_OBJS) $(LIB_OBJS)
-    $(LD) $(LFLAGS) /DEF:src\lib\lib.def /DLL /OUT:$@ psapi.lib user32.lib @<<
+    $(LD) $(LFLAGS) /DEF:src\lib\lib.def /DLL /ENTRY:DllMain /OUT:$@ kernel32.lib psapi.lib user32.lib @<<
 $**
 <<
 

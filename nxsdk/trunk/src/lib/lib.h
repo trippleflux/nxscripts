@@ -17,16 +17,17 @@ Abstract:
 #ifndef _LIB_H_
 #define _LIB_H_
 
+#define STRSAFE_NO_CB_FUNCTIONS
+#define WIN32_LEAN_AND_MEAN
+
 // System headers
 #include <windows.h>
 #include <psapi.h>
 #include <strsafe.h>
 
 // Standard headers
-#include <stdlib.h>
 #include <stddef.h>
-#include <string.h>
-#include <assert.h>
+#include <stdlib.h>
 #include <time.h>
 
 // SDK headers
