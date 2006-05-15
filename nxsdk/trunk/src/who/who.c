@@ -67,13 +67,17 @@ int main(int argc, char **argv)
 
     printf("|-------------------------------------------------------------|\n");
 
-    // Display bandwidth and user totals.
-    StringCchPrintfA(message, sizeof(message), "%d@%.0fKB/s", whoTotal.usersDn, whoTotal.speedDn);
+    // Display download totals.
+    StringCchPrintfA(message, sizeof(message), "%d@%.0fKB/s",
+        whoTotal.usersDn, whoTotal.speedDn);
     printf("| Dn: %-14s", message);
 
-    StringCchPrintfA(message, sizeof(message), "%d@%.0fKB/s", whoTotal.usersUp, whoTotal.speedUp);
+    // Display upload totals.
+    StringCchPrintfA(message, sizeof(message), "%d@%.0fKB/s",
+        whoTotal.usersUp, whoTotal.speedUp);
     printf("| Up: %-14s", message);
 
+    // Display download, upload, and idle totals.
     StringCchPrintfA(message, sizeof(message), "%d@%.0fKB/s",
         whoTotal.usersDn + whoTotal.usersUp + whoTotal.usersIdle,
         whoTotal.speedDn + whoTotal.speedUp);
