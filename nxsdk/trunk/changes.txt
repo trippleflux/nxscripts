@@ -1,4 +1,4 @@
-nxSDK v0.3.0 (not released):
+nxSDK v0.3.0 (May 16, 2006):
   NEW: Example application for adding or removing credits from a user.
   NEW: Example application for retrieving information about ioFTPD.
   NEW: Function arguments are validated in both release and debug builds.

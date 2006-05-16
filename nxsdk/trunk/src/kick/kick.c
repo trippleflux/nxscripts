@@ -47,7 +47,7 @@ main(
     }
     id = atoi(argv[3]);
 
-    // Kick the connection/user ID.
+    // Kick the connection ID or user ID.
     if (strcmp(argv[2], "cid") == 0) {
         Io_KickConnId(&session, id);
         printf("Kicked connection ID %d.\n", id);
