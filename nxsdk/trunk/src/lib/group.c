@@ -35,7 +35,7 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false). To get extended 
+    If the function fails, the return value is zero (false). To get extended
     error information, call GetLastError.
 
 --*/
@@ -96,7 +96,7 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false). To get extended 
+    If the function fails, the return value is zero (false). To get extended
     error information, call GetLastError.
 
 --*/
@@ -152,7 +152,7 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false). To get extended 
+    If the function fails, the return value is zero (false). To get extended
     error information, call GetLastError.
 
 --*/
@@ -208,7 +208,7 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false). To get extended 
+    If the function fails, the return value is zero (false). To get extended
     error information, call GetLastError.
 
 --*/
@@ -238,12 +238,12 @@ Io_GroupGetFile(
     if (!Io_ShmQuery(memory, DC_GROUPFILE_OPEN, 5000)) {
         CopyMemory(groupFile, memory->block, sizeof(GROUPFILE));
 
-        // Close the group-file before returning.
+        // Close the group file before returning.
         Io_ShmQuery(memory, DC_GROUPFILE_CLOSE, 5000);
         return TRUE;
     }
 
-    // Clear the group-file on failure.
+    // Clear the group file on failure.
     ZeroMemory(groupFile, sizeof(GROUPFILE));
     groupFile->Gid = -1;
 
@@ -268,7 +268,7 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false). To get extended 
+    If the function fails, the return value is zero (false). To get extended
     error information, call GetLastError.
 
 --*/
@@ -306,13 +306,13 @@ Io_GroupSetFile(
             //
             CopyMemory(memory->block, groupFile, offsetof(GROUPFILE, lpInternal));
 
-            // Unlock will update the group-file.
+            // Unlock will update the group file.
             Io_ShmQuery(memory, DC_GROUPFILE_UNLOCK, 5000);
         } else {
             error = ERROR_LOCK_FAILED;
         }
 
-        // Close the group-file before returning.
+        // Close the group file before returning.
         Io_ShmQuery(memory, DC_GROUPFILE_CLOSE, 5000);
     } else {
         error = ERROR_NO_SUCH_GROUP;
@@ -344,7 +344,7 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false). To get extended 
+    If the function fails, the return value is zero (false). To get extended
     error information, call GetLastError.
 
 --*/
@@ -403,7 +403,7 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false). To get extended 
+    If the function fails, the return value is zero (false). To get extended
     error information, call GetLastError.
 
 --*/

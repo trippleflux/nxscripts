@@ -35,7 +35,7 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false). To get extended 
+    If the function fails, the return value is zero (false). To get extended
     error information, call GetLastError.
 
 --*/
@@ -96,7 +96,7 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false). To get extended 
+    If the function fails, the return value is zero (false). To get extended
     error information, call GetLastError.
 
 --*/
@@ -152,7 +152,7 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false). To get extended 
+    If the function fails, the return value is zero (false). To get extended
     error information, call GetLastError.
 
 --*/
@@ -208,7 +208,7 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false). To get extended 
+    If the function fails, the return value is zero (false). To get extended
     error information, call GetLastError.
 
 --*/
@@ -238,12 +238,12 @@ Io_UserGetFile(
     if (!Io_ShmQuery(memory, DC_USERFILE_OPEN, 5000)) {
         CopyMemory(userFile, memory->block, sizeof(USERFILE));
 
-        // Close the user-file before returning.
+        // Close the user file before returning.
         Io_ShmQuery(memory, DC_USERFILE_CLOSE, 5000);
         return TRUE;
     }
 
-    // Clear the user-file on failure.
+    // Clear the user file on failure.
     ZeroMemory(userFile, sizeof(USERFILE));
     userFile->Uid = -1;
 
@@ -268,7 +268,7 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false). To get extended 
+    If the function fails, the return value is zero (false). To get extended
     error information, call GetLastError.
 
 --*/
@@ -306,13 +306,13 @@ Io_UserSetFile(
             //
             CopyMemory(memory->block, userFile, offsetof(USERFILE, lpInternal));
 
-            // Unlock will update the user-file.
+            // Unlock will update the user file.
             Io_ShmQuery(memory, DC_USERFILE_UNLOCK, 5000);
         } else {
             error = ERROR_LOCK_FAILED;
         }
 
-        // Close the user-file before returning.
+        // Close the user file before returning.
         Io_ShmQuery(memory, DC_USERFILE_CLOSE, 5000);
     } else {
         error = ERROR_NO_SUCH_USER;
@@ -344,7 +344,7 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false). To get extended 
+    If the function fails, the return value is zero (false). To get extended
     error information, call GetLastError.
 
 --*/
@@ -403,7 +403,7 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false). To get extended 
+    If the function fails, the return value is zero (false). To get extended
     error information, call GetLastError.
 
 --*/
