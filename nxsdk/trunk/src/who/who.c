@@ -74,11 +74,11 @@ main(
 
     // Retrieve online data.
     if (!Io_GetOnlineDataEx(memory, DisplayUser, &whoTotal)) {
-        printf("| Unable to retrieve online data.                            |\n");
+        printf("| %-58s |\n", "Unable to retrieve online data.");
     } else {
         whoTotal.usersTotal = whoTotal.usersDn + whoTotal.usersUp + whoTotal.usersIdle;
         if (!whoTotal.usersTotal) {
-            printf("| No one is online.                                          |\n");
+            printf("| %-58s |\n", "No one is online.");
         }
     }
 
