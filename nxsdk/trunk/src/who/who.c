@@ -72,7 +72,9 @@ main(
     printf("|------------------------------------------------------------|\n");
 
     // Retrieve online data.
-    Io_GetOnlineDataEx(memory, DisplayUser, &whoTotal);
+    if (!Io_GetOnlineDataEx(memory, DisplayUser, &whoTotal)) {
+        printf("| Unable to retrieve online data.                            |\n");
+    }
 
     printf("|------------------------------------------------------------|\n");
 
