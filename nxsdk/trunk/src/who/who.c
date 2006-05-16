@@ -110,7 +110,7 @@ DisplayUser(
         ipData[0] & 0xFF, ipData[1] & 0xFF, ipData[2] & 0xFF, ipData[3] & 0xFF);
 
     // Calculate the speed of the user in kilobytes/second.
-    if (info->onlineData.dwIntervalLength > 0) {
+    if (info->onlineData.dwBytesTransfered > 0 && info->onlineData.dwIntervalLength > 0) {
         speed = (double)info->onlineData.dwBytesTransfered / (double)info->onlineData.dwIntervalLength;
     } else {
         speed = 0.0;
