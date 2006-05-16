@@ -36,6 +36,10 @@ all of the shared memory functions implemented in ioFTPD, such as:
 
   Application binaries and dynamic libraries.
 
+  credits.exe
+    - Example application, demonstrates how to add or remove credits from a user.
+    - Source code is located in src\credits\.
+
   kick.exe
     - Example application, demonstrates how to kick online users.
     - Source code is located in src\kick\.
@@ -90,6 +94,9 @@ all of the shared memory functions implemented in ioFTPD, such as:
   ############################################################
 
   SDK source code.
+
+  credits\
+    - Source code for the "credits" application.
 
   kick\
     - Source code for the "kick" application.
