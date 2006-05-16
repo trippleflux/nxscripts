@@ -591,10 +591,10 @@ GetOnlineFields(
     //
     resultObj = Tcl_GetObjResult(interp);
 
-    for (;;) {
+    while (dcOnlineData->iOffset >= 0) {
         result = ShmQuery(session, memOnline, DC_GET_ONLINEDATA, 5000);
-        DebugPrint("GetOnlineFields: offset=%d result=%lu\n",
-            dcOnlineData->iOffset, result);
+        DebugPrint("GetOnlineFields: offset=%d result=%lu size=%lu\n",
+            dcOnlineData->iOffset, result, dcOnlineData->dwSharedMemorySize);
 
         if (result != 0) {
             if (result == (DWORD)-1) {
