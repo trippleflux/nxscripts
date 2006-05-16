@@ -99,7 +99,7 @@ dynamic: nxsdk.dll
 
 static: nxsdk-static.lib
 
-tools: credits.exe kick.exe resolve.exe who.exe
+tools: credits.exe info.exe kick.exe resolve.exe who.exe
 
 # -------------------------------------------------------------------------
 
@@ -135,6 +135,21 @@ CREDITS_OBJS = credits.obj credits.res
 	$(RC) $(RFLAGS) /fo $@ $<
 
 credits.exe: nxsdk.lib $(CREDITS_OBJS)
+    $(LD) $(LFLAGS) /OUT:$@ @<<
+$**
+<<
+
+# -------------------------------------------------------------------------
+
+INFO_OBJS = info.obj info.res
+
+{src\info\}.c{}.obj::
+    $(CC) /c $(CFLAGS) /Fo $<
+
+{src\info\}.rc{}.res:
+	$(RC) $(RFLAGS) /fo $@ $<
+
+info.exe: nxsdk.lib $(INFO_OBJS)
     $(LD) $(LFLAGS) /OUT:$@ @<<
 $**
 <<

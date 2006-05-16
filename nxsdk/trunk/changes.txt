@@ -1,5 +1,6 @@
 nxSDK v0.3.0 (not released):
   NEW: Example application for adding or removing credits from a user.
+  NEW: Example application for retrieving information about ioFTPD.
   NEW: Function arguments are validated in both release and debug builds.
   NEW: nxSDK library no longer links against C runtimes (only 9KB now).
   NEW: System error codes are set on failure (retrieved with GetLastError).
