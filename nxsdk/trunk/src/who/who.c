@@ -21,6 +21,13 @@ Abstract:
 #include <time.h>
 #include <nxsdk.h>
 
+static void
+Usage(
+    const char *argv0
+    );
+
+static Io_OnlineDataExProc DisplayUser;
+
 typedef struct {
     double speedDn;
     double speedUp;
@@ -29,10 +36,12 @@ typedef struct {
     int usersIdle;
 } WHO_TOTAL;
 
-static Io_OnlineDataExProc DisplayUser;
-
 
-int main(int argc, char **argv)
+int
+main(
+    int argc,
+    char **argv
+    )
 {
     char message[32];
     IO_MEMORY *memory;
@@ -40,22 +49,22 @@ int main(int argc, char **argv)
     WHO_TOTAL whoTotal;
 
     if (argc != 2) {
-        printf("Usage: %s <message window>\n", argv[0]);
-        return -1;
+        Usage(argv[0]);
+        return 1;
     }
     ZeroMemory(&whoTotal, sizeof(WHO_TOTAL));
 
     // Locate ioFTPD's message window.
     if (!Io_ShmInit(argv[1], &session)) {
         printf("The message window \"%s\" does not exist.\n", argv[1]);
-        return -1;
+        return 1;
     }
 
     // Allocate memory for online data.
     memory = Io_ShmAlloc(&session, sizeof(DC_ONLINEDATA) + (MAX_PATH+1)*2);
     if (memory == NULL) {
         printf("Unable to allocate shared memory.\n");
-        return -1;
+        return 1;
     }
 
     printf(".------------------------------------------------------------.\n");
@@ -146,4 +155,14 @@ DisplayUser(
         info->connId, info->userName, info->groupName, status, clientIp);
 
     return IO_ONLINEDATA_CONTINUE;
+}
+
+void Usage(const char *argv0)
+{
+    printf("\n");
+    printf("Usage: %s <window>\n\n", argv0);
+    printf("Arguments:\n");
+    printf("  window - ioFTPD's message window.\n\n");
+    printf("Examples:\n");
+    printf("  %s ioFTPD::MessageWindow\n", argv0);
 }

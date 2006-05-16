@@ -20,6 +20,11 @@ Abstract:
 #include <time.h>
 #include <nxsdk.h>
 
+static void
+Usage(
+    const char *argv0
+    );
+
 typedef BOOL (ResolveProc)(
     IO_MEMORY *memory,
     const char *input
@@ -41,7 +46,11 @@ struct {
 };
 
 
-int main(int argc, char **argv)
+int
+main(
+    int argc,
+    char **argv
+    )
 {
     BOOL result = FALSE;
     int i;
@@ -49,24 +58,21 @@ int main(int argc, char **argv)
     IO_SESSION session;
 
     if (argc != 4) {
-        printf("Usage: %s <message window> gid   <group id>\n",   argv[0]);
-        printf("       %s <message window> group <group name>\n", argv[0]);
-        printf("       %s <message window> uid   <user id>\n",    argv[0]);
-        printf("       %s <message window> user  <user name>\n",  argv[0]);
-        return -1;
+        Usage(argv[0]);
+        return 1;
     }
 
     // Locate ioFTPD's message window.
     if (!Io_ShmInit(argv[1], &session)) {
         printf("The message window \"%s\" does not exist.\n", argv[1]);
-        return -1;
+        return 1;
     }
 
     // Allocate memory for user/group resolving.
     memory = Io_ShmAlloc(&session, sizeof(DC_NAMEID));
     if (memory == NULL) {
         printf("Unable to allocate shared memory.\n");
-        return -1;
+        return 1;
     }
 
     // Call the resolve function.
@@ -78,13 +84,13 @@ int main(int argc, char **argv)
     }
 
     if (i >= sizeof(types)/sizeof(types[0])) {
-        printf("Invalid argument \"%s\": must be gid, group, uid, or user.\n", argv[2]);
+        Usage(argv[0]);
     }
 
     // Clean up.
     Io_ShmFree(memory);
 
-    return (result == TRUE) ? 0 : -1;
+    return (result == TRUE) ? 0 : 1;
 }
 
 static BOOL
@@ -102,7 +108,7 @@ ResolveGroupId(
         return FALSE;
     }
 
-    printf("Resolved the group ID \"%d\" to the group name \"%s\".\n", id, name);
+    printf("Resolved group ID \"%d\" to group name \"%s\".\n", id, name);
     return TRUE;
 }
 
@@ -119,7 +125,7 @@ ResolveGroupName(
         return FALSE;
     }
 
-    printf("Resolved the group name \"%s\" to the group ID \"%d\".\n", name, id);
+    printf("Resolved group name \"%s\" to group ID \"%d\".\n", name, id);
     return TRUE;
 }
 
@@ -138,7 +144,7 @@ ResolveUserId(
         return FALSE;
     }
 
-    printf("Resolved the user ID \"%d\" to the user name \"%s\".\n", id, name);
+    printf("Resolved user ID \"%d\" to user name \"%s\".\n", id, name);
     return TRUE;
 }
 
@@ -155,6 +161,21 @@ ResolveUserName(
         return FALSE;
     }
 
-    printf("Resolved the user name \"%s\" to the user ID \"%d\".\n", name, id);
+    printf("Resolved user name \"%s\" to user ID \"%d\".\n", name, id);
     return TRUE;
+}
+
+void Usage(const char *argv0)
+{
+    printf("\n");
+    printf("Usage: %s <window> <type> <input>\n\n", argv0);
+    printf("Arguments:\n");
+    printf("  window - ioFTPD's message window.\n");
+    printf("  type   - Type of input data: gid, group, uid, or user.\n");
+    printf("  input  - The ID or name of a group or user.\n\n");
+    printf("Examples:\n");
+    printf("  %s ioFTPD::MessageWindow gid   1\n", argv0);
+    printf("  %s ioFTPD::MessageWindow group STAFF\n", argv0);
+    printf("  %s ioFTPD::MessageWindow uid   0\n", argv0);
+    printf("  %s ioFTPD::MessageWindow user  bill\n", argv0);
 }

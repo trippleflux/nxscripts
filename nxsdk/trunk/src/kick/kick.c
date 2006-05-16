@@ -20,21 +20,30 @@ Abstract:
 #include <time.h>
 #include <nxsdk.h>
 
-int main(int argc, char **argv)
+static void
+Usage(
+    const char *argv0
+    );
+
+
+int
+main(
+    int argc,
+    char **argv
+    )
 {
     IO_SESSION session;
     int id;
 
     if (argc != 4) {
-        printf("Usage: %s <message window> cid <connection id>\n", argv[0]);
-        printf("       %s <message window> uid <user id>\n", argv[0]);
-        return -1;
+        Usage(argv[0]);
+        return 1;
     }
 
     // Locate ioFTPD's message window.
     if (!Io_ShmInit(argv[1], &session)) {
         printf("The message window \"%s\" does not exist.\n", argv[1]);
-        return -1;
+        return 1;
     }
     id = atoi(argv[3]);
 
@@ -48,9 +57,22 @@ int main(int argc, char **argv)
         printf("Kicked user ID %d.\n", id);
 
     } else {
-        printf("Invalid argument \"%s\": must be cid or uid.\n", argv[2]);
-        return -1;
+        Usage(argv[0]);
+        return 1;
     }
 
     return 0;
+}
+
+void Usage(const char *argv0)
+{
+    printf("\n");
+    printf("Usage: %s <window> <type> <id>\n\n", argv0);
+    printf("Arguments:\n");
+    printf("  window - ioFTPD's message window.\n");
+    printf("  type   - Type of ID to kick: cid or uid.\n");
+    printf("  id     - Connection ID or user ID to be kicked.\n\n");
+    printf("Examples:\n");
+    printf("  %s ioFTPD::MessageWindow cid 2\n", argv0);
+    printf("  %s ioFTPD::MessageWindow uid 100\n", argv0);
 }
