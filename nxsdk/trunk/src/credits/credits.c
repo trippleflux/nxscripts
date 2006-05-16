@@ -82,6 +82,7 @@ main(
             printf("Unable to retrieve the user file for \"%s\".\n", argv[2]);
 
         } else {
+            // Add, remove, or set credits.
             INT64 amount = _strtoi64(argv[3], NULL, 10);
             INT64 before = userFile.Credits[section];
 

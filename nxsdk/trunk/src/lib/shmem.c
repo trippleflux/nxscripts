@@ -102,7 +102,7 @@ Io_ShmAlloc(
         return NULL;
     }
 
-    heap   = GetProcessHeap();
+    heap = GetProcessHeap();
     memory = HeapAlloc(heap, 0, sizeof(IO_MEMORY));
     if (memory == NULL) {
         return NULL;
