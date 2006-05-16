@@ -34,6 +34,7 @@ typedef struct {
     int usersDn;
     int usersUp;
     int usersIdle;
+    int usersTotal;
 } WHO_TOTAL;
 
 
@@ -74,6 +75,11 @@ main(
     // Retrieve online data.
     if (!Io_GetOnlineDataEx(memory, DisplayUser, &whoTotal)) {
         printf("| Unable to retrieve online data.                            |\n");
+    } else {
+        whoTotal.usersTotal = whoTotal.usersDn + whoTotal.usersUp + whoTotal.usersIdle;
+        if (!whoTotal.usersTotal) {
+            printf("| No one is online.                                          |\n");
+        }
     }
 
     printf("|------------------------------------------------------------|\n");
@@ -90,8 +96,7 @@ main(
 
     // Display download, upload, and idle totals.
     StringCchPrintfA(message, sizeof(message), "%d@%.0fKB/s",
-        whoTotal.usersDn + whoTotal.usersUp + whoTotal.usersIdle,
-        whoTotal.speedDn + whoTotal.speedUp);
+        whoTotal.usersTotal, whoTotal.speedDn + whoTotal.speedUp);
     printf("| All: %-13s |\n", message);
 
     printf("`------------------------------------------------------------'\n");
