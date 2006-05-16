@@ -1,0 +1,45 @@
+/*
+
+nxSDK - ioFTPD Software Development Kit
+Copyright (c) 2006 neoxed
+
+Module Name:
+    Credits Resources
+
+Author:
+    neoxed (neoxed@gmail.com) May 16, 2006
+
+Abstract:
+    Credits version information.
+
+*/
+
+#include <winver.h>
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION    VERSION_RES
+ PRODUCTVERSION VERSION_RES
+ FILEFLAGSMASK 0x3fL
+ FILEFLAGS 0x0L
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "FileDescription",  "Add or remove credits from a user."
+            VALUE "FileVersion",      VERSION
+            VALUE "InternalName",     "nxSDK - Credits"
+            VALUE "LegalCopyright",   "Copyright (c) 2006 neoxed"
+            VALUE "OriginalFilename", "credits.exe"
+            VALUE "ProductName",      "nxSDK - Credits"
+            VALUE "ProductVersion",   VERSION
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
