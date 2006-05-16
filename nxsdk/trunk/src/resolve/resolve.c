@@ -165,7 +165,10 @@ ResolveUserName(
     return TRUE;
 }
 
-void Usage(const char *argv0)
+static void
+Usage(
+    const char *argv0
+    )
 {
     printf("\n");
     printf("Usage: %s <window> <type> <input>\n\n", argv0);

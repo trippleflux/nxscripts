@@ -103,7 +103,10 @@ CountUsers(
     return IO_ONLINEDATA_CONTINUE;
 }
 
-void Usage(const char *argv0)
+static void
+Usage(
+    const char *argv0
+    )
 {
     printf("\n");
     printf("Usage: %s <window>\n\n", argv0);

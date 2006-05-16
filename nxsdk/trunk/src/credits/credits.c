@@ -110,7 +110,10 @@ main(
     return result;
 }
 
-void Usage(const char *argv0)
+static void
+Usage(
+    const char *argv0
+    )
 {
     printf("\n");
     printf("Usage: %s <window> <user> <amount> [section]\n\n", argv0);

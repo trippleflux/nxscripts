@@ -64,7 +64,10 @@ main(
     return 0;
 }
 
-void Usage(const char *argv0)
+static void
+Usage(
+    const char *argv0
+    )
 {
     printf("\n");
     printf("Usage: %s <window> <type> <id>\n\n", argv0);
