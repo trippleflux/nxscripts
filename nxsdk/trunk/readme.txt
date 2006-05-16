@@ -49,7 +49,7 @@ all of the shared memory functions implemented in ioFTPD, such as:
     - Source code is located in src\lib\.
 
   resolve.exe
-    - Example application, demonstrates how to resolve users and groups.
+    - Example application, demonstrates how to resolve names and IDs.
     - Source code is located in src\resolve\.
 
   who.exe

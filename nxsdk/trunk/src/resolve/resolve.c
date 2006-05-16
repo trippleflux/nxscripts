@@ -10,7 +10,7 @@ Author:
     neoxed (neoxed@gmail.com) May 13, 2006
 
 Abstract:
-    Example application, demonstrates how to resolve users and groups.
+    Example application, demonstrates how to resolve names and IDs.
 
 */
 

@@ -29,7 +29,7 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "FileDescription",  "Resolves users and groups."
+            VALUE "FileDescription",  "Resolve names and IDs."
             VALUE "FileVersion",      VERSION
             VALUE "InternalName",     "nxSDK - Resolve"
             VALUE "LegalCopyright",   "Copyright (c) 2006 neoxed"
