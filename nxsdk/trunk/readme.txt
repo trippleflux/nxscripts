@@ -130,11 +130,11 @@ all of the shared memory functions implemented in ioFTPD, such as:
    #include <time.h>
    #include <nxsdk.h>
 
-2. Add nxsdk.lib, or nxsdk-static.lib, to your application's input libraries.
+2. Add nxsdk.lib, or nxsdk-static.lib, to your linker's input libraries.
 
 3. Refer to the documentation in doc\ for information about nxSDK's functions.
 
-4. For examples see the "kick", "resolve", and "who" applications.
+4. For examples on how to use this SDK, see the demonstration applications.
 
 5. Start coding :P.
 
