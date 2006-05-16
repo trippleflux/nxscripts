@@ -7,7 +7,7 @@ Module Name:
     Info
 
 Author:
-    neoxed (neoxed@gmail.com) May 13, 2006
+    neoxed (neoxed@gmail.com) May 16, 2006
 
 Abstract:
     Example application, demonstrates how to retrieve information about ioFTPD.
