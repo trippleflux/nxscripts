@@ -107,7 +107,7 @@ main(
     return 0;
 }
 
-static BOOL
+static int
 STDCALL
 DisplayUser(
     IO_ONLINEDATAEX *info,

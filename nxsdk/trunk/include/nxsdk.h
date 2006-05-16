@@ -164,7 +164,7 @@ Return Values:
     IO_ONLINEDATA_STOP     - Stops the operation and returns.
 
 --*/
-typedef BOOL (STDCALL Io_OnlineDataProc)(
+typedef int (STDCALL Io_OnlineDataProc)(
     int connId,
     ONLINEDATA *onlineData,
     void *opaque
@@ -187,7 +187,7 @@ Return Values:
     IO_ONLINEDATA_STOP     - Stops the operation and returns.
 
 --*/
-typedef BOOL (STDCALL Io_OnlineDataExProc)(
+typedef int (STDCALL Io_OnlineDataExProc)(
     IO_ONLINEDATAEX *onlineDataEx,
     void *opaque
     );
