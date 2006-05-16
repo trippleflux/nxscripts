@@ -697,11 +697,13 @@ GetOnlineFields(
                 }
                 case WHO_SPEED: {
                     double speed = 0.0;
-                    if (dcOnlineData->OnlineData.dwIntervalLength > 0) {
+                    if (dcOnlineData->OnlineData.dwBytesTransfered > 0 &&
+                            dcOnlineData->OnlineData.dwIntervalLength > 0) {
                         // Kilobytes per second.
                         speed = (double)dcOnlineData->OnlineData.dwBytesTransfered /
                             (double)dcOnlineData->OnlineData.dwIntervalLength;
                     }
+
                     fieldObj = Tcl_NewDoubleObj(speed);
                     break;
                 }
