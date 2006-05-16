@@ -71,7 +71,7 @@ main(
     // Allocate memory for user/group resolving.
     memory = Io_ShmAlloc(&session, sizeof(DC_NAMEID));
     if (memory == NULL) {
-        printf("Unable to allocate shared memory.\n");
+        printf("Unable to allocate shared memory (error %lu).\n", GetLastError());
         return 1;
     }
 

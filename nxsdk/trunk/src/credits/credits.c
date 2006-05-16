@@ -50,7 +50,7 @@ main(
         case 5:
             section = atoi(argv[4]);
             if (section < 0 || section > 9) {
-                printf("Invalid section %d, must be from 0 to 9\n", section);
+                printf("Invalid section %d, must be from 0 to 9.\n", section);
                 return 1;
             }
             break;
@@ -68,7 +68,7 @@ main(
     // Allocate memory for user resolving and manipulating user files.
     memory = Io_ShmAlloc(&session, MAX(sizeof(DC_NAMEID), sizeof(USERFILE)));
     if (memory == NULL) {
-        printf("Unable to allocate shared memory.\n");
+        printf("Unable to allocate shared memory (error %lu).\n", GetLastError());
         return 1;
     }
 

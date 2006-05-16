@@ -64,7 +64,7 @@ main(
     // Allocate memory for online data.
     memory = Io_ShmAlloc(&session, sizeof(DC_ONLINEDATA) + (MAX_PATH+1)*2);
     if (memory == NULL) {
-        printf("Unable to allocate shared memory.\n");
+        printf("Unable to allocate shared memory (error %lu).\n", GetLastError());
         return 1;
     }
 
