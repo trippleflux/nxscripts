@@ -96,13 +96,13 @@ main(
 static BOOL
 ResolveGroupId(
     IO_MEMORY *memory,
-    const char *groupId
+    const char *idText
     )
 {
     int id;
     char name[_MAX_NAME+1];
 
-    id = atoi(groupId);
+    id = atoi(idText);
     if (!Io_GroupIdToName(memory, id, name)) {
         printf("The group ID \"%d\" does not exist.\n", id);
         return FALSE;
@@ -132,13 +132,13 @@ ResolveGroupName(
 static BOOL
 ResolveUserId(
     IO_MEMORY *memory,
-    const char *userId
+    const char *idText
     )
 {
     int id;
     char name[_MAX_NAME+1];
 
-    id = atoi(userId);
+    id = atoi(idText);
     if (!Io_UserIdToName(memory, id, name)) {
         printf("The user ID \"%d\" does not exist.\n", id);
         return FALSE;
