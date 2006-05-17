@@ -24,7 +24,7 @@ Abstract:
 #include <WinMessages.h>
 #include <DataCopy.h>
 
-// Calling convetion for exported functions
+// Calling convention for exported functions.
 #ifdef _MSC_VER
 #   define STDCALL __stdcall
 #else
