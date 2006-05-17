@@ -42,7 +42,7 @@ main(
     IO_SESSION session;
     USERFILE userFile;
 
-    // Check if section argument was specified.
+    // Check if the section was specified.
     switch (argc) {
         case 4:
             section = 0;
@@ -95,7 +95,6 @@ main(
             // Update the user file.
             if (!Io_UserSetFile(memory, &userFile)) {
                 printf("Unable to update the user file for \"%s\".\n", argv[2]);
-
             } else {
                 printf("Changed credits for \"%s\" from %I64dKB to %I64dKB in section %d.\n",
                     argv[2], before, userFile.Credits[section], section);
