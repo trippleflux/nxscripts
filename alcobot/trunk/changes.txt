@@ -1,4 +1,5 @@
 AlcoBot v1.3.0 (not released):
+  NEW: User-definable command aliases.
 
 AlcoBot v1.2.0 (May 8, 2006):
   NEW: Command to display group pre statistics, !pregroup <name>.
