@@ -41,7 +41,6 @@
 		margin-bottom:0px;
 	}
 
-
 	DIV.clsDocBody
 	{
 		margin-left:10px;
@@ -98,7 +97,6 @@
 	OL LI { margin-bottom:0.7em; }
 
 	INPUT.clsButton { font-weight: bold; color: #ffffff; background-color: #6699cc; margin-top: 10px; margin-left: 5px; }
-
 
 	/*** CUSTOM STYLES ***/
 
@@ -199,52 +197,3 @@
 		font:normal 24px;
 		color:#CCCCCC;
 	}
-
-	/*** HACK ***/
-
-	.footer
-	{
-		font: bold xx-small Verdana;
-	}
-
-	.footer:link { color:#FFFFFF; text-decoration:none;}
-	.footer:hover { color:#FF3300; }
-
-	/*
-	table#idFooter
-	{
-		position:expression( (document.body.scrollHeight < document.body.offsetHeight) ? "absolute" : "relative" );
-		top:expression( (document.body.scrollHeight < document.body.offsetHeight) ? (document.body.offsetHeight - idFooter.offsetHeight - 0) : 0 );
-	}
-	*/
-
-	/* Biztalk & Commerce Server styles */
-	div.artstyle {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 7pt; color: #000000; font-style: normal; line-height: normal; font-weight: normal}
-
-	/*  Inetsdk styles */
-	 TABLE.clsStd TH {
-
-		text-align:left; vertical-align:top;
-
-		background-color:#DDD;
-
-		padding:2px;
-
-	}
-	TABLE.clsStd TD {
-
-		vertical-align:top;
-
-		background-color:#EEE;
-
-		padding:2px;
-
-	}
-	P.clsRef {
-
-		font-weight:bold;
-
-		margin-top:12pt; margin-bottom:0em;
-
-	}
-

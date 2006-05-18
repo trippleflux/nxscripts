@@ -240,7 +240,7 @@ proc WriteEntry {handle name anchor intro code args} {
     puts $handle ""
 
     # Code
-    puts $handle "<pre class=\"syntax\">"
+    puts $handle "<pre class=\"clsCode\">"
     puts $handle [join $code \n]
     puts $handle "</pre>"
     puts $handle ""
