@@ -172,7 +172,7 @@ proc ::nxTools::Dupe::CleanDb {} {
 
 proc ::nxTools::Dupe::RebuildDb {} {
     global dupe misc
-    iputs ".-\[DupeUpdate\]-----------------------------------------------------------."
+    iputs -nobuffer ".-\[DupeUpdate\]-----------------------------------------------------------."
     if {![llength $dupe(RebuildPaths)]} {
         ErrorReturn "There are no paths defined, check your configuration."
     }
@@ -195,7 +195,7 @@ proc ::nxTools::Dupe::RebuildDb {} {
         foreach {virtualPath realPath updateDirs updateFiles} $rebuildPath {break}
         set trimLength [expr {[string length [file normalize $realPath]] + 1}]
 
-        LinePuts "Updating dupe database from: $realPath"
+        LinePuts -nobuffer "Updating dupe database from: $realPath"
         GetDirList $realPath dirlist $dupe(RebuildIgnore)
 
         foreach listName {DirList FileList} defOwner [list $misc(DirOwner) $misc(FileOwner)] {
@@ -236,7 +236,7 @@ proc ::nxTools::Dupe::RebuildDb {} {
     DirDb close
     FileDb eval {COMMIT}
     FileDb close
-    iputs "'------------------------------------------------------------------------'"
+    iputs -nobuffer "'------------------------------------------------------------------------'"
     return 0
 }
 
