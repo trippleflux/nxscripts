@@ -89,8 +89,13 @@ proc ::nxLib::ErrorReturn {message} {
     return -code return
 }
 
-proc ::nxLib::LinePuts {message} {
-    iputs [format "| %-70s |" $message]
+proc ::nxLib::LinePuts {option message} {
+    set message [format "| %-70s |" $message]
+    if {$option eq ""} {
+        iputs $option $message
+    } else {
+        iputs $option $message
+    }
 }
 
 proc ::nxLib::StripChars {string} {
