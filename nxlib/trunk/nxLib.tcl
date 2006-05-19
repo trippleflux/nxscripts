@@ -230,22 +230,22 @@ proc ::nxLib::GetDirStats {realPath varName {ignoreList ""} {firstCall 1}} {
     return
 }
 
-proc ::nxLib::GetPath {currentPath path} {
-    if {[string index $path 0] eq "/"} {
-        set virtualPath $path
-    } else {
-        set virtualPath "/$currentPath$path"
+proc ::nxLib::GetPath {workingPath path} {
+    if {[string index $path 0] ne "/"} {
+        set path "$workingPath/$path"
     }
-    regsub -all -- {[\\/]+} $virtualPath {/} virtualPath
+    set path [string trim $path "/\\"]
 
-    # Ignore "." and "..".
-    set tail [file tail $virtualPath]
-    if {$tail eq "." || $tail eq ".."} {
-        set virtualPath [file dirname $virtualPath]
-    } elseif {$virtualPath ne "/"} {
-        set virtualPath [string trimright $virtualPath "/"]
+    # Resolve the "." and ".." path components.
+    set components [list]
+    foreach component [file split $path] {
+        if {$component eq ".."} {
+            set components [lreplace $components end end]
+        } elseif {$component ne "."} {
+            lappend components $component
+        }
     }
-    return $virtualPath
+    return "/[join $components /]"
 }
 
 proc ::nxLib::IsDiskPath {path} {
