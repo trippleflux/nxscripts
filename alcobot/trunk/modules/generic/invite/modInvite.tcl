@@ -354,18 +354,19 @@ proc ::Bot::Mod::Invite::LogEvent {event destSection pathSection path data} {
     variable hostCheck
 
     if {$event eq "INVITE"} {
-        if {[llength $data] != 5} {
-            LogError ModInvite "Invalid number of items in log data \"$data\"."
-            return 1
-        }
-        foreach {ftpUser ftpGroup ftpGroupList ftpFlags ircUser} $data {break}
+        if {[llength $data] == 5} {
+            foreach {ftpUser ftpGroup ftpGroupList ftpFlags ircUser} $data {break}
 
-        if {$hostCheck} {
-            variable whois
-            set whois($ircUser) [list $ftpUser $ftpGroup $ftpGroupList $ftpFlags]
-            putquick "WHOIS $ircUser"
+            if {$hostCheck} {
+                variable whois
+                set whois($ircUser) [list $ftpUser $ftpGroup $ftpGroupList $ftpFlags]
+                putquick "WHOIS $ircUser"
+            } else {
+                Process $ircUser "disabled@disabled" $ftpUser $ftpGroup $ftpGroupList $ftpFlags
+            }
+            return 0
         } else {
-            Process $ircUser "disabled@disabled" $ftpUser $ftpGroup $ftpGroupList $ftpFlags
+            LogError ModInvite "Invalid number of items in log data \"$data\"."
         }
     } elseif {$event eq "DELUSER" || $event eq "PURGED"} {
         # Remove invite record when a user is deleted or purged.
@@ -381,7 +382,7 @@ proc ::Bot::Mod::Invite::LogEvent {event destSection pathSection path data} {
     } else {
         LogError ModInvite "Unknown log event \"$event\"."
     }
-    return 0
+    return 1
 }
 
 ####
