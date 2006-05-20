@@ -126,31 +126,34 @@ proc ::nxTools::Dupe::CleanDb {} {
     global dupe misc user group
     if {![info exists user] && ![info exists group]} {
         if {[userfile open $misc(MountUser)] != 0} {
-            ErrorLog DupeClean "unable to open the user \"$misc(MountUser)\""; return 1
+            ErrorLog DupeClean "unable to open the user \"$misc(MountUser)\"";
+            return 1
         } elseif {[mountfile open $misc(MountFile)] != 0} {
-            ErrorLog DupeClean "unable to mount the VFS-file \"$misc(MountFile)\""; return 1
+            ErrorLog DupeClean "unable to mount the VFS-file \"$misc(MountFile)\""
+            return 1
         }
     }
-    iputs ".-\[DupeClean\]------------------------------------------------------------."
+    iputs -nobuffer ".-\[DupeClean\]------------------------------------------------------------."
+
     if {$dupe(CleanFiles) < 1} {
-        LinePuts "File database cleaning disabled, skipping."
+        LinePuts -nobuffer "File database cleaning disabled, skipping."
     } elseif {[catch {DbOpenFile [namespace current]::FileDb "DupeFiles.db"} error]} {
-        LinePuts "Unable to open the file database."
+        LinePuts -nobuffer "Unable to open the file database."
         ErrorLog CleanFiles $error
     } else {
-        LinePuts "Cleaning the file database."
+        LinePuts -nobuffer "Cleaning the file database."
         set maxAge [expr {[clock seconds] - ($dupe(CleanFiles) * 86400)}]
         FileDb eval {DELETE FROM DupeFiles WHERE TimeStamp < $maxAge}
         FileDb close
     }
 
     if {$dupe(CleanFiles) < 1} {
-        LinePuts "Directory database cleaning disabled, skipping."
+        LinePuts -nobuffer "Directory database cleaning disabled, skipping."
     } elseif {[catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} error]} {
-        LinePuts "Unable to open the directory database."
+        LinePuts -nobuffer "Unable to open the directory database."
         ErrorLog CleanDirs $error
     } else {
-        LinePuts "Cleaning the directory database."
+        LinePuts -nobuffer "Cleaning the directory database."
         set maxAge [expr {[clock seconds] - ($dupe(CleanDirs) * 86400)}]
 
         set rowIds [list]
@@ -166,7 +169,7 @@ proc ::nxTools::Dupe::CleanDb {} {
         }
         DirDb close
     }
-    iputs "'------------------------------------------------------------------------'"
+    iputs -nobuffer "'------------------------------------------------------------------------'"
     return 0
 }
 
@@ -193,7 +196,8 @@ proc ::nxTools::Dupe::RebuildDb {} {
             ErrorLog DupeRebuild "wrong number of parameters in line: \"$rebuildPath\""; continue
         }
         foreach {virtualPath realPath updateDirs updateFiles} $rebuildPath {break}
-        set trimLength [expr {[string length [file normalize $realPath]] + 1}]
+        set realPath [file normalize $realPath]
+        set trimLength [string length $realPath]; incr trimLength
 
         LinePuts -nobuffer "Updating dupe database from: $realPath"
         GetDirList $realPath dirlist $dupe(RebuildIgnore)
