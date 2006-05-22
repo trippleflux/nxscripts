@@ -292,7 +292,7 @@ proc ::nxTools::Nuke::Main {argv} {
                 set mapList [list %(user) $user %(group) $group %(multi) $multi %(reason) $reason]
                 set nukeTag [file join $realPath [string map $mapList $nuke(InfoTag)]]
                 CreateTag $nukeTag $uid $gid 555
-                RemoveParentLinks $realPath $virtualPath
+                RemoveParentLinks $realPath
                 set dirChmod 555
                 set logType "NUKE"
                 set nukeStatus 0
