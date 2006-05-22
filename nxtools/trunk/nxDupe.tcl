@@ -133,7 +133,7 @@ proc ::nxTools::Dupe::CleanDb {} {
             return 1
         }
     }
-    iputs -nobuffer ".-\[DupeClean\]------------------------------------------------------------."
+    iputs -nobuffer ".-\[Clean\]----------------------------------------------------------------."
 
     if {$dupe(CleanFiles) < 1} {
         LinePuts -nobuffer "File database cleaning disabled, skipping."
@@ -144,10 +144,11 @@ proc ::nxTools::Dupe::CleanDb {} {
         LinePuts -nobuffer "Cleaning the file database."
         set maxAge [expr {[clock seconds] - ($dupe(CleanFiles) * 86400)}]
         FileDb eval {DELETE FROM DupeFiles WHERE TimeStamp < $maxAge}
+        LinePuts -nobuffer " - Removed [FileDb changes] files."
         FileDb close
     }
 
-    if {$dupe(CleanFiles) < 1} {
+    if {$dupe(CleanDirs) < 1} {
         LinePuts -nobuffer "Directory database cleaning disabled, skipping."
     } elseif {[catch {DbOpenFile [namespace current]::DirDb "DupeDirs.db"} error]} {
         LinePuts -nobuffer "Unable to open the directory database."
@@ -155,18 +156,31 @@ proc ::nxTools::Dupe::CleanDb {} {
     } else {
         LinePuts -nobuffer "Cleaning the directory database."
         set maxAge [expr {[clock seconds] - ($dupe(CleanDirs) * 86400)}]
-
         set rowIds [list]
+
+        set statusCount 0
+        set statusTime [clock seconds]
+        set totalCount 0
         DirDb eval {SELECT DirPath,DirName,rowid FROM DupeDirs WHERE TimeStamp < $maxAge} values {
+            incr totalCount
             set fullPath [file join $values(DirPath) $values(DirName)]
             if {![file isdirectory [resolve pwd $fullPath]]} {
                 lappend rowIds $values(rowid)
+            }
+
+            # Check if 60 seconds have elapsed since the last
+            # status output every 50 entries processed.
+            if {[incr statusCount] >= 50 && ([clock seconds] - $statusTime) >= 60} {
+                set statusCount 0
+                set statusTime [clock seconds]
+                LinePuts -nobuffer " - Processed $totalCount directories..."
             }
         }
 
         if {[llength $rowIds]} {
             DirDb eval "DELETE FROM DupeDirs WHERE rowid IN ([join $rowIds ,])"
         }
+        LinePuts -nobuffer " - Removed [llength $rowIds] directories."
         DirDb close
     }
     iputs -nobuffer "'------------------------------------------------------------------------'"
@@ -175,7 +189,7 @@ proc ::nxTools::Dupe::CleanDb {} {
 
 proc ::nxTools::Dupe::RebuildDb {} {
     global dupe misc
-    iputs -nobuffer ".-\[DupeUpdate\]-----------------------------------------------------------."
+    iputs -nobuffer ".-\[Rebuild\]--------------------------------------------------------------."
     if {![llength $dupe(RebuildPaths)]} {
         ErrorReturn "There are no paths defined, check your configuration."
     }
@@ -199,7 +213,7 @@ proc ::nxTools::Dupe::RebuildDb {} {
         set realPath [file normalize $realPath]
         set trimLength [string length $realPath]; incr trimLength
 
-        LinePuts -nobuffer "Updating dupe database from: $realPath"
+        LinePuts -nobuffer "Updating from: $realPath"
         GetDirList $realPath dirlist $dupe(RebuildIgnore)
 
         foreach listName {DirList FileList} defOwner [list $misc(DirOwner) $misc(FileOwner)] {
