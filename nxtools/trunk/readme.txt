@@ -671,8 +671,6 @@ and their available cookies are:
 
 - Write user/credits during pre (chown + group nukes == no loss).
 
-- Add support for text justification in message templates (left, right, and center).
-
 - Make SITE GINFO customizable.
 
 ################################################################################

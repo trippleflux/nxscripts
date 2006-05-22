@@ -216,35 +216,39 @@ proc ::nxTools::Dupe::RebuildDb {} {
         LinePuts -nobuffer "Updating from: $realPath"
         GetDirList $realPath dirlist $dupe(RebuildIgnore)
 
-        foreach listName {DirList FileList} defOwner [list $misc(DirOwner) $misc(FileOwner)] {
-            if {[set fileMode [string equal "FileList" $listName]]} {
-                if {![IsTrue $updateFiles]} {continue}
-                set ignoreList $dupe(IgnoreFiles)
-                set maxAge [expr {$dupe(CleanFiles) * 86400}]
+        foreach dirMode {0 1} doUpdate [list $updateDirs $updateFiles] {
+            if {![IsTrue $doUpdate]} {continue}
+
+            if {$dirMode} {
+                set defOwner $misc(DirOwner)
+                set entries  "DirList"
+                set ignore   $dupe(IgnoreDirs)
+                set maxAge   0
             } else {
-                if {![IsTrue $updateDirs]} {continue}
-                set ignoreList $dupe(IgnoreDirs)
-                set maxAge 0
+                set defOwner $misc(FileOwner)
+                set entries  "FileList"
+                set ignore   $dupe(IgnoreFiles)
+                set maxAge   [expr {$dupe(CleanFiles) * 86400}]
             }
             set defUser [resolve uid [lindex $defOwner 0]]
             set defGroup [resolve gid [lindex $defOwner 1]]
 
-            foreach entry $dirlist($listName) {
-                if {[ListMatchI $ignoreList $entry]} {continue}
+            foreach entry $dirlist($entries) {
+                if {[ListMatchI $ignore $entry]} {continue}
 
                 if {[catch {file stat $entry fstat}]} {continue}
-                if {$maxAge != 0 && ([clock seconds] - $fstat(ctime)) > $maxAge} {continue}
+                if {$maxAge > 0 && ([clock seconds] - $fstat(ctime)) > $maxAge} {continue}
                 catch {vfs read $entry} owner
                 if {[set userName [resolve uid [lindex $owner 0]]] eq ""} {set userName $defUser}
                 if {[set groupName [resolve gid [lindex $owner 1]]] eq ""} {set groupName $defGroup}
 
                 set baseName [file tail $entry]
-                if {$fileMode} {
-                    FileDb eval {INSERT INTO DupeFiles(TimeStamp,UserName,GroupName,FileName) VALUES($fstat(ctime),$userName,$groupName,$baseName)}
-                } else {
+                if {$dirMode} {
                     set dirPath [file join $virtualPath [string range [file dirname $entry] $trimLength end]]
                     append dirPath "/"
                     DirDb eval {INSERT INTO DupeDirs(TimeStamp,UserName,GroupName,DirPath,DirName) VALUES($fstat(ctime),$userName,$groupName,$dirPath,$baseName)}
+                } else {
+                    FileDb eval {INSERT INTO DupeFiles(TimeStamp,UserName,GroupName,FileName) VALUES($fstat(ctime),$userName,$groupName,$baseName)}
                 }
             }
         }
