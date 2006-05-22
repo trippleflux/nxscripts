@@ -72,23 +72,23 @@ proc ::nxMissing::ArgList {argv} {
     return $argList
 }
 
-proc ::nxMissing::GetPath {path} {
-    global pwd
-    if {[string index $path 0] eq "/"} {
-        set virtualPath $path
-    } else {
-        set virtualPath "/$pwd$path"
+proc ::nxMissing::GetPath {path workingPath} {
+    # Absolute path or relative path.
+    if {[string index $path 0] ne "/"} {
+        set path "$workingPath/$path"
     }
-    regsub -all -- {[\\/]+} $virtualPath {/} virtualPath
+    set path [string trim $path "/\\"]
 
-    # Ignore "." and "..".
-    set tail [file tail $virtualPath]
-    if {$tail eq "." || $tail eq ".."} {
-        set virtualPath [file dirname $virtualPath]
-    } elseif {$virtualPath ne "/"} {
-        set virtualPath [string trimright $virtualPath "/"]
+    # Resolve the "." and ".." path components.
+    set components [list]
+    foreach component [SplitPath $path] {
+        if {$component eq ".."} {
+            set components [lreplace $components end end]
+        } elseif {$component ne "."} {
+            lappend components $component
+        }
     }
-    return $virtualPath
+    return "/[join $components /]"
 }
 
 proc ::nxMissing::ListMatch {patternList string} {
@@ -176,22 +176,26 @@ proc ::nxMissing::RemoveTag {realPath} {
     catch {vfs flush [file dirname $realPath]}
 }
 
-proc ::nxMissing::RemoveParentLinks {realPath virtualPath} {
-    if {[IsSubDir $realPath]} {
+proc ::nxMissing::RemoveParentLinks {realPath} {
+    if {[IsDiskPath $realPath]} {
         set realPath [file dirname $realPath]
     }
     set realPath [file dirname $realPath]
-    set virtualPath [string trimright $virtualPath "/"]
+    set realPathLen [string length $realPath]
 
-    foreach linkPath [glob -nocomplain -types d -directory $realPath "*"] {
-        if {[catch {vfs chattr $linkPath 1} linkTarget] || ![string length $linkTarget]} {continue}
-        regsub -all -- {[\\/]+} $linkTarget {/} linkTarget
-        set linkTarget "/[string trim $linkTarget {/}]"
-        if {[string equal -nocase -length [string length $virtualPath] $virtualPath $linkTarget]} {
-            RemoveTag $linkPath
+    foreach symPath [glob -nocomplain -types d -directory $realPath "*"] {
+        if {[catch {vfs chattr $symPath 1} symTarget] || $symTarget eq ""} {continue}
+        set symRealTarget [resolve pwd $symTarget]
+
+        if {[string equal -nocase -length $realPathLen $realPath $symRealTarget]} {
+            RemoveTag $symPath
         }
     }
-    return
+}
+
+proc ::nxMissing::SplitPath {path} {
+    regsub -all -- {[\\/]+} $path {/} path
+    return [file split [string trim $path "/"]]
 }
 
 proc ::nxMissing::Main {argv} {
@@ -209,7 +213,7 @@ proc ::nxMissing::Main {argv} {
         }
     } elseif {$event eq "SITE"} {
         set virtualPath [GetPath [lindex $argList 1]]
-        RemoveParentLinks [resolve pwd $virtualPath] $virtualPath
+        RemoveParentLinks [resolve pwd $virtualPath]
     } elseif {$event eq "UPLOAD"} {
         set virtualPath [file dirname [lindex $argList 3]]
 

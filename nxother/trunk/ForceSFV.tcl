@@ -61,24 +61,39 @@ set ExemptFlags		"M1"
 ## End of Settings
 ################################################################################
 
-## Find the virtual path, handles both relative and absolute paths.
-proc GetPath {pwd path} {
-	if {[string index $path 0] == "/"} {set vpath $path} else {set vpath "$pwd$path"}
-	regsub -all {[\/]+} $vpath {/} vpath
-	if {![string equal "/" $vpath]} {set vpath [string trimright $vpath "/"]}
-	return $vpath
-}
-
-## Handle arguments with unclosed brackets.
 proc ArgRange {list start end} {
 	regsub -all {[\s]+} $list { } list
 	return [join [lrange [split [string trim $list] { }] $start $end] { }]
 }
 
+proc GetPath {path workingPath} {
+    ## Absolute path or relative path.
+    if {[string index $path 0] ne "/"} {
+        set path "$workingPath/$path"
+    }
+    set path [string trim $path "/\\"]
+
+    ## Resolve the "." and ".." path components.
+    set components [list]
+    foreach component [SplitPath $path] {
+        if {$component eq ".."} {
+            set components [lreplace $components end end]
+        } elseif {$component ne "."} {
+            lappend components $component
+        }
+    }
+    return "/[join $components /]"
+}
+
+proc SplitPath {path} {
+    regsub -all -- {[\\/]+} $path {/} path
+    return [file split [string trim $path "/"]]
+}
+
 if {[info exists args] && ![string equal "" $args]} {
 	## Set file and directory paths
 	set checksfv 0
-	set fpath [GetPath $pwd [ArgRange $args 1 end]]
+	set fpath [GetPath [ArgRange $args 1 end] $pwd]
 	set mpath [string range $fpath 0 [string last "/" $fpath]]
 	set filext [file extension $fpath]
 	## Check if file has extension
