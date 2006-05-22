@@ -189,7 +189,7 @@ proc ::nxAutoNuke::Nuke {realPath virtualPath nukerUser nukerGroup multi reason}
     set mapList [list %(user) $nukerUser %(group) $nukerGroup %(multi) $multi %(reason) $reason]
     set nukeTag [file join $realPath [string map $mapList $nuke(InfoTag)]]
     CreateTag $nukeTag [resolve user $nukerUser] [resolve group $nukerGroup] 555
-    RemoveParentLinks $realPath $virtualPath
+    RemoveParentLinks $realPath
 
     set newName "$nuke(Prefix)[file tail $virtualPath]"
     set newPath [file join $parentPath $newName]
