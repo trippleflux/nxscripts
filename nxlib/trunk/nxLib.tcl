@@ -232,7 +232,7 @@ proc ::nxLib::GetDirStats {realPath varName {ignoreList ""} {firstCall 1}} {
     return
 }
 
-proc ::nxLib::GetPath {workingPath path} {
+proc ::nxLib::GetPath {path workingPath} {
     # Absolute path or relative path.
     if {[string index $path 0] ne "/"} {
         set path "$workingPath/$path"
