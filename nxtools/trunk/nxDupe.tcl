@@ -685,13 +685,13 @@ proc ::nxTools::Dupe::Main {argv} {
     set event [string toupper [lindex $argList 0]]
     switch -- $event {
         DUPELOG {
-            set virtualPath [GetPath $pwd [join [lrange $argList 2 end]]]
+            set virtualPath [GetPath [join [lrange $argList 2 end]] $pwd]
             if {[IsTrue $dupe(CheckDirs)] || [IsTrue $dupe(CheckFiles)]} {
                 set result [UpdateLog [lindex $argList 1] $virtualPath]
             }
         }
         POSTMKD {
-            set virtualPath [GetPath $pwd [join [lrange $argList 2 end]]]
+            set virtualPath [GetPath [join [lrange $argList 2 end]] $pwd]
             if {[IsTrue $dupe(CheckDirs)]} {
                 set result [UpdateLog [lindex $argList 1] $virtualPath]
             }
@@ -701,7 +701,7 @@ proc ::nxTools::Dupe::Main {argv} {
             if {[IsTrue $approve(CheckMkd)]} {ApproveCheck $virtualPath 1}
         }
         PREMKD {
-            set virtualPath [GetPath $pwd [join [lrange $argList 2 end]]]
+            set virtualPath [GetPath [join [lrange $argList 2 end]] $pwd]
             if {!([IsTrue $approve(CheckMkd)] && [ApproveCheck $virtualPath 0])} {
                 if {[IsTrue $dupe(CheckDirs)]} {
                     set result [CheckDirs $virtualPath]
@@ -709,7 +709,7 @@ proc ::nxTools::Dupe::Main {argv} {
             }
         }
         PRESTOR {
-            set virtualPath [GetPath $pwd [join [lrange $argList 2 end]]]
+            set virtualPath [GetPath [join [lrange $argList 2 end]] $pwd]
             if {[IsTrue $force(NfoFirst)] || [IsTrue $force(SfvFirst)] || [IsTrue $force(SampleFirst)]} {
                 set result [ForceCheck $virtualPath]
             }
@@ -783,7 +783,7 @@ proc ::nxTools::Dupe::Main {argv} {
         }
         WIPE {
             if {$argLength > 1} {
-                set virtualPath [GetPath $pwd [join [lrange $argList 1 end]]]
+                set virtualPath [GetPath [join [lrange $argList 1 end]] $pwd]
                 set result [SiteWipe $virtualPath]
             } else {
                 iputs " Usage: SITE WIPE <file/directory>"

@@ -553,7 +553,7 @@ proc ::nxTools::Pre::Release {argList} {
 
     # Check if group is allowed to pre to the area and from this path.
     set allowPath 0; set preGroup ""
-    set virtualPath [GetPath $pwd $target]
+    set virtualPath [GetPath $target $pwd]
     foreach groupName $groups {
         if {[lsearch -exact $preGrps($area) $groupName] != -1} {
             set preGroup $groupName
