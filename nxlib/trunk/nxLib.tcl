@@ -271,7 +271,6 @@ proc ::nxLib::RemoveParentLinks {realPath {dummy ""}} {
             RemoveTag $symPath
         }
     }
-    return
 }
 
 proc ::nxLib::SplitPath {path} {
