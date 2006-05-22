@@ -233,6 +233,7 @@ proc ::nxLib::GetDirStats {realPath varName {ignoreList ""} {firstCall 1}} {
 }
 
 proc ::nxLib::GetPath {workingPath path} {
+    # Absolute path or relative path.
     if {[string index $path 0] ne "/"} {
         set path "$workingPath/$path"
     }
@@ -240,7 +241,7 @@ proc ::nxLib::GetPath {workingPath path} {
 
     # Resolve the "." and ".." path components.
     set components [list]
-    foreach component [file split $path] {
+    foreach component [SplitPath $path] {
         if {$component eq ".."} {
             set components [lreplace $components end end]
         } elseif {$component ne "."} {
@@ -271,6 +272,11 @@ proc ::nxLib::RemoveParentLinks {realPath virtualPath} {
         }
     }
     return
+}
+
+proc ::nxLib::SplitPath {path} {
+    regsub -all -- {[\\/]+} $path {/} path
+    return [file split [string trim $path "/"]]
 }
 
 # ioFTPD Related Procedures
