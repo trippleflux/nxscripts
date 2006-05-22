@@ -256,7 +256,7 @@ proc ::nxLib::IsDiskPath {path} {
     return [regexp -- {^(cd|dis[ck]|dvd)\d{1,2}$} $path]
 }
 
-proc ::nxLib::RemoveParentLinks {realPath {dummy ""}} {
+proc ::nxLib::RemoveParentLinks {realPath args} {
     if {[IsDiskPath $realPath]} {
         set realPath [file dirname $realPath]
     }
