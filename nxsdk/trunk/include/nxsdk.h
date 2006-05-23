@@ -17,6 +17,11 @@ Abstract:
 #ifndef _NXSDK_H_
 #define _NXSDK_H_
 
+// C++ compiler compatibility
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // ioFTPD headers
 #include <ServerLimits.h>
 #include <UserFile.h>
@@ -25,10 +30,10 @@ Abstract:
 #include <DataCopy.h>
 
 // Calling convention for exported functions.
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__BORLANDC__)
 #   define STDCALL __stdcall
 #else
-#   define STDCALL
+#   error Unsupported compiler
 #endif
 
 
@@ -425,5 +430,9 @@ Io_VfsWrite(
     const char *path,
     const IO_VFS *vfs
     );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // _NXSDK_H_
