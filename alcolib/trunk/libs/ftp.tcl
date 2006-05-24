@@ -435,8 +435,8 @@ proc ::Ftp::Handler {handle {direct 0}} {
     # Variables:
     # replyCode - Reply code (e.g. 200).
     # replyBase - Base reply code (e.g. 2).
-    # buffer    - List of reply codes and text messages.
-    # message   - Text from the first line (lindex $buffer 1).
+    # buffer    - Paired list of reply codes and messages.
+    # message   - Message from the first buffer line (lindex $buffer 1).
     #
     set replyBase [string index $replyCode 0]
 
@@ -531,7 +531,7 @@ proc ::Ftp::Handler {handle {direct 0}} {
 
     if {$nextEvent} {
         # Proceed to the next event (recursion).
-        Handler $handle 1
+        Handler $handle
     }
 }
 
