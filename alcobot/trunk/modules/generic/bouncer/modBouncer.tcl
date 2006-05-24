@@ -13,8 +13,7 @@
 #
 
 namespace eval ::Bot::Mod::Bouncer {
-    if {![info exists [namespace current]::checkIndex]} {
-        variable checkIndex 0
+    if {![info exists [namespace current]::cmdToken]} {
         variable cmdToken ""
         variable timerId ""
     }
@@ -85,26 +84,25 @@ proc ::Bot::Mod::Bouncer::Notify {index handle success} {
 #
 # Checks the status of a bouncer every minute.
 #
-proc ::Bot::Mod::Bouncer::Timer {} {
+proc ::Bot::Mod::Bouncer::Timer {index} {
     variable bouncers
-    variable checkIndex
     variable timerId
 
-    if {[info exists bouncers($checkIndex)]} {
-        set handle [lindex $bouncers($checkIndex) 5]
+    if {[info exists bouncers($index)]} {
+        set handle [lindex $bouncers($index) 5]
 
         if {[catch {Ftp::Connect $handle} message]} {
-            Notify $checkIndex $handle 0
+            Notify $index $handle 0
         }
     }
-    incr checkIndex
+    incr index
 
     # Reset the index if we're out of bounds.
-    if {![info exists bouncers($checkIndex)]} {
-        set checkIndex 0
+    if {![info exists bouncers($index)]} {
+        set index 0
     }
 
-    set timerId [timer 1 [namespace current]::Timer]
+    set timerId [timer 1 [list [namespace current]::Timer $index]]
     return
 }
 
@@ -115,7 +113,6 @@ proc ::Bot::Mod::Bouncer::Timer {} {
 #
 proc ::Bot::Mod::Bouncer::Load {firstLoad} {
     variable bouncers
-    variable checkIndex
     variable cmdToken
     variable timerId
     upvar ::Bot::configHandle configHandle
@@ -137,10 +134,8 @@ proc ::Bot::Mod::Bouncer::Load {firstLoad} {
     set cmdToken [CmdCreate channel bnc [namespace current]::Command \
         -category "General" -desc "Display bouncer status."]
 
-    # Reset the bouncer check index.
-    set checkIndex 0
     if {$firstLoad} {
-        set timerId [timer 1 [namespace current]::Timer]
+        set timerId [timer 1 [list [namespace current]::Timer 0]]
     }
 }
 
