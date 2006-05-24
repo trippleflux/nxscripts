@@ -440,7 +440,7 @@ proc ::Ftp::Handler {handle {direct 0}} {
     #
     set replyBase [string index $replyCode 0]
 
-    while {[llength $ftp(queue)]} {
+    while {[info exists ftp(queue)] && [llength $ftp(queue)]} {
         set nextEvent 0
 
         # The first list element of an event must be its name, the
@@ -527,7 +527,7 @@ proc ::Ftp::Handler {handle {direct 0}} {
         }
 
         # Proceed to the next event?
-        if {!$nextEvent} {break}
+        if {!$nextEvent} {return}
     }
 }
 
