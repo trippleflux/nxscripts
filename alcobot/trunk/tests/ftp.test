@@ -86,21 +86,21 @@ test ftp-2.2 {Change: get all, defaults} {
     set result [Ftp::Change $handle]
     Ftp::Close $handle
     set result
-} {-debug {} -host localhost -notify {} -password anonymous -port 21 -secure off -user anonymous}
+} {-debug {} -host localhost -notify {} -password anonymous -port 21 -retries 100 -secure off -sleep 100 -user anonymous}
 
 test ftp-2.3 {Change: get all, different} {
-    set handle [Ftp::Open ftp://test:suite@host.com:666 -debug MyDebug -notify MyNotify]
+    set handle [Ftp::Open ftp://test:suite@host.com:666 -debug MyDebug -notify MyNotify -retries 5000 -sleep 250]
     set result [Ftp::Change $handle]
     Ftp::Close $handle
     set result
-} {-debug MyDebug -host host.com -notify MyNotify -password suite -port 666 -secure off -user test}
+} {-debug MyDebug -host host.com -notify MyNotify -password suite -port 666 -retries 5000 -secure off -sleep 250 -user test}
 
 test ftp-2.4 {Change: get, invalid option} {
     set handle [Ftp::Open ftp://host.com]
     set result [list [catch {Ftp::Change $handle -fake} msg] $msg]
     Ftp::Close $handle
     set result
-} {1 {invalid option "-fake": must be -debug, -host, -notify, -password, -port, -secure, or -user}}
+} {1 {invalid option "-fake": must be -debug, -host, -notify, -password, -port, -retries, -secure, -sleep, or -user}}
 
 test ftp-2.5 {Change: get, valid option} {
     set handle [Ftp::Open ftp://host.com]
