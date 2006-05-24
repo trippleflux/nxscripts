@@ -385,7 +385,6 @@ proc ::Ftp::Handler {handle {direct 0}} {
     set message ""
 
     if {[gets $ftp(sock) line] > 0} {
-        #
         # Multi-line responses have a hyphen after the reply code for
         # each line until the last line is reached. For example:
         #
@@ -393,32 +392,28 @@ proc ::Ftp::Handler {handle {direct 0}} {
         # 200-blah
         # 200-blah
         # 200 Command successful.
-        #
-        if {[regexp -- {^(\d+)( |-)?(.*)$} $line result replyCode multi message]} {
-            lappend buffer $replyCode $message
-        } else {
+        if {![regexp -- {^(\d+)( |-)?(.*)$} $line result replyCode multi message]} {
             Debug $ftp(debug) FtpHandler "Invalid server response \"$line\"."
-            set multi ""
-        }
+        } else {
+            lappend buffer $replyCode $message
 
-        #
-        # The "STAT -al" response differs substantially, all subsequent lines
-        # after the initial response do not have a reply code until the last line.
-        #
-        # 211-Status of .:
-        # drwxrwxrwx  22 user         group               0 Oct 07 03:49 .
-        # drwxrwxrwx   5 user         group               0 Apr 02 02:59 blah1
-        # drwxrwxrwx  25 user         group               0 Oct 11 00:00 blah2
-        # drwxrwxrwx  22 user         group               0 Sep 27 22:52 blah3
-        # drwxrwxrwx  37 user         group               0 Jun 06 03:39 blah4
-        # 211 End of Status
-        #
-        # Because of this, the line is appended to the response buffer
-        # regardless of whether or not it matches the regular expression.
-        #
-        while {$multi eq "-" && [gets $ftp(sock) line] > 0} {
-            regexp -- {^(\d+)( |-)?(.*)$} $line result replyCode multi line
-            lappend buffer $replyCode $line
+            # The "STAT -al" response differs substantially, all subsequent lines
+            # after the initial response do not have a reply code until the last line.
+            #
+            # 211-Status of .:
+            # drwxrwxrwx  22 user         group               0 Oct 07 03:49 .
+            # drwxrwxrwx   5 user         group               0 Apr 02 02:59 blah1
+            # drwxrwxrwx  25 user         group               0 Oct 11 00:00 blah2
+            # drwxrwxrwx  22 user         group               0 Sep 27 22:52 blah3
+            # drwxrwxrwx  37 user         group               0 Jun 06 03:39 blah4
+            # 211 End of Status
+            #
+            # Because of this, the line is appended to the response buffer
+            # regardless of whether or not it matches the regular expression.
+            while {$multi eq "-" && [gets $ftp(sock) line] > 0} {
+                regexp -- {^(\d+)( |-)?(.*)$} $line result replyCode multi line
+                lappend buffer $replyCode $line
+            }
         }
     } elseif {[eof $ftp(sock)]} {
         # The remote server has closed the control connection.
