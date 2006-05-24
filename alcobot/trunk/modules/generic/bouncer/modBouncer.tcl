@@ -56,34 +56,6 @@ proc ::Bot::Mod::Bouncer::Command {target user host channel argv} {
 }
 
 ####
-# CheckTimer
-#
-# Checks the status of a bouncer every minute.
-#
-proc ::Bot::Mod::Bouncer::CheckTimer {} {
-    variable bouncers
-    variable checkIndex
-    variable timerId
-
-    if {[info exists bouncers($checkIndex)]} {
-        set handle [lindex $bouncers($checkIndex) 5]
-
-        if {[catch {Ftp::Connect $handle} message]} {
-            Notify $checkIndex $handle 0
-        }
-    }
-    incr checkIndex
-
-    # Reset the index if we're out of bounds.
-    if {![info exists bouncers($checkIndex)]} {
-        set checkIndex 0
-    }
-
-    set timerId [timer 1 [namespace current]::CheckTimer]
-    return
-}
-
-####
 # Notify
 #
 # Notified by the FTP library when the connection succeeds or fails.
@@ -106,6 +78,34 @@ proc ::Bot::Mod::Bouncer::Notify {index handle success} {
     }
 
     Ftp::Disconnect $handle
+}
+
+####
+# Timer
+#
+# Checks the status of a bouncer every minute.
+#
+proc ::Bot::Mod::Bouncer::Timer {} {
+    variable bouncers
+    variable checkIndex
+    variable timerId
+
+    if {[info exists bouncers($checkIndex)]} {
+        set handle [lindex $bouncers($checkIndex) 5]
+
+        if {[catch {Ftp::Connect $handle} message]} {
+            Notify $checkIndex $handle 0
+        }
+    }
+    incr checkIndex
+
+    # Reset the index if we're out of bounds.
+    if {![info exists bouncers($checkIndex)]} {
+        set checkIndex 0
+    }
+
+    set timerId [timer 1 [namespace current]::Timer]
+    return
 }
 
 ####
@@ -140,7 +140,7 @@ proc ::Bot::Mod::Bouncer::Load {firstLoad} {
     # Reset the bouncer check index.
     set checkIndex 0
     if {$firstLoad} {
-        set timerId [timer 1 [namespace current]::CheckTimer]
+        set timerId [timer 1 [namespace current]::Timer]
     }
 }
 
