@@ -387,8 +387,6 @@ proc ::Ftp::Handler {handle {direct 0}} {
     if {[gets $ftp(sock) line] > 0} {
         # Multi-line responses have a hyphen after the reply code for
         # each line until the last line is reached. For example:
-        #
-        # 200-blah
         # 200-blah
         # 200-blah
         # 200 Command successful.
@@ -410,9 +408,18 @@ proc ::Ftp::Handler {handle {direct 0}} {
             #
             # Because of this, the line is appended to the response buffer
             # regardless of whether or not it matches the regular expression.
-            while {$multi eq "-" && [gets $ftp(sock) line] > 0} {
-                regexp -- {^(\d+)( |-)?(.*)$} $line result replyCode multi line
-                lappend buffer $replyCode $line
+            set retries 0
+            while {$multi eq "-" && $retries < 100} {
+                if {[gets $ftp(sock) line] > 0} {
+                    regexp -- {^(\d+)( |-)?(.*)$} $line result replyCode multi line
+                    lappend buffer $replyCode $line
+                    # Reset the retry count on success.
+                    set retries 0
+                } else {
+                    Debug $ftp(debug) FtpHandler "No response in $retries retries, sleeping for 100ms."
+                    # Sleep for 100ms and try again.
+                    incr retries; after 100
+                }
             }
         }
     } elseif {[eof $ftp(sock)]} {
