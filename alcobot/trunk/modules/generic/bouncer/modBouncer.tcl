@@ -15,6 +15,7 @@
 namespace eval ::Bot::Mod::Bouncer {
     if {![info exists [namespace current]::cmdToken]} {
         variable cmdToken ""
+        variable interval 1
         variable timerId ""
     }
     namespace import -force ::Bot::*
@@ -86,6 +87,7 @@ proc ::Bot::Mod::Bouncer::Notify {index handle success} {
 #
 proc ::Bot::Mod::Bouncer::Timer {index} {
     variable bouncers
+    variable interval
     variable timerId
 
     if {[info exists bouncers($index)]} {
@@ -102,7 +104,7 @@ proc ::Bot::Mod::Bouncer::Timer {index} {
         set index 0
     }
 
-    set timerId [timer 1 [list [namespace current]::Timer $index]]
+    set timerId [timer $interval [list [namespace current]::Timer $index]]
     return
 }
 
@@ -114,6 +116,7 @@ proc ::Bot::Mod::Bouncer::Timer {index} {
 proc ::Bot::Mod::Bouncer::Load {firstLoad} {
     variable bouncers
     variable cmdToken
+    variable interval
     variable timerId
     upvar ::Bot::configHandle configHandle
 
@@ -134,7 +137,15 @@ proc ::Bot::Mod::Bouncer::Load {firstLoad} {
     set cmdToken [CmdCreate channel bnc [namespace current]::Command \
         -category "General" -desc "Display bouncer status."]
 
+    # Calculate the check interval (time inbetween checks). Allow a
+    # threshold of 15 minutes for every 5 bouncers, this ensures the
+    # interval is always at least 3 minutes.
+    incr index
+    set threshold [expr {(($index + 4) / 5) * 15}]
+    set interval  [expr {$threshold / $index}]
+
     if {$firstLoad} {
+        # Kick off the first check in one minute.
         set timerId [timer 1 [list [namespace current]::Timer 0]]
     }
 }
