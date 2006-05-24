@@ -55,8 +55,10 @@ namespace eval ::Ftp {
 #  <scheme>://<username>:<password>@<host>:<port>
 #
 # Options:
-#  -debug  <callback>
-#  -notify <callback>
+#  -debug   <callback> - Debug logging callback.
+#  -notify  <callback> - Connection notification callback.
+#  -retries <count>    - Number of attempts while waiting for a complete reply.
+#  -sleep   <msecs>    - Milliseconds to sleep after each attempt.
 #
 proc ::Ftp::Open {connString args} {
     variable nextHandle
@@ -64,18 +66,18 @@ proc ::Ftp::Open {connString args} {
 
     # Set default values.
     array set uri [list user "anonymous" password "anonymous" host "localhost" port 21]
-    array set option [list debug "" notify ""]
+    array set option [list debug "" notify "" retries 100 sleep 100]
 
     # Parse arguments.
     array set uri [Uri::Parse $connString]
     if {![info exists schemeMap($uri(scheme))]} {
         throw FTP "unknown scheme \"$uri(scheme)\""
     }
-    GetOpt::Parse $args {{debug arg} {notify arg}} option
+    GetOpt::Parse $args {{debug arg} {notify arg} {retries integer} {sleep integer}} option
 
     # Load the TLS extension.
-    set option(secure) $schemeMap($uri(scheme))
-    if {$option(secure) ne "off" && [catch {package require tls 1.5} message]} {
+    set secure $schemeMap($uri(scheme))
+    if {$secure ne "off" && [catch {package require tls 1.5} message]} {
         throw FTP "SSL/TLS not available: $message"
     }
 
@@ -84,30 +86,36 @@ proc ::Ftp::Open {connString args} {
     #
     # FTP Handle Contents
     #
-    # ftp(host)     - Remote server host.
-    # ftp(port)     - Remote server port.
+    # ftp(secure)   - Security method.
     # ftp(user)     - Client user name.
     # ftp(password) - Client password.
+    # ftp(host)     - Remote server host.
+    # ftp(port)     - Remote server port.
+    #
     # ftp(debug)    - Debug logging callback.
     # ftp(notify)   - Connection notification callback.
-    # ftp(secure)   - Security method.
+    # ftp(retries)  - Number of attempts while waiting for a complete reply.
+    # ftp(sleep)    - Milliseconds to sleep after each attempt.
+    #
     # ftp(error)    - Last error message.
     # ftp(queue)    - Event queue (FIFO).
     # ftp(sock)     - Socket channel.
     # ftp(status)   - Connection status (0=disconnected, 1=connecting, 2=connected).
     #
-    array set ftp [list          \
-        host     $uri(host)      \
-        port     $uri(port)      \
-        user     $uri(user)      \
-        password $uri(password)  \
-        debug    $option(debug)  \
-        notify   $option(notify) \
-        secure   $option(secure) \
-        error    ""              \
-        queue    [list]          \
-        sock     ""              \
-        status   0               \
+    array set ftp [list           \
+        secure   $secure          \
+        user     $uri(user)       \
+        password $uri(password)   \
+        host     $uri(host)       \
+        port     $uri(port)       \
+        debug    $option(debug)   \
+        notify   $option(notify)  \
+        retries  $option(retries) \
+        sleep    $option(sleep)   \
+        error    ""               \
+        queue    [list]           \
+        sock     ""               \
+        status   0                \
     ]
 
     incr nextHandle
@@ -121,7 +129,7 @@ proc ::Ftp::Open {connString args} {
 #
 proc ::Ftp::Change {handle args} {
     Acquire $handle ftp
-    set options {-debug -host -notify -password -port -secure -user}
+    set options {-debug -host -notify -password -port -retries -secure -sleep -user}
 
     # Retrieve all options.
     if {[llength $args] == 0} {
@@ -140,7 +148,8 @@ proc ::Ftp::Change {handle args} {
 
     # Modify options.
     GetOpt::Parse $args {{debug arg} {host arg} {notify arg} {password arg} \
-        {port integer} {secure arg {implicit off ssl tls}} {user arg}} option
+        {port integer} {retries integer} {secure arg {implicit off ssl tls}} \
+        {sleep integer} {user arg}} option
     if {[info exists option(secure)] && $option(secure) ne "off" && [catch {package require tls 1.5} message]} {
         throw FTP "SSL/TLS not available: $message"
     }
@@ -408,17 +417,16 @@ proc ::Ftp::Handler {handle {direct 0}} {
             #
             # Because of this, the line is appended to the response buffer
             # regardless of whether or not it matches the regular expression.
-            set retries 0
-            while {$multi eq "-" && $retries < 100} {
+            set attempts 0
+            while {$multi eq "-" && $attempts < $ftp(retries)} {
                 if {[gets $ftp(sock) line] > 0} {
                     regexp -- {^(\d+)( |-)?(.*)$} $line result replyCode multi line
                     lappend buffer $replyCode $line
-                    # Reset the retry count on success.
-                    set retries 0
+                    set attempts 0
                 } else {
-                    Debug $ftp(debug) FtpHandler "No response in $retries retries, sleeping for 100ms."
-                    # Sleep for 100ms and try again.
-                    incr retries; after 100
+                    incr attempts
+                    Debug $ftp(debug) FtpHandler "No response in $attempts/$ftp(retries), sleeping for $ftp(sleep)ms."
+                    after $ftp(sleep)
                 }
             }
         }
