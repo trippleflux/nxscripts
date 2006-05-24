@@ -531,7 +531,7 @@ proc ::Ftp::Handler {handle {direct 0}} {
 
     if {$nextEvent} {
         # Proceed to the next event (recursion).
-        Handler $handle
+        Handler $handle 1
     }
 }
 
