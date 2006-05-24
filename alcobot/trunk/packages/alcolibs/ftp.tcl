@@ -440,94 +440,98 @@ proc ::Ftp::Handler {handle {direct 0}} {
     #
     set replyBase [string index $replyCode 0]
 
-    while {[info exists ftp(queue)] && [llength $ftp(queue)]} {
-        set nextEvent 0
+    if {![llength $ftp(queue)]} {
+        Debug $ftp(debug) FtpHandler "Empty event queue, returning."
+        return
+    }
+    set nextEvent 0
 
-        # The first list element of an event must be its name, the
-        # remaining elements are optional and vary between event types.
-        set event [lindex $ftp(queue) 0]
-        set eventName [lindex $event 0]
+    # The first list element of an event must be its name, the
+    # remaining elements are optional and vary between event types.
+    set event [lindex $ftp(queue) 0]
+    set eventName [lindex $event 0]
 
-        # Pop the event from queue.
-        set ftp(queue) [lrange $ftp(queue) 1 end]
+    # Pop the event from queue.
+    set ftp(queue) [lreplace $ftp(queue) 0 0]
 
-        Debug $ftp(debug) FtpHandler "Event: $eventName"
-        switch -- $eventName {
-            auth {
-                # Receive hello response and send AUTH.
-                if {$replyBase == 2} {
-                    Send $handle "AUTH [string toupper $ftp(secure)]"
-                    set ftp(queue) [linsert $ftp(queue) 0 auth_sent]
-                } else {
-                    Shutdown $handle "unable to login - $message"
-                    return
-                }
-            }
-            auth_sent {
-                # Receive AUTH response and send PBSZ.
-                if {$replyBase == 2} {
-                    if {[catch {tls::import $ftp(sock) -ssl2 1 -ssl3 1 -tls1 1} message]} {
-                        Shutdown $handle "SSL negotiation failed - $message"
-                        return
-                    }
-                    # Set channel options again, in case the TLS module changes them.
-                    fconfigure $ftp(sock) -buffering line -blocking 0 -translation {auto crlf}
-
-                    Send $handle "PBSZ 0"
-                    set ftp(queue) [linsert $ftp(queue) 0 user]
-                } else {
-                    Shutdown $handle "unable to login - $message"
-                    return
-                }
-            }
-            user {
-                # Receive hello or PBSZ response and send USER.
-                if {$replyBase == 2} {
-                    Send $handle "USER $ftp(user)"
-                    set ftp(queue) [linsert $ftp(queue) 0 user_sent]
-                } else {
-                    Shutdown $handle "unable to login - $message"
-                    return
-                }
-            }
-            user_sent {
-                # Receive USER response and send PASS.
-                if {$replyBase == 3} {
-                    Send $handle "PASS $ftp(password)"
-                    set ftp(queue) [linsert $ftp(queue) 0 pass_sent]
-                } else {
-                    Shutdown $handle "unable to login - $message"
-                    return
-                }
-            }
-            pass_sent {
-                # Receive PASS response.
-                if {$replyBase == 2} {
-                    set ftp(status) 2
-                    Evaluate $ftp(debug) $ftp(notify) $handle 1
-                    set nextEvent 1
-                } else {
-                    Shutdown $handle "unable to login - $message"
-                    return
-                }
-            }
-            quote {
-                # Send command.
-                Send $handle [lindex $event 1]
-                set ftp(queue) [linsert $ftp(queue) 0 [list quote_sent [lindex $event 2]]]
-            }
-            quote_sent {
-                # Receive command.
-                Evaluate $ftp(debug) [lindex $event 1] $handle $buffer
-                set nextEvent 1
-            }
-            default {
-                Debug $ftp(debug) FtpHandler "Unknown event name \"$eventName\"."
+    Debug $ftp(debug) FtpHandler "Event: $eventName"
+    switch -- $eventName {
+        auth {
+            # Receive hello response and send AUTH.
+            if {$replyBase == 2} {
+                Send $handle "AUTH [string toupper $ftp(secure)]"
+                set ftp(queue) [linsert $ftp(queue) 0 auth_sent]
+            } else {
+                Shutdown $handle "unable to login - $message"
+                return
             }
         }
+        auth_sent {
+            # Receive AUTH response and send PBSZ.
+            if {$replyBase == 2} {
+                if {[catch {tls::import $ftp(sock) -ssl2 1 -ssl3 1 -tls1 1} message]} {
+                    Shutdown $handle "SSL negotiation failed - $message"
+                    return
+                }
+                # Set channel options again, in case the TLS module changes them.
+                fconfigure $ftp(sock) -buffering line -blocking 0 -translation {auto crlf}
 
-        # Proceed to the next event?
-        if {!$nextEvent} {return}
+                Send $handle "PBSZ 0"
+                set ftp(queue) [linsert $ftp(queue) 0 user]
+            } else {
+                Shutdown $handle "unable to login - $message"
+                return
+            }
+        }
+        user {
+            # Receive hello or PBSZ response and send USER.
+            if {$replyBase == 2} {
+                Send $handle "USER $ftp(user)"
+                set ftp(queue) [linsert $ftp(queue) 0 user_sent]
+            } else {
+                Shutdown $handle "unable to login - $message"
+                return
+            }
+        }
+        user_sent {
+            # Receive USER response and send PASS.
+            if {$replyBase == 3} {
+                Send $handle "PASS $ftp(password)"
+                set ftp(queue) [linsert $ftp(queue) 0 pass_sent]
+            } else {
+                Shutdown $handle "unable to login - $message"
+                return
+            }
+        }
+        pass_sent {
+            # Receive PASS response.
+            if {$replyBase == 2} {
+                set ftp(status) 2
+                Evaluate $ftp(debug) $ftp(notify) $handle 1
+                set nextEvent 1
+            } else {
+                Shutdown $handle "unable to login - $message"
+                return
+            }
+        }
+        quote {
+            # Send command.
+            Send $handle [lindex $event 1]
+            set ftp(queue) [linsert $ftp(queue) 0 [list quote_sent [lindex $event 2]]]
+        }
+        quote_sent {
+            # Receive command.
+            Evaluate $ftp(debug) [lindex $event 1] $handle $buffer
+            set nextEvent 1
+        }
+        default {
+            Debug $ftp(debug) FtpHandler "Unknown event name \"$eventName\"."
+        }
+    }
+
+    if {$nextEvent} {
+        # Proceed to the next event (recursion).
+        Handler $handle
     }
 }
 
