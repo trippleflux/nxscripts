@@ -309,14 +309,14 @@ proc ::nxLib::GetSectionList {} {
     return $sectionList
 }
 
-proc ::nxLib::GetSectionPath {findSection {sectionList ""}} {
+proc ::nxLib::GetSectionName {virtualPath {sectionList ""}} {
     if {![llength $sectionList]} {set sectionList [GetSectionList]}
     foreach {sectionName creditSection statSection matchPath} $sectionList {
-        if {[string equal -nocase $findSection $sectionName]} {
-            return [list $sectionName $matchPath]
+        if {[string match -nocase $matchPath $virtualPath]} {
+            return $sectionName
         }
     }
-    return [list "DEFAULT" "*"]
+    return "DEFAULT"
 }
 
 proc ::nxLib::GetCreditStatSections {virtualPath {sectionList ""}} {
