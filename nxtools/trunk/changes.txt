@@ -8,6 +8,7 @@ nxTools v1.0.5 (not released):
   CHG: Output from "SITE CLEAN" and "SITE REBUILD" is no longer buffered to
        prevent hitting script execution timeouts.
   FIX: Directory dupe database was always cleaned, even if disable in the config.
+  FIX: Log the maximum request age in seconds, not as a timestamp.
 
 nxTools v1.0.4a (May 7, 2006):
   FIX: Typo in v1.0.4 that broke file dupe checking.

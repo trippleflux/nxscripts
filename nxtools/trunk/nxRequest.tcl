@@ -211,9 +211,10 @@ proc ::nxTools::Req::Wipe {} {
         LinePuts "Request wiping is disabled, check your configuration."
     } else {
         LinePuts "Wiping filled requests older than $req(MaximumAge) day(s)..."
-        set maxAge [expr {[clock seconds] - $req(MaximumAge) * 86400}]
+        set maxAge [expr {$req(MaximumAge) * 86400}]
+        set timeStamp [expr {[clock seconds] - $maxAge}]
 
-        ReqDb eval {SELECT rowid,* FROM Requests WHERE Status=1 AND TimeStamp < $maxAge ORDER BY RequestId ASC} values {
+        ReqDb eval {SELECT rowid,* FROM Requests WHERE Status=1 AND TimeStamp < $timeStamp ORDER BY RequestId ASC} values {
             set age [expr {[clock seconds] - $values(TimeStamp)}]
 
             # Wipe the directory if it exists.
