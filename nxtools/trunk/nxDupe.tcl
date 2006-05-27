@@ -342,17 +342,18 @@ proc ::nxTools::Dupe::RaceLinks {virtualPath} {
         return 1
     }
     # Format and create link directory.
-    set tagName [file tail $virtualPath]
-    if {$latest(MaxLength) > 0 && [string length $tagName] > $latest(MaxLength)} {
-        set tagName [string trimright [string range $tagName 0 $latest(MaxLength)] "."]
+    set section [GetSectionName $virtualPath]
+    set release [file tail $virtualPath]
+    if {$latest(MaxLength) > 0 && [string length $release] > $latest(MaxLength)} {
+        set release [string trimright [string range $release 0 $latest(MaxLength)] "."]
     }
-    set tagName [string map [list %(release) $tagName] $latest(RaceTag)]
+    set tag [string map [list %(section) $section %(release) $release] $latest(RaceTag)]
     set timeStamp [clock seconds]
-    LinkDb eval {INSERT INTO Links(TimeStamp,LinkType,DirName) VALUES($timeStamp,0,$tagName)}
+    LinkDb eval {INSERT INTO Links(TimeStamp,LinkType,DirName) VALUES($timeStamp,0,$tag)}
 
-    set tagName [file join $latest(SymPath) $tagName]
-    if {![catch {file mkdir $tagName} error]} {
-        catch {vfs chattr $tagName 1 $virtualPath}
+    set tag [file join $latest(SymPath) $tag]
+    if {![catch {file mkdir $tag} error]} {
+        catch {vfs chattr $tag 1 $virtualPath}
     } else {ErrorLog RaceLinksMkDir $error}
 
     # Remove older links.

@@ -3,6 +3,7 @@
 ################################################################################
 
 nxTools v1.0.5 (not released):
+  NEW: Section cookie for latest race and pre symlinks.
   CHG: Improved path resolving and symlink removal functions.
   CHG: Output from "SITE CLEAN" and "SITE REBUILD" is no longer buffered to
        prevent hitting script execution timeouts.
