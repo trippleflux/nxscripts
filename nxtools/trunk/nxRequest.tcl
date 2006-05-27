@@ -173,8 +173,8 @@ proc ::nxTools::Req::Update {event userName groupName flags request} {
             set logType "REQDEL"
         }
 
-        set requestAge [expr {[clock seconds] - $values(TimeStamp)}]
-        putlog "${logType}: \"$userName\" \"$groupName\" \"$values(Request)\" \"$values(UserName)\" \"$values(GroupName)\" \"$values(RequestId)\" \"$requestAge\""
+        set age [expr {[clock seconds] - $values(TimeStamp)}]
+        putlog "${logType}: \"$userName\" \"$groupName\" \"$values(Request)\" \"$values(UserName)\" \"$values(GroupName)\" \"$values(RequestId)\" \"$age\""
         UpdateDir $event $values(Request)
     }
 
@@ -193,9 +193,9 @@ proc ::nxTools::Req::List {} {
 
     ReqDb eval {SELECT * FROM Requests WHERE Status=0 ORDER BY RequestId ASC} values {
         incr count
-        set reqAge [FormatDuration [expr {[clock seconds] - $values(TimeStamp)}]]
-        set valueList [list [lrange $reqAge 0 1] $values(RequestId) $values(UserName) $values(GroupName) $values(Request)]
-        OutputText [ParseCookies $template(Body) $valueList {age id user group request}]
+        set age [FormatDuration [expr {[clock seconds] - $values(TimeStamp)}]]
+        set values [list [lrange $age 0 1] $values(RequestId) $values(UserName) $values(GroupName) $values(Request)]
+        OutputText [ParseCookies $template(Body) $values {age id user group request}]
     }
 
     if {!$count} {OutputText $template(None)}
@@ -214,7 +214,7 @@ proc ::nxTools::Req::Wipe {} {
         set maxAge [expr {[clock seconds] - $req(MaximumAge) * 86400}]
 
         ReqDb eval {SELECT rowid,* FROM Requests WHERE Status=1 AND TimeStamp < $maxAge ORDER BY RequestId ASC} values {
-            set requestAge [expr {[clock seconds] - $values(TimeStamp)}]
+            set age [expr {[clock seconds] - $values(TimeStamp)}]
 
             # Wipe the directory if it exists.
             set fillPath [string map [list %(request) $values(Request)] $req(FilledTag)]
@@ -224,9 +224,10 @@ proc ::nxTools::Req::Wipe {} {
                 if {[catch {file delete -force -- $fillPath} error]} {
                     ErrorLog ReqWipe $error
                 }
-                LinePuts "Wiped: $values(Request) by $values(UserName)/$values(GroupName) (#$values(RequestId))."
-                putlog "REQWIPE: \"$values(UserName)\" \"$values(GroupName)\" \"$values(Request)\" \"$values(RequestId)\" \"$requestAge\" \"$maxAge\""
             }
+
+            LinePuts "Wiped: $values(Request) by $values(UserName)/$values(GroupName) (#$values(RequestId))."
+            putlog "REQWIPE: \"$values(UserName)\" \"$values(GroupName)\" \"$values(Request)\" \"$values(RequestId)\" \"$age\" \"$maxAge\""
             ReqDb eval {UPDATE Requests SET Status=2 WHERE rowid=$values(rowid)}
         }
         catch {vfs flush $req(RequestPath)}
