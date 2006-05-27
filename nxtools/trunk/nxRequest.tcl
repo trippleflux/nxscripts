@@ -194,8 +194,8 @@ proc ::nxTools::Req::List {} {
     ReqDb eval {SELECT * FROM Requests WHERE Status=0 ORDER BY RequestId ASC} values {
         incr count
         set age [FormatDuration [expr {[clock seconds] - $values(TimeStamp)}]]
-        set values [list [lrange $age 0 1] $values(RequestId) $values(UserName) $values(GroupName) $values(Request)]
-        OutputText [ParseCookies $template(Body) $values {age id user group request}]
+        set valueList [list [lrange $age 0 1] $values(RequestId) $values(UserName) $values(GroupName) $values(Request)]
+        OutputText [ParseCookies $template(Body) $valueList {age id user group request}]
     }
 
     if {!$count} {OutputText $template(None)}
