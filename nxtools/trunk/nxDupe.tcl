@@ -33,11 +33,11 @@ proc ::nxTools::Dupe::CheckDirs {virtualPath} {
         set dirName [file tail $virtualPath]
 
         DirDb eval {SELECT * FROM DupeDirs WHERE StrCaseEq(DirName,$dirName) LIMIT 1} values {
-            set dupeAge [FormatDuration [expr {[clock seconds] - $values(TimeStamp)}]]
-            set dupePath [file join $values(DirPath) $values(DirName)]
+            set age [FormatDuration [expr {[clock seconds] - $values(TimeStamp)}]]
+            set path [file join $values(DirPath) $values(DirName)]
             iputs -noprefix "553-.-\[DupeCheck\]-------------------------------------------------."
-            iputs -noprefix "553-| [format %-59s "Dupe: $dupePath"] |"
-            iputs -noprefix "553-| [format %-59s "Created $dupeAge ago by $values(UserName)."] |"
+            iputs -noprefix "553-| [format %-59s "Dupe: $path"] |"
+            iputs -noprefix "553-| [format %-59s "Created $age ago by $values(UserName)."] |"
             iputs -noprefix "553 '-------------------------------------------------------------'"
             set result 1
         }
@@ -54,10 +54,10 @@ proc ::nxTools::Dupe::CheckFiles {virtualPath} {
         set fileName [file tail $virtualPath]
 
         FileDb eval {SELECT * FROM DupeFiles WHERE StrCaseEq(FileName,$fileName) LIMIT 1} values {
-            set dupeAge [FormatDuration [expr {[clock seconds] - $values(TimeStamp)}]]
+            set age [FormatDuration [expr {[clock seconds] - $values(TimeStamp)}]]
             iputs -noprefix "553-.-\[DupeCheck\]-------------------------------------------------."
             iputs -noprefix "553-| [format %-59s "Dupe: $values(FileName)"] |"
-            iputs -noprefix "553-| [format %-59s "Uploaded $dupeAge ago by $values(UserName)."] |"
+            iputs -noprefix "553-| [format %-59s "Uploaded $age ago by $values(UserName)."] |"
             iputs -noprefix "553 '-------------------------------------------------------------'"
             set result 1
         }

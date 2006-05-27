@@ -389,8 +389,8 @@ proc ::nxTools::Nuke::Main {argv} {
             if {![catch {DbOpenFile [namespace current]::NukeDb "Nukes.db"} error]} {
                 NukeDb eval $query values {
                     incr count
-                    set nukeAge [FormatDuration [expr {[clock seconds] - $values(TimeStamp)}]]
-                    iputs [format "| %-9.9s | %-12.12s | %-9.9s | %-31.31s |" [lrange $nukeAge 0 1] $values(UserName) $values(Multi)x $values(Reason)]
+                    set age [FormatDuration [expr {[clock seconds] - $values(TimeStamp)}]]
+                    iputs [format "| %-9.9s | %-12.12s | %-9.9s | %-31.31s |" [lrange $age 0 1] $values(UserName) $values(Multi)x $values(Reason)]
                     iputs [format "| Dir: %-65.65s |" $values(Release)]
                     iputs "|------------------------------------------------------------------------|"
                 }
