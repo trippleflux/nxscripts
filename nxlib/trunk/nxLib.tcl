@@ -282,21 +282,22 @@ proc ::nxLib::SplitPath {path} {
 ######################################################################
 
 proc ::nxLib::GetSectionList {} {
-    set isSections 0
+    set inSections 0
     set sectionList [list]
     if {![catch {set handle [open "ioFTPD.ini" r]} error]} {
         while {![eof $handle]} {
             set line [string trim [gets $handle]]
-            if {[string index $line 0] eq ";" || [string index $line 0] eq "#"} {continue}
-            if {$line eq {[Sections]}} {
-                set isSections 1
-            } elseif {$isSections} {
+            set char [string index $line 0]
+            if {$char eq "" || $char eq ";" || $char eq "#"} {continue}
+
+            if {$line eq "\[Sections\]"} {
+                set inSections 1
+            } elseif {$inSections} {
                 if {[string match {\[*\]} $line]} {
-                    set isSections 0
-                } elseif {[set elements [llength $line]]} {
-                    # Check if the user was to lazy to define the stats section
+                    set inSections 0
+                } else {
                     foreach {sectionName eqSign creditSection argOne argTwo} $line {break}
-                    switch -- $elements {
+                    switch -- [llength $line] {
                         5 {lappend sectionList $sectionName $creditSection $argOne $argTwo}
                         4 {lappend sectionList $sectionName $creditSection 0 $argOne}
                         default {ErrorLog GetSectionList "invalid ioFTPD.ini \[Sections\] line: \"$line\""}
