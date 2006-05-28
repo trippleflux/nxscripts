@@ -23,7 +23,16 @@ namespace eval ::nxLib {
 interp alias {} IsTrue {} string is true -strict
 interp alias {} IsFalse {} string is false -strict
 
-proc ::nxLib::ArgList {argv} {
+proc ::nxLib::ListConvert {list {word "and"}} {
+    if {[llength $list] < 2} {return [join $list]}
+    set listLiteral [join [lrange $list 0 end-1] ", "]
+    if {[llength $list] > 2} {
+        append listLiteral ","
+    }
+    return [append listLiteral " " $word " " [lindex $list end]]
+}
+
+proc ::nxLib::ListParse {argv} {
     set argList [list]
     set length [string length $argv]
 
@@ -46,7 +55,7 @@ proc ::nxLib::ArgList {argv} {
     return $argList
 }
 
-proc ::nxLib::StringRange {string start end} {
+proc ::nxLib::ListRange {string start end} {
     regsub -all -- {\s+} $string { } string
     join [lrange [split [string trim $string]] $start $end]
 }
@@ -72,15 +81,6 @@ proc ::nxLib::GetOptions {argList limitVar stringVar} {
         set string [join $argList]
     }
     return 1
-}
-
-proc ::nxLib::JoinLiteral {list {word "and"}} {
-    if {[llength $list] < 2} {return [join $list]}
-    set listLiteral [join [lrange $list 0 end-1] ", "]
-    if {[llength $list] > 2} {
-        append listLiteral ","
-    }
-    return [append listLiteral " " $word " " [lindex $list end]]
 }
 
 proc ::nxLib::ErrorReturn {message} {
