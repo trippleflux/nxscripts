@@ -131,7 +131,7 @@ proc ::nxTools::Nuke::Main {argv} {
     global approve misc nuke flags gid group groups pwd uid user
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
 
-    set argList [ArgList $argv]
+    set argList [ListParse $argv]
     set event [string toupper [lindex $argList 0]]
     switch -- $event {
         NUKE - UNNUKE {

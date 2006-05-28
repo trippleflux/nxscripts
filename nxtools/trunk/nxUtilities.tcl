@@ -499,7 +499,7 @@ proc ::nxTools::Utils::SiteGroupInfo {groupName section} {
         foreach line [split $groupFile "\r\n"] {
             set type [string tolower [lindex $line 0]]
             if {$type eq "description"} {
-                set ginfo(TagLine) [StringRange $line 1 end]
+                set ginfo(TagLine) [ListRange $line 1 end]
             } elseif {$type eq "slots"} {
                 set ginfo(Slots) [lrange $line 1 2]
             }
@@ -540,7 +540,7 @@ proc ::nxTools::Utils::SiteResetStats {argList} {
         LinePuts "No valid stat types specified."
         LinePuts "Types: $statTypes"
     } else {
-        LinePuts "Resetting: [JoinLiteral $resetStats]"
+        LinePuts "Resetting: [ListConvert $resetStats]"
         foreach userName [GetUserList] {
             ResetUserFile $userName $resetStats
         }
@@ -667,7 +667,7 @@ proc ::nxTools::Utils::SiteWho {} {
                     if {$type eq "groups"} {
                         set groupName [GetGroupName [lindex $line 1]]
                     } elseif {$type eq "tagline"} {
-                        set tagline [StringRange $line 1 end]
+                        set tagline [ListRange $line 1 end]
                     }
                 }
             }
@@ -723,7 +723,7 @@ proc ::nxTools::Utils::Main {argv} {
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     set result 0
 
-    set argLength [llength [set argList [ArgList $argv]]]
+    set argLength [llength [set argList [ListParse $argv]]]
     set event [string toupper [lindex $argList 0]]
     switch -- $event {
         DRIVES {

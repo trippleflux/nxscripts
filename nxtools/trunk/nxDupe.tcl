@@ -686,7 +686,7 @@ proc ::nxTools::Dupe::Main {argv} {
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     set result 0
 
-    set argLength [llength [set argList [ArgList $argv]]]
+    set argLength [llength [set argList [ListParse $argv]]]
     set event [string toupper [lindex $argList 0]]
     switch -- $event {
         DUPELOG {

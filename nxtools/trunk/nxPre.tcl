@@ -82,7 +82,7 @@ proc ::nxTools::Pre::ConfigWrite {configFile} {
 }
 
 proc ::nxTools::Pre::DisplayAreas {areaList} {
-    set areas [JoinLiteral [lsort -ascii $areaList]]
+    set areas [ListConvert [lsort -ascii $areaList]]
     set prefix "Areas : "
     set prefixLen [string length $prefix]
 
@@ -103,7 +103,7 @@ proc ::nxTools::Pre::ResolvePath {userName groupName realPath} {
         set userFile [userfile bin2ascii]
         foreach line [split $userFile "\r\n"] {
             if {[string equal -nocase "vfsfile" [lindex $line 0]]} {
-                set vfsFile [StringRange $line 1 end]; break
+                set vfsFile [ListRange $line 1 end]; break
             }
         }
     }
@@ -112,7 +112,7 @@ proc ::nxTools::Pre::ResolvePath {userName groupName realPath} {
         set groupFile [groupfile bin2ascii]
         foreach line [split $groupFile "\r\n"] {
             if {[string equal -nocase "vfsfile" [lindex $line 0]]} {
-                set vfsFile [StringRange $line 1 end]; break
+                set vfsFile [ListRange $line 1 end]; break
             }
         }
     }
@@ -770,7 +770,7 @@ proc ::nxTools::Pre::Main {argv} {
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
     set result 0
 
-    set argLength [llength [set argList [ArgList $argv]]]
+    set argLength [llength [set argList [ListParse $argv]]]
     set event [string toupper [lindex $argList 0]]
     if {$event eq "PRE"} {
         set subEvent [string toupper [lindex $argList 1]]

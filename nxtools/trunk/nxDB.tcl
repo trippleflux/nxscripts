@@ -212,7 +212,7 @@ proc ::nxTools::Db::Main {argv} {
     variable dbSchema
     if {[IsTrue $misc(DebugMode)]} {DebugLog -state [info script]}
 
-    set argLength [llength [set argList [ArgList $argv]]]
+    set argLength [llength [set argList [ListParse $argv]]]
     set event [string toupper [lindex $argList 0]]
     if {[lsearch -exact {CREATE CHECK OPTIMIZE} $event] == -1} {
         iputs "Syntax: SITE DB CHECK \[database\]"
@@ -236,7 +236,7 @@ proc ::nxTools::Db::Main {argv} {
         }
         if {!$valid} {
             LinePuts "Invalid database name \"$arg\", must be:"
-            LinePuts [JoinLiteral $dbList "or"]
+            LinePuts [ListConvert $dbList "or"]
             set result 1
         }
     }

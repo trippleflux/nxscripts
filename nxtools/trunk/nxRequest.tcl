@@ -252,7 +252,7 @@ proc ::nxTools::Req::Main {argv} {
         return 1
     }
 
-    set argLength [llength [set argList [ArgList $argv]]]
+    set argLength [llength [set argList [ListParse $argv]]]
     set event [string toupper [lindex $argList 0]]
     set request [join [lrange $argList 1 end]]
 

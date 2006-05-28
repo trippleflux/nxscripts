@@ -39,7 +39,7 @@ proc ::nxTools::Close::Main {argv} {
     global close misc flags group ioerror user
     set result 0
 
-    set argList [ArgList $argv]
+    set argList [ListParse $argv]
     set event [string toupper [lindex $argList 0]]
     switch -- $event {
         CLOSE {
