@@ -128,6 +128,7 @@ proc ::nxTools::Db::Create {dbList} {
     foreach dbName $dbList {
         set filePath [file join $misc(DataPath) ${dbName}.db]
         set fileName [file tail $filePath]
+        LinePuts ""
         LinePuts "Creating database: $fileName"
 
         set exists [file exists $filePath]
@@ -174,6 +175,7 @@ proc ::nxTools::Db::Check {dbList} {
     global misc
     foreach dbName $dbList {
         set filePath [file join $misc(DataPath) ${dbName}.db]
+        LinePuts ""
         LinePuts "Checking database: [file tail $filePath]"
 
         if {[catch {sqlite3 db $filePath} error]} {
@@ -190,6 +192,7 @@ proc ::nxTools::Db::Optimize {dbList} {
     global misc
     foreach dbName $dbList {
         set filePath [file join $misc(DataPath) ${dbName}.db]
+        LinePuts ""
         LinePuts "Optimizing database: [file tail $filePath]"
 
         if {[catch {sqlite3 db $filePath} error]} {
@@ -241,15 +244,15 @@ proc ::nxTools::Db::Main {argv} {
     if {!$result} {
         switch -- $event {
             CREATE {
-                LinePuts "Creating [llength $dbList] database(s)."; LinePuts ""
+                LinePuts "Creating [llength $dbList] database(s)."
                 set result [Create $dbList]
             }
             CHECK {
-                LinePuts "Checking [llength $dbList] database(s)."; LinePuts ""
+                LinePuts "Checking [llength $dbList] database(s)."
                 set result [Check $dbList]
             }
             OPTIMIZE {
-                LinePuts "Optimizing [llength $dbList] database(s)."; LinePuts ""
+                LinePuts "Optimizing [llength $dbList] database(s)."
                 set result [Optimize $dbList]
             }
         }
