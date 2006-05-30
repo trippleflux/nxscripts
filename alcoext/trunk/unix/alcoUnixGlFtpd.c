@@ -1222,7 +1222,7 @@ GlKillCmd(
     Tcl_SetResult(interp, "unable to kill user: the specified process "
         "does not belong to glFTPD or does not exist", TCL_STATIC);
 
-    end:
+end:
     FreeOnlineData(maxUsers, onlineData);
     return status;
 }
@@ -1303,13 +1303,14 @@ GlWhoCmd(
             }
         }
 
-        fields[i] = (unsigned char) fieldIndex;
+        assert(fieldIndex < 255);
+        fields[i] = (unsigned char)fieldIndex;
     }
 
     result = GetOnlineFields(interp, handlePtr, fields, elementCount,
         &userListPtr, &groupListPtr);
 
-    end:
+end:
     if (userListPtr != NULL) {
         FreeUserList(&userListPtr);
     }

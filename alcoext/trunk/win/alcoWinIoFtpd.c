@@ -1685,6 +1685,7 @@ IoWhoCmd(
             flags |= ONLINE_GET_USERNAME;
         }
 
+        assert(fieldIndex < 255);
         fields[i] = (unsigned char)fieldIndex;
     }
 
