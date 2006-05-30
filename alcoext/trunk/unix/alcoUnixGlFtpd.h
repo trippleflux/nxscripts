@@ -75,21 +75,7 @@ typedef struct {
 // Generic shared memory structure. At the moment, this structure is a
 // copy of the v2.01 online structure until the structure changes again.
 //
-typedef struct {
-    char        tagline[64];
-    char        username[24];
-    char        status[256];
-    int16_t     ssl_flag;
-    char        host[256];
-    char        currentdir[256];
-    int32_t     groupid;
-    int32_t     login_time;
-    timeval32_t tstart;
-    timeval32_t txfer;
-    uint64_t    bytes_xfer;
-    uint64_t    bytes_txfer;
-    int32_t     procid;
-} GlOnlineGeneric;
+typedef GlOnline201 GlOnlineGeneric;
 
 // Restore default structure alignment for non-critical structures.
 #pragma pack(pop)
