@@ -127,15 +127,15 @@ GetOnlineFields(
     GlHandle *handlePtr,
     unsigned char *fields,
     int fieldCount,
-    GlUser **userListPtr,
-    GlGroup **groupListPtr
+    GlNames **userListPtr,
+    GlNames **groupListPtr
     );
 
 //
 // User and group functions.
 //
 
-static int
+inline int
 ParseFields(
     const char *line,
     int delims,
@@ -144,39 +144,29 @@ ParseFields(
     );
 
 static int
-GetUserList(
+GetNameList(
     Tcl_Interp *interp,
     const char *etcPath,
-    GlUser **userListPtr
-    );
-
-static void
-FreeUserList(
-    GlUser **userListPtr
+    const char *fileName,
+    int delims,
+    GlNames **listPtr
     );
 
 static int32_t
-GetUserIdFromName(
-    GlUser **userListPtr,
-    const char *userName
+GetIdFromName(
+    GlNames **listPtr,
+    const char *name
     );
 
-static int
-GetGroupList(
-    Tcl_Interp *interp,
-    const char *etcPath,
-    GlGroup **groupListPtr
+static const char *
+GetNameFromId(
+    GlNames **listPtr,
+    int32_t id
     );
 
 static void
-FreeGroupList(
-    GlGroup **groupListPtr
-    );
-
-static char *
-GetGroupNameFromId(
-    GlGroup **groupListPtr,
-    int32_t groupId
+FreeNameList(
+    GlNames **listPtr
     );
 
 
@@ -251,7 +241,7 @@ Return Value:
     A standard Tcl result.
 
 --*/
-static int
+inline int
 ParseFields(
     const char *line,
     int delims,
@@ -287,16 +277,20 @@ ParseFields(
 
 /*++
 
-GetUserList
+GetNameList
 
-    Creates a list of users from the "passwd" file located in "etcPath".
+    Creates a list of names from the specified file located in "etcPath".
 
 Arguments:
     interp      - Interpreter to use for error reporting.
 
     etcPath     - Path to glFTPD's "etc" directory.
 
-    userListPtr - Pointer to a receive a list of "GlUser" structures.
+    fileName    - File name located in "etcPath".
+
+    delims      - Number of required delimiters.
+
+    listPtr     - Pointer to a receive a list of "GlNames" structures.
 
 Return Value:
     A standard Tcl result.
@@ -306,27 +300,29 @@ Remarks:
 
 --*/
 static int
-GetUserList(
+GetNameList(
     Tcl_Interp *interp,
     const char *etcPath,
-    GlUser **userListPtr
+    const char *fileName,
+    int delims,
+    GlNames **listPtr
     )
 {
     char *p;
     char line[512];
-    char passwdFile[PATH_MAX];
+    char path[PATH_MAX];
     int nameLength;
-    int32_t userId;
+    int32_t id;
     FILE *stream;
 
-    strncpy(passwdFile, etcPath, ARRAYSIZE(passwdFile));
-    strncat(passwdFile, GLFTPD_PASSWD, ARRAYSIZE(passwdFile));
-    passwdFile[ARRAYSIZE(passwdFile)-1] = '\0';
+    strncpy(path, etcPath, ARRAYSIZE(path));
+    strncat(path, fileName, ARRAYSIZE(path));
+    path[ARRAYSIZE(path)-1] = '\0';
 
-    stream = fopen(passwdFile, "r");
+    stream = fopen(path, "r");
     if (stream == NULL) {
         Tcl_ResetResult(interp);
-        Tcl_AppendResult(interp, "unable to open \"", passwdFile, "\": ",
+        Tcl_AppendResult(interp, "unable to open \"", path, "\": ",
             Tcl_PosixError(interp), NULL);
         return TCL_ERROR;
     }
@@ -340,23 +336,24 @@ GetUserList(
             continue;
         }
 
-        // A "passwd" entry has 6 delimiters for 7 fields.
-        // Format: User:Password:UID:GID:Date:HomeDir:Irrelevant
-        if (ParseFields(p, 6, &nameLength, &userId) == TCL_OK) {
-            GlUser *userPtr = (GlUser *)ckalloc(sizeof(GlUser));
+        // File formats:
+        // passwd (6 delims) - User:Password:UID:GID:Date:HomeDir:Irrelevant
+        // group  (3 delims) - Group:Description:GID:Irrelevant
+        if (ParseFields(p, delims, &nameLength, &id) == TCL_OK) {
+            GlNames *current = (GlNames *)ckalloc(sizeof(GlNames));
 
-            if (nameLength >= GLFTPD_MAX_NAME) {
-                nameLength = GLFTPD_MAX_NAME;
+            if (nameLength >= ARRAYSIZE(current->name)) {
+                nameLength = ARRAYSIZE(current->name);
             } else {
                 nameLength++;
             }
-            strncpy(userPtr->name, p, nameLength);
-            userPtr->name[nameLength-1] = '\0';
-            userPtr->id = userId;
+            strncpy(current->name, p, nameLength);
+            current->name[nameLength-1] = '\0';
+            current->id = id;
 
             // Insert entry at the list head.
-            userPtr->next = *userListPtr;
-            *userListPtr = userPtr;
+            current->next = *listPtr;
+            *listPtr = current;
         }
     }
 
@@ -366,58 +363,31 @@ GetUserList(
 
 /*++
 
-FreeUserList
+GetIdFromName
 
-    Frees a list of "GlUser" structures.
-
-Arguments:
-    userListPtr - Pointer to a "GlUser" structure that represents the list head.
-
-Return Value:
-    None.
-
---*/
-static void
-FreeUserList(
-    GlUser **userListPtr
-    )
-{
-    GlUser *userPtr;
-
-    while (*userListPtr != NULL) {
-        userPtr = (*userListPtr)->next;
-        ckfree((char *) *userListPtr);
-        *userListPtr = userPtr;
-    }
-}
-
-/*++
-
-GetUserIdFromName
-
-    Retrieves the user ID for a given user name.
+    Retrieves the ID for a given name.
 
 Arguments:
-    userListPtr - Pointer to a "GlUser" structure that represents the list head.
+    listPtr - Pointer to a "GlNames" structure that represents the list head.
 
-    userName    - The user name to look-up.
+    name    - The name to look-up.
 
 Return Value:
-    If the function is successful, the corresponding user ID for the given
-    user name is returned. If the function fails, -1 is returned.
+    If the function is successful, the corresponding ID for the name is
+    returned. If the function fails, -1 is returned.
 
 --*/
 static int32_t
-GetUserIdFromName(
-    GlUser **userListPtr,
-    const char *userName
+GetIdFromName(
+    GlNames **listPtr,
+    const char *name
     )
 {
-    GlUser *userPtr;
+    GlNames *current;
 
-    for (userPtr = *userListPtr; userPtr != NULL; userPtr = userPtr->next) {
-        if (strcmp(userName, userPtr->name) == 0) {
-            return userPtr->id;
+    for (current = *listPtr; current != NULL; current = current->next) {
+        if (strcmp(name, current->name) == 0) {
+            return current->id;
         }
     }
     return -1;
@@ -425,140 +395,61 @@ GetUserIdFromName(
 
 /*++
 
-GetGroupList
+GetNameFromId
 
-    Creates a list of groups from the "group" file located in "etcPath".
+    Retrieves the name for a ID.
 
 Arguments:
-    interp       - Interpreter to use for error reporting.
+    listPtr - Pointer to a "GlNames" structure that represents the list head.
 
-    etcPath      - Path to glFTPD's "etc" directory.
-
-    groupListPtr - Pointer to a receive a list of "GlGroup" structures.
+    id      - The ID to look-up.
 
 Return Value:
-    A standard Tcl result.
-
-Remarks:
-    If the function fails, an error message is left in the interpreter's result.
+    If the function is successful, the corresponding name for the ID is
+    returned. If the function fails, an empty string is returned.
 
 --*/
-static int
-GetGroupList(
-    Tcl_Interp *interp,
-    const char *etcPath,
-    GlGroup **groupListPtr
+static const char *
+GetNameFromId(
+    GlNames **listPtr,
+    int32_t id
     )
 {
-    char *p;
-    char line[512];
-    char groupFile[PATH_MAX];
-    int nameLength;
-    int32_t groupId;
-    FILE *stream;
+    GlNames *current;
 
-    strncpy(groupFile, etcPath, ARRAYSIZE(groupFile));
-    strncat(groupFile, GLFTPD_GROUP, ARRAYSIZE(groupFile));
-    groupFile[ARRAYSIZE(groupFile)-1] = '\0';
-
-    stream = fopen(groupFile, "r");
-    if (stream == NULL) {
-        Tcl_ResetResult(interp);
-        Tcl_AppendResult(interp, "unable to open \"", groupFile, "\": ",
-            Tcl_PosixError(interp), NULL);
-        return TCL_ERROR;
-    }
-
-    while ((p = fgets(line, ARRAYSIZE(line), stream)) != NULL) {
-        // Strip leading spaces and skip empty or commented lines.
-        while (*p == ' ' || *p == '\t') {
-            p++;
-        }
-        if (*p == '\0' || *p == '#') {
-            continue;
-        }
-
-        // A "group" entry has 3 delimiters for 4 fields.
-        // Format: Group:Description:GID:Irrelevant
-        if (ParseFields(p, 3, &nameLength, &groupId) == TCL_OK) {
-            GlGroup *groupPtr = (GlGroup *)ckalloc(sizeof(GlUser));
-
-            if (nameLength >= GLFTPD_MAX_NAME) {
-                nameLength = GLFTPD_MAX_NAME;
-            } else {
-                nameLength++;
-            }
-            strncpy(groupPtr->name, p, nameLength);
-            groupPtr->name[nameLength-1] = '\0';
-            groupPtr->id = groupId;
-
-            // Insert entry at the list head.
-            groupPtr->next = *groupListPtr;
-            *groupListPtr = groupPtr;
+    for (current = *listPtr; current != NULL; current = current->next) {
+        if (id == current->id) {
+            return current->name;
         }
     }
-
-    fclose(stream);
-    return TCL_OK;
+    return "";
 }
 
 /*++
 
-FreeGroupList
+FreeNameList
 
-    Frees a list of "GlGroup" structures.
+    Frees a list of "GlNames" structures.
 
 Arguments:
-    groupListPtr - Pointer to a "GlGroup" structure that represents the list head.
+    listPtr - Pointer to a "GlNames" structure that represents the list head.
 
 Return Value:
     None.
 
 --*/
 static void
-FreeGroupList(
-    GlGroup **groupListPtr
+FreeNameList(
+    GlNames **listPtr
     )
 {
-    GlGroup *groupPtr;
+    GlNames *current;
 
-    while (*groupListPtr != NULL) {
-        groupPtr = (*groupListPtr)->next;
-        ckfree((char *) *groupListPtr);
-        *groupListPtr = groupPtr;
+    while (*listPtr != NULL) {
+        current = (*listPtr)->next;
+        ckfree((char *) *listPtr);
+        *listPtr = current;
     }
-}
-
-/*++
-
-GetGroupNameFromId
-
-    Retrieves the group's name for a given group ID.
-
-Arguments:
-    groupListPtr - Pointer to a "GlGroup" structure that represents the list head.
-
-    groupId      - The group ID to look-up.
-
-Return Value:
-    If the function is successful, the corresponding group name for the given
-    group ID is returned. If the function fails, "NoGroup" is returned.
-
---*/
-static char *
-GetGroupNameFromId(
-    GlGroup **groupListPtr,
-    int32_t groupId
-    )
-{
-    GlGroup *groupPtr;
-
-    for (groupPtr = *groupListPtr; groupPtr != NULL; groupPtr = groupPtr->next) {
-        if (groupId == groupPtr->id) {
-            return groupPtr->name;
-        }
-    }
-    return "NoGroup";
 }
 
 /*++
@@ -1260,8 +1151,8 @@ GlWhoCmd(
     int result = TCL_ERROR;
     unsigned char *fields;
     GlHandle *handlePtr;
-    GlGroup *groupListPtr = NULL;
-    GlUser *userListPtr = NULL;
+    GlNames *groupListPtr = NULL;
+    GlNames *userListPtr = NULL;
     Tcl_HashEntry *hashEntryPtr;
     Tcl_Obj **elementObjs;
 
@@ -1290,15 +1181,15 @@ GlWhoCmd(
         }
 
         if (fieldIndex == WHO_GROUP) {
-            // Read "/glftpd/etc/group" for group ID to group name resolving.
-            if (groupListPtr == NULL && GetGroupList(interp,
-                    handlePtr->etcPath, &groupListPtr) != TCL_OK) {
+            // Group ID to name resolving.
+            if (groupListPtr == NULL && GetNameList(interp, handlePtr->etcPath,
+                    GLFTPD_GROUP, 3, &groupListPtr) != TCL_OK) {
                 goto end;
             }
         } else if (fieldIndex == WHO_UID) {
-            // Read "/glftpd/etc/passwd" for user name to user ID resolving.
-            if (userListPtr == NULL && GetUserList(interp,
-                    handlePtr->etcPath, &userListPtr) != TCL_OK) {
+            // User name to ID resolving.
+            if (userListPtr == NULL && GetNameList(interp, handlePtr->etcPath,
+                    GLFTPD_PASSWD, 6, &userListPtr) != TCL_OK) {
                 goto end;
             }
         }
@@ -1307,15 +1198,14 @@ GlWhoCmd(
         fields[i] = (unsigned char)fieldIndex;
     }
 
-    result = GetOnlineFields(interp, handlePtr, fields, elementCount,
-        &userListPtr, &groupListPtr);
+    result = GetOnlineFields(interp, handlePtr, fields, elementCount, &userListPtr, &groupListPtr);
 
 end:
     if (userListPtr != NULL) {
-        FreeUserList(&userListPtr);
+        FreeNameList(&userListPtr);
     }
     if (groupListPtr != NULL) {
-        FreeGroupList(&groupListPtr);
+        FreeNameList(&groupListPtr);
     }
 
     ckfree((char *)fields);
@@ -1337,10 +1227,10 @@ Arguments:
 
     fieldCount   - Number of fields given for the "fields" parameter.
 
-    userListPtr  - Pointer to a "GlUser" structure that represents the
+    userListPtr  - Pointer to a "GlNames" structure that represents the
                    user list head.
 
-    groupListPtr - Pointer to a "GlGroup" structure that represents the
+    groupListPtr - Pointer to a "GlNames" structure that represents the
                    group list head.
 
 Return Value:
@@ -1357,8 +1247,8 @@ GetOnlineFields(
     GlHandle *handlePtr,
     unsigned char *fields,
     int fieldCount,
-    GlUser **userListPtr,
-    GlGroup **groupListPtr
+    GlNames **userListPtr,
+    GlNames **groupListPtr
     )
 {
     int i;
@@ -1400,7 +1290,7 @@ GetOnlineFields(
                     break;
                 }
                 case WHO_GROUP: {
-                    fieldObj = Tcl_NewStringObj(GetGroupNameFromId(groupListPtr,
+                    fieldObj = Tcl_NewStringObj(GetNameFromId(groupListPtr,
                         onlineData[i]->groupid), -1);
                     break;
                 }
@@ -1476,7 +1366,7 @@ GetOnlineFields(
                     break;
                 }
                 case WHO_UID: {
-                    fieldObj = Tcl_NewLongObj((long)GetUserIdFromName(userListPtr,
+                    fieldObj = Tcl_NewLongObj((long)GetIdFromName(userListPtr,
                         onlineData[i]->username));
                     break;
                 }

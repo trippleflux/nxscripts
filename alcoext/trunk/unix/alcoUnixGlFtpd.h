@@ -17,16 +17,6 @@ Abstract:
 #ifndef _ALCOUNIXGLFTPD_H_
 #define _ALCOUNIXGLFTPD_H_
 
-// Default path to glFTPD's "etc" directory.
-#define GLFTPD_ETC_PATH "/glftpd/etc"
-
-// Name of the "group" and "passwd" files (must include a leading slash).
-#define GLFTPD_GROUP    "/group"
-#define GLFTPD_PASSWD   "/passwd"
-
-// Maximum length of a user or group name (GlUser and GlGroup structures).
-#define GLFTPD_MAX_NAME 24
-
 // Force structure alignment to 4 bytes.
 #pragma pack(push, 4)
 
@@ -104,18 +94,19 @@ typedef struct {
 // Restore default structure alignment for non-critical structures.
 #pragma pack(pop)
 
-typedef struct GlGroup GlGroup;
-struct GlGroup {
-    int32_t id;
-    char    name[GLFTPD_MAX_NAME];
-    GlGroup *next;
-};
+
+// Default path to glFTPD's "etc" directory.
+#define GLFTPD_ETC_PATH "/glftpd/etc"
 
-typedef struct GlUser GlUser;
-struct GlUser {
-    int32_t id;
-    char    name[GLFTPD_MAX_NAME];
-    GlUser  *next;
+// Name of the "group" and "passwd" files (must include a leading slash).
+#define GLFTPD_GROUP    "/group"
+#define GLFTPD_PASSWD   "/passwd"
+
+typedef struct GlNames GlNames;
+struct GlNames {
+    int32_t  id;       // User/group ID.
+    char     name[24]; // User/group name.
+    GlNames  *next;    // Pointer to the next user/group.
 };
 
 typedef struct {
