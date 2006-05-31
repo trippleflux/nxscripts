@@ -152,9 +152,8 @@ ShmAlloc(
                 return memory;
             }
 
-            // I'm not sure if the SendMessage function updates the system error
-            // code on failure, since MSDN does not mention this behaviour. So
-            // this error code will suffice.
+            // I have no idea if the SendMessage function updates the system
+            // error code on failure, since MSDN does not mention this behaviour.
             if (GetLastError() == ERROR_SUCCESS) {
                 SetLastError(ERROR_INVALID_PARAMETER);
             }

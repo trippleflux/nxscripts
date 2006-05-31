@@ -68,7 +68,7 @@ GetVolumeSize(
 
     //
     // GetDiskFreeSpaceEx() crashes on NT4, at least it did
-    // for me; so we'll use GetDiskFreeSpace() instead.
+    // for me; so we will use GetDiskFreeSpace() instead.
     //
     if (!IsDiskSpaceExAvailable() || (osVersion.dwPlatformId == VER_PLATFORM_WIN32_NT && osVersion.dwMajorVersion <= 4)) {
         unsigned long bytesPerSector;

@@ -366,7 +366,7 @@ BzipDecompressObj(
 
         //
         // If BZ2_bzDecompress() returns BZ_OK without exhausting the output
-        // buffer, it's assumed we've unexpectedly reached the stream's end.
+        // buffer, it is assumed we have unexpectedly reached the stream's end.
         //
         if (stream.avail_out > 0) {
             status = BZ_UNEXPECTED_EOF;
@@ -651,7 +651,7 @@ ZlibDecompressObj(
 
         //
         // If inflate() returns Z_OK without exhausting the output buffer,
-        // it's assumed we've unexpectedly reached the stream's end.
+        // it is assumed we have unexpectedly reached the stream's end.
         //
         if (stream.avail_out > 0) {
             status = Z_STREAM_ERROR;

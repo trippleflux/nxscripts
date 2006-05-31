@@ -315,7 +315,7 @@ Initialise(
 
     Tcl_MutexLock(&initMutex);
 
-    // Check initialisation status again now that we're in the mutex.
+    // Check initialisation status again now that we are in the mutex.
     if (!initialised) {
 #ifdef _WINDOWS
         // Initialise the OS version structure.

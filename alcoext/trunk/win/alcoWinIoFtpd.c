@@ -1056,7 +1056,7 @@ IoInfoCmd(
     CloseHandle(processHandle);
 
     //
-    // Tcl_ObjSetVar2() won't create a copy of the field object,
+    // Tcl_ObjSetVar2() will not create a copy of the field object,
     // so the caller must free the object once finished with it.
     //
     fieldObj = Tcl_NewObj();

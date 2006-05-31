@@ -115,8 +115,7 @@ Abstract:
 #if (defined(USE_STATFS) && defined(HAVE_STRUCT_STATFS_F_FSID_VAL)) || (defined(USE_STATVFS) && defined(HAVE_STRUCT_STATVFS_F_FSID_VAL))
 //
 // The contents of the f_fsid member on BSD systems is as follows.
-// f_fsid::val[0] - The dev_t identifier for the device, which is
-//                  all that we're interested in.
+// f_fsid::val[0] - The dev_t identifier for the device (what we want).
 // f_fsid::val[1] - Type of file system, MOUNT_xxx flag.
 //
 #   define F_FSID(buf) ((buf).f_fsid.val[0])
