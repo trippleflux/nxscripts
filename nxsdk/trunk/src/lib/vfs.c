@@ -26,13 +26,13 @@ Arguments:
     memory  - Pointer to an IO_MEMORY structure allocated by Io_ShmAlloc. The
               buffer size must be at least "strlen(path) + 1".
 
-    path    - Pointer to a null-terminated string that specifies the directory
-              path to be flushed.
+    path    - Pointer to a null-terminated string that specifies the physical
+              directory path to be flushed (e.g. "C:\foo\bar").
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false). To get extended 
+    If the function fails, the return value is zero (false). To get extended
     error information, call GetLastError.
 
 --*/
@@ -80,8 +80,8 @@ Arguments:
     memory  - Pointer to an IO_MEMORY structure allocated by Io_ShmAlloc. The
               buffer size must be at least "sizeof(DC_VFS) + strlen(path) + 1".
 
-    path    - Pointer to a null-terminated string that specifies the path to
-              read VFS information from.
+    path    - Pointer to a null-terminated string that specifies the physical
+              path to read VFS information from (e.g. "C:\foo\bar").
 
     vfs     - Pointer to an IO_VFS structure that receives the ownership and
               permission information.
@@ -89,7 +89,7 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false). To get extended 
+    If the function fails, the return value is zero (false). To get extended
     error information, call GetLastError.
 
 --*/
@@ -144,8 +144,8 @@ Arguments:
     memory  - Pointer to an IO_MEMORY structure allocated by Io_ShmAlloc. The
               buffer size must be at least "sizeof(DC_VFS) + strlen(path) + 1".
 
-    path    - Pointer to a null-terminated string that specifies the path to
-              write VFS information to.
+    path    - Pointer to a null-terminated string that specifies the physical
+              path to write VFS information to (e.g. "C:\foo\bar").
 
     vfs     - Pointer to an IO_VFS structure that contains the new ownership
               and permission information.
@@ -153,7 +153,7 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false). To get extended 
+    If the function fails, the return value is zero (false). To get extended
     error information, call GetLastError.
 
 --*/
