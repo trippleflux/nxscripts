@@ -75,7 +75,7 @@ Io_GetOnlineDataEx(
     session.currentProcId = memory->procId;
     session.remoteProcId  = 0; // Not used by Io_ShmAlloc.
 
-    // Allocate the largest single amount.
+    // Allocate the largest single amount (optimized out by the compiler anyway).
     amount = sizeof(USERFILE);
     amount = MAX(amount, sizeof(GROUPFILE));
     amount = MAX(amount, sizeof(DC_NAMEID));

@@ -15,7 +15,7 @@
 ## Build options
 DEBUG       = 0
 MSVCRT      = 0
-IOFTPD_INC  = D:\ioFTPD\source\Include
+IOFTPD_INC  = E:\ioFTPD\source\Include
 
 ## Release version.
 VERSION     = 0.3.0
