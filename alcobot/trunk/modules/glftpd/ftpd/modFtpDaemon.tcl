@@ -438,7 +438,7 @@ proc ::Bot::Mod::Ftpd::Load {firstLoad} {
     if {![file isdirectory $rootPath]} {
         error "the directory \"$rootPath\" does not exist"
     }
-    if {[package vcompare $version 2.0] == -1} {
+    if {![package vsatisfies $version 2.0]} {
         error "you must be using glFTPD v2.0 or later"
     }
 

@@ -1824,7 +1824,7 @@ proc ::Bot::InitMain {} {
 }
 
 # This Tcl version check is here for a reason - do not remove it.
-if {[catch {package require Tcl 8.4} error]} {
+if {![package vsatisfies [package provide Tcl] 8.4]} {
     LogError TclVersion "You must be using Tcl v8.4, or newer."; die
 }
 
