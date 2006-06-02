@@ -93,7 +93,7 @@ proc ::Uri::Quote {value} {
         if {$char == 0} {
             error "invalid null character"
         }
-        append result [string range $value 0 [incr index -1]] %[format %.2X $char]
+        append result [string range $value 0 [incr index -1]] %[format "%.2X" $char]
         set value [string range $value [incr index 2] end]
     }
     return [append result $value]
@@ -109,7 +109,7 @@ proc ::Uri::Unquote {value} {
     while {[regexp -start $start -indices {%[0-9a-fA-F]{2}} $value match]} {
         foreach {first last} $match {break}
         append result [string range $value $start [expr {$first - 1}]]
-        append result [format %c 0x[string range $value [incr first] $last]]
+        append result [format "%c" 0x[string range $value [incr first] $last]]
         set start [incr last]
     }
     append result [string range $value $start end]
