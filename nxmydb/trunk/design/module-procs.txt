@@ -108,3 +108,4 @@ Config_Write
 Config_Read
 Free
 ReAllocate
+Allocate
