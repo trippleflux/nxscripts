@@ -16,7 +16,7 @@ Abstract:
 
 #include "mydb.h"
 
-static USER_MODULE *userModule;
+static USER_MODULE *userModule = NULL;
 
 static BOOL  MODULE_CALL UserFinalize(void);
 static INT32 MODULE_CALL UserCreate(char *userName);
@@ -35,6 +35,7 @@ UserModuleInit(
     USER_MODULE *module
     )
 {
+    // Initialize module structure.
     module->tszModuleName = "NXMYDB";
     module->DeInitialize  = UserFinalize;
     module->Create        = UserCreate;
@@ -45,6 +46,11 @@ UserModuleInit(
     module->Open          = UserOpen;
     module->Close         = UserClose;
     module->Unlock        = UserUnlock;
+
+    // Initialize procedure interface.
+    if (!InitProcs(module->GetProc)) {
+        return 1;
+    }
 
     userModule = module;
     return 0;
@@ -57,6 +63,11 @@ UserFinalize(
     void
     )
 {
+    // Finalize procedure interface.
+    FinalizeProcs();
+
+    userModule = NULL;
+    return 0;
 }
 
 static

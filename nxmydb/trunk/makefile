@@ -16,7 +16,7 @@
 DEBUG       = 0
 MEMDEBUG    = 0
 MSVCRT      = 0
-IOFTPD_INC  = D:\ioFTPD\source\Include
+IOFTPD_INC  = E:\ioFTPD\source\Include
 
 ## Release version.
 VERSION     = 0.1.0
@@ -77,7 +77,7 @@ library: nxmydb.dll
 
 # -------------------------------------------------------------------------
 
-FILE_OBJS = mydb.res group.obj user.obj
+FILE_OBJS = mydb.res group.obj procs.obj user.obj
 
 {src\}.c{}.obj::
     $(CC) /c $(CFLAGS) /Fo $<

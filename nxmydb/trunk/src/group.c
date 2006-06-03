@@ -16,7 +16,7 @@ Abstract:
 
 #include "mydb.h"
 
-static GROUP_MODULE *groupModule;
+static GROUP_MODULE *groupModule = NULL;
 
 static BOOL  MODULE_CALL GroupFinalize(void);
 static INT32 MODULE_CALL GroupCreate(char *groupName);
@@ -35,6 +35,7 @@ GroupModuleInit(
     GROUP_MODULE *module
     )
 {
+    // Initialize module structure.
     module->tszModuleName = "NXMYDB";
     module->DeInitialize  = GroupFinalize;
     module->Create        = GroupCreate;
@@ -45,6 +46,11 @@ GroupModuleInit(
     module->Open          = GroupOpen;
     module->Close         = GroupClose;
     module->Unlock        = GroupUnlock;
+
+    // Initialize procedure interface.
+    if (!InitProcs(module->GetProc)) {
+        return 1;
+    }
 
     groupModule = module;
     return 0;
@@ -57,6 +63,11 @@ GroupFinalize(
     void
     )
 {
+    // Finalize procedure interface.
+    FinalizeProcs();
+
+    groupModule = NULL;
+    return 0;
 }
 
 static

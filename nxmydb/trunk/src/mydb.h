@@ -41,6 +41,9 @@ Abstract:
 #include <User.h>
 #include <Group.h>
 
+// Project headers
+#include "procs.h"
+
 
 // Calling convention used by ioFTPD for module functions.
 #define MODULE_CALL __cdecl
