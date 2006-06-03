@@ -109,6 +109,3 @@ FinalizeProcs(
     );
 
 #endif // _PROCS_H_
-
-
-
