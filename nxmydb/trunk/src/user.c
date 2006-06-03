@@ -19,13 +19,13 @@ Abstract:
 static USER_MODULE *userModule;
 
 static BOOL  MODULE_CALL UserFinalize(void);
-static INT32 MODULE_CALL UserCreate(TCHAR *userName);
-static BOOL  MODULE_CALL UserRename(TCHAR *userName, INT32 userId, char *newName);
-static BOOL  MODULE_CALL UserDelete(TCHAR *userName, INT32 userId);
+static INT32 MODULE_CALL UserCreate(char *userName);
+static BOOL  MODULE_CALL UserRename(char *userName, INT32 userId, char *newName);
+static BOOL  MODULE_CALL UserDelete(char *userName, INT32 userId);
 static BOOL  MODULE_CALL UserLock(USERFILE *userFile);
 static BOOL  MODULE_CALL UserUnlock(USERFILE *userFile);
 static BOOL  MODULE_CALL UserWrite(USERFILE *userFile);
-static INT   MODULE_CALL UserOpen(TCHAR *userName, USERFILE *userFile);
+static INT   MODULE_CALL UserOpen(char *userName, USERFILE *userFile);
 static BOOL  MODULE_CALL UserClose(USERFILE *userFile);
 
 
@@ -63,7 +63,7 @@ static
 INT32
 MODULE_CALL
 UserCreate(
-    TCHAR *userName
+    char *userName
     )
 {
 }
@@ -72,7 +72,7 @@ static
 BOOL
 MODULE_CALL
 UserRename(
-    TCHAR *userName,
+    char *userName,
     INT32 userId,
     char *newName
     )
@@ -83,7 +83,7 @@ static
 BOOL
 MODULE_CALL
 UserDelete(
-    TCHAR *userName,
+    char *userName,
     INT32 userId
     )
 {
@@ -120,7 +120,7 @@ static
 INT
 MODULE_CALL
 UserOpen(
-    TCHAR *userName,
+    char *userName,
     USERFILE *userFile
     )
 {

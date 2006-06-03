@@ -17,11 +17,14 @@ Abstract:
 #ifndef _MYDB_H_
 #define _MYDB_H_
 
-#define STRSAFE_NO_CB_FUNCTIONS
-#define WIN32_LEAN_AND_MEAN
+#undef UNICODE
+#undef _UNICODE
 
 // System headers
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+
+#define STRSAFE_NO_CB_FUNCTIONS
 #include <strsafe.h>
 
 // Standard headers
