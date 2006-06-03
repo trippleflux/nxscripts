@@ -51,6 +51,7 @@ GroupModuleInit(
     if (!InitProcs(module->GetProc)) {
         return 1;
     }
+    Io_Putlog(LOG_ERROR, "nxMyDB group module loaded successfully.\r\n");
 
     groupModule = module;
     return 0;

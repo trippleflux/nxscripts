@@ -51,6 +51,7 @@ UserModuleInit(
     if (!InitProcs(module->GetProc)) {
         return 1;
     }
+    Io_Putlog(LOG_ERROR, "nxMyDB user module loaded successfully.\r\n");
 
     userModule = module;
     return 0;
