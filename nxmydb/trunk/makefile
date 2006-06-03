@@ -13,8 +13,7 @@
 #
 
 ## Build options
-DEBUG       = 0
-MEMDEBUG    = 0
+DEBUG       = 1
 MSVCRT      = 0
 IOFTPD_INC  = E:\ioFTPD\source\Include
 
