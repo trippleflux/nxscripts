@@ -34,11 +34,8 @@ typedef struct {
     EncProcessProc *Process;
 } EncodingFuncts;
 
-// Number of supported encoding types, including the NULL entry.
-#define ENCODING_TYPES  2 + 1
-
-const EncodingFuncts decodeFuncts[ENCODING_TYPES];
-const EncodingFuncts encodeFuncts[ENCODING_TYPES];
+extern const EncodingFuncts decodeFuncts[];
+extern const EncodingFuncts encodeFuncts[];
 
 Tcl_ObjCmdProc EncodingObjCmd;
 

@@ -33,13 +33,13 @@ static EncProcessProc HexDecode;
 static EncProcessProc HexEncode;
 inline char HexDecodeChar(char c);
 
-const EncodingFuncts encodeFuncts[ENCODING_TYPES] = {
+extern const EncodingFuncts encodeFuncts[] = {
     {"base64", Base64EncodeGetDestLength, base64_encode},
     {"hex",       HexEncodeGetDestLength, HexEncode},
     {NULL}
 };
 
-const EncodingFuncts decodeFuncts[ENCODING_TYPES] = {
+extern const EncodingFuncts decodeFuncts[] = {
     {"base64", Base64DecodeGetDestLength, base64_decode},
     {"hex",       HexDecodeGetDestLength, HexDecode},
     {NULL}
