@@ -20,12 +20,12 @@ Abstract:
 // Function and type declarations
 //
 
-static BOOL  MODULE_CALL GroupFinalize(void);
+static INT   MODULE_CALL GroupFinalize(void);
 static INT32 MODULE_CALL GroupCreate(char *groupName);
-static BOOL  MODULE_CALL GroupRename(char *groupName, INT32 groupId, char *newName);
-static BOOL  MODULE_CALL GroupDelete(char *groupName, INT32 groupId);
-static BOOL  MODULE_CALL GroupLock(GROUPFILE *groupFile);
-static BOOL  MODULE_CALL GroupUnlock(GROUPFILE *groupFile);
+static INT   MODULE_CALL GroupRename(char *groupName, INT32 groupId, char *newName);
+static INT   MODULE_CALL GroupDelete(char *groupName, INT32 groupId);
+static INT   MODULE_CALL GroupLock(GROUPFILE *groupFile);
+static INT   MODULE_CALL GroupUnlock(GROUPFILE *groupFile);
 static INT   MODULE_CALL GroupRead(char *filePath, GROUPFILE *groupFile);
 static INT   MODULE_CALL GroupWrite(GROUPFILE *groupFile);
 static INT   MODULE_CALL GroupOpen(char *groupName, GROUPFILE *groupFile);
@@ -211,7 +211,7 @@ GroupCreate(
 }
 
 static
-BOOL
+INT
 MODULE_CALL
 GroupRename(
     char *groupName,
@@ -220,11 +220,17 @@ GroupRename(
     )
 {
     DebugPrint("GroupRename: groupName=\"%s\" groupId=%i newName=\"%s\"\n", groupName, groupId, newName);
-    return groupModule->RegisterAs(groupModule, groupName, newName);
+
+    if (groupModule->RegisterAs(groupModule, groupName, newName)) {
+        DebugPrint("GroupRename: Unable to rename group, already exists?\n");
+        return 1;
+    }
+
+    return 0;
 }
 
 static
-BOOL
+INT
 MODULE_CALL
 GroupDelete(
     char *groupName,
@@ -253,11 +259,16 @@ GroupDelete(
     Io_Free(filePath);
 
     // Unregister group
-    return groupModule->Unregister(groupModule, groupName);
+    if (groupModule->Unregister(groupModule, groupName)) {
+        DebugPrint("GroupDelete: Unable to unregister group.\n");
+        return 1;
+    }
+
+    return 0;
 }
 
 static
-BOOL
+INT
 MODULE_CALL
 GroupLock(
     GROUPFILE *groupFile
@@ -269,14 +280,14 @@ GroupLock(
     context = (GROUP_CONTEXT *)groupFile->lpInternal;
     if (InterlockedCompareExchange(&context->locked, 1, 0) == 1) {
         DebugPrint("GroupLock: Unable to aquire lock.\n");
-        return TRUE;
+        return 1;
     }
 
-    return TRUE;
+    return 0;
 }
 
 static
-BOOL
+INT
 MODULE_CALL
 GroupUnlock(
     GROUPFILE *groupFile
@@ -289,7 +300,7 @@ GroupUnlock(
     context = (GROUP_CONTEXT *)groupFile->lpInternal;
     context->locked = 0;
 
-    return TRUE;
+    return 0;
 }
 
 static

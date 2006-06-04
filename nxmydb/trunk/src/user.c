@@ -20,12 +20,12 @@ Abstract:
 // Function and type declarations
 //
 
-static BOOL  MODULE_CALL UserFinalize(void);
+static INT   MODULE_CALL UserFinalize(void);
 static INT32 MODULE_CALL UserCreate(char *userName);
-static BOOL  MODULE_CALL UserRename(char *userName, INT32 userId, char *newName);
-static BOOL  MODULE_CALL UserDelete(char *userName, INT32 userId);
-static BOOL  MODULE_CALL UserLock(USERFILE *userFile);
-static BOOL  MODULE_CALL UserUnlock(USERFILE *userFile);
+static INT   MODULE_CALL UserRename(char *userName, INT32 userId, char *newName);
+static INT   MODULE_CALL UserDelete(char *userName, INT32 userId);
+static INT   MODULE_CALL UserLock(USERFILE *userFile);
+static INT   MODULE_CALL UserUnlock(USERFILE *userFile);
 static INT   MODULE_CALL UserRead(char *filePath, USERFILE *userFile);
 static INT   MODULE_CALL UserWrite(USERFILE *userFile);
 static INT   MODULE_CALL UserOpen(char *userName, USERFILE *userFile);
@@ -214,7 +214,7 @@ UserCreate(
 }
 
 static
-BOOL
+INT
 MODULE_CALL
 UserRename(
     char *userName,
@@ -223,11 +223,17 @@ UserRename(
     )
 {
     DebugPrint("UserRename: userName=\"%s\" userId=%i newName=\"%s\"\n", userName, userId, newName);
-    return userModule->RegisterAs(userModule, userName, newName);
+
+    if (userModule->RegisterAs(userModule, userName, newName)) {
+        DebugPrint("UserRename: Unable to rename user, already exists?\n");
+        return 1;
+    }
+
+    return 0;
 }
 
 static
-BOOL
+INT
 MODULE_CALL
 UserDelete(
     char *userName,
@@ -256,11 +262,16 @@ UserDelete(
     Io_Free(filePath);
 
     // Unregister user
-    return userModule->Unregister(userModule, userName);
+    if (userModule->Unregister(userModule, userName)) {
+        DebugPrint("UserDelete: Unable to unregister user.\n");
+        return 1;
+    }
+
+    return 0;
 }
 
 static
-BOOL
+INT
 MODULE_CALL
 UserLock(
     USERFILE *userFile
@@ -272,15 +283,14 @@ UserLock(
     context = (USER_CONTEXT *)userFile->lpInternal;
     if (InterlockedCompareExchange(&context->locked, 1, 0) == 1) {
         DebugPrint("UserLock: Unable to aquire lock.\n");
-        return TRUE;
+        return 1;
     }
 
-    return TRUE;
+    return 0;
 }
 
 static
-BOOL
-MODULE_CALL
+INT
 UserUnlock(
     USERFILE *userFile
     )
@@ -292,7 +302,7 @@ UserUnlock(
     context = (USER_CONTEXT *)userFile->lpInternal;
     context->locked = 0;
 
-    return TRUE;
+    return 0;
 }
 
 static
