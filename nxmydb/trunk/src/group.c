@@ -65,7 +65,7 @@ GroupModuleInit(
 
     // Initialize procedure table
     if (!InitProcTable(module->GetProc)) {
-        DebugPrint("GroupInit: Unable to initialize the procedure table.\n");
+        DebugPrint("GroupInit: Unable to initialize procedure table.\n");
         return GM_ERROR;
     }
     Io_Putlog(LOG_ERROR, "nxMyDB group module loaded.\r\n");
