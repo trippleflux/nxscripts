@@ -33,6 +33,7 @@ static BOOL  MODULE_CALL GroupClose(GROUPFILE *groupFile);
 
 typedef struct {
     HANDLE fileHandle;
+    volatile LONG locked;
 } GROUP_CONTEXT;
 
 //
@@ -262,8 +263,16 @@ GroupLock(
     GROUPFILE *groupFile
     )
 {
+    GROUP_CONTEXT *context;
     DebugPrint("GroupLock: groupFile=%p\n", groupFile);
-    return 0;
+
+    context = (GROUP_CONTEXT *)groupFile->lpInternal;
+    if (InterlockedCompareExchange(&context->locked, 1, 0) == 1) {
+        DebugPrint("GroupLock: Unable to aquire lock.\n");
+        return TRUE;
+    }
+
+    return TRUE;
 }
 
 static
@@ -273,8 +282,14 @@ GroupUnlock(
     GROUPFILE *groupFile
     )
 {
+    GROUP_CONTEXT *context;
     DebugPrint("GroupUnlock: groupFile=%p\n", groupFile);
-    return 0;
+
+    // Clear locked flag.
+    context = (GROUP_CONTEXT *)groupFile->lpInternal;
+    context->locked = 0;
+
+    return TRUE;
 }
 
 static
@@ -302,6 +317,7 @@ GroupRead(
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return GM_FATAL;
     }
+    context->locked = 0;
 
     // Open the group's data file
     context->fileHandle = CreateFileA(filePath,

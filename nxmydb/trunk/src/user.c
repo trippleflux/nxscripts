@@ -33,6 +33,7 @@ static BOOL  MODULE_CALL UserClose(USERFILE *userFile);
 
 typedef struct {
     HANDLE fileHandle;
+    volatile LONG locked;
 } USER_CONTEXT;
 
 //
@@ -265,8 +266,16 @@ UserLock(
     USERFILE *userFile
     )
 {
+    USER_CONTEXT *context;
     DebugPrint("UserLock: userFile=%p\n", userFile);
-    return 0;
+
+    context = (USER_CONTEXT *)userFile->lpInternal;
+    if (InterlockedCompareExchange(&context->locked, 1, 0) == 1) {
+        DebugPrint("UserLock: Unable to aquire lock.\n");
+        return TRUE;
+    }
+
+    return TRUE;
 }
 
 static
@@ -276,8 +285,14 @@ UserUnlock(
     USERFILE *userFile
     )
 {
+    USER_CONTEXT *context;
     DebugPrint("UserUnlock: userFile=%p\n", userFile);
-    return 0;
+
+    // Clear locked flag.
+    context = (USER_CONTEXT *)userFile->lpInternal;
+    context->locked = 0;
+
+    return TRUE;
 }
 
 static
@@ -305,6 +320,7 @@ UserRead(
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return UM_FATAL;
     }
+    context->locked = 0;
 
     // Open the user's data file
     context->fileHandle = CreateFileA(filePath,
@@ -357,7 +373,7 @@ end:
         }
         Io_Free(buffer);
         Io_Free(context);
-        groupFile->lpInternal = NULL;
+        userFile->lpInternal = NULL;
 
         // Restore system error code
         SetLastError(error);
@@ -474,7 +490,7 @@ UserClose(
     // Free objects and resources
     result = CloseHandle(context->fileHandle);
     Io_Free(context);
-    groupFile->lpInternal = NULL;
+    userFile->lpInternal = NULL;
 
     return result;
 }
