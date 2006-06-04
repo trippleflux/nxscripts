@@ -23,7 +23,25 @@ DebugPrint(
     ...
     );
 
+void
+OutputDebugger(
+    const char *format,
+    ...
+    );
+
+void
+OutputFile(
+    const char *format,
+    ...
+    );
+
 #ifndef DEBUG
+#   if 1
+#       define DebugPrint OutputDebugger
+#   else
+#       define DebugPrint OutputFile
+#   endif
+#else
 #   define DebugPrint
 #endif
 
