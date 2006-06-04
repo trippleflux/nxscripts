@@ -88,7 +88,7 @@ release: all
     @IF NOT EXIST lib MKDIR lib
     @MOVE /Y *.lib lib > nul
     @ECHO Deleting object files...
-    -@DEL /F *.cod *.ilk *.exp *.obj *.res 2> nul
+    -@DEL /F /S *.cod *.ilk *.exp *.obj *.res 1> nul 2> nul
     @ECHO Generating documentation...
     @CD doc
     @TCLSH gendocs.tcl > nul
