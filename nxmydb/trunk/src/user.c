@@ -233,11 +233,14 @@ UserDelete(
 
     DebugPrint("UserDelete: userName=\"%s\" userId=%i\n", userName, userId);
 
-    // Retrieve file location
+    // Format user ID
     StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", userId);
+
+    // Retrieve file location
     filePath = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
     if (filePath == NULL) {
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+        DebugPrint("UserDelete: Unable to retrieve file location.\n");
         return 1;
     }
 
@@ -286,10 +289,13 @@ UserRead(
     INT result;
     USER_CONTEXT *context;
 
+    DebugPrint("UserRead: filePath=\"%s\" userFile=%p\n", filePath, userFile);
+
     // Allocate user context
     context = (USER_CONTEXT *)Io_Allocate(sizeof(USER_CONTEXT));
     if (context == NULL) {
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+        DebugPrint("UserRead: Unable to allocate user context.\n");
         return UM_FATAL;
     }
 
@@ -297,27 +303,34 @@ UserRead(
     result = UM_FATAL;
 
     // Open the user's data file
-    context->fileHandle = CreateFileA(filePath, GENERIC_READ|GENERIC_WRITE,
-        FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE, NULL, OPEN_EXISTING, 0, NULL);
+    context->fileHandle = CreateFileA(filePath,
+        GENERIC_READ|GENERIC_WRITE,
+        FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
+        NULL, OPEN_EXISTING, 0, NULL);
+
     if (context->fileHandle == INVALID_HANDLE_VALUE) {
         result = (GetLastError() == ERROR_FILE_NOT_FOUND) ? UM_DELETED : UM_FATAL;
+        DebugPrint("UserRead: Unable to open file (error %lu).\n", GetLastError());
         goto end;
     }
 
     // Retrieve file size
     fileSize = GetFileSize(context->fileHandle, NULL);
     if (fileSize == INVALID_FILE_SIZE || fileSize < 5) {
+        DebugPrint("UserRead: Unable to retrieve file size, or file size is under 5 bytes.\n");
         goto end;
     }
 
     // Allocate read buffer
     buffer = (char *)Io_Allocate(fileSize + 1);
     if (buffer == NULL) {
+        DebugPrint("UserRead: Unable to allocate read buffer.\n", GetLastError());
         goto end;
     }
 
     // Read data file to buffer
     if (!ReadFile(context->fileHandle, buffer, fileSize, &bytesRead, NULL) || bytesRead < 5) {
+        DebugPrint("UserRead: Unable to read file, or the amount read is under 5 bytes.\n");
         goto end;
     }
 
@@ -407,13 +420,15 @@ UserOpen(
     char *filePath;
     INT result;
 
-    DebugPrint("UserOpen: userName=\"%s\" userFile=%p userFile->Uid=%i\n",
-        userName, userFile, userFile->Uid);
+    DebugPrint("UserOpen: userName=\"%s\" userFile=%p\n", userName, userFile);
+
+    // Format user ID
+    StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", userFile->Uid);
 
     // Retrieve file location
-    StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", userFile->Uid);
     filePath = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
     if (filePath == NULL) {
+        DebugPrint("UserOpen: Unable to retrieve file location.\n");
         return UM_FATAL;
     }
 

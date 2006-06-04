@@ -230,11 +230,14 @@ GroupDelete(
 
     DebugPrint("GroupDelete: groupName=\"%s\" groupId=%i\n", groupName, groupId);
 
-    // Retrieve file location
+    // Format group ID
     StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", groupId);
+
+    // Retrieve file location
     filePath = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
     if (filePath == NULL) {
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+        DebugPrint("GroupDelete: Unable to retrieve file location.\n");
         return 1;
     }
 
@@ -283,10 +286,13 @@ GroupRead(
     INT result;
     GROUP_CONTEXT *context;
 
+    DebugPrint("GroupRead: filePath=\"%s\" groupFile=%p\n", filePath, groupFile);
+
     // Allocate group context
     context = (GROUP_CONTEXT *)Io_Allocate(sizeof(GROUP_CONTEXT));
     if (context == NULL) {
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+        DebugPrint("GroupRead: Unable to allocate group context.\n");
         return UM_FATAL;
     }
 
@@ -294,27 +300,34 @@ GroupRead(
     result = UM_FATAL;
 
     // Open the group's data file
-    context->fileHandle = CreateFileA(filePath, GENERIC_READ|GENERIC_WRITE,
-        FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE, NULL, OPEN_EXISTING, 0, NULL);
+    context->fileHandle = CreateFileA(filePath,
+        GENERIC_READ|GENERIC_WRITE,
+        FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
+        NULL, OPEN_EXISTING, 0, NULL);
+
     if (context->fileHandle == INVALID_HANDLE_VALUE) {
         result = (GetLastError() == ERROR_FILE_NOT_FOUND) ? UM_DELETED : UM_FATAL;
+        DebugPrint("GroupRead: Unable to open file (error %lu).\n", GetLastError());
         goto end;
     }
 
     // Retrieve file size
     fileSize = GetFileSize(context->fileHandle, NULL);
     if (fileSize == INVALID_FILE_SIZE || fileSize < 5) {
+        DebugPrint("GroupRead: Unable to retrieve file size, or file size is under 5 bytes.\n");
         goto end;
     }
 
     // Allocate read buffer
     buffer = (char *)Io_Allocate(fileSize + 1);
     if (buffer == NULL) {
+        DebugPrint("GroupRead: Unable to allocate read buffer.\n", GetLastError());
         goto end;
     }
 
     // Read data file to buffer
     if (!ReadFile(context->fileHandle, buffer, fileSize, &bytesRead, NULL) || bytesRead < 5) {
+        DebugPrint("GroupRead: Unable to read file, or the amount read is under 5 bytes.\n");
         goto end;
     }
 
@@ -403,13 +416,15 @@ GroupOpen(
     char *filePath;
     INT result;
 
-    DebugPrint("GroupOpen: groupName=\"%s\" groupFile=%p groupFile->Gid=%i\n",
-        groupName, groupFile, groupFile->Gid);
+    DebugPrint("GroupOpen: groupName=\"%s\" groupFile=%p\n", groupName, groupFile);
+
+    // Format group ID
+    StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", groupFile->Gid);
 
     // Retrieve file location
-    StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", groupFile->Gid);
     filePath = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
     if (filePath == NULL) {
+        DebugPrint("GroupOpen: Unable to retrieve file location.\n");
         return UM_FATAL;
     }
 
