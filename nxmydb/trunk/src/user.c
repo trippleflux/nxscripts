@@ -102,7 +102,7 @@ UserCreate(
     INT32 result;
     USERFILE userFile;
 
-    DebugPrint("UserCreate: userName=%s\n", userName);
+    DebugPrint("UserCreate: userName=\"%s\"\n", userName);
 
     // Retrieve default location
     sourcePath = Io_ConfigGetPath("Locations", "User_Files", "Default.User", NULL);
@@ -120,6 +120,8 @@ UserCreate(
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return -1;
     }
+
+    DebugPrint("UserCreate: sourcePath=\"%s\" tempPath=\"%s\"\n", sourcePath, tempPath);
 
     // Copy default file
     if (!CopyFileA(sourcePath, tempPath, FALSE)) {
@@ -165,11 +167,11 @@ UserCreate(
         size_t sourceLength = strlen(sourcePath);
 
         // Terminate string after the last path separator
-        offset = strchr(sourcePath, '\\');
+        offset = strrchr(sourcePath, '\\');
         if (offset != NULL) {
             offset[1] = '\0';
         } else {
-            offset = strchr(sourcePath, '/');
+            offset = strrchr(sourcePath, '/');
             if (offset != NULL) {
                 offset[1] = '\0';
             }
@@ -178,6 +180,7 @@ UserCreate(
         // Append the user's ID
         StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", result);
         StringCchCatA(sourcePath, sourceLength, buffer);
+        DebugPrint("UserCreate:  finalPath=\"%s\"\n", sourcePath);
 
         // Rename temporary file
         if (!MoveFileExA(tempPath, sourcePath, MOVEFILE_REPLACE_EXISTING)) {
@@ -213,7 +216,7 @@ UserRename(
     char *newName
     )
 {
-    DebugPrint("UserRename: userName=%s userId=%i newName=%s\n", userName, userId, newName);
+    DebugPrint("UserRename: userName=\"%s\" userId=%i newName=\"%s\"\n", userName, userId, newName);
     return userModule->RegisterAs(userModule, userName, newName);
 }
 
@@ -228,7 +231,7 @@ UserDelete(
     char buffer[16];
     char *filePath;
 
-    DebugPrint("UserDelete: userName=%s userId=%i\n", userName, userId);
+    DebugPrint("UserDelete: userName=\"%s\" userId=%i\n", userName, userId);
 
     // Retrieve file location
     StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", userId);
@@ -404,7 +407,7 @@ UserOpen(
     char *filePath;
     INT result;
 
-    DebugPrint("UserOpen: userName=%s userFile=%p userFile->Uid=%i\n",
+    DebugPrint("UserOpen: userName=\"%s\" userFile=%p userFile->Uid=%i\n",
         userName, userFile, userFile->Uid);
 
     // Retrieve file location

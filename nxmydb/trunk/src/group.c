@@ -102,7 +102,7 @@ GroupCreate(
     INT32 result;
     GROUPFILE groupFile;
 
-    DebugPrint("GroupCreate: groupName=%s\n", groupName);
+    DebugPrint("GroupCreate: groupName=\"%s\"\n", groupName);
 
     // Retrieve default location
     sourcePath = Io_ConfigGetPath("Locations", "Group_Files", "Default.Group", NULL);
@@ -120,6 +120,8 @@ GroupCreate(
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return -1;
     }
+
+    DebugPrint("GroupCreate: sourcePath=\"%s\" tempPath=\"%s\"\n", sourcePath, tempPath);
 
     // Copy default file
     if (!CopyFileA(sourcePath, tempPath, FALSE)) {
@@ -162,11 +164,11 @@ GroupCreate(
         size_t sourceLength = strlen(sourcePath);
 
         // Terminate string after the last path separator
-        offset = strchr(sourcePath, '\\');
+        offset = strrchr(sourcePath, '\\');
         if (offset != NULL) {
             offset[1] = '\0';
         } else {
-            offset = strchr(sourcePath, '/');
+            offset = strrchr(sourcePath, '/');
             if (offset != NULL) {
                 offset[1] = '\0';
             }
@@ -175,6 +177,7 @@ GroupCreate(
         // Append the group's ID
         StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", result);
         StringCchCatA(sourcePath, sourceLength, buffer);
+        DebugPrint("GroupCreate:  finalPath=\"%s\"\n", sourcePath);
 
         // Rename temporary file
         if (!MoveFileExA(tempPath, sourcePath, MOVEFILE_REPLACE_EXISTING)) {
@@ -210,7 +213,7 @@ GroupRename(
     char *newName
     )
 {
-    DebugPrint("GroupRename: groupName=%s groupId=%i newName=%s\n", groupName, groupId, newName);
+    DebugPrint("GroupRename: groupName=\"%s\" groupId=%i newName=\"%s\"\n", groupName, groupId, newName);
     return groupModule->RegisterAs(groupModule, groupName, newName);
 }
 
@@ -225,7 +228,7 @@ GroupDelete(
     char buffer[16];
     char *filePath;
 
-    DebugPrint("GroupDelete: groupName=%s groupId=%i\n", groupName, groupId);
+    DebugPrint("GroupDelete: groupName=\"%s\" groupId=%i\n", groupName, groupId);
 
     // Retrieve file location
     StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", groupId);
@@ -400,7 +403,7 @@ GroupOpen(
     char *filePath;
     INT result;
 
-    DebugPrint("GroupOpen: groupName=%s groupFile=%p groupFile->Gid=%i\n",
+    DebugPrint("GroupOpen: groupName=\"%s\" groupFile=%p groupFile->Gid=%i\n",
         groupName, groupFile, groupFile->Gid);
 
     // Retrieve file location
