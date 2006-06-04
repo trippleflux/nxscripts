@@ -64,6 +64,7 @@ GroupModuleInit(
 
     // Initialize procedure table
     if (!InitProcTable(module->GetProc)) {
+        DebugPrint("GroupInit: Unable to initialize the procedure table.\n");
         return 1;
     }
     Io_Putlog(LOG_ERROR, "nxMyDB group module loaded.\r\n");
@@ -108,6 +109,8 @@ GroupCreate(
     sourcePath = Io_ConfigGetPath("Locations", "Group_Files", "Default.Group", NULL);
     if (sourcePath == NULL) {
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+
+        DebugPrint("GroupCreate: Unable to retrieve default file location.\n");
         return -1;
     }
 
@@ -116,12 +119,11 @@ GroupCreate(
     tempPath = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
     if (tempPath == NULL) {
         Io_Free(sourcePath);
-
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+
+        DebugPrint("GroupCreate: Unable to retrieve temporary file location.\n");
         return -1;
     }
-
-    DebugPrint("GroupCreate: sourcePath=\"%s\" tempPath=\"%s\"\n", sourcePath, tempPath);
 
     // Copy default file
     if (!CopyFileA(sourcePath, tempPath, FALSE)) {
@@ -133,6 +135,8 @@ GroupCreate(
 
         // Restore system error code
         SetLastError(error);
+
+        DebugPrint("GroupCreate: Unable to copy default file (error %lu).\n", GetLastError());
         return -1;
     }
 
@@ -177,11 +181,11 @@ GroupCreate(
         // Append the group's ID
         StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", result);
         StringCchCatA(sourcePath, sourceLength, buffer);
-        DebugPrint("GroupCreate:  finalPath=\"%s\"\n", sourcePath);
 
         // Rename temporary file
         if (!MoveFileExA(tempPath, sourcePath, MOVEFILE_REPLACE_EXISTING)) {
             error = GetLastError();
+            DebugPrint("GroupCreate: Unable to rename temporary file (error %lu).\n", error);
 
             // Unregister group and delete the data file
             if (!groupModule->Unregister(groupModule, groupName)) {
@@ -321,7 +325,7 @@ GroupRead(
     // Allocate read buffer
     buffer = (char *)Io_Allocate(fileSize + 1);
     if (buffer == NULL) {
-        DebugPrint("GroupRead: Unable to allocate read buffer.\n", GetLastError());
+        DebugPrint("GroupRead: Unable to allocate read buffer.\n");
         goto end;
     }
 
@@ -380,8 +384,10 @@ GroupWrite(
     buffer.size = 4096;
     buffer.len  = 0;
     buffer.buf  = (char *)Io_Allocate(buffer.size);
+
     if (buffer.buf == NULL) {
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+        DebugPrint("GroupWrite: Unable to allocate write buffer.\n");
         return 1;
     }
 
@@ -394,6 +400,8 @@ GroupWrite(
         error = GetLastError();
         Io_Free(buffer.buf);
         SetLastError(error);
+
+        DebugPrint("GroupWrite: Unable to write file (error %lu).\n", GetLastError());
         return 1;
     }
 
@@ -450,6 +458,7 @@ GroupClose(
     // Retrieve group context
     context = (GROUP_CONTEXT *)groupFile->lpInternal;
     if (context == NULL) {
+        DebugPrint("GroupClose: Group context already freed.\n");
         return FALSE;
     }
 

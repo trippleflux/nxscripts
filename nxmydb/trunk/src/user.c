@@ -64,6 +64,7 @@ UserModuleInit(
 
     // Initialize procedure table
     if (!InitProcTable(module->GetProc)) {
+        DebugPrint("UserInit: Unable to initialize the procedure table.\n");
         return 1;
     }
     Io_Putlog(LOG_ERROR, "nxMyDB user module loaded.\r\n");
@@ -108,6 +109,8 @@ UserCreate(
     sourcePath = Io_ConfigGetPath("Locations", "User_Files", "Default.User", NULL);
     if (sourcePath == NULL) {
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+
+        DebugPrint("UserCreate: Unable to retrieve default file location.\n");
         return -1;
     }
 
@@ -116,12 +119,11 @@ UserCreate(
     tempPath = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
     if (tempPath == NULL) {
         Io_Free(sourcePath);
-
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+
+        DebugPrint("UserCreate: Unable to retrieve temporary file location.\n");
         return -1;
     }
-
-    DebugPrint("UserCreate: sourcePath=\"%s\" tempPath=\"%s\"\n", sourcePath, tempPath);
 
     // Copy default file
     if (!CopyFileA(sourcePath, tempPath, FALSE)) {
@@ -133,6 +135,8 @@ UserCreate(
 
         // Restore system error code
         SetLastError(error);
+
+        DebugPrint("UserCreate: Unable to copy default file (error %lu).\n", GetLastError());
         return -1;
     }
 
@@ -180,11 +184,11 @@ UserCreate(
         // Append the user's ID
         StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", result);
         StringCchCatA(sourcePath, sourceLength, buffer);
-        DebugPrint("UserCreate:  finalPath=\"%s\"\n", sourcePath);
 
         // Rename temporary file
         if (!MoveFileExA(tempPath, sourcePath, MOVEFILE_REPLACE_EXISTING)) {
             error = GetLastError();
+            DebugPrint("UserCreate: Unable to rename temporary file (error %lu).\n", error);
 
             // Unregister user and delete the data file
             if (!userModule->Unregister(userModule, userName)) {
@@ -324,7 +328,7 @@ UserRead(
     // Allocate read buffer
     buffer = (char *)Io_Allocate(fileSize + 1);
     if (buffer == NULL) {
-        DebugPrint("UserRead: Unable to allocate read buffer.\n", GetLastError());
+        DebugPrint("UserRead: Unable to allocate read buffer.\n");
         goto end;
     }
 
@@ -384,8 +388,10 @@ UserWrite(
     buffer.size = 4096;
     buffer.len  = 0;
     buffer.buf  = (char *)Io_Allocate(buffer.size);
+
     if (buffer.buf == NULL) {
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+        DebugPrint("UserWrite: Unable to allocate write buffer.\n");
         return 1;
     }
 
@@ -398,6 +404,8 @@ UserWrite(
         error = GetLastError();
         Io_Free(buffer.buf);
         SetLastError(error);
+
+        DebugPrint("UserWrite: Unable to write file (error %lu).\n", GetLastError());
         return 1;
     }
 
@@ -454,6 +462,7 @@ UserClose(
     // Retrieve user context
     context = (USER_CONTEXT *)userFile->lpInternal;
     if (context == NULL) {
+        DebugPrint("UserClose: User context already freed.\n");
         return FALSE;
     }
 
