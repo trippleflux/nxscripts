@@ -52,6 +52,10 @@ all of the shared memory functions implemented in ioFTPD, such as:
     - SDK library, contains all the shared memory functions.
     - Source code is located in src\lib\.
 
+  nxmod.dll
+    - Example user/group module.
+    - Source code is located in src\mod\.
+
   resolve.exe
     - Example application, demonstrates how to resolve names and IDs.
     - Source code is located in src\resolve\.
@@ -110,6 +114,9 @@ all of the shared memory functions implemented in ioFTPD, such as:
 
   lib\
     - Source code for the library.
+
+  mod\
+    - Source code for the user/group module.
 
   resolve\
     - Source code for the "resolve" application.

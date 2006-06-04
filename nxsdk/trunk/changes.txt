@@ -1,5 +1,6 @@
 nxSDK v0.4.0 (not released):
-  NEW: Support for C++ and Borland C compilers in public headers.
+  NEW: Example user/group module.
+  NEW: Support for C++ compilers in public headers.
   CHG: Further improvements to the documentation.
 
 nxSDK v0.3.0 (May 16, 2006):
