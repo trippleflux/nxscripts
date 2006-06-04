@@ -47,7 +47,7 @@ Remarks:
 --*/
 BOOL
 InitProcTable(
-    GetProc *getProc
+    Io_GetProc *getProc
     )
 {
     if (InterlockedIncrement(&refCount) == 1) {
