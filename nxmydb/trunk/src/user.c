@@ -29,7 +29,7 @@ static INT   MODULE_CALL UserUnlock(USERFILE *userFile);
 static INT   MODULE_CALL UserRead(char *filePath, USERFILE *userFile);
 static INT   MODULE_CALL UserWrite(USERFILE *userFile);
 static INT   MODULE_CALL UserOpen(char *userName, USERFILE *userFile);
-static BOOL  MODULE_CALL UserClose(USERFILE *userFile);
+static INT   MODULE_CALL UserClose(USERFILE *userFile);
 
 typedef struct {
     HANDLE fileHandle;
@@ -479,13 +479,12 @@ UserOpen(
 }
 
 static
-BOOL
+INT
 MODULE_CALL
 UserClose(
     USERFILE *userFile
     )
 {
-    BOOL result;
     USER_CONTEXT *context;
 
     DebugPrint("UserClose: userFile=%p\n", userFile);
@@ -494,13 +493,13 @@ UserClose(
     context = (USER_CONTEXT *)userFile->lpInternal;
     if (context == NULL) {
         DebugPrint("UserClose: User context already freed.\n");
-        return FALSE;
+        return 1;
     }
 
     // Free objects and resources
-    result = CloseHandle(context->fileHandle);
+    CloseHandle(context->fileHandle);
     Io_Free(context);
     userFile->lpInternal = NULL;
 
-    return result;
+    return 0;
 }

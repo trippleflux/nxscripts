@@ -29,7 +29,7 @@ static INT   MODULE_CALL GroupUnlock(GROUPFILE *groupFile);
 static INT   MODULE_CALL GroupRead(char *filePath, GROUPFILE *groupFile);
 static INT   MODULE_CALL GroupWrite(GROUPFILE *groupFile);
 static INT   MODULE_CALL GroupOpen(char *groupName, GROUPFILE *groupFile);
-static BOOL  MODULE_CALL GroupClose(GROUPFILE *groupFile);
+static INT   MODULE_CALL GroupClose(GROUPFILE *groupFile);
 
 typedef struct {
     HANDLE fileHandle;
@@ -476,13 +476,12 @@ GroupOpen(
 }
 
 static
-BOOL
+INT
 MODULE_CALL
 GroupClose(
     GROUPFILE *groupFile
     )
 {
-    BOOL result;
     GROUP_CONTEXT *context;
 
     DebugPrint("GroupClose: groupFile=%p\n", groupFile);
@@ -491,13 +490,13 @@ GroupClose(
     context = (GROUP_CONTEXT *)groupFile->lpInternal;
     if (context == NULL) {
         DebugPrint("GroupClose: Group context already freed.\n");
-        return FALSE;
+        return 1;
     }
 
     // Free objects and resources
-    result = CloseHandle(context->fileHandle);
+    CloseHandle(context->fileHandle);
     Io_Free(context);
     groupFile->lpInternal = NULL;
 
-    return result;
+    return 0;
 }
