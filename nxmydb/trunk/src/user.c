@@ -116,7 +116,7 @@ UserCreate(
     }
 
     // Retrieve temporary location
-    StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%s.temp", userName);
+    StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%s.tmp", userName);
     tempPath = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
     if (tempPath == NULL) {
         DebugPrint("UserCreate: Unable to retrieve temporary file location.\n");

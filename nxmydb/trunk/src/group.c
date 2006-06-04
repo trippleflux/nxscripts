@@ -116,7 +116,7 @@ GroupCreate(
     }
 
     // Retrieve temporary location
-    StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%s.temp", groupName);
+    StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%s.tmp", groupName);
     tempPath = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
     if (tempPath == NULL) {
         DebugPrint("GroupCreate: Unable to retrieve temporary file location.\n");
