@@ -42,7 +42,7 @@ void *Io_Allocate(DWORD Size);
 void *Io_ReAllocate(void *pMemory, DWORD Size);
 BOOL  Io_Free(void *pMemory);
 
-void *Io_StartIoTimer(void *hTimer, void *lpTimerProc, void *lpTimerContext, DWORD dwTimeOut);
+void *Io_StartIoTimer(void *hTimer, void *pTimerProc, void *pTimerContext, DWORD dwTimeOut);
 BOOL  Io_StopIoTimer(void *hTimer, BOOL bInTimerProc);
 BOOL  Io_Putlog(DWORD dwLogCode, const char *szFormatString, ...);
 
@@ -94,7 +94,7 @@ extern PROC_TABLE procTable;
 #define Io_Putlog           procTable.Putlog
 
 
-typedef void * (GetProc)(
+typedef void *(GetProc)(
     char *name
     );
 
