@@ -114,16 +114,12 @@ LIB_OBJS = $(LIB_PATH)\group.obj $(LIB_PATH)\online.obj $(LIB_PATH)\shmem.obj \
 	$(RC) $(RFLAGS) -fo $@ $<
 
 nxsdk.dll: $(DLL_OBJS) $(LIB_OBJS)
-    $(LD) $(LFLAGS) /DEF:$(LIB_PATH)\lib.def /DLL $(LIBENTRY) /OUT:$@ kernel32.lib psapi.lib user32.lib @<<
-$**
-<<
+    $(LD) $(LFLAGS) /DEF:$(LIB_PATH)\lib.def /DLL $(LIBENTRY) /OUT:$@ kernel32.lib psapi.lib user32.lib $**
 
 nxsdk.lib: nxsdk.dll
 
 nxsdk-static.lib: $(LIB_OBJS)
-    $(AR) $(AFLAGS) /OUT:$@ @<<
-$**
-<<
+    $(AR) $(AFLAGS) /OUT:$@ $**
 
 # -------------------------------------------------------------------------
 
@@ -138,9 +134,7 @@ MOD_OBJS = $(MOD_PATH)\dllentry.obj $(MOD_PATH)\group.obj $(MOD_PATH)\proctable.
 	$(RC) $(RFLAGS) -fo $@ $<
 
 nxmod.dll: $(MOD_OBJS)
-    $(LD) $(LFLAGS) /DEF:$(MOD_PATH)\mod.def /DLL /OUT:$@ @<<
-$**
-<<
+    $(LD) $(LFLAGS) /DEF:$(MOD_PATH)\mod.def /DLL /OUT:$@ $**
 
 # -------------------------------------------------------------------------
 
@@ -154,9 +148,7 @@ CREDITS_OBJS = $(CREDITS_PATH)\credits.obj $(CREDITS_PATH)\credits.res
 	$(RC) $(RFLAGS) -fo $@ $<
 
 credits.exe: nxsdk.lib $(CREDITS_OBJS)
-    $(LD) $(LFLAGS) /OUT:$@ @<<
-$**
-<<
+    $(LD) $(LFLAGS) /OUT:$@ $**
 
 # -------------------------------------------------------------------------
 
@@ -170,9 +162,7 @@ INFO_OBJS = $(INFO_PATH)\info.obj $(INFO_PATH)\info.res
 	$(RC) $(RFLAGS) -fo $@ $<
 
 info.exe: nxsdk.lib $(INFO_OBJS)
-    $(LD) $(LFLAGS) /OUT:$@ @<<
-$**
-<<
+    $(LD) $(LFLAGS) /OUT:$@ $**
 
 # -------------------------------------------------------------------------
 
@@ -186,9 +176,7 @@ KICK_OBJS = $(KICK_PATH)\kick.obj $(KICK_PATH)\kick.res
 	$(RC) $(RFLAGS) -fo $@ $<
 
 kick.exe: nxsdk.lib $(KICK_OBJS)
-    $(LD) $(LFLAGS) /OUT:$@ @<<
-$**
-<<
+    $(LD) $(LFLAGS) /OUT:$@ $**
 
 # -------------------------------------------------------------------------
 
@@ -202,9 +190,7 @@ RESOLVE_OBJS = $(RESOLVE_PATH)\resolve.obj $(RESOLVE_PATH)\resolve.res
 	$(RC) $(RFLAGS) -fo $@ $<
 
 resolve.exe: nxsdk.lib $(RESOLVE_OBJS)
-    $(LD) $(LFLAGS) /OUT:$@ @<<
-$**
-<<
+    $(LD) $(LFLAGS) /OUT:$@ $**
 
 # -------------------------------------------------------------------------
 
@@ -218,8 +204,6 @@ WHO_OBJS = $(WHO_PATH)\who.obj $(WHO_PATH)\who.res
 	$(RC) $(RFLAGS) -fo $@ $<
 
 who.exe: nxsdk.lib $(WHO_OBJS)
-    $(LD) $(LFLAGS) /OUT:$@ @<<
-$**
-<<
+    $(LD) $(LFLAGS) /OUT:$@ $**
 
 # -------------------------------------------------------------------------
