@@ -288,11 +288,11 @@ UserRead(
     USERFILE *userFile
     )
 {
-    char *buffer;
+    char *buffer = NULL;
     DWORD bytesRead;
     DWORD error;
     DWORD fileSize;
-    INT result;
+    INT result = UM_FATAL;
     USER_CONTEXT *context;
 
     DebugPrint("UserRead: filePath=\"%s\" userFile=%p\n", filePath, userFile);
@@ -305,9 +305,6 @@ UserRead(
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return UM_FATAL;
     }
-
-    buffer = NULL;
-    result = UM_FATAL;
 
     // Open the user's data file
     context->fileHandle = CreateFileA(filePath,

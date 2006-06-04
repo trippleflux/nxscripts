@@ -144,7 +144,7 @@ GroupCreate(
     // Initialize GROUPFILE structure
     ZeroMemory(&groupFile, sizeof(GROUPFILE));
 
-    if (GroupRead(tempPath, &groupFile) != UM_SUCCESS) {
+    if (GroupRead(tempPath, &groupFile) != GM_SUCCESS) {
         error = GetLastError();
 
         // Free resources
@@ -285,11 +285,11 @@ GroupRead(
     GROUPFILE *groupFile
     )
 {
-    char *buffer;
+    char *buffer = NULL;
     DWORD bytesRead;
     DWORD error;
     DWORD fileSize;
-    INT result;
+    INT result = GM_FATAL;
     GROUP_CONTEXT *context;
 
     DebugPrint("GroupRead: filePath=\"%s\" groupFile=%p\n", filePath, groupFile);
@@ -300,11 +300,8 @@ GroupRead(
         DebugPrint("GroupRead: Unable to allocate group context.\n");
 
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-        return UM_FATAL;
+        return GM_FATAL;
     }
-
-    buffer = NULL;
-    result = UM_FATAL;
 
     // Open the group's data file
     context->fileHandle = CreateFileA(filePath,
@@ -313,7 +310,7 @@ GroupRead(
         NULL, OPEN_EXISTING, 0, NULL);
 
     if (context->fileHandle == INVALID_HANDLE_VALUE) {
-        result = (GetLastError() == ERROR_FILE_NOT_FOUND) ? UM_DELETED : UM_FATAL;
+        result = (GetLastError() == ERROR_FILE_NOT_FOUND) ? GM_DELETED : GM_FATAL;
         DebugPrint("GroupRead: Unable to open file (error %lu).\n", GetLastError());
         goto end;
     }
@@ -345,11 +342,11 @@ GroupRead(
     // Parse buffer, initializing the GROUPFILE structure
     Io_Ascii2GroupFile(buffer, bytesRead, groupFile);
     groupFile->lpInternal  = context;
-    result                 = UM_SUCCESS;
+    result                 = GM_SUCCESS;
 
 end:
     // Free objects and resources
-    if (result != UM_SUCCESS) {
+    if (result != GM_SUCCESS) {
         error = GetLastError();
         if (context->fileHandle != INVALID_HANDLE_VALUE) {
             CloseHandle(context->fileHandle);
@@ -441,7 +438,7 @@ GroupOpen(
     filePath = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
     if (filePath == NULL) {
         DebugPrint("GroupOpen: Unable to retrieve file location.\n");
-        return UM_FATAL;
+        return GM_FATAL;
     }
 
     // Read the group's data file
