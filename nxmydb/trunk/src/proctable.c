@@ -55,11 +55,9 @@ InitProcTable(
         // It's easier to debug a reference to a null pointer than a random one.
         ZeroMemory(&procTable, sizeof(PROC_TABLE));
 
-#define RESOLVE(name, func)               \
-    {                                     \
-        func = getProc(name);             \
-        if (func == NULL) { goto error; } \
-    }
+#define RESOLVE(name, func)           \
+    func = getProc(name);             \
+    if (func == NULL) { goto error; }
 
         RESOLVE("Config_Get",      procTable.ConfigGet)
         RESOLVE("Config_GetBool",  procTable.ConfigGetBool)
