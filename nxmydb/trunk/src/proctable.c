@@ -51,8 +51,8 @@ InitProcTable(
     )
 {
     if (InterlockedIncrement(&refCount) == 1) {
-        // Clear the table initially in case a procedure is missing,
-        // it's much easier to debug a reference to a null pointer.
+        // Clear the table initially in case we forget to resolve a procedure.
+        // It's easier to debug a reference to a null pointer than a random one.
         ZeroMemory(&procTable, sizeof(PROC_TABLE));
 
 #define RESOLVE(name, func)               \
