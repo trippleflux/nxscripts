@@ -358,8 +358,9 @@ end:
         if (context->fileHandle != INVALID_HANDLE_VALUE) {
             CloseHandle(context->fileHandle);
         }
-        Io_Free(context);
         Io_Free(buffer);
+        Io_Free(context);
+        groupFile->lpInternal = NULL;
 
         // Restore system error code
         SetLastError(error);
@@ -476,6 +477,7 @@ UserClose(
     // Free objects and resources
     result = CloseHandle(context->fileHandle);
     Io_Free(context);
+    groupFile->lpInternal = NULL;
 
     return result;
 }
