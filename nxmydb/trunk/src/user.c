@@ -370,9 +370,9 @@ UserRead(
 
     // Parse buffer, initializing the USERFILE structure
     Io_Ascii2UserFile(buffer, bytesRead, userFile);
-    userFile->Gid         = userFile->Groups[0];
-    userFile->lpInternal  = context;
-    result                = UM_SUCCESS;
+    userFile->Gid        = userFile->Groups[0];
+    userFile->lpInternal = context;
+    result               = UM_SUCCESS;
 
 end:
     // Free objects and resources
@@ -412,9 +412,10 @@ UserWrite(
     context = (USER_CONTEXT *)userFile->lpInternal;
 
     // Allocate write buffer
-    buffer.size = 4096;
-    buffer.len  = 0;
-    buffer.buf  = (char *)Io_Allocate(buffer.size);
+    ZeroMemory(&buffer, sizeof(BUFFER));
+    buffer.dwType = TYPE_CHAR;
+    buffer.size   = 4096;
+    buffer.buf    = (char *)Io_Allocate(buffer.size);
 
     if (buffer.buf == NULL) {
         DebugPrint("UserWrite: Unable to allocate write buffer.\n");

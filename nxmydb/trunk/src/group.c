@@ -368,8 +368,8 @@ GroupRead(
 
     // Parse buffer, initializing the GROUPFILE structure
     Io_Ascii2GroupFile(buffer, bytesRead, groupFile);
-    groupFile->lpInternal  = context;
-    result                 = GM_SUCCESS;
+    groupFile->lpInternal = context;
+    result                = GM_SUCCESS;
 
 end:
     // Free objects and resources
@@ -409,9 +409,10 @@ GroupWrite(
     context = (GROUP_CONTEXT *)groupFile->lpInternal;
 
     // Allocate write buffer
-    buffer.size = 4096;
-    buffer.len  = 0;
-    buffer.buf  = (char *)Io_Allocate(buffer.size);
+    ZeroMemory(&buffer, sizeof(BUFFER));
+    buffer.dwType = TYPE_CHAR;
+    buffer.size   = 4096;
+    buffer.buf    = (char *)Io_Allocate(buffer.size);
 
     if (buffer.buf == NULL) {
         DebugPrint("GroupWrite: Unable to allocate write buffer.\n");
