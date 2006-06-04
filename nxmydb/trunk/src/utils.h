@@ -18,12 +18,6 @@ Abstract:
 #define _UTIL_H_
 
 void
-DebugPrint(
-    const char *format,
-    ...
-    );
-
-void
 OutputDebugger(
     const char *format,
     ...
@@ -35,7 +29,7 @@ OutputFile(
     ...
     );
 
-#ifndef DEBUG
+#ifdef DEBUG
 #   if 1
 #       define DebugPrint OutputDebugger
 #   else

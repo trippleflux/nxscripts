@@ -35,7 +35,7 @@ GroupModuleInit(
     GROUP_MODULE *module
     )
 {
-    DebugPrint("GroupInit: module=%p", module);
+    DebugPrint("GroupInit: module=%p\n", module);
 
     // Initialize module structure.
     module->tszModuleName = "NXMYDB";
@@ -66,7 +66,7 @@ GroupFinalize(
     void
     )
 {
-    DebugPrint("GroupFinalize: module=%p", groupModule);
+    DebugPrint("GroupFinalize: module=%p\n", groupModule);
     Io_Putlog(LOG_ERROR, "nxMyDB group module unloaded.\r\n");
 
     // Finalize procedure table.
@@ -82,7 +82,7 @@ GroupCreate(
     char *groupName
     )
 {
-    DebugPrint("GroupCreate: groupName=%s", groupName);
+    DebugPrint("GroupCreate: groupName=%s\n", groupName);
 }
 
 static
@@ -94,7 +94,7 @@ GroupRename(
     char *newName
     )
 {
-    DebugPrint("GroupRename: groupName=%s groupId=%d newName=%s", groupName, groupId, newName);
+    DebugPrint("GroupRename: groupName=%s groupId=%d newName=%s\n", groupName, groupId, newName);
 }
 
 static
@@ -105,7 +105,7 @@ GroupDelete(
     INT32 groupId
     )
 {
-    DebugPrint("GroupDelete: groupName=%s groupId=%d", groupName, groupId);
+    DebugPrint("GroupDelete: groupName=%s groupId=%d\n", groupName, groupId);
 }
 
 static
@@ -115,7 +115,7 @@ GroupLock(
     GROUPFILE *groupFile
     )
 {
-    DebugPrint("GroupLock: groupFile=%p", groupFile);
+    DebugPrint("GroupLock: groupFile=%p\n", groupFile);
 }
 
 static
@@ -125,7 +125,7 @@ GroupUnlock(
     GROUPFILE *groupFile
     )
 {
-    DebugPrint("GroupUnlock: groupFile=%p", groupFile);
+    DebugPrint("GroupUnlock: groupFile=%p\n", groupFile);
 }
 
 static
@@ -135,7 +135,7 @@ GroupWrite(
     GROUPFILE *groupFile
     )
 {
-    DebugPrint("GroupWrite: groupFile=%p", groupFile);
+    DebugPrint("GroupWrite: groupFile=%p\n", groupFile);
 }
 
 static
@@ -146,7 +146,7 @@ GroupOpen(
     GROUPFILE *groupFile
     )
 {
-    DebugPrint("GroupOpen: groupName=%s groupFile=%p", groupName, groupFile);
+    DebugPrint("GroupOpen: groupName=%s groupFile=%p\n", groupName, groupFile);
 }
 
 static
@@ -156,5 +156,5 @@ GroupClose(
     GROUPFILE *groupFile
     )
 {
-    DebugPrint("GroupClose: groupFile=%p", groupFile);
+    DebugPrint("GroupClose: groupFile=%p\n", groupFile);
 }

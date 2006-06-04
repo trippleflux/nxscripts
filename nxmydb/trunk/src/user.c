@@ -35,7 +35,7 @@ UserModuleInit(
     USER_MODULE *module
     )
 {
-    DebugPrint("UserInit: module=%p", module);
+    DebugPrint("UserInit: module=%p\n", module);
 
     // Initialize module structure.
     module->tszModuleName = "NXMYDB";
@@ -66,7 +66,7 @@ UserFinalize(
     void
     )
 {
-    DebugPrint("UserFinalize: module=%p", userModule);
+    DebugPrint("UserFinalize: module=%p\n", userModule);
     Io_Putlog(LOG_ERROR, "nxMyDB user module unloaded.\r\n");
 
     // Finalize procedure table.
@@ -82,7 +82,7 @@ UserCreate(
     char *userName
     )
 {
-    DebugPrint("UserCreate: userName=%s", userName);
+    DebugPrint("UserCreate: userName=%s\n", userName);
 }
 
 static
@@ -94,7 +94,7 @@ UserRename(
     char *newName
     )
 {
-    DebugPrint("UserRename: userName=%s userId=%d newName=%s", userName, userId, newName);
+    DebugPrint("UserRename: userName=%s userId=%d newName=%s\n", userName, userId, newName);
 }
 
 static
@@ -105,7 +105,7 @@ UserDelete(
     INT32 userId
     )
 {
-    DebugPrint("UserDelete: userName=%s userId=%d", userName, userId);
+    DebugPrint("UserDelete: userName=%s userId=%d\n", userName, userId);
 }
 
 static
@@ -115,7 +115,7 @@ UserLock(
     USERFILE *userFile
     )
 {
-    DebugPrint("UserLock: userFile=%p", userFile);
+    DebugPrint("UserLock: userFile=%p\n", userFile);
 }
 
 static
@@ -125,7 +125,7 @@ UserUnlock(
     USERFILE *userFile
     )
 {
-    DebugPrint("UserUnlock: userFile=%p", userFile);
+    DebugPrint("UserUnlock: userFile=%p\n", userFile);
 }
 
 static
@@ -135,7 +135,7 @@ UserWrite(
     USERFILE *userFile
     )
 {
-    DebugPrint("UserWrite: userFile=%p", userFile);
+    DebugPrint("UserWrite: userFile=%p\n", userFile);
 }
 
 static
@@ -146,7 +146,7 @@ UserOpen(
     USERFILE *userFile
     )
 {
-    DebugPrint("UserOpen: userName=%s userFile=%p", userName, userFile);
+    DebugPrint("UserOpen: userName=%s userFile=%p\n", userName, userFile);
 }
 
 static
@@ -156,5 +156,5 @@ UserClose(
     USERFILE *userFile
     )
 {
-    DebugPrint("UserClose: userFile=%p", userFile);
+    DebugPrint("UserClose: userFile=%p\n", userFile);
 }
