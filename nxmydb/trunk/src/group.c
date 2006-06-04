@@ -35,6 +35,8 @@ GroupModuleInit(
     GROUP_MODULE *module
     )
 {
+    DebugPrint("GroupInit: module=%p", module);
+
     // Initialize module structure.
     module->tszModuleName = "NXMYDB";
     module->DeInitialize  = GroupFinalize;
@@ -64,6 +66,7 @@ GroupFinalize(
     void
     )
 {
+    DebugPrint("GroupFinalize: module=%p", groupModule);
     Io_Putlog(LOG_ERROR, "nxMyDB group module unloaded.\r\n");
 
     // Finalize procedure table.
@@ -79,6 +82,7 @@ GroupCreate(
     char *groupName
     )
 {
+    DebugPrint("GroupCreate: groupName=%s", groupName);
 }
 
 static
@@ -90,6 +94,7 @@ GroupRename(
     char *newName
     )
 {
+    DebugPrint("GroupRename: groupName=%s groupId=%d newName=%s", groupName, groupId, newName);
 }
 
 static
@@ -100,6 +105,7 @@ GroupDelete(
     INT32 groupId
     )
 {
+    DebugPrint("GroupDelete: groupName=%s groupId=%d", groupName, groupId);
 }
 
 static
@@ -109,6 +115,7 @@ GroupLock(
     GROUPFILE *groupFile
     )
 {
+    DebugPrint("GroupLock: groupFile=%p", groupFile);
 }
 
 static
@@ -118,6 +125,7 @@ GroupUnlock(
     GROUPFILE *groupFile
     )
 {
+    DebugPrint("GroupUnlock: groupFile=%p", groupFile);
 }
 
 static
@@ -127,6 +135,7 @@ GroupWrite(
     GROUPFILE *groupFile
     )
 {
+    DebugPrint("GroupWrite: groupFile=%p", groupFile);
 }
 
 static
@@ -137,6 +146,7 @@ GroupOpen(
     GROUPFILE *groupFile
     )
 {
+    DebugPrint("GroupOpen: groupName=%s groupFile=%p", groupName, groupFile);
 }
 
 static
@@ -146,4 +156,5 @@ GroupClose(
     GROUPFILE *groupFile
     )
 {
+    DebugPrint("GroupClose: groupFile=%p", groupFile);
 }

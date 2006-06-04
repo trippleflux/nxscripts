@@ -35,6 +35,8 @@ UserModuleInit(
     USER_MODULE *module
     )
 {
+    DebugPrint("UserInit: module=%p", module);
+
     // Initialize module structure.
     module->tszModuleName = "NXMYDB";
     module->DeInitialize  = UserFinalize;
@@ -64,6 +66,7 @@ UserFinalize(
     void
     )
 {
+    DebugPrint("UserFinalize: module=%p", userModule);
     Io_Putlog(LOG_ERROR, "nxMyDB user module unloaded.\r\n");
 
     // Finalize procedure table.
@@ -79,6 +82,7 @@ UserCreate(
     char *userName
     )
 {
+    DebugPrint("UserCreate: userName=%s", userName);
 }
 
 static
@@ -90,6 +94,7 @@ UserRename(
     char *newName
     )
 {
+    DebugPrint("UserRename: userName=%s userId=%d newName=%s", userName, userId, newName);
 }
 
 static
@@ -100,6 +105,7 @@ UserDelete(
     INT32 userId
     )
 {
+    DebugPrint("UserDelete: userName=%s userId=%d", userName, userId);
 }
 
 static
@@ -109,6 +115,7 @@ UserLock(
     USERFILE *userFile
     )
 {
+    DebugPrint("UserLock: userFile=%p", userFile);
 }
 
 static
@@ -118,6 +125,7 @@ UserUnlock(
     USERFILE *userFile
     )
 {
+    DebugPrint("UserUnlock: userFile=%p", userFile);
 }
 
 static
@@ -127,6 +135,7 @@ UserWrite(
     USERFILE *userFile
     )
 {
+    DebugPrint("UserWrite: userFile=%p", userFile);
 }
 
 static
@@ -137,6 +146,7 @@ UserOpen(
     USERFILE *userFile
     )
 {
+    DebugPrint("UserOpen: userName=%s userFile=%p", userName, userFile);
 }
 
 static
@@ -146,4 +156,5 @@ UserClose(
     USERFILE *userFile
     )
 {
+    DebugPrint("UserClose: userFile=%p", userFile);
 }
