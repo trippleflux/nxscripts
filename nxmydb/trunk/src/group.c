@@ -221,6 +221,7 @@ GroupRename(
 {
     DebugPrint("GroupRename: groupName=\"%s\" groupId=%i newName=\"%s\"\n", groupName, groupId, newName);
 
+    // Register the group under the new name
     if (groupModule->RegisterAs(groupModule, groupName, newName)) {
         DebugPrint("GroupRename: Unable to rename group, already exists?\n");
         return GM_ERROR;

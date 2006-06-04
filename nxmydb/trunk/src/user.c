@@ -224,6 +224,7 @@ UserRename(
 {
     DebugPrint("UserRename: userName=\"%s\" userId=%i newName=\"%s\"\n", userName, userId, newName);
 
+    // Register the user under the new name
     if (userModule->RegisterAs(userModule, userName, newName)) {
         DebugPrint("UserRename: Unable to rename user, already exists?\n");
         return UM_ERROR;
