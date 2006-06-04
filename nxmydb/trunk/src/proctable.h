@@ -94,13 +94,13 @@ extern PROC_TABLE procTable;
 #define Io_Putlog           procTable.Putlog
 
 
-typedef void *(GetProc)(
+typedef void *(Io_GetProc)(
     char *name
     );
 
 BOOL
 InitProcTable(
-    GetProc *getProc
+    Io_GetProc *getProc
     );
 
 void
