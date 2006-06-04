@@ -66,13 +66,16 @@ RFLAGS      = $(RFLAGS) "/DVERSION=\"$(VERSION)\"" "/DVERSION_RES=$(VERSION_RES)
 
 default: all
 
-all: library
+all: lib
 
 clean:
     @ECHO Deleting object files...
     -@DEL /F *.cod *.dll *.ilk *.lib *.exp *.exe *.obj *.pdb *.res 2> nul
 
-library: nxmydb.dll
+release: all
+    -@DEL /F *.cod *.ilk *.lib *.exp *.obj *.pdb *.res 2> nul
+
+lib: nxmydb.dll
 
 # -------------------------------------------------------------------------
 
