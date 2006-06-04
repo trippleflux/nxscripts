@@ -48,7 +48,7 @@ GroupModuleInit(
     module->Unlock        = GroupUnlock;
 
     // Initialize procedure table.
-    if (!InitProcs(module->GetProc)) {
+    if (!InitProcTable(module->GetProc)) {
         return 1;
     }
     Io_Putlog(LOG_ERROR, "nxMyDB group module loaded.\r\n");
@@ -67,7 +67,7 @@ GroupFinalize(
     Io_Putlog(LOG_ERROR, "nxMyDB group module unloaded.\r\n");
 
     // Finalize procedure table.
-    FinalizeProcs();
+    FinalizeProcTable();
     groupModule = NULL;
     return 0;
 }

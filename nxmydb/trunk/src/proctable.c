@@ -4,7 +4,7 @@ nxMyDB - MySQL Database for ioFTPD
 Copyright (c) 2006 neoxed
 
 Module Name:
-    Procedures
+    Procedure Table
 
 Author:
     neoxed (neoxed@gmail.com) Jun 3, 2006
@@ -20,7 +20,7 @@ Abstract:
 #pragma warning(disable : 4152)
 
 // Global procedure table.
-IO_PROC_TABLE procTable;
+PROC_TABLE procTable;
 
 // References to the procedure table.
 static LONG volatile refCount = 0;
@@ -28,7 +28,7 @@ static LONG volatile refCount = 0;
 
 /*++
 
-InitProcs
+InitProcTable
 
     Initializes the procedure table.
 
@@ -46,14 +46,14 @@ Remarks:
 
 --*/
 BOOL
-InitProcs(
+InitProcTable(
     GetProc *getProc
     )
 {
     if (InterlockedIncrement(&refCount) == 1) {
         // Clear the table initially in case a procedure is missing,
         // it's much easier to debug a reference to a null pointer.
-        ZeroMemory(&procTable, sizeof(IO_PROC_TABLE));
+        ZeroMemory(&procTable, sizeof(PROC_TABLE));
 
 #define RESOLVE(name, func)               \
     {                                     \
@@ -85,13 +85,13 @@ InitProcs(
 
 error:
     // Unable to resolve a procedure.
-    ZeroMemory(&procTable, sizeof(IO_PROC_TABLE));
+    ZeroMemory(&procTable, sizeof(PROC_TABLE));
     return FALSE;
 }
 
 /*++
 
-FinalizeProcs
+FinalizeProcTable
 
     Finalizes the procedure table.
 
@@ -106,11 +106,11 @@ Remarks:
 
 --*/
 void
-FinalizeProcs(
+FinalizeProcTable(
     void
     )
 {
     if (InterlockedDecrement(&refCount) <= 0) {
-        ZeroMemory(&procTable, sizeof(IO_PROC_TABLE));
+        ZeroMemory(&procTable, sizeof(PROC_TABLE));
     }
 }

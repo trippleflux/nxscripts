@@ -43,7 +43,8 @@ Abstract:
 #include <Group.h>
 
 // Project headers
-#include "procs.h"
+#include "proctable.h"
+#include "utils.h"
 
 
 // Calling convention used by ioFTPD for module functions.

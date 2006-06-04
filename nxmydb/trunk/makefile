@@ -76,7 +76,7 @@ library: nxmydb.dll
 
 # -------------------------------------------------------------------------
 
-FILE_OBJS = mydb.res dllentry.obj group.obj procs.obj user.obj
+FILE_OBJS = mydb.res dllentry.obj group.obj proctable.obj user.obj utils.obj
 
 {src\}.c{}.obj::
     $(CC) /c $(CFLAGS) /Fo $<

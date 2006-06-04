@@ -4,7 +4,7 @@ nxMyDB - MySQL Database for ioFTPD
 Copyright (c) 2006 neoxed
 
 Module Name:
-    Procedures
+    Procedure Table
 
 Author:
     neoxed (neoxed@gmail.com) Jun 3, 2006
@@ -70,9 +70,9 @@ typedef struct {
     void *(* StartIoTimer)(void *, void *, void *, DWORD);
     BOOL  (* StopIoTimer)(void *, BOOL);
     BOOL  (* Putlog)(DWORD, const char *, ...);
-} IO_PROC_TABLE;
+} PROC_TABLE;
 
-extern IO_PROC_TABLE procTable;
+extern PROC_TABLE procTable;
 
 #define Io_ConfigGet        procTable.ConfigGet
 #define Io_ConfigGetBool    procTable.ConfigGetBool
@@ -99,12 +99,12 @@ typedef void * (GetProc)(
     );
 
 BOOL
-InitProcs(
+InitProcTable(
     GetProc *getProc
     );
 
 void
-FinalizeProcs(
+FinalizeProcTable(
     void
     );
 
