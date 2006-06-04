@@ -439,8 +439,9 @@ GroupWrite(
         return GM_ERROR;
     }
 
-    // Truncate remaining data
+    // Truncate file at its current position and flush changes to disk
     SetEndOfFile(context->fileHandle);
+    FlushFileBuffers(context->fileHandle);
 
     Io_Free(buffer.buf);
     return GM_SUCCESS;
