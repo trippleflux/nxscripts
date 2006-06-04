@@ -50,4 +50,16 @@ Abstract:
 // Calling convention used by ioFTPD for module functions.
 #define MODULE_CALL __cdecl
 
+//
+// Debug message printing.
+//
+// OutputDebugger - Writes message to debugger.
+// OutputFile     - Writes message to log file.
+//
+#if defined(DEBUG) && !defined(NDEBUG)
+#   define DebugPrint OutputDebugger
+#else
+#   define DebugPrint
+#endif
+
 #endif // _MOD_H_

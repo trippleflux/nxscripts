@@ -17,23 +17,20 @@ Abstract:
 #ifndef _UTIL_H_
 #define _UTIL_H_
 
+#ifdef DEBUG
 void
 OutputDebugger(
     const char *format,
     ...
     );
+#endif // DEBUG
 
+#ifdef DEBUG
 void
 OutputFile(
     const char *format,
     ...
     );
-
-#ifdef DEBUG
-// OutputDebugger or OutputFile
-#   define DebugPrint OutputDebugger
-#else
-#   define DebugPrint
-#endif
+#endif // DEBUG
 
 #endif // _UTIL_H_
