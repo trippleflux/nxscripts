@@ -1,4 +1,4 @@
-nxSDK v0.4.0 (not released):
+nxSDK v0.4.0 (Jun 4, 2006):
   NEW: Example user/group module.
   NEW: Support for C++ compilers in public headers.
   CHG: Further improvements to the documentation.

@@ -13,9 +13,9 @@ Topics:
 # 1. Information                                                               #
 ################################################################################
 
-   nxSDK is a development kit for software developers writing shared memory
-applications for ioFTPD in C and C++. It provides a high-level interface to
-all of the shared memory functions implemented in ioFTPD, such as:
+   nxSDK is a development kit for software developers writing modules or shared
+memory applications for ioFTPD in C and C++. It provides a high-level interface
+to all of the shared memory functions implemented in ioFTPD, such as:
 
 - Creating, renaming, and deleting users and groups.
 - Modifying user file and group file data structures.
@@ -68,7 +68,7 @@ all of the shared memory functions implemented in ioFTPD, such as:
   # doc\                                                     #
   ############################################################
 
-  SDK documentation.
+  Module and SDK documentation.
 
   functions.htm
     - Documents public data structures in nxSDK.
@@ -101,7 +101,7 @@ all of the shared memory functions implemented in ioFTPD, such as:
   # src\                                                     #
   ############################################################
 
-  SDK source code.
+  Module and SDK source code.
 
   credits\
     - Source code for the "credits" application.
