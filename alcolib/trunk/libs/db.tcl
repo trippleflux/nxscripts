@@ -408,7 +408,7 @@ proc ::Db::Ping {handle} {
 
 namespace eval ::Db::MySQL {
     namespace eval Func {}
-    variable params {compress encoding interactive socket ssl sslca sslcapath sslcert sslcipher sslkey}
+    variable params {compress encoding socket ssl sslca sslcapath sslcert sslcipher sslkey}
 }
 
 proc ::Db::MySQL::Init {} {
@@ -420,7 +420,7 @@ proc ::Db::MySQL::Connect {options} {
     array set option $options
 
     # MySQL does not allow multiple statements by default.
-    set connOptions [list "-multistatement" 1]
+    set connOptions [list "-interactive" 1 "-multistatement" 1]
     foreach {name value} $options {
         if {[lsearch -exact {host password port user} $name] != -1} {
             lappend connOptions "-$name" $value
