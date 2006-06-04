@@ -38,7 +38,7 @@ DebugPrint(
     ...
     )
 {
-    static char output[1024];
+    char output[1024];
     va_list argList;
 
     va_start(argList, format);
