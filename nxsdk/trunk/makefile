@@ -18,7 +18,7 @@ MSVCRT      = 0
 IOFTPD_INC  = E:\ioFTPD\source\Include
 
 ## Release version.
-VERSION     = 0.3.0
+VERSION     = 0.4.0
 
 ## Compiler options
 AR          = lib
@@ -70,11 +70,11 @@ RFLAGS      = $(RFLAGS) "/DVERSION=\"$(VERSION)\"" "/DVERSION_RES=$(VERSION_RES)
 
 default: all
 
-all: dynamic static tools
+all: lib mod tools
 
 clean:
     @ECHO Deleting object files...
-    -@DEL /F *.cod *.dll *.ilk *.lib *.exp *.exe *.obj *.pdb *.res 2> nul
+    -@DEL /F /S *.cod *.dll *.ilk *.lib *.exp *.exe *.obj *.pdb *.res 1> nul 2> nul
     @ECHO Deleting binary files...
     -@DEL /F bin\*.dll 2> nul
     -@DEL /F bin\*.exe 2> nul
@@ -94,25 +94,27 @@ release: all
     @TCLSH gendocs.tcl > nul
     @CD ..
 
-dynamic: nxsdk.dll
+lib: nxsdk.dll nxsdk-static.lib
 
-static: nxsdk-static.lib
+mod: nxmod.dll
 
 tools: credits.exe info.exe kick.exe resolve.exe who.exe
 
 # -------------------------------------------------------------------------
 
-DLL_OBJS = dllentry.obj lib.res
-LIB_OBJS = group.obj online.obj shmem.obj user.obj util.obj vfs.obj
+LIB_PATH = src\lib
+DLL_OBJS = $(LIB_PATH)\dllentry.obj $(LIB_PATH)\lib.res
+LIB_OBJS = $(LIB_PATH)\group.obj $(LIB_PATH)\online.obj $(LIB_PATH)\shmem.obj \
+           $(LIB_PATH)\user.obj $(LIB_PATH)\util.obj $(LIB_PATH)\vfs.obj
 
-{src\lib\}.c{}.obj::
-    $(CC) /c $(CFLAGS) /Fo $<
+{$(LIB_PATH)}.c{$(LIB_PATH)}.obj::
+    $(CC) /c $(CFLAGS) /Fo$(LIB_PATH)\ $<
 
-{src\lib\}.rc{}.res:
-	$(RC) $(RFLAGS) /fo $@ $<
+{$(LIB_PATH)}.rc{$(LIB_PATH)}.res:
+	$(RC) $(RFLAGS) -fo $@ $<
 
 nxsdk.dll: $(DLL_OBJS) $(LIB_OBJS)
-    $(LD) $(LFLAGS) /DEF:src\lib\lib.def /DLL $(LIBENTRY) /OUT:$@ kernel32.lib psapi.lib user32.lib @<<
+    $(LD) $(LFLAGS) /DEF:$(LIB_PATH)\lib.def /DLL $(LIBENTRY) /OUT:$@ kernel32.lib psapi.lib user32.lib @<<
 $**
 <<
 
@@ -125,13 +127,31 @@ $**
 
 # -------------------------------------------------------------------------
 
-CREDITS_OBJS = credits.obj credits.res
+MOD_PATH = src\mod
+MOD_OBJS = $(MOD_PATH)\dllentry.obj $(MOD_PATH)\group.obj $(MOD_PATH)\proctable.obj \
+           $(MOD_PATH)\user.obj $(MOD_PATH)\utils.obj $(MOD_PATH)\mod.res
 
-{src\credits\}.c{}.obj::
-    $(CC) /c $(CFLAGS) /Fo $<
+{$(MOD_PATH)}.c{$(MOD_PATH)}.obj::
+    $(CC) /c $(CFLAGS) /Fo$(MOD_PATH)\ $<
 
-{src\credits\}.rc{}.res:
-	$(RC) $(RFLAGS) /fo $@ $<
+{$(MOD_PATH)}.rc{$(MOD_PATH)}.res:
+	$(RC) $(RFLAGS) -fo $@ $<
+
+nxmod.dll: $(MOD_OBJS)
+    $(LD) $(LFLAGS) /DEF:$(MOD_PATH)\mod.def /DLL /OUT:$@ @<<
+$**
+<<
+
+# -------------------------------------------------------------------------
+
+CREDITS_PATH = src\credits
+CREDITS_OBJS = $(CREDITS_PATH)\credits.obj $(CREDITS_PATH)\credits.res
+
+{$(CREDITS_PATH)}.c{$(CREDITS_PATH)}.obj::
+    $(CC) /c $(CFLAGS) /Fo$(CREDITS_PATH)\ $<
+
+{$(CREDITS_PATH)}.rc{$(CREDITS_PATH)}.res:
+	$(RC) $(RFLAGS) -fo $@ $<
 
 credits.exe: nxsdk.lib $(CREDITS_OBJS)
     $(LD) $(LFLAGS) /OUT:$@ @<<
@@ -140,13 +160,14 @@ $**
 
 # -------------------------------------------------------------------------
 
-INFO_OBJS = info.obj info.res
+INFO_PATH = src\info
+INFO_OBJS = $(INFO_PATH)\info.obj $(INFO_PATH)\info.res
 
-{src\info\}.c{}.obj::
-    $(CC) /c $(CFLAGS) /Fo $<
+{$(INFO_PATH)}.c{$(INFO_PATH)}.obj::
+    $(CC) /c $(CFLAGS) /Fo$(INFO_PATH)\ $<
 
-{src\info\}.rc{}.res:
-	$(RC) $(RFLAGS) /fo $@ $<
+{$(INFO_PATH)}.rc{$(INFO_PATH)}.res:
+	$(RC) $(RFLAGS) -fo $@ $<
 
 info.exe: nxsdk.lib $(INFO_OBJS)
     $(LD) $(LFLAGS) /OUT:$@ @<<
@@ -155,13 +176,14 @@ $**
 
 # -------------------------------------------------------------------------
 
-KICK_OBJS = kick.obj kick.res
+KICK_PATH = src\kick
+KICK_OBJS = $(KICK_PATH)\kick.obj $(KICK_PATH)\kick.res
 
-{src\kick\}.c{}.obj::
-    $(CC) /c $(CFLAGS) /Fo $<
+{$(KICK_PATH)}.c{$(KICK_PATH)}.obj::
+    $(CC) /c $(CFLAGS) /Fo$(KICK_PATH)\ $<
 
-{src\kick\}.rc{}.res:
-	$(RC) $(RFLAGS) /fo $@ $<
+{$(KICK_PATH)}.rc{$(KICK_PATH)}.res:
+	$(RC) $(RFLAGS) -fo $@ $<
 
 kick.exe: nxsdk.lib $(KICK_OBJS)
     $(LD) $(LFLAGS) /OUT:$@ @<<
@@ -170,13 +192,14 @@ $**
 
 # -------------------------------------------------------------------------
 
-RESOLVE_OBJS = resolve.obj resolve.res
+RESOLVE_PATH = src\resolve
+RESOLVE_OBJS = $(RESOLVE_PATH)\resolve.obj $(RESOLVE_PATH)\resolve.res
 
-{src\resolve\}.c{}.obj::
-    $(CC) /c $(CFLAGS) /Fo $<
+{$(RESOLVE_PATH)}.c{$(RESOLVE_PATH)}.obj::
+    $(CC) /c $(CFLAGS) /Fo$(RESOLVE_PATH)\ $<
 
-{src\resolve\}.rc{}.res:
-	$(RC) $(RFLAGS) /fo $@ $<
+{$(RESOLVE_PATH)}.rc{$(RESOLVE_PATH)}.res:
+	$(RC) $(RFLAGS) -fo $@ $<
 
 resolve.exe: nxsdk.lib $(RESOLVE_OBJS)
     $(LD) $(LFLAGS) /OUT:$@ @<<
@@ -185,13 +208,14 @@ $**
 
 # -------------------------------------------------------------------------
 
-WHO_OBJS = who.obj who.res
+WHO_PATH = src\who
+WHO_OBJS = $(WHO_PATH)\who.obj $(WHO_PATH)\who.res
 
-{src\who\}.c{}.obj::
-    $(CC) /c $(CFLAGS) /Fo $<
+{$(WHO_PATH)}.c{$(WHO_PATH)}.obj::
+    $(CC) /c $(CFLAGS) /Fo$(WHO_PATH)\ $<
 
-{src\who\}.rc{}.res:
-	$(RC) $(RFLAGS) /fo $@ $<
+{$(WHO_PATH)}.rc{$(WHO_PATH)}.res:
+	$(RC) $(RFLAGS) -fo $@ $<
 
 who.exe: nxsdk.lib $(WHO_OBJS)
     $(LD) $(LFLAGS) /OUT:$@ @<<
