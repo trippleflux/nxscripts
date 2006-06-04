@@ -19,10 +19,10 @@ Abstract:
 // Silence C4152: nonstandard extension, function/data pointer conversion in expression
 #pragma warning(disable : 4152)
 
-// Global procedure table.
+// Global procedure table
 PROC_TABLE procTable;
 
-// References to the procedure table.
+// References to the procedure table
 static LONG volatile refCount = 0;
 
 
@@ -82,7 +82,7 @@ InitProcTable(
     return TRUE;
 
 error:
-    // Unable to resolve a procedure.
+    // Unable to resolve a procedure
     ZeroMemory(&procTable, sizeof(PROC_TABLE));
     return FALSE;
 }
