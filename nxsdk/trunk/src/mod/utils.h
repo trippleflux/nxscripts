@@ -30,11 +30,8 @@ OutputFile(
     );
 
 #ifdef DEBUG
-#   if 1
-#       define DebugPrint OutputDebugger
-#   else
-#       define DebugPrint OutputFile
-#   endif
+// OutputDebugger or OutputFile
+#   define DebugPrint OutputDebugger
 #else
 #   define DebugPrint
 #endif
