@@ -66,12 +66,12 @@ GroupModuleInit(
     // Initialize procedure table
     if (!InitProcTable(module->GetProc)) {
         DebugPrint("GroupInit: Unable to initialize the procedure table.\n");
-        return 1;
+        return GM_ERROR;
     }
     Io_Putlog(LOG_ERROR, "nxMyDB group module loaded.\r\n");
 
     groupModule = module;
-    return 0;
+    return GM_SUCCESS;
 }
 
 static
@@ -87,7 +87,7 @@ GroupFinalize(
     // Finalize procedure table
     FinalizeProcTable();
     groupModule = NULL;
-    return 0;
+    return GM_SUCCESS;
 }
 
 static
@@ -223,10 +223,10 @@ GroupRename(
 
     if (groupModule->RegisterAs(groupModule, groupName, newName)) {
         DebugPrint("GroupRename: Unable to rename group, already exists?\n");
-        return 1;
+        return GM_ERROR;
     }
 
-    return 0;
+    return GM_SUCCESS;
 }
 
 static
@@ -251,7 +251,7 @@ GroupDelete(
         DebugPrint("GroupDelete: Unable to retrieve file location.\n");
 
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-        return 1;
+        return GM_ERROR;
     }
 
     // Delete data file and free resources
@@ -261,10 +261,10 @@ GroupDelete(
     // Unregister group
     if (groupModule->Unregister(groupModule, groupName)) {
         DebugPrint("GroupDelete: Unable to unregister group.\n");
-        return 1;
+        return GM_ERROR;
     }
 
-    return 0;
+    return GM_SUCCESS;
 }
 
 static
@@ -280,10 +280,10 @@ GroupLock(
     context = (GROUP_CONTEXT *)groupFile->lpInternal;
     if (InterlockedCompareExchange(&context->locked, 1, 0) == 1) {
         DebugPrint("GroupLock: Unable to aquire lock.\n");
-        return 1;
+        return GM_ERROR;
     }
 
-    return 0;
+    return GM_SUCCESS;
 }
 
 static
@@ -300,7 +300,7 @@ GroupUnlock(
     context = (GROUP_CONTEXT *)groupFile->lpInternal;
     context->locked = 0;
 
-    return 0;
+    return GM_SUCCESS;
 }
 
 static
@@ -417,7 +417,7 @@ GroupWrite(
         DebugPrint("GroupWrite: Unable to allocate write buffer.\n");
 
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-        return 1;
+        return GM_ERROR;
     }
 
     // Dump group data to buffer
@@ -434,14 +434,14 @@ GroupWrite(
 
         // Restore system error code
         SetLastError(error);
-        return 1;
+        return GM_ERROR;
     }
 
     // Truncate remaining data
     SetEndOfFile(context->fileHandle);
 
     Io_Free(buffer.buf);
-    return 0;
+    return GM_SUCCESS;
 }
 
 static
@@ -490,7 +490,7 @@ GroupClose(
     context = (GROUP_CONTEXT *)groupFile->lpInternal;
     if (context == NULL) {
         DebugPrint("GroupClose: Group context already freed.\n");
-        return 1;
+        return GM_ERROR;
     }
 
     // Free objects and resources
@@ -498,5 +498,5 @@ GroupClose(
     Io_Free(context);
     groupFile->lpInternal = NULL;
 
-    return 0;
+    return GM_SUCCESS;
 }

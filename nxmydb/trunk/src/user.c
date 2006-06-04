@@ -66,12 +66,12 @@ UserModuleInit(
     // Initialize procedure table
     if (!InitProcTable(module->GetProc)) {
         DebugPrint("UserInit: Unable to initialize the procedure table.\n");
-        return 1;
+        return UM_ERROR;
     }
     Io_Putlog(LOG_ERROR, "nxMyDB user module loaded.\r\n");
 
     userModule = module;
-    return 0;
+    return UM_SUCCESS;
 }
 
 static
@@ -87,7 +87,7 @@ UserFinalize(
     // Finalize procedure table
     FinalizeProcTable();
     userModule = NULL;
-    return 0;
+    return UM_SUCCESS;
 }
 
 static
@@ -226,10 +226,10 @@ UserRename(
 
     if (userModule->RegisterAs(userModule, userName, newName)) {
         DebugPrint("UserRename: Unable to rename user, already exists?\n");
-        return 1;
+        return UM_ERROR;
     }
 
-    return 0;
+    return UM_SUCCESS;
 }
 
 static
@@ -254,7 +254,7 @@ UserDelete(
         DebugPrint("UserDelete: Unable to retrieve file location.\n");
 
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-        return 1;
+        return UM_ERROR;
     }
 
     // Delete data file and free resources
@@ -264,10 +264,10 @@ UserDelete(
     // Unregister user
     if (userModule->Unregister(userModule, userName)) {
         DebugPrint("UserDelete: Unable to unregister user.\n");
-        return 1;
+        return UM_ERROR;
     }
 
-    return 0;
+    return UM_SUCCESS;
 }
 
 static
@@ -283,10 +283,10 @@ UserLock(
     context = (USER_CONTEXT *)userFile->lpInternal;
     if (InterlockedCompareExchange(&context->locked, 1, 0) == 1) {
         DebugPrint("UserLock: Unable to aquire lock.\n");
-        return 1;
+        return UM_ERROR;
     }
 
-    return 0;
+    return UM_SUCCESS;
 }
 
 static
@@ -302,7 +302,7 @@ UserUnlock(
     context = (USER_CONTEXT *)userFile->lpInternal;
     context->locked = 0;
 
-    return 0;
+    return UM_SUCCESS;
 }
 
 static
@@ -420,7 +420,7 @@ UserWrite(
         DebugPrint("UserWrite: Unable to allocate write buffer.\n");
 
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-        return 1;
+        return UM_ERROR;
     }
 
     // Dump user data to buffer
@@ -437,14 +437,14 @@ UserWrite(
 
         // Restore system error code
         SetLastError(error);
-        return 1;
+        return UM_ERROR;
     }
 
     // Truncate remaining data
     SetEndOfFile(context->fileHandle);
 
     Io_Free(buffer.buf);
-    return 0;
+    return UM_SUCCESS;
 }
 
 static
@@ -493,7 +493,7 @@ UserClose(
     context = (USER_CONTEXT *)userFile->lpInternal;
     if (context == NULL) {
         DebugPrint("UserClose: User context already freed.\n");
-        return 1;
+        return UM_ERROR;
     }
 
     // Free objects and resources
@@ -501,5 +501,5 @@ UserClose(
     Io_Free(context);
     userFile->lpInternal = NULL;
 
-    return 0;
+    return UM_SUCCESS;
 }
