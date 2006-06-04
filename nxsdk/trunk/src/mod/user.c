@@ -65,7 +65,7 @@ UserModuleInit(
 
     // Initialize procedure table
     if (!InitProcTable(module->GetProc)) {
-        DebugPrint("UserInit: Unable to initialize the procedure table.\n");
+        DebugPrint("UserInit: Unable to initialize procedure table.\n");
         return UM_ERROR;
     }
     Io_Putlog(LOG_ERROR, "nxMod user module loaded.\r\n");
