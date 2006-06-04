@@ -108,9 +108,9 @@ UserCreate(
     // Retrieve default location
     sourcePath = Io_ConfigGetPath("Locations", "User_Files", "Default.User", NULL);
     if (sourcePath == NULL) {
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-
         DebugPrint("UserCreate: Unable to retrieve default file location.\n");
+
+        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return -1;
     }
 
@@ -118,16 +118,19 @@ UserCreate(
     StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%s.temp", userName);
     tempPath = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
     if (tempPath == NULL) {
-        Io_Free(sourcePath);
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-
         DebugPrint("UserCreate: Unable to retrieve temporary file location.\n");
+
+        // Free resources
+        Io_Free(sourcePath);
+
+        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return -1;
     }
 
     // Copy default file
     if (!CopyFileA(sourcePath, tempPath, FALSE)) {
         error = GetLastError();
+        DebugPrint("UserCreate: Unable to copy default file (error %lu).\n", error);
 
         // Free resources
         Io_Free(sourcePath);
@@ -135,8 +138,6 @@ UserCreate(
 
         // Restore system error code
         SetLastError(error);
-
-        DebugPrint("UserCreate: Unable to copy default file (error %lu).\n", GetLastError());
         return -1;
     }
 
@@ -243,8 +244,9 @@ UserDelete(
     // Retrieve file location
     filePath = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
     if (filePath == NULL) {
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         DebugPrint("UserDelete: Unable to retrieve file location.\n");
+
+        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return 1;
     }
 
@@ -298,8 +300,9 @@ UserRead(
     // Allocate user context
     context = (USER_CONTEXT *)Io_Allocate(sizeof(USER_CONTEXT));
     if (context == NULL) {
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         DebugPrint("UserRead: Unable to allocate user context.\n");
+
+        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return UM_FATAL;
     }
 
@@ -390,8 +393,9 @@ UserWrite(
     buffer.buf  = (char *)Io_Allocate(buffer.size);
 
     if (buffer.buf == NULL) {
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         DebugPrint("UserWrite: Unable to allocate write buffer.\n");
+
+        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return 1;
     }
 
@@ -402,10 +406,13 @@ UserWrite(
     SetFilePointer(context->fileHandle, 0, 0, FILE_BEGIN);
     if (!WriteFile(context->fileHandle, buffer.buf, buffer.len, &bytesWritten, NULL)) {
         error = GetLastError();
-        Io_Free(buffer.buf);
-        SetLastError(error);
+        DebugPrint("UserWrite: Unable to write file (error %lu).\n", error);
 
-        DebugPrint("UserWrite: Unable to write file (error %lu).\n", GetLastError());
+        // Free resources
+        Io_Free(buffer.buf);
+
+        // Restore system error code
+        SetLastError(error);
         return 1;
     }
 

@@ -108,9 +108,9 @@ GroupCreate(
     // Retrieve default location
     sourcePath = Io_ConfigGetPath("Locations", "Group_Files", "Default.Group", NULL);
     if (sourcePath == NULL) {
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-
         DebugPrint("GroupCreate: Unable to retrieve default file location.\n");
+
+        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return -1;
     }
 
@@ -118,16 +118,19 @@ GroupCreate(
     StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%s.temp", groupName);
     tempPath = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
     if (tempPath == NULL) {
-        Io_Free(sourcePath);
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-
         DebugPrint("GroupCreate: Unable to retrieve temporary file location.\n");
+
+        // Free resources
+        Io_Free(sourcePath);
+
+        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return -1;
     }
 
     // Copy default file
     if (!CopyFileA(sourcePath, tempPath, FALSE)) {
         error = GetLastError();
+        DebugPrint("GroupCreate: Unable to copy default file (error %lu).\n", error);
 
         // Free resources
         Io_Free(sourcePath);
@@ -135,8 +138,6 @@ GroupCreate(
 
         // Restore system error code
         SetLastError(error);
-
-        DebugPrint("GroupCreate: Unable to copy default file (error %lu).\n", GetLastError());
         return -1;
     }
 
@@ -240,8 +241,9 @@ GroupDelete(
     // Retrieve file location
     filePath = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
     if (filePath == NULL) {
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         DebugPrint("GroupDelete: Unable to retrieve file location.\n");
+
+        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return 1;
     }
 
@@ -295,8 +297,9 @@ GroupRead(
     // Allocate group context
     context = (GROUP_CONTEXT *)Io_Allocate(sizeof(GROUP_CONTEXT));
     if (context == NULL) {
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         DebugPrint("GroupRead: Unable to allocate group context.\n");
+
+        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return UM_FATAL;
     }
 
@@ -386,8 +389,9 @@ GroupWrite(
     buffer.buf  = (char *)Io_Allocate(buffer.size);
 
     if (buffer.buf == NULL) {
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         DebugPrint("GroupWrite: Unable to allocate write buffer.\n");
+
+        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return 1;
     }
 
@@ -398,10 +402,13 @@ GroupWrite(
     SetFilePointer(context->fileHandle, 0, 0, FILE_BEGIN);
     if (!WriteFile(context->fileHandle, buffer.buf, buffer.len, &bytesWritten, NULL)) {
         error = GetLastError();
-        Io_Free(buffer.buf);
-        SetLastError(error);
+        DebugPrint("GroupWrite: Unable to write file (error %lu).\n", error);
 
-        DebugPrint("GroupWrite: Unable to write file (error %lu).\n", GetLastError());
+        // Free resources
+        Io_Free(buffer.buf);
+
+        // Restore system error code
+        SetLastError(error);
         return 1;
     }
 
