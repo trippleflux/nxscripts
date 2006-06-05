@@ -14,13 +14,128 @@ Abstract:
 
 */
 
-#ifndef _USER_H_
-#define _USER_H_
+#ifndef _BACKENDS_H_
+#define _BACKENDS_H_
 
+// Internal context for user/group files.
 typedef struct {
     HANDLE fileHandle;
 } INT_CONTEXT;
 
+
+//
+// Group database backend
+//
+
+#define DbGroupCreate(a,b,c) TRUE
+#define DbGroupRename(a,b,c) TRUE
+#define DbGroupDelete(a,b)   TRUE
+#define DbGroupLock(a)       TRUE
+#define DbGroupUnlock(a)     TRUE
+#define DbGroupOpen(a,b)     TRUE
+#define DbGroupWrite(a)      TRUE
+#define DbGroupClose(a)      TRUE
+
+#if 0
+BOOL
+DbGroupCreate(
+    char *groupName,
+    INT32 groupId,
+    GROUPFILE *groupFile
+    );
+
+BOOL
+DbGroupRename(
+    char *groupName,
+    INT32 groupId,
+    char *newName
+    );
+
+BOOL
+DbGroupDelete(
+    char *groupName,
+    INT32 groupId
+    );
+
+BOOL
+DbGroupLock(
+    GROUPFILE *groupFile
+    );
+
+BOOL
+DbGroupUnlock(
+    GROUPFILE *groupFile
+    );
+
+BOOL
+DbGroupOpen(
+    char *groupName,
+    GROUPFILE *groupFile
+    );
+
+BOOL
+DbGroupWrite(
+    GROUPFILE *groupFile
+    );
+
+BOOL
+DbGroupClose(
+    INT_CONTEXT *context
+    );
+#endif
+
+
+//
+// Group file backend
+//
+
+BOOL
+FileGroupCreate(
+    char *groupName,
+    INT32 groupId,
+    GROUPFILE *groupFile
+    );
+
+BOOL
+FileGroupRename(
+    char *groupName,
+    INT32 groupId,
+    char *newName
+    );
+
+BOOL
+FileGroupDelete(
+    char *groupName,
+    INT32 groupId
+    );
+
+BOOL
+FileGroupLock(
+    GROUPFILE *groupFile
+    );
+
+BOOL
+FileGroupUnlock(
+    GROUPFILE *groupFile
+    );
+
+BOOL
+FileGroupOpen(
+    char *groupName,
+    GROUPFILE *groupFile
+    );
+
+BOOL
+FileGroupWrite(
+    GROUPFILE *groupFile
+    );
+
+BOOL
+FileGroupClose(
+    INT_CONTEXT *context
+    );
+
+
 //
 // User database backend
 //
@@ -82,6 +197,7 @@ DbUserClose(
     );
 #endif
 
+
 //
 // User file backend
 //
@@ -132,4 +248,4 @@ FileUserClose(
     INT_CONTEXT *context
     );
 
-#endif // _USER_H_
+#endif // _BACKENDS_H_
