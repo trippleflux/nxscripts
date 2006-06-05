@@ -282,7 +282,7 @@ UserLock(
     DebugPrint("UserLock: userFile=%p\n", userFile);
 
     // Actual implementations should use a proper locking mechanism.
-    context = (USER_CONTEXT *)userFile->lpInternal;
+    context = userFile->lpInternal;
     if (InterlockedCompareExchange(&context->locked, 1, 0) == 1) {
         DebugPrint("UserLock: Unable to aquire lock.\n");
         return UM_ERROR;
@@ -302,7 +302,7 @@ UserUnlock(
     DebugPrint("UserUnlock: userFile=%p\n", userFile);
 
     // Clear locked flag.
-    context = (USER_CONTEXT *)userFile->lpInternal;
+    context = userFile->lpInternal;
     context->locked = 0;
 
     return UM_SUCCESS;
@@ -326,7 +326,7 @@ UserRead(
     DebugPrint("UserRead: filePath=\"%s\" userFile=%p\n", filePath, userFile);
 
     // Allocate user context
-    context = (USER_CONTEXT *)Io_Allocate(sizeof(USER_CONTEXT));
+    context = Io_Allocate(sizeof(USER_CONTEXT));
     if (context == NULL) {
         DebugPrint("UserRead: Unable to allocate user context.\n");
 
@@ -355,7 +355,7 @@ UserRead(
     }
 
     // Allocate read buffer
-    buffer = (char *)Io_Allocate(fileSize + 1);
+    buffer = Io_Allocate(fileSize + 1);
     if (buffer == NULL) {
         DebugPrint("UserRead: Unable to allocate read buffer.\n");
         goto end;
@@ -412,13 +412,13 @@ UserWrite(
     DebugPrint("UserWrite: userFile=%p\n", userFile);
 
     // Retrieve user context
-    context = (USER_CONTEXT *)userFile->lpInternal;
+    context = userFile->lpInternal;
 
     // Allocate write buffer
     ZeroMemory(&buffer, sizeof(BUFFER));
     buffer.dwType = TYPE_CHAR;
     buffer.size   = 4096;
-    buffer.buf    = (char *)Io_Allocate(buffer.size);
+    buffer.buf    = Io_Allocate(buffer.size);
 
     if (buffer.buf == NULL) {
         DebugPrint("UserWrite: Unable to allocate write buffer.\n");
@@ -496,8 +496,8 @@ UserClose(
 
     DebugPrint("UserClose: userFile=%p\n", userFile);
 
-    // Retrieve user context
-    context = (USER_CONTEXT *)userFile->lpInternal;
+    // Verify user context
+    context = userFile->lpInternal;
     if (context == NULL) {
         DebugPrint("UserClose: User context already freed.\n");
         return UM_ERROR;

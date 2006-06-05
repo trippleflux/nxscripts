@@ -42,7 +42,7 @@ OutputDebugger(
     DWORD error;
     va_list argList;
 
-    // Preserve error code
+    // Preserve system error code
     error = GetLastError();
 
     va_start(argList, format);
@@ -50,7 +50,7 @@ OutputDebugger(
     OutputDebugStringA(output);
     va_end(argList);
 
-    // Restore error code
+    // Restore system error code
     SetLastError(error);
 }
 #endif // DEBUG
@@ -82,7 +82,7 @@ OutputFile(
     SYSTEMTIME now;
     va_list argList;
 
-    // Preserve error code
+    // Preserve system error code
     error = GetLastError();
 
     va_start(argList, format);
@@ -98,7 +98,7 @@ OutputFile(
     }
     va_end(argList);
 
-    // Restore error code
+    // Restore system error code
     SetLastError(error);
 }
 #endif // DEBUG

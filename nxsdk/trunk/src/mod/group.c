@@ -279,7 +279,7 @@ GroupLock(
     DebugPrint("GroupLock: groupFile=%p\n", groupFile);
 
     // Actual implementations should use a proper locking mechanism.
-    context = (GROUP_CONTEXT *)groupFile->lpInternal;
+    context = groupFile->lpInternal;
     if (InterlockedCompareExchange(&context->locked, 1, 0) == 1) {
         DebugPrint("GroupLock: Unable to aquire lock.\n");
         return GM_ERROR;
@@ -299,7 +299,7 @@ GroupUnlock(
     DebugPrint("GroupUnlock: groupFile=%p\n", groupFile);
 
     // Clear locked flag.
-    context = (GROUP_CONTEXT *)groupFile->lpInternal;
+    context = groupFile->lpInternal;
     context->locked = 0;
 
     return GM_SUCCESS;
@@ -323,7 +323,7 @@ GroupRead(
     DebugPrint("GroupRead: filePath=\"%s\" groupFile=%p\n", filePath, groupFile);
 
     // Allocate group context
-    context = (GROUP_CONTEXT *)Io_Allocate(sizeof(GROUP_CONTEXT));
+    context = Io_Allocate(sizeof(GROUP_CONTEXT));
     if (context == NULL) {
         DebugPrint("GroupRead: Unable to allocate group context.\n");
 
@@ -352,7 +352,7 @@ GroupRead(
     }
 
     // Allocate read buffer
-    buffer = (char *)Io_Allocate(fileSize + 1);
+    buffer = Io_Allocate(fileSize + 1);
     if (buffer == NULL) {
         DebugPrint("GroupRead: Unable to allocate read buffer.\n");
         goto end;
@@ -408,13 +408,13 @@ GroupWrite(
     DebugPrint("GroupWrite: groupFile=%p\n", groupFile);
 
     // Retrieve group context
-    context = (GROUP_CONTEXT *)groupFile->lpInternal;
+    context = groupFile->lpInternal;
 
     // Allocate write buffer
     ZeroMemory(&buffer, sizeof(BUFFER));
     buffer.dwType = TYPE_CHAR;
     buffer.size   = 4096;
-    buffer.buf    = (char *)Io_Allocate(buffer.size);
+    buffer.buf    = Io_Allocate(buffer.size);
 
     if (buffer.buf == NULL) {
         DebugPrint("GroupWrite: Unable to allocate write buffer.\n");
@@ -492,8 +492,8 @@ GroupClose(
 
     DebugPrint("GroupClose: groupFile=%p\n", groupFile);
 
-    // Retrieve group context
-    context = (GROUP_CONTEXT *)groupFile->lpInternal;
+    // Verify group context
+    context = groupFile->lpInternal;
     if (context == NULL) {
         DebugPrint("GroupClose: Group context already freed.\n");
         return GM_ERROR;
