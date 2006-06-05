@@ -1,3 +1,8 @@
+nxSDK v0.4.1 (Jun 5, 2006):
+  NEW: Flush buffers after user/group file writes.
+  CHG: Minor source clean-ups (e.g. unnecessary type casts and return value checks).
+  FIX: Debug logging routines must not alter the system error code.
+
 nxSDK v0.4.0 (Jun 4, 2006):
   NEW: Example user/group module.
   NEW: Support for C++ compilers in public headers.
