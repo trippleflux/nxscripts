@@ -4,32 +4,32 @@ nxMyDB - MySQL Database for ioFTPD
 Copyright (c) 2006 neoxed
 
 Module Name:
-    User Database Backend
+    Group Database Backend
 
 Author:
     neoxed (neoxed@gmail.com) Jun 5, 2006
 
 Abstract:
-    User database storage backend.
+    Group database storage backend.
 
 */
 
 #include "mydb.h"
 
 BOOL
-DbUserCreate(
-    char *userName,
-    INT32 userId,
-    USERFILE *userFile
+DbGroupCreate(
+    char *groupName,
+    INT32 groupId,
+    GROUPFILE *groupFile
     )
 {
     return TRUE;
 }
 
 BOOL
-DbUserRename(
-    char *userName,
-    INT32 userId,
+DbGroupRename(
+    char *groupName,
+    INT32 groupId,
     char *newName
     )
 {
@@ -37,49 +37,49 @@ DbUserRename(
 }
 
 BOOL
-DbUserDelete(
-    char *userName,
-    INT32 userId
+DbGroupDelete(
+    char *groupName,
+    INT32 groupId
     )
 {
     return TRUE;
 }
 
 BOOL
-DbUserLock(
-    USERFILE *userFile
+DbGroupLock(
+    GROUPFILE *groupFile
     )
 {
     return TRUE;
 }
 
 BOOL
-DbUserUnlock(
-    USERFILE *userFile
+DbGroupUnlock(
+    GROUPFILE *groupFile
     )
 {
     return TRUE;
 }
 
 BOOL
-DbUserOpen(
-    char *userName,
-    USERFILE *userFile
+DbGroupOpen(
+    char *groupName,
+    GROUPFILE *groupFile
     )
 {
     return TRUE;
 }
 
 BOOL
-DbUserWrite(
-    USERFILE *userFile
+DbGroupWrite(
+    GROUPFILE *groupFile
     )
 {
     return TRUE;
 }
 
 BOOL
-DbUserClose(
+DbGroupClose(
     INT_CONTEXT *context
     )
 {

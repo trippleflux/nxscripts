@@ -27,16 +27,6 @@ typedef struct {
 // Group database backend
 //
 
-#define DbGroupCreate(a,b,c) TRUE
-#define DbGroupRename(a,b,c) TRUE
-#define DbGroupDelete(a,b)   TRUE
-#define DbGroupLock(a)       TRUE
-#define DbGroupUnlock(a)     TRUE
-#define DbGroupOpen(a,b)     TRUE
-#define DbGroupWrite(a)      TRUE
-#define DbGroupClose(a)      TRUE
-
-#if 0
 BOOL
 DbGroupCreate(
     char *groupName,
@@ -82,7 +72,6 @@ BOOL
 DbGroupClose(
     INT_CONTEXT *context
     );
-#endif
 
 
 //
@@ -140,16 +129,6 @@ FileGroupClose(
 // User database backend
 //
 
-#define DbUserCreate(a,b,c) TRUE
-#define DbUserRename(a,b,c) TRUE
-#define DbUserDelete(a,b)   TRUE
-#define DbUserLock(a)       TRUE
-#define DbUserUnlock(a)     TRUE
-#define DbUserOpen(a,b)     TRUE
-#define DbUserWrite(a)      TRUE
-#define DbUserClose(a)      TRUE
-
-#if 0
 BOOL
 DbUserCreate(
     char *userName,
@@ -195,7 +174,6 @@ BOOL
 DbUserClose(
     INT_CONTEXT *context
     );
-#endif
 
 
 //
