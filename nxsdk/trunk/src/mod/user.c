@@ -500,6 +500,8 @@ UserClose(
     context = userFile->lpInternal;
     if (context == NULL) {
         DebugPrint("UserClose: User context already freed.\n");
+
+        SetLastError(ERROR_INVALID_DATA);
         return UM_ERROR;
     }
 

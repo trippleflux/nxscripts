@@ -496,6 +496,8 @@ GroupClose(
     context = groupFile->lpInternal;
     if (context == NULL) {
         DebugPrint("GroupClose: Group context already freed.\n");
+
+        SetLastError(ERROR_INVALID_DATA);
         return GM_ERROR;
     }
 
