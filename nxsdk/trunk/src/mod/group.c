@@ -189,7 +189,7 @@ GroupCreate(
             error = GetLastError();
             DebugPrint("GroupCreate: Unable to rename temporary file (error %lu).\n", error);
 
-            // Unregister group and delete the data file
+            // Unregister group and delete the group file
             if (groupModule->Unregister(groupModule, groupName) != GM_SUCCESS) {
                 GroupClose(&groupFile);
             }
@@ -255,7 +255,7 @@ GroupDelete(
         return GM_ERROR;
     }
 
-    // Delete data file and free resources
+    // Delete group file and free resources
     DeleteFileA(filePath);
     Io_Free(filePath);
 
@@ -332,7 +332,7 @@ GroupRead(
     }
     context->locked = 0;
 
-    // Open the group's data file
+    // Open the group file
     context->fileHandle = CreateFileA(filePath,
         GENERIC_READ|GENERIC_WRITE,
         FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
@@ -358,7 +358,7 @@ GroupRead(
         goto end;
     }
 
-    // Read data file to buffer
+    // Read group file to buffer
     if (!ReadFile(context->fileHandle, buffer, fileSize, &bytesRead, NULL) || bytesRead < 5) {
         DebugPrint("GroupRead: Unable to read file, or the amount read is under 5 bytes.\n");
         goto end;
@@ -368,7 +368,7 @@ GroupRead(
     buffer[bytesRead] = '\n';
     bytesRead++;
 
-    // Parse buffer, initializing the GROUPFILE structure
+    // Parse buffer, also initializing the GROUPFILE structure
     Io_Ascii2GroupFile(buffer, bytesRead, groupFile);
     groupFile->lpInternal = context;
     result                = GM_SUCCESS;
@@ -474,7 +474,7 @@ GroupOpen(
         return GM_FATAL;
     }
 
-    // Read the group's data file
+    // Read the group file
     result = GroupRead(filePath, groupFile);
     Io_Free(filePath);
 

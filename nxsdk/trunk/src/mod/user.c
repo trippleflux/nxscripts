@@ -192,7 +192,7 @@ UserCreate(
             error = GetLastError();
             DebugPrint("UserCreate: Unable to rename temporary file (error %lu).\n", error);
 
-            // Unregister user and delete the data file
+            // Unregister user and delete the user file
             if (userModule->Unregister(userModule, userName) != UM_SUCCESS) {
                 UserClose(&userFile);
             }
@@ -258,7 +258,7 @@ UserDelete(
         return UM_ERROR;
     }
 
-    // Delete data file and free resources
+    // Delete user file and free resources
     DeleteFileA(filePath);
     Io_Free(filePath);
 
@@ -335,7 +335,7 @@ UserRead(
     }
     context->locked = 0;
 
-    // Open the user's data file
+    // Open the user file
     context->fileHandle = CreateFileA(filePath,
         GENERIC_READ|GENERIC_WRITE,
         FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
@@ -361,7 +361,7 @@ UserRead(
         goto end;
     }
 
-    // Read data file to buffer
+    // Read user file to buffer
     if (!ReadFile(context->fileHandle, buffer, fileSize, &bytesRead, NULL) || bytesRead < 5) {
         DebugPrint("UserRead: Unable to read file, or the amount read is under 5 bytes.\n");
         goto end;
@@ -371,7 +371,7 @@ UserRead(
     buffer[bytesRead] = '\n';
     bytesRead++;
 
-    // Parse buffer, initializing the USERFILE structure
+    // Parse buffer, also initializing the USERFILE structure
     Io_Ascii2UserFile(buffer, bytesRead, userFile);
     userFile->Gid        = userFile->Groups[0];
     userFile->lpInternal = context;
@@ -478,7 +478,7 @@ UserOpen(
         return UM_FATAL;
     }
 
-    // Read the user's data file
+    // Read the user file
     result = UserRead(filePath, userFile);
     Io_Free(filePath);
 
