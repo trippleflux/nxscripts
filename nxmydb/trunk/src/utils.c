@@ -23,7 +23,9 @@ OutputDebugger
     Sends debug output to the debugger.
 
 Arguments:
-    format  - Pointer to a buffer containing a printf-style format string.
+    funct   - Pointer to a null-terminated string that specifies the function.
+
+    format  - Pointer to a null-terminated printf-style format string.
 
     ...     - Arguments to insert into "format".
 
@@ -34,21 +36,27 @@ Return Values:
 #ifdef DEBUG
 void
 OutputDebugger(
+    const char *funct,
     const char *format,
     ...
     )
 {
+    char *end;
     char output[1024];
     DWORD error;
+    size_t remaining;
     va_list argList;
 
     // Preserve system error code
     error = GetLastError();
 
+    // Align function name and format arguments
+    StringCchPrintfExA(output, ARRAYSIZE(output), &end, &remaining, 0, "%15s: ", funct);
     va_start(argList, format);
-    StringCchVPrintfA(output, ARRAYSIZE(output), format, argList);
-    OutputDebugStringA(output);
+    StringCchVPrintfA(end, remaining, format, argList);
     va_end(argList);
+
+    OutputDebugStringA(output);
 
     // Restore system error code
     SetLastError(error);
@@ -62,7 +70,9 @@ OutputFile
     Writes debug output to a file.
 
 Arguments:
-    format  - Pointer to a buffer containing a printf-style format string.
+    funct   - Pointer to a null-terminated string that specifies the function.
+
+    format  - Pointer to a null-terminated printf-style format string.
 
     ...     - Arguments to insert into "format".
 
@@ -73,6 +83,7 @@ Return Values:
 #ifdef DEBUG
 void
 OutputFile(
+    const char *funct,
     const char *format,
     ...
     )
@@ -89,9 +100,9 @@ OutputFile(
     handle = fopen("nxMyDB.log", "a");
     if (handle != NULL) {
         GetSystemTime(&now);
-        fprintf(handle, "%04d-%02d-%02d %02d:%02d:%02d ",
+        fprintf(handle, "%04d-%02d-%02d %02d:%02d:%02d [%15s] ",
             now.wYear, now.wMonth, now.wDay,
-            now.wHour, now.wMinute, now.wSecond);
+            now.wHour, now.wMinute, now.wSecond, funct);
 
         vfprintf(handle, format, argList);
         fclose(handle);

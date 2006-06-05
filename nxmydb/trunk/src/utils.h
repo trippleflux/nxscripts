@@ -20,6 +20,7 @@ Abstract:
 #ifdef DEBUG
 void
 OutputDebugger(
+    const char *funct,
     const char *format,
     ...
     );
@@ -28,6 +29,7 @@ OutputDebugger(
 #ifdef DEBUG
 void
 OutputFile(
+    const char *funct,
     const char *format,
     ...
     );

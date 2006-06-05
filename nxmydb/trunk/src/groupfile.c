@@ -29,7 +29,7 @@ FileGroupRead(
     DWORD fileSize;
     INT_CONTEXT *context = groupFile->lpInternal;
 
-    DebugPrint("FileGroupRead: filePath=\"%s\" groupFile=%p\n", filePath, groupFile);
+    DebugPrint("FileGroupRead", "filePath=\"%s\" groupFile=%p\n", filePath, groupFile);
 
     // Open the group file
     context->fileHandle = CreateFileA(filePath,
@@ -38,27 +38,27 @@ FileGroupRead(
         NULL, OPEN_EXISTING, 0, NULL);
 
     if (context->fileHandle == INVALID_HANDLE_VALUE) {
-        DebugPrint("FileGroupRead: Unable to open file (error %lu).\n", GetLastError());
+        DebugPrint("FileGroupRead", "Unable to open file (error %lu).\n", GetLastError());
         goto error;
     }
 
     // Retrieve file size
     fileSize = GetFileSize(context->fileHandle, NULL);
     if (fileSize == INVALID_FILE_SIZE || fileSize < 5) {
-        DebugPrint("FileGroupRead: Unable to retrieve file size, or file size is under 5 bytes.\n");
+        DebugPrint("FileGroupRead", "Unable to retrieve file size, or file size is under 5 bytes.\n");
         goto error;
     }
 
     // Allocate read buffer
     buffer = Io_Allocate(fileSize + 1);
     if (buffer == NULL) {
-        DebugPrint("FileGroupRead: Unable to allocate read buffer.\n");
+        DebugPrint("FileGroupRead", "Unable to allocate read buffer.\n");
         goto error;
     }
 
     // Read group file to buffer
     if (!ReadFile(context->fileHandle, buffer, fileSize, &bytesRead, NULL) || bytesRead < 5) {
-        DebugPrint("FileGroupRead: Unable to read file, or the amount read is under 5 bytes.\n");
+        DebugPrint("FileGroupRead", "Unable to read file, or the amount read is under 5 bytes.\n");
         goto error;
     }
 
@@ -101,12 +101,12 @@ FileGroupCreate(
     char buffer[12];
     DWORD error;
 
-    DebugPrint("FileGroupCreate: groupName=\"%s\"\n", groupName);
+    DebugPrint("FileGroupCreate", "groupName=\"%s\"\n", groupName);
 
     // Retrieve default group location
     defaultPath = Io_ConfigGetPath("Locations", "Group_Files", "Default.Group", NULL);
     if (defaultPath == NULL) {
-        DebugPrint("FileGroupCreate: Unable to retrieve default file location.\n");
+        DebugPrint("FileGroupCreate", "Unable to retrieve default file location.\n");
 
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return FALSE;
@@ -116,7 +116,7 @@ FileGroupCreate(
     StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", groupId);
     targetPath = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
     if (targetPath == NULL) {
-        DebugPrint("FileGroupCreate: Unable to retrieve file location.\n");
+        DebugPrint("FileGroupCreate", "Unable to retrieve file location.\n");
 
         // Free resources
         Io_Free(defaultPath);
@@ -128,7 +128,7 @@ FileGroupCreate(
     // Copy default file to target file
     if (!CopyFileA(defaultPath, targetPath, FALSE)) {
         error = GetLastError();
-        DebugPrint("FileGroupCreate: Unable to copy default file (error %lu).\n", error);
+        DebugPrint("FileGroupCreate", "Unable to copy default file (error %lu).\n", error);
 
         // Free resources
         Io_Free(defaultPath);
@@ -142,7 +142,7 @@ FileGroupCreate(
     // Read group file (copy of "Default.Group")
     if (!FileGroupRead(targetPath, groupFile)) {
         error = GetLastError();
-        DebugPrint("FileGroupCreate: Unable read target file (error %lu).\n", error);
+        DebugPrint("FileGroupCreate", "Unable read target file (error %lu).\n", error);
 
         // Free resources
         Io_Free(defaultPath);
@@ -167,7 +167,7 @@ FileGroupRename(
     char *newName
     )
 {
-    DebugPrint("FileGroupRename: groupName=\"%s\" groupId=%i newName=\"%s\"\n", groupName, groupId, newName);
+    DebugPrint("FileGroupRename", "groupName=\"%s\" groupId=%i newName=\"%s\"\n", groupName, groupId, newName);
     // Not used
     return TRUE;
 }
@@ -181,13 +181,13 @@ FileGroupDelete(
     char buffer[12];
     char *filePath;
 
-    DebugPrint("FileGroupDelete: groupName=\"%s\" groupId=%i\n", groupName, groupId);
+    DebugPrint("FileGroupDelete", "groupName=\"%s\" groupId=%i\n", groupName, groupId);
 
     // Retrieve group file location
     StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", groupId);
     filePath = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
     if (filePath == NULL) {
-        DebugPrint("FileGroupDelete: Unable to retrieve file location.\n");
+        DebugPrint("FileGroupDelete", "Unable to retrieve file location.\n");
 
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return FALSE;
@@ -205,7 +205,7 @@ FileGroupLock(
     GROUPFILE *groupFile
     )
 {
-    DebugPrint("FileGroupLock: groupFile=%p\n", groupFile);
+    DebugPrint("FileGroupLock", "groupFile=%p\n", groupFile);
     // Not used
     return TRUE;
 }
@@ -215,7 +215,7 @@ FileGroupUnlock(
     GROUPFILE *groupFile
     )
 {
-    DebugPrint("FileGroupUnlock: groupFile=%p\n", groupFile);
+    DebugPrint("FileGroupUnlock", "groupFile=%p\n", groupFile);
     // Not used
     return TRUE;
 }
@@ -231,13 +231,13 @@ FileGroupOpen(
     DWORD error;
     INT_CONTEXT *context = groupFile->lpInternal;
 
-    DebugPrint("FileGroupOpen: groupName=\"%s\" groupFile=%p\n", groupName, groupFile);
+    DebugPrint("FileGroupOpen", "groupName=\"%s\" groupFile=%p\n", groupName, groupFile);
 
     // Retrieve group file location
     StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", groupFile->Gid);
     filePath = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
     if (filePath == NULL) {
-        DebugPrint("FileGroupOpen: Unable to retrieve file location.\n");
+        DebugPrint("FileGroupOpen", "Unable to retrieve file location.\n");
 
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return FALSE;
@@ -251,7 +251,7 @@ FileGroupOpen(
 
     if (context->fileHandle == INVALID_HANDLE_VALUE) {
         error = GetLastError();
-        DebugPrint("FileGroupOpen: Unable to open file (error %lu).\n", error);
+        DebugPrint("FileGroupOpen", "Unable to open file (error %lu).\n", error);
 
         // Free resources
         Io_Free(filePath);
@@ -277,7 +277,7 @@ FileGroupWrite(
     DWORD error;
     INT_CONTEXT *context = groupFile->lpInternal;
 
-    DebugPrint("FileGroupWrite: groupFile=%p\n", groupFile);
+    DebugPrint("FileGroupWrite", "groupFile=%p\n", groupFile);
 
     // Allocate write buffer
     ZeroMemory(&buffer, sizeof(BUFFER));
@@ -286,7 +286,7 @@ FileGroupWrite(
     buffer.buf    = Io_Allocate(buffer.size);
 
     if (buffer.buf == NULL) {
-        DebugPrint("FileGroupWrite: Unable to allocate write buffer.\n");
+        DebugPrint("FileGroupWrite", "Unable to allocate write buffer.\n");
 
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return FALSE;
@@ -299,7 +299,7 @@ FileGroupWrite(
     SetFilePointer(context->fileHandle, 0, 0, FILE_BEGIN);
     if (!WriteFile(context->fileHandle, buffer.buf, buffer.len, &bytesWritten, NULL)) {
         error = GetLastError();
-        DebugPrint("FileGroupWrite: Unable to write file (error %lu).\n", error);
+        DebugPrint("FileGroupWrite", "Unable to write file (error %lu).\n", error);
 
         // Free resources
         Io_Free(buffer.buf);
@@ -324,7 +324,7 @@ FileGroupClose(
     INT_CONTEXT *context
     )
 {
-    DebugPrint("FileGroupClose: context=%p\n", context);
+    DebugPrint("FileGroupClose", "context=%p\n", context);
 
     // Close group file handle
     if (context->fileHandle != INVALID_HANDLE_VALUE) {

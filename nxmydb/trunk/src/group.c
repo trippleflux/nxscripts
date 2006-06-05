@@ -43,7 +43,7 @@ GroupModuleInit(
     GROUP_MODULE *module
     )
 {
-    DebugPrint("GroupInit: module=%p\n", module);
+    DebugPrint("GroupInit", "module=%p\n", module);
 
     // Initialize module structure
     module->tszModuleName = "NXMYDB";
@@ -59,7 +59,7 @@ GroupModuleInit(
 
     // Initialize procedure table
     if (!InitProcTable(module->GetProc)) {
-        DebugPrint("GroupInit: Unable to initialize procedure table.\n");
+        DebugPrint("GroupInit", "Unable to initialize procedure table.\n");
         return GM_ERROR;
     }
     Io_Putlog(LOG_ERROR, "nxMyDB group module loaded.\r\n");
@@ -75,7 +75,7 @@ GroupFinalize(
     void
     )
 {
-    DebugPrint("GroupFinalize: module=%p\n", groupModule);
+    DebugPrint("GroupFinalize", "module=%p\n", groupModule);
     Io_Putlog(LOG_ERROR, "nxMyDB group module unloaded.\r\n");
 
     // Finalize procedure table
@@ -96,12 +96,12 @@ GroupCreate(
     INT_CONTEXT *context;
     GROUPFILE groupFile;
 
-    DebugPrint("GroupCreate: groupName=\"%s\"\n", groupName);
+    DebugPrint("GroupCreate", "groupName=\"%s\"\n", groupName);
 
     // Allocate internal context
     context = Io_Allocate(sizeof(INT_CONTEXT));
     if (context == NULL) {
-        DebugPrint("GroupCreate: Unable to allocate internal context.\n");
+        DebugPrint("GroupCreate", "Unable to allocate internal context.\n");
 
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return -1;
@@ -114,19 +114,19 @@ GroupCreate(
     // Register group
     groupId = groupModule->Register(groupModule, groupName, &groupFile);
     if (groupId == -1) {
-        DebugPrint("GroupCreate: Unable to register group (error %lu).\n", GetLastError());
+        DebugPrint("GroupCreate", "Unable to register group (error %lu).\n", GetLastError());
         goto error;
     }
 
     // Create group file and read "Default.Group"
     if (!FileGroupCreate(groupName, groupId, &groupFile)) {
-        DebugPrint("GroupCreate: Unable to create group file (error %lu).\n", GetLastError());
+        DebugPrint("GroupCreate", "Unable to create group file (error %lu).\n", GetLastError());
         goto error;
     }
 
     // Create database record
     if (!DbGroupCreate(groupName, groupId, &groupFile)) {
-        DebugPrint("GroupCreate: Unable to create database record (error %lu).\n", GetLastError());
+        DebugPrint("GroupCreate", "Unable to create database record (error %lu).\n", GetLastError());
         goto error;
     }
 
@@ -139,7 +139,7 @@ error:
     if (groupId == -1) {
         Io_Free(context);
     } else if (GroupDelete(groupName, groupId) != GM_SUCCESS) {
-        DebugPrint("GroupCreate: Unable to delete group (error %lu).\n", GetLastError());
+        DebugPrint("GroupCreate", "Unable to delete group (error %lu).\n", GetLastError());
     }
 
     // Restore system error code
@@ -156,16 +156,16 @@ GroupRename(
     char *newName
     )
 {
-    DebugPrint("GroupRename: groupName=\"%s\" groupId=%i newName=\"%s\"\n", groupName, groupId, newName);
+    DebugPrint("GroupRename", "groupName=\"%s\" groupId=%i newName=\"%s\"\n", groupName, groupId, newName);
 
     // Rename database record
     if (!DbGroupRename(groupName, groupId, newName)) {
-        DebugPrint("GroupRename: Unable to rename database record (error %lu).\n", GetLastError());
+        DebugPrint("GroupRename", "Unable to rename database record (error %lu).\n", GetLastError());
     }
 
     // Register group under the new name
     if (groupModule->RegisterAs(groupModule, groupName, newName) != GM_SUCCESS) {
-        DebugPrint("GroupRename: Unable to re-register group (error %lu).\n", GetLastError());
+        DebugPrint("GroupRename", "Unable to re-register group (error %lu).\n", GetLastError());
         return GM_ERROR;
     }
 
@@ -180,21 +180,21 @@ GroupDelete(
     INT32 groupId
     )
 {
-    DebugPrint("GroupDelete: groupName=\"%s\" groupId=%i\n", groupName, groupId);
+    DebugPrint("GroupDelete", "groupName=\"%s\" groupId=%i\n", groupName, groupId);
 
     // Delete group file
     if (!FileGroupDelete(groupName, groupId)) {
-        DebugPrint("GroupDelete: Unable to delete group file (error %lu).\n", GetLastError());
+        DebugPrint("GroupDelete", "Unable to delete group file (error %lu).\n", GetLastError());
     }
 
     // Delete database record
     if (!DbGroupDelete(groupName, groupId)) {
-        DebugPrint("GroupDelete: Unable to delete database record (error %lu).\n", GetLastError());
+        DebugPrint("GroupDelete", "Unable to delete database record (error %lu).\n", GetLastError());
     }
 
     // Unregister group
     if (groupModule->Unregister(groupModule, groupName) != GM_SUCCESS) {
-        DebugPrint("GroupDelete: Unable to unregister group (error %lu).\n", GetLastError());
+        DebugPrint("GroupDelete", "Unable to unregister group (error %lu).\n", GetLastError());
         return GM_ERROR;
     }
 
@@ -208,11 +208,11 @@ GroupLock(
     GROUPFILE *groupFile
     )
 {
-    DebugPrint("GroupLock: groupFile=%p\n", groupFile);
+    DebugPrint("GroupLock", "groupFile=%p\n", groupFile);
 
     // Lock group exclusively
     if (!DbGroupLock(groupFile)) {
-        DebugPrint("GroupLock: Unable to lock database record (error %lu).\n", GetLastError());
+        DebugPrint("GroupLock", "Unable to lock database record (error %lu).\n", GetLastError());
         return GM_ERROR;
     }
 
@@ -226,11 +226,11 @@ GroupUnlock(
     GROUPFILE *groupFile
     )
 {
-    DebugPrint("GroupUnlock: groupFile=%p\n", groupFile);
+    DebugPrint("GroupUnlock", "groupFile=%p\n", groupFile);
 
     // Unlock group
     if (!DbGroupUnlock(groupFile)) {
-        DebugPrint("GroupUnlock: Unable to unlock database record (error %lu).\n", GetLastError());
+        DebugPrint("GroupUnlock", "Unable to unlock database record (error %lu).\n", GetLastError());
         return GM_ERROR;
     }
 
@@ -245,12 +245,12 @@ GroupOpen(
     GROUPFILE *groupFile
     )
 {
-    DebugPrint("GroupOpen: groupName=\"%s\" groupFile=%p\n", groupName, groupFile);
+    DebugPrint("GroupOpen", "groupName=\"%s\" groupFile=%p\n", groupName, groupFile);
 
     // Allocate internal context
     groupFile->lpInternal = Io_Allocate(sizeof(INT_CONTEXT));
     if (groupFile->lpInternal == NULL) {
-        DebugPrint("GroupOpen: Unable to allocate internal context.\n");
+        DebugPrint("GroupOpen", "Unable to allocate internal context.\n");
 
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return GM_FATAL;
@@ -258,13 +258,13 @@ GroupOpen(
 
     // Open group file
     if (!FileGroupOpen(groupName, groupFile)) {
-        DebugPrint("GroupOpen: Unable to open group file (error %lu).\n", GetLastError());
+        DebugPrint("GroupOpen", "Unable to open group file (error %lu).\n", GetLastError());
         return (GetLastError() == ERROR_FILE_NOT_FOUND) ? GM_DELETED : GM_FATAL;
     }
 
     // Read database record
     if (!DbGroupOpen(groupName, groupFile)) {
-        DebugPrint("GroupOpen: Unable to open database record (error %lu).\n", GetLastError());
+        DebugPrint("GroupOpen", "Unable to open database record (error %lu).\n", GetLastError());
         return GM_FATAL;
     }
 
@@ -278,16 +278,16 @@ GroupWrite(
     GROUPFILE *groupFile
     )
 {
-    DebugPrint("GroupWrite: groupFile=%p\n", groupFile);
+    DebugPrint("GroupWrite", "groupFile=%p\n", groupFile);
 
     // Update group file
     if (!FileGroupWrite(groupFile)) {
-        DebugPrint("GroupWrite: Unable to write group file (error %lu).\n", GetLastError());
+        DebugPrint("GroupWrite", "Unable to write group file (error %lu).\n", GetLastError());
     }
 
     // Update database record
     if (!DbGroupWrite(groupFile)) {
-        DebugPrint("GroupWrite: Unable to write database record (error %lu).\n", GetLastError());
+        DebugPrint("GroupWrite", "Unable to write database record (error %lu).\n", GetLastError());
         return GM_ERROR;
     }
 
@@ -303,22 +303,22 @@ GroupClose(
 {
     INT_CONTEXT *context = groupFile->lpInternal;
 
-    DebugPrint("GroupClose: groupFile=%p\n", groupFile);
+    DebugPrint("GroupClose", "groupFile=%p\n", groupFile);
 
     // Verify internal context
     if (context == NULL) {
-        DebugPrint("GroupClose: Internal context already freed.\n");
+        DebugPrint("GroupClose", "Internal context already freed.\n");
         return GM_ERROR;
     }
 
     // Close group file
     if (!FileGroupClose(context)) {
-        DebugPrint("GroupClose: Unable to close group file (error %lu).\n", GetLastError());
+        DebugPrint("GroupClose", "Unable to close group file (error %lu).\n", GetLastError());
     }
 
     // Free database resources
     if (!DbGroupClose(context)) {
-        DebugPrint("GroupClose: Unable to close database record(error %lu).\n", GetLastError());
+        DebugPrint("GroupClose", "Unable to close database record(error %lu).\n", GetLastError());
     }
 
     // Free internal resources
