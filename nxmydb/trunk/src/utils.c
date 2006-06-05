@@ -39,12 +39,19 @@ OutputDebugger(
     )
 {
     char output[1024];
+    DWORD error;
     va_list argList;
+
+    // Preserve error code
+    error = GetLastError();
 
     va_start(argList, format);
     StringCchVPrintfA(output, ARRAYSIZE(output), format, argList);
     OutputDebugStringA(output);
     va_end(argList);
+
+    // Restore error code
+    SetLastError(error);
 }
 #endif // DEBUG
 
@@ -70,9 +77,13 @@ OutputFile(
     ...
     )
 {
+    DWORD error;
     FILE *handle;
     SYSTEMTIME now;
     va_list argList;
+
+    // Preserve error code
+    error = GetLastError();
 
     va_start(argList, format);
     handle = fopen("nxMyDB.log", "a");
@@ -86,5 +97,8 @@ OutputFile(
         fclose(handle);
     }
     va_end(argList);
+
+    // Restore error code
+    SetLastError(error);
 }
 #endif // DEBUG
