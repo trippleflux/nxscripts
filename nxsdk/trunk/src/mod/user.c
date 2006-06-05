@@ -193,7 +193,7 @@ UserCreate(
             DebugPrint("UserCreate: Unable to rename temporary file (error %lu).\n", error);
 
             // Unregister user and delete the data file
-            if (!userModule->Unregister(userModule, userName)) {
+            if (userModule->Unregister(userModule, userName) != UM_SUCCESS) {
                 UserClose(&userFile);
             }
             DeleteFileA(tempPath);
@@ -225,7 +225,7 @@ UserRename(
     DebugPrint("UserRename: userName=\"%s\" userId=%i newName=\"%s\"\n", userName, userId, newName);
 
     // Register the user under the new name
-    if (userModule->RegisterAs(userModule, userName, newName)) {
+    if (userModule->RegisterAs(userModule, userName, newName) != UM_SUCCESS) {
         DebugPrint("UserRename: Unable to rename user, already exists?\n");
         return UM_ERROR;
     }
@@ -263,7 +263,7 @@ UserDelete(
     Io_Free(filePath);
 
     // Unregister user
-    if (userModule->Unregister(userModule, userName)) {
+    if (userModule->Unregister(userModule, userName) != UM_SUCCESS) {
         DebugPrint("UserDelete: Unable to unregister user.\n");
         return UM_ERROR;
     }

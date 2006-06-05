@@ -190,7 +190,7 @@ GroupCreate(
             DebugPrint("GroupCreate: Unable to rename temporary file (error %lu).\n", error);
 
             // Unregister group and delete the data file
-            if (!groupModule->Unregister(groupModule, groupName)) {
+            if (groupModule->Unregister(groupModule, groupName) != GM_SUCCESS) {
                 GroupClose(&groupFile);
             }
             DeleteFileA(tempPath);
@@ -222,7 +222,7 @@ GroupRename(
     DebugPrint("GroupRename: groupName=\"%s\" groupId=%i newName=\"%s\"\n", groupName, groupId, newName);
 
     // Register the group under the new name
-    if (groupModule->RegisterAs(groupModule, groupName, newName)) {
+    if (groupModule->RegisterAs(groupModule, groupName, newName) != GM_SUCCESS) {
         DebugPrint("GroupRename: Unable to rename group, already exists?\n");
         return GM_ERROR;
     }
@@ -260,7 +260,7 @@ GroupDelete(
     Io_Free(filePath);
 
     // Unregister group
-    if (groupModule->Unregister(groupModule, groupName)) {
+    if (groupModule->Unregister(groupModule, groupName) != GM_SUCCESS) {
         DebugPrint("GroupDelete: Unable to unregister group.\n");
         return GM_ERROR;
     }
