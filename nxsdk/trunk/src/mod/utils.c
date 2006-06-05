@@ -85,7 +85,6 @@ OutputFile(
     // Preserve system error code
     error = GetLastError();
 
-    va_start(argList, format);
     handle = fopen("nxMod.log", "a");
     if (handle != NULL) {
         GetSystemTime(&now);
@@ -93,10 +92,12 @@ OutputFile(
             now.wYear, now.wMonth, now.wDay,
             now.wHour, now.wMinute, now.wSecond);
 
+        va_start(argList, format);
         vfprintf(handle, format, argList);
+        va_end(argList);
+
         fclose(handle);
     }
-    va_end(argList);
 
     // Restore system error code
     SetLastError(error);
