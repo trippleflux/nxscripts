@@ -473,6 +473,8 @@ UserOpen(
     filePath = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
     if (filePath == NULL) {
         DebugPrint("UserOpen: Unable to retrieve file location.\n");
+
+        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return UM_FATAL;
     }
 

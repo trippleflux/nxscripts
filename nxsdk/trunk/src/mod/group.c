@@ -469,6 +469,8 @@ GroupOpen(
     filePath = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
     if (filePath == NULL) {
         DebugPrint("GroupOpen: Unable to retrieve file location.\n");
+
+        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return GM_FATAL;
     }
 
