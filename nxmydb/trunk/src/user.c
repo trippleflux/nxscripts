@@ -292,6 +292,7 @@ UserLock(
 
 static
 INT
+MODULE_CALL
 UserUnlock(
     USERFILE *userFile
     )
