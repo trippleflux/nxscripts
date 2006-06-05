@@ -43,6 +43,7 @@ Abstract:
 #include <Group.h>
 
 // Project headers
+#include "backends.h"
 #include "proctable.h"
 #include "utils.h"
 

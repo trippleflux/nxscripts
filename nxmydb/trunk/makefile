@@ -70,7 +70,7 @@ all: lib
 
 clean:
     @ECHO Deleting object files...
-    -@DEL /F *.cod *.dll *.ilk *.lib *.exp *.exe *.obj *.pdb *.res 2> nul
+    -@DEL /F *.cod *.dll *.ilk *.lib *.exp *.obj *.pdb *.res 2> nul
 
 release: all
     -@DEL /F *.cod *.ilk *.lib *.exp *.obj *.pdb *.res 2> nul
@@ -79,7 +79,7 @@ lib: nxmydb.dll
 
 # -------------------------------------------------------------------------
 
-FILE_OBJS = mydb.res dllentry.obj group.obj proctable.obj user.obj utils.obj
+FILE_OBJS = mydb.res dllentry.obj group.obj proctable.obj user.obj userdb.obj userfile.obj utils.obj
 
 {src\}.c{}.obj::
     $(CC) /c $(CFLAGS) /Fo $<

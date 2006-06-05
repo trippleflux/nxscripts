@@ -17,7 +17,7 @@ Abstract:
 #include "mydb.h"
 
 //
-// Function and type declarations
+// Function declarations
 //
 
 static INT   MODULE_CALL UserFinalize(void);
@@ -26,15 +26,9 @@ static INT   MODULE_CALL UserRename(char *userName, INT32 userId, char *newName)
 static INT   MODULE_CALL UserDelete(char *userName, INT32 userId);
 static INT   MODULE_CALL UserLock(USERFILE *userFile);
 static INT   MODULE_CALL UserUnlock(USERFILE *userFile);
-static INT   MODULE_CALL UserRead(char *filePath, USERFILE *userFile);
-static INT   MODULE_CALL UserWrite(USERFILE *userFile);
 static INT   MODULE_CALL UserOpen(char *userName, USERFILE *userFile);
+static INT   MODULE_CALL UserWrite(USERFILE *userFile);
 static INT   MODULE_CALL UserClose(USERFILE *userFile);
-
-typedef struct {
-    HANDLE fileHandle;
-    volatile LONG locked;
-} USER_CONTEXT;
 
 //
 // Local variables
@@ -55,13 +49,13 @@ UserModuleInit(
     module->tszModuleName = "NXMYDB";
     module->DeInitialize  = UserFinalize;
     module->Create        = UserCreate;
-    module->Delete        = UserDelete;
     module->Rename        = UserRename;
+    module->Delete        = UserDelete;
     module->Lock          = UserLock;
-    module->Write         = UserWrite;
-    module->Open          = UserOpen;
-    module->Close         = UserClose;
     module->Unlock        = UserUnlock;
+    module->Open          = UserOpen;
+    module->Write         = UserWrite;
+    module->Close         = UserClose;
 
     // Initialize procedure table
     if (!InitProcTable(module->GetProc)) {
@@ -97,48 +91,19 @@ UserCreate(
     char *userName
     )
 {
-    char buffer[_MAX_NAME + 12];
-    char *sourcePath;
-    char *tempPath;
     DWORD error;
-    INT32 result;
+    INT32 userId;
+    INT_CONTEXT *context;
     USERFILE userFile;
 
     DebugPrint("UserCreate: userName=\"%s\"\n", userName);
 
-    // Retrieve default location
-    sourcePath = Io_ConfigGetPath("Locations", "User_Files", "Default.User", NULL);
-    if (sourcePath == NULL) {
-        DebugPrint("UserCreate: Unable to retrieve default file location.\n");
+    // Allocate internal context
+    context = Io_Allocate(sizeof(INT_CONTEXT));
+    if (context == NULL) {
+        DebugPrint("UserCreate: Unable to allocate internal context.\n");
 
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-        return -1;
-    }
-
-    // Retrieve temporary location
-    StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%s.tmp", userName);
-    tempPath = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
-    if (tempPath == NULL) {
-        DebugPrint("UserCreate: Unable to retrieve temporary file location.\n");
-
-        // Free resources
-        Io_Free(sourcePath);
-
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-        return -1;
-    }
-
-    // Copy default file
-    if (!CopyFileA(sourcePath, tempPath, FALSE)) {
-        error = GetLastError();
-        DebugPrint("UserCreate: Unable to copy default file (error %lu).\n", error);
-
-        // Free resources
-        Io_Free(sourcePath);
-        Io_Free(tempPath);
-
-        // Restore system error code
-        SetLastError(error);
         return -1;
     }
 
@@ -147,70 +112,42 @@ UserCreate(
     userFile.Groups[0]      = NOGROUP_ID;
     userFile.Groups[1]      = -1;
     userFile.AdminGroups[0] = -1;
-
-    if (UserRead(tempPath, &userFile) != UM_SUCCESS) {
-        error = GetLastError();
-
-        // Free resources
-        DeleteFileA(tempPath);
-        Io_Free(sourcePath);
-        Io_Free(tempPath);
-
-        // Restore system error code
-        SetLastError(error);
-        return -1;
-    }
+    userFile.lpInternal     = context;
 
     // Register user
-    result = userModule->Register(userModule, userName, &userFile);
-    if (result == -1) {
-        error = GetLastError();
-
-        UserClose(&userFile);
-        DeleteFileA(tempPath);
-    } else {
-        char *offset;
-        size_t sourceLength = strlen(sourcePath);
-
-        // Terminate string after the last path separator
-        offset = strrchr(sourcePath, '\\');
-        if (offset != NULL) {
-            offset[1] = '\0';
-        } else {
-            offset = strrchr(sourcePath, '/');
-            if (offset != NULL) {
-                offset[1] = '\0';
-            }
-        }
-
-        // Append the user's ID
-        StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", result);
-        StringCchCatA(sourcePath, sourceLength, buffer);
-
-        // Rename temporary file
-        if (!MoveFileExA(tempPath, sourcePath, MOVEFILE_REPLACE_EXISTING)) {
-            error = GetLastError();
-            DebugPrint("UserCreate: Unable to rename temporary file (error %lu).\n", error);
-
-            // Unregister user and delete the data file
-            if (!userModule->Unregister(userModule, userName)) {
-                UserClose(&userFile);
-            }
-            DeleteFileA(tempPath);
-
-            result = -1;
-        } else {
-            error = ERROR_SUCCESS;
-        }
+    userId = userModule->Register(userModule, userName, &userFile);
+    if (userId == -1) {
+        DebugPrint("UserCreate: Unable to register user (error %lu).\n", GetLastError());
+        goto error;
     }
 
-    // Free resources
-    Io_Free(sourcePath);
-    Io_Free(tempPath);
+    // Create user file and read "Default.User"
+    if (!FileUserCreate(userName, userId, &userFile)) {
+        DebugPrint("UserCreate: Unable to create user file (error %lu).\n", GetLastError());
+        goto error;
+    }
+
+    // Create database record
+    if (!DbUserCreate(userName, userId, &userFile)) {
+        DebugPrint("UserCreate: Unable to create database record (error %lu).\n", GetLastError());
+        goto error;
+    }
+
+    return userId;
+
+error:
+    // Preserve system error code
+    error = GetLastError();
+
+    if (userId == -1) {
+        Io_Free(context);
+    } else if (UserDelete(userName, userId) != UM_SUCCESS) {
+        DebugPrint("UserCreate: Unable to delete user (error %lu).\n", GetLastError());
+    }
 
     // Restore system error code
     SetLastError(error);
-    return result;
+    return -1;
 }
 
 static
@@ -224,9 +161,14 @@ UserRename(
 {
     DebugPrint("UserRename: userName=\"%s\" userId=%i newName=\"%s\"\n", userName, userId, newName);
 
-    // Register the user under the new name
-    if (userModule->RegisterAs(userModule, userName, newName)) {
-        DebugPrint("UserRename: Unable to rename user, already exists?\n");
+    // Rename database record
+    if (!DbUserRename(userName, userId, newName)) {
+        DebugPrint("UserRename: Unable to rename database record (error %lu).\n", GetLastError());
+    }
+
+    // Register user under the new name
+    if (userModule->RegisterAs(userModule, userName, newName) != UM_SUCCESS) {
+        DebugPrint("UserRename: Unable to re-register user (error %lu).\n", GetLastError());
         return UM_ERROR;
     }
 
@@ -241,30 +183,21 @@ UserDelete(
     INT32 userId
     )
 {
-    char buffer[16];
-    char *filePath;
-
     DebugPrint("UserDelete: userName=\"%s\" userId=%i\n", userName, userId);
 
-    // Format user ID
-    StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", userId);
-
-    // Retrieve file location
-    filePath = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
-    if (filePath == NULL) {
-        DebugPrint("UserDelete: Unable to retrieve file location.\n");
-
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-        return UM_ERROR;
+    // Delete user file
+    if (!FileUserDelete(userName, userId)) {
+        DebugPrint("UserDelete: Unable to delete user file (error %lu).\n", GetLastError());
     }
 
-    // Delete data file and free resources
-    DeleteFileA(filePath);
-    Io_Free(filePath);
+    // Delete database record
+    if (!DbUserDelete(userName, userId)) {
+        DebugPrint("UserDelete: Unable to delete database record (error %lu).\n", GetLastError());
+    }
 
     // Unregister user
-    if (userModule->Unregister(userModule, userName)) {
-        DebugPrint("UserDelete: Unable to unregister user.\n");
+    if (userModule->Unregister(userModule, userName) != UM_SUCCESS) {
+        DebugPrint("UserDelete: Unable to unregister user (error %lu).\n", GetLastError());
         return UM_ERROR;
     }
 
@@ -278,12 +211,11 @@ UserLock(
     USERFILE *userFile
     )
 {
-    USER_CONTEXT *context;
     DebugPrint("UserLock: userFile=%p\n", userFile);
 
-    context = (USER_CONTEXT *)userFile->lpInternal;
-    if (InterlockedCompareExchange(&context->locked, 1, 0) == 1) {
-        DebugPrint("UserLock: Unable to aquire lock.\n");
+    // Lock user exclusively
+    if (!DbUserLock(userFile)) {
+        DebugPrint("UserLock: Unable to lock database record (error %lu).\n", GetLastError());
         return UM_ERROR;
     }
 
@@ -297,157 +229,14 @@ UserUnlock(
     USERFILE *userFile
     )
 {
-    USER_CONTEXT *context;
     DebugPrint("UserUnlock: userFile=%p\n", userFile);
 
-    // Clear locked flag.
-    context = (USER_CONTEXT *)userFile->lpInternal;
-    context->locked = 0;
-
-    return UM_SUCCESS;
-}
-
-static
-INT
-MODULE_CALL
-UserRead(
-    char *filePath,
-    USERFILE *userFile
-    )
-{
-    char *buffer = NULL;
-    DWORD bytesRead;
-    DWORD error;
-    DWORD fileSize;
-    INT result = UM_FATAL;
-    USER_CONTEXT *context;
-
-    DebugPrint("UserRead: filePath=\"%s\" userFile=%p\n", filePath, userFile);
-
-    // Allocate user context
-    context = (USER_CONTEXT *)Io_Allocate(sizeof(USER_CONTEXT));
-    if (context == NULL) {
-        DebugPrint("UserRead: Unable to allocate user context.\n");
-
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-        return UM_FATAL;
-    }
-    context->locked = 0;
-
-    // Open the user's data file
-    context->fileHandle = CreateFileA(filePath,
-        GENERIC_READ|GENERIC_WRITE,
-        FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
-        NULL, OPEN_EXISTING, 0, NULL);
-
-    if (context->fileHandle == INVALID_HANDLE_VALUE) {
-        result = (GetLastError() == ERROR_FILE_NOT_FOUND) ? UM_DELETED : UM_FATAL;
-        DebugPrint("UserRead: Unable to open file (error %lu).\n", GetLastError());
-        goto end;
-    }
-
-    // Retrieve file size
-    fileSize = GetFileSize(context->fileHandle, NULL);
-    if (fileSize == INVALID_FILE_SIZE || fileSize < 5) {
-        DebugPrint("UserRead: Unable to retrieve file size, or file size is under 5 bytes.\n");
-        goto end;
-    }
-
-    // Allocate read buffer
-    buffer = (char *)Io_Allocate(fileSize + 1);
-    if (buffer == NULL) {
-        DebugPrint("UserRead: Unable to allocate read buffer.\n");
-        goto end;
-    }
-
-    // Read data file to buffer
-    if (!ReadFile(context->fileHandle, buffer, fileSize, &bytesRead, NULL) || bytesRead < 5) {
-        DebugPrint("UserRead: Unable to read file, or the amount read is under 5 bytes.\n");
-        goto end;
-    }
-
-    // Pad buffer with a new-line
-    buffer[bytesRead] = '\n';
-    bytesRead++;
-
-    // Parse buffer, initializing the USERFILE structure
-    Io_Ascii2UserFile(buffer, bytesRead, userFile);
-    userFile->Gid        = userFile->Groups[0];
-    userFile->lpInternal = context;
-    result               = UM_SUCCESS;
-
-end:
-    // Free objects and resources
-    if (result != UM_SUCCESS) {
-        error = GetLastError();
-        if (context->fileHandle != INVALID_HANDLE_VALUE) {
-            CloseHandle(context->fileHandle);
-        }
-        Io_Free(buffer);
-        Io_Free(context);
-        userFile->lpInternal = NULL;
-
-        // Restore system error code
-        SetLastError(error);
-    } else {
-        Io_Free(buffer);
-    }
-
-    return result;
-}
-
-static
-INT
-MODULE_CALL
-UserWrite(
-    USERFILE *userFile
-    )
-{
-    BUFFER buffer;
-    DWORD bytesWritten;
-    DWORD error;
-    USER_CONTEXT *context;
-
-    DebugPrint("UserWrite: userFile=%p\n", userFile);
-
-    // Retrieve user context
-    context = (USER_CONTEXT *)userFile->lpInternal;
-
-    // Allocate write buffer
-    ZeroMemory(&buffer, sizeof(BUFFER));
-    buffer.dwType = TYPE_CHAR;
-    buffer.size   = 4096;
-    buffer.buf    = (char *)Io_Allocate(buffer.size);
-
-    if (buffer.buf == NULL) {
-        DebugPrint("UserWrite: Unable to allocate write buffer.\n");
-
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+    // Unlock user
+    if (!DbUserUnlock(userFile)) {
+        DebugPrint("UserUnlock: Unable to unlock database record (error %lu).\n", GetLastError());
         return UM_ERROR;
     }
 
-    // Dump user data to buffer
-    Io_UserFile2Ascii(&buffer, userFile);
-
-    // Write buffer to file
-    SetFilePointer(context->fileHandle, 0, 0, FILE_BEGIN);
-    if (!WriteFile(context->fileHandle, buffer.buf, buffer.len, &bytesWritten, NULL)) {
-        error = GetLastError();
-        DebugPrint("UserWrite: Unable to write file (error %lu).\n", error);
-
-        // Free resources
-        Io_Free(buffer.buf);
-
-        // Restore system error code
-        SetLastError(error);
-        return UM_ERROR;
-    }
-
-    // Truncate file at its current position and flush changes to disk
-    SetEndOfFile(context->fileHandle);
-    FlushFileBuffers(context->fileHandle);
-
-    Io_Free(buffer.buf);
     return UM_SUCCESS;
 }
 
@@ -459,27 +248,53 @@ UserOpen(
     USERFILE *userFile
     )
 {
-    char buffer[16];
-    char *filePath;
-    INT result;
-
     DebugPrint("UserOpen: userName=\"%s\" userFile=%p\n", userName, userFile);
 
-    // Format user ID
-    StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", userFile->Uid);
+    // Allocate internal context
+    userFile->lpInternal = Io_Allocate(sizeof(INT_CONTEXT));
+    if (userFile->lpInternal == NULL) {
+        DebugPrint("UserOpen: Unable to allocate internal context.\n");
 
-    // Retrieve file location
-    filePath = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
-    if (filePath == NULL) {
-        DebugPrint("UserOpen: Unable to retrieve file location.\n");
+        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return UM_FATAL;
     }
 
-    // Read the user's data file
-    result = UserRead(filePath, userFile);
-    Io_Free(filePath);
+    // Open user file
+    if (!FileUserOpen(userName, userFile)) {
+        DebugPrint("UserOpen: Unable to open user file (error %lu).\n", GetLastError());
+        return (GetLastError() == ERROR_FILE_NOT_FOUND) ? UM_DELETED : UM_FATAL;
+    }
 
-    return result;
+    // Read database record
+    if (!DbUserOpen(userName, userFile)) {
+        DebugPrint("UserOpen: Unable to open database record (error %lu).\n", GetLastError());
+        return UM_FATAL;
+    }
+
+    return UM_SUCCESS;
+}
+
+static
+INT
+MODULE_CALL
+UserWrite(
+    USERFILE *userFile
+    )
+{
+    DebugPrint("UserWrite: userFile=%p\n", userFile);
+
+    // Update user file
+    if (!FileUserWrite(userFile)) {
+        DebugPrint("UserWrite: Unable to write user file (error %lu).\n", GetLastError());
+    }
+
+    // Update database record
+    if (!DbUserWrite(userFile)) {
+        DebugPrint("UserWrite: Unable to write database record (error %lu).\n", GetLastError());
+        return UM_ERROR;
+    }
+
+    return UM_SUCCESS;
 }
 
 static
@@ -489,19 +304,27 @@ UserClose(
     USERFILE *userFile
     )
 {
-    USER_CONTEXT *context;
+    INT_CONTEXT *context = userFile->lpInternal;
 
     DebugPrint("UserClose: userFile=%p\n", userFile);
 
-    // Retrieve user context
-    context = (USER_CONTEXT *)userFile->lpInternal;
+    // Verify internal context
     if (context == NULL) {
-        DebugPrint("UserClose: User context already freed.\n");
+        DebugPrint("UserClose: Internal context already freed.\n");
         return UM_ERROR;
     }
 
-    // Free objects and resources
-    CloseHandle(context->fileHandle);
+    // Close user file
+    if (!FileUserClose(context)) {
+        DebugPrint("UserClose: Unable to close user file (error %lu).\n", GetLastError());
+    }
+
+    // Free database resources
+    if (!DbUserClose(context)) {
+        DebugPrint("UserClose: Unable to close database record(error %lu).\n", GetLastError());
+    }
+
+    // Free internal resources
     Io_Free(context);
     userFile->lpInternal = NULL;
 
