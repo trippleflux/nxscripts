@@ -96,7 +96,6 @@ OutputFile(
     // Preserve system error code
     error = GetLastError();
 
-    va_start(argList, format);
     handle = fopen("nxMyDB.log", "a");
     if (handle != NULL) {
         GetSystemTime(&now);
@@ -104,10 +103,12 @@ OutputFile(
             now.wYear, now.wMonth, now.wDay,
             now.wHour, now.wMinute, now.wSecond, funct);
 
+        va_start(argList, format);
         vfprintf(handle, format, argList);
+        va_end(argList);
+
         fclose(handle);
     }
-    va_end(argList);
 
     // Restore system error code
     SetLastError(error);
