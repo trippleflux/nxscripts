@@ -23,43 +23,6 @@ namespace eval ::nxLib {
 interp alias {} IsTrue {} string is true -strict
 interp alias {} IsFalse {} string is false -strict
 
-proc ::nxLib::ListConvert {list {word "and"}} {
-    if {[llength $list] < 2} {return [join $list]}
-    set listLiteral [join [lrange $list 0 end-1] ", "]
-    if {[llength $list] > 2} {
-        append listLiteral ","
-    }
-    return [append listLiteral " " $word " " [lindex $list end]]
-}
-
-proc ::nxLib::ListParse {argv} {
-    set argList [list]
-    set length [string length $argv]
-
-    for {set index 0} {$index < $length} {incr index} {
-        # Ignore leading white-space.
-        while {[string is space -strict [string index $argv $index]]} {incr index}
-        if {$index >= $length} {break}
-
-        if {[string index $argv $index] eq "\""} {
-            # Find the next quote character.
-            set startIndex [incr index]
-            while {[string index $argv $index] ne "\"" && $index < $length} {incr index}
-        } else {
-            # Find the next white-space character.
-            set startIndex $index
-            while {![string is space -strict [string index $argv $index]] && $index < $length} {incr index}
-        }
-        lappend argList [string range $argv $startIndex [expr {$index - 1}]]
-    }
-    return $argList
-}
-
-proc ::nxLib::ListRange {string start end} {
-    regsub -all -- {\s+} $string { } string
-    join [lrange [split [string trim $string]] $start $end]
-}
-
 proc ::nxLib::GetOptions {argList limitVar stringVar} {
     global misc
     upvar $limitVar limit $stringVar string
@@ -95,11 +58,11 @@ proc ::nxLib::LinePuts {args} {
     eval iputs $args
 }
 
-proc ::nxLib::StripChars {string} {
-    regsub -all -- {[\(\<\{]+} $string {(} string
-    regsub -all -- {[\)\>\}]+} $string {)} string
-    regsub -all -- {[^\w\-\(\)]+} $string {.} string
-    return [string trim $string "."]
+proc ::nxLib::StripChars {value} {
+    regsub -all -- {[\(\<\{]+} $value {(} value
+    regsub -all -- {[\)\>\}]+} $value {)} value
+    regsub -all -- {[^\w\-\(\)]+} $value {.} value
+    return [value trim $value "."]
 }
 
 proc ::nxLib::WordWrap {text width} {
@@ -374,25 +337,62 @@ proc ::nxLib::KickUsers {path {isRealPath "False"}} {
 # List Procedures
 ######################################################################
 
-proc ::nxLib::ListAssign {valueList args} {
-    while {[llength $valueList] < [llength $args]} {
-        lappend valueList {}
+proc ::nxLib::ListAssign {values args} {
+    while {[llength $values] < [llength $args]} {
+        lappend values {}
     }
-    uplevel [list foreach $args $valueList break]
+    uplevel [list foreach $args $values break]
 }
 
-proc ::nxLib::ListMatch {patternList string} {
-    foreach pattern $patternList {
-        if {[string match $pattern $string]} {return 1}
+proc ::nxLib::ListConvert {list {word "and"}} {
+    if {[llength $list] < 2} {return [join $list]}
+    set result [join [lrange $list 0 end-1] ", "]
+    if {[llength $list] > 2} {
+        append result ","
+    }
+    return [append result " " $word " " [lindex $list end]]
+}
+
+proc ::nxLib::ListMatch {patterns value} {
+    foreach pattern $patterns {
+        if {[string match $pattern $value]} {return 1}
     }
     return 0
 }
 
-proc ::nxLib::ListMatchI {patternList string} {
-    foreach pattern $patternList {
-        if {[string match -nocase $pattern $string]} {return 1}
+proc ::nxLib::ListMatchI {patterns value} {
+    foreach pattern $patterns {
+        if {[string match -nocase $pattern $value]} {return 1}
     }
     return 0
+}
+
+proc ::nxLib::ListParse {argv} {
+    set argList [list]
+    set length [string length $argv]
+
+    for {set index 0} {$index < $length} {incr index} {
+        # Ignore leading white-space.
+        while {[string is space -strict [string index $argv $index]]} {incr index}
+        if {$index >= $length} {break}
+
+        if {[string index $argv $index] eq "\""} {
+            # Find the next quote character.
+            set startIndex [incr index]
+            while {[string index $argv $index] ne "\"" && $index < $length} {incr index}
+        } else {
+            # Find the next white-space character.
+            set startIndex $index
+            while {![string is space -strict [string index $argv $index]] && $index < $length} {incr index}
+        }
+        lappend argList [string range $argv $startIndex [expr {$index - 1}]]
+    }
+    return $argList
+}
+
+proc ::nxLib::ListRange {value start end} {
+    regsub -all -- {\s+} $value { } value
+    join [lrange [split [string trim $value]] $start $end]
 }
 
 # Logging Procedures
