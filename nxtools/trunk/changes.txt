@@ -8,7 +8,7 @@ nxTools v1.0.5 (not released):
   CHG: Output from "SITE CLEAN" and "SITE REBUILD" is no longer buffered to
        prevent ioFTPD from stopping the script because of execution time limits.
   FIX: Directory dupe database was always cleaned, even if disabled in the config.
-  FIX: Log the maximum request age in seconds, not as a timestamp.
+  FIX: Log the maximum request age as a time duration.
 
 nxTools v1.0.4a (May 7, 2006):
   FIX: Typo in v1.0.4 that broke file dupe checking.
