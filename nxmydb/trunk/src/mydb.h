@@ -45,6 +45,7 @@ Abstract:
 // Project headers
 #include "backends.h"
 #include "condvars.h"
+#include "dbconn.h"
 #include "proctable.h"
 #include "utils.h"
 

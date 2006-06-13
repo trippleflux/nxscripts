@@ -79,7 +79,7 @@ lib: nxmydb.dll
 
 # -------------------------------------------------------------------------
 
-FILE_OBJS = mydb.res condvars.obj dllentry.obj group.obj groupdb.obj groupfile.obj\
+FILE_OBJS = mydb.res condvars.obj dbconn.obj dllentry.obj group.obj groupdb.obj groupfile.obj\
             proctable.obj user.obj userdb.obj userfile.obj utils.obj
 
 {src\}.c{}.obj::
