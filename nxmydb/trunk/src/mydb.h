@@ -57,7 +57,7 @@ Abstract:
 #   include "assert.h"
 #   define ASSERT assert
 #else
-#   define ASSERT ((void)0)
+#   define ASSERT
 #endif
 
 //
@@ -69,7 +69,7 @@ Abstract:
 #if defined(DEBUG) && !defined(NDEBUG)
 #   define DebugPrint OutputDebugger
 #else
-#   define DebugPrint ((void)0)
+#   define DebugPrint
 #endif
 
 #endif // _MYDB_H_
