@@ -57,12 +57,11 @@ UserModuleInit(
     module->Write         = UserWrite;
     module->Close         = UserClose;
 
-    // Initialize procedure table
-    if (!InitProcTable(module->GetProc)) {
-        DebugPrint("UserInit", "Unable to initialize procedure table.\n");
+    // Initialize module
+    if (!DbInit(module->GetProc)) {
+        DebugPrint("UserInit", "Unable to initialize module.\n");
         return UM_ERROR;
     }
-    Io_Putlog(LOG_ERROR, "nxMyDB: User module v%s loaded.\r\n", STRINGIFY(VERSION));
 
     userModule = module;
     return UM_SUCCESS;
@@ -76,10 +75,8 @@ UserFinalize(
     )
 {
     DebugPrint("UserFinalize", "module=%p\n", userModule);
-    Io_Putlog(LOG_ERROR, "nxMyDB: User module v%s unloaded.\r\n", STRINGIFY(VERSION));
+    DbFinalize();
 
-    // Finalize procedure table
-    FinalizeProcTable();
     userModule = NULL;
     return UM_SUCCESS;
 }

@@ -43,10 +43,10 @@ Abstract:
 #include <Group.h>
 
 // Project headers
+#include "proctable.h"
 #include "backends.h"
 #include "condvars.h"
 #include "dbconn.h"
-#include "proctable.h"
 #include "utils.h"
 
 // Calling convention used by ioFTPD for module functions.

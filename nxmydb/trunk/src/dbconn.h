@@ -17,4 +17,14 @@ Abstract:
 #ifndef _DBCONN_H_
 #define _DBCONN_H_
 
+BOOL
+DbInit(
+    Io_GetProc *getProc
+    );
+
+void
+DbFinalize(
+    void
+    );
+
 #endif // _DBCONN_H_

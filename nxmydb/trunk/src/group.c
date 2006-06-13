@@ -57,12 +57,11 @@ GroupModuleInit(
     module->Write         = GroupWrite;
     module->Close         = GroupClose;
 
-    // Initialize procedure table
-    if (!InitProcTable(module->GetProc)) {
-        DebugPrint("GroupInit", "Unable to initialize procedure table.\n");
+    // Initialize module
+    if (!DbInit(module->GetProc)) {
+        DebugPrint("GroupInit", "Unable to initialize module.\n");
         return GM_ERROR;
     }
-    Io_Putlog(LOG_ERROR, "nxMyDB: Group module v%s loaded.\r\n", STRINGIFY(VERSION));
 
     groupModule = module;
     return GM_SUCCESS;
@@ -76,10 +75,8 @@ GroupFinalize(
     )
 {
     DebugPrint("GroupFinalize", "module=%p\n", groupModule);
-    Io_Putlog(LOG_ERROR, "nxMyDB: Group module v%s unloaded.\r\n", STRINGIFY(VERSION));
+    DbFinalize();
 
-    // Finalize procedure table
-    FinalizeProcTable();
     groupModule = NULL;
     return GM_SUCCESS;
 }

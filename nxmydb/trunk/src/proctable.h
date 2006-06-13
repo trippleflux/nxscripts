@@ -99,12 +99,12 @@ typedef void *(Io_GetProc)(
     );
 
 BOOL
-InitProcTable(
+ProcTableInit(
     Io_GetProc *getProc
     );
 
 void
-FinalizeProcTable(
+ProcTableFinalize(
     void
     );
 
