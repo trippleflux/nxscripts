@@ -161,18 +161,6 @@ FileGroupCreate(
 }
 
 BOOL
-FileGroupRename(
-    char *groupName,
-    INT32 groupId,
-    char *newName
-    )
-{
-    DebugPrint("FileGroupRename", "groupName=\"%s\" groupId=%i newName=\"%s\"\n", groupName, groupId, newName);
-    // Not used
-    return TRUE;
-}
-
-BOOL
 FileGroupDelete(
     char *groupName,
     INT32 groupId
@@ -197,26 +185,6 @@ FileGroupDelete(
     DeleteFileA(filePath);
     Io_Free(filePath);
 
-    return TRUE;
-}
-
-BOOL
-FileGroupLock(
-    GROUPFILE *groupFile
-    )
-{
-    DebugPrint("FileGroupLock", "groupFile=%p\n", groupFile);
-    // Not used
-    return TRUE;
-}
-
-BOOL
-FileGroupUnlock(
-    GROUPFILE *groupFile
-    )
-{
-    DebugPrint("FileGroupUnlock", "groupFile=%p\n", groupFile);
-    // Not used
     return TRUE;
 }
 

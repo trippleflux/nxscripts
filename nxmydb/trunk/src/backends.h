@@ -86,26 +86,9 @@ FileGroupCreate(
     );
 
 BOOL
-FileGroupRename(
-    char *groupName,
-    INT32 groupId,
-    char *newName
-    );
-
-BOOL
 FileGroupDelete(
     char *groupName,
     INT32 groupId
-    );
-
-BOOL
-FileGroupLock(
-    GROUPFILE *groupFile
-    );
-
-BOOL
-FileGroupUnlock(
-    GROUPFILE *groupFile
     );
 
 BOOL
@@ -188,26 +171,9 @@ FileUserCreate(
     );
 
 BOOL
-FileUserRename(
-    char *userName,
-    INT32 userId,
-    char *newName
-    );
-
-BOOL
 FileUserDelete(
     char *userName,
     INT32 userId
-    );
-
-BOOL
-FileUserLock(
-    USERFILE *userFile
-    );
-
-BOOL
-FileUserUnlock(
-    USERFILE *userFile
     );
 
 BOOL

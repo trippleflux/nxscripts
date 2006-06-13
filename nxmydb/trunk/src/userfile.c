@@ -162,18 +162,6 @@ FileUserCreate(
 }
 
 BOOL
-FileUserRename(
-    char *userName,
-    INT32 userId,
-    char *newName
-    )
-{
-    DebugPrint("FileUserRename", "userName=\"%s\" userId=%i newName=\"%s\"\n", userName, userId, newName);
-    // Not used
-    return TRUE;
-}
-
-BOOL
 FileUserDelete(
     char *userName,
     INT32 userId
@@ -198,26 +186,6 @@ FileUserDelete(
     DeleteFileA(filePath);
     Io_Free(filePath);
 
-    return TRUE;
-}
-
-BOOL
-FileUserLock(
-    USERFILE *userFile
-    )
-{
-    DebugPrint("FileUserLock", "userFile=%p\n", userFile);
-    // Not used
-    return TRUE;
-}
-
-BOOL
-FileUserUnlock(
-    USERFILE *userFile
-    )
-{
-    DebugPrint("FileUserUnlock", "userFile=%p\n", userFile);
-    // Not used
     return TRUE;
 }
 
