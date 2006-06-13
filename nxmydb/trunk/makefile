@@ -58,9 +58,9 @@ CFLAGS      = $(CFLAGS) /Ox /GF $(CRTLIB) /DNDEBUG
 LFLAGS      = $(LFLAGS) /RELEASE /OPT:REF
 !endif
 
-VERSION     = $(VERSION).0
-VERSION_RES = $(VERSION:.=,)
-RFLAGS      = $(RFLAGS) "/DVERSION=\"$(VERSION)\"" "/DVERSION_RES=$(VERSION_RES)"
+VERSION_RES = $(VERSION:.=,),0
+CFLAGS      = $(CFLAGS) "/DVERSION=$(VERSION)" "/DVERSION_RES=$(VERSION_RES)"
+RFLAGS      = $(RFLAGS) "/DVERSION=$(VERSION)" "/DVERSION_RES=$(VERSION_RES)"
 
 # -------------------------------------------------------------------------
 

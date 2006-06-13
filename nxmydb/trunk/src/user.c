@@ -62,7 +62,7 @@ UserModuleInit(
         DebugPrint("UserInit", "Unable to initialize procedure table.\n");
         return UM_ERROR;
     }
-    Io_Putlog(LOG_ERROR, "nxMyDB user module loaded.\r\n");
+    Io_Putlog(LOG_ERROR, "nxMyDB: User module v%s loaded.\r\n", STRINGIFY(VERSION));
 
     userModule = module;
     return UM_SUCCESS;
@@ -76,7 +76,7 @@ UserFinalize(
     )
 {
     DebugPrint("UserFinalize", "module=%p\n", userModule);
-    Io_Putlog(LOG_ERROR, "nxMyDB user module unloaded.\r\n");
+    Io_Putlog(LOG_ERROR, "nxMyDB: User module v%s unloaded.\r\n", STRINGIFY(VERSION));
 
     // Finalize procedure table
     FinalizeProcTable();

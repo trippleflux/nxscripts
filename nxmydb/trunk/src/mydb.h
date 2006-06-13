@@ -48,11 +48,16 @@ Abstract:
 #include "proctable.h"
 #include "utils.h"
 
-
 // Calling convention used by ioFTPD for module functions.
 #define MODULE_CALL __cdecl
 
-// Debug assertions.
+
+#undef ARRAYSIZE
+#undef ASSERT
+#undef STRINGIFY
+#undef _STRINGIFY
+
+// ASSERT - Expression assertion.
 #if defined(DEBUG) && !defined(NDEBUG)
 #   include "assert.h"
 #   define ASSERT assert
@@ -60,16 +65,22 @@ Abstract:
 #   define ASSERT
 #endif
 
-//
-// Debug message printing.
-//
-// OutputDebugger - Writes message to debugger.
-// OutputFile     - Writes message to log file.
-//
+// ARRAYSIZE - Returns the number of entries in an array.
+#define ARRAYSIZE(a) (sizeof(a) / sizeof(a[0]))
+
+// DebugPrint - Debug message printing (OutputDebugger/OutputFile).
 #if defined(DEBUG) && !defined(NDEBUG)
 #   define DebugPrint OutputDebugger
 #else
 #   define DebugPrint
 #endif
+
+// STRINGIFY - Wraps an argument in quotes.
+#define STRINGIFY(a) _STRINGIFY(a)
+#define _STRINGIFY(a) #a
+
+
+// Calling convention used by ioFTPD for module functions.
+#define MODULE_CALL __cdecl
 
 #endif // _MYDB_H_

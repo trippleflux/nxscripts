@@ -62,7 +62,7 @@ GroupModuleInit(
         DebugPrint("GroupInit", "Unable to initialize procedure table.\n");
         return GM_ERROR;
     }
-    Io_Putlog(LOG_ERROR, "nxMyDB group module loaded.\r\n");
+    Io_Putlog(LOG_ERROR, "nxMyDB: Group module v%s loaded.\r\n", STRINGIFY(VERSION));
 
     groupModule = module;
     return GM_SUCCESS;
@@ -76,7 +76,7 @@ GroupFinalize(
     )
 {
     DebugPrint("GroupFinalize", "module=%p\n", groupModule);
-    Io_Putlog(LOG_ERROR, "nxMyDB group module unloaded.\r\n");
+    Io_Putlog(LOG_ERROR, "nxMyDB: Group module v%s unloaded.\r\n", STRINGIFY(VERSION));
 
     // Finalize procedure table
     FinalizeProcTable();
