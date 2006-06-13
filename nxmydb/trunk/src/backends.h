@@ -10,7 +10,7 @@ Author:
     neoxed (neoxed@gmail.com) Jun 5, 2006
 
 Abstract:
-    User and group storage backends.
+    User and group storage backend declarations.
 
 */
 

@@ -10,7 +10,7 @@ Author:
     neoxed (neoxed@gmail.com) Jun 3, 2006
 
 Abstract:
-    Miscellaneous utilities.
+    Miscellaneous utility functions.
 
 */
 
