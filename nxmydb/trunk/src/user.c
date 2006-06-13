@@ -122,13 +122,13 @@ UserCreate(
     }
 
     // Create user file and read "Default.User"
-    if (!FileUserCreate(userName, userId, &userFile)) {
+    if (!FileUserCreate(userId, &userFile)) {
         DebugPrint("UserCreate", "Unable to create user file (error %lu).\n", GetLastError());
         goto error;
     }
 
     // Create database record
-    if (!DbUserCreate(userName, userId, &userFile)) {
+    if (!DbUserCreate(userName, &userFile)) {
         DebugPrint("UserCreate", "Unable to create database record (error %lu).\n", GetLastError());
         goto error;
     }
@@ -162,7 +162,7 @@ UserRename(
     DebugPrint("UserRename", "userName=\"%s\" userId=%i newName=\"%s\"\n", userName, userId, newName);
 
     // Rename database record
-    if (!DbUserRename(userName, userId, newName)) {
+    if (!DbUserRename(userName, newName)) {
         DebugPrint("UserRename", "Unable to rename database record (error %lu).\n", GetLastError());
     }
 
@@ -186,12 +186,12 @@ UserDelete(
     DebugPrint("UserDelete", "userName=\"%s\" userId=%i\n", userName, userId);
 
     // Delete user file
-    if (!FileUserDelete(userName, userId)) {
+    if (!FileUserDelete(userId)) {
         DebugPrint("UserDelete", "Unable to delete user file (error %lu).\n", GetLastError());
     }
 
     // Delete database record
-    if (!DbUserDelete(userName, userId)) {
+    if (!DbUserDelete(userName)) {
         DebugPrint("UserDelete", "Unable to delete database record (error %lu).\n", GetLastError());
     }
 
@@ -260,7 +260,7 @@ UserOpen(
     }
 
     // Open user file
-    if (!FileUserOpen(userName, userFile)) {
+    if (!FileUserOpen(userFile->Uid, userFile->lpInternal)) {
         DebugPrint("UserOpen", "Unable to open user file (error %lu).\n", GetLastError());
         return (GetLastError() == ERROR_FILE_NOT_FOUND) ? UM_DELETED : UM_FATAL;
     }

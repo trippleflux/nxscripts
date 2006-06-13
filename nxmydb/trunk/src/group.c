@@ -119,13 +119,13 @@ GroupCreate(
     }
 
     // Create group file and read "Default.Group"
-    if (!FileGroupCreate(groupName, groupId, &groupFile)) {
+    if (!FileGroupCreate(groupId, &groupFile)) {
         DebugPrint("GroupCreate", "Unable to create group file (error %lu).\n", GetLastError());
         goto error;
     }
 
     // Create database record
-    if (!DbGroupCreate(groupName, groupId, &groupFile)) {
+    if (!DbGroupCreate(groupName, &groupFile)) {
         DebugPrint("GroupCreate", "Unable to create database record (error %lu).\n", GetLastError());
         goto error;
     }
@@ -159,7 +159,7 @@ GroupRename(
     DebugPrint("GroupRename", "groupName=\"%s\" groupId=%i newName=\"%s\"\n", groupName, groupId, newName);
 
     // Rename database record
-    if (!DbGroupRename(groupName, groupId, newName)) {
+    if (!DbGroupRename(groupName, newName)) {
         DebugPrint("GroupRename", "Unable to rename database record (error %lu).\n", GetLastError());
     }
 
@@ -183,12 +183,12 @@ GroupDelete(
     DebugPrint("GroupDelete", "groupName=\"%s\" groupId=%i\n", groupName, groupId);
 
     // Delete group file
-    if (!FileGroupDelete(groupName, groupId)) {
+    if (!FileGroupDelete(groupId)) {
         DebugPrint("GroupDelete", "Unable to delete group file (error %lu).\n", GetLastError());
     }
 
     // Delete database record
-    if (!DbGroupDelete(groupName, groupId)) {
+    if (!DbGroupDelete(groupName)) {
         DebugPrint("GroupDelete", "Unable to delete database record (error %lu).\n", GetLastError());
     }
 
@@ -257,7 +257,7 @@ GroupOpen(
     }
 
     // Open group file
-    if (!FileGroupOpen(groupName, groupFile)) {
+    if (!FileGroupOpen(groupFile->Gid, groupFile->lpInternal)) {
         DebugPrint("GroupOpen", "Unable to open group file (error %lu).\n", GetLastError());
         return (GetLastError() == ERROR_FILE_NOT_FOUND) ? GM_DELETED : GM_FATAL;
     }

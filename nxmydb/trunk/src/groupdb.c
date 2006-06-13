@@ -19,29 +19,37 @@ Abstract:
 BOOL
 DbGroupCreate(
     char *groupName,
-    INT32 groupId,
     GROUPFILE *groupFile
     )
 {
+    ASSERT(groupName != NULL);
+    ASSERT(groupFile != NULL);
+    DebugPrint("DbGroupCreate", "groupName=\"%s\" groupFile=%p\n", groupName, groupFile);
+
     return TRUE;
 }
 
 BOOL
 DbGroupRename(
     char *groupName,
-    INT32 groupId,
     char *newName
     )
 {
+    ASSERT(groupName != NULL);
+    ASSERT(newName != NULL);
+    DebugPrint("DbGroupRename", "groupName=\"%s\" newName=\"%s\"\n", groupName, newName);
+
     return TRUE;
 }
 
 BOOL
 DbGroupDelete(
-    char *groupName,
-    INT32 groupId
+    char *groupName
     )
 {
+    ASSERT(groupName != NULL);
+    DebugPrint("DbGroupDelete", "groupName=\"%s\"\n", groupName);
+
     return TRUE;
 }
 
@@ -50,6 +58,9 @@ DbGroupLock(
     GROUPFILE *groupFile
     )
 {
+    ASSERT(groupFile != NULL);
+    DebugPrint("DbGroupLock", "groupFile=%p", groupFile);
+
     return TRUE;
 }
 
@@ -58,6 +69,9 @@ DbGroupUnlock(
     GROUPFILE *groupFile
     )
 {
+    ASSERT(groupFile != NULL);
+    DebugPrint("DbGroupUnlock", "groupFile=%p", groupFile);
+
     return TRUE;
 }
 
@@ -67,6 +81,10 @@ DbGroupOpen(
     GROUPFILE *groupFile
     )
 {
+    ASSERT(groupName != NULL);
+    ASSERT(groupFile != NULL);
+    DebugPrint("DbGroupOpen", "groupName=\"%s\" groupFile=%p\n", groupName, groupFile);
+
     return TRUE;
 }
 
@@ -75,6 +93,9 @@ DbGroupWrite(
     GROUPFILE *groupFile
     )
 {
+    ASSERT(groupFile != NULL);
+    DebugPrint("DbGroupWrite", "groupFile=%p", groupFile);
+
     return TRUE;
 }
 
@@ -83,5 +104,8 @@ DbGroupClose(
     INT_CONTEXT *context
     )
 {
+    ASSERT(context != NULL);
+    DebugPrint("DbGroupClose", "context=%p", context);
+
     return TRUE;
 }

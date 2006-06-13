@@ -19,29 +19,37 @@ Abstract:
 BOOL
 DbUserCreate(
     char *userName,
-    INT32 userId,
     USERFILE *userFile
     )
 {
+    ASSERT(userName != NULL);
+    ASSERT(userFile != NULL);
+    DebugPrint("DbUserCreate", "userName=\"%s\" userFile=%p\n", userName, userFile);
+
     return TRUE;
 }
 
 BOOL
 DbUserRename(
     char *userName,
-    INT32 userId,
     char *newName
     )
 {
+    ASSERT(userName != NULL);
+    ASSERT(newName != NULL);
+    DebugPrint("DbUserRename", "userName=\"%s\" newName=\"%s\"\n", userName, newName);
+
     return TRUE;
 }
 
 BOOL
 DbUserDelete(
-    char *userName,
-    INT32 userId
+    char *userName
     )
 {
+    ASSERT(userName != NULL);
+    DebugPrint("DbUserDelete", "userName=\"%s\"\n", userName);
+
     return TRUE;
 }
 
@@ -50,6 +58,9 @@ DbUserLock(
     USERFILE *userFile
     )
 {
+    ASSERT(userFile != NULL);
+    DebugPrint("DbUserLock", "userFile=%p", userFile);
+
     return TRUE;
 }
 
@@ -58,6 +69,9 @@ DbUserUnlock(
     USERFILE *userFile
     )
 {
+    ASSERT(userFile != NULL);
+    DebugPrint("DbUserUnlock", "userFile=%p", userFile);
+
     return TRUE;
 }
 
@@ -67,6 +81,10 @@ DbUserOpen(
     USERFILE *userFile
     )
 {
+    ASSERT(userName != NULL);
+    ASSERT(userFile != NULL);
+    DebugPrint("DbUserOpen", "userName=\"%s\" userFile=%p\n", userName, userFile);
+
     return TRUE;
 }
 
@@ -75,6 +93,9 @@ DbUserWrite(
     USERFILE *userFile
     )
 {
+    ASSERT(userFile != NULL);
+    DebugPrint("DbUserWrite", "userFile=%p", userFile);
+
     return TRUE;
 }
 
@@ -83,5 +104,8 @@ DbUserClose(
     INT_CONTEXT *context
     )
 {
+    ASSERT(context != NULL);
+    DebugPrint("DbUserClose", "context=%p", context);
+
     return TRUE;
 }

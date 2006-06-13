@@ -30,21 +30,18 @@ typedef struct {
 BOOL
 DbGroupCreate(
     char *groupName,
-    INT32 groupId,
     GROUPFILE *groupFile
     );
 
 BOOL
 DbGroupRename(
     char *groupName,
-    INT32 groupId,
     char *newName
     );
 
 BOOL
 DbGroupDelete(
-    char *groupName,
-    INT32 groupId
+    char *groupName
     );
 
 BOOL
@@ -80,21 +77,19 @@ DbGroupClose(
 
 BOOL
 FileGroupCreate(
-    char *groupName,
     INT32 groupId,
     GROUPFILE *groupFile
     );
 
 BOOL
 FileGroupDelete(
-    char *groupName,
     INT32 groupId
     );
 
 BOOL
 FileGroupOpen(
-    char *groupName,
-    GROUPFILE *groupFile
+    INT32 groupId,
+    INT_CONTEXT *context
     );
 
 BOOL
@@ -115,21 +110,18 @@ FileGroupClose(
 BOOL
 DbUserCreate(
     char *userName,
-    INT32 userId,
     USERFILE *userFile
     );
 
 BOOL
 DbUserRename(
     char *userName,
-    INT32 userId,
     char *newName
     );
 
 BOOL
 DbUserDelete(
-    char *userName,
-    INT32 userId
+    char *userName
     );
 
 BOOL
@@ -165,21 +157,19 @@ DbUserClose(
 
 BOOL
 FileUserCreate(
-    char *userName,
     INT32 userId,
     USERFILE *userFile
     );
 
 BOOL
 FileUserDelete(
-    char *userName,
     INT32 userId
     );
 
 BOOL
 FileUserOpen(
-    char *userName,
-    USERFILE *userFile
+    INT32 userId,
+    INT_CONTEXT *context
     );
 
 BOOL

@@ -27,9 +27,14 @@ FileGroupRead(
     DWORD bytesRead;
     DWORD error;
     DWORD fileSize;
-    INT_CONTEXT *context = groupFile->lpInternal;
+    INT_CONTEXT *context;
 
+    ASSERT(filePath != NULL);
+    ASSERT(groupFile != NULL);
+    ASSERT(groupFile->lpInternal != NULL);
     DebugPrint("FileGroupRead", "filePath=\"%s\" groupFile=%p\n", filePath, groupFile);
+
+    context = groupFile->lpInternal;
 
     // Open the group file
     context->fileHandle = CreateFileA(filePath,
@@ -91,7 +96,6 @@ error:
 
 BOOL
 FileGroupCreate(
-    char *groupName,
     INT32 groupId,
     GROUPFILE *groupFile
     )
@@ -101,7 +105,8 @@ FileGroupCreate(
     char buffer[12];
     DWORD error;
 
-    DebugPrint("FileGroupCreate", "groupName=\"%s\"\n", groupName);
+    ASSERT(groupFile != NULL);
+    DebugPrint("FileGroupCreate", "groupId=%i groupFile=%p\n", groupId, groupFile);
 
     // Retrieve default group location
     defaultPath = Io_ConfigGetPath("Locations", "Group_Files", "Default.Group", NULL);
@@ -162,14 +167,13 @@ FileGroupCreate(
 
 BOOL
 FileGroupDelete(
-    char *groupName,
     INT32 groupId
     )
 {
     char buffer[12];
     char *filePath;
 
-    DebugPrint("FileGroupDelete", "groupName=\"%s\" groupId=%i\n", groupName, groupId);
+    DebugPrint("FileGroupDelete", "groupId=%i\n", groupId);
 
     // Retrieve group file location
     StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", groupId);
@@ -190,19 +194,19 @@ FileGroupDelete(
 
 BOOL
 FileGroupOpen(
-    char *groupName,
-    GROUPFILE *groupFile
+    INT32 groupId,
+    INT_CONTEXT *context
     )
 {
     char buffer[12];
     char *filePath;
     DWORD error;
-    INT_CONTEXT *context = groupFile->lpInternal;
 
-    DebugPrint("FileGroupOpen", "groupName=\"%s\" groupFile=%p\n", groupName, groupFile);
+    ASSERT(context != NULL);
+    DebugPrint("FileGroupOpen", "groupId=%i context=%p\n", groupId, context);
 
     // Retrieve group file location
-    StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", groupFile->Gid);
+    StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", groupId);
     filePath = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
     if (filePath == NULL) {
         DebugPrint("FileGroupOpen", "Unable to retrieve file location.\n");
@@ -243,9 +247,13 @@ FileGroupWrite(
     BUFFER buffer;
     DWORD bytesWritten;
     DWORD error;
-    INT_CONTEXT *context = groupFile->lpInternal;
+    INT_CONTEXT *context;
 
+    ASSERT(groupFile != NULL);
+    ASSERT(groupFile->lpInternal != NULL);
     DebugPrint("FileGroupWrite", "groupFile=%p\n", groupFile);
+
+    context = groupFile->lpInternal;
 
     // Allocate write buffer
     ZeroMemory(&buffer, sizeof(BUFFER));
@@ -292,6 +300,7 @@ FileGroupClose(
     INT_CONTEXT *context
     )
 {
+    ASSERT(context != NULL);
     DebugPrint("FileGroupClose", "context=%p\n", context);
 
     // Close group file handle

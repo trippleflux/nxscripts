@@ -27,9 +27,14 @@ FileUserRead(
     DWORD bytesRead;
     DWORD error;
     DWORD fileSize;
-    INT_CONTEXT *context = userFile->lpInternal;
+    INT_CONTEXT *context;
 
+    ASSERT(filePath != NULL);
+    ASSERT(userFile != NULL);
+    ASSERT(userFile->lpInternal != NULL);
     DebugPrint("FileUserRead", "filePath=\"%s\" userFile=%p\n", filePath, userFile);
+
+    context = userFile->lpInternal;
 
     // Open the user file
     context->fileHandle = CreateFileA(filePath,
@@ -92,7 +97,6 @@ error:
 
 BOOL
 FileUserCreate(
-    char *userName,
     INT32 userId,
     USERFILE *userFile
     )
@@ -102,7 +106,8 @@ FileUserCreate(
     char buffer[12];
     DWORD error;
 
-    DebugPrint("FileUserCreate", "userName=\"%s\"\n", userName);
+    ASSERT(userFile != NULL);
+    DebugPrint("FileUserCreate", "userId=%i userFile=%p\n", userId, userFile);
 
     // Retrieve default user location
     defaultPath = Io_ConfigGetPath("Locations", "User_Files", "Default.User", NULL);
@@ -163,14 +168,13 @@ FileUserCreate(
 
 BOOL
 FileUserDelete(
-    char *userName,
     INT32 userId
     )
 {
     char buffer[12];
     char *filePath;
 
-    DebugPrint("FileUserDelete", "userName=\"%s\" userId=%i\n", userName, userId);
+    DebugPrint("FileUserDelete", "userId=%i\n", userId);
 
     // Retrieve user file location
     StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", userId);
@@ -191,19 +195,19 @@ FileUserDelete(
 
 BOOL
 FileUserOpen(
-    char *userName,
-    USERFILE *userFile
+    INT32 userId,
+    INT_CONTEXT *context
     )
 {
     char buffer[12];
     char *filePath;
     DWORD error;
-    INT_CONTEXT *context = userFile->lpInternal;
 
-    DebugPrint("FileUserOpen", "userName=\"%s\" userFile=%p\n", userName, userFile);
+    ASSERT(context != NULL);
+    DebugPrint("FileUserOpen", "userId=%i context=%p\n", userId, context);
 
     // Retrieve user file location
-    StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", userFile->Uid);
+    StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", userId);
     filePath = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
     if (filePath == NULL) {
         DebugPrint("FileUserOpen", "Unable to retrieve file location.\n");
@@ -244,9 +248,13 @@ FileUserWrite(
     BUFFER buffer;
     DWORD bytesWritten;
     DWORD error;
-    INT_CONTEXT *context = userFile->lpInternal;
+    INT_CONTEXT *context;
 
+    ASSERT(userFile != NULL);
+    ASSERT(userFile->lpInternal != NULL);
     DebugPrint("FileUserWrite", "userFile=%p\n", userFile);
+
+    context = userFile->lpInternal;
 
     // Allocate write buffer
     ZeroMemory(&buffer, sizeof(BUFFER));
@@ -293,6 +301,7 @@ FileUserClose(
     INT_CONTEXT *context
     )
 {
+    ASSERT(context != NULL);
     DebugPrint("FileUserClose", "context=%p\n", context);
 
     // Close user file handle
