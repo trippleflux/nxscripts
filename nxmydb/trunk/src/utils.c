@@ -47,6 +47,9 @@ OutputDebugger(
     size_t remaining;
     va_list argList;
 
+    ASSERT(funct  != NULL);
+    ASSERT(format != NULL);
+
     // Preserve system error code
     error = GetLastError();
 
@@ -92,6 +95,9 @@ OutputFile(
     FILE *handle;
     SYSTEMTIME now;
     va_list argList;
+
+    ASSERT(funct  != NULL);
+    ASSERT(format != NULL);
 
     // Preserve system error code
     error = GetLastError();

@@ -21,6 +21,8 @@ ConditionVariableInit(
     CONDITION_VARIABLE *condVar
     )
 {
+    ASSERT(condVar != NULL);
+    return TRUE;
 }
 
 BOOL
@@ -28,6 +30,8 @@ ConditionVariableDestroy(
     CONDITION_VARIABLE *condVar
     )
 {
+    ASSERT(condVar != NULL);
+    return TRUE;
 }
 
 BOOL
@@ -35,6 +39,8 @@ ConditionVariableBroadcast(
     CONDITION_VARIABLE *condVar
     )
 {
+    ASSERT(condVar != NULL);
+    return TRUE;
 }
 
 BOOL
@@ -42,6 +48,8 @@ ConditionVariableSignal(
     CONDITION_VARIABLE *condVar
     )
 {
+    ASSERT(condVar != NULL);
+    return TRUE;
 }
 
 BOOL
@@ -51,4 +59,7 @@ ConditionVariableWait(
     DWORD timeout
     )
 {
+    ASSERT(condVar != NULL);
+    ASSERT(critSection != NULL);
+    return TRUE;
 }

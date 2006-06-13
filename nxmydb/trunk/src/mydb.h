@@ -52,6 +52,14 @@ Abstract:
 // Calling convention used by ioFTPD for module functions.
 #define MODULE_CALL __cdecl
 
+// Debug assertions.
+#if defined(DEBUG) && !defined(NDEBUG)
+#   include "assert.h"
+#   define ASSERT assert
+#else
+#   define ASSERT ((void)0)
+#endif
+
 //
 // Debug message printing.
 //
@@ -61,7 +69,7 @@ Abstract:
 #if defined(DEBUG) && !defined(NDEBUG)
 #   define DebugPrint OutputDebugger
 #else
-#   define DebugPrint
+#   define DebugPrint ((void)0)
 #endif
 
 #endif // _MYDB_H_
