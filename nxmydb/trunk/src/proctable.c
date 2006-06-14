@@ -66,7 +66,6 @@ ProcTableInit(
     RESOLVE("StartIoTimer",    procTable.StartIoTimer)
     RESOLVE("StopIoTimer",     procTable.StopIoTimer)
     RESOLVE("Putlog",          procTable.Putlog)
-
     return TRUE;
 
 error:

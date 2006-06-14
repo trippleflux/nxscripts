@@ -16,6 +16,10 @@ Abstract:
 
 #include "mydb.h"
 
+// Reference count initialization calls
+static int refCount = 0;
+
+
 /*++
 
 DbInit
@@ -31,7 +35,9 @@ Return Values:
     If the function fails, the return value is zero (false).
 
 Remarks:
-    This function must be called once by each entry point (GroupModuleInit and UserModuleInit).
+    This function must be called once by each module entry point. Synchronization is not
+    important at this point because ioFTPD performs all module loading and initialization
+    in a single thread at start-up.
 
 --*/
 BOOL
@@ -39,7 +45,12 @@ DbInit(
     Io_GetProc *getProc
     )
 {
-    DebugPrint("DbInit", "getProc=%p\n", getProc);
+    DebugPrint("DbInit", "getProc=%p refCount=%i\n", getProc, refCount);
+
+    // Only initialize the module once
+    if (refCount++) {
+        return TRUE;
+    }
 
     // Initialize procedure table
     if (!ProcTableInit(getProc)) {
@@ -72,8 +83,12 @@ DbFinalize(
     void
     )
 {
-    DebugPrint("DbFinalize", "\n");
-    Io_Putlog(LOG_ERROR, "nxMyDB: Module v%s unloaded.\r\n", STRINGIFY(VERSION));
+    DebugPrint("DbFinalize", "refCount=%i\n", refCount);
 
-    ProcTableFinalize();
+    // Finalize once the reference count reaches zero
+    if (--refCount == 0) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Module v%s unloaded.\r\n", STRINGIFY(VERSION));
+
+        ProcTableFinalize();
+    }
 }

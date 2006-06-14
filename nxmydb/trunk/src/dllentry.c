@@ -46,8 +46,15 @@ DllMain(
     LPVOID reserved
     )
 {
-    if (reason == DLL_PROCESS_ATTACH) {
-        DisableThreadLibraryCalls(instance);
+    switch (reason) {
+        case DLL_PROCESS_ATTACH:
+            DebugPrint("DllMain", "PROCESS_ATTACH\n");
+            DisableThreadLibraryCalls(instance);
+            break;
+        case DLL_PROCESS_DETACH:
+            DebugPrint("DllMain", "PROCESS_DETACH\n");
+            break;
     }
+
     return TRUE;
 }
