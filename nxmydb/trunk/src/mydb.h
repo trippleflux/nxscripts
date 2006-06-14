@@ -44,10 +44,12 @@ Abstract:
 
 // Project headers
 #include "proctable.h"
+#include "queue.h"
+
 #include "backends.h"
 #include "condvars.h"
 #include "dbconn.h"
-#include "queue.h"
+#include "pool.h"
 #include "utils.h"
 
 // Calling convention used by ioFTPD for module functions.
