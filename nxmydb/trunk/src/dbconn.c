@@ -16,6 +16,12 @@ Abstract:
 
 #include "mydb.h"
 
+static void FreeValues(void);
+#if 0
+static PoolConstructorProc OpenConn;
+static PoolDestructorProc  CloseConn;
+#endif
+
 // MySQL server information
 static char *serverHost = NULL;
 static char *serverUser = NULL;
@@ -24,6 +30,11 @@ static char *serverDb   = NULL;
 static int   serverPort = 3306;
 static BOOL  useCompression = FALSE;
 static BOOL  useEncryption  = FALSE;
+
+#if 0
+// Database connection pool
+static POOL *pool = NULL;
+#endif
 
 // Reference count initialization calls
 static int refCount = 0;
@@ -106,6 +117,7 @@ DbInit(
     Io_ConfigGetBool("nxMyDB", "Compression", &useCompression);
     Io_ConfigGetBool("nxMyDB", "Encryption", &useEncryption);
 
+    // Dump configuration
     DebugPrint("Configuration", "   ServerHost=%s\n", serverHost);
     DebugPrint("Configuration", "   ServerPort=%i\n", serverPort);
     DebugPrint("Configuration", "   ServerUser=%s\n", serverUser);
@@ -118,8 +130,25 @@ DbInit(
     DebugPrint("Configuration", "PoolKeepAlive=%i\n", poolKeepAlive);
     DebugPrint("Configuration", "  PoolTimeout=%i\n", poolTimeout);
 
+    // Create connection pool
+#if 0
+    pool = Io_Allocate(sizeof(POOL));
+    if (pool == NULL) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Unable to allocate memory for the connection pool.\r\n");
+        goto error;
+    }
+    if (!PoolInit(&pool, poolMin, poolMax, poolKeepAlive, poolTimeout, OpenConn, CloseConn)) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Unable to create connection pool.\r\n");
+        goto error;
+    }
+#endif
+
     Io_Putlog(LOG_ERROR, "nxMyDB: v%s loaded.\r\n", STRINGIFY(VERSION));
     return TRUE;
+
+error:
+    FreeValues();
+    return FALSE;
 }
 
 /*++
@@ -149,21 +178,53 @@ DbFinalize(
     if (--refCount == 0) {
         Io_Putlog(LOG_ERROR, "nxMyDB: v%s unloaded.\r\n", STRINGIFY(VERSION));
 
-        // Free options
-        if (serverHost != NULL) {
-            Io_Free(serverHost);
-        }
-        if (serverUser != NULL) {
-            Io_Free(serverUser);
-        }
-        if (serverPass != NULL) {
-            Io_Free(serverPass);
-        }
-        if (serverDb != NULL) {
-            Io_Free(serverDb);
-        }
-
-        // Clear procedure table
+        FreeValues();
         ProcTableFinalize();
     }
+}
+
+
+/*++
+
+FreeValues
+
+    Frees memory allocated for configuration options and connection pools.
+
+Arguments:
+    None.
+
+Return Values:
+    None.
+
+--*/
+static
+void
+FreeValues(
+    void
+    )
+{
+    DebugPrint("FreeValues", "refCount=%i\n", refCount);
+
+    if (serverHost != NULL) {
+        Io_Free(serverHost);
+        serverHost = NULL;
+    }
+    if (serverUser != NULL) {
+        Io_Free(serverUser);
+        serverUser = NULL;
+    }
+    if (serverPass != NULL) {
+        Io_Free(serverPass);
+        serverPass = NULL;
+    }
+    if (serverDb != NULL) {
+        Io_Free(serverDb);
+        serverDb = NULL;
+    }
+#if 0
+    if (pool != NULL) {
+        PoolDestroy(pool);
+        pool = NULL;
+    }
+#endif
 }
