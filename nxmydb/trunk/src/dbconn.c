@@ -106,17 +106,17 @@ DbInit(
     Io_ConfigGetBool("nxMyDB", "Compression", &useCompression);
     Io_ConfigGetBool("nxMyDB", "Encryption", &useEncryption);
 
-    DebugPrint("DbInit", "Host           =%s\n", serverHost);
-    DebugPrint("DbInit", "Port           =%i\n", serverPort);
-    DebugPrint("DbInit", "User           =%s\n", serverUser);
-    DebugPrint("DbInit", "Password       =%s\n", serverPass);
-    DebugPrint("DbInit", "Database       =%s\n", serverDb);
-    DebugPrint("DbInit", "Compression    =%s\n", useCompression);
-    DebugPrint("DbInit", "Encryption     =%s\n", useEncryption);
-    DebugPrint("DbInit", "Pool_Minimum   =%i\n", poolMin);
-    DebugPrint("DbInit", "Pool_Maximum   =%i\n", poolMax);
-    DebugPrint("DbInit", "Pool_Keep_Alive=%i\n", poolKeepAlive);
-    DebugPrint("DbInit", "Pool_Timeout   =%i\n", poolTimeout);
+    DebugPrint("Configuration", "   ServerHost=%s\n", serverHost);
+    DebugPrint("Configuration", "   ServerPort=%i\n", serverPort);
+    DebugPrint("Configuration", "   ServerUser=%s\n", serverUser);
+    DebugPrint("Configuration", "   ServerPass=%s\n", serverPass);
+    DebugPrint("Configuration", "     ServerDb=%s\n", serverDb);
+    DebugPrint("Configuration", "  Compression=%s\n", useCompression);
+    DebugPrint("Configuration", "   Encryption=%s\n", useEncryption);
+    DebugPrint("Configuration", "  PoolMinimum=%i\n", poolMin);
+    DebugPrint("Configuration", "  PoolMaximum=%i\n", poolMax);
+    DebugPrint("Configuration", "PoolKeepAlive=%i\n", poolKeepAlive);
+    DebugPrint("Configuration", "  PoolTimeout=%i\n", poolTimeout);
 
     Io_Putlog(LOG_ERROR, "nxMyDB: v%s loaded.\r\n", STRINGIFY(VERSION));
     return TRUE;
