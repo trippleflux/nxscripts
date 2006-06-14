@@ -123,8 +123,8 @@ DbInit(
     DebugPrint("Configuration", "   ServerUser=%s\n", serverUser);
     DebugPrint("Configuration", "   ServerPass=%s\n", serverPass);
     DebugPrint("Configuration", "     ServerDb=%s\n", serverDb);
-    DebugPrint("Configuration", "  Compression=%s\n", useCompression);
-    DebugPrint("Configuration", "   Encryption=%s\n", useEncryption);
+    DebugPrint("Configuration", "  Compression=%s\n", useCompression ? "true" : "false");
+    DebugPrint("Configuration", "   Encryption=%s\n", useEncryption ? "true" : "false");
     DebugPrint("Configuration", "  PoolMinimum=%i\n", poolMin);
     DebugPrint("Configuration", "  PoolMaximum=%i\n", poolMax);
     DebugPrint("Configuration", "PoolKeepAlive=%i\n", poolKeepAlive);
