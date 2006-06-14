@@ -49,7 +49,10 @@ DllMain(
     switch (reason) {
         case DLL_PROCESS_ATTACH:
             DebugPrint("DllMain", "PROCESS_ATTACH\n");
+#ifndef STATIC_CRT
+            // The static CRT requires thread notifications.
             DisableThreadLibraryCalls(instance);
+#endif
             break;
         case DLL_PROCESS_DETACH:
             DebugPrint("DllMain", "PROCESS_DETACH\n");
