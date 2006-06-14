@@ -61,8 +61,8 @@ Abstract:
 
 // ASSERT - Expression assertion.
 #if defined(DEBUG) && !defined(NDEBUG)
-#   include "assert.h"
-#   define ASSERT assert
+#   include "crtdbg.h"
+#   define ASSERT _ASSERTE
 #else
 #   define ASSERT
 #endif
