@@ -49,6 +49,7 @@ DbInit(
 
     // Only initialize the module once
     if (refCount++) {
+        DebugPrint("DbInit", "Already initialized, returning.\n");
         return TRUE;
     }
 
@@ -58,7 +59,7 @@ DbInit(
         return FALSE;
     }
 
-    Io_Putlog(LOG_ERROR, "nxMyDB: Module v%s loaded.\r\n", STRINGIFY(VERSION));
+    Io_Putlog(LOG_ERROR, "nxMyDB: v%s loaded.\r\n", STRINGIFY(VERSION));
     return TRUE;
 }
 
@@ -87,7 +88,7 @@ DbFinalize(
 
     // Finalize once the reference count reaches zero
     if (--refCount == 0) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Module v%s unloaded.\r\n", STRINGIFY(VERSION));
+        Io_Putlog(LOG_ERROR, "nxMyDB: v%s unloaded.\r\n", STRINGIFY(VERSION));
 
         ProcTableFinalize();
     }
