@@ -46,8 +46,11 @@ DllMain(
     LPVOID reserved
     )
 {
+    // The static CRT requires thread notifications, and we only use the CRT in debug builds.
+#if defined(DYNAMIC_CRT) || (defined(STATIC_CRT) && !defined(DEBUG))
     if (reason == DLL_PROCESS_ATTACH) {
         DisableThreadLibraryCalls(instance);
     }
+#endif
     return TRUE;
 }

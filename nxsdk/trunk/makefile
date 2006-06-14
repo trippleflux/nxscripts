@@ -45,9 +45,11 @@ RFLAGS      = /r
 !if $(MSVCRT)
 !message CRT Library: msvcrt (dynamic)
 CRTLIB      = /MD
+CFLAGS      = $(CFLAGS) /DDYNAMIC_CRT
 !else
 !message CRT Library: libcmt (static)
 CRTLIB      = /MT
+CFLAGS      = $(CFLAGS) /DSTATIC_CRT
 !endif
 
 !if $(DEBUG)
