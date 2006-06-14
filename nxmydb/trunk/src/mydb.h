@@ -47,6 +47,7 @@ Abstract:
 #include "backends.h"
 #include "condvars.h"
 #include "dbconn.h"
+#include "queue.h"
 #include "utils.h"
 
 // Calling convention used by ioFTPD for module functions.
