@@ -66,8 +66,9 @@ DbInit(
     )
 {
     int poolMin;
+    int poolAvg;
     int poolMax;
-    int poolKeepAlive;
+    int poolExpiration;
     int poolTimeout;
     DebugPrint("DbInit", "getProc=%p refCount=%i\n", getProc, refCount);
 
@@ -90,15 +91,21 @@ DbInit(
         return FALSE;
     }
 
-    poolMax = poolMin * 2;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Maximum", &poolMax) && poolMax <= poolMin) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Maximum' must be greater than 'Pool_Minimum'.\r\n");
+    poolAvg = poolMin + 1;
+    if (Io_ConfigGetInt("nxMyDB", "Pool_Average", &poolAvg) && poolAvg < poolMin) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Average' must be greater than or equal to 'Pool_Minimum'.\r\n");
         return FALSE;
     }
 
-    poolKeepAlive = 3600;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Keep_Alive", &poolKeepAlive) && poolKeepAlive <= 0) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Keep_Alive' must be greater than zero.\r\n");
+    poolMax = poolAvg * 2;
+    if (Io_ConfigGetInt("nxMyDB", "Pool_Maximum", &poolMax) && poolMax < poolAvg) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Maximum' must be greater than or equal to 'Pool_Average'.\r\n");
+        return FALSE;
+    }
+
+    poolExpiration = 3600;
+    if (Io_ConfigGetInt("nxMyDB", "Pool_Expiration", &poolExpiration) && poolExpiration <= 0) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Expiration' must be greater than zero.\r\n");
         return FALSE;
     }
 
@@ -118,26 +125,27 @@ DbInit(
     Io_ConfigGetBool("nxMyDB", "Encryption", &useEncryption);
 
     // Dump configuration
-    DebugPrint("Configuration", "   ServerHost=%s\n", serverHost);
-    DebugPrint("Configuration", "   ServerPort=%i\n", serverPort);
-    DebugPrint("Configuration", "   ServerUser=%s\n", serverUser);
-    DebugPrint("Configuration", "   ServerPass=%s\n", serverPass);
-    DebugPrint("Configuration", "     ServerDb=%s\n", serverDb);
-    DebugPrint("Configuration", "  Compression=%s\n", useCompression ? "true" : "false");
-    DebugPrint("Configuration", "   Encryption=%s\n", useEncryption ? "true" : "false");
-    DebugPrint("Configuration", "  PoolMinimum=%i\n", poolMin);
-    DebugPrint("Configuration", "  PoolMaximum=%i\n", poolMax);
-    DebugPrint("Configuration", "PoolKeepAlive=%i\n", poolKeepAlive);
-    DebugPrint("Configuration", "  PoolTimeout=%i\n", poolTimeout);
+    DebugPrint("Configuration", "    ServerHost=%s\n", serverHost);
+    DebugPrint("Configuration", "    ServerPort=%i\n", serverPort);
+    DebugPrint("Configuration", "    ServerUser=%s\n", serverUser);
+    DebugPrint("Configuration", "    ServerPass=%s\n", serverPass);
+    DebugPrint("Configuration", "      ServerDb=%s\n", serverDb);
+    DebugPrint("Configuration", "   Compression=%s\n", useCompression ? "true" : "false");
+    DebugPrint("Configuration", "    Encryption=%s\n", useEncryption ? "true" : "false");
+    DebugPrint("Configuration", "   PoolMinimum=%i\n", poolMin);
+    DebugPrint("Configuration", "   PoolAverage=%i\n", poolAvg);
+    DebugPrint("Configuration", "   PoolMaximum=%i\n", poolMax);
+    DebugPrint("Configuration", "PoolExpiration=%i\n", poolExpiration);
+    DebugPrint("Configuration", "   PoolTimeout=%i\n", poolTimeout);
 
     // Create connection pool
 #if 0
     pool = Io_Allocate(sizeof(POOL));
     if (pool == NULL) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Unable to allocate memory for the connection pool.\r\n");
+        Io_Putlog(LOG_ERROR, "nxMyDB: Unable to allocate memory for connection pool.\r\n");
         goto error;
     }
-    if (!PoolInit(&pool, poolMin, poolMax, poolKeepAlive, poolTimeout, OpenConn, CloseConn)) {
+    if (!PoolInit(&pool, poolMin, poolAvg, poolMax, poolExpiration, poolTimeout, OpenConn, CloseConn)) {
         Io_Putlog(LOG_ERROR, "nxMyDB: Unable to create connection pool.\r\n");
         goto error;
     }
