@@ -133,7 +133,60 @@ ConnectionClose(
 
 /*++
 
-FreeConfig
+ConfigGet
+
+    Retrieves configuration options, also removing comments and whitespace.
+
+Arguments:
+    array    - Option array name.
+
+    variable - Option variable name.
+
+Return Values:
+    If the function succeeds, the return value is a pointer to the configuration value.
+
+    If the function fails, the return value is null.
+
+--*/
+static
+char *
+ConfigGet(
+    char *array,
+    char *variable
+    )
+{
+    char *p;
+    char *value;
+    size_t length;
+
+    ASSERT(array != NULL);
+    ASSERT(variable != NULL);
+
+    // Retrieve value from ioFTPD
+    value = Io_ConfigGet(array, variable, NULL, NULL);
+    if (value == NULL) {
+        return NULL;
+    }
+
+    // Count characters before a "#" or ";"
+    p = value;
+    while (*p != '\0' && *p != '#' && *p != ';') {
+        p++;
+    }
+    length = p - value;
+
+    // Strip trailing whitespace
+    while (length > 0 && isspace(value[length-1])) {
+        length--;
+    }
+
+    value[length] = '\0';
+    return value;
+}
+
+/*++
+
+ConfigFree
 
     Frees memory allocated for configuration options.
 
@@ -146,11 +199,11 @@ Return Values:
 --*/
 static
 void
-FreeConfig(
+ConfigFree(
     void
     )
 {
-    DebugPrint("FreeConfig", "refCount=%i\n", refCount);
+    DebugPrint("ConfigFree", "refCount=%i\n", refCount);
 
     // Free server options
     if (serverHost != NULL) {
@@ -230,7 +283,7 @@ DbInit(
     }
 
     // Read pool options
-    poolMin = 2;
+    poolMin = 1;
     if (Io_ConfigGetInt("nxMyDB", "Pool_Minimum", &poolMin) && poolMin <= 0) {
         Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Minimum' must be greater than zero.\r\n");
         return FALSE;
@@ -265,18 +318,18 @@ DbInit(
     poolTimeout *= 1000;
 
     // Read server options
-    serverHost = Io_ConfigGet("nxMyDB", "Host", NULL, NULL);
-    serverUser = Io_ConfigGet("nxMyDB", "User", NULL, NULL);
-    serverPass = Io_ConfigGet("nxMyDB", "Password", NULL, NULL);
-    serverDb   = Io_ConfigGet("nxMyDB", "Database", NULL, NULL);
+    serverHost = ConfigGet("nxMyDB", "Host");
+    serverUser = ConfigGet("nxMyDB", "User");
+    serverPass = ConfigGet("nxMyDB", "Password");
+    serverDb   = ConfigGet("nxMyDB", "Database");
     Io_ConfigGetInt("nxMyDB", "Port", &serverPort);
     Io_ConfigGetBool("nxMyDB", "Compression", &compression);
     Io_ConfigGetBool("nxMyDB", "SSL_Enable", &sslEnable);
-    sslCiphers  = Io_ConfigGet("nxMyDB", "SSL_Ciphers", NULL, NULL);
-    sslCertFile = Io_ConfigGet("nxMyDB", "SSL_Cert_File", NULL, NULL);
-    sslKeyFile  = Io_ConfigGet("nxMyDB", "SSL_Key_File", NULL, NULL);
-    sslCAFile   = Io_ConfigGet("nxMyDB", "SSL_CA_File", NULL, NULL);
-    sslCAPath   = Io_ConfigGet("nxMyDB", "SSL_CA_Path", NULL, NULL);
+    sslCiphers  = ConfigGet("nxMyDB", "SSL_Ciphers");
+    sslCertFile = ConfigGet("nxMyDB", "SSL_Cert_File");
+    sslKeyFile  = ConfigGet("nxMyDB", "SSL_Key_File");
+    sslCAFile   = ConfigGet("nxMyDB", "SSL_CA_File");
+    sslCAPath   = ConfigGet("nxMyDB", "SSL_CA_Path");
 
     // Dump configuration
     DebugPrint("Configuration", "Server Host     = %s\n", serverHost);
@@ -315,7 +368,7 @@ DbInit(
     return TRUE;
 
 error:
-    FreeConfig();
+    ConfigFree();
     return FALSE;
 }
 
@@ -351,7 +404,7 @@ DbFinalize(
         Io_Free(pool);
 
         // Free configuration values
-        FreeConfig();
+        ConfigFree();
 
         // Clear procedure table
         ProcTableFinalize();
