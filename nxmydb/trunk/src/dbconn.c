@@ -248,7 +248,8 @@ DbInit(
         goto error;
     }
 
-    Io_Putlog(LOG_ERROR, "nxMyDB: v%s loaded.\r\n", STRINGIFY(VERSION));
+    Io_Putlog(LOG_ERROR, "nxMyDB: v%s loaded, using MySQL client v%s.\r\n",
+        STRINGIFY(VERSION), mysql_get_client_info());
     return TRUE;
 
 error:
@@ -286,4 +287,52 @@ DbFinalize(
         FreeValues();
         ProcTableFinalize();
     }
+}
+
+/*++
+
+DbAcquire
+
+    Acquires a MySQL handle from the connection pool.
+
+Arguments:
+    mysql   - Pointer to a pointer that receives the MYSQL structure.
+
+Return Values:
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false).
+
+--*/
+BOOL
+DbAcquire(
+    MYSQL **mysql
+    )
+{
+    ASSERT(mysql != NULL);
+    DebugPrint("DbAcquire", "mysql=%p\n", mysql);
+
+    return TRUE;
+}
+
+/*++
+
+DbRelease
+
+    Releases a MySQL handle back into the connection pool.
+
+Arguments:
+    mysql  - Pointer to a pointer that receives the MYSQL structure.
+
+Return Values:
+    None.
+
+--*/
+void
+DbRelease(
+    MYSQL *mysql
+    )
+{
+    ASSERT(mysql != NULL);
+    DebugPrint("DbRelease", "mysql=%p\n", mysql);
 }

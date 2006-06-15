@@ -27,4 +27,14 @@ DbFinalize(
     void
     );
 
+BOOL
+DbAcquire(
+    MYSQL **mysql
+    );
+
+void
+DbRelease(
+    MYSQL *mysql
+    );
+
 #endif // _DBCONN_H_
