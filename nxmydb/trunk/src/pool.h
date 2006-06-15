@@ -17,18 +17,47 @@ Abstract:
 #ifndef _POOL_H_
 #define _POOL_H_
 
-//
-// Pool resource callbacks
-//
+/*++
 
+POOL_CONSTRUCTOR_PROC
+
+    Creates a resource.
+
+Arguments:
+    opaque  - Opaque argument passed to PoolInit().
+
+    data    - Opaque data set by this callback.
+
+Return Values:
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false). The callback function
+    must set the system error code on failure.
+
+--*/
 typedef BOOL (POOL_CONSTRUCTOR_PROC)(
-    void *opaque,   // Opaque argument passed to PoolInit()
-    void **data     // Opaque data set by this callback
+    void *opaque,
+    void **data
     );
 
+/*++
+
+POOL_DESTRUCTOR_PROC
+
+    Destroys a resource.
+
+Arguments:
+    opaque  - Opaque argument passed to PoolInit().
+
+    data    - Opaque data set by the constructor callback.
+
+Return Values:
+    None.
+
+--*/
 typedef void (POOL_DESTRUCTOR_PROC)(
-    void *opaque,   // Opaque argument passed to PoolInit()
-    void *data      // Opaque data set by the constructor callback
+    void *opaque,
+    void *data
     );
 
 //

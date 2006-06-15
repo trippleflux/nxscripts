@@ -13,10 +13,12 @@ Abstract:
     Resource pool functions. This implementation is based on APR resource lists,
     but rewritten to use different list, locking, and synchronization constructs.
 
-Notes:
     Container     - An empty resource (yet to be populated).
     Idle Resource - A populated resource that is not in use.
     Used Resource - A populated resource that is in use.
+
+    LeaveCriticalSection() appears not to alter the system error code in free builds
+    of Windows, however it could in checked builds (but who really uses those anyway :P).
 
 */
 
@@ -35,7 +37,8 @@ Return Values:
     If the function succeeds, the return value is a pointer to a POOL_RESOURCE
     structure (container).
 
-    If the function fails, the return value is null.
+    If the function fails, the return value is null. To get extended error
+    information, call GetLastError.
 
 Remarks:
     This function assumes the queues are locked.
@@ -59,6 +62,9 @@ ContainerPop(
     } else {
         // Allocate a new container
         container = Io_Allocate(sizeof(POOL_RESOURCE));
+        if (container == NULL) {
+            SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+        }
     }
 
     return container;
@@ -107,12 +113,13 @@ ResourceCreate
 Arguments:
     pool     - Pointer to an initialized POOL structure.
 
-    resource - Pointer to a pointer that receives the POOL_RESOURCE structure (idle resource).
+    resource - Pointer to a pointer that receives the POOL_RESOURCE structure.
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false).
+    If the function fails, the return value is zero (false). To get extended error
+    information, call GetLastError.
 
 Remarks:
     This function assumes the queues are locked.
@@ -139,6 +146,8 @@ ResourceCreate(
 
     // Populate the container
     if (!pool->constructor(pool->opaque, &container->data)) {
+        ASSERT(GetLastError() != ERROR_SUCCESS);
+
         // Place container back on the container queue
         ContainerPush(pool, container);
         return FALSE;
@@ -293,11 +302,11 @@ ResourceUpdate(
     while (pool->idle < pool->minimum && pool->total <= pool->maximum) {
         // Create a new resource
         if (!ResourceCreate(pool, &resource)) {
-            // Do not fail if we cannot create a resource
-            break;
-
             //LeaveCriticalSection(&pool->queueLock);
             //return FALSE;
+
+            // Fail silently if we cannot create a resource
+            break;
         }
 
         // Add resource to the queue
@@ -375,7 +384,8 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false).
+    If the function fails, the return value is zero (false). To get extended error
+    information, call GetLastError.
 
 --*/
 BOOL
@@ -436,7 +446,7 @@ PoolInit(
 
 /*++
 
-PoolInit
+PoolDestroy
 
     Destroys a resource pool.
 
@@ -444,9 +454,7 @@ Arguments:
     pool    - Pointer to the POOL structure to be destroyed.
 
 Return Values:
-    If the function succeeds, the return value is nonzero (true).
-
-    If the function fails, the return value is zero (false).
+    None.
 
 --*/
 void
@@ -492,7 +500,8 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false).
+    If the function fails, the return value is zero (false). To get extended
+    error information, call GetLastError.
 
 Remarks:
     This function will block until a resource becomes available.
@@ -574,7 +583,8 @@ Arguments:
 Return Values:
     If the function succeeds, the return value is nonzero (true).
 
-    If the function fails, the return value is zero (false).
+    If the function fails, the return value is zero (false). To get extended
+    error information, call GetLastError.
 
 --*/
 BOOL
@@ -583,6 +593,7 @@ PoolRelease(
     void *data
     )
 {
+    DWORD error;
     POOL_RESOURCE *container;
 
     ASSERT(pool != NULL);
@@ -594,10 +605,12 @@ PoolRelease(
     // Retrieve a container for the data
     container = ContainerPop(pool);
     if (container == NULL) {
-        // Destroy resource since we cannot obtain a container
+        error = GetLastError();
         ResourceDestroy(pool, data);
-
         LeaveCriticalSection(&pool->queueLock);
+
+        // Restore system error code in case the destructor changed it
+        SetLastError(error);
         return FALSE;
     }
 
