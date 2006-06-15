@@ -320,7 +320,7 @@ ResourceUpdate(
 
         if ((currentTime - resource->created) < pool->expiration) {
             // New resources are added to the tail of the list. So if this
-            // resource is too young, the following ones will be as well.
+            // one is too young, the following resources will be as well.
             break;
         }
 
@@ -358,7 +358,8 @@ Arguments:
     expiration  - Milliseconds until a resource expires. This argument must be
                   greater than zero.
 
-    timeout     - Milliseconds to wait for a resource to become available.
+    timeout     - Milliseconds to wait for a resource to become available. If this
+                  argument is zero, it will wait forever.
 
     constructor - Procedure called when a resource is created.
 
@@ -518,7 +519,39 @@ PoolAcquire(
         return TRUE;
     }
 
-    return FALSE;
+    // If we've hit the maximum limit, block until a resource
+    // becomes available or we're allowed to create one.
+    while (pool->total >= pool->maximum && pool->idle <= 0) {
+        if (pool->timeout) {
+            if (!ConditionVariableWait(&pool->availCond, &pool->queueLock, pool->timeout)) {
+                LeaveCriticalSection(&pool->queueLock);
+                return FALSE;
+            }
+        } else {
+            ConditionVariableWait(&pool->availCond, &pool->queueLock, INFINITE);
+        }
+    }
+
+    // Check if there are any resources
+    if (pool->idle > 0) {
+        resource = ResourcePop(pool);
+        *data = resource->data;
+        ContainerFree(pool, resource);
+
+        LeaveCriticalSection(&pool->queueLock);
+        return TRUE;
+    }
+
+    // Create a new resource since there are no available ones
+    result = ResourceCreate(pool, &resource);
+    if (result) {
+        pool->total++;
+        *data = resource->data;
+        ContainerFree(pool, resource);
+    }
+
+    LeaveCriticalSection(&pool->queueLock);
+    return result;
 }
 
 /*++
