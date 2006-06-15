@@ -21,7 +21,7 @@ static char *serverHost = NULL;
 static char *serverUser = NULL;
 static char *serverPass = NULL;
 static char *serverDb   = NULL;
-static int   serverPort = 3306;
+static int   serverPort = 0;
 static BOOL  useCompression = FALSE;
 static BOOL  useEncryption  = FALSE;
 
@@ -56,10 +56,40 @@ ConnectionOpen(
     void **data
     )
 {
+    MYSQL *handle;
+    unsigned long flags;
+
     ASSERT(opaque == NULL);
     ASSERT(data != NULL);
     DebugPrint("ConnectionOpen", "opaque=%p data=%p\n", opaque, data);
 
+    // Have MySQL allocate the structure. This is in case the client library is a different
+    // version than the header we're compiling with (structures could be different sizes).
+    handle = mysql_init(NULL);
+    if (handle == NULL) {
+        DebugPrint("ConnectionOpen", "Unable to allocate MySQL handle structure.\n");
+        return FALSE;
+    }
+
+    // Set client options
+    flags = CLIENT_INTERACTIVE;
+    if (useCompression) {
+        flags |= CLIENT_COMPRESS;
+    }
+    if (useEncryption) {
+        mysql_ssl_set(handle, NULL, NULL, NULL, NULL, NULL);
+    }
+
+    // Open database server connection
+    if (!mysql_real_connect(handle, serverHost, serverUser, serverPass, serverDb, serverPort, NULL, flags)) {
+        DebugPrint("ConnectionOpen", "Unable to connect to server: %s\r\n", mysql_error(handle));
+        Io_Putlog(LOG_ERROR, "nxMyDB: Unable to connect to server: %s\r\n", mysql_error(handle));
+        mysql_close(handle);
+        return FALSE;
+    }
+
+    DebugPrint("ConnectionOpen", "Connected to MySQL Server v%s.\n", mysql_get_server_info(handle));
+    *data = handle;
     return TRUE;
 }
 
@@ -85,9 +115,15 @@ ConnectionClose(
     void *data
     )
 {
+    MYSQL *handle;
+
     ASSERT(opaque == NULL);
     ASSERT(data != NULL);
     DebugPrint("ConnectionClose", "opaque=%p data=%p\n", opaque, data);
+
+    // Close database server connection
+    handle = data;
+    mysql_close(handle);
 }
 
 /*++
@@ -248,7 +284,7 @@ DbInit(
         goto error;
     }
 
-    Io_Putlog(LOG_ERROR, "nxMyDB: v%s loaded, using MySQL client v%s.\r\n",
+    Io_Putlog(LOG_ERROR, "nxMyDB: v%s loaded, using MySQL Client Library v%s.\r\n",
         STRINGIFY(VERSION), mysql_get_client_info());
     return TRUE;
 
@@ -296,7 +332,7 @@ DbAcquire
     Acquires a MySQL handle from the connection pool.
 
 Arguments:
-    mysql   - Pointer to a pointer that receives the MYSQL structure.
+    handle  - Pointer to a pointer that receives the MYSQL handle structure.
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).
@@ -306,11 +342,11 @@ Return Values:
 --*/
 BOOL
 DbAcquire(
-    MYSQL **mysql
+    MYSQL **handle
     )
 {
-    ASSERT(mysql != NULL);
-    DebugPrint("DbAcquire", "mysql=%p\n", mysql);
+    ASSERT(handle != NULL);
+    DebugPrint("DbAcquire", "handle=%p\n", handle);
 
     return TRUE;
 }
@@ -322,7 +358,7 @@ DbRelease
     Releases a MySQL handle back into the connection pool.
 
 Arguments:
-    mysql  - Pointer to a pointer that receives the MYSQL structure.
+    handle  - Pointer to a pointer that receives the MYSQL handle structure.
 
 Return Values:
     None.
@@ -330,9 +366,9 @@ Return Values:
 --*/
 void
 DbRelease(
-    MYSQL *mysql
+    MYSQL *handle
     )
 {
-    ASSERT(mysql != NULL);
-    DebugPrint("DbRelease", "mysql=%p\n", mysql);
+    ASSERT(handle != NULL);
+    DebugPrint("DbRelease", "handle=%p\n", handle);
 }

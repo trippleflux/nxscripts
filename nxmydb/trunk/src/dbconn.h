@@ -29,12 +29,12 @@ DbFinalize(
 
 BOOL
 DbAcquire(
-    MYSQL **mysql
+    MYSQL **handle
     );
 
 void
 DbRelease(
-    MYSQL *mysql
+    MYSQL *handle
     );
 
 #endif // _DBCONN_H_
