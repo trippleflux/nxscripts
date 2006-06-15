@@ -223,18 +223,18 @@ DbInit(
     Io_ConfigGetBool("nxMyDB", "Encryption", &useEncryption);
 
     // Dump configuration
-    DebugPrint("Configuration", "    ServerHost=%s\n", serverHost);
-    DebugPrint("Configuration", "    ServerPort=%i\n", serverPort);
-    DebugPrint("Configuration", "    ServerUser=%s\n", serverUser);
-    DebugPrint("Configuration", "    ServerPass=%s\n", serverPass);
-    DebugPrint("Configuration", "      ServerDb=%s\n", serverDb);
-    DebugPrint("Configuration", "   Compression=%s\n", useCompression ? "true" : "false");
-    DebugPrint("Configuration", "    Encryption=%s\n", useEncryption ? "true" : "false");
-    DebugPrint("Configuration", "   PoolMinimum=%i\n", poolMin);
-    DebugPrint("Configuration", "   PoolAverage=%i\n", poolAvg);
-    DebugPrint("Configuration", "   PoolMaximum=%i\n", poolMax);
-    DebugPrint("Configuration", "PoolExpiration=%i\n", poolExpiration);
-    DebugPrint("Configuration", "   PoolTimeout=%i\n", poolTimeout);
+    DebugPrint("Configuration", "    ServerHost = %s\n", serverHost);
+    DebugPrint("Configuration", "    ServerPort = %i\n", serverPort);
+    DebugPrint("Configuration", "    ServerUser = %s\n", serverUser);
+    DebugPrint("Configuration", "    ServerPass = %s\n", serverPass);
+    DebugPrint("Configuration", "      ServerDb = %s\n", serverDb);
+    DebugPrint("Configuration", "   Compression = %s\n", useCompression ? "true" : "false");
+    DebugPrint("Configuration", "    Encryption = %s\n", useEncryption ? "true" : "false");
+    DebugPrint("Configuration", "   PoolMinimum = %i\n", poolMin);
+    DebugPrint("Configuration", "   PoolAverage = %i\n", poolAvg);
+    DebugPrint("Configuration", "   PoolMaximum = %i\n", poolMax);
+    DebugPrint("Configuration", "PoolExpiration = %i\n", poolExpiration);
+    DebugPrint("Configuration", "   PoolTimeout = %i\n", poolTimeout);
 
     // Create connection pool
     pool = Io_Allocate(sizeof(POOL));
