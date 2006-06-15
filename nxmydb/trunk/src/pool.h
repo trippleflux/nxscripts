@@ -18,7 +18,7 @@ Abstract:
 #define _POOL_H_
 
 //
-// Pool callbacks
+// Pool resource callbacks
 //
 
 typedef BOOL (POOL_CONSTRUCTOR_PROC)(
@@ -69,5 +69,41 @@ typedef struct {
 //
 // Pool functions
 //
+
+BOOL
+PoolInit(
+    POOL *pool,
+    DWORD minimum,
+    DWORD average,
+    DWORD maximum,
+    DWORD expiration,
+    DWORD timeout,
+    POOL_CONSTRUCTOR_PROC *constructor,
+    POOL_DESTRUCTOR_PROC *destructor,
+    void *opaque
+    );
+
+BOOL
+PoolDestroy(
+    POOL *pool
+    );
+
+BOOL
+PoolAcquire(
+    POOL *pool,
+    void **data
+    );
+
+BOOL
+PoolRelease(
+    POOL *pool,
+    void *data
+    );
+
+BOOL
+PoolInvalidate(
+    POOL *pool,
+    void *data
+    );
 
 #endif // _POOL_H_

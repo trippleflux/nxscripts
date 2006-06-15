@@ -17,12 +17,10 @@ Abstract:
 #include "mydb.h"
 
 static void FreeValues(void);
-#if 0
-static PoolConstructorProc OpenConn;
-static PoolDestructorProc  CloseConn;
-#endif
+static POOL_CONSTRUCTOR_PROC ConnectionOpen;
+static POOL_DESTRUCTOR_PROC  ConnectionClose;
 
-// MySQL server information
+// MySQL Server information
 static char *serverHost = NULL;
 static char *serverUser = NULL;
 static char *serverPass = NULL;
@@ -31,10 +29,8 @@ static int   serverPort = 3306;
 static BOOL  useCompression = FALSE;
 static BOOL  useEncryption  = FALSE;
 
-#if 0
 // Database connection pool
 static POOL *pool = NULL;
-#endif
 
 // Reference count initialization calls
 static int refCount = 0;
@@ -139,17 +135,16 @@ DbInit(
     DebugPrint("Configuration", "   PoolTimeout=%i\n", poolTimeout);
 
     // Create connection pool
-#if 0
     pool = Io_Allocate(sizeof(POOL));
     if (pool == NULL) {
         Io_Putlog(LOG_ERROR, "nxMyDB: Unable to allocate memory for connection pool.\r\n");
         goto error;
     }
-    if (!PoolInit(&pool, poolMin, poolAvg, poolMax, poolExpiration, poolTimeout, OpenConn, CloseConn)) {
+    if (!PoolInit(pool, poolMin, poolAvg, poolMax, poolExpiration,
+            poolTimeout, ConnectionOpen, ConnectionClose, NULL)) {
         Io_Putlog(LOG_ERROR, "nxMyDB: Unable to create connection pool.\r\n");
         goto error;
     }
-#endif
 
     Io_Putlog(LOG_ERROR, "nxMyDB: v%s loaded.\r\n", STRINGIFY(VERSION));
     return TRUE;
@@ -194,6 +189,68 @@ DbFinalize(
 
 /*++
 
+ConnectionOpen
+
+    Opens a MySQL Server connection.
+
+Arguments:
+    opaque - Opaque argument passed to PoolInit().
+
+    data   - Pointer to a MYSQL structure.
+
+Return Values:
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false).
+
+--*/
+static
+BOOL
+ConnectionOpen(
+    void *opaque,
+    void **data
+    )
+{
+    ASSERT(opaque == NULL);
+    ASSERT(data != NULL);
+    DebugPrint("ConnectionOpen", "opaque=%p data=%p\n", opaque, data);
+
+    return TRUE;
+}
+
+/*++
+
+ConnectionClose
+
+    Closes the MySQL Server connection.
+
+Arguments:
+    opaque - Opaque argument passed to PoolInit().
+
+    data   - Pointer to a MYSQL structure.
+
+Return Values:
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false).
+
+--*/
+static
+BOOL
+ConnectionClose(
+    void *opaque,
+    void *data
+    )
+{
+    ASSERT(opaque == NULL);
+    ASSERT(data != NULL);
+    DebugPrint("ConnectionClose", "opaque=%p data=%p\n", opaque, data);
+
+    return TRUE;
+}
+
+/*++
+
 FreeValues
 
     Frees memory allocated for configuration options and connection pools.
@@ -229,10 +286,8 @@ FreeValues(
         Io_Free(serverDb);
         serverDb = NULL;
     }
-#if 0
     if (pool != NULL) {
         PoolDestroy(pool);
         pool = NULL;
     }
-#endif
 }
