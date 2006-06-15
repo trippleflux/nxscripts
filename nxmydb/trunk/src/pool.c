@@ -416,10 +416,14 @@ PoolInit(
     TAILQ_INIT(&pool->resQueue);
     TAILQ_INIT(&pool->conQueue);
 
-    if (!ConditionVariableInit(&pool->availCond)) {
+    if (!InitializeCriticalSectionAndSpinCount(&pool->queueLock, 250)) {
         return FALSE;
     }
-    InitializeCriticalSection(&pool->queueLock);
+
+    if (!ConditionVariableInit(&pool->availCond)) {
+        DeleteCriticalSection(&pool->queueLock);
+        return FALSE;
+    }
 
     // Update resource queues
     if (!ResourceUpdate(pool)) {
