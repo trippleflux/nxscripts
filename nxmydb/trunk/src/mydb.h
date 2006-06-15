@@ -53,9 +53,6 @@ Abstract:
 #include "pool.h"
 #include "utils.h"
 
-// Calling convention used by ioFTPD for module functions.
-#define MODULE_CALL __cdecl
-
 
 #undef ARRAYSIZE
 #undef ASSERT
