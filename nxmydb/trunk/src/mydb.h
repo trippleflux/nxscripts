@@ -24,6 +24,7 @@ Abstract:
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#define STRSAFE_LIB
 #define STRSAFE_NO_CB_FUNCTIONS
 #include <strsafe.h>
 
