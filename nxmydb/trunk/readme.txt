@@ -28,7 +28,8 @@ servers. nxMyDB also includes features such as:
 # 2. Configuration                                                             #
 ################################################################################
 
-   Explanation of options available to nxMyDB and a list of supported cipher suites.
+    Explanation of options available to nxMyDB and a list of cipher suites supported
+by OpenSSL/yaSSL.
 
   ############################################################
   # Options                                                  #
@@ -39,6 +40,7 @@ servers. nxMyDB also includes features such as:
   User            - MySQL Server username
   Password        - MySQL Server password
   Database        - Database name
+  Refresh         - Seconds between each database refresh
 
   Compression     - Use compression for the server connection
   SSL_Enable      - Use SSL encryption for the server connection
@@ -158,6 +160,7 @@ Port            = 3306          # MySQL Server port
 User            = user          # MySQL Server username
 Password        = pass          # MySQL Server password
 Database        = ioftpd        # Database name
+Refresh         = 60            # Seconds between each database refresh
 
 # Connection type
 Compression     = True          # Use compression for the server connection

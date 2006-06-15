@@ -30,6 +30,9 @@ static char *sslKeyFile  = NULL;
 static char *sslCAFile   = NULL;
 static char *sslCAPath   = NULL;
 
+// Refresh timer
+static int refresh = 0;
+
 // Database connection pool
 static POOL *pool = NULL;
 
@@ -309,16 +312,20 @@ DbInit(
         Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Expiration' must be greater than zero.\r\n");
         return FALSE;
     }
+    poolExpiration *= 1000;
 
     poolTimeout = 5;
     if (Io_ConfigGetInt("nxMyDB", "Pool_Timeout", &poolTimeout) && poolTimeout <= 0) {
         Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Timeout' must be greater than zero.\r\n");
         return FALSE;
     }
-
-    // Seconds to milliseconds
-    poolExpiration *= 1000;
     poolTimeout *= 1000;
+
+    // Refesh timer
+    if (Io_ConfigGetInt("nxMyDB", "Refresh", &refresh) && refresh < 0) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Refresh' must be greater than or equal to zero.\r\n");
+        return FALSE;
+    }
 
     // Read server options
     serverHost = ConfigGet("nxMyDB", "Host");
