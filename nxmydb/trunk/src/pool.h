@@ -26,7 +26,7 @@ typedef BOOL (POOL_CONSTRUCTOR_PROC)(
     void **data     // Opaque data set by this callback
     );
 
-typedef BOOL (POOL_DESTRUCTOR_PROC)(
+typedef void (POOL_DESTRUCTOR_PROC)(
     void *opaque,   // Opaque argument passed to PoolInit()
     void *data      // Opaque data set by the constructor callback
     );

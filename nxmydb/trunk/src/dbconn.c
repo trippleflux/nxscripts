@@ -75,13 +75,11 @@ Arguments:
     data   - Pointer to a MYSQL structure.
 
 Return Values:
-    If the function succeeds, the return value is nonzero (true).
-
-    If the function fails, the return value is zero (false).
+    None.
 
 --*/
 static
-BOOL
+void
 ConnectionClose(
     void *opaque,
     void *data
@@ -90,8 +88,6 @@ ConnectionClose(
     ASSERT(opaque == NULL);
     ASSERT(data != NULL);
     DebugPrint("ConnectionClose", "opaque=%p data=%p\n", opaque, data);
-
-    return TRUE;
 }
 
 /*++
@@ -212,6 +208,10 @@ DbInit(
         Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Timeout' must be greater than zero.\r\n");
         return FALSE;
     }
+
+    // Seconds to milliseconds
+    poolExpiration *= 1000;
+    poolTimeout *= 1000;
 
     // Read server options
     serverHost = Io_ConfigGet("nxMyDB", "Host", NULL, NULL);
