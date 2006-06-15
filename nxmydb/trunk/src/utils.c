@@ -54,7 +54,8 @@ OutputDebugger(
     error = GetLastError();
 
     // Align function name and format arguments
-    StringCchPrintfExA(output, ARRAYSIZE(output), &end, &remaining, 0, "%15s: ", funct);
+    StringCchPrintfExA(output, ARRAYSIZE(output), &end, &remaining, 0, "| %4d | %15s | ",
+        GetCurrentThreadId(), funct);
     va_start(argList, format);
     StringCchVPrintfA(end, remaining, format, argList);
     va_end(argList);
@@ -105,9 +106,9 @@ OutputFile(
     handle = fopen("nxMyDB.log", "a");
     if (handle != NULL) {
         GetSystemTime(&now);
-        fprintf(handle, "%04d-%02d-%02d %02d:%02d:%02d [%15s] ",
-            now.wYear, now.wMonth, now.wDay,
-            now.wHour, now.wMinute, now.wSecond, funct);
+        fprintf(handle, "%04d-%02d-%02d %02d:%02d:%02d | %4d | %15s | ",
+            now.wYear, now.wMonth, now.wDay, now.wHour, now.wMinute, now.wSecond,
+            GetCurrentThreadId(), funct);
 
         va_start(argList, format);
         vfprintf(handle, format, argList);
