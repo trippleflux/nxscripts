@@ -16,6 +16,7 @@
 DEBUG       = 1
 MSVCRT      = 0
 IOFTPD_INC  = E:\ioFTPD\source\Include
+MYSQL_DIR   = C:\Program Files\MySQL\MySQL Server 5.0
 
 ## Release version.
 VERSION     = 0.1.0
@@ -24,7 +25,7 @@ VERSION     = 0.1.0
 CC          = cl
 LD          = link
 RC          = rc
-CFLAGS      = /nologo /I "$(IOFTPD_INC)" -I ".\include" /W4
+CFLAGS      = /nologo /I "$(IOFTPD_INC)" -I"$(MYSQL_DIR)\include" /W4
 LFLAGS      = /nologo
 RFLAGS      = /r
 
@@ -36,6 +37,10 @@ RFLAGS      = /r
 
 !if !exist("$(IOFTPD_INC)\ioFTPD.h")
 !error Unable to find ioFTPD.h; the IOFTPD_INC variable is incorrect.
+!endif
+
+!if !exist("$(MYSQL_DIR)\include\mysql.h")
+!error Unable to find mysql.h; the MYSQL_DIR variable is incorrect.
 !endif
 
 # -------------------------------------------------------------------------
@@ -54,10 +59,12 @@ CFLAGS      = $(CFLAGS) /DSTATIC_CRT
 !message Debug Symbols: On
 CFLAGS      = $(CFLAGS) /Zi $(CRTLIB)d /DDEBUG
 LFLAGS      = $(LFLAGS) /DEBUG
+MYSQL_LIB   = $(MYSQL_DIR)\lib\debug
 !else
 !message Debug Symbols: Off
 CFLAGS      = $(CFLAGS) /Ox /GF $(CRTLIB) /DNDEBUG
 LFLAGS      = $(LFLAGS) /RELEASE /OPT:REF
+MYSQL_LIB   = $(MYSQL_DIR)\lib\opt
 !endif
 
 VERSION_RES = $(VERSION:.=,),0
@@ -78,6 +85,7 @@ release: all
     -@DEL /F *.cod *.ilk *.lib *.exp *.obj *.pdb *.res 2> nul
 
 lib: nxmydb.dll
+    @COPY /Y "$(MYSQL_LIB)\libmysql.dll" . > nul
 
 # -------------------------------------------------------------------------
 
@@ -91,7 +99,7 @@ FILE_OBJS = mydb.res condvars.obj dbconn.obj dllentry.obj group.obj groupdb.obj 
 	$(RC) $(RFLAGS) /fo $@ $<
 
 nxmydb.dll: $(FILE_OBJS)
-    $(LD) $(LFLAGS) /DEF:src\mydb.def /DLL /OUT:$@ @<<
+    $(LD) $(LFLAGS) /DEF:src\mydb.def /DLL /OUT:$@ "$(MYSQL_LIB)\mysqlclient.lib" @<<
 $**
 <<
 

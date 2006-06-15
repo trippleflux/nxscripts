@@ -23,6 +23,7 @@ Abstract:
 // System headers
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <winsock2.h>
 
 #define STRSAFE_LIB
 #define STRSAFE_NO_CB_FUNCTIONS
@@ -42,6 +43,9 @@ Abstract:
 #include <GroupFile.h>
 #include <User.h>
 #include <Group.h>
+
+// MySQL headers
+#include <mysql.h>
 
 // Project headers
 #include "proctable.h"
