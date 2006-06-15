@@ -293,8 +293,11 @@ ResourceUpdate(
     while (pool->idle < pool->minimum && pool->total <= pool->maximum) {
         // Create a new resource
         if (!ResourceCreate(pool, &resource)) {
-            LeaveCriticalSection(&pool->queueLock);
-            return FALSE;
+            // Do not fail if we cannot create a resource
+            break;
+
+            //LeaveCriticalSection(&pool->queueLock);
+            //return FALSE;
         }
 
         // Add resource to the queue
