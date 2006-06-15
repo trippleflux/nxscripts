@@ -18,7 +18,7 @@ Abstract:
 
 static
 BOOL
-FileUserRead(
+UserRead(
     char *filePath,
     USERFILE *userFile
     )
@@ -146,7 +146,7 @@ FileUserCreate(
     }
 
     // Read user file (copy of "Default.User")
-    if (!FileUserRead(targetPath, userFile)) {
+    if (!UserRead(targetPath, userFile)) {
         error = GetLastError();
         DebugPrint("FileUserCreate", "Unable read target file (error %lu).\n", error);
 

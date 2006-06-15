@@ -18,7 +18,7 @@ Abstract:
 
 static
 BOOL
-FileGroupRead(
+GroupRead(
     char *filePath,
     GROUPFILE *groupFile
     )
@@ -145,7 +145,7 @@ FileGroupCreate(
     }
 
     // Read group file (copy of "Default.Group")
-    if (!FileGroupRead(targetPath, groupFile)) {
+    if (!GroupRead(targetPath, groupFile)) {
         error = GetLastError();
         DebugPrint("FileGroupCreate", "Unable read target file (error %lu).\n", error);
 
