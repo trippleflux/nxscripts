@@ -22,6 +22,8 @@ ConditionVariableInit(
     )
 {
     ASSERT(condVar != NULL);
+    DebugPrint("CondVarInit", "condVar=%p\n", condVar);
+
     return TRUE;
 }
 
@@ -31,6 +33,8 @@ ConditionVariableDestroy(
     )
 {
     ASSERT(condVar != NULL);
+    DebugPrint("CondVarDestroy", "condVar=%p\n", condVar);
+
     return TRUE;
 }
 
@@ -40,6 +44,8 @@ ConditionVariableBroadcast(
     )
 {
     ASSERT(condVar != NULL);
+    DebugPrint("CondVarBroadcast", "condVar=%p\n", condVar);
+
     return TRUE;
 }
 
@@ -49,6 +55,8 @@ ConditionVariableSignal(
     )
 {
     ASSERT(condVar != NULL);
+    DebugPrint("CondVarSignal", "condVar=%p\n", condVar);
+
     return TRUE;
 }
 
@@ -61,5 +69,7 @@ ConditionVariableWait(
 {
     ASSERT(condVar != NULL);
     ASSERT(critSection != NULL);
+    DebugPrint("CondVarSignal", "condVar=%p critSection=%p timeout=%lu\n", condVar, critSection, timeout);
+
     return TRUE;
 }

@@ -17,9 +17,17 @@ Abstract:
 #ifndef _CONDVARS_H_
 #define _CONDVARS_H_
 
+//
+// Condition variable structure
+//
+
 typedef struct {
     void *foo;
 } CONDITION_VARIABLE;
+
+//
+// Condition variable functions
+//
 
 BOOL
 ConditionVariableInit(
