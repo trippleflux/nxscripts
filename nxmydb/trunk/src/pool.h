@@ -83,7 +83,7 @@ PoolInit(
     void *opaque
     );
 
-BOOL
+void
 PoolDestroy(
     POOL *pool
     );
@@ -100,7 +100,7 @@ PoolRelease(
     void *data
     );
 
-BOOL
+void
 PoolInvalidate(
     POOL *pool,
     void *data
