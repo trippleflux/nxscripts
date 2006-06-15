@@ -82,6 +82,7 @@ ConnectionOpen(
         flags |= CLIENT_COMPRESS;
     }
     if (sslEnable) {
+        flags |= CLIENT_SSL; // Is this still needed?
         mysql_ssl_set(handle, sslKeyFile, sslCertFile, sslCAFile, sslCAPath, sslCiphers);
     }
 
@@ -93,7 +94,9 @@ ConnectionOpen(
         return FALSE;
     }
 
-    DebugPrint("ConnectionOpen", "Connected to MySQL Server v%s.\n", mysql_get_server_info(handle));
+    DebugPrint("ConnectionOpen", "Connected to %s, running MySQL Server v%s.\n",
+        mysql_get_host_info(handle), mysql_get_server_info(handle));
+
     *data = handle;
     return TRUE;
 }
