@@ -17,14 +17,14 @@ Topics:
 memory applications for ioFTPD in C and C++. It provides a high-level interface
 to all of the shared memory functions implemented in ioFTPD, such as:
 
-- Creating, renaming, and deleting users and groups.
-- Modifying user file and group file data structures.
-- Resolving group IDs to group names, and vice versa.
-- Resolving user IDs to user names, and vice versa.
-- Retrieving information about online users.
-- Kicking online users by their connection ID or user ID.
-- Flushing the directory cache in specific directories.
-- Reading and writing VFS ownership (uid/gid) and permissions (chmod).
+- Creating, renaming, and deleting users and groups
+- Modifying user file and group file data structures
+- Resolving group IDs to group names, and vice versa
+- Resolving user IDs to user names, and vice versa
+- Retrieving information about online users
+- Kicking online users by their connection ID or user ID
+- Flushing the directory cache in specific directories
+- Reading and writing VFS ownership (uid/gid) and permissions (chmod)
 
 ################################################################################
 # 2. Components                                                                #
