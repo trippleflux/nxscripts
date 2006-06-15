@@ -99,7 +99,7 @@ FILE_OBJS = mydb.res condvars.obj dbconn.obj dllentry.obj group.obj groupdb.obj 
 	$(RC) $(RFLAGS) /fo $@ $<
 
 nxmydb.dll: $(FILE_OBJS)
-    $(LD) $(LFLAGS) /DEF:src\mydb.def /DLL /OUT:$@ "$(MYSQL_LIB)\mysqlclient.lib" @<<
+    $(LD) $(LFLAGS) /DEF:src\mydb.def /DLL /OUT:$@ "$(MYSQL_LIB)\libmysql.lib" @<<
 $**
 <<
 

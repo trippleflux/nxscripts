@@ -88,9 +88,9 @@ Abstract:
 #       define DebugFoot  DebuggerFooter
 #   endif
 #else
-#   define DebugHead
+#   define DebugHead()
 #   define DebugPrint
-#   define DebugFoot
+#   define DebugFoot()
 #endif
 
 // STRINGIFY - Wraps an argument in quotes.
