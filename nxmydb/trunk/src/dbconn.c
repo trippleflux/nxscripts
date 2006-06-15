@@ -17,13 +17,18 @@ Abstract:
 #include "mydb.h"
 
 // MySQL Server information
-static char *serverHost = NULL;
-static char *serverUser = NULL;
-static char *serverPass = NULL;
-static char *serverDb   = NULL;
-static int   serverPort = 0;
-static BOOL  useCompression = FALSE;
-static BOOL  useEncryption  = FALSE;
+static char *serverHost  = NULL;
+static char *serverUser  = NULL;
+static char *serverPass  = NULL;
+static char *serverDb    = NULL;
+static int   serverPort  = 0;
+static BOOL  compression = FALSE;
+static BOOL  sslEnable   = FALSE;
+static char *sslCiphers  = NULL;
+static char *sslCertFile = NULL;
+static char *sslKeyFile  = NULL;
+static char *sslCAFile   = NULL;
+static char *sslCAPath   = NULL;
 
 // Database connection pool
 static POOL *pool = NULL;
@@ -73,11 +78,11 @@ ConnectionOpen(
 
     // Set client options
     flags = CLIENT_INTERACTIVE;
-    if (useCompression) {
+    if (compression) {
         flags |= CLIENT_COMPRESS;
     }
-    if (useEncryption) {
-        mysql_ssl_set(handle, NULL, NULL, NULL, NULL, NULL);
+    if (sslEnable) {
+        mysql_ssl_set(handle, sslKeyFile, sslCertFile, sslCAFile, sslCAPath, sslCiphers);
     }
 
     // Open database server connection
@@ -128,9 +133,9 @@ ConnectionClose(
 
 /*++
 
-FreeValues
+FreeConfig
 
-    Frees memory allocated for configuration options and connection pools.
+    Frees memory allocated for configuration options.
 
 Arguments:
     None.
@@ -141,31 +146,41 @@ Return Values:
 --*/
 static
 void
-FreeValues(
+FreeConfig(
     void
     )
 {
-    DebugPrint("FreeValues", "refCount=%i\n", refCount);
+    DebugPrint("FreeConfig", "refCount=%i\n", refCount);
 
+    // Free server options
     if (serverHost != NULL) {
         Io_Free(serverHost);
-        serverHost = NULL;
     }
     if (serverUser != NULL) {
         Io_Free(serverUser);
-        serverUser = NULL;
     }
     if (serverPass != NULL) {
         Io_Free(serverPass);
-        serverPass = NULL;
     }
     if (serverDb != NULL) {
         Io_Free(serverDb);
-        serverDb = NULL;
     }
-    if (pool != NULL) {
-        PoolDestroy(pool);
-        pool = NULL;
+
+    // Free SSL options
+    if (sslCiphers != NULL) {
+        Io_Free(sslCiphers);
+    }
+    if (sslCertFile != NULL) {
+        Io_Free(sslCertFile);
+    }
+    if (sslKeyFile != NULL) {
+        Io_Free(sslKeyFile);
+    }
+    if (sslCAFile != NULL) {
+        Io_Free(sslCAFile);
+    }
+    if (sslCAPath != NULL) {
+        Io_Free(sslCAPath);
     }
 }
 
@@ -255,22 +270,32 @@ DbInit(
     serverPass = Io_ConfigGet("nxMyDB", "Password", NULL, NULL);
     serverDb   = Io_ConfigGet("nxMyDB", "Database", NULL, NULL);
     Io_ConfigGetInt("nxMyDB", "Port", &serverPort);
-    Io_ConfigGetBool("nxMyDB", "Compression", &useCompression);
-    Io_ConfigGetBool("nxMyDB", "Encryption", &useEncryption);
+    Io_ConfigGetBool("nxMyDB", "Compression", &compression);
+    Io_ConfigGetBool("nxMyDB", "SSL_Enable", &sslEnable);
+    sslCiphers  = Io_ConfigGet("nxMyDB", "SSL_Ciphers", NULL, NULL);
+    sslCertFile = Io_ConfigGet("nxMyDB", "SSL_Cert_File", NULL, NULL);
+    sslKeyFile  = Io_ConfigGet("nxMyDB", "SSL_Key_File", NULL, NULL);
+    sslCAFile   = Io_ConfigGet("nxMyDB", "SSL_CA_File", NULL, NULL);
+    sslCAPath   = Io_ConfigGet("nxMyDB", "SSL_CA_Path", NULL, NULL);
 
     // Dump configuration
-    DebugPrint("Configuration", "    ServerHost = %s\n", serverHost);
-    DebugPrint("Configuration", "    ServerPort = %i\n", serverPort);
-    DebugPrint("Configuration", "    ServerUser = %s\n", serverUser);
-    DebugPrint("Configuration", "    ServerPass = %s\n", serverPass);
-    DebugPrint("Configuration", "      ServerDb = %s\n", serverDb);
-    DebugPrint("Configuration", "   Compression = %s\n", useCompression ? "true" : "false");
-    DebugPrint("Configuration", "    Encryption = %s\n", useEncryption ? "true" : "false");
-    DebugPrint("Configuration", "   PoolMinimum = %i\n", poolMin);
-    DebugPrint("Configuration", "   PoolAverage = %i\n", poolAvg);
-    DebugPrint("Configuration", "   PoolMaximum = %i\n", poolMax);
-    DebugPrint("Configuration", "PoolExpiration = %i\n", poolExpiration);
-    DebugPrint("Configuration", "   PoolTimeout = %i\n", poolTimeout);
+    DebugPrint("Configuration", "Server Host     = %s\n", serverHost);
+    DebugPrint("Configuration", "Server Port     = %i\n", serverPort);
+    DebugPrint("Configuration", "Server User     = %s\n", serverUser);
+    DebugPrint("Configuration", "Server Password = %s\n", serverPass);
+    DebugPrint("Configuration", "Server Database = %s\n", serverDb);
+    DebugPrint("Configuration", "Compression     = %s\n", compression ? "true" : "false");
+    DebugPrint("Configuration", "SSL Enable      = %s\n", sslEnable ? "true" : "false");
+    DebugPrint("Configuration", "SSL Ciphers     = %s\n", sslCiphers);
+    DebugPrint("Configuration", "SSL Cert File   = %s\n", sslCertFile);
+    DebugPrint("Configuration", "SSL Key File    = %s\n", sslKeyFile);
+    DebugPrint("Configuration", "SSL CA File     = %s\n", sslCAFile);
+    DebugPrint("Configuration", "SSL CA Path     = %s\n", sslCAPath);
+    DebugPrint("Configuration", "Pool Minimum    = %i\n", poolMin);
+    DebugPrint("Configuration", "Pool Average    = %i\n", poolAvg);
+    DebugPrint("Configuration", "Pool Maximum    = %i\n", poolMax);
+    DebugPrint("Configuration", "Pool Expiration = %i\n", poolExpiration);
+    DebugPrint("Configuration", "Pool Timeout    = %i\n", poolTimeout);
 
     // Create connection pool
     pool = Io_Allocate(sizeof(POOL));
@@ -280,6 +305,7 @@ DbInit(
     }
     if (!PoolInit(pool, poolMin, poolAvg, poolMax, poolExpiration,
             poolTimeout, ConnectionOpen, ConnectionClose, NULL)) {
+        Io_Free(pool);
         Io_Putlog(LOG_ERROR, "nxMyDB: Unable to create connection pool.\r\n");
         goto error;
     }
@@ -289,7 +315,7 @@ DbInit(
     return TRUE;
 
 error:
-    FreeValues();
+    FreeConfig();
     return FALSE;
 }
 
@@ -320,7 +346,14 @@ DbFinalize(
     if (--refCount == 0) {
         Io_Putlog(LOG_ERROR, "nxMyDB: v%s unloaded.\r\n", STRINGIFY(VERSION));
 
-        FreeValues();
+        // Destroy connection pool
+        PoolDestroy(pool);
+        Io_Free(pool);
+
+        // Free configuration values
+        FreeConfig();
+
+        // Clear procedure table
         ProcTableFinalize();
     }
 }
