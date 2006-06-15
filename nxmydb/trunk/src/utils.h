@@ -17,21 +17,47 @@ Abstract:
 #ifndef _UTIL_H_
 #define _UTIL_H_
 
+//
+// Debugger output
+//
 #ifdef DEBUG
 void
-OutputDebugger(
+DebuggerHeader(
+    void
+    );
+
+void
+DebuggerOutput(
     const char *funct,
     const char *format,
     ...
     );
+
+void
+DebuggerFooter(
+    void
+    );
 #endif // DEBUG
 
+//
+// File output
+//
 #ifdef DEBUG
 void
-OutputFile(
+FileHeader(
+    void
+    );
+
+void
+FileOutput(
     const char *funct,
     const char *format,
     ...
+    );
+
+void
+FileFooter(
+    void
     );
 #endif // DEBUG
 

@@ -16,9 +16,39 @@ Abstract:
 
 #include "mydb.h"
 
+#ifdef DEBUG
 /*++
 
-OutputDebugger
+DebuggerHeader
+
+    Sends header output to the debugger.
+
+Arguments:
+    None.
+
+Return Values:
+    None.
+
+--*/
+void
+DebuggerHeader(
+    void
+    )
+{
+    // Preserve system error code
+    DWORD error = GetLastError();
+
+    OutputDebugStringA(".-------------------------------------------------------------------.\n");
+    OutputDebugStringA("| ThID |    Function     |               Debug Message              |\n");
+    OutputDebugStringA("|-------------------------------------------------------------------'\n");
+
+    // Restore system error code
+    SetLastError(error);
+}
+
+/*++
+
+DebuggerOutput
 
     Sends debug output to the debugger.
 
@@ -33,9 +63,8 @@ Return Values:
     None.
 
 --*/
-#ifdef DEBUG
 void
-OutputDebugger(
+DebuggerOutput(
     const char *funct,
     const char *format,
     ...
@@ -65,7 +94,73 @@ OutputDebugger(
     // Restore system error code
     SetLastError(error);
 }
+
+/*++
+
+DebuggerFooter
+
+    Sends footer output to the debugger.
+
+Arguments:
+    None.
+
+Return Values:
+    None.
+
+--*/
+void
+DebuggerFooter(
+    void
+    )
+{
+    // Preserve system error code
+    DWORD error = GetLastError();
+
+    OutputDebugStringA("`--------------------------------------------------------------------\n");
+
+    // Restore system error code
+    SetLastError(error);
+}
 #endif // DEBUG
+
+
+#ifdef DEBUG
+/*++
+
+FileHeader
+
+    Writes header output to a file.
+
+Arguments:
+    None.
+
+Return Values:
+    None.
+
+--*/
+void
+FileHeader(
+    void
+    )
+{
+    DWORD error;
+    FILE *handle;
+
+    // Preserve system error code
+    error = GetLastError();
+
+    handle = fopen("nxMyDB.log", "a");
+    if (handle != NULL) {
+        fprintf(handle, "\n");
+        fprintf(handle, ".-----------------------------------------------------------------------------------------.\n");
+        fprintf(handle, "|     Time Stamp      | ThID |    Function     |               Debug Message              |\n");
+        fprintf(handle, "|-----------------------------------------------------------------------------------------'\n");
+        fclose(handle);
+    }
+
+    // Restore system error code
+    SetLastError(error);
+}
 
 /*++
 
@@ -84,9 +179,8 @@ Return Values:
     None.
 
 --*/
-#ifdef DEBUG
 void
-OutputFile(
+FileOutput(
     const char *funct,
     const char *format,
     ...
@@ -106,7 +200,7 @@ OutputFile(
     handle = fopen("nxMyDB.log", "a");
     if (handle != NULL) {
         GetSystemTime(&now);
-        fprintf(handle, "%04d-%02d-%02d %02d:%02d:%02d | %4d | %15s | ",
+        fprintf(handle, "| %04d-%02d-%02d %02d:%02d:%02d | %4d | %15s | ",
             now.wYear, now.wMonth, now.wDay, now.wHour, now.wMinute, now.wSecond,
             GetCurrentThreadId(), funct);
 
@@ -114,6 +208,40 @@ OutputFile(
         vfprintf(handle, format, argList);
         va_end(argList);
 
+        fclose(handle);
+    }
+
+    // Restore system error code
+    SetLastError(error);
+}
+
+/*++
+
+FileFooter
+
+    Writes footer output to a file.
+
+Arguments:
+    None.
+
+Return Values:
+    None.
+
+--*/
+void
+FileFooter(
+    void
+    )
+{
+    DWORD error;
+    FILE *handle;
+
+    // Preserve system error code
+    error = GetLastError();
+
+    handle = fopen("nxMyDB.log", "a");
+    if (handle != NULL) {
+        fprintf(handle, "`------------------------------------------------------------------------------------------\n");
         fclose(handle);
     }
 

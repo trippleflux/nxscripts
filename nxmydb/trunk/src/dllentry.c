@@ -48,6 +48,7 @@ DllMain(
 {
     switch (reason) {
         case DLL_PROCESS_ATTACH:
+            DebugStart();
             DebugPrint("DllMain", "PROCESS_ATTACH\n");
 #ifdef DYNAMIC_CRT
             // The static CRT requires thread notifications.
@@ -56,6 +57,7 @@ DllMain(
             break;
         case DLL_PROCESS_DETACH:
             DebugPrint("DllMain", "PROCESS_DETACH\n");
+            DebugEnd();
             break;
     }
 
