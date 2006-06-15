@@ -389,7 +389,7 @@ PoolInit(
     )
 {
     ASSERT(pool != NULL);
-    DebugPrint("PoolRelease", "pool=%p constructor=%p destructor=%p opaque=%p\n",
+    DebugPrint("PoolInit", "pool=%p constructor=%p destructor=%p opaque=%p\n",
         pool, constructor, destructor, opaque);
 
     if (minimum < 1 || average < minimum || maximum < average ||
@@ -631,10 +631,8 @@ PoolInvalidate(
     ASSERT(data != NULL);
     DebugPrint("PoolInvalidate", "pool=%p data=%p\n", pool, data);
 
+    // Destroy resource
     EnterCriticalSection(&pool->queueLock);
-
-    // Destroy resource inside the lock in case PoolDestroy() is called.
     ResourceDestroy(pool, data);
-
     LeaveCriticalSection(&pool->queueLock);
 }
