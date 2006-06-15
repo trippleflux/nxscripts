@@ -20,8 +20,8 @@ servers. nxMyDB also includes features such as:
 - Central location for storing users and groups
 - Database connection pool; reduces time spent waiting during high user activity
 - Reading Default.User and Default.Group for newly created users and groups
-- Support for compressing the server connection
-- Support for encrypting the server connection using SSL
+- Support for compressing the server traffic
+- Support for encrypting the server traffic using SSL
 - User files and group files are updated regularly
 
 ################################################################################
