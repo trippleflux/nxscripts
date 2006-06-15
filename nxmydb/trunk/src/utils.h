@@ -27,7 +27,7 @@ DebuggerHeader(
     );
 
 void
-DebuggerOutput(
+DebuggerMessage(
     const char *funct,
     const char *format,
     ...
@@ -49,7 +49,7 @@ FileHeader(
     );
 
 void
-FileOutput(
+FileMessage(
     const char *funct,
     const char *format,
     ...

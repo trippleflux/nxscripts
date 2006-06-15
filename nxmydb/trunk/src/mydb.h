@@ -73,15 +73,23 @@ Abstract:
 // ARRAYSIZE - Returns the number of entries in an array.
 #define ARRAYSIZE(a) (sizeof(a) / sizeof(a[0]))
 
-// DebugPrint - Debug message printing (DebuggerOutput/FileOutput).
+// DebugHead  - Print debug header.
+// DebugPrint - Print debug message.
+// DebugFoot  - Print debug footer.
 #if defined(DEBUG) && !defined(NDEBUG)
-#   define DebugStart DebuggerHeader
-#   define DebugPrint DebuggerOutput
-#   define DebugEnd   DebuggerFooter
+#   ifdef DEBUG_FILE
+#       define DebugHead  FileHeader
+#       define DebugPrint FileMessage
+#       define DebugFoot  FileFooter
+#   else
+#       define DebugHead  DebuggerHeader
+#       define DebugPrint DebuggerMessage
+#       define DebugFoot  DebuggerFooter
+#   endif
 #else
-#   define DebugStart
+#   define DebugHead
 #   define DebugPrint
-#   define DebugEnd
+#   define DebugFoot
 #endif
 
 // STRINGIFY - Wraps an argument in quotes.

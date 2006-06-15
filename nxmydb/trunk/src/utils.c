@@ -48,7 +48,7 @@ DebuggerHeader(
 
 /*++
 
-DebuggerOutput
+DebuggerMessage
 
     Sends debug output to the debugger.
 
@@ -64,7 +64,7 @@ Return Values:
 
 --*/
 void
-DebuggerOutput(
+DebuggerMessage(
     const char *funct,
     const char *format,
     ...
@@ -164,7 +164,7 @@ FileHeader(
 
 /*++
 
-OutputFile
+FileMessage
 
     Writes debug output to a file.
 
@@ -180,7 +180,7 @@ Return Values:
 
 --*/
 void
-FileOutput(
+FileMessage(
     const char *funct,
     const char *format,
     ...
