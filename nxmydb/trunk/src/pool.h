@@ -79,8 +79,8 @@ TAILQ_HEAD(POOL_TAIL_QUEUE, POOL_RESOURCE);
 typedef struct POOL_TAIL_QUEUE POOL_TAIL_QUEUE;
 
 typedef struct {
-    DWORD                 total;        // Total number of resources
     DWORD                 idle;         // Number of idle resources
+    DWORD                 total;        // Total number of resources
     DWORD                 minimum;      // Minimum number of resources to have available
     DWORD                 average;      // Average number of resources to have available
     DWORD                 maximum;      // Maximum number of resources to have available
