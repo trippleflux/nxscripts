@@ -536,7 +536,7 @@ PoolAcquire(
     if (pool->idle > 0) {
         resource = ResourcePop(pool);
         *data = resource->data;
-        ContainerFree(pool, resource);
+        ContainerPush(pool, resource);
 
         LeaveCriticalSection(&pool->queueLock);
         return TRUE;
@@ -547,7 +547,7 @@ PoolAcquire(
     if (result) {
         pool->total++;
         *data = resource->data;
-        ContainerFree(pool, resource);
+        ContainerPush(pool, resource);
     }
 
     LeaveCriticalSection(&pool->queueLock);
