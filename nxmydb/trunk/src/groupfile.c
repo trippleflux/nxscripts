@@ -304,10 +304,8 @@ FileGroupClose(
     DebugPrint("FileGroupClose", "context=%p\n", context);
 
     // Close group file handle
-    if (context->fileHandle != INVALID_HANDLE_VALUE) {
-        CloseHandle(context->fileHandle);
-        context->fileHandle = INVALID_HANDLE_VALUE;
-    }
+    ASSERT(context->fileHandle != INVALID_HANDLE_VALUE);
+    CloseHandle(context->fileHandle);
 
     return TRUE;
 }
