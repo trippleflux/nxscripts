@@ -62,7 +62,7 @@ LFLAGS      = $(LFLAGS) /DEBUG
 MYSQL_LIB   = $(MYSQL_DIR)\lib\debug
 !else
 !message Debug Symbols: Off
-CFLAGS      = $(CFLAGS) /Ox /GF $(CRTLIB) /DNDEBUG
+CFLAGS      = $(CFLAGS) /Ox /GF /GL $(CRTLIB) /DNDEBUG
 LFLAGS      = $(LFLAGS) /RELEASE /OPT:REF
 MYSQL_LIB   = $(MYSQL_DIR)\lib\opt
 !endif
