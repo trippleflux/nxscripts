@@ -143,8 +143,9 @@ ResourceCreate(
         ContainerPush(pool, container);
         return FALSE;
     }
-
     *resource = container;
+
+    pool->total++;
     return TRUE;
 }
 
@@ -155,9 +156,9 @@ ResourceDestroy
     Destroys an existing idle resource.
 
 Arguments:
-    pool     - Pointer to an initialized POOL structure.
+    pool    - Pointer to an initialized POOL structure.
 
-    resource - Pointer to the POOL_RESOURCE structure (idle resource) to be destroyed.
+    resData - Pointer to the POOL_RESOURCE structure's "data" member.
 
 Return Values:
     None.
@@ -170,14 +171,15 @@ static
 void
 ResourceDestroy(
     POOL *pool,
-    POOL_RESOURCE *resource
+    void *resData
     )
 {
     ASSERT(pool != NULL);
-    ASSERT(resource != NULL);
-    DebugPrint("ResourceDestroy", "pool=%p resource=%p\n", pool, resource);
+    ASSERT(resData != NULL);
+    DebugPrint("ResourceDestroy", "pool=%p resData=%p\n", pool, resData);
 
-    pool->destructor(pool->opaque, resource->data);
+    pool->destructor(pool->opaque, resData);
+    pool->total--;
 }
 
 /*++
@@ -297,7 +299,6 @@ ResourceUpdate(
 
         // Add resource to the queue
         ResourcePush(pool, resource);
-        pool->total++;
 
         // Notify waiting threads that a new resource is available
         if (!ConditionVariableSignal(&pool->availCond)) {
@@ -326,10 +327,9 @@ ResourceUpdate(
 
         // Remove from the resource queue
         resource = ResourcePop(pool);
-        pool->total--;
 
         // Destroy resource and add it to the container queue
-        ResourceDestroy(pool, resource);
+        ResourceDestroy(pool, resource->data);
         ContainerPush(pool, resource);
     }
 
@@ -457,10 +457,9 @@ PoolDestroy(
     while (pool->idle > 0) {
         // Remove from the resource queue
         resource = ResourcePop(pool);
-        pool->total--;
 
         // Destroy resource and free the structure
-        ResourceDestroy(pool, resource);
+        ResourceDestroy(pool, resource->data);
         Io_Free(resource);
     }
 
@@ -545,7 +544,6 @@ PoolAcquire(
     // Create a new resource since there are no available ones
     result = ResourceCreate(pool, &resource);
     if (result) {
-        pool->total++;
         *data = resource->data;
         ContainerPush(pool, resource);
     }
@@ -590,7 +588,7 @@ PoolRelease(
     container = ContainerPop(pool);
     if (container == NULL) {
         // Destroy resource since we cannot obtain a container
-        pool->destructor(pool->opaque, data);
+        ResourceDestroy(pool, data);
 
         LeaveCriticalSection(&pool->queueLock);
         return FALSE;
@@ -636,8 +634,7 @@ PoolInvalidate(
     EnterCriticalSection(&pool->queueLock);
 
     // Destroy resource inside the lock in case PoolDestroy() is called.
-    pool->destructor(pool->opaque, data);
-    pool->total--;
+    ResourceDestroy(pool, data);
 
     LeaveCriticalSection(&pool->queueLock);
 }
