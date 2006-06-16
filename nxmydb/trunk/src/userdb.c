@@ -109,3 +109,14 @@ DbUserClose(
 
     return TRUE;
 }
+
+BOOL
+DbUserRefresh(
+    MYSQL *handle
+    )
+{
+    ASSERT(handle != NULL);
+    DebugPrint("DbUserRefresh", "handle=%p", handle);
+
+    return TRUE;
+}

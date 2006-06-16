@@ -32,6 +32,7 @@ static char *sslCAPath   = NULL;
 
 // Refresh timer
 static int refresh = 0;
+static TIMER *timer = NULL;
 
 // Database connection pool
 static POOL *pool = NULL;
@@ -243,6 +244,39 @@ ConfigFree(
     }
 }
 
+/*++
+
+RefreshTimer
+
+    Refreshes the local user and group cache.
+
+Arguments:
+    None.
+
+Return Values:
+    None.
+
+--*/
+static
+void
+RefreshTimer(
+    WPARAM foo,
+    LPARAM bar
+    )
+{
+    MYSQL *handle;
+    DebugPrint("RefreshTimer", "foo=%d bar=%d\n", foo, bar);
+
+    if (!DbAcquire(&handle)) {
+        DebugPrint("RefreshTimer", "Unable to acquire a database connection.\n");
+        return;
+    }
+
+    // Users rely on groups, so update groups first.
+    DbGroupRefresh(handle);
+    DbUserRefresh(handle);
+}
+
 
 /*++
 
@@ -274,6 +308,7 @@ DbInit(
     int poolMax;
     int poolExpiration;
     int poolTimeout;
+    void *result;
     DebugPrint("DbInit", "getProc=%p refCount=%i\n", getProc, refCount);
 
     // Only initialize the module once
@@ -359,6 +394,9 @@ DbInit(
     DebugPrint("Configuration", "Pool Maximum    = %i\n", poolMax);
     DebugPrint("Configuration", "Pool Expiration = %i\n", poolExpiration);
     DebugPrint("Configuration", "Pool Timeout    = %i\n", poolTimeout);
+
+    result = Io_StartIoTimer(&timer, RefreshTimer, 10, 5000);
+    DebugPrint("Timer", "result=%p timer=%p\n", result, timer);
 
     // Create connection pool
     pool = Io_Allocate(sizeof(POOL));

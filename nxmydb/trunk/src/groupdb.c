@@ -109,3 +109,14 @@ DbGroupClose(
 
     return TRUE;
 }
+
+BOOL
+DbGroupRefresh(
+    MYSQL *handle
+    )
+{
+    ASSERT(handle != NULL);
+    DebugPrint("DbGroupRefresh", "handle=%p", handle);
+
+    return TRUE;
+}

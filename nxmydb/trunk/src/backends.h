@@ -70,6 +70,11 @@ DbGroupClose(
     INT_CONTEXT *context
     );
 
+BOOL
+DbGroupRefresh(
+    MYSQL *handle
+    );
+
 
 //
 // Group file backend
@@ -148,6 +153,11 @@ DbUserWrite(
 BOOL
 DbUserClose(
     INT_CONTEXT *context
+    );
+
+BOOL
+DbUserRefresh(
+    MYSQL *handle
     );
 
 
