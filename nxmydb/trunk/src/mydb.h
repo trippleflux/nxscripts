@@ -60,42 +60,24 @@ Abstract:
 
 
 #undef ARRAYSIZE
-#undef ASSERT
+#undef INLINE
 #undef STRINGIFY
 #undef _STRINGIFY
-
-// ASSERT - Expression assertion.
-#if defined(DEBUG) && !defined(NDEBUG)
-#   include "crtdbg.h"
-#   define ASSERT _ASSERTE
-#else
-#   define ASSERT
-#endif
 
 // ARRAYSIZE - Returns the number of entries in an array.
 #define ARRAYSIZE(a) (sizeof(a) / sizeof(a[0]))
 
-// DebugHead  - Print debug header.
-// DebugPrint - Print debug message.
-// DebugFoot  - Print debug footer.
-#if defined(DEBUG) && !defined(NDEBUG)
-#   ifdef DEBUG_FILE
-#       define DebugHead  LogFileHeader
-#       define DebugPrint LogFileFormat
-#       define DebugFoot  LogFileFooter
-#   else
-#       define DebugHead  LogDebuggerHeader
-#       define DebugPrint LogDebuggerFormat
-#       define DebugFoot  LogDebuggerFooter
-#   endif
+// INLINE - Inline the function during compilation.
+#if (_MSC_VER >= 1200)
+#    define INLINE __forceinline
+#elif defined(_MSC_VER)
+#    define INLINE __inline
 #else
-#   define DebugHead()
-#   define DebugPrint
-#   define DebugFoot()
+#    define INLINE
 #endif
 
 // STRINGIFY - Wraps an argument in quotes.
-#define STRINGIFY(a) _STRINGIFY(a)
+#define STRINGIFY(a)  _STRINGIFY(a)
 #define _STRINGIFY(a) #a
 
 

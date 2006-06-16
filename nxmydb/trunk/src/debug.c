@@ -82,8 +82,8 @@ LogDebuggerFormat(
     // Preserve system error code
     error = GetLastError();
 
-    StringCchPrintfExA(output, ARRAYSIZE(output), &end, &remaining, 0, "| %4d | %15s | ",
-        GetCurrentThreadId(), funct);
+    StringCchPrintfExA(output, ARRAYSIZE(output), &end, &remaining, 0,
+        "| %4d | %15s | ", GetCurrentThreadId(), funct);
     va_start(argList, format);
     StringCchVPrintfA(end, remaining, format, argList);
     va_end(argList);
