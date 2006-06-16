@@ -101,7 +101,7 @@ ConnectionOpen(
 
     // Open database server connection
     if (!mysql_real_connect(context->handle, serverHost, serverUser, serverPass, serverDb, serverPort, NULL, flags)) {
-        DebugPrint("ConnectionOpen", "Unable to connect to server.\n");
+        DebugPrint("ConnectionOpen", "Unable to connect to server: %s\n", mysql_error(context->handle));
         Io_Putlog(LOG_ERROR, "nxMyDB: Unable to connect to server: %s\r\n", mysql_error(context->handle));
         mysql_close(context->handle);
 
