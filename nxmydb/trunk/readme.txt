@@ -1,5 +1,6 @@
 ################################################################################
 #                      nxMyDB - MySQL Database for ioFTPD                      #
+#                     Written by neoxed (neoxed@gmail.com)                     #
 ################################################################################
 
 Topics:
@@ -191,12 +192,13 @@ Pool_Timeout    = 5             # Seconds to wait for a connection to become ava
 # 4. Bugs and Comments                                                         #
 ################################################################################
 
-   If you have any problems with this module, whether it is a bug, spelling
-mistake or grammatical error, please report it to me. If it is a technical issue,
-make sure you can reproduce the problem and provide us the necessary steps.
+   If you have ideas for improvements or are experiencing problems with this
+script, please do not hesitate to contact me. If your problem is a technical
+issue (i.e. a crash or operational defect), be sure to provide me with the steps
+necessary to reproduce it.
 
 IniCom Forum:
-http://www.inicom.net/forum/forumdisplay.php?f=157
+http://www.inicom.net/forum/forumdisplay.php?f=68
 
 IRC Network:
 neoxed in #ioFTPD at EFnet
