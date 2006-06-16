@@ -28,8 +28,8 @@ servers. nxMyDB also includes features such as:
 # 2. Configuration                                                             #
 ################################################################################
 
-    Explanation of options available to nxMyDB and a list of cipher suites supported
-by OpenSSL/yaSSL.
+    Explanation of options available to nxMyDB and a list of cipher suites
+supported by OpenSSL/yaSSL.
 
   ############################################################
   # Options                                                  #
@@ -44,7 +44,7 @@ by OpenSSL/yaSSL.
 
   Compression     - Use compression for the server connection
   SSL_Enable      - Use SSL encryption for the server connection
-  SSL_Ciphers     - List of allowable ciphers to use for SSL encryption (I recommend DHE-RSA-AES256-SHA)
+  SSL_Ciphers     - List of allowable ciphers to use for SSL encryption (e.g. DHE-RSA-AES256-SHA)
   SSL_Cert_File   - Path to the certificate file
   SSL_Key_File    - Path to the key file
   SSL_CA_File     - Path to the certificate authority file
@@ -53,14 +53,14 @@ by OpenSSL/yaSSL.
   Pool_Minimum    - Minimum number of sustained connections (must be greater than zero)
   Pool_Average    - Average number of sustained connections (usually slightly more than minimum)
   Pool_Maximum    - Maximum number of sustained connections (usually double the average)
-  Pool_Expiration - Seconds until a connection expires (usually less than MySQL's interactive_timeout)
+  Pool_Expiration - Seconds until a connection expires (less than MySQL's interactive_timeout)
   Pool_Timeout    - Seconds to wait for a connection to become available
 
   ############################################################
   # yaSSL Cipher Suites                                      #
   ############################################################
 
-  MySQL's official binaries are built using the yaSSL library.
+  MySQL's official Windows binaries are built using the yaSSL library.
 
   -------------------------------------------------------------------------------
    Cipher Name                |  Protocols  | Key Xchg | Auth | Encryption | Mac
@@ -164,8 +164,6 @@ Refresh         = 60            # Seconds between each database refresh
 
 # Connection type
 Compression     = True          # Use compression for the server connection
-SSL_Enable      = True          # Use SSL encryption for the server connection
-SSL_Ciphers     = HIGH          # List of allowable ciphers to use for SSL encryption
 
 # Connection pools
 Pool_Minimum    = 2             # Minimum number of sustained connections (must be greater than zero)
@@ -174,10 +172,20 @@ Pool_Maximum    = 5             # Maximum number of sustained connections (usual
 Pool_Expiration = 7200          # Seconds until a connection expires (usually less than MySQL's interactive_timeout)
 Pool_Timeout    = 5             # Seconds to wait for a connection to become available
 
-5. Configure and tweak the options as required. For more information about securing the
-   connection with SSL, visit: http://dev.mysql.com/doc/refman/5.0/en/secure-using-ssl.html
+5. Configure and adjust these options as required.
 
-6. Restart ioFTPD for the changes to take effect.
+6. For configuring SSL, see the "Configuration" section of this manual for a list
+   of available options. You will have to setup the certificate authority on the
+   server, as well as generate/sign certificates for connecting clients. For more
+   information on this, visit:
+
+   http://dev.mysql.com/doc/refman/5.0/en/secure-using-ssl.html
+   http://www.navicat.com/ssl_tutorial.php
+
+   I will NOT assist you with this; direct any questions about MySQL Server and SSL
+   to the appropriate places (e.g. MySQL's mailing list or a MySQL discussion board).
+
+7. Restart ioFTPD for the changes to take effect.
 
 ################################################################################
 # 4. Bugs and Comments                                                         #
