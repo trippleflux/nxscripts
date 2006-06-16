@@ -163,6 +163,41 @@ ResourceCreate(
 
 /*++
 
+ResourceCheck
+
+    Validates an existing idle resource.
+
+Arguments:
+    pool     - Pointer to an initialized POOL structure.
+
+    resource - Pointer to the POOL_RESOURCE structure's "data" member.
+
+Return Values:
+    If the resource is still valid, the return value is nonzero (true).
+
+    If the resource is no longer valid, the return value is zero (false).
+
+Remarks:
+    This function assumes the queues are locked.
+
+--*/
+static
+INLINE
+BOOL
+ResourceCheck(
+    POOL *pool,
+    POOL_RESOURCE *resource
+    )
+{
+    ASSERT(pool != NULL);
+    ASSERT(resource != NULL);
+    DebugPrint("ResourceCheck", "pool=%p resource=%p\n", pool, resource);
+
+    return pool->validator(pool->opaque, resource->data);
+}
+
+/*++
+
 ResourceDestroy
 
     Destroys an existing idle resource.
@@ -261,8 +296,8 @@ ResourcePush(
     ASSERT(resource != NULL);
     DebugPrint("ResourcePush", "pool=%p resource=%p\n", pool, resource);
 
-    // Update creation time
-    GetSystemTimeAsFileTime((FILETIME *)&resource->created);
+    // Update usage time
+    GetSystemTimeAsFileTime((FILETIME *)&resource->used);
 
     // Insert resource at the tail
     TAILQ_INSERT_TAIL(&pool->resQueue, resource, link);
@@ -296,6 +331,7 @@ ResourceUpdate(
     )
 {
     BOOL newResource = FALSE;
+    UINT64 age;
     UINT64 currentTime;
     POOL_RESOURCE *resource;
 
@@ -337,11 +373,13 @@ ResourceUpdate(
     while (pool->idle > pool->average && pool->idle > 0) {
         resource = TAILQ_FIRST(&pool->resQueue);
 
-        if ((currentTime - resource->created) < pool->expiration) {
+        age = currentTime - resource->used;
+        if (age < pool->expiration) {
             // New resources are added to the tail of the list. So if this
             // one is too young, the following resources will be as well.
             break;
         }
+        // TODO: check resource
 
         // Remove from the resource queue
         resource = ResourcePop(pool);
@@ -381,11 +419,12 @@ Arguments:
 
     constructor - Procedure called when a resource is created.
 
+    validator   - Procedure called when a resource requires validation.
+
     destructor  - Procedure called when a resource is destroyed.
 
     opaque      - Opaque argument passed to the constructor and destructor. This
                   argument can be null if not required.
-
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).
@@ -403,16 +442,17 @@ PoolInit(
     DWORD expiration,
     DWORD timeout,
     POOL_CONSTRUCTOR_PROC *constructor,
+    POOL_VALIDATOR_PROC *validator,
     POOL_DESTRUCTOR_PROC *destructor,
     void *opaque
     )
 {
     ASSERT(pool != NULL);
-    DebugPrint("PoolInit", "pool=%p constructor=%p destructor=%p opaque=%p\n",
-        pool, constructor, destructor, opaque);
+    DebugPrint("PoolInit", "pool=%p constructor=%p validator=%p destructor=%p opaque=%p\n",
+        pool, constructor, validator, destructor, opaque);
 
-    if (minimum < 1 || average < minimum || maximum < average ||
-            expiration < 1 || constructor == NULL || destructor == NULL) {
+    if (minimum < 1 || average < minimum || maximum < average || expiration < 1 ||
+            constructor == NULL || validator == NULL || destructor == NULL) {
         SetLastError(ERROR_INVALID_PARAMETER);
         return FALSE;
     }
@@ -426,6 +466,7 @@ PoolInit(
     pool->timeout     = timeout;
     pool->expiration  = UInt32x32To64(expiration, 10000); // msec to 100nsec
     pool->constructor = constructor;
+    pool->validator   = validator;
     pool->destructor  = destructor;
     pool->opaque      = opaque;
 
@@ -530,6 +571,7 @@ PoolAcquire(
 
     // Use idle resources, if available
     if (pool->idle > 0) {
+        // TODO: check resource
         resource = ResourcePop(pool);
         *data = resource->data;
 

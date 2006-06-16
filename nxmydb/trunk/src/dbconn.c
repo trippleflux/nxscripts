@@ -45,7 +45,7 @@ static int refCount = 0;
 
 ConnectionOpen
 
-    Opens a MySQL Server connection.
+    Opens a database connection.
 
 Arguments:
     opaque - Opaque argument passed to PoolInit().
@@ -121,9 +121,40 @@ ConnectionOpen(
 
 /*++
 
+ConnectionValidate
+
+    Validates the database connection.
+
+Arguments:
+    opaque - Opaque argument passed to PoolInit().
+
+    data   - Pointer to a MYSQL structure.
+
+Return Values:
+    If the resource is valid, the return is nonzero (true).
+
+    If the resource is invalid, the return is zero (false).
+
+--*/
+static
+BOOL
+ConnectionValidate(
+    void *opaque,
+    void *data
+    )
+{
+    ASSERT(opaque == NULL);
+    ASSERT(data != NULL);
+    DebugPrint("ConnectionValidate", "opaque=%p data=%p\n", opaque, data);
+
+    return TRUE;
+}
+
+/*++
+
 ConnectionClose
 
-    Closes the MySQL Server connection.
+    Closes the database connection.
 
 Arguments:
     opaque - Opaque argument passed to PoolInit().
@@ -419,8 +450,8 @@ DbInit(
         Io_Putlog(LOG_ERROR, "nxMyDB: Unable to allocate memory for connection pool.\r\n");
         goto error;
     }
-    if (!PoolInit(pool, poolMin, poolAvg, poolMax, poolExpiration,
-            poolTimeout, ConnectionOpen, ConnectionClose, NULL)) {
+    if (!PoolInit(pool, poolMin, poolAvg, poolMax, poolExpiration, poolTimeout,
+            ConnectionOpen, ConnectionValidate, ConnectionClose, NULL)) {
         Io_Free(pool);
         Io_Putlog(LOG_ERROR, "nxMyDB: Unable to create connection pool.\r\n");
         goto error;

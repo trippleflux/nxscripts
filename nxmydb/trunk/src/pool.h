@@ -29,13 +29,37 @@ Arguments:
     data    - Opaque data set by this callback.
 
 Return Values:
-    If the function succeeds, the return value is nonzero (true).
+    If the resource was created successfully, the return must be nonzero (true).
 
-    If the function fails, the return value is zero (false). The callback function
-    must set the system error code on failure.
+    If the resource was not created, the return must be zero (false).
+
+Remarks:
+    The system error code must be set on failure.
 
 --*/
 typedef BOOL (POOL_CONSTRUCTOR_PROC)(
+    void *opaque,
+    void **data
+    );
+
+/*++
+
+POOL_VALIDATOR_PROC
+
+    Validates a resource.
+
+Arguments:
+    opaque  - Opaque argument passed to PoolInit().
+
+    data    - Opaque data set by the constructor callback.
+
+Return Values:
+    If the resource is valid, the return must be nonzero (true).
+
+    If the resource is invalid, the return must be zero (false).
+
+--*/
+typedef BOOL (POOL_VALIDATOR_PROC)(
     void *opaque,
     void **data
     );
@@ -65,14 +89,14 @@ typedef void (POOL_DESTRUCTOR_PROC)(
 //
 
 struct POOL_RESOURCE {
-    UINT64 created; // Time when the resource was created
-    void *data;     // Opaque data set by the constructor callback
-    TAILQ_ENTRY(POOL_RESOURCE) link;
+    UINT64 used;                        // Time when the resource was last used
+    void *data;                         // Opaque data set by the constructor callback
+    TAILQ_ENTRY(POOL_RESOURCE) link;    // Link to the previous and next resources
 };
 typedef struct POOL_RESOURCE POOL_RESOURCE;
 
 //
-// Pool structures
+// Pool structure
 //
 
 TAILQ_HEAD(POOL_TAIL_QUEUE, POOL_RESOURCE);
@@ -87,6 +111,7 @@ typedef struct {
     DWORD                 timeout;      // Milliseconds to wait for a resource to become available
     UINT64                expiration;   // 100nsec intervals (FILETIME) until a resource expires
     POOL_CONSTRUCTOR_PROC *constructor; // Procedure called when a resource is created
+    POOL_VALIDATOR_PROC   *validator;   // Procedure called when a resource requires validation
     POOL_DESTRUCTOR_PROC  *destructor;  // Procedure called when a resource is destroyed
     void                  *opaque;      // Opaque argument passed to the constructor and destructor
     POOL_TAIL_QUEUE       resQueue;     // Queue of resources
@@ -108,6 +133,7 @@ PoolInit(
     DWORD expiration,
     DWORD timeout,
     POOL_CONSTRUCTOR_PROC *constructor,
+    POOL_VALIDATOR_PROC *validator,
     POOL_DESTRUCTOR_PROC *destructor,
     void *opaque
     );
