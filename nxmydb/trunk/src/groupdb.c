@@ -22,10 +22,17 @@ DbGroupCreate(
     GROUPFILE *groupFile
     )
 {
+    DB_CONTEXT *context;
+
     ASSERT(groupName != NULL);
     ASSERT(groupFile != NULL);
     DebugPrint("DbGroupCreate", "groupName=\"%s\" groupFile=%p\n", groupName, groupFile);
 
+    if (!DbAcquire(&context)) {
+        return FALSE;
+    }
+
+    DbRelease(context);
     return TRUE;
 }
 
@@ -35,10 +42,17 @@ DbGroupRename(
     char *newName
     )
 {
+    DB_CONTEXT *context;
+
     ASSERT(groupName != NULL);
     ASSERT(newName != NULL);
     DebugPrint("DbGroupRename", "groupName=\"%s\" newName=\"%s\"\n", groupName, newName);
 
+    if (!DbAcquire(&context)) {
+        return FALSE;
+    }
+
+    DbRelease(context);
     return TRUE;
 }
 
@@ -47,9 +61,16 @@ DbGroupDelete(
     char *groupName
     )
 {
+    DB_CONTEXT *context;
+
     ASSERT(groupName != NULL);
     DebugPrint("DbGroupDelete", "groupName=\"%s\"\n", groupName);
 
+    if (!DbAcquire(&context)) {
+        return FALSE;
+    }
+
+    DbRelease(context);
     return TRUE;
 }
 
@@ -58,9 +79,16 @@ DbGroupLock(
     GROUPFILE *groupFile
     )
 {
+    DB_CONTEXT *context;
+
     ASSERT(groupFile != NULL);
     DebugPrint("DbGroupLock", "groupFile=%p", groupFile);
 
+    if (!DbAcquire(&context)) {
+        return FALSE;
+    }
+
+    DbRelease(context);
     return TRUE;
 }
 
@@ -69,9 +97,16 @@ DbGroupUnlock(
     GROUPFILE *groupFile
     )
 {
+    DB_CONTEXT *context;
+
     ASSERT(groupFile != NULL);
     DebugPrint("DbGroupUnlock", "groupFile=%p", groupFile);
 
+    if (!DbAcquire(&context)) {
+        return FALSE;
+    }
+
+    DbRelease(context);
     return TRUE;
 }
 
@@ -81,10 +116,17 @@ DbGroupOpen(
     GROUPFILE *groupFile
     )
 {
+    DB_CONTEXT *context;
+
     ASSERT(groupName != NULL);
     ASSERT(groupFile != NULL);
     DebugPrint("DbGroupOpen", "groupName=\"%s\" groupFile=%p\n", groupName, groupFile);
 
+    if (!DbAcquire(&context)) {
+        return FALSE;
+    }
+
+    DbRelease(context);
     return TRUE;
 }
 
@@ -93,9 +135,16 @@ DbGroupWrite(
     GROUPFILE *groupFile
     )
 {
+    DB_CONTEXT *context;
+
     ASSERT(groupFile != NULL);
     DebugPrint("DbGroupWrite", "groupFile=%p", groupFile);
 
+    if (!DbAcquire(&context)) {
+        return FALSE;
+    }
+
+    DbRelease(context);
     return TRUE;
 }
 

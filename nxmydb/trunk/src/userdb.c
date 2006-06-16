@@ -22,10 +22,17 @@ DbUserCreate(
     USERFILE *userFile
     )
 {
+    DB_CONTEXT *context;
+
     ASSERT(userName != NULL);
     ASSERT(userFile != NULL);
     DebugPrint("DbUserCreate", "userName=\"%s\" userFile=%p\n", userName, userFile);
 
+    if (!DbAcquire(&context)) {
+        return FALSE;
+    }
+
+    DbRelease(context);
     return TRUE;
 }
 
@@ -35,10 +42,17 @@ DbUserRename(
     char *newName
     )
 {
+    DB_CONTEXT *context;
+
     ASSERT(userName != NULL);
     ASSERT(newName != NULL);
     DebugPrint("DbUserRename", "userName=\"%s\" newName=\"%s\"\n", userName, newName);
 
+    if (!DbAcquire(&context)) {
+        return FALSE;
+    }
+
+    DbRelease(context);
     return TRUE;
 }
 
@@ -47,9 +61,16 @@ DbUserDelete(
     char *userName
     )
 {
+    DB_CONTEXT *context;
+
     ASSERT(userName != NULL);
     DebugPrint("DbUserDelete", "userName=\"%s\"\n", userName);
 
+    if (!DbAcquire(&context)) {
+        return FALSE;
+    }
+
+    DbRelease(context);
     return TRUE;
 }
 
@@ -58,9 +79,16 @@ DbUserLock(
     USERFILE *userFile
     )
 {
+    DB_CONTEXT *context;
+
     ASSERT(userFile != NULL);
     DebugPrint("DbUserLock", "userFile=%p", userFile);
 
+    if (!DbAcquire(&context)) {
+        return FALSE;
+    }
+
+    DbRelease(context);
     return TRUE;
 }
 
@@ -69,9 +97,16 @@ DbUserUnlock(
     USERFILE *userFile
     )
 {
+    DB_CONTEXT *context;
+
     ASSERT(userFile != NULL);
     DebugPrint("DbUserUnlock", "userFile=%p", userFile);
 
+    if (!DbAcquire(&context)) {
+        return FALSE;
+    }
+
+    DbRelease(context);
     return TRUE;
 }
 
@@ -81,10 +116,17 @@ DbUserOpen(
     USERFILE *userFile
     )
 {
+    DB_CONTEXT *context;
+
     ASSERT(userName != NULL);
     ASSERT(userFile != NULL);
     DebugPrint("DbUserOpen", "userName=\"%s\" userFile=%p\n", userName, userFile);
 
+    if (!DbAcquire(&context)) {
+        return FALSE;
+    }
+
+    DbRelease(context);
     return TRUE;
 }
 
@@ -93,9 +135,16 @@ DbUserWrite(
     USERFILE *userFile
     )
 {
+    DB_CONTEXT *context;
+
     ASSERT(userFile != NULL);
     DebugPrint("DbUserWrite", "userFile=%p", userFile);
 
+    if (!DbAcquire(&context)) {
+        return FALSE;
+    }
+
+    DbRelease(context);
     return TRUE;
 }
 
