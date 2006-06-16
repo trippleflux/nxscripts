@@ -18,33 +18,40 @@ Abstract:
 #define _PROCS_H_
 
 //
-// Procedure declarations
+// Callback declarations
 //
 
-char *Io_ConfigGet(char *szArray, char *szVariable, char *szBuffer, int *pOffset);
-BOOL  Io_ConfigGetBool(char *szArray, char *szVariable, BOOL *pValue);
-BOOL  Io_ConfigGetInt(char *szArray, char *szVariable, int *pValue);
-char *Io_ConfigGetPath(char *szArray, char *szVariable, char *szSuffix, char *szBuffer);
+typedef void *(Io_GetProc)(char *szName);
+typedef DWORD (Io_TimerProc)(void *pTimerContext, TIMER *hTimer);
 
-char *Io_Gid2Group(INT32 Gid);
-INT32 Io_Group2Gid(char *szGroupName);
+//
+// Function declarations
+//
 
-BOOL  Io_Ascii2GroupFile(char *pBuffer, DWORD dwBuffer, GROUPFILE *pGroupFile);
-BOOL  Io_GroupFile2Ascii(BUFFER *pBuffer, GROUPFILE *pGroupFile);
+char  *Io_ConfigGet(char *szArray, char *szVariable, char *szBuffer, int *pOffset);
+BOOL   Io_ConfigGetBool(char *szArray, char *szVariable, BOOL *pValue);
+BOOL   Io_ConfigGetInt(char *szArray, char *szVariable, int *pValue);
+char  *Io_ConfigGetPath(char *szArray, char *szVariable, char *szSuffix, char *szBuffer);
 
-char *Io_Uid2User(INT32 Uid);
-INT32 Io_User2Uid(char *szUserName);
+char  *Io_Gid2Group(INT32 Gid);
+INT32  Io_Group2Gid(char *szGroupName);
 
-BOOL  Io_Ascii2UserFile(char *pBuffer, DWORD dwBuffer, USERFILE *pUserFile);
-BOOL  Io_UserFile2Ascii(BUFFER *pBuffer, USERFILE *pUserFile);
+BOOL   Io_Ascii2GroupFile(char *pBuffer, DWORD dwBuffer, GROUPFILE *pGroupFile);
+BOOL   Io_GroupFile2Ascii(BUFFER *pBuffer, GROUPFILE *pGroupFile);
 
-void *Io_Allocate(DWORD Size);
-void *Io_ReAllocate(void *pMemory, DWORD Size);
-BOOL  Io_Free(void *pMemory);
+char  *Io_Uid2User(INT32 Uid);
+INT32  Io_User2Uid(char *szUserName);
 
-void *Io_StartIoTimer(void *hTimer, void *pTimerProc, void *pTimerContext, DWORD dwTimeOut);
-BOOL  Io_StopIoTimer(void *hTimer, BOOL bInTimerProc);
-BOOL  Io_Putlog(DWORD dwLogCode, const char *szFormatString, ...);
+BOOL   Io_Ascii2UserFile(char *pBuffer, DWORD dwBuffer, USERFILE *pUserFile);
+BOOL   Io_UserFile2Ascii(BUFFER *pBuffer, USERFILE *pUserFile);
+
+void  *Io_Allocate(DWORD Size);
+void  *Io_ReAllocate(void *pMemory, DWORD Size);
+BOOL   Io_Free(void *pMemory);
+
+TIMER *Io_StartIoTimer(TIMER *hTimer, Io_TimerProc *pTimerProc, void *pTimerContext, DWORD dwTimeOut);
+BOOL   Io_StopIoTimer(TIMER *hTimer, BOOL bInTimerProc);
+BOOL   Io_Putlog(DWORD dwLogCode, const char *szFormatString, ...);
 
 
 //
@@ -52,24 +59,24 @@ BOOL  Io_Putlog(DWORD dwLogCode, const char *szFormatString, ...);
 //
 
 typedef struct {
-    char *(* ConfigGet)(char *, char *, char *, int *);
-    BOOL  (* ConfigGetBool)(char *, char *, BOOL *);
-    BOOL  (* ConfigGetInt)(char *, char *, int *);
-    char *(* ConfigGetPath)(char *, char *, char *, char *);
-    char *(* Gid2Group)(INT32);
-    INT32 (* Group2Gid)(char *);
-    BOOL  (* Ascii2GroupFile)(char *, DWORD, GROUPFILE *);
-    BOOL  (* GroupFile2Ascii)(BUFFER *, GROUPFILE *);
-    char *(* Uid2User)(INT32);
-    INT32 (* User2Uid)(char *);
-    BOOL  (* Ascii2UserFile)(char *, DWORD, USERFILE *);
-    BOOL  (* UserFile2Ascii)(BUFFER *, USERFILE *);
-    void *(* Allocate)(DWORD);
-    void *(* ReAllocate)(void *, DWORD);
-    BOOL  (* Free)(void *);
-    void *(* StartIoTimer)(void *, void *, void *, DWORD);
-    BOOL  (* StopIoTimer)(void *, BOOL);
-    BOOL  (* Putlog)(DWORD, const char *, ...);
+    char  *(* ConfigGet)(char *, char *, char *, int *);
+    BOOL   (* ConfigGetBool)(char *, char *, BOOL *);
+    BOOL   (* ConfigGetInt)(char *, char *, int *);
+    char  *(* ConfigGetPath)(char *, char *, char *, char *);
+    char  *(* Gid2Group)(INT32);
+    INT32  (* Group2Gid)(char *);
+    BOOL   (* Ascii2GroupFile)(char *, DWORD, GROUPFILE *);
+    BOOL   (* GroupFile2Ascii)(BUFFER *, GROUPFILE *);
+    char  *(* Uid2User)(INT32);
+    INT32  (* User2Uid)(char *);
+    BOOL   (* Ascii2UserFile)(char *, DWORD, USERFILE *);
+    BOOL   (* UserFile2Ascii)(BUFFER *, USERFILE *);
+    void  *(* Allocate)(DWORD);
+    void  *(* ReAllocate)(void *, DWORD);
+    BOOL   (* Free)(void *);
+    TIMER *(* StartIoTimer)(TIMER *, Io_TimerProc *, void *, DWORD);
+    BOOL   (* StopIoTimer)(TIMER *, BOOL);
+    BOOL   (* Putlog)(DWORD, const char *, ...);
 } PROC_TABLE;
 
 extern PROC_TABLE procTable;
@@ -94,10 +101,6 @@ extern PROC_TABLE procTable;
 #define Io_Putlog           procTable.Putlog
 
 
-typedef void *(Io_GetProc)(
-    char *name
-    );
-
 BOOL
 ProcTableInit(
     Io_GetProc *getProc
