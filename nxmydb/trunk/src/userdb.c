@@ -150,7 +150,7 @@ DbUserWrite(
 
 BOOL
 DbUserClose(
-    FILE_CONTEXT *context
+    USER_CONTEXT *context
     )
 {
     ASSERT(context != NULL);

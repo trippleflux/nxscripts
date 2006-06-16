@@ -17,10 +17,10 @@ Abstract:
 #ifndef _BACKENDS_H_
 #define _BACKENDS_H_
 
-// File context for users and groups
+// Context for users and groups
 typedef struct {
     HANDLE fileHandle;
-} FILE_CONTEXT;
+} GROUP_CONTEXT, USER_CONTEXT;
 
 
 //
@@ -67,7 +67,7 @@ DbGroupWrite(
 
 BOOL
 DbGroupClose(
-    FILE_CONTEXT *context
+    GROUP_CONTEXT *context
     );
 
 BOOL
@@ -94,7 +94,7 @@ FileGroupDelete(
 BOOL
 FileGroupOpen(
     INT32 groupId,
-    FILE_CONTEXT *context
+    GROUP_CONTEXT *context
     );
 
 BOOL
@@ -104,7 +104,7 @@ FileGroupWrite(
 
 BOOL
 FileGroupClose(
-    FILE_CONTEXT *context
+    GROUP_CONTEXT *context
     );
 
 
@@ -152,7 +152,7 @@ DbUserWrite(
 
 BOOL
 DbUserClose(
-    FILE_CONTEXT *context
+    USER_CONTEXT *context
     );
 
 BOOL
@@ -179,7 +179,7 @@ FileUserDelete(
 BOOL
 FileUserOpen(
     INT32 userId,
-    FILE_CONTEXT *context
+    USER_CONTEXT *context
     );
 
 BOOL
@@ -189,7 +189,7 @@ FileUserWrite(
 
 BOOL
 FileUserClose(
-    FILE_CONTEXT *context
+    USER_CONTEXT *context
     );
 
 #endif // _BACKENDS_H_

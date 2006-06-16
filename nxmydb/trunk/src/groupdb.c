@@ -150,7 +150,7 @@ DbGroupWrite(
 
 BOOL
 DbGroupClose(
-    FILE_CONTEXT *context
+    GROUP_CONTEXT *context
     )
 {
     ASSERT(context != NULL);
