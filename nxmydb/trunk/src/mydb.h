@@ -59,6 +59,11 @@ Abstract:
 #include "pool.h"
 
 
+// Required for variadic macros
+#if (_MSC_VER < 1400)
+#   error You must be using VC2005, or newer, to compile this application.
+#endif
+
 #undef ARRAYSIZE
 #undef INLINE
 #undef STRINGIFY

@@ -40,18 +40,18 @@ Abstract:
 // DebugFoot  - Log debug footer.
 #ifdef DEBUG
 #   ifdef DEBUG_FILE
-#       define DebugHead  LogFileHeader
-#       define DebugPrint LogFileFormat
-#       define DebugFoot  LogFileFooter
+#       define DebugHead()                      LogFileHeader()
+#       define DebugPrint(funct, format, ...)   LogFileFormat(funct, format, __VA_ARGS__)
+#       define DebugFoot()                      LogFileFooter()
 #   else
-#       define DebugHead  LogDebuggerHeader
-#       define DebugPrint LogDebuggerFormat
-#       define DebugFoot  LogDebuggerFooter
+#       define DebugHead()                      LogDebuggerHeader()
+#       define DebugPrint(funct, format, ...)   LogDebuggerFormat(funct, format, __VA_ARGS__)
+#       define DebugFoot()                      LogDebuggerFooter()
 #   endif
 #else
-#   define DebugHead()
-#   define DebugPrint
-#   define DebugFoot()
+#   define DebugHead()                          ((void)0)
+#   define DebugPrint(funct, format, ...)       ((void)0)
+#   define DebugFoot()                          ((void)0)
 #endif
 
 

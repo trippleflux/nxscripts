@@ -138,6 +138,7 @@ Return Values:
     None.
 
 --*/
+static
 void
 LogFile(
     char *text
