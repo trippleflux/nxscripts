@@ -520,7 +520,7 @@ DbAcquire(
             DebugPrint("DbAcquire", "Lost server connection: %s\n", mysql_error(context->handle));
             PoolInvalidate(pool, context);
 
-            SetLastError(ERROR_CONNECTION_INVALID);
+            SetLastError(ERROR_NOT_CONNECTED);
             return FALSE;
         }
     }
