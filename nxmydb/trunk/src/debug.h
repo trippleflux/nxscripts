@@ -10,12 +10,12 @@ Author:
     neoxed (neoxed@gmail.com) Jun 3, 2006
 
 Abstract:
-    Miscellaneous utility declarations.
+    Miscellaneous debugging utilities.
 
 */
 
-#ifndef _UTIL_H_
-#define _UTIL_H_
+#ifndef _DEBUG_H_
+#define _DEBUG_H_
 
 //
 // Debugger output
@@ -61,4 +61,4 @@ LogFileFooter(
     );
 #endif // DEBUG
 
-#endif // _UTIL_H_
+#endif // _DEBUG_H_
