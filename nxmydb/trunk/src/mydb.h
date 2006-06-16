@@ -79,13 +79,13 @@ Abstract:
 // DebugFoot  - Print debug footer.
 #if defined(DEBUG) && !defined(NDEBUG)
 #   ifdef DEBUG_FILE
-#       define DebugHead  FileHeader
-#       define DebugPrint FileMessage
-#       define DebugFoot  FileFooter
+#       define DebugHead  LogFileHeader
+#       define DebugPrint LogFileFormat
+#       define DebugFoot  LogFileFooter
 #   else
-#       define DebugHead  DebuggerHeader
-#       define DebugPrint DebuggerMessage
-#       define DebugFoot  DebuggerFooter
+#       define DebugHead  LogDebuggerHeader
+#       define DebugPrint LogDebuggerFormat
+#       define DebugFoot  LogDebuggerFooter
 #   endif
 #else
 #   define DebugHead()

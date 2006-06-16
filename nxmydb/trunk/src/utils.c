@@ -19,9 +19,9 @@ Abstract:
 #ifdef DEBUG
 /*++
 
-DebuggerHeader
+LogDebuggerHeader
 
-    Sends header output to the debugger.
+    Sends the header to a debugger.
 
 Arguments:
     None.
@@ -31,7 +31,7 @@ Return Values:
 
 --*/
 void
-DebuggerHeader(
+LogDebuggerHeader(
     void
     )
 {
@@ -48,9 +48,9 @@ DebuggerHeader(
 
 /*++
 
-DebuggerMessage
+LogDebuggerFormat
 
-    Sends debug output to the debugger.
+    Sends the message to a debugger.
 
 Arguments:
     funct   - Pointer to a null-terminated string that specifies the function.
@@ -64,7 +64,7 @@ Return Values:
 
 --*/
 void
-DebuggerMessage(
+LogDebuggerFormat(
     const char *funct,
     const char *format,
     ...
@@ -76,13 +76,12 @@ DebuggerMessage(
     size_t remaining;
     va_list argList;
 
-    ASSERT(funct  != NULL);
+    ASSERT(funct != NULL);
     ASSERT(format != NULL);
 
     // Preserve system error code
     error = GetLastError();
 
-    // Align function name and format arguments
     StringCchPrintfExA(output, ARRAYSIZE(output), &end, &remaining, 0, "| %4d | %15s | ",
         GetCurrentThreadId(), funct);
     va_start(argList, format);
@@ -97,9 +96,9 @@ DebuggerMessage(
 
 /*++
 
-DebuggerFooter
+LogDebuggerFooter
 
-    Sends footer output to the debugger.
+    Sends the footer to a debugger.
 
 Arguments:
     None.
@@ -109,7 +108,7 @@ Return Values:
 
 --*/
 void
-DebuggerFooter(
+LogDebuggerFooter(
     void
     )
 {
@@ -125,11 +124,45 @@ DebuggerFooter(
 
 
 #ifdef DEBUG
+
 /*++
 
-FileHeader
+LogFile
 
-    Writes header output to a file.
+    Writes the text to a log file.
+
+Arguments:
+    funct   - Pointer to a null-terminated string that specifies the text to be written.
+
+Return Values:
+    None.
+
+--*/
+void
+LogFile(
+    char *text
+    )
+{
+    HANDLE file;
+
+    ASSERT(text != NULL);
+
+    file = CreateFileA("nxMyDB.log", GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE,
+        NULL, OPEN_ALWAYS, FILE_FLAG_WRITE_THROUGH, NULL);
+
+    if (file != INVALID_HANDLE_VALUE) {
+        // Append text to the end of the file
+        SetFilePointer(file, 0, NULL, FILE_END);
+        WriteFile(file, text, strlen(text), NULL, NULL);
+        CloseHandle(file);
+    }
+}
+
+/*++
+
+LogFileHeader
+
+    Writes the header to a log file.
 
 Arguments:
     None.
@@ -139,24 +172,17 @@ Return Values:
 
 --*/
 void
-FileHeader(
+LogFileHeader(
     void
     )
 {
-    DWORD error;
-    FILE *handle;
-
     // Preserve system error code
-    error = GetLastError();
+    DWORD error = GetLastError();
 
-    handle = fopen("nxMyDB.log", "a");
-    if (handle != NULL) {
-        fprintf(handle, "\n");
-        fprintf(handle, ".-----------------------------------------------------------------------------------------.\n");
-        fprintf(handle, "|     Time Stamp      | ThID |    Function     |               Debug Message              |\n");
-        fprintf(handle, "|-----------------------------------------------------------------------------------------'\n");
-        fclose(handle);
-    }
+    LogFile("\n"
+            ".-----------------------------------------------------------------------------------------.\n"
+            "|     Time Stamp      | ThID |    Function     |               Debug Message              |\n"
+            "|-----------------------------------------------------------------------------------------'\n");
 
     // Restore system error code
     SetLastError(error);
@@ -164,9 +190,9 @@ FileHeader(
 
 /*++
 
-FileMessage
+LogFileFormat
 
-    Writes debug output to a file.
+    Writes the message to a log file.
 
 Arguments:
     funct   - Pointer to a null-terminated string that specifies the function.
@@ -180,36 +206,36 @@ Return Values:
 
 --*/
 void
-FileMessage(
+LogFileFormat(
     const char *funct,
     const char *format,
     ...
     )
 {
+    char *end;
+    char output[1024];
     DWORD error;
-    FILE *handle;
+    size_t remaining;
     SYSTEMTIME now;
     va_list argList;
 
-    ASSERT(funct  != NULL);
+    ASSERT(funct != NULL);
     ASSERT(format != NULL);
 
     // Preserve system error code
     error = GetLastError();
 
-    handle = fopen("nxMyDB.log", "a");
-    if (handle != NULL) {
-        GetSystemTime(&now);
-        fprintf(handle, "| %04d-%02d-%02d %02d:%02d:%02d | %4d | %15s | ",
-            now.wYear, now.wMonth, now.wDay, now.wHour, now.wMinute, now.wSecond,
-            GetCurrentThreadId(), funct);
+    GetSystemTime(&now);
+    StringCchPrintfExA(output, ARRAYSIZE(output), &end, &remaining, 0,
+        "| %04d-%02d-%02d %02d:%02d:%02d | %4d | %15s | ",
+        now.wYear, now.wMonth, now.wDay, now.wHour, now.wMinute, now.wSecond,
+        GetCurrentThreadId(), funct);
 
-        va_start(argList, format);
-        vfprintf(handle, format, argList);
-        va_end(argList);
+    va_start(argList, format);
+    StringCchVPrintfA(end, remaining, format, argList);
+    va_end(argList);
 
-        fclose(handle);
-    }
+    LogFile(output);
 
     // Restore system error code
     SetLastError(error);
@@ -217,9 +243,9 @@ FileMessage(
 
 /*++
 
-FileFooter
+LogFileFooter
 
-    Writes footer output to a file.
+    Writes the footer to a log file.
 
 Arguments:
     None.
@@ -229,21 +255,14 @@ Return Values:
 
 --*/
 void
-FileFooter(
+LogFileFooter(
     void
     )
 {
-    DWORD error;
-    FILE *handle;
-
     // Preserve system error code
-    error = GetLastError();
+    DWORD error = GetLastError();
 
-    handle = fopen("nxMyDB.log", "a");
-    if (handle != NULL) {
-        fprintf(handle, "`------------------------------------------------------------------------------------------\n");
-        fclose(handle);
-    }
+    LogFile("`------------------------------------------------------------------------------------------\n");
 
     // Restore system error code
     SetLastError(error);
