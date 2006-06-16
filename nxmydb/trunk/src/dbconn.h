@@ -42,12 +42,12 @@ DbFinalize(
 
 BOOL
 DbAcquire(
-    DB_CONTEXT **context
+    DB_CONTEXT **dbContext
     );
 
 void
 DbRelease(
-    DB_CONTEXT *context
+    DB_CONTEXT *dbContext
     );
 
 #endif // _DBCONN_H_

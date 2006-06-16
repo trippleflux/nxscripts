@@ -72,7 +72,7 @@ ConnectionOpen(
     ASSERT(data != NULL);
     DebugPrint("ConnectionOpen", "opaque=%p data=%p\n", opaque, data);
 
-    // Allocate database handle context
+    // Allocate database context
     context = Io_Allocate(sizeof(DB_CONTEXT));
     if (context == NULL) {
         DebugPrint("ConnectionOpen", "Unable to allocate database context.\n");
@@ -484,7 +484,7 @@ DbAcquire
     Acquires a database context from the connection pool.
 
 Arguments:
-    context - Pointer to a pointer that receives the DB_CONTEXT structure.
+    dbContext - Pointer to a pointer that receives the DB_CONTEXT structure.
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).
@@ -494,17 +494,17 @@ Return Values:
 --*/
 BOOL
 DbAcquire(
-    DB_CONTEXT **context
+    DB_CONTEXT **dbContext
     )
 {
-    DB_CONTEXT *check;
+    DB_CONTEXT *context;
     UINT64 age;
 
-    ASSERT(context != NULL);
-    DebugPrint("DbAcquire", "context=%p\n", context);
+    ASSERT(dbContext != NULL);
+    DebugPrint("DbAcquire", "dbContext=%p\n", dbContext);
 
     // Acquire a database context
-    if (!PoolAcquire(pool, &check)) {
+    if (!PoolAcquire(pool, &context)) {
         DebugPrint("DbAcquire", "Unable to acquire a database check (error %lu).\n", GetLastError());
         return FALSE;
     }
@@ -512,20 +512,20 @@ DbAcquire(
     // Ping handle if it hasn't been used in more than 60 seconds. Do not
     // convert into seconds before comparing, since that would loose precision.
     GetSystemTimeAsFileTime((FILETIME *)&age);
-    age -= check->time;
+    age -= context->time;
     if (age > 60 * 10000000) {
         DebugPrint("DbAcquire", "Connection has not been used in %I64u seconds, pinging it.\n", age/10000000);
 
-        if (mysql_ping(check->handle) != 0) {
-            DebugPrint("DbAcquire", "Lost server connection: %s\n", mysql_error(check->handle));
-            PoolInvalidate(pool, check);
+        if (mysql_ping(context->handle) != 0) {
+            DebugPrint("DbAcquire", "Lost server connection: %s\n", mysql_error(context->handle));
+            PoolInvalidate(pool, context);
 
             SetLastError(ERROR_CONNECTION_INVALID);
             return FALSE;
         }
     }
 
-    *context = check;
+    *dbContext = context;
     return TRUE;
 }
 
@@ -536,7 +536,7 @@ DbRelease
     Releases a database context back into the connection pool.
 
 Arguments:
-    context - Pointer to a pointer that receives the DB_CONTEXT structure.
+    dbContext - Pointer to a pointer that receives the DB_CONTEXT structure.
 
 Return Values:
     None.
@@ -544,17 +544,17 @@ Return Values:
 --*/
 void
 DbRelease(
-    DB_CONTEXT *context
+    DB_CONTEXT *dbContext
     )
 {
-    ASSERT(context != NULL);
-    DebugPrint("DbRelease", "context=%p\n", context);
+    ASSERT(dbContext != NULL);
+    DebugPrint("DbRelease", "dbContext=%p\n", dbContext);
 
     // Update access time
-    GetSystemTimeAsFileTime((FILETIME *)&context->time);
+    GetSystemTimeAsFileTime((FILETIME *)&dbContext->time);
 
     // Release the database context
-    if (!PoolRelease(pool, context)) {
+    if (!PoolRelease(pool, dbContext)) {
         DebugPrint("DbRelease", "Unable to release the database context (error %lu).\n", GetLastError());
     }
 }
