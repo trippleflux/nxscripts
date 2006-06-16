@@ -6,9 +6,13 @@
 Topics:
  1. Information
  2. Configuration
+   a) Options
+   b) yaSSL Cipher Suites
+   c) OpenSSL Cipher Suites
  3. Installation
- 4. Bugs and Comments
- 5. License
+ 4. FAQ
+ 5. Bugs and Comments
+ 6. License
 
 ################################################################################
 # 1. Information                                                               #
@@ -33,32 +37,87 @@ servers. nxMyDB also includes features such as:
 supported by OpenSSL/yaSSL.
 
   ############################################################
-  # Options                                                  #
+  # a) Options                                               #
   ############################################################
 
-  Host            - MySQL Server host
-  Port            - MySQL Server port
-  User            - MySQL Server username
-  Password        - MySQL Server password
-  Database        - Database name
-  Refresh         - Seconds between each database refresh
+  If any option is left undefined, the default value is used.
 
-  Compression     - Use compression for the server connection
-  SSL_Enable      - Use SSL encryption for the server connection
-  SSL_Ciphers     - List of allowable ciphers to use for SSL encryption (e.g. DHE-RSA-AES256-SHA)
-  SSL_Cert_File   - Path to the certificate file
-  SSL_Key_File    - Path to the key file
-  SSL_CA_File     - Path to the certificate authority file
-  SSL_CA_Path     - Path to the directory containing CA certificates
+  Host
+    - MySQL Server host
+    - Default: localhost
 
-  Pool_Minimum    - Minimum number of sustained connections (must be greater than zero)
-  Pool_Average    - Average number of sustained connections (usually slightly more than minimum)
-  Pool_Maximum    - Maximum number of sustained connections (usually double the average)
-  Pool_Expiration - Seconds until a connection expires (less than MySQL's interactive_timeout)
-  Pool_Timeout    - Seconds to wait for a connection to become available
+  Port
+    - MySQL Server port
+    - Default: 3306
+
+  User
+    - MySQL Server username
+    - Default: MySQL's default user
+
+  Password
+    - MySQL Server password
+    - Default: MySQL's default password
+
+  Database
+    - Database name
+    - Default: MySQL's default database
+
+  Refresh
+    - Seconds between each database refresh (synchronizes users and groups)
+    - Set to zero if the database is not shared with more than one server
+    - Default: 0
+
+  Compression
+    - Use compression for the server connection
+    - Default: false
+
+  SSL_Enable
+    - Use SSL encryption for the server connection
+    - Default: false
+
+  SSL_Ciphers
+    - List of allowable ciphers to use with SSL encryption
+    - I recommend using DHE-RSA-AES256-SHA
+    - Default: null
+
+  SSL_Cert_File
+    - Path to the certificate file
+    - Default: null
+
+  SSL_Key_File
+    - Path to the key file
+    - Default: null
+
+  SSL_CA_File
+    - Path to the certificate authority file
+    - Default: null
+
+  SSL_CA_Path
+    - Path to the directory containing CA certificates
+    - Default: null
+
+  Pool_Minimum
+    - Minimum number of sustained connections (must be greater than zero)
+    - Default: 1
+
+  Pool_Average
+    - Average number of sustained connections (usually slightly more than minimum)
+    - Default: Pool_Minimum + 1
+
+  Pool_Maximum
+    - Maximum number of sustained connections (usually double the average)
+    - Default: Pool_Average * 2
+
+  Pool_Expiration
+    - Seconds until a connection expires (less than MySQL's interactive_timeout)
+    - Default: 3600 (1 hour)
+
+  Pool_Timeout
+    - Seconds to wait for a connection to become available
+    - Default: 5
 
   ############################################################
-  # yaSSL Cipher Suites                                      #
+  # b) yaSSL Cipher Suites                                   #
   ############################################################
 
   MySQL's official Windows binaries are built using the yaSSL library.
@@ -91,7 +150,7 @@ supported by OpenSSL/yaSSL.
   RC4-SHA                     | SSLv3 TLSv1 | RSA      | RSA  |  RC4       | SHA1
 
   ############################################################
-  # OpenSSL Cipher Suites                                    #
+  # c) OpenSSL Cipher Suites                                 #
   ############################################################
 
   Cipher strings can be used instead of listing individual ciphers.
@@ -103,7 +162,7 @@ supported by OpenSSL/yaSSL.
 
   http://www.openssl.org/docs/apps/ciphers.html#CIPHER_STRINGS
 
-  Individual ciphers and their description (taken from "openssl ciphers -tls1 -v").
+  Individual ciphers and their description (obtained from "openssl ciphers -tls1 -v").
 
   -------------------------------------------------------------------------------
    Cipher Name                |  Protocols  | Key Xchg | Auth | Encryption | Mac
@@ -162,21 +221,13 @@ User            = user          # MySQL Server username
 Password        = pass          # MySQL Server password
 Database        = ioftpd        # Database name
 Refresh         = 60            # Seconds between each database refresh
-
-# Connection type
 Compression     = True          # Use compression for the server connection
 
-# Connection pools
-Pool_Minimum    = 2             # Minimum number of sustained connections (must be greater than zero)
-Pool_Average    = 3             # Average number of sustained connections (usually slightly more than minimum)
-Pool_Maximum    = 5             # Maximum number of sustained connections (usually double the average)
-Pool_Expiration = 7200          # Seconds until a connection expires (usually less than MySQL's interactive_timeout)
-Pool_Timeout    = 5             # Seconds to wait for a connection to become available
+5. Adjust these options as required. There are several other options to enable
+   SSL encryption and fine-tune the connection pool. For a list of available
+   options, see the "Configuration" section of this manual.
 
-5. Configure and adjust these options as required.
-
-6. For configuring SSL, see the "Configuration" section of this manual for a list
-   of available options. You will have to setup the certificate authority on the
+6. When configuring SSL, you will have to setup the certificate authority on the
    server, as well as generate/sign certificates for connecting clients. For more
    information on this, visit:
 
@@ -189,7 +240,11 @@ Pool_Timeout    = 5             # Seconds to wait for a connection to become ava
 7. Restart ioFTPD for the changes to take effect.
 
 ################################################################################
-# 4. Bugs and Comments                                                         #
+# 4. FAQ                                                                       #
+################################################################################
+
+################################################################################
+# 5. Bugs and Comments                                                         #
 ################################################################################
 
    If you have ideas for improvements or are experiencing problems with this
@@ -207,7 +262,7 @@ E-mail:
 neoxed@gmail.com
 
 ################################################################################
-# 5. License                                                                   #
+# 6. License                                                                   #
 ################################################################################
 
    See the "license.txt" file for details.
