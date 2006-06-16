@@ -31,7 +31,7 @@ static char *sslCAFile   = NULL;
 static char *sslCAPath   = NULL;
 
 // Refresh timer
-static int refresh = 0;
+static int refresh  = 0;
 static TIMER *timer = NULL;
 
 // Database connection pool
@@ -269,27 +269,29 @@ Arguments:
     None.
 
 Return Values:
-    None.
+    Number of milliseconds to execute this timer again.
 
 --*/
 static
-void
+DWORD
 RefreshTimer(
-    WPARAM foo,
-    LPARAM bar
+    void *timerContext,
+    TIMER *timerHandle
     )
 {
     DB_CONTEXT *context;
-    DebugPrint("RefreshTimer", "foo=%d bar=%d\n", foo, bar);
+    DebugPrint("RefreshTimer", "timerContext=%d timerHandle=%d\n", timerContext, timerHandle);
 
-    if (!DbAcquire(&context)) {
+    if (DbAcquire(&context)) {
+        // Users rely on groups, so update groups first.
+        DbGroupRefresh(context);
+        DbUserRefresh(context);
+    } else {
         DebugPrint("RefreshTimer", "Unable to acquire a database connection.\n");
-        return;
     }
 
-    // Users rely on groups, so update groups first.
-    DbGroupRefresh(context);
-    DbUserRefresh(context);
+    // Execute the timer again
+    return refresh;
 }
 
 
@@ -323,7 +325,6 @@ DbInit(
     int poolMax;
     int poolExpiration;
     int poolTimeout;
-    void *result;
     DebugPrint("DbInit", "getProc=%p refCount=%i\n", getProc, refCount);
 
     // Only initialize the module once
@@ -376,6 +377,7 @@ DbInit(
         Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Refresh' must be greater than or equal to zero.\r\n");
         return FALSE;
     }
+    refresh *= 1000;
 
     // Read server options
     serverHost = ConfigGet("nxMyDB", "Host");
@@ -411,11 +413,6 @@ DbInit(
     DebugPrint("Configuration", "Pool Expiration = %i\n", poolExpiration);
     DebugPrint("Configuration", "Pool Timeout    = %i\n", poolTimeout);
 
-#if 0
-    result = Io_StartIoTimer(&timer, RefreshTimer, 10, 5000);
-    DebugPrint("Timer", "result=%p timer=%p\n", result, timer);
-#endif
-
     // Create connection pool
     pool = Io_Allocate(sizeof(POOL));
     if (pool == NULL) {
@@ -427,6 +424,11 @@ DbInit(
         Io_Free(pool);
         Io_Putlog(LOG_ERROR, "nxMyDB: Unable to create connection pool.\r\n");
         goto error;
+    }
+
+    // Start database refresh timer
+    if (refresh > 0) {
+        timer = Io_StartIoTimer(NULL, RefreshTimer, NULL, refresh);
     }
 
     Io_Putlog(LOG_ERROR, "nxMyDB: v%s loaded, using MySQL Client Library v%s.\r\n",
