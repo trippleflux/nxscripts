@@ -45,6 +45,7 @@ Remarks:
 
 --*/
 static
+INLINE
 POOL_RESOURCE *
 ContainerPop(
     POOL *pool
@@ -90,6 +91,7 @@ Remarks:
 
 --*/
 static
+INLINE
 void
 ContainerPush(
     POOL *pool,
@@ -126,6 +128,7 @@ Remarks:
 
 --*/
 static
+INLINE
 BOOL
 ResourceCreate(
     POOL *pool,
@@ -177,6 +180,7 @@ Remarks:
 
 --*/
 static
+INLINE
 void
 ResourceDestroy(
     POOL *pool,
@@ -208,6 +212,7 @@ Remarks:
 
 --*/
 static
+INLINE
 POOL_RESOURCE *
 ResourcePop(
     POOL *pool
@@ -245,6 +250,7 @@ Remarks:
 
 --*/
 static
+INLINE
 void
 ResourcePush(
     POOL *pool,

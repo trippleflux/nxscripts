@@ -73,9 +73,7 @@ Abstract:
 #define ARRAYSIZE(a) (sizeof(a) / sizeof(a[0]))
 
 // INLINE - Inline the function during compilation.
-#if (_MSC_VER >= 1200)
-#    define INLINE __forceinline
-#elif defined(_MSC_VER)
+#ifdef _MSC_VER
 #    define INLINE __inline
 #else
 #    define INLINE
