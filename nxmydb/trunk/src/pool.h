@@ -65,7 +65,7 @@ typedef void (POOL_DESTRUCTOR_PROC)(
 //
 
 struct POOL_RESOURCE {
-    DWORD created;  // Time when the resource was created
+    UINT64 created; // Time when the resource was created
     void *data;     // Opaque data set by the constructor callback
     TAILQ_ENTRY(POOL_RESOURCE) link;
 };
@@ -84,8 +84,8 @@ typedef struct {
     DWORD                 minimum;      // Minimum number of resources to have available
     DWORD                 average;      // Average number of resources to have available
     DWORD                 maximum;      // Maximum number of resources to have available
-    DWORD                 expiration;   // Milliseconds until a resource expires
     DWORD                 timeout;      // Milliseconds to wait for a resource to become available
+    UINT64                expiration;   // 100nsec intervals (FILETIME) until a resource expires
     POOL_CONSTRUCTOR_PROC *constructor; // Procedure called when a resource is created
     POOL_DESTRUCTOR_PROC  *destructor;  // Procedure called when a resource is destroyed
     void                  *opaque;      // Opaque argument passed to the constructor and destructor

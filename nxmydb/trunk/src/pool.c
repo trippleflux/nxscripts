@@ -256,7 +256,7 @@ ResourcePush(
     DebugPrint("ResourcePush", "pool=%p resource=%p\n", pool, resource);
 
     // Update creation time
-    resource->created = GetTickCount();
+    GetSystemTimeAsFileTime((FILETIME *)&resource->created);
 
     // Insert resource at the tail
     TAILQ_INSERT_TAIL(&pool->resQueue, resource, link);
@@ -290,7 +290,7 @@ ResourceUpdate(
     )
 {
     BOOL newResource = FALSE;
-    DWORD currentTime;
+    UINT64 currentTime;
     POOL_RESOURCE *resource;
 
     ASSERT(pool != NULL);
@@ -325,9 +325,9 @@ ResourceUpdate(
         LeaveCriticalSection(&pool->queueLock);
         return TRUE;
     }
+    GetSystemTimeAsFileTime((FILETIME *)&currentTime);
 
     // Expire old resources, moving from head to tail
-    currentTime = GetTickCount();
     while (pool->idle > pool->average && pool->idle > 0) {
         resource = TAILQ_FIRST(&pool->resQueue);
 
@@ -417,8 +417,8 @@ PoolInit(
     pool->minimum     = minimum;
     pool->average     = average;
     pool->maximum     = maximum;
-    pool->expiration  = expiration;
     pool->timeout     = timeout;
+    pool->expiration  = UInt32x32To64(expiration, 10000); // msec to 100nsec
     pool->constructor = constructor;
     pool->destructor  = destructor;
     pool->opaque      = opaque;
