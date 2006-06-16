@@ -60,7 +60,7 @@ LIBENTRY    =
 !else
 !message Debug Symbols: Off
 CFLAGS      = $(CFLAGS) /Ox /GF $(CRTLIB) /DNDEBUG
-LFLAGS      = $(LFLAGS) /RELEASE /OPT:REF
+LFLAGS      = $(LFLAGS) /RELEASE /OPT:REF /OPT:NOWIN98
 LIBENTRY    = /ENTRY:DllMain
 !endif
 
