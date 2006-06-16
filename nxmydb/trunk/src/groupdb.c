@@ -112,11 +112,11 @@ DbGroupClose(
 
 BOOL
 DbGroupRefresh(
-    MYSQL *handle
+    DB_CONTEXT *context
     )
 {
-    ASSERT(handle != NULL);
-    DebugPrint("DbGroupRefresh", "handle=%p", handle);
+    ASSERT(context != NULL);
+    DebugPrint("DbGroupRefresh", "context=%p", context);
 
     return TRUE;
 }

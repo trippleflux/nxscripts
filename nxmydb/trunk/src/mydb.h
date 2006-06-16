@@ -51,10 +51,9 @@ Abstract:
 // Project headers
 #include "proctable.h"
 #include "queue.h"
-
+#include "dbconn.h"
 #include "backends.h"
 #include "condvars.h"
-#include "dbconn.h"
 #include "pool.h"
 #include "utils.h"
 

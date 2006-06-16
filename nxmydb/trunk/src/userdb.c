@@ -112,11 +112,11 @@ DbUserClose(
 
 BOOL
 DbUserRefresh(
-    MYSQL *handle
+    DB_CONTEXT *context
     )
 {
-    ASSERT(handle != NULL);
-    DebugPrint("DbUserRefresh", "handle=%p", handle);
+    ASSERT(context != NULL);
+    DebugPrint("DbUserRefresh", "context=%p", context);
 
     return TRUE;
 }

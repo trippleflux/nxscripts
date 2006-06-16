@@ -72,7 +72,7 @@ DbGroupClose(
 
 BOOL
 DbGroupRefresh(
-    MYSQL *handle
+    DB_CONTEXT *context
     );
 
 
@@ -157,7 +157,7 @@ DbUserClose(
 
 BOOL
 DbUserRefresh(
-    MYSQL *handle
+    DB_CONTEXT *context
     );
 
 
