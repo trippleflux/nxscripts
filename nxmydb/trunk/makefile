@@ -15,6 +15,7 @@
 ## Build options
 DEBUG       = 1
 MSVCRT      = 0
+PLATFORM    = X86
 IOFTPD_INC  = E:\ioFTPD\source\Include
 MYSQL_DIR   = C:\Program Files\MySQL\MySQL Server 5.0
 
@@ -26,7 +27,7 @@ CC          = cl
 LD          = link
 RC          = rc
 CFLAGS      = /nologo /I "$(IOFTPD_INC)" -I"$(MYSQL_DIR)\include" /W4
-LFLAGS      = /nologo
+LFLAGS      = /nologo /MACHINE:$(PLATFORM)
 RFLAGS      = /r
 
 # -------------------------------------------------------------------------
@@ -62,8 +63,8 @@ LFLAGS      = $(LFLAGS) /DEBUG
 MYSQL_LIB   = $(MYSQL_DIR)\lib\debug
 !else
 !message Debug Symbols: Off
-CFLAGS      = $(CFLAGS) /Ox /GF /GL $(CRTLIB) /DNDEBUG
-LFLAGS      = $(LFLAGS) /RELEASE /OPT:REF
+CFLAGS      = $(CFLAGS) /Ox /GF /GL /GS- $(CRTLIB) /DNDEBUG
+LFLAGS      = $(LFLAGS) /RELEASE /LTCG:STATUS /OPT:REF /OPT:NOWIN98
 MYSQL_LIB   = $(MYSQL_DIR)\lib\opt
 !endif
 
