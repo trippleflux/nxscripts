@@ -1,52 +1,37 @@
-##############################################################################
-#                                                                            #
-#                      nxHelp - Help Script for ioFTPD                       #
-#                                                                            #
-##############################################################################
-# Author: neoxed (EFnet: #ioFTPD)                                            #
-##############################################################################
+################################################################################
+#                       nxHelp - Help Script for ioFTPD                        #
+#                     Written by neoxed (neoxed@gmail.com)                     #
+################################################################################
 
 Topics:
  1. Features
- 2. Notes
- 3. Requirements
- 4. Installation
- 5. Usage
- 6. Upgrading
- 7. Changes
- 8. Bugs or Comments
- 9. License
+ 2. Requirements
+ 3. Installation
+ 4. Usage
+ 5. Upgrading
+ 6. Changes
+ 7. Bugs or Comments
+ 8. License
 
-
-##############################################################################
-# 1. Features                                                                #
-##############################################################################
+################################################################################
+# 1. Features                                                                  #
+################################################################################
 
 - Easily extendable and customizable.
 - Additional help topics can be added by simply creating a text file.
 
-
-##############################################################################
-# 2. Notes                                                                   #
-##############################################################################
-
-- Thanks to dark0n3 for such a great FTPD.
-- Thanks to WarC for ioA and for his manual layout (which I copied =P).
-
-
-##############################################################################
-# 3. Requirements                                                            #
-##############################################################################
+################################################################################
+# 2. Requirements                                                              #
+################################################################################
 
    nxHelp should only be installed on Windows NT/2000/XP/2003, any other
 operating system is unsupported. You must be using ioFTPD v5.6.3r or later
 with the threaded Tcl DLL. nxHelp was tested on v5.8.x so I cannot guarantee
 it will work on other versions.
 
-
-##############################################################################
-# 4. Installation                                                            #
-##############################################################################
+################################################################################
+# 3. Installation                                                              #
+################################################################################
 
 1. Copy the nxHelp directory to ioFTPD\scripts\ or where ever your
    ioFTPD is installed.
@@ -66,10 +51,9 @@ help    = *
 
 5. Finished.
 
-
-##############################################################################
-# 5. Usage                                                                   #
-##############################################################################
+################################################################################
+# 4. Usage                                                                     #
+################################################################################
 
 Note: <param> = Required
       [param] = Optional
@@ -81,10 +65,9 @@ Note: <param> = Required
                site help ginfo
                site help kill
 
-
-##############################################################################
-# 6. Upgrading                                                               #
-##############################################################################
+################################################################################
+# 5. Upgrading                                                                 #
+################################################################################
 
   1.1.0 -> 2.0.0 - Replace nxHelp.tcl and reconfigure it.
                  - Replace all files in nxHelp\help\ and nxHelp\site\.
@@ -94,10 +77,9 @@ Note: <param> = Required
 
   1.0.0 -> 1.0.1 - Replace all files in nxHelp\help\ and nxHelp\site\.
 
-
-##############################################################################
-# 7. Changes                                                                 #
-##############################################################################
+################################################################################
+# 6. Changes                                                                   #
+################################################################################
 
   2.0.0 - Code changes, moved all variables and and procedures into a namespace.
 
@@ -108,21 +90,26 @@ Note: <param> = Required
 
   1.0.0 - Initial release.
 
+################################################################################
+# 7. Bugs or Comments                                                          #
+################################################################################
 
-##############################################################################
-# 8. Bugs or Comments                                                        #
-##############################################################################
+   If you have ideas for improvements or are experiencing problems with this
+script, please do not hesitate to contact me. If your problem is a technical
+issue (i.e. a crash or operational defect), be sure to provide me with the steps
+necessary to reproduce it.
 
-   If you have problems with my scripts or you think you've found a bug, please
-report it to me. Be sure you can reproduce the error/bug so I can find what
-caused it. I can be reached on IRC, #ioFTPD on EFnet, or send a PM on the
-ioFTPD forums. Your feedback and bug reports are appreciated.
+IniCom Forum:
+http://www.inicom.net/forum/forumdisplay.php?f=68
 
+IRC Network:
+neoxed in #ioFTPD at EFnet
 
-##############################################################################
-# 9. License                                                                 #
-##############################################################################
+E-mail:
+neoxed@gmail.com
 
-   The package is available "as is" and the author does not take any
-responsibility for whatever malfunction to software and hardware which
-may derive from its use.
+################################################################################
+# 8. License                                                                   #
+################################################################################
+
+   See the "license.txt" file for details.
