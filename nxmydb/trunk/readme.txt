@@ -5,11 +5,11 @@
 
 Topics:
  1. Information
- 2. Configuration
+ 2. Installation
+ 3. Configuration
    a) Options
    b) yaSSL Cipher Suites
    c) OpenSSL Cipher Suites
- 3. Installation
  4. FAQ
  5. Bugs and Comments
  6. License
@@ -30,7 +30,51 @@ servers. nxMyDB also includes features such as:
 - User files and group files are updated regularly
 
 ################################################################################
-# 2. Configuration                                                             #
+# 2. Installation                                                              #
+################################################################################
+
+1. Copy the nxmydb.dll file to ioFTPD\modules\.
+
+2. Copy the libmysql.dll file to ioFTPD\system\.
+
+3. Create a MySQL database and import the schema.sql file.
+
+   mysql -u root -p -h 192.168.1.200 -e "CREATE DATABASE ioftpd"
+   mysql -u root -p -h 192.168.1.200 -D ioftpd < schema.sql
+
+4. Add the following options to your ioFTPD.ini file:
+
+[Modules]
+GroupModule     = ..\modules\nxmydb.dll
+UserModule      = ..\modules\nxmydb.dll
+
+[nxMyDB]
+Host            = localhost     # MySQL Server host
+Port            = 3306          # MySQL Server port
+User            = user          # MySQL Server username
+Password        = pass          # MySQL Server password
+Database        = ioftpd        # Database name
+Refresh         = 60            # Seconds between each database refresh
+Compression     = True          # Use compression for the server connection
+
+5. Adjust these options as required. There are several other options to enable
+   SSL encryption and fine-tune the connection pool. For a list of available
+   options, see the "Configuration" section of this manual.
+
+6. When configuring SSL, you will have to setup the certificate authority on the
+   server, as well as generate/sign certificates for connecting clients. For more
+   information on this, visit:
+
+   http://dev.mysql.com/doc/refman/5.0/en/secure-using-ssl.html
+   http://www.navicat.com/ssl_tutorial.php
+
+   I will NOT assist you with this; direct any questions about MySQL Server and SSL
+   to the appropriate places (e.g. MySQL's mailing list or a MySQL discussion board).
+
+7. Restart ioFTPD for the changes to take effect.
+
+################################################################################
+# 3. Configuration                                                             #
 ################################################################################
 
     Explanation of options available to nxMyDB and a list of cipher suites
@@ -194,50 +238,6 @@ supported by OpenSSL/yaSSL.
   IDEA-CBC-SHA                | SSLv3 TLSv1 | RSA      | RSA  | IDEA 128   | SHA1
   RC4-MD5                     | SSLv3 TLSv1 | RSA      | RSA  |  RC4 128   | MD5
   RC4-SHA                     | SSLv3 TLSv1 | RSA      | RSA  |  RC4 128   | SHA1
-
-################################################################################
-# 3. Installation                                                              #
-################################################################################
-
-1. Copy the nxmydb.dll file to ioFTPD\modules\.
-
-2. Copy the libmysql.dll file to ioFTPD\system\.
-
-3. Create a MySQL database and import the schema.sql file.
-
-   mysql -u root -p -h 192.168.1.200 -e "CREATE DATABASE ioftpd"
-   mysql -u root -p -h 192.168.1.200 -D ioftpd < schema.sql
-
-4. Add the following options to your ioFTPD.ini file:
-
-[Modules]
-GroupModule     = ..\modules\nxmydb.dll
-UserModule      = ..\modules\nxmydb.dll
-
-[nxMyDB]
-Host            = localhost     # MySQL Server host
-Port            = 3306          # MySQL Server port
-User            = user          # MySQL Server username
-Password        = pass          # MySQL Server password
-Database        = ioftpd        # Database name
-Refresh         = 60            # Seconds between each database refresh
-Compression     = True          # Use compression for the server connection
-
-5. Adjust these options as required. There are several other options to enable
-   SSL encryption and fine-tune the connection pool. For a list of available
-   options, see the "Configuration" section of this manual.
-
-6. When configuring SSL, you will have to setup the certificate authority on the
-   server, as well as generate/sign certificates for connecting clients. For more
-   information on this, visit:
-
-   http://dev.mysql.com/doc/refman/5.0/en/secure-using-ssl.html
-   http://www.navicat.com/ssl_tutorial.php
-
-   I will NOT assist you with this; direct any questions about MySQL Server and SSL
-   to the appropriate places (e.g. MySQL's mailing list or a MySQL discussion board).
-
-7. Restart ioFTPD for the changes to take effect.
 
 ################################################################################
 # 4. FAQ                                                                       #
