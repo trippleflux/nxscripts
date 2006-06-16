@@ -27,7 +27,7 @@ UserRead(
     DWORD bytesRead;
     DWORD error;
     DWORD fileSize;
-    INT_CONTEXT *context;
+    FILE_CONTEXT *context;
 
     ASSERT(filePath != NULL);
     ASSERT(userFile != NULL);
@@ -196,7 +196,7 @@ FileUserDelete(
 BOOL
 FileUserOpen(
     INT32 userId,
-    INT_CONTEXT *context
+    FILE_CONTEXT *context
     )
 {
     char buffer[12];
@@ -248,7 +248,7 @@ FileUserWrite(
     BUFFER buffer;
     DWORD bytesWritten;
     DWORD error;
-    INT_CONTEXT *context;
+    FILE_CONTEXT *context;
 
     ASSERT(userFile != NULL);
     ASSERT(userFile->lpInternal != NULL);
@@ -298,7 +298,7 @@ FileUserWrite(
 
 BOOL
 FileUserClose(
-    INT_CONTEXT *context
+    FILE_CONTEXT *context
     )
 {
     ASSERT(context != NULL);

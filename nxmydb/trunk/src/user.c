@@ -90,15 +90,15 @@ UserCreate(
 {
     DWORD error;
     INT32 userId;
-    INT_CONTEXT *context;
+    FILE_CONTEXT *context;
     USERFILE userFile;
 
     DebugPrint("UserCreate", "userName=\"%s\"\n", userName);
 
-    // Allocate internal context
-    context = Io_Allocate(sizeof(INT_CONTEXT));
+    // Allocate file context
+    context = Io_Allocate(sizeof(FILE_CONTEXT));
     if (context == NULL) {
-        DebugPrint("UserCreate", "Unable to allocate internal context.\n");
+        DebugPrint("UserCreate", "Unable to allocate file context.\n");
 
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return -1;
@@ -247,10 +247,10 @@ UserOpen(
 {
     DebugPrint("UserOpen", "userName=\"%s\" userFile=%p\n", userName, userFile);
 
-    // Allocate internal context
-    userFile->lpInternal = Io_Allocate(sizeof(INT_CONTEXT));
+    // Allocate file context
+    userFile->lpInternal = Io_Allocate(sizeof(FILE_CONTEXT));
     if (userFile->lpInternal == NULL) {
-        DebugPrint("UserOpen", "Unable to allocate internal context.\n");
+        DebugPrint("UserOpen", "Unable to allocate file context.\n");
 
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return UM_FATAL;
@@ -301,13 +301,13 @@ UserClose(
     USERFILE *userFile
     )
 {
-    INT_CONTEXT *context = userFile->lpInternal;
+    FILE_CONTEXT *context = userFile->lpInternal;
 
     DebugPrint("UserClose", "userFile=%p\n", userFile);
 
-    // Verify internal context
+    // Verify file context
     if (context == NULL) {
-        DebugPrint("UserClose", "Internal context already freed.\n");
+        DebugPrint("UserClose", "File context already freed.\n");
         return UM_ERROR;
     }
 

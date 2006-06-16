@@ -90,15 +90,15 @@ GroupCreate(
 {
     DWORD error;
     INT32 groupId;
-    INT_CONTEXT *context;
+    FILE_CONTEXT *context;
     GROUPFILE groupFile;
 
     DebugPrint("GroupCreate", "groupName=\"%s\"\n", groupName);
 
-    // Allocate internal context
-    context = Io_Allocate(sizeof(INT_CONTEXT));
+    // Allocate file context
+    context = Io_Allocate(sizeof(FILE_CONTEXT));
     if (context == NULL) {
-        DebugPrint("GroupCreate", "Unable to allocate internal context.\n");
+        DebugPrint("GroupCreate", "Unable to allocate file context.\n");
 
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return -1;
@@ -244,10 +244,10 @@ GroupOpen(
 {
     DebugPrint("GroupOpen", "groupName=\"%s\" groupFile=%p\n", groupName, groupFile);
 
-    // Allocate internal context
-    groupFile->lpInternal = Io_Allocate(sizeof(INT_CONTEXT));
+    // Allocate file context
+    groupFile->lpInternal = Io_Allocate(sizeof(FILE_CONTEXT));
     if (groupFile->lpInternal == NULL) {
-        DebugPrint("GroupOpen", "Unable to allocate internal context.\n");
+        DebugPrint("GroupOpen", "Unable to allocate file context.\n");
 
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return GM_FATAL;
@@ -298,13 +298,13 @@ GroupClose(
     GROUPFILE *groupFile
     )
 {
-    INT_CONTEXT *context = groupFile->lpInternal;
+    FILE_CONTEXT *context = groupFile->lpInternal;
 
     DebugPrint("GroupClose", "groupFile=%p\n", groupFile);
 
-    // Verify internal context
+    // Verify file context
     if (context == NULL) {
-        DebugPrint("GroupClose", "Internal context already freed.\n");
+        DebugPrint("GroupClose", "File context already freed.\n");
         return GM_ERROR;
     }
 

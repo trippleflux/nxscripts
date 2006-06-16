@@ -27,7 +27,7 @@ GroupRead(
     DWORD bytesRead;
     DWORD error;
     DWORD fileSize;
-    INT_CONTEXT *context;
+    FILE_CONTEXT *context;
 
     ASSERT(filePath != NULL);
     ASSERT(groupFile != NULL);
@@ -195,7 +195,7 @@ FileGroupDelete(
 BOOL
 FileGroupOpen(
     INT32 groupId,
-    INT_CONTEXT *context
+    FILE_CONTEXT *context
     )
 {
     char buffer[12];
@@ -247,7 +247,7 @@ FileGroupWrite(
     BUFFER buffer;
     DWORD bytesWritten;
     DWORD error;
-    INT_CONTEXT *context;
+    FILE_CONTEXT *context;
 
     ASSERT(groupFile != NULL);
     ASSERT(groupFile->lpInternal != NULL);
@@ -297,7 +297,7 @@ FileGroupWrite(
 
 BOOL
 FileGroupClose(
-    INT_CONTEXT *context
+    FILE_CONTEXT *context
     )
 {
     ASSERT(context != NULL);
