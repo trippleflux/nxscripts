@@ -41,7 +41,7 @@ Return Values:
     information, call GetLastError.
 
 Remarks:
-    This function assumes the queues are locked.
+    This function assumes the pool is locked.
 
 --*/
 static
@@ -87,7 +87,7 @@ Return Values:
     None.
 
 Remarks:
-    This function assumes the queues are locked.
+    This function assumes the pool is locked.
 
 --*/
 static
@@ -124,7 +124,7 @@ Return Values:
     information, call GetLastError.
 
 Remarks:
-    This function assumes the queues are locked.
+    This function assumes the pool is locked.
 
 --*/
 static
@@ -179,7 +179,7 @@ Return Values:
     extended error information, call GetLastError.
 
 Remarks:
-    This function assumes the queues are locked.
+    This function assumes the pool is locked.
 
 --*/
 static
@@ -216,7 +216,7 @@ Return Values:
     None.
 
 Remarks:
-    This function assumes the queues are locked.
+    This function assumes the pool is locked.
 
 --*/
 static
@@ -248,7 +248,7 @@ Return Values:
     The return value is a pointer to a POOL_RESOURCE structure.
 
 Remarks:
-    This function assumes the queues are locked.
+    This function assumes the pool is locked.
 
 --*/
 static
@@ -286,7 +286,7 @@ Return Values:
     None.
 
 Remarks:
-    This function assumes the queues are locked.
+    This function assumes the pool is locked.
 
 --*/
 static
@@ -343,13 +343,13 @@ ResourceUpdate(
     ASSERT(pool != NULL);
     DebugPrint("ResourceUpdate", "pool=%p\n", pool);
 
-    EnterCriticalSection(&pool->queueLock);
+    EnterCriticalSection(&pool->lock);
 
     // Create more resources if we're under the minimum and maximum limits
     while (pool->idle < pool->minimum && pool->total <= pool->maximum) {
         // Create a new resource
         if (!ResourceCreate(pool, &resource)) {
-            //LeaveCriticalSection(&pool->queueLock);
+            //LeaveCriticalSection(&pool->lock);
             //return FALSE;
 
             // Fail silently if we cannot create a resource
@@ -360,8 +360,8 @@ ResourceUpdate(
         ResourcePush(pool, resource);
 
         // Notify waiting threads that a new resource is available
-        if (!ConditionVariableSignal(&pool->availCond)) {
-            LeaveCriticalSection(&pool->queueLock);
+        if (!ConditionVariableSignal(&pool->condition)) {
+            LeaveCriticalSection(&pool->lock);
             return FALSE;
         }
         newResource = TRUE;
@@ -369,7 +369,7 @@ ResourceUpdate(
 
     // If a resource was created, we're already under the maximum limit
     if (newResource) {
-        LeaveCriticalSection(&pool->queueLock);
+        LeaveCriticalSection(&pool->lock);
         return TRUE;
     }
     GetSystemTimeAsFileTime((FILETIME *)&currentTime);
@@ -394,7 +394,7 @@ ResourceUpdate(
         ContainerPush(pool, resource);
     }
 
-    LeaveCriticalSection(&pool->queueLock);
+    LeaveCriticalSection(&pool->lock);
     return TRUE;
 }
 
@@ -485,12 +485,12 @@ PoolInit(
     TAILQ_INIT(&pool->resQueue);
     TAILQ_INIT(&pool->conQueue);
 
-    if (!InitializeCriticalSectionAndSpinCount(&pool->queueLock, 250)) {
+    if (!InitializeCriticalSectionAndSpinCount(&pool->lock, 250)) {
         return FALSE;
     }
 
-    if (!ConditionVariableInit(&pool->availCond)) {
-        DeleteCriticalSection(&pool->queueLock);
+    if (!ConditionVariableInit(&pool->condition)) {
+        DeleteCriticalSection(&pool->lock);
         return FALSE;
     }
 
@@ -526,7 +526,7 @@ PoolDestroy(
     ASSERT(pool != NULL);
     DebugPrint("PoolDestroy", "pool=%p\n", pool);
 
-    EnterCriticalSection(&pool->queueLock);
+    EnterCriticalSection(&pool->lock);
 
     while (pool->idle > 0) {
         // Remove from the resource queue
@@ -540,8 +540,8 @@ PoolDestroy(
     ASSERT(pool->idle == 0);
     ASSERT(pool->total == 0);
 
-    DeleteCriticalSection(&pool->queueLock);
-    ConditionVariableDestroy(&pool->availCond);
+    DeleteCriticalSection(&pool->lock);
+    ConditionVariableDestroy(&pool->condition);
 }
 
 /*++
@@ -579,7 +579,7 @@ PoolAcquire(
     ASSERT(data != NULL);
     DebugPrint("PoolAcquire", "pool=%p data=%p\n", pool, data);
 
-    EnterCriticalSection(&pool->queueLock);
+    EnterCriticalSection(&pool->lock);
 
     // Use idle resources, if available
     if (pool->idle > 0) {
@@ -590,7 +590,7 @@ PoolAcquire(
         // Discard container
         ContainerPush(pool, resource);
 
-        LeaveCriticalSection(&pool->queueLock);
+        LeaveCriticalSection(&pool->lock);
         return TRUE;
     }
 
@@ -598,12 +598,12 @@ PoolAcquire(
     // becomes available or we're allowed to create one.
     while (pool->total >= pool->maximum && pool->idle <= 0) {
         if (pool->timeout) {
-            if (!ConditionVariableWait(&pool->availCond, &pool->queueLock, pool->timeout)) {
-                LeaveCriticalSection(&pool->queueLock);
+            if (!ConditionVariableWait(&pool->condition, &pool->lock, pool->timeout)) {
+                LeaveCriticalSection(&pool->lock);
                 return FALSE;
             }
         } else {
-            ConditionVariableWait(&pool->availCond, &pool->queueLock, INFINITE);
+            ConditionVariableWait(&pool->condition, &pool->lock, INFINITE);
         }
     }
 
@@ -613,7 +613,7 @@ PoolAcquire(
         *data = resource->data;
         ContainerPush(pool, resource);
 
-        LeaveCriticalSection(&pool->queueLock);
+        LeaveCriticalSection(&pool->lock);
         return TRUE;
     }
 
@@ -624,7 +624,7 @@ PoolAcquire(
         ContainerPush(pool, resource);
     }
 
-    LeaveCriticalSection(&pool->queueLock);
+    LeaveCriticalSection(&pool->lock);
     return result;
 }
 
@@ -660,14 +660,14 @@ PoolRelease(
     ASSERT(data != NULL);
     DebugPrint("PoolRelease", "pool=%p data=%p\n", pool, data);
 
-    EnterCriticalSection(&pool->queueLock);
+    EnterCriticalSection(&pool->lock);
 
     // Retrieve a container for the data
     container = ContainerPop(pool);
     if (container == NULL) {
         error = GetLastError();
         ResourceDestroy(pool, data);
-        LeaveCriticalSection(&pool->queueLock);
+        LeaveCriticalSection(&pool->lock);
 
         // Restore system error code in case the destructor changed it
         SetLastError(error);
@@ -679,9 +679,9 @@ PoolRelease(
     ResourcePush(pool, container);
 
     // Notify waiting threads that a new resource is available
-    ConditionVariableSignal(&pool->availCond);
+    ConditionVariableSignal(&pool->condition);
 
-    LeaveCriticalSection(&pool->queueLock);
+    LeaveCriticalSection(&pool->lock);
     return ResourceUpdate(pool);
 }
 
@@ -716,7 +716,7 @@ PoolValidate(
     ASSERT(data != NULL);
     DebugPrint("PoolInvalidate", "pool=%p data=%p\n", pool, data);
 
-    EnterCriticalSection(&pool->queueLock);
+    EnterCriticalSection(&pool->lock);
 
     // Validate resource
     result = ResourceCheck(pool, data);
@@ -724,6 +724,6 @@ PoolValidate(
         ResourceDestroy(pool, data);
     }
 
-    LeaveCriticalSection(&pool->queueLock);
+    LeaveCriticalSection(&pool->lock);
     return result;
 }
