@@ -45,7 +45,7 @@ static int refCount = 0;
 
 ConnectionOpen
 
-    Opens a database connection.
+    Opens a server connection.
 
 Arguments:
     opaque - Opaque argument passed to PoolInit().
@@ -111,7 +111,7 @@ ConnectionOpen(
 
 ConnectionValidate
 
-    Validates the database connection.
+    Validates the server connection.
 
 Arguments:
     opaque - Opaque argument passed to PoolInit().
@@ -119,9 +119,9 @@ Arguments:
     data   - Pointer to a MYSQL handle structure.
 
 Return Values:
-    If the resource is valid, the return is nonzero (true).
+    If the connection is valid, the return is nonzero (true).
 
-    If the resource is invalid, the return is zero (false).
+    If the connection is invalid, the return is zero (false).
 
 --*/
 static
@@ -131,9 +131,17 @@ ConnectionValidate(
     void *data
     )
 {
+    MYSQL *handle;
+
     ASSERT(opaque == NULL);
     ASSERT(data != NULL);
     DebugPrint("ConnectionValidate", "opaque=%p data=%p\n", opaque, data);
+
+    handle = data;
+    if (mysql_ping(handle) != 0) {
+        DebugPrint("ConnectionValidate", "Lost server connection: %s\n", mysql_error(handle));
+        return FALSE;
+    }
 
     return TRUE;
 }
@@ -142,7 +150,7 @@ ConnectionValidate(
 
 ConnectionClose
 
-    Closes the database connection.
+    Closes the server connection.
 
 Arguments:
     opaque - Opaque argument passed to PoolInit().
