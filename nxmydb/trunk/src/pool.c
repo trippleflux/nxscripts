@@ -417,9 +417,9 @@ Arguments:
     expiration  - Milliseconds until a resource expires. This argument must be
                   greater than zero.
 
-    validate    - Milliseconds until a resource is checked. This is used to check
-                  for stale resources in the pool. If this argument is zero,
-                  resource validation is disabled.
+    validate    - Milliseconds until a resource is validated, must be less than
+                  the expiration time. If this argument is zero, resource
+                  validation is disabled.
 
     constructor - Procedure called when a resource is created.
 
@@ -457,6 +457,7 @@ PoolInit(
         pool, constructor, validator, destructor, opaque);
 
     if (minimum < 1 || average < minimum || maximum < average || expiration < 1 ||
+            (validate > 0 && validate < expiration) ||
             constructor == NULL || validator == NULL || destructor == NULL) {
         SetLastError(ERROR_INVALID_PARAMETER);
         return FALSE;

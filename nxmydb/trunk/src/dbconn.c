@@ -405,8 +405,8 @@ DbInit(
     poolExpiration *= 1000;
 
     poolValidate = 60;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Validate", &poolValidate) && poolValidate <= 0) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Validate' must be greater than zero.\r\n");
+    if (Io_ConfigGetInt("nxMyDB", "Pool_Validate", &poolValidate) && (poolValidate <= 0 || poolValidate >= poolExpiration)) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Validate' must be greater than zero and less than 'Pool_Expiration'.\r\n");
         return FALSE;
     }
     poolValidate *= 1000;
