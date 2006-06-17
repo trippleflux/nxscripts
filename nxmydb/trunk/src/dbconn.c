@@ -140,6 +140,7 @@ ConnectionValidate(
     handle = data;
     if (mysql_ping(handle) != 0) {
         DebugPrint("ConnectionValidate", "Lost server connection: %s\n", mysql_error(handle));
+        SetLastError(ERROR_CONNECTION_REFUSED);
         return FALSE;
     }
 

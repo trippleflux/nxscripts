@@ -58,6 +58,9 @@ Return Values:
 
     If the resource is invalid, the return must be zero (false).
 
+Remarks:
+    The system error code must be set if invalid.
+
 --*/
 typedef BOOL (POOL_VALIDATOR_PROC)(
     void *opaque,
@@ -157,8 +160,8 @@ PoolRelease(
     void *data
     );
 
-void
-PoolInvalidate(
+BOOL
+PoolValidate(
     POOL *pool,
     void *data
     );

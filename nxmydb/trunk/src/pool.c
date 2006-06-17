@@ -168,14 +168,15 @@ ResourceCheck
     Validates an existing idle resource.
 
 Arguments:
-    pool     - Pointer to an initialized POOL structure.
+    pool    - Pointer to an initialized POOL structure.
 
-    resource - Pointer to the POOL_RESOURCE structure's "data" member.
+    resData - Pointer to the POOL_RESOURCE structure's "data" member.
 
 Return Values:
     If the resource is still valid, the return value is nonzero (true).
 
-    If the resource is no longer valid, the return value is zero (false).
+    If the resource is no longer valid, the return value is zero (false). To get
+    extended error information, call GetLastError.
 
 Remarks:
     This function assumes the queues are locked.
@@ -186,14 +187,18 @@ INLINE
 BOOL
 ResourceCheck(
     POOL *pool,
-    POOL_RESOURCE *resource
+    void *resData
     )
 {
     ASSERT(pool != NULL);
-    ASSERT(resource != NULL);
-    DebugPrint("ResourceCheck", "pool=%p resource=%p\n", pool, resource);
+    ASSERT(resData != NULL);
+    DebugPrint("ResourceCheck", "pool=%p resData=%p\n", pool, resData);
 
-    return pool->validator(pool->opaque, resource->data);
+    if (!pool->validator(pool->opaque, resData)) {
+        ASSERT(GetLastError() != ERROR_SUCCESS);
+        return FALSE;
+    }
+    return TRUE;
 }
 
 /*++
@@ -682,32 +687,43 @@ PoolRelease(
 
 /*++
 
-PoolInvalidate
+PoolValidate
 
-    Invalidates a resource (e.g. a database connection).
+    Validates a resource (e.g. a database connection).
 
 Arguments:
     pool    - Pointer to an initialized POOL structure.
 
-    data    - Pointer to the data to be destroyed, the same "data" value
+    data    - Pointer to the data to be validated, the same "data" value
               provided by PoolAcquire().
 
 Return Values:
-    None.
+    If the resource is valid, the return value is nonzero (true).
+
+    If the resource is invalid, the return value is zero (false). To get extended
+    error information, call GetLastError.
 
 --*/
-void
-PoolInvalidate(
+BOOL
+PoolValidate(
     POOL *pool,
     void *data
     )
 {
+    BOOL result;
+
     ASSERT(pool != NULL);
     ASSERT(data != NULL);
     DebugPrint("PoolInvalidate", "pool=%p data=%p\n", pool, data);
 
-    // Destroy resource
     EnterCriticalSection(&pool->queueLock);
-    ResourceDestroy(pool, data);
+
+    // Validate resource
+    result = ResourceCheck(pool, data);
+    if (!result) {
+        ResourceDestroy(pool, data);
+    }
+
     LeaveCriticalSection(&pool->queueLock);
+    return result;
 }
