@@ -315,6 +315,8 @@ RefreshTimer(
         // Users rely on groups, so update groups first.
         DbGroupRefresh(handle);
         DbUserRefresh(handle);
+
+        DbRelease(handle);
     } else {
         DebugPrint("RefreshTimer", "Unable to acquire a database connection.\n");
     }
