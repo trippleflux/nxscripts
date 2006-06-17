@@ -22,17 +22,17 @@ DbUserCreate(
     USERFILE *userFile
     )
 {
-    DB_CONTEXT *context;
+    MYSQL *handle;
 
     ASSERT(userName != NULL);
     ASSERT(userFile != NULL);
     DebugPrint("DbUserCreate", "userName=\"%s\" userFile=%p\n", userName, userFile);
 
-    if (!DbAcquire(&context)) {
+    if (!DbAcquire(&handle)) {
         return FALSE;
     }
 
-    DbRelease(context);
+    DbRelease(handle);
     return TRUE;
 }
 
@@ -42,17 +42,17 @@ DbUserRename(
     char *newName
     )
 {
-    DB_CONTEXT *context;
+    MYSQL *handle;
 
     ASSERT(userName != NULL);
     ASSERT(newName != NULL);
     DebugPrint("DbUserRename", "userName=\"%s\" newName=\"%s\"\n", userName, newName);
 
-    if (!DbAcquire(&context)) {
+    if (!DbAcquire(&handle)) {
         return FALSE;
     }
 
-    DbRelease(context);
+    DbRelease(handle);
     return TRUE;
 }
 
@@ -61,16 +61,16 @@ DbUserDelete(
     char *userName
     )
 {
-    DB_CONTEXT *context;
+    MYSQL *handle;
 
     ASSERT(userName != NULL);
     DebugPrint("DbUserDelete", "userName=\"%s\"\n", userName);
 
-    if (!DbAcquire(&context)) {
+    if (!DbAcquire(&handle)) {
         return FALSE;
     }
 
-    DbRelease(context);
+    DbRelease(handle);
     return TRUE;
 }
 
@@ -79,16 +79,16 @@ DbUserLock(
     USERFILE *userFile
     )
 {
-    DB_CONTEXT *context;
+    MYSQL *handle;
 
     ASSERT(userFile != NULL);
     DebugPrint("DbUserLock", "userFile=%p", userFile);
 
-    if (!DbAcquire(&context)) {
+    if (!DbAcquire(&handle)) {
         return FALSE;
     }
 
-    DbRelease(context);
+    DbRelease(handle);
     return TRUE;
 }
 
@@ -97,16 +97,16 @@ DbUserUnlock(
     USERFILE *userFile
     )
 {
-    DB_CONTEXT *context;
+    MYSQL *handle;
 
     ASSERT(userFile != NULL);
     DebugPrint("DbUserUnlock", "userFile=%p", userFile);
 
-    if (!DbAcquire(&context)) {
+    if (!DbAcquire(&handle)) {
         return FALSE;
     }
 
-    DbRelease(context);
+    DbRelease(handle);
     return TRUE;
 }
 
@@ -116,17 +116,17 @@ DbUserOpen(
     USERFILE *userFile
     )
 {
-    DB_CONTEXT *context;
+    MYSQL *handle;
 
     ASSERT(userName != NULL);
     ASSERT(userFile != NULL);
     DebugPrint("DbUserOpen", "userName=\"%s\" userFile=%p\n", userName, userFile);
 
-    if (!DbAcquire(&context)) {
+    if (!DbAcquire(&handle)) {
         return FALSE;
     }
 
-    DbRelease(context);
+    DbRelease(handle);
     return TRUE;
 }
 
@@ -135,16 +135,16 @@ DbUserWrite(
     USERFILE *userFile
     )
 {
-    DB_CONTEXT *context;
+    MYSQL *handle;
 
     ASSERT(userFile != NULL);
     DebugPrint("DbUserWrite", "userFile=%p", userFile);
 
-    if (!DbAcquire(&context)) {
+    if (!DbAcquire(&handle)) {
         return FALSE;
     }
 
-    DbRelease(context);
+    DbRelease(handle);
     return TRUE;
 }
 
@@ -161,11 +161,11 @@ DbUserClose(
 
 BOOL
 DbUserRefresh(
-    DB_CONTEXT *context
+    MYSQL *handle
     )
 {
-    ASSERT(context != NULL);
-    DebugPrint("DbUserRefresh", "context=%p", context);
+    ASSERT(handle != NULL);
+    DebugPrint("DbUserRefresh", "handle=%p", handle);
 
     return TRUE;
 }

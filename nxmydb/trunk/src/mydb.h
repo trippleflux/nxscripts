@@ -52,10 +52,10 @@ Abstract:
 #include "proctable.h"
 #include "queue.h"
 
-#include "dbconn.h"
-#include "debug.h"
 #include "backends.h"
 #include "condvars.h"
+#include "dbconn.h"
+#include "debug.h"
 #include "pool.h"
 
 
