@@ -411,11 +411,15 @@ Arguments:
     maximum     - Maximum number of resources to have available. This argument
                   must be greater than or equal to "average".
 
+    timeout     - Milliseconds to wait for a resource to become available. If this
+                  argument is zero, it will wait forever.
+
     expiration  - Milliseconds until a resource expires. This argument must be
                   greater than zero.
 
-    timeout     - Milliseconds to wait for a resource to become available. If this
-                  argument is zero, it will wait forever.
+    validate    - Milliseconds until a resource is checked. This is used to check
+                  for stale resources in the pool. If this argument is zero,
+                  resource validation is disabled.
 
     constructor - Procedure called when a resource is created.
 
@@ -423,8 +427,8 @@ Arguments:
 
     destructor  - Procedure called when a resource is destroyed.
 
-    opaque      - Opaque argument passed to the constructor and destructor. This
-                  argument can be null if not required.
+    opaque      - Opaque argument passed to the callbacks. This argument can
+                  be null if not required.
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).
@@ -439,8 +443,9 @@ PoolInit(
     DWORD minimum,
     DWORD average,
     DWORD maximum,
-    DWORD expiration,
     DWORD timeout,
+    DWORD expiration,
+    DWORD validate,
     POOL_CONSTRUCTOR_PROC *constructor,
     POOL_VALIDATOR_PROC *validator,
     POOL_DESTRUCTOR_PROC *destructor,
@@ -465,6 +470,7 @@ PoolInit(
     pool->maximum     = maximum;
     pool->timeout     = timeout;
     pool->expiration  = UInt32x32To64(expiration, 10000); // msec to 100nsec
+    pool->validate    = UInt32x32To64(validate, 10000);   // msec to 100nsec
     pool->constructor = constructor;
     pool->validator   = validator;
     pool->destructor  = destructor;

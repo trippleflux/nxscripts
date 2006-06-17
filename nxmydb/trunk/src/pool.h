@@ -110,6 +110,7 @@ typedef struct {
     DWORD                 maximum;      // Maximum number of resources to have available
     DWORD                 timeout;      // Milliseconds to wait for a resource to become available
     UINT64                expiration;   // 100nsec intervals (FILETIME) until a resource expires
+    UINT64                validate;     // 100nsec intervals (FILETIME) until a resource is validated
     POOL_CONSTRUCTOR_PROC *constructor; // Procedure called when a resource is created
     POOL_VALIDATOR_PROC   *validator;   // Procedure called when a resource requires validation
     POOL_DESTRUCTOR_PROC  *destructor;  // Procedure called when a resource is destroyed
@@ -130,8 +131,9 @@ PoolInit(
     DWORD minimum,
     DWORD average,
     DWORD maximum,
-    DWORD expiration,
     DWORD timeout,
+    DWORD expiration,
+    DWORD validate,
     POOL_CONSTRUCTOR_PROC *constructor,
     POOL_VALIDATOR_PROC *validator,
     POOL_DESTRUCTOR_PROC *destructor,

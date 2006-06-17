@@ -354,8 +354,9 @@ DbInit(
     int poolMin;
     int poolAvg;
     int poolMax;
-    int poolExpiration;
     int poolTimeout;
+    int poolExpiration;
+    int poolValidate;
     DebugPrint("DbInit", "getProc=%p refCount=%i\n", getProc, refCount);
 
     // Only initialize the module once
@@ -389,6 +390,13 @@ DbInit(
         return FALSE;
     }
 
+    poolTimeout = 5;
+    if (Io_ConfigGetInt("nxMyDB", "Pool_Timeout", &poolTimeout) && poolTimeout <= 0) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Timeout' must be greater than zero.\r\n");
+        return FALSE;
+    }
+    poolTimeout *= 1000;
+
     poolExpiration = 3600;
     if (Io_ConfigGetInt("nxMyDB", "Pool_Expiration", &poolExpiration) && poolExpiration <= 0) {
         Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Expiration' must be greater than zero.\r\n");
@@ -396,12 +404,12 @@ DbInit(
     }
     poolExpiration *= 1000;
 
-    poolTimeout = 5;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Timeout", &poolTimeout) && poolTimeout <= 0) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Timeout' must be greater than zero.\r\n");
+    poolValidate = 60;
+    if (Io_ConfigGetInt("nxMyDB", "Pool_Validate", &poolValidate) && poolValidate <= 0) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Validate' must be greater than zero.\r\n");
         return FALSE;
     }
-    poolTimeout *= 1000;
+    poolValidate *= 1000;
 
     // Refesh timer
     if (Io_ConfigGetInt("nxMyDB", "Refresh", &refresh) && refresh < 0) {
@@ -441,8 +449,9 @@ DbInit(
     DebugPrint("Configuration", "Pool Minimum    = %i\n", poolMin);
     DebugPrint("Configuration", "Pool Average    = %i\n", poolAvg);
     DebugPrint("Configuration", "Pool Maximum    = %i\n", poolMax);
-    DebugPrint("Configuration", "Pool Expiration = %i\n", poolExpiration);
     DebugPrint("Configuration", "Pool Timeout    = %i\n", poolTimeout);
+    DebugPrint("Configuration", "Pool Expiration = %i\n", poolExpiration);
+    DebugPrint("Configuration", "Pool Validate   = %i\n", poolValidate);
 
     // Create connection pool
     pool = Io_Allocate(sizeof(POOL));
@@ -450,7 +459,7 @@ DbInit(
         Io_Putlog(LOG_ERROR, "nxMyDB: Unable to allocate memory for connection pool.\r\n");
         goto error;
     }
-    if (!PoolInit(pool, poolMin, poolAvg, poolMax, poolExpiration, poolTimeout,
+    if (!PoolInit(pool, poolMin, poolAvg, poolMax, poolTimeout, poolExpiration, poolValidate,
             ConnectionOpen, ConnectionValidate, ConnectionClose, NULL)) {
         Io_Free(pool);
         Io_Putlog(LOG_ERROR, "nxMyDB: Unable to create connection pool.\r\n");
