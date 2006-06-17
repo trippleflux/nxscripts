@@ -50,7 +50,7 @@ ConnectionOpen
 Arguments:
     opaque - Opaque argument passed to PoolInit().
 
-    data   - Pointer to a MYSQL structure.
+    data   - Pointer to a pointer that receives the MYSQL handle structure.
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).
@@ -95,11 +95,10 @@ ConnectionOpen(
         flags |= CLIENT_COMPRESS;
     }
     if (sslEnable) {
-        flags |= CLIENT_SSL; // Is this still needed?
         mysql_ssl_set(context->handle, sslKeyFile, sslCertFile, sslCAFile, sslCAPath, sslCiphers);
     }
 
-    // Open database server connection
+    // Open server connection
     if (!mysql_real_connect(context->handle, serverHost, serverUser, serverPass, serverDb, serverPort, NULL, flags)) {
         DebugPrint("ConnectionOpen", "Unable to connect to server: %s\n", mysql_error(context->handle));
         Io_Putlog(LOG_ERROR, "nxMyDB: Unable to connect to server: %s\r\n", mysql_error(context->handle));
@@ -128,7 +127,7 @@ ConnectionValidate
 Arguments:
     opaque - Opaque argument passed to PoolInit().
 
-    data   - Pointer to a MYSQL structure.
+    data   - Pointer to a MYSQL handle structure.
 
 Return Values:
     If the resource is valid, the return is nonzero (true).
@@ -159,7 +158,7 @@ ConnectionClose
 Arguments:
     opaque - Opaque argument passed to PoolInit().
 
-    data   - Pointer to a MYSQL structure.
+    data   - Pointer to a MYSQL handle structure.
 
 Return Values:
     None.
@@ -297,7 +296,9 @@ RefreshTimer
     Refreshes the local user and group cache.
 
 Arguments:
-    None.
+    context   - Pointer to the timer context.
+
+    currTimer - Pointer to the current TIMER handle structure.
 
 Return Values:
     Number of milliseconds to execute this timer again.
@@ -306,12 +307,12 @@ Return Values:
 static
 DWORD
 RefreshTimer(
-    void *timerContext,
-    TIMER *timerHandle
+    void *context,
+    TIMER *currTimer
     )
 {
     DB_CONTEXT *context;
-    DebugPrint("RefreshTimer", "timerContext=%d timerHandle=%d\n", timerContext, timerHandle);
+    DebugPrint("RefreshTimer", "context=%p currTimer=%p\n", context, currTimer);
 
     if (DbAcquire(&context)) {
         // Users rely on groups, so update groups first.
@@ -526,7 +527,7 @@ DbAcquire
     Acquires a database context from the connection pool.
 
 Arguments:
-    dbContext - Pointer to a pointer that receives the DB_CONTEXT structure.
+    handle  - Pointer to a pointer that receives the MYSQL handle structure.
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).
@@ -578,7 +579,7 @@ DbRelease
     Releases a database context back into the connection pool.
 
 Arguments:
-    dbContext - Pointer to a pointer that receives the DB_CONTEXT structure.
+    handle  - Pointer to a MYSQL handle structure.
 
 Return Values:
     None.
