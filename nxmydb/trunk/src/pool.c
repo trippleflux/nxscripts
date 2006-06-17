@@ -457,7 +457,7 @@ PoolInit(
         pool, constructor, validator, destructor, opaque);
 
     if (minimum < 1 || average < minimum || maximum < average || expiration < 1 ||
-            (validate > 0 && validate < expiration) ||
+            (validate > 0 && validate >= expiration) ||
             constructor == NULL || validator == NULL || destructor == NULL) {
         SetLastError(ERROR_INVALID_PARAMETER);
         return FALSE;

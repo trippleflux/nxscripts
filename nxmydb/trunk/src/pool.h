@@ -61,7 +61,7 @@ Return Values:
 --*/
 typedef BOOL (POOL_VALIDATOR_PROC)(
     void *opaque,
-    void **data
+    void *data
     );
 
 /*++
