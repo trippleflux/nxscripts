@@ -17,25 +17,25 @@ Abstract:
 #include "mydb.h"
 
 // MySQL Server information
-static char *serverHost  = NULL;
-static char *serverUser  = NULL;
-static char *serverPass  = NULL;
-static char *serverDb    = NULL;
-static int   serverPort  = 0;
-static BOOL  compression = FALSE;
-static BOOL  sslEnable   = FALSE;
-static char *sslCiphers  = NULL;
-static char *sslCertFile = NULL;
-static char *sslKeyFile  = NULL;
-static char *sslCAFile   = NULL;
-static char *sslCAPath   = NULL;
+static char *serverHost;
+static char *serverUser;
+static char *serverPass;
+static char *serverDb;
+static int   serverPort;
+static BOOL  compression;
+static BOOL  sslEnable;
+static char *sslCiphers;
+static char *sslCertFile;
+static char *sslKeyFile;
+static char *sslCAFile;
+static char *sslCAPath;
 
 // Refresh timer
-static int refresh  = 0;
-static TIMER *timer = NULL;
+static int refresh;
+static TIMER *timer;
 
 // Database connection pool
-static POOL *pool = NULL;
+static POOL *pool;
 
 // Reference count initialization calls
 static int refCount = 0;
@@ -469,6 +469,8 @@ DbInit(
     // Start database refresh timer
     if (refresh > 0) {
         timer = Io_StartIoTimer(NULL, RefreshTimer, NULL, refresh);
+    } else {
+        timer = NULL;
     }
 
     Io_Putlog(LOG_ERROR, "nxMyDB: v%s loaded, using MySQL Client Library v%s.\r\n",
