@@ -151,10 +151,11 @@ ResourceCreate(
     if (!pool->constructor(pool->opaque, &container->data)) {
         ASSERT(GetLastError() != ERROR_SUCCESS);
 
-        // Place container back on the container queue
+        // Place container back in the container queue
         ContainerPush(pool, container);
         return FALSE;
     }
+    GetSystemTimeAsFileTime((FILETIME *)&container->created);
     *resource = container;
 
     pool->total++;
@@ -301,7 +302,7 @@ ResourcePush(
     ASSERT(resource != NULL);
     DebugPrint("ResourcePush", "pool=%p resource=%p\n", pool, resource);
 
-    // Update usage time
+    // Update last-use time
     GetSystemTimeAsFileTime((FILETIME *)&resource->used);
 
     // Insert resource at the tail
@@ -336,7 +337,6 @@ ResourceUpdate(
     )
 {
     BOOL newResource = FALSE;
-    UINT64 age;
     UINT64 currentTime;
     POOL_RESOURCE *resource;
 
@@ -378,13 +378,11 @@ ResourceUpdate(
     while (pool->idle > pool->average && pool->idle > 0) {
         resource = TAILQ_FIRST(&pool->resQueue);
 
-        age = currentTime - resource->used;
-        if (age < pool->expiration) {
+        if ((currentTime - resource->created) < pool->expiration) {
             // New resources are added to the tail of the list. So if this
             // one is too young, the following resources will be as well.
             break;
         }
-        // TODO: check resource
 
         // Remove from the resource queue
         resource = ResourcePop(pool);
