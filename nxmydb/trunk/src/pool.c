@@ -424,7 +424,7 @@ ResourceUpdate(
             ResourceDestroy(pool, resource->data);
 
             // The idle counter is usually decremented by ResourcePop(), but since
-            // we're traversing the list on our own, we have to decrement it.
+            // we're removing queue items on our own, we have to decrement it.
             pool->idle--;
 
             // Remove resource from queue and add it to the container queue
@@ -502,7 +502,7 @@ PoolInit(
     pool->minimum     = minimum;
     pool->average     = average;
     pool->maximum     = maximum;
-    pool->timeout     = timeout;
+    pool->timeout     = (timeout == 0) ? INFINITE : timeout;
     pool->constructor = constructor;
     pool->validator   = validator;
     pool->destructor  = destructor;
@@ -622,13 +622,9 @@ PoolAcquire(
     // If we've hit the maximum limit, block until a resource
     // becomes available or we're allowed to create one.
     while (pool->total >= pool->maximum && pool->idle <= 0) {
-        if (pool->timeout) {
-            if (!ConditionVariableWait(&pool->condition, &pool->lock, pool->timeout)) {
-                LeaveCriticalSection(&pool->lock);
-                return FALSE;
-            }
-        } else {
-            ConditionVariableWait(&pool->condition, &pool->lock, INFINITE);
+        if (!ConditionVariableWait(&pool->condition, &pool->lock, pool->timeout)) {
+            LeaveCriticalSection(&pool->lock);
+            return FALSE;
         }
     }
 
