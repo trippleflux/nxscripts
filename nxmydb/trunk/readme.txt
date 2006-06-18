@@ -141,7 +141,8 @@ supported by OpenSSL/yaSSL.
     - Default: null
 
   Pool_Minimum
-    - Minimum number of sustained connections (must be greater than zero)
+    - Minimum number of sustained connections
+    - Must be greater than zero
     - Default: 1
 
   Pool_Average
@@ -152,13 +153,18 @@ supported by OpenSSL/yaSSL.
     - Maximum number of sustained connections (usually double the average)
     - Default: Pool_Average * 2
 
-  Pool_Expiration
-    - Seconds until a connection expires (less than MySQL's interactive_timeout)
-    - Default: 3600 (1 hour)
-
   Pool_Timeout
     - Seconds to wait for a connection to become available
     - Default: 5
+
+  Pool_Expiration
+    - Seconds until a connection expires
+    - Should be less than MySQL's "interactive_timeout" value
+    - Default: 3600 (1 hour)
+
+  Pool_Validate
+    - Seconds until a connection is be validated (checks old connections)
+    - Default: 60 (1 minute)
 
   ############################################################
   # b) yaSSL Cipher Suites                                   #
@@ -242,6 +248,9 @@ supported by OpenSSL/yaSSL.
 ################################################################################
 # 4. FAQ                                                                       #
 ################################################################################
+
+Q: What does "nxMyDB: Unable to connect to server: SSL connection error" mean?
+A: SSL is setup incorrectly on either the client or server.
 
 ################################################################################
 # 5. Bugs and Comments                                                         #
