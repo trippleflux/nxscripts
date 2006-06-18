@@ -265,9 +265,6 @@ ResourcePush(
     ASSERT(resource != NULL);
     DebugPrint("ResourcePush", "pool=%p resource=%p\n", pool, resource);
 
-    // Update last-use time
-    GetSystemTimeAsFileTime((FILETIME *)&resource->used);
-
     // Insert resource at the tail
     TAILQ_INSERT_TAIL(&pool->resQueue, resource, link);
     pool->idle++;
@@ -311,6 +308,54 @@ ResourcePop(
 
 /*++
 
+ResourcePopCheck
+
+    Retrieves, removes, and checks a resource from the head of the resource queue.
+
+Arguments:
+    pool    - Pointer to an initialized POOL structure.
+
+Return Values:
+    If a valid resource is found, the return value is a pointer to a
+    POOL_RESOURCE structure.
+
+    If no valid resources are found, the return value is null.
+
+Remarks:
+    This function assumes the pool is locked.
+
+--*/
+static
+POOL_RESOURCE *
+ResourcePopCheck(
+    POOL *pool
+    )
+{
+    POOL_RESOURCE *resource;
+
+    ASSERT(pool != NULL);
+    DebugPrint("ResourcePopCheck", "pool=%p\n", pool);
+
+    // Try to find a valid idle resource
+    while (pool->idle > 0) {
+        resource = ResourcePop(pool);
+
+        // Determine if the resource is valid
+        if (ResourceCheck(pool, resource->data)) {
+            return resource;
+        }
+
+        // Destroy invalid resource
+        ResourceDestroy(pool, resource->data);
+        ContainerPush(pool, resource);
+    }
+
+    // Nothing found
+    return NULL;
+}
+
+/*++
+
 ResourceUpdate
 
     Updates the resource queue.
@@ -336,8 +381,8 @@ ResourceUpdate(
     )
 {
     BOOL newResource = FALSE;
-    UINT64 currentTime;
     POOL_RESOURCE *resource;
+    POOL_RESOURCE *resourceTemp;
 
     ASSERT(pool != NULL);
     DebugPrint("ResourceUpdate", "pool=%p\n", pool);
@@ -368,24 +413,24 @@ ResourceUpdate(
         LeaveCriticalSection(&pool->lock);
         return TRUE;
     }
-    GetSystemTimeAsFileTime((FILETIME *)&currentTime);
 
-    // Expire old resources, moving from head to tail
-    while (pool->idle > pool->average && pool->idle > 0) {
-        resource = TAILQ_FIRST(&pool->resQueue);
+    // Check if any idle resources can be removed
+    if (pool->idle > 0 && pool->idle > pool->average) {
+        TAILQ_FOREACH_SAFE(resource, &pool->resQueue, link, resourceTemp) {
+            if (ResourceCheck(pool, resource->data)) {
+                // Ignore valid resources
+                continue;
+            }
+            ResourceDestroy(pool, resource->data);
 
-        if ((currentTime - resource->used) < pool->expiration) {
-            // New resources are added to the tail of the list. So if this
-            // one is too young, the following resources will be as well.
-            break;
+            // The idle counter is usually decremented by ResourcePop(), but since
+            // we're traversing the list on our own, we have to decrement it.
+            pool->idle--;
+
+            // Remove resource from queue and add it to the container queue
+            TAILQ_REMOVE(&pool->resQueue, resource, link);
+            ContainerPush(pool, resource);
         }
-
-        // Remove from the resource queue
-        resource = ResourcePop(pool);
-
-        // Destroy resource and add it to the container queue
-        ResourceDestroy(pool, resource->data);
-        ContainerPush(pool, resource);
     }
 
     LeaveCriticalSection(&pool->lock);
@@ -413,13 +458,6 @@ Arguments:
     timeout     - Milliseconds to wait for a resource to become available. If this
                   argument is zero, it will wait forever.
 
-    expiration  - Milliseconds until a resource expires. This argument must be
-                  greater than zero.
-
-    validate    - Milliseconds until a resource is validated, must be less than
-                  the expiration time. If this argument is zero, resource
-                  validation is disabled.
-
     constructor - Procedure called when a resource is created.
 
     validator   - Procedure called when a resource requires validation.
@@ -443,8 +481,6 @@ PoolInit(
     DWORD average,
     DWORD maximum,
     DWORD timeout,
-    DWORD expiration,
-    DWORD validate,
     POOL_CONSTRUCTOR_PROC *constructor,
     POOL_VALIDATOR_PROC *validator,
     POOL_DESTRUCTOR_PROC *destructor,
@@ -455,9 +491,7 @@ PoolInit(
     DebugPrint("PoolInit", "pool=%p constructor=%p validator=%p destructor=%p opaque=%p\n",
         pool, constructor, validator, destructor, opaque);
 
-    if (minimum < 1 || average < minimum || maximum < average || expiration < 1 ||
-            (validate > 0 && validate >= expiration) ||
-            constructor == NULL || validator == NULL || destructor == NULL) {
+    if (minimum < 1 || average < minimum || maximum < average || !constructor || !validator || !destructor) {
         SetLastError(ERROR_INVALID_PARAMETER);
         return FALSE;
     }
@@ -469,8 +503,6 @@ PoolInit(
     pool->average     = average;
     pool->maximum     = maximum;
     pool->timeout     = timeout;
-    pool->expiration  = UInt32x32To64(expiration, 10000); // msec to 100nsec
-    pool->validate    = UInt32x32To64(validate, 10000);   // msec to 100nsec
     pool->constructor = constructor;
     pool->validator   = validator;
     pool->destructor  = destructor;
@@ -576,9 +608,8 @@ PoolAcquire(
     EnterCriticalSection(&pool->lock);
 
     // Use idle resources, if available
-    if (pool->idle > 0) {
-        // TODO: check resource
-        resource = ResourcePop(pool);
+    resource = ResourcePopCheck(pool);
+    if (resource != NULL) {
         *data = resource->data;
 
         // Discard container
@@ -600,6 +631,8 @@ PoolAcquire(
             ConditionVariableWait(&pool->condition, &pool->lock, INFINITE);
         }
     }
+
+    // TODO: fix here
 
     // Check if there any resources became available
     if (pool->idle > 0) {

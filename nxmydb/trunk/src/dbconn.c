@@ -459,7 +459,7 @@ DbInit(
         Io_Putlog(LOG_ERROR, "nxMyDB: Unable to allocate memory for connection pool.\r\n");
         goto error;
     }
-    if (!PoolInit(pool, poolMin, poolAvg, poolMax, poolTimeout, poolExpiration, poolValidate,
+    if (!PoolInit(pool, poolMin, poolAvg, poolMax, poolTimeout,
             ConnectionOpen, ConnectionValidate, ConnectionClose, NULL)) {
         Io_Free(pool);
         Io_Putlog(LOG_ERROR, "nxMyDB: Unable to create connection pool.\r\n");
