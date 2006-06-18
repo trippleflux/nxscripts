@@ -33,14 +33,14 @@ servers. nxMyDB also includes features such as:
 # 2. Installation                                                              #
 ################################################################################
 
-1. Copy the nxmydb.dll file to ioFTPD\modules\.
-
-2. Copy the libmysql.dll file to ioFTPD\system\.
-
-3. Create a MySQL database and import the schema.sql file.
+1. Create a MySQL database and import the schema.sql file.
 
    mysql -u root -p -h 192.168.1.200 -e "CREATE DATABASE ioftpd"
    mysql -u root -p -h 192.168.1.200 -D ioftpd < schema.sql
+
+2. Copy the nxmydb.dll file to ioFTPD\modules\.
+
+3. Copy the libmysql.dll file to ioFTPD\system\.
 
 4. Add the following options to your ioFTPD.ini file:
 
