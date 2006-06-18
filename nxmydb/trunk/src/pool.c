@@ -26,6 +26,41 @@ Abstract:
 
 /*++
 
+ContainerPush
+
+    Places a container at the tail of the container queue.
+
+Arguments:
+    pool      - Pointer to an initialized POOL structure.
+
+    container - Pointer to the POOL_RESOURCE structure (container) to be placed
+                on the container queue.
+
+Return Values:
+    None.
+
+Remarks:
+    This function assumes the pool is locked.
+
+--*/
+static
+INLINE
+void
+ContainerPush(
+    POOL *pool,
+    POOL_RESOURCE *container
+    )
+{
+    ASSERT(pool != NULL);
+    ASSERT(container != NULL);
+    DebugPrint("ContainerPush", "pool=%p container=%p\n", pool, container);
+
+    // Insert container at the tail
+    TAILQ_INSERT_TAIL(&pool->conQueue, container, link);
+}
+
+/*++
+
 ContainerPop
 
     Retrieves an existing container or allocates a new one.
@@ -69,41 +104,6 @@ ContainerPop(
     }
 
     return container;
-}
-
-/*++
-
-ContainerPush
-
-    Places a container at the tail of the container queue.
-
-Arguments:
-    pool      - Pointer to an initialized POOL structure.
-
-    container - Pointer to the POOL_RESOURCE structure (container) to be placed
-                on the container queue.
-
-Return Values:
-    None.
-
-Remarks:
-    This function assumes the pool is locked.
-
---*/
-static
-INLINE
-void
-ContainerPush(
-    POOL *pool,
-    POOL_RESOURCE *container
-    )
-{
-    ASSERT(pool != NULL);
-    ASSERT(container != NULL);
-    DebugPrint("ContainerPush", "pool=%p container=%p\n", pool, container);
-
-    // Insert container at the tail
-    TAILQ_INSERT_TAIL(&pool->conQueue, container, link);
 }
 
 /*++
@@ -237,42 +237,6 @@ ResourceDestroy(
 
 /*++
 
-ResourcePop
-
-    Retrieves and removes a resource from the head of the resource queue.
-
-Arguments:
-    pool    - Pointer to an initialized POOL structure.
-
-Return Values:
-    The return value is a pointer to a POOL_RESOURCE structure.
-
-Remarks:
-    This function assumes the pool is locked.
-
---*/
-static
-INLINE
-POOL_RESOURCE *
-ResourcePop(
-    POOL *pool
-    )
-{
-    POOL_RESOURCE *resource;
-
-    ASSERT(pool != NULL);
-    DebugPrint("ResourcePop", "pool=%p\n", pool);
-
-    // Remove the first resource
-    resource = TAILQ_FIRST(&pool->resQueue);
-    TAILQ_REMOVE(&pool->resQueue, resource, link);
-
-    pool->idle--;
-    return resource;
-}
-
-/*++
-
 ResourcePush
 
     Places a resource at the tail of the resource queue.
@@ -307,6 +271,42 @@ ResourcePush(
     // Insert resource at the tail
     TAILQ_INSERT_TAIL(&pool->resQueue, resource, link);
     pool->idle++;
+}
+
+/*++
+
+ResourcePop
+
+    Retrieves and removes a resource from the head of the resource queue.
+
+Arguments:
+    pool    - Pointer to an initialized POOL structure.
+
+Return Values:
+    The return value is a pointer to a POOL_RESOURCE structure.
+
+Remarks:
+    This function assumes the pool is locked.
+
+--*/
+static
+INLINE
+POOL_RESOURCE *
+ResourcePop(
+    POOL *pool
+    )
+{
+    POOL_RESOURCE *resource;
+
+    ASSERT(pool != NULL);
+    DebugPrint("ResourcePop", "pool=%p\n", pool);
+
+    // Remove the first resource
+    resource = TAILQ_FIRST(&pool->resQueue);
+    TAILQ_REMOVE(&pool->resQueue, resource, link);
+
+    pool->idle--;
+    return resource;
 }
 
 /*++
