@@ -53,7 +53,7 @@ Abstract:
 #include "queue.h"
 
 #include "backends.h"
-#include "condvars.h"
+#include "condvar.h"
 #include "dbconn.h"
 #include "debug.h"
 #include "pool.h"
