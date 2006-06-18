@@ -155,7 +155,6 @@ ResourceCreate(
         ContainerPush(pool, container);
         return FALSE;
     }
-    GetSystemTimeAsFileTime((FILETIME *)&container->created);
     *resource = container;
 
     pool->total++;
@@ -378,7 +377,7 @@ ResourceUpdate(
     while (pool->idle > pool->average && pool->idle > 0) {
         resource = TAILQ_FIRST(&pool->resQueue);
 
-        if ((currentTime - resource->created) < pool->expiration) {
+        if ((currentTime - resource->used) < pool->expiration) {
             // New resources are added to the tail of the list. So if this
             // one is too young, the following resources will be as well.
             break;

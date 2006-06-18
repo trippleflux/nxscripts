@@ -92,7 +92,6 @@ typedef void (POOL_DESTRUCTOR_PROC)(
 //
 
 struct POOL_RESOURCE {
-    UINT64 created;                     // Time when the resource was created
     UINT64 used;                        // Time when the resource was last used
     void *data;                         // Opaque data set by the constructor callback
     TAILQ_ENTRY(POOL_RESOURCE) link;    // Link to the previous and next resources
