@@ -345,12 +345,9 @@ ResourceUpdate(
     EnterCriticalSection(&pool->lock);
 
     // Create more resources if we're under the minimum and maximum limits
-    while (pool->idle < pool->minimum && pool->total <= pool->maximum) {
+    while (pool->idle < pool->minimum && pool->total < pool->maximum) {
         // Create a new resource
         if (!ResourceCreate(pool, &resource)) {
-            //LeaveCriticalSection(&pool->lock);
-            //return FALSE;
-
             // Fail silently if we cannot create a resource
             break;
         }
@@ -604,7 +601,7 @@ PoolAcquire(
         }
     }
 
-    // Check if there are any resources
+    // Check if there any resources became available
     if (pool->idle > 0) {
         resource = ResourcePop(pool);
         *data = resource->data;
@@ -671,7 +668,7 @@ PoolRelease(
         return FALSE;
     }
 
-    // Add resource to the queue
+    // Add resource back to the queue
     container->data = data;
     ResourcePush(pool, container);
 
