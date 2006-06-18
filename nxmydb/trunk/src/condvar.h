@@ -10,7 +10,7 @@ Author:
     neoxed (neoxed@gmail.com) Jun 12, 2006
 
 Abstract:
-    Condition variables, similar to the POSIX Pthreads specification.
+    Condition variables declarations.
 
 */
 
@@ -22,7 +22,8 @@ Abstract:
 //
 
 typedef struct {
-    void *foo;
+    HANDLE semaphore;
+    volatile LONG waiting;
 } CONDITION_VARIABLE;
 
 //
@@ -31,27 +32,27 @@ typedef struct {
 
 BOOL
 ConditionVariableInit(
-    CONDITION_VARIABLE *condVar
+    CONDITION_VARIABLE *cond
     );
 
-BOOL
+void
 ConditionVariableDestroy(
-    CONDITION_VARIABLE *condVar
+    CONDITION_VARIABLE *cond
     );
 
 BOOL
 ConditionVariableBroadcast(
-    CONDITION_VARIABLE *condVar
+    CONDITION_VARIABLE *cond
     );
 
 BOOL
 ConditionVariableSignal(
-    CONDITION_VARIABLE *condVar
+    CONDITION_VARIABLE *cond
     );
 
 BOOL
 ConditionVariableWait(
-    CONDITION_VARIABLE *condVar,
+    CONDITION_VARIABLE *cond,
     CRITICAL_SECTION *critSection,
     DWORD timeout
     );

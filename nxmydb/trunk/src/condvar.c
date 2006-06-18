@@ -10,7 +10,7 @@ Author:
     neoxed (neoxed@gmail.com) Jun 12, 2006
 
 Abstract:
-    Condition variables, similar to the POSIX Pthreads specification.
+    Condition variables, similar to those of POSIX Pthreads.
 
 */
 
@@ -18,58 +18,76 @@ Abstract:
 
 BOOL
 ConditionVariableInit(
-    CONDITION_VARIABLE *condVar
+    CONDITION_VARIABLE *cond
     )
 {
-    ASSERT(condVar != NULL);
-    DebugPrint("CondVarInit", "condVar=%p\n", condVar);
+    ASSERT(cond != NULL);
+    DebugPrint("CVInit", "cond=%p\n", cond);
 
-    return TRUE;
+    cond->waiting = 0;
+    cond->semaphore = CreateSemaphore(NULL, 0, LONG_MAX, NULL);
+    return (cond->semaphore != NULL) ? TRUE : FALSE;
 }
 
-BOOL
+void
 ConditionVariableDestroy(
-    CONDITION_VARIABLE *condVar
+    CONDITION_VARIABLE *cond
     )
 {
-    ASSERT(condVar != NULL);
-    DebugPrint("CondVarDestroy", "condVar=%p\n", condVar);
+    ASSERT(cond != NULL);
+    DebugPrint("CVDestroy", "cond=%p\n", cond);
 
-    return TRUE;
+    CloseHandle(cond->semaphore);
 }
 
 BOOL
 ConditionVariableBroadcast(
-    CONDITION_VARIABLE *condVar
+    CONDITION_VARIABLE *cond
     )
 {
-    ASSERT(condVar != NULL);
-    DebugPrint("CondVarBroadcast", "condVar=%p\n", condVar);
+    ASSERT(cond != NULL);
+    DebugPrint("CVBroadcast", "cond=%p\n", cond);
 
+    if (cond->waiting > 0) {
+        return ReleaseSemaphore(cond->semaphore, cond->waiting, NULL);
+    }
     return TRUE;
 }
 
 BOOL
 ConditionVariableSignal(
-    CONDITION_VARIABLE *condVar
+    CONDITION_VARIABLE *cond
     )
 {
-    ASSERT(condVar != NULL);
-    DebugPrint("CondVarSignal", "condVar=%p\n", condVar);
+    ASSERT(cond != NULL);
+    DebugPrint("CVSignal", "cond=%p\n", cond);
 
+    if (cond->waiting > 0) {
+        return ReleaseSemaphore(cond->semaphore, 1, NULL);
+    }
     return TRUE;
 }
 
 BOOL
 ConditionVariableWait(
-    CONDITION_VARIABLE *condVar,
+    CONDITION_VARIABLE *cond,
     CRITICAL_SECTION *critSection,
     DWORD timeout
     )
 {
-    ASSERT(condVar != NULL);
-    ASSERT(critSection != NULL);
-    DebugPrint("CondVarSignal", "condVar=%p critSection=%p timeout=%lu\n", condVar, critSection, timeout);
+    DWORD result;
 
-    return TRUE;
+    ASSERT(cond != NULL);
+    ASSERT(critSection != NULL);
+    DebugPrint("CVSignal", "cond=%p critSection=%p timeout=%lu\n", cond, critSection, timeout);
+
+    InterlockedIncrement(&cond->waiting);
+    LeaveCriticalSection(critSection);
+
+    result = WaitForSingleObject(cond->semaphore, timeout);
+
+    InterlockedDecrement(&cond->waiting);
+    EnterCriticalSection(critSection);
+
+    return (result == WAIT_OBJECT_0) ? TRUE : FALSE;
 }
