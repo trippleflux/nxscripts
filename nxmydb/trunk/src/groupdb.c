@@ -22,17 +22,17 @@ DbGroupCreate(
     GROUPFILE *groupFile
     )
 {
-    MYSQL *handle;
+    DB_CONTEXT *context;
 
     ASSERT(groupName != NULL);
     ASSERT(groupFile != NULL);
     DebugPrint("DbGroupCreate", "groupName=\"%s\" groupFile=%p\n", groupName, groupFile);
 
-    if (!DbAcquire(&handle)) {
+    if (!DbAcquire(&context)) {
         return FALSE;
     }
 
-    DbRelease(handle);
+    DbRelease(context);
     return TRUE;
 }
 
@@ -42,17 +42,17 @@ DbGroupRename(
     char *newName
     )
 {
-    MYSQL *handle;
+    DB_CONTEXT *context;
 
     ASSERT(groupName != NULL);
     ASSERT(newName != NULL);
     DebugPrint("DbGroupRename", "groupName=\"%s\" newName=\"%s\"\n", groupName, newName);
 
-    if (!DbAcquire(&handle)) {
+    if (!DbAcquire(&context)) {
         return FALSE;
     }
 
-    DbRelease(handle);
+    DbRelease(context);
     return TRUE;
 }
 
@@ -61,16 +61,16 @@ DbGroupDelete(
     char *groupName
     )
 {
-    MYSQL *handle;
+    DB_CONTEXT *context;
 
     ASSERT(groupName != NULL);
     DebugPrint("DbGroupDelete", "groupName=\"%s\"\n", groupName);
 
-    if (!DbAcquire(&handle)) {
+    if (!DbAcquire(&context)) {
         return FALSE;
     }
 
-    DbRelease(handle);
+    DbRelease(context);
     return TRUE;
 }
 
@@ -79,16 +79,16 @@ DbGroupLock(
     GROUPFILE *groupFile
     )
 {
-    MYSQL *handle;
+    DB_CONTEXT *context;
 
     ASSERT(groupFile != NULL);
     DebugPrint("DbGroupLock", "groupFile=%p", groupFile);
 
-    if (!DbAcquire(&handle)) {
+    if (!DbAcquire(&context)) {
         return FALSE;
     }
 
-    DbRelease(handle);
+    DbRelease(context);
     return TRUE;
 }
 
@@ -97,16 +97,16 @@ DbGroupUnlock(
     GROUPFILE *groupFile
     )
 {
-    MYSQL *handle;
+    DB_CONTEXT *context;
 
     ASSERT(groupFile != NULL);
     DebugPrint("DbGroupUnlock", "groupFile=%p", groupFile);
 
-    if (!DbAcquire(&handle)) {
+    if (!DbAcquire(&context)) {
         return FALSE;
     }
 
-    DbRelease(handle);
+    DbRelease(context);
     return TRUE;
 }
 
@@ -116,17 +116,17 @@ DbGroupOpen(
     GROUPFILE *groupFile
     )
 {
-    MYSQL *handle;
+    DB_CONTEXT *context;
 
     ASSERT(groupName != NULL);
     ASSERT(groupFile != NULL);
     DebugPrint("DbGroupOpen", "groupName=\"%s\" groupFile=%p\n", groupName, groupFile);
 
-    if (!DbAcquire(&handle)) {
+    if (!DbAcquire(&context)) {
         return FALSE;
     }
 
-    DbRelease(handle);
+    DbRelease(context);
     return TRUE;
 }
 
@@ -135,16 +135,16 @@ DbGroupWrite(
     GROUPFILE *groupFile
     )
 {
-    MYSQL *handle;
+    DB_CONTEXT *context;
 
     ASSERT(groupFile != NULL);
     DebugPrint("DbGroupWrite", "groupFile=%p", groupFile);
 
-    if (!DbAcquire(&handle)) {
+    if (!DbAcquire(&context)) {
         return FALSE;
     }
 
-    DbRelease(handle);
+    DbRelease(context);
     return TRUE;
 }
 
@@ -161,11 +161,11 @@ DbGroupClose(
 
 BOOL
 DbGroupRefresh(
-    MYSQL *handle
+    DB_CONTEXT *context
     )
 {
-    ASSERT(handle != NULL);
-    DebugPrint("DbGroupRefresh", "handle=%p", handle);
+    ASSERT(context != NULL);
+    DebugPrint("DbGroupRefresh", "context=%p", context);
 
     return TRUE;
 }

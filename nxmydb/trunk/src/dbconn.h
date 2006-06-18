@@ -17,6 +17,20 @@ Abstract:
 #ifndef _DBCONN_H_
 #define _DBCONN_H_
 
+//
+// Database structures
+//
+
+typedef struct {
+    UINT64 created; // Time this context was created
+    UINT64 used;    // Time this context was last used
+    MYSQL *handle;  // MySQL connection handle
+} DB_CONTEXT;
+
+//
+// Database functions
+//
+
 BOOL
 DbInit(
     Io_GetProc *getProc
@@ -29,12 +43,12 @@ DbFinalize(
 
 BOOL
 DbAcquire(
-    MYSQL **handle
+    DB_CONTEXT **dbContext
     );
 
 void
 DbRelease(
-    MYSQL *handle
+    DB_CONTEXT *dbContext
     );
 
 #endif // _DBCONN_H_

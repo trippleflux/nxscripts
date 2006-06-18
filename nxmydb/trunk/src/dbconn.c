@@ -50,7 +50,7 @@ ConnectionOpen
 Arguments:
     opaque - Opaque argument passed to PoolInit().
 
-    data   - Pointer to a pointer that receives the MYSQL handle structure.
+    data   - Pointer to a pointer that receives the DB_CONTEXT structure.
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).
@@ -65,17 +65,25 @@ ConnectionOpen(
     void **data
     )
 {
-    MYSQL *handle;
+    DB_CONTEXT *context;
     unsigned long flags;
 
     ASSERT(opaque == NULL);
     ASSERT(data != NULL);
     DebugPrint("ConnectionOpen", "opaque=%p data=%p\n", opaque, data);
 
+    // Allocate database context
+    context = Io_Allocate(sizeof(DB_CONTEXT));
+    if (context == NULL) {
+        DebugPrint("ConnectionOpen", "Unable to allocate database context.\n");
+        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+        return FALSE;
+    }
+
     // Have MySQL allocate the structure. This is in case the client library is a different
     // version than the header we're compiling with (structures could be different sizes).
-    handle = mysql_init(NULL);
-    if (handle == NULL) {
+    context->handle = mysql_init(NULL);
+    if (context->handle == NULL) {
         DebugPrint("ConnectionOpen", "Unable to allocate MySQL handle structure.\n");
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return FALSE;
@@ -87,23 +95,27 @@ ConnectionOpen(
         flags |= CLIENT_COMPRESS;
     }
     if (sslEnable) {
-        mysql_ssl_set(handle, sslKeyFile, sslCertFile, sslCAFile, sslCAPath, sslCiphers);
+        mysql_ssl_set(context->handle, sslKeyFile, sslCertFile, sslCAFile, sslCAPath, sslCiphers);
     }
 
     // Open server connection
-    if (!mysql_real_connect(handle, serverHost, serverUser, serverPass, serverDb, serverPort, NULL, flags)) {
-        DebugPrint("ConnectionOpen", "Unable to connect to server: %s\n", mysql_error(handle));
-        Io_Putlog(LOG_ERROR, "nxMyDB: Unable to connect to server: %s\r\n", mysql_error(handle));
-        mysql_close(handle);
+    if (!mysql_real_connect(context->handle, serverHost, serverUser, serverPass, serverDb, serverPort, NULL, flags)) {
+        DebugPrint("ConnectionOpen", "Unable to connect to server: %s\n", mysql_error(context->handle));
+        Io_Putlog(LOG_ERROR, "nxMyDB: Unable to connect to server: %s\r\n", mysql_error(context->handle));
+        mysql_close(context->handle);
 
         SetLastError(ERROR_CONNECTION_REFUSED);
         return FALSE;
     }
 
-    DebugPrint("ConnectionOpen", "Connected to %s, running MySQL Server v%s.\n",
-        mysql_get_host_info(handle), mysql_get_server_info(handle));
+    // Update time stamps
+    GetSystemTimeAsFileTime((FILETIME *)&context->created);
+    context->used = context->created;
 
-    *data = handle;
+    DebugPrint("ConnectionOpen", "Connected to %s, running MySQL Server v%s.\n",
+        mysql_get_host_info(context->handle), mysql_get_server_info(context->handle));
+
+    *data = context;
     return TRUE;
 }
 
@@ -116,7 +128,7 @@ ConnectionValidate
 Arguments:
     opaque - Opaque argument passed to PoolInit().
 
-    data   - Pointer to a MYSQL handle structure.
+    data   - Pointer to a DB_CONTEXT structure.
 
 Return Values:
     If the connection is valid, the return is nonzero (true).
@@ -131,15 +143,33 @@ ConnectionValidate(
     void *data
     )
 {
-    MYSQL *handle;
+    DB_CONTEXT *context;
 
     ASSERT(opaque == NULL);
     ASSERT(data != NULL);
     DebugPrint("ConnectionValidate", "opaque=%p data=%p\n", opaque, data);
 
-    handle = data;
-    if (mysql_ping(handle) != 0) {
-        DebugPrint("ConnectionValidate", "Lost server connection: %s\n", mysql_error(handle));
+#if 0
+    // Ping handle if it hasn't been used in more than 60 seconds. Do not
+    // convert into seconds before comparing, since that would loose precision.
+    GetSystemTimeAsFileTime((FILETIME *)&age);
+    age -= context->time;
+    if (age > 60 * 10000000) {
+        DebugPrint("DbAcquire", "Connection has not been used in %I64u seconds, pinging it.\n", age/10000000);
+
+        if (mysql_ping(context->handle) != 0) {
+            DebugPrint("DbAcquire", "Lost server connection: %s\n", mysql_error(context->handle));
+            PoolInvalidate(pool, context);
+
+            SetLastError(ERROR_NOT_CONNECTED);
+            return FALSE;
+        }
+    }
+#endif
+
+    context = data;
+    if (mysql_ping(context->handle) != 0) {
+        DebugPrint("ConnectionValidate", "Lost server connection: %s\n", mysql_error(context->handle));
         SetLastError(ERROR_NOT_CONNECTED);
         return FALSE;
     }
@@ -156,7 +186,7 @@ ConnectionClose
 Arguments:
     opaque - Opaque argument passed to PoolInit().
 
-    data   - Pointer to a MYSQL handle structure.
+    data   - Pointer to a DB_CONTEXT structure.
 
 Return Values:
     None.
@@ -169,15 +199,16 @@ ConnectionClose(
     void *data
     )
 {
-    MYSQL *handle;
+    DB_CONTEXT *context;
 
     ASSERT(opaque == NULL);
     ASSERT(data != NULL);
     DebugPrint("ConnectionClose", "opaque=%p data=%p\n", opaque, data);
 
-    // Close server connection
-    handle = data;
-    mysql_close(handle);
+    // Close server connection and free context
+    context = data;
+    mysql_close(context->handle);
+    Io_Free(context);
 }
 
 /*++
@@ -293,7 +324,7 @@ RefreshTimer
     Refreshes the local user and group cache.
 
 Arguments:
-    context   - Pointer to the timer context.
+    notUsed   - Pointer to the timer context.
 
     currTimer - Pointer to the current TIMER handle structure.
 
@@ -304,19 +335,19 @@ Return Values:
 static
 DWORD
 RefreshTimer(
-    void *context,
+    void *notUsed,
     TIMER *currTimer
     )
 {
-    MYSQL *handle;
-    DebugPrint("RefreshTimer", "context=%p currTimer=%p\n", context, currTimer);
+    DB_CONTEXT *context;
+    DebugPrint("RefreshTimer", "currTimer=%p\n", currTimer);
 
-    if (DbAcquire(&handle)) {
+    if (DbAcquire(&context)) {
         // Users rely on groups, so update groups first.
-        DbGroupRefresh(handle);
-        DbUserRefresh(handle);
+        DbGroupRefresh(context);
+        DbUserRefresh(context);
 
-        DbRelease(handle);
+        DbRelease(context);
     } else {
         DebugPrint("RefreshTimer", "Unable to acquire a database connection.\n");
     }
@@ -525,10 +556,10 @@ DbFinalize(
 
 DbAcquire
 
-    Acquires a MySQL handle from the connection pool.
+    Acquires a database context from the connection pool.
 
 Arguments:
-    handle  - Pointer to a pointer that receives the MYSQL handle structure.
+    dbContext  - Pointer to a pointer that receives the DB_CONTEXT structure.
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).
@@ -538,18 +569,21 @@ Return Values:
 --*/
 BOOL
 DbAcquire(
-    MYSQL **handle
+    DB_CONTEXT **dbContext
     )
 {
-    ASSERT(handle != NULL);
-    DebugPrint("DbAcquire", "handle=%p\n", handle);
+    DB_CONTEXT *context;
 
-    // Acquire a connection handle
-    if (!PoolAcquire(pool, handle)) {
+    ASSERT(dbContext != NULL);
+    DebugPrint("DbAcquire", "dbContext=%p\n", dbContext);
+
+    // Acquire a database context
+    if (!PoolAcquire(pool, &context)) {
         DebugPrint("DbAcquire", "Unable to acquire a database check (error %lu).\n", GetLastError());
         return FALSE;
     }
 
+    *dbContext = context;
     return TRUE;
 }
 
@@ -557,10 +591,10 @@ DbAcquire(
 
 DbRelease
 
-    Releases a MySQL handle back into the connection pool.
+    Releases a database context back into the connection pool.
 
 Arguments:
-    handle  - Pointer to a MYSQL handle structure.
+    dbContext  - Pointer to a DB_CONTEXT structure.
 
 Return Values:
     None.
@@ -568,14 +602,17 @@ Return Values:
 --*/
 void
 DbRelease(
-    MYSQL *handle
+    DB_CONTEXT *dbContext
     )
 {
-    ASSERT(handle != NULL);
-    DebugPrint("DbRelease", "handle=%p\n", handle);
+    ASSERT(dbContext != NULL);
+    DebugPrint("DbRelease", "dbContext=%p\n", dbContext);
 
-    // Release the connection handle
-    if (!PoolRelease(pool, handle)) {
-        DebugPrint("DbRelease", "Unable to release the database handle (error %lu).\n", GetLastError());
+    // Update used time stamp
+    GetSystemTimeAsFileTime((FILETIME *)&dbContext->used);
+
+    // Release the database context
+    if (!PoolRelease(pool, dbContext)) {
+        DebugPrint("DbRelease", "Unable to release the database context (error %lu).\n", GetLastError());
     }
 }
