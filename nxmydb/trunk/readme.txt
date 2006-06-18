@@ -153,18 +153,18 @@ supported by OpenSSL/yaSSL.
     - Maximum number of sustained connections (usually double the average)
     - Default: Pool_Average * 2
 
-  Pool_Timeout
-    - Seconds to wait for a connection to become available
-    - Default: 5
+  Pool_Check
+    - Seconds until an idle connection is checked
+    - Default: 60 (1 minute)
 
-  Pool_Expiration
+  Pool_Expire
     - Seconds until a connection expires
     - Should be less than MySQL's "interactive_timeout" value
     - Default: 3600 (1 hour)
 
-  Pool_Validate
-    - Seconds until a connection is be validated (checks old connections)
-    - Default: 60 (1 minute)
+  Pool_Timeout
+    - Seconds to wait for a connection to become available
+    - Default: 5
 
   ############################################################
   # b) yaSSL Cipher Suites                                   #

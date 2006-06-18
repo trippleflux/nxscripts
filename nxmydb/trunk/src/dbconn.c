@@ -30,6 +30,10 @@ static char *sslKeyFile;
 static char *sslCAFile;
 static char *sslCAPath;
 
+// Connection expiration
+static UINT64 connCheck;
+static UINT64 connExpire;
+
 // Refresh timer
 static int refresh;
 static TIMER *timer;
@@ -121,7 +125,7 @@ ConnectionOpen(
 
 /*++
 
-ConnectionValidate
+ConnectionCheck
 
     Validates the server connection.
 
@@ -138,7 +142,7 @@ Return Values:
 --*/
 static
 BOOL
-ConnectionValidate(
+ConnectionCheck(
     void *opaque,
     void *data
     )
@@ -147,7 +151,9 @@ ConnectionValidate(
 
     ASSERT(opaque == NULL);
     ASSERT(data != NULL);
-    DebugPrint("ConnectionValidate", "opaque=%p data=%p\n", opaque, data);
+    DebugPrint("ConnectionCheck", "opaque=%p data=%p\n", opaque, data);
+
+    context = data;
 
 #if 0
     // Ping handle if it hasn't been used in more than 60 seconds. Do not
@@ -167,9 +173,8 @@ ConnectionValidate(
     }
 #endif
 
-    context = data;
     if (mysql_ping(context->handle) != 0) {
-        DebugPrint("ConnectionValidate", "Lost server connection: %s\n", mysql_error(context->handle));
+        DebugPrint("ConnectionCheck", "Lost server connection: %s\n", mysql_error(context->handle));
         SetLastError(ERROR_NOT_CONNECTED);
         return FALSE;
     }
@@ -386,8 +391,8 @@ DbInit(
     int poolAvg;
     int poolMax;
     int poolTimeout;
-    int poolExpiration;
-    int poolValidate;
+    int poolExpire;
+    int poolCheck;
     DebugPrint("DbInit", "getProc=%p refCount=%i\n", getProc, refCount);
 
     // Only initialize the module once
@@ -428,19 +433,19 @@ DbInit(
     }
     poolTimeout *= 1000;
 
-    poolExpiration = 3600;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Expiration", &poolExpiration) && poolExpiration <= 0) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Expiration' must be greater than zero.\r\n");
+    poolExpire = 3600;
+    if (Io_ConfigGetInt("nxMyDB", "Pool_Expire", &poolExpire) && poolExpire <= 0) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Expire' must be greater than zero.\r\n");
         return FALSE;
     }
-    poolExpiration *= 1000;
+    connExpire = UInt32x32To64(poolExpire, 10000000); // sec to 100nsec
 
-    poolValidate = 60;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Validate", &poolValidate) && (poolValidate <= 0 || poolValidate >= poolExpiration)) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Validate' must be greater than zero and less than 'Pool_Expiration'.\r\n");
+    poolCheck = 60;
+    if (Io_ConfigGetInt("nxMyDB", "Pool_Check", &poolCheck) && (poolCheck <= 0 || poolCheck >= poolExpire)) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Check' must be greater than zero and less than 'Pool_Expire'.\r\n");
         return FALSE;
     }
-    poolValidate *= 1000;
+    connCheck = UInt32x32To64(poolCheck, 10000000); // sec to 100nsec
 
     // Refesh timer
     if (Io_ConfigGetInt("nxMyDB", "Refresh", &refresh) && refresh < 0) {
@@ -480,9 +485,9 @@ DbInit(
     DebugPrint("Configuration", "Pool Minimum    = %i\n", poolMin);
     DebugPrint("Configuration", "Pool Average    = %i\n", poolAvg);
     DebugPrint("Configuration", "Pool Maximum    = %i\n", poolMax);
+    DebugPrint("Configuration", "Pool Check      = %i\n", poolCheck);
+    DebugPrint("Configuration", "Pool Expire     = %i\n", poolExpire);
     DebugPrint("Configuration", "Pool Timeout    = %i\n", poolTimeout);
-    DebugPrint("Configuration", "Pool Expiration = %i\n", poolExpiration);
-    DebugPrint("Configuration", "Pool Validate   = %i\n", poolValidate);
 
     // Create connection pool
     pool = Io_Allocate(sizeof(POOL));
@@ -491,7 +496,7 @@ DbInit(
         goto error;
     }
     if (!PoolInit(pool, poolMin, poolAvg, poolMax, poolTimeout,
-            ConnectionOpen, ConnectionValidate, ConnectionClose, NULL)) {
+            ConnectionOpen, ConnectionCheck, ConnectionClose, NULL)) {
         Io_Free(pool);
         Io_Putlog(LOG_ERROR, "nxMyDB: Unable to create connection pool.\r\n");
         goto error;
