@@ -115,12 +115,11 @@ ResourceCreate
 Arguments:
     pool     - Pointer to an initialized POOL structure.
 
-    resource - Pointer to a pointer that receives the POOL_RESOURCE structure.
-
 Return Values:
-    If the function succeeds, the return value is nonzero (true).
+    If the function succeeds, the return value is a pointer to a POOL_RESOURCE
+    structure (idle resource).
 
-    If the function fails, the return value is zero (false). To get extended error
+    If the function fails, the return value is null. To get extended error
     information, call GetLastError.
 
 Remarks:
@@ -129,22 +128,20 @@ Remarks:
 --*/
 static
 INLINE
-BOOL
+POOL_RESOURCE *
 ResourceCreate(
-    POOL *pool,
-    POOL_RESOURCE **resource
+    POOL *pool
     )
 {
     POOL_RESOURCE *container;
 
     ASSERT(pool != NULL);
-    ASSERT(resource != NULL);
-    DebugPrint("ResourceCreate", "pool=%p resource=%p\n", pool, resource);
+    DebugPrint("ResourceCreate", "pool=%p\n", pool);
 
     // Retrieve a container for the resource
     container = ContainerPop(pool);
     if (container == NULL) {
-        return FALSE;
+        return NULL;
     }
 
     // Populate the container
@@ -153,12 +150,11 @@ ResourceCreate(
 
         // Place container back in the container queue
         ContainerPush(pool, container);
-        return FALSE;
+        return NULL;
     }
-    *resource = container;
 
     pool->total++;
-    return TRUE;
+    return container;
 }
 
 /*++
@@ -392,7 +388,8 @@ ResourceUpdate(
     // Create more resources if we're under the minimum and maximum limits
     while (pool->idle < pool->minimum && pool->total < pool->maximum) {
         // Create a new resource
-        if (!ResourceCreate(pool, &resource)) {
+        resource = ResourceCreate(pool);
+        if (resource == NULL) {
             // Fail silently if we cannot create a resource
             break;
         }
@@ -598,7 +595,6 @@ PoolAcquire(
     void **data
     )
 {
-    BOOL result;
     POOL_RESOURCE *resource;
 
     ASSERT(pool != NULL);
@@ -609,30 +605,26 @@ PoolAcquire(
 
     // Use idle resources, if available
     resource = ResourcePopCheck(pool);
-    if (resource != NULL) {
-        *data = resource->data;
+    if (resource == NULL) {
+        // If we've hit the maximum limit, block until a resource
+        // becomes available or we're allowed to create one.
+        while (pool->idle <= 0 && pool->total >= pool->maximum) {
+            if (!ConditionVariableWait(&pool->condition, &pool->lock, pool->timeout)) {
+                LeaveCriticalSection(&pool->lock);
+                return FALSE;
+            }
+        }
 
-        // Discard container
-        ContainerPush(pool, resource);
+        // Check if any resources became available
+        resource = ResourcePopCheck(pool);
+        if (resource == NULL && pool->total < pool->maximum) {
 
-        LeaveCriticalSection(&pool->lock);
-        return TRUE;
-    }
-
-    // If we've hit the maximum limit, block until a resource
-    // becomes available or we're allowed to create one.
-    while (pool->total >= pool->maximum && pool->idle <= 0) {
-        if (!ConditionVariableWait(&pool->condition, &pool->lock, pool->timeout)) {
-            LeaveCriticalSection(&pool->lock);
-            return FALSE;
+            // Create a new resource since there are no available ones
+            resource = ResourceCreate(pool);
         }
     }
 
-    // TODO: fix here
-
-    // Check if there any resources became available
-    if (pool->idle > 0) {
-        resource = ResourcePop(pool);
+    if (resource != NULL) {
         *data = resource->data;
         ContainerPush(pool, resource);
 
@@ -640,15 +632,8 @@ PoolAcquire(
         return TRUE;
     }
 
-    // Create a new resource since there are no available ones
-    result = ResourceCreate(pool, &resource);
-    if (result) {
-        *data = resource->data;
-        ContainerPush(pool, resource);
-    }
-
     LeaveCriticalSection(&pool->lock);
-    return result;
+    return FALSE;
 }
 
 /*++
