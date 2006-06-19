@@ -51,20 +51,20 @@ UserRead(
     fileSize = GetFileSize(context->fileHandle, NULL);
     if (fileSize == INVALID_FILE_SIZE || fileSize < 5) {
         DebugPrint("FileUserRead", "Unable to retrieve file size, or file size is under 5 bytes.\n");
-        goto error;
+        goto failed;
     }
 
     // Allocate read buffer
     buffer = Io_Allocate(fileSize + 1);
     if (buffer == NULL) {
         DebugPrint("FileUserRead", "Unable to allocate read buffer.\n");
-        goto error;
+        goto failed;
     }
 
     // Read user file to buffer
     if (!ReadFile(context->fileHandle, buffer, fileSize, &bytesRead, NULL) || bytesRead < 5) {
         DebugPrint("FileUserRead", "Unable to read file, or the amount read is under 5 bytes.\n");
-        goto error;
+        goto failed;
     }
 
     // Pad buffer with a new-line
@@ -75,13 +75,11 @@ UserRead(
     Io_Ascii2UserFile(buffer, bytesRead, userFile);
     userFile->Gid = userFile->Groups[0];
 
-    // Free resources
     Io_Free(buffer);
-
     return TRUE;
 
-error:
-    // Free objects and resources
+failed:
+    // Preserve system error code
     error = GetLastError();
 
     if (buffer != NULL) {
@@ -123,46 +121,37 @@ FileUserCreate(
     if (targetPath == NULL) {
         DebugPrint("FileUserCreate", "Unable to retrieve file location.\n");
 
-        // Free resources
         Io_Free(defaultPath);
-
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return FALSE;
     }
 
     // Copy default file to target file
     if (!CopyFileA(defaultPath, targetPath, FALSE)) {
-        error = GetLastError();
         DebugPrint("FileUserCreate", "Unable to copy default file (error %lu).\n", error);
-
-        // Free resources
-        Io_Free(defaultPath);
-        Io_Free(targetPath);
-
-        // Restore system error code
-        SetLastError(error);
-        return FALSE;
+        goto failed;
     }
 
     // Read user file (copy of "Default.User")
     if (!UserRead(targetPath, userFile)) {
-        error = GetLastError();
         DebugPrint("FileUserCreate", "Unable read target file (error %lu).\n", error);
-
-        // Free resources
-        Io_Free(defaultPath);
-        Io_Free(targetPath);
-
-        // Restore system error code
-        SetLastError(error);
-        return FALSE;
+        goto failed;
     }
 
-    // Free resources
+    Io_Free(defaultPath);
+    Io_Free(targetPath);
+    return TRUE;
+
+failed:
+    // Preserve system error code
+    error = GetLastError();
+
     Io_Free(defaultPath);
     Io_Free(targetPath);
 
-    return TRUE;
+    // Restore system error code
+    SetLastError(error);
+    return FALSE;
 }
 
 BOOL
@@ -222,20 +211,18 @@ FileUserOpen(
         NULL, OPEN_EXISTING, 0, NULL);
 
     if (context->fileHandle == INVALID_HANDLE_VALUE) {
+        // Preserve system error code
         error = GetLastError();
-        DebugPrint("FileUserOpen", "Unable to open file (error %lu).\n", error);
-
-        // Free resources
         Io_Free(filePath);
+
+        DebugPrint("FileUserOpen", "Unable to open file (error %lu).\n", error);
 
         // Restore system error code
         SetLastError(error);
         return FALSE;
     }
 
-    // Free resources
     Io_Free(filePath);
-
     return TRUE;
 }
 
@@ -274,11 +261,11 @@ FileUserWrite(
     // Write buffer to file
     SetFilePointer(context->fileHandle, 0, 0, FILE_BEGIN);
     if (!WriteFile(context->fileHandle, buffer.buf, buffer.len, &bytesWritten, NULL)) {
+        // Preserve system error code
         error = GetLastError();
-        DebugPrint("FileUserWrite", "Unable to write file (error %lu).\n", error);
-
-        // Free resources
         Io_Free(buffer.buf);
+
+        DebugPrint("FileUserWrite", "Unable to write file (error %lu).\n", error);
 
         // Restore system error code
         SetLastError(error);
@@ -289,9 +276,7 @@ FileUserWrite(
     SetEndOfFile(context->fileHandle);
     FlushFileBuffers(context->fileHandle);
 
-    // Free resources
     Io_Free(buffer.buf);
-
     return TRUE;
 }
 

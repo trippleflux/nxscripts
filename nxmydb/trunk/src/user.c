@@ -107,31 +107,35 @@ UserCreate(
     userId = userModule->Register(userModule, userName, &userFile);
     if (userId == -1) {
         DebugPrint("UserCreate", "Unable to register user (error %lu).\n", GetLastError());
-        goto error;
+        goto failed;
     }
 
     // Create user file and read "Default.User"
     if (!FileUserCreate(userId, &userFile)) {
         DebugPrint("UserCreate", "Unable to create user file (error %lu).\n", GetLastError());
-        goto error;
+        goto failed;
     }
 
     // Create database record
     if (!DbUserCreate(userName, &userFile)) {
         DebugPrint("UserCreate", "Unable to create database record (error %lu).\n", GetLastError());
-        goto error;
+        goto failed;
     }
 
     return userId;
 
-error:
+failed:
     // Preserve system error code
     error = GetLastError();
 
     if (userId == -1) {
+        // User was not created, just free the context
         Io_Free(context);
-    } else if (UserDelete(userName, userId) != UM_SUCCESS) {
-        DebugPrint("UserCreate", "Unable to delete user (error %lu).\n", GetLastError());
+    } else {
+        // Delete created user (will also free the context)
+        if (UserDelete(userName, userId) != UM_SUCCESS) {
+            DebugPrint("UserCreate", "Unable to delete user (error %lu).\n", GetLastError());
+        }
     }
 
     // Restore system error code
@@ -293,28 +297,25 @@ UserClose(
     USERFILE *userFile
     )
 {
-    USER_CONTEXT *context = userFile->lpInternal;
-
     DebugPrint("UserClose", "userFile=%p\n", userFile);
 
-    // Verify user context
-    if (context == NULL) {
+    if (userFile->lpInternal == NULL) {
         DebugPrint("UserClose", "User context already freed.\n");
         return UM_ERROR;
     }
 
     // Close user file
-    if (!FileUserClose(context)) {
+    if (!FileUserClose(userFile->lpInternal)) {
         DebugPrint("UserClose", "Unable to close user file (error %lu).\n", GetLastError());
     }
 
     // Free database resources
-    if (!DbUserClose(context)) {
+    if (!DbUserClose(userFile->lpInternal)) {
         DebugPrint("UserClose", "Unable to close database record(error %lu).\n", GetLastError());
     }
 
-    // Free internal resources
-    Io_Free(context);
+    // Free user context
+    Io_Free(userFile->lpInternal);
     userFile->lpInternal = NULL;
 
     return UM_SUCCESS;
