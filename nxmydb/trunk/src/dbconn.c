@@ -148,35 +148,32 @@ ConnectionCheck(
     )
 {
     DB_CONTEXT *context;
+    UINT64 timeCurrent;
+    UINT64 timeDelta;
 
     ASSERT(opaque == NULL);
     ASSERT(data != NULL);
     DebugPrint("ConnectionCheck", "opaque=%p data=%p\n", opaque, data);
 
     context = data;
+    GetSystemTimeAsFileTime((FILETIME *)&timeCurrent);
 
-#if 0
-    // Ping handle if it hasn't been used in more than 60 seconds. Do not
-    // convert into seconds before comparing, since that would loose precision.
-    GetSystemTimeAsFileTime((FILETIME *)&age);
-    age -= context->time;
-    if (age > 60 * 10000000) {
-        DebugPrint("DbAcquire", "Connection has not been used in %I64u seconds, pinging it.\n", age/10000000);
+    timeDelta = timeCurrent - context->created;
+    if (timeDelta > connExpire) {
+        DebugPrint("ConnectionCheck", "Expiring server connection after %I64u seconds.\n", timeDelta);
+        SetLastError(ERROR_CONTEXT_EXPIRED);
+        return FALSE;
+    }
+
+    timeDelta = timeCurrent - used->created;
+    if (timeDelta > connCheck) {
+        DebugPrint("ConnectionCheck", "Connection has not been used in %I64u seconds, pinging it.\n", timeDelta);
 
         if (mysql_ping(context->handle) != 0) {
-            DebugPrint("DbAcquire", "Lost server connection: %s\n", mysql_error(context->handle));
-            PoolInvalidate(pool, context);
-
+            DebugPrint("ConnectionCheck", "Lost server connection: %s\n", mysql_error(context->handle));
             SetLastError(ERROR_NOT_CONNECTED);
             return FALSE;
         }
-    }
-#endif
-
-    if (mysql_ping(context->handle) != 0) {
-        DebugPrint("ConnectionCheck", "Lost server connection: %s\n", mysql_error(context->handle));
-        SetLastError(ERROR_NOT_CONNECTED);
-        return FALSE;
     }
 
     return TRUE;
@@ -431,7 +428,7 @@ DbInit(
         Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Timeout' must be greater than zero.\r\n");
         return FALSE;
     }
-    poolTimeout *= 1000;
+    poolTimeout *= 1000; // sec to msec
 
     poolExpire = 3600;
     if (Io_ConfigGetInt("nxMyDB", "Pool_Expire", &poolExpire) && poolExpire <= 0) {
@@ -452,7 +449,7 @@ DbInit(
         Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Refresh' must be greater than or equal to zero.\r\n");
         return FALSE;
     }
-    refresh *= 1000;
+    refresh *= 1000; // sec to msec
 
     // Read server options
     serverHost = ConfigGet("nxMyDB", "Host");
