@@ -44,7 +44,7 @@ UserRead(
 
     if (context->fileHandle == INVALID_HANDLE_VALUE) {
         DebugPrint("FileUserRead", "Unable to open file (error %lu).\n", GetLastError());
-        goto error;
+        return FALSE;
     }
 
     // Retrieve file size
@@ -83,10 +83,11 @@ UserRead(
 error:
     // Free objects and resources
     error = GetLastError();
-    if (context->fileHandle != INVALID_HANDLE_VALUE) {
-        CloseHandle(context->fileHandle);
+
+    if (buffer != NULL) {
+        Io_Free(buffer);
     }
-    Io_Free(buffer);
+    CloseHandle(context->fileHandle);
 
     // Restore system error code
     SetLastError(error);

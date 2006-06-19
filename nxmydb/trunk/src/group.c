@@ -127,7 +127,6 @@ error:
 
     if (groupId == -1) {
         Io_Free(context);
-        userFile.lpInternal = NULL;
     } else if (GroupDelete(groupName, groupId) != GM_SUCCESS) {
         DebugPrint("GroupCreate", "Unable to delete group (error %lu).\n", GetLastError());
     }
