@@ -128,13 +128,13 @@ FileUserCreate(
 
     // Copy default file to target file
     if (!CopyFileA(defaultPath, targetPath, FALSE)) {
-        DebugPrint("FileUserCreate", "Unable to copy default file (error %lu).\n", error);
+        DebugPrint("FileUserCreate", "Unable to copy default file (error %lu).\n", GetLastError());
         goto failed;
     }
 
     // Read user file (copy of "Default.User")
     if (!UserRead(targetPath, userFile)) {
-        DebugPrint("FileUserCreate", "Unable read target file (error %lu).\n", error);
+        DebugPrint("FileUserCreate", "Unable read target file (error %lu).\n", GetLastError());
         goto failed;
     }
 

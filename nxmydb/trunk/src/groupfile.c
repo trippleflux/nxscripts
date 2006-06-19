@@ -127,13 +127,13 @@ FileGroupCreate(
 
     // Copy default file to target file
     if (!CopyFileA(defaultPath, targetPath, FALSE)) {
-        DebugPrint("FileGroupCreate", "Unable to copy default file (error %lu).\n", error);
+        DebugPrint("FileGroupCreate", "Unable to copy default file (error %lu).\n", GetLastError());
         goto failed;
     }
 
     // Read group file (copy of "Default.Group")
     if (!GroupRead(targetPath, groupFile)) {
-        DebugPrint("FileGroupCreate", "Unable read target file (error %lu).\n", error);
+        DebugPrint("FileGroupCreate", "Unable read target file (error %lu).\n", GetLastError());
         goto failed;
     }
 
