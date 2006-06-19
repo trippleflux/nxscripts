@@ -1,10 +1,10 @@
 CREATE TABLE groups (
   Name        varchar(65)  NOT NULL,
   Description varchar(129) NOT NULL,
-  SlotsRatio  int          NOT NULL default 0, -- Slots[0]
-  SlotsLeech  int          NOT NULL default 0, -- Slots[1]
+  Slots       tinyblob     NOT NULL,
   Users       int          NOT NULL default 0,
   VfsFile     varchar(255) NOT NULL,
+  Updated     int unsigned NOT NULL default 0, -- Time stamp of last update
   PRIMARY KEY (Name)
 );
 
@@ -26,22 +26,23 @@ CREATE TABLE users (
   MonthDn     tinyblob     NOT NULL,
   AllUp       tinyblob     NOT NULL,
   AllDn       tinyblob     NOT NULL,
+  Updated     int unsigned NOT NULL default 0, -- Time stamp of last update
   PRIMARY KEY (Name)
 );
 
-CREATE TABLE users_admingroups (
+CREATE TABLE user_admins (
   UserName    varchar(65) NOT NULL,
   GroupName   varchar(65) NOT NULL,
   PRIMARY KEY (UserName,GroupName)
 );
 
-CREATE TABLE users_groups (
+CREATE TABLE user_groups (
   UserName    varchar(65) NOT NULL,
   GroupName   varchar(65) NOT NULL,
   PRIMARY KEY (UserName,GroupName)
 );
 
-CREATE TABLE users_hosts (
+CREATE TABLE user_hosts (
   UserName    varchar(65) NOT NULL,
   HostMask    varchar(97) NOT NULL,
   PRIMARY KEY (UserName,HostMask)
