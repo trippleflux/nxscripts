@@ -11,9 +11,9 @@ UPDATE io_groups SET description=?, slots=?, users=?, vfsfile=?, updated=UNIX_TI
 ### io_users
 INSERT INTO io_users (name, updated) VALUES(?, UNIX_TIMESTAMP())
 SELECT name FROM io_users WHERE name=?
-SELECT name, tagline, vfsfile, home, flags, limits, password, ratio, credits, dayup, daydn, wkup, wkdn, monthup, monthdn, allup, alldn, UNIX_TIMESTAMP() FROM io_users WHERE updated >= ?
-SELECT tagline, vfsfile, home, flags, limits, password, ratio, credits, dayup, daydn, wkup, wkdn, monthup, monthdn, allup, alldn FROM io_users WHERE name=?
-UPDATE io_users SET tagline=?, vfsfile=?, home=?, flags=?, limits=?, password=?, ratio=?, credits=?, dayup=?, daydn=?, wkup=?, wkdn=?, monthup=?, monthdn=?, allup=?, alldn=?, updated=UNIX_TIMESTAMP() WHERE name=?
+SELECT name, description, flags, home, limits, password, vfsfile, credits, ratio, alldn, allup, daydn, dayup, monthdn, monthup, wkdn, wkup, UNIX_TIMESTAMP() FROM io_users WHERE updated >= ?
+SELECT description, flags, home, limits, password, vfsfile, credits, ratio, alldn, allup, daydn, dayup, monthdn, monthup, wkdn, wkup FROM io_users WHERE name=?
+UPDATE io_users SET description=?, flags=?, home=?, limits=?, password=?, vfsfile=?, credits=?, ratio=?, alldn=?, allup=?, daydn=?, dayup=?, monthdn=?, monthup=?, wkdn=?, wkup=?, updated=UNIX_TIMESTAMP() WHERE name=?
 
 ### io_useradmins
 DELETE FROM io_useradmins WHERE uname=?

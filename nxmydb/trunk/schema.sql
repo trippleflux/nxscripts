@@ -10,22 +10,22 @@ CREATE TABLE io_groups (
 
 CREATE TABLE io_users (
   name        varchar(65)  NOT NULL,
-  tagline     varchar(129) NOT NULL,
-  vfsfile     varchar(255) NOT NULL,
-  home        varchar(255) NOT NULL,
+  description varchar(129) NOT NULL,
   flags       varchar(33)  NOT NULL,
+  home        varchar(255) NOT NULL,
   limits      tinyblob     NOT NULL,
   password    tinyblob     NOT NULL,
-  ratio       tinyblob     NOT NULL,
+  vfsfile     varchar(255) NOT NULL,
   credits     tinyblob     NOT NULL,
-  dayup       tinyblob     NOT NULL,
-  daydn       tinyblob     NOT NULL,
-  wkup        tinyblob     NOT NULL,
-  wkdn        tinyblob     NOT NULL,
-  monthup     tinyblob     NOT NULL,
-  monthdn     tinyblob     NOT NULL,
-  allup       tinyblob     NOT NULL,
+  ratio       tinyblob     NOT NULL,
   alldn       tinyblob     NOT NULL,
+  allup       tinyblob     NOT NULL,
+  daydn       tinyblob     NOT NULL,
+  dayup       tinyblob     NOT NULL,
+  monthdn     tinyblob     NOT NULL,
+  monthup     tinyblob     NOT NULL,
+  wkdn        tinyblob     NOT NULL,
+  wkup        tinyblob     NOT NULL,
   updated     int unsigned NOT NULL default 0, -- Time stamp of last update
   PRIMARY KEY (name)
 );
