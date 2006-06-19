@@ -10,7 +10,7 @@ Author:
     neoxed (neoxed@gmail.com) Jun 13, 2006
 
 Abstract:
-    Database connection and initialization functions.
+    Database connection and management functions.
 
 */
 
@@ -392,9 +392,9 @@ DbInit(
     int poolMin;
     int poolAvg;
     int poolMax;
-    int poolTimeout;
-    int poolExpire;
     int poolCheck;
+    int poolExpire;
+    int poolTimeout;
     DebugPrint("DbInit", "getProc=%p refCount=%i\n", getProc, refCount);
 
     // Only initialize the module once

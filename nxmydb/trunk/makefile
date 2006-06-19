@@ -90,9 +90,8 @@ lib: nxmydb.dll
 
 # -------------------------------------------------------------------------
 
-FILE_OBJS = mydb.res condvar.obj dbconn.obj debug.obj dllentry.obj group.obj\
-            groupdb.obj groupfile.obj pool.obj proctable.obj user.obj userdb.obj\
-            userfile.obj
+FILE_OBJS = mydb.res condvar.obj db.obj debug.obj dllentry.obj group.obj groupdb.obj\
+            groupfile.obj pool.obj proctable.obj user.obj userdb.obj userfile.obj
 
 {src\}.c{}.obj::
     $(CC) /c $(CFLAGS) /Fo $<

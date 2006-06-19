@@ -52,7 +52,7 @@ Abstract:
 #include "proctable.h"
 #include "queue.h"
 
-#include "dbconn.h"
+#include "db.h"
 #include "debug.h"
 #include "backends.h"
 #include "condvar.h"

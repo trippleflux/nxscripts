@@ -10,12 +10,12 @@ Author:
     neoxed (neoxed@gmail.com) Jun 13, 2006
 
 Abstract:
-    Database connection and initialization declarations.
+    Database connection and management declarations.
 
 */
 
-#ifndef _DBCONN_H_
-#define _DBCONN_H_
+#ifndef _DB_H_
+#define _DB_H_
 
 //
 // Database structures
@@ -51,4 +51,4 @@ DbRelease(
     DB_CONTEXT *dbContext
     );
 
-#endif // _DBCONN_H_
+#endif // _DB_H_
