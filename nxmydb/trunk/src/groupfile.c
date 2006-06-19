@@ -51,20 +51,20 @@ GroupRead(
     fileSize = GetFileSize(context->fileHandle, NULL);
     if (fileSize == INVALID_FILE_SIZE || fileSize < 5) {
         DebugPrint("FileGroupRead", "Unable to retrieve file size, or file size is under 5 bytes.\n");
-        goto error;
+        goto failed;
     }
 
     // Allocate read buffer
     buffer = Io_Allocate(fileSize + 1);
     if (buffer == NULL) {
         DebugPrint("FileGroupRead", "Unable to allocate read buffer.\n");
-        goto error;
+        goto failed;
     }
 
     // Read group file to buffer
     if (!ReadFile(context->fileHandle, buffer, fileSize, &bytesRead, NULL) || bytesRead < 5) {
         DebugPrint("FileGroupRead", "Unable to read file, or the amount read is under 5 bytes.\n");
-        goto error;
+        goto failed;
     }
 
     // Pad buffer with a new-line
@@ -74,13 +74,11 @@ GroupRead(
     // Parse buffer, also initializing the GROUPFILE structure
     Io_Ascii2GroupFile(buffer, bytesRead, groupFile);
 
-    // Free resources
     Io_Free(buffer);
-
     return TRUE;
 
-error:
-    // Free objects and resources
+failed:
+    // Preserve system error code
     error = GetLastError();
 
     if (buffer != NULL) {
@@ -122,46 +120,37 @@ FileGroupCreate(
     if (targetPath == NULL) {
         DebugPrint("FileGroupCreate", "Unable to retrieve file location.\n");
 
-        // Free resources
         Io_Free(defaultPath);
-
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return FALSE;
     }
 
     // Copy default file to target file
     if (!CopyFileA(defaultPath, targetPath, FALSE)) {
-        error = GetLastError();
         DebugPrint("FileGroupCreate", "Unable to copy default file (error %lu).\n", error);
-
-        // Free resources
-        Io_Free(defaultPath);
-        Io_Free(targetPath);
-
-        // Restore system error code
-        SetLastError(error);
-        return FALSE;
+        goto failed;
     }
 
     // Read group file (copy of "Default.Group")
     if (!GroupRead(targetPath, groupFile)) {
-        error = GetLastError();
         DebugPrint("FileGroupCreate", "Unable read target file (error %lu).\n", error);
-
-        // Free resources
-        Io_Free(defaultPath);
-        Io_Free(targetPath);
-
-        // Restore system error code
-        SetLastError(error);
-        return FALSE;
+        goto failed;
     }
 
-    // Free resources
+    Io_Free(defaultPath);
+    Io_Free(targetPath);
+    return TRUE;
+
+failed:
+    // Preserve system error code
+    error = GetLastError();
+
     Io_Free(defaultPath);
     Io_Free(targetPath);
 
-    return TRUE;
+    // Restore system error code
+    SetLastError(error);
+    return FALSE;
 }
 
 BOOL
@@ -221,20 +210,18 @@ FileGroupOpen(
         NULL, OPEN_EXISTING, 0, NULL);
 
     if (context->fileHandle == INVALID_HANDLE_VALUE) {
+        // Preserve system error code
         error = GetLastError();
-        DebugPrint("FileGroupOpen", "Unable to open file (error %lu).\n", error);
-
-        // Free resources
         Io_Free(filePath);
+
+        DebugPrint("FileGroupOpen", "Unable to open file (error %lu).\n", error);
 
         // Restore system error code
         SetLastError(error);
         return FALSE;
     }
 
-    // Free resources
     Io_Free(filePath);
-
     return TRUE;
 }
 
@@ -273,11 +260,11 @@ FileGroupWrite(
     // Write buffer to file
     SetFilePointer(context->fileHandle, 0, 0, FILE_BEGIN);
     if (!WriteFile(context->fileHandle, buffer.buf, buffer.len, &bytesWritten, NULL)) {
+        // Preserve system error code
         error = GetLastError();
-        DebugPrint("FileGroupWrite", "Unable to write file (error %lu).\n", error);
-
-        // Free resources
         Io_Free(buffer.buf);
+
+        DebugPrint("FileGroupWrite", "Unable to write file (error %lu).\n", error);
 
         // Restore system error code
         SetLastError(error);
@@ -288,9 +275,7 @@ FileGroupWrite(
     SetEndOfFile(context->fileHandle);
     FlushFileBuffers(context->fileHandle);
 
-    // Free resources
     Io_Free(buffer.buf);
-
     return TRUE;
 }
 

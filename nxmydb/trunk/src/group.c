@@ -104,31 +104,35 @@ GroupCreate(
     groupId = groupModule->Register(groupModule, groupName, &groupFile);
     if (groupId == -1) {
         DebugPrint("GroupCreate", "Unable to register group (error %lu).\n", GetLastError());
-        goto error;
+        goto failed;
     }
 
     // Create group file and read "Default.Group"
     if (!FileGroupCreate(groupId, &groupFile)) {
         DebugPrint("GroupCreate", "Unable to create group file (error %lu).\n", GetLastError());
-        goto error;
+        goto failed;
     }
 
     // Create database record
     if (!DbGroupCreate(groupName, &groupFile)) {
         DebugPrint("GroupCreate", "Unable to create database record (error %lu).\n", GetLastError());
-        goto error;
+        goto failed;
     }
 
     return groupId;
 
-error:
+failed:
     // Preserve system error code
     error = GetLastError();
 
     if (groupId == -1) {
+        // Group was not created, just free the context
         Io_Free(context);
-    } else if (GroupDelete(groupName, groupId) != GM_SUCCESS) {
-        DebugPrint("GroupCreate", "Unable to delete group (error %lu).\n", GetLastError());
+    } else {
+        // Delete created group (will also free the context)
+        if (GroupDelete(groupName, groupId) != GM_SUCCESS) {
+            DebugPrint("GroupCreate", "Unable to delete group (error %lu).\n", GetLastError());
+        }
     }
 
     // Restore system error code
@@ -290,28 +294,25 @@ GroupClose(
     GROUPFILE *groupFile
     )
 {
-    GROUP_CONTEXT *context = groupFile->lpInternal;
-
     DebugPrint("GroupClose", "groupFile=%p\n", groupFile);
 
-    // Verify group context
-    if (context == NULL) {
-        DebugPrint("GroupClose", "group context already freed.\n");
+    if (groupFile->lpInternal == NULL) {
+        DebugPrint("GroupClose", "Group context already freed.\n");
         return GM_ERROR;
     }
 
     // Close group file
-    if (!FileGroupClose(context)) {
+    if (!FileGroupClose(groupFile->lpInternal)) {
         DebugPrint("GroupClose", "Unable to close group file (error %lu).\n", GetLastError());
     }
 
     // Free database resources
-    if (!DbGroupClose(context)) {
+    if (!DbGroupClose(groupFile->lpInternal)) {
         DebugPrint("GroupClose", "Unable to close database record(error %lu).\n", GetLastError());
     }
 
-    // Free internal resources
-    Io_Free(context);
+    // Free group context
+    Io_Free(groupFile->lpInternal);
     groupFile->lpInternal = NULL;
 
     return GM_SUCCESS;
