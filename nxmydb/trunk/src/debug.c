@@ -83,7 +83,7 @@ LogDebuggerFormat(
     error = GetLastError();
 
     StringCchPrintfExA(output, ARRAYSIZE(output), &end, &remaining, 0,
-        "| %4d | %15s | ", GetCurrentThreadId(), funct);
+        "| %4d | %17s | ", GetCurrentThreadId(), funct);
     va_start(argList, format);
     StringCchVPrintfA(end, remaining, format, argList);
     va_end(argList);
@@ -132,7 +132,7 @@ LogFile
     Writes the text to a log file.
 
 Arguments:
-    funct   - Pointer to a null-terminated string that specifies the text to be written.
+    text    - Pointer to a null-terminated string that specifies the text to be written.
 
 Return Values:
     None.
@@ -228,7 +228,7 @@ LogFileFormat(
 
     GetSystemTime(&now);
     StringCchPrintfExA(output, ARRAYSIZE(output), &end, &remaining, 0,
-        "| %04d-%02d-%02d %02d:%02d:%02d | %4d | %15s | ",
+        "| %04d-%02d-%02d %02d:%02d:%02d | %4d | %17s | ",
         now.wYear, now.wMonth, now.wDay, now.wHour, now.wMinute, now.wSecond,
         GetCurrentThreadId(), funct);
 
