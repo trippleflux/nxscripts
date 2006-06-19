@@ -250,7 +250,7 @@ supported by OpenSSL/yaSSL.
 ################################################################################
 
 Q: What does "nxMyDB: Unable to connect to server: SSL connection error" mean?
-A: SSL is setup incorrectly on either the client or server.
+A: SSL is configured incorrectly on either the client or server.
 
 ################################################################################
 # 5. Bugs and Comments                                                         #

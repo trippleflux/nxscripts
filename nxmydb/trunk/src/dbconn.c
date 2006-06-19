@@ -88,7 +88,7 @@ ConnectionOpen(
     // version than the header we're compiling with (structures could be different sizes).
     context->handle = mysql_init(NULL);
     if (context->handle == NULL) {
-        DebugPrint("ConnectionOpen", "Unable to allocate MySQL handle structure.\n");
+        DebugPrint("ConnectionOpen", "Unable to allocate memory for MySQL handle.\n");
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return FALSE;
     }
@@ -333,7 +333,7 @@ RefreshTimer
 Arguments:
     notUsed   - Pointer to the timer context.
 
-    currTimer - Pointer to the current TIMER handle structure.
+    currTimer - Pointer to the current TIMER structure.
 
 Return Values:
     Number of milliseconds to execute this timer again.
@@ -500,7 +500,7 @@ DbInit(
     if (!PoolInit(pool, poolMin, poolAvg, poolMax, poolTimeout,
             ConnectionOpen, ConnectionCheck, ConnectionClose, NULL)) {
         Io_Free(pool);
-        Io_Putlog(LOG_ERROR, "nxMyDB: Unable to create connection pool.\r\n");
+        Io_Putlog(LOG_ERROR, "nxMyDB: Unable to initialize connection pool.\r\n");
         goto error;
     }
 
