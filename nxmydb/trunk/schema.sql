@@ -1,4 +1,4 @@
-CREATE TABLE groups (
+CREATE TABLE io_groups (
   Name        varchar(65)  NOT NULL,
   Description varchar(129) NOT NULL,
   Slots       tinyblob     NOT NULL,
@@ -8,7 +8,7 @@ CREATE TABLE groups (
   PRIMARY KEY (Name)
 );
 
-CREATE TABLE users (
+CREATE TABLE io_users (
   Name        varchar(65)  NOT NULL,
   Tagline     varchar(129) NOT NULL,
   VfsFile     varchar(255) NOT NULL,
@@ -30,19 +30,19 @@ CREATE TABLE users (
   PRIMARY KEY (Name)
 );
 
-CREATE TABLE user_admins (
+CREATE TABLE io_useradmins (
   UserName    varchar(65) NOT NULL,
   GroupName   varchar(65) NOT NULL,
   PRIMARY KEY (UserName,GroupName)
 );
 
-CREATE TABLE user_groups (
+CREATE TABLE io_usergroups (
   UserName    varchar(65) NOT NULL,
   GroupName   varchar(65) NOT NULL,
   PRIMARY KEY (UserName,GroupName)
 );
 
-CREATE TABLE user_hosts (
+CREATE TABLE io_userhosts (
   UserName    varchar(65) NOT NULL,
   HostMask    varchar(97) NOT NULL,
   PRIMARY KEY (UserName,HostMask)
