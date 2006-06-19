@@ -1,31 +1,43 @@
                            SQL Queries Used In nxMyDB
                            ==========================
 
-### io_groups
+Locking
+=======
+DO RELEASE_LOCK(?)
+SELECT GET_LOCK(?, ?)
+
+Groups
+======
+DELETE FROM io_groups WHERE name=?
 INSERT INTO io_groups (name, updated) VALUES(?, UNIX_TIMESTAMP())
 SELECT description, slots, users, vfsfile FROM io_groups WHERE name=?
 SELECT name FROM io_groups WHERE name=?
 SELECT name, description, slots, users, vfsfile, UNIX_TIMESTAMP() FROM io_groups WHERE updated >= ?
 UPDATE io_groups SET description=?, slots=?, users=?, vfsfile=?, updated=UNIX_TIMESTAMP() WHERE name=?
 
-### io_users
+Users
+======
+DELETE FROM io_users WHERE name=?
 INSERT INTO io_users (name, updated) VALUES(?, UNIX_TIMESTAMP())
+SELECT description, flags, home, limits, password, vfsfile, credits, ratio, alldn, allup, daydn, dayup, monthdn, monthup, wkdn, wkup FROM io_users WHERE name=?
 SELECT name FROM io_users WHERE name=?
 SELECT name, description, flags, home, limits, password, vfsfile, credits, ratio, alldn, allup, daydn, dayup, monthdn, monthup, wkdn, wkup, UNIX_TIMESTAMP() FROM io_users WHERE updated >= ?
-SELECT description, flags, home, limits, password, vfsfile, credits, ratio, alldn, allup, daydn, dayup, monthdn, monthup, wkdn, wkup FROM io_users WHERE name=?
 UPDATE io_users SET description=?, flags=?, home=?, limits=?, password=?, vfsfile=?, credits=?, ratio=?, alldn=?, allup=?, daydn=?, dayup=?, monthdn=?, monthup=?, wkdn=?, wkup=?, updated=UNIX_TIMESTAMP() WHERE name=?
 
-### io_useradmins
+Admins Groups
+=============
 DELETE FROM io_useradmins WHERE uname=?
 INSERT INTO io_useradmins (uname, gname) VALUES(?, ?)
 SELECT gname FROM io_useradmins WHERE uname=?
 
-### io_usergroups
+User Groups
+===========
 DELETE FROM io_usergroups WHERE uname=?
 INSERT INTO io_usergroups (uname, gname) VALUES(?, ?)
 SELECT gname FROM io_usergroups WHERE uname=?
 
-### io_userhosts
+User Hosts
+==========
 DELETE FROM io_userhosts WHERE name=?
 INSERT INTO io_userhosts (name, host) VALUES(?, ?)
 SELECT host FROM io_userhosts WHERE name=?
