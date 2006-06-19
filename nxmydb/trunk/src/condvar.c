@@ -16,6 +16,22 @@ Abstract:
 
 #include "mydb.h"
 
+/*++
+
+ConditionVariableInit
+
+    Initializes a condition variable.
+
+Arguments:
+    cond    - Pointer to the CONDITION_VARIABLE structure to be initialized.
+
+Return Values:
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false). To get extended
+    error information, call GetLastError.
+
+--*/
 BOOL
 ConditionVariableInit(
     CONDITION_VARIABLE *cond
@@ -29,6 +45,19 @@ ConditionVariableInit(
     return (cond->semaphore != NULL) ? TRUE : FALSE;
 }
 
+/*++
+
+ConditionVariableDestroy
+
+    Destroys the given condition variable.
+
+Arguments:
+    cond    - Pointer to an initialized CONDITION_VARIABLE structure.
+
+Return Values:
+    None.
+
+--*/
 void
 ConditionVariableDestroy(
     CONDITION_VARIABLE *cond
@@ -40,6 +69,22 @@ ConditionVariableDestroy(
     CloseHandle(cond->semaphore);
 }
 
+/*++
+
+ConditionVariableBroadcast
+
+    Signals all threads that are waiting on the given condition variable.
+
+Arguments:
+    cond    - Pointer to an initialized CONDITION_VARIABLE structure.
+
+Return Values:
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false). To get extended
+    error information, call GetLastError.
+
+--*/
 BOOL
 ConditionVariableBroadcast(
     CONDITION_VARIABLE *cond
@@ -54,6 +99,22 @@ ConditionVariableBroadcast(
     return TRUE;
 }
 
+/*++
+
+ConditionVariableSignal
+
+    Signals a single thread that is waiting on the given condition variable.
+
+Arguments:
+    cond    - Pointer to an initialized CONDITION_VARIABLE structure.
+
+Return Values:
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false). To get extended
+    error information, call GetLastError.
+
+--*/
 BOOL
 ConditionVariableSignal(
     CONDITION_VARIABLE *cond
@@ -68,6 +129,27 @@ ConditionVariableSignal(
     return TRUE;
 }
 
+/*++
+
+ConditionVariableWait
+
+    Initializes a condition variable.
+
+Arguments:
+    cond        - Pointer to an initialized CONDITION_VARIABLE structure.
+
+    critSection - Pointer to the critical section object. The caller must have
+                  ownership of the critical section before calling this function.
+
+    timeout     - The time-out interval, in milliseconds, or INFINITE.
+
+Return Values:
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false). To get extended
+    error information, call GetLastError.
+
+--*/
 BOOL
 ConditionVariableWait(
     CONDITION_VARIABLE *cond,

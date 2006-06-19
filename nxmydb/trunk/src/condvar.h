@@ -22,8 +22,8 @@ Abstract:
 //
 
 typedef struct {
-    HANDLE semaphore;
-    volatile LONG waiting;
+    HANDLE semaphore;       // Semaphore to queue waiting threads
+    volatile LONG waiting;  // Number of waiting threads
 } CONDITION_VARIABLE;
 
 //
