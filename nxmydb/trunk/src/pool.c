@@ -31,10 +31,10 @@ ContainerPush
     Places a container at the tail of the container queue.
 
 Arguments:
-    pool      - Pointer to an initialized POOL structure.
+    pool        - Pointer to an initialized POOL structure.
 
-    container - Pointer to the POOL_RESOURCE structure (container) to be placed
-                on the container queue.
+    container   - Pointer to the POOL_RESOURCE structure (container) to be placed
+                  on the container queue.
 
 Return Values:
     None.
@@ -113,7 +113,7 @@ ResourceCreate
     Creates a new idle resource.
 
 Arguments:
-    pool     - Pointer to an initialized POOL structure.
+    pool    - Pointer to an initialized POOL structure.
 
 Return Values:
     If the function succeeds, the return value is a pointer to a POOL_RESOURCE
@@ -238,9 +238,9 @@ ResourcePush
     Places a resource at the tail of the resource queue.
 
 Arguments:
-    pool     - Pointer to an initialized POOL structure.
+    pool        - Pointer to an initialized POOL structure.
 
-    resource - Pointer to the POOL_RESOURCE structure.
+    resource    - Pointer to the POOL_RESOURCE structure.
 
 Return Values:
     None.
@@ -357,9 +357,9 @@ ResourceUpdate
     Updates the resource queue.
 
 Arguments:
-    pool     - Pointer to an initialized POOL structure.
+    pool        - Pointer to an initialized POOL structure.
 
-    resource - Pointer to the POOL_RESOURCE structure.
+    resource    - Pointer to the POOL_RESOURCE structure.
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).

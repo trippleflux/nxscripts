@@ -52,9 +52,9 @@ ConnectionOpen
     Opens a server connection.
 
 Arguments:
-    opaque - Opaque argument passed to PoolInit().
+    opaque  - Opaque argument passed to PoolInit().
 
-    data   - Pointer to a pointer that receives the DB_CONTEXT structure.
+    data    - Pointer to a pointer that receives the DB_CONTEXT structure.
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).
@@ -130,9 +130,9 @@ ConnectionCheck
     Validates the server connection.
 
 Arguments:
-    opaque - Opaque argument passed to PoolInit().
+    opaque  - Opaque argument passed to PoolInit().
 
-    data   - Pointer to a DB_CONTEXT structure.
+    data    - Pointer to the DB_CONTEXT structure.
 
 Return Values:
     If the connection is valid, the return is nonzero (true).
@@ -191,9 +191,9 @@ ConnectionClose
     Closes the server connection.
 
 Arguments:
-    opaque - Opaque argument passed to PoolInit().
+    opaque  - Opaque argument passed to PoolInit().
 
-    data   - Pointer to a DB_CONTEXT structure.
+    data    - Pointer to the DB_CONTEXT structure.
 
 Return Values:
     None.
@@ -331,9 +331,9 @@ RefreshTimer
     Refreshes the local user and group cache.
 
 Arguments:
-    notUsed   - Pointer to the timer context.
+    notUsed     - Pointer to the timer context.
 
-    currTimer - Pointer to the current TIMER structure.
+    currTimer   - Pointer to the current TIMER structure.
 
 Return Values:
     Number of milliseconds to execute this timer again.
@@ -566,7 +566,7 @@ DbAcquire
     Acquires a database context from the connection pool.
 
 Arguments:
-    dbContext  - Pointer to a pointer that receives the DB_CONTEXT structure.
+    dbContext   - Pointer to a pointer that receives the DB_CONTEXT structure.
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).
@@ -601,7 +601,7 @@ DbRelease
     Releases a database context back into the connection pool.
 
 Arguments:
-    dbContext  - Pointer to a DB_CONTEXT structure.
+    dbContext   - Pointer to the DB_CONTEXT structure.
 
 Return Values:
     None.
