@@ -158,22 +158,27 @@ ConnectionCheck(
     context = data;
     GetSystemTimeAsFileTime((FILETIME *)&timeCurrent);
 
+    // Check if the context has exceeded the expiration time
     timeDelta = timeCurrent - context->created;
     if (timeDelta > connExpire) {
-        DebugPrint("ConnectionCheck", "Expiring server connection after %I64u seconds.\n", timeDelta);
+        DebugPrint("ConnectionCheck", "Expiring server connection after %I64u seconds.\n", timeDelta/10000000);
         SetLastError(ERROR_CONTEXT_EXPIRED);
         return FALSE;
     }
 
+    // Check if the connection is still alive
     timeDelta = timeCurrent - context->used;
     if (timeDelta > connCheck) {
-        DebugPrint("ConnectionCheck", "Connection has not been used in %I64u seconds, pinging it.\n", timeDelta);
+        DebugPrint("ConnectionCheck", "Connection has not been used in %I64u seconds, pinging it.\n", timeDelta/10000000);
 
         if (mysql_ping(context->handle) != 0) {
             DebugPrint("ConnectionCheck", "Lost server connection: %s\n", mysql_error(context->handle));
             SetLastError(ERROR_NOT_CONNECTED);
             return FALSE;
         }
+
+        // Update used time stamp
+        GetSystemTimeAsFileTime((FILETIME *)&context->used);
     }
 
     return TRUE;
