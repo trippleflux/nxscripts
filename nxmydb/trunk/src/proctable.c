@@ -23,7 +23,7 @@ Abstract:
 PROC_TABLE procTable;
 
 // Resolve functions
-#define RESOLVE(name, func) if ((func = getProc(name)) == NULL) goto error;
+#define RESOLVE(name, func) if ((func = getProc(name)) == NULL) goto failed;
 
 
 /*++
@@ -68,7 +68,7 @@ ProcTableInit(
     RESOLVE("Putlog",          procTable.Putlog)
     return TRUE;
 
-error:
+failed:
     // Unable to resolve a procedure
     ZeroMemory(&procTable, sizeof(PROC_TABLE));
     return FALSE;
