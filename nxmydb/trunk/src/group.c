@@ -10,15 +10,11 @@ Author:
     neoxed (neoxed@gmail.com) Jun 3, 2006
 
 Abstract:
-    Entry point and functions for group modules.
+    Entry point and functions for the group module.
 
 */
 
 #include "mydb.h"
-
-//
-// Function declarations
-//
 
 static INT   MODULE_CALL GroupFinalize(void);
 static INT32 MODULE_CALL GroupCreate(char *groupName);
@@ -29,10 +25,6 @@ static INT   MODULE_CALL GroupUnlock(GROUPFILE *groupFile);
 static INT   MODULE_CALL GroupOpen(char *groupName, GROUPFILE *groupFile);
 static INT   MODULE_CALL GroupWrite(GROUPFILE *groupFile);
 static INT   MODULE_CALL GroupClose(GROUPFILE *groupFile);
-
-//
-// Local variables
-//
 
 static GROUP_MODULE *groupModule = NULL;
 

@@ -10,15 +10,11 @@ Author:
     neoxed (neoxed@gmail.com) Jun 3, 2006
 
 Abstract:
-    Entry point and functions for user modules.
+    Entry point and functions for the user module.
 
 */
 
 #include "mydb.h"
-
-//
-// Function declarations
-//
 
 static INT   MODULE_CALL UserFinalize(void);
 static INT32 MODULE_CALL UserCreate(char *userName);
@@ -29,10 +25,6 @@ static INT   MODULE_CALL UserUnlock(USERFILE *userFile);
 static INT   MODULE_CALL UserOpen(char *userName, USERFILE *userFile);
 static INT   MODULE_CALL UserWrite(USERFILE *userFile);
 static INT   MODULE_CALL UserClose(USERFILE *userFile);
-
-//
-// Local variables
-//
 
 static USER_MODULE *userModule = NULL;
 
