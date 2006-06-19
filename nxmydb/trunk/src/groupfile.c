@@ -86,8 +86,6 @@ error:
         CloseHandle(context->fileHandle);
     }
     Io_Free(buffer);
-    Io_Free(context);
-    groupFile->lpInternal = NULL;
 
     // Restore system error code
     SetLastError(error);

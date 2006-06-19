@@ -130,6 +130,7 @@ error:
 
     if (userId == -1) {
         Io_Free(context);
+        userFile.lpInternal = NULL;
     } else if (UserDelete(userName, userId) != UM_SUCCESS) {
         DebugPrint("UserCreate", "Unable to delete user (error %lu).\n", GetLastError());
     }
