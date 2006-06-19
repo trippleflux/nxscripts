@@ -397,7 +397,7 @@ DbInit(
     int poolTimeout;
     DebugPrint("DbInit", "getProc=%p refCount=%i\n", getProc, refCount);
 
-    // Only initialize the module once
+    // Only initialize the database pool once
     if (refCount++) {
         DebugPrint("DbInit", "Already initialized, returning.\n");
         return TRUE;
@@ -547,14 +547,16 @@ DbFinalize(
     if (--refCount == 0) {
         Io_Putlog(LOG_ERROR, "nxMyDB: v%s unloaded.\r\n", STRINGIFY(VERSION));
 
+        // Stop refresh timer
+        if (timer != NULL) {
+            Io_StopIoTimer(timer, FALSE);
+        }
+
         // Destroy connection pool
         PoolDestroy(pool);
         Io_Free(pool);
 
-        // Free configuration values
         ConfigFree();
-
-        // Clear procedure table
         ProcTableFinalize();
     }
 }
