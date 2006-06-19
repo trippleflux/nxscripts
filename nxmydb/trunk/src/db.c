@@ -495,13 +495,17 @@ DbInit(
     pool = Io_Allocate(sizeof(POOL));
     if (pool == NULL) {
         Io_Putlog(LOG_ERROR, "nxMyDB: Unable to allocate memory for connection pool.\r\n");
-        goto failed;
+
+        ConfigFree();
+        return FALSE;
     }
     if (!PoolInit(pool, poolMin, poolAvg, poolMax, poolTimeout,
             ConnectionOpen, ConnectionCheck, ConnectionClose, NULL)) {
-        Io_Free(pool);
         Io_Putlog(LOG_ERROR, "nxMyDB: Unable to initialize connection pool.\r\n");
-        goto failed;
+
+        Io_Free(pool);
+        ConfigFree();
+        return FALSE;
     }
 
     // Start database refresh timer
@@ -514,10 +518,6 @@ DbInit(
     Io_Putlog(LOG_ERROR, "nxMyDB: v%s loaded, using MySQL Client Library v%s.\r\n",
         STRINGIFY(VERSION), mysql_get_client_info());
     return TRUE;
-
-failed:
-    ConfigFree();
-    return FALSE;
 }
 
 /*++
