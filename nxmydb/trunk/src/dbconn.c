@@ -165,7 +165,7 @@ ConnectionCheck(
         return FALSE;
     }
 
-    timeDelta = timeCurrent - used->created;
+    timeDelta = timeCurrent - context->used;
     if (timeDelta > connCheck) {
         DebugPrint("ConnectionCheck", "Connection has not been used in %I64u seconds, pinging it.\n", timeDelta);
 
