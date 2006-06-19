@@ -1,49 +1,49 @@
 CREATE TABLE io_groups (
-  Name        varchar(65)  NOT NULL,
-  Description varchar(129) NOT NULL,
-  Slots       tinyblob     NOT NULL,
-  Users       int          NOT NULL default 0,
-  VfsFile     varchar(255) NOT NULL,
-  Updated     int unsigned NOT NULL default 0, -- Time stamp of last update
-  PRIMARY KEY (Name)
+  name        varchar(65)  NOT NULL,
+  description varchar(129) NOT NULL,
+  slots       tinyblob     NOT NULL,
+  users       int          NOT NULL default 0,
+  vfsfile     varchar(255) NOT NULL,
+  updated     int unsigned NOT NULL default 0, -- Time stamp of last update
+  PRIMARY KEY (name)
 );
 
 CREATE TABLE io_users (
-  Name        varchar(65)  NOT NULL,
-  Tagline     varchar(129) NOT NULL,
-  VfsFile     varchar(255) NOT NULL,
-  Home        varchar(255) NOT NULL,
-  Flags       varchar(33)  NOT NULL,
-  Limits      tinyblob     NOT NULL,
-  Password    tinyblob     NOT NULL,
-  Ratio       tinyblob     NOT NULL,
-  Credits     tinyblob     NOT NULL,
-  DayUp       tinyblob     NOT NULL,
-  DayDn       tinyblob     NOT NULL,
-  WkUp        tinyblob     NOT NULL,
-  WkDn        tinyblob     NOT NULL,
-  MonthUp     tinyblob     NOT NULL,
-  MonthDn     tinyblob     NOT NULL,
-  AllUp       tinyblob     NOT NULL,
-  AllDn       tinyblob     NOT NULL,
-  Updated     int unsigned NOT NULL default 0, -- Time stamp of last update
-  PRIMARY KEY (Name)
+  name        varchar(65)  NOT NULL,
+  tagline     varchar(129) NOT NULL,
+  vfsfile     varchar(255) NOT NULL,
+  home        varchar(255) NOT NULL,
+  flags       varchar(33)  NOT NULL,
+  limits      tinyblob     NOT NULL,
+  password    tinyblob     NOT NULL,
+  ratio       tinyblob     NOT NULL,
+  credits     tinyblob     NOT NULL,
+  dayup       tinyblob     NOT NULL,
+  daydn       tinyblob     NOT NULL,
+  wkup        tinyblob     NOT NULL,
+  wkdn        tinyblob     NOT NULL,
+  monthup     tinyblob     NOT NULL,
+  monthdn     tinyblob     NOT NULL,
+  allup       tinyblob     NOT NULL,
+  alldn       tinyblob     NOT NULL,
+  updated     int unsigned NOT NULL default 0, -- Time stamp of last update
+  PRIMARY KEY (name)
 );
 
 CREATE TABLE io_useradmins (
-  UserName    varchar(65) NOT NULL,
-  GroupName   varchar(65) NOT NULL,
-  PRIMARY KEY (UserName,GroupName)
+  uname       varchar(65) NOT NULL,
+  gname       varchar(65) NOT NULL,
+  PRIMARY KEY (uname,gname)
 );
 
 CREATE TABLE io_usergroups (
-  UserName    varchar(65) NOT NULL,
-  GroupName   varchar(65) NOT NULL,
-  PRIMARY KEY (UserName,GroupName)
+  uname       varchar(65) NOT NULL,
+  gname       varchar(65) NOT NULL,
+  PRIMARY KEY (uname,gname)
 );
 
 CREATE TABLE io_userhosts (
-  UserName    varchar(65) NOT NULL,
-  HostMask    varchar(97) NOT NULL,
-  PRIMARY KEY (UserName,HostMask)
+  name        varchar(65) NOT NULL,
+  host        varchar(97) NOT NULL,
+  PRIMARY KEY (name,host)
 );

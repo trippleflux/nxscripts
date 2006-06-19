@@ -2,30 +2,30 @@
                            ==========================
 
 ### io_groups
-INSERT INTO io_groups (Name, Updated) VALUES(?, UNIX_TIMESTAMP())
-SELECT Description, Slots, Users, VfsFile FROM io_groups WHERE Name=?
-SELECT Name FROM io_groups WHERE Name=?
-SELECT Name, Description, Slots, Users, VfsFile, UNIX_TIMESTAMP() FROM io_groups WHERE Updated >= ?
-UPDATE io_groups SET Description=?, Slots=?, Users=?, VfsFile=?, Updated=UNIX_TIMESTAMP() WHERE Name=?
+INSERT INTO io_groups (name, updated) VALUES(?, UNIX_TIMESTAMP())
+SELECT description, slots, users, vfsfile FROM io_groups WHERE name=?
+SELECT name FROM io_groups WHERE name=?
+SELECT name, description, slots, users, vfsfile, UNIX_TIMESTAMP() FROM io_groups WHERE updated >= ?
+UPDATE io_groups SET description=?, slots=?, users=?, vfsfile=?, updated=UNIX_TIMESTAMP() WHERE name=?
 
 ### io_users
-INSERT INTO io_users (Name, Updated) VALUES(?, UNIX_TIMESTAMP())
-SELECT Name FROM io_users WHERE Name=?
-SELECT Name, Tagline, VfsFile, Home, Flags, Limits, Password, Ratio, Credits, DayUp, DayDn, WkUp, WkDn, MonthUp, MonthDn, AllUp, AllDn, UNIX_TIMESTAMP() FROM io_users WHERE Updated >= ?
-SELECT Tagline, VfsFile, Home, Flags, Limits, Password, Ratio, Credits, DayUp, DayDn, WkUp, WkDn, MonthUp, MonthDn, AllUp, AllDn FROM io_users WHERE Name=?
-UPDATE io_users SET Tagline=?, VfsFile=?, Home=?, Flags=?, Limits=?, Password=?, Ratio=?, Credits=?, DayUp=?, DayDn=?, WkUp=?, WkDn=?, MonthUp=?, MonthDn=?, AllUp=?, AllDn=?, Updated=UNIX_TIMESTAMP() WHERE Name=?
+INSERT INTO io_users (name, updated) VALUES(?, UNIX_TIMESTAMP())
+SELECT name FROM io_users WHERE name=?
+SELECT name, tagline, vfsfile, home, flags, limits, password, ratio, credits, dayup, daydn, wkup, wkdn, monthup, monthdn, allup, alldn, UNIX_TIMESTAMP() FROM io_users WHERE updated >= ?
+SELECT tagline, vfsfile, home, flags, limits, password, ratio, credits, dayup, daydn, wkup, wkdn, monthup, monthdn, allup, alldn FROM io_users WHERE name=?
+UPDATE io_users SET tagline=?, vfsfile=?, home=?, flags=?, limits=?, password=?, ratio=?, credits=?, dayup=?, daydn=?, wkup=?, wkdn=?, monthup=?, monthdn=?, allup=?, alldn=?, updated=UNIX_TIMESTAMP() WHERE name=?
 
 ### io_useradmins
-DELETE FROM io_useradmins WHERE UserName=?
-INSERT INTO io_useradmins (UserName, GroupName) VALUES(?,?)
-SELECT GroupName FROM io_useradmins WHERE UserName=?
+DELETE FROM io_useradmins WHERE uname=?
+INSERT INTO io_useradmins (uname, gname) VALUES(?, ?)
+SELECT gname FROM io_useradmins WHERE uname=?
 
 ### io_usergroups
-DELETE FROM io_usergroups WHERE UserName=?
-INSERT INTO io_usergroups (UserName, GroupName) VALUES(?,?)
-SELECT GroupName FROM io_usergroups WHERE UserName=?
+DELETE FROM io_usergroups WHERE uname=?
+INSERT INTO io_usergroups (uname, gname) VALUES(?, ?)
+SELECT gname FROM io_usergroups WHERE uname=?
 
 ### io_userhosts
-DELETE FROM io_userhosts WHERE UserName=?
-INSERT INTO io_userhosts (UserName, HostMask) VALUES(?,?)
-SELECT HostMask FROM io_userhosts WHERE UserName=?
+DELETE FROM io_userhosts WHERE name=?
+INSERT INTO io_userhosts (name, host) VALUES(?, ?)
+SELECT host FROM io_userhosts WHERE name=?
