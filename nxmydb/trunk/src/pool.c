@@ -697,7 +697,7 @@ PoolRelease(
 
 PoolValidate
 
-    Validates a resource (e.g. a database connection).
+    Validates a resource (e.g. an old database connection).
 
 Arguments:
     pool    - Pointer to an initialized POOL structure.
@@ -708,8 +708,8 @@ Arguments:
 Return Values:
     If the resource is valid, the return value is nonzero (true).
 
-    If the resource is invalid, the return value is zero (false). To get extended
-    error information, call GetLastError.
+    If the resource is invalid, the return value is zero (false) and the resource
+    is destroyed. To get extended error information, call GetLastError.
 
 --*/
 BOOL
@@ -734,4 +734,38 @@ PoolValidate(
 
     LeaveCriticalSection(&pool->lock);
     return result;
+}
+
+/*++
+
+PoolInvalidate
+
+    Invalidates a resource (e.g. an expired database connection).
+
+Arguments:
+    pool    - Pointer to an initialized POOL structure.
+
+    data    - Pointer to the data to be destroyed, the same "data" value
+              provided by PoolAcquire().
+
+Return Values:
+    None.
+
+--*/
+void
+PoolInvalidate(
+    POOL *pool,
+    void *data
+    )
+{
+    ASSERT(pool != NULL);
+    ASSERT(data != NULL);
+    DebugPrint("PoolInvalidate", "pool=%p data=%p\n", pool, data);
+
+    EnterCriticalSection(&pool->lock);
+
+    // Destroy resource
+    ResourceDestroy(pool, data);
+
+    LeaveCriticalSection(&pool->lock);
 }

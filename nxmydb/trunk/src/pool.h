@@ -161,4 +161,10 @@ PoolValidate(
     void *data
     );
 
+void
+PoolInvalidate(
+    POOL *pool,
+    void *data
+    );
+
 #endif // _POOL_H_
