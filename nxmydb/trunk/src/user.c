@@ -80,7 +80,6 @@ UserCreate(
     char *userName
     )
 {
-    DB_CONTEXT *dbContext;
     DWORD error;
     INT32 userId = -1;
     USER_CONTEXT *userContext;
@@ -88,22 +87,20 @@ UserCreate(
 
     DebugPrint("UserCreate", "userName=\"%s\"\n", userName);
 
-    // Acquire a database connection
-    if (!DbAcquire(&dbContext)) {
-        return -1;
-    }
-
     // Allocate user context
     userContext = Io_Allocate(sizeof(USER_CONTEXT));
     if (userContext == NULL) {
         DebugPrint("UserCreate", "Unable to allocate user context.\n");
-        DbRelease(dbContext);
 
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return -1;
     }
     userContext->fileHandle = INVALID_HANDLE_VALUE;
-    userContext->db   = NULL;
+
+    // Acquire a database connection
+    if (!DbAcquire(&userContext->db)) {
+        goto failed;
+    }
 
     // Initialize USERFILE structure
     ZeroMemory(&userFile, sizeof(USERFILE));
@@ -126,12 +123,14 @@ UserCreate(
     }
 
     // Create database record
-    if (!DbUserCreate(dbContext, userName, &userFile)) {
+    if (!DbUserCreate(userContext->db, userName, &userFile)) {
         DebugPrint("UserCreate", "Unable to create database record (error %lu).\n", GetLastError());
         goto failed;
     }
 
-    DbRelease(dbContext);
+    DbRelease(userContext->db);
+    userContext->db = NULL;
+
     return userId;
 
 failed:
@@ -140,15 +139,17 @@ failed:
 
     if (userId != -1) {
         // User was not created, just free the context
+        DbRelease(userContext->db);
         Io_Free(userContext);
     } else {
+        // TODO: UserDelete() does not work
+        ASSERT(0);
+
         // Delete created user (will also free the context)
         if (UserDelete(userName, userId) != UM_SUCCESS) {
             DebugPrint("UserCreate", "Unable to delete user (error %lu).\n", GetLastError());
         }
     }
-
-    DbRelease(dbContext);
 
     // Restore system error code
     SetLastError(error);
@@ -266,8 +267,9 @@ UserLock(
         return UM_ERROR;
     }
 
-    // Reserve the database connection for the following operations
+    // Reserve the database connection for future use
     userContext->db = dbContext;
+
     return UM_SUCCESS;
 }
 
@@ -294,8 +296,10 @@ UserUnlock(
         result = UM_ERROR;
     }
 
+    // Release reserved database connection
     DbRelease(userContext->db);
     userContext->db = NULL;
+
     return result;
 }
 
