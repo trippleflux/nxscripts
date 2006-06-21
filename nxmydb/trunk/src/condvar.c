@@ -18,9 +18,9 @@ Abstract:
 
 /*++
 
-ConditionVariableInit
+ConditionVariableCreate
 
-    Initializes a condition variable.
+    Creates a condition variable.
 
 Arguments:
     cond    - Pointer to the CONDITION_VARIABLE structure to be initialized.
@@ -33,7 +33,7 @@ Return Values:
 
 --*/
 BOOL
-ConditionVariableInit(
+ConditionVariableCreate(
     CONDITION_VARIABLE *cond
     )
 {

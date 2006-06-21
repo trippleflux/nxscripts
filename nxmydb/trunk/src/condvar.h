@@ -31,7 +31,7 @@ typedef struct {
 //
 
 BOOL
-ConditionVariableInit(
+ConditionVariableCreate(
     CONDITION_VARIABLE *cond
     );
 

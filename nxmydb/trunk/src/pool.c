@@ -436,9 +436,9 @@ ResourceUpdate(
 
 /*++
 
-PoolInit
+PoolCreate
 
-    Initializes a resource pool.
+    Creates a resource pool.
 
 Arguments:
     pool        - Pointer to the POOL structure to be initialized.
@@ -472,7 +472,7 @@ Return Values:
 
 --*/
 BOOL
-PoolInit(
+PoolCreate(
     POOL *pool,
     DWORD minimum,
     DWORD average,
@@ -485,7 +485,7 @@ PoolInit(
     )
 {
     ASSERT(pool != NULL);
-    DebugPrint("PoolInit", "pool=%p constructor=%p validator=%p destructor=%p opaque=%p\n",
+    DebugPrint("PoolCreate", "pool=%p constructor=%p validator=%p destructor=%p opaque=%p\n",
         pool, constructor, validator, destructor, opaque);
 
     if (minimum < 1 || average < minimum || maximum < average || !constructor || !validator || !destructor) {
@@ -512,7 +512,7 @@ PoolInit(
         return FALSE;
     }
 
-    if (!ConditionVariableInit(&pool->condition)) {
+    if (!ConditionVariableCreate(&pool->condition)) {
         DeleteCriticalSection(&pool->lock);
         return FALSE;
     }

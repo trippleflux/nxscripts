@@ -24,7 +24,7 @@ POOL_CONSTRUCTOR_PROC
     Creates a resource.
 
 Arguments:
-    opaque  - Opaque argument passed to PoolInit().
+    opaque  - Opaque argument passed to PoolCreate().
 
     data    - Opaque data set by this callback.
 
@@ -49,7 +49,7 @@ POOL_VALIDATOR_PROC
     Validates a resource.
 
 Arguments:
-    opaque  - Opaque argument passed to PoolInit().
+    opaque  - Opaque argument passed to PoolCreate().
 
     data    - Opaque data set by the constructor callback.
 
@@ -74,7 +74,7 @@ POOL_DESTRUCTOR_PROC
     Destroys a resource.
 
 Arguments:
-    opaque  - Opaque argument passed to PoolInit().
+    opaque  - Opaque argument passed to PoolCreate().
 
     data    - Opaque data set by the constructor callback.
 
@@ -126,7 +126,7 @@ typedef struct {
 //
 
 BOOL
-PoolInit(
+PoolCreate(
     POOL *pool,
     DWORD minimum,
     DWORD average,

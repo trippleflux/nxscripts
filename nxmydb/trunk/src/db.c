@@ -100,7 +100,7 @@ ConnectionOpen
     Opens a server connection.
 
 Arguments:
-    opaque  - Opaque argument passed to PoolInit().
+    opaque  - Opaque argument passed to PoolCreate().
 
     data    - Pointer to a pointer that receives the DB_CONTEXT structure.
 
@@ -201,7 +201,7 @@ ConnectionCheck
     Validates the server connection.
 
 Arguments:
-    opaque  - Opaque argument passed to PoolInit().
+    opaque  - Opaque argument passed to PoolCreate().
 
     data    - Pointer to the DB_CONTEXT structure.
 
@@ -262,7 +262,7 @@ ConnectionClose
     Closes the server connection.
 
 Arguments:
-    opaque  - Opaque argument passed to PoolInit().
+    opaque  - Opaque argument passed to PoolCreate().
 
     data    - Pointer to the DB_CONTEXT structure.
 
@@ -578,7 +578,7 @@ DbInit(
         ConfigFree();
         return FALSE;
     }
-    if (!PoolInit(pool, poolMin, poolAvg, poolMax, poolTimeout,
+    if (!PoolCreate(pool, poolMin, poolAvg, poolMax, poolTimeout,
             ConnectionOpen, ConnectionCheck, ConnectionClose, NULL)) {
         Io_Putlog(LOG_ERROR, "nxMyDB: Unable to initialize connection pool.\r\n");
 
