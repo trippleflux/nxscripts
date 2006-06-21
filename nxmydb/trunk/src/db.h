@@ -29,40 +29,40 @@ typedef struct {
 } DB_CONTEXT;
 
 enum {
-    // locking
-    STMT_LOCK=0,
+    // Locking
+    STMT_LOCK = 0,
     STMT_UNLOCK,
 
-    // io_groups
-    STMT_GROUPS_DELETE,
-    STMT_GROUPS_CREATE,
-    STMT_GROUPS_READ,
-    STMT_GROUPS_LIST,
-    STMT_GROUPS_REFRESH,
-    STMT_GROUPS_WRITE,
+    // Table: io_groups
+    STMT_GROUP_DELETE,
+    STMT_GROUP_CREATE,
+    STMT_GROUP_READ,
+    STMT_GROUP_EXISTS,
+    STMT_GROUP_REFRESH,
+    STMT_GROUP_WRITE,
 
-    // io_users
-    STMT_USERS_DELETE,
-    STMT_USERS_CREATE,
-    STMT_USERS_READ,
-    STMT_USERS_LIST,
-    STMT_USERS_REFRESH,
-    STMT_USERS_WRITE,
+    // Table: io_users
+    STMT_USER_DELETE,
+    STMT_USER_CREATE,
+    STMT_USER_READ,
+    STMT_USER_EXISTS,
+    STMT_USER_REFRESH,
+    STMT_USER_WRITE,
 
-    // io_useradmins
-    STMT_UADMINS_DELETE,
-    STMT_UADMINS_CREATE,
-    STMT_UADMINS_LIST,
+    // Table: io_useradmins
+    STMT_UADMIN_DELETE,
+    STMT_UADMIN_CREATE,
+    STMT_UADMIN_LIST,
 
-    // io_usergroups
-    STMT_UGROUPS_DELETE,
-    STMT_UGROUPS_CREATE,
-    STMT_UGROUPS_LIST,
+    // Table: io_usergroups
+    STMT_UGROUP_DELETE,
+    STMT_UGROUP_CREATE,
+    STMT_UGROUP_LIST,
 
-    // io_userhosts
-    STMT_UHOSTS_DELETE,
-    STMT_UHOSTS_CREATE,
-    STMT_UHOSTS_LIST
+    // Table: io_userhosts
+    STMT_UHOST_DELETE,
+    STMT_UHOST_CREATE,
+    STMT_UHOST_LIST
 };
 
 //
