@@ -18,154 +18,119 @@ Abstract:
 
 BOOL
 DbUserCreate(
+    DB_CONTEXT *dbContext,
     char *userName,
     USERFILE *userFile
     )
 {
-    DB_CONTEXT *context;
-
+    ASSERT(dbContext != NULL);
     ASSERT(userName != NULL);
     ASSERT(userFile != NULL);
-    DebugPrint("DbUserCreate", "userName=\"%s\" userFile=%p\n", userName, userFile);
+    DebugPrint("DbUserCreate", "dbContext=%p userName=\"%s\" userFile=%p\n", dbContext, userName, userFile);
 
-    if (!DbAcquire(&context)) {
-        return FALSE;
-    }
-
-    DbRelease(context);
     return TRUE;
 }
 
 BOOL
 DbUserRename(
+    DB_CONTEXT *dbContext,
     char *userName,
     char *newName
     )
 {
-    DB_CONTEXT *context;
-
+    ASSERT(dbContext != NULL);
     ASSERT(userName != NULL);
     ASSERT(newName != NULL);
-    DebugPrint("DbUserRename", "userName=\"%s\" newName=\"%s\"\n", userName, newName);
+    DebugPrint("DbUserRename", "dbContext=%p userName=\"%s\" newName=\"%s\"\n", dbContext, userName, newName);
 
-    if (!DbAcquire(&context)) {
-        return FALSE;
-    }
-
-    DbRelease(context);
     return TRUE;
 }
 
 BOOL
 DbUserDelete(
+    DB_CONTEXT *dbContext,
     char *userName
     )
 {
-    DB_CONTEXT *context;
-
+    ASSERT(dbContext != NULL);
     ASSERT(userName != NULL);
-    DebugPrint("DbUserDelete", "userName=\"%s\"\n", userName);
+    DebugPrint("DbUserDelete", "dbContext=%p userName=\"%s\"\n", dbContext, userName);
 
-    if (!DbAcquire(&context)) {
-        return FALSE;
-    }
-
-    DbRelease(context);
     return TRUE;
 }
 
 BOOL
 DbUserLock(
+    DB_CONTEXT *dbContext,
     USERFILE *userFile
     )
 {
-    DB_CONTEXT *context;
-
+    ASSERT(dbContext != NULL);
     ASSERT(userFile != NULL);
-    DebugPrint("DbUserLock", "userFile=%p", userFile);
+    DebugPrint("DbUserLock", "dbContext=%p userFile=%p", dbContext, userFile);
 
-    if (!DbAcquire(&context)) {
-        return FALSE;
-    }
-
-    DbRelease(context);
     return TRUE;
 }
 
 BOOL
 DbUserUnlock(
+    DB_CONTEXT *dbContext,
     USERFILE *userFile
     )
 {
-    DB_CONTEXT *context;
-
+    ASSERT(dbContext != NULL);
     ASSERT(userFile != NULL);
-    DebugPrint("DbUserUnlock", "userFile=%p", userFile);
+    DebugPrint("DbUserUnlock", "dbContext=%p userFile=%p", dbContext, userFile);
 
-    if (!DbAcquire(&context)) {
-        return FALSE;
-    }
-
-    DbRelease(context);
     return TRUE;
 }
 
 BOOL
 DbUserOpen(
+    DB_CONTEXT *dbContext,
     char *userName,
     USERFILE *userFile
     )
 {
-    DB_CONTEXT *context;
-
+    ASSERT(dbContext != NULL);
     ASSERT(userName != NULL);
     ASSERT(userFile != NULL);
-    DebugPrint("DbUserOpen", "userName=\"%s\" userFile=%p\n", userName, userFile);
+    DebugPrint("DbUserOpen", "dbContext=%p userName=\"%s\" userFile=%p\n", dbContext, userName, userFile);
 
-    if (!DbAcquire(&context)) {
-        return FALSE;
-    }
-
-    DbRelease(context);
     return TRUE;
 }
 
 BOOL
 DbUserWrite(
+    DB_CONTEXT *dbContext,
     USERFILE *userFile
     )
 {
-    DB_CONTEXT *context;
-
+    ASSERT(dbContext != NULL);
     ASSERT(userFile != NULL);
-    DebugPrint("DbUserWrite", "userFile=%p", userFile);
+    DebugPrint("DbUserWrite", "dbContext=%p userFile=%p", dbContext, userFile);
 
-    if (!DbAcquire(&context)) {
-        return FALSE;
-    }
-
-    DbRelease(context);
     return TRUE;
 }
 
 BOOL
 DbUserClose(
-    USER_CONTEXT *context
+    USER_CONTEXT *userContext
     )
 {
-    ASSERT(context != NULL);
-    DebugPrint("DbUserClose", "context=%p", context);
+    ASSERT(userContext != NULL);
+    DebugPrint("DbUserClose", "userContext=%p", userContext);
 
     return TRUE;
 }
 
 BOOL
 DbUserRefresh(
-    DB_CONTEXT *context
+    DB_CONTEXT *dbContext
     )
 {
-    ASSERT(context != NULL);
-    DebugPrint("DbUserRefresh", "context=%p", context);
+    ASSERT(dbContext != NULL);
+    DebugPrint("DbUserRefresh", "dbContext=%p", dbContext);
 
     return TRUE;
 }

@@ -27,16 +27,14 @@ UserRead(
     DWORD bytesRead;
     DWORD error;
     DWORD fileSize;
-    USER_CONTEXT *context;
+    USER_CONTEXT *context = userFile->lpInternal;
 
     ASSERT(filePath != NULL);
     ASSERT(userFile != NULL);
     ASSERT(userFile->lpInternal != NULL);
     DebugPrint("FileUserRead", "filePath=\"%s\" userFile=%p\n", filePath, userFile);
 
-    context = userFile->lpInternal;
-
-    // Open the user file
+    // Open user file
     context->fileHandle = CreateFileA(filePath,
         GENERIC_READ|GENERIC_WRITE,
         FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
@@ -234,13 +232,11 @@ FileUserWrite(
     BUFFER buffer;
     DWORD bytesWritten;
     DWORD error;
-    USER_CONTEXT *context;
+    USER_CONTEXT *context = userFile->lpInternal;
 
     ASSERT(userFile != NULL);
     ASSERT(userFile->lpInternal != NULL);
     DebugPrint("FileUserWrite", "userFile=%p\n", userFile);
-
-    context = userFile->lpInternal;
 
     // Allocate write buffer
     ZeroMemory(&buffer, sizeof(BUFFER));
