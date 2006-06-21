@@ -529,6 +529,7 @@ DbInit(
     connCheck = UInt32x32To64(poolCheck, 10000000); // sec to 100nsec
 
     // Refesh timer
+    refresh = 0;
     if (Io_ConfigGetInt("nxMyDB", "Refresh", &refresh) && refresh < 0) {
         Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Refresh' must be greater than or equal to zero.\r\n");
         return FALSE;
