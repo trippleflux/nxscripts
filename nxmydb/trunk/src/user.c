@@ -98,7 +98,7 @@ UserCreate(
     userContext->fileHandle = INVALID_HANDLE_VALUE;
 
     // Acquire a database connection
-    if (!DbAcquire(&userContext->db)) {
+    if (!DbAcquire(&userContext->dbReserved)) {
         goto failed;
     }
 
@@ -123,13 +123,13 @@ UserCreate(
     }
 
     // Create database record
-    if (!DbUserCreate(userContext->db, userName, &userFile)) {
+    if (!DbUserCreate(userContext->dbReserved, userName, &userFile)) {
         DebugPrint("UserCreate", "Unable to create database record (error %lu).\n", GetLastError());
         goto failed;
     }
 
-    DbRelease(userContext->db);
-    userContext->db = NULL;
+    DbRelease(userContext->dbReserved);
+    userContext->dbReserved = NULL;
 
     return userId;
 
@@ -139,7 +139,7 @@ failed:
 
     if (userId != -1) {
         // User was not created, just free the context
-        DbRelease(userContext->db);
+        DbRelease(userContext->dbReserved);
         Io_Free(userContext);
     } else {
         // TODO: UserDelete() does not work
@@ -177,12 +177,12 @@ UserRename(
     DebugPrint("UserRename", "userName=\"%s\" userId=%i newName=\"%s\"\n", userName, userId, newName);
 
     // There must be a reserved database connection
-    if (userContext->db == NULL) {
+    if (userContext->dbReserved == NULL) {
         SetLastError(ERROR_INTERNAL_ERROR);
         return UM_ERROR;
     }
 
-    if (!DbUserRename(userContext->db, userName, newName)) {
+    if (!DbUserRename(userContext->dbReserved, userName, newName)) {
         DebugPrint("UserRename", "Unable to rename database record (error %lu).\n", GetLastError());
     }
 
@@ -216,7 +216,7 @@ UserDelete(
     DebugPrint("UserDelete", "userName=\"%s\" userId=%i\n", userName, userId);
 
     // There must be a reserved database connection
-    if (userContext->db == NULL) {
+    if (userContext->dbReserved == NULL) {
         SetLastError(ERROR_INTERNAL_ERROR);
         return UM_ERROR;
     }
@@ -225,7 +225,7 @@ UserDelete(
         DebugPrint("UserDelete", "Unable to delete user file (error %lu).\n", GetLastError());
     }
 
-    if (!DbUserDelete(userContext->db, userName)) {
+    if (!DbUserDelete(userContext->dbReserved, userName)) {
         DebugPrint("UserDelete", "Unable to delete database record (error %lu).\n", GetLastError());
     }
 
@@ -252,7 +252,7 @@ UserLock(
     DebugPrint("UserLock", "userFile=%p\n", userFile);
 
     // There must not be a reserved database connection
-    if (userContext->db != NULL) {
+    if (userContext->dbReserved != NULL) {
         SetLastError(ERROR_INTERNAL_ERROR);
         return UM_ERROR;
     }
@@ -268,7 +268,7 @@ UserLock(
     }
 
     // Reserve the database connection for future use
-    userContext->db = dbContext;
+    userContext->dbReserved = dbContext;
 
     return UM_SUCCESS;
 }
@@ -286,19 +286,19 @@ UserUnlock(
     DebugPrint("UserUnlock", "userFile=%p\n", userFile);
 
     // There must be a reserved database connection
-    if (userContext->db == NULL) {
+    if (userContext->dbReserved == NULL) {
         SetLastError(ERROR_INTERNAL_ERROR);
         return UM_ERROR;
     }
 
-    if (!DbUserUnlock(userContext->db, userFile)) {
+    if (!DbUserUnlock(userContext->dbReserved, userFile)) {
         DebugPrint("UserUnlock", "Unable to unlock database record (error %lu).\n", GetLastError());
         result = UM_ERROR;
     }
 
     // Release reserved database connection
-    DbRelease(userContext->db);
-    userContext->db = NULL;
+    DbRelease(userContext->dbReserved);
+    userContext->dbReserved = NULL;
 
     return result;
 }
@@ -357,7 +357,7 @@ UserWrite(
     DebugPrint("UserWrite", "userFile=%p\n", userFile);
 
     // There must be a reserved database connection
-    if (userContext->db == NULL) {
+    if (userContext->dbReserved == NULL) {
         SetLastError(ERROR_INTERNAL_ERROR);
         return UM_ERROR;
     }
@@ -366,7 +366,7 @@ UserWrite(
         DebugPrint("UserWrite", "Unable to write user file (error %lu).\n", GetLastError());
     }
 
-    if (!DbUserWrite(userContext->db, userFile)) {
+    if (!DbUserWrite(userContext->dbReserved, userFile)) {
         DebugPrint("UserWrite", "Unable to write database record (error %lu).\n", GetLastError());
         return UM_ERROR;
     }

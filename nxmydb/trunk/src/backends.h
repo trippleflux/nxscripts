@@ -19,7 +19,8 @@ Abstract:
 
 // Context for users and groups
 typedef struct {
-    HANDLE fileHandle;
+    HANDLE      fileHandle; // Handle to the open user/group file
+    DB_CONTEXT *dbReserved; // Reserved database connection (acquired on lock, released on unlock)
 } GROUP_CONTEXT, USER_CONTEXT;
 
 
@@ -114,50 +115,57 @@ FileGroupClose(
 
 BOOL
 DbUserCreate(
+    DB_CONTEXT *dbContext,
     char *userName,
     USERFILE *userFile
     );
 
 BOOL
 DbUserRename(
+    DB_CONTEXT *dbContext,
     char *userName,
     char *newName
     );
 
 BOOL
 DbUserDelete(
+    DB_CONTEXT *dbContext,
     char *userName
     );
 
 BOOL
 DbUserLock(
+    DB_CONTEXT *dbContext,
     USERFILE *userFile
     );
 
 BOOL
 DbUserUnlock(
+    DB_CONTEXT *dbContext,
     USERFILE *userFile
     );
 
 BOOL
 DbUserOpen(
+    DB_CONTEXT *dbContext,
     char *userName,
     USERFILE *userFile
     );
 
 BOOL
 DbUserWrite(
+    DB_CONTEXT *dbContext,
     USERFILE *userFile
     );
 
 BOOL
 DbUserClose(
-    USER_CONTEXT *context
+    USER_CONTEXT *userContext
     );
 
 BOOL
 DbUserRefresh(
-    DB_CONTEXT *context
+    DB_CONTEXT *dbContext
     );
 
 
