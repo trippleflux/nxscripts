@@ -549,27 +549,6 @@ DbInit(
     sslCAFile   = ConfigGet("nxMyDB", "SSL_CA_File");
     sslCAPath   = ConfigGet("nxMyDB", "SSL_CA_Path");
 
-    // Dump configuration
-    DebugPrint("Configuration", "Server Host     = %s\n", serverHost);
-    DebugPrint("Configuration", "Server Port     = %i\n", serverPort);
-    DebugPrint("Configuration", "Server User     = %s\n", serverUser);
-    DebugPrint("Configuration", "Server Password = %s\n", serverPass);
-    DebugPrint("Configuration", "Server Database = %s\n", serverDb);
-    DebugPrint("Configuration", "Server Refresh  = %i\n", refresh);
-    DebugPrint("Configuration", "Compression     = %s\n", compression ? "true" : "false");
-    DebugPrint("Configuration", "SSL Enable      = %s\n", sslEnable ? "true" : "false");
-    DebugPrint("Configuration", "SSL Ciphers     = %s\n", sslCiphers);
-    DebugPrint("Configuration", "SSL Cert File   = %s\n", sslCertFile);
-    DebugPrint("Configuration", "SSL Key File    = %s\n", sslKeyFile);
-    DebugPrint("Configuration", "SSL CA File     = %s\n", sslCAFile);
-    DebugPrint("Configuration", "SSL CA Path     = %s\n", sslCAPath);
-    DebugPrint("Configuration", "Pool Minimum    = %i\n", poolMin);
-    DebugPrint("Configuration", "Pool Average    = %i\n", poolAvg);
-    DebugPrint("Configuration", "Pool Maximum    = %i\n", poolMax);
-    DebugPrint("Configuration", "Pool Check      = %i\n", poolCheck);
-    DebugPrint("Configuration", "Pool Expire     = %i\n", poolExpire);
-    DebugPrint("Configuration", "Pool Timeout    = %i\n", poolTimeout);
-
     // Create connection pool
     pool = Io_Allocate(sizeof(POOL));
     if (pool == NULL) {
