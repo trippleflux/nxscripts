@@ -17,6 +17,17 @@ Abstract:
 #include "mydb.h"
 
 BOOL
+DbUserRefresh(
+    DB_CONTEXT *dbContext
+    )
+{
+    ASSERT(dbContext != NULL);
+    DebugPrint("DbUserRefresh", "dbContext=%p", dbContext);
+
+    return TRUE;
+}
+
+BOOL
 DbUserCreate(
     DB_CONTEXT *dbContext,
     char *userName,
@@ -121,16 +132,10 @@ DbUserClose(
     ASSERT(userContext != NULL);
     DebugPrint("DbUserClose", "userContext=%p", userContext);
 
-    return TRUE;
-}
-
-BOOL
-DbUserRefresh(
-    DB_CONTEXT *dbContext
-    )
-{
-    ASSERT(dbContext != NULL);
-    DebugPrint("DbUserRefresh", "dbContext=%p", dbContext);
+    // Release reserved database connection
+    if (userContext->dbReserved != NULL) {
+        DbRelease(userContext->dbReserved);
+    }
 
     return TRUE;
 }

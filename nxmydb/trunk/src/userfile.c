@@ -285,8 +285,9 @@ FileUserClose(
     DebugPrint("FileUserClose", "context=%p\n", context);
 
     // Close user file handle
-    ASSERT(context->fileHandle != INVALID_HANDLE_VALUE);
-    CloseHandle(context->fileHandle);
+    if (context->fileHandle != INVALID_HANDLE_VALUE) {
+        CloseHandle(context->fileHandle);
+    }
 
     return TRUE;
 }

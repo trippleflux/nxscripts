@@ -114,6 +114,11 @@ FileGroupClose(
 //
 
 BOOL
+DbUserRefresh(
+    DB_CONTEXT *dbContext
+    );
+
+BOOL
 DbUserCreate(
     DB_CONTEXT *dbContext,
     char *userName,
@@ -161,11 +166,6 @@ DbUserWrite(
 BOOL
 DbUserClose(
     USER_CONTEXT *userContext
-    );
-
-BOOL
-DbUserRefresh(
-    DB_CONTEXT *dbContext
     );
 
 
