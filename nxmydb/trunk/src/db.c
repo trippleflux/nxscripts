@@ -16,6 +16,11 @@ Abstract:
 
 #include "mydb.h"
 
+// Pool resource functions
+static POOL_CONSTRUCTOR_PROC ConnectionOpen;
+static POOL_VALIDATOR_PROC   ConnectionCheck;
+static POOL_DESTRUCTOR_PROC  ConnectionClose;
+
 // MySQL Server information
 static char *serverHost;
 static char *serverUser;
@@ -44,6 +49,49 @@ static POOL *pool;
 // Reference count initialization calls
 static int refCount = 0;
 
+// Statements to pre-compile
+static const char *queries[] = {
+    // locking
+    "SELECT GET_LOCK(?, ?)",
+    "DO RELEASE_LOCK(?)",
+
+    // io_groups
+    "DELETE FROM io_groups WHERE name=?",
+    "INSERT INTO io_groups (name, updated) VALUES(?, UNIX_TIMESTAMP())",
+    "SELECT description, slots, users, vfsfile FROM io_groups WHERE name=?",
+    "SELECT name FROM io_groups WHERE name=?",
+    "SELECT name, description, slots, users, vfsfile, UNIX_TIMESTAMP() FROM io_groups WHERE updated>=?",
+    "UPDATE io_groups SET description=?, slots=?, users=?, vfsfile=?, updated=UNIX_TIMESTAMP() WHERE name=?",
+
+    // io_users
+    "DELETE FROM io_users WHERE name=?",
+    "INSERT INTO io_users (name, updated) VALUES(?, UNIX_TIMESTAMP())",
+    "SELECT description, flags, home, limits, password, vfsfile, credits, ratio, "
+        "alldn, allup, daydn, dayup, monthdn, monthup, wkdn, wkup FROM io_users WHERE name=?",
+    "SELECT name FROM io_users WHERE name=?",
+    "SELECT name, description, flags, home, limits, password, vfsfile, "
+        "credits, ratio, alldn, allup, daydn, dayup, monthdn, monthup, wkdn, wkup, "
+        "UNIX_TIMESTAMP() FROM io_users WHERE updated>=?",
+    "UPDATE io_users SET description=?, flags=?, home=?, limits=?, password=?, "
+        "vfsfile=?, credits=?, ratio=?, alldn=?, allup=?, daydn=?, dayup=?, monthdn=?, "
+        "monthup=?, wkdn=?, wkup=?, updated=UNIX_TIMESTAMP() WHERE name=?",
+
+    // io_useradmins
+    "DELETE FROM io_useradmins WHERE uname=?",
+    "INSERT INTO io_useradmins (uname, gname) VALUES(?, ?)",
+    "SELECT gname FROM io_useradmins WHERE uname=?",
+
+    // io_usergroups
+    "DELETE FROM io_usergroups WHERE uname=?",
+    "INSERT INTO io_usergroups (uname, gname) VALUES(?, ?)",
+    "SELECT gname FROM io_usergroups WHERE uname=?",
+
+    // io_userhosts
+    "DELETE FROM io_userhosts WHERE name=?",
+    "INSERT INTO io_userhosts (name, host) VALUES(?, ?)",
+    "SELECT host FROM io_userhosts WHERE name=?"
+};
+
 
 /*++
 
@@ -70,6 +118,7 @@ ConnectionOpen(
     )
 {
     DB_CONTEXT *context;
+    DWORD i;
     unsigned long flags;
 
     ASSERT(opaque == NULL);
@@ -79,10 +128,11 @@ ConnectionOpen(
     // Allocate database context
     context = Io_Allocate(sizeof(DB_CONTEXT));
     if (context == NULL) {
-        DebugPrint("ConnectionOpen", "Unable to allocate database context.\n");
+        DebugPrint("ConnectionOpen", "Unable to allocate memory for database context.\n");
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return FALSE;
     }
+    ZeroMemory(context, sizeof(DB_CONTEXT));
 
     // Have MySQL allocate the structure. This is in case the client library is a different
     // version than the header we're compiling with (structures could be different sizes).
@@ -106,9 +156,30 @@ ConnectionOpen(
     if (!mysql_real_connect(context->handle, serverHost, serverUser, serverPass, serverDb, serverPort, NULL, flags)) {
         DebugPrint("ConnectionOpen", "Unable to connect to server: %s\n", mysql_error(context->handle));
         Io_Putlog(LOG_ERROR, "nxMyDB: Unable to connect to server: %s\r\n", mysql_error(context->handle));
-        mysql_close(context->handle);
 
+        mysql_close(context->handle);
         SetLastError(ERROR_CONNECTION_REFUSED);
+        return FALSE;
+    }
+
+    // Prepare statements
+    ASSERT(ARRAYSIZE(context->stmt) == ARRAYSIZE(queries));
+    for (i = 0; i < ARRAYSIZE(context->stmt); i++) {
+        context->stmt[i] = mysql_stmt_init(context->handle);
+
+        if (context->stmt[i] == NULL) {
+            DebugPrint("ConnectionOpen", "Unable to allocate memory for statement.\n");
+            SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+
+        } else if (mysql_stmt_prepare(context->stmt[i], queries[i], strlen(queries[i])) != 0) {
+            DebugPrint("ConnectionOpen", "Unable to prepare statement: %s\n", mysql_stmt_error(context->stmt[i]));
+            SetLastError(ERROR_UNIDENTIFIED_ERROR);
+
+        } else {
+            continue;
+        }
+
+        ConnectionClose(NULL, context);
         return FALSE;
     }
 
@@ -207,13 +278,21 @@ ConnectionClose(
     )
 {
     DB_CONTEXT *context;
+    DWORD i;
 
     ASSERT(opaque == NULL);
     ASSERT(data != NULL);
     DebugPrint("ConnectionClose", "opaque=%p data=%p\n", opaque, data);
+    context = data;
+
+    // Free prepared statements
+    for (i = 0; i < ARRAYSIZE(context->stmt); i++) {
+        if (context->stmt[i] != NULL) {
+            mysql_stmt_close(context->stmt[i]);
+        }
+    }
 
     // Close server connection and free context
-    context = data;
     mysql_close(context->handle);
     Io_Free(context);
 }
