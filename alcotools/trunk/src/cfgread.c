@@ -19,40 +19,45 @@ Abstract:
 
 #include "alcoholicz.h"
 
-// Maximum length of a key or section name, in characters.
+// Maximum length of a key or section name, in characters
 #define MAX_LEN         24
 
-// Value types.
+// Value types
 #define TYPE_ARRAY      1
 #define TYPE_BOOLEAN    2
 #define TYPE_INTEGER    3
 #define TYPE_STRING     4
 
-// Forward type declarations.
+// Forward type declarations
 typedef struct CONFIG_KEY CONFIG_KEY;
+typedef struct CONFIG_KEY_HEAD CONFIG_KEY_HEAD;
 typedef struct CONFIG_SECTION CONFIG_SECTION;
+typedef struct CONFIG_SECTION_HEAD CONFIG_SECTION_HEAD;
 
 struct CONFIG_KEY {
-    CONFIG_KEY *next;     // Next key structure.
-    uint32_t  crc;       // CRC32 checksum of the key name.
-    uint32_t  length;    // Length of the string for TYPE_STRING or
-                         // number of array elements for TYPE_ARRAY.
+    LIST_ENTRY(CONFIG_KEY) link;    // Pointer to next section structure
+    uint32_t  crc;                  // CRC32 checksum of the key name.
+    uint32_t  length;               // Length of the string or number of array elements.
     union {
         tchar_t **array;
         bool_t  boolean;
         int32_t integer;
         tchar_t *string;
-    } value;             // Internal value representation.
-    uint8_t type;        // Value type.
+    } value;                        // Internal value representation.
+    uint8_t type;                   // Value type.
 };
+LIST_HEAD(CONFIG_KEY_HEAD, CONFIG_KEY);
 
 struct CONFIG_SECTION {
-    CONFIG_SECTION *next; // Next section structure.
-    CONFIG_KEY     *keys; // Keys belonging to this section.
-    uint32_t      crc;   // CRC32 checksum of the section name.
+    SLIST_ENTRY(CONFIG_SECTION) link;   // Pointer to next section structure
+    CONFIG_KEY_HEAD             keys;   // Keys belonging to this section
+    uint32_t                    crc;    // CRC32 checksum of the section name
 };
+SLIST_HEAD(CONFIG_SECTION_HEAD, CONFIG_SECTION);
 
-static CONFIG_SECTION *sectionHead = NULL;
+// Section structure list head
+static CONFIG_SECTION_HEAD sectionHead = SLIST_HEAD_INITIALIZER(sectionHead);
+
 static const tchar_t *configFile  = TEXT("AlcoTools.conf");
 
 
@@ -90,7 +95,7 @@ CreateSection(
     ASSERT(sectionName  != NULL);
     ASSERT(sectionLength > 0);
 
-    // Calculate the CRC32 checksum of the section name.
+    // Calculate the CRC32 checksum of the section name
 #ifdef UNICODE
     ansiLength = (uint32_t)WideCharToMultiByte(CP_ACP, 0, sectionName,
         (int)sectionLength, ansiName, ARRAYSIZE(ansiName), NULL, NULL);
@@ -100,21 +105,20 @@ CreateSection(
     sectionCrc = Crc32Memory(sectionName, sectionLength);
 #endif // UNICODE
 
-    // Check if the section already exists.
-    for (section = sectionHead; section != NULL; section = section->next) {
+    // Check if the section already exists
+    SLIST_FOREACH(section, &sectionHead, link) {
         if (section->crc == sectionCrc) {
             return section;
         }
     }
 
-    // Allocate section structure and insert it into the list head.
     section = MemAlloc(sizeof(CONFIG_SECTION));
     if (section != NULL) {
         section->crc  = sectionCrc;
-        section->keys = NULL;
-        section->next = sectionHead;
-        sectionHead   = section;
+        LIST_INIT(&section->keys);
+        SLIST_INSERT_HEAD(&sectionHead, section, link);
     }
+
     return section;
 }
 
@@ -153,7 +157,6 @@ CreateKey(
 {
     bool_t exists = FALSE;
     CONFIG_KEY *key;
-    CONFIG_KEY *keyPrev;
     uint32_t keyCrc;
 #ifdef UNICODE
     char ansiName[MAX_LEN];
@@ -190,13 +193,11 @@ CreateKey(
 #endif // UNICODE
 
     // Check if the key already exists in the section.
-    keyPrev = NULL;
-    for (key = section->keys; key != NULL; key = key->next) {
+    LIST_FOREACH(key, &section->keys, link) {
         if (key->crc == keyCrc) {
             exists = TRUE;
             break;
         }
-        keyPrev = key;
     }
 
     if (!exists) {
@@ -204,7 +205,8 @@ CreateKey(
         if (key == NULL) {
             return;
         }
-        // Initialise key structure.
+
+        // Initialise key structure
         key->value.string = MemAlloc((valueLength + 1) * sizeof(tchar_t));
         if (key->value.string == NULL) {
             MemFree(key);
@@ -213,22 +215,15 @@ CreateKey(
         key->crc  = keyCrc;
         key->type = TYPE_STRING;
 
-        // Insert key structure into the section's key list.
-        key->next     = section->keys;
-        section->keys = key;
+        // Insert key at the list's head
+        LIST_INSERT_HEAD(&section->keys, key, link);
 
     } else if (key->length < valueLength) {
         // Resize memory block to accommodate the larger string.
         key->value.string = MemRealloc(key->value.string, (valueLength + 1) * sizeof(tchar_t));
 
         if (key->value.string == NULL) {
-            // Remove key from the linked-list.
-            if (keyPrev != NULL) {
-                keyPrev->next = key->next;
-            }
-            if (section->keys == key) {
-                section->keys = key->next;
-            }
+            LIST_REMOVE(key, link);
             MemFree(key);
             return;
         }
@@ -275,12 +270,12 @@ GetKey(
     sectionCrc = Crc32String(sectionName);
     VERBOSE(TEXT("Looking up key 0x%08X in section 0x%08X.\n"), keyCrc, sectionCrc);
 
-    for (section = sectionHead; section != NULL; section = section->next) {
+    SLIST_FOREACH(section, &sectionHead, link) {
         if (section->crc != sectionCrc) {
             continue;
         }
 
-        for (key = section->keys; key != NULL; key = key->next) {
+        LIST_FOREACH(key, &section->keys, link) {
             if (key->crc == keyCrc) {
                 return key;
             }
@@ -634,33 +629,33 @@ ConfigFinalise(
     void
     )
 {
-    void *next;
+    CONFIG_KEY *key;
+    CONFIG_SECTION *section;
 
-    while (sectionHead != NULL) {
-        while (sectionHead->keys != NULL) {
+    while (!SLIST_EMPTY(&sectionHead)) {
+        section = SLIST_FIRST(&sectionHead);
+
+        while (!LIST_EMPTY(&section->keys)) {
+            key = LIST_FIRST(&section->keys);
+
             // Free the key's value.
-            switch (sectionHead->keys->type) {
-                case TYPE_BOOLEAN:
-                case TYPE_INTEGER:
-                    break;
+            switch (key->type) {
                 case TYPE_ARRAY:
-                    MemFree(sectionHead->keys->value.array);
+                    MemFree(key->value.array);
                     break;
                 case TYPE_STRING:
-                    MemFree(sectionHead->keys->value.string);
+                    MemFree(key->value.string);
                     break;
             }
 
-            // Free key structure.
-            next = sectionHead->keys->next;
-            MemFree(sectionHead->keys);
-            sectionHead->keys = next;
+            // Remove key structure from the list and free it
+            LIST_REMOVE(key, link);
+            MemFree(key);
         }
 
-        // Free section structure.
-        next = sectionHead->next;
-        MemFree(sectionHead);
-        sectionHead = next;
+        // Remove section structure from the list and free it
+        SLIST_REMOVE_HEAD(&sectionHead, link);
+        MemFree(section);
     }
 }
 
