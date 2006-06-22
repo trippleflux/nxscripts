@@ -21,7 +21,7 @@ Abstract:
 // Memory allocation record list
 //
 LIST_HEAD(MEM_RECORD_HEAD, MEM_RECORD);
-static struct recordHead = LIST_HEAD_INITIALIZER(recordHead);
+static struct MEM_RECORD_HEAD recordHead = LIST_HEAD_INITIALIZER(recordHead);
 
 //
 // Memory allocation statistics
@@ -177,7 +177,7 @@ MemRecordCreate(
             sizeof(MEM_RECORD), GetSystemErrorMessage());
     }
 
-    // Initialize allocation record and insert in at the list's head.
+    // Initialize allocation record and insert it at the list's head.
     record->memory = memory;
     record->size   = size;
     record->file   = (file != NULL) ? file : TEXT("unknown");
