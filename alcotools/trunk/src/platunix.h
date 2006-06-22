@@ -14,8 +14,8 @@ Abstract:
 
 --*/
 
-#ifndef _ALCOPLATUNIX_H_
-#define _ALCOPLATUNIX_H_
+#ifndef _PLATUNIX_H_
+#define _PLATUNIX_H_
 
 #include <stddef.h>
 #include <stdio.h>
@@ -197,4 +197,4 @@ PerfCounterDiff(
 
 #define ExitProcess(code)   (exit(code))
 
-#endif // _ALCOPLATUNIX_H_
+#endif // _PLATUNIX_H_

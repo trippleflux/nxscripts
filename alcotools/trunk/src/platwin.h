@@ -14,8 +14,8 @@ Abstract:
 
 --*/
 
-#ifndef _ALCOPLATWIN_H_
-#define _ALCOPLATWIN_H_
+#ifndef _PLATWIN_H_
+#define _PLATWIN_H_
 
 #define LITTLE_ENDIAN 1
 #define WINDOWS
@@ -158,4 +158,4 @@ PerfCounterDiff(
 #define strncasecmp     _strnicmp
 #define wcsncasecmp     _wcsnicmp
 
-#endif // _ALCOPLATWIN_H_
+#endif // _PLATWIN_H_

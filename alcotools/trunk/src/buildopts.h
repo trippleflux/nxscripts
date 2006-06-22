@@ -14,8 +14,8 @@ Abstract:
 
 --*/
 
-#ifndef _ALCOCONSTANTS_H_
-#define _ALCOCONSTANTS_H_
+#ifndef _BUILDOPTS_H_
+#define _BUILDOPTS_H_
 
 //
 // DEBUG_ASSERT <TRUE/FALSE>
@@ -65,4 +65,4 @@ Abstract:
 #   define LOG_FILE         "AlcoTools.log"
 #endif
 
-#endif // _ALCOCONSTANTS_H_
+#endif // _BUILDOPTS_H_

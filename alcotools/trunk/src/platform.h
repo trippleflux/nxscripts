@@ -14,8 +14,8 @@ Abstract:
 
 --*/
 
-#ifndef _ALCOPLATFORM_H_
-#define _ALCOPLATFORM_H_
+#ifndef _PLATFORM_H_
+#define _PLATFORM_H_
 
 #if defined(_WIN32) || defined(_WIN64) || defined(WINDOWS) || defined(_WINDOWS)
 #   include "platwin.h"
@@ -226,4 +226,4 @@ DirExists(
 #   define t_strtoul        strtoul
 #endif // UNICODE
 
-#endif // _ALCOPLATFORM_H_
+#endif // _PLATFORM_H_
