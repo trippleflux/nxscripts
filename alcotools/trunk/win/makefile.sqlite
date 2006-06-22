@@ -1,0 +1,105 @@
+#
+# AlcoTools - Alcoholicz dupe checker, zipscript, and utilities.
+# Copyright (c) 2005-2006 Alcoholicz Scripting Team
+#
+# Module Name:
+#   SQLite Makefile
+#
+# Author:
+#   neoxed (neoxed@gmail.com) Mar 3, 2006
+#
+# Abstract:
+#   Build configuration file for NMAKE, or a compatible tool.
+#
+# Instructions:
+#   1. Download and unpack the latest SQLite v3.x source package.
+#
+#   2. Run the configuration script in a Cygwin environment.
+#
+#      mkdir build
+#      cd build
+#      ../configure --enable-threadsafe
+#      make target_source
+#
+#   3. Copy this makefile to the "tsrc" directory.
+#
+#   4. Run: nmake -f makefile.sqlite all
+#
+#   5. Copy the following files to another location for later use.
+#
+#      sqlite3.h
+#      sqlite3.dll
+#      sqlite3.lib
+#      sqlite3-static.lib
+#
+
+## User settings
+DEBUG   = 0
+MSVCRT  = 0
+
+## Compiler settings
+CC      = cl
+AR      = lib
+LD      = link
+ARFLAGS = -nologo
+CFLAGS  = -nologo -D_CRT_NONSTDC_NO_DEPRECATE -D_CRT_SECURE_NO_DEPRECATE -DTHREADSAFE=1
+LFLAGS  = -nologo
+
+# -------------------------------------------------------------------------
+
+!if $(MSVCRT)
+!message
+!message CRT Library: msvcrt (dynamic)
+CRTLIB  = -MD
+!else
+!message CRT Library: libcmt (static)
+CRTLIB  = -MT
+!endif
+
+!if $(DEBUG)
+!message Debug Symbols: On
+CFLAGS  = $(CFLAGS) -Zi $(CRTLIB)d -DDEBUG
+LFLAGS  = $(LFLAGS) /DEBUG
+!else
+!message Debug Symbols: Off
+CFLAGS  = $(CFLAGS) -Ox -GF $(CRTLIB) -DNDEBUG -DSQLITE_OMIT_EXPLAIN=1
+LFLAGS  = $(LFLAGS) /RELEASE /OPT:REF
+!endif
+
+# -------------------------------------------------------------------------
+
+OBJ_FILES = alter.obj analyze.obj attach.obj auth.obj btree.obj build.obj\
+            callback.obj complete.obj date.obj delete.obj expr.obj func.obj\
+            hash.obj insert.obj legacy.obj main.obj opcodes.obj os.obj os_win.obj\
+            pager.obj parse.obj pragma.obj prepare.obj printf.obj random.obj\
+            select.obj table.obj tokenize.obj trigger.obj update.obj utf.obj\
+            util.obj vacuum.obj vdbe.obj vdbeapi.obj vdbeaux.obj vdbefifo.obj\
+            vdbemem.obj where.obj
+
+.c.obj::
+    $(CC) -c $(CFLAGS) -Fo @<<
+$<
+<<
+
+# -------------------------------------------------------------------------
+
+default: all
+
+all: dynamic static
+
+clean:
+    @del /f *.dll *.lib *.exp *.obj *.pdb
+
+dynamic: sqlite3.dll
+
+static: sqlite3-static.lib
+
+sqlite3.dll: $(OBJ_FILES)
+    $(LD) $(LFLAGS) /DLL /DEF:sqlite3.def -out:$@ @<<
+$**
+<<
+
+sqlite3-static.lib: $(OBJ_FILES)
+    $(AR) $(ARFLAGS) -out:$@ @<<
+$**
+<<

@@ -1,0 +1,189 @@
+#
+# AlcoTools - Alcoholicz dupe checker, zipscript, and utilities.
+# Copyright (c) 2005-2006 Alcoholicz Scripting Team
+#
+# Module Name:
+#   Makefile
+#
+# Author:
+#   neoxed (neoxed@gmail.com) Jul 17, 2005
+#
+# Abstract:
+#   Build configuration file for NMAKE, or a compatible tool.
+#
+#   Usage:
+#     nmake -f makefile.win [OPTION=1 ...]
+#
+#   Options:
+#     DEBUG      - Toggle symbolic debugging.
+#     MEMDEBUG   - Toggle memory debugging.
+#     STATIC     - Toggle static builds.
+#     SQLITE_DIR - SQLite include and library location.
+#     ZLIB_DIR   - Zlib include and library location.
+#
+
+## Release version.
+VERSION     = 0.1.0
+
+## Source locations
+TOP         = .
+SRC_DIR     = $(TOP)\src
+WIN_DIR     = $(TOP)\win
+
+## Compiler options
+CC          = cl
+LD          = link
+RC          = rc
+CFLAGS      = /nologo /W4
+LFLAGS      = /nologo
+RFLAGS      = /r
+
+# -------------------------------------------------------------------------
+
+!if "$(MSVCRT)" == "1"
+!message *** Option: Dynamic CRT
+CRTLIB      = /MD
+CFLAGS      = $(CFLAGS) /DDYNAMIC_CRT
+!else
+!message *** Option: Static CRT
+CRTLIB      = /MT
+CFLAGS      = $(CFLAGS) /DSTATIC_CRT
+!endif
+
+!if "$(DEBUG)" == "1"
+!message *** Option: Debug Symbols
+BLD_OPTIONS = Debug
+BLD_OUTDIR  = Debug
+CFLAGS      = $(CFLAGS) /Zi $(CRTLIB)d /DDEBUG
+LFLAGS      = $(LFLAGS) /DEBUG
+!else
+BLD_OPTIONS = Release
+BLD_OUTDIR  = Release
+CFLAGS      = $(CFLAGS) /Ox /GF /GL /GS- $(CRTLIB) /DNDEBUG
+LFLAGS      = $(LFLAGS) /RELEASE /LTCG:STATUS /OPT:NOWIN98 /OPT:REF
+!endif
+
+!if "$(MEMDEBUG)" == "1"
+!message *** Option: Memory Debugging
+BLD_OPTIONS = $(BLD_OPTIONS), Memory
+CFLAGS      = $(CFLAGS) /DDEBUG_MEMORY=1
+!endif
+
+# -------------------------------------------------------------------------
+
+!if !exist("makefile.win")
+!error You must run this makefile from the directory it is located in.
+!endif
+
+!if !defined(SQLITE_DIR)
+!error Unable to find SQLite files; the SQLITE_DIR variable is not set.
+!endif
+
+SQLITE_DIR    = $(SQLITE_DIR:/=\)
+SQLITE_DLL    = $(SQLITE_DIR)\sqlite3.dll
+SQLITE_IMPORT = $(SQLITE_DIR)\sqlite3.lib
+SQLITE_STATIC = $(SQLITE_DIR)\sqlite3-static.lib
+
+!if !exist("$(SQLITE_DIR)\sqlite3.h")
+!error Unable to find sqlite3.h; the SQLITE_DIR variable is incorrect.
+!endif
+!if !exist("$(SQLITE_DLL)")
+!error Unable to find sqlite3.dll; the SQLITE_DIR variable is incorrect.
+!endif
+!if !exist("$(SQLITE_IMPORT)")
+!error Unable to find sqlite3.lib; the SQLITE_DIR variable is incorrect.
+!endif
+!if !exist("$(SQLITE_STATIC)")
+!error Unable to find sqlite3-static.lib; the SQLITE_DIR variable is incorrect.
+!endif
+
+!if "$(STATIC)" == "1"
+SQLITE_LIB  = "$(SQLITE_STATIC)"
+!else
+SQLITE_LIB  = "$(SQLITE_IMPORT)"
+!endif
+
+# -------------------------------------------------------------------------
+
+!if !defined(ZLIB_DIR)
+!error Unable to find Zlib files; the ZLIB_DIR variable is not set.
+!endif
+
+ZLIB_DIR    = $(ZLIB_DIR:/=\)
+ZLIB_DLL    = $(ZLIB_DIR)\zlib.dll
+ZLIB_IMPORT = $(ZLIB_DIR)\zlib.lib
+ZLIB_STATIC = $(ZLIB_DIR)\zlib-static.lib
+
+!if !exist("$(ZLIB_DIR)\zlib.h")
+!error Unable to find zlib.h; the ZLIB_DIR variable is incorrect.
+!endif
+!if !exist("$(ZLIB_DLL)")
+!error Unable to find zlib.dll; the ZLIB_DIR variable is incorrect.
+!endif
+!if !exist("$(ZLIB_IMPORT)")
+!error Unable to find zlib.lib; the ZLIB_DIR variable is incorrect.
+!endif
+!if !exist("$(ZLIB_STATIC)")
+!error Unable to find zlib-static.lib; the ZLIB_DIR variable is incorrect.
+!endif
+
+!if "$(STATIC)" == "1"
+ZLIB_LIB    = "$(ZLIB_STATIC)"
+!else
+ZLIB_LIB    = "$(ZLIB_IMPORT)"
+!endif
+
+# -------------------------------------------------------------------------
+
+BLD_OUTFILE = $(BLD_OUTDIR)\alcotools.exe
+BLD_INTDIR  = $(BLD_OUTDIR)\$(BLD_OPTIONS:, =)
+
+INC_DIRS    = /I "$(SQLITE_DIR)" /I "$(ZLIB_DIR)"
+
+OBJ_FILES   = $(BLD_INTDIR)\alloc.obj    $(BLD_INTDIR)\cfgread.obj   $(BLD_INTDIR)\crc32.obj\
+              $(BLD_INTDIR)\cstring.obj  $(BLD_INTDIR)\dynstring.obj $(BLD_INTDIR)\events.obj\
+              $(BLD_INTDIR)\logging.obj  $(BLD_INTDIR)\main.obj      $(BLD_INTDIR)\platwin.obj\
+              $(BLD_INTDIR)\template.obj $(BLD_INTDIR)\utils.obj
+
+RES_FILES   = $(BLD_INTDIR)\tools.res
+
+VERSION_RES = $(VERSION:.=,),0
+CFLAGS      = $(CFLAGS) "/DVERSION=$(VERSION)" "/DVERSION_RES=$(VERSION_RES)" $(INC_DIRS)
+LFLAGS      = $(LFLAGS) shlwapi.lib $(SQLITE_LIB) $(ZLIB_LIB)
+RFLAGS      = $(RFLAGS) "/DVERSION=$(VERSION)" "/DVERSION_RES=$(VERSION_RES)"
+
+# -------------------------------------------------------------------------
+
+{$(SRC_DIR)}.c{$(BLD_INTDIR)}.obj::
+    $(CC) -c $(CFLAGS) -Fo$(BLD_INTDIR)\ @<<
+$<
+<<
+
+{$(WIN_DIR)}.rc{$(BLD_INTDIR)}.res:
+	$(RC) $(RFLAGS) -fo $@ $<
+
+# -------------------------------------------------------------------------
+
+default: all
+
+all: setup $(BLD_OUTFILE)
+
+clean:
+    @IF EXIST "$(BLD_OUTFILE)" DEL /F "$(BLD_OUTFILE)"
+    @IF EXIST "$(BLD_INTDIR)" RMDIR /Q /S "$(BLD_INTDIR)"
+
+distclean: clean
+    @DEL *.obj *.pdb
+    @IF EXIST Debug RMDIR /Q /S Debug
+    @IF EXIST Release RMDIR /Q /S Release
+
+setup:
+    @IF NOT EXIST "$(BLD_OUTDIR)" MKDIR "$(BLD_OUTDIR)"
+    @IF NOT EXIST "$(BLD_INTDIR)" MKDIR "$(BLD_INTDIR)"
+
+$(BLD_OUTFILE): $(OBJ_FILES) $(RES_FILES)
+    $(LD) $(LFLAGS) /OUT:$@ @<<
+$**
+<<
+    @COPY /Y "$(SQLITE_DLL)" "$(BLD_OUTDIR)" > nul
+    @COPY /Y "$(ZLIB_DLL)" "$(BLD_OUTDIR)" > nul

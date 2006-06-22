@@ -1,0 +1,100 @@
+#
+# AlcoTools - Alcoholicz dupe checker, zipscript, and utilities.
+# Copyright (c) 2005-2006 Alcoholicz Scripting Team
+#
+# Module Name:
+#   Zlib Makefile
+#
+# Author:
+#   neoxed (neoxed@gmail.com) Mar 3, 2006
+#
+# Abstract:
+#   Build configuration file for NMAKE, or a compatible tool.
+#
+# Instructions:
+#   1. Download and unpack the latest Zlib v1.2.x source package.
+#
+#   2. Copy this makefile to the source directory.
+#
+#   3. Run: nmake -f makefile.zlib all
+#
+#   4. Copy the following files to another location for later use.
+#
+#      zlib.h
+#      zconf.h
+#      zlib.dll
+#      zlib.lib
+#      zlib-static.lib
+#
+
+## User settings
+DEBUG   = 0
+MSVCRT  = 0
+
+## Compiler settings
+CC      = cl
+AR      = lib
+LD      = link
+RC      = rc
+ARFLAGS = -nologo
+CFLAGS  = -nologo
+LFLAGS  = -nologo
+RCFLAGS = /r
+
+# -------------------------------------------------------------------------
+
+!if $(MSVCRT)
+!message
+!message CRT Library: msvcrt (dynamic)
+CRTLIB  = -MD
+!else
+!message CRT Library: libcmt (static)
+CRTLIB  = -MT
+!endif
+
+!if $(DEBUG)
+!message Debug Symbols: On
+CFLAGS  = $(CFLAGS) -Zi $(CRTLIB)d -DDEBUG
+LFLAGS  = $(LFLAGS) /DEBUG
+!else
+!message Debug Symbols: Off
+CFLAGS  = $(CFLAGS) -Ox -GF $(CRTLIB) -DNDEBUG
+LFLAGS  = $(LFLAGS) /RELEASE /OPT:REF
+!endif
+
+# -------------------------------------------------------------------------
+
+OBJ_FILES = adler32.obj compress.obj crc32.obj deflate.obj gzio.obj infback.obj\
+            inffast.obj inflate.obj inftrees.obj trees.obj uncompr.obj zutil.obj
+RES_FILES = zlib1.res
+
+.c.obj::
+    $(CC) -c $(CFLAGS) -Fo @<<
+$<
+<<
+
+zlib1.res: win32/zlib1.rc
+    $(RC) $(RCFLAGS) /fo$@ win32/zlib1.rc
+
+# -------------------------------------------------------------------------
+
+default: all
+
+all: dynamic static
+
+clean:
+    @del /f *.dll *.lib *.exp *.obj *.pdb
+
+dynamic: zlib.dll
+
+static: zlib-static.lib
+
+zlib.dll: $(OBJ_FILES) $(RES_FILES)
+    $(LD) $(LFLAGS) /DLL /DEF:win32\zlib.def -out:$@ @<<
+$**
+<<
+
+zlib-static.lib: $(OBJ_FILES)
+    $(AR) $(ARFLAGS) -out:$@ @<<
+$**
+<<
