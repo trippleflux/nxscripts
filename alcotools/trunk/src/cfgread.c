@@ -29,11 +29,11 @@ Abstract:
 #define TYPE_STRING     4
 
 // Forward type declarations.
-typedef struct ConfigKey ConfigKey;
-typedef struct ConfigSection ConfigSection;
+typedef struct CONFIG_KEY CONFIG_KEY;
+typedef struct CONFIG_SECTION CONFIG_SECTION;
 
-struct ConfigKey {
-    ConfigKey *next;     // Next key structure.
+struct CONFIG_KEY {
+    CONFIG_KEY *next;     // Next key structure.
     uint32_t  crc;       // CRC32 checksum of the key name.
     uint32_t  length;    // Length of the string for TYPE_STRING or
                          // number of array elements for TYPE_ARRAY.
@@ -46,50 +46,465 @@ struct ConfigKey {
     uint8_t type;        // Value type.
 };
 
-struct ConfigSection {
-    ConfigSection *next; // Next section structure.
-    ConfigKey     *keys; // Keys belonging to this section.
+struct CONFIG_SECTION {
+    CONFIG_SECTION *next; // Next section structure.
+    CONFIG_KEY     *keys; // Keys belonging to this section.
     uint32_t      crc;   // CRC32 checksum of the section name.
 };
 
-static ConfigSection *
-NewSection(
+static CONFIG_SECTION *sectionHead = NULL;
+static const tchar_t *configFile  = TEXT("AlcoTools.conf");
+
+
+/*++
+
+CreateSection
+
+    Creates a section structure and inserts it into the section list.
+
+Arguments:
+    sectionName   - Pointer to a string represeting the section's name.
+                    This string is NOT null terminated.
+
+    sectionLength - Length of the section name, in characters.
+
+Return Value:
+    If the function succeeds, the return value is a pointer to an allocated
+    "CONFIG_SECTION" structure. If the function fails, the return value is NULL.
+
+--*/
+static
+CONFIG_SECTION *
+CreateSection(
     tchar_t *sectionName,
     uint32_t sectionLength
-    );
+    )
+{
+    CONFIG_SECTION *section;
+    uint32_t sectionCrc;
+#ifdef UNICODE
+    char ansiName[MAX_LEN];
+    uint32_t ansiLength;
+#endif
 
-static void
-NewKey(
-    ConfigSection *section,
+    ASSERT(sectionName  != NULL);
+    ASSERT(sectionLength > 0);
+
+    // Calculate the CRC32 checksum of the section name.
+#ifdef UNICODE
+    ansiLength = (uint32_t)WideCharToMultiByte(CP_ACP, 0, sectionName,
+        (int)sectionLength, ansiName, ARRAYSIZE(ansiName), NULL, NULL);
+
+    sectionCrc = Crc32Memory(ansiName, ansiLength);
+#else
+    sectionCrc = Crc32Memory(sectionName, sectionLength);
+#endif // UNICODE
+
+    // Check if the section already exists.
+    for (section = sectionHead; section != NULL; section = section->next) {
+        if (section->crc == sectionCrc) {
+            return section;
+        }
+    }
+
+    // Allocate section structure and insert it into the list head.
+    section = MemAlloc(sizeof(CONFIG_SECTION));
+    if (section != NULL) {
+        section->crc  = sectionCrc;
+        section->keys = NULL;
+        section->next = sectionHead;
+        sectionHead   = section;
+    }
+    return section;
+}
+
+/*++
+
+CreateKey
+
+    Creates a key structure and inserts it into the section list.
+
+Arguments:
+    section     - Pointer to a section structure which the key belongs to.
+
+    keyName     - Pointer to a string represeting the key's name.
+                  This string is NOT null terminated.
+
+    keyLength   - Length of the key name, in characters.
+
+    value       - Pointer to a string represeting the key's value.
+                  This string is NOT null terminated.
+
+    valueLength - Length of the value, in characters.
+
+Return Value:
+    None.
+
+--*/
+static
+void
+CreateKey(
+    CONFIG_SECTION *section,
     tchar_t *keyName,
     uint32_t keyLength,
     tchar_t *value,
     uint32_t valueLength
-    );
+    )
+{
+    bool_t exists = FALSE;
+    CONFIG_KEY *key;
+    CONFIG_KEY *keyPrev;
+    uint32_t keyCrc;
+#ifdef UNICODE
+    char ansiName[MAX_LEN];
+    uint32_t ansiLength;
+#endif
 
-static ConfigKey *
+    ASSERT(section   != NULL);
+    ASSERT(keyName   != NULL);
+    ASSERT(keyLength  > 0);
+    ASSERT(value     != NULL);
+
+    // Remove trailing whitespace from the key name.
+    while (keyLength > 0 && ISSPACE(keyName[keyLength - 1])) {
+        keyLength--;
+    }
+
+    // Remove leading and trailing whitespace from the value.
+    while (valueLength > 0 && ISSPACE(*value)) {
+        value++;
+        valueLength--;
+    }
+    while (valueLength > 0 && ISSPACE(value[valueLength - 1])) {
+        valueLength--;
+    }
+
+    // Calculate the CRC32 checksum of the key name.
+#ifdef UNICODE
+    ansiLength = (uint32_t)WideCharToMultiByte(CP_ACP, 0, keyName,
+        (int)keyLength, ansiName, ARRAYSIZE(ansiName), NULL, NULL);
+
+    keyCrc = Crc32Memory(ansiName, ansiLength);
+#else
+    keyCrc = Crc32Memory(keyName, keyLength);
+#endif // UNICODE
+
+    // Check if the key already exists in the section.
+    keyPrev = NULL;
+    for (key = section->keys; key != NULL; key = key->next) {
+        if (key->crc == keyCrc) {
+            exists = TRUE;
+            break;
+        }
+        keyPrev = key;
+    }
+
+    if (!exists) {
+        key = MemAlloc(sizeof(CONFIG_KEY));
+        if (key == NULL) {
+            return;
+        }
+        // Initialise key structure.
+        key->value.string = MemAlloc((valueLength + 1) * sizeof(tchar_t));
+        if (key->value.string == NULL) {
+            MemFree(key);
+            return;
+        }
+        key->crc  = keyCrc;
+        key->type = TYPE_STRING;
+
+        // Insert key structure into the section's key list.
+        key->next     = section->keys;
+        section->keys = key;
+
+    } else if (key->length < valueLength) {
+        // Resize memory block to accommodate the larger string.
+        key->value.string = MemRealloc(key->value.string, (valueLength + 1) * sizeof(tchar_t));
+
+        if (key->value.string == NULL) {
+            // Remove key from the linked-list.
+            if (keyPrev != NULL) {
+                keyPrev->next = key->next;
+            }
+            if (section->keys == key) {
+                section->keys = key->next;
+            }
+            MemFree(key);
+            return;
+        }
+    }
+
+    // Update the key's value and length.
+    memcpy(key->value.string, value, valueLength * sizeof(tchar_t));
+    key->value.string[valueLength] = TEXT('\0');
+    key->length = valueLength;
+}
+
+/*++
+
+GetKey
+
+    Locates the data structure for the specified key.
+
+Arguments:
+    sectionName - Pointer to a null-terminated string that specifies the section name.
+
+    keyName     - Pointer to a null-terminated string that specifies the key name.
+
+Return Value:
+    If the key exists, the return value is a pointer to a "Configkey"
+    structure. If the key does not exist, the return value is NULL.
+
+--*/
+static
+CONFIG_KEY *
 GetKey(
     const char *sectionName,
     const char *keyName
-    );
+    )
+{
+    CONFIG_KEY *key;
+    CONFIG_SECTION *section;
+    uint32_t keyCrc;
+    uint32_t sectionCrc;
 
-static void
+    ASSERT(sectionName != NULL);
+    ASSERT(keyName     != NULL);
+
+    keyCrc = Crc32String(keyName);
+    sectionCrc = Crc32String(sectionName);
+    VERBOSE(TEXT("Looking up key 0x%08X in section 0x%08X.\n"), keyCrc, sectionCrc);
+
+    for (section = sectionHead; section != NULL; section = section->next) {
+        if (section->crc != sectionCrc) {
+            continue;
+        }
+
+        for (key = section->keys; key != NULL; key = key->next) {
+            if (key->crc == keyCrc) {
+                return key;
+            }
+        }
+    }
+
+    WARNING(TEXT("Could not find key \"%s\" in section \"%s\".\n"), keyCrc, sectionCrc);
+    return NULL;
+}
+
+/*++
+
+ParseArray
+
+    Parse the contents of a buffer into an array of null terminated strings.
+
+Arguments:
+    buffer      - The null terminated string to parse.
+
+    array       - Location to the array of pointers. This argument can be null.
+
+    elements    - Number of elements in the array.
+
+    data        - Location to store the elements. This argument can be null.
+
+    charCount   - Number of characters in the array elements.
+
+Return Value:
+    None.
+
+--*/
+static
+void
 ParseArray(
     tchar_t *buffer,
     tchar_t **array,
     uint32_t *elements,
     tchar_t *data,
     uint32_t *charCount
-    );
+    )
+{
+    bool_t copyChar;
+    bool_t inQuote = FALSE;
+    uint32_t slashCount;
 
+    ASSERT(buffer    != NULL);
+    ASSERT(elements  != NULL);
+    ASSERT(charCount != NULL);
+
+    *elements = 0;
+    *charCount = 0;
+
+    for (;;) {
+        // Ignore whitespace.
+        while (ISSPACE(*buffer)) {
+            buffer++;
+        }
+        if (*buffer == TEXT('\0')) {
+            break;
+        }
+        if (array != NULL) {
+            *array++ = data;
+        }
+        ++*elements;
+
+        // Process the array element.
+        for (;;) {
+            copyChar = TRUE;
+            slashCount = 0;
+
+            // Count the number of blackslashes.
+            while (*buffer == TEXT('\\')) {
+                buffer++;
+                slashCount++;
+            }
+
+            if (*buffer == TEXT('"')) {
+                if ((slashCount & 1) == 0) {
+                    if (inQuote && *buffer+1 == TEXT('"')) {
+                        // Double quote the inside string.
+                        buffer++;
+                    } else {
+                        // Skip the first quote and copy the second one.
+                        copyChar = FALSE;
+                        inQuote = !inQuote;
+                    }
+                }
+                slashCount /= 2;
+            }
+
+            // Append backslashes to the array element.
+            while (slashCount--) {
+                if (data != NULL) {
+                    *data++ = TEXT('\\');
+                }
+                ++*charCount;
+            }
+
+            // Check if we have reached the end of the input buffer or found
+            // the next array element (whitespace outside of quote characters).
+            if (*buffer == TEXT('\0') || (!inQuote && ISSPACE(*buffer))) {
+                break;
+            }
+
+            if (copyChar) {
+                if (data != NULL) {
+                    *data++ = *buffer;
+                }
+                ++*charCount;
+            }
+            buffer++;
+        }
+
+        if (data != NULL) {
+            // Null terminate the array element.
+            *data++ = TEXT('\0');
+        }
+        ++*charCount;
+    }
+}
+
+/*++
+
+ParseBuffer
+
+    Parse the buffered contents of a configuration file.
+
+Arguments:
+    buffer  - Contents of the configuration file.
+
+    length  - Length of the buffer, in characters.
+
+Return Value:
+    None.
+
+--*/
 static void
 ParseBuffer(
     tchar_t *buffer,
     uint32_t length
-    );
+    )
+{
+    CONFIG_SECTION *section;
+    tchar_t *bufferEnd;
+    tchar_t *name;
+    tchar_t *value;
+    uint32_t nameLength;
 
-static ConfigSection *sectionHead = NULL;
-static const tchar_t *configFile  = TEXT("AlcoTools.conf");
+    bufferEnd = buffer + length;
+    section = NULL;
+
+    for (; buffer < bufferEnd; buffer++) {
+        switch (*buffer) {
+            case TEXT('#'):
+                // Ignore commented lines.
+                while (buffer < bufferEnd && !ISEOL(*buffer)) {
+                    buffer++;
+                }
+                break;
+            case TEXT(' '):
+            case TEXT('\t'):
+            case TEXT('\n'):
+            case TEXT('\r'):
+                // Ignore whitespace and EOL characters.
+                break;
+            case TEXT('['):
+                name = buffer+1;
+                nameLength = 0;
+
+                // Retrieve the section name.
+                while (buffer < bufferEnd && !ISEOL(*buffer)) {
+                    buffer++;
+
+                    //
+                    // Update the length of the section's name everytime a
+                    // closing bracket is found. This allows the parser to
+                    // handle section names containing brackets.
+                    //
+                    // For example, the name of "[[[Foo]]]" would be "[[Foo]]".
+                    //
+                    if (*buffer == TEXT(']')) {
+                        nameLength = (uint32_t)(buffer - name);
+                    }
+                }
+
+                if (nameLength > 0) {
+                    section = CreateSection(name, nameLength);
+                } else {
+                    // Invalid section name.
+                    section = NULL;
+                }
+                break;
+            default:
+                name = buffer;
+                nameLength = 0;
+
+                // Retrieve the key name.
+                while (buffer < bufferEnd && !ISEOL(*buffer)) {
+                    buffer++;
+
+                    // Stop when a key/value separator is found (i.e. equal sign).
+                    if (*buffer == TEXT('=')) {
+                        nameLength = (uint32_t)(buffer - name);
+                        break;
+                    }
+                }
+
+                if (nameLength > 0) {
+                    value = buffer;
+                    while (buffer < bufferEnd && !ISEOL(*buffer)) {
+                        buffer++;
+                    }
+
+                    // Make sure the key was found in a valid section.
+                    if (section != NULL) {
+                        // Skip past the key/value separator.
+                        value++;
+                        CreateKey(section, name, nameLength, value, (uint32_t)(buffer - value));
+                    }
+                }
+                break;
+        }
+    }
+}
 
 
 /*++
@@ -278,7 +693,7 @@ ConfigGetArray(
     uint32_t *elements
     )
 {
-    ConfigKey *key;
+    CONFIG_KEY *key;
     tchar_t **buffer;
     tchar_t *offset;
     uint32_t bufferChars;
@@ -354,7 +769,7 @@ ConfigGetBool(
     bool_t *boolean
     )
 {
-    ConfigKey *key;
+    CONFIG_KEY *key;
     uint8_t i;
     static const tchar_t text[] = TEXT("01onoffalseyestrue");
     static const struct {
@@ -430,7 +845,7 @@ ConfigGetInt(
     uint32_t *integer
     )
 {
-    ConfigKey *key;
+    CONFIG_KEY *key;
     uint32_t value;
 
     ASSERT(sectionName != NULL);
@@ -493,7 +908,7 @@ ConfigGetString(
     uint32_t *length
     )
 {
-    ConfigKey *key;
+    CONFIG_KEY *key;
 
     ASSERT(sectionName != NULL);
     ASSERT(keyName     != NULL);
@@ -516,450 +931,4 @@ ConfigGetString(
     // Only convert from strings.
     ASSERT(0);
     return ALCOHOL_ERROR;
-}
-
-/*++
-
-NewSection
-
-    Creates a section structure and inserts it into the section list.
-
-Arguments:
-    sectionName   - Pointer to a string represeting the section's name.
-                    This string is NOT null terminated.
-
-    sectionLength - Length of the section name, in characters.
-
-Return Value:
-    If the function succeeds, the return value is a pointer to an allocated
-    "ConfigSection" structure. If the function fails, the return value is NULL.
-
---*/
-static ConfigSection *
-NewSection(
-    tchar_t *sectionName,
-    uint32_t sectionLength
-    )
-{
-    ConfigSection *section;
-    uint32_t sectionCrc;
-#ifdef UNICODE
-    char ansiName[MAX_LEN];
-    uint32_t ansiLength;
-#endif
-
-    ASSERT(sectionName  != NULL);
-    ASSERT(sectionLength > 0);
-
-    // Calculate the CRC32 checksum of the section name.
-#ifdef UNICODE
-    ansiLength = (uint32_t)WideCharToMultiByte(CP_ACP, 0, sectionName,
-        (int)sectionLength, ansiName, ARRAYSIZE(ansiName), NULL, NULL);
-
-    sectionCrc = Crc32Memory(ansiName, ansiLength);
-#else
-    sectionCrc = Crc32Memory(sectionName, sectionLength);
-#endif // UNICODE
-
-    // Check if the section already exists.
-    for (section = sectionHead; section != NULL; section = section->next) {
-        if (section->crc == sectionCrc) {
-            return section;
-        }
-    }
-
-    // Allocate section structure and insert it into the list head.
-    section = MemAlloc(sizeof(ConfigSection));
-    if (section != NULL) {
-        section->crc  = sectionCrc;
-        section->keys = NULL;
-        section->next = sectionHead;
-        sectionHead   = section;
-    }
-    return section;
-}
-
-/*++
-
-NewKey
-
-    Creates a key structure and inserts it into the section list.
-
-Arguments:
-    section     - Pointer to a section structure which the key belongs to.
-
-    keyName     - Pointer to a string represeting the key's name.
-                  This string is NOT null terminated.
-
-    keyLength   - Length of the key name, in characters.
-
-    value       - Pointer to a string represeting the key's value.
-                  This string is NOT null terminated.
-
-    valueLength - Length of the value, in characters.
-
-Return Value:
-    None.
-
---*/
-static void
-NewKey(
-    ConfigSection *section,
-    tchar_t *keyName,
-    uint32_t keyLength,
-    tchar_t *value,
-    uint32_t valueLength
-    )
-{
-    bool_t exists = FALSE;
-    ConfigKey *key;
-    ConfigKey *keyPrev;
-    uint32_t keyCrc;
-#ifdef UNICODE
-    char ansiName[MAX_LEN];
-    uint32_t ansiLength;
-#endif
-
-    ASSERT(section   != NULL);
-    ASSERT(keyName   != NULL);
-    ASSERT(keyLength  > 0);
-    ASSERT(value     != NULL);
-
-    // Remove trailing whitespace from the key name.
-    while (keyLength > 0 && ISSPACE(keyName[keyLength - 1])) {
-        keyLength--;
-    }
-
-    // Remove leading and trailing whitespace from the value.
-    while (valueLength > 0 && ISSPACE(*value)) {
-        value++;
-        valueLength--;
-    }
-    while (valueLength > 0 && ISSPACE(value[valueLength - 1])) {
-        valueLength--;
-    }
-
-    // Calculate the CRC32 checksum of the key name.
-#ifdef UNICODE
-    ansiLength = (uint32_t)WideCharToMultiByte(CP_ACP, 0, keyName,
-        (int)keyLength, ansiName, ARRAYSIZE(ansiName), NULL, NULL);
-
-    keyCrc = Crc32Memory(ansiName, ansiLength);
-#else
-    keyCrc = Crc32Memory(keyName, keyLength);
-#endif // UNICODE
-
-    // Check if the key already exists in the section.
-    keyPrev = NULL;
-    for (key = section->keys; key != NULL; key = key->next) {
-        if (key->crc == keyCrc) {
-            exists = TRUE;
-            break;
-        }
-        keyPrev = key;
-    }
-
-    if (!exists) {
-        key = MemAlloc(sizeof(ConfigKey));
-        if (key == NULL) {
-            return;
-        }
-        // Initialise key structure.
-        key->value.string = MemAlloc((valueLength + 1) * sizeof(tchar_t));
-        if (key->value.string == NULL) {
-            MemFree(key);
-            return;
-        }
-        key->crc  = keyCrc;
-        key->type = TYPE_STRING;
-
-        // Insert key structure into the section's key list.
-        key->next     = section->keys;
-        section->keys = key;
-
-    } else if (key->length < valueLength) {
-        // Resize memory block to accommodate the larger string.
-        key->value.string = MemRealloc(key->value.string, (valueLength + 1) * sizeof(tchar_t));
-
-        if (key->value.string == NULL) {
-            // Remove key from the linked-list.
-            if (keyPrev != NULL) {
-                keyPrev->next = key->next;
-            }
-            if (section->keys == key) {
-                section->keys = key->next;
-            }
-            MemFree(key);
-            return;
-        }
-    }
-
-    // Update the key's value and length.
-    memcpy(key->value.string, value, valueLength * sizeof(tchar_t));
-    key->value.string[valueLength] = TEXT('\0');
-    key->length = valueLength;
-}
-
-/*++
-
-GetKey
-
-    Locates the data structure for the specified key.
-
-Arguments:
-    sectionName - Pointer to a null-terminated string that specifies the section name.
-
-    keyName     - Pointer to a null-terminated string that specifies the key name.
-
-Return Value:
-    If the key exists, the return value is a pointer to a "Configkey"
-    structure. If the key does not exist, the return value is NULL.
-
---*/
-static ConfigKey *
-GetKey(
-    const char *sectionName,
-    const char *keyName
-    )
-{
-    ConfigKey *key;
-    ConfigSection *section;
-    uint32_t keyCrc;
-    uint32_t sectionCrc;
-
-    ASSERT(sectionName != NULL);
-    ASSERT(keyName     != NULL);
-
-    keyCrc = Crc32String(keyName);
-    sectionCrc = Crc32String(sectionName);
-    VERBOSE(TEXT("Looking up key 0x%08X in section 0x%08X.\n"), keyCrc, sectionCrc);
-
-    for (section = sectionHead; section != NULL; section = section->next) {
-        if (section->crc != sectionCrc) {
-            continue;
-        }
-
-        for (key = section->keys; key != NULL; key = key->next) {
-            if (key->crc == keyCrc) {
-                return key;
-            }
-        }
-    }
-
-    WARNING(TEXT("Could not find key \"%s\" in section \"%s\".\n"), keyCrc, sectionCrc);
-    return NULL;
-}
-
-/*++
-
-ParseArray
-
-    Parse the contents of a buffer into an array of null terminated strings.
-
-Arguments:
-    buffer      - The null terminated string to parse.
-
-    array       - Location to the array of pointers. This argument can be null.
-
-    elements    - Number of elements in the array.
-
-    data        - Location to store the elements. This argument can be null.
-
-    charCount   - Number of characters in the array elements.
-
-Return Value:
-    None.
-
---*/
-static void
-ParseArray(
-    tchar_t *buffer,
-    tchar_t **array,
-    uint32_t *elements,
-    tchar_t *data,
-    uint32_t *charCount
-    )
-{
-    bool_t copyChar;
-    bool_t inQuote = FALSE;
-    uint32_t slashCount;
-
-    ASSERT(buffer    != NULL);
-    ASSERT(elements  != NULL);
-    ASSERT(charCount != NULL);
-
-    *elements = 0;
-    *charCount = 0;
-
-    for (;;) {
-        // Ignore whitespace.
-        while (ISSPACE(*buffer)) {
-            buffer++;
-        }
-        if (*buffer == TEXT('\0')) {
-            break;
-        }
-        if (array != NULL) {
-            *array++ = data;
-        }
-        ++*elements;
-
-        // Process the array element.
-        for (;;) {
-            copyChar = TRUE;
-            slashCount = 0;
-
-            // Count the number of blackslashes.
-            while (*buffer == TEXT('\\')) {
-                buffer++;
-                slashCount++;
-            }
-
-            if (*buffer == TEXT('"')) {
-                if ((slashCount & 1) == 0) {
-                    if (inQuote && *buffer+1 == TEXT('"')) {
-                        // Double quote the inside string.
-                        buffer++;
-                    } else {
-                        // Skip the first quote and copy the second one.
-                        copyChar = FALSE;
-                        inQuote = !inQuote;
-                    }
-                }
-                slashCount /= 2;
-            }
-
-            // Append backslashes to the array element.
-            while (slashCount--) {
-                if (data != NULL) {
-                    *data++ = TEXT('\\');
-                }
-                ++*charCount;
-            }
-
-            // Check if we have reached the end of the input buffer or found
-            // the next array element (whitespace outside of quote characters).
-            if (*buffer == TEXT('\0') || (!inQuote && ISSPACE(*buffer))) {
-                break;
-            }
-
-            if (copyChar) {
-                if (data != NULL) {
-                    *data++ = *buffer;
-                }
-                ++*charCount;
-            }
-            buffer++;
-        }
-
-        if (data != NULL) {
-            // Null terminate the array element.
-            *data++ = TEXT('\0');
-        }
-        ++*charCount;
-    }
-}
-
-/*++
-
-ParseBuffer
-
-    Parse the buffered contents of a configuration file.
-
-Arguments:
-    buffer  - Contents of the configuration file.
-
-    length  - Length of the buffer, in characters.
-
-Return Value:
-    None.
-
---*/
-static void
-ParseBuffer(
-    tchar_t *buffer,
-    uint32_t length
-    )
-{
-    ConfigSection *section;
-    tchar_t *bufferEnd;
-    tchar_t *name;
-    tchar_t *value;
-    uint32_t nameLength;
-
-    bufferEnd = buffer + length;
-    section = NULL;
-
-    for (; buffer < bufferEnd; buffer++) {
-        switch (*buffer) {
-            case TEXT('#'):
-                // Ignore commented lines.
-                while (buffer < bufferEnd && !ISEOL(*buffer)) {
-                    buffer++;
-                }
-                break;
-            case TEXT(' '):
-            case TEXT('\t'):
-            case TEXT('\n'):
-            case TEXT('\r'):
-                // Ignore whitespace and EOL characters.
-                break;
-            case TEXT('['):
-                name = buffer+1;
-                nameLength = 0;
-
-                // Retrieve the section name.
-                while (buffer < bufferEnd && !ISEOL(*buffer)) {
-                    buffer++;
-
-                    //
-                    // Update the length of the section's name everytime a
-                    // closing bracket is found. This allows the parser to
-                    // handle section names containing brackets.
-                    //
-                    // For example, the name of "[[[Foo]]]" would be "[[Foo]]".
-                    //
-                    if (*buffer == TEXT(']')) {
-                        nameLength = (uint32_t)(buffer - name);
-                    }
-                }
-
-                if (nameLength > 0) {
-                    section = NewSection(name, nameLength);
-                } else {
-                    // Invalid section name.
-                    section = NULL;
-                }
-                break;
-            default:
-                name = buffer;
-                nameLength = 0;
-
-                // Retrieve the key name.
-                while (buffer < bufferEnd && !ISEOL(*buffer)) {
-                    buffer++;
-
-                    // Stop when a key/value separator is found (i.e. equal sign).
-                    if (*buffer == TEXT('=')) {
-                        nameLength = (uint32_t)(buffer - name);
-                        break;
-                    }
-                }
-
-                if (nameLength > 0) {
-                    value = buffer;
-                    while (buffer < bufferEnd && !ISEOL(*buffer)) {
-                        buffer++;
-                    }
-
-                    // Make sure the key was found in a valid section.
-                    if (section != NULL) {
-                        // Skip past the key/value separator.
-                        value++;
-                        NewKey(section, name, nameLength, value, (uint32_t)(buffer - value));
-                    }
-                }
-                break;
-        }
-    }
 }
