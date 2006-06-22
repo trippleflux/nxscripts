@@ -17,15 +17,11 @@ Abstract:
 #ifndef _ALCOHOLICZ_H_
 #define _ALCOHOLICZ_H_
 
-#ifdef HAVE_CONFIG_H
-#   include "config.h"
-#endif
-
 //
 // Alcohol status codes
 //
 
-enum {
+typedef enum {
     ALCOHOL_OK = 0,
     ALCOHOL_ERROR,
     ALCOHOL_INSUFFICIENT_BUFFER,
@@ -33,7 +29,15 @@ enum {
     ALCOHOL_INVALID_DATA,
     ALCOHOL_INVALID_PARAMETER,
     ALCOHOL_UNKNOWN
-};
+} ALCOHOL;
+
+//
+// Common includes
+//
+
+#ifdef HAVE_CONFIG_H
+#   include "config.h"
+#endif
 
 #include "buildopts.h"
 #include "platform.h"

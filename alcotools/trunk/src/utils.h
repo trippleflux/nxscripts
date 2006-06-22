@@ -33,29 +33,19 @@ Abstract:
 #undef MAX
 #undef MIN
 
-//
 // ARRAYSIZE - Returns the number of entries in an array.
-//
 #define ARRAYSIZE(a)    (sizeof(a) / sizeof(a[0]))
 
-//
 // ISEOL - Test if the given character marks the end of a line.
-//
 #define ISEOL(ch)       ((ch) == TEXT('\n') || (ch) == TEXT('\r'))
 
-//
 // ISSPACE - Test if the given character is a space or a tab.
-//
 #define ISSPACE(ch)     ((ch) == TEXT(' ') || (ch) == TEXT('\t'))
 
-//
 // MAX - Returns the maximum of two numeric values.
-//
 #define MAX(a, b)       (((a) > (b)) ? (a) : (b))
 
-//
 // MIN - Returns the minimum of two numeric values.
-//
 #define MIN(a, b)       (((a) < (b)) ? (a) : (b))
 
 

@@ -24,14 +24,14 @@ typedef struct {
 } DynString;
 
 //
-// Macros for accessing member of a "DynString" structure.
+// Macros for accessing members of the "DynString" structure.
 //
 
 #define DynStringGet(dynStr)    ((dynStr)->value)
 #define DynStringLength(dynStr) ((dynStr)->length)
 
 //
-// Creating and deleting dynamic strings.
+// Functions for creating and deleting dynamic strings.
 //
 
 DynString *
@@ -56,7 +56,7 @@ DynStringDestroy(
     );
 
 //
-// Manipulating dynamic strings.
+// Functions for manipulating dynamic strings.
 //
 
 int
