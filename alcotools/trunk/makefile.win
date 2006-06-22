@@ -135,7 +135,7 @@ ZLIB_LIB    = "$(ZLIB_IMPORT)"
 
 # -------------------------------------------------------------------------
 
-BLD_OUTFILE = $(BLD_OUTDIR)\alcotools.exe
+BLD_OUTFILE = $(BLD_OUTDIR)\AlcoTools.exe
 BLD_INTDIR  = $(BLD_OUTDIR)\$(BLD_OPTIONS:, =)
 
 INC_DIRS    = /I "$(SQLITE_DIR)" /I "$(ZLIB_DIR)"

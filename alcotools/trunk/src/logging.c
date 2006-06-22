@@ -23,7 +23,6 @@ Abstract:
 static FILE *logHandle = NULL;
 
 // Default log file and verbosity level.
-static tchar_t  *logFile    = TEXT("AlcoTools.log");
 static uint32_t maxLogLevel = LOG_LEVEL_VERBOSE;
 
 
@@ -55,7 +54,7 @@ LogInit(
         return TRUE;
     }
 
-    logHandle = t_fopen(logFile, TEXT("a"));
+    logHandle = t_fopen(TEXT(LOG_FILE), TEXT("a"));
     if (logHandle != NULL) {
         t_fputc(TEXT('\n'), logHandle);
         return TRUE;

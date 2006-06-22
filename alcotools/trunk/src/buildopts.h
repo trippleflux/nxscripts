@@ -49,4 +49,20 @@ Abstract:
 #   endif
 #endif // DEBUG
 
+//
+// CONFIG_FILE  <string>
+//  - Configuration file name.
+//
+#ifndef CONFIG_FILE
+#   define CONFIG_FILE      "AlcoTools.conf"
+#endif
+
+//
+// LOG_FILE     <string>
+//  - Log file name.
+//
+#ifndef LOG_FILE
+#   define LOG_FILE         "AlcoTools.log"
+#endif
+
 #endif // _ALCOCONSTANTS_H_

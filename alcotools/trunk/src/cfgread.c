@@ -58,8 +58,6 @@ SLIST_HEAD(CONFIG_SECTION_HEAD, CONFIG_SECTION);
 // Section structure list head
 static CONFIG_SECTION_HEAD sectionHead = SLIST_HEAD_INITIALIZER(sectionHead);
 
-static const tchar_t *configFile  = TEXT("AlcoTools.conf");
-
 
 /*++
 
@@ -534,7 +532,7 @@ ConfigInit(
     wchar_t *wideBuffer = NULL;
 #endif
 
-    handle = FileOpen(configFile, FACCESS_READ, FEXIST_PRESENT, FOPTION_SEQUENTIAL);
+    handle = FileOpen(TEXT(CONFIG_FILE), FACCESS_READ, FEXIST_PRESENT, FOPTION_SEQUENTIAL);
     if (handle == INVALID_HANDLE_VALUE) {
         return FALSE;
     }
