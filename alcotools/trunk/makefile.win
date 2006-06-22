@@ -52,20 +52,17 @@ CFLAGS      = $(CFLAGS) /DSTATIC_CRT
 
 !if "$(DEBUG)" == "1"
 !message *** Option: Debug Symbols
-BLD_OPTIONS = Debug
-BLD_OUTDIR  = Debug
+OUT_DIR     = Debug
 CFLAGS      = $(CFLAGS) /Zi $(CRTLIB)d /DDEBUG
 LFLAGS      = $(LFLAGS) /DEBUG
 !else
-BLD_OPTIONS = Release
-BLD_OUTDIR  = Release
+OUT_DIR     = Release
 CFLAGS      = $(CFLAGS) /Ox /GF /GL /GS- $(CRTLIB) /DNDEBUG
 LFLAGS      = $(LFLAGS) /RELEASE /LTCG:STATUS /OPT:NOWIN98 /OPT:REF
 !endif
 
 !if "$(MEMDEBUG)" == "1"
 !message *** Option: Memory Debugging
-BLD_OPTIONS = $(BLD_OPTIONS), Memory
 CFLAGS      = $(CFLAGS) /DDEBUG_MEMORY=1
 !endif
 
@@ -74,6 +71,8 @@ CFLAGS      = $(CFLAGS) /DDEBUG_MEMORY=1
 !if !exist("makefile.win")
 !error You must run this makefile from the directory it is located in.
 !endif
+
+# -------------------------------------------------------------------------
 
 !if !defined(SQLITE_DIR)
 !error Unable to find SQLite files; the SQLITE_DIR variable is not set.
@@ -135,17 +134,17 @@ ZLIB_LIB    = "$(ZLIB_IMPORT)"
 
 # -------------------------------------------------------------------------
 
-BLD_OUTFILE = $(BLD_OUTDIR)\AlcoTools.exe
-BLD_INTDIR  = $(BLD_OUTDIR)\$(BLD_OPTIONS:, =)
+OUT_FILE    = $(OUT_DIR)\AlcoTools.exe
+TMP_DIR     = $(OUT_DIR)\tmp
 
 INC_DIRS    = /I "$(SQLITE_DIR)" /I "$(ZLIB_DIR)"
 
-OBJ_FILES   = $(BLD_INTDIR)\alloc.obj    $(BLD_INTDIR)\cfgread.obj   $(BLD_INTDIR)\crc32.obj\
-              $(BLD_INTDIR)\cstring.obj  $(BLD_INTDIR)\dynstring.obj $(BLD_INTDIR)\events.obj\
-              $(BLD_INTDIR)\logging.obj  $(BLD_INTDIR)\main.obj      $(BLD_INTDIR)\platwin.obj\
-              $(BLD_INTDIR)\template.obj $(BLD_INTDIR)\utils.obj
+OBJ_FILES   = $(TMP_DIR)\alloc.obj    $(TMP_DIR)\cfgread.obj   $(TMP_DIR)\crc32.obj\
+              $(TMP_DIR)\cstring.obj  $(TMP_DIR)\dynstring.obj $(TMP_DIR)\events.obj\
+              $(TMP_DIR)\logging.obj  $(TMP_DIR)\main.obj      $(TMP_DIR)\platwin.obj\
+              $(TMP_DIR)\template.obj $(TMP_DIR)\utils.obj
 
-RES_FILES   = $(BLD_INTDIR)\tools.res
+RES_FILES   = $(TMP_DIR)\tools.res
 
 VERSION_RES = $(VERSION:.=,),0
 CFLAGS      = $(CFLAGS) "/DVERSION=$(VERSION)" "/DVERSION_RES=$(VERSION_RES)" $(INC_DIRS)
@@ -154,36 +153,36 @@ RFLAGS      = $(RFLAGS) "/DVERSION=$(VERSION)" "/DVERSION_RES=$(VERSION_RES)"
 
 # -------------------------------------------------------------------------
 
-{$(SRC_DIR)}.c{$(BLD_INTDIR)}.obj::
-    $(CC) -c $(CFLAGS) -Fo$(BLD_INTDIR)\ @<<
+{$(SRC_DIR)}.c{$(TMP_DIR)}.obj::
+    $(CC) -c $(CFLAGS) -Fo$(TMP_DIR)\ @<<
 $<
 <<
 
-{$(WIN_DIR)}.rc{$(BLD_INTDIR)}.res:
+{$(WIN_DIR)}.rc{$(TMP_DIR)}.res:
 	$(RC) $(RFLAGS) -fo $@ $<
 
 # -------------------------------------------------------------------------
 
 default: all
 
-all: setup $(BLD_OUTFILE)
+all: setup $(OUT_FILE)
 
 clean:
     @DEL *.cod *.ilk *.obj *.pdb
-    @IF EXIST "$(BLD_OUTFILE)" DEL /F "$(BLD_OUTFILE)"
-    @IF EXIST "$(BLD_INTDIR)" RMDIR /Q /S "$(BLD_INTDIR)"
+    @IF EXIST "$(OUT_FILE)" DEL /F "$(OUT_FILE)"
+    @IF EXIST "$(TMP_DIR)" RMDIR /Q /S "$(TMP_DIR)"
 
 distclean: clean
     @IF EXIST Debug RMDIR /Q /S Debug
     @IF EXIST Release RMDIR /Q /S Release
 
 setup:
-    @IF NOT EXIST "$(BLD_OUTDIR)" MKDIR "$(BLD_OUTDIR)"
-    @IF NOT EXIST "$(BLD_INTDIR)" MKDIR "$(BLD_INTDIR)"
+    @IF NOT EXIST "$(OUT_DIR)" MKDIR "$(OUT_DIR)"
+    @IF NOT EXIST "$(TMP_DIR)" MKDIR "$(TMP_DIR)"
 
-$(BLD_OUTFILE): $(OBJ_FILES) $(RES_FILES)
+$(OUT_FILE): $(OBJ_FILES) $(RES_FILES)
     $(LD) $(LFLAGS) /OUT:$@ @<<
 $**
 <<
-    @COPY /Y "$(SQLITE_DLL)" "$(BLD_OUTDIR)" > nul
-    @COPY /Y "$(ZLIB_DLL)" "$(BLD_OUTDIR)" > nul
+    @COPY /Y "$(SQLITE_DLL)" "$(OUT_DIR)" > nul
+    @COPY /Y "$(ZLIB_DLL)" "$(OUT_DIR)" > nul
