@@ -49,13 +49,4 @@ Abstract:
 #   endif
 #endif // DEBUG
 
-//
-// SEPARATE_HEAP <TRUE/FALSE>
-//  - Create a separate heap for memory allocations (Windows only).
-//  - If this option is defined as false, the process's heap is used.
-//
-#ifndef SEPARATE_HEAP
-#   define SEPARATE_HEAP    FALSE
-#endif
-
 #endif // _ALCOCONSTANTS_H_

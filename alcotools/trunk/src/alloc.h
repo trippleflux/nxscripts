@@ -45,10 +45,10 @@ MemFree(
 
 #if (DEBUG_MEMORY == TRUE)
 
-typedef struct MemoryRecord MemoryRecord;
-struct MemoryRecord {
-    MemoryRecord  *next;   // Pointer to the next record
-    MemoryRecord  *prev;   // Pointer to the previous record
+typedef struct MEM_RECORD MEM_RECORD;
+struct MEM_RECORD {
+    MEM_RECORD  *next;   // Pointer to the next record
+    MEM_RECORD  *prev;   // Pointer to the previous record
     const tchar_t *file;   // Pointer to a buffer containing the file name
     void          *memory; // Pointer to a block of allocated memory
     size_t        size;    // Size of the allocated block, in bytes
@@ -63,14 +63,14 @@ MemRecordCreate(
     int line
     );
 
-MemoryRecord *
+MEM_RECORD *
 MemRecordGet(
     void *memory
     );
 
 void
 MemRecordDelete(
-    MemoryRecord *record
+    MEM_RECORD *record
     );
 
 void *

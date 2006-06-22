@@ -22,13 +22,20 @@ static HANDLE memHeap = NULL;
 #endif
 
 #if (DEBUG_MEMORY == TRUE)
-static MemoryRecord *recordHead = NULL; // Memory record list head.
-static size_t allocatedCurrent  = 0;    // Bytes allocated currently.
-static size_t allocatedPeak     = 0;    // Peak of allocated bytes.
-static size_t allocatedTotal    = 0;    // Bytes allocated in total.
-static size_t totalAllocs       = 0;    // Number of successful allocs.
-static size_t totalFrees        = 0;    // Number of successful frees.
-static size_t totalReallocs     = 0;    // Number of successful reallocs.
+//
+// Memory allocation record list
+//
+static MEM_RECORD *recordHead  = NULL;
+
+//
+// Memory allocation statistics
+//
+static size_t allocatedCurrent = 0; // Bytes allocated currently
+static size_t allocatedPeak    = 0; // Peak of allocated bytes
+static size_t allocatedTotal   = 0; // Bytes allocated in total
+static size_t totalAllocs      = 0; // Number of successful allocs
+static size_t totalFrees       = 0; // Number of successful frees
+static size_t totalReallocs    = 0; // Number of successful reallocs
 #endif // DEBUG_MEMORY
 
 
@@ -56,12 +63,7 @@ MemInit(
     // The memory subsystem should be initialised once.
     ASSERT(memHeap == NULL);
 
-#if (SEPARATE_HEAP == TRUE)
-    memHeap = HeapCreate(HEAP_NO_SERIALIZE, 256 * 1024, 0);
-#else
     memHeap = GetProcessHeap();
-#endif // SEPARATE_HEAP
-
     return (memHeap != NULL) ? TRUE : FALSE;
 #else
     return TRUE;
@@ -95,7 +97,7 @@ MemFinalise(
 
 #if (DEBUG_MEMORY == TRUE)
     if (recordHead != NULL) {
-        MemoryRecord *recordNext;
+        MEM_RECORD *recordNext;
 
         ERROR(TEXT(".--------------------------------------------------------------------.\n"));
         ERROR(TEXT("|                        Memory Leak Detected                        |\n"));
@@ -129,15 +131,8 @@ MemFinalise(
 #endif // DEBUG_MEMORY
 
 #ifdef WINDOWS
-
-#if (SEPARATE_HEAP == TRUE)
-    if (!HeapDestroy(memHeap)) {
-        ERROR(TEXT("Unable to destroy heap: %s\n"), GetSystemErrorMessage());
-    }
-#endif // SEPARATE_HEAP
-
     memHeap = NULL;
-#endif // WINDOWS
+#endif
 }
 
 #if (DEBUG_MEMORY == TRUE)
@@ -170,19 +165,19 @@ MemRecordCreate(
     int line
     )
 {
-    MemoryRecord *record;
+    MEM_RECORD *record;
 
     ASSERT(memory != NULL);
 
 #ifdef WINDOWS
     ASSERT(memHeap != NULL);
-    record = HeapAlloc(memHeap, 0, sizeof(MemoryRecord));
+    record = HeapAlloc(memHeap, 0, sizeof(MEM_RECORD));
 #else
-    record = malloc(sizeof(MemoryRecord));
+    record = malloc(sizeof(MEM_RECORD));
 #endif
     if (record == NULL) {
         Panic(TEXT("Unable to allocate %lu bytes for memory record: %s\n"),
-            sizeof(MemoryRecord), GetSystemErrorMessage());
+            sizeof(MEM_RECORD), GetSystemErrorMessage());
     }
 
     // Insert memory allocation record at the list head.
@@ -217,12 +212,12 @@ Remarks:
     The block of memory must be registered by MemRecordCreate.
 
 --*/
-MemoryRecord *
+MEM_RECORD *
 MemRecordGet(
     void *memory
     )
 {
-    MemoryRecord *record;
+    MEM_RECORD *record;
 
     ASSERT(memory != NULL);
 
@@ -249,7 +244,7 @@ Return Value:
 --*/
 void
 MemRecordDelete(
-    MemoryRecord *record
+    MEM_RECORD *record
     )
 {
     ASSERT(record != NULL);
@@ -353,7 +348,7 @@ MemDebugRealloc(
     int line
     )
 {
-    MemoryRecord *record;
+    MEM_RECORD *record;
 
     ASSERT(memory != NULL);
     if (memory == NULL) {
@@ -427,7 +422,7 @@ MemDebugFree(
     int line
     )
 {
-    MemoryRecord *record;
+    MEM_RECORD *record;
 
     ASSERT(memory != NULL);
     if (memory == NULL) {
