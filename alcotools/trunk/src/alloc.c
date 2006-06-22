@@ -21,7 +21,7 @@ Abstract:
 // Memory allocation record list
 //
 LIST_HEAD(MEM_RECORD_HEAD, MEM_RECORD);
-struct MEM_RECORD_HEAD recordHead = LIST_HEAD_INITIALIZER(recordHead);
+static struct recordHead = LIST_HEAD_INITIALIZER(recordHead);
 
 //
 // Memory allocation statistics
@@ -342,15 +342,17 @@ MemDebugRealloc(
         // Remove memory record since the allocation failed.
         MemRecordDelete(record);
     } else {
-        // Update memory statistics.
-        allocatedCurrent += (size - record->size);
-        allocatedTotal   += (size - record->size);
+        // Update memory statistics
+        allocatedCurrent -= record->size;
+        allocatedCurrent += size;
+        allocatedTotal   -= record->size;
+        allocatedTotal   += size;
         if (allocatedCurrent > allocatedPeak) {
             allocatedPeak = allocatedCurrent;
         }
         totalReallocs++;
 
-        // Update record.
+        // Update record
         record->memory = memory;
         record->size   = size;
         record->file   = file;
