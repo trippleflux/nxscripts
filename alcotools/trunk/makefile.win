@@ -17,7 +17,10 @@
 #   Options:
 #     DEBUG      - Toggle symbolic debugging.
 #     MEMDEBUG   - Toggle memory debugging.
-#     STATIC     - Toggle static builds.
+#     STATIC_CRT - Toggle static CRT builds.
+#     STATIC_LIB - Toggle static library builds.
+#
+#   Libraries:
 #     SQLITE_DIR - SQLite include and library location.
 #     ZLIB_DIR   - Zlib include and library location.
 #
@@ -40,14 +43,14 @@ RFLAGS      = /r
 
 # -------------------------------------------------------------------------
 
-!if "$(MSVCRT)" == "1"
-!message *** Option: Dynamic CRT
-CRTLIB      = /MD
-CFLAGS      = $(CFLAGS) /DDYNAMIC_CRT
-!else
+!if "$(STATIC_CRT)" == "1"
 !message *** Option: Static CRT
 CRTLIB      = /MT
 CFLAGS      = $(CFLAGS) /DSTATIC_CRT
+!else
+!message *** Option: Dynamic CRT
+CRTLIB      = /MD
+CFLAGS      = $(CFLAGS) /DDYNAMIC_CRT
 !endif
 
 !if "$(DEBUG)" == "1"
@@ -97,7 +100,7 @@ SQLITE_STATIC = $(SQLITE_DIR)\sqlite3-static.lib
 !error Unable to find sqlite3-static.lib; the SQLITE_DIR variable is incorrect.
 !endif
 
-!if "$(STATIC)" == "1"
+!if "$(STATIC_LIB)" == "1"
 SQLITE_LIB  = "$(SQLITE_STATIC)"
 !else
 SQLITE_LIB  = "$(SQLITE_IMPORT)"
@@ -128,7 +131,7 @@ ZLIB_STATIC = $(ZLIB_DIR)\zlib-static.lib
 !error Unable to find zlib-static.lib; the ZLIB_DIR variable is incorrect.
 !endif
 
-!if "$(STATIC)" == "1"
+!if "$(STATIC_LIB)" == "1"
 ZLIB_LIB    = "$(ZLIB_STATIC)"
 !else
 ZLIB_LIB    = "$(ZLIB_IMPORT)"

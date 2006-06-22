@@ -29,7 +29,7 @@
 
 ## User settings
 DEBUG       = 0
-MSVCRT      = 1
+STATIC_CRT  = 0
 
 ## Compiler settings
 CC          = cl
@@ -43,14 +43,14 @@ RFLAGS      = /r
 
 # -------------------------------------------------------------------------
 
-!if "$(MSVCRT)" == "1"
-!message *** CRT Library: msvcrt (dynamic)
-CRTLIB      = /MD
-CFLAGS      = $(CFLAGS) /DDYNAMIC_CRT
-!else
-!message *** CRT Library: libcmt (static)
+!if "$(STATIC_CRT)" == "1"
+!message *** Option: Static CRT
 CRTLIB      = /MT
 CFLAGS      = $(CFLAGS) /DSTATIC_CRT
+!else
+!message *** Option: Dynamic CRT
+CRTLIB      = /MD
+CFLAGS      = $(CFLAGS) /DDYNAMIC_CRT
 !endif
 
 !if "$(DEBUG)" == "1"
