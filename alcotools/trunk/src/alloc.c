@@ -16,11 +16,6 @@ Abstract:
 
 #include "alcoholicz.h"
 
-#ifdef WINDOWS
-// Heap memory handle, created by MemInit().
-static HANDLE heap = NULL;
-#endif
-
 #if (DEBUG_MEMORY == TRUE)
 //
 // Memory allocation record list
@@ -38,6 +33,20 @@ static size_t totalAllocs      = 0; // Number of successful allocs
 static size_t totalFrees       = 0; // Number of successful frees
 static size_t totalReallocs    = 0; // Number of successful reallocs
 #endif // DEBUG_MEMORY
+
+//
+// System memory allocation functions
+//
+#ifdef WINDOWS
+static HANDLE heap; // Process heap handle
+#   define ALLOC(size)          HeapAlloc(heap, 0, (size));
+#   define REALLOC(ptr, size)   HeapReAlloc(heap, 0, (ptr), (size));
+#   define FREE(ptr)            HeapFree(heap, 0, (ptr));
+#else
+#   define ALLOC(size)          malloc((size));
+#   define REALLOC(ptr, size)   realloc((ptr), (size));
+#   define FREE(ptr)            free((ptr));
+#endif // WINDOWS
 
 
 /*++
@@ -61,9 +70,6 @@ MemInit(
     )
 {
 #ifdef WINDOWS
-    // The memory subsystem must be initialised once.
-    ASSERT(heap == NULL);
-
     heap = GetProcessHeap();
     return (heap != NULL) ? TRUE: FALSE;
 #else
@@ -114,11 +120,7 @@ MemFinalise(
 
             // Remove the allocation record and free the structure
             LIST_REMOVE(record, link);
-#ifdef WINDOWS
-            HeapFree(heap, 0, record);
-#else
-            free(record);
-#endif // WINDOWS
+            FREE(record);
         }
         ERROR(TEXT("`--------------------------------------------------------------------'\n"));
     }
@@ -167,15 +169,9 @@ MemRecordCreate(
     )
 {
     MEM_RECORD *record;
-
     ASSERT(memory != NULL);
 
-#ifdef WINDOWS
-    ASSERT(heap != NULL);
-    record = HeapAlloc(heap, 0, sizeof(MEM_RECORD));
-#else
-    record = malloc(sizeof(MEM_RECORD));
-#endif
+    record = ALLOC(sizeof(MEM_RECORD));
     if (record == NULL) {
         Panic(TEXT("Unable to allocate %lu bytes for memory record: %s\n"),
             sizeof(MEM_RECORD), GetSystemErrorMessage());
@@ -245,13 +241,7 @@ MemRecordDelete(
 
     // Remove the allocation record and free the structure
     LIST_REMOVE(record, link);
-
-#ifdef WINDOWS
-    ASSERT(heap != NULL);
-    HeapFree(heap, 0, record);
-#else
-    free(record);
-#endif
+    FREE(record);
 }
 
 /*++
@@ -283,12 +273,7 @@ MemDebugAlloc(
 {
     void *memory;
 
-#ifdef WINDOWS
-    ASSERT(heap != NULL);
-    memory = HeapAlloc(heap, 0, size);
-#else
-    memory = malloc(size);
-#endif
+    memory = ALLOC(size);
     if (memory != NULL) {
         MemRecordCreate(memory, size, file, line);
 
@@ -352,12 +337,7 @@ MemDebugRealloc(
         Panic(TEXT("Unknown memory block %p: file %s, line %d.\n"), memory, file, line);
     }
 
-#ifdef WINDOWS
-    ASSERT(heap != NULL);
-    memory = HeapReAlloc(heap, 0, memory, size);
-#else
-    memory = realloc(memory, size);
-#endif
+    memory = REALLOC(memory, size);
     if (memory == NULL) {
         // Remove memory record since the allocation failed.
         MemRecordDelete(record);
@@ -426,17 +406,12 @@ MemDebugFree(
         Panic(TEXT("Unknown memory block %p: file %s, line %d.\n"), memory, file, line);
     }
 
-    // Update memory statistics.
+    // Update memory statistics
     allocatedCurrent -= record->size;
     totalFrees++;
-    MemRecordDelete(record);
 
-#ifdef WINDOWS
-    ASSERT(heap != NULL);
-    HeapFree(heap, 0, memory);
-#else
-    free(memory);
-#endif
+    MemRecordDelete(record);
+    FREE(memory);
 }
 
 #else // DEBUG_MEMORY
@@ -460,12 +435,7 @@ MemAlloc(
     size_t size
     )
 {
-#ifdef WINDOWS
-    ASSERT(heap != NULL);
-    return HeapAlloc(heap, 0, size);
-#else
-    return malloc(size);
-#endif
+    return ALLOC(size);
 }
 
 /*++
@@ -491,17 +461,7 @@ MemRealloc(
     )
 {
     ASSERT(memory != NULL);
-    if (memory == NULL) {
-        ERROR(TEXT("Attempt to reallocate a NULL pointer.\n"));
-        return MemAlloc(size);
-    }
-
-#ifdef WINDOWS
-    ASSERT(heap != NULL);
-    return HeapReAlloc(heap, 0, memory, size);
-#else
-    return realloc(memory, size);
-#endif
+    return REALLOC(memory, size);
 }
 
 /*++
@@ -523,17 +483,7 @@ MemFree(
     )
 {
     ASSERT(memory != NULL);
-    if (memory == NULL) {
-        ERROR(TEXT("Attempt to free a NULL pointer.\n"));
-        return;
-    }
-
-#ifdef WINDOWS
-    ASSERT(heap != NULL);
-    HeapFree(heap, 0, memory);
-#else
-    free(memory);
-#endif
+    FREE(memory);
 }
 
 #endif // DEBUG_MEMORY
