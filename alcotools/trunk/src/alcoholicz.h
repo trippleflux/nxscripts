@@ -14,15 +14,15 @@ Abstract:
 
 --*/
 
-#ifndef _ALCOCOMMON_H_
-#define _ALCOCOMMON_H_
+#ifndef _ALCOHOLICZ_H_
+#define _ALCOHOLICZ_H_
 
 #ifdef HAVE_CONFIG_H
 #   include "config.h"
 #endif
 
 //
-// ALCOHOL status codes.
+// Alcohol status codes
 //
 
 enum {
@@ -42,12 +42,12 @@ enum {
 #   error "Host byte-order is unknown, define BIG_ENDIAN or LITTLE_ENDIAN."
 #endif
 
-// Third-party Libraries
+// Third-party libraries
+#include "queue.h"
 #include "sqlite3.h"
-//#include "unzip.h"
-//#include "zlib.h"
+#include "zlib.h"
 
-// Functions and subsystems.
+// Functions and subsystems
 #include "alloc.h"
 #include "cfgread.h"
 #include "crc32.h"
@@ -58,4 +58,4 @@ enum {
 #include "template.h"
 #include "utils.h"
 
-#endif // _ALCOCOMMON_H_
+#endif // _ALCOHOLICZ_H_
