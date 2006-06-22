@@ -20,53 +20,54 @@
 #
 #   4. Copy the following files to another location for later use.
 #
-#      zlib.h
-#      zconf.h
+#      include\zlib.h
+#      include\zconf.h
 #      zlib.dll
 #      zlib.lib
 #      zlib-static.lib
 #
 
 ## User settings
-DEBUG   = 0
-MSVCRT  = 0
+DEBUG       = 0
+MSVCRT      = 1
 
 ## Compiler settings
-CC      = cl
-AR      = lib
-LD      = link
-RC      = rc
-ARFLAGS = -nologo
-CFLAGS  = -nologo
-LFLAGS  = -nologo
-RCFLAGS = /r
+CC          = cl
+AR          = lib
+LD          = link
+RC          = rc
+AFLAGS      = /nologo
+CFLAGS      = /nologo /D_CRT_NONSTDC_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE /DTHREADSAFE=1
+LFLAGS      = /nologo
+RFLAGS      = /r
 
 # -------------------------------------------------------------------------
 
-!if $(MSVCRT)
-!message
-!message CRT Library: msvcrt (dynamic)
-CRTLIB  = -MD
+!if "$(MSVCRT)" == "1"
+!message *** CRT Library: msvcrt (dynamic)
+CRTLIB      = /MD
+CFLAGS      = $(CFLAGS) /DDYNAMIC_CRT
 !else
-!message CRT Library: libcmt (static)
-CRTLIB  = -MT
+!message *** CRT Library: libcmt (static)
+CRTLIB      = /MT
+CFLAGS      = $(CFLAGS) /DSTATIC_CRT
 !endif
 
-!if $(DEBUG)
-!message Debug Symbols: On
-CFLAGS  = $(CFLAGS) -Zi $(CRTLIB)d -DDEBUG
-LFLAGS  = $(LFLAGS) /DEBUG
+!if "$(DEBUG)" == "1"
+!message *** Debug Symbols: On
+CFLAGS      = $(CFLAGS) /Zi $(CRTLIB)d /DDEBUG
+LFLAGS      = $(LFLAGS) /DEBUG
 !else
-!message Debug Symbols: Off
-CFLAGS  = $(CFLAGS) -Ox -GF $(CRTLIB) -DNDEBUG
-LFLAGS  = $(LFLAGS) /RELEASE /OPT:REF
+!message *** Debug Symbols: Off
+CFLAGS      = $(CFLAGS) /Ox /GF /GS- $(CRTLIB) /DNDEBUG
+LFLAGS      = $(LFLAGS) /RELEASE /OPT:NOWIN98 /OPT:REF
 !endif
 
 # -------------------------------------------------------------------------
 
-OBJ_FILES = adler32.obj compress.obj crc32.obj deflate.obj gzio.obj infback.obj\
-            inffast.obj inflate.obj inftrees.obj trees.obj uncompr.obj zutil.obj
-RES_FILES = zlib1.res
+OBJ_FILES   = adler32.obj compress.obj crc32.obj deflate.obj gzio.obj infback.obj\
+              inffast.obj inflate.obj inftrees.obj trees.obj uncompr.obj zutil.obj
+RES_FILES   = zlib1.res
 
 .c.obj::
     $(CC) -c $(CFLAGS) -Fo @<<
@@ -74,7 +75,7 @@ $<
 <<
 
 zlib1.res: win32/zlib1.rc
-    $(RC) $(RCFLAGS) /fo$@ win32/zlib1.rc
+    $(RC) $(RFLAGS) /fo$@ win32/zlib1.rc
 
 # -------------------------------------------------------------------------
 
@@ -95,6 +96,6 @@ $**
 <<
 
 zlib-static.lib: $(OBJ_FILES)
-    $(AR) $(ARFLAGS) -out:$@ @<<
+    $(AR) $(AFLAGS) -out:$@ @<<
 $**
 <<

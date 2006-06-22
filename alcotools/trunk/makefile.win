@@ -79,11 +79,12 @@ CFLAGS      = $(CFLAGS) /DDEBUG_MEMORY=1
 !endif
 
 SQLITE_DIR    = $(SQLITE_DIR:/=\)
+SQLITE_INC    = $(SQLITE_DIR)\include
 SQLITE_DLL    = $(SQLITE_DIR)\sqlite3.dll
 SQLITE_IMPORT = $(SQLITE_DIR)\sqlite3.lib
 SQLITE_STATIC = $(SQLITE_DIR)\sqlite3-static.lib
 
-!if !exist("$(SQLITE_DIR)\sqlite3.h")
+!if !exist("$(SQLITE_INC)\sqlite3.h")
 !error Unable to find sqlite3.h; the SQLITE_DIR variable is incorrect.
 !endif
 !if !exist("$(SQLITE_DLL)")
@@ -109,11 +110,12 @@ SQLITE_LIB  = "$(SQLITE_IMPORT)"
 !endif
 
 ZLIB_DIR    = $(ZLIB_DIR:/=\)
+ZLIB_INC    = $(ZLIB_DIR)\include
 ZLIB_DLL    = $(ZLIB_DIR)\zlib.dll
 ZLIB_IMPORT = $(ZLIB_DIR)\zlib.lib
 ZLIB_STATIC = $(ZLIB_DIR)\zlib-static.lib
 
-!if !exist("$(ZLIB_DIR)\zlib.h")
+!if !exist("$(ZLIB_INC)\zlib.h")
 !error Unable to find zlib.h; the ZLIB_DIR variable is incorrect.
 !endif
 !if !exist("$(ZLIB_DLL)")
@@ -137,7 +139,7 @@ ZLIB_LIB    = "$(ZLIB_IMPORT)"
 OUT_FILE    = $(OUT_DIR)\AlcoTools.exe
 TMP_DIR     = $(OUT_DIR)\tmp
 
-INC_DIRS    = /I "$(SQLITE_DIR)" /I "$(ZLIB_DIR)"
+INC_DIRS    = /I "$(SQLITE_INC)" /I "$(ZLIB_INC)"
 
 OBJ_FILES   = $(TMP_DIR)\alloc.obj    $(TMP_DIR)\cfgread.obj   $(TMP_DIR)\crc32.obj\
               $(TMP_DIR)\cstring.obj  $(TMP_DIR)\dynstring.obj $(TMP_DIR)\events.obj\

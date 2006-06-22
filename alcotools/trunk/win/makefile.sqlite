@@ -27,57 +27,58 @@
 #
 #   5. Copy the following files to another location for later use.
 #
-#      sqlite3.h
+#      include\sqlite3.h
 #      sqlite3.dll
 #      sqlite3.lib
 #      sqlite3-static.lib
 #
 
 ## User settings
-DEBUG   = 0
-MSVCRT  = 0
+DEBUG       = 0
+MSVCRT      = 1
 
 ## Compiler settings
-CC      = cl
-AR      = lib
-LD      = link
-ARFLAGS = -nologo
-CFLAGS  = -nologo -D_CRT_NONSTDC_NO_DEPRECATE -D_CRT_SECURE_NO_DEPRECATE -DTHREADSAFE=1
-LFLAGS  = -nologo
+CC          = cl
+AR          = lib
+LD          = link
+AFLAGS      = /nologo
+CFLAGS      = /nologo /D_CRT_NONSTDC_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE /DTHREADSAFE=1
+LFLAGS      = /nologo
 
 # -------------------------------------------------------------------------
 
-!if $(MSVCRT)
-!message
-!message CRT Library: msvcrt (dynamic)
-CRTLIB  = -MD
+!if "$(MSVCRT)" == "1"
+!message *** CRT Library: msvcrt (dynamic)
+CRTLIB      = /MD
+CFLAGS      = $(CFLAGS) /DDYNAMIC_CRT
 !else
-!message CRT Library: libcmt (static)
-CRTLIB  = -MT
+!message *** CRT Library: libcmt (static)
+CRTLIB      = /MT
+CFLAGS      = $(CFLAGS) /DSTATIC_CRT
 !endif
 
-!if $(DEBUG)
-!message Debug Symbols: On
-CFLAGS  = $(CFLAGS) -Zi $(CRTLIB)d -DDEBUG
-LFLAGS  = $(LFLAGS) /DEBUG
+!if "$(DEBUG)" == "1"
+!message *** Debug Symbols: On
+CFLAGS      = $(CFLAGS) /Zi $(CRTLIB)d /DDEBUG
+LFLAGS      = $(LFLAGS) /DEBUG
 !else
-!message Debug Symbols: Off
-CFLAGS  = $(CFLAGS) -Ox -GF $(CRTLIB) -DNDEBUG -DSQLITE_OMIT_EXPLAIN=1
-LFLAGS  = $(LFLAGS) /RELEASE /OPT:REF
+!message *** Debug Symbols: Off
+CFLAGS      = $(CFLAGS) /Ox /GF /GS- $(CRTLIB) /DNDEBUG /DSQLITE_OMIT_EXPLAIN=1
+LFLAGS      = $(LFLAGS) /RELEASE /OPT:NOWIN98 /OPT:REF
 !endif
 
 # -------------------------------------------------------------------------
 
-OBJ_FILES = alter.obj analyze.obj attach.obj auth.obj btree.obj build.obj\
-            callback.obj complete.obj date.obj delete.obj expr.obj func.obj\
-            hash.obj insert.obj legacy.obj main.obj opcodes.obj os.obj os_win.obj\
-            pager.obj parse.obj pragma.obj prepare.obj printf.obj random.obj\
-            select.obj table.obj tokenize.obj trigger.obj update.obj utf.obj\
-            util.obj vacuum.obj vdbe.obj vdbeapi.obj vdbeaux.obj vdbefifo.obj\
-            vdbemem.obj where.obj
+OBJ_FILES   = alter.obj analyze.obj attach.obj auth.obj btree.obj build.obj\
+             callback.obj complete.obj date.obj delete.obj expr.obj func.obj\
+             hash.obj insert.obj legacy.obj main.obj opcodes.obj os.obj os_win.obj\
+             pager.obj parse.obj pragma.obj prepare.obj printf.obj random.obj\
+             select.obj table.obj tokenize.obj trigger.obj update.obj utf.obj\
+             util.obj vacuum.obj vdbe.obj vdbeapi.obj vdbeaux.obj vdbefifo.obj\
+             vdbemem.obj where.obj
 
 .c.obj::
-    $(CC) -c $(CFLAGS) -Fo @<<
+    $(CC) /c $(CFLAGS) /Fo @<<
 $<
 <<
 
@@ -88,18 +89,18 @@ default: all
 all: dynamic static
 
 clean:
-    @del /f *.dll *.lib *.exp *.obj *.pdb
+    @DEL /F *.dll *.lib *.exp *.obj *.pdb
 
 dynamic: sqlite3.dll
 
 static: sqlite3-static.lib
 
 sqlite3.dll: $(OBJ_FILES)
-    $(LD) $(LFLAGS) /DLL /DEF:sqlite3.def -out:$@ @<<
+    $(LD) $(LFLAGS) /DLL /DEF:sqlite3.def /OUT:$@ @<<
 $**
 <<
 
 sqlite3-static.lib: $(OBJ_FILES)
-    $(AR) $(ARFLAGS) -out:$@ @<<
+    $(AR) $(AFLAGS) /OUT:$@ @<<
 $**
 <<
