@@ -18,14 +18,15 @@ Abstract:
 
 #ifdef WINDOWS
 // Heap memory handle, created by MemInit().
-static HANDLE memHeap = NULL;
+static HANDLE heap = NULL;
 #endif
 
 #if (DEBUG_MEMORY == TRUE)
 //
 // Memory allocation record list
 //
-static MEM_RECORD *recordHead  = NULL;
+LIST_HEAD(MEM_RECORD_HEAD, MEM_RECORD);
+struct MEM_RECORD_HEAD recordHead = LIST_HEAD_INITIALIZER(recordHead);
 
 //
 // Memory allocation statistics
@@ -60,11 +61,11 @@ MemInit(
     )
 {
 #ifdef WINDOWS
-    // The memory subsystem should be initialised once.
-    ASSERT(memHeap == NULL);
+    // The memory subsystem must be initialised once.
+    ASSERT(heap == NULL);
 
-    memHeap = GetProcessHeap();
-    return (memHeap != NULL) ? TRUE : FALSE;
+    heap = GetProcessHeap();
+    return (heap != NULL) ? TRUE: FALSE;
 #else
     return TRUE;
 #endif // WINDOWS
@@ -92,12 +93,12 @@ MemFinalise(
     )
 {
 #ifdef WINDOWS
-    ASSERT(memHeap != NULL);
-#endif // WINDOWS
+    ASSERT(heap != NULL);
+#endif
 
 #if (DEBUG_MEMORY == TRUE)
-    if (recordHead != NULL) {
-        MEM_RECORD *recordNext;
+    if (!LIST_EMPTY(&recordHead)) {
+        MEM_RECORD *record;
 
         ERROR(TEXT(".--------------------------------------------------------------------.\n"));
         ERROR(TEXT("|                        Memory Leak Detected                        |\n"));
@@ -105,19 +106,19 @@ MemFinalise(
         ERROR(TEXT("| Source File              |  Line  |  Bytes  | Base Address         |\n"));
         ERROR(TEXT("|--------------------------------------------------------------------|\n"));
 
-        while (recordHead != NULL) {
-            recordNext = recordHead->next;
+        while (!LIST_EMPTY(&recordHead)) {
+            record = LIST_FIRST(&recordHead);
 
             ERROR(TEXT("| %-24s | %6d | %7lu | 0x%-18p |\n"),
-                recordHead->file, recordHead->line, recordHead->size, recordHead->memory);
+                record->file, record->line, record->size, record->memory);
+
+            // Remove the allocation record and free the structure
+            LIST_REMOVE(record, link);
 #ifdef WINDOWS
-            HeapFree(memHeap, 0, recordHead->memory);
-            HeapFree(memHeap, 0, recordHead);
+            HeapFree(heap, 0, record);
 #else
-            free(recordHead->memory);
-            free(recordHead);
+            free(record);
 #endif // WINDOWS
-            recordHead = recordNext;
         }
         ERROR(TEXT("`--------------------------------------------------------------------'\n"));
     }
@@ -131,7 +132,7 @@ MemFinalise(
 #endif // DEBUG_MEMORY
 
 #ifdef WINDOWS
-    memHeap = NULL;
+    heap = NULL;
 #endif
 }
 
@@ -170,8 +171,8 @@ MemRecordCreate(
     ASSERT(memory != NULL);
 
 #ifdef WINDOWS
-    ASSERT(memHeap != NULL);
-    record = HeapAlloc(memHeap, 0, sizeof(MEM_RECORD));
+    ASSERT(heap != NULL);
+    record = HeapAlloc(heap, 0, sizeof(MEM_RECORD));
 #else
     record = malloc(sizeof(MEM_RECORD));
 #endif
@@ -180,18 +181,12 @@ MemRecordCreate(
             sizeof(MEM_RECORD), GetSystemErrorMessage());
     }
 
-    // Insert memory allocation record at the list head.
-    record->next   = recordHead;
-    record->prev   = NULL;
+    // Initialize allocation record and insert in at the list's head.
     record->memory = memory;
     record->size   = size;
     record->file   = (file != NULL) ? file : TEXT("unknown");
     record->line   = line;
-
-    if (recordHead != NULL) {
-        recordHead->prev = record;
-    }
-    recordHead = record;
+    LIST_INSERT_HEAD(&recordHead, record, link);
 }
 
 /*++
@@ -218,10 +213,9 @@ MemRecordGet(
     )
 {
     MEM_RECORD *record;
-
     ASSERT(memory != NULL);
 
-    for (record = recordHead; record != NULL; record = record->next) {
+    LIST_FOREACH(record, &recordHead, link) {
         if (record->memory == memory) {
             return record;
         }
@@ -249,19 +243,12 @@ MemRecordDelete(
 {
     ASSERT(record != NULL);
 
-    if (record->next != NULL) {
-        record->next->prev = record->prev;
-    }
-    if (record->prev != NULL) {
-        record->prev->next = record->next;
-    }
-    if (recordHead == record) {
-        recordHead = record->next;
-    }
+    // Remove the allocation record and free the structure
+    LIST_REMOVE(record, link);
 
 #ifdef WINDOWS
-    ASSERT(memHeap != NULL);
-    HeapFree(memHeap, 0, record);
+    ASSERT(heap != NULL);
+    HeapFree(heap, 0, record);
 #else
     free(record);
 #endif
@@ -297,8 +284,8 @@ MemDebugAlloc(
     void *memory;
 
 #ifdef WINDOWS
-    ASSERT(memHeap != NULL);
-    memory = HeapAlloc(memHeap, 0, size);
+    ASSERT(heap != NULL);
+    memory = HeapAlloc(heap, 0, size);
 #else
     memory = malloc(size);
 #endif
@@ -366,8 +353,8 @@ MemDebugRealloc(
     }
 
 #ifdef WINDOWS
-    ASSERT(memHeap != NULL);
-    memory = HeapReAlloc(memHeap, 0, memory, size);
+    ASSERT(heap != NULL);
+    memory = HeapReAlloc(heap, 0, memory, size);
 #else
     memory = realloc(memory, size);
 #endif
@@ -445,8 +432,8 @@ MemDebugFree(
     MemRecordDelete(record);
 
 #ifdef WINDOWS
-    ASSERT(memHeap != NULL);
-    HeapFree(memHeap, 0, memory);
+    ASSERT(heap != NULL);
+    HeapFree(heap, 0, memory);
 #else
     free(memory);
 #endif
@@ -474,8 +461,8 @@ MemAlloc(
     )
 {
 #ifdef WINDOWS
-    ASSERT(memHeap != NULL);
-    return HeapAlloc(memHeap, 0, size);
+    ASSERT(heap != NULL);
+    return HeapAlloc(heap, 0, size);
 #else
     return malloc(size);
 #endif
@@ -510,8 +497,8 @@ MemRealloc(
     }
 
 #ifdef WINDOWS
-    ASSERT(memHeap != NULL);
-    return HeapReAlloc(memHeap, 0, memory, size);
+    ASSERT(heap != NULL);
+    return HeapReAlloc(heap, 0, memory, size);
 #else
     return realloc(memory, size);
 #endif
@@ -542,8 +529,8 @@ MemFree(
     }
 
 #ifdef WINDOWS
-    ASSERT(memHeap != NULL);
-    HeapFree(memHeap, 0, memory);
+    ASSERT(heap != NULL);
+    HeapFree(heap, 0, memory);
 #else
     free(memory);
 #endif
