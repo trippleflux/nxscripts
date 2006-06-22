@@ -22,7 +22,7 @@ struct {
     const char *name;   // Event name
     uint32_t crc;       // CRC32 checksum of the event name
 } static const mainEvents[] = {
-    // Command-based events.
+    // Command-based events
     {EventPostDele,     "POSTDELE",    0xFD930F3A},
     {EventPostMkd,      "POSTMKD",     0x6115AE4A},
     {EventPostRename,   "POSTRENAME",  0xCF212902},
@@ -32,7 +32,7 @@ struct {
     {EventUpload,       "UPLOAD",      0xE7452199},
     {EventUploadError,  "UPLOADERROR", 0x097FD9FB},
 
-    // SITE commands.
+    // SITE commands
     {EventSiteDupe,     "DUPE",        0xE3481466},
     {EventSiteFileDupe, "FILEDUPE",    0x71C6F2FD},
     {EventSiteNew,      "NEW",         0xFD4406CF},
@@ -73,7 +73,7 @@ t_main(
 
     PerfCounterStart(&perfCounter);
 
-    // Verify status code/message mappings.
+    // Verify status code/message mappings
     ASSERT(!t_strcmp(GetStatusMessage(ALCOHOL_OK),                  TEXT("Successful.")));
     ASSERT(!t_strcmp(GetStatusMessage(ALCOHOL_ERROR),               TEXT("General failure.")));
     ASSERT(!t_strcmp(GetStatusMessage(ALCOHOL_INSUFFICIENT_BUFFER), TEXT("Insufficient buffer size.")));
@@ -183,7 +183,7 @@ t_main(
 #endif
 
     PerfCounterStop(&perfCounter);
-    ERROR(TEXT("Completed in %.3f ms.\n"), PerfCounterDiff(&perfCounter));
+    WARNING(TEXT("Completed in %.3f ms.\n"), PerfCounterDiff(&perfCounter));
 
     VERBOSE(TEXT("Finalising config subsystem.\n"));
     ConfigFinalise();

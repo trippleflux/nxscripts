@@ -77,7 +77,7 @@ GetSystemErrorMessageA(
     )
 {
 #ifdef WINDOWS
-    static char message[512]; // THREADS: Static variable not serialised.
+    static char message[512]; // THREADS: Static variable not thread-safe.
 
     if (FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM,
         NULL,
@@ -91,7 +91,7 @@ GetSystemErrorMessageA(
         size_t length;
         StringLengthA(message, ARRAYSIZE(message), &length);
 
-        // Remove trailing CR/LF.
+        // Remove trailing CR/LF
         if (length >= 2 && message[length-2] == '\r' && message[length-1] == '\n') {
             message[length-2] = '\0';
         }
@@ -109,7 +109,7 @@ GetSystemErrorMessageW(
     )
 {
 #ifdef WINDOWS
-    static wchar_t message[512]; // THREADS: Static variable not serialised.
+    static wchar_t message[512]; // THREADS: Static variable not thread-safe.
 
     if (FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM,
         NULL,
@@ -123,7 +123,7 @@ GetSystemErrorMessageW(
         size_t length;
         StringLengthW(message, ARRAYSIZE(message), &length);
 
-        // Remove trailing CR/LF.
+        // Remove trailing CR/LF
         if (length >= 2 && message[length-2] == L'\r' && message[length-1] == L'\n') {
             message[length-2] = L'\0';
         }
