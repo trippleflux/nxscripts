@@ -169,11 +169,11 @@ default: all
 all: setup $(BLD_OUTFILE)
 
 clean:
+    @DEL *.cod *.ilk *.obj *.pdb
     @IF EXIST "$(BLD_OUTFILE)" DEL /F "$(BLD_OUTFILE)"
     @IF EXIST "$(BLD_INTDIR)" RMDIR /Q /S "$(BLD_INTDIR)"
 
 distclean: clean
-    @DEL *.obj *.pdb
     @IF EXIST Debug RMDIR /Q /S Debug
     @IF EXIST Release RMDIR /Q /S Release
 
