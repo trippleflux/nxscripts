@@ -67,13 +67,14 @@ CreateSection
 
 Arguments:
     sectionName   - Pointer to a string represeting the section's name.
-                    This string is NOT null terminated.
+                    This string is NOT null-terminated.
 
     sectionLength - Length of the section name, in characters.
 
 Return Value:
-    If the function succeeds, the return value is a pointer to an allocated
-    "CONFIG_SECTION" structure. If the function fails, the return value is NULL.
+    If the function succeeds, the return value is a pointer to a CONFIG_SECTION structure.
+
+    If the function fails, the return value is null.
 
 --*/
 static
@@ -119,12 +120,12 @@ Arguments:
     section     - Pointer to a section structure which the key belongs to.
 
     keyName     - Pointer to a string represeting the key's name.
-                  This string is NOT null terminated.
+                  This string is NOT null-terminated.
 
     keyLength   - Length of the key name, in characters.
 
     value       - Pointer to a string represeting the key's value.
-                  This string is NOT null terminated.
+                  This string is NOT null-terminated.
 
     valueLength - Length of the value, in characters.
 
@@ -223,8 +224,9 @@ Arguments:
     keyName     - Pointer to a null-terminated string that specifies the key name.
 
 Return Value:
-    If the key exists, the return value is a pointer to a "Configkey"
-    structure. If the key does not exist, the return value is NULL.
+    If the key exists, the return value is a pointer to a CONFIG_KEY structure.
+
+    If the key does not exist, the return value is null.
 
 --*/
 static
@@ -266,10 +268,10 @@ GetKey(
 
 ParseArray
 
-    Parse the contents of a buffer into an array of null terminated strings.
+    Parse the contents of a buffer into an array of null-terminated strings.
 
 Arguments:
-    buffer      - The null terminated string to parse.
+    buffer      - The null-terminated string to parse.
 
     array       - Location to the array of pointers. This argument can be null.
 
@@ -589,14 +591,16 @@ Arguments:
 
     keyName     - Pointer to a null-terminated string that specifies the key name.
 
-    array       - Location to store the address of the array of null terminated
+    array       - Location to store the address of the array of null-terminated
                   strings. Do not attempt to free this value.
 
     elements    - Location to store the number of elements in the array.
 
 Return Value:
-    If the key exists, the return value is APR_SUCCESS. If the key does not
-    exist, the return value is an appropriate error code.
+    If the key exists, the return value is APR_SUCCESS.
+
+    If the key does not exist its value its cannot be converted, the return value
+    is an appropriate APR status code.
 
 --*/
 int
@@ -666,9 +670,10 @@ Arguments:
     boolean     - Location to store the boolean value of the key.
 
 Return Value:
-    If the key exists and its value is a valid boolean, the return value is
-    APR_SUCCESS. If the key does not exist or its valid is an invalid boolean,
-    the return value is an appropriate error code.
+    If the key exists, the return value is APR_SUCCESS.
+
+    If the key does not exist its value its cannot be converted, the return value
+    is an appropriate APR status code.
 
 Remarks:
     Accepted boolean values are: 1, 0, yes, no, on, off, true, or false.
@@ -743,9 +748,10 @@ Arguments:
     integer     - Location to store the integer value of the key.
 
 Return Value:
-    If the key exists and its value is a valid integer, the return value is
-    APR_SUCCESS. If the key does not exist or its valid is an invalid integer,
-    the return value is an appropriate error code.
+    If the key exists, the return value is APR_SUCCESS.
+
+    If the key does not exist its value its cannot be converted, the return value
+    is an appropriate APR status code.
 
 --*/
 int
@@ -798,14 +804,15 @@ Arguments:
 
     keyName     - Pointer to a null-terminated string that specifies the key name.
 
-    string      - Location to store the null terminated string's address.
+    string      - Location to store the null-terminated string's address.
                   Do NOT attempt to free this value.
 
     length      - Location to store the string's length. This argument can be null.
 
 Return Value:
-    If the key exists, the return value is APR_SUCCESS. If the key does not
-    exist, the return value is an appropriate error code.
+    If the key exists, the return value is APR_SUCCESS.
+
+    If the key does not exist, the return value is an appropriate APR status code.
 
 --*/
 int
