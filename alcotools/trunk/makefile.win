@@ -21,6 +21,7 @@
 #     STATIC_LIB - Toggle static library builds.
 #
 #   Libraries:
+#     APR_DIR    - SQLite include and library location.
 #     SQLITE_DIR - SQLite include and library location.
 #     ZLIB_DIR   - Zlib include and library location.
 #
@@ -73,6 +74,37 @@ CFLAGS      = $(CFLAGS) /DDEBUG_MEMORY=1
 
 !if !exist("makefile.win")
 !error You must run this makefile from the directory it is located in.
+!endif
+
+# -------------------------------------------------------------------------
+
+!if !defined(APR_DIR)
+!error Unable to find APR files; the APR_DIR variable is not set.
+!endif
+
+APR_DIR    = $(APR_DIR:/=\)
+APR_INC    = $(APR_DIR)\include
+APR_DLL    = $(APR_DIR)\libapr.dll
+APR_IMPORT = $(APR_DIR)\libapr.lib
+APR_STATIC = $(APR_DIR)\apr.lib
+
+!if !exist("$(APR_INC)\apr.h")
+!error Unable to find apr.h; the APR_DIR variable is incorrect.
+!endif
+!if !exist("$(APR_DLL)")
+!error Unable to find libapr.dll; the APR_DIR variable is incorrect.
+!endif
+!if !exist("$(APR_IMPORT)")
+!error Unable to find libapr.lib; the APR_DIR variable is incorrect.
+!endif
+!if !exist("$(APR_STATIC)")
+!error Unable to find apr.lib; the APR_DIR variable is incorrect.
+!endif
+
+!if "$(STATIC_LIB)" == "1"
+APR_LIB  = "$(APR_STATIC)"
+!else
+APR_LIB  = "$(APR_IMPORT)"
 !endif
 
 # -------------------------------------------------------------------------
@@ -142,7 +174,7 @@ ZLIB_LIB    = "$(ZLIB_IMPORT)"
 OUT_FILE    = $(OUT_DIR)\AlcoTools.exe
 TMP_DIR     = $(OUT_DIR)\tmp
 
-INC_DIRS    = /I "$(SQLITE_INC)" /I "$(ZLIB_INC)"
+INC_DIRS    = /I "$(APR_INC)" /I "$(SQLITE_INC)" /I "$(ZLIB_INC)"
 
 OBJ_FILES   = $(TMP_DIR)\alloc.obj    $(TMP_DIR)\cfgread.obj   $(TMP_DIR)\crc32.obj\
               $(TMP_DIR)\cstring.obj  $(TMP_DIR)\dynstring.obj $(TMP_DIR)\events.obj\
@@ -153,7 +185,7 @@ RES_FILES   = $(TMP_DIR)\tools.res
 
 VERSION_RES = $(VERSION:.=,),0
 CFLAGS      = $(CFLAGS) "/DVERSION=$(VERSION)" "/DVERSION_RES=$(VERSION_RES)" $(INC_DIRS)
-LFLAGS      = $(LFLAGS) shlwapi.lib $(SQLITE_LIB) $(ZLIB_LIB)
+LFLAGS      = $(LFLAGS) shlwapi.lib $(APR_LIB) $(SQLITE_LIB) $(ZLIB_LIB)
 RFLAGS      = $(RFLAGS) "/DVERSION=$(VERSION)" "/DVERSION_RES=$(VERSION_RES)"
 
 # -------------------------------------------------------------------------
@@ -189,5 +221,6 @@ $(OUT_FILE): $(OBJ_FILES) $(RES_FILES)
     $(LD) $(LFLAGS) /OUT:$@ @<<
 $**
 <<
+    @COPY /Y "$(APR_DLL)" "$(OUT_DIR)" > nul
     @COPY /Y "$(SQLITE_DLL)" "$(OUT_DIR)" > nul
     @COPY /Y "$(ZLIB_DLL)" "$(OUT_DIR)" > nul
