@@ -176,10 +176,14 @@ TMP_DIR     = $(OUT_DIR)\tmp
 
 INC_DIRS    = /I "$(APR_INC)" /I "$(SQLITE_INC)" /I "$(ZLIB_INC)"
 
-OBJ_FILES   = $(TMP_DIR)\alloc.obj    $(TMP_DIR)\cfgread.obj   $(TMP_DIR)\crc32.obj\
-              $(TMP_DIR)\cstring.obj  $(TMP_DIR)\dynstring.obj $(TMP_DIR)\events.obj\
-              $(TMP_DIR)\logging.obj  $(TMP_DIR)\main.obj      $(TMP_DIR)\platwin.obj\
-              $(TMP_DIR)\template.obj $(TMP_DIR)\utils.obj
+OBJ_FILES   = $(TMP_DIR)\cfgread.obj\
+              $(TMP_DIR)\crc32.obj\
+              $(TMP_DIR)\dynstring.obj\
+              $(TMP_DIR)\events.obj\
+              $(TMP_DIR)\logging.obj\
+              $(TMP_DIR)\main.obj\
+              $(TMP_DIR)\template.obj\
+              $(TMP_DIR)\utils.obj
 
 RES_FILES   = $(TMP_DIR)\tools.res
 

@@ -18,7 +18,7 @@ Abstract:
 #define _DYNSTRING_H_
 
 typedef struct {
-    tchar_t *value;     // Pointer to a null terminated string.
+    char    *value;     // Pointer to a null terminated string.
     size_t  length;     // Length of string in "value", in characters (without the null).
     size_t  maxLength;  // Size of the buffer pointed to by "value", in bytes.
 } DynString;
@@ -36,18 +36,18 @@ typedef struct {
 
 DynString *
 DynStringCreate(
-    const tchar_t *value
+    const char *value
     );
 
 DynString *
 DynStringCreateN(
-    const tchar_t *value,
+    const char *value,
     size_t length
     );
 
 DynString *
 DynStringFromFile(
-    const tchar_t *path
+    const char *path
     );
 
 void
@@ -62,13 +62,13 @@ DynStringDestroy(
 int
 DynStringAppend(
     DynString *dynStr,
-    const tchar_t *value
+    const char *value
     );
 
 int
 DynStringAppendN(
     DynString *dynStr,
-    const tchar_t *value,
+    const char *value,
     size_t length
     );
 
@@ -77,7 +77,7 @@ DynStringDup(
     DynString *dynStr
     );
 
-bool_t
+int
 DynStringEqual(
     DynString *dynStr1,
     DynString *dynStr2
@@ -86,21 +86,21 @@ DynStringEqual(
 int
 DynStringFormat(
     DynString *dynStr,
-    const tchar_t *format,
+    const char *format,
     ...
     );
 
 int
 DynStringFormatV(
     DynString *dynStr,
-    const tchar_t *format,
+    const char *format,
     va_list argList
     );
 
 int
 DynStringSet(
     DynString *dynStr,
-    const tchar_t *value
+    const char *value
     );
 
 int

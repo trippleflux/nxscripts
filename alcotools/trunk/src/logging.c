@@ -15,74 +15,65 @@ Abstract:
 
 --*/
 
-#define _CRT_SECURE_NO_DEPRECATE
 #include "alcoholicz.h"
 
 #if (LOG_LEVEL > 0)
 
-static FILE *logHandle = NULL;
-
-// Default log file and verbosity level.
-static uint32_t maxLogLevel = LOG_LEVEL_VERBOSE;
+static apr_file_t *handle = NULL;
+static int maxLevel       = 0;
 
 
 /*++
 
 LogInit
 
-    Initialise the logging subsystem.
+    Initialize the logging subsystem.
 
 Arguments:
-    None.
+    pool    - Pool to allocate file handles from.
 
-Return Value:
-    If the function succeeds, the return value is nonzero. If the function
-    fails, the return value is zero. To get extended error information, call
-    GetSystemErrorMessage.
+Return Values:
+    Returns an APR status code.
 
 --*/
-bool_t
+apr_status_t
 LogInit(
-    void
+    apr_pool_t *pool
     )
 {
-    ASSERT(logHandle == NULL);
+    // Only open the log file once
+    ASSERT(handle == NULL);
 
-    // Return if the log file is already option or if logging is disabled.
-    if (logHandle != NULL || ConfigGetInt(SectionGeneral, GeneralLogLevel,
-            &maxLogLevel) != ALCOHOL_OK || !maxLogLevel) {
-        return TRUE;
+    if (ConfigGetInt(SectionGeneral, GeneralLogLevel, &maxLevel) != APR_SUCCESS || !maxLevel) {
+        return APR_SUCCESS;
     }
 
-    logHandle = t_fopen(TEXT(LOG_FILE), TEXT("a"));
-    if (logHandle != NULL) {
-        t_fputc(TEXT('\n'), logHandle);
-        return TRUE;
-    }
-    return FALSE;
+    // Open the log file for writing
+    return apr_file_open(&handle, LOG_FILE, APR_FOPEN_WRITE|
+        APR_FOPEN_CREATE|APR_FOPEN_APPEND, APR_OS_DEFAULT, pool);
 }
 
 /*++
 
-LogFinalise
+LogFinalize
 
-    Finalise the logging subsystem.
+    Finalize the logging subsystem.
 
 Arguments:
     None.
 
-Return Value:
+Return Values:
     None.
 
 --*/
 void
-LogFinalise(
+LogFinalize(
     void
     )
 {
-    if (logHandle != NULL) {
-        fclose(logHandle);
-        logHandle = NULL;
+    if (handle != NULL) {
+        apr_file_close(handle);
+        handle = NULL;
     }
 }
 
@@ -100,36 +91,21 @@ Arguments:
     ...     - Arguments to insert into 'format'.
 
 Remarks:
-    This function could be called before the logging subsystem is initialised.
+    This function could be called before the logging subsystem is initialized.
 
 --*/
 void
-LogFormatA(
-    uint32_t level,
+LogFormat(
+    int level,
     const char *format,
     ...
     )
 {
     va_list argList;
     va_start(argList, format);
-    LogFormatVA(level, format, argList);
+    LogFormatV(level, format, argList);
     va_end(argList);
 }
-
-#ifdef UNICODE
-void
-LogFormatW(
-    uint32_t level,
-    const wchar_t *format,
-    ...
-    )
-{
-    va_list argList;
-    va_start(argList, format);
-    LogFormatVW(level, format, argList);
-    va_end(argList);
-}
-#endif // UNICODE
 
 /*++
 
@@ -144,79 +120,36 @@ Arguments:
 
     argList - Argument list to insert into 'format'.
 
-Return Value:
+Return Values:
     None.
 
 Remarks:
-    This function could be called before the logging subsystem is initialised.
+    This function could be called before the logging subsystem is initialized.
 
 --*/
 void
-LogFormatVA(
-    uint32_t level,
+LogFormatV(
+    int level,
     const char *format,
     va_list argList
     )
 {
     ASSERT(format != NULL);
 
-    if (level <= maxLogLevel && logHandle != NULL) {
-#ifdef WINDOWS
-        SYSTEMTIME now;
-        GetSystemTime(&now);
+    if (level <= maxLevel && handle != NULL) {
+        apr_time_exp_t now;
 
-        fprintf(logHandle, "%04d-%02d-%02d %02d:%02d:%02d - ",
-            now.wYear, now.wMonth, now.wDay,
-            now.wHour, now.wMinute, now.wSecond);
-#else
-        time_t timer;
-        struct tm *now;
-        time(&timer);
-        now = localtime(&timer);
+        // Write local time
+        apr_time_exp_lt(&now, apr_time_now());
+        apr_file_printf(handle, "%04d-%02d-%02d %02d:%02d:%02d - ",
+            now.tm_year+1900, now.tm_mon, now.tm_mday,
+            now.tm_hour, now.tm_min, now.tm_sec);
 
-        fprintf(logHandle, "%04d-%02d-%02d %02d:%02d:%02d - ",
-            now->tm_year+1900, now->tm_mon, now->tm_mday,
-            now->tm_hour, now->tm_min, now->tm_sec);
-#endif // WINDOWS
+        //TODO: fix
+        //vfprintf(handle, format, argList);
 
-        vfprintf(logHandle, format, argList);
-        fflush(logHandle);
+        apr_file_flush(handle);
     }
 }
-
-#ifdef UNICODE
-void
-LogFormatVW(
-    uint32_t level,
-    const wchar_t *format,
-    va_list argList
-    )
-{
-    ASSERT(format != NULL);
-
-    if (level <= maxLogLevel && logHandle != NULL) {
-#ifdef WINDOWS
-        SYSTEMTIME now;
-        GetSystemTime(&now);
-
-        fprintf(logHandle, "%04d-%02d-%02d %02d:%02d:%02d - ",
-            now.wYear, now.wMonth, now.wDay,
-            now.wHour, now.wMinute, now.wSecond);
-#else
-        time_t timer;
-        struct tm *now;
-        time(&timer);
-        now = localtime(&timer);
-
-        fprintf(logHandle, "%04d-%02d-%02d %02d:%02d:%02d - ",
-            now->tm_year+1900, now->tm_mon, now->tm_mday,
-            now->tm_hour, now->tm_min, now->tm_sec);
-#endif // WINDOWS
-
-        vfwprintf(logHandle, format, argList);
-        fflush(logHandle);
-    }
-}
-#endif // UNICODE
 
 #endif // LOG_LEVEL

@@ -17,23 +17,23 @@ Abstract:
 #ifndef _CRC32_H_
 #define _CRC32_H_
 
-uint32_t
+apr_uint32_t
 Crc32File(
-    FILE_HANDLE handle
+    apr_file_t *file
     );
 
-uint32_t
+apr_uint32_t
 Crc32Memory(
     const void *memory,
-    uint32_t size
+    apr_uint32_t size
     );
 
-uint32_t
+apr_uint32_t
 Crc32String(
     const char *string
     );
 
-uint32_t
+apr_uint32_t
 Crc32UpperString(
     const char *string
     );

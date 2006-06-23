@@ -20,7 +20,7 @@ Abstract:
 struct {
     EVENT_PROC *proc;   // Event callback
     const char *name;   // Event name
-    uint32_t crc;       // CRC32 checksum of the event name
+    apr_uint32_t crc;   // CRC32 checksum of the event name
 } static const mainEvents[] = {
     // Command-based events
     {EventPostDele,     "POSTDELE",    0xFD930F3A},
@@ -61,53 +61,34 @@ Remarks:
 
 --*/
 int __cdecl
-t_main(
+main(
     int argc,
-    tchar_t **argv
+    char **argv
     )
 {
     int i;
-    int result = 2;
-    uint32_t crc;
+    apr_status_t status;
+    apr_uint32_t crc;
     PERF_COUNTER perfCounter;
 
     PerfCounterStart(&perfCounter);
 
-    // Verify status code/message mappings
-    ASSERT(!t_strcmp(GetStatusMessage(ALCOHOL_OK),                  TEXT("Successful.")));
-    ASSERT(!t_strcmp(GetStatusMessage(ALCOHOL_ERROR),               TEXT("General failure.")));
-    ASSERT(!t_strcmp(GetStatusMessage(ALCOHOL_INSUFFICIENT_BUFFER), TEXT("Insufficient buffer size.")));
-    ASSERT(!t_strcmp(GetStatusMessage(ALCOHOL_INSUFFICIENT_MEMORY), TEXT("Insufficient system memory.")));
-    ASSERT(!t_strcmp(GetStatusMessage(ALCOHOL_INVALID_DATA),        TEXT("Invalid data.")));
-    ASSERT(!t_strcmp(GetStatusMessage(ALCOHOL_INVALID_PARAMETER),   TEXT("Invalid parameter.")));
-    ASSERT(!t_strcmp(GetStatusMessage(ALCOHOL_UNKNOWN),             TEXT("Unknown value.")));
-
-    //
-    // Load Order:
-    // The configuration file reader relies on the memory subsystem for
-    // buffering. The logging subsystem must be able to retrieve the
-    // user-defined log file and verbosity level from the configuration file.
-    //
-
-    if (!MemInit()) {
-        Panic(TEXT("Unable to initialise memory subsystem: %s\n"),
-            GetSystemErrorMessage());
-    }
-
-    if (!ConfigInit()) {
-         Panic(TEXT("Unable to read configuration file: %s\n"),
-             GetSystemErrorMessage());
+    // Initialize subsystems
+    status = ConfigInit(NULL);
+    if (status != APR_SUCCESS) {
+         Panic("Unable to read configuration file (error %d).\n", status);
     }
 
 #if (LOG_LEVEL > 0)
-    if (!LogInit()) {
-        Panic(TEXT("Unable to open log file: %s\n"), GetSystemErrorMessage());
+    status = LogInit(NULL);
+    if (status != APR_SUCCESS) {
+        Panic("Unable to open log file (error %d).\n", status);
     }
 #endif
 
-    VERBOSE(TEXT("AlcoTools starting (%d arguments).\n"), argc);
+    VERBOSE("AlcoTools starting (%d arguments).\n", argc);
     for (i = 0; i < argc; i++) {
-        VERBOSE(TEXT("Argument[%d] = \"%s\"\n"), i, argv[i]);
+        VERBOSE("Argument[%d] = \"%s\"\n", i, argv[i]);
     }
 
 #ifdef DEBUG
@@ -118,83 +99,64 @@ t_main(
         crc = Crc32UpperString(mainEvents[i].name);
 
         if (crc != mainEvents[i].crc) {
-            ERROR(TEXT("Invalid CRC32 for main event %d: current=0x%08X calculated=0x%08X\n"),
-                i, mainEvents[i].crc, crc);
+            ERROR("Invalid CRC32 for main event \"%s\": current=0x%08X calculated=0x%08X\n"),
+                mainEvents[i].name, mainEvents[i].crc, crc);
         }
     }
 #endif
 
+    // No parameter or unknown event.
+    status = APR_EINVAL;
+
     if (argc < 2) {
-        t_printf(TEXT("No event specified.\n"));
+        printf("No event specified.\n");
     } else {
         //
         // Calculate the CRC-32 checksum of the first command-line argument and
         // compare it with the pre-computed checksums in the main-event table.
-        // This method is marginally faster than performing CompareString
-        // (or similar) multiple times.
+        // This method is marginally faster than performing strcmp() multiple times.
         //
-#ifdef UNICODE
-        char ansiName[24];
-        //
-        // We're using a fixed-size buffer for performance reasons, even
-        // though it is more than enough to hold the longest event name.
-        //
-        WideCharToMultiByte(CP_ACP, 0, argv[1], -1,
-            ansiName, ARRAYSIZE(ansiName), NULL, NULL);
-
-        //
-        // WideCharToMultiByte will not NULL terminate the string if the
-        // destination buffer is too small, so we must do it ourselves.
-        //
-        ansiName[ARRAYSIZE(ansiName)-1] = '\0';
-        crc = Crc32UpperString(ansiName);
-#else
         crc = Crc32UpperString(argv[1]);
-#endif
-
-        VERBOSE(TEXT("CRC32 checksum for \"%s\": 0x%08X\n"), argv[1], crc);
+        VERBOSE("CRC32 checksum for \"%s\": 0x%08X\n", argv[1], crc);
 
         for (i = 0; i < ARRAYSIZE(mainEvents); i++) {
             if (crc == mainEvents[i].crc) {
-                result = mainEvents[i].proc(argc-2, argv+2);
+                status = mainEvents[i].proc(argc-2, argv+2);
 
-                if (result != ALCOHOL_OK) {
-                    ERROR((TEXT("Event callback returned \"%d\": %s\n"),
-                        result, GetStatusMessage(result)));
+                if (status != APR_SUCCESS) {
+                    ERROR("Event callback returned %d.\n", status);
                 }
                 break;
             }
         }
 
         if (i >= ARRAYSIZE(mainEvents)) {
-            t_printf(TEXT("Unknown event: %s\n"), argv[1]);
-            ERROR(TEXT("Unknown event: %s\n"), argv[1]);
+            printf("Unknown event: %s\n", argv[1]);
+            ERROR("Unknown event: %s\n", argv[1]);
         }
     }
 
-    VERBOSE(TEXT("Exit result: %d\n"), result);
+    VERBOSE("Exit result: %d\n", status);
 
 #ifdef WINDOWS
     //
-    // Detach from ioFTPD before finalising subsystems and freeing resources.
+    // Detach from ioFTPD before finalizing subsystems and freeing resources.
     //
-    t_printf(TEXT("!detach %d\n"), result);
+    printf("!detach %d\n", status);
     fflush(stdout);
 #endif
 
     PerfCounterStop(&perfCounter);
-    WARNING(TEXT("Completed in %.3f ms.\n"), PerfCounterDiff(&perfCounter));
+    WARNING("Completed in %.3f ms.\n", PerfCounterDiff(&perfCounter));
 
-    VERBOSE(TEXT("Finalising config subsystem.\n"));
-    ConfigFinalise();
-
-    VERBOSE(TEXT("Finalising memory subsystem.\n"));
-    MemFinalise();
+    // Finalize subsystems
+    VERBOSE("Finalizing config subsystem.\n");
+    ConfigFinalize();
 
 #if (LOG_LEVEL > 0)
-    VERBOSE(TEXT("Finalising log subsystem.\n"));
-    LogFinalise();
+    VERBOSE("Finalizing log subsystem.\n");
+    LogFinalize();
 #endif
 
-    return result;
+    return status;
 }

@@ -16,132 +16,132 @@ Abstract:
 
 #include "alcoholicz.h"
 
-int
+apr_status_t
 EventPostDele(
     int argc,
-    tchar_t **argv
+    char **argv
     )
 {
-    VERBOSE(TEXT("EventPostDele: %d arguments\n"), argc);
-    return ALCOHOL_OK;
+    VERBOSE("EventPostDele: %d arguments\n", argc);
+    return APR_SUCCESS;
 }
 
-int
+apr_status_t
 EventPostMkd(
     int argc,
-    tchar_t **argv
+    char **argv
     )
 {
-    VERBOSE(TEXT("EventPostMkd: %d arguments\n"), argc);
-    return ALCOHOL_OK;
+    VERBOSE("EventPostMkd: %d arguments\n", argc);
+    return APR_SUCCESS;
 }
 
-int
+apr_status_t
 EventPostRename(
     int argc,
-    tchar_t **argv
+    char **argv
     )
 {
-    VERBOSE(TEXT("EventPostRename: %d arguments\n"), argc);
-    return ALCOHOL_OK;
+    VERBOSE("EventPostRename: %d arguments\n", argc);
+    return APR_SUCCESS;
 }
 
-int
+apr_status_t
 EventPostRmd(
     int argc,
-    tchar_t **argv
+    char **argv
     )
 {
-    VERBOSE(TEXT("EventPostRmd: %d arguments\n"), argc);
-    return ALCOHOL_OK;
+    VERBOSE("EventPostRmd: %d arguments\n", argc);
+    return APR_SUCCESS;
 }
 
-int
+apr_status_t
 EventPreMkd(
     int argc,
-    tchar_t **argv
+    char **argv
     )
 {
-    VERBOSE(TEXT("EventPreMkd: %d arguments\n"), argc);
-    return ALCOHOL_OK;
+    VERBOSE("EventPreMkd: %d arguments\n", argc);
+    return APR_SUCCESS;
 }
 
-int
+apr_status_t
 EventPreStor(
     int argc,
-    tchar_t **argv
+    char **argv
     )
 {
-    VERBOSE(TEXT("EventPreStor: %d arguments\n"), argc);
-    return ALCOHOL_OK;
+    VERBOSE("EventPreStor: %d arguments\n", argc);
+    return APR_SUCCESS;
 }
 
-int
+apr_status_t
 EventUpload(
     int argc,
-    tchar_t **argv
+    char **argv
     )
 {
-    VERBOSE(TEXT("EventUpload: %d arguments\n"), argc);
-    return ALCOHOL_OK;
+    VERBOSE("EventUpload: %d arguments\n", argc);
+    return APR_SUCCESS;
 }
 
-int
+apr_status_t
 EventUploadError(
     int argc,
-    tchar_t **argv
+    char **argv
     )
 {
-    VERBOSE(TEXT("EventUploadError: %d arguments\n"), argc);
-    return ALCOHOL_OK;
+    VERBOSE("EventUploadError: %d arguments\n", argc);
+    return APR_SUCCESS;
 }
 
-int
+apr_status_t
 EventSiteDupe(
     int argc,
-    tchar_t **argv
+    char **argv
     )
 {
-    VERBOSE(TEXT("EventSiteDupe: %d arguments\n"), argc);
-    return ALCOHOL_OK;
+    VERBOSE("EventSiteDupe: %d arguments\n", argc);
+    return APR_SUCCESS;
 }
 
-int
+apr_status_t
 EventSiteFileDupe(
     int argc,
-    tchar_t **argv
+    char **argv
     )
 {
-    VERBOSE(TEXT("EventSiteFileDupe: %d arguments\n"), argc);
-    return ALCOHOL_OK;
+    VERBOSE("EventSiteFileDupe: %d arguments\n", argc);
+    return APR_SUCCESS;
 }
 
-int
+apr_status_t
 EventSiteNew(
     int argc,
-    tchar_t **argv
+    char **argv
     )
 {
-    VERBOSE(TEXT("EventSiteNew: %d arguments\n"), argc);
-    return ALCOHOL_OK;
+    VERBOSE("EventSiteNew: %d arguments\n", argc);
+    return APR_SUCCESS;
 }
 
-int
+apr_status_t
 EventSiteRescan(
     int argc,
-    tchar_t **argv
+    char **argv
     )
 {
-    VERBOSE(TEXT("EventSiteRescan: %d arguments\n"), argc);
-    return ALCOHOL_OK;
+    VERBOSE("EventSiteRescan: %d arguments\n", argc);
+    return APR_SUCCESS;
 }
 
-int
+apr_status_t
 EventSiteUndupe(
     int argc,
-    tchar_t **argv
+    char **argv
     )
 {
-    VERBOSE(TEXT("EventSiteUndupe: %d arguments\n"), argc);
-    return ALCOHOL_OK;
+    VERBOSE("EventSiteUndupe: %d arguments\n", argc);
+    return APR_SUCCESS;
 }

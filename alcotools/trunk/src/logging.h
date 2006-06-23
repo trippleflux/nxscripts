@@ -20,6 +20,7 @@ Abstract:
 //
 // Message levels, ordered in increasing severity.
 //
+
 enum {
     LOG_LEVEL_FATAL = 1,
     LOG_LEVEL_ERROR,
@@ -28,14 +29,15 @@ enum {
 };
 
 
+//
+// Redefine logging macros for debug and release builds.
+//
+
 #undef ERROR
 #undef FATAL
 #undef VERBOSE
 #undef WARNING
 
-//
-// Redefine logging macros for debug and release builds.
-//
 #if (LOG_LEVEL >= LOG_LEVEL_FATAL)
 #   define FATAL(format, ...)   LogFormat(LOG_LEVEL_FATAL, format, __VA_ARGS__)
 #else
@@ -61,56 +63,36 @@ enum {
 #endif
 
 
+//
+// Logging functions
+//
+
 #if (LOG_LEVEL > 0)
 
-bool_t
+apr_status_t
 LogInit(
+    apr_pool_t *pool
+    );
+
+void
+LogFinalize(
     void
     );
 
 void
-LogFinalise(
-    void
-    );
-
-void
-LogFormatA(
-    uint32_t level,
+LogFormat(
+    int level,
     const char *format,
     ...
     );
 
 void
-LogFormatVA(
-    uint32_t level,
+LogFormatV(
+    int level,
     const char *message,
     va_list argList
     );
 
-#ifdef UNICODE
-void
-LogFormatW(
-    uint32_t level,
-    const wchar_t *format,
-    ...
-    );
-
-void
-LogFormatVW(
-    uint32_t level,
-    const wchar_t *message,
-    va_list argList
-    );
-#endif // UNICODE
-
 #endif // LOG_LEVEL
-
-#ifdef UNICODE
-#   define LogFormat       LogFormatW
-#   define LogFormatV      LogFormatVW
-#else
-#   define LogFormat       LogFormatA
-#   define LogFormatV      LogFormatVA
-#endif // UNICODE
 
 #endif // _LOGGING_H_

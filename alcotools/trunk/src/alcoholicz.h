@@ -17,33 +17,36 @@ Abstract:
 #ifndef _ALCOHOLICZ_H_
 #define _ALCOHOLICZ_H_
 
-//
-// Alcohol status codes
-//
-
-typedef enum {
-    ALCOHOL_OK = 0,
-    ALCOHOL_ERROR,
-    ALCOHOL_INSUFFICIENT_BUFFER,
-    ALCOHOL_INSUFFICIENT_MEMORY,
-    ALCOHOL_INVALID_DATA,
-    ALCOHOL_INVALID_PARAMETER,
-    ALCOHOL_UNKNOWN
-} ALCOHOL;
-
-//
-// Common includes
-//
-
 #ifdef HAVE_CONFIG_H
 #   include "config.h"
 #endif
 
 #include "buildopts.h"
-#include "platform.h"
 
-#if !defined(BIG_ENDIAN) && !defined(LITTLE_ENDIAN)
-#   error "Host byte-order is unknown, define BIG_ENDIAN or LITTLE_ENDIAN."
+#if defined(_WIN32) || defined(_WIN64) || defined(WINDOWS) || defined(_WINDOWS)
+#   include "platwin.h"
+#else
+#   include "platunix.h"
+#endif
+
+// APR library
+#include "apr.h"
+#include "apr_env.h"
+#include "apr_errno.h"
+#include "apr_general.h"
+#include "apr_file_info.h"
+#include "apr_file_io.h"
+#include "apr_strings.h"
+#include "apr_pools.h"
+#include "apr_time.h"
+
+// Boolean logic
+typedef apr_byte_t bool_t;
+#ifndef TRUE
+#   define TRUE  1
+#endif
+#ifndef FALSE
+#   define FALSE 0
 #endif
 
 // Third-party libraries
@@ -52,10 +55,8 @@ typedef enum {
 #include "zlib.h"
 
 // Functions and subsystems
-#include "alloc.h"
 #include "cfgread.h"
 #include "crc32.h"
-#include "cstring.h"
 #include "dynstring.h"
 #include "events.h"
 #include "logging.h"

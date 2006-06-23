@@ -17,9 +17,9 @@ Abstract:
 #ifndef _EVENTS_H_
 #define _EVENTS_H_
 
-typedef int (EVENT_PROC)(
+typedef apr_status_t (EVENT_PROC)(
     int argc,
-    tchar_t **argv
+    char **argv
     );
 
 // Command-based events

@@ -37,10 +37,10 @@ Abstract:
 #define ARRAYSIZE(a)    (sizeof(a) / sizeof(a[0]))
 
 // ISEOL - Test if the given character marks the end of a line.
-#define ISEOL(ch)       ((ch) == TEXT('\n') || (ch) == TEXT('\r'))
+#define ISEOL(ch)       ((ch) == '\n' || (ch) == '\r')
 
 // ISSPACE - Test if the given character is a space or a tab.
-#define ISSPACE(ch)     ((ch) == TEXT(' ') || (ch) == TEXT('\t'))
+#define ISSPACE(ch)     ((ch) == ' ' || (ch) == '\t')
 
 // MAX - Returns the maximum of two numeric values.
 #define MAX(a, b)       (((a) > (b)) ? (a) : (b))
@@ -49,43 +49,10 @@ Abstract:
 #define MIN(a, b)       (((a) < (b)) ? (a) : (b))
 
 
-const tchar_t *
-GetStatusMessage(
-    int status
-    );
-
-const char *
-GetSystemErrorMessageA(
-    void
-    );
-
-#ifdef UNICODE
-const wchar_t *
-GetSystemErrorMessageW(
-    void
-    );
-#endif // UNICODE
-
 void
-PanicA(
+Panic(
     const char *format,
     ...
     );
-
-#ifdef UNICODE
-void
-PanicW(
-    const wchar_t *format,
-    ...
-    );
-#endif // UNICODE
-
-#ifdef UNICODE
-#   define GetSystemErrorMessage    GetSystemErrorMessageW
-#   define Panic                    PanicW
-#else
-#   define GetSystemErrorMessage    GetSystemErrorMessageA
-#   define Panic                    PanicA
-#endif // UNICODE
 
 #endif // _UTILS_H_

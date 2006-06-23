@@ -19,7 +19,7 @@ Abstract:
 //
 // CRC-32 table, polynomial 0xEDB88320 (AUTODIN II, Ethernet, FDDI).
 //
-static const uint32_t crc32Table[256] = {
+static const apr_uint32_t crc32Table[256] = {
     0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA, 0x076DC419, 0x706AF48F,
     0xE963A535, 0x9E6495A3, 0x0EDB8832, 0x79DCB8A4, 0xE0D5E91E, 0x97D2D988,
     0x09B64C2B, 0x7EB17CBD, 0xE7B82D07, 0x90BF1D91, 0x1DB71064, 0x6AB020F2,
@@ -72,29 +72,32 @@ Crc32File
     Calculates the CRC-32 checksum value of a file.
 
 Arguments:
-    handle  - File handle to calcuate the CRC-32 checksum of.
+    file    - File handle to calcuate the CRC-32 checksum of.
 
 Return Value:
     The CRC-32 checksum value is returned.
 
 --*/
-uint32_t
+apr_uint32_t
 Crc32File(
-    FILE_HANDLE handle
+    apr_file_t *file
     )
 {
-    byte_t buffer[32*1024];
-    uint32_t bytes;
-    uint32_t crc = 0xFFFFFFFF;
-    uint32_t i;
+    apr_byte_t buffer[32*1024];
+    apr_uint32_t crc = 0xFFFFFFFF;
+    apr_uint32_t i;
+    apr_uint32_t read;
 
-    ASSERT(handle != INVALID_HANDLE_VALUE);
+    ASSERT(file != NULL);
 
-    FileSeek(handle, 0, FILE_BEGIN);
-    while (FileRead(handle, buffer, sizeof(buffer), &bytes) && bytes > 0) {
-        for (i = 0; i < bytes; i++) {
+    apr_file_seek(file, APR_SET, 0);
+    read = sizeof(buffer);
+
+    while (apr_file_read(file, buffer, &read) == APR_SUCCESS && read > 0) {
+        for (i = 0; i < read; i++) {
             crc = crc32Table[(crc ^ (buffer[i])) & 0xFF] ^ (crc >> 8);
         }
+        read = sizeof(buffer);
     }
     return crc ^ 0xFFFFFFFF;
 }
@@ -114,14 +117,14 @@ Return Value:
     The CRC-32 checksum value is returned.
 
 --*/
-uint32_t
+apr_uint32_t
 Crc32Memory(
     const void *memory,
-    uint32_t size
+    apr_uint32_t size
     )
 {
-    uint32_t crc = 0xFFFFFFFF;
-    byte_t *data = (byte_t *)memory;
+    apr_uint32_t crc = 0xFFFFFFFF;
+    const apr_byte_t *data = memory;
 
     ASSERT(memory != NULL);
 
@@ -144,12 +147,12 @@ Return Value:
     The CRC-32 checksum value is returned.
 
 --*/
-uint32_t
+apr_uint32_t
 Crc32String(
     const char *string
     )
 {
-    uint32_t crc = 0xFFFFFFFF;
+    apr_uint32_t crc = 0xFFFFFFFF;
 
     ASSERT(string != NULL);
 
@@ -172,18 +175,18 @@ Return Value:
     The CRC-32 checksum value is returned.
 
 --*/
-uint32_t
+apr_uint32_t
 Crc32UpperString(
     const char *string
     )
 {
-    byte_t ch;
-    uint32_t crc = 0xFFFFFFFF;
+    apr_byte_t ch;
+    apr_uint32_t crc = 0xFFFFFFFF;
 
     ASSERT(string != NULL);
 
     while (*string != '\0') {
-        ch = (byte_t)*string++;
+        ch = (apr_byte_t)*string++;
 
         if (ch >= 'a' && ch <= 'z') {
             ch = ch - 'a' + 'A';

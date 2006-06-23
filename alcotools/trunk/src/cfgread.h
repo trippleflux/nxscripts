@@ -17,13 +17,13 @@ Abstract:
 #ifndef _CFGREAD_H_
 #define _CFGREAD_H_
 
-bool_t
+apr_status_t
 ConfigInit(
-    void
+    apr_pool_t *pool
     );
 
 void
-ConfigFinalise(
+ConfigFinalize(
     void
     );
 
@@ -31,8 +31,8 @@ int
 ConfigGetArray(
     const char *sectionName,
     const char *keyName,
-    tchar_t ***array,
-    uint32_t *elements
+    char ***array,
+    apr_uint32_t *elements
     );
 
 int
@@ -46,15 +46,15 @@ int
 ConfigGetInt(
     const char *sectionName,
     const char *keyName,
-    uint32_t *integer
+    apr_uint32_t *integer
     );
 
 int
 ConfigGetString(
     const char *sectionName,
     const char *keyName,
-    tchar_t **string,
-    uint32_t *length
+    char **string,
+    apr_uint32_t *length
     );
 
 

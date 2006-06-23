@@ -35,7 +35,7 @@ AC_C_BIGENDIAN(
 
 # Check for required headers.
 AC_HEADER_DIRENT
-AC_CHECK_HEADERS([inttypes.h memory.h stdint.h string.h strings.h time.h unistd.h wchar.h sys/time.h])
+AC_CHECK_HEADERS([memory.h string.h strings.h time.h unistd.h sys/time.h])
 AC_CHECK_HEADERS([limits.h syslimits.h sys/limits.h])
 
 # Check for library functions, structures, and types.

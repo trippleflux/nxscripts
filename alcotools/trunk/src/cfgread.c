@@ -36,22 +36,22 @@ typedef struct CONFIG_SECTION_HEAD CONFIG_SECTION_HEAD;
 
 struct CONFIG_KEY {
     LIST_ENTRY(CONFIG_KEY) link;    // Pointer to next section structure
-    uint32_t  crc;                  // CRC32 checksum of the key name.
-    uint32_t  length;               // Length of the string or number of array elements.
+    apr_uint32_t crc;               // CRC32 checksum of the key name.
+    apr_size_t   length;            // Length of the string or number of array elements.
     union {
-        tchar_t **array;
+        char    **array;
         bool_t  boolean;
-        int32_t integer;
-        tchar_t *string;
+        int     integer;
+        char    *string;
     } value;                        // Internal value representation.
-    uint8_t type;                   // Value type.
+    apr_byte_t type;               // Value type.
 };
 LIST_HEAD(CONFIG_KEY_HEAD, CONFIG_KEY);
 
 struct CONFIG_SECTION {
     SLIST_ENTRY(CONFIG_SECTION) link;   // Pointer to next section structure
     CONFIG_KEY_HEAD             keys;   // Keys belonging to this section
-    uint32_t                    crc;    // CRC32 checksum of the section name
+    apr_uint32_t                crc;    // CRC32 checksum of the section name
 };
 SLIST_HEAD(CONFIG_SECTION_HEAD, CONFIG_SECTION);
 
@@ -79,29 +79,18 @@ Return Value:
 static
 CONFIG_SECTION *
 CreateSection(
-    tchar_t *sectionName,
-    uint32_t sectionLength
+    char *sectionName,
+    apr_size_t sectionLength
     )
 {
+    apr_uint32_t sectionCrc;
     CONFIG_SECTION *section;
-    uint32_t sectionCrc;
-#ifdef UNICODE
-    char ansiName[MAX_LEN];
-    uint32_t ansiLength;
-#endif
 
     ASSERT(sectionName  != NULL);
     ASSERT(sectionLength > 0);
 
     // Calculate the CRC32 checksum of the section name
-#ifdef UNICODE
-    ansiLength = (uint32_t)WideCharToMultiByte(CP_ACP, 0, sectionName,
-        (int)sectionLength, ansiName, ARRAYSIZE(ansiName), NULL, NULL);
-
-    sectionCrc = Crc32Memory(ansiName, ansiLength);
-#else
     sectionCrc = Crc32Memory(sectionName, sectionLength);
-#endif // UNICODE
 
     // Check if the section already exists
     SLIST_FOREACH(section, &sectionHead, link) {
@@ -147,19 +136,15 @@ static
 void
 CreateKey(
     CONFIG_SECTION *section,
-    tchar_t *keyName,
-    uint32_t keyLength,
-    tchar_t *value,
-    uint32_t valueLength
+    char *keyName,
+    apr_size_t keyLength,
+    char *value,
+    apr_size_t valueLength
     )
 {
+    apr_uint32_t keyCrc;
     bool_t exists = FALSE;
     CONFIG_KEY *key;
-    uint32_t keyCrc;
-#ifdef UNICODE
-    char ansiName[MAX_LEN];
-    uint32_t ansiLength;
-#endif
 
     ASSERT(section   != NULL);
     ASSERT(keyName   != NULL);
@@ -181,14 +166,7 @@ CreateKey(
     }
 
     // Calculate the CRC32 checksum of the key name.
-#ifdef UNICODE
-    ansiLength = (uint32_t)WideCharToMultiByte(CP_ACP, 0, keyName,
-        (int)keyLength, ansiName, ARRAYSIZE(ansiName), NULL, NULL);
-
-    keyCrc = Crc32Memory(ansiName, ansiLength);
-#else
     keyCrc = Crc32Memory(keyName, keyLength);
-#endif // UNICODE
 
     // Check if the key already exists in the section.
     LIST_FOREACH(key, &section->keys, link) {
@@ -204,8 +182,8 @@ CreateKey(
             return;
         }
 
-        // Initialise key structure
-        key->value.string = MemAlloc((valueLength + 1) * sizeof(tchar_t));
+        // Initialize key structure
+        key->value.string = MemAlloc((valueLength + 1) * sizeof(char));
         if (key->value.string == NULL) {
             MemFree(key);
             return;
@@ -218,7 +196,7 @@ CreateKey(
 
     } else if (key->length < valueLength) {
         // Resize memory block to accommodate the larger string.
-        key->value.string = MemRealloc(key->value.string, (valueLength + 1) * sizeof(tchar_t));
+        key->value.string = MemRealloc(key->value.string, (valueLength + 1) * sizeof(char));
 
         if (key->value.string == NULL) {
             LIST_REMOVE(key, link);
@@ -228,8 +206,8 @@ CreateKey(
     }
 
     // Update the key's value and length.
-    memcpy(key->value.string, value, valueLength * sizeof(tchar_t));
-    key->value.string[valueLength] = TEXT('\0');
+    memcpy(key->value.string, value, valueLength * sizeof(char));
+    key->value.string[valueLength] = '\0';
     key->length = valueLength;
 }
 
@@ -258,15 +236,15 @@ GetKey(
 {
     CONFIG_KEY *key;
     CONFIG_SECTION *section;
-    uint32_t keyCrc;
-    uint32_t sectionCrc;
+    apr_uint32_t keyCrc;
+    apr_uint32_t sectionCrc;
 
     ASSERT(sectionName != NULL);
     ASSERT(keyName     != NULL);
 
     keyCrc = Crc32String(keyName);
     sectionCrc = Crc32String(sectionName);
-    VERBOSE(TEXT("Looking up key 0x%08X in section 0x%08X.\n"), keyCrc, sectionCrc);
+    VERBOSE("Looking up key 0x%08X in section 0x%08X.\n", keyCrc, sectionCrc);
 
     SLIST_FOREACH(section, &sectionHead, link) {
         if (section->crc != sectionCrc) {
@@ -280,7 +258,7 @@ GetKey(
         }
     }
 
-    WARNING(TEXT("Could not find key \"%s\" in section \"%s\".\n"), keyCrc, sectionCrc);
+    WARNING("Could not find key \"%s\" in section \"%s\".\n", keyCrc, sectionCrc);
     return NULL;
 }
 
@@ -308,16 +286,16 @@ Return Value:
 static
 void
 ParseArray(
-    tchar_t *buffer,
-    tchar_t **array,
-    uint32_t *elements,
-    tchar_t *data,
-    uint32_t *charCount
+    char *buffer,
+    char **array,
+    apr_size_t *elements,
+    char *data,
+    apr_size_t *charCount
     )
 {
     bool_t copyChar;
     bool_t inQuote = FALSE;
-    uint32_t slashCount;
+    apr_size_t slashCount;
 
     ASSERT(buffer    != NULL);
     ASSERT(elements  != NULL);
@@ -331,7 +309,7 @@ ParseArray(
         while (ISSPACE(*buffer)) {
             buffer++;
         }
-        if (*buffer == TEXT('\0')) {
+        if (*buffer == '\0') {
             break;
         }
         if (array != NULL) {
@@ -345,14 +323,14 @@ ParseArray(
             slashCount = 0;
 
             // Count the number of blackslashes.
-            while (*buffer == TEXT('\\')) {
+            while (*buffer == '\\') {
                 buffer++;
                 slashCount++;
             }
 
-            if (*buffer == TEXT('"')) {
+            if (*buffer == '"') {
                 if ((slashCount & 1) == 0) {
-                    if (inQuote && *buffer+1 == TEXT('"')) {
+                    if (inQuote && *buffer+1 == '"') {
                         // Double quote the inside string.
                         buffer++;
                     } else {
@@ -367,14 +345,14 @@ ParseArray(
             // Append backslashes to the array element.
             while (slashCount--) {
                 if (data != NULL) {
-                    *data++ = TEXT('\\');
+                    *data++ = '\\';
                 }
                 ++*charCount;
             }
 
             // Check if we have reached the end of the input buffer or found
             // the next array element (whitespace outside of quote characters).
-            if (*buffer == TEXT('\0') || (!inQuote && ISSPACE(*buffer))) {
+            if (*buffer == '\0' || (!inQuote && ISSPACE(*buffer))) {
                 break;
             }
 
@@ -389,7 +367,7 @@ ParseArray(
 
         if (data != NULL) {
             // Null terminate the array element.
-            *data++ = TEXT('\0');
+            *data++ = '\0';
         }
         ++*charCount;
     }
@@ -412,34 +390,34 @@ Return Value:
 --*/
 static void
 ParseBuffer(
-    tchar_t *buffer,
-    uint32_t length
+    char *buffer,
+    apr_size_t length
     )
 {
     CONFIG_SECTION *section;
-    tchar_t *bufferEnd;
-    tchar_t *name;
-    tchar_t *value;
-    uint32_t nameLength;
+    char *bufferEnd;
+    char *name;
+    char *value;
+    apr_size_t nameLength;
 
     bufferEnd = buffer + length;
     section = NULL;
 
     for (; buffer < bufferEnd; buffer++) {
         switch (*buffer) {
-            case TEXT('#'):
+            case '#':
                 // Ignore commented lines.
                 while (buffer < bufferEnd && !ISEOL(*buffer)) {
                     buffer++;
                 }
                 break;
-            case TEXT(' '):
-            case TEXT('\t'):
-            case TEXT('\n'):
-            case TEXT('\r'):
+            case ' ':
+            case '\t':
+            case '\n':
+            case '\r':
                 // Ignore whitespace and EOL characters.
                 break;
-            case TEXT('['):
+            case '[':
                 name = buffer+1;
                 nameLength = 0;
 
@@ -454,8 +432,8 @@ ParseBuffer(
                     //
                     // For example, the name of "[[[Foo]]]" would be "[[Foo]]".
                     //
-                    if (*buffer == TEXT(']')) {
-                        nameLength = (uint32_t)(buffer - name);
+                    if (*buffer == ']') {
+                        nameLength = (buffer - name);
                     }
                 }
 
@@ -475,8 +453,8 @@ ParseBuffer(
                     buffer++;
 
                     // Stop when a key/value separator is found (i.e. equal sign).
-                    if (*buffer == TEXT('=')) {
-                        nameLength = (uint32_t)(buffer - name);
+                    if (*buffer == '=') {
+                        nameLength = (buffer - name);
                         break;
                     }
                 }
@@ -491,7 +469,7 @@ ParseBuffer(
                     if (section != NULL) {
                         // Skip past the key/value separator.
                         value++;
-                        CreateKey(section, name, nameLength, value, (uint32_t)(buffer - value));
+                        CreateKey(section, name, nameLength, value, (buffer - value));
                     }
                 }
                 break;
@@ -504,116 +482,59 @@ ParseBuffer(
 
 ConfigInit
 
-    Initialise the configuration file subsystem.
+    Initialize the configuration file subsystem.
 
 Arguments:
-    None.
+    pool    - Pool to allocate file handles from.
 
-Return Value:
-    If the function succeeds, the return value is nonzero. If the function
-    fails, the return value is zero. To get extended error information, call
-    GetSystemErrorMessage.
+Return Values:
+    Returns an APR status code.
 
 --*/
-bool_t
+apr_status_t
 ConfigInit(
-    void
+    apr_pool_t *pool
     )
 {
-    bool_t result = FALSE;
-    byte_t *buffer = NULL;
-    FILE_HANDLE handle;
-    uint32_t bufferLen;
-    uint64_t size;
-#ifdef UNICODE
-    byte_t *convBuffer;
-    int wideChars;
-    UINT codePage;
-    wchar_t *wideBuffer = NULL;
-#endif
+    apr_byte_t   *buffer = NULL;
+    apr_file_t   *file;
+    apr_finfo_t  fileInfo;
+    apr_size_t   length;
+    apr_status_t status;
 
-    handle = FileOpen(TEXT(CONFIG_FILE), FACCESS_READ, FEXIST_PRESENT, FOPTION_SEQUENTIAL);
-    if (handle == INVALID_HANDLE_VALUE) {
-        return FALSE;
+    // Open configuration file for reading
+    status = apr_file_open(&file, CONFIG_FILE, APR_FOPEN_READ, APR_OS_DEFAULT, pool);
+    if (status != APR_SUCCESS) {
+        return status;
     }
 
-    // Buffer the contents of the configuration file. It's not
-    // worth memory-mapping the file due to its small size.
-    if (!FileSize(handle, &size)) {
-        goto cleanUp;
+    status = apr_file_info_get(&fileInfo, APR_FINFO_SIZE, file);
+    if (status == APR_SUCCESS) {
+
+        // Allocate a buffer large enough to contain the configuration file
+        length = (apr_size_t)fileInfo.size;
+        buffer = apr_palloc(pool, length);
+        if (buffer == NULL) {
+            status = APR_ENOMEM;
+        } else {
+            // Buffer the configuration file
+            status = apr_file_read(file, buffer, &length);
+            if (status == APR_SUCCESS) {
+                ParseBuffer((char *)buffer, length);
+                status = APR_SUCCESS;
+            }
+        }
     }
 
-    buffer = MemAlloc((size_t)size);
-    if (buffer == NULL || !FileRead(handle, buffer, (uint32_t)size, &bufferLen)) {
-        goto cleanUp;
-    }
-
-#ifdef UNICODE
-    //
-    // Byte Order Markers
-    // http://www.unicode.org/faq/utf_bom.html
-    //
-    // Bytes            Encoding Form
-    // 00 00 FE FF      UTF-32, big endian
-    // FF FE 00 00      UTF-32, little endian
-    // FE FF            UTF-16, big endian
-    // FF FE            UTF-16, little endian
-    // EF BB BF         UTF-8
-    //
-
-    // Check if the UTF-8 BOM is present (I'm too lazy to check for other BOMs).
-    convBuffer = buffer;
-    if (bufferLen >= 3 && *buffer == 0xEF && *buffer+1 == 0xBB && *buffer+2 == 0xBF) {
-        codePage = CP_UTF8;
-        *convBuffer =+ 3;
-    } else {
-        codePage = CP_ACP;
-    }
-
-    // Calculate the required destination buffer size.
-    wideChars = MultiByteToWideChar(codePage, 0, (char *)convBuffer,
-        (int)bufferLen, NULL, 0);
-    if (wideChars < 1) {
-        goto cleanUp;
-    }
-
-    wideBuffer = MemAlloc((size_t)wideChars * sizeof(wchar_t));
-    if (wideBuffer == NULL) {
-        goto cleanUp;
-    }
-
-    wideChars = MultiByteToWideChar(codePage, 0, (char *)convBuffer,
-        (int)bufferLen, wideBuffer, wideChars);
-    if (wideChars < 1) {
-        goto cleanUp;
-    }
-
-    ParseBuffer(wideBuffer, (uint32_t)wideChars);
-#else
-    ParseBuffer((char *)buffer, bufferLen);
-#endif // UNICODE
-
-    result = TRUE;
-cleanUp:
-
-    if (buffer != NULL) {
-        MemFree(buffer);
-    }
-#ifdef UNICODE
-    if (wideBuffer != NULL) {
-        MemFree(wideBuffer);
-    }
-#endif // UNICODE
-
-    FileClose(handle);
-    return result;
+    apr_file_close(file);
+    return status;
 }
 
 /*++
 
-ConfigFinalise
+ConfigFinalize
 
-    Finalise the configuration file subsystem.
+    Finalize the configuration file subsystem.
 
 Arguments:
     None.
@@ -623,7 +544,7 @@ Return Value:
 
 --*/
 void
-ConfigFinalise(
+ConfigFinalize(
     void
     )
 {
@@ -674,7 +595,7 @@ Arguments:
     elements    - Location to store the number of elements in the array.
 
 Return Value:
-    If the key exists, the return value is ALCOHOL_OK. If the key does not
+    If the key exists, the return value is APR_SUCCESS. If the key does not
     exist, the return value is an appropriate error code.
 
 --*/
@@ -682,15 +603,15 @@ int
 ConfigGetArray(
     const char *sectionName,
     const char *keyName,
-    tchar_t ***array,
-    uint32_t *elements
+    char ***array,
+    apr_size_t *elements
     )
 {
     CONFIG_KEY *key;
-    tchar_t **buffer;
-    tchar_t *offset;
-    uint32_t bufferChars;
-    uint32_t bufferElements;
+    char **buffer;
+    char *offset;
+    apr_size_t bufferChars;
+    apr_size_t bufferElements;
 
     ASSERT(sectionName != NULL);
     ASSERT(keyName     != NULL);
@@ -699,30 +620,30 @@ ConfigGetArray(
 
     key = GetKey(sectionName, keyName);
     if (key == NULL) {
-        return ALCOHOL_UNKNOWN;
+        return APR_EINVAL;
     }
 
     if (key->type == TYPE_ARRAY) {
         // No conversion needed.
         *array = key->value.array;
         *elements = key->length;
-        return ALCOHOL_OK;
+        return APR_SUCCESS;
     } else if (key->type != TYPE_STRING) {
         // Only convert from strings.
         ASSERT(0);
-        return ALCOHOL_ERROR;
+        return APR_EINVAL;
     }
 
     // Calculate the required space to store the array and its elements.
     ParseArray(key->value.string, NULL, &bufferElements, NULL, &bufferChars);
 
-    buffer = MemAlloc((bufferElements * sizeof(tchar_t *)) + (bufferChars * sizeof(tchar_t)));
+    buffer = MemAlloc((bufferElements * sizeof(char *)) + (bufferChars * sizeof(char)));
     if (buffer == NULL) {
-        return ALCOHOL_INSUFFICIENT_MEMORY;
+        return APR_ENOMEM;
     }
 
     // Convert the buffer into an array.
-    offset = (tchar_t *)buffer + (bufferElements * sizeof(tchar_t *));
+    offset = (char *)buffer + (bufferElements * sizeof(char *));
     ParseArray(key->value.string, buffer, &bufferElements, offset, &bufferChars);
 
     // Change the key's internal value representation to an array.
@@ -730,7 +651,7 @@ ConfigGetArray(
     key->type = TYPE_ARRAY;
     key->length = *elements = bufferElements;
     key->value.array = *array = buffer;
-    return ALCOHOL_OK;
+    return APR_SUCCESS;
 }
 
 /*++
@@ -748,11 +669,11 @@ Arguments:
 
 Return Value:
     If the key exists and its value is a valid boolean, the return value is
-    ALCOHOL_OK. If the key does not exist or its valid is an invalid boolean,
+    APR_SUCCESS. If the key does not exist or its valid is an invalid boolean,
     the return value is an appropriate error code.
 
 Remarks:
-    Accepted boolean values are: "1", "0", "yes", "no", "true", or "false".
+    Accepted boolean values are: 1, 0, yes, no, on, off, true, or false.
 
 --*/
 int
@@ -763,11 +684,11 @@ ConfigGetBool(
     )
 {
     CONFIG_KEY *key;
-    uint8_t i;
-    static const tchar_t text[] = TEXT("01onoffalseyestrue");
+    apr_byte_t i;
+    static const char text[] = "01onoffalseyestrue";
     static const struct {
-        uint8_t offset;
-        uint8_t length;
+        apr_byte_t offset;
+        apr_byte_t length;
         bool_t  value;
     } values[] = {
         {0,  1, FALSE}, // "0"
@@ -786,30 +707,30 @@ ConfigGetBool(
 
     key = GetKey(sectionName, keyName);
     if (key == NULL) {
-        return ALCOHOL_UNKNOWN;
+        return APR_EINVAL;
     }
 
     if (key->type == TYPE_BOOLEAN) {
         // No conversion needed.
         *boolean = key->value.boolean;
-        return ALCOHOL_OK;
+        return APR_SUCCESS;
     } else if (key->type != TYPE_STRING) {
         // Only convert from strings.
         ASSERT(0);
-        return ALCOHOL_ERROR;
+        return APR_EINVAL;
     }
 
     for (i = 0; i < ARRAYSIZE(values); i++) {
-        if (key->length == values[i].length && t_strncasecmp(&text[values[i].length], key->value.string, key->length) == 0) {
+        if (key->length == values[i].length && strncasecmp(&text[values[i].length], key->value.string, key->length) == 0) {
             // Change the key's internal value representation to a boolean.
             MemFree(key->value.string);
             key->type = TYPE_BOOLEAN;
             key->value.boolean = *boolean = values[i].value;
-            return ALCOHOL_OK;
+            return APR_SUCCESS;
         }
     }
 
-    return ALCOHOL_INVALID_DATA;
+    return APR_EINVAL;
 }
 
 /*++
@@ -827,7 +748,7 @@ Arguments:
 
 Return Value:
     If the key exists and its value is a valid integer, the return value is
-    ALCOHOL_OK. If the key does not exist or its valid is an invalid integer,
+    APR_SUCCESS. If the key does not exist or its valid is an invalid integer,
     the return value is an appropriate error code.
 
 --*/
@@ -835,11 +756,11 @@ int
 ConfigGetInt(
     const char *sectionName,
     const char *keyName,
-    uint32_t *integer
+    apr_uint32_t *integer
     )
 {
     CONFIG_KEY *key;
-    uint32_t value;
+    apr_uint32_t value;
 
     ASSERT(sectionName != NULL);
     ASSERT(keyName     != NULL);
@@ -847,29 +768,29 @@ ConfigGetInt(
 
     key = GetKey(sectionName, keyName);
     if (key == NULL) {
-        return ALCOHOL_UNKNOWN;
+        return APR_EINVAL;
     }
 
     if (key->type == TYPE_INTEGER) {
         // No conversion needed.
         *integer = key->value.integer;
-        return ALCOHOL_OK;
+        return APR_SUCCESS;
     } else if (key->type != TYPE_STRING) {
         // Only convert from strings.
         ASSERT(0);
-        return ALCOHOL_ERROR;
+        return APR_EINVAL;
     }
 
-    value = t_strtoul(key->value.string, NULL, 10);
+    value = strtoul(key->value.string, NULL, 10);
     if (value == ULONG_MAX) {
-        return ALCOHOL_INVALID_DATA;
+        return APR_EINVAL;
     }
 
     // Change the key's internal value representation to an integer.
     MemFree(key->value.string);
     key->type = TYPE_INTEGER;
     key->value.integer = *integer = value;
-    return ALCOHOL_OK;
+    return APR_SUCCESS;
 }
 
 /*++
@@ -889,7 +810,7 @@ Arguments:
     length      - Location to store the string's length. This argument can be null.
 
 Return Value:
-    If the key exists, the return value is ALCOHOL_OK. If the key does not
+    If the key exists, the return value is APR_SUCCESS. If the key does not
     exist, the return value is an appropriate error code.
 
 --*/
@@ -897,8 +818,8 @@ int
 ConfigGetString(
     const char *sectionName,
     const char *keyName,
-    tchar_t **string,
-    uint32_t *length
+    char **string,
+    apr_size_t *length
     )
 {
     CONFIG_KEY *key;
@@ -909,7 +830,7 @@ ConfigGetString(
 
     key = GetKey(sectionName, keyName);
     if (key == NULL) {
-        return ALCOHOL_UNKNOWN;
+        return APR_EINVAL;
     }
 
     if (key->type == TYPE_STRING) {
@@ -918,10 +839,10 @@ ConfigGetString(
         if (length != NULL) {
             *length = key->length;
         }
-        return ALCOHOL_OK;
+        return APR_SUCCESS;
     }
 
     // Only convert from strings.
     ASSERT(0);
-    return ALCOHOL_ERROR;
+    return APR_EINVAL;
 }

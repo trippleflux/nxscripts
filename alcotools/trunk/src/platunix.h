@@ -28,14 +28,8 @@ Abstract:
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#ifdef HAVE_INTTYPES_H
-#   include <inttypes.h>
-#endif
 #ifdef HAVE_MEMORY_H
 #   include <memory.h>
-#endif
-#ifdef HAVE_STDINT_H
-#   include <stdint.h>
 #endif
 #ifdef HAVE_STRINGS_H
 #   include <strings.h>
@@ -45,9 +39,6 @@ Abstract:
 #endif
 #ifdef HAVE_UNISTD_H
 #   include <unistd.h>
-#endif
-#ifdef HAVE_WCHAR_H
-#   include <wchar.h>
 #endif
 #ifdef HAVE_SYS_TIME_H
 #   include <sys/time.h>
@@ -79,42 +70,6 @@ Abstract:
 #       include <ndir.h>
 #   endif
 #endif // HAVE_DIRENT_H
-
-
-//
-// Data types and related definitions.
-//
-
-#define FALSE           0
-#define TRUE            1
-#define PATH_LENGTH     PATH_MAX
-
-typedef unsigned char   bool_t;
-typedef unsigned char   byte_t;
-
-#ifndef HAVE_WCHAR_H
-typedef unsigned short  wchar_t;
-#endif
-
-//
-// glFTPD does not support Unicode, so there's no point
-// in trying to internationalise this application for *nix.
-//
-#undef UNICODE
-typedef char            tchar_t;
-
-
-//
-// Memory Functions
-//
-
-#ifndef HAVE_MEMCMP
-#   define memcmp(a,b,n) bcmp((a),(b),(n))
-#endif
-
-#ifndef HAVE_MEMCPY
-#   define memcpy(a,b,n) bcopy((b),(a),(n)) // "a" and "b" are reversed.
-#endif
 
 
 //
@@ -151,50 +106,5 @@ PerfCounterDiff(
 {
     return (double)(counter->stop.tv_usec - counter->start.tv_usec);
 }
-
-
-//
-// File I/O
-//
-
-#define FILE_HANDLE         int
-
-// FileOpen() access permissions.
-#define FACCESS_READ        O_RDONLY
-#define FACCESS_WRITE       O_WRONLY
-#define FACCESS_READWRITE   O_RDWR
-
-// FileOpen() existence actions.
-#define FEXIST_ALWAYS_NEW   O_CREAT|O_TRUNC // TODO: fix
-#define FEXIST_NEW          O_CREAT|O_EXCL
-#define FEXIST_PRESENT      0
-#define FEXIST_REGARDLESS   O_CREAT
-#define FEXIST_TRUNCATE     O_TRUNC
-
-// FileOpen() attributes and options.
-#define FOPTION_HIDDEN      0
-#define FOPTION_RANDOM      0
-#define FOPTION_SEQUENTIAL  0
-
-// Value returned by FileOpen() to indicate an error.
-#define INVALID_HANDLE_VALUE -1
-
-// FileSeek() methods.
-#define FILE_BEGIN          SEEK_SET
-#define FILE_CURRENT        SEEK_CUR
-#define FILE_END            SEEK_END
-
-
-//
-// Map Windows Base functions to their POSIX equivalents.
-//
-
-#ifdef DEBUG
-#   define DebugBreak()     (abort())
-#else
-#   define DebugBreak()     ((void)0)
-#endif
-
-#define ExitProcess(code)   (exit(code))
 
 #endif // _PLATUNIX_H_
