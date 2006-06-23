@@ -48,19 +48,16 @@ main
 
 Arguments:
     argc - Number of command-line arguments.
+
     argv - Array of pointers to strings that represent command-line arguments.
 
-Return Value:
-    0 - Program executed successfully.
-    1 - Intentional error (i.e. bad file, block directory creation).
-    2 - Invalid arguments.
-    3 - Abnormal termination (panic).
+Return Values:
+    If the function succeeds, the return value is zero.
 
-Remarks:
-    None.
+    If the function fails, the return value is nonzero.
 
 --*/
-int __cdecl
+int
 main(
     int argc,
     char **argv
@@ -68,21 +65,36 @@ main(
 {
     int i;
     apr_status_t status;
+    apr_time_t counter;
     apr_uint32_t crc;
-    PERF_COUNTER perfCounter;
 
-    PerfCounterStart(&perfCounter);
+    // Count the time elapsed while running
+    counter = apr_time_now();
+
+    if (argc < 2) {
+        printf("No event specified.\n");
+        return -1;
+    }
+
+    // Initialize APR memory pools and convert arguments to UTF8
+    status = apr_app_initialize(&argc, &argv, NULL);
+    if (status != APR_SUCCESS) {
+        printf("APR library failed to initialize (error %d).\n", status);
+        return -1;
+    }
 
     // Initialize subsystems
     status = ConfigInit(NULL);
     if (status != APR_SUCCESS) {
-         Panic("Unable to read configuration file (error %d).\n", status);
+         printf("Unable to read configuration file (error %d).\n", status);
+         goto exit;
     }
 
 #if (LOG_LEVEL > 0)
     status = LogInit(NULL);
     if (status != APR_SUCCESS) {
-        Panic("Unable to open log file (error %d).\n", status);
+        printf("Unable to open log file (error %d).\n", status);
+        goto exit;
     }
 #endif
 
@@ -92,62 +104,52 @@ main(
     }
 
 #ifdef DEBUG
-    //
-    // Verify pre-computed CRC-32 checksums in the main-event table.
-    //
+    // Verify pre-computed CRC-32 checksums in the main event table
     for (i = 0; i < ARRAYSIZE(mainEvents); i++) {
         crc = Crc32UpperString(mainEvents[i].name);
 
         if (crc != mainEvents[i].crc) {
-            ERROR("Invalid CRC32 for main event \"%s\": current=0x%08X calculated=0x%08X\n"),
+            ERROR("Invalid CRC32 for main event \"%s\": current=0x%08X calculated=0x%08X\n",
                 mainEvents[i].name, mainEvents[i].crc, crc);
         }
     }
 #endif
 
-    // No parameter or unknown event.
-    status = APR_EINVAL;
+    //
+    // Calculate the CRC-32 checksum of the first command-line argument and
+    // compare it with the pre-computed checksums in the main event table.
+    // This method is marginally faster than performing strcmp() multiple times.
+    //
+    crc = Crc32UpperString(argv[1]);
+    VERBOSE("CRC32 checksum for \"%s\": 0x%08X\n", argv[1], crc);
 
-    if (argc < 2) {
-        printf("No event specified.\n");
-    } else {
-        //
-        // Calculate the CRC-32 checksum of the first command-line argument and
-        // compare it with the pre-computed checksums in the main-event table.
-        // This method is marginally faster than performing strcmp() multiple times.
-        //
-        crc = Crc32UpperString(argv[1]);
-        VERBOSE("CRC32 checksum for \"%s\": 0x%08X\n", argv[1], crc);
+    for (i = 0; i < ARRAYSIZE(mainEvents); i++) {
+        if (crc == mainEvents[i].crc) {
+            status = mainEvents[i].proc(argc-2, argv+2);
 
-        for (i = 0; i < ARRAYSIZE(mainEvents); i++) {
-            if (crc == mainEvents[i].crc) {
-                status = mainEvents[i].proc(argc-2, argv+2);
-
-                if (status != APR_SUCCESS) {
-                    ERROR("Event callback returned %d.\n", status);
-                }
-                break;
+            if (status != APR_SUCCESS) {
+                ERROR("Event callback returned %d.\n", status);
             }
-        }
-
-        if (i >= ARRAYSIZE(mainEvents)) {
-            printf("Unknown event: %s\n", argv[1]);
-            ERROR("Unknown event: %s\n", argv[1]);
+            break;
         }
     }
 
-    VERBOSE("Exit result: %d\n", status);
+    if (i >= ARRAYSIZE(mainEvents)) {
+        printf("Unknown event: %s\n", argv[1]);
+        ERROR("Unknown event: %s\n", argv[1]);
+        status = APR_EINVAL;
+    }
+
+    WARNING("Time taken: %.3f ms\n", (apr_time_now() - counter)/1000.0);
+    WARNING("Exit status: %d\n", status);
+
+exit:
 
 #ifdef WINDOWS
-    //
-    // Detach from ioFTPD before finalizing subsystems and freeing resources.
-    //
+    // Detach from ioFTPD before finalizing subsystems
     printf("!detach %d\n", status);
     fflush(stdout);
 #endif
-
-    PerfCounterStop(&perfCounter);
-    WARNING("Completed in %.3f ms.\n", PerfCounterDiff(&perfCounter));
 
     // Finalize subsystems
     VERBOSE("Finalizing config subsystem.\n");
@@ -158,5 +160,6 @@ main(
     LogFinalize();
 #endif
 
+    apr_terminate();
     return status;
 }
