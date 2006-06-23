@@ -71,40 +71,4 @@ Abstract:
 #   endif
 #endif // HAVE_DIRENT_H
 
-
-//
-// Performance Counter
-//
-
-typedef struct {
-    struct timeval start;
-    struct timeval stop;
-} PERF_COUNTER;
-
-inline void
-PerfCounterStart(
-    PERF_COUNTER *counter
-    )
-{
-    gettimeofday(&counter->start);
-    counter->stop.tv_sec = 0;
-    counter->stop.tv_usec = 0;
-}
-
-inline void
-PerfCounterStop(
-    PERF_COUNTER *counter
-    )
-{
-    gettimeofday(&counter->stop);
-}
-
-inline double
-PerfCounterDiff(
-    PERF_COUNTER *counter
-    )
-{
-    return (double)(counter->stop.tv_usec - counter->start.tv_usec);
-}
-
 #endif // _PLATUNIX_H_
