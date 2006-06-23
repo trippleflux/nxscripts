@@ -44,7 +44,7 @@ struct CONFIG_KEY {
         int     integer;
         char    *string;
     } value;                        // Internal value representation.
-    apr_byte_t type;               // Value type.
+    apr_byte_t type;                // Value type.
 };
 LIST_HEAD(CONFIG_KEY_HEAD, CONFIG_KEY);
 
@@ -426,7 +426,7 @@ ParseBuffer(
                     buffer++;
 
                     //
-                    // Update the length of the section's name everytime a
+                    // Update the length of the section's name every time a
                     // closing bracket is found. This allows the parser to
                     // handle section names containing brackets.
                     //
@@ -622,15 +622,13 @@ ConfigGetArray(
     if (key == NULL) {
         return APR_EINVAL;
     }
+    ASSERT(key->type == TYPE_ARRAY || key->type == TYPE_STRING);
 
     if (key->type == TYPE_ARRAY) {
-        // No conversion needed.
         *array = key->value.array;
         *elements = key->length;
         return APR_SUCCESS;
     } else if (key->type != TYPE_STRING) {
-        // Only convert from strings.
-        ASSERT(0);
         return APR_EINVAL;
     }
 
@@ -709,14 +707,12 @@ ConfigGetBool(
     if (key == NULL) {
         return APR_EINVAL;
     }
+    ASSERT(key->type == TYPE_BOOLEAN || key->type == TYPE_STRING);
 
     if (key->type == TYPE_BOOLEAN) {
-        // No conversion needed.
         *boolean = key->value.boolean;
         return APR_SUCCESS;
     } else if (key->type != TYPE_STRING) {
-        // Only convert from strings.
-        ASSERT(0);
         return APR_EINVAL;
     }
 
@@ -770,14 +766,12 @@ ConfigGetInt(
     if (key == NULL) {
         return APR_EINVAL;
     }
+    ASSERT(key->type == TYPE_INTEGER || key->type == TYPE_STRING);
 
     if (key->type == TYPE_INTEGER) {
-        // No conversion needed.
         *integer = key->value.integer;
         return APR_SUCCESS;
     } else if (key->type != TYPE_STRING) {
-        // Only convert from strings.
-        ASSERT(0);
         return APR_EINVAL;
     }
 
@@ -832,9 +826,9 @@ ConfigGetString(
     if (key == NULL) {
         return APR_EINVAL;
     }
+    ASSERT(key->type == TYPE_STRING);
 
     if (key->type == TYPE_STRING) {
-        // No conversion needed.
         *string = key->value.string;
         if (length != NULL) {
             *length = key->length;
@@ -842,7 +836,5 @@ ConfigGetString(
         return APR_SUCCESS;
     }
 
-    // Only convert from strings.
-    ASSERT(0);
     return APR_EINVAL;
 }
