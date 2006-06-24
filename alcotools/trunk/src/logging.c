@@ -19,8 +19,9 @@ Abstract:
 
 #if (LOG_LEVEL > 0)
 
-static apr_file_t *handle = NULL;
-static int maxLevel       = 0;
+static apr_file_t *handle;
+static apr_pool_t *subPool;
+static int maxLevel;
 
 
 /*++
@@ -41,14 +42,23 @@ LogInit(
     apr_pool_t *pool
     )
 {
-    // Only open the log file once
-    ASSERT(handle == NULL);
+    apr_status_t status;
+
+    // Initialize static variables
+    handle = NULL;
+    maxLevel = 0;
 
     if (ConfigGetInt(SectionGeneral, GeneralLogLevel, &maxLevel) != APR_SUCCESS || !maxLevel) {
         return APR_SUCCESS;
     }
 
-    // Open the log file for writing
+    // Create a sub-pool for log message allocations
+    status = apr_pool_create(&subPool, pool);
+    if (status != APR_SUCCESS) {
+        return status;
+    }
+
+    // Open log file for writing
     return apr_file_open(&handle, LOG_FILE, APR_FOPEN_WRITE|
         APR_FOPEN_CREATE|APR_FOPEN_APPEND, APR_OS_DEFAULT, pool);
 }

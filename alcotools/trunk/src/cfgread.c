@@ -56,7 +56,10 @@ struct CONFIG_SECTION {
 SLIST_HEAD(CONFIG_SECTION_HEAD, CONFIG_SECTION);
 
 // Section structure list head
-static CONFIG_SECTION_HEAD sectionHead = SLIST_HEAD_INITIALIZER(sectionHead);
+static CONFIG_SECTION_HEAD sectionHead;
+
+// Sub-pool used for config allocations
+static apr_pool_t *subPool;
 
 
 /*++
@@ -100,9 +103,9 @@ CreateSection(
         }
     }
 
-    section = MemAlloc(sizeof(CONFIG_SECTION));
+    section = apr_palloc(subPool, sizeof(CONFIG_SECTION));
     if (section != NULL) {
-        section->crc  = sectionCrc;
+        section->crc = sectionCrc;
         LIST_INIT(&section->keys);
         SLIST_INSERT_HEAD(&sectionHead, section, link);
     }
@@ -178,15 +181,14 @@ CreateKey(
     }
 
     if (!exists) {
-        key = MemAlloc(sizeof(CONFIG_KEY));
+        key = apr_palloc(subPool, sizeof(CONFIG_KEY));
         if (key == NULL) {
             return;
         }
 
         // Initialize key structure
-        key->value.string = MemAlloc((valueLength + 1) * sizeof(char));
+        key->value.string = apr_palloc(subPool, valueLength + 1);
         if (key->value.string == NULL) {
-            MemFree(key);
             return;
         }
         key->crc  = keyCrc;
@@ -196,18 +198,17 @@ CreateKey(
         LIST_INSERT_HEAD(&section->keys, key, link);
 
     } else if (key->length < valueLength) {
-        // Resize memory block to accommodate the larger string.
-        key->value.string = MemRealloc(key->value.string, (valueLength + 1) * sizeof(char));
+        // Allocate a memory block to accommodate the larger string.
+        key->value.string = apr_palloc(subPool, valueLength + 1);
 
         if (key->value.string == NULL) {
             LIST_REMOVE(key, link);
-            MemFree(key);
             return;
         }
     }
 
     // Update the key's value and length.
-    memcpy(key->value.string, value, valueLength * sizeof(char));
+    memcpy(key->value.string, value, valueLength);
     key->value.string[valueLength] = '\0';
     key->length = valueLength;
 }
@@ -503,8 +504,17 @@ ConfigInit(
     apr_size_t   length;
     apr_status_t status;
 
+    // Initialize section list head
+    SLIST_INIT(&sectionHead);
+
+    // Create a sub-pool for configuration memory allocations
+    status = apr_pool_create(&subPool, pool);
+    if (status != APR_SUCCESS) {
+        return status;
+    }
+
     // Open configuration file for reading
-    status = apr_file_open(&file, CONFIG_FILE, APR_FOPEN_READ, APR_OS_DEFAULT, pool);
+    status = apr_file_open(&file, CONFIG_FILE, APR_FOPEN_READ, APR_OS_DEFAULT, subPool);
     if (status != APR_SUCCESS) {
         return status;
     }
@@ -514,7 +524,7 @@ ConfigInit(
 
         // Allocate a buffer large enough to contain the configuration file
         length = (apr_size_t)fileInfo.size;
-        buffer = apr_palloc(pool, length);
+        buffer = apr_palloc(subPool, length);
         if (buffer == NULL) {
             status = APR_ENOMEM;
         } else {
@@ -590,7 +600,7 @@ ConfigGetArray(
     // Calculate the required space to store the array and its elements.
     ParseArray(key->value.string, NULL, &bufferElements, NULL, &bufferChars);
 
-    buffer = MemAlloc((bufferElements * sizeof(char *)) + (bufferChars * sizeof(char)));
+    buffer = apr_palloc(subPool, (bufferElements * sizeof(char *)) + bufferChars);
     if (buffer == NULL) {
         return APR_ENOMEM;
     }
@@ -600,7 +610,6 @@ ConfigGetArray(
     ParseArray(key->value.string, buffer, &bufferElements, offset, &bufferChars);
 
     // Change the key's internal value representation to an array.
-    MemFree(key->value.string);
     key->type = TYPE_ARRAY;
     key->length = *elements = bufferElements;
     key->value.array = *array = buffer;
@@ -675,7 +684,6 @@ ConfigGetBool(
     for (i = 0; i < ARRAYSIZE(values); i++) {
         if (key->length == values[i].length && strncasecmp(&text[values[i].length], key->value.string, key->length) == 0) {
             // Change the key's internal value representation to a boolean.
-            MemFree(key->value.string);
             key->type = TYPE_BOOLEAN;
             key->value.boolean = *boolean = values[i].value;
             return APR_SUCCESS;
@@ -738,7 +746,6 @@ ConfigGetInt(
     }
 
     // Change the key's internal value representation to an integer.
-    MemFree(key->value.string);
     key->type = TYPE_INTEGER;
     key->value.integer = *integer = value;
     return APR_SUCCESS;
