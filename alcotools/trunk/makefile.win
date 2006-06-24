@@ -73,99 +73,111 @@ CFLAGS      = $(CFLAGS) /DDEBUG_MEMORY=1
 # -------------------------------------------------------------------------
 
 !if !exist("makefile.win")
-!error You must run this makefile from the directory it is located in.
+!   error You must run this makefile from the directory it is located in.
 !endif
 
 # -------------------------------------------------------------------------
 
 !if !defined(APR_DIR)
-!error Unable to find APR files; the APR_DIR variable is not set.
+!   error Unable to find APR files; the APR_DIR variable is not set.
 !endif
 
 APR_DIR    = $(APR_DIR:/=\)
 APR_INC    = $(APR_DIR)\include
 APR_DLL    = $(APR_DIR)\libapr.dll
+APR_MANI   = $(APR_DIR)\libapr.dll.manifest
 APR_IMPORT = $(APR_DIR)\libapr.lib
 APR_STATIC = $(APR_DIR)\apr.lib
 
 !if !exist("$(APR_INC)\apr.h")
-!error Unable to find apr.h; the APR_DIR variable is incorrect.
-!endif
-!if !exist("$(APR_DLL)")
-!error Unable to find libapr.dll; the APR_DIR variable is incorrect.
-!endif
-!if !exist("$(APR_IMPORT)")
-!error Unable to find libapr.lib; the APR_DIR variable is incorrect.
-!endif
-!if !exist("$(APR_STATIC)")
-!error Unable to find apr.lib; the APR_DIR variable is incorrect.
+!   error Unable to find "apr.h"; the APR_DIR variable is incorrect.
 !endif
 
 !if "$(STATIC_LIB)" == "1"
+!   if !exist("$(APR_STATIC)")
+!       error Unable to find "apr.lib"; the APR_DIR variable is incorrect.
+!   endif
 APR_LIB  = "$(APR_STATIC)"
 !else
+!   if !exist("$(APR_DLL)")
+!      error Unable to find "libapr.dll"; the APR_DIR variable is incorrect.
+!   endif
+!   if !exist("$(APR_MANI)")
+!      error Unable to find "libapr.dll.manifest"; the APR_DIR variable is incorrect.
+!   endif
+!   if !exist("$(APR_IMPORT)")
+!      error Unable to find "libapr.lib"; the APR_DIR variable is incorrect.
+!   endif
 APR_LIB  = "$(APR_IMPORT)"
 !endif
 
 # -------------------------------------------------------------------------
 
 !if !defined(SQLITE_DIR)
-!error Unable to find SQLite files; the SQLITE_DIR variable is not set.
+!   error Unable to find SQLite files; the SQLITE_DIR variable is not set.
 !endif
 
 SQLITE_DIR    = $(SQLITE_DIR:/=\)
 SQLITE_INC    = $(SQLITE_DIR)\include
 SQLITE_DLL    = $(SQLITE_DIR)\sqlite3.dll
+SQLITE_MANI   = $(SQLITE_DIR)\sqlite3.dll.manifest
 SQLITE_IMPORT = $(SQLITE_DIR)\sqlite3.lib
 SQLITE_STATIC = $(SQLITE_DIR)\sqlite3-static.lib
 
 !if !exist("$(SQLITE_INC)\sqlite3.h")
-!error Unable to find sqlite3.h; the SQLITE_DIR variable is incorrect.
-!endif
-!if !exist("$(SQLITE_DLL)")
-!error Unable to find sqlite3.dll; the SQLITE_DIR variable is incorrect.
-!endif
-!if !exist("$(SQLITE_IMPORT)")
-!error Unable to find sqlite3.lib; the SQLITE_DIR variable is incorrect.
-!endif
-!if !exist("$(SQLITE_STATIC)")
-!error Unable to find sqlite3-static.lib; the SQLITE_DIR variable is incorrect.
+!   error Unable to find "sqlite3.h"; the SQLITE_DIR variable is incorrect.
 !endif
 
 !if "$(STATIC_LIB)" == "1"
+!   if !exist("$(SQLITE_STATIC)")
+!       error Unable to find "sqlite3-static.lib"; the SQLITE_DIR variable is incorrect.
+!   endif
 SQLITE_LIB  = "$(SQLITE_STATIC)"
 !else
+!   if !exist("$(SQLITE_DLL)")
+!       error Unable to find "sqlite3.dll"; the SQLITE_DIR variable is incorrect.
+!   endif
+!   if !exist("$(SQLITE_MANI)")
+!       error Unable to find "sqlite3.dll.manifest"; the SQLITE_DIR variable is incorrect.
+!   endif
+!   if !exist("$(SQLITE_IMPORT)")
+!       error Unable to find "sqlite3.lib"; the SQLITE_DIR variable is incorrect.
+!   endif
 SQLITE_LIB  = "$(SQLITE_IMPORT)"
 !endif
 
 # -------------------------------------------------------------------------
 
 !if !defined(ZLIB_DIR)
-!error Unable to find Zlib files; the ZLIB_DIR variable is not set.
+!   error Unable to find Zlib files; the ZLIB_DIR variable is not set.
 !endif
 
 ZLIB_DIR    = $(ZLIB_DIR:/=\)
 ZLIB_INC    = $(ZLIB_DIR)\include
 ZLIB_DLL    = $(ZLIB_DIR)\zlib.dll
+ZLIB_MANI   = $(ZLIB_DIR)\zlib.dll.manifest
 ZLIB_IMPORT = $(ZLIB_DIR)\zlib.lib
 ZLIB_STATIC = $(ZLIB_DIR)\zlib-static.lib
 
 !if !exist("$(ZLIB_INC)\zlib.h")
-!error Unable to find zlib.h; the ZLIB_DIR variable is incorrect.
-!endif
-!if !exist("$(ZLIB_DLL)")
-!error Unable to find zlib.dll; the ZLIB_DIR variable is incorrect.
-!endif
-!if !exist("$(ZLIB_IMPORT)")
-!error Unable to find zlib.lib; the ZLIB_DIR variable is incorrect.
-!endif
-!if !exist("$(ZLIB_STATIC)")
-!error Unable to find zlib-static.lib; the ZLIB_DIR variable is incorrect.
+!   error Unable to find "zlib.h"; the ZLIB_DIR variable is incorrect.
 !endif
 
 !if "$(STATIC_LIB)" == "1"
+!   if !exist("$(ZLIB_STATIC)")
+!       error Unable to find "zlib-static.lib"; the ZLIB_DIR variable is incorrect.
+!   endif
 ZLIB_LIB    = "$(ZLIB_STATIC)"
 !else
+!   if !exist("$(ZLIB_DLL)")
+!       error Unable to find "zlib.dll"; the ZLIB_DIR variable is incorrect.
+!   endif
+!   if !exist("$(ZLIB_MANI)")
+!       error Unable to find "zlib.dll.manifest"; the ZLIB_DIR variable is incorrect.
+!   endif
+!   if !exist("$(ZLIB_IMPORT)")
+!       error Unable to find "zlib.lib"; the ZLIB_DIR variable is incorrect.
+!   endif
 ZLIB_LIB    = "$(ZLIB_IMPORT)"
 !endif
 
