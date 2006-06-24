@@ -30,7 +30,7 @@ LogInit
     Initialize the logging subsystem.
 
 Arguments:
-    pool    - Pool to allocate file handles from.
+    pool    - Main application pool, to create sub-pools from.
 
 Return Values:
     Returns an APR status code.
@@ -51,30 +51,6 @@ LogInit(
     // Open the log file for writing
     return apr_file_open(&handle, LOG_FILE, APR_FOPEN_WRITE|
         APR_FOPEN_CREATE|APR_FOPEN_APPEND, APR_OS_DEFAULT, pool);
-}
-
-/*++
-
-LogFinalize
-
-    Finalize the logging subsystem.
-
-Arguments:
-    None.
-
-Return Values:
-    None.
-
---*/
-void
-LogFinalize(
-    void
-    )
-{
-    if (handle != NULL) {
-        apr_file_close(handle);
-        handle = NULL;
-    }
 }
 
 /*++

@@ -486,7 +486,7 @@ ConfigInit
     Initialize the configuration file subsystem.
 
 Arguments:
-    pool    - Pool to allocate file handles from.
+    pool    - Main application pool, to create sub-pools from.
 
 Return Values:
     Returns an APR status code.
@@ -497,7 +497,7 @@ ConfigInit(
     apr_pool_t *pool
     )
 {
-    apr_byte_t   *buffer = NULL;
+    apr_byte_t   *buffer;
     apr_file_t   *file;
     apr_finfo_t  fileInfo;
     apr_size_t   length;
@@ -529,54 +529,6 @@ ConfigInit(
 
     apr_file_close(file);
     return status;
-}
-
-/*++
-
-ConfigFinalize
-
-    Finalize the configuration file subsystem.
-
-Arguments:
-    None.
-
-Return Value:
-    None.
-
---*/
-void
-ConfigFinalize(
-    void
-    )
-{
-    CONFIG_KEY *key;
-    CONFIG_SECTION *section;
-
-    while (!SLIST_EMPTY(&sectionHead)) {
-        section = SLIST_FIRST(&sectionHead);
-
-        while (!LIST_EMPTY(&section->keys)) {
-            key = LIST_FIRST(&section->keys);
-
-            // Free the key's value.
-            switch (key->type) {
-                case TYPE_ARRAY:
-                    MemFree(key->value.array);
-                    break;
-                case TYPE_STRING:
-                    MemFree(key->value.string);
-                    break;
-            }
-
-            // Remove key structure from the list and free it
-            LIST_REMOVE(key, link);
-            MemFree(key);
-        }
-
-        // Remove section structure from the list and free it
-        SLIST_REMOVE_HEAD(&sectionHead, link);
-        MemFree(section);
-    }
 }
 
 /*++

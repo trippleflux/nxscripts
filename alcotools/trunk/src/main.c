@@ -64,6 +64,7 @@ main(
     )
 {
     int i;
+    apr_pool_t *pool;
     apr_status_t status;
     apr_time_t counter;
     apr_uint32_t crc;
@@ -83,15 +84,22 @@ main(
         return -1;
     }
 
+    // Create an application memory pool
+    status = apr_pool_create(&pool, NULL);
+    if (status != APR_SUCCESS) {
+        printf("APR pool creation failed (error %d).\n", status);
+        return -1;
+    }
+
     // Initialize subsystems
-    status = ConfigInit(NULL);
+    status = ConfigInit(pool);
     if (status != APR_SUCCESS) {
          printf("Unable to read configuration file (error %d).\n", status);
          goto exit;
     }
 
 #if (LOG_LEVEL > 0)
-    status = LogInit(NULL);
+    status = LogInit(pool);
     if (status != APR_SUCCESS) {
         printf("Unable to open log file (error %d).\n", status);
         goto exit;
@@ -151,15 +159,7 @@ exit:
     fflush(stdout);
 #endif
 
-    // Finalize subsystems
-    VERBOSE("Finalizing config subsystem.\n");
-    ConfigFinalize();
-
-#if (LOG_LEVEL > 0)
-    VERBOSE("Finalizing log subsystem.\n");
-    LogFinalize();
-#endif
-
+    apr_pool_destroy(pool);
     apr_terminate();
     return status;
 }

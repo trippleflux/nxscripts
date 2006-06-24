@@ -75,11 +75,6 @@ LogInit(
     );
 
 void
-LogFinalize(
-    void
-    );
-
-void
 LogFormat(
     int level,
     const char *format,

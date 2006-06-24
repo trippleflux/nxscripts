@@ -22,11 +22,6 @@ ConfigInit(
     apr_pool_t *pool
     );
 
-void
-ConfigFinalize(
-    void
-    );
-
 int
 ConfigGetArray(
     const char *sectionName,
