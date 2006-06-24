@@ -23,7 +23,7 @@ EventPostDele(
     char **argv
     )
 {
-    LOG_DEBUG("EventPostDele: %d arguments\n", argc);
+    LOG_DEBUG("EventPostDele: %d arguments", argc);
     return APR_SUCCESS;
 }
 
@@ -34,7 +34,7 @@ EventPostMkd(
     char **argv
     )
 {
-    LOG_DEBUG("EventPostMkd: %d arguments\n", argc);
+    LOG_DEBUG("EventPostMkd: %d arguments", argc);
     return APR_SUCCESS;
 }
 
@@ -45,7 +45,7 @@ EventPostRename(
     char **argv
     )
 {
-    LOG_DEBUG("EventPostRename: %d arguments\n", argc);
+    LOG_DEBUG("EventPostRename: %d arguments", argc);
     return APR_SUCCESS;
 }
 
@@ -56,7 +56,7 @@ EventPostRmd(
     char **argv
     )
 {
-    LOG_DEBUG("EventPostRmd: %d arguments\n", argc);
+    LOG_DEBUG("EventPostRmd: %d arguments", argc);
     return APR_SUCCESS;
 }
 
@@ -67,7 +67,7 @@ EventPreMkd(
     char **argv
     )
 {
-    LOG_DEBUG("EventPreMkd: %d arguments\n", argc);
+    LOG_DEBUG("EventPreMkd: %d arguments", argc);
     return APR_SUCCESS;
 }
 
@@ -78,7 +78,7 @@ EventPreStor(
     char **argv
     )
 {
-    LOG_DEBUG("EventPreStor: %d arguments\n", argc);
+    LOG_DEBUG("EventPreStor: %d arguments", argc);
     return APR_SUCCESS;
 }
 
@@ -89,7 +89,7 @@ EventUpload(
     char **argv
     )
 {
-    LOG_DEBUG("EventUpload: %d arguments\n", argc);
+    LOG_DEBUG("EventUpload: %d arguments", argc);
     return APR_SUCCESS;
 }
 
@@ -100,7 +100,7 @@ EventUploadError(
     char **argv
     )
 {
-    LOG_DEBUG("EventUploadError: %d arguments\n", argc);
+    LOG_DEBUG("EventUploadError: %d arguments", argc);
     return APR_SUCCESS;
 }
 
@@ -111,7 +111,7 @@ EventSiteDupe(
     char **argv
     )
 {
-    LOG_DEBUG("EventSiteDupe: %d arguments\n", argc);
+    LOG_DEBUG("EventSiteDupe: %d arguments", argc);
     return APR_SUCCESS;
 }
 
@@ -122,7 +122,7 @@ EventSiteFileDupe(
     char **argv
     )
 {
-    LOG_DEBUG("EventSiteFileDupe: %d arguments\n", argc);
+    LOG_DEBUG("EventSiteFileDupe: %d arguments", argc);
     return APR_SUCCESS;
 }
 
@@ -133,7 +133,7 @@ EventSiteNew(
     char **argv
     )
 {
-    LOG_DEBUG("EventSiteNew: %d arguments\n", argc);
+    LOG_DEBUG("EventSiteNew: %d arguments", argc);
     return APR_SUCCESS;
 }
 
@@ -144,7 +144,7 @@ EventSiteRescan(
     char **argv
     )
 {
-    LOG_DEBUG("EventSiteRescan: %d arguments\n", argc);
+    LOG_DEBUG("EventSiteRescan: %d arguments", argc);
     return APR_SUCCESS;
 }
 
@@ -155,6 +155,6 @@ EventSiteUndupe(
     char **argv
     )
 {
-    LOG_DEBUG("EventSiteUndupe: %d arguments\n", argc);
+    LOG_DEBUG("EventSiteUndupe: %d arguments", argc);
     return APR_SUCCESS;
 }
