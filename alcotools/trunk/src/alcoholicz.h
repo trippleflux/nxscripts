@@ -29,6 +29,10 @@ Abstract:
 #   include "platunix.h"
 #endif
 
+#ifdef STATIC_LIB
+#   define APR_DECLARE_STATIC 1
+#endif
+
 // APR library
 #include "apr.h"
 #include "apr_env.h"

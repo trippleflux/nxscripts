@@ -54,6 +54,14 @@ CRTLIB      = /MD
 CFLAGS      = $(CFLAGS) /DDYNAMIC_CRT
 !endif
 
+!if "$(STATIC_LIB)" == "1"
+!message *** Option: Static Libraries
+CFLAGS      = $(CFLAGS) /DSTATIC_LIB
+!else
+!message *** Option: Dynamic Libraries
+CFLAGS      = $(CFLAGS) /DDYNAMIC_LIB
+!endif
+
 !if "$(DEBUG)" == "1"
 !message *** Option: Debug Symbols
 OUT_DIR     = Debug
@@ -82,12 +90,12 @@ CFLAGS      = $(CFLAGS) /DDEBUG_MEMORY=1
 !   error Unable to find APR files; the APR_DIR variable is not set.
 !endif
 
-APR_DIR    = $(APR_DIR:/=\)
-APR_INC    = $(APR_DIR)\include
-APR_DLL    = $(APR_DIR)\libapr.dll
-APR_MANI   = $(APR_DIR)\libapr.dll.manifest
-APR_IMPORT = $(APR_DIR)\libapr.lib
-APR_STATIC = $(APR_DIR)\apr.lib
+APR_DIR     = $(APR_DIR:/=\)
+APR_INC     = $(APR_DIR)\include
+APR_DLL     = $(APR_DIR)\libapr.dll
+APR_MANI    = $(APR_DIR)\libapr.dll.manifest
+APR_IMPORT  = $(APR_DIR)\libapr.lib
+APR_STATIC  = $(APR_DIR)\apr.lib
 
 !if !exist("$(APR_INC)\apr.h")
 !   error Unable to find "apr.h"; the APR_DIR variable is incorrect.
@@ -97,7 +105,7 @@ APR_STATIC = $(APR_DIR)\apr.lib
 !   if !exist("$(APR_STATIC)")
 !       error Unable to find "apr.lib"; the APR_DIR variable is incorrect.
 !   endif
-APR_LIB  = "$(APR_STATIC)"
+APR_LIB     = $(APR_STATIC)
 !else
 !   if !exist("$(APR_DLL)")
 !      error Unable to find "libapr.dll"; the APR_DIR variable is incorrect.
@@ -108,7 +116,7 @@ APR_LIB  = "$(APR_STATIC)"
 !   if !exist("$(APR_IMPORT)")
 !      error Unable to find "libapr.lib"; the APR_DIR variable is incorrect.
 !   endif
-APR_LIB  = "$(APR_IMPORT)"
+APR_LIB     = $(APR_IMPORT)
 !endif
 
 # -------------------------------------------------------------------------
@@ -132,7 +140,7 @@ SQLITE_STATIC = $(SQLITE_DIR)\sqlite3-static.lib
 !   if !exist("$(SQLITE_STATIC)")
 !       error Unable to find "sqlite3-static.lib"; the SQLITE_DIR variable is incorrect.
 !   endif
-SQLITE_LIB  = "$(SQLITE_STATIC)"
+SQLITE_LIB  = $(SQLITE_STATIC)
 !else
 !   if !exist("$(SQLITE_DLL)")
 !       error Unable to find "sqlite3.dll"; the SQLITE_DIR variable is incorrect.
@@ -143,7 +151,7 @@ SQLITE_LIB  = "$(SQLITE_STATIC)"
 !   if !exist("$(SQLITE_IMPORT)")
 !       error Unable to find "sqlite3.lib"; the SQLITE_DIR variable is incorrect.
 !   endif
-SQLITE_LIB  = "$(SQLITE_IMPORT)"
+SQLITE_LIB  = $(SQLITE_IMPORT)
 !endif
 
 # -------------------------------------------------------------------------
@@ -167,7 +175,7 @@ ZLIB_STATIC = $(ZLIB_DIR)\zlib-static.lib
 !   if !exist("$(ZLIB_STATIC)")
 !       error Unable to find "zlib-static.lib"; the ZLIB_DIR variable is incorrect.
 !   endif
-ZLIB_LIB    = "$(ZLIB_STATIC)"
+ZLIB_LIB    = $(ZLIB_STATIC)
 !else
 !   if !exist("$(ZLIB_DLL)")
 !       error Unable to find "zlib.dll"; the ZLIB_DIR variable is incorrect.
@@ -178,13 +186,19 @@ ZLIB_LIB    = "$(ZLIB_STATIC)"
 !   if !exist("$(ZLIB_IMPORT)")
 !       error Unable to find "zlib.lib"; the ZLIB_DIR variable is incorrect.
 !   endif
-ZLIB_LIB    = "$(ZLIB_IMPORT)"
+ZLIB_LIB    = $(ZLIB_IMPORT)
 !endif
 
 # -------------------------------------------------------------------------
 
 OUT_FILE    = $(OUT_DIR)\AlcoTools.exe
 TMP_DIR     = $(OUT_DIR)\tmp
+
+!if "$(STATIC_LIB)" == "1"
+DEPENDS     = nul
+!else
+DEPENDS     = "$(APR_DLL)" "$(APR_MANI)" "$(SQLITE_DLL)" "$(SQLITE_MANI)" "$(ZLIB_DLL)" "$(ZLIB_MANI)"
+!endif
 
 INC_DIRS    = /I "$(APR_INC)" /I "$(SQLITE_INC)" /I "$(ZLIB_INC)"
 
@@ -199,10 +213,13 @@ OBJ_FILES   = $(TMP_DIR)\cfgread.obj\
 
 RES_FILES   = $(TMP_DIR)\tools.res
 
+# -------------------------------------------------------------------------
+
 VERSION_RES = $(VERSION:.=,),0
-CFLAGS      = $(CFLAGS) "/DVERSION=$(VERSION)" "/DVERSION_RES=$(VERSION_RES)" $(INC_DIRS)
-LFLAGS      = $(LFLAGS) shlwapi.lib $(APR_LIB) $(SQLITE_LIB) $(ZLIB_LIB)
-RFLAGS      = $(RFLAGS) "/DVERSION=$(VERSION)" "/DVERSION_RES=$(VERSION_RES)"
+
+CFLAGS      = $(CFLAGS) /D "VERSION=$(VERSION)" /D "VERSION_RES=$(VERSION_RES)" $(INC_DIRS)
+RFLAGS      = $(RFLAGS) /D "VERSION=$(VERSION)" /D "VERSION_RES=$(VERSION_RES)" $(INC_DIRS)
+LFLAGS      = $(LFLAGS) advapi32.lib shlwapi.lib ws2_32.lib "$(APR_LIB)" "$(SQLITE_LIB)" "$(ZLIB_LIB)"
 
 # -------------------------------------------------------------------------
 
@@ -237,6 +254,4 @@ $(OUT_FILE): $(OBJ_FILES) $(RES_FILES)
     $(LD) $(LFLAGS) /OUT:$@ @<<
 $**
 <<
-    @COPY /Y "$(APR_DLL)" "$(OUT_DIR)" > nul
-    @COPY /Y "$(SQLITE_DLL)" "$(OUT_DIR)" > nul
-    @COPY /Y "$(ZLIB_DLL)" "$(OUT_DIR)" > nul
+    @COPY /Y $(DEPENDS) "$(OUT_DIR)" > nul
