@@ -23,7 +23,7 @@ EventPostDele(
     char **argv
     )
 {
-    VERBOSE("EventPostDele: %d arguments\n", argc);
+    LOG_DEBUG("EventPostDele: %d arguments\n", argc);
     return APR_SUCCESS;
 }
 
@@ -34,7 +34,7 @@ EventPostMkd(
     char **argv
     )
 {
-    VERBOSE("EventPostMkd: %d arguments\n", argc);
+    LOG_DEBUG("EventPostMkd: %d arguments\n", argc);
     return APR_SUCCESS;
 }
 
@@ -45,7 +45,7 @@ EventPostRename(
     char **argv
     )
 {
-    VERBOSE("EventPostRename: %d arguments\n", argc);
+    LOG_DEBUG("EventPostRename: %d arguments\n", argc);
     return APR_SUCCESS;
 }
 
@@ -56,7 +56,7 @@ EventPostRmd(
     char **argv
     )
 {
-    VERBOSE("EventPostRmd: %d arguments\n", argc);
+    LOG_DEBUG("EventPostRmd: %d arguments\n", argc);
     return APR_SUCCESS;
 }
 
@@ -67,7 +67,7 @@ EventPreMkd(
     char **argv
     )
 {
-    VERBOSE("EventPreMkd: %d arguments\n", argc);
+    LOG_DEBUG("EventPreMkd: %d arguments\n", argc);
     return APR_SUCCESS;
 }
 
@@ -78,7 +78,7 @@ EventPreStor(
     char **argv
     )
 {
-    VERBOSE("EventPreStor: %d arguments\n", argc);
+    LOG_DEBUG("EventPreStor: %d arguments\n", argc);
     return APR_SUCCESS;
 }
 
@@ -89,7 +89,7 @@ EventUpload(
     char **argv
     )
 {
-    VERBOSE("EventUpload: %d arguments\n", argc);
+    LOG_DEBUG("EventUpload: %d arguments\n", argc);
     return APR_SUCCESS;
 }
 
@@ -100,7 +100,7 @@ EventUploadError(
     char **argv
     )
 {
-    VERBOSE("EventUploadError: %d arguments\n", argc);
+    LOG_DEBUG("EventUploadError: %d arguments\n", argc);
     return APR_SUCCESS;
 }
 
@@ -111,7 +111,7 @@ EventSiteDupe(
     char **argv
     )
 {
-    VERBOSE("EventSiteDupe: %d arguments\n", argc);
+    LOG_DEBUG("EventSiteDupe: %d arguments\n", argc);
     return APR_SUCCESS;
 }
 
@@ -122,7 +122,7 @@ EventSiteFileDupe(
     char **argv
     )
 {
-    VERBOSE("EventSiteFileDupe: %d arguments\n", argc);
+    LOG_DEBUG("EventSiteFileDupe: %d arguments\n", argc);
     return APR_SUCCESS;
 }
 
@@ -133,7 +133,7 @@ EventSiteNew(
     char **argv
     )
 {
-    VERBOSE("EventSiteNew: %d arguments\n", argc);
+    LOG_DEBUG("EventSiteNew: %d arguments\n", argc);
     return APR_SUCCESS;
 }
 
@@ -144,7 +144,7 @@ EventSiteRescan(
     char **argv
     )
 {
-    VERBOSE("EventSiteRescan: %d arguments\n", argc);
+    LOG_DEBUG("EventSiteRescan: %d arguments\n", argc);
     return APR_SUCCESS;
 }
 
@@ -155,6 +155,6 @@ EventSiteUndupe(
     char **argv
     )
 {
-    VERBOSE("EventSiteUndupe: %d arguments\n", argc);
+    LOG_DEBUG("EventSiteUndupe: %d arguments\n", argc);
     return APR_SUCCESS;
 }

@@ -46,7 +46,7 @@ LogInit(
 
     // Initialize static variables
     handle = NULL;
-    maxLevel = 0;
+    maxLevel = LOG_LEVEL_OFF;
 
     if (ConfigGetInt(SectionGeneral, GeneralLogLevel, &maxLevel) != APR_SUCCESS || !maxLevel) {
         return APR_SUCCESS;

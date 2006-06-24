@@ -247,7 +247,8 @@ GetKey(
 
     keyCrc = Crc32String(keyName);
     sectionCrc = Crc32String(sectionName);
-    VERBOSE("Looking up key 0x%08X in section 0x%08X.\n", keyCrc, sectionCrc);
+    LOG_VERBOSE("Looking up key \"%s\" (0x%08X) in section \"%s\" (0x%08X).\n",
+        keyName, keyCrc, sectionName, sectionCrc);
 
     SLIST_FOREACH(section, &sectionHead, link) {
         if (section->crc == sectionCrc) {
@@ -260,7 +261,7 @@ GetKey(
         }
     }
 
-    WARNING("Could not find key \"%s\" in section \"%s\".\n", keyCrc, sectionCrc);
+    LOG_WARNING("Could not find key \"%s\" in section \"%s\".\n", keyName, sectionName);
     return NULL;
 }
 

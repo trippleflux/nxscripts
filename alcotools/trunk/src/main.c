@@ -108,9 +108,9 @@ main(
     }
 #endif
 
-    VERBOSE("AlcoTools starting (%d arguments).\n", argc);
+    LOG_VERBOSE("AlcoTools v%s starting (%d arguments).\n", APR_STRINGIFY(VERSION), argc);
     for (i = 0; i < argc; i++) {
-        VERBOSE("Argument[%d] = \"%s\"\n", i, argv[i]);
+        LOG_VERBOSE("Argument[%d] = \"%s\"\n", i, argv[i]);
     }
 
 #ifdef DEBUG
@@ -119,7 +119,7 @@ main(
         crc = Crc32UpperString(events[i].name);
 
         if (crc != events[i].crc) {
-            ERROR("Invalid CRC32 for event \"%s\": current=0x%08X calculated=0x%08X\n",
+            LOG_ERROR("Invalid CRC32 for event \"%s\": current=0x%08X calculated=0x%08X\n",
                 events[i].name, events[i].crc, crc);
         }
     }
@@ -128,7 +128,7 @@ main(
     // Create a sub-pool for the event callback
     status = apr_pool_create(&eventPool, pool);
     if (status != APR_SUCCESS) {
-        ERROR("Unable to create memory sub-pool (error %d).\n", status);
+        LOG_ERROR("Unable to create memory sub-pool (error %d).\n", status);
         goto exit;
     }
 
@@ -138,14 +138,14 @@ main(
     // method is marginally faster than performing strcmp() multiple times.
     //
     crc = Crc32UpperString(argv[1]);
-    VERBOSE("CRC32 checksum for \"%s\": 0x%08X\n", argv[1], crc);
+    LOG_VERBOSE("CRC32 checksum for event \"%s\" is 0x%08X.\n", argv[1], crc);
 
     for (i = 0; i < ARRAYSIZE(events); i++) {
         if (crc == events[i].crc) {
             status = events[i].proc(eventPool, argc-2, argv+2);
 
             if (status != APR_SUCCESS) {
-                ERROR("Event callback returned %d.\n", status);
+                LOG_ERROR("Event callback returned %d.\n", status);
             }
             break;
         }
@@ -153,12 +153,12 @@ main(
 
     if (i >= ARRAYSIZE(events)) {
         printf("Unknown event: %s\n", argv[1]);
-        ERROR("Unknown event: %s\n", argv[1]);
+        LOG_ERROR("Unknown event: %s\n", argv[1]);
         status = APR_EINVAL;
     }
 
-    WARNING("Time taken: %.3f ms\n", (apr_time_now() - counter)/1000.0);
-    WARNING("Exit status: %d\n", status);
+    LOG_WARNING("Time taken: %.3f ms\n", (apr_time_now() - counter)/1000.0);
+    LOG_WARNING("Exit status: %d\n", status);
 
 exit:
 
