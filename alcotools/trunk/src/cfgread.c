@@ -249,14 +249,13 @@ GetKey(
     VERBOSE("Looking up key 0x%08X in section 0x%08X.\n", keyCrc, sectionCrc);
 
     SLIST_FOREACH(section, &sectionHead, link) {
-        if (section->crc != sectionCrc) {
-            continue;
-        }
-
-        LIST_FOREACH(key, &section->keys, link) {
-            if (key->crc == keyCrc) {
-                return key;
+        if (section->crc == sectionCrc) {
+            LIST_FOREACH(key, &section->keys, link) {
+                if (key->crc == keyCrc) {
+                    return key;
+                }
             }
+            break;
         }
     }
 
