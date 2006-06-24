@@ -18,6 +18,7 @@ Abstract:
 
 apr_status_t
 EventPostDele(
+    apr_pool_t *pool,
     int argc,
     char **argv
     )
@@ -28,6 +29,7 @@ EventPostDele(
 
 apr_status_t
 EventPostMkd(
+    apr_pool_t *pool,
     int argc,
     char **argv
     )
@@ -38,6 +40,7 @@ EventPostMkd(
 
 apr_status_t
 EventPostRename(
+    apr_pool_t *pool,
     int argc,
     char **argv
     )
@@ -48,6 +51,7 @@ EventPostRename(
 
 apr_status_t
 EventPostRmd(
+    apr_pool_t *pool,
     int argc,
     char **argv
     )
@@ -58,6 +62,7 @@ EventPostRmd(
 
 apr_status_t
 EventPreMkd(
+    apr_pool_t *pool,
     int argc,
     char **argv
     )
@@ -68,6 +73,7 @@ EventPreMkd(
 
 apr_status_t
 EventPreStor(
+    apr_pool_t *pool,
     int argc,
     char **argv
     )
@@ -78,6 +84,7 @@ EventPreStor(
 
 apr_status_t
 EventUpload(
+    apr_pool_t *pool,
     int argc,
     char **argv
     )
@@ -88,6 +95,7 @@ EventUpload(
 
 apr_status_t
 EventUploadError(
+    apr_pool_t *pool,
     int argc,
     char **argv
     )
@@ -98,6 +106,7 @@ EventUploadError(
 
 apr_status_t
 EventSiteDupe(
+    apr_pool_t *pool,
     int argc,
     char **argv
     )
@@ -108,6 +117,7 @@ EventSiteDupe(
 
 apr_status_t
 EventSiteFileDupe(
+    apr_pool_t *pool,
     int argc,
     char **argv
     )
@@ -118,6 +128,7 @@ EventSiteFileDupe(
 
 apr_status_t
 EventSiteNew(
+    apr_pool_t *pool,
     int argc,
     char **argv
     )
@@ -128,6 +139,7 @@ EventSiteNew(
 
 apr_status_t
 EventSiteRescan(
+    apr_pool_t *pool,
     int argc,
     char **argv
     )
@@ -138,6 +150,7 @@ EventSiteRescan(
 
 apr_status_t
 EventSiteUndupe(
+    apr_pool_t *pool,
     int argc,
     char **argv
     )

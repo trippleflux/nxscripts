@@ -18,6 +18,7 @@ Abstract:
 #define _EVENTS_H_
 
 typedef apr_status_t (EVENT_PROC)(
+    apr_pool_t *pool,
     int argc,
     char **argv
     );

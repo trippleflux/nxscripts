@@ -21,7 +21,7 @@ struct {
     EVENT_PROC *proc;   // Event callback
     const char *name;   // Event name
     apr_uint32_t crc;   // CRC32 checksum of the event name
-} static const mainEvents[] = {
+} static const events[] = {
     // Command-based events
     {EventPostDele,     "POSTDELE",    0xFD930F3A},
     {EventPostMkd,      "POSTMKD",     0x6115AE4A},
@@ -65,6 +65,7 @@ main(
 {
     int i;
     apr_pool_t *pool;
+    apr_pool_t *eventPool;
     apr_status_t status;
     apr_time_t counter;
     apr_uint32_t crc;
@@ -88,6 +89,7 @@ main(
     status = apr_pool_create(&pool, NULL);
     if (status != APR_SUCCESS) {
         printf("APR pool creation failed (error %d).\n", status);
+        apr_terminate();
         return -1;
     }
 
@@ -112,28 +114,35 @@ main(
     }
 
 #ifdef DEBUG
-    // Verify pre-computed CRC-32 checksums in the main event table
-    for (i = 0; i < ARRAYSIZE(mainEvents); i++) {
-        crc = Crc32UpperString(mainEvents[i].name);
+    // Verify pre-computed CRC-32 checksums in the event table
+    for (i = 0; i < ARRAYSIZE(events); i++) {
+        crc = Crc32UpperString(events[i].name);
 
-        if (crc != mainEvents[i].crc) {
-            ERROR("Invalid CRC32 for main event \"%s\": current=0x%08X calculated=0x%08X\n",
-                mainEvents[i].name, mainEvents[i].crc, crc);
+        if (crc != events[i].crc) {
+            ERROR("Invalid CRC32 for event \"%s\": current=0x%08X calculated=0x%08X\n",
+                events[i].name, events[i].crc, crc);
         }
     }
 #endif
 
+    // Create a sub-pool for the event callback
+    status = apr_pool_create(&eventPool, pool);
+    if (status != APR_SUCCESS) {
+        ERROR("Unable to create memory sub-pool (error %d).\n", status);
+        goto exit;
+    }
+
     //
     // Calculate the CRC-32 checksum of the first command-line argument and
-    // compare it with the pre-computed checksums in the main event table.
-    // This method is marginally faster than performing strcmp() multiple times.
+    // compare it with the pre-computed checksums in the event table. This
+    // method is marginally faster than performing strcmp() multiple times.
     //
     crc = Crc32UpperString(argv[1]);
     VERBOSE("CRC32 checksum for \"%s\": 0x%08X\n", argv[1], crc);
 
-    for (i = 0; i < ARRAYSIZE(mainEvents); i++) {
-        if (crc == mainEvents[i].crc) {
-            status = mainEvents[i].proc(argc-2, argv+2);
+    for (i = 0; i < ARRAYSIZE(events); i++) {
+        if (crc == events[i].crc) {
+            status = events[i].proc(eventPool, argc-2, argv+2);
 
             if (status != APR_SUCCESS) {
                 ERROR("Event callback returned %d.\n", status);
@@ -142,7 +151,7 @@ main(
         }
     }
 
-    if (i >= ARRAYSIZE(mainEvents)) {
+    if (i >= ARRAYSIZE(events)) {
         printf("Unknown event: %s\n", argv[1]);
         ERROR("Unknown event: %s\n", argv[1]);
         status = APR_EINVAL;
