@@ -81,14 +81,14 @@ main(
     // Initialize APR memory pools and convert arguments to UTF8
     status = apr_app_initialize(&argc, &argv, NULL);
     if (status != APR_SUCCESS) {
-        printf("APR library failed to initialize (error %d).\n", status);
+        printf("APR library failed to initialize: %s\n", GetErrorMessage(status));
         return -1;
     }
 
     // Create an application memory pool
     status = apr_pool_create(&pool, NULL);
     if (status != APR_SUCCESS) {
-        printf("APR pool creation failed (error %d).\n", status);
+        printf("Unable to create memory pool: %s\n", GetErrorMessage(status));
         apr_terminate();
         return -1;
     }
@@ -96,14 +96,14 @@ main(
     // Initialize subsystems
     status = ConfigInit(pool);
     if (status != APR_SUCCESS) {
-         printf("Unable to read configuration file (error %d).\n", status);
+         printf("Unable to read configuration file: %s\n", GetErrorMessage(status));
          goto exit;
     }
 
 #if (LOG_LEVEL > 0)
     status = LogInit(pool);
     if (status != APR_SUCCESS) {
-        printf("Unable to open log file (error %d).\n", status);
+        printf("Unable to open log file: %s\n", GetErrorMessage(status));
         goto exit;
     }
 #endif
@@ -128,7 +128,7 @@ main(
     // Create a sub-pool for the event callback
     status = apr_pool_create(&eventPool, pool);
     if (status != APR_SUCCESS) {
-        LOG_ERROR("Unable to create memory sub-pool: error %d", status);
+        LOG_ERROR("Unable to create memory sub-pool: %s", GetErrorMessage(status));
         goto exit;
     }
 
@@ -145,7 +145,7 @@ main(
             status = events[i].proc(eventPool, argc-2, argv+2);
 
             if (status != APR_SUCCESS) {
-                LOG_ERROR("Event callback returned %d.", status);
+                LOG_ERROR("Event callback returned %d: %s", status, GetErrorMessage(status));
             }
             break;
         }
@@ -161,6 +161,9 @@ main(
     LOG_VERBOSE("Exit status: %d", status);
 
 exit:
+    if (status != APR_SUCCESS) {
+        status = 1;
+    }
 
 #ifdef WINDOWS
     // Detach from ioFTPD before finalizing subsystems

@@ -48,4 +48,10 @@ Abstract:
 // MIN - Returns the minimum of two numeric values.
 #define MIN(a, b)       (((a) < (b)) ? (a) : (b))
 
+
+const char *
+GetErrorMessage(
+    apr_status_t status
+    );
+
 #endif // _UTILS_H_
