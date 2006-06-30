@@ -10,9 +10,9 @@ Author:
     neoxed (neoxed@gmail.com) Aug 3, 2005
 
 Abstract:
-    This module implements a configuration file reader. The CRC32 checksum
+    This module implements a configuration file reader. The CRC-32 checksum
     of every key and section name is saved and used when looking up values.
-    This is not the most foolproof scheme (e.g. CRC32 checksum collisions),
+    This is not the most foolproof scheme (e.g. CRC-32 checksum collisions),
     but it is "good enough" for this application.
 
 --*/
@@ -36,7 +36,7 @@ typedef struct CONFIG_SECTION_HEAD CONFIG_SECTION_HEAD;
 
 struct CONFIG_KEY {
     LIST_ENTRY(CONFIG_KEY)  link;   // Pointer to next section structure
-    apr_uint32_t            crc;    // CRC32 checksum of the key name.
+    apr_uint32_t            crc;    // CRC-32 checksum of the key name.
     apr_size_t              length; // Length of the string or number of array elements.
     union {
         char         **array;
@@ -50,8 +50,8 @@ LIST_HEAD(CONFIG_KEY_HEAD, CONFIG_KEY);
 
 struct CONFIG_SECTION {
     SLIST_ENTRY(CONFIG_SECTION) link;   // Pointer to next section structure
+    apr_uint32_t                crc;    // CRC-32 checksum of the section name
     CONFIG_KEY_HEAD             keys;   // Keys belonging to this section
-    apr_uint32_t                crc;    // CRC32 checksum of the section name
 };
 SLIST_HEAD(CONFIG_SECTION_HEAD, CONFIG_SECTION);
 
@@ -93,7 +93,7 @@ CreateSection(
     ASSERT(sectionName  != NULL);
     ASSERT(sectionLength > 0);
 
-    // Calculate the CRC32 checksum of the section name
+    // Calculate the CRC-32 checksum of the section name
     sectionCrc = Crc32Memory(sectionName, sectionLength);
 
     // Check if the section already exists
@@ -169,7 +169,7 @@ CreateKey(
         valueLength--;
     }
 
-    // Calculate the CRC32 checksum of the key name.
+    // Calculate the CRC-32 checksum of the key name.
     keyCrc = Crc32Memory(keyName, keyLength);
 
     // Check if the key already exists in the section.
@@ -261,7 +261,7 @@ GetKey(
         }
     }
 
-    LOG_WARNING("Could not find key \"%s\" in section \"%s\".", keyName, sectionName);
+    LOG_WARNING("Unable to find key \"%s\" in section \"%s\".", keyName, sectionName);
     return NULL;
 }
 
