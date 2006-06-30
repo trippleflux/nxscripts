@@ -20,7 +20,7 @@ Abstract:
 struct {
     EVENT_PROC *proc;   // Event callback
     const char *name;   // Event name
-    apr_uint32_t crc;   // CRC32 checksum of the event name
+    apr_uint32_t crc;   // CRC-32 checksum of the event name
 } static const events[] = {
     // Command-based events
     {EventPostDele,     "POSTDELE",    0xFD930F3A},
@@ -108,9 +108,9 @@ main(
     }
 #endif
 
-    LOG_VERBOSE("AlcoTools v%s starting (%d arguments).", APR_STRINGIFY(VERSION), argc);
+    LOG_VERBOSE("AlcoTools v%s starting, received %d arguments:", APR_STRINGIFY(VERSION), argc);
     for (i = 0; i < argc; i++) {
-        LOG_VERBOSE("Argument[%d] = \"%s\"", i, argv[i]);
+        LOG_VERBOSE("Argument %d = \"%s\"", i, argv[i]);
     }
 
 #ifdef DEBUG
@@ -119,7 +119,7 @@ main(
         crc = Crc32UpperString(events[i].name);
 
         if (crc != events[i].crc) {
-            LOG_ERROR("Invalid CRC32 for event \"%s\": current=0x%08X calculated=0x%08X",
+            LOG_ERROR("Invalid CRC-32 checksum for event \"%s\": current=0x%08X calculated=0x%08X",
                 events[i].name, events[i].crc, crc);
         }
     }
@@ -138,7 +138,7 @@ main(
     // method is marginally faster than performing strcmp() multiple times.
     //
     crc = Crc32UpperString(argv[1]);
-    LOG_VERBOSE("CRC32 checksum for event \"%s\" is 0x%08X.", argv[1], crc);
+    LOG_VERBOSE("CRC-32 checksum for event \"%s\" is 0x%08X.", argv[1], crc);
 
     for (i = 0; i < ARRAYSIZE(events); i++) {
         if (crc == events[i].crc) {
