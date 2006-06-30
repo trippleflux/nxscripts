@@ -42,7 +42,17 @@ DsCreateN(
     ASSERT(pool != NULL);
     ASSERT(data != NULL);
 
-    // TODO
+    str->data = apr_palloc(pool, length + 1);
+    if (str->data == NULL) {
+        return APR_ENOMEM;
+    }
+
+    // Populate dynamic string structure
+    memcpy(str->data, data, length);
+    str->data[length] = '\0';
+    str->pool         = pool;
+    str->length       = length;
+    str->size         = length + 1;
     return APR_SUCCESS;
 }
 
@@ -57,7 +67,12 @@ DsCreateFromFile(
     ASSERT(pool != NULL);
     ASSERT(path != NULL);
 
-    // TODO
+    // TODO:
+    // - open file for reading
+    // - buffer file contents
+    // - check for a BOM or for UTF8 chars
+    // - convert buffer to UTF8, if necessary
+
     return APR_SUCCESS;
 }
 
