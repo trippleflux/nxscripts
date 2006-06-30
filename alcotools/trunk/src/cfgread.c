@@ -35,16 +35,16 @@ typedef struct CONFIG_SECTION CONFIG_SECTION;
 typedef struct CONFIG_SECTION_HEAD CONFIG_SECTION_HEAD;
 
 struct CONFIG_KEY {
-    LIST_ENTRY(CONFIG_KEY) link;    // Pointer to next section structure
-    apr_uint32_t crc;               // CRC32 checksum of the key name.
-    apr_size_t   length;            // Length of the string or number of array elements.
+    LIST_ENTRY(CONFIG_KEY)  link;   // Pointer to next section structure
+    apr_uint32_t            crc;    // CRC32 checksum of the key name.
+    apr_size_t              length; // Length of the string or number of array elements.
     union {
-        char    **array;
-        bool_t  boolean;
-        int     integer;
-        char    *string;
-    } value;                        // Internal value representation.
-    apr_byte_t type;                // Value type.
+        char         **array;
+        bool_t       boolean;
+        apr_uint32_t integer;
+        char         *string;
+    }                       value;  // Internal value representation.
+    apr_byte_t              type;   // Value type.
 };
 LIST_HEAD(CONFIG_KEY_HEAD, CONFIG_KEY);
 
@@ -741,7 +741,7 @@ ConfigGetInt(
         return APR_EINVAL;
     }
 
-    value = strtoul(key->value.string, NULL, 10);
+    value = (apr_uint32_t)strtoul(key->value.string, NULL, 10);
     if (value == ULONG_MAX) {
         return APR_EINVAL;
     }

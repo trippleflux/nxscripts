@@ -77,14 +77,14 @@ LogInit(
 
 void
 LogFormat(
-    int level,
+    apr_uint32_t level,
     const char *format,
     ...
     );
 
 void
 LogFormatV(
-    int level,
+    apr_uint32_t level,
     const char *message,
     va_list argList
     );

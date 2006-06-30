@@ -19,9 +19,9 @@ Abstract:
 
 #if (LOG_LEVEL > 0)
 
-static apr_file_t *handle;
-static apr_pool_t *subPool;
-static int maxLevel;
+static apr_file_t *handle;      // Handle to the log file
+static apr_pool_t *subPool;     // Sub-pool used for formatting log messages
+static apr_uint32_t maxLevel;   // Maximum log verbosity level
 
 
 /*++
@@ -76,13 +76,16 @@ Arguments:
 
     ...     - Arguments to insert into 'format'.
 
+Return Values:
+    None.
+
 Remarks:
     This function could be called before the logging subsystem is initialized.
 
 --*/
 void
 LogFormat(
-    int level,
+    apr_uint32_t level,
     const char *format,
     ...
     )
@@ -115,7 +118,7 @@ Remarks:
 --*/
 void
 LogFormatV(
-    int level,
+    apr_uint32_t level,
     const char *format,
     va_list argList
     )
