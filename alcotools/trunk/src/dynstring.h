@@ -69,7 +69,7 @@ DsDestroy(
 apr_status_t
 DsAppend(
     DYNAMIC_STRING *strTarget,
-    DYNAMIC_STRING *strSource
+    const DYNAMIC_STRING *strSource
     );
 
 apr_status_t
@@ -87,8 +87,8 @@ DsAppendStrN(
 
 bool_t
 DsEqual(
-    DYNAMIC_STRING *str1,
-    DYNAMIC_STRING *str2
+    const DYNAMIC_STRING *str1,
+    const DYNAMIC_STRING *str2
     );
 
 apr_status_t

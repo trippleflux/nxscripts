@@ -74,7 +74,7 @@ DsDestroy(
 apr_status_t
 DsAppend(
     DYNAMIC_STRING *strTarget,
-    DYNAMIC_STRING *strSource
+    const DYNAMIC_STRING *strSource
     )
 {
     ASSERT(strTarget != NULL);
@@ -123,8 +123,8 @@ DsAppendStrN(
 
 bool_t
 DsEqual(
-    DYNAMIC_STRING *str1,
-    DYNAMIC_STRING *str2
+    const DYNAMIC_STRING *str1,
+    const DYNAMIC_STRING *str2
     )
 {
     ASSERT(str1 != NULL);
