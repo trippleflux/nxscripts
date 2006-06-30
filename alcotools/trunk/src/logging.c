@@ -138,10 +138,9 @@ LogFormatV(
         // Format and write log message
         message = apr_pvsprintf(msgPool, format, argList);
         if (message == NULL) {
-            apr_file_puts("Unable to format message." APR_EOL_STR, handle);
-        } else {
-            apr_file_puts(message, handle);
+            message = "Unable to format message." APR_EOL_STR;
         }
+        apr_file_puts(message, handle);
         apr_file_flush(handle);
 
         // Clear memory allocated when formatting the message
