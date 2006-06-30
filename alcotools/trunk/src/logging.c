@@ -20,7 +20,7 @@ Abstract:
 #if (LOG_LEVEL > 0)
 
 static apr_file_t *handle;      // Handle to the log file
-static apr_pool_t *subPool;     // Sub-pool used for formatting log messages
+static apr_pool_t *msgPool;     // Sub-pool used for formatting log messages
 static apr_uint32_t maxLevel;   // Maximum log verbosity level
 
 
@@ -53,7 +53,7 @@ LogInit(
     }
 
     // Create a sub-pool for log message allocations
-    status = apr_pool_create(&subPool, pool);
+    status = apr_pool_create(&msgPool, pool);
     if (status != APR_SUCCESS) {
         return status;
     }
@@ -123,21 +123,29 @@ LogFormatV(
     va_list argList
     )
 {
+    apr_time_exp_t now;
+    char *message;
+
     ASSERT(format != NULL);
 
     if (level <= maxLevel && handle != NULL) {
-        apr_time_exp_t now;
-
         // Write local time
         apr_time_exp_lt(&now, apr_time_now());
         apr_file_printf(handle, "%04d-%02d-%02d %02d:%02d:%02d - ",
             now.tm_year+1900, now.tm_mon, now.tm_mday,
             now.tm_hour, now.tm_min, now.tm_sec);
 
-        //TODO: fix
-        //vfprintf(handle, format, argList);
-
+        // Format and write log message
+        message = apr_pvsprintf(msgPool, format, argList);
+        if (message == NULL) {
+            apr_file_puts("Unable to format message." APR_EOL_STR, handle);
+        } else {
+            apr_file_puts(message, handle);
+        }
         apr_file_flush(handle);
+
+        // Clear memory allocated when formatting the message
+        apr_pool_clear(msgPool);
     }
 }
 
