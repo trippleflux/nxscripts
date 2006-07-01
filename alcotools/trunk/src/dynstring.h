@@ -18,10 +18,10 @@ Abstract:
 #define _DYNSTRING_H_
 
 typedef struct {
-    char       *data;   // Pointer to the string
-    apr_pool_t *pool;   // Pointer to the pool the string is allocated from
-    apr_size_t length;  // Length of the string, in characters
-    apr_size_t size;    // Size of the buffer allocated, in bytes
+    char       *data;   // Pointer to the null-terminated data
+    apr_pool_t *pool;   // Pointer to the pool the buffer is allocated from
+    apr_size_t length;  // Length of the data, in bytes
+    apr_size_t size;    // Size of the buffer, in bytes
 } DYNAMIC_STRING;
 
 //

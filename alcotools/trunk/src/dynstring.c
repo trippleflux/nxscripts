@@ -16,6 +16,23 @@ Abstract:
 
 #include "alcoholicz.h"
 
+/*++
+
+DsCreate
+
+    Creates a dynamic string from a null-terminated string.
+
+Arguments:
+    str     - Pointer to an unused dynamic string structure.
+
+    pool    - Pointer to a memory pool.
+
+    data    - Pointer to a null-terminated string.
+
+Return Values:
+    Returns an APR status code.
+
+--*/
 apr_status_t
 DsCreate(
     DYNAMIC_STRING *str,
@@ -30,6 +47,25 @@ DsCreate(
     return DsCreateN(str, pool, data, strlen(data));
 }
 
+/*++
+
+DsCreateN
+
+    Creates a dynamic string from data.
+
+Arguments:
+    str     - Pointer to an unused dynamic string structure.
+
+    pool    - Pointer to a memory pool.
+
+    data    - Pointer to the data.
+
+    length  - Length of the data, in bytes.
+
+Return Values:
+    Returns an APR status code.
+
+--*/
 apr_status_t
 DsCreateN(
     DYNAMIC_STRING *str,
@@ -56,6 +92,23 @@ DsCreateN(
     return APR_SUCCESS;
 }
 
+/*++
+
+DsCreateFromFile
+
+    Creates a dynamic string from the contents of a file.
+
+Arguments:
+    str     - Pointer to an unused dynamic string structure.
+
+    pool    - Pointer to a memory pool.
+
+    path    - Pointer to a null-terminated string specifying the path of a file.
+
+Return Values:
+    Returns an APR status code.
+
+--*/
 apr_status_t
 DsCreateFromFile(
     DYNAMIC_STRING *str,
@@ -76,16 +129,46 @@ DsCreateFromFile(
     return APR_SUCCESS;
 }
 
+/*++
+
+DsDestroy
+
+    Destroys a dynamic string.
+
+Arguments:
+    str     - Pointer to a dynamic string.
+
+Return Values:
+    None.
+
+--*/
 void
 DsDestroy(
     DYNAMIC_STRING *str
     )
 {
     ASSERT(str != NULL);
+
+    // No-op
     memset(str, 0, sizeof(DYNAMIC_STRING));
 }
 
 
+/*++
+
+DsAppend
+
+    Appends a dynamic string to another dynamic string.
+
+Arguments:
+    strTarget - Pointer to the target dynamic string.
+
+    strSource - Pointer to the source dynamic string.
+
+Return Values:
+    Returns an APR status code.
+
+--*/
 apr_status_t
 DsAppend(
     DYNAMIC_STRING *strTarget,
@@ -98,6 +181,21 @@ DsAppend(
     return DsAppendStrN(strTarget, strSource->data, strSource->length);
 }
 
+/*++
+
+DsAppendStr
+
+    Appends a null-terminated string to a dynamic string.
+
+Arguments:
+    str     - Pointer to a dynamic string.
+
+    data    - Pointer to the null-terminated string to be appended.
+
+Return Values:
+    Returns an APR status code.
+
+--*/
 apr_status_t
 DsAppendStr(
     DYNAMIC_STRING *str,
@@ -110,6 +208,23 @@ DsAppendStr(
     return DsAppendStrN(str, data, strlen(data));
 }
 
+/*++
+
+DsAppendStrN
+
+    Appends the given amount of data to a dynamic string.
+
+Arguments:
+    str     - Pointer to a dynamic string.
+
+    data    - Pointer to the data to be appended.
+
+    length  - Length of the data to be appended, in bytes.
+
+Return Values:
+    Returns an APR status code.
+
+--*/
 apr_status_t
 DsAppendStrN(
     DYNAMIC_STRING *str,
@@ -136,6 +251,21 @@ DsAppendStrN(
     return APR_SUCCESS;
 }
 
+/*++
+
+DsEqual
+
+    Compares two dynamic strings for equality.
+
+Arguments:
+    str1    - Pointer to the first dynamic string.
+
+    str2    - Pointer to the second dynamic string.
+
+Return Values:
+    Returns a boolean result.
+
+--*/
 bool_t
 DsEqual(
     const DYNAMIC_STRING *str1,
@@ -153,6 +283,21 @@ DsEqual(
     return (memcmp(str1->data, str2->data, str1->length) == 0) ? TRUE : FALSE;
 }
 
+/*++
+
+DsExpand
+
+    Expands the buffer of a dynamic string.
+
+Arguments:
+    str     - Pointer to a dynamic string.
+
+    length  - Length to expand the dynamic string's buffer to, in bytes.
+
+Return Values:
+    Returns an APR status code.
+
+--*/
 apr_status_t
 DsExpand(
     DYNAMIC_STRING *str,
@@ -194,7 +339,7 @@ DsExpand(
     }
 
     // Copy the current data to the new buffer. Unfortunately, we have to leak
-    // the previous block since there's no way to free pool memory until the
+    // the previous block since there's no way to free pool blocks until the
     // pool is cleared or destroyed (i.e. need a apr_prealloc/apr_pfree function).
     memcpy(newData, str->data, str->size);
 
@@ -204,6 +349,21 @@ DsExpand(
     return APR_SUCCESS;
 }
 
+/*++
+
+DsTruncate
+
+    Truncates a dynamic string at the given length.
+
+Arguments:
+    str     - Pointer to a dynamic string.
+
+    length  - Position to truncate the string at, in bytes.
+
+Return Values:
+    Returns an APR status code.
+
+--*/
 apr_status_t
 DsTruncate(
     DYNAMIC_STRING *str,
