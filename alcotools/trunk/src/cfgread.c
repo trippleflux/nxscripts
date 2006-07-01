@@ -19,9 +19,6 @@ Abstract:
 
 #include "alcoholicz.h"
 
-// Maximum length of a key or section name, in characters
-#define MAX_LEN         24
-
 // Value types
 #define TYPE_ARRAY      1
 #define TYPE_BOOLEAN    2
@@ -59,7 +56,7 @@ SLIST_HEAD(CONFIG_SECTION_HEAD, CONFIG_SECTION);
 static CONFIG_SECTION_HEAD sectionHead;
 
 // Sub-pool used for config allocations
-static apr_pool_t *subPool;
+static apr_pool_t *cfgPool;
 
 
 /*++
@@ -103,7 +100,7 @@ CreateSection(
         }
     }
 
-    section = apr_palloc(subPool, sizeof(CONFIG_SECTION));
+    section = apr_palloc(cfgPool, sizeof(CONFIG_SECTION));
     if (section != NULL) {
         section->crc = sectionCrc;
         LIST_INIT(&section->keys);
@@ -181,13 +178,13 @@ CreateKey(
     }
 
     if (!exists) {
-        key = apr_palloc(subPool, sizeof(CONFIG_KEY));
+        key = apr_palloc(cfgPool, sizeof(CONFIG_KEY));
         if (key == NULL) {
             return;
         }
 
         // Initialize key structure
-        key->value.string = apr_palloc(subPool, valueLength + 1);
+        key->value.string = apr_palloc(cfgPool, valueLength + 1);
         if (key->value.string == NULL) {
             return;
         }
@@ -199,7 +196,7 @@ CreateKey(
 
     } else if (key->length < valueLength) {
         // Allocate a memory block to accommodate the larger string.
-        key->value.string = apr_palloc(subPool, valueLength + 1);
+        key->value.string = apr_palloc(cfgPool, valueLength + 1);
 
         if (key->value.string == NULL) {
             LIST_REMOVE(key, link);
@@ -509,13 +506,13 @@ ConfigInit(
     SLIST_INIT(&sectionHead);
 
     // Create a sub-pool for configuration memory allocations
-    status = apr_pool_create(&subPool, pool);
+    status = apr_pool_create(&cfgPool, pool);
     if (status != APR_SUCCESS) {
         return status;
     }
 
     // Open configuration file for reading
-    status = apr_file_open(&file, CONFIG_FILE, APR_FOPEN_READ, APR_OS_DEFAULT, subPool);
+    status = apr_file_open(&file, CONFIG_FILE, APR_FOPEN_READ, APR_OS_DEFAULT, cfgPool);
     if (status != APR_SUCCESS) {
         return status;
     }
@@ -525,7 +522,7 @@ ConfigInit(
 
         // Allocate a buffer large enough to contain the configuration file
         length = (apr_size_t)fileInfo.size;
-        buffer = apr_palloc(subPool, length);
+        buffer = apr_palloc(cfgPool, length);
         if (buffer == NULL) {
             status = APR_ENOMEM;
         } else {
@@ -601,7 +598,7 @@ ConfigGetArray(
     // Calculate the required space to store the array and its elements.
     ParseArray(key->value.string, NULL, &bufferElements, NULL, &bufferChars);
 
-    buffer = apr_palloc(subPool, (bufferElements * sizeof(char *)) + bufferChars);
+    buffer = apr_palloc(cfgPool, (bufferElements * sizeof(char *)) + bufferChars);
     if (buffer == NULL) {
         return APR_ENOMEM;
     }
