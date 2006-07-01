@@ -84,71 +84,71 @@ typedef enum {
     sourceExhausted,    /* partial character in source, but hit end */
     targetExhausted,    /* insuff. room in target for conversion */
     sourceIllegal		/* source sequence is illegal/malformed */
-} ConversionResult;
+} CONVERSION_RESULT;
 
 typedef enum {
     strictConversion = 0,
     lenientConversion
-} ConversionFlags;
+} CONVERSION_FLAGS;
 
-ConversionResult
+CONVERSION_RESULT
 ConvertUTF8toUTF16(
-    const UTF8 **sourceStart,
-    const UTF8 *sourceEnd,
-    UTF16 **targetStart,
-    UTF16 *targetEnd,
-    ConversionFlags flags
+    const utf8_t **sourceStart,
+    const utf8_t *sourceEnd,
+    utf16_t **targetStart,
+    utf16_t *targetEnd,
+    CONVERSION_FLAGS flags
     );
 
-ConversionResult
+CONVERSION_RESULT
 ConvertUTF16toUTF8(
-    const UTF16 **sourceStart,
-    const UTF16 *sourceEnd,
-    UTF8 **targetStart,
-    UTF8 *targetEnd,
-    ConversionFlags flags
+    const utf16_t **sourceStart,
+    const utf16_t *sourceEnd,
+    utf8_t **targetStart,
+    utf8_t *targetEnd,
+    CONVERSION_FLAGS flags
     );
 
-ConversionResult
+CONVERSION_RESULT
 ConvertUTF8toUTF32(
-    const UTF8 **sourceStart,
-    const UTF8 *sourceEnd,
-    UTF32 **targetStart,
-    UTF32 *targetEnd,
-    ConversionFlags flags
+    const utf8_t **sourceStart,
+    const utf8_t *sourceEnd,
+    utf32_t **targetStart,
+    utf32_t *targetEnd,
+    CONVERSION_FLAGS flags
     );
 
-ConversionResult
+CONVERSION_RESULT
 ConvertUTF32toUTF8(
-    const UTF32 **sourceStart,
-    const UTF32 *sourceEnd,
-    UTF8 **targetStart,
-    UTF8 *targetEnd,
-    ConversionFlags flags
+    const utf32_t **sourceStart,
+    const utf32_t *sourceEnd,
+    utf8_t **targetStart,
+    utf8_t *targetEnd,
+    CONVERSION_FLAGS flags
     );
 
-ConversionResult
+CONVERSION_RESULT
 ConvertUTF16toUTF32(
-    const UTF16 **sourceStart,
-    const UTF16 *sourceEnd,
-    UTF32 **targetStart,
-    UTF32 *targetEnd,
-    ConversionFlags flags
+    const utf16_t **sourceStart,
+    const utf16_t *sourceEnd,
+    utf32_t **targetStart,
+    utf32_t *targetEnd,
+    CONVERSION_FLAGS flags
     );
 
-ConversionResult
+CONVERSION_RESULT
 ConvertUTF32toUTF16(
-    const UTF32 **sourceStart,
-    const UTF32 *sourceEnd,
-    UTF16 **targetStart,
-    UTF16 *targetEnd,
-    ConversionFlags flags
+    const utf32_t **sourceStart,
+    const utf32_t *sourceEnd,
+    utf16_t **targetStart,
+    utf16_t *targetEnd,
+    CONVERSION_FLAGS flags
     );
 
 bool_t
 IsLegalUTF8Sequence(
-    const UTF8 *source,
-    const UTF8 *sourceEnd
+    const utf8_t *source,
+    const utf8_t *sourceEnd
     );
 
 /* --------------------------------------------------------------------- */

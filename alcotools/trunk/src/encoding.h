@@ -17,9 +17,9 @@ Abstract:
 #ifndef _ENCODING_H_
 #define _ENCODING_H_
 
-typedef apr_uint32_t    UTF32;
-typedef apr_uint16_t    UTF16;
-typedef apr_byte_t      UTF8;
+typedef apr_uint32_t    utf32_t;
+typedef apr_uint16_t    utf16_t;
+typedef apr_byte_t      utf8_t;
 
 typedef enum {
     ENCODING_ASCII = 0,
