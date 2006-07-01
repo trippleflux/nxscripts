@@ -22,7 +22,7 @@
 
 /* ---------------------------------------------------------------------
 
-    Conversions between UTF32, UTF-16, and UTF-8. Source code file.
+    Conversions between UTF-32, UTF-16, and UTF-8. Source code file.
     Author: Mark E. Davis, 1994.
     Rev History: Rick McGowan, fixes & updates May 2001.
     Sept 2001: fixed const & error conditions per
@@ -41,17 +41,17 @@
 #include "alcoholicz.h"
 
 #define UNI_HALF_SHIFT          10
-#define UNI_HALF_BASE           ((UTF32)0x0010000)
-#define UNI_HALF_MASK           ((UTF32)0x3FF)
-#define UNI_MAX_BMP             ((UTF32)0x0000FFFF)
-#define UNI_MAX_UTF16           ((UTF32)0x0010FFFF)
-#define UNI_MAX_UTF32           ((UTF32)0x7FFFFFFF)
-#define UNI_MAX_LEGAL_UTF32     ((UTF32)0x0010FFFF)
-#define UNI_REPLACEMENT_CHAR    ((UTF32)0x0000FFFD)
-#define UNI_SUR_HIGH_START      ((UTF32)0xD800)
-#define UNI_SUR_HIGH_END        ((UTF32)0xDBFF)
-#define UNI_SUR_LOW_START       ((UTF32)0xDC00)
-#define UNI_SUR_LOW_END         ((UTF32)0xDFFF)
+#define UNI_HALF_BASE           ((utf32_t)0x0010000)
+#define UNI_HALF_MASK           ((utf32_t)0x3FF)
+#define UNI_MAX_BMP             ((utf32_t)0x0000FFFF)
+#define UNI_MAX_UTF16           ((utf32_t)0x0010FFFF)
+#define UNI_MAX_UTF32           ((utf32_t)0x7FFFFFFF)
+#define UNI_MAX_LEGAL_UTF32     ((utf32_t)0x0010FFFF)
+#define UNI_REPLACEMENT_CHAR    ((utf32_t)0x0000FFFD)
+#define UNI_SUR_HIGH_START      ((utf32_t)0xD800)
+#define UNI_SUR_HIGH_END        ((utf32_t)0xDBFF)
+#define UNI_SUR_LOW_START       ((utf32_t)0xDC00)
+#define UNI_SUR_LOW_END         ((utf32_t)0xDFFF)
 
 /* --------------------------------------------------------------------- */
 
@@ -113,16 +113,16 @@ ConvertUTF32toUTF16(
 
 /* --------------------------------------------------------------------- */
 
-ConversionResult
+CONVERSION_RESULT
 ConvertUTF16toUTF32(
     const utf16_t **sourceStart,
     const utf16_t *sourceEnd,
     utf32_t **targetStart,
     utf32_t *targetEnd,
-    ConversionFlags flags
+    CONVERSION_FLAGS flags
     )
 {
-    ConversionResult result = conversionOK;
+    CONVERSION_RESULT result = conversionOK;
     const utf16_t *source = *sourceStart;
     utf32_t *target = *targetStart;
     utf32_t ch = 0, ch2 = 0;
@@ -226,16 +226,16 @@ static const utf8_t firstByteMark[7] = {
 
 /* --------------------------------------------------------------------- */
 
-ConversionResult
+CONVERSION_RESULT
 ConvertUTF16toUTF8(
     const utf16_t **sourceStart,
     const utf16_t *sourceEnd,
     utf8_t **targetStart,
     utf8_t *targetEnd,
-    ConversionFlags flags
+    CONVERSION_FLAGS flags
     )
 {
-    ConversionResult result = conversionOK;
+    CONVERSION_RESULT result = conversionOK;
     const utf16_t *source = *sourceStart;
     utf8_t *target = *targetStart;
     while (source < sourceEnd) {
@@ -416,16 +416,16 @@ IsLegalUTF8Sequence(
 
 /* --------------------------------------------------------------------- */
 
-ConversionResult
+CONVERSION_RESULT
 ConvertUTF8toUTF16(
     const utf8_t **sourceStart,
     const utf8_t *sourceEnd,
     utf16_t **targetStart,
     utf16_t *targetEnd,
-    ConversionFlags flags
+    CONVERSION_FLAGS flags
     )
 {
-    ConversionResult result = conversionOK;
+    CONVERSION_RESULT result = conversionOK;
     const utf8_t *source = *sourceStart;
     utf16_t *target = *targetStart;
     while (source < sourceEnd) {
@@ -510,16 +510,16 @@ ConvertUTF8toUTF16(
 
 /* --------------------------------------------------------------------- */
 
-ConversionResult
+CONVERSION_RESULT
 ConvertUTF32toUTF8(
     const utf32_t **sourceStart,
     const utf32_t *sourceEnd,
     utf8_t **targetStart,
     utf8_t *targetEnd,
-    ConversionFlags flags
+    CONVERSION_FLAGS flags
     )
 {
-    ConversionResult result = conversionOK;
+    CONVERSION_RESULT result = conversionOK;
     const utf32_t *source = *sourceStart;
     utf8_t *target = *targetStart;
     while (source < sourceEnd) {
@@ -584,16 +584,16 @@ ConvertUTF32toUTF8(
 
 /* --------------------------------------------------------------------- */
 
-ConversionResult
+CONVERSION_RESULT
 ConvertUTF8toUTF32(
     const utf8_t **sourceStart,
     const utf8_t *sourceEnd,
     utf32_t **targetStart,
     utf32_t *targetEnd,
-    ConversionFlags flags
+    CONVERSION_FLAGS flags
     )
 {
-    ConversionResult result = conversionOK;
+    CONVERSION_RESULT result = conversionOK;
     const utf8_t *source = *sourceStart;
     utf32_t *target = *targetStart;
     while (source < sourceEnd) {
