@@ -20,14 +20,14 @@ Abstract:
 
 DsCreate
 
-    Creates a dynamic string from a null-terminated string.
+    Creates an empty dynamic string.
 
 Arguments:
-    str     - Pointer to an unused dynamic string structure.
+    dynStr  - Pointer to an unused dynamic string structure.
 
     pool    - Pointer to a memory pool.
 
-    data    - Pointer to a null-terminated string.
+    length  - Length of the initial buffer, in bytes.
 
 Return Values:
     Returns an APR status code.
@@ -35,26 +35,66 @@ Return Values:
 --*/
 apr_status_t
 DsCreate(
-    DYNAMIC_STRING *str,
+    DYNAMIC_STRING *dynStr,
     apr_pool_t *pool,
-    const char *data
+    apr_size_t length
     )
 {
-    ASSERT(str != NULL);
+    ASSERT(dynStr != NULL);
     ASSERT(pool != NULL);
-    ASSERT(data != NULL);
 
-    return DsCreateN(str, pool, data, strlen(data));
+    dynStr->data = apr_palloc(pool, length + 1);
+    if (dynStr->data == NULL) {
+        return APR_ENOMEM;
+    }
+
+    // Populate dynamic string structure
+    dynStr->data[0] = '\0';
+    dynStr->pool    = pool;
+    dynStr->length  = 0;
+    dynStr->size    = length + 1;
+    return APR_SUCCESS;
 }
 
 /*++
 
-DsCreateN
+DsCreateFromStr
+
+    Creates a dynamic string from a null-terminated string.
+
+Arguments:
+    dynStr  - Pointer to an unused dynamic string structure.
+
+    pool    - Pointer to a memory pool.
+
+    str     - Pointer to a null-terminated string.
+
+Return Values:
+    Returns an APR status code.
+
+--*/
+apr_status_t
+DsCreateFromStr(
+    DYNAMIC_STRING *dynStr,
+    apr_pool_t *pool,
+    const char *str
+    )
+{
+    ASSERT(dynStr != NULL);
+    ASSERT(pool != NULL);
+    ASSERT(str != NULL);
+
+    return DsCreateFromData(dynStr, pool, str, strlen(str));
+}
+
+/*++
+
+DsCreateFromData
 
     Creates a dynamic string from data.
 
 Arguments:
-    str     - Pointer to an unused dynamic string structure.
+    dynStr  - Pointer to an unused dynamic string structure.
 
     pool    - Pointer to a memory pool.
 
@@ -67,28 +107,28 @@ Return Values:
 
 --*/
 apr_status_t
-DsCreateN(
-    DYNAMIC_STRING *str,
+DsCreateFromData(
+    DYNAMIC_STRING *dynStr,
     apr_pool_t *pool,
     const char *data,
     apr_size_t length
     )
 {
-    ASSERT(str != NULL);
+    ASSERT(dynStr != NULL);
     ASSERT(pool != NULL);
     ASSERT(data != NULL);
 
-    str->data = apr_palloc(pool, length + 1);
-    if (str->data == NULL) {
+    dynStr->data = apr_palloc(pool, length + 1);
+    if (dynStr->data == NULL) {
         return APR_ENOMEM;
     }
 
     // Populate dynamic string structure
-    memcpy(str->data, data, length);
-    str->data[length] = '\0';
-    str->pool         = pool;
-    str->length       = length;
-    str->size         = length + 1;
+    memcpy(dynStr->data, data, length);
+    dynStr->data[length] = '\0';
+    dynStr->pool         = pool;
+    dynStr->length       = length;
+    dynStr->size         = length + 1;
     return APR_SUCCESS;
 }
 
@@ -99,7 +139,7 @@ DsCreateFromFile
     Creates a dynamic string from the contents of a file.
 
 Arguments:
-    str     - Pointer to an unused dynamic string structure.
+    dynStr  - Pointer to an unused dynamic string structure.
 
     pool    - Pointer to a memory pool.
 
@@ -111,12 +151,12 @@ Return Values:
 --*/
 apr_status_t
 DsCreateFromFile(
-    DYNAMIC_STRING *str,
+    DYNAMIC_STRING *dynStr,
     apr_pool_t *pool,
     const char *path
     )
 {
-    ASSERT(str != NULL);
+    ASSERT(dynStr != NULL);
     ASSERT(pool != NULL);
     ASSERT(path != NULL);
 
@@ -136,7 +176,7 @@ DsDestroy
     Destroys a dynamic string.
 
 Arguments:
-    str     - Pointer to a dynamic string.
+    dynStr  - Pointer to a dynamic string.
 
 Return Values:
     None.
@@ -144,13 +184,13 @@ Return Values:
 --*/
 void
 DsDestroy(
-    DYNAMIC_STRING *str
+    DYNAMIC_STRING *dynStr
     )
 {
-    ASSERT(str != NULL);
+    ASSERT(dynStr != NULL);
 
     // No-op
-    memset(str, 0, sizeof(DYNAMIC_STRING));
+    memset(dynStr, 0, sizeof(DYNAMIC_STRING));
 }
 
 
@@ -161,9 +201,9 @@ DsAppend
     Appends a dynamic string to another dynamic string.
 
 Arguments:
-    strTarget - Pointer to the target dynamic string.
+    target  - Pointer to the target dynamic string.
 
-    strSource - Pointer to the source dynamic string.
+    source  - Pointer to the source dynamic string.
 
 Return Values:
     Returns an APR status code.
@@ -171,14 +211,14 @@ Return Values:
 --*/
 apr_status_t
 DsAppend(
-    DYNAMIC_STRING *strTarget,
-    const DYNAMIC_STRING *strSource
+    DYNAMIC_STRING *target,
+    const DYNAMIC_STRING *source
     )
 {
-    ASSERT(strTarget != NULL);
-    ASSERT(strSource != NULL);
+    ASSERT(target != NULL);
+    ASSERT(source != NULL);
 
-    return DsAppendStrN(strTarget, strSource->data, strSource->length);
+    return DsAppendData(target, source->data, source->length);
 }
 
 /*++
@@ -188,9 +228,9 @@ DsAppendStr
     Appends a null-terminated string to a dynamic string.
 
 Arguments:
-    str     - Pointer to a dynamic string.
+    dynStr  - Pointer to a dynamic string.
 
-    data    - Pointer to the null-terminated string to be appended.
+    str     - Pointer to the null-terminated string to be appended.
 
 Return Values:
     Returns an APR status code.
@@ -198,36 +238,36 @@ Return Values:
 --*/
 apr_status_t
 DsAppendStr(
-    DYNAMIC_STRING *str,
-    const char *data
+    DYNAMIC_STRING *dynStr,
+    const char *str
     )
 {
+    ASSERT(dynStr != NULL);
     ASSERT(str != NULL);
-    ASSERT(data != NULL);
 
-    return DsAppendStrN(str, data, strlen(data));
+    return DsAppendData(dynStr, str, strlen(str));
 }
 
 /*++
 
-DsAppendStrN
+DsAppendData
 
-    Appends the given amount of data to a dynamic string.
+    Appends data to a dynamic string.
 
 Arguments:
-    str     - Pointer to a dynamic string.
+    dynStr  - Pointer to a dynamic string.
 
-    data    - Pointer to the data to be appended.
+    data    - Pointer to the data.
 
-    length  - Length of the data to be appended, in bytes.
+    length  - Length of the data, in bytes.
 
 Return Values:
     Returns an APR status code.
 
 --*/
 apr_status_t
-DsAppendStrN(
-    DYNAMIC_STRING *str,
+DsAppendData(
+    DYNAMIC_STRING *dynStr,
     const char *data,
     apr_size_t length
     )
@@ -235,19 +275,19 @@ DsAppendStrN(
     apr_size_t total;
     apr_status_t status;
 
-    ASSERT(str != NULL);
+    ASSERT(dynStr != NULL);
     ASSERT(data != NULL);
 
     // Enlarge the buffer, if necessary
-    total = str->length + length;
-    status = DsExpand(str, total + 1);
+    total = dynStr->length + length;
+    status = DsExpand(dynStr, total + 1);
     if (status != APR_SUCCESS) {
         return status;
     }
 
-    memcpy(str->data + str->length, data, length);
-    str->data[total] = '\0';
-    str->length = total;
+    memcpy(dynStr->data + dynStr->length, data, length);
+    dynStr->data[total] = '\0';
+    dynStr->length = total;
     return APR_SUCCESS;
 }
 
@@ -258,9 +298,9 @@ DsEqual
     Compares two dynamic strings for equality.
 
 Arguments:
-    str1    - Pointer to the first dynamic string.
+    dynStr1 - Pointer to the first dynamic string.
 
-    str2    - Pointer to the second dynamic string.
+    dynStr2 - Pointer to the second dynamic string.
 
 Return Values:
     Returns a boolean result.
@@ -268,19 +308,19 @@ Return Values:
 --*/
 bool_t
 DsEqual(
-    const DYNAMIC_STRING *str1,
-    const DYNAMIC_STRING *str2
+    const DYNAMIC_STRING *dynStr1,
+    const DYNAMIC_STRING *dynStr2
     )
 {
-    ASSERT(str1 != NULL);
-    ASSERT(str2 != NULL);
+    ASSERT(dynStr1 != NULL);
+    ASSERT(dynStr2 != NULL);
 
-    if (str1->length != str2->length) {
+    if (dynStr1->length != dynStr2->length) {
         return FALSE;
     }
 
     // Both strings are of identical lengths
-    return (memcmp(str1->data, str2->data, str1->length) == 0) ? TRUE : FALSE;
+    return (memcmp(dynStr1->data, dynStr2->data, dynStr1->length) == 0) ? TRUE : FALSE;
 }
 
 /*++
@@ -290,7 +330,7 @@ DsExpand
     Expands the buffer of a dynamic string.
 
 Arguments:
-    str     - Pointer to a dynamic string.
+    dynStr  - Pointer to a dynamic string.
 
     length  - Length to expand the dynamic string's buffer to, in bytes.
 
@@ -300,7 +340,7 @@ Return Values:
 --*/
 apr_status_t
 DsExpand(
-    DYNAMIC_STRING *str,
+    DYNAMIC_STRING *dynStr,
     apr_size_t length
     )
 {
@@ -308,18 +348,18 @@ DsExpand(
     apr_size_t prevSize;
     char *newData;
 
-    ASSERT(str != NULL);
+    ASSERT(dynStr != NULL);
 
     // Check if the buffer size is already sufficient
-    if (str->size >= length) {
+    if (dynStr->size >= length) {
         return APR_SUCCESS;
     }
 
-    if (str->size == 0) {
+    if (dynStr->size == 0) {
         newSize = length;
     } else {
         // Continue doubling the current size until we reach the requested length
-        newSize = str->size;
+        newSize = dynStr->size;
         do {
             prevSize = newSize;
             newSize *= 2;
@@ -333,7 +373,7 @@ DsExpand(
     }
 
     // Allocate a larger buffer size
-    newData = apr_palloc(str->pool, newSize);
+    newData = apr_palloc(dynStr->pool, newSize);
     if (newData == NULL) {
         return APR_ENOMEM;
     }
@@ -341,11 +381,11 @@ DsExpand(
     // Copy the current data to the new buffer. Unfortunately, we have to leak
     // the previous block since there's no way to free pool blocks until the
     // pool is cleared or destroyed (i.e. need a apr_prealloc/apr_pfree function).
-    memcpy(newData, str->data, str->size);
+    memcpy(newData, dynStr->data, dynStr->size);
 
     // Update the string structure
-    str->data = newData;
-    str->size = newSize;
+    dynStr->data = newData;
+    dynStr->size = newSize;
     return APR_SUCCESS;
 }
 
@@ -356,7 +396,7 @@ DsTruncate
     Truncates a dynamic string at the given length.
 
 Arguments:
-    str     - Pointer to a dynamic string.
+    dynStr  - Pointer to a dynamic string.
 
     length  - Position to truncate the string at, in bytes.
 
@@ -366,17 +406,17 @@ Return Values:
 --*/
 apr_status_t
 DsTruncate(
-    DYNAMIC_STRING *str,
+    DYNAMIC_STRING *dynStr,
     apr_size_t length
     )
 {
-    ASSERT(str != NULL);
+    ASSERT(dynStr != NULL);
 
-    if (length > str->length) {
+    if (length > dynStr->length) {
         return APR_EINVAL;
     }
 
-    str->length = length;
-    str->data[length] = '\0';
+    dynStr->length = length;
+    dynStr->data[length] = '\0';
     return APR_SUCCESS;
 }

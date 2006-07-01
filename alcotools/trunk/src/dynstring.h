@@ -28,8 +28,8 @@ typedef struct {
 // Macros for accessing members of the DYNAMIC_STRING structure.
 //
 
-#define DsGetData(str)    ((str)->data)
-#define DsGetLength(str)  ((str)->length)
+#define DsGetData(dynStr)   ((dynStr)->data)
+#define DsGetLength(dynStr) ((dynStr)->length)
 
 //
 // Functions for creating and deleting dynamic strings.
@@ -37,14 +37,21 @@ typedef struct {
 
 apr_status_t
 DsCreate(
-    DYNAMIC_STRING *str,
+    DYNAMIC_STRING *dynStr,
     apr_pool_t *pool,
-    const char *data
+    apr_size_t length
     );
 
 apr_status_t
-DsCreateN(
-    DYNAMIC_STRING *str,
+DsCreateFromStr(
+    DYNAMIC_STRING *dynStr,
+    apr_pool_t *pool,
+    const char *str
+    );
+
+apr_status_t
+DsCreateFromData(
+    DYNAMIC_STRING *dynStr,
     apr_pool_t *pool,
     const char *data,
     apr_size_t length
@@ -52,14 +59,14 @@ DsCreateN(
 
 apr_status_t
 DsCreateFromFile(
-    DYNAMIC_STRING *str,
+    DYNAMIC_STRING *dynStr,
     apr_pool_t *pool,
     const char *path
     );
 
 void
 DsDestroy(
-    DYNAMIC_STRING *str
+    DYNAMIC_STRING *dynStr
     );
 
 //
@@ -68,38 +75,38 @@ DsDestroy(
 
 apr_status_t
 DsAppend(
-    DYNAMIC_STRING *strTarget,
-    const DYNAMIC_STRING *strSource
+    DYNAMIC_STRING *target,
+    const DYNAMIC_STRING *source
     );
 
 apr_status_t
 DsAppendStr(
-    DYNAMIC_STRING *str,
-    const char *data
+    DYNAMIC_STRING *dynStr,
+    const char *str
     );
 
 apr_status_t
-DsAppendStrN(
-    DYNAMIC_STRING *str,
+DsAppendData(
+    DYNAMIC_STRING *dynStr,
     const char *data,
     apr_size_t length
     );
 
 bool_t
 DsEqual(
-    const DYNAMIC_STRING *str1,
-    const DYNAMIC_STRING *str2
+    const DYNAMIC_STRING *dynStr1,
+    const DYNAMIC_STRING *dynStr2
     );
 
 apr_status_t
 DsExpand(
-    DYNAMIC_STRING *str,
+    DYNAMIC_STRING *dynStr,
     apr_size_t length
     );
 
 apr_status_t
 DsTruncate(
-    DYNAMIC_STRING *str,
+    DYNAMIC_STRING *dynStr,
     apr_size_t length
     );
 
