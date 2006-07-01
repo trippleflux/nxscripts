@@ -70,7 +70,8 @@ ConvertUTF32toUTF16(
     while (source < sourceEnd) {
         UTF32 ch;
         if (target >= targetEnd) {
-            result = targetExhausted; break;
+            result = targetExhausted;
+            break;
         }
         ch = *source++;
         if (ch <= UNI_MAX_BMP) {
@@ -97,7 +98,8 @@ ConvertUTF32toUTF16(
             /* target is a character in range 0xFFFF - 0x10FFFF. */
             if (target + 1 >= targetEnd) {
                 --source; /* Back up source pointer! */
-                result = targetExhausted; break;
+                result = targetExhausted;
+                break;
             }
             ch -= UNI_HALF_BASE;
             *target++ = (UTF16)((ch >> UNI_HALF_SHIFT) + UNI_SUR_HIGH_START);
@@ -158,7 +160,8 @@ ConvertUTF16toUTF32(
         }
         if (target >= targetEnd) {
             source = oldSource; /* Back up source pointer! */
-            result = targetExhausted; break;
+            result = targetExhausted;
+            break;
         }
         *target++ = ch;
     }
@@ -288,16 +291,21 @@ ConvertUTF16toUTF8(
         target += bytesToWrite;
         if (target > targetEnd) {
             source = oldSource; /* Back up source pointer! */
-            target -= bytesToWrite; result = targetExhausted; break;
+            target -= bytesToWrite;
+            result = targetExhausted;
+            break;
         }
         switch (bytesToWrite) {
                 /* note: everything falls through. */
             case 4:
-                *--target = (UTF8)((ch | byteMark) & byteMask); ch >>= 6;
+                *--target = (UTF8)((ch | byteMark) & byteMask);
+                ch >>= 6;
             case 3:
-                *--target = (UTF8)((ch | byteMark) & byteMask); ch >>= 6;
+                *--target = (UTF8)((ch | byteMark) & byteMask);
+                ch >>= 6;
             case 2:
-                *--target = (UTF8)((ch | byteMark) & byteMask); ch >>= 6;
+                *--target = (UTF8)((ch | byteMark) & byteMask);
+                ch >>= 6;
             case 1:
                 *--target = (UTF8)(ch | firstByteMark[bytesToWrite]);
         }
@@ -353,19 +361,23 @@ IsLegalUTF8(
                 case 0xE0:
                     if (a < 0xA0) {
                         return FALSE;
-                    } break;
+                    }
+                    break;
                 case 0xED:
                     if (a > 0x9F) {
                         return FALSE;
-                    } break;
+                    }
+                    break;
                 case 0xF0:
                     if (a < 0x90) {
                         return FALSE;
-                    } break;
+                    }
+                    break;
                 case 0xF4:
                     if (a > 0x8F) {
                         return FALSE;
-                    } break;
+                    }
+                    break;
                 default:
                     if (a < 0x80) {
                         return FALSE;
@@ -420,7 +432,8 @@ ConvertUTF8toUTF16(
         UTF32 ch = 0;
         unsigned short extraBytesToRead = trailingBytesForUTF8[*source];
         if (source + extraBytesToRead >= sourceEnd) {
-            result = sourceExhausted; break;
+            result = sourceExhausted;
+            break;
         }
         /* Do this check whether lenient or strict */
         if (!IsLegalUTF8(source, extraBytesToRead + 1)) {
@@ -432,15 +445,20 @@ ConvertUTF8toUTF16(
          */
         switch (extraBytesToRead) {
             case 5:
-                ch += *source++; ch <<= 6; /* remember, illegal UTF-8 */
+                ch += *source++;
+                ch <<= 6; /* remember, illegal UTF-8 */
             case 4:
-                ch += *source++; ch <<= 6; /* remember, illegal UTF-8 */
+                ch += *source++;
+                ch <<= 6; /* remember, illegal UTF-8 */
             case 3:
-                ch += *source++; ch <<= 6;
+                ch += *source++;
+                ch <<= 6;
             case 2:
-                ch += *source++; ch <<= 6;
+                ch += *source++;
+                ch <<= 6;
             case 1:
-                ch += *source++; ch <<= 6;
+                ch += *source++;
+                ch <<= 6;
             case 0:
                 ch += *source++;
         }
@@ -448,7 +466,8 @@ ConvertUTF8toUTF16(
 
         if (target >= targetEnd) {
             source -= (extraBytesToRead + 1); /* Back up source pointer! */
-            result = targetExhausted; break;
+            result = targetExhausted;
+            break;
         }
         if (ch <= UNI_MAX_BMP) {
             /* Target is a character <= 0xFFFF */
@@ -476,7 +495,8 @@ ConvertUTF8toUTF16(
             /* target is a character in range 0xFFFF - 0x10FFFF. */
             if (target + 1 >= targetEnd) {
                 source -= (extraBytesToRead + 1); /* Back up source pointer! */
-                result = targetExhausted; break;
+                result = targetExhausted;
+                break;
             }
             ch -= UNI_HALF_BASE;
             *target++ = (UTF16)((ch >> UNI_HALF_SHIFT) + UNI_SUR_HIGH_START);
@@ -537,16 +557,21 @@ ConvertUTF32toUTF8(
         target += bytesToWrite;
         if (target > targetEnd) {
             --source; /* Back up source pointer! */
-            target -= bytesToWrite; result = targetExhausted; break;
+            target -= bytesToWrite;
+            result = targetExhausted;
+            break;
         }
         switch (bytesToWrite) {
                 /* note: everything falls through. */
             case 4:
-                *--target = (UTF8)((ch | byteMark) & byteMask); ch >>= 6;
+                *--target = (UTF8)((ch | byteMark) & byteMask);
+                ch >>= 6;
             case 3:
-                *--target = (UTF8)((ch | byteMark) & byteMask); ch >>= 6;
+                *--target = (UTF8)((ch | byteMark) & byteMask);
+                ch >>= 6;
             case 2:
-                *--target = (UTF8)((ch | byteMark) & byteMask); ch >>= 6;
+                *--target = (UTF8)((ch | byteMark) & byteMask);
+                ch >>= 6;
             case 1:
                 *--target = (UTF8)(ch | firstByteMark[bytesToWrite]);
         }
@@ -575,7 +600,8 @@ ConvertUTF8toUTF32(
         UTF32 ch = 0;
         unsigned short extraBytesToRead = trailingBytesForUTF8[*source];
         if (source + extraBytesToRead >= sourceEnd) {
-            result = sourceExhausted; break;
+            result = sourceExhausted;
+            break;
         }
         /* Do this check whether lenient or strict */
         if (!IsLegalUTF8(source, extraBytesToRead + 1)) {
@@ -587,15 +613,20 @@ ConvertUTF8toUTF32(
          */
         switch (extraBytesToRead) {
             case 5:
-                ch += *source++; ch <<= 6;
+                ch += *source++;
+                ch <<= 6;
             case 4:
-                ch += *source++; ch <<= 6;
+                ch += *source++;
+                ch <<= 6;
             case 3:
-                ch += *source++; ch <<= 6;
+                ch += *source++;
+                ch <<= 6;
             case 2:
-                ch += *source++; ch <<= 6;
+                ch += *source++;
+                ch <<= 6;
             case 1:
-                ch += *source++; ch <<= 6;
+                ch += *source++;
+                ch <<= 6;
             case 0:
                 ch += *source++;
         }
@@ -603,7 +634,8 @@ ConvertUTF8toUTF32(
 
         if (target >= targetEnd) {
             source -= (extraBytesToRead + 1); /* Back up the source pointer! */
-            result = targetExhausted; break;
+            result = targetExhausted;
+            break;
         }
         if (ch <= UNI_MAX_LEGAL_UTF32) {
             /*
