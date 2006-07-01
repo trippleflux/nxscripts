@@ -205,11 +205,11 @@ INC_DIRS    = /I "$(APR_INC)" /I "$(SQLITE_INC)" /I "$(ZLIB_INC)"
 OBJ_FILES   = $(TMP_DIR)\cfgread.obj\
               $(TMP_DIR)\crc32.obj\
               $(TMP_DIR)\dynstring.obj\
+              $(TMP_DIR)\encoding.obj\
               $(TMP_DIR)\events.obj\
               $(TMP_DIR)\logging.obj\
               $(TMP_DIR)\main.obj\
               $(TMP_DIR)\template.obj\
-              $(TMP_DIR)\utf.obj\
               $(TMP_DIR)\utfconvert.obj\
               $(TMP_DIR)\utils.obj
 

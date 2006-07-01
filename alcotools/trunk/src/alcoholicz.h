@@ -61,10 +61,10 @@ typedef apr_byte_t bool_t;
 #include "cfgread.h"
 #include "crc32.h"
 #include "dynstring.h"
+#include "encoding.h"
 #include "events.h"
 #include "logging.h"
 #include "template.h"
-#include "utf.h"
 #include "utfconvert.h"
 #include "utils.h"
 
