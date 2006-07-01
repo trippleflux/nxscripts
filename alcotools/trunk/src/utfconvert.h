@@ -79,18 +79,6 @@
 
 ------------------------------------------------------------------------ */
 
-/* ---------------------------------------------------------------------
-    The following 4 definitions are compiler-specific.
-    The C standard does not guarantee that wchar_t has at least
-    16 bits, so wchar_t is no less portable than unsigned short!
-    All should be unsigned values to avoid sign extension during
-    bit mask & shift operations.
------------------------------------------------------------------------- */
-
-typedef apr_uint32_t    UTF32;  /* at least 32 bits */
-typedef apr_uint16_t    UTF16;  /* at least 16 bits */
-typedef apr_byte_t      UTF8;   /* typically 8 bits */
-
 typedef enum {
     conversionOK,       /* conversion successful */
     sourceExhausted,    /* partial character in source, but hit end */
@@ -102,11 +90,6 @@ typedef enum {
     strictConversion = 0,
     lenientConversion
 } ConversionFlags;
-
-/* This is for C++ and does no harm in C */
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 ConversionResult
 ConvertUTF8toUTF16(
@@ -167,9 +150,5 @@ IsLegalUTF8Sequence(
     const UTF8 *source,
     const UTF8 *sourceEnd
     );
-
-#ifdef __cplusplus
-}
-#endif
 
 /* --------------------------------------------------------------------- */
