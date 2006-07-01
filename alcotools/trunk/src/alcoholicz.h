@@ -64,6 +64,8 @@ typedef apr_byte_t bool_t;
 #include "events.h"
 #include "logging.h"
 #include "template.h"
+#include "utf.h"
+#include "utfconvert.h"
 #include "utils.h"
 
 #endif // _ALCOHOLICZ_H_
