@@ -26,7 +26,8 @@ typedef apr_status_t (EVENT_PROC)(
 // Command-based events
 EVENT_PROC EventPostDele;
 EVENT_PROC EventPostMkd;
-EVENT_PROC EventPostRename;
+EVENT_PROC EventPostRnfr;
+EVENT_PROC EventPostRnto;
 EVENT_PROC EventPostRmd;
 EVENT_PROC EventPreMkd;
 EVENT_PROC EventPreStor;

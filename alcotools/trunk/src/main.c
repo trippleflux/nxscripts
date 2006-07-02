@@ -25,7 +25,8 @@ struct {
     // Command-based events
     {EventPostDele,     "POSTDELE",    0xFD930F3A},
     {EventPostMkd,      "POSTMKD",     0x6115AE4A},
-    {EventPostRename,   "POSTRENAME",  0xCF212902},
+    {EventPostRnfr,     "POSTRNFR",    0xFD8885D5},
+    {EventPostRnto,     "POSTRNTO",    0xE67A99DF},
     {EventPostRmd,      "POSTRMD",     0x2035ED81},
     {EventPreMkd,       "PREMKD",      0x492B9024},
     {EventPreStor,      "PRESTOR",     0x2F650D3E},
