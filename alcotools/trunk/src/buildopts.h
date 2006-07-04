@@ -21,9 +21,6 @@ Abstract:
 // DEBUG_ASSERT <TRUE/FALSE>
 //  - Assertions to validate internal code.
 //
-// DEBUG_MEMORY <TRUE/FALSE>
-//  - Track memory allocations to ensure resources are freed properly.
-//
 // LOG_LEVEL    <0-4>
 //  - Compile-time log verbosity level.
 //
@@ -31,18 +28,12 @@ Abstract:
 #   ifndef DEBUG_ASSERT
 #       define DEBUG_ASSERT TRUE
 #   endif
-#   ifndef DEBUG_MEMORY
-#       define DEBUG_MEMORY TRUE
-#   endif
 #   ifndef LOG_LEVEL
 #       define LOG_LEVEL    4
 #   endif
 #else
 #   ifndef DEBUG_ASSERT
 #       define DEBUG_ASSERT FALSE
-#   endif
-#   ifndef DEBUG_MEMORY
-#       define DEBUG_MEMORY FALSE
 #   endif
 #   ifndef LOG_LEVEL
 #       define LOG_LEVEL    3
