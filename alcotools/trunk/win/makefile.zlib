@@ -27,15 +27,15 @@
 #      zlib-static.lib
 #
 
-## User settings
+# User settings
 DEBUG       = 0
 STATIC_CRT  = 0
 
-## Compiler settings
-CC          = cl
-AR          = lib
-LD          = link
-RC          = rc
+# Compiler settings
+CC          = cl.exe
+AR          = lib.exe
+LD          = link.exe
+RC          = rc.exe
 AFLAGS      = /nologo
 CFLAGS      = /nologo /D_CRT_NONSTDC_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE /DTHREADSAFE=1
 LFLAGS      = /nologo
