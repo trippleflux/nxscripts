@@ -17,49 +17,33 @@ Abstract:
 #ifndef _DYNSTRING_H_
 #define _DYNSTRING_H_
 
-typedef struct {
-    char       *data;   // Pointer to the null-terminated data
-    apr_pool_t *pool;   // Pointer to the pool the buffer is allocated from
-    apr_size_t length;  // Length of the data, in bytes
-    apr_size_t size;    // Size of the buffer, in bytes
-} DYNAMIC_STRING;
-
-//
-// Macros for accessing members of the DYNAMIC_STRING structure.
-//
-
-#define DsGetData(dynStr)   ((dynStr)->data)
-#define DsGetLength(dynStr) ((dynStr)->length)
+typedef struct DYNAMIC_STRING DYNAMIC_STRING;
 
 //
 // Functions for creating and deleting dynamic strings.
 //
 
-apr_status_t
+DYNAMIC_STRING *
 DsCreate(
-    DYNAMIC_STRING *dynStr,
     apr_pool_t *pool,
     apr_size_t length
     );
 
-apr_status_t
+DYNAMIC_STRING *
 DsCreateFromStr(
-    DYNAMIC_STRING *dynStr,
     apr_pool_t *pool,
     const char *str
     );
 
-apr_status_t
+DYNAMIC_STRING *
 DsCreateFromData(
-    DYNAMIC_STRING *dynStr,
     apr_pool_t *pool,
-    const char *data,
+    const char *buffer,
     apr_size_t length
     );
 
-apr_status_t
+DYNAMIC_STRING *
 DsCreateFromFile(
-    DYNAMIC_STRING *dynStr,
     apr_pool_t *pool,
     const char *path
     );
@@ -93,7 +77,7 @@ DsAppendStr(
 apr_status_t
 DsAppendData(
     DYNAMIC_STRING *dynStr,
-    const char *data,
+    const char *buffer,
     apr_size_t length
     );
 
@@ -107,6 +91,12 @@ apr_status_t
 DsExpand(
     DYNAMIC_STRING *dynStr,
     apr_size_t length
+    );
+
+char *
+DsGet(
+    DYNAMIC_STRING *dynStr,
+    apr_size_t *length
     );
 
 apr_status_t

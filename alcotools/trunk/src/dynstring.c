@@ -16,6 +16,61 @@ Abstract:
 
 #include "alcoholicz.h"
 
+struct DYNAMIC_STRING {
+    char       *data;   // Pointer to the null-terminated data
+    apr_pool_t *pool;   // Pointer to the pool the buffer is allocated from
+    apr_size_t length;  // Length of the data, in bytes
+    apr_size_t size;    // Size of the data buffer, in bytes
+};
+
+/*++
+
+CreateString
+
+    Creates a dynamic string structure.
+
+Arguments:
+    pool    - Pointer to a memory pool.
+
+    data    - Pointer to the null-terminated data.
+
+    length  - Length of the data, in bytes.
+
+    size    - Size of the data buffer, in bytes.
+
+Return Values:
+    If the function succeeds, the return value is a pointer to a DYNAMIC_STRING structure.
+
+    If the function fails, the return value is null.
+
+--*/
+static
+inline
+DYNAMIC_STRING *
+CreateString(
+    apr_pool_t *pool,
+    char *data,
+    apr_size_t length,
+    apr_size_t size
+    )
+{
+    DYNAMIC_STRING *dynStr;
+
+    ASSERT(pool != NULL);
+    ASSERT(data != NULL);
+    ASSERT(size > 0);
+
+    dynStr = apr_palloc(pool, sizeof(DYNAMIC_STRING));
+    if (dynStr != NULL) {
+        dynStr->data   = data;
+        dynStr->pool   = pool;
+        dynStr->length = length;
+        dynStr->size   = size;
+    }
+    return dynStr;
+}
+
+
 /*++
 
 DsCreate
@@ -23,37 +78,34 @@ DsCreate
     Creates an empty dynamic string.
 
 Arguments:
-    dynStr  - Pointer to an unused dynamic string structure.
-
     pool    - Pointer to a memory pool.
 
     length  - Length of the initial buffer, in bytes.
 
 Return Values:
-    Returns an APR status code.
+    If the function succeeds, the return value is a pointer to a DYNAMIC_STRING structure.
+
+    If the function fails, the return value is null.
 
 --*/
-apr_status_t
+DYNAMIC_STRING *
 DsCreate(
-    DYNAMIC_STRING *dynStr,
     apr_pool_t *pool,
     apr_size_t length
     )
 {
-    ASSERT(dynStr != NULL);
+    char *data;
+
     ASSERT(pool != NULL);
 
-    dynStr->data = apr_palloc(pool, length + 1);
-    if (dynStr->data == NULL) {
-        return APR_ENOMEM;
+    data = apr_palloc(pool, length + 1);
+    if (data == NULL) {
+        return NULL;
     }
 
-    // Populate dynamic string structure
-    dynStr->data[0] = '\0';
-    dynStr->pool    = pool;
-    dynStr->length  = 0;
-    dynStr->size    = length + 1;
-    return APR_SUCCESS;
+    // Create dynamic string structure
+    data[0] = '\0';
+    return CreateString(pool, data, 0, length + 1);
 }
 
 /*++
@@ -63,28 +115,26 @@ DsCreateFromStr
     Creates a dynamic string from a null-terminated string.
 
 Arguments:
-    dynStr  - Pointer to an unused dynamic string structure.
-
     pool    - Pointer to a memory pool.
 
     str     - Pointer to a null-terminated string.
 
 Return Values:
-    Returns an APR status code.
+    If the function succeeds, the return value is a pointer to a DYNAMIC_STRING structure.
+
+    If the function fails, the return value is null.
 
 --*/
-apr_status_t
+DYNAMIC_STRING *
 DsCreateFromStr(
-    DYNAMIC_STRING *dynStr,
     apr_pool_t *pool,
     const char *str
     )
 {
-    ASSERT(dynStr != NULL);
     ASSERT(pool != NULL);
     ASSERT(str != NULL);
 
-    return DsCreateFromData(dynStr, pool, str, strlen(str));
+    return DsCreateFromData(pool, str, strlen(str));
 }
 
 /*++
@@ -94,42 +144,39 @@ DsCreateFromData
     Creates a dynamic string from data.
 
 Arguments:
-    dynStr  - Pointer to an unused dynamic string structure.
-
     pool    - Pointer to a memory pool.
 
-    data    - Pointer to the data.
+    buffer  - Pointer to the buffer.
 
-    length  - Length of the data, in bytes.
+    length  - Length of the buffer, in bytes.
 
 Return Values:
-    Returns an APR status code.
+    If the function succeeds, the return value is a pointer to a DYNAMIC_STRING structure.
+
+    If the function fails, the return value is null.
 
 --*/
-apr_status_t
+DYNAMIC_STRING *
 DsCreateFromData(
-    DYNAMIC_STRING *dynStr,
     apr_pool_t *pool,
-    const char *data,
+    const char *buffer,
     apr_size_t length
     )
 {
-    ASSERT(dynStr != NULL);
+    char *data;
+
     ASSERT(pool != NULL);
     ASSERT(data != NULL);
 
-    dynStr->data = apr_palloc(pool, length + 1);
-    if (dynStr->data == NULL) {
-        return APR_ENOMEM;
+    data = apr_palloc(pool, length + 1);
+    if (data == NULL) {
+        return NULL;
     }
 
-    // Populate dynamic string structure
-    memcpy(dynStr->data, data, length);
-    dynStr->data[length] = '\0';
-    dynStr->pool         = pool;
-    dynStr->length       = length;
-    dynStr->size         = length + 1;
-    return APR_SUCCESS;
+    // Create dynamic string structure
+    memcpy(data, buffer, length);
+    data[length] = '\0';
+    return CreateString(pool, data, length, length + 1);
 }
 
 /*++
@@ -139,34 +186,39 @@ DsCreateFromFile
     Creates a dynamic string from the contents of a file.
 
 Arguments:
-    dynStr  - Pointer to an unused dynamic string structure.
-
     pool    - Pointer to a memory pool.
 
     path    - Pointer to a null-terminated string specifying the path of a file.
 
 Return Values:
-    Returns an APR status code.
+    If the function succeeds, the return value is a pointer to a DYNAMIC_STRING structure.
+
+    If the function fails, the return value is null.
 
 --*/
-apr_status_t
+DYNAMIC_STRING *
 DsCreateFromFile(
-    DYNAMIC_STRING *dynStr,
     apr_pool_t *pool,
     const char *path
     )
 {
-    ASSERT(dynStr != NULL);
+    apr_byte_t *buffer;
+    apr_size_t length;
+    apr_status_t status;
+
     ASSERT(pool != NULL);
     ASSERT(path != NULL);
 
+    status = BufferFile(pool, path, &buffer, &length);
+    if (status != APR_SUCCESS) {
+        return NULL;
+    }
+
     // TODO:
-    // - open file for reading
-    // - buffer file contents
     // - check for a BOM or for UTF8 chars
     // - convert buffer to UTF8, if necessary
 
-    return APR_SUCCESS;
+    return NULL;
 }
 
 /*++
@@ -282,9 +334,9 @@ DsAppendData
 Arguments:
     dynStr  - Pointer to a dynamic string.
 
-    data    - Pointer to the data.
+    buffer  - Pointer to the buffer.
 
-    length  - Length of the data, in bytes.
+    length  - Length of the buffer, in bytes.
 
 Return Values:
     Returns an APR status code.
@@ -293,7 +345,7 @@ Return Values:
 apr_status_t
 DsAppendData(
     DYNAMIC_STRING *dynStr,
-    const char *data,
+    const char *buffer,
     apr_size_t length
     )
 {
@@ -301,7 +353,7 @@ DsAppendData(
     apr_status_t status;
 
     ASSERT(dynStr != NULL);
-    ASSERT(data != NULL);
+    ASSERT(buffer != NULL);
 
     // Enlarge the buffer, if necessary
     total = dynStr->length + length;
@@ -310,7 +362,7 @@ DsAppendData(
         return status;
     }
 
-    memcpy(dynStr->data + dynStr->length, data, length);
+    memcpy(dynStr->data + dynStr->length, buffer, length);
     dynStr->data[total] = '\0';
     dynStr->length = total;
     return APR_SUCCESS;
@@ -408,6 +460,35 @@ DsExpand(
     dynStr->data = newData;
     dynStr->size = newSize;
     return APR_SUCCESS;
+}
+
+/*++
+
+DsGet
+
+    Retrieves the value and/or length of a dynamic string.
+
+Arguments:
+    dynStr  - Pointer to a dynamic string.
+
+    length  - Pointer to a variable to store the string's length. This argument can be null.
+
+Return Values:
+    A pointer to the dynamic string's value.
+
+--*/
+char *
+DsGet(
+    DYNAMIC_STRING *dynStr,
+    apr_size_t *length
+    )
+{
+    ASSERT(dynStr != NULL);
+
+    if (length != NULL) {
+        *length = dynStr->length;
+    }
+    return dynStr->data;
 }
 
 /*++
