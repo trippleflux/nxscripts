@@ -22,15 +22,18 @@ typedef apr_uint32_t    utf32_t;
 typedef apr_uint16_t    utf16_t;
 typedef apr_byte_t      utf8_t;
 
-// Enocding identifiers
+// Encoding aliases
 #define ENCODING_UNKNOWN    -1
-#define ENCODING_ASCII      0
-#define ENCODING_LATIN1     1
-#define ENCODING_UTF8       2
-#define ENCODING_UTF16_BE   3
-#define ENCODING_UTF16_LE   4
-#define ENCODING_UTF32_BE   5
-#define ENCODING_UTF32_LE   6
+#define ENCODING_DEFAULT    0
+
+// Encoding types
+#define ENCODING_ASCII      1
+#define ENCODING_LATIN1     2
+#define ENCODING_UTF8       3
+#define ENCODING_UTF16_BE   4
+#define ENCODING_UTF16_LE   5
+#define ENCODING_UTF32_BE   6
+#define ENCODING_UTF32_LE   7
 
 
 apr_status_t
@@ -45,10 +48,15 @@ EncDetect(
     apr_size_t *offset
     );
 
+int
+EncGetCurrent(
+    void
+    );
+
 const
 char *
 EncGetName(
-    int encoding
+    int type
     );
 
 #endif // _ENCODING_H_

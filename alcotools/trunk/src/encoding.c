@@ -16,7 +16,7 @@ Abstract:
 
 #include "alcoholicz.h"
 
-static int encoding; // Encoding for file paths and output (locale, UTF-8, etc.)
+static int currEncoding; // Current encoding, for file paths and output
 
 
 /*++
@@ -38,8 +38,10 @@ EncInit(
     )
 {
     apr_status_t status;
+    int type;
 
     // Verify encoding names
+    ASSERT(!strcmp(EncGetName(ENCODING_DEFAULT),  "DEFAULT"));
     ASSERT(!strcmp(EncGetName(ENCODING_ASCII),    "ASCII"));
     ASSERT(!strcmp(EncGetName(ENCODING_LATIN1),   "LATIN1"));
     ASSERT(!strcmp(EncGetName(ENCODING_UTF8),     "UTF-8"));
@@ -49,28 +51,29 @@ EncInit(
     ASSERT(!strcmp(EncGetName(ENCODING_UTF32_LE), "UTF-32LE"));
 
     // Retrieve the file path encoding used by APR
-    status = apr_filepath_encoding(&encoding, pool);
+    status = apr_filepath_encoding(&type, pool);
     if (status != APR_SUCCESS) {
         return status;
     }
 
 #ifdef WINDOWS
-    // Make sure APR is using UTF-8 encoding for file paths (since we only run on NT).
-    if (encoding != APR_FILEPATH_ENCODING_UTF8) {
+    // APR uses UTF-8 for Windows NT systems
+    if (type != APR_FILEPATH_ENCODING_UTF8) {
         return APR_EINVAL;
     }
+    currEncoding = ENCODING_UTF8;
 #else
-    if (encoding == APR_FILEPATH_ENCODING_UNKNOWN) {
+    // APR uses the locale for UNIX systems
+    if (type != APR_FILEPATH_ENCODING_LOCALE) {
         return APR_EINVAL;
     }
 
-    if (encoding == APR_FILEPATH_ENCODING_LOCALE) {
-        // Try to change the locale to UTF-8
-        if (setlocale(LC_ALL, "UTF-8") != NULL) {
-            encoding = APR_FILEPATH_ENCODING_UTF8;
-        } else {
-            setlocale(LC_ALL, "C");
-        }
+    // Try to change the locale to UTF-8
+    if (setlocale(LC_ALL, "UTF-8") != NULL) {
+        currEncoding = ENCODING_UTF8;
+    } else {
+        setlocale(LC_ALL, "C");
+        currEncoding = ENCODING_ASCII;
     }
 #endif
 
@@ -92,7 +95,7 @@ Arguments:
               case of a byte-order marker (zero if no BOM is present).
 
 Return Values:
-    Returns an encoding identifier.
+    Returns an encoding type identifier.
 
 --*/
 int
@@ -145,15 +148,36 @@ EncDetect(
 
 /*++
 
-EncGetName
+EncGetCurrent
 
-    Retrieves the name of an encoding identifier.
+    Retrieves the current encoding type identifier.
 
 Arguments:
-    type    - An encoding identifier.
+    None.
 
 Return Values:
-    Pointer to a null-terminated string that describes the encoding type.
+    An encoding type identifier.
+
+--*/
+int
+EncGetCurrent(
+    void
+    )
+{
+    return currEncoding;
+}
+
+/*++
+
+EncGetName
+
+    Retrieves the name of an encoding type identifier.
+
+Arguments:
+    type    - An encoding type identifier.
+
+Return Values:
+    Pointer to a null-terminated string that describes the encoding type identifier.
 
 --*/
 const
@@ -163,7 +187,8 @@ EncGetName(
     )
 {
     static const char *names[] = {
-        "ASCII", "LATIN1", "UTF-8", "UTF-16BE", "UTF-16LE", "UTF-32BE", "UTF-32LE"
+        "DEFAULT", "ASCII", "LATIN1", "UTF-8",
+        "UTF-16BE", "UTF-16LE", "UTF-32BE", "UTF-32LE"
     };
 
     if (type >= 0 && type < ARRAYSIZE(names)) {
