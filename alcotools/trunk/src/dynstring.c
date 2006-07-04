@@ -59,6 +59,7 @@ CreateString(
     ASSERT(pool != NULL);
     ASSERT(data != NULL);
     ASSERT(size > 0);
+    ASSERT(size > length);
 
     dynStr = apr_palloc(pool, sizeof(DYNAMIC_STRING));
     if (dynStr != NULL) {

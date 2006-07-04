@@ -73,7 +73,7 @@ BufferFile(
             status = APR_ENOMEM;
         } else {
             // Read file into buffer
-            status = apr_file_read_full(file, data, &amount);
+            status = apr_file_read_full(file, data, amount, &amount);
             if (status == APR_SUCCESS) {
                 *buffer = data;
                 *length = amount;
