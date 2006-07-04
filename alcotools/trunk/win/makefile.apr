@@ -34,23 +34,23 @@ INTDIR      = .\Lib
 CC          = cl.exe
 AR          = lib.exe
 AFLAGS      = /nologo
-CFLAGS      = /nologo /W3 /DAPR_DECLARE_STATIC /DWINNT /DWIN32 /D_WINDOWS /I "./include" /I "./include/arch" /I "./include/arch/win32" /I "./include/arch/unix" /Fo"$(INTDIR)\\" /FD
+CFLAGS      = /nologo /DAPR_DECLARE_STATIC /DWINNT /DWIN32 /D_WINDOWS /I "./include" /I "./include/arch" /I "./include/arch/win32" /I "./include/arch/unix" /Fo"$(INTDIR)\\" /FD
 
 # -------------------------------------------------------------------------
 
 !if "$(STATIC_CRT)" == "1"
-!message *** Option: Static CRT
+!message *** CRT: Static
 CRTLIB      = /MT
 !else
-!message *** Option: Dynamic CRT
+!message *** CRT: Dynamic
 CRTLIB      = /MD
 !endif
 
 !if "$(DEBUG)" == "1"
-!message *** Debug Symbols: On
+!message *** Debug: On
 CFLAGS      = $(CFLAGS) /c /Zi /Od $(CRTLIB)d /D_DEBUG
 !else
-!message *** Debug Symbols: Off
+!message *** Debug: Off
 CFLAGS      = $(CFLAGS) /c /O2 /Oy- /GF /GS- $(CRTLIB) /DNDEBUG
 !endif
 
