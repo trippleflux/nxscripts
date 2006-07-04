@@ -51,10 +51,10 @@ Abstract:
 
 apr_status_t
 BufferFile(
-    apr_pool_t *pool,
     const char *path,
     apr_byte_t **buffer,
-    apr_size_t *length
+    apr_size_t *length,
+    apr_pool_t *pool
     );
 
 const char *

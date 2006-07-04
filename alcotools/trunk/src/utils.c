@@ -23,13 +23,13 @@ BufferFile
     Reads the contents of a file into a buffer.
 
 Arguments:
-    pool    - Pool to allocate buffer from.
-
     path    - Pointer to a null-terminated string that specifies the file path.
 
     buffer  - Pointer to a pointer to the file's contents.
 
     length  - Pointer to a variable to store the buffer's length, in bytes.
+
+    pool    - Pool to allocate buffer from.
 
 Return Values:
     Returns an APR status code.
@@ -37,10 +37,10 @@ Return Values:
 --*/
 apr_status_t
 BufferFile(
-    apr_pool_t *pool,
     const char *path,
     apr_byte_t **buffer,
-    apr_size_t *length
+    apr_size_t *length,
+    apr_pool_t *pool
     )
 {
     apr_byte_t *data;
@@ -49,10 +49,10 @@ BufferFile(
     apr_size_t amount;
     apr_status_t status;
 
-    ASSERT(pool != NULL);
     ASSERT(path != NULL);
     ASSERT(buffer != NULL);
     ASSERT(length != NULL);
+    ASSERT(pool != NULL);
 
     LOG_DEBUG("Buffering file \"%s\" into memory pool.", path);
 

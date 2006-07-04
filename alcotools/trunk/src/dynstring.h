@@ -25,27 +25,27 @@ typedef struct DYNAMIC_STRING DYNAMIC_STRING;
 
 DYNAMIC_STRING *
 DsCreate(
-    apr_pool_t *pool,
-    apr_size_t length
+    apr_size_t length,
+    apr_pool_t *pool
     );
 
 DYNAMIC_STRING *
 DsCreateFromStr(
-    apr_pool_t *pool,
-    const char *str
+    const char *str,
+    apr_pool_t *pool
     );
 
 DYNAMIC_STRING *
 DsCreateFromData(
-    apr_pool_t *pool,
     const char *buffer,
-    apr_size_t length
+    apr_size_t length,
+    apr_pool_t *pool
     );
 
 DYNAMIC_STRING *
 DsCreateFromFile(
-    apr_pool_t *pool,
-    const char *path
+    const char *path,
+    apr_pool_t *pool
     );
 
 void

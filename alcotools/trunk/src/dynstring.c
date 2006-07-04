@@ -18,9 +18,9 @@ Abstract:
 
 struct DYNAMIC_STRING {
     char       *data;   // Pointer to the null-terminated data
-    apr_pool_t *pool;   // Pointer to the pool the buffer is allocated from
     apr_size_t length;  // Length of the data, in bytes
     apr_size_t size;    // Size of the data buffer, in bytes
+    apr_pool_t *pool;   // Pointer to the pool the buffer is allocated from
 };
 
 /*++
@@ -30,13 +30,13 @@ CreateString
     Creates a dynamic string structure.
 
 Arguments:
-    pool    - Pointer to a memory pool.
-
     data    - Pointer to the null-terminated data.
 
     length  - Length of the data, in bytes.
 
     size    - Size of the data buffer, in bytes.
+
+    pool    - Pointer to a memory pool.
 
 Return Values:
     If the function succeeds, the return value is a pointer to a DYNAMIC_STRING structure.
@@ -48,10 +48,10 @@ static
 inline
 DYNAMIC_STRING *
 CreateString(
-    apr_pool_t *pool,
     char *data,
     apr_size_t length,
-    apr_size_t size
+    apr_size_t size,
+    apr_pool_t *pool
     )
 {
     DYNAMIC_STRING *dynStr;
@@ -64,9 +64,9 @@ CreateString(
     dynStr = apr_palloc(pool, sizeof(DYNAMIC_STRING));
     if (dynStr != NULL) {
         dynStr->data   = data;
-        dynStr->pool   = pool;
         dynStr->length = length;
         dynStr->size   = size;
+        dynStr->pool   = pool;
     }
     return dynStr;
 }
@@ -79,9 +79,9 @@ DsCreate
     Creates an empty dynamic string.
 
 Arguments:
-    pool    - Pointer to a memory pool.
-
     length  - Length of the initial buffer, in bytes.
+
+    pool    - Pointer to a memory pool.
 
 Return Values:
     If the function succeeds, the return value is a pointer to a DYNAMIC_STRING structure.
@@ -91,8 +91,8 @@ Return Values:
 --*/
 DYNAMIC_STRING *
 DsCreate(
-    apr_pool_t *pool,
-    apr_size_t length
+    apr_size_t length,
+    apr_pool_t *pool
     )
 {
     char *data;
@@ -106,7 +106,7 @@ DsCreate(
 
     // Create dynamic string structure
     data[0] = '\0';
-    return CreateString(pool, data, 0, length + 1);
+    return CreateString(data, 0, length + 1, pool);
 }
 
 /*++
@@ -116,9 +116,9 @@ DsCreateFromStr
     Creates a dynamic string from a null-terminated string.
 
 Arguments:
-    pool    - Pointer to a memory pool.
-
     str     - Pointer to a null-terminated string.
+
+    pool    - Pointer to a memory pool.
 
 Return Values:
     If the function succeeds, the return value is a pointer to a DYNAMIC_STRING structure.
@@ -128,14 +128,14 @@ Return Values:
 --*/
 DYNAMIC_STRING *
 DsCreateFromStr(
-    apr_pool_t *pool,
-    const char *str
+    const char *str,
+    apr_pool_t *pool
     )
 {
-    ASSERT(pool != NULL);
     ASSERT(str != NULL);
+    ASSERT(pool != NULL);
 
-    return DsCreateFromData(pool, str, strlen(str));
+    return DsCreateFromData(str, strlen(str), pool);
 }
 
 /*++
@@ -145,11 +145,11 @@ DsCreateFromData
     Creates a dynamic string from data.
 
 Arguments:
-    pool    - Pointer to a memory pool.
-
     buffer  - Pointer to the buffer.
 
     length  - Length of the buffer, in bytes.
+
+    pool    - Pointer to a memory pool.
 
 Return Values:
     If the function succeeds, the return value is a pointer to a DYNAMIC_STRING structure.
@@ -159,15 +159,15 @@ Return Values:
 --*/
 DYNAMIC_STRING *
 DsCreateFromData(
-    apr_pool_t *pool,
     const char *buffer,
-    apr_size_t length
+    apr_size_t length,
+    apr_pool_t *pool
     )
 {
     char *data;
 
+    ASSERT(buffer != NULL);
     ASSERT(pool != NULL);
-    ASSERT(data != NULL);
 
     data = apr_palloc(pool, length + 1);
     if (data == NULL) {
@@ -177,7 +177,7 @@ DsCreateFromData(
     // Create dynamic string structure
     memcpy(data, buffer, length);
     data[length] = '\0';
-    return CreateString(pool, data, length, length + 1);
+    return CreateString(data, length, length + 1, pool);
 }
 
 /*++
@@ -187,9 +187,9 @@ DsCreateFromFile
     Creates a dynamic string from the contents of a file.
 
 Arguments:
-    pool    - Pointer to a memory pool.
-
     path    - Pointer to a null-terminated string specifying the path of a file.
+
+    pool    - Pointer to a memory pool.
 
 Return Values:
     If the function succeeds, the return value is a pointer to a DYNAMIC_STRING structure.
@@ -199,18 +199,18 @@ Return Values:
 --*/
 DYNAMIC_STRING *
 DsCreateFromFile(
-    apr_pool_t *pool,
-    const char *path
+    const char *path,
+    apr_pool_t *pool
     )
 {
     apr_byte_t *buffer;
     apr_size_t length;
     apr_status_t status;
 
-    ASSERT(pool != NULL);
     ASSERT(path != NULL);
+    ASSERT(pool != NULL);
 
-    status = BufferFile(pool, path, &buffer, &length);
+    status = BufferFile(path, &buffer, &length, pool);
     if (status != APR_SUCCESS) {
         return NULL;
     }

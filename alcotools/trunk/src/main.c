@@ -147,7 +147,7 @@ main(
 
     for (i = 0; i < ARRAYSIZE(events); i++) {
         if (crc == events[i].crc) {
-            status = events[i].proc(eventPool, argc-2, argv+2);
+            status = events[i].proc(argc-2, argv+2, eventPool);
 
             if (status != APR_SUCCESS) {
                 LOG_ERROR("Event callback returned %d: %s", status, GetErrorMessage(status));

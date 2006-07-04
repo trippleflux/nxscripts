@@ -18,9 +18,9 @@ Abstract:
 
 apr_status_t
 EventPostDele(
-    apr_pool_t *pool,
     int argc,
-    char **argv
+    char **argv,
+    apr_pool_t *pool
     )
 {
     LOG_DEBUG("Event: post-DELE with %d argument(s).", argc);
@@ -29,9 +29,9 @@ EventPostDele(
 
 apr_status_t
 EventPostMkd(
-    apr_pool_t *pool,
     int argc,
-    char **argv
+    char **argv,
+    apr_pool_t *pool
     )
 {
     LOG_DEBUG("Event: post-MKD with %d argument(s).", argc);
@@ -40,9 +40,9 @@ EventPostMkd(
 
 apr_status_t
 EventPostRnfr(
-    apr_pool_t *pool,
     int argc,
-    char **argv
+    char **argv,
+    apr_pool_t *pool
     )
 {
     LOG_DEBUG("Event: post-RNFR with %d argument(s).", argc);
@@ -51,9 +51,9 @@ EventPostRnfr(
 
 apr_status_t
 EventPostRnto(
-    apr_pool_t *pool,
     int argc,
-    char **argv
+    char **argv,
+    apr_pool_t *pool
     )
 {
     LOG_DEBUG("Event: post-RNTO with %d argument(s).", argc);
@@ -62,9 +62,9 @@ EventPostRnto(
 
 apr_status_t
 EventPostRmd(
-    apr_pool_t *pool,
     int argc,
-    char **argv
+    char **argv,
+    apr_pool_t *pool
     )
 {
     LOG_DEBUG("Event: post-RMD with %d argument(s).", argc);
@@ -73,9 +73,9 @@ EventPostRmd(
 
 apr_status_t
 EventPreMkd(
-    apr_pool_t *pool,
     int argc,
-    char **argv
+    char **argv,
+    apr_pool_t *pool
     )
 {
     LOG_DEBUG("Event: pre-MKD with %d argument(s).", argc);
@@ -84,9 +84,9 @@ EventPreMkd(
 
 apr_status_t
 EventPreStor(
-    apr_pool_t *pool,
     int argc,
-    char **argv
+    char **argv,
+    apr_pool_t *pool
     )
 {
     LOG_DEBUG("Event: pre-STOR with %d argument(s).", argc);
@@ -95,9 +95,9 @@ EventPreStor(
 
 apr_status_t
 EventUpload(
-    apr_pool_t *pool,
     int argc,
-    char **argv
+    char **argv,
+    apr_pool_t *pool
     )
 {
     LOG_DEBUG("EventUpload with %d argument(s).", argc);
@@ -106,9 +106,9 @@ EventUpload(
 
 apr_status_t
 EventUploadError(
-    apr_pool_t *pool,
     int argc,
-    char **argv
+    char **argv,
+    apr_pool_t *pool
     )
 {
     LOG_DEBUG("EventUploadError with %d argument(s).", argc);
@@ -117,9 +117,9 @@ EventUploadError(
 
 apr_status_t
 EventSiteDupe(
-    apr_pool_t *pool,
     int argc,
-    char **argv
+    char **argv,
+    apr_pool_t *pool
     )
 {
     LOG_DEBUG("Event: SITE DUPE with %d argument(s).", argc);
@@ -128,9 +128,9 @@ EventSiteDupe(
 
 apr_status_t
 EventSiteFileDupe(
-    apr_pool_t *pool,
     int argc,
-    char **argv
+    char **argv,
+    apr_pool_t *pool
     )
 {
     LOG_DEBUG("Event: SITE FDUPE with %d argument(s).", argc);
@@ -139,9 +139,9 @@ EventSiteFileDupe(
 
 apr_status_t
 EventSiteNew(
-    apr_pool_t *pool,
     int argc,
-    char **argv
+    char **argv,
+    apr_pool_t *pool
     )
 {
     LOG_DEBUG("Event: SITE NEW with %d argument(s).", argc);
@@ -150,9 +150,9 @@ EventSiteNew(
 
 apr_status_t
 EventSiteRescan(
-    apr_pool_t *pool,
     int argc,
-    char **argv
+    char **argv,
+    apr_pool_t *pool
     )
 {
     LOG_DEBUG("Event: SITE RESCAN with %d argument(s).", argc);
@@ -161,9 +161,9 @@ EventSiteRescan(
 
 apr_status_t
 EventSiteUndupe(
-    apr_pool_t *pool,
     int argc,
-    char **argv
+    char **argv,
+    apr_pool_t *pool
     )
 {
     LOG_DEBUG("Event: SITE UNDUPE with %d argument(s).", argc);
