@@ -92,10 +92,10 @@ Arguments:
               case of a byte-order marker (zero if no BOM is present).
 
 Return Values:
-    Returns an ENCODING_TYPE identifier.
+    Returns an encoding identifier.
 
 --*/
-ENCODING_TYPE
+int
 EncDetect(
     const apr_byte_t *buffer,
     apr_size_t length,
@@ -104,9 +104,9 @@ EncDetect(
 {
     int i;
     struct {
-        char          *marker;  // Byte-order mark
-        apr_size_t    length;   // Length of the BOM
-        ENCODING_TYPE type;     // Encoding type identifer
+        char        *marker;  // Byte-order mark
+        apr_size_t  length;   // Length of the BOM
+        int         type;     // Encoding type identifer
     } static const bomTable[] = {
         {"\xFE\xFF",         2, ENCODING_UTF16_BE},
         {"\xFF\xFE",         2, ENCODING_UTF16_LE},
@@ -147,10 +147,10 @@ EncDetect(
 
 EncGetName
 
-    Retrieves the name of an ENCODING_TYPE identifier.
+    Retrieves the name of an encoding identifier.
 
 Arguments:
-    type    - An ENCODING_TYPE identifier.
+    type    - An encoding identifier.
 
 Return Values:
     Pointer to a null-terminated string that describes the encoding type.
@@ -159,7 +159,7 @@ Return Values:
 const
 char *
 EncGetName(
-    ENCODING_TYPE type
+    int type
     )
 {
     static const char *names[] = {
