@@ -23,6 +23,7 @@ Abstract:
 #include <stdarg.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <locale.h>
 #include <string.h>
 #include <sys/file.h>
 #include <sys/stat.h>

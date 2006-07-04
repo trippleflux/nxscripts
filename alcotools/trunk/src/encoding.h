@@ -4,7 +4,7 @@ AlcoTools - Alcoholicz dupe checker, zipscript, and utilities.
 Copyright (c) 2005-2006 Alcoholicz Scripting Team
 
 Module Name:
-    UTF
+    Encoding
 
 Author:
     neoxed (neoxed@gmail.com) Jun 30, 2006
@@ -23,6 +23,7 @@ typedef apr_byte_t      utf8_t;
 
 typedef enum {
     ENCODING_ASCII = 0,
+    ENCODING_LATIN1,
     ENCODING_UTF8,
     ENCODING_UTF16_BE,
     ENCODING_UTF16_LE,
@@ -31,6 +32,11 @@ typedef enum {
 } ENCODING_TYPE;
 
 
+apr_status_t
+EncInit(
+    apr_pool_t *pool
+    );
+
 ENCODING_TYPE
 EncDetect(
     const apr_byte_t *buffer,

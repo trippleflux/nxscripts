@@ -95,12 +95,16 @@ main(
     }
 
     // Initialize subsystems
+    status = EncInit(pool);
+    if (status != APR_SUCCESS) {
+         printf("Unable to set system encoding: %s\n", GetErrorMessage(status));
+         goto exit;
+    }
     status = ConfigInit(pool);
     if (status != APR_SUCCESS) {
          printf("Unable to read configuration file: %s\n", GetErrorMessage(status));
          goto exit;
     }
-
 #if (LOG_LEVEL > 0)
     status = LogInit(pool);
     if (status != APR_SUCCESS) {
