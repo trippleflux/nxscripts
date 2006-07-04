@@ -12,19 +12,19 @@
 #   Project makefile for Microsoft's NMAKE.
 #
 
-## Build options
+# Build options
 DEBUG       = 0
 MSVCRT      = 0
 IOFTPD_INC  = E:\ioFTPD\source\Include
 
-## Release version.
+# Release version
 VERSION     = 0.4.1
 
-## Compiler options
-AR          = lib
-CC          = cl
-LD          = link
-RC          = rc
+# Compiler options
+AR          = lib.exe
+CC          = cl.exe
+LD          = link.exe
+RC          = rc.exe
 AFLAGS      = /nologo
 CFLAGS      = /nologo /I "$(IOFTPD_INC)" -I ".\include" /W4
 LFLAGS      = /nologo
