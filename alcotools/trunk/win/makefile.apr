@@ -24,13 +24,13 @@
 #      apr.lib
 #
 
-# User settings
+# User options
 DEBUG       = 0
 STATIC_CRT  = 0
 OUTDIR      = .\Lib
 INTDIR      = .\Lib
 
-# Compiler settings
+# Compiler options
 CC          = cl.exe
 AR          = lib.exe
 AFLAGS      = /nologo

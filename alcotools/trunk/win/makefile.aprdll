@@ -26,13 +26,13 @@
 #      libapr.manifest
 #
 
-# User settings
+# User options
 DEBUG       = 0
 STATIC_CRT  = 0
 OUTDIR      = .\Dll
 INTDIR      = .\Dll
 
-# Compiler settings
+# Compiler options
 CC          = cl.exe
 LD          = link.exe
 RC          = rc.exe

@@ -25,18 +25,18 @@
 #     ZLIB_DIR   - Zlib include and library location.
 #
 
-## Release version.
+# Release version
 VERSION     = 0.1.0
 
-## Source locations
+# Source locations
 TOP         = .
 SRC_DIR     = $(TOP)\src
 WIN_DIR     = $(TOP)\win
 
-## Compiler options
-CC          = cl
-LD          = link
-RC          = rc
+# Compiler options
+CC          = cl.exe
+LD          = link.exe
+RC          = rc.exe
 CFLAGS      = /nologo /W4
 LFLAGS      = /nologo
 RFLAGS      = /r

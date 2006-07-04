@@ -33,11 +33,11 @@
 #      sqlite3-static.lib
 #
 
-# User settings
+# User options
 DEBUG       = 0
 STATIC_CRT  = 0
 
-# Compiler settings
+# Compiler options
 CC          = cl.exe
 AR          = lib.exe
 LD          = link.exe
