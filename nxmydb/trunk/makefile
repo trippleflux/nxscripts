@@ -12,20 +12,20 @@
 #   Project makefile for Microsoft's NMAKE.
 #
 
-## Build options
+# Build options
 DEBUG       = 1
 MSVCRT      = 0
 PLATFORM    = X86
 IOFTPD_INC  = E:\ioFTPD\source\Include
 MYSQL_DIR   = C:\Program Files\MySQL\MySQL Server 5.0
 
-## Release version.
+# Release version
 VERSION     = 0.1.0
 
-## Compiler options
-CC          = cl
-LD          = link
-RC          = rc
+# Compiler options
+CC          = cl.exe
+LD          = link.exe
+RC          = rc.exe
 CFLAGS      = /nologo /I "$(IOFTPD_INC)" -I"$(MYSQL_DIR)\include" /W4
 LFLAGS      = /nologo /MACHINE:$(PLATFORM)
 RFLAGS      = /r
