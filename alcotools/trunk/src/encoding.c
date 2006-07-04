@@ -16,7 +16,7 @@ Abstract:
 
 #include "alcoholicz.h"
 
-static int currEncoding; // Current encoding, for file paths and output
+static encoding_t currEncoding; // Current encoding, for file paths and output
 
 
 /*++
@@ -98,7 +98,7 @@ Return Values:
     Returns an encoding type identifier.
 
 --*/
-int
+encoding_t
 EncDetect(
     const apr_byte_t *buffer,
     apr_size_t length,
@@ -109,7 +109,7 @@ EncDetect(
     struct {
         char        *marker;  // Byte-order mark
         apr_size_t  length;   // Length of the BOM
-        int         type;     // Encoding type identifer
+        encoding_t  type;     // Encoding type identifer
     } static const bomTable[] = {
         {"\xFE\xFF",         2, ENCODING_UTF16_BE},
         {"\xFF\xFE",         2, ENCODING_UTF16_LE},
@@ -159,7 +159,7 @@ Return Values:
     An encoding type identifier.
 
 --*/
-int
+encoding_t
 EncGetCurrent(
     void
     )
@@ -183,7 +183,7 @@ Return Values:
 const
 char *
 EncGetName(
-    int type
+    encoding_t type
     )
 {
     static const char *names[] = {
