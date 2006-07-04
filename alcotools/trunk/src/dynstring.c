@@ -171,6 +171,31 @@ DsCreateFromFile(
 
 /*++
 
+DsClear
+
+    Clears the contents of a dynamic string.
+
+Arguments:
+    dynStr  - Pointer to a dynamic string.
+
+Return Values:
+    None.
+
+--*/
+void
+DsClear(
+    DYNAMIC_STRING *dynStr
+    )
+{
+    ASSERT(dynStr != NULL);
+    ASSERT(dynStr->size > 0);
+
+    dynStr->data[0] = '\0';
+    dynStr->length  = 0;
+}
+
+/*++
+
 DsDestroy
 
     Destroys a dynamic string.
@@ -355,22 +380,18 @@ DsExpand(
         return APR_SUCCESS;
     }
 
-    if (dynStr->size == 0) {
-        newSize = length;
-    } else {
-        // Continue doubling the current size until we reach the requested length
-        newSize = dynStr->size;
-        do {
-            prevSize = newSize;
-            newSize *= 2;
+    // Continue doubling the current size until we reach the requested length
+    newSize = dynStr->size;
+    do {
+        prevSize = newSize;
+        newSize *= 2;
 
-            // Use the requested length if we overflow
-            if (prevSize > newSize) {
-                newSize = length;
-                break;
-            }
-        } while (newSize < length);
-    }
+        // Use the requested length if we overflow
+        if (prevSize > newSize) {
+            newSize = length;
+            break;
+        }
+    } while (newSize < length);
 
     // Allocate a larger buffer size
     newData = apr_palloc(dynStr->pool, newSize);

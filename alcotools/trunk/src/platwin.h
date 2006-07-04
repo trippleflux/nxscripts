@@ -17,7 +17,6 @@ Abstract:
 #ifndef _PLATWIN_H_
 #define _PLATWIN_H_
 
-#define LITTLE_ENDIAN 1
 #define WINDOWS
 
 #define WIN32_LEAN_AND_MEAN

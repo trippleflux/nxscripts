@@ -65,6 +65,11 @@ DsCreateFromFile(
     );
 
 void
+DsClear(
+    DYNAMIC_STRING *dynStr
+    );
+
+void
 DsDestroy(
     DYNAMIC_STRING *dynStr
     );
