@@ -496,10 +496,8 @@ ConfigInit(
     apr_pool_t *pool
     )
 {
-    apr_byte_t   *buffer;
-    apr_file_t   *file;
-    apr_finfo_t  fileInfo;
-    apr_size_t   length;
+    apr_byte_t *buffer;
+    apr_size_t length;
     apr_status_t status;
 
     // Initialize section list head
@@ -511,31 +509,13 @@ ConfigInit(
         return status;
     }
 
-    // Open configuration file for reading
-    status = apr_file_open(&file, CONFIG_FILE, APR_FOPEN_READ, APR_OS_DEFAULT, cfgPool);
+    // Buffer configuration file
+    status = BufferFile(CONFIG_FILE, &buffer, &length, cfgPool);
     if (status != APR_SUCCESS) {
         return status;
     }
 
-    status = apr_file_info_get(&fileInfo, APR_FINFO_SIZE, file);
-    if (status == APR_SUCCESS) {
-
-        // Allocate a buffer large enough to contain the configuration file
-        length = (apr_size_t)fileInfo.size;
-        buffer = apr_palloc(cfgPool, length);
-        if (buffer == NULL) {
-            status = APR_ENOMEM;
-        } else {
-            // Buffer the configuration file
-            status = apr_file_read(file, buffer, &length);
-            if (status == APR_SUCCESS) {
-                ParseBuffer((char *)buffer, length);
-                status = APR_SUCCESS;
-            }
-        }
-    }
-
-    apr_file_close(file);
+    ParseBuffer((char *)buffer, length);
     return status;
 }
 
