@@ -71,12 +71,12 @@ EncInit(
     if (type != APR_FILEPATH_ENCODING_LOCALE) {
         return APR_EINVAL;
     }
+    setlocale(LC_CTYPE, "C");
 
-    // Try to change the locale to UTF-8
-    if (setlocale(LC_ALL, "UTF-8") != NULL) {
+    // Change the c-type to UTF-8
+    if (setlocale(LC_CTYPE, "UTF-8") != NULL) {
         currEncoding = ENCODING_UTF8;
     } else {
-        setlocale(LC_ALL, "C");
         currEncoding = ENCODING_ASCII;
     }
 #endif
@@ -103,7 +103,7 @@ Arguments:
 
     outLength   - Length of the output buffer, in bytes.
 
-    pool    - Pointer to a memory pool.
+    pool        - Pointer to a memory pool.
 
 Return Values:
     Returns an APR status code.
