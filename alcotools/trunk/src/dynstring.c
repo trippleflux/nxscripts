@@ -68,6 +68,7 @@ CreateString(
         dynStr->size   = size;
         dynStr->pool   = pool;
     }
+
     return dynStr;
 }
 

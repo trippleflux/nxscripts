@@ -125,7 +125,7 @@ ConvertUTF16toUTF32(
     CONVERSION_RESULT result = conversionOK;
     const utf16_t *source = *sourceStart;
     utf32_t *target = *targetStart;
-    utf32_t ch = 0, ch2 = 0;
+    utf32_t ch, ch2;
     while (source < sourceEnd) {
         const utf16_t *oldSource = source; /*  In case we have to back up because of target overflow. */
         ch = *source++;
@@ -168,9 +168,6 @@ ConvertUTF16toUTF32(
     *sourceStart = source;
     *targetStart = target;
 
-    if (result == sourceIllegal) {
-        LOG_DEBUG("Illegal sequence 0x%04x,%04x", ch, ch2);
-    }
     return result;
 }
 
