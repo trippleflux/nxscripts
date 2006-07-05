@@ -202,6 +202,59 @@ StreamClose(
 }
 
 
+typedef struct {
+#ifdef WINDOWS
+    HANDLE      console;
+#else
+    apr_file_t  *console;
+#endif
+} CONSOLE_STREAM;
+
+static
+apr_status_t
+ConsoleRead(
+    void *opaque,
+    apr_byte_t *buffer,
+    apr_size_t *length
+    )
+{
+}
+
+static
+apr_status_t
+ConsoleWrite(
+    void *opaque,
+    const apr_byte_t *buffer,
+    apr_size_t *length
+    )
+{
+}
+
+static
+apr_status_t
+ConsoleFlush(
+    void *opaque
+    )
+{
+}
+
+static
+apr_status_t
+ConsoleClose(
+    void *opaque
+    )
+{
+}
+
+STREAM *
+StreamCreateConsole(
+    int console,
+    apr_pool_t *pool
+    )
+{
+}
+
+
 static
 apr_status_t
 FileRead(
@@ -283,4 +336,56 @@ StreamCreateFile(
 
     return StreamCreate(file, FileRead, FileWrite, FileFlush,
         (close == TRUE) ? FileClose : NULL, pool);
+}
+
+
+typedef struct {
+    encoding_t  readEnc;
+    encoding_t  writeEnc;
+} ENCODE_STREAM;
+
+static
+apr_status_t
+EncodeRead(
+    void *opaque,
+    apr_byte_t *buffer,
+    apr_size_t *length
+    )
+{
+}
+
+static
+apr_status_t
+EncodeWrite(
+    void *opaque,
+    const apr_byte_t *buffer,
+    apr_size_t *length
+    )
+{
+}
+
+static
+apr_status_t
+EncodeFlush(
+    void *opaque
+    )
+{
+}
+
+static
+apr_status_t
+EncodeClose(
+    void *opaque
+    )
+{
+}
+
+STREAM *
+StreamCreateEncoding(
+    STREAM *stream,
+    encoding_t readEnc,
+    encoding_t writeEnc,
+    apr_pool_t *pool
+    )
+{
 }
