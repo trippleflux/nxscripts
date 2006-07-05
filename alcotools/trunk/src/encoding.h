@@ -47,6 +47,17 @@ EncInit(
     apr_pool_t *pool
     );
 
+apr_status_t
+EncConvert(
+    encoding_t inEnc,
+    const apr_byte_t *inBuffer,
+    apr_size_t inLength,
+    encoding_t outEnc,
+    apr_byte_t **outBuffer,
+    apr_size_t *outLength,
+    apr_pool_t *pool
+    );
+
 encoding_t
 EncDetect(
     const apr_byte_t *buffer,

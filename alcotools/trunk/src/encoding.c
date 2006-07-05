@@ -16,7 +16,11 @@ Abstract:
 
 #include "alcoholicz.h"
 
-static encoding_t currEncoding; // Current encoding, for file paths and output
+// Current encoding, for file paths and output
+static encoding_t currEncoding;
+
+// Combine encoding types for switch efficiency (endianness doesn't matter here)
+#define MAKE_ENC(from, to) ((apr_uint16_t)(((apr_byte_t)from) | ((apr_uint16_t)((apr_byte_t)to)) << 8))
 
 
 /*++
@@ -76,6 +80,82 @@ EncInit(
         currEncoding = ENCODING_ASCII;
     }
 #endif
+
+    return APR_SUCCESS;
+}
+
+/*++
+
+EncConvert
+
+    Converts a buffer from one encoding to another.
+
+Arguments:
+    inEnc       - Encoding of the input buffer.
+
+    inBuffer    - Pointer to the input buffer (data to be converted).
+
+    inLength    - Length of the input buffer, in bytes.
+
+    outEnc      - Encoding of the output buffer.
+
+    outBuffer   - Pointer to the pointer that receives the output buffer.
+
+    outLength   - Length of the output buffer, in bytes.
+
+    pool    - Pointer to a memory pool.
+
+Return Values:
+    Returns an APR status code.
+
+--*/
+apr_status_t
+EncConvert(
+    encoding_t inEnc,
+    const apr_byte_t *inBuffer,
+    apr_size_t inLength,
+    encoding_t outEnc,
+    apr_byte_t **outBuffer,
+    apr_size_t *outLength,
+    apr_pool_t *pool
+    )
+{
+    ASSERT(inBuffer != NULL);
+    ASSERT(outBuffer != NULL);
+    ASSERT(outLength != NULL);
+    ASSERT(pool != NULL);
+
+    // Use the current encoding
+    if (inEnc == ENCODING_DEFAULT) {
+        inEnc = EncGetCurrent();
+    }
+    if (outEnc == ENCODING_DEFAULT) {
+        outEnc = EncGetCurrent();
+    }
+
+    switch (MAKE_ENC(inEnc, outEnc)) {
+        // To UTF-8
+        case MAKE_ENC(ENCODING_ASCII, ENCODING_UTF8):
+            break;
+        case MAKE_ENC(ENCODING_LATIN1, ENCODING_UTF8):
+            break;
+        case MAKE_ENC(ENCODING_UTF16_BE, ENCODING_UTF8):
+            break;
+        case MAKE_ENC(ENCODING_UTF16_LE, ENCODING_UTF8):
+            break;
+        case MAKE_ENC(ENCODING_UTF32_BE, ENCODING_UTF8):
+            break;
+        case MAKE_ENC(ENCODING_UTF32_LE, ENCODING_UTF8):
+            break;
+        // From UTF-8
+        case MAKE_ENC(ENCODING_UTF8, ENCODING_ASCII):
+            break;
+        case MAKE_ENC(ENCODING_UTF8, ENCODING_LATIN1):
+            break;
+        default:
+            LOG_ERROR("Unsupported encoding conversion, %s to %s.", EncGetName(inEnc), EncGetName(outEnc));
+            return APR_EINVAL;
+    }
 
     return APR_SUCCESS;
 }
@@ -164,6 +244,7 @@ EncGetCurrent(
     void
     )
 {
+    ASSERT(currEncoding != ENCODING_DEFAULT);
     return currEncoding;
 }
 
@@ -174,7 +255,7 @@ EncGetName
     Retrieves the name of an encoding type identifier.
 
 Arguments:
-    type    - An encoding type identifier.
+    type    - Encoding type identifier.
 
 Return Values:
     Pointer to a null-terminated string that describes the encoding type identifier.
