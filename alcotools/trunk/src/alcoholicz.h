@@ -64,6 +64,7 @@ typedef apr_byte_t bool_t;
 #include "encoding.h"
 #include "events.h"
 #include "logging.h"
+#include "stream.h"
 #include "template.h"
 #include "utfconvert.h"
 #include "utils.h"

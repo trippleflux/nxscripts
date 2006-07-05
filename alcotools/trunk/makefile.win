@@ -204,6 +204,7 @@ OBJ_FILES   = $(TMP_DIR)\cfgread.obj\
               $(TMP_DIR)\events.obj\
               $(TMP_DIR)\logging.obj\
               $(TMP_DIR)\main.obj\
+              $(TMP_DIR)\stream.obj\
               $(TMP_DIR)\template.obj\
               $(TMP_DIR)\utfconvert.obj\
               $(TMP_DIR)\utils.obj
