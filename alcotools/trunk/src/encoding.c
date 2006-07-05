@@ -71,7 +71,7 @@ EncInit(
     if (type != APR_FILEPATH_ENCODING_LOCALE) {
         return APR_EINVAL;
     }
-    setlocale(LC_CTYPE, "C");
+    setlocale(LC_ALL, "C");
 
     // Change the c-type to UTF-8
     if (setlocale(LC_CTYPE, "UTF-8") != NULL) {
