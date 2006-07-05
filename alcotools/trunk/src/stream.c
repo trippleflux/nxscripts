@@ -200,3 +200,87 @@ StreamClose(
     }
     return stream->closeProc(stream->opaque);
 }
+
+
+static
+apr_status_t
+FileRead(
+    void *opaque,
+    apr_byte_t *buffer,
+    apr_size_t *length
+    )
+{
+    apr_file_t *file = opaque;
+
+    return apr_file_read_full(file, buffer, *length, length);
+}
+
+static
+apr_status_t
+FileWrite(
+    void *opaque,
+    const apr_byte_t *buffer,
+    apr_size_t *length
+    )
+{
+    apr_file_t *file = opaque;
+
+    return apr_file_write_full(file, buffer, *length, length);
+}
+
+static
+apr_status_t
+FileFlush(
+    void *opaque
+    )
+{
+    apr_file_t *file = opaque;
+
+    return apr_file_flush(file);
+}
+
+static
+apr_status_t
+FileClose(
+    void *opaque
+    )
+{
+    apr_file_t *file = opaque;
+
+    return apr_file_close(file);
+}
+
+/*++
+
+StreamCreateFile
+
+    Creates a APR file I/O stream.
+
+Arguments:
+    file    - Pointer to a APR file handle.
+
+    close   - If this argument is true, the APR file handle will be closed when
+              the stream is closed. If this argument is false, the APR file handle
+              will remain open when the stream is closed.
+
+    pool    - Pointer to a memory pool.
+
+Return Values:
+    If the function succeeds, the return value is a pointer to a STREAM structure.
+
+    If the function fails, the return value is null.
+
+--*/
+STREAM *
+StreamCreateFile(
+    apr_file_t *file,
+    bool_t close,
+    apr_pool_t *pool
+    )
+{
+    ASSERT(file != NULL);
+    ASSERT(pool != NULL);
+
+    return StreamCreate(file, FileRead, FileWrite, FileFlush,
+        (close == TRUE) ? FileClose : NULL, pool);
+}

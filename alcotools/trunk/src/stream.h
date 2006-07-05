@@ -82,7 +82,7 @@ StreamClose(
     );
 
 //
-// Console streams
+// Console stream
 //
 
 #define CONSOLE_STDIN   0
@@ -96,18 +96,18 @@ StreamCreateConsole(
     );
 
 //
-// File streams
+// File stream
 //
 
 STREAM *
 StreamCreateFile(
     apr_file_t *file,
-    bool_t noClose,
+    bool_t close,
     apr_pool_t *pool
     );
 
 //
-// Encoding translation streams
+// Encoding translation stream
 //
 
 STREAM *
