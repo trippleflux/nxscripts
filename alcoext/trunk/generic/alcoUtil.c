@@ -48,10 +48,10 @@ GetHandleTableEntry(
     char *handle;
     Tcl_HashEntry *hashEntryPtr;
 
-    assert(interp   != NULL);
-    assert(objPtr   != NULL);
+    assert(interp != NULL);
+    assert(objPtr != NULL);
     assert(tablePtr != NULL);
-    assert(type     != NULL);
+    assert(type != NULL);
 
     handle = Tcl_GetString(objPtr);
     hashEntryPtr = Tcl_FindHashEntry(tablePtr, handle);
@@ -92,7 +92,7 @@ PartialSwitchCompare(
     int optionLength;
     char *option;
 
-    assert(objPtr     != NULL);
+    assert(objPtr != NULL);
     assert(switchName != NULL);
 
     option = Tcl_GetStringFromObj(objPtr, &optionLength);
@@ -132,9 +132,9 @@ TranslatePathFromObj(
     int pathLenth;
     Tcl_Obj *translatedObj;
 
-    assert(interp  != NULL);
+    assert(interp != NULL);
     assert(objPtr != NULL);
-    assert(buffer  != NULL);
+    assert(buffer != NULL);
 
     translatedObj = Tcl_FSGetTranslatedPath(interp, objPtr);
     if (translatedObj == NULL) {
