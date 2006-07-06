@@ -298,6 +298,9 @@ TextConsoleRead(
     DWORD bytesRead;
     HANDLE console = opaque;
 
+    // We assume the current encoding is UTF-8.
+    ASSERT(EncGetCurrent() == ENCODING_UTF8);
+
     // TODO: Convert from UTF-8 to UCS-2
     if (!ReadConsoleFullW(console, buffer, (DWORD)length, &bytesRead)) {
         status = apr_get_os_error();
@@ -318,17 +321,38 @@ TextConsoleWrite(
     apr_size_t *written
     )
 {
-    apr_status_t status = APR_SUCCESS;
-    DWORD bytesWritten;
+    apr_status_t status;
+    apr_size_t bytesRemaining = length;
+    apr_size_t charsRemaining;
+    apr_wchar_t convBuffer[40];
+    const char *offset;
+    DWORD charsToWrite;
+    DWORD charsWritten;
     HANDLE console = opaque;
 
-    // TODO: Convert from UTF-8 to UCS-2
-    if (!WriteConsoleFullW(console, buffer, (DWORD)length, &bytesWritten)) {
-        status = apr_get_os_error();
-    }
+    // We assume the current encoding is UTF-8.
+    ASSERT(EncGetCurrent() == ENCODING_UTF8);
+
+    do {
+        // Convert the UTF-8 buffer to UCS-2
+        charsRemaining = ARRAYSIZE(convBuffer);
+        offset = (const char *)buffer + (length - bytesRemaining);
+        status = apr_conv_utf8_to_ucs2(offset, &bytesRemaining, convBuffer, &charsRemaining);
+        if (status == APR_EINVAL) {
+            break;
+        }
+
+        // Write the UCS-2 buffer to the console
+        charsToWrite = (DWORD)(ARRAYSIZE(convBuffer) - charsRemaining);
+        if (WriteConsoleFullW(console, convBuffer, charsToWrite, &charsWritten)) {
+            status = APR_SUCCESS;
+        } else {
+            status = apr_get_os_error();
+        }
+    } while (status == APR_SUCCESS && bytesRemaining > 0);
 
     if (written != NULL) {
-        *written = (apr_size_t)bytesWritten;
+        *written = length - bytesRemaining;
     }
     return status;
 }
@@ -399,8 +423,7 @@ StreamCreateTextConsole(
     return StreamCreate(handle, TextConsoleRead,
         TextConsoleWrite, TextConsoleFlush, NULL, pool);
 #else
-    // TODO:
-    // See if there's anything special when writing
+    // TODO: See if there's anything special when writing
     // UTF-8 text to stdout/stderr on *nix systems.
     return StreamCreateBinaryConsole(console, pool);
 #endif // WINDOWS
