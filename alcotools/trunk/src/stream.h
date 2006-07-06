@@ -85,9 +85,9 @@ StreamClose(
 // Console stream
 //
 
-#define CONSOLE_STDIN   0
-#define CONSOLE_STDOUT  1
-#define CONSOLE_STDERR  2
+#define CONSOLE_INPUT   0
+#define CONSOLE_OUTPUT  1
+#define CONSOLE_ERROR   2
 
 STREAM *
 StreamCreateBinaryConsole(

@@ -233,13 +233,13 @@ StreamCreateBinaryConsole(
     ASSERT(pool != NULL);
 
     switch (console) {
-        case CONSOLE_STDIN:
+        case CONSOLE_INPUT:
             status = apr_file_open_stdin(&file, pool);
             break;
-        case CONSOLE_STDOUT:
+        case CONSOLE_OUTPUT:
             status = apr_file_open_stdout(&file, pool);
             break;
-        case CONSOLE_STDERR:
+        case CONSOLE_ERROR:
             status = apr_file_open_stderr(&file, pool);
             break;
         default:
@@ -342,13 +342,13 @@ StreamCreateTextConsole(
     ASSERT(pool != NULL);
 
     switch (console) {
-        case CONSOLE_STDIN:
+        case CONSOLE_INPUT:
             type = STD_INPUT_HANDLE;
             break;
-        case CONSOLE_STDOUT:
+        case CONSOLE_OUTPUT:
             type = STD_OUTPUT_HANDLE;
             break;
-        case CONSOLE_STDERR:
+        case CONSOLE_ERROR:
             type = STD_ERROR_HANDLE;
             break;
         default:
