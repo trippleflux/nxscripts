@@ -17,6 +17,10 @@ Abstract:
 
 #include "alcoholicz.h"
 
+// Standard error and output streams
+extern STREAM *streamErr = NULL;
+extern STREAM *streamOut = NULL;
+
 struct {
     EVENT_PROC *proc;   // Event callback
     const char *name;   // Event name
@@ -112,6 +116,15 @@ main(
         goto exit;
     }
 #endif
+
+    // Create standard streams
+    streamErr = StreamCreateTextConsole(CONSOLE_ERROR, pool);
+    streamOut = StreamCreateTextConsole(CONSOLE_OUTPUT, pool);
+    if (streamErr == NULL || streamOut == NULL) {
+        printf("Unable to open standard error and output streams.\n");
+        status = APR_ENOMEM;
+        goto exit;
+    }
 
     LOG_VERBOSE("AlcoTools v%s starting, received %d arguments:", APR_STRINGIFY(VERSION), argc);
     for (i = 0; i < argc; i++) {

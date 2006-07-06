@@ -17,6 +17,10 @@ Abstract:
 #ifndef _ALCOHOLICZ_H_
 #define _ALCOHOLICZ_H_
 
+//
+// Header files
+//
+
 #ifdef HAVE_CONFIG_H
 #   include "config.h"
 #endif
@@ -42,6 +46,9 @@ Abstract:
 #include "apr_strings.h"
 #include "apr_pools.h"
 #include "apr_time.h"
+#ifdef WINDOWS
+#   include "arch/win32/apr_arch_utf8.h"
+#endif
 
 // Boolean logic
 typedef apr_byte_t bool_t;
@@ -68,5 +75,13 @@ typedef apr_byte_t bool_t;
 #include "template.h"
 #include "utfconvert.h"
 #include "utils.h"
+
+
+//
+// Global variables
+//
+
+extern STREAM *streamErr;
+extern STREAM *streamOut;
 
 #endif // _ALCOHOLICZ_H_
