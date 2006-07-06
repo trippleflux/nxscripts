@@ -333,11 +333,8 @@ TextConsoleFlush(
     void *opaque
     )
 {
-    HANDLE console = opaque;
-
-    if (!FlushFileBuffers(console)) {
-        return apr_get_os_error();
-    }
+    // There's no need to flush the console, this function is
+    // implemented to remain compatible with UNIX text console streams.
     return APR_SUCCESS;
 }
 #endif // WINDOWS
