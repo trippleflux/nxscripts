@@ -26,15 +26,15 @@ typedef struct STREAM STREAM;
 typedef apr_status_t (STREAM_READ_PROC)(
     void *opaque,
     apr_byte_t *buffer,
-    apr_size_t length,
-    apr_size_t *read
+    apr_size_t bytesToRead,
+    apr_size_t *bytesRead
     );
 
 typedef apr_status_t (STREAM_WRITE_PROC)(
     void *opaque,
     const apr_byte_t *buffer,
-    apr_size_t length,
-    apr_size_t *written
+    apr_size_t bytesToWrite,
+    apr_size_t *bytesWritten
     );
 
 typedef apr_status_t (STREAM_FLUSH_PROC)(
@@ -63,16 +63,16 @@ apr_status_t
 StreamRead(
     STREAM *stream,
     apr_byte_t *buffer,
-    apr_size_t length,
-    apr_size_t *read
+    apr_size_t bytesToRead,
+    apr_size_t *bytesRead
     );
 
 apr_status_t
 StreamWrite(
     STREAM *stream,
     const apr_byte_t *buffer,
-    apr_size_t length,
-    apr_size_t *written
+    apr_size_t bytesToWrite,
+    apr_size_t *bytesWritten
     );
 
 apr_status_t
