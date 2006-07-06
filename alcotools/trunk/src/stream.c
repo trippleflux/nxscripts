@@ -148,6 +148,7 @@ StreamWrite(
 {
     ASSERT(stream != NULL);
     ASSERT(buffer != NULL);
+
     if (stream->writeProc == NULL) {
         return APR_ENOTIMPL;
     }
@@ -301,7 +302,9 @@ TextConsoleRead(
     char *offset;
     HANDLE console = opaque;
 
-    // We assume the current encoding is UTF-8 (and it should be)
+    ASSERT(opaque != NULL);
+    ASSERT(buffer != NULL);
+    ASSERT(console != INVALID_HANDLE_VALUE);
     ASSERT(EncGetCurrent() == ENCODING_UTF8);
 
     do {
@@ -339,7 +342,9 @@ TextConsoleWrite(
     DWORD charsWritten;
     HANDLE console = opaque;
 
-    // We assume the current encoding is UTF-8 (and it should be)
+    ASSERT(opaque != NULL);
+    ASSERT(buffer != NULL);
+    ASSERT(console != INVALID_HANDLE_VALUE);
     ASSERT(EncGetCurrent() == ENCODING_UTF8);
 
     do {
@@ -450,6 +455,9 @@ FileRead(
 {
     apr_file_t *file = opaque;
 
+    ASSERT(opaque != NULL);
+    ASSERT(buffer != NULL);
+
     return apr_file_read_full(file, buffer, bytesToRead, bytesRead);
 }
 
@@ -464,6 +472,9 @@ FileWrite(
 {
     apr_file_t *file = opaque;
 
+    ASSERT(opaque != NULL);
+    ASSERT(buffer != NULL);
+
     return apr_file_write_full(file, buffer, bytesToWrite, bytesWritten);
 }
 
@@ -475,6 +486,8 @@ FileFlush(
 {
     apr_file_t *file = opaque;
 
+    ASSERT(opaque != NULL);
+
     return apr_file_flush(file);
 }
 
@@ -485,6 +498,8 @@ FileClose(
     )
 {
     apr_file_t *file = opaque;
+
+    ASSERT(opaque != NULL);
 
     return apr_file_close(file);
 }
@@ -539,6 +554,10 @@ EncodeRead(
     apr_size_t *bytesRead
     )
 {
+    ASSERT(opaque != NULL);
+    ASSERT(buffer != NULL);
+
+    return APR_SUCCESS;
 }
 
 static
@@ -550,6 +569,10 @@ EncodeWrite(
     apr_size_t *bytesWritten
     )
 {
+    ASSERT(opaque != NULL);
+    ASSERT(buffer != NULL);
+
+    return APR_SUCCESS;
 }
 
 static
@@ -558,6 +581,9 @@ EncodeFlush(
     void *opaque
     )
 {
+    ASSERT(opaque != NULL);
+
+    return APR_SUCCESS;
 }
 
 static
@@ -566,6 +592,9 @@ EncodeClose(
     void *opaque
     )
 {
+    ASSERT(opaque != NULL);
+
+    return APR_SUCCESS;
 }
 
 STREAM *
@@ -576,4 +605,8 @@ StreamCreateEncoding(
     apr_pool_t *pool
     )
 {
+    ASSERT(stream != NULL);
+    ASSERT(pool != NULL);
+
+    return APR_SUCCESS;
 }
