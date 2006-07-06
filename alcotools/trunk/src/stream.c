@@ -68,6 +68,7 @@ StreamCreate(
 
     ASSERT(pool != NULL);
 
+    // Populate the stream structure
     stream = apr_palloc(pool, sizeof(STREAM));
     if (stream != NULL) {
         stream->opaque     = opaque;
@@ -76,6 +77,7 @@ StreamCreate(
         stream->flushProc  = flushProc;
         stream->closeProc  = closeProc;
     }
+
     return stream;
 }
 
@@ -202,56 +204,173 @@ StreamClose(
 }
 
 
-typedef struct {
-#ifdef WINDOWS
-    HANDLE      console;
-#else
-    apr_file_t  *console;
-#endif
-} CONSOLE_STREAM;
+/*++
 
+StreamCreateBinaryConsole
+
+    Creates a binary console I/O stream.
+
+Arguments:
+    console - Console type.
+
+    pool    - Pointer to a memory pool.
+
+Return Values:
+    If the function succeeds, the return value is a pointer to a STREAM structure.
+
+    If the function fails, the return value is null.
+
+--*/
+STREAM *
+StreamCreateBinaryConsole(
+    int console,
+    apr_pool_t *pool
+    )
+{
+    apr_file_t *file;
+    apr_status_t status;
+
+    ASSERT(pool != NULL);
+
+    switch (console) {
+        case CONSOLE_STDIN:
+            status = apr_file_open_stdin(&file, pool);
+            break;
+        case CONSOLE_STDOUT:
+            status = apr_file_open_stdout(&file, pool);
+            break;
+        case CONSOLE_STDERR:
+            status = apr_file_open_stderr(&file, pool);
+            break;
+        default:
+            return NULL;
+    }
+
+    if (status != APR_SUCCESS) {
+        return NULL;
+    }
+
+    return StreamCreateFile(file, TRUE, pool);
+}
+
+
+#ifdef WINDOWS
 static
 apr_status_t
-ConsoleRead(
+TextConsoleRead(
     void *opaque,
     apr_byte_t *buffer,
     apr_size_t *length
     )
 {
+    apr_status_t status = APR_SUCCESS;
+    DWORD bytesRead;
+    HANDLE console = opaque;
+
+    // TODO: Convert from UTF-8 to UCS-2
+    if (!ReadConsoleW(console, buffer, (DWORD)length, &bytesRead, NULL)) {
+        status = apr_get_os_error();
+    }
+
+    *length = (apr_size_t)bytesRead;
+    return APR_SUCCESS;
 }
 
 static
 apr_status_t
-ConsoleWrite(
+TextConsoleWrite(
     void *opaque,
     const apr_byte_t *buffer,
     apr_size_t *length
     )
 {
+    apr_status_t status = APR_SUCCESS;
+    DWORD bytesWritten;
+    HANDLE console = opaque;
+
+    // TODO: Convert from UTF-8 to UCS-2
+    if (!WriteConsoleW(console, buffer, (DWORD)length, &bytesWritten, NULL)) {
+        status = apr_get_os_error();
+    }
+
+    *length = (apr_size_t)bytesWritten;
+    return status;
 }
 
 static
 apr_status_t
-ConsoleFlush(
+TextConsoleFlush(
     void *opaque
     )
 {
-}
+    HANDLE console = opaque;
 
-static
-apr_status_t
-ConsoleClose(
-    void *opaque
-    )
-{
+    if (!FlushFileBuffers(console)) {
+        return apr_get_os_error();
+    }
+    return APR_SUCCESS;
 }
+#endif // WINDOWS
 
+/*++
+
+StreamCreateTextConsole
+
+    Creates a text console I/O stream.
+
+Arguments:
+    console - Console type.
+
+    pool    - Pointer to a memory pool.
+
+Return Values:
+    If the function succeeds, the return value is a pointer to a STREAM structure.
+
+    If the function fails, the return value is null.
+
+--*/
 STREAM *
-StreamCreateConsole(
+StreamCreateTextConsole(
     int console,
     apr_pool_t *pool
     )
 {
+#ifdef WINDOWS
+    DWORD type;
+    HANDLE handle;
+
+    ASSERT(pool != NULL);
+
+    switch (console) {
+        case CONSOLE_STDIN:
+            type = STD_INPUT_HANDLE;
+            break;
+        case CONSOLE_STDOUT:
+            type = STD_OUTPUT_HANDLE;
+            break;
+        case CONSOLE_STDERR:
+            type = STD_ERROR_HANDLE;
+            break;
+        default:
+            return NULL;
+    }
+
+    // Retrieve standard device handle
+    handle = GetStdHandle(type);
+    if (handle == INVALID_HANDLE_VALUE) {
+        return NULL;
+    }
+
+    // There is no close callback because closing the handle returned
+    // by GetStdHandle() would close the standard device.
+    return StreamCreate(handle, TextConsoleRead,
+        TextConsoleWrite, TextConsoleFlush, NULL, pool);
+#else
+    // TODO:
+    // See if there's anything special when writing
+    // UTF-8 text to stdout/stderr on *nix systems.
+    return StreamCreateBinaryConsole(console, pool);
+#endif // WINDOWS
 }
 
 

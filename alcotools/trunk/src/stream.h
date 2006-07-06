@@ -90,7 +90,13 @@ StreamClose(
 #define CONSOLE_STDERR  2
 
 STREAM *
-StreamCreateConsole(
+StreamCreateBinaryConsole(
+    int console,
+    apr_pool_t *pool
+    );
+
+STREAM *
+StreamCreateTextConsole(
     int console,
     apr_pool_t *pool
     );
