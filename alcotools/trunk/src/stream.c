@@ -294,20 +294,29 @@ TextConsoleRead(
     apr_size_t *read
     )
 {
-    apr_status_t status = APR_SUCCESS;
-    DWORD bytesRead;
+    apr_status_t status;
+    apr_size_t bytesRemaining = length;
+    apr_size_t charsRemaining;
+    apr_wchar_t inBuffer[1];
+    char *offset;
     HANDLE console = opaque;
 
-    // We assume the current encoding is UTF-8.
+    // We assume the current encoding is UTF-8 (and it should be)
     ASSERT(EncGetCurrent() == ENCODING_UTF8);
 
-    // TODO: Convert from UTF-8 to UCS-2
-    if (!ReadConsoleFullW(console, buffer, (DWORD)length, &bytesRead)) {
-        status = apr_get_os_error();
-    }
+    do {
+        // Read one character at a time so we don't over-request
+        if (!ReadConsoleFullW(console, inBuffer, 1, (DWORD *)&charsRemaining)) {
+            status = apr_get_os_error();
+        } else {
+            // Convert the UCS-2 character to UTF-8
+            offset = (char *)buffer + (length - bytesRemaining);
+            status = apr_conv_ucs2_to_utf8(inBuffer, &charsRemaining, offset, &bytesRemaining);
+        }
+    } while (status == APR_SUCCESS && bytesRemaining > 0);
 
     if (read != NULL) {
-        *read = (apr_size_t)bytesRead;
+        *read = length - bytesRemaining;
     }
     return status;
 }
@@ -324,27 +333,27 @@ TextConsoleWrite(
     apr_status_t status;
     apr_size_t bytesRemaining = length;
     apr_size_t charsRemaining;
-    apr_wchar_t convBuffer[40];
+    apr_wchar_t outBuffer[256];
     const char *offset;
     DWORD charsToWrite;
     DWORD charsWritten;
     HANDLE console = opaque;
 
-    // We assume the current encoding is UTF-8.
+    // We assume the current encoding is UTF-8 (and it should be)
     ASSERT(EncGetCurrent() == ENCODING_UTF8);
 
     do {
         // Convert the UTF-8 buffer to UCS-2
-        charsRemaining = ARRAYSIZE(convBuffer);
+        charsRemaining = ARRAYSIZE(outBuffer);
         offset = (const char *)buffer + (length - bytesRemaining);
-        status = apr_conv_utf8_to_ucs2(offset, &bytesRemaining, convBuffer, &charsRemaining);
+        status = apr_conv_utf8_to_ucs2(offset, &bytesRemaining, outBuffer, &charsRemaining);
         if (status == APR_EINVAL) {
             break;
         }
 
         // Write the UCS-2 buffer to the console
-        charsToWrite = (DWORD)(ARRAYSIZE(convBuffer) - charsRemaining);
-        if (WriteConsoleFullW(console, convBuffer, charsToWrite, &charsWritten)) {
+        charsToWrite = (DWORD)(ARRAYSIZE(outBuffer) - charsRemaining);
+        if (WriteConsoleFullW(console, outBuffer, charsToWrite, &charsWritten)) {
             status = APR_SUCCESS;
         } else {
             status = apr_get_os_error();
