@@ -153,6 +153,36 @@ StreamWrite(
 
 /*++
 
+StreamPuts
+
+    Writes a string to an I/O stream.
+
+Arguments:
+    stream  - Pointer to a stream.
+
+    str     - Pointer to a null-terminated string.
+
+Return Values:
+    Returns an APR status code.
+
+--*/
+apr_status_t
+StreamPuts(
+    STREAM *stream,
+    const char *str
+    )
+{
+    apr_size_t length;
+
+    ASSERT(stream != NULL);
+    ASSERT(str != NULL);
+
+    length = strlen(str);
+    return StreamWrite(stream, (apr_byte_t *)str, &length);
+}
+
+/*++
+
 StreamFlush
 
     Flushes an I/O stream.

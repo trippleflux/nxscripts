@@ -72,6 +72,12 @@ StreamWrite(
     );
 
 apr_status_t
+StreamPuts(
+    STREAM *stream,
+    const char *str
+    );
+
+apr_status_t
 StreamFlush(
     STREAM *stream
     );
