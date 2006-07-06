@@ -298,7 +298,7 @@ TextConsoleRead(
     HANDLE console = opaque;
 
     // TODO: Convert from UTF-8 to UCS-2
-    if (!ReadConsoleW(console, buffer, (DWORD)length, &bytesRead, NULL)) {
+    if (!ReadConsoleW(console, buffer, (DWORD)*length, &bytesRead, NULL)) {
         status = apr_get_os_error();
     }
 
@@ -319,7 +319,7 @@ TextConsoleWrite(
     HANDLE console = opaque;
 
     // TODO: Convert from UTF-8 to UCS-2
-    if (!WriteConsoleW(console, buffer, (DWORD)length, &bytesWritten, NULL)) {
+    if (!WriteConsoleW(console, buffer, (DWORD)*length, &bytesWritten, NULL)) {
         status = apr_get_os_error();
     }
 
