@@ -298,7 +298,7 @@ TextConsoleRead(
     HANDLE console = opaque;
 
     // TODO: Convert from UTF-8 to UCS-2
-    if (!ReadConsoleW(console, buffer, (DWORD)*length, &bytesRead, NULL)) {
+    if (!ReadConsoleFullW(console, buffer, (DWORD)*length, &bytesRead)) {
         status = apr_get_os_error();
     }
 
@@ -319,7 +319,7 @@ TextConsoleWrite(
     HANDLE console = opaque;
 
     // TODO: Convert from UTF-8 to UCS-2
-    if (!WriteConsoleW(console, buffer, (DWORD)*length, &bytesWritten, NULL)) {
+    if (!WriteConsoleFullW(console, buffer, (DWORD)*length, &bytesWritten)) {
         status = apr_get_os_error();
     }
 
@@ -333,8 +333,8 @@ TextConsoleFlush(
     void *opaque
     )
 {
-    // There's no need to flush the console, this function is
-    // implemented to remain compatible with UNIX text console streams.
+    // There's no need to flush the console, this function is only
+    // implemented to remain compatible with *nix text console streams.
     return APR_SUCCESS;
 }
 #endif // WINDOWS

@@ -62,4 +62,22 @@ GetErrorMessage(
     apr_status_t status
     );
 
+#ifdef WINDOWS
+BOOL
+ReadConsoleFullW(
+    HANDLE console,
+    void *buffer,
+    DWORD charsToRead,
+    DWORD *charsRead
+    );
+
+BOOL
+WriteConsoleFullW(
+    HANDLE console,
+    const void *buffer,
+    DWORD charsToWrite,
+    DWORD *charsWritten
+    );
+#endif // WINDOWS
+
 #endif // _UTILS_H_

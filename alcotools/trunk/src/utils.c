@@ -111,3 +111,97 @@ GetErrorMessage(
     static char message[512]; // THREADING: Static variable not thread-safe.
     return apr_strerror(status, message, ARRAYSIZE(message));
 }
+
+#ifdef WINDOWS
+/*++
+
+ReadConsoleFullW
+
+    Wrapper around ReadConsoleW() that ensures the buffer is filled.
+
+Arguments:
+    console     - Handle to the console input buffer.
+
+    buffer      - Pointer to a buffer that receives the data.
+
+    charsToRead - Number of characters to read.
+
+    charsRead   - Pointer to a variable that receives the number of characters read.
+
+Return Values:
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false). To get extended
+    error information, call GetLastError.
+
+--*/
+BOOL
+ReadConsoleFullW(
+    HANDLE console,
+    void *buffer,
+    DWORD charsToRead,
+    DWORD *charsRead
+    )
+{
+    DWORD amountRead;
+    DWORD totalRead = 0;
+    BOOL result;
+
+    do {
+        result = ReadConsoleW(console, buffer, charsToRead, &amountRead, NULL);
+        charsToRead -= amountRead;
+
+        buffer = ((WCHAR *)buffer) + amountRead;
+        totalRead += amountRead;
+    } while (result && charsToRead > 0);
+
+    *charsRead = totalRead;
+    return result;
+}
+
+/*++
+
+WriteConsoleFullW
+
+    Wrapper around WriteConsoleW() that ensures all of the data was written.
+
+Arguments:
+    console      - Handle to the console output buffer.
+
+    buffer       - Pointer to a buffer that contains the data to be written.
+
+    charsToWrite - Number of characters to write.
+
+    charsWritten - Pointer to a variable that receives the number of characters written.
+
+Return Values:
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false). To get extended
+    error information, call GetLastError.
+
+--*/
+BOOL
+WriteConsoleFullW(
+    HANDLE console,
+    const void *buffer,
+    DWORD charsToWrite,
+    DWORD *charsWritten
+    )
+{
+    DWORD amountWritten;
+    DWORD totalWritten = 0;
+    BOOL result;
+
+    do {
+        result = WriteConsoleW(console, buffer, charsToWrite, &amountWritten, NULL);
+        charsToWrite -= amountWritten;
+
+        buffer = ((WCHAR *)buffer) + amountWritten;
+        totalWritten += amountWritten;
+    } while (result && charsToWrite > 0);
+
+    *charsWritten = totalWritten;
+    return result;
+}
+#endif // WINDOWS
