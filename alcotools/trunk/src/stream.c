@@ -92,8 +92,10 @@ Arguments:
 
     buffer  - Pointer to the buffer that receives the data.
 
-    length  - Pointer to the variable that specifies the number of bytes to read
-              on entry; on exit, the number of bytes read.
+    length  - Number of bytes to read.
+
+    read    - Pointer to a variable that receives the number of bytes read. This
+              argument can be null if not required.
 
 Return Values:
     Returns an APR status code.
@@ -103,17 +105,17 @@ apr_status_t
 StreamRead(
     STREAM *stream,
     apr_byte_t *buffer,
-    apr_size_t *length
+    apr_size_t length,
+    apr_size_t *read
     )
 {
     ASSERT(stream != NULL);
     ASSERT(buffer != NULL);
-    ASSERT(length != NULL);
 
     if (stream->readProc == NULL) {
         return APR_ENOTIMPL;
     }
-    return stream->readProc(stream->opaque, buffer, length);
+    return stream->readProc(stream->opaque, buffer, length, read);
 }
 
 /*++
@@ -127,8 +129,10 @@ Arguments:
 
     buffer  - Pointer to the buffer containing the data to be written.
 
-    length  - Pointer to the variable that specifies the number of bytes to write
-              on entry; on exit, the number of bytes written.
+    length  - Number of bytes to write.
+
+    written - Pointer to a variable that receives the number of bytes written.
+              This argument can be null if not required.
 
 Return Values:
     Returns an APR status code.
@@ -138,17 +142,16 @@ apr_status_t
 StreamWrite(
     STREAM *stream,
     const apr_byte_t *buffer,
-    apr_size_t *length
+    apr_size_t length,
+    apr_size_t *written
     )
 {
     ASSERT(stream != NULL);
     ASSERT(buffer != NULL);
-    ASSERT(length != NULL);
-
     if (stream->writeProc == NULL) {
         return APR_ENOTIMPL;
     }
-    return stream->writeProc(stream->opaque, buffer, length);
+    return stream->writeProc(stream->opaque, buffer, length, written);
 }
 
 /*++
@@ -172,13 +175,10 @@ StreamPuts(
     const char *str
     )
 {
-    apr_size_t length;
-
     ASSERT(stream != NULL);
     ASSERT(str != NULL);
 
-    length = strlen(str);
-    return StreamWrite(stream, (apr_byte_t *)str, &length);
+    return StreamWrite(stream, (apr_byte_t *)str, strlen(str), NULL);
 }
 
 /*++
@@ -290,7 +290,8 @@ apr_status_t
 TextConsoleRead(
     void *opaque,
     apr_byte_t *buffer,
-    apr_size_t *length
+    apr_size_t length,
+    apr_size_t *read
     )
 {
     apr_status_t status = APR_SUCCESS;
@@ -298,12 +299,14 @@ TextConsoleRead(
     HANDLE console = opaque;
 
     // TODO: Convert from UTF-8 to UCS-2
-    if (!ReadConsoleFullW(console, buffer, (DWORD)*length, &bytesRead)) {
+    if (!ReadConsoleFullW(console, buffer, (DWORD)length, &bytesRead)) {
         status = apr_get_os_error();
     }
 
-    *length = (apr_size_t)bytesRead;
-    return APR_SUCCESS;
+    if (read != NULL) {
+        *read = (apr_size_t)bytesRead;
+    }
+    return status;
 }
 
 static
@@ -311,7 +314,8 @@ apr_status_t
 TextConsoleWrite(
     void *opaque,
     const apr_byte_t *buffer,
-    apr_size_t *length
+    apr_size_t length,
+    apr_size_t *written
     )
 {
     apr_status_t status = APR_SUCCESS;
@@ -319,11 +323,13 @@ TextConsoleWrite(
     HANDLE console = opaque;
 
     // TODO: Convert from UTF-8 to UCS-2
-    if (!WriteConsoleFullW(console, buffer, (DWORD)*length, &bytesWritten)) {
+    if (!WriteConsoleFullW(console, buffer, (DWORD)length, &bytesWritten)) {
         status = apr_get_os_error();
     }
 
-    *length = (apr_size_t)bytesWritten;
+    if (written != NULL) {
+        *written = (apr_size_t)bytesWritten;
+    }
     return status;
 }
 
@@ -406,12 +412,13 @@ apr_status_t
 FileRead(
     void *opaque,
     apr_byte_t *buffer,
-    apr_size_t *length
+    apr_size_t length,
+    apr_size_t *read
     )
 {
     apr_file_t *file = opaque;
 
-    return apr_file_read_full(file, buffer, *length, length);
+    return apr_file_read_full(file, buffer, length, read);
 }
 
 static
@@ -419,12 +426,13 @@ apr_status_t
 FileWrite(
     void *opaque,
     const apr_byte_t *buffer,
-    apr_size_t *length
+    apr_size_t length,
+    apr_size_t *written
     )
 {
     apr_file_t *file = opaque;
 
-    return apr_file_write_full(file, buffer, *length, length);
+    return apr_file_write_full(file, buffer, length, written);
 }
 
 static
@@ -495,7 +503,8 @@ apr_status_t
 EncodeRead(
     void *opaque,
     apr_byte_t *buffer,
-    apr_size_t *length
+    apr_size_t length,
+    apr_size_t *read
     )
 {
 }
@@ -505,7 +514,8 @@ apr_status_t
 EncodeWrite(
     void *opaque,
     const apr_byte_t *buffer,
-    apr_size_t *length
+    apr_size_t length,
+    apr_size_t *written
     )
 {
 }
