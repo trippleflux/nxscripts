@@ -386,7 +386,7 @@ proc ::Ftp::Verify {handle} {
 #
 proc ::Ftp::Handler {handle {direct 0}} {
     upvar ::Ftp::$handle ftp
-    if {![info exists ftp]} {return}
+    if {![info exists ftp] || $ftp(sock) eq ""} {return}
 
     set replyCode 0
     set replyBase 0
