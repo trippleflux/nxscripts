@@ -43,8 +43,8 @@ AlcoBot is a modular sitebot written in Tcl for ioFTPD and glFTPD.
      eggdrop\AlcoBot\AlcoBot.conf
      eggdrop\AlcoBot\AlcoBot.tcl
      eggdrop\AlcoBot\AlcoBot.vars
-     eggdrop\AlcoBot\libs\*
      eggdrop\AlcoBot\modules\*
+     eggdrop\AlcoBot\packages\*
      eggdrop\AlcoBot\themes\*
 
   3. Rename the AlcoBot-ioFTPD.conf file to AlcoBot.conf. If you downloaded
@@ -103,8 +103,8 @@ AlcoBot is a modular sitebot written in Tcl for ioFTPD and glFTPD.
      eggdrop/AlcoBot/AlcoBot.conf
      eggdrop/AlcoBot/AlcoBot.tcl
      eggdrop/AlcoBot/AlcoBot.vars
-     eggdrop/AlcoBot/libs/*
      eggdrop/AlcoBot/modules/*
+     eggdrop/AlcoBot/packages/*
      eggdrop/AlcoBot/themes/*
 
   6. Rename the AlcoBot-glFTPD.conf file to AlcoBot.conf.
