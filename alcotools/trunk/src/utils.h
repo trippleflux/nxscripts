@@ -40,7 +40,7 @@ Abstract:
 #define ISEOL(ch)       ((ch) == '\n' || (ch) == '\r')
 
 // ISSPACE - Test if the given character is a space or a tab.
-#define ISSPACE(ch)     ((ch) == ' ' || (ch) == '\t')
+#define ISSPACE(ch)     ((ch) == ' ' || (ch) == '\f' || (ch) == '\t' || (ch) == '\v')
 
 // MAX - Returns the maximum of two numeric values.
 #define MAX(a, b)       (((a) > (b)) ? (a) : (b))

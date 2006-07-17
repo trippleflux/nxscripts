@@ -412,9 +412,11 @@ ParseBuffer(
                 }
                 break;
             case ' ':
-            case '\t':
+            case '\f':
             case '\n':
             case '\r':
+            case '\t':
+            case '\v':
                 // Ignore whitespace and EOL characters.
                 break;
             case '[':
@@ -660,7 +662,7 @@ ConfigGetBool(
     }
 
     for (i = 0; i < ARRAYSIZE(values); i++) {
-        if (key->length == values[i].length && strncasecmp(&text[values[i].length], key->value.string, key->length) == 0) {
+        if (key->length == values[i].length && strncasecmp(&text[values[i].offset], key->value.string, key->length) == 0) {
             // Change the key's internal value representation to a boolean.
             key->type = TYPE_BOOLEAN;
             key->value.boolean = *boolean = values[i].value;
