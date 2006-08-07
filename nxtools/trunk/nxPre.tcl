@@ -44,10 +44,11 @@ proc ::nxTools::Pre::ConfigRead {configFile} {
         if {[string match {\[*\]} $line]} {
             set section [lsearch -exact {[AREAS] [GROUPS] [PATHS]} $line]
         } else {
+            set entry [lindex $line 0]
             switch -- $section {
-                0 {set preArea([lindex $line 0]) [lindex $line 1]}
-                1 {set preGrps([lindex $line 0]) [lindex $line 1]}
-                2 {set prePath([lindex $line 0]) [lrange $line 1 end]}
+                0 {set preArea([string toupper $entry]) [lindex $line 1]}
+                1 {set preGrps([string toupper $entry]) [lindex $line 1]}
+                2 {set prePath($entry) [lrange $line 1 end]}
             }
         }
     }

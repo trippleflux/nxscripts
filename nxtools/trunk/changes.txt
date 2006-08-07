@@ -7,6 +7,7 @@ nxTools v1.0.5 (not released):
   CHG: Improved path resolving and symlink removal functions.
   CHG: Output from "SITE CLEAN" and "SITE REBUILD" is no longer buffered to
        prevent ioFTPD from stopping the script because of execution time limits.
+  FIX: Always make the pre area upper-case.
   FIX: Directory dupe database was always cleaned, even if disabled in the config.
   FIX: Log the maximum request age as a time duration.
 
