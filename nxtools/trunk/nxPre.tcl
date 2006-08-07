@@ -235,14 +235,14 @@ proc ::nxTools::Pre::Edit {argList} {
     if {![llength $argList]} {
         set argList "help"
     }
-    foreach {option target value} $argList {break}
+    foreach {option target value other} $argList {break}
 
     set area [string toupper $target]
     set option [string tolower $option]
     set success 0
 
     switch -- $option {
-        addarea {
+        addarea - addsection {
             if {![string length $target]} {
                 LinePuts "Invalid area, you must specify an area to add."
             } elseif {[info exists preArea($area)]} {
@@ -273,7 +273,7 @@ proc ::nxTools::Pre::Edit {argList} {
                 set success [ConfigWrite $pre(ConfigFile)]
             }
         }
-        delarea {
+        delarea - delsection {
             if {![string length $target] || ![info exists preArea($area)]} {
                 LinePuts "Invalid area, try \"SITE EDITPRE HELP\" to view available areas."
             } else {
@@ -282,7 +282,7 @@ proc ::nxTools::Pre::Edit {argList} {
                 set success [ConfigWrite $pre(ConfigFile)]
             }
         }
-        addgrp {
+        addgrp - addgroup {
             if {![string length $target] || ![info exists preArea($area)]} {
                 LinePuts "Invalid area, try \"SITE EDITPRE HELP\" to view available areas."
             } elseif {![string length $value]} {
@@ -301,7 +301,7 @@ proc ::nxTools::Pre::Edit {argList} {
                 set success [ConfigWrite $pre(ConfigFile)]
             }
         }
-        delgrp {
+        delgrp - delgroup {
             if {![string length $target] || ![info exists preArea($area)]} {
                 LinePuts "Invalid area, try \"SITE EDITPRE HELP\" to view available areas."
             } elseif {![string length $value]} {
@@ -418,7 +418,7 @@ proc ::nxTools::Pre::Edit {argList} {
         default {
             set option [string tolower $target]
             switch -- $option {
-                addarea {
+                addarea - addsection {
                     LinePuts "Description:"
                     LinePuts " - Create a pre area and destination path."
                     LinePuts " - Date cookies can be given for dated dirs."
@@ -430,19 +430,19 @@ proc ::nxTools::Pre::Edit {argList} {
                     LinePuts "Syntax : SITE EDITPRE ADDAREA <area> <path> \[date cookie(s)\]"
                     LinePuts "Example: SITE EDITPRE ADDAREA 0DAY /0DAY/ %m%d"
                 }
-                delarea {
+                delarea - delsection {
                     LinePuts "Description:"
                     LinePuts " - Delete a pre area and related settings."
                     LinePuts "Syntax : SITE EDITPRE DELAREA <area>"
                     LinePuts "Example: SITE EDITPRE DELAREA 0DAY"
                 }
-                addgrp {
+                addgrp - addgroup {
                     LinePuts "Description:"
                     LinePuts " - Allow a group to pre to the specified area."
                     LinePuts "Syntax : SITE EDITPRE ADDGRP <area> <group>"
                     LinePuts "Example: SITE EDITPRE ADDGRP 0DAY NX"
                 }
-                delgrp {
+                delgrp - delgroup {
                     LinePuts "Description:"
                     LinePuts " - Disallow a group to pre to the specified area."
                     LinePuts "Syntax : SITE EDITPRE DELGRP <area> <group>"

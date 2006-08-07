@@ -3,6 +3,7 @@
 ################################################################################
 
 nxTools v1.0.5 (not released):
+  NEW: Make "section" and "group" aliases for "area" and "grp", respectively.
   NEW: Section cookie for latest race and pre symlinks.
   CHG: Improved path resolving and symlink removal functions.
   CHG: Output from "SITE CLEAN" and "SITE REBUILD" is no longer buffered to
@@ -10,6 +11,7 @@ nxTools v1.0.5 (not released):
   FIX: Always make the pre area upper-case.
   FIX: Directory dupe database was always cleaned, even if disabled in the config.
   FIX: Log the maximum request age as a time duration.
+  FIX: The "SITE EDITPRE ADDAREA" command requires the "other" variable to be set.
 
 nxTools v1.0.4a (May 7, 2006):
   FIX: Typo in v1.0.4 that broke file dupe checking.
