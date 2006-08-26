@@ -73,11 +73,7 @@ Abstract:
 #define ARRAYSIZE(a) (sizeof(a) / sizeof(a[0]))
 
 // INLINE - Inline the function during compilation.
-#ifdef _MSC_VER
-#    define INLINE __inline
-#else
-#    define INLINE
-#endif
+#define INLINE __forceinline
 
 // STRINGIFY - Wraps an argument in quotes.
 #define STRINGIFY(a)  _STRINGIFY(a)
