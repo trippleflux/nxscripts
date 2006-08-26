@@ -24,8 +24,8 @@ DbGroupCreate(
 {
     DB_CONTEXT *context;
 
-    ASSERT(groupName != NULL);
-    ASSERT(groupFile != NULL);
+    Assert(groupName != NULL);
+    Assert(groupFile != NULL);
     DebugPrint("DbGroupCreate", "groupName=\"%s\" groupFile=%p\n", groupName, groupFile);
 
     if (!DbAcquire(&context)) {
@@ -44,8 +44,8 @@ DbGroupRename(
 {
     DB_CONTEXT *context;
 
-    ASSERT(groupName != NULL);
-    ASSERT(newName != NULL);
+    Assert(groupName != NULL);
+    Assert(newName != NULL);
     DebugPrint("DbGroupRename", "groupName=\"%s\" newName=\"%s\"\n", groupName, newName);
 
     if (!DbAcquire(&context)) {
@@ -63,7 +63,7 @@ DbGroupDelete(
 {
     DB_CONTEXT *context;
 
-    ASSERT(groupName != NULL);
+    Assert(groupName != NULL);
     DebugPrint("DbGroupDelete", "groupName=\"%s\"\n", groupName);
 
     if (!DbAcquire(&context)) {
@@ -81,7 +81,7 @@ DbGroupLock(
 {
     DB_CONTEXT *context;
 
-    ASSERT(groupFile != NULL);
+    Assert(groupFile != NULL);
     DebugPrint("DbGroupLock", "groupFile=%p", groupFile);
 
     if (!DbAcquire(&context)) {
@@ -99,7 +99,7 @@ DbGroupUnlock(
 {
     DB_CONTEXT *context;
 
-    ASSERT(groupFile != NULL);
+    Assert(groupFile != NULL);
     DebugPrint("DbGroupUnlock", "groupFile=%p", groupFile);
 
     if (!DbAcquire(&context)) {
@@ -118,8 +118,8 @@ DbGroupOpen(
 {
     DB_CONTEXT *context;
 
-    ASSERT(groupName != NULL);
-    ASSERT(groupFile != NULL);
+    Assert(groupName != NULL);
+    Assert(groupFile != NULL);
     DebugPrint("DbGroupOpen", "groupName=\"%s\" groupFile=%p\n", groupName, groupFile);
 
     if (!DbAcquire(&context)) {
@@ -137,7 +137,7 @@ DbGroupWrite(
 {
     DB_CONTEXT *context;
 
-    ASSERT(groupFile != NULL);
+    Assert(groupFile != NULL);
     DebugPrint("DbGroupWrite", "groupFile=%p", groupFile);
 
     if (!DbAcquire(&context)) {
@@ -153,7 +153,7 @@ DbGroupClose(
     GROUP_CONTEXT *context
     )
 {
-    ASSERT(context != NULL);
+    Assert(context != NULL);
     DebugPrint("DbGroupClose", "context=%p", context);
 
     return TRUE;
@@ -164,7 +164,7 @@ DbGroupRefresh(
     DB_CONTEXT *context
     )
 {
-    ASSERT(context != NULL);
+    Assert(context != NULL);
     DebugPrint("DbGroupRefresh", "context=%p", context);
 
     return TRUE;

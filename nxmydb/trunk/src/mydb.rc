@@ -16,10 +16,8 @@ Abstract:
 
 #include <winver.h>
 
-#ifndef STRINGIFY
-#   define STRINGIFY(a) _STRINGIFY(a)
-#   define _STRINGIFY(a) #a
-#endif
+#define Stringify(s)        StringifyHelper(s)
+#define StringifyHelper(s)  #s
 
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION    VERSION_RES
@@ -35,12 +33,12 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "FileDescription",  "MySQL Database for ioFTPD"
-            VALUE "FileVersion",      STRINGIFY(VERSION)
+            VALUE "FileVersion",      Stringify(VERSION)
             VALUE "InternalName",     "nxMyDB"
             VALUE "LegalCopyright",   "Copyright (c) 2006 neoxed"
             VALUE "OriginalFilename", "nxmydb.dll"
             VALUE "ProductName",      "nxMyDB"
-            VALUE "ProductVersion",   STRINGIFY(VERSION)
+            VALUE "ProductVersion",   Stringify(VERSION)
         END
     END
     BLOCK "VarFileInfo"

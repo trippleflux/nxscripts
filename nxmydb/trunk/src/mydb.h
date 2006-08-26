@@ -17,6 +17,10 @@ Abstract:
 #ifndef _MYDB_H_
 #define _MYDB_H_
 
+#if (_MSC_VER < 1400)
+#   error You must be using VC2005, or newer, to compile this application.
+#endif
+
 #undef UNICODE
 #undef _UNICODE
 
@@ -51,7 +55,6 @@ Abstract:
 // Project headers
 #include "proctable.h"
 #include "queue.h"
-
 #include "db.h"
 #include "debug.h"
 #include "backends.h"
@@ -59,25 +62,76 @@ Abstract:
 #include "pool.h"
 
 
-// Required for variadic macros
-#if (_MSC_VER < 1400)
-#   error You must be using VC2005, or newer, to compile this application.
+//
+// Macro: Assert
+//
+// Run-time expression assertions, evaluated only in debug builds.
+//
+#if defined(DEBUG) && !defined(NDEBUG)
+#   include "crtdbg.h"
+#   define Assert _ASSERTE
+#else
+#   define Assert
 #endif
 
-#undef ARRAYSIZE
-#undef INLINE
-#undef STRINGIFY
-#undef _STRINGIFY
+//
+// Macros:
+//
+// DebugHead  - Log debug header.
+// DebugPrint - Log debug message.
+// DebugFoot  - Log debug footer.
+//
+#if defined(DEBUG) && !defined(NDEBUG)
+#   ifdef DEBUG_FILE
+#       define DebugHead()                      LogFileHeader()
+#       define DebugPrint(funct, format, ...)   LogFileFormat(funct, format, __VA_ARGS__)
+#       define DebugFoot()                      LogFileFooter()
+#   else
+#       define DebugHead()                      LogDebuggerHeader()
+#       define DebugPrint(funct, format, ...)   LogDebuggerFormat(funct, format, __VA_ARGS__)
+#       define DebugFoot()                      LogDebuggerFooter()
+#   endif
+#else
+#   define DebugHead()                          ((void)0)
+#   define DebugPrint(funct, format, ...)       ((void)0)
+#   define DebugFoot()                          ((void)0)
+#endif
 
-// ARRAYSIZE - Returns the number of entries in an array.
-#define ARRAYSIZE(a) (sizeof(a) / sizeof(a[0]))
+//
+// Macro: ElementCount
+//
+// Determines the number of elements in the specified array.
+//
+#define ElementCount(array) (sizeof(array) / sizeof(array[0]))
 
-// INLINE - Inline the function during compilation.
-#define INLINE __forceinline
+//
+// Macro: inline
+//
+// Inline the function during compilation.
+//
+#define inline __forceinline
 
-// STRINGIFY - Wraps an argument in quotes.
-#define STRINGIFY(a)  _STRINGIFY(a)
-#define _STRINGIFY(a) #a
+//
+// Macro: Max
+//
+// Returns the maximum of two values.
+//
+#define Max(a, b)           (((a) > (b)) ? (a) : (b))
+
+//
+// Macro: Min
+//
+// Returns the minimum of two values.
+//
+#define Min(a, b)           (((a) < (b)) ? (a) : (b))
+
+//
+// Macro: Stringify
+//
+// Quotes a value as a string in the C preprocessor.
+//
+#define Stringify(s)        StringifyHelper(s)
+#define StringifyHelper(s)  #s
 
 
 // Calling convention used by ioFTPD for module functions.

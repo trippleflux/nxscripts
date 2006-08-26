@@ -75,13 +75,13 @@ struct qm_trace {
 #define QMD_TAILQ_CHECK_HEAD(head, field) do {                                  \
     if (!TAILQ_EMPTY(head) &&                                                   \
             TAILQ_FIRST((head))->field.tqe_prev != &TAILQ_FIRST((head))) {      \
-        ASSERT(!"Bad tailq head: first->prev != head");                         \
+        Assert(!"Bad tailq head: first->prev != head");                         \
     }                                                                           \
 } while (0)
 
 #define QMD_TAILQ_CHECK_TAIL(head, field) do {                                  \
     if (*(head)->tqh_last != NULL) {                                            \
-        ASSERT(!"Bad tailq: NEXT(head->tqh_last) != NULL");                     \
+        Assert(!"Bad tailq: NEXT(head->tqh_last) != NULL");                     \
     }                                                                           \
 } while (0)
 
@@ -89,13 +89,13 @@ struct qm_trace {
     if (TAILQ_NEXT((elm), field) != NULL &&                                     \
             TAILQ_NEXT((elm), field)->field.tqe_prev !=                         \
             &((elm)->field.tqe_next)) {                                         \
-        ASSERT(!"Bad link elm: next->prev != elm");                             \
+        Assert(!"Bad link elm: next->prev != elm");                             \
     }                                                                           \
 } while (0)
 
 #define QMD_TAILQ_CHECK_PREV(elm, field) do {                                   \
     if (*(elm)->field.tqe_prev != (elm)) {                                      \
-        ASSERT(!"Bad link elm: prev->next != elm");                             \
+        Assert(!"Bad link elm: prev->next != elm");                             \
     }                                                                           \
 } while (0)
 

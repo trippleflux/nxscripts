@@ -21,7 +21,7 @@ DbUserRefresh(
     DB_CONTEXT *dbContext
     )
 {
-    ASSERT(dbContext != NULL);
+    Assert(dbContext != NULL);
     DebugPrint("DbUserRefresh", "dbContext=%p", dbContext);
 
     return TRUE;
@@ -34,9 +34,9 @@ DbUserCreate(
     USERFILE *userFile
     )
 {
-    ASSERT(dbContext != NULL);
-    ASSERT(userName != NULL);
-    ASSERT(userFile != NULL);
+    Assert(dbContext != NULL);
+    Assert(userName != NULL);
+    Assert(userFile != NULL);
     DebugPrint("DbUserCreate", "dbContext=%p userName=\"%s\" userFile=%p\n", dbContext, userName, userFile);
 
     return TRUE;
@@ -49,9 +49,9 @@ DbUserRename(
     char *newName
     )
 {
-    ASSERT(dbContext != NULL);
-    ASSERT(userName != NULL);
-    ASSERT(newName != NULL);
+    Assert(dbContext != NULL);
+    Assert(userName != NULL);
+    Assert(newName != NULL);
     DebugPrint("DbUserRename", "dbContext=%p userName=\"%s\" newName=\"%s\"\n", dbContext, userName, newName);
 
     return TRUE;
@@ -63,8 +63,8 @@ DbUserDelete(
     char *userName
     )
 {
-    ASSERT(dbContext != NULL);
-    ASSERT(userName != NULL);
+    Assert(dbContext != NULL);
+    Assert(userName != NULL);
     DebugPrint("DbUserDelete", "dbContext=%p userName=\"%s\"\n", dbContext, userName);
 
     return TRUE;
@@ -76,8 +76,8 @@ DbUserLock(
     USERFILE *userFile
     )
 {
-    ASSERT(dbContext != NULL);
-    ASSERT(userFile != NULL);
+    Assert(dbContext != NULL);
+    Assert(userFile != NULL);
     DebugPrint("DbUserLock", "dbContext=%p userFile=%p", dbContext, userFile);
 
     return TRUE;
@@ -89,8 +89,8 @@ DbUserUnlock(
     USERFILE *userFile
     )
 {
-    ASSERT(dbContext != NULL);
-    ASSERT(userFile != NULL);
+    Assert(dbContext != NULL);
+    Assert(userFile != NULL);
     DebugPrint("DbUserUnlock", "dbContext=%p userFile=%p", dbContext, userFile);
 
     return TRUE;
@@ -103,9 +103,9 @@ DbUserOpen(
     USERFILE *userFile
     )
 {
-    ASSERT(dbContext != NULL);
-    ASSERT(userName != NULL);
-    ASSERT(userFile != NULL);
+    Assert(dbContext != NULL);
+    Assert(userName != NULL);
+    Assert(userFile != NULL);
     DebugPrint("DbUserOpen", "dbContext=%p userName=\"%s\" userFile=%p\n", dbContext, userName, userFile);
 
     return TRUE;
@@ -117,8 +117,8 @@ DbUserWrite(
     USERFILE *userFile
     )
 {
-    ASSERT(dbContext != NULL);
-    ASSERT(userFile != NULL);
+    Assert(dbContext != NULL);
+    Assert(userFile != NULL);
     DebugPrint("DbUserWrite", "dbContext=%p userFile=%p", dbContext, userFile);
 
     return TRUE;
@@ -129,7 +129,7 @@ DbUserClose(
     USER_CONTEXT *userContext
     )
 {
-    ASSERT(userContext != NULL);
+    Assert(userContext != NULL);
     DebugPrint("DbUserClose", "userContext=%p", userContext);
 
     // Release reserved database connection

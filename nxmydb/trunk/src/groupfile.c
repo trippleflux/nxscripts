@@ -29,9 +29,9 @@ GroupRead(
     DWORD fileSize;
     GROUP_CONTEXT *context;
 
-    ASSERT(filePath != NULL);
-    ASSERT(groupFile != NULL);
-    ASSERT(groupFile->lpInternal != NULL);
+    Assert(filePath != NULL);
+    Assert(groupFile != NULL);
+    Assert(groupFile->lpInternal != NULL);
     DebugPrint("FileGroupRead", "filePath=\"%s\" groupFile=%p\n", filePath, groupFile);
 
     context = groupFile->lpInternal;
@@ -102,7 +102,7 @@ FileGroupCreate(
     char buffer[12];
     DWORD error;
 
-    ASSERT(groupFile != NULL);
+    Assert(groupFile != NULL);
     DebugPrint("FileGroupCreate", "groupId=%i groupFile=%p\n", groupId, groupFile);
 
     // Retrieve default group location
@@ -115,7 +115,7 @@ FileGroupCreate(
     }
 
     // Retrieve group location
-    StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", groupId);
+    StringCchPrintfA(buffer, ElementCount(buffer), "%i", groupId);
     targetPath = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
     if (targetPath == NULL) {
         DebugPrint("FileGroupCreate", "Unable to retrieve file location.\n");
@@ -164,7 +164,7 @@ FileGroupDelete(
     DebugPrint("FileGroupDelete", "groupId=%i\n", groupId);
 
     // Retrieve group file location
-    StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", groupId);
+    StringCchPrintfA(buffer, ElementCount(buffer), "%i", groupId);
     filePath = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
     if (filePath == NULL) {
         DebugPrint("FileGroupDelete", "Unable to retrieve file location.\n");
@@ -190,11 +190,11 @@ FileGroupOpen(
     char *filePath;
     DWORD error;
 
-    ASSERT(context != NULL);
+    Assert(context != NULL);
     DebugPrint("FileGroupOpen", "groupId=%i context=%p\n", groupId, context);
 
     // Retrieve group file location
-    StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", groupId);
+    StringCchPrintfA(buffer, ElementCount(buffer), "%i", groupId);
     filePath = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
     if (filePath == NULL) {
         DebugPrint("FileGroupOpen", "Unable to retrieve file location.\n");
@@ -235,8 +235,8 @@ FileGroupWrite(
     DWORD error;
     GROUP_CONTEXT *context;
 
-    ASSERT(groupFile != NULL);
-    ASSERT(groupFile->lpInternal != NULL);
+    Assert(groupFile != NULL);
+    Assert(groupFile->lpInternal != NULL);
     DebugPrint("FileGroupWrite", "groupFile=%p\n", groupFile);
 
     context = groupFile->lpInternal;
@@ -284,11 +284,11 @@ FileGroupClose(
     GROUP_CONTEXT *context
     )
 {
-    ASSERT(context != NULL);
+    Assert(context != NULL);
     DebugPrint("FileGroupClose", "context=%p\n", context);
 
     // Close group file handle
-    ASSERT(context->fileHandle != INVALID_HANDLE_VALUE);
+    Assert(context->fileHandle != INVALID_HANDLE_VALUE);
     CloseHandle(context->fileHandle);
 
     return TRUE;

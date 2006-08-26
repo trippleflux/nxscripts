@@ -37,7 +37,7 @@ ConditionVariableCreate(
     CONDITION_VARIABLE *cond
     )
 {
-    ASSERT(cond != NULL);
+    Assert(cond != NULL);
     DebugPrint("CVInit", "cond=%p\n", cond);
 
     cond->waiting = 0;
@@ -63,7 +63,7 @@ ConditionVariableDestroy(
     CONDITION_VARIABLE *cond
     )
 {
-    ASSERT(cond != NULL);
+    Assert(cond != NULL);
     DebugPrint("CVDestroy", "cond=%p\n", cond);
 
     CloseHandle(cond->semaphore);
@@ -90,7 +90,7 @@ ConditionVariableBroadcast(
     CONDITION_VARIABLE *cond
     )
 {
-    ASSERT(cond != NULL);
+    Assert(cond != NULL);
     DebugPrint("CVBroadcast", "cond=%p\n", cond);
 
     if (cond->waiting > 0) {
@@ -120,7 +120,7 @@ ConditionVariableSignal(
     CONDITION_VARIABLE *cond
     )
 {
-    ASSERT(cond != NULL);
+    Assert(cond != NULL);
     DebugPrint("CVSignal", "cond=%p\n", cond);
 
     if (cond->waiting > 0) {
@@ -159,8 +159,8 @@ ConditionVariableWait(
 {
     DWORD result;
 
-    ASSERT(cond != NULL);
-    ASSERT(critSection != NULL);
+    Assert(cond != NULL);
+    Assert(critSection != NULL);
     DebugPrint("CVSignal", "cond=%p critSection=%p timeout=%lu\n", cond, critSection, timeout);
 
     InterlockedIncrement(&cond->waiting);

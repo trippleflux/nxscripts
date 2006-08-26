@@ -29,9 +29,9 @@ UserRead(
     DWORD fileSize;
     USER_CONTEXT *context = userFile->lpInternal;
 
-    ASSERT(filePath != NULL);
-    ASSERT(userFile != NULL);
-    ASSERT(userFile->lpInternal != NULL);
+    Assert(filePath != NULL);
+    Assert(userFile != NULL);
+    Assert(userFile->lpInternal != NULL);
     DebugPrint("FileUserRead", "filePath=\"%s\" userFile=%p\n", filePath, userFile);
 
     // Open user file
@@ -101,7 +101,7 @@ FileUserCreate(
     char buffer[12];
     DWORD error;
 
-    ASSERT(userFile != NULL);
+    Assert(userFile != NULL);
     DebugPrint("FileUserCreate", "userId=%i userFile=%p\n", userId, userFile);
 
     // Retrieve default user location
@@ -114,7 +114,7 @@ FileUserCreate(
     }
 
     // Retrieve user location
-    StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", userId);
+    StringCchPrintfA(buffer, ElementCount(buffer), "%i", userId);
     targetPath = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
     if (targetPath == NULL) {
         DebugPrint("FileUserCreate", "Unable to retrieve file location.\n");
@@ -163,7 +163,7 @@ FileUserDelete(
     DebugPrint("FileUserDelete", "userId=%i\n", userId);
 
     // Retrieve user file location
-    StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", userId);
+    StringCchPrintfA(buffer, ElementCount(buffer), "%i", userId);
     filePath = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
     if (filePath == NULL) {
         DebugPrint("FileUserDelete", "Unable to retrieve file location.\n");
@@ -189,11 +189,11 @@ FileUserOpen(
     char *filePath;
     DWORD error;
 
-    ASSERT(context != NULL);
+    Assert(context != NULL);
     DebugPrint("FileUserOpen", "userId=%i context=%p\n", userId, context);
 
     // Retrieve user file location
-    StringCchPrintfA(buffer, ARRAYSIZE(buffer), "%i", userId);
+    StringCchPrintfA(buffer, ElementCount(buffer), "%i", userId);
     filePath = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
     if (filePath == NULL) {
         DebugPrint("FileUserOpen", "Unable to retrieve file location.\n");
@@ -234,8 +234,8 @@ FileUserWrite(
     DWORD error;
     USER_CONTEXT *context = userFile->lpInternal;
 
-    ASSERT(userFile != NULL);
-    ASSERT(userFile->lpInternal != NULL);
+    Assert(userFile != NULL);
+    Assert(userFile->lpInternal != NULL);
     DebugPrint("FileUserWrite", "userFile=%p\n", userFile);
 
     // Allocate write buffer
@@ -281,7 +281,7 @@ FileUserClose(
     USER_CONTEXT *context
     )
 {
-    ASSERT(context != NULL);
+    Assert(context != NULL);
     DebugPrint("FileUserClose", "context=%p\n", context);
 
     // Close user file handle

@@ -144,7 +144,7 @@ failed:
         Io_Free(userContext);
     } else {
         // TODO: UserDelete() does not work
-        ASSERT(0);
+        Assert(0);
 
         // Delete created user (will also free the context)
         if (UserDelete(userName, userId) != UM_SUCCESS) {

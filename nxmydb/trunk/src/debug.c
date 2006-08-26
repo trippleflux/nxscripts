@@ -76,13 +76,13 @@ LogDebuggerFormat(
     size_t remaining;
     va_list argList;
 
-    ASSERT(funct != NULL);
-    ASSERT(format != NULL);
+    Assert(funct != NULL);
+    Assert(format != NULL);
 
     // Preserve system error code
     error = GetLastError();
 
-    StringCchPrintfExA(output, ARRAYSIZE(output), &end, &remaining, 0,
+    StringCchPrintfExA(output, ElementCount(output), &end, &remaining, 0,
         "| %4d | %17s | ", GetCurrentThreadId(), funct);
     va_start(argList, format);
     StringCchVPrintfA(end, remaining, format, argList);
@@ -146,7 +146,7 @@ LogFile(
 {
     HANDLE file;
 
-    ASSERT(text != NULL);
+    Assert(text != NULL);
 
     file = CreateFileA("nxMyDB.log", GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE,
         NULL, OPEN_ALWAYS, FILE_FLAG_WRITE_THROUGH, NULL);
@@ -220,14 +220,14 @@ LogFileFormat(
     SYSTEMTIME now;
     va_list argList;
 
-    ASSERT(funct != NULL);
-    ASSERT(format != NULL);
+    Assert(funct != NULL);
+    Assert(format != NULL);
 
     // Preserve system error code
     error = GetLastError();
 
     GetSystemTime(&now);
-    StringCchPrintfExA(output, ARRAYSIZE(output), &end, &remaining, 0,
+    StringCchPrintfExA(output, ElementCount(output), &end, &remaining, 0,
         "| %04d-%02d-%02d %02d:%02d:%02d | %4d | %17s | ",
         now.wYear, now.wMonth, now.wDay, now.wHour, now.wMinute, now.wSecond,
         GetCurrentThreadId(), funct);

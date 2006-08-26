@@ -121,8 +121,8 @@ ConnectionOpen(
     DWORD i;
     unsigned long flags;
 
-    ASSERT(opaque == NULL);
-    ASSERT(data != NULL);
+    Assert(opaque == NULL);
+    Assert(data != NULL);
     DebugPrint("ConnectionOpen", "opaque=%p data=%p\n", opaque, data);
 
     // Allocate database context
@@ -163,8 +163,8 @@ ConnectionOpen(
     }
 
     // Prepare statements
-    ASSERT(ARRAYSIZE(context->stmt) == ARRAYSIZE(queries));
-    for (i = 0; i < ARRAYSIZE(context->stmt); i++) {
+    Assert(ElementCount(context->stmt) == ElementCount(queries));
+    for (i = 0; i < ElementCount(context->stmt); i++) {
         context->stmt[i] = mysql_stmt_init(context->handle);
 
         if (context->stmt[i] == NULL) {
@@ -222,8 +222,8 @@ ConnectionCheck(
     UINT64 timeCurrent;
     UINT64 timeDelta;
 
-    ASSERT(opaque == NULL);
-    ASSERT(data != NULL);
+    Assert(opaque == NULL);
+    Assert(data != NULL);
     DebugPrint("ConnectionCheck", "opaque=%p data=%p\n", opaque, data);
 
     context = data;
@@ -280,13 +280,13 @@ ConnectionClose(
     DB_CONTEXT *context;
     DWORD i;
 
-    ASSERT(opaque == NULL);
-    ASSERT(data != NULL);
+    Assert(opaque == NULL);
+    Assert(data != NULL);
     DebugPrint("ConnectionClose", "opaque=%p data=%p\n", opaque, data);
     context = data;
 
     // Free prepared statements
-    for (i = 0; i < ARRAYSIZE(context->stmt); i++) {
+    for (i = 0; i < ElementCount(context->stmt); i++) {
         if (context->stmt[i] != NULL) {
             mysql_stmt_close(context->stmt[i]);
         }
@@ -325,8 +325,8 @@ ConfigGet(
     char *value;
     size_t length;
 
-    ASSERT(array != NULL);
-    ASSERT(variable != NULL);
+    Assert(array != NULL);
+    Assert(variable != NULL);
 
     // Retrieve value from ioFTPD
     value = Io_ConfigGet(array, variable, NULL, NULL);
@@ -575,7 +575,7 @@ DbInit(
     }
 
     Io_Putlog(LOG_ERROR, "nxMyDB: v%s loaded, using MySQL Client Library v%s.\r\n",
-        STRINGIFY(VERSION), mysql_get_client_info());
+        Stringify(VERSION), mysql_get_client_info());
     return TRUE;
 }
 
@@ -604,7 +604,7 @@ DbFinalize(
 
     // Finalize once the reference count reaches zero
     if (--refCount == 0) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: v%s unloaded.\r\n", STRINGIFY(VERSION));
+        Io_Putlog(LOG_ERROR, "nxMyDB: v%s unloaded.\r\n", Stringify(VERSION));
 
         // Stop refresh timer
         if (timer != NULL) {
@@ -642,7 +642,7 @@ DbAcquire(
 {
     DB_CONTEXT *context;
 
-    ASSERT(dbContext != NULL);
+    Assert(dbContext != NULL);
     DebugPrint("DbAcquire", "dbContext=%p\n", dbContext);
 
     // Acquire a database context
@@ -673,7 +673,7 @@ DbRelease(
     DB_CONTEXT *dbContext
     )
 {
-    ASSERT(dbContext != NULL);
+    Assert(dbContext != NULL);
     DebugPrint("DbRelease", "dbContext=%p\n", dbContext);
 
     // Update used time stamp
