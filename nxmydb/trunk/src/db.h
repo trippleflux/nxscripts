@@ -22,10 +22,10 @@ Abstract:
 //
 
 typedef struct {
-    UINT64      created;    // Time this context was created
-    UINT64      used;       // Time this context was last used
     MYSQL      *handle;     // MySQL connection handle
     MYSQL_STMT *stmt[23];   // Pre-compiled SQL statements
+    UINT64      created;    // Time this context was created
+    UINT64      used;       // Time this context was last used
 } DB_CONTEXT;
 
 enum {
