@@ -49,7 +49,7 @@ DllMain(
     switch (reason) {
         case DLL_PROCESS_ATTACH:
             DebugHead();
-#ifdef DYNAMIC_CRT
+#ifdef _MD
             // The static CRT requires thread notifications.
             DisableThreadLibraryCalls(instance);
 #endif
