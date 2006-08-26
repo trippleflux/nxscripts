@@ -87,7 +87,7 @@ UserCreate(
 
     DebugPrint("UserCreate", "userName=\"%s\"\n", userName);
 
-    // Allocate user context
+    // Allocate and initialize user context
     userContext = Io_Allocate(sizeof(USER_CONTEXT));
     if (userContext == NULL) {
         DebugPrint("UserCreate", "Unable to allocate user context.\n");
@@ -96,6 +96,7 @@ UserCreate(
         return -1;
     }
     userContext->fileHandle = INVALID_HANDLE_VALUE;
+    userContext->dbReserved = NULL;
 
     // Acquire a database connection
     if (!DbAcquire(&userContext->dbReserved)) {
@@ -167,7 +168,9 @@ UserRename(
 {
     DebugPrint("UserRename", "userName=\"%s\" userId=%i newName=\"%s\"\n", userName, userId, newName);
 
-    // No USERFILE structure == No dice
+    // Without access to the USERFILE structure's lpInternal
+    // member, this operation cannot be implemented.
+    SetLastError(ERROR_NOT_SUPPORTED);
     return UM_ERROR;
 
 #if 0
@@ -206,7 +209,9 @@ UserDelete(
 {
     DebugPrint("UserDelete", "userName=\"%s\" userId=%i\n", userName, userId);
 
-    // No USERFILE structure == No dice
+    // Without access to the USERFILE structure's lpInternal
+    // member, this operation cannot be implemented.
+    SetLastError(ERROR_NOT_SUPPORTED);
     return UM_ERROR;
 
 #if 0
@@ -313,6 +318,7 @@ UserOpen(
 {
     DB_CONTEXT *dbContext;
     INT result = UM_SUCCESS;
+    USER_CONTEXT *userContext;
 
     DebugPrint("UserOpen", "userName=\"%s\" userFile=%p\n", userName, userFile);
 
@@ -322,15 +328,19 @@ UserOpen(
     }
 
     // Allocate user context
-    userFile->lpInternal = Io_Allocate(sizeof(USER_CONTEXT));
-    if (userFile->lpInternal == NULL) {
+    userContext = Io_Allocate(sizeof(USER_CONTEXT));
+    if (userContext == NULL) {
         DebugPrint("UserOpen", "Unable to allocate user context.\n");
 
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         result = UM_FATAL;
     } else {
+        userContext->fileHandle = INVALID_HANDLE_VALUE;
+        userContext->dbReserved = NULL;
+        userFile->lpInternal = userContext;
+
         // Open user file
-        if (!FileUserOpen(userFile->Uid, userFile->lpInternal)) {
+        if (!FileUserOpen(userFile->Uid, userContext)) {
             DebugPrint("UserOpen", "Unable to open user file (error %lu).\n", GetLastError());
             result = (GetLastError() == ERROR_FILE_NOT_FOUND) ? UM_DELETED : UM_FATAL;
         }
@@ -339,6 +349,11 @@ UserOpen(
         if (!DbUserOpen(dbContext, userName, userFile)) {
             DebugPrint("UserOpen", "Unable to open database record (error %lu).\n", GetLastError());
             result = UM_FATAL; // TODO: check deleted
+        }
+
+        // Free context if we failed
+        if (result != UM_SUCCESS) {
+            Io_Free(userContext);
         }
     }
 
