@@ -144,6 +144,7 @@ LogFile(
     char *text
     )
 {
+    DWORD  written;
     HANDLE file;
 
     Assert(text != NULL);
@@ -154,7 +155,7 @@ LogFile(
     if (file != INVALID_HANDLE_VALUE) {
         // Append text to the end of the file
         SetFilePointer(file, 0, NULL, FILE_END);
-        WriteFile(file, text, strlen(text), NULL, NULL);
+        WriteFile(file, text, strlen(text), &written, NULL);
         CloseHandle(file);
     }
 }
