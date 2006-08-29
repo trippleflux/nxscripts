@@ -28,42 +28,47 @@ typedef struct {
     UINT64      used;       // Time this context was last used
 } DB_CONTEXT;
 
-enum {
+typedef enum {
     // Locking
-    STMT_LOCK = 0,
-    STMT_UNLOCK,
+    DB_STMT_LOCK = 0,
+    DB_STMT_UNLOCK,
 
     // Table: io_groups
-    STMT_GROUP_DELETE,
-    STMT_GROUP_CREATE,
-    STMT_GROUP_READ,
-    STMT_GROUP_EXISTS,
-    STMT_GROUP_REFRESH,
-    STMT_GROUP_WRITE,
+    DB_STMT_GROUP_DELETE,
+    DB_STMT_GROUP_CREATE,
+    DB_STMT_GROUP_READ,
+    DB_STMT_GROUP_EXISTS,
+    DB_STMT_GROUP_REFRESH,
+    DB_STMT_GROUP_WRITE,
 
     // Table: io_users
-    STMT_USER_DELETE,
-    STMT_USER_CREATE,
-    STMT_USER_READ,
-    STMT_USER_EXISTS,
-    STMT_USER_REFRESH,
-    STMT_USER_WRITE,
+    DB_STMT_USER_DELETE,
+    DB_STMT_USER_CREATE,
+    DB_STMT_USER_READ,
+    DB_STMT_USER_EXISTS,
+    DB_STMT_USER_REFRESH,
+    DB_STMT_USER_WRITE,
 
     // Table: io_useradmins
-    STMT_UADMIN_DELETE,
-    STMT_UADMIN_CREATE,
-    STMT_UADMIN_LIST,
+    DB_STMT_UADMIN_DELETE,
+    DB_STMT_UADMIN_CREATE,
+    DB_STMT_UADMIN_LIST,
 
     // Table: io_usergroups
-    STMT_UGROUP_DELETE,
-    STMT_UGROUP_CREATE,
-    STMT_UGROUP_LIST,
+    DB_STMT_UGROUP_DELETE,
+    DB_STMT_UGROUP_CREATE,
+    DB_STMT_UGROUP_LIST,
 
     // Table: io_userhosts
-    STMT_UHOST_DELETE,
-    STMT_UHOST_CREATE,
-    STMT_UHOST_LIST
-};
+    DB_STMT_UHOST_DELETE,
+    DB_STMT_UHOST_CREATE,
+    DB_STMT_UHOST_LIST
+} DB_STMTS;
+
+typedef enum {
+    LOCK_TYPE_USER = 0,
+    LOCK_TYPE_GROUP
+} DB_LOCK_TYPE;
 
 //
 // Database functions
@@ -87,6 +92,20 @@ DbAcquire(
 void
 DbRelease(
     DB_CONTEXT *dbContext
+    );
+
+BOOL
+DbLock(
+    DB_CONTEXT *dbContext,
+    DB_LOCK_TYPE lockType,
+    const char *lockName
+    );
+
+void
+DbUnlock(
+    DB_CONTEXT *dbContext,
+    DB_LOCK_TYPE lockType,
+    const char *lockName
     );
 
 #endif // _DB_H_

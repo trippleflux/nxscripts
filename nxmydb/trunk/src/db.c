@@ -405,6 +405,53 @@ ConfigFree(
 
 /*++
 
+FormatLock
+
+    Format's the lock string.
+
+Arguments:
+    lockType     - Type of lock.
+
+    lockName     - Pointer to the lock's name (user/group name).
+
+    buffer       - Pointer to a buffer that recieves the lock string.
+
+    bufferLength - Length of the buffer, in characters.
+
+Return Values:
+    None.
+
+--*/
+static
+void
+FormatLock(
+    DB_LOCK_TYPE lockType,
+    const char *lockName,
+    char *buffer,
+    size_t bufferLength
+    )
+{
+    char *end;
+    char *typeName;
+
+    Assert(lockType == LOCK_TYPE_USER || lockType == LOCK_TYPE_GROUP);
+    Assert(lockName != NULL);
+    Assert(buffer   != NULL);
+
+    if (lockType == LOCK_TYPE_USER) {
+        typeName = ".user.";
+    } else {
+        typeName = ".group.";
+    }
+
+    // Format: <database>.<type>.<name>
+    StringCchCopyEx(buffer, bufferLength, serverDb, &end, &bufferLength, 0);
+    StringCchCopyEx(end,    bufferLength, typeName, &end, &bufferLength, 0);
+    StringCchCopyEx(end,    bufferLength, lockName, &end, &bufferLength, 0);
+}
+
+/*++
+
 RefreshTimer
 
     Refreshes the local user and group cache.
@@ -426,6 +473,7 @@ RefreshTimer(
     )
 {
     DB_CONTEXT *context;
+    UnreferencedParameter(notUsed);
     DebugPrint("RefreshTimer", "currTimer=%p\n", currTimer);
 
     if (DbAcquire(&context)) {
@@ -647,7 +695,7 @@ DbAcquire(
 
     // Acquire a database context
     if (!PoolAcquire(pool, &context)) {
-        DebugPrint("DbAcquire", "Unable to acquire a database check (error %lu).\n", GetLastError());
+        DebugPrint("DbAcquire", "Unable to acquire a database context (error %lu).\n", GetLastError());
         return FALSE;
     }
 
@@ -683,4 +731,78 @@ DbRelease(
     if (!PoolRelease(pool, dbContext)) {
         DebugPrint("DbRelease", "Unable to release the database context (error %lu).\n", GetLastError());
     }
+}
+
+/*++
+
+DbLock
+
+    Attempts to lock the specified user or group.
+
+Arguments:
+    dbContext   - Pointer to the DB_CONTEXT structure.
+
+    lockType    - Type of lock.
+
+    lockName    - Pointer to the lock's name (user/group name).
+
+Return Values:
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false).
+
+--*/
+BOOL
+DbLock(
+    DB_CONTEXT *dbContext,
+    DB_LOCK_TYPE lockType,
+    const char *lockName
+    )
+{
+    char lock[128];
+
+    Assert(dbContext != NULL);
+    Assert(lockName != NULL);
+    DebugPrint("DbLock", "dbContext=%p lockType=%d lockName=%s\n", dbContext, lockType, lockName);
+
+    FormatLock(lockType, lockName, lock, ElementCount(lock));
+
+    // TODO
+
+    return TRUE;
+}
+
+/*++
+
+DbUnlock
+
+    Unlocks the specified user or group.
+
+Arguments:
+    dbContext   - Pointer to the DB_CONTEXT structure.
+
+    lockType    - Type of lock.
+
+    lockName    - Pointer to the lock's name (user/group name).
+
+Return Values:
+    None.
+
+--*/
+void
+DbUnlock(
+    DB_CONTEXT *dbContext,
+    DB_LOCK_TYPE lockType,
+    const char *lockName
+    )
+{
+    char lock[128];
+
+    Assert(dbContext != NULL);
+    Assert(lockName != NULL);
+    DebugPrint("DbUnlock", "dbContext=%p lockType=%d lockName=%s\n", dbContext, lockType, lockName);
+
+    FormatLock(lockType, lockName, lock, ElementCount(lock));
+
+    // TODO
 }
