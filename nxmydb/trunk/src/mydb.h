@@ -133,6 +133,13 @@ Abstract:
 #define Stringify(s)        StringifyHelper(s)
 #define StringifyHelper(s)  #s
 
+//
+// Macro: UnreferencedParameter
+//
+// Suppresses "unreferenced formal parameter" compiler warnings.
+//
+#define UnreferencedParameter(param) (param)
+
 
 // Calling convention used by ioFTPD for module functions.
 #define MODULE_CALL __cdecl

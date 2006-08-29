@@ -16,9 +16,6 @@ Abstract:
 
 #include "mydb.h"
 
-// Silence C4100: unreferenced formal parameter
-#pragma warning(disable : 4100)
-
 /*
 
 DllMain
@@ -46,6 +43,9 @@ DllMain(
     LPVOID reserved
     )
 {
+    UnreferencedParameter(instance);
+    UnreferencedParameter(reserved);
+
     switch (reason) {
         case DLL_PROCESS_ATTACH:
             DebugHead();

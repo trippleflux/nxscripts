@@ -24,6 +24,9 @@ Abstract:
 
 #include "mydb.h"
 
+// Silence C4127: conditional expression is constant
+#pragma warning(disable : 4127)
+
 /*++
 
 ContainerPush
