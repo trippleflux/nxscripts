@@ -1490,7 +1490,7 @@ CryptPrngCmd(
 #endif // _WINDOWS
 
     handlePtr->channel = Tcl_CreateChannel(&prngChannelType, channelName,
-	    (ClientData)handlePtr, TCL_READABLE | TCL_WRITABLE);
+        (ClientData)handlePtr, TCL_READABLE | TCL_WRITABLE);
 
     // Set default channel options.
     Tcl_SetChannelOption(NULL, handlePtr->channel, "-buffering",   "none");
@@ -1573,9 +1573,9 @@ Return Value:
 --*/
 static int
 PrngSetBlocking(
-	ClientData instanceData,
-	int mode
-	)
+    ClientData instanceData,
+    int mode
+    )
 {
     // Always non-blocking.
     return (mode == TCL_MODE_NONBLOCKING) ? 0 : EINVAL;
@@ -1705,10 +1705,10 @@ Return Value:
 --*/
 static int
 PrngOutput(
-	ClientData instanceData,
-	CONST char *source,
-	int sourceLength,
-	int *errorCodePtr
+    ClientData instanceData,
+    CONST char *source,
+    int sourceLength,
+    int *errorCodePtr
     )
 {
     int status;
@@ -1876,9 +1876,9 @@ Return Value:
 --*/
 static void
 PrngWatch(
-	ClientData instanceData,
-	int mask
-	)
+    ClientData instanceData,
+    int mask
+    )
 {
     //
     // Even though this function is not used, it must be

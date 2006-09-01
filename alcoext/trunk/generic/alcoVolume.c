@@ -167,7 +167,7 @@ static const struct {
 
 VolumeObjCmd
 
-  	 This function provides the "volume" Tcl command.
+    This function provides the "volume" Tcl command.
 
 Arguments:
     dummy  - Not used.
