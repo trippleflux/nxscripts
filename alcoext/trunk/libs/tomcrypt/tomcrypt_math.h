@@ -108,6 +108,12 @@ typedef struct {
    */
    int (*count_bits)(void * a);
 
+   /** Count the number of LSB bits which are zero
+     @param a   The integer to count
+     @return The number of contiguous zero LSB bits
+   */
+   int (*count_lsb_bits)(void *a);
+
    /** Compute a power of two
      @param a  The integer to store the power in
      @param n  The power of two you want to store (a = 2^n)
@@ -219,7 +225,7 @@ typedef struct {
      @param d    The remainder (can be NULL to signify don't care)
      @return CRYPT_OK on success
    */
-   int (*div)(void *a, void *b, void *c, void *d);
+   int (*mpdiv)(void *a, void *b, void *c, void *d);
 
    /** divide by two
       @param  a   The integer to divide (shift right)
@@ -260,6 +266,14 @@ typedef struct {
       @return CRYPT_OK on success
    */
    int (*mulmod)(void *a, void *b, void *c, void *d);
+
+   /** Modular squaring
+      @param  a     The first source
+      @param  b     The modulus
+      @param  c     The destination (a*a mod b)
+      @return CRYPT_OK on success
+   */
+   int (*sqrmod)(void *a, void *b, void *c);
 
    /** Modular inversion
       @param  a     The value to invert
@@ -398,6 +412,10 @@ extern const ltc_math_descriptor ltm_desc;
 extern const ltc_math_descriptor tfm_desc;
 #endif
 
+#ifdef GMP_DESC
+extern const ltc_math_descriptor gmp_desc;
+#endif
+
 #if !defined(DESC_DEF_ONLY) && defined(LTC_SOURCE)
 
 #define MP_DIGIT_BIT                 ltc_mp.bits_per_digit
@@ -420,6 +438,7 @@ extern const ltc_math_descriptor tfm_desc;
 #define mp_cmp(a, b)                 ltc_mp.compare(a, b)
 #define mp_cmp_d(a, b)               ltc_mp.compare_d(a, b)
 #define mp_count_bits(a)             ltc_mp.count_bits(a)
+#define mp_cnt_lsb(a)                ltc_mp.count_lsb_bits(a)
 #define mp_2expt(a, b)               ltc_mp.twoexpt(a, b)
 
 #define mp_read_radix(a, b, c)       ltc_mp.read_radix(a, b, c)
@@ -435,14 +454,15 @@ extern const ltc_math_descriptor tfm_desc;
 #define mp_mul(a, b, c)              ltc_mp.mul(a, b, c)
 #define mp_mul_d(a, b, c)            ltc_mp.muli(a, b, c)
 #define mp_sqr(a, b)                 ltc_mp.sqr(a, b)
-#define mp_div(a, b, c, d)           ltc_mp.div(a, b, c, d)
+#define mp_div(a, b, c, d)           ltc_mp.mpdiv(a, b, c, d)
 #define mp_div_2(a, b)               ltc_mp.div_2(a, b)
-#define mp_mod(a, b, c)              ltc_mp.div(a, b, NULL, c)
+#define mp_mod(a, b, c)              ltc_mp.mpdiv(a, b, NULL, c)
 #define mp_mod_d(a, b, c)            ltc_mp.modi(a, b, c)
 #define mp_gcd(a, b, c)              ltc_mp.gcd(a, b, c)
 #define mp_lcm(a, b, c)              ltc_mp.lcm(a, b, c)
 
 #define mp_mulmod(a, b, c, d)        ltc_mp.mulmod(a, b, c, d)
+#define mp_sqrmod(a, b, c)           ltc_mp.sqrmod(a, b, c)
 #define mp_invmod(a, b, c)           ltc_mp.invmod(a, b, c)
 
 #define mp_montgomery_setup(a, b)    ltc_mp.montgomery_setup(a, b)

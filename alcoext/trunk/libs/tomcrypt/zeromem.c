@@ -23,7 +23,7 @@
 void zeromem(void *out, size_t outlen)
 {
    unsigned char *mem = out;
-   LTC_ARGCHK(out != NULL);
+   LTC_ARGCHKVD(out != NULL);
    while (outlen-- > 0) {
       *mem++ = 0;
    }

@@ -1,3 +1,51 @@
+August 0x1E, 0x07D6
+v1.14 -- Renamed the chaining mode macros from XXX to LTC_XXX_MODE.  Should help avoid polluting the macro name space.
+      -- clean up of SHA-256
+      -- Chris Colman pointed out that der_decode_sequence_* allows LTC_ASN1_SETOF to accept SEQUENCEs and vice versa.
+         Decoder [non-flexi decoder that is] is more strict now and requires a match.
+      -- Steffen Jaeckel pointed out a typo in the user manual (re: rsa_exptmod).  Fixed.  This disproves the notion that
+         nobody reads it.  :-)
+      -- Made GCM a bit more portable w.r.t. handling the CTR IV (e.g. & with 255)
+      -- Add LTC_VERBOSE if you really want to see what test is doing :-)
+      -- Added SSE2 support to GCM [use GCM_TABLES_SSE2 to enable], shaves 2 cycles per byte on Opteron processors
+         Shaved 4 cycles on a Prescott (Intel P4)
+         Requires you align your gcm_state on a 16 byte boundary, see gcm_memory() for more info
+      -- Added missing prototype for f8_test_mode()
+      -- two fixes to CCM for corner cases [L+noncelen > 15] and fixing the CTR pad to encrypt the CBC-MAC tag
+      -- Franz Glasner pointed out the ARGTYPE=4 is not actually valid.  Fixed.
+      -- Fixed bug in f8_start() if your key < saltkey unspecified behaviour occurs.  :-(
+      -- Documented F8 mode.  Yeah, because you read the manual.
+      -- Minor updates to the technotes.
+
+
+June 17th, 2005
+v1.13 -- Fixed to fortuna_start() to clean up state if an error occurs.  Not really useful at this stage (sha256 can't fail) but useful
+         if I ever make fortuna pluggable
+      -- Mike Marin submitted a whole bunch of patches for fixing up the libs on traditional UNIX platforms.  Go AIX!  Thanks!
+      -- One of bugs found in the multi demo highlights that at least with gcc you need to pass integers with a UL prefix to ensure
+         they're unsigned long
+      -- Updated the FP ECC code to use affine points.  It's teh fast.
+      -- Made it so many functions which return CRYPT_BUFFER_OVERFLOW now also indicate the required buffer size, note that not all functions
+         do this (most do though).
+      -- Added F8 chaining mode.  It's super neato.
+
+May 29th, 2006
+v1.12 -- Fixed OID encoder/decoder/length to properly handle the first two parts of an OID, matches 2002 X.690 now.
+      -- [Wesley Shields] Allows both GMP/LTM and TFM to be defined now.
+      -- [Wesley Shields] GMP pluggin is cleaner now and doesn't use deprecated symbols. Yipee
+      -- Added count_lsb_bits to get the number of leading LSB zero bits there are.
+      -- Fixed a bug in the INTEGER encoders for values of -(256**k)/2
+      -- Added BOOLEAN type to ASN.1 thingy-ma-do-hicky
+      -- Testprof doesn't strictly require GMP ... oops [Nils Durner]
+      -- Added LTC_CALL and LTC_EXPORT macros in tomcrypt_cfg.h to support various calling and linker conventions
+         (Thanks to John Kirk from Demonware)
+      -- In what has to be the best thing since sliced bread I bring you MECC_FP which is the fixed point
+         ECC point multiplier.  It's fast, it's sexy and what's more it's hella fast [did I mention it's fast?]
+         You can tune it somewhat with FP_LUT (default to 8) for look-up width.
+         Read section 8.2 of the manual for more info.
+         It is disabled by default, you'll have to build LTC with it defined to get it.
+      -- Fixed bug in ecc_test.c (from testprof) to include the 521 [not 512] bit curve.  :-)
+
 April 4th, 2006
 v1.11 -- Removed printf's from lrw_test ... whoops
       -- lrw_process now checks the return of the cipher ecb encrypt/decrypt calls
@@ -1436,6 +1484,6 @@ v0.02  -- Changed RC5 to only allow 12 to 24 rounds
 v0.01  -- We will call this the first version.
 
 /* $Source: /cvs/libtom/libtomcrypt/changes,v $ */
-/* $Revision: 1.194 $ */
-/* $Date: 2006/04/05 02:51:41 $ */
+/* $Revision: 1.224 $ */
+/* $Date: 2006/08/30 23:23:20 $ */
 

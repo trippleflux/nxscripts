@@ -51,7 +51,7 @@ Abstract:
 // compiled with VS2003 the functions work flawlessly. It may be a bug on my
 // part, but until I know for certain, VS2003 is recommended.
 //
-#error "Due to bugs in the VS2005 compiler it is not supported, use VS2003 instead."
+//#error "Due to bugs in the VS2005 compiler it is not supported, use VS2003 instead."
 #endif
 
 #ifndef inline

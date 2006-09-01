@@ -36,12 +36,7 @@ int pelican_memory(int cipher,
    pelican_state *pel;
    int err;
 
-   LTC_ARGCHK(key    != NULL);
-   LTC_ARGCHK(in     != NULL);
-   LTC_ARGCHK(out    != NULL);
-   LTC_ARGCHK(outlen != NULL);
-
-   pel = XMALLOC(sizeof(pelican_state));
+   pel = XMALLOC(sizeof(*pel));
    if (pel == NULL) {
       return CRYPT_MEM;
    }

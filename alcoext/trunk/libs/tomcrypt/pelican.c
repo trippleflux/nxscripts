@@ -18,6 +18,7 @@
 #ifdef PELICAN
 
 #define ENCRYPT_ONLY
+#define PELI_TAB
 #include "aes_tab.c"
 
 

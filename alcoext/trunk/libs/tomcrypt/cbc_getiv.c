@@ -15,7 +15,7 @@
    CBC implementation, get IV, Tom St Denis
 */
 
-#ifdef CBC
+#ifdef LTC_CBC_MODE
 
 /**
    Get the current initial vector
@@ -30,6 +30,7 @@ int cbc_getiv(unsigned char *IV, unsigned long *len, symmetric_CBC *cbc)
    LTC_ARGCHK(len != NULL);
    LTC_ARGCHK(cbc != NULL);
    if ((unsigned long)cbc->blocklen > *len) {
+      *len = cbc->blocklen;
       return CRYPT_BUFFER_OVERFLOW;
    }
    XMEMCPY(IV, cbc->IV, cbc->blocklen);

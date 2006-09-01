@@ -167,7 +167,7 @@ typedef union Symmetric_key {
    void   *data;
 } symmetric_key;
 
-#ifdef ECB
+#ifdef LTC_ECB_MODE
 /** A block cipher ECB structure */
 typedef struct {
    /** The index of the cipher chosen */
@@ -179,7 +179,7 @@ typedef struct {
 } symmetric_ECB;
 #endif
 
-#ifdef CFB
+#ifdef LTC_CFB_MODE
 /** A block cipher CFB structure */
 typedef struct {
    /** The index of the cipher chosen */
@@ -197,7 +197,7 @@ typedef struct {
 } symmetric_CFB;
 #endif
 
-#ifdef OFB
+#ifdef LTC_OFB_MODE
 /** A block cipher OFB structure */
 typedef struct {
    /** The index of the cipher chosen */
@@ -213,7 +213,7 @@ typedef struct {
 } symmetric_OFB;
 #endif
 
-#ifdef CBC
+#ifdef LTC_CBC_MODE
 /** A block cipher CBC structure */
 typedef struct {
    /** The index of the cipher chosen */
@@ -228,7 +228,7 @@ typedef struct {
 #endif
 
 
-#ifdef CTR
+#ifdef LTC_CTR_MODE
 /** A block cipher CTR structure */
 typedef struct {
    /** The index of the cipher chosen */
@@ -249,7 +249,7 @@ typedef struct {
 #endif
 
 
-#ifdef LRW_MODE
+#ifdef LTC_LRW_MODE
 /** A LRW structure */
 typedef struct {
     /** The index of the cipher chosen (must be a 128-bit block cipher) */
@@ -274,6 +274,24 @@ typedef struct {
 } symmetric_LRW;
 #endif
 
+#ifdef LTC_F8_MODE
+/** A block cipher F8 structure */
+typedef struct {
+   /** The index of the cipher chosen */
+   int                 cipher,
+   /** The block size of the given cipher */
+                       blocklen,
+   /** The padding offset */
+                       padlen;
+   /** The current IV */
+   unsigned char       IV[MAXBLOCKSIZE],
+                       MIV[MAXBLOCKSIZE];
+   /** Current block count */
+   ulong32             blockcnt;
+   /** The scheduled key */
+   symmetric_key       key;
+} symmetric_F8;
+#endif
 
 
 /** cipher descriptor table, last entry has "name == NULL" to mark the end of table */
@@ -631,7 +649,7 @@ int anubis_keysize(int *keysize);
 extern const struct ltc_cipher_descriptor anubis_desc;
 #endif
 
-#ifdef ECB
+#ifdef LTC_ECB_MODE
 int ecb_start(int cipher, const unsigned char *key,
               int keylen, int num_rounds, symmetric_ECB *ecb);
 int ecb_encrypt(const unsigned char *pt, unsigned char *ct, unsigned long len, symmetric_ECB *ecb);
@@ -639,7 +657,7 @@ int ecb_decrypt(const unsigned char *ct, unsigned char *pt, unsigned long len, s
 int ecb_done(symmetric_ECB *ecb);
 #endif
 
-#ifdef CFB
+#ifdef LTC_CFB_MODE
 int cfb_start(int cipher, const unsigned char *IV, const unsigned char *key,
               int keylen, int num_rounds, symmetric_CFB *cfb);
 int cfb_encrypt(const unsigned char *pt, unsigned char *ct, unsigned long len, symmetric_CFB *cfb);
@@ -649,7 +667,7 @@ int cfb_setiv(const unsigned char *IV, unsigned long len, symmetric_CFB *cfb);
 int cfb_done(symmetric_CFB *cfb);
 #endif
 
-#ifdef OFB
+#ifdef LTC_OFB_MODE
 int ofb_start(int cipher, const unsigned char *IV, const unsigned char *key,
               int keylen, int num_rounds, symmetric_OFB *ofb);
 int ofb_encrypt(const unsigned char *pt, unsigned char *ct, unsigned long len, symmetric_OFB *ofb);
@@ -659,7 +677,7 @@ int ofb_setiv(const unsigned char *IV, unsigned long len, symmetric_OFB *ofb);
 int ofb_done(symmetric_OFB *ofb);
 #endif
 
-#ifdef CBC
+#ifdef LTC_CBC_MODE
 int cbc_start(int cipher, const unsigned char *IV, const unsigned char *key,
                int keylen, int num_rounds, symmetric_CBC *cbc);
 int cbc_encrypt(const unsigned char *pt, unsigned char *ct, unsigned long len, symmetric_CBC *cbc);
@@ -669,7 +687,7 @@ int cbc_setiv(const unsigned char *IV, unsigned long len, symmetric_CBC *cbc);
 int cbc_done(symmetric_CBC *cbc);
 #endif
 
-#ifdef CTR
+#ifdef LTC_CTR_MODE
 
 #define CTR_COUNTER_LITTLE_ENDIAN    0
 #define CTR_COUNTER_BIG_ENDIAN       1
@@ -686,7 +704,7 @@ int ctr_setiv(const unsigned char *IV, unsigned long len, symmetric_CTR *ctr);
 int ctr_done(symmetric_CTR *ctr);
 #endif
 
-#ifdef LRW_MODE
+#ifdef LTC_LRW_MODE
 
 #define LRW_ENCRYPT 0
 #define LRW_DECRYPT 1
@@ -706,9 +724,22 @@ int lrw_test(void);
 
 /* don't call */
 int lrw_process(const unsigned char *pt, unsigned char *ct, unsigned long len, int mode, symmetric_LRW *lrw);
-
-
 #endif
+
+#ifdef LTC_F8_MODE
+int f8_start(                int  cipher, const unsigned char *IV,
+             const unsigned char *key,                    int  keylen,
+             const unsigned char *salt_key,               int  skeylen,
+                             int  num_rounds,   symmetric_F8  *f8);
+int f8_encrypt(const unsigned char *pt, unsigned char *ct, unsigned long len, symmetric_F8 *f8);
+int f8_decrypt(const unsigned char *ct, unsigned char *pt, unsigned long len, symmetric_F8 *f8);
+int f8_getiv(unsigned char *IV, unsigned long *len, symmetric_F8 *f8);
+int f8_setiv(const unsigned char *IV, unsigned long len, symmetric_F8 *f8);
+int f8_done(symmetric_F8 *f8);
+int f8_test_mode(void);
+#endif
+
+
 int find_cipher(const char *name);
 int find_cipher_any(const char *name, int blocklen, int keylen);
 int find_cipher_id(unsigned char ID);

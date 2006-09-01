@@ -135,6 +135,8 @@ GetVolumeInfo(
     }
     path = Tcl_DStringValue(&buffer);
 
+    DebugPrint("GetVolumeInfo: path=\"%s\"\n", path);
+
     if (!GetVolumeInformationA(path,
             volumeInfo->name, ARRAYSIZE(volumeInfo->name),
             &volumeInfo->id,

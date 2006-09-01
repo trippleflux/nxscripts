@@ -63,11 +63,11 @@
 #define XTEA
 
 /* Block Cipher Modes of Operation */
-#define CBC
-#define CFB
-#define CTR
-#define ECB
-#define OFB
+#define LTC_CBC_MODE
+#define LTC_CFB_MODE
+#define LTC_CTR_MODE
+#define LTC_ECB_MODE
+#define LTC_OFB_MODE
 
 /* One-Way Hash Functions */
 #define MD2
