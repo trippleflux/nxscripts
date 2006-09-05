@@ -146,35 +146,47 @@ proc ::nxLib::RemoveTag {realPath} {
     }
 }
 
-proc ::nxLib::GetDirList {realPath varName {ignoreList ""} {firstCall 1}} {
-    upvar $varName list
-    if {$firstCall} {
-        array set list [list DirList [list] FileList [list]]
-    }
+proc ::nxLib::GetDirList {realPath varName {ignoreList ""}} {
+    upvar $varName data
+    array set data [list DirList [list] FileList [list]]
+
+    GetDirListRecurse $realPath data $ignoreList
+    return
+}
+
+proc ::nxLib::GetDirListRecurse {realPath varName {ignoreList ""}} {
+    upvar $varName data
+
     if {[file isdirectory $realPath]} {
-        lappend list(DirList) $realPath
+        lappend data(DirList) $realPath
         set listing [glob -nocomplain -directory $realPath "*"]
     } elseif {[file isfile $realPath]} {
         set listing [list $realPath]
     } else {return}
 
-    foreach element $listing {
-        if {[file readable $element] && ![ListMatchI $ignoreList [file tail $element]]} {
-            if {[file isdirectory $element]} {
-                GetDirList $element list $ignoreList 0
+    foreach entry $listing {
+        if {[file readable $entry] && ![ListMatchI $ignoreList [file tail $entry]]} {
+            if {[file isdirectory $entry]} {
+                GetDirListRecurse $entry data $ignoreList
             } else {
-                lappend list(FileList) $element
+                lappend data(FileList) $entry
             }
         }
     }
+}
+
+proc ::nxLib::GetDirStats {realPath varName {ignoreList ""}} {
+    upvar $varName stats
+    array set stats [list DirCount 0 FileCount 0 TotalSize 0]
+
+    GetDirStatsRecurse $realPath data $ignoreList
     return
 }
 
-proc ::nxLib::GetDirStats {realPath varName {ignoreList ""} {firstCall 1}} {
+proc ::nxLib::GetDirStatsRecurse {realPath varName {ignoreList ""}} {
     upvar $varName stats
-    if {$firstCall} {
-        array set stats [list DirCount 0 FileCount 0 TotalSize 0]
-    }
+    array set stats [list DirCount 0 FileCount 0 TotalSize 0]
+
     if {[file isdirectory $realPath]} {
         incr stats(DirCount)
         set listing [glob -nocomplain -directory $realPath "*"]
@@ -182,17 +194,16 @@ proc ::nxLib::GetDirStats {realPath varName {ignoreList ""} {firstCall 1}} {
         set listing [list $realPath]
     } else {return}
 
-    foreach element $listing {
-        if {[file readable $element] && ![ListMatchI $ignoreList [file tail $element]]} {
-            if {[file isdirectory $element]} {
-                GetDirStats $element stats $ignoreList 0
+    foreach entry $listing {
+        if {[file readable $entry] && ![ListMatchI $ignoreList [file tail $entry]]} {
+            if {[file isdirectory $entry]} {
+                GetDirStatsRecurse $entry stats $ignoreList
             } else {
                 incr stats(FileCount)
-                set stats(TotalSize) [expr {wide($stats(TotalSize)) + wide([file size $element])}]
+                set stats(TotalSize) [expr {wide($stats(TotalSize)) + wide([file size $entry])}]
             }
         }
     }
-    return
 }
 
 proc ::nxLib::GetPath {path workingPath} {
