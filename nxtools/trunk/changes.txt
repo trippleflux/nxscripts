@@ -3,7 +3,7 @@
 ################################################################################
 
 nxTools v1.0.5 (not released):
-  NEW: Make "section" and "group" aliases for "area" and "grp", respectively.
+  NEW: Aliases for SITE EDITPRE sub-commands ("section" and "group").
   NEW: Section cookie for latest race and pre symlinks.
   CHG: Improved path resolving and symlink removal functions.
   CHG: Improved performance of directory listing routines.
