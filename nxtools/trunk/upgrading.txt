@@ -3,6 +3,7 @@
 ################################################################################
 
 1.0.4 -> 1.0.5
+ - Copy (and replace) the lib\sqlite3\ and lib\nxHelper\ directories to ioFTPD\lib\.
  - Replace ioFTPD\scripts\nxLib.tcl with the included one.
  - Replace all Tcl files in ioFTPD\scripts\nxTools\.
 
