@@ -473,7 +473,7 @@ proc ::nxLib::FormatSize {kiloBytes} {
         if {abs($kiloBytes) < 1024} {break}
         set kiloBytes [expr {double($kiloBytes) / 1024.0}]
     }
-    return [format "%.*f%s" $decimals $kiloBytes $unit]
+    return [format "%.${decimals}f%s" $kiloBytes $unit]
 }
 
 proc ::nxLib::FormatSpeed {speed {seconds 0}} {
@@ -482,7 +482,7 @@ proc ::nxLib::FormatSpeed {speed {seconds 0}} {
         if {abs($speed) < 1024} {break}
         set speed [expr {double($speed) / 1024.0}]
     }
-    return [format "%.*f%s" $decimals $speed $unit]
+    return [format "%.${decimals}f%s" $speed $unit]
 }
 
 # User and Group Procedures
