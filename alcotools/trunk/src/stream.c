@@ -179,7 +179,7 @@ StreamPuts(
     ASSERT(stream != NULL);
     ASSERT(str != NULL);
 
-    return StreamWrite(stream, (apr_byte_t *)str, strlen(str), NULL);
+    return StreamWrite(stream, (const apr_byte_t *)str, strlen(str), NULL);
 }
 
 /*++
@@ -536,7 +536,7 @@ StreamCreateFile(
     ASSERT(pool != NULL);
 
     return StreamCreate(file, FileRead, FileWrite, FileFlush,
-        (close == TRUE) ? FileClose : NULL, pool);
+        (close != FALSE) ? FileClose : NULL, pool);
 }
 
 
