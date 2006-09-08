@@ -62,7 +62,7 @@ proc ::nxLib::StripChars {value} {
     regsub -all -- {[\(\<\{]+} $value {(} value
     regsub -all -- {[\)\>\}]+} $value {)} value
     regsub -all -- {[^\w\-\(\)]+} $value {.} value
-    return [value trim $value "."]
+    return [string trim $value "."]
 }
 
 proc ::nxLib::WordWrap {text width} {
