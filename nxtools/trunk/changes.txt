@@ -2,6 +2,9 @@
 #                             nxTools - Change Log                             #
 ################################################################################
 
+nxTools v1.0.5a (Sep 12, 2006):
+  FIX: Small typo in the common library that broke many things.
+
 nxTools v1.0.5 (Sep 5, 2006):
   NEW: Aliases for SITE EDITPRE sub-commands ("section" and "group").
   NEW: Section cookie for latest race and pre symlinks.
