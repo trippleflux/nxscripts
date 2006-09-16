@@ -185,7 +185,6 @@ proc ::nxLib::GetDirStats {realPath varName {ignoreList ""}} {
 
 proc ::nxLib::GetDirStatsRecurse {realPath varName {ignoreList ""}} {
     upvar $varName stats
-    array set stats [list DirCount 0 FileCount 0 TotalSize 0]
 
     if {[file isdirectory $realPath]} {
         incr stats(DirCount)
