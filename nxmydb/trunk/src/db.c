@@ -432,21 +432,21 @@ FormatLock(
     )
 {
     char *end;
-    char *typeName;
+    char *identifier;
 
     Assert(lockType == LOCK_TYPE_USER || lockType == LOCK_TYPE_GROUP);
     Assert(lockName != NULL);
     Assert(buffer   != NULL);
 
     if (lockType == LOCK_TYPE_USER) {
-        typeName = ".user.";
+        identifier = ".nxMyDB.user.";
     } else {
-        typeName = ".group.";
+        identifier = ".nxMyDB.group.";
     }
 
-    // Format: <database>.<type>.<name>
+    // Format: <database>.nxMyDB.<type>.<name>
     StringCchCopyEx(buffer, bufferLength, serverDb, &end, &bufferLength, 0);
-    StringCchCopyEx(end,    bufferLength, typeName, &end, &bufferLength, 0);
+    StringCchCopyEx(end,    bufferLength, identifier, &end, &bufferLength, 0);
     StringCchCopyEx(end,    bufferLength, lockName, &end, &bufferLength, 0);
 }
 
