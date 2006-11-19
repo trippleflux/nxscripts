@@ -311,10 +311,11 @@ proc ::nxTools::Dupe::ForceCheck {virtualPath} {
             set releasePath [resolve pwd $matchPath]
         }
         set checkFile [ListMatch $force(FilePaths) $matchPath]
+        set fileList [list]
 
         if {$checkFile && [IsTrue $force(NfoFirst)]} {
-            set files [glob -nocomplain -types f -directory $releasePath "*.nfo"]
-            if {![llength $files]} {
+            lappend fileList [glob -nocomplain -types f -directory $releasePath "*.nfo"]
+            if {![llength $fileList]} {
                 iputs -noprefix "553-.-\[ForceNFO\]------------------------------------."
                 iputs -noprefix "553-| You must upload the NFO first.                |"
                 iputs -noprefix "553 '-----------------------------------------------'"
@@ -323,8 +324,8 @@ proc ::nxTools::Dupe::ForceCheck {virtualPath} {
         }
         if {$checkFile && [IsTrue $force(SfvFirst)]} {
             set realPath [resolve pwd $matchPath]
-            set files [glob -nocomplain -types f -directory $realPath "*.sfv"]
-            if {![llength $files]} {
+            lappend fileList [glob -nocomplain -types f -directory $realPath "*.sfv"]
+            if {![llength $fileList]} {
                 iputs -noprefix "553-.-\[ForceSFV\]------------------------------------."
                 iputs -noprefix "553-| You must upload the SFV first.                |"
                 iputs -noprefix "553 '-----------------------------------------------'"
@@ -332,9 +333,12 @@ proc ::nxTools::Dupe::ForceCheck {virtualPath} {
             }
         }
         if {[IsTrue $force(SampleFirst)] && [ListMatch $force(SamplePaths) $matchPath]} {
-            set pattern "sample/{*.avi,*.mpeg,*.mpg,*.vob}"
-            set files [glob -nocomplain -types f -directory $releasePath $pattern]
-            if {![llength $files]} {
+            set pattern "{"
+            append pattern [join $force(SampleExts) ","] "}"
+
+            lappend fileList [glob -nocomplain -types f -directory $releasePath "sample/$pattern"]
+            lappend fileList [glob -nocomplain -types f -directory $releasePath "samples/$pattern"]
+            if {![llength $fileList]} {
                 iputs -noprefix "553-.-\[ForceSample\]---------------------------------."
                 iputs -noprefix "553-| You must upload the sample first.             |"
                 iputs -noprefix "553 '-----------------------------------------------'"

@@ -2,6 +2,10 @@
 #                             nxTools - Change Log                             #
 ################################################################################
 
+nxTools v1.0.6 (not released):
+  NEW: Option to define the allowed sample extensions (e.g. JPG, MPG, VOB).
+  FIX: "SITE SIZE" and "SITE WIPE" reported zero files and directories.
+
 nxTools v1.0.5a (Sep 12, 2006):
   FIX: Small typo in the common library that broke many things.
 
