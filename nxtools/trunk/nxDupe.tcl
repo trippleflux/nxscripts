@@ -218,16 +218,16 @@ proc ::nxTools::Dupe::RebuildDb {} {
 
         # Process directory entries
         if {[IsTrue $updateDirs]} {
-            set defUser  [resolve uid [lindex $misc(DirOwner) 0]]
-            set defGroup [resolve gid [lindex $misc(DirOwner) 1]]
+            set defaultUser [resolve uid [lindex $misc(DirOwner) 0]]
+            set defaultGroup [resolve gid [lindex $misc(DirOwner) 1]]
 
             foreach entry $listing(DirList) {
                 if {[ListMatchI $dupe(IgnoreDirs) $entry]} {continue}
                 if {[catch {file stat $entry fstat}]}  {continue}
 
                 catch {vfs read $entry} owner
-                if {[set userName [resolve uid [lindex $owner 0]]] eq ""} {set userName $defUser}
-                if {[set groupName [resolve gid [lindex $owner 1]]] eq ""} {set groupName $defGroup}
+                if {[set userName [resolve uid [lindex $owner 0]]] eq ""} {set userName $defaultUser}
+                if {[set groupName [resolve gid [lindex $owner 1]]] eq ""} {set groupName $defaultGroup}
 
                 set dirName [file tail $entry]
                 set dirPath [file join $virtualPath [string range [file dirname $entry] $trimLength end]]; append dirPath "/"
@@ -237,9 +237,9 @@ proc ::nxTools::Dupe::RebuildDb {} {
 
         # Process file entries
         if {[IsTrue $updateFiles]} {
-            set maxAge   [expr {$dupe(CleanFiles) * 86400}]
-            set defUser  [resolve uid [lindex $misc(FileOwner) 0]]
-            set defGroup [resolve gid [lindex $misc(FileOwner) 1]]
+            set maxAge [expr {$dupe(CleanFiles) * 86400}]
+            set defaultUser [resolve uid [lindex $misc(FileOwner) 0]]
+            set defaultGroup [resolve gid [lindex $misc(FileOwner) 1]]
 
             foreach entry $listing(FileList) {
                 if {[ListMatchI $dupe(IgnoreFiles) $entry]} {continue}
@@ -247,8 +247,8 @@ proc ::nxTools::Dupe::RebuildDb {} {
                 if {$maxAge > 0 && ([clock seconds] - $fstat(ctime)) > $maxAge} {continue}
 
                 catch {vfs read $entry} owner
-                if {[set userName [resolve uid [lindex $owner 0]]] eq ""} {set userName $defUser}
-                if {[set groupName [resolve gid [lindex $owner 1]]] eq ""} {set groupName $defGroup}
+                if {[set userName [resolve uid [lindex $owner 0]]] eq ""} {set userName $defaultUser}
+                if {[set groupName [resolve gid [lindex $owner 1]]] eq ""} {set groupName $defaultGroup}
 
                 set fileName [file tail $entry]
                 FileDb eval {INSERT INTO DupeFiles(TimeStamp,UserName,GroupName,FileName) VALUES($fstat(ctime),$userName,$groupName,$fileName)}
