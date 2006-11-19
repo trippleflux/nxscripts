@@ -301,12 +301,20 @@ proc ::nxTools::Dupe::ForceCheck {virtualPath} {
     set fileExt [file extension $virtualPath]
     set matchPath [file dirname $virtualPath]
 
-    if {![string equal -nocase ".nfo" $fileExt] && ![string equal -nocase ".sfv" $fileExt] && ![ListMatchI $force(Exempts) $matchPath]} {
-        set releasePath [resolve pwd [expr {[IsDiskPath $matchPath] ? [file dirname $matchPath] : $matchPath}]]
+    if {![string equal -nocase ".nfo" $fileExt] &&
+        ![string equal -nocase ".sfv" $fileExt] &&
+        ![ListMatchI $force(Exempts) $matchPath]} {
+
+        if {[IsDiskPath $matchPath]} {
+            set releasePath [resolve pwd [file dirname $matchPath]]
+        } else {
+            set releasePath [resolve pwd $matchPath]
+        }
         set checkFile [ListMatch $force(FilePaths) $matchPath]
 
         if {$checkFile && [IsTrue $force(NfoFirst)]} {
-            if {![llength [glob -nocomplain -types f -directory $releasePath "*.nfo"]]} {
+            set files [glob -nocomplain -types f -directory $releasePath "*.nfo"]
+            if {![llength $files]} {
                 iputs -noprefix "553-.-\[ForceNFO\]------------------------------------."
                 iputs -noprefix "553-| You must upload the NFO first.                |"
                 iputs -noprefix "553 '-----------------------------------------------'"
@@ -315,7 +323,8 @@ proc ::nxTools::Dupe::ForceCheck {virtualPath} {
         }
         if {$checkFile && [IsTrue $force(SfvFirst)]} {
             set realPath [resolve pwd $matchPath]
-            if {![llength [glob -nocomplain -types f -directory $realPath "*.sfv"]]} {
+            set files [glob -nocomplain -types f -directory $realPath "*.sfv"]
+            if {![llength $files]} {
                 iputs -noprefix "553-.-\[ForceSFV\]------------------------------------."
                 iputs -noprefix "553-| You must upload the SFV first.                |"
                 iputs -noprefix "553 '-----------------------------------------------'"
@@ -323,8 +332,9 @@ proc ::nxTools::Dupe::ForceCheck {virtualPath} {
             }
         }
         if {[IsTrue $force(SampleFirst)] && [ListMatch $force(SamplePaths) $matchPath]} {
-            set sampleFiles "sample/{*.avi,*.mpeg,*.mpg,*.vob}"
-            if {![llength [glob -nocomplain -types f -directory $releasePath $sampleFiles]]} {
+            set pattern "sample/{*.avi,*.mpeg,*.mpg,*.vob}"
+            set files [glob -nocomplain -types f -directory $releasePath $pattern]
+            if {![llength $files]} {
                 iputs -noprefix "553-.-\[ForceSample\]---------------------------------."
                 iputs -noprefix "553-| You must upload the sample first.             |"
                 iputs -noprefix "553 '-----------------------------------------------'"
