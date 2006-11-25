@@ -18,37 +18,38 @@
 #define UNICODE
 #define _UNICODE
 
-/* Windows includes. */
-#define _WIN32_WINNT 0x0400
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <shlwapi.h>
-
-/* Common includes. */
-#include <assert.h>
-#include <string.h>
-#include <tchar.h>
-
+/*
+ * System includes
+ */
 #define STRSAFE_LIB
 #define STRSAFE_NO_CB_FUNCTIONS
+#define _WIN32_WINNT 0x0400
+#define WIN32_LEAN_AND_MEAN
+#include <assert.h>
+#include <tchar.h>
+#include <windows.h>
+#include <shlwapi.h>
 #include <strsafe.h>
 
-/* Library includes. */
+/*
+ * Library includes
+ */
 #include <tcl.h>
 #include <zlib.h>
 
-#ifndef TCL_THREADS
-#   error "TCL_THREADS not defined."
-#endif
 #undef TCL_STORAGE_CLASS
 #define TCL_STORAGE_CLASS DLLEXPORT
 
-/* nxHelper includes. */
+/*
+ * Local includes
+ */
 #include "nxMacros.h"
 #include "nxMP3Info.h"
 #include "nxUtil.h"
 
-/* Object commands */
+/*
+ * Object includes
+ */
 Tcl_ObjCmdProc Base64ObjCmd;
 Tcl_ObjCmdProc KeyObjCmd;
 Tcl_ObjCmdProc Mp3ObjCmd;
@@ -58,12 +59,16 @@ Tcl_ObjCmdProc TouchObjCmd;
 Tcl_ObjCmdProc VolumeObjCmd;
 Tcl_ObjCmdProc ZlibObjCmd;
 
-/* "::nx::key" globals */
+/*
+ * Key globals
+ */
 Tcl_Mutex keyMutex;
 Tcl_HashTable *keyTable;
 void KeyClearTable(void);
 
-/* "::nx::volume" globals */
+/*
+ * Volume globals
+ */
 typedef BOOL (WINAPI *Fn_GetDiskFreeSpaceEx)(
     LPCTSTR lpDirectoryName,
     PULARGE_INTEGER lpFreeBytesAvailableToCaller,

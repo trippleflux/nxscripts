@@ -38,7 +38,6 @@
 
 #include <nxHelper.h>
 
-
 /*
  * Mp3ObjCmd
  *

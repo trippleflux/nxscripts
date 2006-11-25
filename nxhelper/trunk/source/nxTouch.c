@@ -27,32 +27,20 @@
 
 #include <nxHelper.h>
 
-#define TOUCH_FLAG_ATIME     0x0001
-#define TOUCH_FLAG_MTIME     0x0002
-#define TOUCH_FLAG_CTIME     0x0004
-#define TOUCH_FLAG_ISDIR     0x0008
-#define TOUCH_FLAG_RECURSE   0x0010
-
-FORCEINLINE unsigned long
-TouchFile(
-    TCHAR *filePath,
-    FILETIME *touchTime,
-    unsigned short options
-    );
-
-static unsigned long
-RecursiveTouch(
-    TCHAR *CurentPath,
-    FILETIME *touchTime,
-    unsigned short options
-    );
+typedef enum {
+    TOUCH_FLAG_ATIME   = 0x00000001,
+    TOUCH_FLAG_MTIME   = 0x00000002,
+    TOUCH_FLAG_CTIME   = 0x00000004,
+    TOUCH_FLAG_ISDIR   = 0x00000008,
+    TOUCH_FLAG_RECURSE = 0x00000010
+} TOUCH_FLAGS;
 
 
-FORCEINLINE unsigned long
+static __forceinline DWORD
 TouchFile(
     TCHAR *filePath,
     FILETIME *touchTime,
-    unsigned short options
+    TOUCH_FLAGS options
     )
 {
     HANDLE fileHandle = CreateFile(filePath,
@@ -67,7 +55,7 @@ TouchFile(
     if (fileHandle == INVALID_HANDLE_VALUE) {
         return GetLastError();
     } else {
-        unsigned long result = ERROR_SUCCESS;
+        DWORD result = ERROR_SUCCESS;
 
         if (!SetFileTime(fileHandle,
             (options & TOUCH_FLAG_CTIME) ? touchTime : NULL,
@@ -82,15 +70,15 @@ TouchFile(
     }
 }
 
-static unsigned long
+static DWORD
 RecursiveTouch(
     TCHAR *CurentPath,
     FILETIME *touchTime,
-    unsigned short options
+    TOUCH_FLAGS options
     )
 {
     TCHAR filePath[MAX_PATH];
-    unsigned long status = ERROR_SUCCESS;
+    DWORD result = ERROR_SUCCESS;
 
     /* Touch the directory we're entering. */
     TouchFile(CurentPath, touchTime, options | TOUCH_FLAG_ISDIR);
@@ -116,7 +104,7 @@ RecursiveTouch(
 
             } else if (FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
                 /* Recurse into the directory. */
-                status = RecursiveTouch(filePath, touchTime, options);
+                result = RecursiveTouch(filePath, touchTime, options);
 
             } else if (_tcsnicmp(FindData.cFileName, TEXT(".ioFTPD"), 7) != 0) {
                 /* Touch the file. */
@@ -127,7 +115,7 @@ RecursiveTouch(
         FindClose(FindHandle);
     }
 
-    return status;
+    return result;
 }
 
 /*
@@ -152,13 +140,13 @@ TouchObjCmd(
     Tcl_Obj *CONST objv[]
     )
 {
-    FILETIME touchTime;
-    int i;
-    unsigned long fileAttributes;
-    unsigned long clockVal;
-    unsigned long result;
-    unsigned short options = 0;
-    TCHAR *filePath;
+    DWORD           fileAttributes;
+    DWORD           result;
+    FILETIME        touchTime;
+    TCHAR           *filePath;
+    TOUCH_FLAGS     options = 0;
+    int             i;
+    unsigned long   clockVal;
     const static char *switches[] = {
         "-atime", "-ctime", "-mtime", "-recurse", "--", NULL
     };

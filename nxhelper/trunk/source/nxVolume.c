@@ -47,19 +47,6 @@ typedef struct {
     TCHAR     name[VOLUME_NAME_BUFFER];
 } VolumeInfo;
 
-static BOOL
-GetVolumeInfo(
-    TCHAR *volumePath,
-    VolumeInfo *volumeInfo
-    );
-
-static BOOL
-GetVolumeSize(
-    TCHAR *volumePath,
-    ULONGLONG *bytesFree,
-    ULONGLONG *bytesTotal
-    );
-
 
 /*
  * GetVolumeSize

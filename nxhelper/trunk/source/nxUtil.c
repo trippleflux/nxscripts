@@ -28,7 +28,7 @@ static Tcl_ThreadDataKey dataKey;
 /*
  * TclSetWinError
  *
- *	 Sets the interpreter's errorCode variable.
+ *   Sets the interpreter's errorCode variable.
  *
  * Arguments:
  *   interp    - Current interpreter.
@@ -40,7 +40,7 @@ static Tcl_ThreadDataKey dataKey;
 char *
 TclSetWinError(
     Tcl_Interp *interp,
-    unsigned long errorCode
+    DWORD errorCode
     )
 {
     char errorId[12];
@@ -71,11 +71,11 @@ TclSetWinError(
 }
 
 /*
- * PartialSwitchCompare
+ * TclSwitchCompare
  *
- *   Performs a partial string comparison for a single switch. This behavior is
- *   consistent with Tcl commands that accept one switch argument, such as
- *   'string match' and 'string map'.
+ *   Performs a partial string comparison for a single switch. This behavior
+ *   is consistent with Tcl commands that accept one switch argument, such
+ *   as 'string match' and 'string map'.
  *
  * Arguments:
  *   objPtr     - The string value of this object is compared against "name".
@@ -86,7 +86,7 @@ TclSetWinError(
  *   the return value is non-zero. If they do not match, the return value is zero.
  */
 int
-PartialSwitchCompare(
+TclSwitchCompare(
     Tcl_Obj *objPtr,
     const char *switchName
     )
@@ -102,7 +102,7 @@ PartialSwitchCompare(
 }
 
 /*
- * TranslatePathFromObj
+ * TclGetPathFromObj
  *
  *   Translates a file path from a given object.
  *
@@ -118,14 +118,14 @@ PartialSwitchCompare(
  */
 #if 0
 int
-TranslatePathFromObj(
+TclGetPathFromObj(
     Tcl_Interp *interp,
     Tcl_Obj *objPtr,
     Tcl_DString *buffer
     )
 {
-    char *path;
-    int pathLenth;
+    char    *path;
+    int     pathLenth;
     Tcl_Obj *translatedObj;
 
     assert(interp  != NULL);
@@ -202,7 +202,7 @@ PosixEpochToFileTime(
 /*
  * SleepObjCmd
  *
- *	 This function provides the "::nx::sleep" Tcl command.
+ *   This function provides the "::nx::sleep" Tcl command.
  *
  * Arguments:
  *   dummy  - Not used.

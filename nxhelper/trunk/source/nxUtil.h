@@ -18,17 +18,17 @@
 char *
 TclSetWinError(
     Tcl_Interp *interp,
-    unsigned long errorCode
+    DWORD errorCode
     );
 
 int
-PartialSwitchCompare(
+TclSwitchCompare(
     Tcl_Obj *objPtr,
     const char *switchName
     );
 
 int
-TranslatePathFromObj(
+TclGetPathFromObj(
     Tcl_Interp *interp,
     Tcl_Obj *objPtr,
     Tcl_DString *buffer

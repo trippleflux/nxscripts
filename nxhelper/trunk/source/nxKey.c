@@ -26,43 +26,6 @@ typedef struct {
     unsigned char *data;    /* Value, do NOT free this member. */
 } KeyValue;
 
-/* Tcl command functions. */
-
-static int
-KeyExists(
-    Tcl_Interp *interp,
-    int objc,
-    Tcl_Obj *CONST objv[]
-    );
-
-static int
-KeyGet(
-    Tcl_Interp *interp,
-    int objc,
-    Tcl_Obj *CONST objv[]
-    );
-
-static int
-KeyList(
-    Tcl_Interp *interp,
-    int objc,
-    Tcl_Obj *CONST objv[]
-    );
-
-static int
-KeySet(
-    Tcl_Interp *interp,
-    int objc,
-    Tcl_Obj *CONST objv[]
-    );
-
-static int
-KeyUnset(
-    Tcl_Interp *interp,
-    int objc,
-    Tcl_Obj *CONST objv[]
-    );
-
 
 /* ::nx::key exists <name> */
 static int
@@ -221,7 +184,7 @@ KeyUnset(
             break;
         }
         case 4: {
-            if (PartialSwitchCompare(objv[2], "-nocomplain")) {
+            if (TclSwitchCompare(objv[2], "-nocomplain")) {
                 complain = 0;
                 break;
             }

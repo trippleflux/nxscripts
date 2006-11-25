@@ -33,45 +33,6 @@
 #include <nxHelper.h>
 
 /*
- * Zlib function prototypes.
- */
-
-static voidpf
-ZlibAlloc(
-    voidpf opaque,
-    uInt items,
-    uInt size
-    );
-
-static void
-ZlibFree(
-    voidpf opaque,
-    voidpf address
-    );
-
-static int
-ZlibCompressObj(
-    Tcl_Obj *sourceObj,
-    Tcl_Obj *destObj,
-    int level,
-    int window
-    );
-
-static int
-ZlibDecompressObj(
-    Tcl_Obj *sourceObj,
-    Tcl_Obj *destObj,
-    int window
-    );
-
-static void
-ZlipSetError(
-    Tcl_Interp *interp,
-    const char *message,
-    int status
-    );
-
-/*
  * Compression format table.
  */
 
@@ -406,7 +367,7 @@ ZlibObjCmd(
                     break;
                 }
                 case 6: {
-                    if (PartialSwitchCompare(objv[2], "-level")) {
+                    if (TclSwitchCompare(objv[2], "-level")) {
                         if (Tcl_GetIntFromObj(interp, objv[3], &level) != TCL_OK) {
                             return TCL_ERROR;
                         }

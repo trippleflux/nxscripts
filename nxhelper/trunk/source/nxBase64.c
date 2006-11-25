@@ -32,27 +32,6 @@
 #define Base64EncodeGetDestLength(length) ((4 * ((length + 2) / 3)) + 1)
 #define Base64DecodeGetDestLength(length) (length)
 
-static int
-Base64Decode(
-    unsigned char *source,
-    unsigned long sourceLength,
-    unsigned char *dest,
-    unsigned long *destLength
-    );
-
-static int
-Base64Encode(
-    unsigned char *source,
-    unsigned long sourceLength,
-    unsigned char *dest,
-    unsigned long *destLength
-    );
-
-static char *
-Base64GetError(
-    unsigned short status
-    );
-
 static const char *codes =
 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 

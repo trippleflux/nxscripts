@@ -45,7 +45,7 @@ typedef struct {
 #define MP3GetEmphasisIndex(FrameHeader) ((FrameHeader      ) & 3 )
 
 /* User functions */
-BOOL MP3OpenFile(PTCHAR FilePath, MP3INFO *MP3Info);
+BOOL MP3OpenFile(TCHAR *FilePath, MP3INFO *MP3Info);
 BOOL MP3CloseFile(MP3INFO *MP3Info);
 BOOL MP3LoadHeader(MP3INFO *MP3Info);
 BOOL MP3GetTag(MP3INFO *MP3Info, MP3TAG *MP3Tag);

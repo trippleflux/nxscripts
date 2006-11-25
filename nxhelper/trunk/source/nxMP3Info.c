@@ -123,7 +123,7 @@ static BOOL MP3ValidVbrHeader(PBYTE VbrBuffer, PLONG Frames)
     return TRUE;
 }
 
-BOOL MP3OpenFile(PTCHAR FilePath, MP3INFO *MP3Info)
+BOOL MP3OpenFile(TCHAR *FilePath, MP3INFO *MP3Info)
 {
     ULONG SizeHigh;
     ULONG SizeLow;
