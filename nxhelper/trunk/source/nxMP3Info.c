@@ -2,11 +2,11 @@
 
 // Function definitions
 static LONGLONG SeekFile(HANDLE FileHandle, LONGLONG Offset, ULONG MoveMethod);
-static VOID MP3CopyTag(PBYTE Source, PCHAR String, ULONG Length);
+static VOID MP3CopyTag(BYTE *Source, CHAR *String, ULONG Length);
 static LONG MP3GetFrameBitrate(MP3INFO *MP3Info);
-static BOOL MP3ValidVbrHeader(PBYTE VbrBuffer, PLONG Frames);
+static BOOL MP3ValidVbrHeader(BYTE *VbrBuffer, PLONG Frames);
 
-FORCEINLINE ULONG MP3GetFrameHeader(PBYTE FrameBuffer)
+FORCEINLINE ULONG MP3GetFrameHeader(BYTE *FrameBuffer)
 {
     return (
         ((FrameBuffer[0] & 255) << 24) |
@@ -40,7 +40,7 @@ static LONGLONG SeekFile(HANDLE FileHandle, LONGLONG Offset, ULONG MoveMethod)
     return LargeInt.QuadPart;
 }
 
-static VOID MP3CopyTag(PBYTE Source, PCHAR String, ULONG Length)
+static VOID MP3CopyTag(BYTE *Source, CHAR *String, ULONG Length)
 {
     ULONG i;
 
@@ -88,7 +88,7 @@ static LONG MP3GetFrameBitrate(MP3INFO *MP3Info)
                 [MP3GetBitrateIndex(MP3Info->FrameHeader)];
 }
 
-static BOOL MP3ValidVbrHeader(PBYTE VbrBuffer, PLONG Frames)
+static BOOL MP3ValidVbrHeader(BYTE *VbrBuffer, PLONG Frames)
 {
     ULONG Flags;
 
@@ -123,7 +123,7 @@ static BOOL MP3ValidVbrHeader(PBYTE VbrBuffer, PLONG Frames)
     return TRUE;
 }
 
-BOOL MP3OpenFile(TCHAR *FilePath, MP3INFO *MP3Info)
+BOOL MP3OpenFile(const TCHAR *FilePath, MP3INFO *MP3Info)
 {
     ULONG SizeHigh;
     ULONG SizeLow;
@@ -367,7 +367,7 @@ LONG MP3GetLength(MP3INFO *MP3Info)
     return (LONG)((8 * MP3Info->FileSize / 1000) / (LONGLONG)Bitrate);
 }
 
-PCHAR MP3GetMode(MP3INFO *MP3Info)
+CHAR *MP3GetMode(MP3INFO *MP3Info)
 {
     switch (MP3GetModeIndex(MP3Info->FrameHeader)) {
         case 1:

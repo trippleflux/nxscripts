@@ -77,42 +77,44 @@ RecursiveTouch(
     TOUCH_FLAGS options
     )
 {
-    TCHAR filePath[MAX_PATH];
-    DWORD result = ERROR_SUCCESS;
+    DWORD           result = ERROR_SUCCESS;
+    HANDLE          findHandle;
+    TCHAR           filePath[MAX_PATH];
+    WIN32_FIND_DATA findData;
 
     /* Touch the directory we're entering. */
     TouchFile(CurentPath, touchTime, options | TOUCH_FLAG_ISDIR);
 
     if (PathCombine(filePath, CurentPath, TEXT("*.*"))) {
-        WIN32_FIND_DATA FindData;
-        HANDLE FindHandle = FindFirstFile(filePath, &FindData);
 
-        if (FindHandle == INVALID_HANDLE_VALUE) {
+        /* Touch contents of the directory. */
+        findHandle = FindFirstFile(filePath, &findData);
+        if (findHandle == INVALID_HANDLE_VALUE) {
             return GetLastError();
         }
 
         do {
-            if (!_tcscmp(FindData.cFileName, TEXT(".")) ||
-                !_tcscmp(FindData.cFileName, TEXT("..")) ||
-                !PathCombine(filePath, CurentPath, FindData.cFileName)) {
+            if (!_tcscmp(findData.cFileName, TEXT(".")) ||
+                !_tcscmp(findData.cFileName, TEXT("..")) ||
+                !PathCombine(filePath, CurentPath, findData.cFileName)) {
                 continue;
             }
 
-            if (FindData.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
+            if (findData.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
                 /* Touch the junction, but do not recurse into it (avoid possible infinite loops). */
                 TouchFile(filePath, touchTime, options | TOUCH_FLAG_ISDIR);
 
-            } else if (FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+            } else if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
                 /* Recurse into the directory. */
                 result = RecursiveTouch(filePath, touchTime, options);
 
-            } else if (_tcsnicmp(FindData.cFileName, TEXT(".ioFTPD"), 7) != 0) {
+            } else if (_tcsnicmp(findData.cFileName, TEXT(".ioFTPD"), 7) != 0) {
                 /* Touch the file. */
                 TouchFile(filePath, touchTime, options);
             }
-        } while(FindNextFile(FindHandle, &FindData));
+        } while(FindNextFile(findHandle, &findData));
 
-        FindClose(FindHandle);
+        FindClose(findHandle);
     }
 
     return result;
