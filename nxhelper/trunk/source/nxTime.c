@@ -78,7 +78,7 @@ TimeObjCmd(
             FILETIME localTime;
             FILETIME utcTime;
             GetSystemTimeAsFileTime(&utcTime);
-            LocalFileTimeToFileTime(&utcTime, &localTime);
+            FileTimeToLocalFileTime(&utcTime, &localTime);
 
             Tcl_SetLongObj(Tcl_GetObjResult(interp), (long)FileTimeToPosixEpoch(&localTime));
             return TCL_OK;
