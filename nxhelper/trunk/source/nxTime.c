@@ -51,10 +51,10 @@ TimeObjCmd(
 {
     int index;
     const static char *options[] = {
-        "dst", /*"local", "utc",*/ "zone", NULL
+        "dst", "local", "utc", "zone", NULL
     };
     enum optionIndices {
-        OPTION_DST = 0, /*OPTION_LOCAL, OPTION_UTC,*/ OPTION_ZONE
+        OPTION_DST = 0, OPTION_LOCAL, OPTION_UTC, OPTION_ZONE
     };
 
     if (objc < 2) {
@@ -74,22 +74,22 @@ TimeObjCmd(
 
             return TCL_OK;
         }
-#if 0
         case OPTION_LOCAL: {
             FILETIME localTime;
-            GetSystemTimeAsFileTime(&localTime);
+            FILETIME utcTime;
+            GetSystemTimeAsFileTime(&utcTime);
+            LocalFileTimeToFileTime(&utcTime, &localTime);
+
             Tcl_SetLongObj(Tcl_GetObjResult(interp), (long)FileTimeToPosixEpoch(&localTime));
             return TCL_OK;
         }
         case OPTION_UTC: {
-            FILETIME localTime;
             FILETIME utcTime;
-            GetSystemTimeAsFileTime(&localTime);
-            LocalFileTimeToFileTime(&localTime, &utcTime);
+            GetSystemTimeAsFileTime(&utcTime);
+
             Tcl_SetLongObj(Tcl_GetObjResult(interp), (long)FileTimeToPosixEpoch(&utcTime));
             return TCL_OK;
         }
-#endif
         case OPTION_ZONE: {
             long bias;
 
