@@ -30,7 +30,7 @@
 /*
  * TimeObjCmd
  *
- *	 This function provides the "::nx::time" Tcl command.
+ *   This function provides the "::nx::time" Tcl command.
  *
  * Arguments:
  *   dummy  - Not used.

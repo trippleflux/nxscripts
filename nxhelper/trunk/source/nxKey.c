@@ -217,13 +217,13 @@ KeyUnset(
 /*
  * KeyClearTable
  *
- *	 Clear all key hash table entries.
+ *   Clear all key hash table entries.
  *
  * Arguments:
- *	 None.
+ *   None.
  *
  * Returns:
- *	 None.
+ *   None.
  */
 void
 KeyClearTable(
@@ -245,7 +245,7 @@ KeyClearTable(
 /*
  * KeyObjCmd
  *
- *	 This function provides the "::nx::key" Tcl command.
+ *   This function provides the "::nx::key" Tcl command.
  *
  * Arguments:
  *   dummy  - Not used.

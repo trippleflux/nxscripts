@@ -41,7 +41,7 @@
 /*
  * Mp3ObjCmd
  *
- *	 This function provides the "::nx::mp3" Tcl command.
+ *   This function provides the "::nx::mp3" Tcl command.
  *
  * Arguments:
  *   dummy  - Not used.
