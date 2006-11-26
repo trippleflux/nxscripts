@@ -38,7 +38,7 @@ namespace eval ::Ftp {
         set nextHandle 0
     }
     array set schemeMap [list \
-        ftp    "off"         \
+        ftp    "off"          \
         ftps   "implicit"     \
         ftpssl "ssl"          \
         ftptls "tls"          \
@@ -247,10 +247,13 @@ proc ::Ftp::Command {handle command {callback ""}} {
     if {$ftp(status) != 2} {
         throw FTP "not connected"
     }
-    lappend ftp(queue) [list quote $command $callback]
 
-    # If there's only event in queue, invoke the handler directly.
-    if {[llength $ftp(queue)] == 1} {
+    # Queue the command event
+    set event [list quote $command $callback]
+    set queue [lappend ftp(queue) $event]
+
+    # If the queue has only one event, invoke the handler directly.
+    if {[llength $queue] == 1} {
         Handler $handle 1
     }
     return
