@@ -1,0 +1,6 @@
+# Module Definition File
+desc=WarChive Variables
+context=
+depends=
+tclFiles=
+varFiles=WarChive.vars

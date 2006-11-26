@@ -257,6 +257,22 @@ for AlcoBot to recognize them. Read the following installation instructions:
   2. Add "pzsng" to the module list in AlcoBot.conf.
   3. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
 
+  ############################################################
+  # WarChive                                                 #
+  ############################################################
+
+  FTPD: ioFTPD
+  Info: Archiver, written by WarC.
+  URL : http://www.inicom.net/pages/en.ioftpd-scripts.php?id=7
+
+  1. Change the options in your WarChive.cfg file to match the following:
+
+     [Log]
+     WarcMove=""%oldvfs/%release" "%newvfs/%release" "%.2relsize" "%.2beforesize" "%.2aftersize""
+     WarcWipe=""%oldvfs/%release" "%.2relsize" "%.2beforesize" "%.2aftersize""
+
+  2. Add "warchive" to the module list in AlcoBot.conf.
+  3. Reload AlcoBot by entering the command ".alcobot reload" in a DCC chat session.
 
 ################################################################################
 # 4. Modules                                                                   #
