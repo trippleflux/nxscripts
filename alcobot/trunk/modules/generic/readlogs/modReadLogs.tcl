@@ -74,6 +74,7 @@ proc ::Bot::Mod::ReadLogs::ParseLogin {line eventVar dataVar} {
         BANNEDHOST  {^(\S+): (\S+)@(\S+) \((\S+)\): Banned user@host\.$}
         DELETED     {^(\S+): (\S+)@(\S+) \((\S+)\): Deleted\.$}
         BADPASSWORD {^(\S+): (\S+)@(\S+) \s?\((\S+)\): (?:Login failure|Repeated login failures)\.$}
+        NONBOUNCER  {^Connection attempt from non-bouncer with -B used : \((\S+)\)$}
         UNKNOWNHOST {^(\S+)@(\S+) \((\S+)\): connection refused: ident@ip not added to any users\.}
     }
     foreach event [array names reLogin] {

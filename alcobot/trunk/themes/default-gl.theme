@@ -120,6 +120,7 @@ BADPASSWORD    = [b][[c1]Login[c]][b] [b]%(user)[b] could not login, invalid pas
 BANNEDHOST     = [b][[c1]Login[c]][b] [b]%(user)[b] could not login, hostmask [b]%(ident)@%(ip)[b] is banned.
 DELETED        = [b][[c1]Login[c]][b] [b]%(user)[b] could not login, account deleted.
 KILLGHOST      = [b][[c1]Ghost[c]][b] [b]%(user)[b] killed a ghost with PID [b]%(pid)[b].
+NONBOUNCER     = [b][[c1]Login[c]][b] Connection attempt from non-bouncer [b]%(ip)[b].
 UNKNOWNHOST    = [b][[c1]Login[c]][b] Denied connection from unknown host [b]%(ident)@%(ip)[b].
 
 # Sysop events
