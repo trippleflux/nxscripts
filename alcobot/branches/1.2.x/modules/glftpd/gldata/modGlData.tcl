@@ -30,7 +30,6 @@ namespace eval ::Bot::Mod::GlData {
 # Opens a binary file located in glFTPD's log directory.
 #
 proc ::Bot::Mod::GlData::OpenBinaryFile {filePath {mode "r"}} {
-    variable logsPath
     if {[catch {set handle [open $filePath $mode]} message]} {
         LogError ModGlData $message
         return ""

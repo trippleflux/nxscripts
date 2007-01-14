@@ -295,7 +295,7 @@ proc ::Bot::CmdChannelProc {command user host handle channel text} {
         switch -- $name {
             all     {set result 1}
             channel {set result [string equal -nocase $value $channel]}
-            flags   {set result [matchattr $user $value]}
+            flags   {set result [matchattr $handle $value]}
             host    {set result [string match -nocase $value $host]}
             target  {
                 if {$value eq "notice"} {
@@ -348,7 +348,7 @@ proc ::Bot::CmdPrivateProc {command user host handle text} {
         set result 0
         switch -- $name {
             all   {set result 1}
-            flags {set result [matchattr $user $value]}
+            flags {set result [matchattr $handle $value]}
             host  {set result [string match -nocase $value $host]}
             user  {set result [string equal -nocase $value $user]}
         }
