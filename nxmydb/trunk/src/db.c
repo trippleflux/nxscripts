@@ -52,44 +52,67 @@ static int refCount = 0;
 // Statements to pre-compile
 static const char *queries[] = {
     // locking
-    "SELECT GET_LOCK(?, ?)",
-    "DO RELEASE_LOCK(?)",
+    "SELECT GET_LOCK(?, ?)"
+    ,
+    "DO RELEASE_LOCK(?)"
+    ,
 
     // io_groups
-    "DELETE FROM io_groups WHERE name=?",
-    "INSERT INTO io_groups (name, updated) VALUES(?, UNIX_TIMESTAMP())",
-    "SELECT description, slots, users, vfsfile FROM io_groups WHERE name=?",
-    "SELECT name FROM io_groups WHERE name=?",
-    "SELECT name, description, slots, users, vfsfile, UNIX_TIMESTAMP() FROM io_groups WHERE updated>=?",
-    "UPDATE io_groups SET description=?, slots=?, users=?, vfsfile=?, updated=UNIX_TIMESTAMP() WHERE name=?",
+    "DELETE FROM io_groups WHERE name=?"
+    ,
+    "INSERT INTO io_groups (name, updated) VALUES(?, UNIX_TIMESTAMP())"
+    ,
+    "SELECT description, slots, users, vfsfile FROM io_groups WHERE name=?"
+    ,
+    "SELECT name FROM io_groups WHERE name=?"
+    ,
+    "SELECT name, description, slots, users, vfsfile, UNIX_TIMESTAMP() FROM io_groups WHERE updated>=?"
+    ,
+    "UPDATE io_groups SET description=?, slots=?, users=?, vfsfile=?, updated=UNIX_TIMESTAMP() WHERE name=?"
+    ,
 
     // io_users
-    "DELETE FROM io_users WHERE name=?",
-    "INSERT INTO io_users (name, updated) VALUES(?, UNIX_TIMESTAMP())",
+    "DELETE FROM io_users WHERE name=?"
+    ,
+    "INSERT INTO io_users (name, updated) VALUES(?, UNIX_TIMESTAMP())"
+    ,
     "SELECT description, flags, home, limits, password, vfsfile, credits, ratio, "
-        "alldn, allup, daydn, dayup, monthdn, monthup, wkdn, wkup FROM io_users WHERE name=?",
-    "SELECT name FROM io_users WHERE name=?",
+        "alldn, allup, daydn, dayup, monthdn, monthup, wkdn, wkup FROM io_users WHERE name=?"
+    ,
+    "SELECT name FROM io_users WHERE name=?"
+    ,
     "SELECT name, description, flags, home, limits, password, vfsfile, "
         "credits, ratio, alldn, allup, daydn, dayup, monthdn, monthup, wkdn, wkup, "
-        "UNIX_TIMESTAMP() FROM io_users WHERE updated>=?",
+        "UNIX_TIMESTAMP() FROM io_users WHERE updated>=?"
+    ,
     "UPDATE io_users SET description=?, flags=?, home=?, limits=?, password=?, "
         "vfsfile=?, credits=?, ratio=?, alldn=?, allup=?, daydn=?, dayup=?, monthdn=?, "
-        "monthup=?, wkdn=?, wkup=?, updated=UNIX_TIMESTAMP() WHERE name=?",
+        "monthup=?, wkdn=?, wkup=?, updated=UNIX_TIMESTAMP() WHERE name=?"
+    ,
 
     // io_useradmins
-    "DELETE FROM io_useradmins WHERE uname=?",
-    "INSERT INTO io_useradmins (uname, gname) VALUES(?, ?)",
-    "SELECT gname FROM io_useradmins WHERE uname=?",
+    "DELETE FROM io_useradmins WHERE uname=?"
+    ,
+    "INSERT INTO io_useradmins (uname, gname) VALUES(?, ?)"
+    ,
+    "SELECT gname FROM io_useradmins WHERE uname=?"
+    ,
 
     // io_usergroups
-    "DELETE FROM io_usergroups WHERE uname=?",
-    "INSERT INTO io_usergroups (uname, gname) VALUES(?, ?)",
-    "SELECT gname FROM io_usergroups WHERE uname=?",
+    "DELETE FROM io_usergroups WHERE uname=?"
+    ,
+    "INSERT INTO io_usergroups (uname, gname) VALUES(?, ?)"
+    ,
+    "SELECT gname FROM io_usergroups WHERE uname=?"
+    ,
 
     // io_userhosts
-    "DELETE FROM io_userhosts WHERE name=?",
-    "INSERT INTO io_userhosts (name, host) VALUES(?, ?)",
+    "DELETE FROM io_userhosts WHERE name=?"
+    ,
+    "INSERT INTO io_userhosts (name, host) VALUES(?, ?)"
+    ,
     "SELECT host FROM io_userhosts WHERE name=?"
+    ,
 };
 
 
