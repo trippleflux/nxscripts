@@ -124,11 +124,18 @@ proc ::nxTools::Pre::ResolvePath {userName groupName realPath} {
     if {![catch {set handle [open $vfsFile r]} error]} {
         while {![eof $handle]} {
             set line [string trim [gets $handle]]
-            if {![string length $line]} {continue}
-            foreach {basePath mountPath} [string map {\\ /} $line] {break}
-            set baseLength [string length $basePath]
+            set char [string index $line 0]
+            if {$char eq "" || $char eq ";" || $char eq "#"} {continue}
 
+            # Parse the VFS line: "<base path>" <mount path>
+            if {![regexp -- {^\"(.+)\"\s+(.+)$} $line result basePath mountPath]} {continue}
+            set basePath [string map {\\ /} $basePath]
+            set mountPath [string map {\\ /} $mountPath]
+
+            # Compare only the length of the current base path
+            set baseLength [string length $basePath]
             if {[string equal -length $baseLength -nocase $basePath $realPath]} {
+
                 # Use the longest available mount path, improves accuracy.
                 if {$baseLength > $bestMatch} {
                     set resolvePath [string range $realPath $baseLength end]
