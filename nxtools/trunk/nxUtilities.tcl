@@ -531,7 +531,7 @@ proc ::nxTools::Utils::SiteResetStats {argList} {
             week  {lappend resetStats "wkdn" "wkup"}
             day   {lappend resetStats "daydn" "dayup"}
             default {
-                if {[lsearch -exact $statTypes $arg]} {lappend resetStats $arg}
+                if {[lsearch -exact $statTypes $arg] != -1} {lappend resetStats $arg}
             }
         }
     }

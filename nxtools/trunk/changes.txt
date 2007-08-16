@@ -6,6 +6,7 @@ nxTools v1.0.6 (not released):
   NEW: Option to define the allowed sample extensions (e.g. JPG, MPG, VOB).
   FIX: [Sections] compatibility with the new optional "share section" in ioFTPD v6.x.
   FIX: "SITE PRE" compatibility with VFS files in ioFTPD v6.x.
+  FIX: "SITE RESETSTATS" the alldn statistic type would not reset.
   FIX: "SITE SIZE" and "SITE WIPE" reported zero files and directories.
 
 nxTools v1.0.5a (Sep 12, 2006):
