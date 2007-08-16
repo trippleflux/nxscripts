@@ -246,6 +246,64 @@ proc ::nxLib::RemoveParentLinks {realPath args} {
     }
 }
 
+proc ::nxLib::ResolvePath {userName groupName realPath} {
+    set bestMatch 0
+    set resolvePath "/"
+    set vfsFile ""
+    set realPath [string map {\\ /} $realPath]
+
+    # Find the user VFS file.
+    if {[userfile open $userName] == 0} {
+        set userFile [userfile bin2ascii]
+        foreach line [split $userFile "\r\n"] {
+            if {[string equal -nocase "vfsfile" [lindex $line 0]]} {
+                set vfsFile [ListRange $line 1 end]; break
+            }
+        }
+    }
+    # Use the group VFS file if the user VFS file does not exist.
+    if {![file isfile $vfsFile] && [groupfile open $groupName] == 0} {
+        set groupFile [groupfile bin2ascii]
+        foreach line [split $groupFile "\r\n"] {
+            if {[string equal -nocase "vfsfile" [lindex $line 0]]} {
+                set vfsFile [ListRange $line 1 end]; break
+            }
+        }
+    }
+    # Use the default VFS file if both the user and group VFS file do not exist.
+    if {![file isfile $vfsFile]} {
+        set vfsFile [config read "Locations" "Default_Vfs"]
+    }
+    if {![catch {set handle [open $vfsFile r]} error]} {
+        while {![eof $handle]} {
+            set line [string trim [gets $handle]]
+            set char [string index $line 0]
+            if {$char eq "" || $char eq ";" || $char eq "#"} {continue}
+
+            # Parse the VFS line: "<base path>" <mount path>
+            if {![regexp -- {^\"(.+)\"\s+(.+)$} $line result basePath mountPath]} {continue}
+            set basePath [string map {\\ /} $basePath]
+            set mountPath [string map {\\ /} $mountPath]
+
+            # Compare only the length of the current base path
+            set baseLength [string length $basePath]
+            if {[string equal -length $baseLength -nocase $basePath $realPath]} {
+
+                # Use the longest available mount path, improves accuracy.
+                if {$baseLength > $bestMatch} {
+                    set resolvePath [string range $realPath $baseLength end]
+                    set resolvePath [file join $mountPath [string trimleft $resolvePath "/"]]
+                    set bestMatch $baseLength
+                }
+            }
+        }
+        close $handle
+    } else {
+        ErrorLog PreResolvePath $error
+    }
+    return $resolvePath
+}
+
 proc ::nxLib::SplitPath {path} {
     regsub -all -- {[\\/]+} $path {/} path
     return [file split [string trim $path "/"]]
