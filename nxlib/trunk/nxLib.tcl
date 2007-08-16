@@ -327,10 +327,11 @@ proc ::nxLib::GetSectionList {} {
                 if {[string match {\[*\]} $line]} {
                     set inSections 0
                 } else {
-                    foreach {sectionName eqSign creditSection argOne argTwo} $line {break}
+                    foreach {sectionName dummy creditSection argOne argTwo argThree} $line {break}
                     switch -- [llength $line] {
-                        5 {lappend sectionList $sectionName $creditSection $argOne $argTwo}
                         4 {lappend sectionList $sectionName $creditSection 0 $argOne}
+                        5 {lappend sectionList $sectionName $creditSection $argOne $argTwo}
+                        6 {lappend sectionList $sectionName $creditSection $argOne $argThree}
                         default {ErrorLog GetSectionList "invalid ioFTPD.ini \[Sections\] line: \"$line\""}
                     }
                 }
