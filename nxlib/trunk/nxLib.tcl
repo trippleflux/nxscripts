@@ -150,12 +150,12 @@ proc ::nxLib::GetDirList {realPath varName {ignoreList ""}} {
     upvar $varName data
     array set data [list DirList [list] FileList [list]]
 
-    GetDirListRecurse $realPath data $ignoreList
+    GetDirListRecurse $realPath $ignoreList
     return
 }
 
-proc ::nxLib::GetDirListRecurse {realPath varName {ignoreList ""}} {
-    upvar $varName data
+proc ::nxLib::GetDirListRecurse {realPath ignoreList} {
+    upvar data data
 
     if {[file isdirectory $realPath]} {
         lappend data(DirList) $realPath
@@ -167,7 +167,7 @@ proc ::nxLib::GetDirListRecurse {realPath varName {ignoreList ""}} {
     foreach entry $listing {
         if {[file readable $entry] && ![ListMatchI $ignoreList [file tail $entry]]} {
             if {[file isdirectory $entry]} {
-                GetDirListRecurse $entry data $ignoreList
+                GetDirListRecurse $entry $ignoreList
             } else {
                 lappend data(FileList) $entry
             }
@@ -179,12 +179,12 @@ proc ::nxLib::GetDirStats {realPath varName {ignoreList ""}} {
     upvar $varName stats
     array set stats [list DirCount 0 FileCount 0 TotalSize 0]
 
-    GetDirStatsRecurse $realPath data $ignoreList
+    GetDirStatsRecurse $realPath $ignoreList
     return
 }
 
-proc ::nxLib::GetDirStatsRecurse {realPath varName {ignoreList ""}} {
-    upvar $varName stats
+proc ::nxLib::GetDirStatsRecurse {realPath ignoreList} {
+    upvar stats stats
 
     if {[file isdirectory $realPath]} {
         incr stats(DirCount)
@@ -196,7 +196,7 @@ proc ::nxLib::GetDirStatsRecurse {realPath varName {ignoreList ""}} {
     foreach entry $listing {
         if {[file readable $entry] && ![ListMatchI $ignoreList [file tail $entry]]} {
             if {[file isdirectory $entry]} {
-                GetDirStatsRecurse $entry stats $ignoreList
+                GetDirStatsRecurse $entry $ignoreList
             } else {
                 incr stats(FileCount)
                 set stats(TotalSize) [expr {wide($stats(TotalSize)) + wide([file size $entry])}]
