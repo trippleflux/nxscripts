@@ -2,6 +2,9 @@
 #                         nxAutoNuke-ioA - Change Log                          #
 ################################################################################
 
+nxAutoNuke-ioA v2.5.0 (not released):
+  NEW: Compatibility with ioFTPD v6.x.
+
 nxAutoNuke-ioA v2.4.1 (May 6, 2006):
   CHG: Iterate through directories first and then through nuke-checks, this
        significantly speeds up the script on sections with many directories.
