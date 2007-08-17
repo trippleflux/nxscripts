@@ -2,6 +2,12 @@
 #                             nxTools - Upgrading                              #
 ################################################################################
 
+1.0.5a -> 1.0.6
+ - Copy (and replace) the lib\sqlite3\ and lib\nxHelper\ directories to ioFTPD\lib\.
+ - Replace ioFTPD\scripts\nxLib.tcl with the included one.
+ - Replace all Tcl files in ioFTPD\scripts\nxTools\.
+ - New config options: force(SampleExts) and wipe(RecurseSwitch).
+
 1.0.5 -> 1.0.5a
  - Replace ioFTPD\scripts\nxLib.tcl with the included one.
 
