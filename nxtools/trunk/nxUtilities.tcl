@@ -781,7 +781,7 @@ proc ::nxTools::Utils::Main {argv} {
                 set virtualPath [GetPath [join [lrange $argList 1 end]] $pwd]
                 set result [SiteSize $virtualPath]
             } else {
-                iputs " Usage: SITE SIZE <file/directory>"
+                iputs "Syntax: SITE SIZE <file/directory>"
             }
         }
         SYSLOG {
