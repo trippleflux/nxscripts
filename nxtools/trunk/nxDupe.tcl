@@ -653,9 +653,17 @@ proc ::nxTools::Dupe::SiteUndupe {argList} {
     return 0
 }
 
-proc ::nxTools::Dupe::SiteWipe {virtualPath} {
-    global dupe misc wipe group user
+proc ::nxTools::Dupe::SiteWipe {argList} {
+    global dupe misc wipe group user pwd
     iputs ".-\[Wipe\]-----------------------------------------------------------------."
+
+    # Check if the recurse switch ("-r") is present
+    set switchPresent 0
+    if {[IsTrue $wipe(RecurseSwitch)] && [string equal -nocase "-r" [lindex $argList 0]]} {
+        set switchPresent 1
+        set argList [lrange $argList 1 end]
+    }
+    set virtualPath [GetPath [join $argList] $pwd]
 
     # Resolving a symlink returns its target path, which could have unwanted
     # results. To avoid such issues, we'll resolve the parent path instead.
@@ -665,14 +673,20 @@ proc ::nxTools::Dupe::SiteWipe {virtualPath} {
         ErrorReturn "The specified file or directory does not exist."
     }
 
+    # Check for paths protected against wiping.
     set matchPath [string range $virtualPath 0 [string last "/" $virtualPath]]
     if {[ListMatch $wipe(NoPaths) $matchPath]} {
         ErrorReturn "Not allowed to wipe from here."
     }
+
+    set isDir [file isdirectory $realPath]
+    if {$isDir && [IsTrue $wipe(RecurseSwitch)] && !$switchPresent} {
+        ErrorReturn "You must specify the \"-r\" switch to wipe a directory."
+    }
+
     GetDirStats $realPath stats ".ioFTPD*"
     set stats(TotalSize) [expr {wide($stats(TotalSize)) / 1024}]
 
-    set isDir [file isdirectory $realPath]
     KickUsers [expr {$isDir ? "$virtualPath/*" : $virtualPath}]
     if {[catch {file delete -force -- $realPath} error]} {
         ErrorLog SiteWipe $error
@@ -805,10 +819,9 @@ proc ::nxTools::Dupe::Main {argv} {
         }
         WIPE {
             if {$argLength > 1} {
-                set virtualPath [GetPath [join [lrange $argList 1 end]] $pwd]
-                set result [SiteWipe $virtualPath]
+                set result [SiteWipe [lrange $argList 1 end]]
             } else {
-                iputs " Usage: SITE WIPE <file/directory>"
+                iputs "Syntax: SITE WIPE <file/directory>"
             }
         }
         default {
