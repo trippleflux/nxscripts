@@ -2,7 +2,7 @@
 #                         nxAutoNuke-ioA - Change Log                          #
 ################################################################################
 
-nxAutoNuke-ioA v2.5.0 (not released):
+nxAutoNuke-ioA v2.5.0 (Aug 20, 2007):
   NEW: Compatibility with ioFTPD v6.x.
 
 nxAutoNuke-ioA v2.4.1 (May 6, 2006):
