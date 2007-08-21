@@ -2,7 +2,7 @@
 #                             nxTools - Change Log                             #
 ################################################################################
 
-nxTools v1.0.6 (not released):
+nxTools v1.0.6 (Aug 20, 2007):
   NEW: Option to define the allowed sample extensions (e.g. JPG, MPG, VOB).
   NEW: Option to require the "-r" switch to recursively wipe a directory.
   CHG: Updated SQLite to v3.4.2.
