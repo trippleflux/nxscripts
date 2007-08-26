@@ -17,146 +17,111 @@ Abstract:
 #include "mydb.h"
 
 BOOL
+DbGroupRefresh(
+    DB_CONTEXT *dbContext
+    )
+{
+    ASSERT(dbContext != NULL);
+
+    return TRUE;
+}
+
+BOOL
 DbGroupCreate(
+    DB_CONTEXT *dbContext,
     char *groupName,
     GROUPFILE *groupFile
     )
 {
-    DB_CONTEXT *context;
-
+    ASSERT(dbContext != NULL);
     ASSERT(groupName != NULL);
     ASSERT(groupFile != NULL);
 
-    if (!DbAcquire(&context)) {
-        return FALSE;
-    }
-
-    DbRelease(context);
     return TRUE;
 }
 
 BOOL
 DbGroupRename(
+    DB_CONTEXT *dbContext,
     char *groupName,
     char *newName
     )
 {
-    DB_CONTEXT *context;
-
+    ASSERT(dbContext != NULL);
     ASSERT(groupName != NULL);
     ASSERT(newName != NULL);
 
-    if (!DbAcquire(&context)) {
-        return FALSE;
-    }
-
-    DbRelease(context);
     return TRUE;
 }
 
 BOOL
 DbGroupDelete(
+    DB_CONTEXT *dbContext,
     char *groupName
     )
 {
-    DB_CONTEXT *context;
-
+    ASSERT(dbContext != NULL);
     ASSERT(groupName != NULL);
 
-    if (!DbAcquire(&context)) {
-        return FALSE;
-    }
-
-    DbRelease(context);
     return TRUE;
 }
 
 BOOL
 DbGroupLock(
+    DB_CONTEXT *dbContext,
     GROUPFILE *groupFile
     )
 {
-    DB_CONTEXT *context;
-
+    ASSERT(dbContext != NULL);
     ASSERT(groupFile != NULL);
 
-    if (!DbAcquire(&context)) {
-        return FALSE;
-    }
-
-    DbRelease(context);
     return TRUE;
 }
 
 BOOL
 DbGroupUnlock(
+    DB_CONTEXT *dbContext,
     GROUPFILE *groupFile
     )
 {
-    DB_CONTEXT *context;
-
+    ASSERT(dbContext != NULL);
     ASSERT(groupFile != NULL);
 
-    if (!DbAcquire(&context)) {
-        return FALSE;
-    }
-
-    DbRelease(context);
     return TRUE;
 }
 
 BOOL
 DbGroupOpen(
+    DB_CONTEXT *dbContext,
     char *groupName,
     GROUPFILE *groupFile
     )
 {
-    DB_CONTEXT *context;
-
+    ASSERT(dbContext != NULL);
     ASSERT(groupName != NULL);
     ASSERT(groupFile != NULL);
 
-    if (!DbAcquire(&context)) {
-        return FALSE;
-    }
-
-    DbRelease(context);
     return TRUE;
 }
 
 BOOL
 DbGroupWrite(
+    DB_CONTEXT *dbContext,
     GROUPFILE *groupFile
     )
 {
-    DB_CONTEXT *context;
-
+    ASSERT(dbContext != NULL);
     ASSERT(groupFile != NULL);
 
-    if (!DbAcquire(&context)) {
-        return FALSE;
-    }
-
-    DbRelease(context);
     return TRUE;
 }
 
 BOOL
 DbGroupClose(
-    GROUP_CONTEXT *context
+    DB_CONTEXT *dbContext
     )
 {
-    ASSERT(context != NULL);
-
-    return TRUE;
-}
-
-BOOL
-DbGroupRefresh(
-    DB_CONTEXT *context
-    )
-{
-    ASSERT(context != NULL);
+    ASSERT(dbContext != NULL);
 
     return TRUE;
 }

@@ -16,21 +16,20 @@ Abstract:
 
 #include "mydb.h"
 
-static INT   MODULE_CALL UserFinalize(void);
-static INT32 MODULE_CALL UserCreate(char *userName);
-static INT   MODULE_CALL UserRename(char *userName, INT32 userId, char *newName);
-static INT   MODULE_CALL UserDelete(char *userName, INT32 userId);
-static INT   MODULE_CALL UserLock(USERFILE *userFile);
-static INT   MODULE_CALL UserUnlock(USERFILE *userFile);
-static INT   MODULE_CALL UserOpen(char *userName, USERFILE *userFile);
-static INT   MODULE_CALL UserWrite(USERFILE *userFile);
-static INT   MODULE_CALL UserClose(USERFILE *userFile);
+static INT   UserFinalize(void);
+static INT32 UserCreate(char *userName);
+static INT   UserRename(char *userName, INT32 userId, char *newName);
+static INT   UserDelete(char *userName, INT32 userId);
+static INT   UserLock(USERFILE *userFile);
+static INT   UserUnlock(USERFILE *userFile);
+static INT   UserOpen(char *userName, USERFILE *userFile);
+static INT   UserWrite(USERFILE *userFile);
+static INT   UserClose(USERFILE *userFile);
 
 static USER_MODULE *userModule = NULL;
 
 
 INT
-MODULE_CALL
 UserModuleInit(
     USER_MODULE *module
     )
@@ -59,7 +58,6 @@ UserModuleInit(
 
 static
 INT
-MODULE_CALL
 UserFinalize(
     void
     )
@@ -72,7 +70,6 @@ UserFinalize(
 
 static
 INT32
-MODULE_CALL
 UserCreate(
     char *userName
     )
@@ -91,7 +88,6 @@ UserCreate(
         return -1;
     }
     userContext->fileHandle = INVALID_HANDLE_VALUE;
-    userContext->dbReserved = NULL;
 
     // Acquire a database connection
     if (!DbAcquire(&userContext->dbReserved)) {
@@ -154,7 +150,6 @@ failed:
 
 static
 INT
-MODULE_CALL
 UserRename(
     char *userName,
     INT32 userId,
@@ -193,7 +188,6 @@ UserRename(
 
 static
 INT
-MODULE_CALL
 UserDelete(
     char *userName,
     INT32 userId
@@ -234,7 +228,6 @@ UserDelete(
 
 static
 INT
-MODULE_CALL
 UserLock(
     USERFILE *userFile
     )
@@ -266,7 +259,6 @@ UserLock(
 
 static
 INT
-MODULE_CALL
 UserUnlock(
     USERFILE *userFile
     )
@@ -294,7 +286,6 @@ UserUnlock(
 
 static
 INT
-MODULE_CALL
 UserOpen(
     char *userName,
     USERFILE *userFile
@@ -318,7 +309,6 @@ UserOpen(
         result = UM_FATAL;
     } else {
         userContext->fileHandle = INVALID_HANDLE_VALUE;
-        userContext->dbReserved = NULL;
         userFile->lpInternal = userContext;
 
         // Open user file
@@ -345,7 +335,6 @@ UserOpen(
 
 static
 INT
-MODULE_CALL
 UserWrite(
     USERFILE *userFile
     )
@@ -372,7 +361,6 @@ UserWrite(
 
 static
 INT
-MODULE_CALL
 UserClose(
     USERFILE *userFile
     )

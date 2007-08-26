@@ -118,15 +118,10 @@ DbUserWrite(
 
 BOOL
 DbUserClose(
-    USER_CONTEXT *userContext
+    DB_CONTEXT *dbContext,
     )
 {
-    ASSERT(userContext != NULL);
-
-    // Release reserved database connection
-    if (userContext->dbReserved != NULL) {
-        DbRelease(userContext->dbReserved);
-    }
+    ASSERT(dbContext != NULL);
 
     return TRUE;
 }

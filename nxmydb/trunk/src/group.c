@@ -16,21 +16,20 @@ Abstract:
 
 #include "mydb.h"
 
-static INT   MODULE_CALL GroupFinalize(void);
-static INT32 MODULE_CALL GroupCreate(char *groupName);
-static INT   MODULE_CALL GroupRename(char *groupName, INT32 groupId, char *newName);
-static INT   MODULE_CALL GroupDelete(char *groupName, INT32 groupId);
-static INT   MODULE_CALL GroupLock(GROUPFILE *groupFile);
-static INT   MODULE_CALL GroupUnlock(GROUPFILE *groupFile);
-static INT   MODULE_CALL GroupOpen(char *groupName, GROUPFILE *groupFile);
-static INT   MODULE_CALL GroupWrite(GROUPFILE *groupFile);
-static INT   MODULE_CALL GroupClose(GROUPFILE *groupFile);
+static INT   GroupFinalize(void);
+static INT32 GroupCreate(char *groupName);
+static INT   GroupRename(char *groupName, INT32 groupId, char *newName);
+static INT   GroupDelete(char *groupName, INT32 groupId);
+static INT   GroupLock(GROUPFILE *groupFile);
+static INT   GroupUnlock(GROUPFILE *groupFile);
+static INT   GroupOpen(char *groupName, GROUPFILE *groupFile);
+static INT   GroupWrite(GROUPFILE *groupFile);
+static INT   GroupClose(GROUPFILE *groupFile);
 
 static GROUP_MODULE *groupModule = NULL;
 
 
 INT
-MODULE_CALL
 GroupModuleInit(
     GROUP_MODULE *module
     )
@@ -59,7 +58,6 @@ GroupModuleInit(
 
 static
 INT
-MODULE_CALL
 GroupFinalize(
     void
     )
@@ -72,7 +70,6 @@ GroupFinalize(
 
 static
 INT32
-MODULE_CALL
 GroupCreate(
     char *groupName
     )
@@ -137,7 +134,6 @@ failed:
 
 static
 INT
-MODULE_CALL
 GroupRename(
     char *groupName,
     INT32 groupId,
@@ -160,7 +156,6 @@ GroupRename(
 
 static
 INT
-MODULE_CALL
 GroupDelete(
     char *groupName,
     INT32 groupId
@@ -187,7 +182,6 @@ GroupDelete(
 
 static
 INT
-MODULE_CALL
 GroupLock(
     GROUPFILE *groupFile
     )
@@ -203,7 +197,6 @@ GroupLock(
 
 static
 INT
-MODULE_CALL
 GroupUnlock(
     GROUPFILE *groupFile
     )
@@ -219,7 +212,6 @@ GroupUnlock(
 
 static
 INT
-MODULE_CALL
 GroupOpen(
     char *groupName,
     GROUPFILE *groupFile
@@ -251,7 +243,6 @@ GroupOpen(
 
 static
 INT
-MODULE_CALL
 GroupWrite(
     GROUPFILE *groupFile
     )
@@ -272,7 +263,6 @@ GroupWrite(
 
 static
 INT
-MODULE_CALL
 GroupClose(
     GROUPFILE *groupFile
     )

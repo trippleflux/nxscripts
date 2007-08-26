@@ -17,11 +17,9 @@ Abstract:
 #ifndef _BACKENDS_H_
 #define _BACKENDS_H_
 
-// Context for users and groups
 typedef struct {
-    HANDLE      fileHandle; // Handle to the open user/group file
-    DB_CONTEXT *dbReserved; // Reserved database connection (acquired on lock, released on unlock)
-} GROUP_CONTEXT, USER_CONTEXT;
+    HANDLE fileHandle; // Handle to the open user/group file
+} FILE_CONTEXT;
 
 
 //
@@ -29,51 +27,58 @@ typedef struct {
 //
 
 BOOL
+DbGroupRefresh(
+    DB_CONTEXT *dbContext
+    );
+
+BOOL
 DbGroupCreate(
+    DB_CONTEXT *dbContext,
     char *groupName,
     GROUPFILE *groupFile
     );
 
 BOOL
 DbGroupRename(
+    DB_CONTEXT *dbContext,
     char *groupName,
     char *newName
     );
 
 BOOL
 DbGroupDelete(
+    DB_CONTEXT *dbContext,
     char *groupName
     );
 
 BOOL
 DbGroupLock(
+    DB_CONTEXT *dbContext,
     GROUPFILE *groupFile
     );
 
 BOOL
 DbGroupUnlock(
+    DB_CONTEXT *dbContext,
     GROUPFILE *groupFile
     );
 
 BOOL
 DbGroupOpen(
+    DB_CONTEXT *dbContext,
     char *groupName,
     GROUPFILE *groupFile
     );
 
 BOOL
 DbGroupWrite(
+    DB_CONTEXT *dbContext,
     GROUPFILE *groupFile
     );
 
 BOOL
 DbGroupClose(
-    GROUP_CONTEXT *context
-    );
-
-BOOL
-DbGroupRefresh(
-    DB_CONTEXT *context
+    DB_CONTEXT *dbContext,
     );
 
 
@@ -95,7 +100,7 @@ FileGroupDelete(
 BOOL
 FileGroupOpen(
     INT32 groupId,
-    GROUP_CONTEXT *context
+    FILE_CONTEXT *fileContext
     );
 
 BOOL
@@ -105,7 +110,7 @@ FileGroupWrite(
 
 BOOL
 FileGroupClose(
-    GROUP_CONTEXT *context
+    FILE_CONTEXT *fileContext
     );
 
 
@@ -165,7 +170,7 @@ DbUserWrite(
 
 BOOL
 DbUserClose(
-    USER_CONTEXT *userContext
+    DB_CONTEXT *dbContext,
     );
 
 
@@ -187,7 +192,7 @@ FileUserDelete(
 BOOL
 FileUserOpen(
     INT32 userId,
-    USER_CONTEXT *context
+    FILE_CONTEXT *fileContext
     );
 
 BOOL
@@ -197,7 +202,7 @@ FileUserWrite(
 
 BOOL
 FileUserClose(
-    USER_CONTEXT *context
+    FILE_CONTEXT *fileContext
     );
 
 #endif // _BACKENDS_H_

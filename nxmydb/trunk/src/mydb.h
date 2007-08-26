@@ -133,8 +133,4 @@ Abstract:
 #define STRINGIFY(s)        STRINGIFY_HELPER(s)
 #define STRINGIFY_HELPER(s)  #s
 
-
-// Calling convention used by ioFTPD for module functions.
-#define MODULE_CALL __cdecl
-
 #endif // _MYDB_H_
