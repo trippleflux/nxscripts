@@ -229,14 +229,14 @@ proc ::nxLib::IsDiskPath {path} {
     return [regexp -- {^(cd|dis[ck]|dvd)\d{1,2}$} $path]
 }
 
-proc ::nxLib::RemoveParentLinks {realPath args} {
+proc ::nxLib::RemoveParentLinks {realPath} {
     if {[IsDiskPath $realPath]} {
         set realPath [file dirname $realPath]
     }
-    set realPath [file dirname $realPath]
     set realPathLen [string length $realPath]
 
-    foreach symPath [glob -nocomplain -types d -directory $realPath "*"] {
+    set searchPath [file dirname $realPath]
+    foreach symPath [glob -nocomplain -types d -directory $searchPath "*"] {
         if {[catch {vfs chattr $symPath 1} symTarget] || $symTarget eq ""} {continue}
         set symRealTarget [resolve pwd $symTarget]
 
