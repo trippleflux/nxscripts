@@ -23,7 +23,7 @@ ConditionVariableCreate
     Creates a condition variable.
 
 Arguments:
-    cond    - Pointer to the CONDITION_VARIABLE structure to be initialized.
+    cond    - Pointer to the CONDITION_VAR structure to be initialized.
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).
@@ -34,11 +34,10 @@ Return Values:
 --*/
 BOOL
 ConditionVariableCreate(
-    CONDITION_VARIABLE *cond
+    CONDITION_VAR *cond
     )
 {
-    Assert(cond != NULL);
-    DebugPrint("CVInit", "cond=%p\n", cond);
+    ASSERT(cond != NULL);
 
     cond->waiting = 0;
     cond->semaphore = CreateSemaphore(NULL, 0, LONG_MAX, NULL);
@@ -52,7 +51,7 @@ ConditionVariableDestroy
     Destroys the given condition variable.
 
 Arguments:
-    cond    - Pointer to an initialized CONDITION_VARIABLE structure.
+    cond    - Pointer to an initialized CONDITION_VAR structure.
 
 Return Values:
     None.
@@ -60,11 +59,10 @@ Return Values:
 --*/
 void
 ConditionVariableDestroy(
-    CONDITION_VARIABLE *cond
+    CONDITION_VAR *cond
     )
 {
-    Assert(cond != NULL);
-    DebugPrint("CVDestroy", "cond=%p\n", cond);
+    ASSERT(cond != NULL);
 
     CloseHandle(cond->semaphore);
 }
@@ -76,7 +74,7 @@ ConditionVariableBroadcast
     Signals all threads that are waiting on the given condition variable.
 
 Arguments:
-    cond    - Pointer to an initialized CONDITION_VARIABLE structure.
+    cond    - Pointer to an initialized CONDITION_VAR structure.
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).
@@ -87,11 +85,10 @@ Return Values:
 --*/
 BOOL
 ConditionVariableBroadcast(
-    CONDITION_VARIABLE *cond
+    CONDITION_VAR *cond
     )
 {
-    Assert(cond != NULL);
-    DebugPrint("CVBroadcast", "cond=%p\n", cond);
+    ASSERT(cond != NULL);
 
     if (cond->waiting > 0) {
         return ReleaseSemaphore(cond->semaphore, cond->waiting, NULL);
@@ -106,7 +103,7 @@ ConditionVariableSignal
     Signals a single thread that is waiting on the given condition variable.
 
 Arguments:
-    cond    - Pointer to an initialized CONDITION_VARIABLE structure.
+    cond    - Pointer to an initialized CONDITION_VAR structure.
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).
@@ -117,11 +114,10 @@ Return Values:
 --*/
 BOOL
 ConditionVariableSignal(
-    CONDITION_VARIABLE *cond
+    CONDITION_VAR *cond
     )
 {
-    Assert(cond != NULL);
-    DebugPrint("CVSignal", "cond=%p\n", cond);
+    ASSERT(cond != NULL);
 
     if (cond->waiting > 0) {
         return ReleaseSemaphore(cond->semaphore, 1, NULL);
@@ -136,7 +132,7 @@ ConditionVariableWait
     Initializes a condition variable.
 
 Arguments:
-    cond        - Pointer to an initialized CONDITION_VARIABLE structure.
+    cond        - Pointer to an initialized CONDITION_VAR structure.
 
     critSection - Pointer to the critical section object. The caller must have
                   ownership of the critical section before calling this function.
@@ -152,16 +148,15 @@ Return Values:
 --*/
 BOOL
 ConditionVariableWait(
-    CONDITION_VARIABLE *cond,
+    CONDITION_VAR *cond,
     CRITICAL_SECTION *critSection,
     DWORD timeout
     )
 {
     DWORD result;
 
-    Assert(cond != NULL);
-    Assert(critSection != NULL);
-    DebugPrint("CVSignal", "cond=%p critSection=%p timeout=%lu\n", cond, critSection, timeout);
+    ASSERT(cond != NULL);
+    ASSERT(critSection != NULL);
 
     InterlockedIncrement(&cond->waiting);
     LeaveCriticalSection(critSection);

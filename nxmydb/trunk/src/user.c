@@ -35,8 +35,6 @@ UserModuleInit(
     USER_MODULE *module
     )
 {
-    DebugPrint("UserInit", "module=%p\n", module);
-
     // Initialize module structure
     module->tszModuleName = "NXMYDB";
     module->DeInitialize  = UserFinalize;
@@ -51,7 +49,7 @@ UserModuleInit(
 
     // Initialize module
     if (!DbInit(module->GetProc)) {
-        DebugPrint("UserInit", "Unable to initialize module.\n");
+        TRACE("Unable to initialize module.\n");
         return UM_ERROR;
     }
 
@@ -66,7 +64,6 @@ UserFinalize(
     void
     )
 {
-    DebugPrint("UserFinalize", "module=%p\n", userModule);
     DbFinalize();
 
     userModule = NULL;
@@ -85,12 +82,10 @@ UserCreate(
     USER_CONTEXT *userContext;
     USERFILE userFile;
 
-    DebugPrint("UserCreate", "userName=\"%s\"\n", userName);
-
     // Allocate and initialize user context
     userContext = Io_Allocate(sizeof(USER_CONTEXT));
     if (userContext == NULL) {
-        DebugPrint("UserCreate", "Unable to allocate user context.\n");
+        TRACE("Unable to allocate user context.\n");
 
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return -1;
@@ -113,19 +108,19 @@ UserCreate(
     // Register user
     userId = userModule->Register(userModule, userName, &userFile);
     if (userId == -1) {
-        DebugPrint("UserCreate", "Unable to register user (error %lu).\n", GetLastError());
+        TRACE("Unable to register user (error %lu).\n", GetLastError());
         goto failed;
     }
 
     // Create user file and read "Default.User"
     if (!FileUserCreate(userId, &userFile)) {
-        DebugPrint("UserCreate", "Unable to create user file (error %lu).\n", GetLastError());
+        TRACE("Unable to create user file (error %lu).\n", GetLastError());
         goto failed;
     }
 
     // Create database record
     if (!DbUserCreate(userContext->dbReserved, userName, &userFile)) {
-        DebugPrint("UserCreate", "Unable to create database record (error %lu).\n", GetLastError());
+        TRACE("Unable to create database record (error %lu).\n", GetLastError());
         goto failed;
     }
 
@@ -144,11 +139,11 @@ failed:
         Io_Free(userContext);
     } else {
         // TODO: UserDelete() does not work
-        Assert(0);
+        ASSERT(0);
 
         // Delete created user (will also free the context)
         if (UserDelete(userName, userId) != UM_SUCCESS) {
-            DebugPrint("UserCreate", "Unable to delete user (error %lu).\n", GetLastError());
+            TRACE("Unable to delete user (error %lu).\n", GetLastError());
         }
     }
 
@@ -166,7 +161,6 @@ UserRename(
     char *newName
     )
 {
-    DebugPrint("UserRename", "userName=\"%s\" userId=%i newName=\"%s\"\n", userName, userId, newName);
 
     // Without access to the USERFILE structure's lpInternal
     // member, this operation cannot be implemented.
@@ -177,8 +171,6 @@ UserRename(
     INT result = UM_SUCCESS;
     USER_CONTEXT *userContext = userFile->lpInternal;
 
-    DebugPrint("UserRename", "userName=\"%s\" userId=%i newName=\"%s\"\n", userName, userId, newName);
-
     // There must be a reserved database connection
     if (userContext->dbReserved == NULL) {
         SetLastError(ERROR_INTERNAL_ERROR);
@@ -186,12 +178,12 @@ UserRename(
     }
 
     if (!DbUserRename(userContext->dbReserved, userName, newName)) {
-        DebugPrint("UserRename", "Unable to rename database record (error %lu).\n", GetLastError());
+        TRACE("Unable to rename database record (error %lu).\n", GetLastError());
     }
 
     // Register user under the new name
     if (userModule->RegisterAs(userModule, userName, newName) != UM_SUCCESS) {
-        DebugPrint("UserRename", "Unable to re-register user (error %lu).\n", GetLastError());
+        TRACE("Unable to re-register user (error %lu).\n", GetLastError());
         return UM_ERROR;
     }
 
@@ -207,8 +199,6 @@ UserDelete(
     INT32 userId
     )
 {
-    DebugPrint("UserDelete", "userName=\"%s\" userId=%i\n", userName, userId);
-
     // Without access to the USERFILE structure's lpInternal
     // member, this operation cannot be implemented.
     SetLastError(ERROR_NOT_SUPPORTED);
@@ -218,8 +208,6 @@ UserDelete(
     INT result = UM_SUCCESS;
     USER_CONTEXT *userContext = userFile->lpInternal;
 
-    DebugPrint("UserDelete", "userName=\"%s\" userId=%i\n", userName, userId);
-
     // There must be a reserved database connection
     if (userContext->dbReserved == NULL) {
         SetLastError(ERROR_INTERNAL_ERROR);
@@ -227,16 +215,16 @@ UserDelete(
     }
 
     if (!FileUserDelete(userId)) {
-        DebugPrint("UserDelete", "Unable to delete user file (error %lu).\n", GetLastError());
+        TRACE("Unable to delete user file (error %lu).\n", GetLastError());
     }
 
     if (!DbUserDelete(userContext->dbReserved, userName)) {
-        DebugPrint("UserDelete", "Unable to delete database record (error %lu).\n", GetLastError());
+        TRACE("Unable to delete database record (error %lu).\n", GetLastError());
     }
 
     // Unregister user
     if (userModule->Unregister(userModule, userName) != UM_SUCCESS) {
-        DebugPrint("UserDelete", "Unable to unregister user (error %lu).\n", GetLastError());
+        TRACE("Unable to unregister user (error %lu).\n", GetLastError());
         return UM_ERROR;
     }
 
@@ -254,8 +242,6 @@ UserLock(
     DB_CONTEXT *dbContext;
     USER_CONTEXT *userContext = userFile->lpInternal;
 
-    DebugPrint("UserLock", "userFile=%p\n", userFile);
-
     // There must not be a reserved database connection
     if (userContext->dbReserved != NULL) {
         SetLastError(ERROR_INTERNAL_ERROR);
@@ -267,7 +253,7 @@ UserLock(
     }
 
     if (!DbUserLock(dbContext, userFile)) {
-        DebugPrint("UserLock", "Unable to lock database record (error %lu).\n", GetLastError());
+        TRACE("Unable to lock database record (error %lu).\n", GetLastError());
         DbRelease(dbContext);
         return UM_ERROR;
     }
@@ -288,8 +274,6 @@ UserUnlock(
     INT result = UM_SUCCESS;
     USER_CONTEXT *userContext = userFile->lpInternal;
 
-    DebugPrint("UserUnlock", "userFile=%p\n", userFile);
-
     // There must be a reserved database connection
     if (userContext->dbReserved == NULL) {
         SetLastError(ERROR_INTERNAL_ERROR);
@@ -297,7 +281,7 @@ UserUnlock(
     }
 
     if (!DbUserUnlock(userContext->dbReserved, userFile)) {
-        DebugPrint("UserUnlock", "Unable to unlock database record (error %lu).\n", GetLastError());
+        TRACE("Unable to unlock database record (error %lu).\n", GetLastError());
         result = UM_ERROR;
     }
 
@@ -320,8 +304,6 @@ UserOpen(
     INT result = UM_SUCCESS;
     USER_CONTEXT *userContext;
 
-    DebugPrint("UserOpen", "userName=\"%s\" userFile=%p\n", userName, userFile);
-
     // Acquire a database connection
     if (!DbAcquire(&dbContext)) {
         return UM_FATAL;
@@ -330,7 +312,7 @@ UserOpen(
     // Allocate user context
     userContext = Io_Allocate(sizeof(USER_CONTEXT));
     if (userContext == NULL) {
-        DebugPrint("UserOpen", "Unable to allocate user context.\n");
+        TRACE("Unable to allocate user context.\n");
 
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         result = UM_FATAL;
@@ -341,13 +323,13 @@ UserOpen(
 
         // Open user file
         if (!FileUserOpen(userFile->Uid, userContext)) {
-            DebugPrint("UserOpen", "Unable to open user file (error %lu).\n", GetLastError());
+            TRACE("Unable to open user file (error %lu).\n", GetLastError());
             result = (GetLastError() == ERROR_FILE_NOT_FOUND) ? UM_DELETED : UM_FATAL;
         }
 
         // Read database record
         if (!DbUserOpen(dbContext, userName, userFile)) {
-            DebugPrint("UserOpen", "Unable to open database record (error %lu).\n", GetLastError());
+            TRACE("Unable to open database record (error %lu).\n", GetLastError());
             result = UM_FATAL; // TODO: check deleted
         }
 
@@ -369,7 +351,6 @@ UserWrite(
     )
 {
     USER_CONTEXT *userContext = userFile->lpInternal;
-    DebugPrint("UserWrite", "userFile=%p\n", userFile);
 
     // There must be a reserved database connection
     if (userContext->dbReserved == NULL) {
@@ -378,11 +359,11 @@ UserWrite(
     }
 
     if (!FileUserWrite(userFile)) {
-        DebugPrint("UserWrite", "Unable to write user file (error %lu).\n", GetLastError());
+        TRACE("Unable to write user file (error %lu).\n", GetLastError());
     }
 
     if (!DbUserWrite(userContext->dbReserved, userFile)) {
-        DebugPrint("UserWrite", "Unable to write database record (error %lu).\n", GetLastError());
+        TRACE("Unable to write database record (error %lu).\n", GetLastError());
         return UM_ERROR;
     }
 
@@ -396,19 +377,17 @@ UserClose(
     USERFILE *userFile
     )
 {
-    DebugPrint("UserClose", "userFile=%p\n", userFile);
-
     if (userFile->lpInternal == NULL) {
-        DebugPrint("UserClose", "User context already freed.\n");
+        TRACE("User context already freed.\n");
         return UM_ERROR;
     }
 
     if (!FileUserClose(userFile->lpInternal)) {
-        DebugPrint("UserClose", "Unable to close user file (error %lu).\n", GetLastError());
+        TRACE("Unable to close user file (error %lu).\n", GetLastError());
     }
 
     if (!DbUserClose(userFile->lpInternal)) {
-        DebugPrint("UserClose", "Unable to close database record(error %lu).\n", GetLastError());
+        TRACE("Unable to close database record(error %lu).\n", GetLastError());
     }
 
     // Free user context

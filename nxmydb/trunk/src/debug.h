@@ -23,19 +23,19 @@ Abstract:
 
 #ifdef DEBUG
 void
-LogDebuggerHeader(
+TraceDebugHeader(
     void
     );
 
 void
-LogDebuggerFormat(
+TraceDebugFormat(
     const char *funct,
     const char *format,
     ...
     );
 
 void
-LogDebuggerFooter(
+TraceDebugFooter(
     void
     );
 #endif // DEBUG
@@ -47,19 +47,19 @@ LogDebuggerFooter(
 
 #ifdef DEBUG
 void
-LogFileHeader(
+TraceFileHeader(
     void
     );
 
 void
-LogFileFormat(
+TraceFileFormat(
     const char *funct,
     const char *format,
     ...
     );
 
 void
-LogFileFooter(
+TraceFileFooter(
     void
     );
 #endif // DEBUG

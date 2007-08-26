@@ -43,19 +43,15 @@ DllMain(
     LPVOID reserved
     )
 {
-    UnreferencedParameter(instance);
-    UnreferencedParameter(reserved);
+    UNREFERENCED_PARAMETER(instance);
+    UNREFERENCED_PARAMETER(reserved);
 
     switch (reason) {
         case DLL_PROCESS_ATTACH:
-            DebugHead();
-#ifdef _MD
-            // The static CRT requires thread notifications.
-            DisableThreadLibraryCalls(instance);
-#endif
+            TRACE_HEAD();
             break;
         case DLL_PROCESS_DETACH:
-            DebugFoot();
+            TRACE_FOOT();
             break;
     }
     return TRUE;

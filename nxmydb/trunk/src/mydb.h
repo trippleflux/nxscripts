@@ -63,46 +63,46 @@ Abstract:
 
 
 //
-// Macro: Assert
+// Macro: ASSERT
 //
 // Run-time expression assertions, evaluated only in debug builds.
 //
 #if defined(DEBUG) && !defined(NDEBUG)
 #   include "crtdbg.h"
-#   define Assert _ASSERTE
+#   define ASSERT   _ASSERTE
 #else
-#   define Assert
+#   define ASSERT
 #endif
 
 //
 // Macros:
 //
-// DebugHead  - Log debug header.
-// DebugPrint - Log debug message.
-// DebugFoot  - Log debug footer.
+// TRACE_HEAD - Log debug header.
+// TRACE_FOOT - Log debug footer.
+// TRACE      - Log debug message.
 //
 #if defined(DEBUG) && !defined(NDEBUG)
 #   ifdef DEBUG_FILE
-#       define DebugHead()                      LogFileHeader()
-#       define DebugPrint(funct, format, ...)   LogFileFormat(funct, format, __VA_ARGS__)
-#       define DebugFoot()                      LogFileFooter()
+#       define TRACE_HEAD()         TraceFileHeader()
+#       define TRACE_FOOT()         TraceFileFooter()
+#       define TRACE(format, ...)   TraceFileFormat(__FUNCTION__, format, __VA_ARGS__)
 #   else
-#       define DebugHead()                      LogDebuggerHeader()
-#       define DebugPrint(funct, format, ...)   LogDebuggerFormat(funct, format, __VA_ARGS__)
-#       define DebugFoot()                      LogDebuggerFooter()
+#       define TRACE_HEAD()         TraceDebugHeader()
+#       define TRACE_FOOT()         TraceDebugFooter()
+#       define TRACE(format, ...)   TraceDebugFormat(__FUNCTION__, format, __VA_ARGS__)
 #   endif
 #else
-#   define DebugHead()                          ((void)0)
-#   define DebugPrint(funct, format, ...)       ((void)0)
-#   define DebugFoot()                          ((void)0)
+#   define TRACE_HEAD()             ((void)0)
+#   define TRACE_FOOT()             ((void)0)
+#   define TRACE(format, ...)       ((void)0)
 #endif
 
 //
-// Macro: ElementCount
+// Macro: ELEMENT_COUNT
 //
 // Determines the number of elements in the specified array.
 //
-#define ElementCount(array) (sizeof(array) / sizeof(array[0]))
+#define ELEMENT_COUNT(array) (sizeof(array) / sizeof(array[0]))
 
 //
 // Macro: inline
@@ -112,33 +112,26 @@ Abstract:
 #define inline __forceinline
 
 //
-// Macro: Max
+// Macro: MAX
 //
 // Returns the maximum of two values.
 //
-#define Max(a, b)           (((a) > (b)) ? (a) : (b))
+#define MAX(a, b)           (((a) > (b)) ? (a) : (b))
 
 //
-// Macro: Min
+// Macro: MIN
 //
 // Returns the minimum of two values.
 //
-#define Min(a, b)           (((a) < (b)) ? (a) : (b))
+#define MIN(a, b)           (((a) < (b)) ? (a) : (b))
 
 //
-// Macro: Stringify
+// Macro: STRINGIFY
 //
 // Quotes a value as a string in the C preprocessor.
 //
-#define Stringify(s)        StringifyHelper(s)
-#define StringifyHelper(s)  #s
-
-//
-// Macro: UnreferencedParameter
-//
-// Suppresses "unreferenced formal parameter" compiler warnings.
-//
-#define UnreferencedParameter(param) (param)
+#define STRINGIFY(s)        STRINGIFY_HELPER(s)
+#define STRINGIFY_HELPER(s)  #s
 
 
 // Calling convention used by ioFTPD for module functions.

@@ -117,7 +117,7 @@ typedef struct {
     void                  *opaque;      // Opaque argument passed to the constructor and destructor
     POOL_TAIL_QUEUE       resQueue;     // Queue of resources
     POOL_TAIL_QUEUE       conQueue;     // Queue of containers
-    CONDITION_VARIABLE    condition;    // Condition signaled when a used resource becomes available
+    CONDITION_VAR    condition;    // Condition signaled when a used resource becomes available
     CRITICAL_SECTION      lock;         // Synchronize access to the pool structure
 } POOL;
 

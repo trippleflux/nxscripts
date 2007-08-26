@@ -144,14 +144,13 @@ ConnectionOpen(
     DWORD i;
     unsigned long flags;
 
-    Assert(opaque == NULL);
-    Assert(data != NULL);
-    DebugPrint("ConnectionOpen", "opaque=%p data=%p\n", opaque, data);
+    ASSERT(opaque == NULL);
+    ASSERT(data != NULL);
 
     // Allocate database context
     context = Io_Allocate(sizeof(DB_CONTEXT));
     if (context == NULL) {
-        DebugPrint("ConnectionOpen", "Unable to allocate memory for database context.\n");
+        TRACE("Unable to allocate memory for database context.\n");
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return FALSE;
     }
@@ -161,7 +160,7 @@ ConnectionOpen(
     // version than the header we're compiling with (structures could be different sizes).
     context->handle = mysql_init(NULL);
     if (context->handle == NULL) {
-        DebugPrint("ConnectionOpen", "Unable to allocate memory for MySQL handle.\n");
+        TRACE("Unable to allocate memory for MySQL handle.\n");
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return FALSE;
     }
@@ -177,7 +176,7 @@ ConnectionOpen(
 
     // Open server connection
     if (!mysql_real_connect(context->handle, serverHost, serverUser, serverPass, serverDb, serverPort, NULL, flags)) {
-        DebugPrint("ConnectionOpen", "Unable to connect to server: %s\n", mysql_error(context->handle));
+        TRACE("Unable to connect to server: %s\n", mysql_error(context->handle));
         Io_Putlog(LOG_ERROR, "nxMyDB: Unable to connect to server: %s\r\n", mysql_error(context->handle));
 
         mysql_close(context->handle);
@@ -186,16 +185,16 @@ ConnectionOpen(
     }
 
     // Prepare statements
-    Assert(ElementCount(context->stmt) == ElementCount(queries));
-    for (i = 0; i < ElementCount(context->stmt); i++) {
+    ASSERT(ELEMENT_COUNT(context->stmt) == ELEMENT_COUNT(queries));
+    for (i = 0; i < ELEMENT_COUNT(context->stmt); i++) {
         context->stmt[i] = mysql_stmt_init(context->handle);
 
         if (context->stmt[i] == NULL) {
-            DebugPrint("ConnectionOpen", "Unable to allocate memory for statement.\n");
+            TRACE("Unable to allocate memory for statement.\n");
             SetLastError(ERROR_NOT_ENOUGH_MEMORY);
 
         } else if (mysql_stmt_prepare(context->stmt[i], queries[i], strlen(queries[i])) != 0) {
-            DebugPrint("ConnectionOpen", "Unable to prepare statement: %s\n", mysql_stmt_error(context->stmt[i]));
+            TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(context->stmt[i]));
             SetLastError(ERROR_UNIDENTIFIED_ERROR);
 
         } else {
@@ -210,7 +209,7 @@ ConnectionOpen(
     GetSystemTimeAsFileTime((FILETIME *)&context->created);
     context->used = context->created;
 
-    DebugPrint("ConnectionOpen", "Connected to %s, running MySQL Server v%s.\n",
+    TRACE("Connected to %s, running MySQL Server v%s.\n",
         mysql_get_host_info(context->handle), mysql_get_server_info(context->handle));
 
     *data = context;
@@ -245,9 +244,8 @@ ConnectionCheck(
     UINT64 timeCurrent;
     UINT64 timeDelta;
 
-    Assert(opaque == NULL);
-    Assert(data != NULL);
-    DebugPrint("ConnectionCheck", "opaque=%p data=%p\n", opaque, data);
+    ASSERT(opaque == NULL);
+    ASSERT(data != NULL);
 
     context = data;
     GetSystemTimeAsFileTime((FILETIME *)&timeCurrent);
@@ -255,7 +253,7 @@ ConnectionCheck(
     // Check if the context has exceeded the expiration time
     timeDelta = timeCurrent - context->created;
     if (timeDelta > connExpire) {
-        DebugPrint("ConnectionCheck", "Expiring server connection after %I64u seconds.\n", timeDelta/10000000);
+        TRACE("Expiring server connection after %I64u seconds.\n", timeDelta/10000000);
         SetLastError(ERROR_CONTEXT_EXPIRED);
         return FALSE;
     }
@@ -263,10 +261,10 @@ ConnectionCheck(
     // Check if the connection is still alive
     timeDelta = timeCurrent - context->used;
     if (timeDelta > connCheck) {
-        DebugPrint("ConnectionCheck", "Connection has not been used in %I64u seconds, pinging it.\n", timeDelta/10000000);
+        TRACE("Connection has not been used in %I64u seconds, pinging it.\n", timeDelta/10000000);
 
         if (mysql_ping(context->handle) != 0) {
-            DebugPrint("ConnectionCheck", "Lost server connection: %s\n", mysql_error(context->handle));
+            TRACE("Lost server connection: %s\n", mysql_error(context->handle));
             SetLastError(ERROR_NOT_CONNECTED);
             return FALSE;
         }
@@ -303,13 +301,13 @@ ConnectionClose(
     DB_CONTEXT *context;
     DWORD i;
 
-    Assert(opaque == NULL);
-    Assert(data != NULL);
-    DebugPrint("ConnectionClose", "opaque=%p data=%p\n", opaque, data);
+    ASSERT(opaque == NULL);
+    ASSERT(data != NULL);
+
     context = data;
 
     // Free prepared statements
-    for (i = 0; i < ElementCount(context->stmt); i++) {
+    for (i = 0; i < ELEMENT_COUNT(context->stmt); i++) {
         if (context->stmt[i] != NULL) {
             mysql_stmt_close(context->stmt[i]);
         }
@@ -348,8 +346,8 @@ ConfigGet(
     char *value;
     size_t length;
 
-    Assert(array != NULL);
-    Assert(variable != NULL);
+    ASSERT(array != NULL);
+    ASSERT(variable != NULL);
 
     // Retrieve value from ioFTPD
     value = Io_ConfigGet(array, variable, NULL, NULL);
@@ -392,8 +390,6 @@ ConfigFree(
     void
     )
 {
-    DebugPrint("ConfigFree", "refCount=%i\n", refCount);
-
     // Free server options
     if (serverHost != NULL) {
         Io_Free(serverHost);
@@ -457,9 +453,9 @@ FormatLock(
     char *end;
     char *identifier;
 
-    Assert(lockType == LOCK_TYPE_USER || lockType == LOCK_TYPE_GROUP);
-    Assert(lockName != NULL);
-    Assert(buffer   != NULL);
+    ASSERT(lockType == LOCK_TYPE_USER || lockType == LOCK_TYPE_GROUP);
+    ASSERT(lockName != NULL);
+    ASSERT(buffer   != NULL);
 
     if (lockType == LOCK_TYPE_USER) {
         identifier = ".nxMyDB.user.";
@@ -496,8 +492,7 @@ RefreshTimer(
     )
 {
     DB_CONTEXT *context;
-    UnreferencedParameter(notUsed);
-    DebugPrint("RefreshTimer", "currTimer=%p\n", currTimer);
+    UNREFERENCED_PARAMETER(notUsed);
 
     if (DbAcquire(&context)) {
         // Users rely on groups, so update groups first.
@@ -506,7 +501,7 @@ RefreshTimer(
 
         DbRelease(context);
     } else {
-        DebugPrint("RefreshTimer", "Unable to acquire a database connection.\n");
+        TRACE("Unable to acquire a database connection.\n");
     }
 
     // Execute the timer again
@@ -545,17 +540,16 @@ DbInit(
     int poolCheck;
     int poolExpire;
     int poolTimeout;
-    DebugPrint("DbInit", "getProc=%p refCount=%i\n", getProc, refCount);
 
     // Only initialize the database pool once
     if (refCount++) {
-        DebugPrint("DbInit", "Already initialized, returning.\n");
+        TRACE("Already initialized, returning.\n");
         return TRUE;
     }
 
     // Initialize procedure table
     if (!ProcTableInit(getProc)) {
-        DebugPrint("DbInit", "Unable to initialize procedure table.\n");
+        TRACE("Unable to initialize procedure table.\n");
         return FALSE;
     }
 
@@ -646,7 +640,7 @@ DbInit(
     }
 
     Io_Putlog(LOG_ERROR, "nxMyDB: v%s loaded, using MySQL Client Library v%s.\r\n",
-        Stringify(VERSION), mysql_get_client_info());
+        STRINGIFY(VERSION), mysql_get_client_info());
     return TRUE;
 }
 
@@ -671,11 +665,9 @@ DbFinalize(
     void
     )
 {
-    DebugPrint("DbFinalize", "refCount=%i\n", refCount);
-
     // Finalize once the reference count reaches zero
     if (--refCount == 0) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: v%s unloaded.\r\n", Stringify(VERSION));
+        Io_Putlog(LOG_ERROR, "nxMyDB: v%s unloaded.\r\n", STRINGIFY(VERSION));
 
         // Stop refresh timer
         if (timer != NULL) {
@@ -713,12 +705,11 @@ DbAcquire(
 {
     DB_CONTEXT *context;
 
-    Assert(dbContext != NULL);
-    DebugPrint("DbAcquire", "dbContext=%p\n", dbContext);
+    ASSERT(dbContext != NULL);
 
     // Acquire a database context
     if (!PoolAcquire(pool, &context)) {
-        DebugPrint("DbAcquire", "Unable to acquire a database context (error %lu).\n", GetLastError());
+        TRACE("Unable to acquire a database context (error %lu).\n", GetLastError());
         return FALSE;
     }
 
@@ -744,15 +735,14 @@ DbRelease(
     DB_CONTEXT *dbContext
     )
 {
-    Assert(dbContext != NULL);
-    DebugPrint("DbRelease", "dbContext=%p\n", dbContext);
+    ASSERT(dbContext != NULL);
 
     // Update used time stamp
     GetSystemTimeAsFileTime((FILETIME *)&dbContext->used);
 
     // Release the database context
     if (!PoolRelease(pool, dbContext)) {
-        DebugPrint("DbRelease", "Unable to release the database context (error %lu).\n", GetLastError());
+        TRACE("Unable to release the database context (error %lu).\n", GetLastError());
     }
 }
 
@@ -784,11 +774,10 @@ DbLock(
 {
     char lock[128];
 
-    Assert(dbContext != NULL);
-    Assert(lockName != NULL);
-    DebugPrint("DbLock", "dbContext=%p lockType=%d lockName=%s\n", dbContext, lockType, lockName);
+    ASSERT(dbContext != NULL);
+    ASSERT(lockName != NULL);
 
-    FormatLock(lockType, lockName, lock, ElementCount(lock));
+    FormatLock(lockType, lockName, lock, ELEMENT_COUNT(lock));
 
     // TODO
 
@@ -821,11 +810,10 @@ DbUnlock(
 {
     char lock[128];
 
-    Assert(dbContext != NULL);
-    Assert(lockName != NULL);
-    DebugPrint("DbUnlock", "dbContext=%p lockType=%d lockName=%s\n", dbContext, lockType, lockName);
+    ASSERT(dbContext != NULL);
+    ASSERT(lockName != NULL);
 
-    FormatLock(lockType, lockName, lock, ElementCount(lock));
+    FormatLock(lockType, lockName, lock, ELEMENT_COUNT(lock));
 
     // TODO
 }

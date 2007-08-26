@@ -46,8 +46,6 @@ ProcTableInit(
     Io_GetProc *getProc
     )
 {
-    DebugPrint("ProcTableInit", "getProc=%p\n", getProc);
-
     RESOLVE("Config_Get",      procTable.ConfigGet)
     RESOLVE("Config_GetBool",  procTable.ConfigGetBool)
     RESOLVE("Config_GetInt",   procTable.ConfigGetInt)
@@ -92,6 +90,5 @@ ProcTableFinalize(
     void
     )
 {
-    DebugPrint("ProcTableFinalize", "\n");
     ZeroMemory(&procTable, sizeof(PROC_TABLE));
 }

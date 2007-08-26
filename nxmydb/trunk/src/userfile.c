@@ -29,10 +29,9 @@ UserRead(
     DWORD fileSize;
     USER_CONTEXT *context = userFile->lpInternal;
 
-    Assert(filePath != NULL);
-    Assert(userFile != NULL);
-    Assert(userFile->lpInternal != NULL);
-    DebugPrint("FileUserRead", "filePath=\"%s\" userFile=%p\n", filePath, userFile);
+    ASSERT(filePath != NULL);
+    ASSERT(userFile != NULL);
+    ASSERT(userFile->lpInternal != NULL);
 
     // Open user file
     context->fileHandle = CreateFileA(filePath,
@@ -41,27 +40,27 @@ UserRead(
         NULL, OPEN_EXISTING, 0, NULL);
 
     if (context->fileHandle == INVALID_HANDLE_VALUE) {
-        DebugPrint("FileUserRead", "Unable to open file (error %lu).\n", GetLastError());
+        TRACE("Unable to open file (error %lu).\n", GetLastError());
         return FALSE;
     }
 
     // Retrieve file size
     fileSize = GetFileSize(context->fileHandle, NULL);
     if (fileSize == INVALID_FILE_SIZE || fileSize < 5) {
-        DebugPrint("FileUserRead", "Unable to retrieve file size, or file size is under 5 bytes.\n");
+        TRACE("Unable to retrieve file size, or file size is under 5 bytes.\n");
         goto failed;
     }
 
     // Allocate read buffer
     buffer = Io_Allocate(fileSize + 1);
     if (buffer == NULL) {
-        DebugPrint("FileUserRead", "Unable to allocate read buffer.\n");
+        TRACE("Unable to allocate read buffer.\n");
         goto failed;
     }
 
     // Read user file to buffer
     if (!ReadFile(context->fileHandle, buffer, fileSize, &bytesRead, NULL) || bytesRead < 5) {
-        DebugPrint("FileUserRead", "Unable to read file, or the amount read is under 5 bytes.\n");
+        TRACE("Unable to read file, or the amount read is under 5 bytes.\n");
         goto failed;
     }
 
@@ -101,23 +100,22 @@ FileUserCreate(
     char buffer[12];
     DWORD error;
 
-    Assert(userFile != NULL);
-    DebugPrint("FileUserCreate", "userId=%i userFile=%p\n", userId, userFile);
+    ASSERT(userFile != NULL);
 
     // Retrieve default user location
     defaultPath = Io_ConfigGetPath("Locations", "User_Files", "Default.User", NULL);
     if (defaultPath == NULL) {
-        DebugPrint("FileUserCreate", "Unable to retrieve default file location.\n");
+        TRACE("Unable to retrieve default file location.\n");
 
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return FALSE;
     }
 
     // Retrieve user location
-    StringCchPrintfA(buffer, ElementCount(buffer), "%i", userId);
+    StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", userId);
     targetPath = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
     if (targetPath == NULL) {
-        DebugPrint("FileUserCreate", "Unable to retrieve file location.\n");
+        TRACE("Unable to retrieve file location.\n");
 
         Io_Free(defaultPath);
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
@@ -126,13 +124,13 @@ FileUserCreate(
 
     // Copy default file to target file
     if (!CopyFileA(defaultPath, targetPath, FALSE)) {
-        DebugPrint("FileUserCreate", "Unable to copy default file (error %lu).\n", GetLastError());
+        TRACE("Unable to copy default file (error %lu).\n", GetLastError());
         goto failed;
     }
 
     // Read user file (copy of "Default.User")
     if (!UserRead(targetPath, userFile)) {
-        DebugPrint("FileUserCreate", "Unable read target file (error %lu).\n", GetLastError());
+        TRACE("Unable read target file (error %lu).\n", GetLastError());
         goto failed;
     }
 
@@ -160,13 +158,11 @@ FileUserDelete(
     char buffer[12];
     char *filePath;
 
-    DebugPrint("FileUserDelete", "userId=%i\n", userId);
-
     // Retrieve user file location
-    StringCchPrintfA(buffer, ElementCount(buffer), "%i", userId);
+    StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", userId);
     filePath = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
     if (filePath == NULL) {
-        DebugPrint("FileUserDelete", "Unable to retrieve file location.\n");
+        TRACE("Unable to retrieve file location.\n");
 
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return FALSE;
@@ -189,14 +185,13 @@ FileUserOpen(
     char *filePath;
     DWORD error;
 
-    Assert(context != NULL);
-    DebugPrint("FileUserOpen", "userId=%i context=%p\n", userId, context);
+    ASSERT(context != NULL);
 
     // Retrieve user file location
-    StringCchPrintfA(buffer, ElementCount(buffer), "%i", userId);
+    StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", userId);
     filePath = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
     if (filePath == NULL) {
-        DebugPrint("FileUserOpen", "Unable to retrieve file location.\n");
+        TRACE("Unable to retrieve file location.\n");
 
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return FALSE;
@@ -213,7 +208,7 @@ FileUserOpen(
         error = GetLastError();
         Io_Free(filePath);
 
-        DebugPrint("FileUserOpen", "Unable to open file (error %lu).\n", error);
+        TRACE("Unable to open file (error %lu).\n", error);
 
         // Restore system error code
         SetLastError(error);
@@ -234,9 +229,8 @@ FileUserWrite(
     DWORD error;
     USER_CONTEXT *context = userFile->lpInternal;
 
-    Assert(userFile != NULL);
-    Assert(userFile->lpInternal != NULL);
-    DebugPrint("FileUserWrite", "userFile=%p\n", userFile);
+    ASSERT(userFile != NULL);
+    ASSERT(userFile->lpInternal != NULL);
 
     // Allocate write buffer
     ZeroMemory(&buffer, sizeof(BUFFER));
@@ -245,7 +239,7 @@ FileUserWrite(
     buffer.buf    = Io_Allocate(buffer.size);
 
     if (buffer.buf == NULL) {
-        DebugPrint("FileUserWrite", "Unable to allocate write buffer.\n");
+        TRACE("Unable to allocate write buffer.\n");
 
         SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         return FALSE;
@@ -261,7 +255,7 @@ FileUserWrite(
         error = GetLastError();
         Io_Free(buffer.buf);
 
-        DebugPrint("FileUserWrite", "Unable to write file (error %lu).\n", error);
+        TRACE("Unable to write file (error %lu).\n", error);
 
         // Restore system error code
         SetLastError(error);
@@ -281,8 +275,7 @@ FileUserClose(
     USER_CONTEXT *context
     )
 {
-    Assert(context != NULL);
-    DebugPrint("FileUserClose", "context=%p\n", context);
+    ASSERT(context != NULL);
 
     // Close user file handle
     if (context->fileHandle != INVALID_HANDLE_VALUE) {

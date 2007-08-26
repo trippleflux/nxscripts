@@ -24,7 +24,7 @@ Abstract:
 typedef struct {
     HANDLE semaphore;       // Semaphore to queue waiting threads
     volatile LONG waiting;  // Number of waiting threads
-} CONDITION_VARIABLE;
+} CONDITION_VAR;
 
 //
 // Condition variable functions
@@ -32,27 +32,27 @@ typedef struct {
 
 BOOL
 ConditionVariableCreate(
-    CONDITION_VARIABLE *cond
+    CONDITION_VAR *cond
     );
 
 void
 ConditionVariableDestroy(
-    CONDITION_VARIABLE *cond
+    CONDITION_VAR *cond
     );
 
 BOOL
 ConditionVariableBroadcast(
-    CONDITION_VARIABLE *cond
+    CONDITION_VAR *cond
     );
 
 BOOL
 ConditionVariableSignal(
-    CONDITION_VARIABLE *cond
+    CONDITION_VAR *cond
     );
 
 BOOL
 ConditionVariableWait(
-    CONDITION_VARIABLE *cond,
+    CONDITION_VAR *cond,
     CRITICAL_SECTION *critSection,
     DWORD timeout
     );

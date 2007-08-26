@@ -54,9 +54,8 @@ ContainerPush(
     POOL_RESOURCE *container
     )
 {
-    Assert(pool != NULL);
-    Assert(container != NULL);
-    DebugPrint("ContainerPush", "pool=%p container=%p\n", pool, container);
+    ASSERT(pool != NULL);
+    ASSERT(container != NULL);
 
     // Insert container at the tail
     TAILQ_INSERT_TAIL(&pool->conQueue, container, link);
@@ -91,8 +90,7 @@ ContainerPop(
 {
     POOL_RESOURCE *container;
 
-    Assert(pool != NULL);
-    DebugPrint("ContainerPop", "pool=%p\n", pool);
+    ASSERT(pool != NULL);
 
     if (!TAILQ_EMPTY(&pool->conQueue)) {
         // Retrieve an existing container
@@ -138,8 +136,7 @@ ResourceCreate(
 {
     POOL_RESOURCE *container;
 
-    Assert(pool != NULL);
-    DebugPrint("ResourceCreate", "pool=%p\n", pool);
+    ASSERT(pool != NULL);
 
     // Retrieve a container for the resource
     container = ContainerPop(pool);
@@ -149,7 +146,7 @@ ResourceCreate(
 
     // Populate the container
     if (!pool->constructor(pool->opaque, &container->data)) {
-        Assert(GetLastError() != ERROR_SUCCESS);
+        ASSERT(GetLastError() != ERROR_SUCCESS);
 
         // Place container back in the container queue
         ContainerPush(pool, container);
@@ -189,12 +186,11 @@ ResourceCheck(
     void *resData
     )
 {
-    Assert(pool != NULL);
-    Assert(resData != NULL);
-    DebugPrint("ResourceCheck", "pool=%p resData=%p\n", pool, resData);
+    ASSERT(pool != NULL);
+    ASSERT(resData != NULL);
 
     if (!pool->validator(pool->opaque, resData)) {
-        Assert(GetLastError() != ERROR_SUCCESS);
+        ASSERT(GetLastError() != ERROR_SUCCESS);
         return FALSE;
     }
     return TRUE;
@@ -226,9 +222,8 @@ ResourceDestroy(
     void *resData
     )
 {
-    Assert(pool != NULL);
-    Assert(resData != NULL);
-    DebugPrint("ResourceDestroy", "pool=%p resData=%p\n", pool, resData);
+    ASSERT(pool != NULL);
+    ASSERT(resData != NULL);
 
     pool->destructor(pool->opaque, resData);
     pool->total--;
@@ -260,9 +255,8 @@ ResourcePush(
     POOL_RESOURCE *resource
     )
 {
-    Assert(pool != NULL);
-    Assert(resource != NULL);
-    DebugPrint("ResourcePush", "pool=%p resource=%p\n", pool, resource);
+    ASSERT(pool != NULL);
+    ASSERT(resource != NULL);
 
     // Insert resource at the tail
     TAILQ_INSERT_TAIL(&pool->resQueue, resource, link);
@@ -294,8 +288,7 @@ ResourcePop(
 {
     POOL_RESOURCE *resource;
 
-    Assert(pool != NULL);
-    DebugPrint("ResourcePop", "pool=%p\n", pool);
+    ASSERT(pool != NULL);
 
     // Remove the first resource
     resource = TAILQ_FIRST(&pool->resQueue);
@@ -332,8 +325,7 @@ ResourcePopCheck(
 {
     POOL_RESOURCE *resource;
 
-    Assert(pool != NULL);
-    DebugPrint("ResourcePopCheck", "pool=%p\n", pool);
+    ASSERT(pool != NULL);
 
     // Try to find a valid idle resource
     while (pool->idle > 0) {
@@ -383,8 +375,7 @@ ResourceUpdate(
     POOL_RESOURCE *resource;
     POOL_RESOURCE *resourceTemp;
 
-    Assert(pool != NULL);
-    DebugPrint("ResourceUpdate", "pool=%p\n", pool);
+    ASSERT(pool != NULL);
 
     EnterCriticalSection(&pool->lock);
 
@@ -487,9 +478,7 @@ PoolCreate(
     void *opaque
     )
 {
-    Assert(pool != NULL);
-    DebugPrint("PoolCreate", "pool=%p constructor=%p validator=%p destructor=%p opaque=%p\n",
-        pool, constructor, validator, destructor, opaque);
+    ASSERT(pool != NULL);
 
     if (minimum < 1 || average < minimum || maximum < average || !constructor || !validator || !destructor) {
         SetLastError(ERROR_INVALID_PARAMETER);
@@ -549,8 +538,7 @@ PoolDestroy(
 {
     POOL_RESOURCE *resource;
 
-    Assert(pool != NULL);
-    DebugPrint("PoolDestroy", "pool=%p\n", pool);
+    ASSERT(pool != NULL);
 
     EnterCriticalSection(&pool->lock);
 
@@ -563,8 +551,8 @@ PoolDestroy(
         Io_Free(resource);
     }
 
-    Assert(pool->idle == 0);
-    Assert(pool->total == 0);
+    ASSERT(pool->idle == 0);
+    ASSERT(pool->total == 0);
 
     DeleteCriticalSection(&pool->lock);
     ConditionVariableDestroy(&pool->condition);
@@ -600,9 +588,8 @@ PoolAcquire(
 {
     POOL_RESOURCE *resource;
 
-    Assert(pool != NULL);
-    Assert(data != NULL);
-    DebugPrint("PoolAcquire", "pool=%p data=%p\n", pool, data);
+    ASSERT(pool != NULL);
+    ASSERT(data != NULL);
 
     EnterCriticalSection(&pool->lock);
 
@@ -667,9 +654,8 @@ PoolRelease(
     DWORD error;
     POOL_RESOURCE *container;
 
-    Assert(pool != NULL);
-    Assert(data != NULL);
-    DebugPrint("PoolRelease", "pool=%p data=%p\n", pool, data);
+    ASSERT(pool != NULL);
+    ASSERT(data != NULL);
 
     EnterCriticalSection(&pool->lock);
 
@@ -723,9 +709,8 @@ PoolValidate(
 {
     BOOL result;
 
-    Assert(pool != NULL);
-    Assert(data != NULL);
-    DebugPrint("PoolInvalidate", "pool=%p data=%p\n", pool, data);
+    ASSERT(pool != NULL);
+    ASSERT(data != NULL);
 
     EnterCriticalSection(&pool->lock);
 
@@ -761,9 +746,8 @@ PoolInvalidate(
     void *data
     )
 {
-    Assert(pool != NULL);
-    Assert(data != NULL);
-    DebugPrint("PoolInvalidate", "pool=%p data=%p\n", pool, data);
+    ASSERT(pool != NULL);
+    ASSERT(data != NULL);
 
     EnterCriticalSection(&pool->lock);
 

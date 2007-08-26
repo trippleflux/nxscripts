@@ -19,7 +19,7 @@ Abstract:
 #ifdef DEBUG
 /*++
 
-LogDebuggerHeader
+TraceDebugHeader
 
     Sends the header to a debugger.
 
@@ -31,7 +31,7 @@ Return Values:
 
 --*/
 void
-LogDebuggerHeader(
+TraceDebugHeader(
     void
     )
 {
@@ -48,7 +48,7 @@ LogDebuggerHeader(
 
 /*++
 
-LogDebuggerFormat
+TraceDebugFormat
 
     Sends the message to a debugger.
 
@@ -64,7 +64,7 @@ Return Values:
 
 --*/
 void
-LogDebuggerFormat(
+TraceDebugFormat(
     const char *funct,
     const char *format,
     ...
@@ -76,13 +76,13 @@ LogDebuggerFormat(
     size_t remaining;
     va_list argList;
 
-    Assert(funct != NULL);
-    Assert(format != NULL);
+    ASSERT(funct != NULL);
+    ASSERT(format != NULL);
 
     // Preserve system error code
     error = GetLastError();
 
-    StringCchPrintfExA(output, ElementCount(output), &end, &remaining, 0,
+    StringCchPrintfExA(output, ELEMENT_COUNT(output), &end, &remaining, 0,
         "| %4d | %17s | ", GetCurrentThreadId(), funct);
     va_start(argList, format);
     StringCchVPrintfA(end, remaining, format, argList);
@@ -96,7 +96,7 @@ LogDebuggerFormat(
 
 /*++
 
-LogDebuggerFooter
+TraceDebugFooter
 
     Sends the footer to a debugger.
 
@@ -108,7 +108,7 @@ Return Values:
 
 --*/
 void
-LogDebuggerFooter(
+TraceDebugFooter(
     void
     )
 {
@@ -147,7 +147,7 @@ LogFile(
     DWORD  written;
     HANDLE file;
 
-    Assert(text != NULL);
+    ASSERT(text != NULL);
 
     file = CreateFileA("nxMyDB.log", GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE,
         NULL, OPEN_ALWAYS, FILE_FLAG_WRITE_THROUGH, NULL);
@@ -162,7 +162,7 @@ LogFile(
 
 /*++
 
-LogFileHeader
+TraceFileHeader
 
     Writes the header to a log file.
 
@@ -174,7 +174,7 @@ Return Values:
 
 --*/
 void
-LogFileHeader(
+TraceFileHeader(
     void
     )
 {
@@ -192,7 +192,7 @@ LogFileHeader(
 
 /*++
 
-LogFileFormat
+TraceFileFormat
 
     Writes the message to a log file.
 
@@ -208,7 +208,7 @@ Return Values:
 
 --*/
 void
-LogFileFormat(
+TraceFileFormat(
     const char *funct,
     const char *format,
     ...
@@ -221,14 +221,14 @@ LogFileFormat(
     SYSTEMTIME now;
     va_list argList;
 
-    Assert(funct != NULL);
-    Assert(format != NULL);
+    ASSERT(funct != NULL);
+    ASSERT(format != NULL);
 
     // Preserve system error code
     error = GetLastError();
 
     GetSystemTime(&now);
-    StringCchPrintfExA(output, ElementCount(output), &end, &remaining, 0,
+    StringCchPrintfExA(output, ELEMENT_COUNT(output), &end, &remaining, 0,
         "| %04d-%02d-%02d %02d:%02d:%02d | %4d | %17s | ",
         now.wYear, now.wMonth, now.wDay, now.wHour, now.wMinute, now.wSecond,
         GetCurrentThreadId(), funct);
@@ -245,7 +245,7 @@ LogFileFormat(
 
 /*++
 
-LogFileFooter
+TraceFileFooter
 
     Writes the footer to a log file.
 
@@ -257,7 +257,7 @@ Return Values:
 
 --*/
 void
-LogFileFooter(
+TraceFileFooter(
     void
     )
 {
