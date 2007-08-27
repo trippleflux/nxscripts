@@ -16,112 +16,75 @@ Abstract:
 
 #include "mydb.h"
 
-BOOL
-DbGroupRefresh(
-    DB_CONTEXT *dbContext
-    )
-{
-    ASSERT(dbContext != NULL);
-
-    return TRUE;
-}
-
-BOOL
-DbGroupCreate(
-    DB_CONTEXT *dbContext,
-    char *groupName,
-    GROUPFILE *groupFile
-    )
+DWORD DbGroupCreate(DB_CONTEXT *dbContext, CHAR *groupName, GROUPFILE *groupFile)
 {
     ASSERT(dbContext != NULL);
     ASSERT(groupName != NULL);
     ASSERT(groupFile != NULL);
 
-    return TRUE;
+    return ERROR_SUCCESS;
 }
 
-BOOL
-DbGroupRename(
-    DB_CONTEXT *dbContext,
-    char *groupName,
-    char *newName
-    )
+DWORD DbGroupRename(DB_CONTEXT *dbContext, CHAR *groupName, CHAR *newName)
 {
     ASSERT(dbContext != NULL);
     ASSERT(groupName != NULL);
     ASSERT(newName != NULL);
 
-    return TRUE;
+    return ERROR_SUCCESS;
 }
 
-BOOL
-DbGroupDelete(
-    DB_CONTEXT *dbContext,
-    char *groupName
-    )
+DWORD DbGroupDelete(DB_CONTEXT *dbContext, CHAR *groupName)
 {
     ASSERT(dbContext != NULL);
     ASSERT(groupName != NULL);
 
-    return TRUE;
+    return ERROR_SUCCESS;
 }
 
-BOOL
-DbGroupLock(
-    DB_CONTEXT *dbContext,
-    GROUPFILE *groupFile
-    )
+DWORD DbGroupLock(DB_CONTEXT *dbContext, GROUPFILE *groupFile)
 {
     ASSERT(dbContext != NULL);
     ASSERT(groupFile != NULL);
 
-    return TRUE;
+    return ERROR_SUCCESS;
 }
 
-BOOL
-DbGroupUnlock(
-    DB_CONTEXT *dbContext,
-    GROUPFILE *groupFile
-    )
+DWORD DbGroupUnlock(DB_CONTEXT *dbContext, GROUPFILE *groupFile)
 {
     ASSERT(dbContext != NULL);
     ASSERT(groupFile != NULL);
 
-    return TRUE;
+    return ERROR_SUCCESS;
 }
 
-BOOL
-DbGroupOpen(
-    DB_CONTEXT *dbContext,
-    char *groupName,
-    GROUPFILE *groupFile
-    )
+DWORD DbGroupOpen(DB_CONTEXT *dbContext, CHAR *groupName, GROUPFILE *groupFile)
 {
     ASSERT(dbContext != NULL);
     ASSERT(groupName != NULL);
     ASSERT(groupFile != NULL);
 
-    return TRUE;
+    return ERROR_SUCCESS;
 }
 
-BOOL
-DbGroupWrite(
-    DB_CONTEXT *dbContext,
-    GROUPFILE *groupFile
-    )
+DWORD DbGroupWrite(DB_CONTEXT *dbContext, GROUPFILE *groupFile)
 {
     ASSERT(dbContext != NULL);
     ASSERT(groupFile != NULL);
 
-    return TRUE;
+    return ERROR_SUCCESS;
 }
 
-BOOL
-DbGroupClose(
-    DB_CONTEXT *dbContext
-    )
+DWORD DbGroupClose(GROUPFILE *groupFile)
+{
+    ASSERT(groupFile != NULL);
+
+    return ERROR_SUCCESS;
+}
+
+DWORD DbGroupRefresh(DB_CONTEXT *dbContext)
 {
     ASSERT(dbContext != NULL);
 
-    return TRUE;
+    return ERROR_SUCCESS;
 }

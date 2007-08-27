@@ -16,112 +16,75 @@ Abstract:
 
 #include "mydb.h"
 
-BOOL
-DbUserRefresh(
-    DB_CONTEXT *dbContext
-    )
-{
-    ASSERT(dbContext != NULL);
-
-    return TRUE;
-}
-
-BOOL
-DbUserCreate(
-    DB_CONTEXT *dbContext,
-    char *userName,
-    USERFILE *userFile
-    )
+DWORD DbUserCreate(DB_CONTEXT *dbContext, CHAR *userName, USERFILE *userFile)
 {
     ASSERT(dbContext != NULL);
     ASSERT(userName != NULL);
     ASSERT(userFile != NULL);
 
-    return TRUE;
+    return ERROR_SUCCESS;
 }
 
-BOOL
-DbUserRename(
-    DB_CONTEXT *dbContext,
-    char *userName,
-    char *newName
-    )
+DWORD DbUserRename(DB_CONTEXT *dbContext, CHAR *userName, CHAR *newName)
 {
     ASSERT(dbContext != NULL);
     ASSERT(userName != NULL);
     ASSERT(newName != NULL);
 
-    return TRUE;
+    return ERROR_SUCCESS;
 }
 
-BOOL
-DbUserDelete(
-    DB_CONTEXT *dbContext,
-    char *userName
-    )
+DWORD DbUserDelete(DB_CONTEXT *dbContext, CHAR *userName)
 {
     ASSERT(dbContext != NULL);
     ASSERT(userName != NULL);
 
-    return TRUE;
+    return ERROR_SUCCESS;
 }
 
-BOOL
-DbUserLock(
-    DB_CONTEXT *dbContext,
-    USERFILE *userFile
-    )
+DWORD DbUserLock(DB_CONTEXT *dbContext, USERFILE *userFile)
 {
     ASSERT(dbContext != NULL);
     ASSERT(userFile != NULL);
 
-    return TRUE;
+    return ERROR_SUCCESS;
 }
 
-BOOL
-DbUserUnlock(
-    DB_CONTEXT *dbContext,
-    USERFILE *userFile
-    )
+DWORD DbUserUnlock(DB_CONTEXT *dbContext, USERFILE *userFile)
 {
     ASSERT(dbContext != NULL);
     ASSERT(userFile != NULL);
 
-    return TRUE;
+    return ERROR_SUCCESS;
 }
 
-BOOL
-DbUserOpen(
-    DB_CONTEXT *dbContext,
-    char *userName,
-    USERFILE *userFile
-    )
+DWORD DbUserOpen(DB_CONTEXT *dbContext, CHAR *userName, USERFILE *userFile)
 {
     ASSERT(dbContext != NULL);
     ASSERT(userName != NULL);
     ASSERT(userFile != NULL);
 
-    return TRUE;
+    return ERROR_SUCCESS;
 }
 
-BOOL
-DbUserWrite(
-    DB_CONTEXT *dbContext,
-    USERFILE *userFile
-    )
+DWORD DbUserWrite(DB_CONTEXT *dbContext, USERFILE *userFile)
 {
     ASSERT(dbContext != NULL);
     ASSERT(userFile != NULL);
 
-    return TRUE;
+    return ERROR_SUCCESS;
 }
 
-BOOL
-DbUserClose(
-    DB_CONTEXT *dbContext,
-    )
+DWORD DbUserClose(USERFILE *userFile)
+{
+    ASSERT(userFile != NULL);
+
+    return ERROR_SUCCESS;
+}
+
+DWORD DbUserRefresh(DB_CONTEXT *dbContext)
 {
     ASSERT(dbContext != NULL);
 
-    return TRUE;
+    return ERROR_SUCCESS;
 }

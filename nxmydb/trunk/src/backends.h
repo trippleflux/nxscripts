@@ -17,192 +17,54 @@ Abstract:
 #ifndef _BACKENDS_H_
 #define _BACKENDS_H_
 
-typedef struct {
-    HANDLE fileHandle; // Handle to the open user/group file
-} FILE_CONTEXT;
-
-
 //
 // Group database backend
 //
 
-BOOL
-DbGroupRefresh(
-    DB_CONTEXT *dbContext
-    );
+DWORD DbGroupCreate(DB_CONTEXT *dbContext, CHAR *groupName, GROUPFILE *groupFile);
+DWORD DbGroupRename(DB_CONTEXT *dbContext, CHAR *groupName, CHAR *newName);
+DWORD DbGroupDelete(DB_CONTEXT *dbContext, CHAR *groupName);
+DWORD DbGroupLock(DB_CONTEXT *dbContext, GROUPFILE *groupFile);
+DWORD DbGroupUnlock(DB_CONTEXT *dbContext, GROUPFILE *groupFile);
+DWORD DbGroupOpen(DB_CONTEXT *dbContext, CHAR *groupName, GROUPFILE *groupFile);
+DWORD DbGroupWrite(DB_CONTEXT *dbContext, GROUPFILE *groupFile);
+DWORD DbGroupClose(GROUPFILE *groupFile);
 
-BOOL
-DbGroupCreate(
-    DB_CONTEXT *dbContext,
-    char *groupName,
-    GROUPFILE *groupFile
-    );
+DWORD DbGroupRefresh(DB_CONTEXT *dbContext);
 
-BOOL
-DbGroupRename(
-    DB_CONTEXT *dbContext,
-    char *groupName,
-    char *newName
-    );
-
-BOOL
-DbGroupDelete(
-    DB_CONTEXT *dbContext,
-    char *groupName
-    );
-
-BOOL
-DbGroupLock(
-    DB_CONTEXT *dbContext,
-    GROUPFILE *groupFile
-    );
-
-BOOL
-DbGroupUnlock(
-    DB_CONTEXT *dbContext,
-    GROUPFILE *groupFile
-    );
-
-BOOL
-DbGroupOpen(
-    DB_CONTEXT *dbContext,
-    char *groupName,
-    GROUPFILE *groupFile
-    );
-
-BOOL
-DbGroupWrite(
-    DB_CONTEXT *dbContext,
-    GROUPFILE *groupFile
-    );
-
-BOOL
-DbGroupClose(
-    DB_CONTEXT *dbContext,
-    );
-
-
 //
 // Group file backend
 //
 
-BOOL
-FileGroupCreate(
-    INT32 groupId,
-    GROUPFILE *groupFile
-    );
+DWORD FileGroupCreate(INT32 groupId, GROUPFILE *groupFile);
+DWORD FileGroupDelete(INT32 groupId);
+DWORD FileGroupOpen(INT32 groupId, GROUPFILE *groupFile);
+DWORD FileGroupWrite(GROUPFILE *groupFile);
+DWORD FileGroupClose(GROUPFILE *groupFile);
 
-BOOL
-FileGroupDelete(
-    INT32 groupId
-    );
-
-BOOL
-FileGroupOpen(
-    INT32 groupId,
-    FILE_CONTEXT *fileContext
-    );
-
-BOOL
-FileGroupWrite(
-    GROUPFILE *groupFile
-    );
-
-BOOL
-FileGroupClose(
-    FILE_CONTEXT *fileContext
-    );
-
-
 //
 // User database backend
 //
 
-BOOL
-DbUserRefresh(
-    DB_CONTEXT *dbContext
-    );
+DWORD DbUserCreate(DB_CONTEXT *dbContext, CHAR *userName, USERFILE *userFile);
+DWORD DbUserRename(DB_CONTEXT *dbContext, CHAR *userName, CHAR *newName);
+DWORD DbUserDelete(DB_CONTEXT *dbContext, CHAR *userName);
+DWORD DbUserLock(DB_CONTEXT *dbContext, USERFILE *userFile);
+DWORD DbUserUnlock(DB_CONTEXT *dbContext, USERFILE *userFile);
+DWORD DbUserOpen(DB_CONTEXT *dbContext, CHAR *userName, USERFILE *userFile);
+DWORD DbUserWrite(DB_CONTEXT *dbContext, USERFILE *userFile);
+DWORD DbUserClose(USERFILE *userFile);
 
-BOOL
-DbUserCreate(
-    DB_CONTEXT *dbContext,
-    char *userName,
-    USERFILE *userFile
-    );
+DWORD DbUserRefresh(DB_CONTEXT *dbContext);
 
-BOOL
-DbUserRename(
-    DB_CONTEXT *dbContext,
-    char *userName,
-    char *newName
-    );
-
-BOOL
-DbUserDelete(
-    DB_CONTEXT *dbContext,
-    char *userName
-    );
-
-BOOL
-DbUserLock(
-    DB_CONTEXT *dbContext,
-    USERFILE *userFile
-    );
-
-BOOL
-DbUserUnlock(
-    DB_CONTEXT *dbContext,
-    USERFILE *userFile
-    );
-
-BOOL
-DbUserOpen(
-    DB_CONTEXT *dbContext,
-    char *userName,
-    USERFILE *userFile
-    );
-
-BOOL
-DbUserWrite(
-    DB_CONTEXT *dbContext,
-    USERFILE *userFile
-    );
-
-BOOL
-DbUserClose(
-    DB_CONTEXT *dbContext,
-    );
-
-
 //
 // User file backend
 //
 
-BOOL
-FileUserCreate(
-    INT32 userId,
-    USERFILE *userFile
-    );
-
-BOOL
-FileUserDelete(
-    INT32 userId
-    );
-
-BOOL
-FileUserOpen(
-    INT32 userId,
-    FILE_CONTEXT *fileContext
-    );
-
-BOOL
-FileUserWrite(
-    USERFILE *userFile
-    );
-
-BOOL
-FileUserClose(
-    FILE_CONTEXT *fileContext
-    );
+DWORD FileUserCreate(INT32 userId, USERFILE *userFile);
+DWORD FileUserDelete(INT32 userId);
+DWORD FileUserOpen(INT32 userId, USERFILE *userFile);
+DWORD FileUserWrite(USERFILE *userFile);
+DWORD FileUserClose(USERFILE *userFile);
 
 #endif // _BACKENDS_H_

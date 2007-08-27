@@ -16,53 +16,49 @@ Abstract:
 
 #include "mydb.h"
 
-static
-BOOL
-GroupRead(
-    char *filePath,
-    GROUPFILE *groupFile
-    )
+static DWORD GroupRead(CHAR *filePath, GROUPFILE *groupFile)
 {
-    char *buffer = NULL;
-    DWORD bytesRead;
-    DWORD error;
-    DWORD fileSize;
-    GROUP_CONTEXT *context;
+    CHAR    *buffer = NULL;
+    DWORD   bytesRead;
+    DWORD   fileSize;
+    DWORD   result;
+    HANDLE  fileHandle;
 
     ASSERT(filePath != NULL);
     ASSERT(groupFile != NULL);
-    ASSERT(groupFile->lpInternal != NULL);
 
-    context = groupFile->lpInternal;
-
-    // Open the group file
-    context->fileHandle = CreateFileA(filePath,
+    // Open group file
+    fileHandle = CreateFileA(filePath,
         GENERIC_READ|GENERIC_WRITE,
         FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
         NULL, OPEN_EXISTING, 0, NULL);
 
-    if (context->fileHandle == INVALID_HANDLE_VALUE) {
-        TRACE("Unable to open file (error %lu).\n", GetLastError());
-        return FALSE;
+    if (fileHandle == INVALID_HANDLE_VALUE) {
+        result = GetLastError();
+        TRACE("Unable to open file \"%s\" (error %lu).\n", filePath, result);
+        goto failed;
     }
 
     // Retrieve file size
-    fileSize = GetFileSize(context->fileHandle, NULL);
+    fileSize = GetFileSize(fileHandle, NULL);
     if (fileSize == INVALID_FILE_SIZE || fileSize < 5) {
-        TRACE("Unable to retrieve file size, or file size is under 5 bytes.\n");
+        result = INVALID_FILE_SIZE;
+        TRACE("Unable to retrieve size of file \"%s\" (error %lu).\n", filePath, result);
         goto failed;
     }
 
     // Allocate read buffer
     buffer = Io_Allocate(fileSize + 1);
     if (buffer == NULL) {
+        result = ERROR_NOT_ENOUGH_MEMORY;
         TRACE("Unable to allocate read buffer.\n");
         goto failed;
     }
 
     // Read group file to buffer
-    if (!ReadFile(context->fileHandle, buffer, fileSize, &bytesRead, NULL) || bytesRead < 5) {
-        TRACE("Unable to read file, or the amount read is under 5 bytes.\n");
+    if (!ReadFile(fileHandle, buffer, fileSize, &bytesRead, NULL) || bytesRead < 5) {
+        result = GetLastError();
+        TRACE("Unable to write file \"%s\" (error %lu).\n", filePath, result);
         goto failed;
     }
 
@@ -73,33 +69,27 @@ GroupRead(
     // Parse buffer, also initializing the GROUPFILE structure
     Io_Ascii2GroupFile(buffer, bytesRead, groupFile);
 
+    // Save file handle
+    groupFile->lpInternal = fileHandle;
+
     Io_Free(buffer);
-    return TRUE;
+    return ERROR_SUCCESS;
 
 failed:
-    // Preserve system error code
-    error = GetLastError();
-
     if (buffer != NULL) {
         Io_Free(buffer);
     }
-    CloseHandle(context->fileHandle);
+    CloseHandle(fileHandle);
 
-    // Restore system error code
-    SetLastError(error);
-    return FALSE;
+    return result;
 }
 
-BOOL
-FileGroupCreate(
-    INT32 groupId,
-    GROUPFILE *groupFile
-    )
+DWORD FileGroupCreate(INT32 groupId, GROUPFILE *groupFile)
 {
-    char *defaultPath;
-    char *targetPath;
-    char buffer[12];
-    DWORD error;
+    CHAR  *defaultPath = NULL;
+    CHAR  *targetPath = NULL;
+    CHAR  buffer[12];
+    DWORD result;
 
     ASSERT(groupFile != NULL);
 
@@ -107,9 +97,7 @@ FileGroupCreate(
     defaultPath = Io_ConfigGetPath("Locations", "Group_Files", "Default.Group", NULL);
     if (defaultPath == NULL) {
         TRACE("Unable to retrieve default file location.\n");
-
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-        return FALSE;
+        return ERROR_NOT_ENOUGH_MEMORY;
     }
 
     // Retrieve group location
@@ -117,123 +105,104 @@ FileGroupCreate(
     targetPath = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
     if (targetPath == NULL) {
         TRACE("Unable to retrieve file location.\n");
+        result = ERROR_NOT_ENOUGH_MEMORY;
+    } else {
 
+        // Copy default file to target file
+        if (!CopyFileA(defaultPath, targetPath, FALSE)) {
+            result = GetLastError();
+            TRACE("Unable to copy default file (error %lu).\n", result);
+
+        } else {
+            // Read group file (copy of "Default.Group")
+            result = GroupRead(targetPath, groupFile);
+        }
+    }
+
+    if (defaultPath != NULL) {
         Io_Free(defaultPath);
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-        return FALSE;
     }
-
-    // Copy default file to target file
-    if (!CopyFileA(defaultPath, targetPath, FALSE)) {
-        TRACE("Unable to copy default file (error %lu).\n", GetLastError());
-        goto failed;
+    if (targetPath != NULL) {
+        Io_Free(targetPath);
     }
-
-    // Read group file (copy of "Default.Group")
-    if (!GroupRead(targetPath, groupFile)) {
-        TRACE("Unable read target file (error %lu).\n", GetLastError());
-        goto failed;
-    }
-
-    Io_Free(defaultPath);
-    Io_Free(targetPath);
-    return TRUE;
-
-failed:
-    // Preserve system error code
-    error = GetLastError();
-
-    Io_Free(defaultPath);
-    Io_Free(targetPath);
-
-    // Restore system error code
-    SetLastError(error);
-    return FALSE;
+    return result;
 }
 
-BOOL
-FileGroupDelete(
-    INT32 groupId
-    )
+DWORD FileGroupDelete(INT32 groupId)
 {
-    char buffer[12];
-    char *filePath;
+    CHAR  buffer[12];
+    CHAR  *filePath;
+    DWORD result;
 
     // Retrieve group file location
     StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", groupId);
     filePath = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
     if (filePath == NULL) {
         TRACE("Unable to retrieve file location.\n");
-
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-        return FALSE;
+        return ERROR_NOT_ENOUGH_MEMORY;
     }
 
     // Delete group file and free resources
-    DeleteFileA(filePath);
-    Io_Free(filePath);
+    if (DeleteFileA(filePath)) {
+        result = ERROR_SUCCESS;
+    } else {
+        result = GetLastError();
+        TRACE("Unable to delete file \"%s\" (error %lu).\n", filePath, result);
+    }
 
-    return TRUE;
+    Io_Free(filePath);
+    return result;
 }
 
-BOOL
-FileGroupOpen(
-    INT32 groupId,
-    GROUP_CONTEXT *context
-    )
+DWORD FileGroupOpen(INT32 groupId, GROUPFILE *groupFile)
 {
-    char buffer[12];
-    char *filePath;
-    DWORD error;
+    CHAR    buffer[12];
+    CHAR    *filePath;
+    DWORD   result;
+    HANDLE  fileHandle;
 
-    ASSERT(context != NULL);
+    ASSERT(groupId != -1);
+    ASSERT(groupFile != NULL);
 
     // Retrieve group file location
     StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", groupId);
     filePath = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
     if (filePath == NULL) {
         TRACE("Unable to retrieve file location.\n");
-
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-        return FALSE;
+        return ERROR_NOT_ENOUGH_MEMORY;
     }
 
     // Open group file
-    context->fileHandle = CreateFileA(filePath,
+    fileHandle = CreateFileA(filePath,
         GENERIC_READ|GENERIC_WRITE,
         FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
         NULL, OPEN_EXISTING, 0, NULL);
 
-    if (context->fileHandle == INVALID_HANDLE_VALUE) {
-        // Preserve system error code
-        error = GetLastError();
-        Io_Free(filePath);
-
-        TRACE("Unable to open file (error %lu).\n", error);
-
-        // Restore system error code
-        SetLastError(error);
-        return FALSE;
+    if (fileHandle != INVALID_HANDLE_VALUE) {
+        result = ERROR_SUCCESS;
+    } else {
+        result = GetLastError();
+        TRACE("Unable to open file \"%s\" (error %lu).\n", filePath, result);
     }
 
+    // Save file handle
+    groupFile->lpInternal = fileHandle;
+
     Io_Free(filePath);
-    return TRUE;
+    return result;
 }
 
-BOOL
-FileGroupWrite(
-    GROUPFILE *groupFile
-    )
+DWORD FileGroupWrite(GROUPFILE *groupFile)
 {
-    BUFFER buffer;
-    DWORD bytesWritten;
-    DWORD error;
-    GROUP_CONTEXT *context;
+    BUFFER  buffer;
+    DWORD   bytesWritten;
+    DWORD   result;
+    HANDLE  fileHandle;
 
     ASSERT(groupFile != NULL);
-    ASSERT(groupFile->lpInternal != NULL);
 
-    context = groupFile->lpInternal;
+    fileHandle = groupFile->lpInternal;
+    ASSERT(fileHandle != INVALID_HANDLE_VALUE);
 
     // Allocate write buffer
     ZeroMemory(&buffer, sizeof(BUFFER));
@@ -243,46 +212,44 @@ FileGroupWrite(
 
     if (buffer.buf == NULL) {
         TRACE("Unable to allocate write buffer.\n");
-
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-        return FALSE;
+        return ERROR_NOT_ENOUGH_MEMORY;
     }
 
     // Dump group data to buffer
     Io_GroupFile2Ascii(&buffer, groupFile);
 
     // Write buffer to file
-    SetFilePointer(context->fileHandle, 0, 0, FILE_BEGIN);
-    if (!WriteFile(context->fileHandle, buffer.buf, buffer.len, &bytesWritten, NULL)) {
-        // Preserve system error code
-        error = GetLastError();
-        Io_Free(buffer.buf);
+    SetFilePointer(fileHandle, 0, 0, FILE_BEGIN);
+    if (WriteFile(fileHandle, buffer.buf, buffer.len, &bytesWritten, NULL)) {
+        result = ERROR_SUCCESS;
 
-        TRACE("Unable to write file (error %lu).\n", error);
-
-        // Restore system error code
-        SetLastError(error);
-        return FALSE;
+        // Truncate file at its current position and flush changes to disk
+        SetEndOfFile(fileHandle);
+        FlushFileBuffers(fileHandle);
+    } else {
+        result = GetLastError();
+        TRACE("Unable to write file (error %lu).\n", result);
     }
 
-    // Truncate file at its current position and flush changes to disk
-    SetEndOfFile(context->fileHandle);
-    FlushFileBuffers(context->fileHandle);
-
     Io_Free(buffer.buf);
-    return TRUE;
+    return result;
 }
 
-BOOL
-FileGroupClose(
-    GROUP_CONTEXT *context
-    )
+DWORD FileGroupClose(GROUPFILE *groupFile)
 {
-    ASSERT(context != NULL);
+    HANDLE fileHandle;
 
-    // Close group file handle
-    ASSERT(context->fileHandle != INVALID_HANDLE_VALUE);
-    CloseHandle(context->fileHandle);
+    ASSERT(groupFile != NULL);
 
-    return TRUE;
+    fileHandle = groupFile->lpInternal;
+
+    // Close group file
+    if (fileHandle != INVALID_HANDLE_VALUE) {
+        CloseHandle(fileHandle);
+
+        // Invalidate the internal pointer
+        groupFile->lpInternal = INVALID_HANDLE_VALUE;
+    }
+
+    return ERROR_SUCCESS;
 }

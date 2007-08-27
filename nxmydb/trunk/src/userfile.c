@@ -16,51 +16,49 @@ Abstract:
 
 #include "mydb.h"
 
-static
-BOOL
-UserRead(
-    char *filePath,
-    USERFILE *userFile
-    )
+static DWORD UserRead(CHAR *filePath, USERFILE *userFile)
 {
-    char *buffer = NULL;
-    DWORD bytesRead;
-    DWORD error;
-    DWORD fileSize;
-    USER_CONTEXT *context = userFile->lpInternal;
+    CHAR    *buffer = NULL;
+    DWORD   bytesRead;
+    DWORD   fileSize;
+    DWORD   result;
+    HANDLE  fileHandle;
 
     ASSERT(filePath != NULL);
     ASSERT(userFile != NULL);
-    ASSERT(userFile->lpInternal != NULL);
 
     // Open user file
-    context->fileHandle = CreateFileA(filePath,
+    fileHandle = CreateFileA(filePath,
         GENERIC_READ|GENERIC_WRITE,
         FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
         NULL, OPEN_EXISTING, 0, NULL);
 
-    if (context->fileHandle == INVALID_HANDLE_VALUE) {
-        TRACE("Unable to open file (error %lu).\n", GetLastError());
-        return FALSE;
+    if (fileHandle == INVALID_HANDLE_VALUE) {
+        result = GetLastError();
+        TRACE("Unable to open file \"%s\" (error %lu).\n", filePath, result);
+        goto failed;
     }
 
     // Retrieve file size
-    fileSize = GetFileSize(context->fileHandle, NULL);
+    fileSize = GetFileSize(fileHandle, NULL);
     if (fileSize == INVALID_FILE_SIZE || fileSize < 5) {
-        TRACE("Unable to retrieve file size, or file size is under 5 bytes.\n");
+        result = INVALID_FILE_SIZE;
+        TRACE("Unable to retrieve size of file \"%s\" (error %lu).\n", filePath, result);
         goto failed;
     }
 
     // Allocate read buffer
     buffer = Io_Allocate(fileSize + 1);
     if (buffer == NULL) {
+        result = ERROR_NOT_ENOUGH_MEMORY;
         TRACE("Unable to allocate read buffer.\n");
         goto failed;
     }
 
     // Read user file to buffer
-    if (!ReadFile(context->fileHandle, buffer, fileSize, &bytesRead, NULL) || bytesRead < 5) {
-        TRACE("Unable to read file, or the amount read is under 5 bytes.\n");
+    if (!ReadFile(fileHandle, buffer, fileSize, &bytesRead, NULL) || bytesRead < 5) {
+        result = GetLastError();
+        TRACE("Unable to write file \"%s\" (error %lu).\n", filePath, result);
         goto failed;
     }
 
@@ -72,33 +70,27 @@ UserRead(
     Io_Ascii2UserFile(buffer, bytesRead, userFile);
     userFile->Gid = userFile->Groups[0];
 
+    // Save file handle
+    userFile->lpInternal = fileHandle;
+
     Io_Free(buffer);
-    return TRUE;
+    return ERROR_SUCCESS;
 
 failed:
-    // Preserve system error code
-    error = GetLastError();
-
     if (buffer != NULL) {
         Io_Free(buffer);
     }
-    CloseHandle(context->fileHandle);
+    CloseHandle(fileHandle);
 
-    // Restore system error code
-    SetLastError(error);
-    return FALSE;
+    return result;
 }
 
-BOOL
-FileUserCreate(
-    INT32 userId,
-    USERFILE *userFile
-    )
+DWORD FileUserCreate(INT32 userId, USERFILE *userFile)
 {
-    char *defaultPath;
-    char *targetPath;
-    char buffer[12];
-    DWORD error;
+    CHAR  *defaultPath = NULL;
+    CHAR  *targetPath = NULL;
+    CHAR  buffer[12];
+    DWORD result;
 
     ASSERT(userFile != NULL);
 
@@ -106,9 +98,7 @@ FileUserCreate(
     defaultPath = Io_ConfigGetPath("Locations", "User_Files", "Default.User", NULL);
     if (defaultPath == NULL) {
         TRACE("Unable to retrieve default file location.\n");
-
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-        return FALSE;
+        return ERROR_NOT_ENOUGH_MEMORY;
     }
 
     // Retrieve user location
@@ -116,121 +106,104 @@ FileUserCreate(
     targetPath = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
     if (targetPath == NULL) {
         TRACE("Unable to retrieve file location.\n");
+        result = ERROR_NOT_ENOUGH_MEMORY;
+    } else {
 
+        // Copy default file to target file
+        if (!CopyFileA(defaultPath, targetPath, FALSE)) {
+            result = GetLastError();
+            TRACE("Unable to copy default file (error %lu).\n", result);
+
+        } else {
+            // Read user file (copy of "Default.User")
+            result = UserRead(targetPath, userFile);
+        }
+    }
+
+    if (defaultPath != NULL) {
         Io_Free(defaultPath);
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-        return FALSE;
     }
-
-    // Copy default file to target file
-    if (!CopyFileA(defaultPath, targetPath, FALSE)) {
-        TRACE("Unable to copy default file (error %lu).\n", GetLastError());
-        goto failed;
+    if (targetPath != NULL) {
+        Io_Free(targetPath);
     }
-
-    // Read user file (copy of "Default.User")
-    if (!UserRead(targetPath, userFile)) {
-        TRACE("Unable read target file (error %lu).\n", GetLastError());
-        goto failed;
-    }
-
-    Io_Free(defaultPath);
-    Io_Free(targetPath);
-    return TRUE;
-
-failed:
-    // Preserve system error code
-    error = GetLastError();
-
-    Io_Free(defaultPath);
-    Io_Free(targetPath);
-
-    // Restore system error code
-    SetLastError(error);
-    return FALSE;
+    return result;
 }
 
-BOOL
-FileUserDelete(
-    INT32 userId
-    )
+DWORD FileUserDelete(INT32 userId)
 {
-    char buffer[12];
-    char *filePath;
+    CHAR  buffer[12];
+    CHAR  *filePath;
+    DWORD result;
 
     // Retrieve user file location
     StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", userId);
     filePath = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
     if (filePath == NULL) {
         TRACE("Unable to retrieve file location.\n");
-
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-        return FALSE;
+        return ERROR_NOT_ENOUGH_MEMORY;
     }
 
     // Delete user file and free resources
-    DeleteFileA(filePath);
-    Io_Free(filePath);
+    if (DeleteFileA(filePath)) {
+        result = ERROR_SUCCESS;
+    } else {
+        result = GetLastError();
+        TRACE("Unable to delete file \"%s\" (error %lu).\n", filePath, result);
+    }
 
-    return TRUE;
+    Io_Free(filePath);
+    return result;
 }
 
-BOOL
-FileUserOpen(
-    INT32 userId,
-    USER_CONTEXT *context
-    )
+DWORD FileUserOpen(INT32 userId, USERFILE *userFile)
 {
-    char buffer[12];
-    char *filePath;
-    DWORD error;
+    CHAR    buffer[12];
+    CHAR    *filePath;
+    DWORD   result;
+    HANDLE  fileHandle;
 
-    ASSERT(context != NULL);
+    ASSERT(userId != -1);
+    ASSERT(userFile != NULL);
 
     // Retrieve user file location
     StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", userId);
     filePath = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
     if (filePath == NULL) {
         TRACE("Unable to retrieve file location.\n");
-
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-        return FALSE;
+        return ERROR_NOT_ENOUGH_MEMORY;
     }
 
     // Open user file
-    context->fileHandle = CreateFileA(filePath,
+    fileHandle = CreateFileA(filePath,
         GENERIC_READ|GENERIC_WRITE,
         FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
         NULL, OPEN_EXISTING, 0, NULL);
 
-    if (context->fileHandle == INVALID_HANDLE_VALUE) {
-        // Preserve system error code
-        error = GetLastError();
-        Io_Free(filePath);
-
-        TRACE("Unable to open file (error %lu).\n", error);
-
-        // Restore system error code
-        SetLastError(error);
-        return FALSE;
+    if (fileHandle != INVALID_HANDLE_VALUE) {
+        result = ERROR_SUCCESS;
+    } else {
+        result = GetLastError();
+        TRACE("Unable to open file \"%s\" (error %lu).\n", filePath, result);
     }
 
+    // Save file handle
+    userFile->lpInternal = fileHandle;
+
     Io_Free(filePath);
-    return TRUE;
+    return result;
 }
 
-BOOL
-FileUserWrite(
-    USERFILE *userFile
-    )
+DWORD FileUserWrite(USERFILE *userFile)
 {
-    BUFFER buffer;
-    DWORD bytesWritten;
-    DWORD error;
-    USER_CONTEXT *context = userFile->lpInternal;
+    BUFFER  buffer;
+    DWORD   bytesWritten;
+    DWORD   result;
+    HANDLE  fileHandle;
 
     ASSERT(userFile != NULL);
-    ASSERT(userFile->lpInternal != NULL);
+
+    fileHandle = userFile->lpInternal;
+    ASSERT(fileHandle != INVALID_HANDLE_VALUE);
 
     // Allocate write buffer
     ZeroMemory(&buffer, sizeof(BUFFER));
@@ -240,47 +213,44 @@ FileUserWrite(
 
     if (buffer.buf == NULL) {
         TRACE("Unable to allocate write buffer.\n");
-
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-        return FALSE;
+        return ERROR_NOT_ENOUGH_MEMORY;
     }
 
     // Dump user data to buffer
     Io_UserFile2Ascii(&buffer, userFile);
 
     // Write buffer to file
-    SetFilePointer(context->fileHandle, 0, 0, FILE_BEGIN);
-    if (!WriteFile(context->fileHandle, buffer.buf, buffer.len, &bytesWritten, NULL)) {
-        // Preserve system error code
-        error = GetLastError();
-        Io_Free(buffer.buf);
+    SetFilePointer(fileHandle, 0, 0, FILE_BEGIN);
+    if (WriteFile(fileHandle, buffer.buf, buffer.len, &bytesWritten, NULL)) {
+        result = ERROR_SUCCESS;
 
-        TRACE("Unable to write file (error %lu).\n", error);
-
-        // Restore system error code
-        SetLastError(error);
-        return FALSE;
+        // Truncate file at its current position and flush changes to disk
+        SetEndOfFile(fileHandle);
+        FlushFileBuffers(fileHandle);
+    } else {
+        result = GetLastError();
+        TRACE("Unable to write file (error %lu).\n", result);
     }
-
-    // Truncate file at its current position and flush changes to disk
-    SetEndOfFile(context->fileHandle);
-    FlushFileBuffers(context->fileHandle);
 
     Io_Free(buffer.buf);
-    return TRUE;
+    return result;
 }
 
-BOOL
-FileUserClose(
-    USER_CONTEXT *context
-    )
+DWORD FileUserClose(USERFILE *userFile)
 {
-    ASSERT(context != NULL);
+    HANDLE fileHandle;
 
-    // Close user file handle
-    if (context->fileHandle != INVALID_HANDLE_VALUE) {
-        CloseHandle(context->fileHandle);
+    ASSERT(userFile != NULL);
+
+    fileHandle = userFile->lpInternal;
+
+    // Close user file
+    if (fileHandle != INVALID_HANDLE_VALUE) {
+        CloseHandle(fileHandle);
+
+        // Invalidate the internal pointer
+        userFile->lpInternal = INVALID_HANDLE_VALUE;
     }
 
-    return TRUE;
+    return ERROR_SUCCESS;
 }

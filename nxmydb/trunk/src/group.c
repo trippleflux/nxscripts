@@ -16,23 +16,20 @@ Abstract:
 
 #include "mydb.h"
 
-static INT   GroupFinalize(void);
-static INT32 GroupCreate(char *groupName);
-static INT   GroupRename(char *groupName, INT32 groupId, char *newName);
-static INT   GroupDelete(char *groupName, INT32 groupId);
+static INT   GroupFinalize(VOID);
+static INT32 GroupCreate(CHAR *groupName);
+static INT   GroupRename(CHAR *groupName, INT32 groupId, CHAR *newName);
+static INT   GroupDelete(CHAR *groupName, INT32 groupId);
 static INT   GroupLock(GROUPFILE *groupFile);
 static INT   GroupUnlock(GROUPFILE *groupFile);
-static INT   GroupOpen(char *groupName, GROUPFILE *groupFile);
+static INT   GroupOpen(CHAR *groupName, GROUPFILE *groupFile);
 static INT   GroupWrite(GROUPFILE *groupFile);
 static INT   GroupClose(GROUPFILE *groupFile);
 
 static GROUP_MODULE *groupModule = NULL;
 
 
-INT
-GroupModuleInit(
-    GROUP_MODULE *module
-    )
+INT GroupModuleInit(GROUP_MODULE *module)
 {
     // Initialize module structure
     module->tszModuleName = "NXMYDB";
@@ -56,11 +53,7 @@ GroupModuleInit(
     return GM_SUCCESS;
 }
 
-static
-INT
-GroupFinalize(
-    void
-    )
+static INT GroupFinalize(VOID)
 {
     DbFinalize();
 
@@ -68,223 +61,235 @@ GroupFinalize(
     return GM_SUCCESS;
 }
 
-static
-INT32
-GroupCreate(
-    char *groupName
-    )
+static INT32 GroupCreate(CHAR *groupName)
 {
-    DWORD error;
-    INT32 groupId;
-    GROUP_CONTEXT *context;
-    GROUPFILE groupFile;
+    DB_CONTEXT *dbContext;
+    DWORD       result;
+    INT32       groupId;
+    GROUPFILE    groupFile;
 
-    // Allocate group context
-    context = Io_Allocate(sizeof(GROUP_CONTEXT));
-    if (context == NULL) {
-        TRACE("Unable to allocate group context.\n");
-
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+    if (!DbAcquire(&dbContext)) {
         return -1;
     }
 
     // Initialize GROUPFILE structure
     ZeroMemory(&groupFile, sizeof(GROUPFILE));
-    groupFile.lpInternal = context;
+    groupFile.lpInternal = INVALID_HANDLE_VALUE;
 
     // Register group
     groupId = groupModule->Register(groupModule, groupName, &groupFile);
     if (groupId == -1) {
-        TRACE("Unable to register group (error %lu).\n", GetLastError());
-        goto failed;
-    }
-
-    // Create group file and read "Default.Group"
-    if (!FileGroupCreate(groupId, &groupFile)) {
-        TRACE("Unable to create group file (error %lu).\n", GetLastError());
-        goto failed;
-    }
-
-    // Create database record
-    if (!DbGroupCreate(groupName, &groupFile)) {
-        TRACE("Unable to create database record (error %lu).\n", GetLastError());
-        goto failed;
-    }
-
-    return groupId;
-
-failed:
-    // Preserve system error code
-    error = GetLastError();
-
-    if (groupId == -1) {
-        // Group was not created, just free the context
-        Io_Free(context);
+        result = GetLastError();
+        TRACE("Unable to register group (error %lu).\n", result);
     } else {
-        // Delete created group (will also free the context)
-        if (GroupDelete(groupName, groupId) != GM_SUCCESS) {
-            TRACE("Unable to delete group (error %lu).\n", GetLastError());
+
+        // Create group file and read "Default.Group"
+        result = FileGroupCreate(groupId, &groupFile);
+        if (result != ERROR_SUCCESS) {
+            TRACE("Unable to create group file (error %lu).\n", result);
+        } else {
+
+            // Create database record
+            result = DbGroupCreate(dbContext, groupName, &groupFile);
+            if (result != ERROR_SUCCESS) {
+                TRACE("Unable to create database record (error %lu).\n", result);
+
+                // Clean-up the file
+                FileGroupDelete(groupId);
+                FileGroupClose(&groupFile);
+            }
         }
     }
 
-    // Restore system error code
-    SetLastError(error);
-    return -1;
+    DbRelease(dbContext);
+
+    SetLastError(result);
+    return (result == ERROR_SUCCESS) ? groupId : -1;
 }
 
-static
-INT
-GroupRename(
-    char *groupName,
-    INT32 groupId,
-    char *newName
-    )
+static INT GroupRename(CHAR *groupName, INT32 groupId, CHAR *newName)
 {
-    // Rename database record
-    if (!DbGroupRename(groupName, newName)) {
-        TRACE("Unable to rename database record (error %lu).\n", GetLastError());
-    }
+    DB_CONTEXT *dbContext;
+    DWORD       result;
 
-    // Register group under the new name
-    if (groupModule->RegisterAs(groupModule, groupName, newName) != GM_SUCCESS) {
-        TRACE("Unable to re-register group (error %lu).\n", GetLastError());
+    if (!DbAcquire(&dbContext)) {
         return GM_ERROR;
     }
 
-    return GM_SUCCESS;
+    // Rename database record
+    result = DbGroupRename(dbContext, groupName, newName);
+    if (result != ERROR_SUCCESS) {
+        TRACE("Unable to rename group database record (error %lu).\n", result);
+    } else {
+
+        // Register group under the new name
+        if (groupModule->RegisterAs(groupModule, groupName, newName) != GM_SUCCESS) {
+            result = GetLastError();
+            TRACE("Unable to re-register group (error %lu).\n", result);
+        }
+    }
+
+    DbRelease(dbContext);
+
+    SetLastError(result);
+    return (result == ERROR_SUCCESS) ? GM_SUCCESS : GM_ERROR;
 }
 
-static
-INT
-GroupDelete(
-    char *groupName,
-    INT32 groupId
-    )
+static INT GroupDelete(CHAR *groupName, INT32 groupId)
 {
-    // Delete group file
-    if (!FileGroupDelete(groupId)) {
-        TRACE("Unable to delete group file (error %lu).\n", GetLastError());
+    DB_CONTEXT *dbContext;
+    DWORD       result;
+
+    if (!DbAcquire(&dbContext)) {
+        return GM_ERROR;
+    }
+
+    // Delete group file (success does not matter)
+    result = FileGroupDelete(groupId);
+    if (result != ERROR_SUCCESS) {
+        TRACE("Unable to delete group file (error %lu).\n", result);
     }
 
     // Delete database record
-    if (!DbGroupDelete(groupName)) {
-        TRACE("Unable to delete database record (error %lu).\n", GetLastError());
+    result = DbGroupDelete(dbContext, groupName);
+    if (result != ERROR_SUCCESS) {
+        TRACE("Unable to delete group database record (error %lu).\n", result);
+    } else {
+
+        // Unregister group
+        if (groupModule->Unregister(groupModule, groupName) != GM_SUCCESS) {
+            result = GetLastError();
+            TRACE("Unable to unregister group (error %lu).\n", result);
+        }
     }
 
-    // Unregister group
-    if (groupModule->Unregister(groupModule, groupName) != GM_SUCCESS) {
-        TRACE("Unable to unregister group (error %lu).\n", GetLastError());
+    DbRelease(dbContext);
+
+    SetLastError(result);
+    return (result == ERROR_SUCCESS) ? GM_SUCCESS : GM_ERROR;
+}
+
+static INT GroupLock(GROUPFILE *groupFile)
+{
+    DB_CONTEXT *dbContext;
+    DWORD       result;
+
+    if (!DbAcquire(&dbContext)) {
         return GM_ERROR;
     }
 
-    return GM_SUCCESS;
+    // Lock group
+    result = DbGroupLock(dbContext, groupFile);
+    if (result != ERROR_SUCCESS) {
+        TRACE("Unable to lock group (error %lu).\n", result);
+    }
+
+    DbRelease(dbContext);
+
+    SetLastError(result);
+    return (result == ERROR_SUCCESS) ? GM_SUCCESS : GM_ERROR;
 }
 
-static
-INT
-GroupLock(
-    GROUPFILE *groupFile
-    )
+static INT GroupUnlock(GROUPFILE *groupFile)
 {
-    // Lock group exclusively
-    if (!DbGroupLock(groupFile)) {
-        TRACE("Unable to lock database record (error %lu).\n", GetLastError());
+    DB_CONTEXT *dbContext;
+    DWORD       result;
+
+    if (!DbAcquire(&dbContext)) {
         return GM_ERROR;
     }
 
-    return GM_SUCCESS;
-}
-
-static
-INT
-GroupUnlock(
-    GROUPFILE *groupFile
-    )
-{
     // Unlock group
-    if (!DbGroupUnlock(groupFile)) {
-        TRACE("Unable to unlock database record (error %lu).\n", GetLastError());
-        return GM_ERROR;
+    result = DbGroupUnlock(dbContext, groupFile);
+    if (result != ERROR_SUCCESS) {
+        TRACE("Unable to unlock group (error %lu).\n", result);
     }
 
-    return GM_SUCCESS;
+    DbRelease(dbContext);
+
+    SetLastError(result);
+    return (result == ERROR_SUCCESS) ? GM_SUCCESS : GM_ERROR;
 }
 
-static
-INT
-GroupOpen(
-    char *groupName,
-    GROUPFILE *groupFile
-    )
+static INT GroupOpen(CHAR *groupName, GROUPFILE *groupFile)
 {
-    // Allocate group context
-    groupFile->lpInternal = Io_Allocate(sizeof(GROUP_CONTEXT));
-    if (groupFile->lpInternal == NULL) {
-        TRACE("Unable to allocate group context.\n");
+    DB_CONTEXT *dbContext;
+    DWORD       result;
 
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+    if (!DbAcquire(&dbContext)) {
         return GM_FATAL;
     }
 
     // Open group file
-    if (!FileGroupOpen(groupFile->Gid, groupFile->lpInternal)) {
-        TRACE("Unable to open group file (error %lu).\n", GetLastError());
-        return (GetLastError() == ERROR_FILE_NOT_FOUND) ? GM_DELETED : GM_FATAL;
+    result = FileGroupOpen(groupFile->Gid, groupFile);
+    if (result != ERROR_SUCCESS) {
+        TRACE("Unable to open group file (error %lu).\n", result);
+    } else {
+
+        // Read database record
+        result = DbGroupOpen(dbContext, groupName, groupFile);
+        if (result != ERROR_SUCCESS) {
+            TRACE("Unable to open group database record (error %lu).\n", result);
+        }
     }
 
-    // Read database record
-    if (!DbGroupOpen(groupName, groupFile)) {
-        TRACE("Unable to open database record (error %lu).\n", GetLastError());
-        return GM_FATAL;
-    }
+    DbRelease(dbContext);
 
-    return GM_SUCCESS;
+    SetLastError(result);
+    switch (result) {
+        case ERROR_FILE_NOT_FOUND:
+            return GM_DELETED;
+
+        case ERROR_SUCCESS:
+            return GM_SUCCESS;
+
+        default:
+            return GM_FATAL;
+    }
 }
 
-static
-INT
-GroupWrite(
-    GROUPFILE *groupFile
-    )
+static INT GroupWrite(GROUPFILE *groupFile)
 {
-    // Update group file
-    if (!FileGroupWrite(groupFile)) {
-        TRACE("Unable to write group file (error %lu).\n", GetLastError());
-    }
+    DB_CONTEXT *dbContext;
+    DWORD       result;
 
-    // Update database record
-    if (!DbGroupWrite(groupFile)) {
-        TRACE("Unable to write database record (error %lu).\n", GetLastError());
+    if (!DbAcquire(&dbContext)) {
         return GM_ERROR;
     }
 
-    return GM_SUCCESS;
+    // Update group file (success does not matter)
+    result = FileGroupWrite(groupFile);
+    if (result != ERROR_SUCCESS) {
+        TRACE("Unable to write group file (error %lu).\n", result);
+    }
+
+    // Update group database record
+    result = DbGroupWrite(dbContext, groupFile);
+    if (result != ERROR_SUCCESS) {
+        TRACE("Unable to write group database record (error %lu).\n", result);
+    }
+
+    DbRelease(dbContext);
+
+    SetLastError(result);
+    return (result == ERROR_SUCCESS) ? GM_SUCCESS : GM_ERROR;
 }
 
-static
-INT
-GroupClose(
-    GROUPFILE *groupFile
-    )
+static INT GroupClose(GROUPFILE *groupFile)
 {
-    if (groupFile->lpInternal == NULL) {
-        TRACE("Group context already freed.\n");
-        return GM_ERROR;
+    DWORD result;
+
+    // Close group file (success does not matter)
+    result = FileGroupClose(groupFile);
+    if (result != ERROR_SUCCESS) {
+        TRACE("Unable to close group file (error %lu).\n", result);
     }
 
-    // Close group file
-    if (!FileGroupClose(groupFile->lpInternal)) {
-        TRACE("Unable to close group file (error %lu).\n", GetLastError());
+    // Close group database record (success does not matter)
+    result = DbGroupClose(groupFile);
+    if (result != ERROR_SUCCESS) {
+        TRACE("Unable to close group database record (error %lu).\n", result);
     }
-
-    // Free database resources
-    if (!DbGroupClose(groupFile->lpInternal)) {
-        TRACE("Unable to close database record(error %lu).\n", GetLastError());
-    }
-
-    // Free group context
-    Io_Free(groupFile->lpInternal);
-    groupFile->lpInternal = NULL;
 
     return GM_SUCCESS;
 }
