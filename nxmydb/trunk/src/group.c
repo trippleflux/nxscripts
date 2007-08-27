@@ -68,6 +68,8 @@ static INT32 GroupCreate(CHAR *groupName)
     INT32       groupId;
     GROUPFILE    groupFile;
 
+    TRACE("groupName=%s\n", groupName);
+
     if (!DbAcquire(&dbContext)) {
         return -1;
     }
@@ -112,6 +114,8 @@ static INT GroupRename(CHAR *groupName, INT32 groupId, CHAR *newName)
     DB_CONTEXT *dbContext;
     DWORD       result;
 
+    TRACE("groupName=%s groupId=%d newName=%s\n", groupName, groupId, newName);
+
     if (!DbAcquire(&dbContext)) {
         return GM_ERROR;
     }
@@ -139,6 +143,8 @@ static INT GroupDelete(CHAR *groupName, INT32 groupId)
 {
     DB_CONTEXT *dbContext;
     DWORD       result;
+
+    TRACE("groupName=%s groupId=%d\n", groupName, groupId);
 
     if (!DbAcquire(&dbContext)) {
         return GM_ERROR;
@@ -174,6 +180,8 @@ static INT GroupLock(GROUPFILE *groupFile)
     DB_CONTEXT *dbContext;
     DWORD       result;
 
+    TRACE("groupFile=%p\n", groupFile);
+
     if (!DbAcquire(&dbContext)) {
         return GM_ERROR;
     }
@@ -195,6 +203,8 @@ static INT GroupUnlock(GROUPFILE *groupFile)
     DB_CONTEXT *dbContext;
     DWORD       result;
 
+    TRACE("groupFile=%p\n", groupFile);
+
     if (!DbAcquire(&dbContext)) {
         return GM_ERROR;
     }
@@ -215,6 +225,8 @@ static INT GroupOpen(CHAR *groupName, GROUPFILE *groupFile)
 {
     DB_CONTEXT *dbContext;
     DWORD       result;
+
+    TRACE("groupName=%s groupFile=%p\n", groupName, groupFile);
 
     if (!DbAcquire(&dbContext)) {
         return GM_FATAL;
@@ -253,6 +265,8 @@ static INT GroupWrite(GROUPFILE *groupFile)
     DB_CONTEXT *dbContext;
     DWORD       result;
 
+    TRACE("groupFile=%p\n", groupFile);
+
     if (!DbAcquire(&dbContext)) {
         return GM_ERROR;
     }
@@ -278,6 +292,8 @@ static INT GroupWrite(GROUPFILE *groupFile)
 static INT GroupClose(GROUPFILE *groupFile)
 {
     DWORD result;
+
+    TRACE("groupFile=%p\n", groupFile);
 
     // Close group file (success does not matter)
     result = FileGroupClose(groupFile);

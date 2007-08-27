@@ -68,6 +68,8 @@ static INT32 UserCreate(CHAR *userName)
     INT32       userId;
     USERFILE    userFile;
 
+    TRACE("userName=%s\n", userName);
+
     if (!DbAcquire(&dbContext)) {
         return -1;
     }
@@ -115,6 +117,8 @@ static INT UserRename(CHAR *userName, INT32 userId, CHAR *newName)
     DB_CONTEXT *dbContext;
     DWORD       result;
 
+    TRACE("userName=%s userId=%d newName=%s\n", userName, userId, newName);
+
     if (!DbAcquire(&dbContext)) {
         return UM_ERROR;
     }
@@ -142,6 +146,8 @@ static INT UserDelete(CHAR *userName, INT32 userId)
 {
     DB_CONTEXT *dbContext;
     DWORD       result;
+
+    TRACE("userName=%s userId=%d\n", userName, userId);
 
     if (!DbAcquire(&dbContext)) {
         return UM_ERROR;
@@ -177,6 +183,8 @@ static INT UserLock(USERFILE *userFile)
     DB_CONTEXT *dbContext;
     DWORD       result;
 
+    TRACE("userFile=%p\n", userFile);
+
     if (!DbAcquire(&dbContext)) {
         return UM_ERROR;
     }
@@ -198,6 +206,8 @@ static INT UserUnlock(USERFILE *userFile)
     DB_CONTEXT *dbContext;
     DWORD       result;
 
+    TRACE("userFile=%p\n", userFile);
+
     if (!DbAcquire(&dbContext)) {
         return UM_ERROR;
     }
@@ -218,6 +228,8 @@ static INT UserOpen(CHAR *userName, USERFILE *userFile)
 {
     DB_CONTEXT *dbContext;
     DWORD       result;
+
+    TRACE("userName=%s userFile=%p\n", userName, userFile);
 
     if (!DbAcquire(&dbContext)) {
         return UM_FATAL;
@@ -256,6 +268,8 @@ static INT UserWrite(USERFILE *userFile)
     DB_CONTEXT *dbContext;
     DWORD       result;
 
+    TRACE("userFile=%p\n", userFile);
+
     if (!DbAcquire(&dbContext)) {
         return UM_ERROR;
     }
@@ -281,6 +295,8 @@ static INT UserWrite(USERFILE *userFile)
 static INT UserClose(USERFILE *userFile)
 {
     DWORD result;
+
+    TRACE("userFile=%p\n", userFile);
 
     // Close user file (success does not matter)
     result = FileUserClose(userFile);
