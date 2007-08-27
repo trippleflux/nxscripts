@@ -1,7 +1,7 @@
 /*
 
 nxMyDB - MySQL Database for ioFTPD
-Copyright (c) 2006 neoxed
+Copyright (c) 2006-2007 neoxed
 
 Module Name:
     Pool
@@ -14,8 +14,8 @@ Abstract:
 
 */
 
-#ifndef _POOL_H_
-#define _POOL_H_
+#ifndef POOL_H_INCLUDED
+#define POOL_H_INCLUDED
 
 /*++
 
@@ -37,10 +37,7 @@ Remarks:
     The system error code must be set on failure.
 
 --*/
-typedef BOOL (POOL_CONSTRUCTOR_PROC)(
-    void *opaque,
-    void **data
-    );
+typedef BOOL (POOL_CONSTRUCTOR_PROC)(VOID *opaque, VOID **data);
 
 /*++
 
@@ -62,10 +59,7 @@ Remarks:
     The system error code must be set if invalid.
 
 --*/
-typedef BOOL (POOL_VALIDATOR_PROC)(
-    void *opaque,
-    void *data
-    );
+typedef BOOL (POOL_VALIDATOR_PROC)(VOID *opaque, VOID *data);
 
 /*++
 
@@ -82,17 +76,14 @@ Return Values:
     None.
 
 --*/
-typedef void (POOL_DESTRUCTOR_PROC)(
-    void *opaque,
-    void *data
-    );
+typedef VOID (POOL_DESTRUCTOR_PROC)(VOID *opaque, VOID *data);
 
 //
 // Pool resource
 //
 
 struct POOL_RESOURCE {
-    void *data;                         // Opaque data set by the constructor callback
+    VOID *data;                         // Opaque data set by the constructor callback
     TAILQ_ENTRY(POOL_RESOURCE) link;    // Link to the previous and next resources
 };
 typedef struct POOL_RESOURCE POOL_RESOURCE;
@@ -114,7 +105,7 @@ typedef struct {
     POOL_CONSTRUCTOR_PROC *constructor; // Procedure called when a resource is created
     POOL_VALIDATOR_PROC   *validator;   // Procedure called when a resource requires validation
     POOL_DESTRUCTOR_PROC  *destructor;  // Procedure called when a resource is destroyed
-    void                  *opaque;      // Opaque argument passed to the constructor and destructor
+    VOID                  *opaque;      // Opaque argument passed to the constructor and destructor
     POOL_TAIL_QUEUE       resQueue;     // Queue of resources
     POOL_TAIL_QUEUE       conQueue;     // Queue of containers
     CONDITION_VAR    condition;    // Condition signaled when a used resource becomes available
@@ -125,8 +116,7 @@ typedef struct {
 // Pool functions
 //
 
-BOOL
-PoolCreate(
+BOOL PoolCreate(
     POOL *pool,
     DWORD minimum,
     DWORD average,
@@ -135,36 +125,14 @@ PoolCreate(
     POOL_CONSTRUCTOR_PROC *constructor,
     POOL_VALIDATOR_PROC *validator,
     POOL_DESTRUCTOR_PROC *destructor,
-    void *opaque
+    VOID *opaque
     );
+VOID PoolDestroy(POOL *pool);
 
-void
-PoolDestroy(
-    POOL *pool
-    );
+BOOL PoolAcquire(POOL *pool, VOID **data);
+BOOL PoolRelease(POOL *pool, VOID *data);
 
-BOOL
-PoolAcquire(
-    POOL *pool,
-    void **data
-    );
+BOOL PoolValidate(POOL *pool, VOID *data);
+VOID PoolInvalidate(POOL *pool, VOID *data);
 
-BOOL
-PoolRelease(
-    POOL *pool,
-    void *data
-    );
-
-BOOL
-PoolValidate(
-    POOL *pool,
-    void *data
-    );
-
-void
-PoolInvalidate(
-    POOL *pool,
-    void *data
-    );
-
-#endif // _POOL_H_
+#endif // POOL_H_INCLUDED

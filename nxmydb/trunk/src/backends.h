@@ -1,7 +1,7 @@
 /*
 
 nxMyDB - MySQL Database for ioFTPD
-Copyright (c) 2006 neoxed
+Copyright (c) 2006-2007 neoxed
 
 Module Name:
     Backends
@@ -14,8 +14,8 @@ Abstract:
 
 */
 
-#ifndef _BACKENDS_H_
-#define _BACKENDS_H_
+#ifndef BACKENDS_H_INCLUDED
+#define BACKENDS_H_INCLUDED
 
 //
 // Group database backend
@@ -67,4 +67,4 @@ DWORD FileUserOpen(INT32 userId, USERFILE *userFile);
 DWORD FileUserWrite(USERFILE *userFile);
 DWORD FileUserClose(USERFILE *userFile);
 
-#endif // _BACKENDS_H_
+#endif // BACKENDS_H_INCLUDED

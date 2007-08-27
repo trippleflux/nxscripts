@@ -1,7 +1,7 @@
 /*
 
 nxMyDB - MySQL Database for ioFTPD
-Copyright (c) 2006 neoxed
+Copyright (c) 2006-2007 neoxed
 
 Module Name:
     Database Connection
@@ -14,8 +14,8 @@ Abstract:
 
 */
 
-#ifndef _DB_H_
-#define _DB_H_
+#ifndef DB_H_INCLUDED
+#define DB_H_INCLUDED
 
 //
 // Database structures
@@ -74,38 +74,13 @@ typedef enum {
 // Database functions
 //
 
-BOOL
-DbInit(
-    Io_GetProc *getProc
-    );
+BOOL DbInit(Io_GetProc *getProc);
+VOID DbFinalize(VOID);
 
-void
-DbFinalize(
-    void
-    );
+BOOL DbAcquire(DB_CONTEXT **dbContext);
+VOID DbRelease(DB_CONTEXT *dbContext);
 
-BOOL
-DbAcquire(
-    DB_CONTEXT **dbContext
-    );
+BOOL DbLock(DB_CONTEXT *dbContext, DB_LOCK_TYPE lockType, const char *lockName);
+VOID DbUnlock(DB_CONTEXT *dbContext, DB_LOCK_TYPE lockType, const char *lockName);
 
-void
-DbRelease(
-    DB_CONTEXT *dbContext
-    );
-
-BOOL
-DbLock(
-    DB_CONTEXT *dbContext,
-    DB_LOCK_TYPE lockType,
-    const char *lockName
-    );
-
-void
-DbUnlock(
-    DB_CONTEXT *dbContext,
-    DB_LOCK_TYPE lockType,
-    const char *lockName
-    );
-
-#endif // _DB_H_
+#endif // DB_H_INCLUDED

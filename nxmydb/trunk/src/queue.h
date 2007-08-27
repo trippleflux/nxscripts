@@ -29,8 +29,8 @@
  * $FreeBSD: /repoman/r/ncvs/src/sys/sys/queue.h,v 1.66 2006/05/26 18:17:53 emaste Exp $
  */
 
-#ifndef _QUEUE_H_
-#define _QUEUE_H_
+#ifndef QUEUE_H_INCLUDED
+#define QUEUE_H_INCLUDED
 
 /*
  * A tail queue is headed by a pair of pointers, one to the head of the
@@ -55,7 +55,7 @@ struct qm_trace {
 #define TRACE_BUF struct qm_trace trace;
 
 #define TRASH_IT(x) do {                                                        \
-    (x) = (void *)-1;                                                           \
+    (x) = (VOID *)-1;                                                           \
 } while (0)
 
 #define QMD_TRACE_HEAD(head) do {                                               \
@@ -244,4 +244,4 @@ struct {                                                                        
     QMD_TRACE_ELEM(&(elm)->field);                                              \
 } while (0)
 
-#endif /* _QUEUE_H_ */
+#endif /* QUEUE_H_INCLUDED */

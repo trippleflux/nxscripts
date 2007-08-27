@@ -1,6 +1,6 @@
 #
 # nxMyDB - MySQL Database for ioFTPD
-# Copyright (c) 2006 neoxed
+# Copyright (c) 2006-2007 neoxed
 #
 # Module Name:
 #   Makefile
@@ -16,7 +16,7 @@
 DEBUG       = 1
 MSVCRT      = 0
 PLATFORM    = X86
-IOFTPD_INC  = E:\ioFTPD\source\Include
+IOFTPD_INC  = D:\ioFTPD\source\Include
 MYSQL_DIR   = C:\Program Files\MySQL\MySQL Server 5.0
 
 # Release version

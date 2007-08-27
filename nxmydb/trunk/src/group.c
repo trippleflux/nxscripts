@@ -1,7 +1,7 @@
 /*
 
 nxMyDB - MySQL Database for ioFTPD
-Copyright (c) 2006 neoxed
+Copyright (c) 2006-2007 neoxed
 
 Module Name:
     Group Module

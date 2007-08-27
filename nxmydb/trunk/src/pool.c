@@ -1,7 +1,7 @@
 /*
 
 nxMyDB - MySQL Database for ioFTPD
-Copyright (c) 2006 neoxed
+Copyright (c) 2006-2007 neoxed
 
 Module Name:
     Pool
@@ -24,9 +24,13 @@ Abstract:
 
 #include "mydb.h"
 
+// Easier to look at.
+#define inline __forceinline
+
 // Silence C4127: conditional expression is constant
 #pragma warning(disable : 4127)
 
+
 /*++
 
 ContainerPush
@@ -46,13 +50,7 @@ Remarks:
     This function assumes the pool is locked.
 
 --*/
-static
-inline
-void
-ContainerPush(
-    POOL *pool,
-    POOL_RESOURCE *container
-    )
+static inline VOID ContainerPush(POOL *pool, POOL_RESOURCE *container)
 {
     ASSERT(pool != NULL);
     ASSERT(container != NULL);
@@ -81,12 +79,7 @@ Remarks:
     This function assumes the pool is locked.
 
 --*/
-static
-inline
-POOL_RESOURCE *
-ContainerPop(
-    POOL *pool
-    )
+static inline POOL_RESOURCE *ContainerPop(POOL *pool)
 {
     POOL_RESOURCE *container;
 
@@ -127,12 +120,7 @@ Remarks:
     This function assumes the pool is locked.
 
 --*/
-static
-inline
-POOL_RESOURCE *
-ResourceCreate(
-    POOL *pool
-    )
+static inline POOL_RESOURCE *ResourceCreate(POOL *pool)
 {
     POOL_RESOURCE *container;
 
@@ -178,13 +166,7 @@ Remarks:
     This function assumes the pool is locked.
 
 --*/
-static
-inline
-BOOL
-ResourceCheck(
-    POOL *pool,
-    void *resData
-    )
+static inline BOOL ResourceCheck(POOL *pool, VOID *resData)
 {
     ASSERT(pool != NULL);
     ASSERT(resData != NULL);
@@ -214,13 +196,7 @@ Remarks:
     This function assumes the pool is locked.
 
 --*/
-static
-inline
-void
-ResourceDestroy(
-    POOL *pool,
-    void *resData
-    )
+static inline VOID ResourceDestroy(POOL *pool, VOID *resData)
 {
     ASSERT(pool != NULL);
     ASSERT(resData != NULL);
@@ -247,13 +223,7 @@ Remarks:
     This function assumes the pool is locked.
 
 --*/
-static
-inline
-void
-ResourcePush(
-    POOL *pool,
-    POOL_RESOURCE *resource
-    )
+static inline VOID ResourcePush(POOL *pool, POOL_RESOURCE *resource)
 {
     ASSERT(pool != NULL);
     ASSERT(resource != NULL);
@@ -279,12 +249,7 @@ Remarks:
     This function assumes the pool is locked.
 
 --*/
-static
-inline
-POOL_RESOURCE *
-ResourcePop(
-    POOL *pool
-    )
+static inline POOL_RESOURCE *ResourcePop(POOL *pool)
 {
     POOL_RESOURCE *resource;
 
@@ -317,11 +282,7 @@ Remarks:
     This function assumes the pool is locked.
 
 --*/
-static
-POOL_RESOURCE *
-ResourcePopCheck(
-    POOL *pool
-    )
+static POOL_RESOURCE *ResourcePopCheck(POOL *pool)
 {
     POOL_RESOURCE *resource;
 
@@ -365,11 +326,7 @@ Remarks:
     This function may create or destroy expired resources.
 
 --*/
-static
-BOOL
-ResourceUpdate(
-    POOL *pool
-    )
+static BOOL ResourceUpdate(POOL *pool)
 {
     BOOL newResource = FALSE;
     POOL_RESOURCE *resource;
@@ -465,8 +422,7 @@ Return Values:
     information, call GetLastError.
 
 --*/
-BOOL
-PoolCreate(
+BOOL PoolCreate(
     POOL *pool,
     DWORD minimum,
     DWORD average,
@@ -475,7 +431,7 @@ PoolCreate(
     POOL_CONSTRUCTOR_PROC *constructor,
     POOL_VALIDATOR_PROC *validator,
     POOL_DESTRUCTOR_PROC *destructor,
-    void *opaque
+    VOID *opaque
     )
 {
     ASSERT(pool != NULL);
@@ -531,10 +487,7 @@ Return Values:
     None.
 
 --*/
-void
-PoolDestroy(
-    POOL *pool
-    )
+VOID PoolDestroy(POOL *pool)
 {
     POOL_RESOURCE *resource;
 
@@ -580,11 +533,7 @@ Remarks:
     This function will block until a resource becomes available.
 
 --*/
-BOOL
-PoolAcquire(
-    POOL *pool,
-    void **data
-    )
+BOOL PoolAcquire(POOL *pool, VOID **data)
 {
     POOL_RESOURCE *resource;
 
@@ -645,11 +594,7 @@ Return Values:
     error information, call GetLastError.
 
 --*/
-BOOL
-PoolRelease(
-    POOL *pool,
-    void *data
-    )
+BOOL PoolRelease(POOL *pool, VOID *data)
 {
     DWORD error;
     POOL_RESOURCE *container;
@@ -701,11 +646,7 @@ Return Values:
     is destroyed. To get extended error information, call GetLastError.
 
 --*/
-BOOL
-PoolValidate(
-    POOL *pool,
-    void *data
-    )
+BOOL PoolValidate(POOL *pool, VOID *data)
 {
     BOOL result;
 
@@ -740,11 +681,7 @@ Return Values:
     None.
 
 --*/
-void
-PoolInvalidate(
-    POOL *pool,
-    void *data
-    )
+VOID PoolInvalidate(POOL *pool, VOID *data)
 {
     ASSERT(pool != NULL);
     ASSERT(data != NULL);

@@ -1,7 +1,7 @@
 /*
 
 nxMyDB - MySQL Database for ioFTPD
-Copyright (c) 2006 neoxed
+Copyright (c) 2006-2007 neoxed
 
 Module Name:
     Common Header
@@ -82,19 +82,13 @@ Abstract:
 // TRACE      - Log debug message.
 //
 #if defined(DEBUG) && !defined(NDEBUG)
-#   ifdef DEBUG_FILE
-#       define TRACE_HEAD()         TraceFileHeader()
-#       define TRACE_FOOT()         TraceFileFooter()
-#       define TRACE(format, ...)   TraceFileFormat(__FUNCTION__, format, __VA_ARGS__)
-#   else
-#       define TRACE_HEAD()         TraceDebugHeader()
-#       define TRACE_FOOT()         TraceDebugFooter()
-#       define TRACE(format, ...)   TraceDebugFormat(__FUNCTION__, format, __VA_ARGS__)
-#   endif
+#   define TRACE_HEAD()         TraceHeader()
+#   define TRACE_FOOT()         TraceFooter()
+#   define TRACE(format, ...)   TraceFormat(__FUNCTION__, format, __VA_ARGS__)
 #else
-#   define TRACE_HEAD()             ((void)0)
-#   define TRACE_FOOT()             ((void)0)
-#   define TRACE(format, ...)       ((void)0)
+#   define TRACE_HEAD()         ((VOID)0)
+#   define TRACE_FOOT()         ((VOID)0)
+#   define TRACE(format, ...)   ((VOID)0)
 #endif
 
 //
@@ -103,13 +97,6 @@ Abstract:
 // Determines the number of elements in the specified array.
 //
 #define ELEMENT_COUNT(array) (sizeof(array) / sizeof(array[0]))
-
-//
-// Macro: inline
-//
-// Inline the function during compilation.
-//
-#define inline __forceinline
 
 //
 // Macro: MAX

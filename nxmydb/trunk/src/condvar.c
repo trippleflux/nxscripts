@@ -1,7 +1,7 @@
 /*
 
 nxMyDB - MySQL Database for ioFTPD
-Copyright (c) 2006 neoxed
+Copyright (c) 2006-2007 neoxed
 
 Module Name:
     Condition Variables
@@ -32,10 +32,7 @@ Return Values:
     error information, call GetLastError.
 
 --*/
-BOOL
-ConditionVariableCreate(
-    CONDITION_VAR *cond
-    )
+BOOL ConditionVariableCreate(CONDITION_VAR *cond)
 {
     ASSERT(cond != NULL);
 
@@ -57,10 +54,7 @@ Return Values:
     None.
 
 --*/
-void
-ConditionVariableDestroy(
-    CONDITION_VAR *cond
-    )
+VOID ConditionVariableDestroy(CONDITION_VAR *cond)
 {
     ASSERT(cond != NULL);
 
@@ -83,10 +77,7 @@ Return Values:
     error information, call GetLastError.
 
 --*/
-BOOL
-ConditionVariableBroadcast(
-    CONDITION_VAR *cond
-    )
+BOOL ConditionVariableBroadcast(CONDITION_VAR *cond)
 {
     ASSERT(cond != NULL);
 
@@ -112,10 +103,7 @@ Return Values:
     error information, call GetLastError.
 
 --*/
-BOOL
-ConditionVariableSignal(
-    CONDITION_VAR *cond
-    )
+BOOL ConditionVariableSignal(CONDITION_VAR *cond)
 {
     ASSERT(cond != NULL);
 
@@ -146,12 +134,7 @@ Return Values:
     error information, call GetLastError.
 
 --*/
-BOOL
-ConditionVariableWait(
-    CONDITION_VAR *cond,
-    CRITICAL_SECTION *critSection,
-    DWORD timeout
-    )
+BOOL ConditionVariableWait(CONDITION_VAR *cond, CRITICAL_SECTION *critSection, DWORD timeout)
 {
     DWORD result;
 

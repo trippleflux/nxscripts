@@ -1,7 +1,7 @@
 /*
 
 nxMyDB - MySQL Database for ioFTPD
-Copyright (c) 2006 neoxed
+Copyright (c) 2006-2007 neoxed
 
 Module Name:
     DLL Entry
@@ -35,13 +35,7 @@ Return Values:
     If the function fails, the return value is zero (false).
 
 */
-BOOL
-WINAPI
-DllMain(
-    HINSTANCE instance,
-    DWORD reason,
-    LPVOID reserved
-    )
+BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 {
     UNREFERENCED_PARAMETER(instance);
     UNREFERENCED_PARAMETER(reserved);

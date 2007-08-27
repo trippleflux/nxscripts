@@ -1,7 +1,7 @@
 /*
 
 nxMyDB - MySQL Database for ioFTPD
-Copyright (c) 2006 neoxed
+Copyright (c) 2006-2007 neoxed
 
 Module Name:
     Procedure Table
@@ -14,15 +14,15 @@ Abstract:
 
 */
 
-#ifndef _PROCS_H_
-#define _PROCS_H_
+#ifndef PROCTABLE_H_INCLUDED
+#define PROCTABLE_H_INCLUDED
 
 //
 // Callback declarations
 //
 
-typedef void *(Io_GetProc)(char *szName);
-typedef DWORD (Io_TimerProc)(void *pTimerContext, TIMER *hTimer);
+typedef VOID *(Io_GetProc)(char *szName);
+typedef DWORD (Io_TimerProc)(VOID *pTimerContext, TIMER *hTimer);
 
 //
 // Function declarations
@@ -45,11 +45,11 @@ INT32  Io_User2Uid(char *szUserName);
 BOOL   Io_Ascii2UserFile(char *pBuffer, DWORD dwBuffer, USERFILE *pUserFile);
 BOOL   Io_UserFile2Ascii(BUFFER *pBuffer, USERFILE *pUserFile);
 
-void  *Io_Allocate(DWORD Size);
-void  *Io_ReAllocate(void *pMemory, DWORD Size);
-BOOL   Io_Free(void *pMemory);
+VOID  *Io_Allocate(DWORD Size);
+VOID  *Io_ReAllocate(VOID *pMemory, DWORD Size);
+BOOL   Io_Free(VOID *pMemory);
 
-TIMER *Io_StartIoTimer(TIMER *hTimer, Io_TimerProc *pTimerProc, void *pTimerContext, DWORD dwTimeOut);
+TIMER *Io_StartIoTimer(TIMER *hTimer, Io_TimerProc *pTimerProc, VOID *pTimerContext, DWORD dwTimeOut);
 BOOL   Io_StopIoTimer(TIMER *hTimer, BOOL bInTimerProc);
 BOOL   Io_Putlog(DWORD dwLogCode, const char *szFormatString, ...);
 
@@ -71,10 +71,10 @@ typedef struct {
     INT32  (* User2Uid)(char *);
     BOOL   (* Ascii2UserFile)(char *, DWORD, USERFILE *);
     BOOL   (* UserFile2Ascii)(BUFFER *, USERFILE *);
-    void  *(* Allocate)(DWORD);
-    void  *(* ReAllocate)(void *, DWORD);
-    BOOL   (* Free)(void *);
-    TIMER *(* StartIoTimer)(TIMER *, Io_TimerProc *, void *, DWORD);
+    VOID  *(* Allocate)(DWORD);
+    VOID  *(* ReAllocate)(VOID *, DWORD);
+    BOOL   (* Free)(VOID *);
+    TIMER *(* StartIoTimer)(TIMER *, Io_TimerProc *, VOID *, DWORD);
     BOOL   (* StopIoTimer)(TIMER *, BOOL);
     BOOL   (* Putlog)(DWORD, const char *, ...);
 } PROC_TABLE;
@@ -101,14 +101,7 @@ extern PROC_TABLE procTable;
 #define Io_Putlog           procTable.Putlog
 
 
-BOOL
-ProcTableInit(
-    Io_GetProc *getProc
-    );
+BOOL ProcTableInit(Io_GetProc *getProc);
+VOID ProcTableFinalize(VOID);
 
-void
-ProcTableFinalize(
-    void
-    );
-
-#endif // _PROCS_H_
+#endif // PROCTABLE_H_INCLUDED

@@ -1,7 +1,7 @@
 /*
 
 nxMyDB - MySQL Database for ioFTPD
-Copyright (c) 2006 neoxed
+Copyright (c) 2006-2007 neoxed
 
 Module Name:
     Utilities
@@ -14,54 +14,13 @@ Abstract:
 
 */
 
-#ifndef _DEBUG_H_
-#define _DEBUG_H_
-
-//
-// Debugger output
-//
+#ifndef DEBUG_H_INCLUDED
+#define DEBUG_H_INCLUDED
 
 #ifdef DEBUG
-void
-TraceDebugHeader(
-    void
-    );
-
-void
-TraceDebugFormat(
-    const char *funct,
-    const char *format,
-    ...
-    );
-
-void
-TraceDebugFooter(
-    void
-    );
+VOID TraceHeader(VOID);
+VOID TraceFormat(const char *funct, const char *format, ...);
+VOID TraceFooter(VOID);
 #endif // DEBUG
 
-
-//
-// File output
-//
-
-#ifdef DEBUG
-void
-TraceFileHeader(
-    void
-    );
-
-void
-TraceFileFormat(
-    const char *funct,
-    const char *format,
-    ...
-    );
-
-void
-TraceFileFooter(
-    void
-    );
-#endif // DEBUG
-
-#endif // _DEBUG_H_
+#endif // DEBUG_H_INCLUDED

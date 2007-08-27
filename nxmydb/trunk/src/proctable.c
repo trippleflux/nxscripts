@@ -1,7 +1,7 @@
 /*
 
 nxMyDB - MySQL Database for ioFTPD
-Copyright (c) 2006 neoxed
+Copyright (c) 2006-2007 neoxed
 
 Module Name:
     Procedure Table
@@ -41,10 +41,7 @@ Return Values:
     If the function fails, the return value is zero (false).
 
 --*/
-BOOL
-ProcTableInit(
-    Io_GetProc *getProc
-    )
+BOOL ProcTableInit(Io_GetProc *getProc)
 {
     RESOLVE("Config_Get",      procTable.ConfigGet)
     RESOLVE("Config_GetBool",  procTable.ConfigGetBool)
@@ -85,10 +82,7 @@ Return Values:
     None.
 
 --*/
-void
-ProcTableFinalize(
-    void
-    )
+VOID ProcTableFinalize(VOID)
 {
     ZeroMemory(&procTable, sizeof(PROC_TABLE));
 }

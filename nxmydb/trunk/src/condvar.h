@@ -1,7 +1,7 @@
 /*
 
 nxMyDB - MySQL Database for ioFTPD
-Copyright (c) 2006 neoxed
+Copyright (c) 2006-2007 neoxed
 
 Module Name:
     Condition Variables
@@ -14,8 +14,8 @@ Abstract:
 
 */
 
-#ifndef _CONDVARS_H_
-#define _CONDVARS_H_
+#ifndef CONDVAR_H_INCLUDED
+#define CONDVAR_H_INCLUDED
 
 //
 // Condition variable structure
@@ -30,31 +30,10 @@ typedef struct {
 // Condition variable functions
 //
 
-BOOL
-ConditionVariableCreate(
-    CONDITION_VAR *cond
-    );
+BOOL ConditionVariableCreate(CONDITION_VAR *cond);
+VOID ConditionVariableDestroy(CONDITION_VAR *cond);
+BOOL ConditionVariableBroadcast(CONDITION_VAR *cond);
+BOOL ConditionVariableSignal(CONDITION_VAR *cond);
+BOOL ConditionVariableWait(CONDITION_VAR *cond, CRITICAL_SECTION *critSection, DWORD timeout);
 
-void
-ConditionVariableDestroy(
-    CONDITION_VAR *cond
-    );
-
-BOOL
-ConditionVariableBroadcast(
-    CONDITION_VAR *cond
-    );
-
-BOOL
-ConditionVariableSignal(
-    CONDITION_VAR *cond
-    );
-
-BOOL
-ConditionVariableWait(
-    CONDITION_VAR *cond,
-    CRITICAL_SECTION *critSection,
-    DWORD timeout
-    );
-
-#endif // _CONDVARS_H_
+#endif // CONDVAR_H_INCLUDED

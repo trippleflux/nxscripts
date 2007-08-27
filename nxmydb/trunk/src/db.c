@@ -1,7 +1,7 @@
 /*
 
 nxMyDB - MySQL Database for ioFTPD
-Copyright (c) 2006 neoxed
+Copyright (c) 2006-2007 neoxed
 
 Module Name:
     Database Connection
@@ -133,12 +133,7 @@ Return Values:
     If the function fails, the return value is zero (false).
 
 --*/
-static
-BOOL
-ConnectionOpen(
-    void *opaque,
-    void **data
-    )
+static BOOL ConnectionOpen(VOID *opaque, VOID **data)
 {
     DB_CONTEXT *context;
     DWORD i;
@@ -233,12 +228,7 @@ Return Values:
     If the connection is invalid, the return is zero (false).
 
 --*/
-static
-BOOL
-ConnectionCheck(
-    void *opaque,
-    void *data
-    )
+static BOOL ConnectionCheck(VOID *opaque, VOID *data)
 {
     DB_CONTEXT *context;
     UINT64 timeCurrent;
@@ -291,12 +281,7 @@ Return Values:
     None.
 
 --*/
-static
-void
-ConnectionClose(
-    void *opaque,
-    void *data
-    )
+static VOID ConnectionClose(VOID *opaque, VOID *data)
 {
     DB_CONTEXT *context;
     DWORD i;
@@ -335,12 +320,7 @@ Return Values:
     If the function fails, the return value is null.
 
 --*/
-static
-char *
-ConfigGet(
-    char *array,
-    char *variable
-    )
+static char *ConfigGet(char *array, char *variable)
 {
     char *p;
     char *value;
@@ -384,11 +364,7 @@ Return Values:
     None.
 
 --*/
-static
-void
-ConfigFree(
-    void
-    )
+static VOID ConfigFree(VOID)
 {
     // Free server options
     if (serverHost != NULL) {
@@ -441,14 +417,7 @@ Return Values:
     None.
 
 --*/
-static
-void
-FormatLock(
-    DB_LOCK_TYPE lockType,
-    const char *lockName,
-    char *buffer,
-    size_t bufferLength
-    )
+static VOID FormatLock(DB_LOCK_TYPE lockType, const char *lockName, char *buffer, size_t bufferLength)
 {
     char *end;
     char *identifier;
@@ -484,12 +453,7 @@ Return Values:
     Number of milliseconds to execute this timer again.
 
 --*/
-static
-DWORD
-RefreshTimer(
-    void *notUsed,
-    TIMER *currTimer
-    )
+static DWORD RefreshTimer(VOID *notUsed, TIMER *currTimer)
 {
     DB_CONTEXT *context;
     UNREFERENCED_PARAMETER(notUsed);
@@ -529,10 +493,7 @@ Remarks:
     in a single thread at start-up.
 
 --*/
-BOOL
-DbInit(
-    Io_GetProc *getProc
-    )
+BOOL DbInit(Io_GetProc *getProc)
 {
     int poolMin;
     int poolAvg;
@@ -660,10 +621,7 @@ Remarks:
     This function must be called once by each module exit point.
 
 --*/
-void
-DbFinalize(
-    void
-    )
+VOID DbFinalize(VOID)
 {
     // Finalize once the reference count reaches zero
     if (--refCount == 0) {
@@ -698,10 +656,7 @@ Return Values:
     If the function fails, the return value is zero (false).
 
 --*/
-BOOL
-DbAcquire(
-    DB_CONTEXT **dbContext
-    )
+BOOL DbAcquire(DB_CONTEXT **dbContext)
 {
     DB_CONTEXT *context;
 
@@ -730,10 +685,7 @@ Return Values:
     None.
 
 --*/
-void
-DbRelease(
-    DB_CONTEXT *dbContext
-    )
+VOID DbRelease(DB_CONTEXT *dbContext)
 {
     ASSERT(dbContext != NULL);
 
@@ -765,12 +717,7 @@ Return Values:
     If the function fails, the return value is zero (false).
 
 --*/
-BOOL
-DbLock(
-    DB_CONTEXT *dbContext,
-    DB_LOCK_TYPE lockType,
-    const char *lockName
-    )
+BOOL DbLock(DB_CONTEXT *dbContext, DB_LOCK_TYPE lockType, const char *lockName)
 {
     char lock[128];
 
@@ -801,12 +748,7 @@ Return Values:
     None.
 
 --*/
-void
-DbUnlock(
-    DB_CONTEXT *dbContext,
-    DB_LOCK_TYPE lockType,
-    const char *lockName
-    )
+VOID DbUnlock(DB_CONTEXT *dbContext, DB_LOCK_TYPE lockType, const char *lockName)
 {
     char lock[128];
 
