@@ -22,7 +22,7 @@ DWORD DbUserCreate(DB_CONTEXT *dbContext, CHAR *userName, USERFILE *userFile)
     ASSERT(userName != NULL);
     ASSERT(userFile != NULL);
 
-    return ERROR_SUCCESS;
+    return ERROR_INTERNAL_ERROR;
 }
 
 DWORD DbUserRename(DB_CONTEXT *dbContext, CHAR *userName, CHAR *newName)
@@ -31,7 +31,7 @@ DWORD DbUserRename(DB_CONTEXT *dbContext, CHAR *userName, CHAR *newName)
     ASSERT(userName != NULL);
     ASSERT(newName != NULL);
 
-    return ERROR_SUCCESS;
+    return ERROR_INTERNAL_ERROR;
 }
 
 DWORD DbUserDelete(DB_CONTEXT *dbContext, CHAR *userName)
@@ -39,7 +39,7 @@ DWORD DbUserDelete(DB_CONTEXT *dbContext, CHAR *userName)
     ASSERT(dbContext != NULL);
     ASSERT(userName != NULL);
 
-    return ERROR_SUCCESS;
+    return ERROR_INTERNAL_ERROR;
 }
 
 DWORD DbUserLock(DB_CONTEXT *dbContext, USERFILE *userFile)
@@ -47,7 +47,7 @@ DWORD DbUserLock(DB_CONTEXT *dbContext, USERFILE *userFile)
     ASSERT(dbContext != NULL);
     ASSERT(userFile != NULL);
 
-    return ERROR_SUCCESS;
+    return ERROR_INTERNAL_ERROR;
 }
 
 DWORD DbUserUnlock(DB_CONTEXT *dbContext, USERFILE *userFile)
@@ -55,7 +55,7 @@ DWORD DbUserUnlock(DB_CONTEXT *dbContext, USERFILE *userFile)
     ASSERT(dbContext != NULL);
     ASSERT(userFile != NULL);
 
-    return ERROR_SUCCESS;
+    return ERROR_INTERNAL_ERROR;
 }
 
 DWORD DbUserOpen(DB_CONTEXT *dbContext, CHAR *userName, USERFILE *userFile)
@@ -64,7 +64,7 @@ DWORD DbUserOpen(DB_CONTEXT *dbContext, CHAR *userName, USERFILE *userFile)
     ASSERT(userName != NULL);
     ASSERT(userFile != NULL);
 
-    return ERROR_SUCCESS;
+    return ERROR_INTERNAL_ERROR;
 }
 
 DWORD DbUserWrite(DB_CONTEXT *dbContext, USERFILE *userFile)
@@ -72,19 +72,19 @@ DWORD DbUserWrite(DB_CONTEXT *dbContext, USERFILE *userFile)
     ASSERT(dbContext != NULL);
     ASSERT(userFile != NULL);
 
-    return ERROR_SUCCESS;
+    return ERROR_INTERNAL_ERROR;
 }
 
 DWORD DbUserClose(USERFILE *userFile)
 {
     ASSERT(userFile != NULL);
 
-    return ERROR_SUCCESS;
+    return ERROR_INTERNAL_ERROR;
 }
 
 DWORD DbUserRefresh(DB_CONTEXT *dbContext)
 {
     ASSERT(dbContext != NULL);
 
-    return ERROR_SUCCESS;
+    return ERROR_INTERNAL_ERROR;
 }
