@@ -188,9 +188,8 @@ static BOOL ConnectionOpen(VOID *opaque, VOID **data)
     }
 
     // Check statement tables
-    ASSERT(ELEMENT_COUNT(context->stmt) == ELEMENT_COUNT(queries));
-    ASSERT(ELEMENT_COUNT(context->stmt) == DB_STMT_END);
-    ASSERT(ELEMENT_COUNT(queries)       == DB_STMT_END);
+    ASSERT(DB_STMT_COUNT == ELEMENT_COUNT(context->stmt));
+    ASSERT(DB_STMT_COUNT == ELEMENT_COUNT(queries));
 
     // Prepare statements
     for (i = 0; i < ELEMENT_COUNT(context->stmt); i++) {

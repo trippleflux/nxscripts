@@ -62,12 +62,12 @@ typedef enum {
     DB_STMT_ULOCK_CREATE,
 
     // End marker
-    DB_STMT_END
+    DB_STMT_COUNT
 } DB_STMTS;
 
 typedef struct {
     MYSQL      *handle;             // MySQL connection handle
-    MYSQL_STMT *stmt[DB_STMT_END];  // Pre-compiled SQL statements
+    MYSQL_STMT *stmt[DB_STMT_COUNT];// Pre-compiled SQL statements
     UINT64      created;            // Time this context was created
     UINT64      used;               // Time this context was last used
 } DB_CONTEXT;
