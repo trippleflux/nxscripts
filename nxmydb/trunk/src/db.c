@@ -51,12 +51,6 @@ static int refCount = 0;
 
 // Statements to pre-compile
 static const char *queries[] = {
-    // locking
-    "SELECT GET_LOCK(?, ?)"
-    ,
-    "DO RELEASE_LOCK(?)"
-    ,
-
     // io_groups
     "DELETE FROM io_groups WHERE name=?"
     ,
@@ -69,6 +63,12 @@ static const char *queries[] = {
     "SELECT name, description, slots, users, vfsfile, UNIX_TIMESTAMP() FROM io_groups WHERE updated>=?"
     ,
     "UPDATE io_groups SET description=?, slots=?, users=?, vfsfile=?, updated=UNIX_TIMESTAMP() WHERE name=?"
+    ,
+
+    // io_group_locks
+    "DELETE FROM io_group_locks WHERE name=?"
+    ,
+    "INSERT INTO io_group_locks (name, created) VALUES(?, UNIX_TIMESTAMP())"
     ,
 
     // io_users
@@ -90,28 +90,34 @@ static const char *queries[] = {
         "monthup=?, wkdn=?, wkup=?, updated=UNIX_TIMESTAMP() WHERE name=?"
     ,
 
-    // io_useradmins
-    "DELETE FROM io_useradmins WHERE uname=?"
+    // io_user_admins
+    "DELETE FROM io_user_admins WHERE uname=?"
     ,
-    "INSERT INTO io_useradmins (uname, gname) VALUES(?, ?)"
+    "INSERT INTO io_user_admins (uname, gname) VALUES(?, ?)"
     ,
-    "SELECT gname FROM io_useradmins WHERE uname=?"
-    ,
-
-    // io_usergroups
-    "DELETE FROM io_usergroups WHERE uname=?"
-    ,
-    "INSERT INTO io_usergroups (uname, gname) VALUES(?, ?)"
-    ,
-    "SELECT gname FROM io_usergroups WHERE uname=?"
+    "SELECT gname FROM io_user_admins WHERE uname=?"
     ,
 
-    // io_userhosts
-    "DELETE FROM io_userhosts WHERE name=?"
+    // io_user_groups
+    "DELETE FROM io_user_groups WHERE uname=?"
     ,
-    "INSERT INTO io_userhosts (name, host) VALUES(?, ?)"
+    "INSERT INTO io_user_groups (uname, gname) VALUES(?, ?)"
     ,
-    "SELECT host FROM io_userhosts WHERE name=?"
+    "SELECT gname FROM io_user_groups WHERE uname=?"
+    ,
+
+    // io_user_hosts
+    "DELETE FROM io_user_hosts WHERE name=?"
+    ,
+    "INSERT INTO io_user_hosts (name, host) VALUES(?, ?)"
+    ,
+    "SELECT host FROM io_user_hosts WHERE name=?"
+    ,
+
+    // io_user_locks
+    "DELETE FROM io_user_locks WHERE name=?"
+    ,
+    "INSERT INTO io_user_locks (name, created) VALUES(?, UNIX_TIMESTAMP())"
     ,
 };
 
@@ -135,12 +141,14 @@ Return Values:
 --*/
 static BOOL ConnectionOpen(VOID *opaque, VOID **data)
 {
-    DB_CONTEXT *context;
-    DWORD i;
-    unsigned long flags;
+    DB_CONTEXT      *context;
+    DWORD           error;
+    DWORD           i;
+    unsigned long   flags;
 
     ASSERT(opaque == NULL);
     ASSERT(data != NULL);
+    TRACE("opaque=%p data=%p\n", opaque, data);
 
     // Allocate database context
     context = Io_Allocate(sizeof(DB_CONTEXT));
@@ -179,24 +187,30 @@ static BOOL ConnectionOpen(VOID *opaque, VOID **data)
         return FALSE;
     }
 
-    // Prepare statements
+    // Check statement tables
     ASSERT(ELEMENT_COUNT(context->stmt) == ELEMENT_COUNT(queries));
+    ASSERT(ELEMENT_COUNT(context->stmt) == DB_STMT_END);
+    ASSERT(ELEMENT_COUNT(queries)       == DB_STMT_END);
+
+    // Prepare statements
     for (i = 0; i < ELEMENT_COUNT(context->stmt); i++) {
         context->stmt[i] = mysql_stmt_init(context->handle);
 
         if (context->stmt[i] == NULL) {
             TRACE("Unable to allocate memory for statement.\n");
-            SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+            error = ERROR_NOT_ENOUGH_MEMORY;
+
 
         } else if (mysql_stmt_prepare(context->stmt[i], queries[i], strlen(queries[i])) != 0) {
             TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(context->stmt[i]));
-            SetLastError(ERROR_UNIDENTIFIED_ERROR);
+            error = ERROR_UNIDENTIFIED_ERROR;
 
         } else {
             continue;
         }
 
         ConnectionClose(NULL, context);
+        SetLastError(error);
         return FALSE;
     }
 
@@ -236,6 +250,7 @@ static BOOL ConnectionCheck(VOID *opaque, VOID *data)
 
     ASSERT(opaque == NULL);
     ASSERT(data != NULL);
+    TRACE("opaque=%p data=%p\n", opaque, data);
 
     context = data;
     GetSystemTimeAsFileTime((FILETIME *)&timeCurrent);
@@ -288,6 +303,7 @@ static VOID ConnectionClose(VOID *opaque, VOID *data)
 
     ASSERT(opaque == NULL);
     ASSERT(data != NULL);
+    TRACE("opaque=%p data=%p\n", opaque, data);
 
     context = data;
 
@@ -400,46 +416,6 @@ static VOID ConfigFree(VOID)
 
 /*++
 
-FormatLock
-
-    Format's the lock string.
-
-Arguments:
-    lockType     - Type of lock.
-
-    lockName     - Pointer to the lock's name (user/group name).
-
-    buffer       - Pointer to a buffer that recieves the lock string.
-
-    bufferLength - Length of the buffer, in characters.
-
-Return Values:
-    None.
-
---*/
-static VOID FormatLock(DB_LOCK_TYPE lockType, const char *lockName, char *buffer, size_t bufferLength)
-{
-    char *end;
-    char *identifier;
-
-    ASSERT(lockType == LOCK_TYPE_USER || lockType == LOCK_TYPE_GROUP);
-    ASSERT(lockName != NULL);
-    ASSERT(buffer   != NULL);
-
-    if (lockType == LOCK_TYPE_USER) {
-        identifier = ".nxMyDB.user.";
-    } else {
-        identifier = ".nxMyDB.group.";
-    }
-
-    // Format: <database>.nxMyDB.<type>.<name>
-    StringCchCopyEx(buffer, bufferLength, serverDb, &end, &bufferLength, 0);
-    StringCchCopyEx(end,    bufferLength, identifier, &end, &bufferLength, 0);
-    StringCchCopyEx(end,    bufferLength, lockName, &end, &bufferLength, 0);
-}
-
-/*++
-
 RefreshTimer
 
     Refreshes the local user and group cache.
@@ -501,6 +477,8 @@ BOOL DbInit(Io_GetProc *getProc)
     int poolCheck;
     int poolExpire;
     int poolTimeout;
+
+    TRACE("refCount=%d\n", refCount);
 
     // Only initialize the database pool once
     if (refCount++) {
@@ -623,6 +601,8 @@ Remarks:
 --*/
 VOID DbFinalize(VOID)
 {
+    TRACE("refCount=%d\n", refCount);
+
     // Finalize once the reference count reaches zero
     if (--refCount == 0) {
         Io_Putlog(LOG_ERROR, "nxMyDB: v%s unloaded.\r\n", STRINGIFY(VERSION));
@@ -661,6 +641,7 @@ BOOL DbAcquire(DB_CONTEXT **dbContext)
     DB_CONTEXT *context;
 
     ASSERT(dbContext != NULL);
+    TRACE("dbContext=%p\n", dbContext);
 
     // Acquire a database context
     if (!PoolAcquire(pool, &context)) {
@@ -688,6 +669,7 @@ Return Values:
 VOID DbRelease(DB_CONTEXT *dbContext)
 {
     ASSERT(dbContext != NULL);
+    TRACE("dbContext=%p\n", dbContext);
 
     // Update used time stamp
     GetSystemTimeAsFileTime((FILETIME *)&dbContext->used);
@@ -696,66 +678,4 @@ VOID DbRelease(DB_CONTEXT *dbContext)
     if (!PoolRelease(pool, dbContext)) {
         TRACE("Unable to release the database context (error %lu).\n", GetLastError());
     }
-}
-
-/*++
-
-DbLock
-
-    Attempts to lock the specified user or group.
-
-Arguments:
-    dbContext   - Pointer to the DB_CONTEXT structure.
-
-    lockType    - Type of lock.
-
-    lockName    - Pointer to the lock's name (user/group name).
-
-Return Values:
-    If the function succeeds, the return value is nonzero (true).
-
-    If the function fails, the return value is zero (false).
-
---*/
-BOOL DbLock(DB_CONTEXT *dbContext, DB_LOCK_TYPE lockType, const char *lockName)
-{
-    char lock[128];
-
-    ASSERT(dbContext != NULL);
-    ASSERT(lockName != NULL);
-
-    FormatLock(lockType, lockName, lock, ELEMENT_COUNT(lock));
-
-    // TODO
-
-    return TRUE;
-}
-
-/*++
-
-DbUnlock
-
-    Unlocks the specified user or group.
-
-Arguments:
-    dbContext   - Pointer to the DB_CONTEXT structure.
-
-    lockType    - Type of lock.
-
-    lockName    - Pointer to the lock's name (user/group name).
-
-Return Values:
-    None.
-
---*/
-VOID DbUnlock(DB_CONTEXT *dbContext, DB_LOCK_TYPE lockType, const char *lockName)
-{
-    char lock[128];
-
-    ASSERT(dbContext != NULL);
-    ASSERT(lockName != NULL);
-
-    FormatLock(lockType, lockName, lock, ELEMENT_COUNT(lock));
-
-    // TODO
 }
