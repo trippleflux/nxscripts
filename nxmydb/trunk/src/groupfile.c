@@ -26,6 +26,7 @@ static DWORD GroupRead(CHAR *filePath, GROUPFILE *groupFile)
 
     ASSERT(filePath != NULL);
     ASSERT(groupFile != NULL);
+    TRACE("filePath=%s groupFile=%p\n", filePath, groupFile);
 
     // Open group file
     fileHandle = CreateFileA(filePath,
@@ -91,7 +92,9 @@ DWORD FileGroupCreate(INT32 groupId, GROUPFILE *groupFile)
     CHAR  buffer[12];
     DWORD result;
 
+    ASSERT(groupId != -1);
     ASSERT(groupFile != NULL);
+    TRACE("groupId=%d groupFile=%p\n", groupId, groupFile);
 
     // Retrieve default group location
     defaultPath = Io_ConfigGetPath("Locations", "Group_Files", "Default.Group", NULL);
@@ -134,6 +137,9 @@ DWORD FileGroupDelete(INT32 groupId)
     CHAR  *filePath;
     DWORD result;
 
+    ASSERT(groupId != -1);
+    TRACE("groupId=%d\n", groupId);
+
     // Retrieve group file location
     StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", groupId);
     filePath = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
@@ -163,6 +169,7 @@ DWORD FileGroupOpen(INT32 groupId, GROUPFILE *groupFile)
 
     ASSERT(groupId != -1);
     ASSERT(groupFile != NULL);
+    TRACE("groupId=%d groupFile=%p\n", groupId, groupFile);
 
     // Retrieve group file location
     StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", groupId);
@@ -200,6 +207,7 @@ DWORD FileGroupWrite(GROUPFILE *groupFile)
     HANDLE  fileHandle;
 
     ASSERT(groupFile != NULL);
+    TRACE("groupFile=%p\n", groupFile);
 
     fileHandle = groupFile->lpInternal;
     ASSERT(fileHandle != INVALID_HANDLE_VALUE);
@@ -240,6 +248,7 @@ DWORD FileGroupClose(GROUPFILE *groupFile)
     HANDLE fileHandle;
 
     ASSERT(groupFile != NULL);
+    TRACE("groupFile=%p\n", groupFile);
 
     fileHandle = groupFile->lpInternal;
 

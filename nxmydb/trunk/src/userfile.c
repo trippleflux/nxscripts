@@ -26,6 +26,7 @@ static DWORD UserRead(CHAR *filePath, USERFILE *userFile)
 
     ASSERT(filePath != NULL);
     ASSERT(userFile != NULL);
+    TRACE("filePath=%s userFile=%p\n", filePath, userFile);
 
     // Open user file
     fileHandle = CreateFileA(filePath,
@@ -93,6 +94,7 @@ DWORD FileUserCreate(INT32 userId, USERFILE *userFile)
     DWORD result;
 
     ASSERT(userFile != NULL);
+    TRACE("userId=%d userFile=%p\n", userId, userFile);
 
     // Retrieve default user location
     defaultPath = Io_ConfigGetPath("Locations", "User_Files", "Default.User", NULL);
@@ -135,6 +137,9 @@ DWORD FileUserDelete(INT32 userId)
     CHAR  *filePath;
     DWORD result;
 
+    ASSERT(userId != -1);
+    TRACE("userId=%d\n", userId);
+
     // Retrieve user file location
     StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", userId);
     filePath = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
@@ -164,6 +169,7 @@ DWORD FileUserOpen(INT32 userId, USERFILE *userFile)
 
     ASSERT(userId != -1);
     ASSERT(userFile != NULL);
+    TRACE("userId=%d userFile=%p\n", userId, userFile);
 
     // Retrieve user file location
     StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", userId);
@@ -201,6 +207,7 @@ DWORD FileUserWrite(USERFILE *userFile)
     HANDLE  fileHandle;
 
     ASSERT(userFile != NULL);
+    TRACE("userFile=%p\n", userFile);
 
     fileHandle = userFile->lpInternal;
     ASSERT(fileHandle != INVALID_HANDLE_VALUE);
@@ -241,6 +248,7 @@ DWORD FileUserClose(USERFILE *userFile)
     HANDLE fileHandle;
 
     ASSERT(userFile != NULL);
+    TRACE("userFile=%p\n", userFile);
 
     fileHandle = userFile->lpInternal;
 
