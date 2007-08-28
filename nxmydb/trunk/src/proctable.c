@@ -16,14 +16,18 @@ Abstract:
 
 #include "mydb.h"
 
-// Silence C4152: nonstandard extension, function/data pointer conversion in expression
-#pragma warning(disable : 4152)
-
 // Global procedure table
 PROC_TABLE procTable;
 
-// Resolve functions
-#define RESOLVE(name, func) if ((func = getProc(name)) == NULL) goto failed;
+#pragma warning(disable : 4152) // C4152: nonstandard extension, function/data pointer conversion in expression
+
+#define RESOLVE(name, func)                                                     \
+{                                                                               \
+    if ((func = getProc(name)) == NULL) {                                       \
+        TRACE("Unable to resolve procedure \"%s\".\n", name);                   \
+        goto failed;                                                            \
+    }                                                                           \
+}
 
 
 /*++
