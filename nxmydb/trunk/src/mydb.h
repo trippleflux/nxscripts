@@ -71,7 +71,7 @@ Abstract:
 #   include "crtdbg.h"
 #   define ASSERT   _ASSERTE
 #else
-#   define ASSERT
+#   define ASSERT   ((VOID)0)
 #endif
 
 //
