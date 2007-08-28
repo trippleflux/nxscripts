@@ -63,14 +63,14 @@ static INT UserFinalize(VOID)
 
 static INT32 UserCreate(CHAR *userName)
 {
-    DB_CONTEXT *dbContext;
+    DB_CONTEXT *db;
     DWORD       result;
     INT32       userId;
     USERFILE    userFile;
 
     TRACE("userName=%s\n", userName);
 
-    if (!DbAcquire(&dbContext)) {
+    if (!DbAcquire(&db)) {
         return -1;
     }
 
@@ -95,7 +95,7 @@ static INT32 UserCreate(CHAR *userName)
         } else {
 
             // Create database record
-            result = DbUserCreate(dbContext, userName, &userFile);
+            result = DbUserCreate(db, userName, &userFile);
             if (result != ERROR_SUCCESS) {
                 TRACE("Unable to create database record (error %lu).\n", result);
 
@@ -106,7 +106,7 @@ static INT32 UserCreate(CHAR *userName)
         }
     }
 
-    DbRelease(dbContext);
+    DbRelease(db);
 
     SetLastError(result);
     return (result == ERROR_SUCCESS) ? userId : -1;
@@ -114,17 +114,17 @@ static INT32 UserCreate(CHAR *userName)
 
 static INT UserRename(CHAR *userName, INT32 userId, CHAR *newName)
 {
-    DB_CONTEXT *dbContext;
+    DB_CONTEXT *db;
     DWORD       result;
 
     TRACE("userName=%s userId=%d newName=%s\n", userName, userId, newName);
 
-    if (!DbAcquire(&dbContext)) {
+    if (!DbAcquire(&db)) {
         return UM_ERROR;
     }
 
     // Rename database record
-    result = DbUserRename(dbContext, userName, newName);
+    result = DbUserRename(db, userName, newName);
     if (result != ERROR_SUCCESS) {
         TRACE("Unable to rename user database record (error %lu).\n", result);
     } else {
@@ -136,7 +136,7 @@ static INT UserRename(CHAR *userName, INT32 userId, CHAR *newName)
         }
     }
 
-    DbRelease(dbContext);
+    DbRelease(db);
 
     SetLastError(result);
     return (result == ERROR_SUCCESS) ? UM_SUCCESS : UM_ERROR;
@@ -144,12 +144,12 @@ static INT UserRename(CHAR *userName, INT32 userId, CHAR *newName)
 
 static INT UserDelete(CHAR *userName, INT32 userId)
 {
-    DB_CONTEXT *dbContext;
+    DB_CONTEXT *db;
     DWORD       result;
 
     TRACE("userName=%s userId=%d\n", userName, userId);
 
-    if (!DbAcquire(&dbContext)) {
+    if (!DbAcquire(&db)) {
         return UM_ERROR;
     }
 
@@ -160,7 +160,7 @@ static INT UserDelete(CHAR *userName, INT32 userId)
     }
 
     // Delete database record
-    result = DbUserDelete(dbContext, userName);
+    result = DbUserDelete(db, userName);
     if (result != ERROR_SUCCESS) {
         TRACE("Unable to delete user database record (error %lu).\n", result);
     } else {
@@ -172,7 +172,7 @@ static INT UserDelete(CHAR *userName, INT32 userId)
         }
     }
 
-    DbRelease(dbContext);
+    DbRelease(db);
 
     SetLastError(result);
     return (result == ERROR_SUCCESS) ? UM_SUCCESS : UM_ERROR;
@@ -180,22 +180,22 @@ static INT UserDelete(CHAR *userName, INT32 userId)
 
 static INT UserLock(USERFILE *userFile)
 {
-    DB_CONTEXT *dbContext;
+    DB_CONTEXT *db;
     DWORD       result;
 
     TRACE("userFile=%p\n", userFile);
 
-    if (!DbAcquire(&dbContext)) {
+    if (!DbAcquire(&db)) {
         return UM_ERROR;
     }
 
     // Lock user
-    result = DbUserLock(dbContext, userFile);
+    result = DbUserLock(db, userFile);
     if (result != ERROR_SUCCESS) {
         TRACE("Unable to lock user (error %lu).\n", result);
     }
 
-    DbRelease(dbContext);
+    DbRelease(db);
 
     SetLastError(result);
     return (result == ERROR_SUCCESS) ? UM_SUCCESS : UM_ERROR;
@@ -203,22 +203,22 @@ static INT UserLock(USERFILE *userFile)
 
 static INT UserUnlock(USERFILE *userFile)
 {
-    DB_CONTEXT *dbContext;
+    DB_CONTEXT *db;
     DWORD       result;
 
     TRACE("userFile=%p\n", userFile);
 
-    if (!DbAcquire(&dbContext)) {
+    if (!DbAcquire(&db)) {
         return UM_ERROR;
     }
 
     // Unlock user
-    result = DbUserUnlock(dbContext, userFile);
+    result = DbUserUnlock(db, userFile);
     if (result != ERROR_SUCCESS) {
         TRACE("Unable to unlock user (error %lu).\n", result);
     }
 
-    DbRelease(dbContext);
+    DbRelease(db);
 
     SetLastError(result);
     return (result == ERROR_SUCCESS) ? UM_SUCCESS : UM_ERROR;
@@ -226,12 +226,12 @@ static INT UserUnlock(USERFILE *userFile)
 
 static INT UserOpen(CHAR *userName, USERFILE *userFile)
 {
-    DB_CONTEXT *dbContext;
+    DB_CONTEXT *db;
     DWORD       result;
 
     TRACE("userName=%s userFile=%p\n", userName, userFile);
 
-    if (!DbAcquire(&dbContext)) {
+    if (!DbAcquire(&db)) {
         return UM_FATAL;
     }
 
@@ -242,7 +242,7 @@ static INT UserOpen(CHAR *userName, USERFILE *userFile)
     } else {
 
         // Read database record
-        result = DbUserOpen(dbContext, userName, userFile);
+        result = DbUserOpen(db, userName, userFile);
         if (result != ERROR_SUCCESS) {
             TRACE("Unable to open user database record (error %lu).\n", result);
 
@@ -251,7 +251,7 @@ static INT UserOpen(CHAR *userName, USERFILE *userFile)
         }
     }
 
-    DbRelease(dbContext);
+    DbRelease(db);
 
     SetLastError(result);
     switch (result) {
@@ -268,12 +268,12 @@ static INT UserOpen(CHAR *userName, USERFILE *userFile)
 
 static INT UserWrite(USERFILE *userFile)
 {
-    DB_CONTEXT *dbContext;
+    DB_CONTEXT *db;
     DWORD       result;
 
     TRACE("userFile=%p\n", userFile);
 
-    if (!DbAcquire(&dbContext)) {
+    if (!DbAcquire(&db)) {
         return UM_ERROR;
     }
 
@@ -284,12 +284,12 @@ static INT UserWrite(USERFILE *userFile)
     }
 
     // Update user database record
-    result = DbUserWrite(dbContext, userFile);
+    result = DbUserWrite(db, userFile);
     if (result != ERROR_SUCCESS) {
         TRACE("Unable to write user database record (error %lu).\n", result);
     }
 
-    DbRelease(dbContext);
+    DbRelease(db);
 
     SetLastError(result);
     return (result == ERROR_SUCCESS) ? UM_SUCCESS : UM_ERROR;

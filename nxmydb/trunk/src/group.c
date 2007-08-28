@@ -63,14 +63,14 @@ static INT GroupFinalize(VOID)
 
 static INT32 GroupCreate(CHAR *groupName)
 {
-    DB_CONTEXT *dbContext;
+    DB_CONTEXT *db;
     DWORD       result;
     INT32       groupId;
-    GROUPFILE    groupFile;
+    GROUPFILE   groupFile;
 
     TRACE("groupName=%s\n", groupName);
 
-    if (!DbAcquire(&dbContext)) {
+    if (!DbAcquire(&db)) {
         return -1;
     }
 
@@ -92,7 +92,7 @@ static INT32 GroupCreate(CHAR *groupName)
         } else {
 
             // Create database record
-            result = DbGroupCreate(dbContext, groupName, &groupFile);
+            result = DbGroupCreate(db, groupName, &groupFile);
             if (result != ERROR_SUCCESS) {
                 TRACE("Unable to create database record (error %lu).\n", result);
 
@@ -103,7 +103,7 @@ static INT32 GroupCreate(CHAR *groupName)
         }
     }
 
-    DbRelease(dbContext);
+    DbRelease(db);
 
     SetLastError(result);
     return (result == ERROR_SUCCESS) ? groupId : -1;
@@ -111,17 +111,17 @@ static INT32 GroupCreate(CHAR *groupName)
 
 static INT GroupRename(CHAR *groupName, INT32 groupId, CHAR *newName)
 {
-    DB_CONTEXT *dbContext;
+    DB_CONTEXT *db;
     DWORD       result;
 
     TRACE("groupName=%s groupId=%d newName=%s\n", groupName, groupId, newName);
 
-    if (!DbAcquire(&dbContext)) {
+    if (!DbAcquire(&db)) {
         return GM_ERROR;
     }
 
     // Rename database record
-    result = DbGroupRename(dbContext, groupName, newName);
+    result = DbGroupRename(db, groupName, newName);
     if (result != ERROR_SUCCESS) {
         TRACE("Unable to rename group database record (error %lu).\n", result);
     } else {
@@ -133,7 +133,7 @@ static INT GroupRename(CHAR *groupName, INT32 groupId, CHAR *newName)
         }
     }
 
-    DbRelease(dbContext);
+    DbRelease(db);
 
     SetLastError(result);
     return (result == ERROR_SUCCESS) ? GM_SUCCESS : GM_ERROR;
@@ -141,12 +141,12 @@ static INT GroupRename(CHAR *groupName, INT32 groupId, CHAR *newName)
 
 static INT GroupDelete(CHAR *groupName, INT32 groupId)
 {
-    DB_CONTEXT *dbContext;
+    DB_CONTEXT *db;
     DWORD       result;
 
     TRACE("groupName=%s groupId=%d\n", groupName, groupId);
 
-    if (!DbAcquire(&dbContext)) {
+    if (!DbAcquire(&db)) {
         return GM_ERROR;
     }
 
@@ -157,7 +157,7 @@ static INT GroupDelete(CHAR *groupName, INT32 groupId)
     }
 
     // Delete database record
-    result = DbGroupDelete(dbContext, groupName);
+    result = DbGroupDelete(db, groupName);
     if (result != ERROR_SUCCESS) {
         TRACE("Unable to delete group database record (error %lu).\n", result);
     } else {
@@ -169,7 +169,7 @@ static INT GroupDelete(CHAR *groupName, INT32 groupId)
         }
     }
 
-    DbRelease(dbContext);
+    DbRelease(db);
 
     SetLastError(result);
     return (result == ERROR_SUCCESS) ? GM_SUCCESS : GM_ERROR;
@@ -177,22 +177,22 @@ static INT GroupDelete(CHAR *groupName, INT32 groupId)
 
 static INT GroupLock(GROUPFILE *groupFile)
 {
-    DB_CONTEXT *dbContext;
+    DB_CONTEXT *db;
     DWORD       result;
 
     TRACE("groupFile=%p\n", groupFile);
 
-    if (!DbAcquire(&dbContext)) {
+    if (!DbAcquire(&db)) {
         return GM_ERROR;
     }
 
     // Lock group
-    result = DbGroupLock(dbContext, groupFile);
+    result = DbGroupLock(db, groupFile);
     if (result != ERROR_SUCCESS) {
         TRACE("Unable to lock group (error %lu).\n", result);
     }
 
-    DbRelease(dbContext);
+    DbRelease(db);
 
     SetLastError(result);
     return (result == ERROR_SUCCESS) ? GM_SUCCESS : GM_ERROR;
@@ -200,22 +200,22 @@ static INT GroupLock(GROUPFILE *groupFile)
 
 static INT GroupUnlock(GROUPFILE *groupFile)
 {
-    DB_CONTEXT *dbContext;
+    DB_CONTEXT *db;
     DWORD       result;
 
     TRACE("groupFile=%p\n", groupFile);
 
-    if (!DbAcquire(&dbContext)) {
+    if (!DbAcquire(&db)) {
         return GM_ERROR;
     }
 
     // Unlock group
-    result = DbGroupUnlock(dbContext, groupFile);
+    result = DbGroupUnlock(db, groupFile);
     if (result != ERROR_SUCCESS) {
         TRACE("Unable to unlock group (error %lu).\n", result);
     }
 
-    DbRelease(dbContext);
+    DbRelease(db);
 
     SetLastError(result);
     return (result == ERROR_SUCCESS) ? GM_SUCCESS : GM_ERROR;
@@ -223,12 +223,12 @@ static INT GroupUnlock(GROUPFILE *groupFile)
 
 static INT GroupOpen(CHAR *groupName, GROUPFILE *groupFile)
 {
-    DB_CONTEXT *dbContext;
+    DB_CONTEXT *db;
     DWORD       result;
 
     TRACE("groupName=%s groupFile=%p\n", groupName, groupFile);
 
-    if (!DbAcquire(&dbContext)) {
+    if (!DbAcquire(&db)) {
         return GM_FATAL;
     }
 
@@ -239,7 +239,7 @@ static INT GroupOpen(CHAR *groupName, GROUPFILE *groupFile)
     } else {
 
         // Read database record
-        result = DbGroupOpen(dbContext, groupName, groupFile);
+        result = DbGroupOpen(db, groupName, groupFile);
         if (result != ERROR_SUCCESS) {
             TRACE("Unable to open group database record (error %lu).\n", result);
 
@@ -248,7 +248,7 @@ static INT GroupOpen(CHAR *groupName, GROUPFILE *groupFile)
         }
     }
 
-    DbRelease(dbContext);
+    DbRelease(db);
 
     SetLastError(result);
     switch (result) {
@@ -265,12 +265,12 @@ static INT GroupOpen(CHAR *groupName, GROUPFILE *groupFile)
 
 static INT GroupWrite(GROUPFILE *groupFile)
 {
-    DB_CONTEXT *dbContext;
+    DB_CONTEXT *db;
     DWORD       result;
 
     TRACE("groupFile=%p\n", groupFile);
 
-    if (!DbAcquire(&dbContext)) {
+    if (!DbAcquire(&db)) {
         return GM_ERROR;
     }
 
@@ -281,12 +281,12 @@ static INT GroupWrite(GROUPFILE *groupFile)
     }
 
     // Update group database record
-    result = DbGroupWrite(dbContext, groupFile);
+    result = DbGroupWrite(db, groupFile);
     if (result != ERROR_SUCCESS) {
         TRACE("Unable to write group database record (error %lu).\n", result);
     }
 
-    DbRelease(dbContext);
+    DbRelease(db);
 
     SetLastError(result);
     return (result == ERROR_SUCCESS) ? GM_SUCCESS : GM_ERROR;

@@ -491,7 +491,16 @@ BOOL DbInit(Io_GetProc *getProc)
         return FALSE;
     }
 
+    //
+    // Read lock options
+    //
+
+    // TODO
+
+    //
     // Read pool options
+    //
+
     poolMin = 1;
     if (Io_ConfigGetInt("nxMyDB", "Pool_Minimum", &poolMin) && poolMin <= 0) {
         Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Minimum' must be greater than zero.\r\n");
@@ -531,7 +540,10 @@ BOOL DbInit(Io_GetProc *getProc)
     }
     connCheck = UInt32x32To64(poolCheck, 10000000); // sec to 100nsec
 
-    // Refesh timer
+    //
+    // Read refesh timer
+    //
+
     refresh = 0;
     if (Io_ConfigGetInt("nxMyDB", "Refresh", &refresh) && refresh < 0) {
         Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Refresh' must be greater than or equal to zero.\r\n");

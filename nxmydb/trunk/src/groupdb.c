@@ -16,68 +16,68 @@ Abstract:
 
 #include "mydb.h"
 
-DWORD DbGroupCreate(DB_CONTEXT *dbContext, CHAR *groupName, GROUPFILE *groupFile)
+DWORD DbGroupCreate(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 {
-    ASSERT(dbContext != NULL);
+    ASSERT(db != NULL);
     ASSERT(groupName != NULL);
     ASSERT(groupFile != NULL);
-    TRACE("dbContext=%p groupName=%s groupFile=%p\n", dbContext, groupName, groupFile);
+    TRACE("db=%p groupName=%s groupFile=%p\n", db, groupName, groupFile);
 
     return ERROR_INTERNAL_ERROR;
 }
 
-DWORD DbGroupRename(DB_CONTEXT *dbContext, CHAR *groupName, CHAR *newName)
+DWORD DbGroupRename(DB_CONTEXT *db, CHAR *groupName, CHAR *newName)
 {
-    ASSERT(dbContext != NULL);
+    ASSERT(db != NULL);
     ASSERT(groupName != NULL);
     ASSERT(newName != NULL);
-    TRACE("dbContext=%p groupName=%s newName=%s\n", dbContext, groupName, newName);
+    TRACE("db=%p groupName=%s newName=%s\n", db, groupName, newName);
 
     return ERROR_INTERNAL_ERROR;
 }
 
-DWORD DbGroupDelete(DB_CONTEXT *dbContext, CHAR *groupName)
+DWORD DbGroupDelete(DB_CONTEXT *db, CHAR *groupName)
 {
-    ASSERT(dbContext != NULL);
+    ASSERT(db != NULL);
     ASSERT(groupName != NULL);
-    TRACE("dbContext=%p groupName=%s\n", dbContext, groupName);
+    TRACE("db=%p groupName=%s\n", db, groupName);
 
     return ERROR_INTERNAL_ERROR;
 }
 
-DWORD DbGroupLock(DB_CONTEXT *dbContext, GROUPFILE *groupFile)
+DWORD DbGroupLock(DB_CONTEXT *db, GROUPFILE *groupFile)
 {
-    ASSERT(dbContext != NULL);
+    ASSERT(db != NULL);
     ASSERT(groupFile != NULL);
-    TRACE("dbContext=%p groupFile=%p\n", dbContext, groupFile);
+    TRACE("db=%p groupFile=%p\n", db, groupFile);
 
     return ERROR_INTERNAL_ERROR;
 }
 
-DWORD DbGroupUnlock(DB_CONTEXT *dbContext, GROUPFILE *groupFile)
+DWORD DbGroupUnlock(DB_CONTEXT *db, GROUPFILE *groupFile)
 {
-    ASSERT(dbContext != NULL);
+    ASSERT(db != NULL);
     ASSERT(groupFile != NULL);
-    TRACE("dbContext=%p groupFile=%p\n", dbContext, groupFile);
+    TRACE("db=%p groupFile=%p\n", db, groupFile);
 
     return ERROR_INTERNAL_ERROR;
 }
 
-DWORD DbGroupOpen(DB_CONTEXT *dbContext, CHAR *groupName, GROUPFILE *groupFile)
+DWORD DbGroupOpen(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 {
-    ASSERT(dbContext != NULL);
+    ASSERT(db != NULL);
     ASSERT(groupName != NULL);
     ASSERT(groupFile != NULL);
-    TRACE("dbContext=%p groupName=%s groupFile=%p\n", dbContext, groupName, groupFile);
+    TRACE("db=%p groupName=%s groupFile=%p\n", db, groupName, groupFile);
 
     return ERROR_INTERNAL_ERROR;
 }
 
-DWORD DbGroupWrite(DB_CONTEXT *dbContext, GROUPFILE *groupFile)
+DWORD DbGroupWrite(DB_CONTEXT *db, GROUPFILE *groupFile)
 {
-    ASSERT(dbContext != NULL);
+    ASSERT(db != NULL);
     ASSERT(groupFile != NULL);
-    TRACE("dbContext=%p groupFile=%p\n", dbContext, groupFile);
+    TRACE("db=%p groupFile=%p\n", db, groupFile);
 
     return ERROR_INTERNAL_ERROR;
 }
@@ -90,10 +90,10 @@ DWORD DbGroupClose(GROUPFILE *groupFile)
     return ERROR_INTERNAL_ERROR;
 }
 
-DWORD DbGroupRefresh(DB_CONTEXT *dbContext)
+DWORD DbGroupRefresh(DB_CONTEXT *db)
 {
-    ASSERT(dbContext != NULL);
-    TRACE("dbContext=%p\n", dbContext);
+    ASSERT(db != NULL);
+    TRACE("db=%p\n", db);
 
     return ERROR_INTERNAL_ERROR;
 }

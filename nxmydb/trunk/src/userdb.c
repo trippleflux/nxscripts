@@ -16,68 +16,68 @@ Abstract:
 
 #include "mydb.h"
 
-DWORD DbUserCreate(DB_CONTEXT *dbContext, CHAR *userName, USERFILE *userFile)
+DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 {
-    ASSERT(dbContext != NULL);
+    ASSERT(db != NULL);
     ASSERT(userName != NULL);
     ASSERT(userFile != NULL);
-    TRACE("dbContext=%p userName=%s userFile=%p\n", dbContext, userName, userFile);
+    TRACE("db=%p userName=%s userFile=%p\n", db, userName, userFile);
 
     return ERROR_INTERNAL_ERROR;
 }
 
-DWORD DbUserRename(DB_CONTEXT *dbContext, CHAR *userName, CHAR *newName)
+DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
 {
-    ASSERT(dbContext != NULL);
+    ASSERT(db != NULL);
     ASSERT(userName != NULL);
     ASSERT(newName != NULL);
-    TRACE("dbContext=%p userName=%s newName=%s\n", dbContext, userName, newName);
+    TRACE("db=%p userName=%s newName=%s\n", db, userName, newName);
 
     return ERROR_INTERNAL_ERROR;
 }
 
-DWORD DbUserDelete(DB_CONTEXT *dbContext, CHAR *userName)
+DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
 {
-    ASSERT(dbContext != NULL);
+    ASSERT(db != NULL);
     ASSERT(userName != NULL);
-    TRACE("dbContext=%p userName=%s\n", dbContext, userName);
+    TRACE("db=%p userName=%s\n", db, userName);
 
     return ERROR_INTERNAL_ERROR;
 }
 
-DWORD DbUserLock(DB_CONTEXT *dbContext, USERFILE *userFile)
+DWORD DbUserLock(DB_CONTEXT *db, USERFILE *userFile)
 {
-    ASSERT(dbContext != NULL);
+    ASSERT(db != NULL);
     ASSERT(userFile != NULL);
-    TRACE("dbContext=%p userFile=%p\n", dbContext, userFile);
+    TRACE("db=%p userFile=%p\n", db, userFile);
 
     return ERROR_INTERNAL_ERROR;
 }
 
-DWORD DbUserUnlock(DB_CONTEXT *dbContext, USERFILE *userFile)
+DWORD DbUserUnlock(DB_CONTEXT *db, USERFILE *userFile)
 {
-    ASSERT(dbContext != NULL);
+    ASSERT(db != NULL);
     ASSERT(userFile != NULL);
-    TRACE("dbContext=%p userFile=%p\n", dbContext, userFile);
+    TRACE("db=%p userFile=%p\n", db, userFile);
 
     return ERROR_INTERNAL_ERROR;
 }
 
-DWORD DbUserOpen(DB_CONTEXT *dbContext, CHAR *userName, USERFILE *userFile)
+DWORD DbUserOpen(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 {
-    ASSERT(dbContext != NULL);
+    ASSERT(db != NULL);
     ASSERT(userName != NULL);
     ASSERT(userFile != NULL);
-    TRACE("dbContext=%p userName=%s userFile=%p\n", dbContext, userName, userFile);
+    TRACE("db=%p userName=%s userFile=%p\n", db, userName, userFile);
 
     return ERROR_INTERNAL_ERROR;
 }
 
-DWORD DbUserWrite(DB_CONTEXT *dbContext, USERFILE *userFile)
+DWORD DbUserWrite(DB_CONTEXT *db, USERFILE *userFile)
 {
-    ASSERT(dbContext != NULL);
+    ASSERT(db != NULL);
     ASSERT(userFile != NULL);
-    TRACE("dbContext=%p userFile=%p\n", dbContext, userFile);
+    TRACE("db=%p userFile=%p\n", db, userFile);
 
     return ERROR_INTERNAL_ERROR;
 }
@@ -90,10 +90,10 @@ DWORD DbUserClose(USERFILE *userFile)
     return ERROR_INTERNAL_ERROR;
 }
 
-DWORD DbUserRefresh(DB_CONTEXT *dbContext)
+DWORD DbUserRefresh(DB_CONTEXT *db)
 {
-    ASSERT(dbContext != NULL);
-    TRACE("dbContext=%p\n", dbContext);
+    ASSERT(db != NULL);
+    TRACE("db=%p\n", db);
 
     return ERROR_INTERNAL_ERROR;
 }
