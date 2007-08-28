@@ -242,6 +242,9 @@ static INT GroupOpen(CHAR *groupName, GROUPFILE *groupFile)
         result = DbGroupOpen(dbContext, groupName, groupFile);
         if (result != ERROR_SUCCESS) {
             TRACE("Unable to open group database record (error %lu).\n", result);
+
+            // Clean-up group file
+            FileGroupClose(groupFile);
         }
     }
 

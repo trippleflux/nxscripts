@@ -99,7 +99,7 @@ static INT32 UserCreate(CHAR *userName)
             if (result != ERROR_SUCCESS) {
                 TRACE("Unable to create database record (error %lu).\n", result);
 
-                // Clean-up the file
+                // Clean-up user file
                 FileUserDelete(userId);
                 FileUserClose(&userFile);
             }
@@ -245,6 +245,9 @@ static INT UserOpen(CHAR *userName, USERFILE *userFile)
         result = DbUserOpen(dbContext, userName, userFile);
         if (result != ERROR_SUCCESS) {
             TRACE("Unable to open user database record (error %lu).\n", result);
+
+            // Clean-up user file
+            FileUserClose(userFile);
         }
     }
 
