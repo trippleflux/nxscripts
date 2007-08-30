@@ -18,6 +18,7 @@ Abstract:
 #include <backends.h>
 #include <database.h>
 #include <pool.h>
+#include <rpc.h>
 
 // Pool resource functions
 static POOL_CONSTRUCTOR_PROC ConnectionOpen;
@@ -42,13 +43,14 @@ static CHAR *sslCAPath;
 static UINT64 connCheck;
 static UINT64 connExpire;
 
-// Lock expiration
-static INT lockExpire;
-static INT lockTimeout;
+// Locking
+static INT  lockExpire;
+static INT  lockTimeout;
+static CHAR lockOwner[36 + 1];
 
 // Refresh timer
 static INT refresh;
-static TIMER *timer;
+static TIMER *timer = NULL;
 
 // Database connection pool
 static POOL *pool;
@@ -299,6 +301,54 @@ static CHAR *ConfigGet(CHAR *array, CHAR *variable)
 
 /*++
 
+ConfigUuid
+
+    Generates a UUID used for identifying the server.
+
+Arguments:
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false).
+
+Return Values:
+    None.
+
+--*/
+static BOOL ConfigUuid(VOID)
+{
+    CHAR        *format;
+    RPC_STATUS  status;
+    UUID        uuid;
+
+    status = UuidCreate(&uuid);
+    switch (status) {
+        case RPC_S_OK:
+        case RPC_S_UUID_LOCAL_ONLY:
+        case RPC_S_UUID_NO_ADDRESS:
+            // These are acceptable failures.
+            break;
+        default:
+            TRACE("Unable to generate UUID (error %lu).\n", status);
+            return FALSE;
+    }
+
+    status = UuidToStringA(&uuid, (RPC_CSTR *)&format);
+    if (status != RPC_S_OK) {
+            TRACE("Unable to convert UUID (error %lu).\n", status);
+        return FALSE;
+    }
+
+    // Copy formatted UUID to the lock owner buffer
+    StringCchCopyA(lockOwner, ELEMENT_COUNT(lockOwner), format);
+
+    TRACE("UUID is %s\n", format);
+
+    RpcStringFree((RPC_CSTR *)&format);
+    return TRUE;
+}
+
+/*++
+
 ConfigFree
 
     Frees memory allocated for configuration options.
@@ -366,7 +416,7 @@ static DWORD RefreshTimer(VOID *notUsed, TIMER *currTimer)
     UNREFERENCED_PARAMETER(notUsed);
     UNREFERENCED_PARAMETER(currTimer);
 
-    TRACE(L"currTimer=%p", currTimer);
+    TRACE("currTimer=%p", currTimer);
 
     if (DbAcquire(&context)) {
         //
@@ -530,11 +580,16 @@ BOOL DbInit(Io_GetProc *getProc)
         return FALSE;
     }
 
+    // Generate a UUID for this server
+    if (!ConfigUuid()) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Unable to generate UUID.\r\n");
+        DbFinalize();
+        return FALSE;
+    }
+
     // Start database refresh timer
     if (refresh > 0) {
         timer = Io_StartIoTimer(NULL, RefreshTimer, NULL, refresh);
-    } else {
-        timer = NULL;
     }
 
     Io_Putlog(LOG_ERROR, "nxMyDB: v%s loaded, using MySQL Client Library v%s.\r\n",
@@ -589,21 +644,27 @@ DbGetConfig
     Retrieves the lock configuration.
 
 Arguments:
-    lockExpire  - Pointer to a variable that recieves the lock expiration.
+    expire  - Pointer to a variable that recieves the lock expiration.
 
-    lockTimeout - Pointer to a variable that recieves the lock timeout.
+    timeout - Pointer to a variable that recieves the lock timeout.
+
+    owner   - Pointer to a variable that recieves the lock owner.
 
 Return Values:
     None.
 
 --*/
-VOID DbGetConfig(INT *expire, INT *timeout)
+VOID DbGetConfig(INT *expire, INT *timeout, CHAR **owner)
 {
+
     if (expire != NULL) {
         *expire = lockExpire;
     }
     if (timeout != NULL) {
         *timeout = lockTimeout;
+    }
+    if (owner != NULL) {
+        *owner = lockOwner;
     }
 }
 

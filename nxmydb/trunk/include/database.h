@@ -35,7 +35,7 @@ typedef struct {
 BOOL DbInit(Io_GetProc *getProc);
 VOID DbFinalize(VOID);
 
-VOID DbGetConfig(INT *expire, INT *timeout);
+VOID DbGetConfig(INT *expire, INT *timeout, CHAR **owner);
 
 BOOL DbAcquire(DB_CONTEXT **dbContext);
 VOID DbRelease(DB_CONTEXT *dbContext);

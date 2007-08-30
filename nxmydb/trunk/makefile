@@ -110,7 +110,7 @@ FILE_OBJS = \
 	$(RC) $(RFLAGS) /fo $@ $<
 
 nxmydb.dll: $(FILE_OBJS)
-    $(LD) $(LFLAGS) /DEF:resource\mydb.def /DLL /OUT:$@ "$(MYSQL_LIB)\libmysql.lib" @<<
+    $(LD) $(LFLAGS) /DEF:resource\mydb.def /DLL /OUT:$@ rpcrt4.lib "$(MYSQL_LIB)\libmysql.lib" @<<
 $**
 <<
 
