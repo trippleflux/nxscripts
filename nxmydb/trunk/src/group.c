@@ -95,11 +95,14 @@ static INT32 GroupCreate(CHAR *groupName)
             result = DbGroupCreate(db, groupName, &groupFile);
             if (result != ERROR_SUCCESS) {
                 TRACE("Unable to create database record (error %lu).\n", result);
-
-                // Clean-up the file
-                FileGroupDelete(groupId);
-                FileGroupClose(&groupFile);
             }
+        }
+
+        // If the file or database creation failed, clean-up the group file
+        if (result != ERROR_SUCCESS) {
+            groupModule->Unregister(groupModule, groupName);
+            FileGroupDelete(groupId);
+            FileGroupClose(&groupFile);
         }
     }
 

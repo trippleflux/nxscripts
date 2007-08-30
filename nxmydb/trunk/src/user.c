@@ -98,11 +98,14 @@ static INT32 UserCreate(CHAR *userName)
             result = DbUserCreate(db, userName, &userFile);
             if (result != ERROR_SUCCESS) {
                 TRACE("Unable to create database record (error %lu).\n", result);
-
-                // Clean-up user file
-                FileUserDelete(userId);
-                FileUserClose(&userFile);
             }
+        }
+
+        // If the file or database creation failed, clean-up the user file
+        if (result != ERROR_SUCCESS) {
+            userModule->Unregister(userModule, userName);
+            FileUserDelete(userId);
+            FileUserClose(&userFile);
         }
     }
 
