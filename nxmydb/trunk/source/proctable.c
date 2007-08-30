@@ -46,7 +46,7 @@ Return Values:
     If the function fails, the return value is zero (false).
 
 --*/
-BOOL ProcTableInit(Io_GetProc *getProc)
+BOOL FCALL ProcTableInit(Io_GetProc *getProc)
 {
     RESOLVE("Config_Get",      procTable.ConfigGet)
     RESOLVE("Config_GetBool",  procTable.ConfigGetBool)
@@ -87,7 +87,7 @@ Return Values:
     None.
 
 --*/
-VOID ProcTableFinalize(VOID)
+VOID FCALL ProcTableFinalize(VOID)
 {
     ZeroMemory(&procTable, sizeof(PROC_TABLE));
 }

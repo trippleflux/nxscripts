@@ -40,7 +40,7 @@ Remarks:
     The system error code must be set on failure.
 
 --*/
-typedef BOOL (POOL_CONSTRUCTOR_PROC)(VOID *opaque, VOID **data);
+typedef BOOL (FCALL POOL_CONSTRUCTOR_PROC)(VOID *opaque, VOID **data);
 
 /*++
 
@@ -62,7 +62,7 @@ Remarks:
     The system error code must be set if invalid.
 
 --*/
-typedef BOOL (POOL_VALIDATOR_PROC)(VOID *opaque, VOID *data);
+typedef BOOL (FCALL POOL_VALIDATOR_PROC)(VOID *opaque, VOID *data);
 
 /*++
 
@@ -79,7 +79,7 @@ Return Values:
     None.
 
 --*/
-typedef VOID (POOL_DESTRUCTOR_PROC)(VOID *opaque, VOID *data);
+typedef VOID (FCALL POOL_DESTRUCTOR_PROC)(VOID *opaque, VOID *data);
 
 //
 // Pool resource
@@ -119,7 +119,7 @@ typedef struct {
 // Pool functions
 //
 
-BOOL PoolCreate(
+BOOL SCALL PoolCreate(
     POOL *pool,
     DWORD minimum,
     DWORD average,
@@ -130,12 +130,13 @@ BOOL PoolCreate(
     POOL_DESTRUCTOR_PROC *destructor,
     VOID *opaque
     );
-VOID PoolDestroy(POOL *pool);
 
-BOOL PoolAcquire(POOL *pool, VOID **data);
-BOOL PoolRelease(POOL *pool, VOID *data);
+VOID FCALL PoolDestroy(POOL *pool);
 
-BOOL PoolValidate(POOL *pool, VOID *data);
-VOID PoolInvalidate(POOL *pool, VOID *data);
+BOOL FCALL PoolAcquire(POOL *pool, VOID **data);
+BOOL FCALL PoolRelease(POOL *pool, VOID *data);
+
+BOOL FCALL PoolValidate(POOL *pool, VOID *data);
+VOID FCALL PoolInvalidate(POOL *pool, VOID *data);
 
 #endif // POOL_H_INCLUDED

@@ -18,9 +18,9 @@ Abstract:
 #define DEBUG_H_INCLUDED
 
 #ifdef DEBUG
-VOID TraceHeader(VOID);
-VOID TraceFormat(const char *funct, const char *format, ...);
-VOID TraceFooter(VOID);
+VOID FCALL TraceHeader(VOID);
+VOID CCALL TraceFormat(const char *funct, const char *format, ...);
+VOID FCALL TraceFooter(VOID);
 #endif // DEBUG
 
 #endif // DEBUG_H_INCLUDED

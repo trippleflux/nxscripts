@@ -52,10 +52,6 @@ Abstract:
 // MySQL headers
 #include <mysql.h>
 
-// Project headers
-#include <debug.h>
-#include <proctable.h>
-
 
 //
 // Macro: ASSERT
@@ -67,23 +63,6 @@ Abstract:
 #   define ASSERT   _ASSERTE
 #else
 #   define ASSERT   ((VOID)0)
-#endif
-
-//
-// Macros:
-//
-// TRACE_HEAD - Log debug header.
-// TRACE_FOOT - Log debug footer.
-// TRACE      - Log debug message.
-//
-#if defined(DEBUG) && !defined(NDEBUG)
-#   define TRACE_HEAD()         TraceHeader()
-#   define TRACE_FOOT()         TraceFooter()
-#   define TRACE(format, ...)   TraceFormat(__FUNCTION__, format, __VA_ARGS__)
-#else
-#   define TRACE_HEAD()         ((VOID)0)
-#   define TRACE_FOOT()         ((VOID)0)
-#   define TRACE(format, ...)   ((VOID)0)
 #endif
 
 //
@@ -114,5 +93,47 @@ Abstract:
 //
 #define STRINGIFY(s)        STRINGIFY_HELPER(s)
 #define STRINGIFY_HELPER(s)  #s
+
+//
+// TRACE_HEAD - Log debug header.
+// TRACE_FOOT - Log debug footer.
+// TRACE      - Log debug message.
+//
+#if defined(DEBUG) && !defined(NDEBUG)
+#   define TRACE_HEAD()         TraceHeader()
+#   define TRACE_FOOT()         TraceFooter()
+#   define TRACE(format, ...)   TraceFormat(__FUNCTION__, format, __VA_ARGS__)
+#else
+#   define TRACE_HEAD()         ((VOID)0)
+#   define TRACE_FOOT()         ((VOID)0)
+#   define TRACE(format, ...)   ((VOID)0)
+#endif
+
+
+//
+// Macro: CCALL
+//
+// C calling convention.
+//
+#define CCALL   __cdecl
+
+//
+// Macro: FCALL
+//
+// Fast-call calling convention.
+//
+#define FCALL   __fastcall
+
+//
+// Macro: SCALL
+//
+// Standard-call calling convention.
+//
+#define SCALL   __stdcall
+
+
+// Project headers
+#include <debug.h>
+#include <proctable.h>
 
 #endif // BASE_H_INCLUDED

@@ -101,7 +101,7 @@ extern PROC_TABLE procTable;
 #define Io_Putlog           procTable.Putlog
 
 
-BOOL ProcTableInit(Io_GetProc *getProc);
-VOID ProcTableFinalize(VOID);
+BOOL FCALL ProcTableInit(Io_GetProc *getProc);
+VOID FCALL ProcTableFinalize(VOID);
 
 #endif // PROCTABLE_H_INCLUDED

@@ -64,7 +64,7 @@ DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName)
     DbGetConfig(&lockExpire, &lockTimeout, &lockOwner);
 
     //
-    // Prepate statement
+    // Prepare statement
     //
 
     // TODO: lockTimeout
@@ -137,7 +137,7 @@ DWORD DbUserUnlock(DB_CONTEXT *db, CHAR *userName)
     DbGetConfig(NULL, NULL, &lockOwner);
 
     //
-    // Prepate statement
+    // Prepare statement
     //
 
     query = "UPDATE io_users SET lockowner=NULL, locktime=0"

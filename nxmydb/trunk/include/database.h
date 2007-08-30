@@ -49,13 +49,13 @@ typedef struct {
 // Database functions
 //
 
-BOOL DbInit(Io_GetProc *getProc);
-VOID DbFinalize(VOID);
+BOOL FCALL DbInit(Io_GetProc *getProc);
+VOID FCALL DbFinalize(VOID);
 
-VOID DbGetConfig(INT *expire, INT *timeout, CHAR **owner);
-DWORD DbMapError(INT result);
+VOID  FCALL DbGetConfig(INT *expire, INT *timeout, CHAR **owner);
+DWORD FCALL DbMapError(INT result);
 
-BOOL DbAcquire(DB_CONTEXT **dbContext);
-VOID DbRelease(DB_CONTEXT *dbContext);
+BOOL FCALL DbAcquire(DB_CONTEXT **dbContext);
+VOID FCALL DbRelease(DB_CONTEXT *dbContext);
 
 #endif // DATABASE_H_INCLUDED

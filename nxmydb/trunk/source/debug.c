@@ -31,7 +31,7 @@ Return Values:
     None.
 
 --*/
-VOID TraceHeader(VOID)
+VOID FCALL TraceHeader(VOID)
 {
     // Preserve system error code
     DWORD error = GetLastError();
@@ -61,7 +61,7 @@ Return Values:
     None.
 
 --*/
-VOID TraceFormat(const char *funct, const char *format, ...)
+VOID CCALL TraceFormat(const char *funct, const char *format, ...)
 {
     char *end;
     char output[1024];
@@ -100,7 +100,7 @@ Return Values:
     None.
 
 --*/
-VOID TraceFooter(VOID)
+VOID FCALL TraceFooter(VOID)
 {
     // Preserve system error code
     DWORD error = GetLastError();

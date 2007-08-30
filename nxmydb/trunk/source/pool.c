@@ -329,7 +329,7 @@ Remarks:
     This function may create or destroy expired resources.
 
 --*/
-static BOOL ResourceUpdate(POOL *pool)
+static BOOL FCALL ResourceUpdate(POOL *pool)
 {
     BOOL newResource = FALSE;
     POOL_RESOURCE *resource;
@@ -425,7 +425,7 @@ Return Values:
     information, call GetLastError.
 
 --*/
-BOOL PoolCreate(
+BOOL SCALL PoolCreate(
     POOL *pool,
     DWORD minimum,
     DWORD average,
@@ -490,7 +490,7 @@ Return Values:
     None.
 
 --*/
-VOID PoolDestroy(POOL *pool)
+VOID FCALL PoolDestroy(POOL *pool)
 {
     POOL_RESOURCE *resource;
 
@@ -536,7 +536,7 @@ Remarks:
     This function will block until a resource becomes available.
 
 --*/
-BOOL PoolAcquire(POOL *pool, VOID **data)
+BOOL FCALL PoolAcquire(POOL *pool, VOID **data)
 {
     POOL_RESOURCE *resource;
 
@@ -597,7 +597,7 @@ Return Values:
     error information, call GetLastError.
 
 --*/
-BOOL PoolRelease(POOL *pool, VOID *data)
+BOOL FCALL PoolRelease(POOL *pool, VOID *data)
 {
     DWORD error;
     POOL_RESOURCE *container;
@@ -649,7 +649,7 @@ Return Values:
     is destroyed. To get extended error information, call GetLastError.
 
 --*/
-BOOL PoolValidate(POOL *pool, VOID *data)
+BOOL FCALL PoolValidate(POOL *pool, VOID *data)
 {
     BOOL result;
 
@@ -684,7 +684,7 @@ Return Values:
     None.
 
 --*/
-VOID PoolInvalidate(POOL *pool, VOID *data)
+VOID FCALL PoolInvalidate(POOL *pool, VOID *data)
 {
     ASSERT(pool != NULL);
     ASSERT(data != NULL);

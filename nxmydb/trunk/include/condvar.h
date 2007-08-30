@@ -30,10 +30,10 @@ typedef struct {
 // Condition variable functions
 //
 
-BOOL ConditionVariableCreate(CONDITION_VAR *cond);
-VOID ConditionVariableDestroy(CONDITION_VAR *cond);
-BOOL ConditionVariableBroadcast(CONDITION_VAR *cond);
-BOOL ConditionVariableSignal(CONDITION_VAR *cond);
-BOOL ConditionVariableWait(CONDITION_VAR *cond, CRITICAL_SECTION *critSection, DWORD timeout);
+BOOL FCALL ConditionVariableCreate(CONDITION_VAR *cond);
+VOID FCALL ConditionVariableDestroy(CONDITION_VAR *cond);
+BOOL FCALL ConditionVariableBroadcast(CONDITION_VAR *cond);
+BOOL FCALL ConditionVariableSignal(CONDITION_VAR *cond);
+BOOL FCALL ConditionVariableWait(CONDITION_VAR *cond, CRITICAL_SECTION *critSection, DWORD timeout);
 
 #endif // CONDVAR_H_INCLUDED

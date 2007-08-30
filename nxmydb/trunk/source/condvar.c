@@ -33,7 +33,7 @@ Return Values:
     error information, call GetLastError.
 
 --*/
-BOOL ConditionVariableCreate(CONDITION_VAR *cond)
+BOOL FCALL ConditionVariableCreate(CONDITION_VAR *cond)
 {
     ASSERT(cond != NULL);
 
@@ -55,7 +55,7 @@ Return Values:
     None.
 
 --*/
-VOID ConditionVariableDestroy(CONDITION_VAR *cond)
+VOID FCALL ConditionVariableDestroy(CONDITION_VAR *cond)
 {
     ASSERT(cond != NULL);
 
@@ -78,7 +78,7 @@ Return Values:
     error information, call GetLastError.
 
 --*/
-BOOL ConditionVariableBroadcast(CONDITION_VAR *cond)
+BOOL FCALL ConditionVariableBroadcast(CONDITION_VAR *cond)
 {
     ASSERT(cond != NULL);
 
@@ -104,7 +104,7 @@ Return Values:
     error information, call GetLastError.
 
 --*/
-BOOL ConditionVariableSignal(CONDITION_VAR *cond)
+BOOL FCALL ConditionVariableSignal(CONDITION_VAR *cond)
 {
     ASSERT(cond != NULL);
 
@@ -135,7 +135,7 @@ Return Values:
     error information, call GetLastError.
 
 --*/
-BOOL ConditionVariableWait(CONDITION_VAR *cond, CRITICAL_SECTION *critSection, DWORD timeout)
+BOOL FCALL ConditionVariableWait(CONDITION_VAR *cond, CRITICAL_SECTION *critSection, DWORD timeout)
 {
     DWORD result;
 

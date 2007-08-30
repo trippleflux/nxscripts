@@ -78,7 +78,7 @@ Return Values:
     If the function fails, the return value is zero (false).
 
 --*/
-static BOOL ConnectionOpen(VOID *opaque, VOID **data)
+static BOOL FCALL ConnectionOpen(VOID *opaque, VOID **data)
 {
     DB_CONTEXT      *context;
     DWORD           error;
@@ -175,7 +175,7 @@ Return Values:
     If the connection is invalid, the return is zero (false).
 
 --*/
-static BOOL ConnectionCheck(VOID *opaque, VOID *data)
+static BOOL FCALL ConnectionCheck(VOID *opaque, VOID *data)
 {
     DB_CONTEXT *context;
     UINT64 timeCurrent;
@@ -231,7 +231,7 @@ Return Values:
     None.
 
 --*/
-static VOID ConnectionClose(VOID *opaque, VOID *data)
+static VOID FCALL ConnectionClose(VOID *opaque, VOID *data)
 {
     DB_CONTEXT *context;
 
@@ -270,7 +270,7 @@ Return Values:
     If the function fails, the return value is null.
 
 --*/
-static CHAR *ConfigGet(CHAR *array, CHAR *variable)
+static CHAR *FCALL ConfigGet(CHAR *array, CHAR *variable)
 {
     CHAR *p;
     CHAR *value;
@@ -316,7 +316,7 @@ Return Values:
     None.
 
 --*/
-static BOOL ConfigUuid(VOID)
+static BOOL FCALL ConfigUuid(VOID)
 {
     CHAR        *format;
     RPC_STATUS  status;
@@ -362,7 +362,7 @@ Return Values:
     None.
 
 --*/
-static VOID ConfigFree(VOID)
+static VOID FCALL ConfigFree(VOID)
 {
     // Free server options
     if (serverHost != NULL) {
@@ -458,7 +458,7 @@ Remarks:
     in a single thread at start-up.
 
 --*/
-BOOL DbInit(Io_GetProc *getProc)
+BOOL FCALL DbInit(Io_GetProc *getProc)
 {
     INT poolMin;
     INT poolAvg;
@@ -615,7 +615,7 @@ Remarks:
     This function must be called once by each module exit point.
 
 --*/
-VOID DbFinalize(VOID)
+VOID FCALL DbFinalize(VOID)
 {
     TRACE("refCount=%d\n", refCount);
 
@@ -656,7 +656,7 @@ Return Values:
     None.
 
 --*/
-VOID DbGetConfig(INT *expire, INT *timeout, CHAR **owner)
+VOID FCALL DbGetConfig(INT *expire, INT *timeout, CHAR **owner)
 {
 
     if (expire != NULL) {
@@ -683,7 +683,7 @@ Return Values:
     The closest Windows error code.
 
 --*/
-DWORD DbMapError(INT result)
+DWORD FCALL DbMapError(INT result)
 {
     DWORD error;
 
@@ -742,7 +742,7 @@ Return Values:
     If the function fails, the return value is zero (false).
 
 --*/
-BOOL DbAcquire(DB_CONTEXT **dbContext)
+BOOL FCALL DbAcquire(DB_CONTEXT **dbContext)
 {
     DB_CONTEXT *context;
 
@@ -772,7 +772,7 @@ Return Values:
     None.
 
 --*/
-VOID DbRelease(DB_CONTEXT *dbContext)
+VOID FCALL DbRelease(DB_CONTEXT *dbContext)
 {
     ASSERT(dbContext != NULL);
     TRACE("dbContext=%p\n", dbContext);
