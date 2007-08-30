@@ -185,6 +185,7 @@ static INT UserDelete(CHAR *userName, INT32 userId)
 
 static INT UserLock(USERFILE *userFile)
 {
+    CHAR       *userName;
     DB_CONTEXT *db;
     DWORD       result;
 
@@ -194,10 +195,17 @@ static INT UserLock(USERFILE *userFile)
         return UM_ERROR;
     }
 
-    // Lock user
-    result = DbUserLock(db, userFile);
-    if (result != ERROR_SUCCESS) {
-        TRACE("Unable to lock user (error %lu).\n", result);
+    // Resolve user ID to user name
+    userName = Io_Uid2User(userFile->Uid);
+    if (userName == NULL) {
+        result = ERROR_NO_SUCH_USER;
+
+    } else {
+        // Lock user
+        result = DbUserLock(db, userName);
+        if (result != ERROR_SUCCESS) {
+            TRACE("Unable to lock user (error %lu).\n", result);
+        }
     }
 
     DbRelease(db);
@@ -208,6 +216,7 @@ static INT UserLock(USERFILE *userFile)
 
 static INT UserUnlock(USERFILE *userFile)
 {
+    CHAR       *userName;
     DB_CONTEXT *db;
     DWORD       result;
 
@@ -217,10 +226,17 @@ static INT UserUnlock(USERFILE *userFile)
         return UM_ERROR;
     }
 
-    // Unlock user
-    result = DbUserUnlock(db, userFile);
-    if (result != ERROR_SUCCESS) {
-        TRACE("Unable to unlock user (error %lu).\n", result);
+    // Resolve user ID to user name
+    userName = Io_Uid2User(userFile->Uid);
+    if (userName == NULL) {
+        result = ERROR_NO_SUCH_USER;
+
+    } else {
+        // Unlock user
+        result = DbUserUnlock(db, userName);
+        if (result != ERROR_SUCCESS) {
+            TRACE("Unable to unlock user (error %lu).\n", result);
+        }
     }
 
     DbRelease(db);

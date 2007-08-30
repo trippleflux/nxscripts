@@ -182,6 +182,7 @@ static INT GroupDelete(CHAR *groupName, INT32 groupId)
 
 static INT GroupLock(GROUPFILE *groupFile)
 {
+    CHAR       *groupName;
     DB_CONTEXT *db;
     DWORD       result;
 
@@ -191,10 +192,17 @@ static INT GroupLock(GROUPFILE *groupFile)
         return GM_ERROR;
     }
 
-    // Lock group
-    result = DbGroupLock(db, groupFile);
-    if (result != ERROR_SUCCESS) {
-        TRACE("Unable to lock group (error %lu).\n", result);
+    // Resolve user ID to user name
+    groupName = Io_Gid2Group(groupFile->Gid);
+    if (groupName == NULL) {
+        result = ERROR_NO_SUCH_GROUP;
+
+    } else {
+        // Lock group
+        result = DbGroupLock(db, groupName);
+        if (result != ERROR_SUCCESS) {
+            TRACE("Unable to lock group (error %lu).\n", result);
+        }
     }
 
     DbRelease(db);
@@ -205,6 +213,7 @@ static INT GroupLock(GROUPFILE *groupFile)
 
 static INT GroupUnlock(GROUPFILE *groupFile)
 {
+    CHAR       *groupName;
     DB_CONTEXT *db;
     DWORD       result;
 
@@ -214,10 +223,17 @@ static INT GroupUnlock(GROUPFILE *groupFile)
         return GM_ERROR;
     }
 
-    // Unlock group
-    result = DbGroupUnlock(db, groupFile);
-    if (result != ERROR_SUCCESS) {
-        TRACE("Unable to unlock group (error %lu).\n", result);
+    // Resolve user ID to user name
+    groupName = Io_Gid2Group(groupFile->Gid);
+    if (groupName == NULL) {
+        result = ERROR_NO_SUCH_GROUP;
+
+    } else {
+        // Unlock group
+        result = DbGroupUnlock(db, groupName);
+        if (result != ERROR_SUCCESS) {
+            TRACE("Unable to unlock group (error %lu).\n", result);
+        }
     }
 
     DbRelease(db);

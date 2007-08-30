@@ -47,20 +47,20 @@ DWORD DbGroupDelete(DB_CONTEXT *db, CHAR *groupName)
     return ERROR_INTERNAL_ERROR;
 }
 
-DWORD DbGroupLock(DB_CONTEXT *db, GROUPFILE *groupFile)
+DWORD DbGroupLock(DB_CONTEXT *db, CHAR *groupName)
 {
     ASSERT(db != NULL);
-    ASSERT(groupFile != NULL);
-    TRACE("db=%p groupFile=%p\n", db, groupFile);
+    ASSERT(groupName != NULL);
+    TRACE("db=%p groupName=%s\n", db, groupName);
 
     return ERROR_INTERNAL_ERROR;
 }
 
-DWORD DbGroupUnlock(DB_CONTEXT *db, GROUPFILE *groupFile)
+DWORD DbGroupUnlock(DB_CONTEXT *db, CHAR *groupName)
 {
     ASSERT(db != NULL);
-    ASSERT(groupFile != NULL);
-    TRACE("db=%p groupFile=%p\n", db, groupFile);
+    ASSERT(groupName != NULL);
+    TRACE("db=%p groupName=%s\n", db, groupName);
 
     return ERROR_INTERNAL_ERROR;
 }
