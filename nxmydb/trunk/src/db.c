@@ -22,36 +22,36 @@ static POOL_VALIDATOR_PROC   ConnectionCheck;
 static POOL_DESTRUCTOR_PROC  ConnectionClose;
 
 // MySQL Server information
-static char *serverHost;
-static char *serverUser;
-static char *serverPass;
-static char *serverDb;
-static int   serverPort;
+static CHAR *serverHost;
+static CHAR *serverUser;
+static CHAR *serverPass;
+static CHAR *serverDb;
+static INT   serverPort;
 static BOOL  compression;
 static BOOL  sslEnable;
-static char *sslCiphers;
-static char *sslCertFile;
-static char *sslKeyFile;
-static char *sslCAFile;
-static char *sslCAPath;
+static CHAR *sslCiphers;
+static CHAR *sslCertFile;
+static CHAR *sslKeyFile;
+static CHAR *sslCAFile;
+static CHAR *sslCAPath;
 
 // Connection expiration
 static UINT64 connCheck;
 static UINT64 connExpire;
 
 // Lock expiration
-static int lockExpire;
-static int lockTimeout;
+static INT lockExpire;
+static INT lockTimeout;
 
 // Refresh timer
-static int refresh;
+static INT refresh;
 static TIMER *timer;
 
 // Database connection pool
 static POOL *pool;
 
 // Reference count initialization calls
-static int refCount = 0;
+static INT refCount = 0;
 
 
 /*++
@@ -184,7 +184,8 @@ static BOOL ConnectionCheck(VOID *opaque, VOID *data)
     // Check if the context has exceeded the expiration time
     timeDelta = timeCurrent - context->created;
     if (timeDelta > connExpire) {
-        TRACE("Expiring server connection after %I64u seconds.\n", timeDelta/10000000);
+        TRACE("Expiring server connection after %I64u seconds (%I64u second limit).\n",
+            timeDelta/10000000, connExpire/10000000);
         SetLastError(ERROR_CONTEXT_EXPIRED);
         return FALSE;
     }
@@ -192,7 +193,8 @@ static BOOL ConnectionCheck(VOID *opaque, VOID *data)
     // Check if the connection is still alive
     timeDelta = timeCurrent - context->used;
     if (timeDelta > connCheck) {
-        TRACE("Connection has not been used in %I64u seconds, pinging it.\n", timeDelta/10000000);
+        TRACE("Connection has not been used in %I64u seconds (%I64u second limit), pinging it.\n",
+            timeDelta/10000000, connCheck/10000000);
 
         if (mysql_ping(context->handle) != 0) {
             TRACE("Lost server connection: %s\n", mysql_error(context->handle));
@@ -261,11 +263,11 @@ Return Values:
     If the function fails, the return value is null.
 
 --*/
-static char *ConfigGet(char *array, char *variable)
+static CHAR *ConfigGet(CHAR *array, CHAR *variable)
 {
-    char *p;
-    char *value;
-    size_t length;
+    CHAR *p;
+    CHAR *value;
+    SIZE_T length;
 
     ASSERT(array != NULL);
     ASSERT(variable != NULL);
@@ -396,12 +398,12 @@ Remarks:
 --*/
 BOOL DbInit(Io_GetProc *getProc)
 {
-    int poolMin;
-    int poolAvg;
-    int poolMax;
-    int poolCheck;
-    int poolExpire;
-    int poolTimeout;
+    INT poolMin;
+    INT poolAvg;
+    INT poolMax;
+    INT poolCheck;
+    INT poolExpire;
+    INT poolTimeout;
 
     TRACE("refCount=%d\n", refCount);
 
@@ -567,6 +569,31 @@ VOID DbFinalize(VOID)
 
         ConfigFree();
         ProcTableFinalize();
+    }
+}
+
+/*++
+
+DbGetConfig
+
+    Retrieves the lock configuration.
+
+Arguments:
+    lockExpire  - Pointer to a variable that recieves the lock expiration.
+
+    lockTimeout - Pointer to a variable that recieves the lock timeout.
+
+Return Values:
+    None.
+
+--*/
+VOID DbGetConfig(INT *expire, INT *timeout)
+{
+    if (expire != NULL) {
+        *expire = lockExpire;
+    }
+    if (timeout != NULL) {
+        *timeout = lockTimeout;
     }
 }
 
