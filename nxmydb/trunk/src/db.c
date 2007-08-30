@@ -39,6 +39,10 @@ static char *sslCAPath;
 static UINT64 connCheck;
 static UINT64 connExpire;
 
+// Lock expiration
+static int lockExpire;
+static int lockTimeout;
+
 // Refresh timer
 static int refresh;
 static TIMER *timer;
@@ -417,7 +421,17 @@ BOOL DbInit(Io_GetProc *getProc)
     // Read lock options
     //
 
-    // TODO
+    lockExpire = 60;
+    if (Io_ConfigGetInt("nxMyDB", "Lock_Expire", &lockExpire) && lockExpire <= 0) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Lock_Expire' must be greater than zero.\r\n");
+        return FALSE;
+    }
+
+    lockTimeout = 5;
+    if (Io_ConfigGetInt("nxMyDB", "Lock_Timeout", &lockTimeout) && lockTimeout <= 0) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Lock_Timeout' must be greater than zero.\r\n");
+        return FALSE;
+    }
 
     //
     // Read pool options
@@ -441,12 +455,12 @@ BOOL DbInit(Io_GetProc *getProc)
         return FALSE;
     }
 
-    poolTimeout = 5;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Timeout", &poolTimeout) && poolTimeout <= 0) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Timeout' must be greater than zero.\r\n");
+    poolCheck = 60;
+    if (Io_ConfigGetInt("nxMyDB", "Pool_Check", &poolCheck) && (poolCheck <= 0 || poolCheck >= poolExpire)) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Check' must be greater than zero and less than 'Pool_Expire'.\r\n");
         return FALSE;
     }
-    poolTimeout *= 1000; // sec to msec
+    connCheck = UInt32x32To64(poolCheck, 10000000); // sec to 100nsec
 
     poolExpire = 3600;
     if (Io_ConfigGetInt("nxMyDB", "Pool_Expire", &poolExpire) && poolExpire <= 0) {
@@ -455,12 +469,12 @@ BOOL DbInit(Io_GetProc *getProc)
     }
     connExpire = UInt32x32To64(poolExpire, 10000000); // sec to 100nsec
 
-    poolCheck = 60;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Check", &poolCheck) && (poolCheck <= 0 || poolCheck >= poolExpire)) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Check' must be greater than zero and less than 'Pool_Expire'.\r\n");
+    poolTimeout = 5;
+    if (Io_ConfigGetInt("nxMyDB", "Pool_Timeout", &poolTimeout) && poolTimeout <= 0) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Timeout' must be greater than zero.\r\n");
         return FALSE;
     }
-    connCheck = UInt32x32To64(poolCheck, 10000000); // sec to 100nsec
+    poolTimeout *= 1000; // sec to msec
 
     //
     // Read refesh timer

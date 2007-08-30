@@ -140,6 +140,14 @@ supported by OpenSSL/yaSSL.
     - Path to the directory containing CA certificates
     - Default: null
 
+  Lock_Expire
+    - Seconds until a user/group lock expires
+    - Default: 60 (1 minute)
+
+  Lock_Timeout
+    - Seconds to wait for a user/group lock to become available
+    - Default: 5
+
   Pool_Minimum
     - Minimum number of sustained connections
     - Must be greater than zero
