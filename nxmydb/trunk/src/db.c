@@ -77,7 +77,6 @@ static BOOL ConnectionOpen(VOID *opaque, VOID **data)
     ASSERT(data != NULL);
     TRACE("opaque=%p data=%p\n", opaque, data);
 
-    // Allocate database context
     context = Io_Allocate(sizeof(DB_CONTEXT));
     if (context == NULL) {
         TRACE("Unable to allocate memory for database context.\n");
@@ -87,8 +86,11 @@ static BOOL ConnectionOpen(VOID *opaque, VOID **data)
     }
     ZeroMemory(context, sizeof(DB_CONTEXT));
 
-    // Have MySQL allocate the structure. This is in case the client library is a different
-    // version than the header we're compiling with (structures could be different sizes).
+    //
+    // Have the MySQL client library allocate the connection structure. This is
+    // in case the MYSQL structure in the headers we're compiling against changes
+    // in a future version of the client library.
+    //
     context->handle = mysql_init(NULL);
     if (context->handle == NULL) {
         TRACE("Unable to allocate memory for MySQL handle.\n");
@@ -97,7 +99,7 @@ static BOOL ConnectionOpen(VOID *opaque, VOID **data)
         goto failed;
     }
 
-    // Set client options
+    // Set connection options
     flags = CLIENT_INTERACTIVE;
     if (compression) {
         flags |= CLIENT_COMPRESS;
@@ -110,7 +112,6 @@ static BOOL ConnectionOpen(VOID *opaque, VOID **data)
         mysql_ssl_set(context->handle, sslKeyFile, sslCertFile, sslCAFile, sslCAPath, sslCiphers);
     }
 
-    // Open server connection
     if (!mysql_real_connect(context->handle, serverHost, serverUser, serverPass, serverDb, serverPort, NULL, flags)) {
         TRACE("Unable to connect to server: %s\n", mysql_error(context->handle));
         Io_Putlog(LOG_ERROR, "nxMyDB: Unable to connect to server: %s\r\n", mysql_error(context->handle));
@@ -195,7 +196,7 @@ static BOOL ConnectionCheck(VOID *opaque, VOID *data)
             return FALSE;
         }
 
-        // Update used time stamp
+        // Update last-use time stamp
         GetSystemTimeAsFileTime((FILETIME *)&context->used);
     }
 
@@ -537,7 +538,6 @@ VOID DbFinalize(VOID)
 
     // Finalize once the reference count reaches zero
     if (--refCount == 0) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: v%s unloaded.\r\n", STRINGIFY(VERSION));
 
         // Stop refresh timer
         if (timer != NULL) {
@@ -547,6 +547,9 @@ VOID DbFinalize(VOID)
         // Destroy connection pool
         PoolDestroy(pool);
         Io_Free(pool);
+
+        // Notify user
+        Io_Putlog(LOG_ERROR, "nxMyDB: v%s unloaded.\r\n", STRINGIFY(VERSION));
 
         ConfigFree();
         ProcTableFinalize();
@@ -603,7 +606,7 @@ VOID DbRelease(DB_CONTEXT *dbContext)
     ASSERT(dbContext != NULL);
     TRACE("dbContext=%p\n", dbContext);
 
-    // Update used time stamp
+    // Update last-use time stamp
     GetSystemTimeAsFileTime((FILETIME *)&dbContext->used);
 
     // Release the database context
