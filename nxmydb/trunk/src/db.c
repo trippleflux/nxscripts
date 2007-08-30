@@ -49,78 +49,6 @@ static POOL *pool;
 // Reference count initialization calls
 static int refCount = 0;
 
-// Statements to pre-compile
-static const char *queries[] = {
-    // io_groups
-    "DELETE FROM io_groups WHERE name=?"
-    ,
-    "INSERT INTO io_groups (name, updated) VALUES(?, UNIX_TIMESTAMP())"
-    ,
-    "SELECT description, slots, users, vfsfile FROM io_groups WHERE name=?"
-    ,
-    "SELECT name FROM io_groups WHERE name=?"
-    ,
-    "SELECT name, description, slots, users, vfsfile, UNIX_TIMESTAMP() FROM io_groups WHERE updated>=?"
-    ,
-    "UPDATE io_groups SET description=?, slots=?, users=?, vfsfile=?, updated=UNIX_TIMESTAMP() WHERE name=?"
-    ,
-
-    // io_group_locks
-    "DELETE FROM io_group_locks WHERE name=?"
-    ,
-    "INSERT INTO io_group_locks (name, created) VALUES(?, UNIX_TIMESTAMP())"
-    ,
-
-    // io_users
-    "DELETE FROM io_users WHERE name=?"
-    ,
-    "INSERT INTO io_users (name, updated) VALUES(?, UNIX_TIMESTAMP())"
-    ,
-    "SELECT description, flags, home, limits, password, vfsfile, credits, ratio, "
-        "alldn, allup, daydn, dayup, monthdn, monthup, wkdn, wkup FROM io_users WHERE name=?"
-    ,
-    "SELECT name FROM io_users WHERE name=?"
-    ,
-    "SELECT name, description, flags, home, limits, password, vfsfile, "
-        "credits, ratio, alldn, allup, daydn, dayup, monthdn, monthup, wkdn, wkup, "
-        "UNIX_TIMESTAMP() FROM io_users WHERE updated>=?"
-    ,
-    "UPDATE io_users SET description=?, flags=?, home=?, limits=?, password=?, "
-        "vfsfile=?, credits=?, ratio=?, alldn=?, allup=?, daydn=?, dayup=?, monthdn=?, "
-        "monthup=?, wkdn=?, wkup=?, updated=UNIX_TIMESTAMP() WHERE name=?"
-    ,
-
-    // io_user_admins
-    "DELETE FROM io_user_admins WHERE uname=?"
-    ,
-    "INSERT INTO io_user_admins (uname, gname) VALUES(?, ?)"
-    ,
-    "SELECT gname FROM io_user_admins WHERE uname=?"
-    ,
-
-    // io_user_groups
-    "DELETE FROM io_user_groups WHERE uname=?"
-    ,
-    "INSERT INTO io_user_groups (uname, gname) VALUES(?, ?)"
-    ,
-    "SELECT gname FROM io_user_groups WHERE uname=?"
-    ,
-
-    // io_user_hosts
-    "DELETE FROM io_user_hosts WHERE name=?"
-    ,
-    "INSERT INTO io_user_hosts (name, host) VALUES(?, ?)"
-    ,
-    "SELECT host FROM io_user_hosts WHERE name=?"
-    ,
-
-    // io_user_locks
-    "DELETE FROM io_user_locks WHERE name=?"
-    ,
-    "INSERT INTO io_user_locks (name, created) VALUES(?, UNIX_TIMESTAMP())"
-    ,
-};
-
 
 /*++
 
@@ -143,7 +71,6 @@ static BOOL ConnectionOpen(VOID *opaque, VOID **data)
 {
     DB_CONTEXT      *context;
     DWORD           error;
-    DWORD           i;
     unsigned long   flags;
 
     ASSERT(opaque == NULL);
@@ -154,8 +81,9 @@ static BOOL ConnectionOpen(VOID *opaque, VOID **data)
     context = Io_Allocate(sizeof(DB_CONTEXT));
     if (context == NULL) {
         TRACE("Unable to allocate memory for database context.\n");
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-        return FALSE;
+
+        error = ERROR_NOT_ENOUGH_MEMORY;
+        goto failed;
     }
     ZeroMemory(context, sizeof(DB_CONTEXT));
 
@@ -164,8 +92,9 @@ static BOOL ConnectionOpen(VOID *opaque, VOID **data)
     context->handle = mysql_init(NULL);
     if (context->handle == NULL) {
         TRACE("Unable to allocate memory for MySQL handle.\n");
-        SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-        return FALSE;
+
+        error = ERROR_NOT_ENOUGH_MEMORY;
+        goto failed;
     }
 
     // Set client options
@@ -174,6 +103,10 @@ static BOOL ConnectionOpen(VOID *opaque, VOID **data)
         flags |= CLIENT_COMPRESS;
     }
     if (sslEnable) {
+        //
+        // This function always returns 0. If SSL setup is incorrect,
+        // mysql_real_connect() returns an error when you attempt to connect.
+        //
         mysql_ssl_set(context->handle, sslKeyFile, sslCertFile, sslCAFile, sslCAPath, sslCiphers);
     }
 
@@ -182,35 +115,17 @@ static BOOL ConnectionOpen(VOID *opaque, VOID **data)
         TRACE("Unable to connect to server: %s\n", mysql_error(context->handle));
         Io_Putlog(LOG_ERROR, "nxMyDB: Unable to connect to server: %s\r\n", mysql_error(context->handle));
 
-        mysql_close(context->handle);
-        SetLastError(ERROR_CONNECTION_REFUSED);
-        return FALSE;
+        error = ERROR_CONNECTION_REFUSED;
+        goto failed;
     }
 
-    // Check statement tables
-    ASSERT(DB_STMT_COUNT == ELEMENT_COUNT(context->stmt));
-    ASSERT(DB_STMT_COUNT == ELEMENT_COUNT(queries));
+    // Allocate pre-compiled statement structure
+    context->stmt = mysql_stmt_init(context->handle);
+    if (context->stmt == NULL) {
+        TRACE("Unable to allocate memory for statement structure.\n");
 
-    // Prepare statements
-    for (i = 0; i < ELEMENT_COUNT(context->stmt); i++) {
-        context->stmt[i] = mysql_stmt_init(context->handle);
-
-        if (context->stmt[i] == NULL) {
-            TRACE("Unable to allocate memory for statement.\n");
-            error = ERROR_NOT_ENOUGH_MEMORY;
-
-
-        } else if (mysql_stmt_prepare(context->stmt[i], queries[i], strlen(queries[i])) != 0) {
-            TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(context->stmt[i]));
-            error = ERROR_UNIDENTIFIED_ERROR;
-
-        } else {
-            continue;
-        }
-
-        ConnectionClose(NULL, context);
-        SetLastError(error);
-        return FALSE;
+        error = ERROR_NOT_ENOUGH_MEMORY;
+        goto failed;
     }
 
     // Update time stamps
@@ -222,6 +137,13 @@ static BOOL ConnectionOpen(VOID *opaque, VOID **data)
 
     *data = context;
     return TRUE;
+
+failed:
+    if (context != NULL) {
+        ConnectionClose(NULL, context);
+    }
+    SetLastError(error);
+    return FALSE;
 }
 
 /*++
@@ -298,7 +220,6 @@ Return Values:
 static VOID ConnectionClose(VOID *opaque, VOID *data)
 {
     DB_CONTEXT *context;
-    DWORD i;
 
     ASSERT(opaque == NULL);
     ASSERT(data != NULL);
@@ -306,15 +227,15 @@ static VOID ConnectionClose(VOID *opaque, VOID *data)
 
     context = data;
 
-    // Free prepared statements
-    for (i = 0; i < ELEMENT_COUNT(context->stmt); i++) {
-        if (context->stmt[i] != NULL) {
-            mysql_stmt_close(context->stmt[i]);
-        }
+    // Free MySQL structures
+    if (context->stmt != NULL) {
+        mysql_stmt_close(context->stmt);
+    }
+    if (context->handle != NULL) {
+        mysql_close(context->handle);
     }
 
-    // Close server connection and free context
-    mysql_close(context->handle);
+    // Free context structure
     Io_Free(context);
 }
 
