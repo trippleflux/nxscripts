@@ -53,9 +53,7 @@ BOOL DbInit(Io_GetProc *getProc);
 VOID DbFinalize(VOID);
 
 VOID DbGetConfig(INT *expire, INT *timeout, CHAR **owner);
-
 DWORD DbMapError(INT result);
-const CHAR *DbMapMessage(INT result);
 
 BOOL DbAcquire(DB_CONTEXT **dbContext);
 VOID DbRelease(DB_CONTEXT *dbContext);
