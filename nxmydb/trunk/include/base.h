@@ -14,8 +14,8 @@ Abstract:
 
 */
 
-#ifndef _MYDB_H_
-#define _MYDB_H_
+#ifndef BASE_H_INCLUDED
+#define BASE_H_INCLUDED
 
 #if (_MSC_VER < 1400)
 #   error You must be using VC2005, or newer, to compile this application.
@@ -53,13 +53,8 @@ Abstract:
 #include <mysql.h>
 
 // Project headers
-#include "proctable.h"
-#include "queue.h"
-#include "db.h"
-#include "debug.h"
-#include "backends.h"
-#include "condvar.h"
-#include "pool.h"
+#include <debug.h>
+#include <proctable.h>
 
 
 //
@@ -120,4 +115,4 @@ Abstract:
 #define STRINGIFY(s)        STRINGIFY_HELPER(s)
 #define STRINGIFY_HELPER(s)  #s
 
-#endif // _MYDB_H_
+#endif // BASE_H_INCLUDED

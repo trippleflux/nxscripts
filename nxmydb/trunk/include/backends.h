@@ -14,6 +14,8 @@ Abstract:
 
 */
 
+#include <database.h>
+
 #ifndef BACKENDS_H_INCLUDED
 #define BACKENDS_H_INCLUDED
 

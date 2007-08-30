@@ -14,7 +14,10 @@ Abstract:
 
 */
 
-#include "mydb.h"
+#include <base.h>
+#include <backends.h>
+#include <database.h>
+#include <pool.h>
 
 // Pool resource functions
 static POOL_CONSTRUCTOR_PROC ConnectionOpen;
@@ -457,12 +460,12 @@ BOOL DbInit(Io_GetProc *getProc)
         return FALSE;
     }
 
-    poolCheck = 60;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Check", &poolCheck) && (poolCheck <= 0 || poolCheck >= poolExpire)) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Check' must be greater than zero and less than 'Pool_Expire'.\r\n");
+    poolTimeout = 5;
+    if (Io_ConfigGetInt("nxMyDB", "Pool_Timeout", &poolTimeout) && poolTimeout <= 0) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Timeout' must be greater than zero.\r\n");
         return FALSE;
     }
-    connCheck = UInt32x32To64(poolCheck, 10000000); // sec to 100nsec
+    poolTimeout *= 1000; // sec to msec
 
     poolExpire = 3600;
     if (Io_ConfigGetInt("nxMyDB", "Pool_Expire", &poolExpire) && poolExpire <= 0) {
@@ -471,12 +474,12 @@ BOOL DbInit(Io_GetProc *getProc)
     }
     connExpire = UInt32x32To64(poolExpire, 10000000); // sec to 100nsec
 
-    poolTimeout = 5;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Timeout", &poolTimeout) && poolTimeout <= 0) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Timeout' must be greater than zero.\r\n");
+    poolCheck = 60;
+    if (Io_ConfigGetInt("nxMyDB", "Pool_Check", &poolCheck) && (poolCheck <= 0 || poolCheck >= poolExpire)) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Check' must be greater than zero and less than 'Pool_Expire'.\r\n");
         return FALSE;
     }
-    poolTimeout *= 1000; // sec to msec
+    connCheck = UInt32x32To64(poolCheck, 10000000); // sec to 100nsec
 
     //
     // Read refesh timer

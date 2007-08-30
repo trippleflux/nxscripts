@@ -14,7 +14,9 @@ Abstract:
 
 */
 
-#include "mydb.h"
+#include <base.h>
+#include <backends.h>
+#include <database.h>
 
 static INT   UserFinalize(VOID);
 static INT32 UserCreate(CHAR *userName);

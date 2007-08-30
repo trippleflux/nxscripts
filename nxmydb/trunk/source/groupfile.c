@@ -4,19 +4,20 @@ nxMyDB - MySQL Database for ioFTPD
 Copyright (c) 2006-2007 neoxed
 
 Module Name:
-    User File Backend
+    Group File Backend
 
 Author:
     neoxed (neoxed@gmail.com) Jun 5, 2006
 
 Abstract:
-    User file storage backend.
+    Group file storage backend.
 
 */
 
-#include "mydb.h"
+#include <base.h>
+#include <backends.h>
 
-static DWORD UserRead(CHAR *filePath, USERFILE *userFile)
+static DWORD GroupRead(CHAR *filePath, GROUPFILE *groupFile)
 {
     CHAR    *buffer = NULL;
     DWORD   bytesRead;
@@ -25,10 +26,10 @@ static DWORD UserRead(CHAR *filePath, USERFILE *userFile)
     HANDLE  fileHandle;
 
     ASSERT(filePath != NULL);
-    ASSERT(userFile != NULL);
-    TRACE("filePath=%s userFile=%p\n", filePath, userFile);
+    ASSERT(groupFile != NULL);
+    TRACE("filePath=%s groupFile=%p\n", filePath, groupFile);
 
-    // Open user file
+    // Open group file
     fileHandle = CreateFileA(filePath,
         GENERIC_READ|GENERIC_WRITE,
         FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
@@ -56,7 +57,7 @@ static DWORD UserRead(CHAR *filePath, USERFILE *userFile)
         goto failed;
     }
 
-    // Read user file to buffer
+    // Read group file to buffer
     if (!ReadFile(fileHandle, buffer, fileSize, &bytesRead, NULL) || bytesRead < 5) {
         result = GetLastError();
         TRACE("Unable to write file \"%s\" (error %lu).\n", filePath, result);
@@ -67,12 +68,11 @@ static DWORD UserRead(CHAR *filePath, USERFILE *userFile)
     buffer[bytesRead] = '\n';
     bytesRead++;
 
-    // Parse buffer, also initializing the USERFILE structure
-    Io_Ascii2UserFile(buffer, bytesRead, userFile);
-    userFile->Gid = userFile->Groups[0];
+    // Parse buffer, also initializing the GROUPFILE structure
+    Io_Ascii2GroupFile(buffer, bytesRead, groupFile);
 
     // Save file handle
-    userFile->lpInternal = fileHandle;
+    groupFile->lpInternal = fileHandle;
 
     Io_Free(buffer);
     return ERROR_SUCCESS;
@@ -86,26 +86,27 @@ failed:
     return result;
 }
 
-DWORD FileUserCreate(INT32 userId, USERFILE *userFile)
+DWORD FileGroupCreate(INT32 groupId, GROUPFILE *groupFile)
 {
     CHAR  *defaultPath = NULL;
     CHAR  *targetPath = NULL;
     CHAR  buffer[12];
     DWORD result;
 
-    ASSERT(userFile != NULL);
-    TRACE("userId=%d userFile=%p\n", userId, userFile);
+    ASSERT(groupId != -1);
+    ASSERT(groupFile != NULL);
+    TRACE("groupId=%d groupFile=%p\n", groupId, groupFile);
 
-    // Retrieve default user location
-    defaultPath = Io_ConfigGetPath("Locations", "User_Files", "Default.User", NULL);
+    // Retrieve default group location
+    defaultPath = Io_ConfigGetPath("Locations", "Group_Files", "Default.Group", NULL);
     if (defaultPath == NULL) {
         TRACE("Unable to retrieve default file location.\n");
         return ERROR_NOT_ENOUGH_MEMORY;
     }
 
-    // Retrieve user location
-    StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", userId);
-    targetPath = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
+    // Retrieve group location
+    StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", groupId);
+    targetPath = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
     if (targetPath == NULL) {
         TRACE("Unable to retrieve file location.\n");
         result = ERROR_NOT_ENOUGH_MEMORY;
@@ -117,8 +118,8 @@ DWORD FileUserCreate(INT32 userId, USERFILE *userFile)
             TRACE("Unable to copy default file (error %lu).\n", result);
 
         } else {
-            // Read user file (copy of "Default.User")
-            result = UserRead(targetPath, userFile);
+            // Read group file (copy of "Default.Group")
+            result = GroupRead(targetPath, groupFile);
         }
     }
 
@@ -131,24 +132,24 @@ DWORD FileUserCreate(INT32 userId, USERFILE *userFile)
     return result;
 }
 
-DWORD FileUserDelete(INT32 userId)
+DWORD FileGroupDelete(INT32 groupId)
 {
     CHAR  buffer[12];
     CHAR  *filePath;
     DWORD result;
 
-    ASSERT(userId != -1);
-    TRACE("userId=%d\n", userId);
+    ASSERT(groupId != -1);
+    TRACE("groupId=%d\n", groupId);
 
-    // Retrieve user file location
-    StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", userId);
-    filePath = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
+    // Retrieve group file location
+    StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", groupId);
+    filePath = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
     if (filePath == NULL) {
         TRACE("Unable to retrieve file location.\n");
         return ERROR_NOT_ENOUGH_MEMORY;
     }
 
-    // Delete user file and free resources
+    // Delete group file and free resources
     if (DeleteFileA(filePath)) {
         result = ERROR_SUCCESS;
     } else {
@@ -160,26 +161,26 @@ DWORD FileUserDelete(INT32 userId)
     return result;
 }
 
-DWORD FileUserOpen(INT32 userId, USERFILE *userFile)
+DWORD FileGroupOpen(INT32 groupId, GROUPFILE *groupFile)
 {
     CHAR    buffer[12];
     CHAR    *filePath;
     DWORD   result;
     HANDLE  fileHandle;
 
-    ASSERT(userId != -1);
-    ASSERT(userFile != NULL);
-    TRACE("userId=%d userFile=%p\n", userId, userFile);
+    ASSERT(groupId != -1);
+    ASSERT(groupFile != NULL);
+    TRACE("groupId=%d groupFile=%p\n", groupId, groupFile);
 
-    // Retrieve user file location
-    StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", userId);
-    filePath = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
+    // Retrieve group file location
+    StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", groupId);
+    filePath = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
     if (filePath == NULL) {
         TRACE("Unable to retrieve file location.\n");
         return ERROR_NOT_ENOUGH_MEMORY;
     }
 
-    // Open user file
+    // Open group file
     fileHandle = CreateFileA(filePath,
         GENERIC_READ|GENERIC_WRITE,
         FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
@@ -193,23 +194,23 @@ DWORD FileUserOpen(INT32 userId, USERFILE *userFile)
     }
 
     // Save file handle
-    userFile->lpInternal = fileHandle;
+    groupFile->lpInternal = fileHandle;
 
     Io_Free(filePath);
     return result;
 }
 
-DWORD FileUserWrite(USERFILE *userFile)
+DWORD FileGroupWrite(GROUPFILE *groupFile)
 {
     BUFFER  buffer;
     DWORD   bytesWritten;
     DWORD   result;
     HANDLE  fileHandle;
 
-    ASSERT(userFile != NULL);
-    TRACE("userFile=%p\n", userFile);
+    ASSERT(groupFile != NULL);
+    TRACE("groupFile=%p\n", groupFile);
 
-    fileHandle = userFile->lpInternal;
+    fileHandle = groupFile->lpInternal;
     ASSERT(fileHandle != INVALID_HANDLE_VALUE);
 
     // Allocate write buffer
@@ -223,8 +224,8 @@ DWORD FileUserWrite(USERFILE *userFile)
         return ERROR_NOT_ENOUGH_MEMORY;
     }
 
-    // Dump user data to buffer
-    Io_UserFile2Ascii(&buffer, userFile);
+    // Dump group data to buffer
+    Io_GroupFile2Ascii(&buffer, groupFile);
 
     // Write buffer to file
     SetFilePointer(fileHandle, 0, 0, FILE_BEGIN);
@@ -243,21 +244,21 @@ DWORD FileUserWrite(USERFILE *userFile)
     return result;
 }
 
-DWORD FileUserClose(USERFILE *userFile)
+DWORD FileGroupClose(GROUPFILE *groupFile)
 {
     HANDLE fileHandle;
 
-    ASSERT(userFile != NULL);
-    TRACE("userFile=%p\n", userFile);
+    ASSERT(groupFile != NULL);
+    TRACE("groupFile=%p\n", groupFile);
 
-    fileHandle = userFile->lpInternal;
+    fileHandle = groupFile->lpInternal;
 
-    // Close user file
+    // Close group file
     if (fileHandle != INVALID_HANDLE_VALUE) {
         CloseHandle(fileHandle);
 
         // Invalidate the internal pointer
-        userFile->lpInternal = INVALID_HANDLE_VALUE;
+        groupFile->lpInternal = INVALID_HANDLE_VALUE;
     }
 
     return ERROR_SUCCESS;

@@ -14,7 +14,8 @@ Abstract:
 
 */
 
-#include "mydb.h"
+#include <base.h>
+#include <proctable.h>
 
 // Global procedure table
 PROC_TABLE procTable;

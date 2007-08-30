@@ -14,7 +14,9 @@ Abstract:
 
 */
 
-#include "mydb.h"
+#include <base.h>
+#include <backends.h>
+#include <database.h>
 
 static INT   GroupFinalize(VOID);
 static INT32 GroupCreate(CHAR *groupName);

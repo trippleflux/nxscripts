@@ -14,7 +14,9 @@ Abstract:
 
 */
 
-#include "mydb.h"
+#include <base.h>
+#include <backends.h>
+#include <database.h>
 
 DWORD DbGroupCreate(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 {

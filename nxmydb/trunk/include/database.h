@@ -14,8 +14,8 @@ Abstract:
 
 */
 
-#ifndef DB_H_INCLUDED
-#define DB_H_INCLUDED
+#ifndef DATABASE_H_INCLUDED
+#define DATABASE_H_INCLUDED
 
 //
 // Database structure
@@ -40,4 +40,4 @@ VOID DbGetConfig(INT *expire, INT *timeout);
 BOOL DbAcquire(DB_CONTEXT **dbContext);
 VOID DbRelease(DB_CONTEXT *dbContext);
 
-#endif // DB_H_INCLUDED
+#endif // DATABASE_H_INCLUDED

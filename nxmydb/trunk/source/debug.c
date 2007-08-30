@@ -14,7 +14,8 @@ Abstract:
 
 */
 
-#include "mydb.h"
+#include <base.h>
+#include <debug.h>
 
 #ifdef DEBUG
 /*++

@@ -22,7 +22,10 @@ Abstract:
 
 */
 
-#include "mydb.h"
+#include <base.h>
+#include <condvar.h>
+#include <pool.h>
+#include <queue.h>
 
 // Easier to look at.
 #define inline __forceinline

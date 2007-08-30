@@ -14,6 +14,9 @@ Abstract:
 
 */
 
+#include <condvar.h>
+#include <queue.h>
+
 #ifndef POOL_H_INCLUDED
 #define POOL_H_INCLUDED
 

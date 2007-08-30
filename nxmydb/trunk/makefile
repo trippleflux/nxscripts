@@ -26,7 +26,7 @@ VERSION     = 0.1.0
 CC          = cl.exe
 LD          = link.exe
 RC          = rc.exe
-CFLAGS      = /nologo /I "$(IOFTPD_INC)" -I"$(MYSQL_DIR)\include" /W4
+CFLAGS      = /nologo /I ".\include" /I "$(IOFTPD_INC)" /I "$(MYSQL_DIR)\include" /W4
 LFLAGS      = /nologo /MACHINE:$(PLATFORM)
 RFLAGS      = /r
 
@@ -88,17 +88,29 @@ lib: nxmydb.dll
 
 # -------------------------------------------------------------------------
 
-FILE_OBJS = mydb.res condvar.obj db.obj debug.obj dllentry.obj group.obj groupdb.obj\
-            groupfile.obj pool.obj proctable.obj user.obj userdb.obj userfile.obj
+FILE_OBJS = \
+    mydb.res\
+    condvar.obj\
+    database.obj\
+    debug.obj\
+    dllentry.obj\
+    group.obj\
+    groupdb.obj\
+    groupfile.obj\
+    pool.obj\
+    proctable.obj\
+    user.obj\
+    userdb.obj\
+    userfile.obj
 
-{src\}.c{}.obj::
+{source\}.c{}.obj::
     $(CC) /c $(CFLAGS) /Fo $<
 
-{src\}.rc{}.res:
+{resource\}.rc{}.res:
 	$(RC) $(RFLAGS) /fo $@ $<
 
 nxmydb.dll: $(FILE_OBJS)
-    $(LD) $(LFLAGS) /DEF:src\mydb.def /DLL /OUT:$@ "$(MYSQL_LIB)\libmysql.lib" @<<
+    $(LD) $(LFLAGS) /DEF:resource\mydb.def /DLL /OUT:$@ "$(MYSQL_LIB)\libmysql.lib" @<<
 $**
 <<
 

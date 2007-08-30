@@ -1,13 +1,8 @@
                            SQL Queries Used In nxMyDB
                            ==========================
 
-Locking
-=======
-DO RELEASE_LOCK(?)
-SELECT GET_LOCK(?, ?)
-
-Groups
-======
+io_groups
+=========
 DELETE FROM io_groups WHERE name=?
 INSERT INTO io_groups (name, updated) VALUES(?, UNIX_TIMESTAMP())
 SELECT description, slots, users, vfsfile FROM io_groups WHERE name=?
@@ -15,8 +10,12 @@ SELECT name FROM io_groups WHERE name=?
 SELECT name, description, slots, users, vfsfile, UNIX_TIMESTAMP() FROM io_groups WHERE updated >= ?
 UPDATE io_groups SET description=?, slots=?, users=?, vfsfile=?, updated=UNIX_TIMESTAMP() WHERE name=?
 
-Users
-======
+io_group_locks
+==============
+TODO
+
+io_users
+========
 DELETE FROM io_users WHERE name=?
 INSERT INTO io_users (name, updated) VALUES(?, UNIX_TIMESTAMP())
 SELECT description, flags, home, limits, password, vfsfile, credits, ratio, alldn, allup, daydn, dayup, monthdn, monthup, wkdn, wkup FROM io_users WHERE name=?
@@ -24,20 +23,33 @@ SELECT name FROM io_users WHERE name=?
 SELECT name, description, flags, home, limits, password, vfsfile, credits, ratio, alldn, allup, daydn, dayup, monthdn, monthup, wkdn, wkup, UNIX_TIMESTAMP() FROM io_users WHERE updated >= ?
 UPDATE io_users SET description=?, flags=?, home=?, limits=?, password=?, vfsfile=?, credits=?, ratio=?, alldn=?, allup=?, daydn=?, dayup=?, monthdn=?, monthup=?, wkdn=?, wkup=?, updated=UNIX_TIMESTAMP() WHERE name=?
 
-Admins Groups
+io_user_admins
+==============
+DELETE FROM io_user_admins WHERE uname=?
+INSERT INTO io_user_admins (uname, gname) VALUES(?, ?)
+SELECT gname FROM io_user_admins WHERE uname=?
+
+io_user_groups
+==============
+DELETE FROM io_user_groups WHERE uname=?
+INSERT INTO io_user_groups (uname, gname) VALUES(?, ?)
+SELECT gname FROM io_user_groups WHERE uname=?
+
+io_user_hosts
 =============
-DELETE FROM io_useradmins WHERE uname=?
-INSERT INTO io_useradmins (uname, gname) VALUES(?, ?)
-SELECT gname FROM io_useradmins WHERE uname=?
+DELETE FROM io_user_hosts WHERE name=?
+INSERT INTO io_user_hosts (name, host) VALUES(?, ?)
+SELECT host FROM io_user_hosts WHERE name=?
 
-User Groups
-===========
-DELETE FROM io_usergroups WHERE uname=?
-INSERT INTO io_usergroups (uname, gname) VALUES(?, ?)
-SELECT gname FROM io_usergroups WHERE uname=?
+io_user_locks
+=============
+DELETE FROM io_user_locks WHERE name=?
+REPLACE INTO io_user_locks (name, created) VALUES(?, UNIX_TIMESTAMP())
 
-User Hosts
-==========
-DELETE FROM io_userhosts WHERE name=?
-INSERT INTO io_userhosts (name, host) VALUES(?, ?)
-SELECT host FROM io_userhosts WHERE name=?
+CREATE TRIGGER io_user_lock_check BEFORE INSERT ON io_user_locks
+FOR EACH ROW
+BEGIN
+    IF LENGTH(NEW.created) < 1 THEN
+        RETURN FALSE;
+    END IF;
+END;
