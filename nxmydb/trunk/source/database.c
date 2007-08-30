@@ -362,10 +362,17 @@ Return Values:
 static DWORD RefreshTimer(VOID *notUsed, TIMER *currTimer)
 {
     DB_CONTEXT *context;
+
     UNREFERENCED_PARAMETER(notUsed);
+    UNREFERENCED_PARAMETER(currTimer);
+
+    TRACE(L"currTimer=%p", currTimer);
 
     if (DbAcquire(&context)) {
-        // Users rely on groups, so update groups first.
+        //
+        // Groups must be updated first - since user
+        // files have dependencies on group files.
+        //
         DbGroupRefresh(context);
         DbUserRefresh(context);
 
