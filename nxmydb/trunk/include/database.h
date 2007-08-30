@@ -29,6 +29,23 @@ typedef struct {
 } DB_CONTEXT;
 
 //
+// Database macros
+//
+
+#ifdef DEBUG
+
+#define DB_CHECK_BINDS(binds, context)                                          \
+{                                                                               \
+    ASSERT(ELEMENT_COUNT(binds) == mysql_stmt_param_count(context->stmt));      \
+}
+
+#else // DEBUG
+
+#define DB_CHECK_BINDS(binds, context)
+
+#endif // DEBUG
+
+//
 // Database functions
 //
 
@@ -36,7 +53,9 @@ BOOL DbInit(Io_GetProc *getProc);
 VOID DbFinalize(VOID);
 
 VOID DbGetConfig(INT *expire, INT *timeout, CHAR **owner);
+
 DWORD DbMapError(INT result);
+const CHAR *DbMapMessage(INT result);
 
 BOOL DbAcquire(DB_CONTEXT **dbContext);
 VOID DbRelease(DB_CONTEXT *dbContext);

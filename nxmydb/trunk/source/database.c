@@ -674,7 +674,7 @@ VOID DbGetConfig(INT *expire, INT *timeout, CHAR **owner)
 
 DbMapError
 
-    Maps a MySQL error result to the closest Windows error code.
+    Maps a MySQL result code to the closest Windows error code.
 
 Arguments:
     result  - MySQL client library result code.
@@ -693,9 +693,6 @@ DWORD DbMapError(INT result)
             break;
 
         case CR_COMMANDS_OUT_OF_SYNC:
-            error = ERROR_INTERNAL_ERROR;
-            break;
-
         case CR_NOT_IMPLEMENTED:
             error = ERROR_INTERNAL_ERROR;
             break;
@@ -728,6 +725,83 @@ DWORD DbMapError(INT result)
     }
 
     return error;
+}
+
+/*++
+
+DbMapMessage
+
+    Maps a MySQL result code to an error string.
+
+Arguments:
+    result  - MySQL client library result code.
+
+Return Values:
+    The error message.
+
+--*/
+const CHAR *DbMapMessage(INT result)
+{
+    switch (result) {
+        case CR_UNKNOWN_ERROR:            return "CR_UNKNOWN_ERROR";
+        case CR_SOCKET_CREATE_ERROR:      return "CR_SOCKET_CREATE_ERROR";
+        case CR_CONNECTION_ERROR:         return "CR_CONNECTION_ERROR";
+        case CR_CONN_HOST_ERROR:          return "CR_CONN_HOST_ERROR";
+        case CR_IPSOCK_ERROR:             return "CR_IPSOCK_ERROR";
+        case CR_UNKNOWN_HOST:             return "CR_UNKNOWN_HOST";
+        case CR_SERVER_GONE_ERROR:        return "CR_SERVER_GONE_ERROR";
+        case CR_VERSION_ERROR:            return "CR_VERSION_ERROR";
+        case CR_OUT_OF_MEMORY:            return "CR_OUT_OF_MEMORY";
+        case CR_WRONG_HOST_INFO:          return "CR_WRONG_HOST_INFO";
+        case CR_LOCALHOST_CONNECTION:     return "CR_LOCALHOST_CONNECTION";
+        case CR_TCP_CONNECTION:           return "CR_TCP_CONNECTION";
+        case CR_SERVER_HANDSHAKE_ERR:     return "CR_SERVER_HANDSHAKE_ERR";
+        case CR_SERVER_LOST:              return "CR_SERVER_LOST";
+        case CR_COMMANDS_OUT_OF_SYNC:     return "CR_COMMANDS_OUT_OF_SYNC";
+        case CR_NAMEDPIPE_CONNECTION:     return "CR_NAMEDPIPE_CONNECTION";
+        case CR_NAMEDPIPEWAIT_ERROR:      return "CR_NAMEDPIPEWAIT_ERROR";
+        case CR_NAMEDPIPEOPEN_ERROR:      return "CR_NAMEDPIPEOPEN_ERROR";
+        case CR_NAMEDPIPESETSTATE_ERROR:  return "CR_NAMEDPIPESETSTATE_ERROR";
+        case CR_CANT_READ_CHARSET:        return "CR_CANT_READ_CHARSET";
+        case CR_NET_PACKET_TOO_LARGE:     return "CR_NET_PACKET_TOO_LARGE";
+        case CR_EMBEDDED_CONNECTION:      return "CR_EMBEDDED_CONNECTION";
+        case CR_PROBE_SLAVE_STATUS:       return "CR_PROBE_SLAVE_STATUS";
+        case CR_PROBE_SLAVE_HOSTS:        return "CR_PROBE_SLAVE_HOSTS";
+        case CR_PROBE_SLAVE_CONNECT:      return "CR_PROBE_SLAVE_CONNECT";
+        case CR_PROBE_MASTER_CONNECT:     return "CR_PROBE_MASTER_CONNECT";
+        case CR_SSL_CONNECTION_ERROR:     return "CR_SSL_CONNECTION_ERROR";
+        case CR_MALFORMED_PACKET:         return "CR_MALFORMED_PACKET";
+        case CR_WRONG_LICENSE:            return "CR_WRONG_LICENSE";
+        case CR_NULL_POINTER:             return "CR_NULL_POINTER";
+        case CR_NO_PREPARE_STMT:          return "CR_NO_PREPARE_STMT";
+        case CR_PARAMS_NOT_BOUND:         return "CR_PARAMS_NOT_BOUND";
+        case CR_DATA_TRUNCATED:           return "CR_DATA_TRUNCATED";
+        case CR_NO_PARAMETERS_EXISTS:     return "CR_NO_PARAMETERS_EXISTS";
+        case CR_INVALID_PARAMETER_NO:     return "CR_INVALID_PARAMETER_NO";
+        case CR_INVALID_BUFFER_USE:       return "CR_INVALID_BUFFER_USE";
+        case CR_UNSUPPORTED_PARAM_TYPE:   return "CR_UNSUPPORTED_PARAM_TYPE";
+        case CR_SHARED_MEMORY_CONNECTION: return "CR_SHARED_MEMORY_CONNECTION";
+        case CR_SHARED_MEMORY_CONNECT_REQUEST_ERROR:   return "CR_SHARED_MEMORY_CONNECT_REQUEST_ERROR";
+        case CR_SHARED_MEMORY_CONNECT_ANSWER_ERROR:    return "CR_SHARED_MEMORY_CONNECT_ANSWER_ERROR";
+        case CR_SHARED_MEMORY_CONNECT_FILE_MAP_ERROR:  return "CR_SHARED_MEMORY_CONNECT_FILE_MAP_ERROR";
+        case CR_SHARED_MEMORY_CONNECT_MAP_ERROR:       return "CR_SHARED_MEMORY_CONNECT_MAP_ERROR";
+        case CR_SHARED_MEMORY_FILE_MAP_ERROR:          return "CR_SHARED_MEMORY_FILE_MAP_ERROR";
+        case CR_SHARED_MEMORY_MAP_ERROR:               return "CR_SHARED_MEMORY_MAP_ERROR";
+        case CR_SHARED_MEMORY_EVENT_ERROR:             return "CR_SHARED_MEMORY_EVENT_ERROR";
+        case CR_SHARED_MEMORY_CONNECT_ABANDONED_ERROR: return "CR_SHARED_MEMORY_CONNECT_ABANDONED_ERROR";
+        case CR_SHARED_MEMORY_CONNECT_SET_ERROR:       return "CR_SHARED_MEMORY_CONNECT_SET_ERROR";
+        case CR_CONN_UNKNOW_PROTOCOL:     return "CR_CONN_UNKNOW_PROTOCOL";
+        case CR_INVALID_CONN_HANDLE:      return "CR_INVALID_CONN_HANDLE";
+        case CR_SECURE_AUTH:              return "CR_SECURE_AUTH";
+        case CR_FETCH_CANCELED:           return "CR_FETCH_CANCELED";
+        case CR_NO_DATA:                  return "CR_NO_DATA";
+        case CR_NO_STMT_METADATA:         return "CR_NO_STMT_METADATA";
+        case CR_NO_RESULT_SET:            return "CR_NO_RESULT_SET";
+        case CR_NOT_IMPLEMENTED:          return "CR_NOT_IMPLEMENTED";
+        case CR_SERVER_LOST_EXTENDED:     return "CR_SERVER_LOST_EXTENDED";
+    }
+
+    return "Unknown result code.";
 }
 
 /*++
