@@ -82,6 +82,7 @@ static BOOL FCALL ConnectionOpen(VOID *opaque, VOID **data)
 {
     DB_CONTEXT      *context;
     DWORD           error;
+    DWORD           i;
     unsigned long   flags;
 
     ASSERT(opaque == NULL);
@@ -132,12 +133,14 @@ static BOOL FCALL ConnectionOpen(VOID *opaque, VOID **data)
     }
 
     // Allocate pre-compiled statement structure
-    context->stmt = mysql_stmt_init(context->handle);
-    if (context->stmt == NULL) {
-        TRACE("Unable to allocate memory for statement structure.\n");
+    for (i = 0; i < ELEMENT_COUNT(context->stmt); i++) {
+        context->stmt[i] = mysql_stmt_init(context->handle);
+        if (context->stmt[i] == NULL) {
+            TRACE("Unable to allocate memory for statement structure.\n");
 
-        error = ERROR_NOT_ENOUGH_MEMORY;
-        goto failed;
+            error = ERROR_NOT_ENOUGH_MEMORY;
+            goto failed;
+        }
     }
 
     // Update time stamps
@@ -234,6 +237,7 @@ Return Values:
 static VOID FCALL ConnectionClose(VOID *opaque, VOID *data)
 {
     DB_CONTEXT *context;
+    DWORD      i;
 
     ASSERT(opaque == NULL);
     ASSERT(data != NULL);
@@ -242,8 +246,10 @@ static VOID FCALL ConnectionClose(VOID *opaque, VOID *data)
     context = data;
 
     // Free MySQL structures
-    if (context->stmt != NULL) {
-        mysql_stmt_close(context->stmt);
+    for (i = 0; i < ELEMENT_COUNT(context->stmt); i++) {
+        if (context->stmt[i] != NULL) {
+            mysql_stmt_close(context->stmt[i]);
+        }
     }
     if (context->handle != NULL) {
         mysql_close(context->handle);

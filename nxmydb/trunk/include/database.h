@@ -23,7 +23,7 @@ Abstract:
 
 typedef struct {
     MYSQL      *handle;     // MySQL connection handle
-    MYSQL_STMT *stmt;       // Pre-compiled SQL statement
+    MYSQL_STMT *stmt[4];    // Pre-compiled SQL statements
     UINT64      created;    // Time this context was created
     UINT64      used;       // Time this context was last used
 } DB_CONTEXT;
@@ -34,9 +34,9 @@ typedef struct {
 
 #ifdef DEBUG
 
-#define DB_CHECK_BINDS(binds, context)                                          \
+#define DB_CHECK_BINDS(binds, stmt)                                             \
 {                                                                               \
-    ASSERT(ELEMENT_COUNT(binds) == mysql_stmt_param_count(context->stmt));      \
+    ASSERT(ELEMENT_COUNT(binds) == mysql_stmt_param_count(stmt));               \
 }
 
 #else // DEBUG
