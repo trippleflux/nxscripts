@@ -40,6 +40,7 @@ Abstract:
 #include <time.h>
 
 // ioFTPD headers
+#include <IoError.h>
 #include <ServerLimits.h>
 #include <Buffer.h>
 #include <Log.h>
