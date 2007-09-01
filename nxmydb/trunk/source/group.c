@@ -195,11 +195,11 @@ static INT GroupLock(GROUPFILE *groupFile)
     // Resolve user ID to user name
     groupName = Io_Gid2Group(groupFile->Gid);
     if (groupName == NULL) {
-        result = ERROR_NO_SUCH_GROUP;
+        result = ERROR_ID_NOT_FOUND;
 
     } else {
         // Lock group
-        result = DbGroupLock(db, groupName);
+        result = DbGroupLock(db, groupName, groupFile);
         if (result != ERROR_SUCCESS) {
             TRACE("Unable to lock group (error %lu).\n", result);
         }
@@ -226,7 +226,7 @@ static INT GroupUnlock(GROUPFILE *groupFile)
     // Resolve user ID to user name
     groupName = Io_Gid2Group(groupFile->Gid);
     if (groupName == NULL) {
-        result = ERROR_NO_SUCH_GROUP;
+        result = ERROR_ID_NOT_FOUND;
 
     } else {
         // Unlock group
@@ -286,6 +286,7 @@ static INT GroupOpen(CHAR *groupName, GROUPFILE *groupFile)
 
 static INT GroupWrite(GROUPFILE *groupFile)
 {
+    CHAR       *groupName;
     DB_CONTEXT *db;
     DWORD       result;
 
@@ -301,10 +302,17 @@ static INT GroupWrite(GROUPFILE *groupFile)
         TRACE("Unable to write group file (error %lu).\n", result);
     }
 
-    // Update group database record
-    result = DbGroupWrite(db, groupFile);
-    if (result != ERROR_SUCCESS) {
-        TRACE("Unable to write group database record (error %lu).\n", result);
+    // Resolve user ID to user name
+    groupName = Io_Gid2Group(groupFile->Gid);
+    if (groupName == NULL) {
+        result = ERROR_ID_NOT_FOUND;
+
+    } else {
+        // Update group database record
+        result = DbGroupWrite(db, groupName, groupFile);
+        if (result != ERROR_SUCCESS) {
+            TRACE("Unable to write group database record (error %lu).\n", result);
+        }
     }
 
     DbRelease(db);

@@ -47,11 +47,12 @@ DWORD DbGroupDelete(DB_CONTEXT *db, CHAR *groupName)
     return ERROR_INTERNAL_ERROR;
 }
 
-DWORD DbGroupLock(DB_CONTEXT *db, CHAR *groupName)
+DWORD DbGroupLock(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 {
     ASSERT(db != NULL);
     ASSERT(groupName != NULL);
-    TRACE("db=%p groupName=%s\n", db, groupName);
+    ASSERT(groupFile != NULL);
+    TRACE("db=%p groupName=%s groupFile%=p\n", db, groupName, groupFile);
 
     return ERROR_INTERNAL_ERROR;
 }
@@ -75,11 +76,12 @@ DWORD DbGroupOpen(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
     return ERROR_INTERNAL_ERROR;
 }
 
-DWORD DbGroupWrite(DB_CONTEXT *db, GROUPFILE *groupFile)
+DWORD DbGroupWrite(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 {
     ASSERT(db != NULL);
+    ASSERT(groupName != NULL);
     ASSERT(groupFile != NULL);
-    TRACE("db=%p groupFile=%p\n", db, groupFile);
+    TRACE("db=%p groupName=%s groupFile%=p\n", db, groupName, groupFile);
 
     return ERROR_INTERNAL_ERROR;
 }

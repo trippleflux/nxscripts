@@ -413,7 +413,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     return ERROR_SUCCESS;
 }
 
-DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName)
+DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 {
     CHAR        *lockOwner;
     INT         lockExpire;
@@ -426,7 +426,8 @@ DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName)
 
     ASSERT(db != NULL);
     ASSERT(userName != NULL);
-    TRACE("db=%p userName=%s\n", db, userName);
+    ASSERT(userFile != NULL);
+    TRACE("db=%p userName=%s userFile=%p\n", db, userName, userFile);
 
     stmt = db->stmt[0];
 
@@ -573,11 +574,12 @@ DWORD DbUserOpen(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     return ERROR_INTERNAL_ERROR;
 }
 
-DWORD DbUserWrite(DB_CONTEXT *db, USERFILE *userFile)
+DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 {
     ASSERT(db != NULL);
+    ASSERT(userName != NULL);
     ASSERT(userFile != NULL);
-    TRACE("db=%p userFile=%p\n", db, userFile);
+    TRACE("db=%p userName=%s userFile=%p\n", db, userName, userFile);
 
     return ERROR_INTERNAL_ERROR;
 }

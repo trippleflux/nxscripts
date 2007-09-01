@@ -198,11 +198,11 @@ static INT UserLock(USERFILE *userFile)
     // Resolve user ID to user name
     userName = Io_Uid2User(userFile->Uid);
     if (userName == NULL) {
-        result = ERROR_NO_SUCH_USER;
+        result = ERROR_ID_NOT_FOUND;
 
     } else {
         // Lock user
-        result = DbUserLock(db, userName);
+        result = DbUserLock(db, userName, userFile);
         if (result != ERROR_SUCCESS) {
             TRACE("Unable to lock user (error %lu).\n", result);
         }
@@ -229,7 +229,7 @@ static INT UserUnlock(USERFILE *userFile)
     // Resolve user ID to user name
     userName = Io_Uid2User(userFile->Uid);
     if (userName == NULL) {
-        result = ERROR_NO_SUCH_USER;
+        result = ERROR_ID_NOT_FOUND;
 
     } else {
         // Unlock user
@@ -289,6 +289,7 @@ static INT UserOpen(CHAR *userName, USERFILE *userFile)
 
 static INT UserWrite(USERFILE *userFile)
 {
+    CHAR       *userName;
     DB_CONTEXT *db;
     DWORD       result;
 
@@ -304,10 +305,17 @@ static INT UserWrite(USERFILE *userFile)
         TRACE("Unable to write user file (error %lu).\n", result);
     }
 
-    // Update user database record
-    result = DbUserWrite(db, userFile);
-    if (result != ERROR_SUCCESS) {
-        TRACE("Unable to write user database record (error %lu).\n", result);
+    // Resolve user ID to user name
+    userName = Io_Uid2User(userFile->Uid);
+    if (userName == NULL) {
+        result = ERROR_ID_NOT_FOUND;
+
+    } else {
+        // Update user database record
+        result = DbUserWrite(db, userName, userFile);
+        if (result != ERROR_SUCCESS) {
+            TRACE("Unable to write user database record (error %lu).\n", result);
+        }
     }
 
     DbRelease(db);
