@@ -773,7 +773,7 @@ DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     DbGetConfig(&lockExpire, &lockTimeout, &lockOwner);
 
     //
-    // Prepare statement (TODO: timeout)
+    // Prepare and bind statement
     //
 
     query = "UPDATE io_users SET lockowner=?, locktime=UNIX_TIMESTAMP()"
@@ -785,10 +785,6 @@ DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
         TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
         return DbMapError(result);
     }
-
-    //
-    // Bind parameters
-    //
 
     DB_CHECK_BINDS(bind, stmt);
     ZeroMemory(&bind, sizeof(bind));
@@ -811,7 +807,7 @@ DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     }
 
     //
-    // Execute statement
+    // Execute prepared statement
     //
 
     result = mysql_stmt_execute(stmt);
@@ -860,7 +856,7 @@ DWORD DbUserUnlock(DB_CONTEXT *db, CHAR *userName)
     DbGetConfig(NULL, NULL, &lockOwner);
 
     //
-    // Prepare statement
+    // Prepare and bind statement
     //
 
     query = "UPDATE io_users SET lockowner=NULL, locktime=0"
@@ -871,10 +867,6 @@ DWORD DbUserUnlock(DB_CONTEXT *db, CHAR *userName)
         TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
         return DbMapError(result);
     }
-
-    //
-    // Bind parameters
-    //
 
     DB_CHECK_BINDS(bind, stmt);
     ZeroMemory(&bind, sizeof(bind));
@@ -894,7 +886,7 @@ DWORD DbUserUnlock(DB_CONTEXT *db, CHAR *userName)
     }
 
     //
-    // Execute statement
+    // Execute prepared statement
     //
 
     result = mysql_stmt_execute(stmt);
