@@ -94,6 +94,12 @@ static INT32 UserCreate(CHAR *userName)
         userFile.AdminGroups[0] = -1;
         userFile.lpInternal     = mod;
 
+        // Read "Default.User" file
+        result = FileUserDefault(&userFile);
+        if (result != ERROR_SUCCESS) {
+            TRACE("Unable to read \"Default.User\" file (error %lu).\n", result);
+        }
+
         // Register user
         userId = userModule->Register(userModule, userName, &userFile);
         if (userId == -1) {
@@ -101,7 +107,7 @@ static INT32 UserCreate(CHAR *userName)
             TRACE("Unable to register user (error %lu).\n", result);
         } else {
 
-            // Create user file and read "Default.User"
+            // Create user file
             result = FileUserCreate(userId, &userFile);
             if (result != ERROR_SUCCESS) {
                 TRACE("Unable to create user file (error %lu).\n", result);

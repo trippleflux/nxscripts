@@ -91,6 +91,12 @@ static INT32 GroupCreate(CHAR *groupName)
         ZeroMemory(&groupFile, sizeof(GROUPFILE));
         groupFile.lpInternal = mod;
 
+        // Read "Default.Group" file
+        result = FileGroupDefault(&groupFile);
+        if (result != ERROR_SUCCESS) {
+            TRACE("Unable to read \"Default.Group\" file (error %lu).\n", result);
+        }
+
         // Register group
         groupId = groupModule->Register(groupModule, groupName, &groupFile);
         if (groupId == -1) {
@@ -98,7 +104,7 @@ static INT32 GroupCreate(CHAR *groupName)
             TRACE("Unable to register group (error %lu).\n", result);
         } else {
 
-            // Create group file and read "Default.Group"
+            // Create group file
             result = FileGroupCreate(groupId, &groupFile);
             if (result != ERROR_SUCCESS) {
                 TRACE("Unable to create group file (error %lu).\n", result);
@@ -311,8 +317,8 @@ static INT GroupOpen(CHAR *groupName, GROUPFILE *groupFile)
 
     //
     // Return GM_DELETED instead of GM_ERROR to work around a bug in ioFTPD. If
-    // GM_ERROR is returned, ioFTPD frees part of the USERFILE structure and
-    // may crash later on (e.g. if someone issues "SITE USERS").
+    // GM_ERROR is returned, ioFTPD frees part of the GROUPFILE structure and
+    // may crash later on (e.g. if someone issues "SITE GROUPS").
     //
     SetLastError(result);
     return (result == ERROR_SUCCESS) ? GM_SUCCESS : GM_DELETED;

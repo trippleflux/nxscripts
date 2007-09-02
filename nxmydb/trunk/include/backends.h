@@ -46,6 +46,7 @@ DWORD DbGroupRefresh(DB_CONTEXT *dbContext);
 // Group file backend
 //
 
+DWORD FileGroupDefault(GROUPFILE *groupFile);
 DWORD FileGroupCreate(INT32 groupId, GROUPFILE *groupFile);
 DWORD FileGroupDelete(INT32 groupId);
 DWORD FileGroupOpen(INT32 groupId, GROUPFILE *groupFile);
@@ -71,6 +72,7 @@ DWORD DbUserRefresh(DB_CONTEXT *dbContext);
 // User file backend
 //
 
+DWORD FileUserDefault(USERFILE *userFile);
 DWORD FileUserCreate(INT32 userId, USERFILE *userFile);
 DWORD FileUserDelete(INT32 userId);
 DWORD FileUserOpen(INT32 userId, USERFILE *userFile);
