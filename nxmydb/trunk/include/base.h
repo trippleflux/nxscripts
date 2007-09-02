@@ -61,9 +61,9 @@ Abstract:
 //
 #if defined(DEBUG) && !defined(NDEBUG)
 #   include "crtdbg.h"
-#   define ASSERT   _ASSERTE
+#   define ASSERT       _ASSERTE
 #else
-#   define ASSERT   ((VOID)0)
+#   define ASSERT(expr) ((VOID)0)
 #endif
 
 //
