@@ -85,7 +85,7 @@ static BOOL FCALL ConnectionOpen(VOID *opaque, VOID **data)
     DWORD           i;
     unsigned long   flags;
 
-    ASSERT(opaque == NULL);
+    UNREFERENCED_PARAMETER(opaque);
     ASSERT(data != NULL);
     TRACE("opaque=%p data=%p\n", opaque, data);
 
@@ -184,7 +184,7 @@ static BOOL FCALL ConnectionCheck(VOID *opaque, VOID *data)
     UINT64 timeCurrent;
     UINT64 timeDelta;
 
-    ASSERT(opaque == NULL);
+    UNREFERENCED_PARAMETER(opaque);
     ASSERT(data != NULL);
     TRACE("opaque=%p data=%p\n", opaque, data);
 
@@ -239,7 +239,7 @@ static VOID FCALL ConnectionClose(VOID *opaque, VOID *data)
     DB_CONTEXT *context;
     DWORD      i;
 
-    ASSERT(opaque == NULL);
+    UNREFERENCED_PARAMETER(opaque);
     ASSERT(data != NULL);
     TRACE("opaque=%p data=%p\n", opaque, data);
 

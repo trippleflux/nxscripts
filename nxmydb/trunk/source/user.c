@@ -142,6 +142,7 @@ static INT UserRename(CHAR *userName, INT32 userId, CHAR *newName)
     DB_CONTEXT *db;
     DWORD       result;
 
+    UNREFERENCED_PARAMETER(userId);
     TRACE("userName=%s userId=%d newName=%s\n", userName, userId, newName);
 
     if (!DbAcquire(&db)) {

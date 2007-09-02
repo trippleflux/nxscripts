@@ -17,7 +17,7 @@ Abstract:
 #include <base.h>
 #include <backends.h>
 
-static DWORD UserRead(CHAR *filePath, USERFILE *userFile)
+static DWORD FileUserRead(CHAR *filePath, USERFILE *userFile)
 {
     CHAR        *buffer = NULL;
     DWORD       bytesRead;
@@ -121,7 +121,7 @@ DWORD FileUserCreate(INT32 userId, USERFILE *userFile)
 
         } else {
             // Read user file (copy of "Default.User")
-            result = UserRead(targetPath, userFile);
+            result = FileUserRead(targetPath, userFile);
         }
     }
 

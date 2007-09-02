@@ -17,7 +17,7 @@ Abstract:
 #include <base.h>
 #include <backends.h>
 
-static DWORD GroupRead(CHAR *filePath, GROUPFILE *groupFile)
+static DWORD FileGroupRead(CHAR *filePath, GROUPFILE *groupFile)
 {
     CHAR        *buffer = NULL;
     DWORD       bytesRead;
@@ -120,7 +120,7 @@ DWORD FileGroupCreate(INT32 groupId, GROUPFILE *groupFile)
 
         } else {
             // Read group file (copy of "Default.Group")
-            result = GroupRead(targetPath, groupFile);
+            result = FileGroupRead(targetPath, groupFile);
         }
     }
 
