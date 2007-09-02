@@ -88,10 +88,8 @@ DWORD DbGroupWrite(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 
 DWORD DbGroupClose(GROUPFILE *groupFile)
 {
-    ASSERT(groupFile != NULL);
-    TRACE("groupFile=%p\n", groupFile);
-
-    return ERROR_INTERNAL_ERROR;
+    UNREFERENCED_PARAMETER(groupFile);
+    return ERROR_SUCCESS;
 }
 
 DWORD DbGroupRefresh(DB_CONTEXT *db)

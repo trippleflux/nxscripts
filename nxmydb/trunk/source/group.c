@@ -139,6 +139,7 @@ static INT GroupRename(CHAR *groupName, INT32 groupId, CHAR *newName)
     DB_CONTEXT *db;
     DWORD       result;
 
+    UNREFERENCED_PARAMETER(groupId);
     TRACE("groupName=%s groupId=%d newName=%s\n", groupName, groupId, newName);
 
     if (!DbAcquire(&db)) {

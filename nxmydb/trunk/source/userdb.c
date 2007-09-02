@@ -18,16 +18,6 @@ Abstract:
 #include <backends.h>
 #include <database.h>
 
-static DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
-{
-    ASSERT(db != NULL);
-    ASSERT(userName != NULL);
-    ASSERT(userFile != NULL);
-    TRACE("db=%p userName=%s userFile=%p\n", db, userName, userFile);
-
-    return ERROR_SUCCESS;
-}
-
 static BOOL GroupIdResolve(INT groupId, CHAR *buffer, SIZE_T bufferLength)
 {
     CHAR *name;
@@ -45,6 +35,18 @@ static BOOL GroupIdResolve(INT groupId, CHAR *buffer, SIZE_T bufferLength)
 
     StringCchCopyA(buffer, bufferLength, name);
     return TRUE;
+}
+
+static DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
+{
+    ASSERT(db != NULL);
+    ASSERT(userName != NULL);
+    ASSERT(userFile != NULL);
+    TRACE("db=%p userName=%s userFile=%p\n", db, userName, userFile);
+
+    // TODO
+
+    return ERROR_SUCCESS;
 }
 
 DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
@@ -922,10 +924,8 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
 DWORD DbUserClose(USERFILE *userFile)
 {
-    ASSERT(userFile != NULL);
-    TRACE("userFile=%p\n", userFile);
-
-    return ERROR_INTERNAL_ERROR;
+    UNREFERENCED_PARAMETER(userFile);
+    return ERROR_SUCCESS;
 }
 
 DWORD DbUserRefresh(DB_CONTEXT *db)
