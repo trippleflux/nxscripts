@@ -754,9 +754,10 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
 DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 {
     CHAR        *lockOwner;
+    CHAR        *query;
+    DWORD       error;
     INT         lockExpire;
     INT         lockTimeout;
-    CHAR        *query;
     INT         result;
     INT64       affectedRows;
     MYSQL_BIND  bind[3];
@@ -829,7 +830,16 @@ DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
         return ERROR_USER_LOCK_FAILED;
     }
 
-    return ERROR_SUCCESS;
+    //
+    // Update user data
+    //
+
+    error = DbUserRead(db, userName, userFile);
+    if (error != ERROR_SUCCESS) {
+        TRACE("Unable to update user (error %lu).\n", error);
+    }
+
+    return error;
 }
 
 DWORD DbUserUnlock(DB_CONTEXT *db, CHAR *userName)
@@ -1332,6 +1342,8 @@ DWORD DbUserRefresh(DB_CONTEXT *db)
 {
     ASSERT(db != NULL);
     TRACE("db=%p\n", db);
+
+    // TODO
 
     return ERROR_INTERNAL_ERROR;
 }
