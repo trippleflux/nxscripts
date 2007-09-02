@@ -315,18 +315,6 @@ static INT GroupOpen(CHAR *groupName, GROUPFILE *groupFile)
     //
     SetLastError(result);
     return (result == ERROR_SUCCESS) ? GM_SUCCESS : GM_DELETED;
-
-    SetLastError(result);
-    switch (result) {
-        case ERROR_SUCCESS:
-            return GM_SUCCESS;
-
-        case ERROR_FILE_NOT_FOUND:
-            return GM_DELETED;
-
-        default:
-            return GM_ERROR;
-    }
 }
 
 static INT GroupWrite(GROUPFILE *groupFile)
