@@ -109,15 +109,15 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
     bindUsers[1].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[1].buffer        = userFile->Tagline;
-    bindUsers[1].buffer_length = sizeof(userFile->Tagline);
+    bindUsers[1].buffer_length = sizeof(userFile->Tagline) - 1;
 
     bindUsers[2].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[2].buffer        = userFile->Flags;
-    bindUsers[2].buffer_length = sizeof(userFile->Flags);
+    bindUsers[2].buffer_length = sizeof(userFile->Flags) - 1;
 
     bindUsers[3].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[3].buffer        = userFile->Home;
-    bindUsers[3].buffer_length = sizeof(userFile->Home);
+    bindUsers[3].buffer_length = sizeof(userFile->Home) - 1;
 
     bindUsers[4].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[4].buffer        = &userFile->Limits;
@@ -129,7 +129,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
     bindUsers[6].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[6].buffer        = userFile->MountFile;
-    bindUsers[6].buffer_length = sizeof(userFile->MountFile);
+    bindUsers[6].buffer_length = sizeof(userFile->MountFile) - 1;
 
     bindUsers[7].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[7].buffer        = &userFile->Ratio;

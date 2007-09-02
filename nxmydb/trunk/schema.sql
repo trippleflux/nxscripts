@@ -6,10 +6,10 @@
 
 CREATE TABLE io_groups (
   name        varchar(65)  NOT NULL,
-  description varchar(129) NOT NULL,
+  description varchar(128) NOT NULL,
   slots       tinyblob     NOT NULL,
   users       int          NOT NULL default 0,
-  vfsfile     varchar(261) NOT NULL,
+  vfsfile     varchar(260) NOT NULL,
   updated     int unsigned NOT NULL default 0,
   lockowner   varchar(36)           default NULL,
   locktime    int unsigned NOT NULL default 0,
@@ -18,12 +18,12 @@ CREATE TABLE io_groups (
 
 CREATE TABLE io_users (
   name        varchar(65)  NOT NULL,
-  description varchar(129) NOT NULL,
-  flags       varchar(33)  NOT NULL,
-  home        varchar(261) NOT NULL,
+  description varchar(128) NOT NULL,
+  flags       varchar(32)  NOT NULL,
+  home        varchar(260) NOT NULL,
   limits      tinyblob     NOT NULL,
   password    tinyblob     NOT NULL,
-  vfsfile     varchar(261) NOT NULL,
+  vfsfile     varchar(260) NOT NULL,
   credits     tinyblob     NOT NULL,
   ratio       tinyblob     NOT NULL,
   alldn       tinyblob     NOT NULL,
@@ -55,6 +55,6 @@ CREATE TABLE io_user_groups (
 
 CREATE TABLE io_user_hosts (
   name        varchar(65) NOT NULL,
-  host        varchar(97) NOT NULL,
+  host        varchar(96) NOT NULL,
   PRIMARY KEY (name,host)
 );
