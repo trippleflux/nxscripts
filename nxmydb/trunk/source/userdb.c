@@ -18,17 +18,7 @@ Abstract:
 #include <backends.h>
 #include <database.h>
 
-static DWORD DbUserGet(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
-{
-    ASSERT(db != NULL);
-    ASSERT(userName != NULL);
-    ASSERT(userFile != NULL);
-    TRACE("db=%p userName=%s userFile=%p\n", db, userName, userFile);
-
-    return ERROR_SUCCESS;
-}
-
-static DWORD DbUserSet(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
+static DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 {
     ASSERT(db != NULL);
     ASSERT(userName != NULL);
@@ -189,7 +179,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     // Prepare and bind admins statement
     //
 
-    query = "INSERT INTO io_user_admins(uname,gname) VALUES(?,?)";
+    query = "REPLACE INTO io_user_admins(uname,gname) VALUES(?,?)";
 
     result = mysql_stmt_prepare(stmtAdmins, query, strlen(query));
     if (result != 0) {
@@ -218,7 +208,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     // Prepare and bind groups statement
     //
 
-    query = "INSERT INTO io_user_groups(uname,gname,idx) VALUES(?,?,?)";
+    query = "REPLACE INTO io_user_groups(uname,gname,idx) VALUES(?,?,?)";
 
     result = mysql_stmt_prepare(stmtGroups, query, strlen(query));
     if (result != 0) {
@@ -250,7 +240,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     // Prepare and bind hosts statement
     //
 
-    query = "INSERT INTO io_user_hosts(name,host) VALUES(?,?)";
+    query = "REPLACE INTO io_user_hosts(name,host) VALUES(?,?)";
 
     result = mysql_stmt_prepare(stmtHosts, query, strlen(query));
     if (result != 0) {
@@ -917,7 +907,7 @@ DWORD DbUserOpen(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     ASSERT(userFile != NULL);
     TRACE("db=%p userName=%s userFile=%p\n", db, userName, userFile);
 
-    return ERROR_INTERNAL_ERROR;
+    return DbUserRead(db, userName, userFile);
 }
 
 DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
