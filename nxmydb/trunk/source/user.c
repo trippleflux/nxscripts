@@ -311,17 +311,13 @@ static INT UserOpen(CHAR *userName, USERFILE *userFile)
 
     DbRelease(db);
 
+    //
+    // Return UM_DELETED instead of UM_ERROR to work around a bug in ioFTPD. If
+    // UM_ERROR is returned, ioFTPD frees part of the USERFILE structure and
+    // may crash later on (e.g. if someone issues "SITE USERS").
+    //
     SetLastError(result);
-    switch (result) {
-        case ERROR_SUCCESS:
-            return UM_SUCCESS;
-
-        case ERROR_FILE_NOT_FOUND:
-            return UM_DELETED;
-
-        default:
-            return UM_ERROR;
-    }
+    return (result == ERROR_SUCCESS) ? UM_SUCCESS : UM_DELETED;
 }
 
 static INT UserWrite(USERFILE *userFile)

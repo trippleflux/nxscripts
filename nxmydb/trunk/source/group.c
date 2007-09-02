@@ -308,6 +308,14 @@ static INT GroupOpen(CHAR *groupName, GROUPFILE *groupFile)
 
     DbRelease(db);
 
+    //
+    // Return GM_DELETED instead of GM_ERROR to work around a bug in ioFTPD. If
+    // GM_ERROR is returned, ioFTPD frees part of the USERFILE structure and
+    // may crash later on (e.g. if someone issues "SITE USERS").
+    //
+    SetLastError(result);
+    return (result == ERROR_SUCCESS) ? GM_SUCCESS : GM_DELETED;
+
     SetLastError(result);
     switch (result) {
         case ERROR_SUCCESS:
