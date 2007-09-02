@@ -65,53 +65,73 @@ static INT GroupFinalize(VOID)
 
 static INT32 GroupCreate(CHAR *groupName)
 {
-    DB_CONTEXT *db;
+    DB_CONTEXT  *db;
+    MOD_CONTEXT *mod;
     DWORD       result;
-    INT32       groupId;
-    GROUPFILE   groupFile;
+    INT32       groupId = -1;
+    GROUPFILE    groupFile;
 
     TRACE("groupName=%s\n", groupName);
 
     if (!DbAcquire(&db)) {
-        return -1;
+        return groupId;
     }
 
-    // Initialize GROUPFILE structure
-    ZeroMemory(&groupFile, sizeof(GROUPFILE));
-    groupFile.lpInternal = INVALID_HANDLE_VALUE;
+    // Module context is required for all file operations
+    mod = Io_Allocate(sizeof(MOD_CONTEXT));
+    if (mod == NULL) {
+        result = ERROR_NOT_ENOUGH_MEMORY;
+        TRACE("Unable to allocate module context.\n");
 
-    // Register group
-    groupId = groupModule->Register(groupModule, groupName, &groupFile);
-    if (groupId == -1) {
-        result = GetLastError();
-        TRACE("Unable to register group (error %lu).\n", result);
     } else {
+        // Initialize MOD_CONTEXT structure
+        mod->file = INVALID_HANDLE_VALUE;
 
-        // Create group file and read "Default.Group"
-        result = FileGroupCreate(groupId, &groupFile);
-        if (result != ERROR_SUCCESS) {
-            TRACE("Unable to create group file (error %lu).\n", result);
+        // Initialize GROUPFILE structure
+        ZeroMemory(&groupFile, sizeof(GROUPFILE));
+        groupFile.lpInternal = mod;
+
+        // Register group
+        groupId = groupModule->Register(groupModule, groupName, &groupFile);
+        if (groupId == -1) {
+            result = GetLastError();
+            TRACE("Unable to register group (error %lu).\n", result);
         } else {
 
-            // Create database record
-            result = DbGroupCreate(db, groupName, &groupFile);
+            // Create group file and read "Default.Group"
+            result = FileGroupCreate(groupId, &groupFile);
             if (result != ERROR_SUCCESS) {
-                TRACE("Unable to create database record (error %lu).\n", result);
+                TRACE("Unable to create group file (error %lu).\n", result);
+            } else {
+
+                // Create database record
+                result = DbGroupCreate(db, groupName, &groupFile);
+                if (result != ERROR_SUCCESS) {
+                    TRACE("Unable to create database record (error %lu).\n", result);
+                }
+            }
+
+            // If the file or database creation failed, clean-up the group file
+            if (result != ERROR_SUCCESS) {
+                groupModule->Unregister(groupModule, groupName);
+                FileGroupDelete(groupId);
+                FileGroupClose(&groupFile);
             }
         }
 
-        // If the file or database creation failed, clean-up the group file
         if (result != ERROR_SUCCESS) {
-            groupModule->Unregister(groupModule, groupName);
-            FileGroupDelete(groupId);
-            FileGroupClose(&groupFile);
+            // Free module context after all file operations
+            Io_Free(mod);
+
+            // Indicate an error occured by returning an invalid group ID
+            groupId = -1;
         }
     }
 
     DbRelease(db);
 
     SetLastError(result);
-    return (result == ERROR_SUCCESS) ? groupId : -1;
+    return groupId;
 }
 
 static INT GroupRename(CHAR *groupName, INT32 groupId, CHAR *newName)
@@ -192,7 +212,7 @@ static INT GroupLock(GROUPFILE *groupFile)
         return GM_ERROR;
     }
 
-    // Resolve user ID to user name
+    // Resolve group ID to group name
     groupName = Io_Gid2Group(groupFile->Gid);
     if (groupName == NULL) {
         result = ERROR_ID_NOT_FOUND;
@@ -223,7 +243,7 @@ static INT GroupUnlock(GROUPFILE *groupFile)
         return GM_ERROR;
     }
 
-    // Resolve user ID to user name
+    // Resolve group ID to group name
     groupName = Io_Gid2Group(groupFile->Gid);
     if (groupName == NULL) {
         result = ERROR_ID_NOT_FOUND;
@@ -246,26 +266,43 @@ static INT GroupOpen(CHAR *groupName, GROUPFILE *groupFile)
 {
     DB_CONTEXT *db;
     DWORD       result;
+    MOD_CONTEXT *mod;
 
     TRACE("groupName=%s groupFile=%p\n", groupName, groupFile);
 
     if (!DbAcquire(&db)) {
-        return GM_FATAL;
+        return GM_ERROR;
     }
+    // Module context is required for all file operations
+    mod = Io_Allocate(sizeof(MOD_CONTEXT));
+    if (mod == NULL) {
+        result = ERROR_NOT_ENOUGH_MEMORY;
+        TRACE("Unable to allocate module context.\n");
 
-    // Open group file
-    result = FileGroupOpen(groupFile->Gid, groupFile);
-    if (result != ERROR_SUCCESS) {
-        TRACE("Unable to open group file (error %lu).\n", result);
     } else {
+        // Initialize MOD_CONTEXT structure
+        mod->file            = INVALID_HANDLE_VALUE;
+        groupFile->lpInternal = mod;
 
-        // Read database record
-        result = DbGroupOpen(db, groupName, groupFile);
+        // Open group file
+        result = FileGroupOpen(groupFile->Gid, groupFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to open group database record (error %lu).\n", result);
+            TRACE("Unable to open group file (error %lu).\n", result);
+        } else {
 
-            // Clean-up group file
-            FileGroupClose(groupFile);
+            // Read database record
+            result = DbGroupOpen(db, groupName, groupFile);
+            if (result != ERROR_SUCCESS) {
+                TRACE("Unable to open group database record (error %lu).\n", result);
+
+                // Clean-up group file
+                FileGroupClose(groupFile);
+            }
+        }
+
+        // Free module context if the file/database open failed
+        if (result != ERROR_SUCCESS) {
+            Io_Free(mod);
         }
     }
 
@@ -273,14 +310,14 @@ static INT GroupOpen(CHAR *groupName, GROUPFILE *groupFile)
 
     SetLastError(result);
     switch (result) {
-        case ERROR_FILE_NOT_FOUND:
-            return GM_DELETED;
-
         case ERROR_SUCCESS:
             return GM_SUCCESS;
 
+        case ERROR_FILE_NOT_FOUND:
+            return GM_DELETED;
+
         default:
-            return GM_FATAL;
+            return GM_ERROR;
     }
 }
 
@@ -302,7 +339,7 @@ static INT GroupWrite(GROUPFILE *groupFile)
         TRACE("Unable to write group file (error %lu).\n", result);
     }
 
-    // Resolve user ID to user name
+    // Resolve group ID to group name
     groupName = Io_Gid2Group(groupFile->Gid);
     if (groupName == NULL) {
         result = ERROR_ID_NOT_FOUND;
@@ -323,20 +360,29 @@ static INT GroupWrite(GROUPFILE *groupFile)
 
 static INT GroupClose(GROUPFILE *groupFile)
 {
-    DWORD result;
+    DWORD       result;
+    MOD_CONTEXT *mod;
 
     TRACE("groupFile=%p\n", groupFile);
 
-    // Close group file (success does not matter)
-    result = FileGroupClose(groupFile);
-    if (result != ERROR_SUCCESS) {
-        TRACE("Unable to close group file (error %lu).\n", result);
-    }
+    mod = groupFile->lpInternal;
 
-    // Close group database record (success does not matter)
-    result = DbGroupClose(groupFile);
-    if (result != ERROR_SUCCESS) {
-        TRACE("Unable to close group database record (error %lu).\n", result);
+    if (mod != NULL) {
+        // Close group file (success does not matter)
+        result = FileGroupClose(groupFile);
+        if (result != ERROR_SUCCESS) {
+            TRACE("Unable to close group file (error %lu).\n", result);
+        }
+
+        // Close group database record (success does not matter)
+        result = DbGroupClose(groupFile);
+        if (result != ERROR_SUCCESS) {
+            TRACE("Unable to close group database record (error %lu).\n", result);
+        }
+
+        // Free module context
+        Io_Free(mod);
+        groupFile->lpInternal = NULL;
     }
 
     return GM_SUCCESS;

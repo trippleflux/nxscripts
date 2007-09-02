@@ -19,30 +19,33 @@ Abstract:
 
 static DWORD UserRead(CHAR *filePath, USERFILE *userFile)
 {
-    CHAR    *buffer = NULL;
-    DWORD   bytesRead;
-    DWORD   fileSize;
-    DWORD   result;
-    HANDLE  fileHandle;
+    CHAR        *buffer = NULL;
+    DWORD       bytesRead;
+    DWORD       fileSize;
+    DWORD       result;
+    MOD_CONTEXT *mod;
 
     ASSERT(filePath != NULL);
     ASSERT(userFile != NULL);
     TRACE("filePath=%s userFile=%p\n", filePath, userFile);
 
+    mod = userFile->lpInternal;
+    ASSERT(mod->file == INVALID_HANDLE_VALUE);
+
     // Open user file
-    fileHandle = CreateFileA(filePath,
+    mod->file = CreateFileA(filePath,
         GENERIC_READ|GENERIC_WRITE,
         FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
         NULL, OPEN_EXISTING, 0, NULL);
 
-    if (fileHandle == INVALID_HANDLE_VALUE) {
+    if (mod->file == INVALID_HANDLE_VALUE) {
         result = GetLastError();
         TRACE("Unable to open file \"%s\" (error %lu).\n", filePath, result);
         goto failed;
     }
 
     // Retrieve file size
-    fileSize = GetFileSize(fileHandle, NULL);
+    fileSize = GetFileSize(mod->file, NULL);
     if (fileSize == INVALID_FILE_SIZE || fileSize < 5) {
         result = INVALID_FILE_SIZE;
         TRACE("Unable to retrieve size of file \"%s\" (error %lu).\n", filePath, result);
@@ -58,7 +61,7 @@ static DWORD UserRead(CHAR *filePath, USERFILE *userFile)
     }
 
     // Read user file to buffer
-    if (!ReadFile(fileHandle, buffer, fileSize, &bytesRead, NULL) || bytesRead < 5) {
+    if (!ReadFile(mod->file, buffer, fileSize, &bytesRead, NULL) || bytesRead < 5) {
         result = GetLastError();
         TRACE("Unable to write file \"%s\" (error %lu).\n", filePath, result);
         goto failed;
@@ -72,17 +75,16 @@ static DWORD UserRead(CHAR *filePath, USERFILE *userFile)
     Io_Ascii2UserFile(buffer, bytesRead, userFile);
     userFile->Gid = userFile->Groups[0];
 
-    // Save file handle
-    userFile->lpInternal = fileHandle;
-
     Io_Free(buffer);
     return ERROR_SUCCESS;
 
 failed:
+    if (mod->file != INVALID_HANDLE_VALUE) {
+        CloseHandle(mod->file);
+    }
     if (buffer != NULL) {
         Io_Free(buffer);
     }
-    CloseHandle(fileHandle);
 
     return result;
 }
@@ -163,14 +165,17 @@ DWORD FileUserDelete(INT32 userId)
 
 DWORD FileUserOpen(INT32 userId, USERFILE *userFile)
 {
-    CHAR    buffer[12];
-    CHAR    *filePath;
-    DWORD   result;
-    HANDLE  fileHandle;
+    CHAR        buffer[12];
+    CHAR        *filePath;
+    DWORD       result;
+    MOD_CONTEXT *mod;
 
     ASSERT(userId != -1);
     ASSERT(userFile != NULL);
     TRACE("userId=%d userFile=%p\n", userId, userFile);
+
+    mod = userFile->lpInternal;
+    ASSERT(mod->file == INVALID_HANDLE_VALUE);
 
     // Retrieve user file location
     StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", userId);
@@ -181,20 +186,17 @@ DWORD FileUserOpen(INT32 userId, USERFILE *userFile)
     }
 
     // Open user file
-    fileHandle = CreateFileA(filePath,
+    mod->file = CreateFileA(filePath,
         GENERIC_READ|GENERIC_WRITE,
         FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
         NULL, OPEN_EXISTING, 0, NULL);
 
-    if (fileHandle != INVALID_HANDLE_VALUE) {
+    if (mod->file != INVALID_HANDLE_VALUE) {
         result = ERROR_SUCCESS;
     } else {
         result = GetLastError();
         TRACE("Unable to open file \"%s\" (error %lu).\n", filePath, result);
     }
-
-    // Save file handle
-    userFile->lpInternal = fileHandle;
 
     Io_Free(filePath);
     return result;
@@ -202,16 +204,16 @@ DWORD FileUserOpen(INT32 userId, USERFILE *userFile)
 
 DWORD FileUserWrite(USERFILE *userFile)
 {
-    BUFFER  buffer;
-    DWORD   bytesWritten;
-    DWORD   result;
-    HANDLE  fileHandle;
+    BUFFER      buffer;
+    DWORD       bytesWritten;
+    DWORD       result;
+    MOD_CONTEXT *mod;
 
     ASSERT(userFile != NULL);
     TRACE("userFile=%p\n", userFile);
 
-    fileHandle = userFile->lpInternal;
-    ASSERT(fileHandle != INVALID_HANDLE_VALUE);
+    mod = userFile->lpInternal;
+    ASSERT(mod->file != INVALID_HANDLE_VALUE);
 
     // Allocate write buffer
     ZeroMemory(&buffer, sizeof(BUFFER));
@@ -228,13 +230,13 @@ DWORD FileUserWrite(USERFILE *userFile)
     Io_UserFile2Ascii(&buffer, userFile);
 
     // Write buffer to file
-    SetFilePointer(fileHandle, 0, 0, FILE_BEGIN);
-    if (WriteFile(fileHandle, buffer.buf, buffer.len, &bytesWritten, NULL)) {
+    SetFilePointer(mod->file, 0, 0, FILE_BEGIN);
+    if (WriteFile(mod->file, buffer.buf, buffer.len, &bytesWritten, NULL)) {
         result = ERROR_SUCCESS;
 
         // Truncate file at its current position and flush changes to disk
-        SetEndOfFile(fileHandle);
-        FlushFileBuffers(fileHandle);
+        SetEndOfFile(mod->file);
+        FlushFileBuffers(mod->file);
     } else {
         result = GetLastError();
         TRACE("Unable to write file (error %lu).\n", result);
@@ -246,19 +248,19 @@ DWORD FileUserWrite(USERFILE *userFile)
 
 DWORD FileUserClose(USERFILE *userFile)
 {
-    HANDLE fileHandle;
+    MOD_CONTEXT *mod;
 
     ASSERT(userFile != NULL);
     TRACE("userFile=%p\n", userFile);
 
-    fileHandle = userFile->lpInternal;
+    mod = userFile->lpInternal;
 
     // Close user file
-    if (fileHandle != INVALID_HANDLE_VALUE) {
-        CloseHandle(fileHandle);
+    if (mod->file != INVALID_HANDLE_VALUE) {
+        CloseHandle(mod->file);
 
         // Invalidate the internal pointer
-        userFile->lpInternal = INVALID_HANDLE_VALUE;
+        mod->file = INVALID_HANDLE_VALUE;
     }
 
     return ERROR_SUCCESS;

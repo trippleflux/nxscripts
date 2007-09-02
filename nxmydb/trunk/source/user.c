@@ -65,56 +65,76 @@ static INT UserFinalize(VOID)
 
 static INT32 UserCreate(CHAR *userName)
 {
-    DB_CONTEXT *db;
+    DB_CONTEXT  *db;
+    MOD_CONTEXT *mod;
     DWORD       result;
-    INT32       userId;
+    INT32       userId = -1;
     USERFILE    userFile;
 
     TRACE("userName=%s\n", userName);
 
     if (!DbAcquire(&db)) {
-        return -1;
+        return userId;
     }
 
-    // Initialize USERFILE structure
-    ZeroMemory(&userFile, sizeof(USERFILE));
-    userFile.Groups[0]      = NOGROUP_ID;
-    userFile.Groups[1]      = -1;
-    userFile.AdminGroups[0] = -1;
-    userFile.lpInternal     = INVALID_HANDLE_VALUE;
+    // Module context is required for all file operations
+    mod = Io_Allocate(sizeof(MOD_CONTEXT));
+    if (mod == NULL) {
+        result = ERROR_NOT_ENOUGH_MEMORY;
+        TRACE("Unable to allocate module context.\n");
 
-    // Register user
-    userId = userModule->Register(userModule, userName, &userFile);
-    if (userId == -1) {
-        result = GetLastError();
-        TRACE("Unable to register user (error %lu).\n", result);
     } else {
+        // Initialize MOD_CONTEXT structure
+        mod->file = INVALID_HANDLE_VALUE;
 
-        // Create user file and read "Default.User"
-        result = FileUserCreate(userId, &userFile);
-        if (result != ERROR_SUCCESS) {
-            TRACE("Unable to create user file (error %lu).\n", result);
+        // Initialize USERFILE structure
+        ZeroMemory(&userFile, sizeof(USERFILE));
+        userFile.Groups[0]      = NOGROUP_ID;
+        userFile.Groups[1]      = -1;
+        userFile.AdminGroups[0] = -1;
+        userFile.lpInternal     = mod;
+
+        // Register user
+        userId = userModule->Register(userModule, userName, &userFile);
+        if (userId == -1) {
+            result = GetLastError();
+            TRACE("Unable to register user (error %lu).\n", result);
         } else {
 
-            // Create database record
-            result = DbUserCreate(db, userName, &userFile);
+            // Create user file and read "Default.User"
+            result = FileUserCreate(userId, &userFile);
             if (result != ERROR_SUCCESS) {
-                TRACE("Unable to create database record (error %lu).\n", result);
+                TRACE("Unable to create user file (error %lu).\n", result);
+            } else {
+
+                // Create database record
+                result = DbUserCreate(db, userName, &userFile);
+                if (result != ERROR_SUCCESS) {
+                    TRACE("Unable to create database record (error %lu).\n", result);
+                }
+            }
+
+            // If the file or database creation failed, clean-up the user file
+            if (result != ERROR_SUCCESS) {
+                userModule->Unregister(userModule, userName);
+                FileUserDelete(userId);
+                FileUserClose(&userFile);
             }
         }
 
-        // If the file or database creation failed, clean-up the user file
         if (result != ERROR_SUCCESS) {
-            userModule->Unregister(userModule, userName);
-            FileUserDelete(userId);
-            FileUserClose(&userFile);
+            // Free module context after all file operations
+            Io_Free(mod);
+
+            // Indicate an error occured by returning an invalid user ID
+            userId = -1;
         }
     }
 
     DbRelease(db);
 
     SetLastError(result);
-    return (result == ERROR_SUCCESS) ? userId : -1;
+    return userId;
 }
 
 static INT UserRename(CHAR *userName, INT32 userId, CHAR *newName)
@@ -249,26 +269,43 @@ static INT UserOpen(CHAR *userName, USERFILE *userFile)
 {
     DB_CONTEXT *db;
     DWORD       result;
+    MOD_CONTEXT *mod;
 
     TRACE("userName=%s userFile=%p\n", userName, userFile);
 
     if (!DbAcquire(&db)) {
-        return UM_FATAL;
+        return UM_ERROR;
     }
+    // Module context is required for all file operations
+    mod = Io_Allocate(sizeof(MOD_CONTEXT));
+    if (mod == NULL) {
+        result = ERROR_NOT_ENOUGH_MEMORY;
+        TRACE("Unable to allocate module context.\n");
 
-    // Open user file
-    result = FileUserOpen(userFile->Uid, userFile);
-    if (result != ERROR_SUCCESS) {
-        TRACE("Unable to open user file (error %lu).\n", result);
     } else {
+        // Initialize MOD_CONTEXT structure
+        mod->file            = INVALID_HANDLE_VALUE;
+        userFile->lpInternal = mod;
 
-        // Read database record
-        result = DbUserOpen(db, userName, userFile);
+        // Open user file
+        result = FileUserOpen(userFile->Uid, userFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to open user database record (error %lu).\n", result);
+            TRACE("Unable to open user file (error %lu).\n", result);
+        } else {
 
-            // Clean-up user file
-            FileUserClose(userFile);
+            // Read database record
+            result = DbUserOpen(db, userName, userFile);
+            if (result != ERROR_SUCCESS) {
+                TRACE("Unable to open user database record (error %lu).\n", result);
+
+                // Clean-up user file
+                FileUserClose(userFile);
+            }
+        }
+
+        // Free module context if the file/database open failed
+        if (result != ERROR_SUCCESS) {
+            Io_Free(mod);
         }
     }
 
@@ -276,14 +313,14 @@ static INT UserOpen(CHAR *userName, USERFILE *userFile)
 
     SetLastError(result);
     switch (result) {
-        case ERROR_FILE_NOT_FOUND:
-            return UM_DELETED;
-
         case ERROR_SUCCESS:
             return UM_SUCCESS;
 
+        case ERROR_FILE_NOT_FOUND:
+            return UM_DELETED;
+
         default:
-            return UM_FATAL;
+            return UM_ERROR;
     }
 }
 
@@ -326,20 +363,29 @@ static INT UserWrite(USERFILE *userFile)
 
 static INT UserClose(USERFILE *userFile)
 {
-    DWORD result;
+    DWORD       result;
+    MOD_CONTEXT *mod;
 
     TRACE("userFile=%p\n", userFile);
 
-    // Close user file (success does not matter)
-    result = FileUserClose(userFile);
-    if (result != ERROR_SUCCESS) {
-        TRACE("Unable to close user file (error %lu).\n", result);
-    }
+    mod = userFile->lpInternal;
 
-    // Close user database record (success does not matter)
-    result = DbUserClose(userFile);
-    if (result != ERROR_SUCCESS) {
-        TRACE("Unable to close user database record (error %lu).\n", result);
+    if (mod != NULL) {
+        // Close user file (success does not matter)
+        result = FileUserClose(userFile);
+        if (result != ERROR_SUCCESS) {
+            TRACE("Unable to close user file (error %lu).\n", result);
+        }
+
+        // Close user database record (success does not matter)
+        result = DbUserClose(userFile);
+        if (result != ERROR_SUCCESS) {
+            TRACE("Unable to close user database record (error %lu).\n", result);
+        }
+
+        // Free module context
+        Io_Free(mod);
+        userFile->lpInternal = NULL;
     }
 
     return UM_SUCCESS;

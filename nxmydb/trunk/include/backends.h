@@ -20,6 +20,14 @@ Abstract:
 #define BACKENDS_H_INCLUDED
 
 //
+// Module context structure
+//
+
+typedef struct {
+    HANDLE  file;   // Handle to the user/group file
+} MOD_CONTEXT;
+
+//
 // Group database backend
 //
 
