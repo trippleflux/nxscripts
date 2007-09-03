@@ -22,41 +22,39 @@ Abstract:
 #include <errmsg.h>
 #include <rpc.h>
 
+//
 // Global configuration structures
-DB_CONFIG_LOCK dbConfigLock;
+//
 
-// Pool resource functions
+DB_CONFIG_LOCK   dbConfigLock;
+DB_CONFIG_POOL   dbConfigPool;
+DB_CONFIG_SERVER dbConfigServer;
+
+//
+// Local function declarations
+//
+
 static POOL_CONSTRUCTOR_PROC ConnectionOpen;
 static POOL_VALIDATOR_PROC   ConnectionCheck;
 static POOL_DESTRUCTOR_PROC  ConnectionClose;
 
-// MySQL Server information
-static CHAR *serverHost;
-static CHAR *serverUser;
-static CHAR *serverPass;
-static CHAR *serverDb;
-static INT   serverPort;
-static BOOL  compression;
-static BOOL  sslEnable;
-static CHAR *sslCiphers;
-static CHAR *sslCertFile;
-static CHAR *sslKeyFile;
-static CHAR *sslCAFile;
-static CHAR *sslCAPath;
+static VOID FCALL ConfigInit(VOID);
+static VOID FCALL ConfigFree(VOID);
+static CHAR *FCALL ConfigGet(CHAR *array, CHAR *variable);
+static BOOL FCALL ConfigSetUuid(VOID);
 
-// Connection expiration
-static UINT64 connCheck;
-static UINT64 connExpire;
+//
+// Local variables
+//
 
-// Refresh timer
-static INT refresh;
-static TIMER *timer = NULL;
+static UINT64 connCheck;    // Time to check connections at
+static UINT64 connExpire;   // Time to expire connections
 
-// Database connection pool
-static POOL *pool;
+static INT refresh;         // Refresh interval time
+static TIMER *timer = NULL; // Refresh timer
 
-// Reference count initialization calls
-static INT refCount = 0;
+static POOL *pool;          // Database connection pool
+static INT refCount = 0;    // Reference count initialization calls
 
 
 /*++
@@ -82,6 +80,7 @@ static BOOL FCALL ConnectionOpen(VOID *opaque, VOID **data)
     DWORD           error;
     DWORD           i;
     unsigned long   flags;
+    MYSQL           *connection;
 
     UNREFERENCED_PARAMETER(opaque);
     ASSERT(data != NULL);
@@ -111,18 +110,32 @@ static BOOL FCALL ConnectionOpen(VOID *opaque, VOID **data)
 
     // Set connection options
     flags = CLIENT_INTERACTIVE;
-    if (compression) {
+    if (dbConfigServer.compression) {
         flags |= CLIENT_COMPRESS;
     }
-    if (sslEnable) {
+    if (dbConfigServer.sslEnable) {
         //
         // This function always returns 0. If SSL setup is incorrect,
         // mysql_real_connect() returns an error when you attempt to connect.
         //
-        mysql_ssl_set(context->handle, sslKeyFile, sslCertFile, sslCAFile, sslCAPath, sslCiphers);
+        mysql_ssl_set(context->handle,
+            dbConfigServer.sslKeyFile,
+            dbConfigServer.sslCertFile,
+            dbConfigServer.sslCAFile,
+            dbConfigServer.sslCAPath,
+            dbConfigServer.sslCiphers);
     }
 
-    if (!mysql_real_connect(context->handle, serverHost, serverUser, serverPass, serverDb, serverPort, NULL, flags)) {
+    connection = mysql_real_connect(
+        context->handle,
+        dbConfigServer.serverHost,
+        dbConfigServer.serverUser,
+        dbConfigServer.serverPass,
+        dbConfigServer.serverDb,
+        dbConfigServer.serverPort,
+        NULL, flags);
+
+    if (connection == NULL) {
         TRACE("Unable to connect to server: %s\n", mysql_error(context->handle));
         Io_Putlog(LOG_ERROR, "nxMyDB: Unable to connect to server: %s\r\n", mysql_error(context->handle));
 
@@ -257,6 +270,80 @@ static VOID FCALL ConnectionClose(VOID *opaque, VOID *data)
     Io_Free(context);
 }
 
+
+/*++
+
+ConfigInit
+
+    Initializes configuration structures.
+
+Arguments:
+    None.
+
+Return Values:
+    None.
+
+--*/
+static VOID FCALL ConfigInit(VOID)
+{
+    // Clear configuration structures
+    ZeroMemory(&dbConfigLock,   sizeof(DB_CONFIG_LOCK));
+    ZeroMemory(&dbConfigPool,   sizeof(DB_CONFIG_POOL));
+    ZeroMemory(&dbConfigServer, sizeof(DB_CONFIG_SERVER));
+}
+
+/*++
+
+ConfigFree
+
+    Frees memory allocated for configuration options.
+
+Arguments:
+    None.
+
+Return Values:
+    None.
+
+--*/
+static VOID FCALL ConfigFree(VOID)
+{
+    // Free server options
+    if (dbConfigServer.serverHost != NULL) {
+        Io_Free(dbConfigServer.serverHost);
+    }
+    if (dbConfigServer.serverUser != NULL) {
+        Io_Free(dbConfigServer.serverUser);
+    }
+    if (dbConfigServer.serverPass != NULL) {
+        Io_Free(dbConfigServer.serverPass);
+    }
+    if (dbConfigServer.serverDb != NULL) {
+        Io_Free(dbConfigServer.serverDb);
+    }
+
+    // Free SSL options
+    if (dbConfigServer.sslCiphers != NULL) {
+        Io_Free(dbConfigServer.sslCiphers);
+    }
+    if (dbConfigServer.sslCertFile != NULL) {
+        Io_Free(dbConfigServer.sslCertFile);
+    }
+    if (dbConfigServer.sslKeyFile != NULL) {
+        Io_Free(dbConfigServer.sslKeyFile);
+    }
+    if (dbConfigServer.sslCAFile != NULL) {
+        Io_Free(dbConfigServer.sslCAFile);
+    }
+    if (dbConfigServer.sslCAPath != NULL) {
+        Io_Free(dbConfigServer.sslCAPath);
+    }
+
+    // Clear configuration structures
+    ZeroMemory(&dbConfigLock,   sizeof(DB_CONFIG_LOCK));
+    ZeroMemory(&dbConfigPool,   sizeof(DB_CONFIG_POOL));
+    ZeroMemory(&dbConfigServer, sizeof(DB_CONFIG_SERVER));
+}
+
 /*++
 
 ConfigGet
@@ -354,53 +441,7 @@ static BOOL FCALL ConfigSetUuid(VOID)
     return TRUE;
 }
 
-/*++
-
-ConfigFree
-
-    Frees memory allocated for configuration options.
-
-Arguments:
-    None.
-
-Return Values:
-    None.
-
---*/
-static VOID FCALL ConfigFree(VOID)
-{
-    // Free server options
-    if (serverHost != NULL) {
-        Io_Free(serverHost);
-    }
-    if (serverUser != NULL) {
-        Io_Free(serverUser);
-    }
-    if (serverPass != NULL) {
-        Io_Free(serverPass);
-    }
-    if (serverDb != NULL) {
-        Io_Free(serverDb);
-    }
-
-    // Free SSL options
-    if (sslCiphers != NULL) {
-        Io_Free(sslCiphers);
-    }
-    if (sslCertFile != NULL) {
-        Io_Free(sslCertFile);
-    }
-    if (sslKeyFile != NULL) {
-        Io_Free(sslKeyFile);
-    }
-    if (sslCAFile != NULL) {
-        Io_Free(sslCAFile);
-    }
-    if (sslCAPath != NULL) {
-        Io_Free(sslCAPath);
-    }
-}
-
+
 /*++
 
 RefreshTimer
@@ -465,8 +506,6 @@ Remarks:
 --*/
 BOOL FCALL DbInit(Io_GetProc *getProc)
 {
-    INT lockExpire;
-    INT lockTimeout;
     INT poolMin;
     INT poolAvg;
     INT poolMax;
@@ -488,23 +527,24 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
         return FALSE;
     }
 
+    // Initialize configuration structures
+    ConfigInit();
+
     //
     // Read lock options
     //
 
-    lockExpire = 60;
-    if (Io_ConfigGetInt("nxMyDB", "Lock_Expire", &lockExpire) && lockExpire <= 0) {
+    dbConfigLock.expire = 60;
+    if (Io_ConfigGetInt("nxMyDB", "Lock_Expire", &dbConfigLock.expire) && dbConfigLock.expire <= 0) {
         Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Lock_Expire' must be greater than zero.\r\n");
         return FALSE;
     }
-    dbConfigLock.expire = lockExpire;
 
-    lockTimeout = 5;
-    if (Io_ConfigGetInt("nxMyDB", "Lock_Timeout", &lockTimeout) && lockTimeout <= 0) {
+    dbConfigLock.timeout = 5;
+    if (Io_ConfigGetInt("nxMyDB", "Lock_Timeout", &dbConfigLock.timeout) && dbConfigLock.timeout <= 0) {
         Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Lock_Timeout' must be greater than zero.\r\n");
         return FALSE;
     }
-    dbConfigLock.timeout = lockTimeout;
 
     //
     // Read pool options
@@ -561,18 +601,18 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
     refresh *= 1000; // sec to msec
 
     // Read server options
-    serverHost = ConfigGet("nxMyDB", "Host");
-    serverUser = ConfigGet("nxMyDB", "User");
-    serverPass = ConfigGet("nxMyDB", "Password");
-    serverDb   = ConfigGet("nxMyDB", "Database");
-    Io_ConfigGetInt("nxMyDB", "Port", &serverPort);
-    Io_ConfigGetBool("nxMyDB", "Compression", &compression);
-    Io_ConfigGetBool("nxMyDB", "SSL_Enable", &sslEnable);
-    sslCiphers  = ConfigGet("nxMyDB", "SSL_Ciphers");
-    sslCertFile = ConfigGet("nxMyDB", "SSL_Cert_File");
-    sslKeyFile  = ConfigGet("nxMyDB", "SSL_Key_File");
-    sslCAFile   = ConfigGet("nxMyDB", "SSL_CA_File");
-    sslCAPath   = ConfigGet("nxMyDB", "SSL_CA_Path");
+    dbConfigServer.serverHost = ConfigGet("nxMyDB", "Host");
+    dbConfigServer.serverUser = ConfigGet("nxMyDB", "User");
+    dbConfigServer.serverPass = ConfigGet("nxMyDB", "Password");
+    dbConfigServer.serverDb   = ConfigGet("nxMyDB", "Database");
+    Io_ConfigGetInt("nxMyDB", "Port", &dbConfigServer.serverPort);
+    Io_ConfigGetBool("nxMyDB", "Compression", &dbConfigServer.compression);
+    Io_ConfigGetBool("nxMyDB", "SSL_Enable", &dbConfigServer.sslEnable);
+    dbConfigServer.sslCiphers  = ConfigGet("nxMyDB", "SSL_Ciphers");
+    dbConfigServer.sslCertFile = ConfigGet("nxMyDB", "SSL_Cert_File");
+    dbConfigServer.sslKeyFile  = ConfigGet("nxMyDB", "SSL_Key_File");
+    dbConfigServer.sslCAFile   = ConfigGet("nxMyDB", "SSL_CA_File");
+    dbConfigServer.sslCAPath   = ConfigGet("nxMyDB", "SSL_CA_Path");
 
     // Create connection pool
     pool = Io_Allocate(sizeof(POOL));
