@@ -29,14 +29,22 @@ typedef struct {
 } DB_CONTEXT;
 
 typedef struct {
-    INT     expire;         // Lock expiration
-    INT     timeout;        // Lock timeout
+    INT     expire;         // Seconds until a lock expires
+    INT     timeout;        // Seconds to wait for a lock to become available
     CHAR    owner[64];      // Lock owner UUID
-    SIZE_T  ownerLength;    // Length of owner UUID
+    SIZE_T  ownerLength;    // Length of the owner UUID
 } DB_CONFIG_LOCK;
 
 typedef struct {
-    void *foo;
+    INT     minimum;        // Minimum number of sustained connections
+    INT     average;        // Average number of sustained connections
+    INT     maximum;        // Maximum number of sustained connections
+    INT     check;          // Seconds until an idle connection is checked
+    INT     checkMili;      //
+    INT     expire;         // Seconds until a connection expires
+    INT64   expireNano;     //
+    INT     timeout;        // Seconds to wait for a connection to become available
+    INT64   timeoutNano;    //
 } DB_CONFIG_POOL;
 
 typedef struct {

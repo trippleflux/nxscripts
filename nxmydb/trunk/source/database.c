@@ -41,7 +41,7 @@ static POOL_DESTRUCTOR_PROC  ConnectionClose;
 static VOID FCALL ConfigInit(VOID);
 static VOID FCALL ConfigFree(VOID);
 static CHAR *FCALL ConfigGet(CHAR *array, CHAR *variable);
-static BOOL FCALL ConfigSetUuid(VOID);
+static BOOL FCALL ConfigUuid(VOID);
 
 //
 // Local variables
@@ -394,7 +394,7 @@ static CHAR *FCALL ConfigGet(CHAR *array, CHAR *variable)
 
 /*++
 
-ConfigSetUuid
+ConfigUuid
 
     Generates a UUID used for identifying the server.
 
@@ -407,7 +407,7 @@ Return Values:
     None.
 
 --*/
-static BOOL FCALL ConfigSetUuid(VOID)
+static BOOL FCALL ConfigUuid(VOID)
 {
     CHAR        *format;
     RPC_STATUS  status;
@@ -614,6 +614,14 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
     dbConfigServer.sslCAFile   = ConfigGet("nxMyDB", "SSL_CA_File");
     dbConfigServer.sslCAPath   = ConfigGet("nxMyDB", "SSL_CA_Path");
 
+    // Generate a UUID for this server
+    if (!ConfigUuid()) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Unable to generate UUID.\r\n");
+
+        DbFinalize();
+        return FALSE;
+    }
+
     // Create connection pool
     pool = Io_Allocate(sizeof(POOL));
     if (pool == NULL) {
@@ -628,13 +636,6 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
 
         Io_Free(pool);
         ConfigFree();
-        return FALSE;
-    }
-
-    // Generate a UUID for this server
-    if (!ConfigSetUuid()) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Unable to generate UUID.\r\n");
-        DbFinalize();
         return FALSE;
     }
 
