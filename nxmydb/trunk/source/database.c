@@ -22,6 +22,9 @@ Abstract:
 #include <errmsg.h>
 #include <rpc.h>
 
+// Global configuration structures
+DB_CONFIG_LOCK dbConfigLock;
+
 // Pool resource functions
 static POOL_CONSTRUCTOR_PROC ConnectionOpen;
 static POOL_VALIDATOR_PROC   ConnectionCheck;
@@ -44,11 +47,6 @@ static CHAR *sslCAPath;
 // Connection expiration
 static UINT64 connCheck;
 static UINT64 connExpire;
-
-// Locking
-static INT  lockExpire;
-static INT  lockTimeout;
-static CHAR lockOwner[36 + 1];
 
 // Refresh timer
 static INT refresh;
@@ -309,7 +307,7 @@ static CHAR *FCALL ConfigGet(CHAR *array, CHAR *variable)
 
 /*++
 
-ConfigUuid
+ConfigSetUuid
 
     Generates a UUID used for identifying the server.
 
@@ -322,7 +320,7 @@ Return Values:
     None.
 
 --*/
-static BOOL FCALL ConfigUuid(VOID)
+static BOOL FCALL ConfigSetUuid(VOID)
 {
     CHAR        *format;
     RPC_STATUS  status;
@@ -346,8 +344,9 @@ static BOOL FCALL ConfigUuid(VOID)
         return FALSE;
     }
 
-    // Copy formatted UUID to the lock owner buffer
-    StringCchCopyA(lockOwner, ELEMENT_COUNT(lockOwner), format);
+    // Copy formatted UUID
+    StringCchCopyA(dbConfigLock.owner, ELEMENT_COUNT(dbConfigLock.owner), format);
+    dbConfigLock.ownerLength = strlen(dbConfigLock.owner);
 
     TRACE("UUID is %s\n", format);
 
@@ -466,6 +465,8 @@ Remarks:
 --*/
 BOOL FCALL DbInit(Io_GetProc *getProc)
 {
+    INT lockExpire;
+    INT lockTimeout;
     INT poolMin;
     INT poolAvg;
     INT poolMax;
@@ -496,12 +497,14 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
         Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Lock_Expire' must be greater than zero.\r\n");
         return FALSE;
     }
+    dbConfigLock.expire = lockExpire;
 
     lockTimeout = 5;
     if (Io_ConfigGetInt("nxMyDB", "Lock_Timeout", &lockTimeout) && lockTimeout <= 0) {
         Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Lock_Timeout' must be greater than zero.\r\n");
         return FALSE;
     }
+    dbConfigLock.timeout = lockTimeout;
 
     //
     // Read pool options
@@ -589,7 +592,7 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
     }
 
     // Generate a UUID for this server
-    if (!ConfigUuid()) {
+    if (!ConfigSetUuid()) {
         Io_Putlog(LOG_ERROR, "nxMyDB: Unable to generate UUID.\r\n");
         DbFinalize();
         return FALSE;
@@ -642,37 +645,6 @@ VOID FCALL DbFinalize(VOID)
 
         ConfigFree();
         ProcTableFinalize();
-    }
-}
-
-/*++
-
-DbGetConfig
-
-    Retrieves the lock configuration.
-
-Arguments:
-    expire  - Pointer to a variable that recieves the lock expiration.
-
-    timeout - Pointer to a variable that recieves the lock timeout.
-
-    owner   - Pointer to a variable that recieves the lock owner.
-
-Return Values:
-    None.
-
---*/
-VOID FCALL DbGetConfig(INT *expire, INT *timeout, CHAR **owner)
-{
-
-    if (expire != NULL) {
-        *expire = lockExpire;
-    }
-    if (timeout != NULL) {
-        *timeout = lockTimeout;
-    }
-    if (owner != NULL) {
-        *owner = lockOwner;
     }
 }
 

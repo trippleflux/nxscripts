@@ -181,11 +181,8 @@ DWORD DbGroupDelete(DB_CONTEXT *db, CHAR *groupName)
 
 DWORD DbGroupLock(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 {
-    CHAR        *lockOwner;
     CHAR        *query;
     DWORD       error;
-    INT         lockExpire;
-    INT         lockTimeout;
     INT         result;
     INT64       affectedRows;
     MYSQL_BIND  bind[3];
@@ -197,8 +194,6 @@ DWORD DbGroupLock(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
     TRACE("db=%p groupName=%s groupFile=%p\n", db, groupName, groupFile);
 
     stmt = db->stmt[0];
-
-    DbGetConfig(&lockExpire, &lockTimeout, &lockOwner);
 
     //
     // Prepare and bind statement
@@ -218,15 +213,15 @@ DWORD DbGroupLock(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
     ZeroMemory(&bind, sizeof(bind));
 
     bind[0].buffer_type   = MYSQL_TYPE_STRING;
-    bind[0].buffer        = lockOwner;
-    bind[0].buffer_length = strlen(lockOwner);
+    bind[0].buffer        = dbConfigLock.owner;
+    bind[0].buffer_length = dbConfigLock.ownerLength;
 
     bind[1].buffer_type   = MYSQL_TYPE_STRING;
     bind[1].buffer        = groupName;
     bind[1].buffer_length = strlen(groupName);
 
     bind[2].buffer_type   = MYSQL_TYPE_LONG;
-    bind[2].buffer        = &lockExpire;
+    bind[2].buffer        = &dbConfigLock.expire;
 
     result = mysql_stmt_bind_param(stmt, bind);
     if (result != 0) {
@@ -268,7 +263,6 @@ DWORD DbGroupLock(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 
 DWORD DbGroupUnlock(DB_CONTEXT *db, CHAR *groupName)
 {
-    CHAR        *lockOwner;
     CHAR        *query;
     INT         result;
     INT64       affectedRows;
@@ -280,8 +274,6 @@ DWORD DbGroupUnlock(DB_CONTEXT *db, CHAR *groupName)
     TRACE("db=%p groupName=%s\n", db, groupName);
 
     stmt = db->stmt[0];
-
-    DbGetConfig(NULL, NULL, &lockOwner);
 
     //
     // Prepare and bind statement
@@ -304,8 +296,8 @@ DWORD DbGroupUnlock(DB_CONTEXT *db, CHAR *groupName)
     bind[0].buffer_length = strlen(groupName);
 
     bind[1].buffer_type   = MYSQL_TYPE_STRING;
-    bind[1].buffer        = lockOwner;
-    bind[1].buffer_length = strlen(lockOwner);
+    bind[1].buffer        = dbConfigLock.owner;
+    bind[1].buffer_length = dbConfigLock.ownerLength;
 
     result = mysql_stmt_bind_param(stmt, bind);
     if (result != 0) {

@@ -22,6 +22,13 @@ Abstract:
 //
 
 typedef struct {
+    INT     expire;         // Lock expiration
+    INT     timeout;        // Lock timeout
+    CHAR    owner[64];      // Lock owner UUID
+    SIZE_T  ownerLength;    // Length of owner UUID
+} DB_CONFIG_LOCK;
+
+typedef struct {
     MYSQL      *handle;     // MySQL connection handle
     MYSQL_STMT *stmt[7];    // Pre-compiled SQL statements
     UINT64      created;    // Time this context was created
@@ -46,13 +53,14 @@ typedef struct {
 #endif // DEBUG
 
 //
-// Database functions
+// Database globals
 //
+
+extern DB_CONFIG_LOCK dbConfigLock;
 
 BOOL FCALL DbInit(Io_GetProc *getProc);
 VOID FCALL DbFinalize(VOID);
 
-VOID  FCALL DbGetConfig(INT *expire, INT *timeout, CHAR **owner);
 DWORD FCALL DbMapError(INT result);
 
 BOOL FCALL DbAcquire(DB_CONTEXT **dbContext);

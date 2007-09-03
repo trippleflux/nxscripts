@@ -753,11 +753,8 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
 
 DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 {
-    CHAR        *lockOwner;
     CHAR        *query;
     DWORD       error;
-    INT         lockExpire;
-    INT         lockTimeout;
     INT         result;
     INT64       affectedRows;
     MYSQL_BIND  bind[3];
@@ -769,8 +766,6 @@ DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     TRACE("db=%p userName=%s userFile=%p\n", db, userName, userFile);
 
     stmt = db->stmt[0];
-
-    DbGetConfig(&lockExpire, &lockTimeout, &lockOwner);
 
     //
     // Prepare and bind statement
@@ -790,15 +785,15 @@ DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     ZeroMemory(&bind, sizeof(bind));
 
     bind[0].buffer_type   = MYSQL_TYPE_STRING;
-    bind[0].buffer        = lockOwner;
-    bind[0].buffer_length = strlen(lockOwner);
+    bind[0].buffer        = dbConfigLock.owner;
+    bind[0].buffer_length = dbConfigLock.ownerLength;
 
     bind[1].buffer_type   = MYSQL_TYPE_STRING;
     bind[1].buffer        = userName;
     bind[1].buffer_length = strlen(userName);
 
     bind[2].buffer_type   = MYSQL_TYPE_LONG;
-    bind[2].buffer        = &lockExpire;
+    bind[2].buffer        = &dbConfigLock.expire;
 
     result = mysql_stmt_bind_param(stmt, bind);
     if (result != 0) {
@@ -840,7 +835,6 @@ DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
 DWORD DbUserUnlock(DB_CONTEXT *db, CHAR *userName)
 {
-    CHAR        *lockOwner;
     CHAR        *query;
     INT         result;
     INT64       affectedRows;
@@ -852,8 +846,6 @@ DWORD DbUserUnlock(DB_CONTEXT *db, CHAR *userName)
     TRACE("db=%p userName=%s\n", db, userName);
 
     stmt = db->stmt[0];
-
-    DbGetConfig(NULL, NULL, &lockOwner);
 
     //
     // Prepare and bind statement
@@ -876,8 +868,8 @@ DWORD DbUserUnlock(DB_CONTEXT *db, CHAR *userName)
     bind[0].buffer_length = strlen(userName);
 
     bind[1].buffer_type   = MYSQL_TYPE_STRING;
-    bind[1].buffer        = lockOwner;
-    bind[1].buffer_length = strlen(lockOwner);
+    bind[1].buffer        = dbConfigLock.owner;
+    bind[1].buffer_length = dbConfigLock.ownerLength;
 
     result = mysql_stmt_bind_param(stmt, bind);
     if (result != 0) {
@@ -965,7 +957,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
             " password=?, vfsfile=?, credits=?, ratio=?, alldn=?, allup=?,"
             " daydn=?, dayup=?, monthdn=?, monthup=?, wkdn=?, wkup=?,"
             " updated=UNIX_TIMESTAMP()"
-            "  WHERE name=?";
+            "   WHERE name=?";
 
     result = mysql_stmt_prepare(stmtUsers, query, strlen(query));
     if (result != 0) {
