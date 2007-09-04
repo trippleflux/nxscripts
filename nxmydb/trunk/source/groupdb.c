@@ -20,10 +20,113 @@ Abstract:
 
 static DWORD DbGroupRead(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 {
+    CHAR        *query;
+    INT         result;
+    SIZE_T      groupNameLength;
+    ULONG       outputLength[4];
+    MYSQL_BIND  bindInput[1];
+    MYSQL_BIND  bindOutput[4];
+    MYSQL_RES   *metadata;
+    MYSQL_STMT  *stmt;
+
     ASSERT(db != NULL);
     ASSERT(groupName != NULL);
     ASSERT(groupFile != NULL);
     TRACE("db=%p groupName=%s groupFile=%p\n", db, groupName, groupFile);
+
+    stmt = db->stmt[0];
+
+    groupNameLength = strlen(groupName);
+
+    //
+    // Prepare statement and bind parameters
+    //
+
+    query = "SELECT description, slots, users, vfsfile"
+            "  FROM io_groups WHERE name=?";
+
+    result = mysql_stmt_prepare(stmt, query, strlen(query));
+    if (result != 0) {
+        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    DB_CHECK_PARAMS(bindInput, stmt);
+    ZeroMemory(&bindInput, sizeof(bindInput));
+
+    bindInput[0].buffer_type   = MYSQL_TYPE_STRING;
+    bindInput[0].buffer        = groupName;
+    bindInput[0].buffer_length = groupNameLength;
+
+    result = mysql_stmt_bind_param(stmt, bindInput);
+    if (result != 0) {
+        TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    //
+    // Retrieve metadata
+    //
+
+    metadata = mysql_stmt_result_metadata(stmt);
+    if (metadata == NULL) {
+        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    //
+    // Execute prepared statement
+    //
+
+    result = mysql_stmt_execute(stmt);
+    if (result != 0) {
+        TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    //
+    // Bind results
+    //
+
+    DB_CHECK_RESULTS(bindOutput, metadata);
+    ZeroMemory(&bindOutput, sizeof(bindOutput));
+    ZeroMemory(&outputLength, sizeof(outputLength));
+
+    bindOutput[0].buffer_type   = MYSQL_TYPE_STRING;
+    bindOutput[0].buffer        = groupFile->szDescription;
+    bindOutput[0].buffer_length = sizeof(groupFile->szDescription);
+    bindOutput[0].length        = &outputLength[0];
+
+    bindOutput[1].buffer_type   = MYSQL_TYPE_BLOB;
+    bindOutput[1].buffer        = groupFile->Slots;
+    bindOutput[1].buffer_length = sizeof(groupFile->Slots);
+    bindOutput[1].length        = &outputLength[1];
+
+    bindOutput[2].buffer_type   = MYSQL_TYPE_LONG;
+    bindOutput[2].buffer        = &groupFile->Users;
+
+    bindOutput[3].buffer_type   = MYSQL_TYPE_STRING;
+    bindOutput[3].buffer        = groupFile->szVfsFile;
+    bindOutput[3].buffer_length = sizeof(groupFile->szVfsFile);
+    bindOutput[3].length        = &outputLength[3];
+
+    result = mysql_stmt_bind_result(stmt, bindOutput);
+    if (result != 0) {
+        TRACE("Unable to bind results: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    //
+    // Fetch results
+    //
+
+    result = mysql_stmt_fetch(stmt);
+    if (result != 0) {
+        TRACE("Unable to fetch results: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    mysql_free_result(metadata);
 
     return ERROR_SUCCESS;
 }
