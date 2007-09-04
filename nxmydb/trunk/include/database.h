@@ -18,7 +18,7 @@ Abstract:
 #define DATABASE_H_INCLUDED
 
 //
-// Database structure
+// Database structures
 //
 
 typedef struct {
@@ -93,6 +93,10 @@ typedef struct {
 extern DB_CONFIG_LOCK   dbConfigLock;
 extern DB_CONFIG_POOL   dbConfigPool;
 extern DB_CONFIG_SERVER dbConfigServer;
+
+//
+// Database functions
+//
 
 BOOL FCALL DbInit(Io_GetProc *getProc);
 VOID FCALL DbFinalize(VOID);

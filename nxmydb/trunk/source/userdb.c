@@ -54,6 +54,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     CHAR        buffer[128];
     CHAR        *host;
     CHAR        *query;
+    DWORD       error;
     INT         i;
     INT         id;
     INT         result;
@@ -97,7 +98,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_prepare(stmtUsers, query, strlen(query));
     if (result != 0) {
         TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtUsers));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtUsers);
     }
 
     DB_CHECK_PARAMS(bindUsers, stmtUsers);
@@ -174,7 +175,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_bind_param(stmtUsers, bindUsers);
     if (result != 0) {
         TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmtUsers));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtUsers);
     }
 
     //
@@ -186,7 +187,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_prepare(stmtAdmins, query, strlen(query));
     if (result != 0) {
         TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtAdmins));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtAdmins);
     }
 
     DB_CHECK_PARAMS(bindAdmins, stmtAdmins);
@@ -203,7 +204,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_bind_param(stmtAdmins, bindAdmins);
     if (result != 0) {
         TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmtAdmins));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtAdmins);
     }
 
     //
@@ -215,7 +216,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_prepare(stmtGroups, query, strlen(query));
     if (result != 0) {
         TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtGroups));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtGroups);
     }
 
     DB_CHECK_PARAMS(bindGroups, stmtGroups);
@@ -235,7 +236,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_bind_param(stmtGroups, bindGroups);
     if (result != 0) {
         TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmtGroups));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtGroups);
     }
 
     //
@@ -247,7 +248,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_prepare(stmtHosts, query, strlen(query));
     if (result != 0) {
         TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtHosts));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtHosts);
     }
 
     DB_CHECK_PARAMS(bindHosts, stmtHosts);
@@ -264,7 +265,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_bind_param(stmtHosts, bindHosts);
     if (result != 0) {
         TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmtHosts));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtHosts);
     }
 
     //
@@ -274,7 +275,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_query(db->handle, "START TRANSACTION");
     if (result != 0) {
         TRACE("Unable to start transaction: %s\n", mysql_error(db->handle));
-        return DbMapError(result);
+        return DbMapErrorFromConn(db->handle);
     }
 
     //
@@ -284,6 +285,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_execute(stmtUsers);
     if (result != 0) {
         TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtUsers));
+        error = DbMapErrorFromStmt(stmtUsers);
         goto rollback;
     }
 
@@ -299,6 +301,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
         result = mysql_stmt_execute(stmtAdmins);
         if (result != 0) {
             TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtAdmins));
+            error = DbMapErrorFromStmt(stmtAdmins);
             goto rollback;
         }
     }
@@ -315,6 +318,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
         result = mysql_stmt_execute(stmtGroups);
         if (result != 0) {
             TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtGroups));
+            error = DbMapErrorFromStmt(stmtGroups);
             goto rollback;
         }
     }
@@ -330,6 +334,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
         result = mysql_stmt_execute(stmtHosts);
         if (result != 0) {
             TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtHosts));
+            error = DbMapErrorFromStmt(stmtHosts);
             goto rollback;
         }
     }
@@ -341,7 +346,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_query(db->handle, "COMMIT");
     if (result != 0) {
         TRACE("Unable to commit transaction: %s\n", mysql_error(db->handle));
-        return DbMapError(result);
+        return DbMapErrorFromConn(db->handle);
     }
 
     return ERROR_SUCCESS;
@@ -355,7 +360,8 @@ rollback:
         TRACE("Unable to commit transaction: %s\n", mysql_error(db->handle));
     }
 
-    return DbMapError(result);
+    ASSERT(error != ERROR_SUCCESS);
+    return error;
 }
 
 DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
@@ -396,7 +402,7 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     result = mysql_stmt_prepare(stmtUsers, query, strlen(query));
     if (result != 0) {
         TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtUsers));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtUsers);
     }
 
     DB_CHECK_PARAMS(bindUsers, stmtUsers);
@@ -413,7 +419,7 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     result = mysql_stmt_bind_param(stmtUsers, bindUsers);
     if (result != 0) {
         TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmtUsers));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtUsers);
     }
 
     //
@@ -425,7 +431,7 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     result = mysql_stmt_prepare(stmtAdmins, query, strlen(query));
     if (result != 0) {
         TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtAdmins));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtAdmins);
     }
 
     DB_CHECK_PARAMS(bindAdmins, stmtAdmins);
@@ -442,7 +448,7 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     result = mysql_stmt_bind_param(stmtAdmins, bindAdmins);
     if (result != 0) {
         TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmtAdmins));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtAdmins);
     }
 
     //
@@ -454,7 +460,7 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     result = mysql_stmt_prepare(stmtGroups, query, strlen(query));
     if (result != 0) {
         TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtGroups));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtGroups);
     }
 
     DB_CHECK_PARAMS(bindGroups, stmtGroups);
@@ -471,7 +477,7 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     result = mysql_stmt_bind_param(stmtGroups, bindGroups);
     if (result != 0) {
         TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmtGroups));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtGroups);
     }
 
     //
@@ -483,7 +489,7 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     result = mysql_stmt_prepare(stmtHosts, query, strlen(query));
     if (result != 0) {
         TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtHosts));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtHosts);
     }
 
     DB_CHECK_PARAMS(bindHosts, stmtHosts);
@@ -500,7 +506,7 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     result = mysql_stmt_bind_param(stmtHosts, bindHosts);
     if (result != 0) {
         TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmtHosts));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtHosts);
     }
 
     //
@@ -510,7 +516,7 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     result = mysql_query(db->handle, "START TRANSACTION");
     if (result != 0) {
         TRACE("Unable to start transaction: %s\n", mysql_error(db->handle));
-        return DbMapError(result);
+        return DbMapErrorFromConn(db->handle);
     }
 
     //
@@ -544,7 +550,7 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     result = mysql_query(db->handle, "COMMIT");
     if (result != 0) {
         TRACE("Unable to commit transaction: %s\n", mysql_error(db->handle));
-        return DbMapError(result);
+        return DbMapErrorFromConn(db->handle);
     }
 
     //
@@ -599,7 +605,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     result = mysql_stmt_prepare(stmtUsers, query, strlen(query));
     if (result != 0) {
         TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtUsers));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtUsers);
     }
 
     DB_CHECK_PARAMS(bindUsers, stmtUsers);
@@ -612,7 +618,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     result = mysql_stmt_bind_param(stmtUsers, bindUsers);
     if (result != 0) {
         TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmtUsers));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtUsers);
     }
 
     //
@@ -624,7 +630,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     result = mysql_stmt_prepare(stmtAdmins, query, strlen(query));
     if (result != 0) {
         TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtAdmins));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtAdmins);
     }
 
     DB_CHECK_PARAMS(bindAdmins, stmtAdmins);
@@ -637,7 +643,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     result = mysql_stmt_bind_param(stmtAdmins, bindAdmins);
     if (result != 0) {
         TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmtAdmins));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtAdmins);
     }
 
     //
@@ -649,7 +655,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     result = mysql_stmt_prepare(stmtGroups, query, strlen(query));
     if (result != 0) {
         TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtGroups));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtGroups);
     }
 
     DB_CHECK_PARAMS(bindGroups, stmtGroups);
@@ -662,7 +668,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     result = mysql_stmt_bind_param(stmtGroups, bindGroups);
     if (result != 0) {
         TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmtGroups));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtGroups);
     }
 
     //
@@ -674,7 +680,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     result = mysql_stmt_prepare(stmtHosts, query, strlen(query));
     if (result != 0) {
         TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtHosts));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtHosts);
     }
 
     DB_CHECK_PARAMS(bindHosts, stmtHosts);
@@ -687,7 +693,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     result = mysql_stmt_bind_param(stmtHosts, bindHosts);
     if (result != 0) {
         TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmtHosts));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtHosts);
     }
 
     //
@@ -697,7 +703,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     result = mysql_query(db->handle, "START TRANSACTION");
     if (result != 0) {
         TRACE("Unable to start transaction: %s\n", mysql_error(db->handle));
-        return DbMapError(result);
+        return DbMapErrorFromConn(db->handle);
     }
 
     //
@@ -731,7 +737,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     result = mysql_query(db->handle, "COMMIT");
     if (result != 0) {
         TRACE("Unable to commit transaction: %s\n", mysql_error(db->handle));
-        return DbMapError(result);
+        return DbMapErrorFromConn(db->handle);
     }
 
     //
@@ -778,7 +784,7 @@ DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_prepare(stmt, query, strlen(query));
     if (result != 0) {
         TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmt);
     }
 
     DB_CHECK_PARAMS(bind, stmt);
@@ -798,7 +804,7 @@ DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_bind_param(stmt, bind);
     if (result != 0) {
         TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmt));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmt);
     }
 
     //
@@ -808,7 +814,7 @@ DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_execute(stmt);
     if (result != 0) {
         TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmt));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmt);
     }
 
     //
@@ -857,7 +863,7 @@ DWORD DbUserUnlock(DB_CONTEXT *db, CHAR *userName)
     result = mysql_stmt_prepare(stmt, query, strlen(query));
     if (result != 0) {
         TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmt);
     }
 
     DB_CHECK_PARAMS(bind, stmt);
@@ -874,7 +880,7 @@ DWORD DbUserUnlock(DB_CONTEXT *db, CHAR *userName)
     result = mysql_stmt_bind_param(stmt, bind);
     if (result != 0) {
         TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmt));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmt);
     }
 
     //
@@ -884,7 +890,7 @@ DWORD DbUserUnlock(DB_CONTEXT *db, CHAR *userName)
     result = mysql_stmt_execute(stmt);
     if (result != 0) {
         TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmt));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmt);
     }
 
     affectedRows = mysql_stmt_affected_rows(stmt);
@@ -911,6 +917,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     CHAR        buffer[128];
     CHAR        *host;
     CHAR        *query;
+    DWORD       error;
     INT         i;
     INT         id;
     INT         result;
@@ -962,7 +969,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_prepare(stmtUsers, query, strlen(query));
     if (result != 0) {
         TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtUsers));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtUsers);
     }
 
     DB_CHECK_PARAMS(bindUsers, stmtUsers);
@@ -1039,7 +1046,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_bind_param(stmtUsers, bindUsers);
     if (result != 0) {
         TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmtUsers));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtUsers);
     }
 
     //
@@ -1051,7 +1058,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_prepare(stmtAddAdmins, query, strlen(query));
     if (result != 0) {
         TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtAddAdmins));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtAddAdmins);
     }
 
     DB_CHECK_PARAMS(bindAddAdmins, stmtAddAdmins);
@@ -1068,7 +1075,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_bind_param(stmtAddAdmins, bindAddAdmins);
     if (result != 0) {
         TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmtAddAdmins));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtAddAdmins);
     }
 
     //
@@ -1080,7 +1087,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_prepare(stmtAddGroups, query, strlen(query));
     if (result != 0) {
         TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtAddGroups));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtAddGroups);
     }
 
     DB_CHECK_PARAMS(bindAddGroups, stmtAddGroups);
@@ -1100,7 +1107,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_bind_param(stmtAddGroups, bindAddGroups);
     if (result != 0) {
         TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmtAddGroups));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtAddGroups);
     }
 
     //
@@ -1112,7 +1119,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_prepare(stmtAddHosts, query, strlen(query));
     if (result != 0) {
         TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtAddHosts));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtAddHosts);
     }
 
     DB_CHECK_PARAMS(bindAddHosts, stmtAddHosts);
@@ -1129,7 +1136,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_bind_param(stmtAddHosts, bindAddHosts);
     if (result != 0) {
         TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmtAddHosts));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtAddHosts);
     }
 
     //
@@ -1141,7 +1148,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_prepare(stmtDelAdmins, query, strlen(query));
     if (result != 0) {
         TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtDelAdmins));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtDelAdmins);
     }
 
     DB_CHECK_PARAMS(bindDelAdmins, stmtDelAdmins);
@@ -1154,7 +1161,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_bind_param(stmtDelAdmins, bindDelAdmins);
     if (result != 0) {
         TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmtDelAdmins));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtDelAdmins);
     }
 
     //
@@ -1166,7 +1173,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_prepare(stmtDelGroups, query, strlen(query));
     if (result != 0) {
         TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtDelGroups));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtDelGroups);
     }
 
     DB_CHECK_PARAMS(bindDelGroups, stmtDelGroups);
@@ -1179,7 +1186,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_bind_param(stmtDelGroups, bindDelGroups);
     if (result != 0) {
         TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmtDelGroups));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtDelGroups);
     }
 
     //
@@ -1191,7 +1198,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_prepare(stmtDelHosts, query, strlen(query));
     if (result != 0) {
         TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtDelHosts));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtDelHosts);
     }
 
     DB_CHECK_PARAMS(bindDelHosts, stmtDelHosts);
@@ -1204,7 +1211,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_bind_param(stmtDelHosts, bindDelHosts);
     if (result != 0) {
         TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmtDelHosts));
-        return DbMapError(result);
+        return DbMapErrorFromStmt(stmtDelHosts);
     }
 
     //
@@ -1214,7 +1221,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_query(db->handle, "START TRANSACTION");
     if (result != 0) {
         TRACE("Unable to start transaction: %s\n", mysql_error(db->handle));
-        return DbMapError(result);
+        return DbMapErrorFromConn(db->handle);
     }
 
     //
@@ -1224,12 +1231,14 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_execute(stmtUsers);
     if (result != 0) {
         TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtUsers));
+        error = DbMapErrorFromStmt(stmtUsers);
         goto rollback;
     }
 
     result = mysql_stmt_execute(stmtDelAdmins);
     if (result != 0) {
         TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtDelAdmins));
+        error = DbMapErrorFromStmt(stmtDelAdmins);
         goto rollback;
     }
 
@@ -1245,6 +1254,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
         result = mysql_stmt_execute(stmtAddAdmins);
         if (result != 0) {
             TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtAddAdmins));
+            error = DbMapErrorFromStmt(stmtAddAdmins);
             goto rollback;
         }
     }
@@ -1252,6 +1262,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_execute(stmtDelGroups);
     if (result != 0) {
         TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtDelGroups));
+        error = DbMapErrorFromStmt(stmtDelGroups);
         goto rollback;
     }
 
@@ -1267,6 +1278,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
         result = mysql_stmt_execute(stmtAddGroups);
         if (result != 0) {
             TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtAddGroups));
+            error = DbMapErrorFromStmt(stmtAddGroups);
             goto rollback;
         }
     }
@@ -1274,6 +1286,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_stmt_execute(stmtDelHosts);
     if (result != 0) {
         TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtDelHosts));
+        error = DbMapErrorFromStmt(stmtDelHosts);
         goto rollback;
     }
 
@@ -1288,6 +1301,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
         result = mysql_stmt_execute(stmtAddHosts);
         if (result != 0) {
             TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtAddHosts));
+            error = DbMapErrorFromStmt(stmtAddHosts);
             goto rollback;
         }
     }
@@ -1299,7 +1313,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     result = mysql_query(db->handle, "COMMIT");
     if (result != 0) {
         TRACE("Unable to commit transaction: %s\n", mysql_error(db->handle));
-        return DbMapError(result);
+        return DbMapErrorFromConn(db->handle);
     }
 
     return ERROR_SUCCESS;
@@ -1313,7 +1327,8 @@ rollback:
         TRACE("Unable to commit transaction: %s\n", mysql_error(db->handle));
     }
 
-    return DbMapError(result);
+    ASSERT(error != ERROR_SUCCESS);
+    return error;
 }
 
 DWORD DbUserClose(USERFILE *userFile)
