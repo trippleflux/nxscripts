@@ -27,9 +27,6 @@ Abstract:
 #include <pool.h>
 #include <queue.h>
 
-// Easier to look at.
-#define inline __forceinline
-
 // Silence C4127: conditional expression is constant
 #pragma warning(disable : 4127)
 
@@ -53,7 +50,7 @@ Remarks:
     This function assumes the pool is locked.
 
 --*/
-static inline VOID ContainerPush(POOL *pool, POOL_RESOURCE *container)
+static INLINE VOID ContainerPush(POOL *pool, POOL_RESOURCE *container)
 {
     ASSERT(pool != NULL);
     ASSERT(container != NULL);
@@ -82,7 +79,7 @@ Remarks:
     This function assumes the pool is locked.
 
 --*/
-static inline POOL_RESOURCE *ContainerPop(POOL *pool)
+static INLINE POOL_RESOURCE *ContainerPop(POOL *pool)
 {
     POOL_RESOURCE *container;
 
@@ -123,7 +120,7 @@ Remarks:
     This function assumes the pool is locked.
 
 --*/
-static inline POOL_RESOURCE *ResourceCreate(POOL *pool)
+static INLINE POOL_RESOURCE *ResourceCreate(POOL *pool)
 {
     POOL_RESOURCE *container;
 
@@ -169,7 +166,7 @@ Remarks:
     This function assumes the pool is locked.
 
 --*/
-static inline BOOL ResourceCheck(POOL *pool, VOID *resData)
+static INLINE BOOL ResourceCheck(POOL *pool, VOID *resData)
 {
     ASSERT(pool != NULL);
     ASSERT(resData != NULL);
@@ -199,7 +196,7 @@ Remarks:
     This function assumes the pool is locked.
 
 --*/
-static inline VOID ResourceDestroy(POOL *pool, VOID *resData)
+static INLINE VOID ResourceDestroy(POOL *pool, VOID *resData)
 {
     ASSERT(pool != NULL);
     ASSERT(resData != NULL);
@@ -226,7 +223,7 @@ Remarks:
     This function assumes the pool is locked.
 
 --*/
-static inline VOID ResourcePush(POOL *pool, POOL_RESOURCE *resource)
+static INLINE VOID ResourcePush(POOL *pool, POOL_RESOURCE *resource)
 {
     ASSERT(pool != NULL);
     ASSERT(resource != NULL);
@@ -252,7 +249,7 @@ Remarks:
     This function assumes the pool is locked.
 
 --*/
-static inline POOL_RESOURCE *ResourcePop(POOL *pool)
+static INLINE POOL_RESOURCE *ResourcePop(POOL *pool)
 {
     POOL_RESOURCE *resource;
 

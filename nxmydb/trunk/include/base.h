@@ -132,6 +132,13 @@ Abstract:
 //
 #define SCALL   __stdcall
 
+//
+// Macro: INLINE
+//
+// Inlines the function.
+//
+#define INLINE __forceinline
+
 
 // Project headers
 #include <debug.h>
