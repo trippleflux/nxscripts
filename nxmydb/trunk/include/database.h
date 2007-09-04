@@ -97,9 +97,21 @@ extern DB_CONFIG_SERVER dbConfigServer;
 BOOL FCALL DbInit(Io_GetProc *getProc);
 VOID FCALL DbFinalize(VOID);
 
-DWORD FCALL DbMapError(INT result);
-
 BOOL FCALL DbAcquire(DB_CONTEXT **dbContext);
 VOID FCALL DbRelease(DB_CONTEXT *dbContext);
+
+DWORD FCALL DbMapError(UINT error);
+
+INLINE DWORD FCALL DbMapErrorFromConn(MYSQL *mysql)
+{
+    ASSERT(mysql != NULL);
+    return DbMapError(mysql_errno(mysql));
+}
+
+INLINE DWORD FCALL DbMapErrorFromStmt(MYSQL_STMT *stmt)
+{
+    ASSERT(stmt != NULL);
+    return DbMapError(mysql_stmt_errno(stmt));
+}
 
 #endif // DATABASE_H_INCLUDED

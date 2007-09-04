@@ -699,38 +699,38 @@ DbMapError
     Maps a MySQL result code to the closest Windows error code.
 
 Arguments:
-    result  - MySQL client library result code.
+    error   - MySQL client library error code.
 
 Return Values:
     The closest Windows error code.
 
 --*/
-DWORD FCALL DbMapError(INT result)
+DWORD FCALL DbMapError(UINT error)
 {
-    DWORD error;
+    DWORD result;
 
-    switch (result) {
+    switch (error) {
         case 0:
-            error = ERROR_SUCCESS;
+            result = ERROR_SUCCESS;
             break;
 
         case CR_COMMANDS_OUT_OF_SYNC:
         case CR_NOT_IMPLEMENTED:
-            error = ERROR_INTERNAL_ERROR;
+            result = ERROR_INTERNAL_ERROR;
             break;
 
         case CR_OUT_OF_MEMORY:
-            error = ERROR_NOT_ENOUGH_MEMORY;
+            result = ERROR_NOT_ENOUGH_MEMORY;
             break;
 
         case CR_UNKNOWN_ERROR:
-            error = ERROR_INVALID_FUNCTION;
+            result = ERROR_INVALID_FUNCTION;
             break;
 
         case CR_SERVER_GONE_ERROR:
         case CR_SERVER_LOST:
         case CR_SERVER_LOST_EXTENDED:
-            error = ERROR_NOT_CONNECTED;
+            result = ERROR_NOT_CONNECTED;
             break;
 
         case CR_PARAMS_NOT_BOUND:
@@ -738,15 +738,15 @@ DWORD FCALL DbMapError(INT result)
         case CR_INVALID_PARAMETER_NO:
         case CR_INVALID_BUFFER_USE:
         case CR_UNSUPPORTED_PARAM_TYPE:
-            error = ERROR_INVALID_PARAMETER;
+            result = ERROR_INVALID_PARAMETER;
             break;
 
         default:
-            TRACE("Unknown MySQL result code %d.\n", result);
-            error = ERROR_INVALID_FUNCTION;
+            TRACE("Unknown MySQL result error %lu.\n", error);
+            result = ERROR_INVALID_FUNCTION;
     }
 
-    return error;
+    return result;
 }
 
 /*++
