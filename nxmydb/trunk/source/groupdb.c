@@ -48,7 +48,7 @@ DWORD DbGroupCreate(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
     groupNameLength = strlen(groupName);
 
     //
-    // Prepare and bind statement
+    // Prepare statement and bind parameters
     //
 
     query = "INSERT INTO io_groups"
@@ -61,7 +61,7 @@ DWORD DbGroupCreate(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
         return DbMapError(result);
     }
 
-    DB_CHECK_BINDS(bind, stmt);
+    DB_CHECK_PARAMS(bind, stmt);
     ZeroMemory(&bind, sizeof(bind));
 
     bind[0].buffer_type   = MYSQL_TYPE_STRING;
@@ -132,7 +132,7 @@ DWORD DbGroupDelete(DB_CONTEXT *db, CHAR *groupName)
     groupNameLength = strlen(groupName);
 
     //
-    // Prepare and bind statement
+    // Prepare statement and bind parameters
     //
 
     query = "DELETE FROM io_groups WHERE name=?";
@@ -143,7 +143,7 @@ DWORD DbGroupDelete(DB_CONTEXT *db, CHAR *groupName)
         return DbMapError(result);
     }
 
-    DB_CHECK_BINDS(bind, stmt);
+    DB_CHECK_PARAMS(bind, stmt);
     ZeroMemory(&bind, sizeof(bind));
 
     bind[0].buffer_type   = MYSQL_TYPE_STRING;
@@ -196,7 +196,7 @@ DWORD DbGroupLock(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
     stmt = db->stmt[0];
 
     //
-    // Prepare and bind statement
+    // Prepare statement and bind parameters
     //
 
     query = "UPDATE io_groups SET lockowner=?, locktime=UNIX_TIMESTAMP()"
@@ -209,7 +209,7 @@ DWORD DbGroupLock(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
         return DbMapError(result);
     }
 
-    DB_CHECK_BINDS(bind, stmt);
+    DB_CHECK_PARAMS(bind, stmt);
     ZeroMemory(&bind, sizeof(bind));
 
     bind[0].buffer_type   = MYSQL_TYPE_STRING;
@@ -276,7 +276,7 @@ DWORD DbGroupUnlock(DB_CONTEXT *db, CHAR *groupName)
     stmt = db->stmt[0];
 
     //
-    // Prepare and bind statement
+    // Prepare statement and bind parameters
     //
 
     query = "UPDATE io_groups SET lockowner=NULL, locktime=0"
@@ -288,7 +288,7 @@ DWORD DbGroupUnlock(DB_CONTEXT *db, CHAR *groupName)
         return DbMapError(result);
     }
 
-    DB_CHECK_BINDS(bind, stmt);
+    DB_CHECK_PARAMS(bind, stmt);
     ZeroMemory(&bind, sizeof(bind));
 
     bind[0].buffer_type   = MYSQL_TYPE_STRING;
@@ -352,7 +352,7 @@ DWORD DbGroupWrite(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
     groupNameLength = strlen(groupName);
 
     //
-    // Prepare and bind statement
+    // Prepare statement and bind parameters
     //
 
     query = "UPDATE io_groups SET description=?, slots=?,"
@@ -365,7 +365,7 @@ DWORD DbGroupWrite(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
         return DbMapError(result);
     }
 
-    DB_CHECK_BINDS(bind, stmt);
+    DB_CHECK_PARAMS(bind, stmt);
     ZeroMemory(&bind, sizeof(bind));
 
     bind[0].buffer_type   = MYSQL_TYPE_STRING;

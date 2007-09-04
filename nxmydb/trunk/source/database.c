@@ -600,7 +600,10 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
     }
     refresh *= 1000; // sec to msec
 
+    //
     // Read server options
+    //
+
     dbConfigServer.serverHost = ConfigGet("nxMyDB", "Host");
     dbConfigServer.serverUser = ConfigGet("nxMyDB", "User");
     dbConfigServer.serverPass = ConfigGet("nxMyDB", "Password");

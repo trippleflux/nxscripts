@@ -84,7 +84,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     userNameLength = strlen(userName);
 
     //
-    // Prepare and bind users statement
+    // Prepare users statement and bind parameters
     //
 
     query = "INSERT INTO io_users"
@@ -100,7 +100,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
         return DbMapError(result);
     }
 
-    DB_CHECK_BINDS(bindUsers, stmtUsers);
+    DB_CHECK_PARAMS(bindUsers, stmtUsers);
     ZeroMemory(&bindUsers, sizeof(bindUsers));
 
     bindUsers[0].buffer_type   = MYSQL_TYPE_STRING;
@@ -178,7 +178,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     }
 
     //
-    // Prepare and bind admins statement
+    // Prepare admins statement and bind parameters
     //
 
     query = "REPLACE INTO io_user_admins(uname,gname) VALUES(?,?)";
@@ -189,7 +189,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
         return DbMapError(result);
     }
 
-    DB_CHECK_BINDS(bindAdmins, stmtAdmins);
+    DB_CHECK_PARAMS(bindAdmins, stmtAdmins);
     ZeroMemory(&bindAdmins, sizeof(bindAdmins));
 
     bindAdmins[0].buffer_type   = MYSQL_TYPE_STRING;
@@ -207,7 +207,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     }
 
     //
-    // Prepare and bind groups statement
+    // Prepare groups statement and bind parameters
     //
 
     query = "REPLACE INTO io_user_groups(uname,gname,idx) VALUES(?,?,?)";
@@ -218,7 +218,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
         return DbMapError(result);
     }
 
-    DB_CHECK_BINDS(bindGroups, stmtGroups);
+    DB_CHECK_PARAMS(bindGroups, stmtGroups);
     ZeroMemory(&bindGroups, sizeof(bindGroups));
 
     bindGroups[0].buffer_type   = MYSQL_TYPE_STRING;
@@ -239,7 +239,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     }
 
     //
-    // Prepare and bind hosts statement
+    // Prepare hosts statement and bind parameters
     //
 
     query = "REPLACE INTO io_user_hosts(name,host) VALUES(?,?)";
@@ -250,7 +250,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
         return DbMapError(result);
     }
 
-    DB_CHECK_BINDS(bindHosts, stmtHosts);
+    DB_CHECK_PARAMS(bindHosts, stmtHosts);
     ZeroMemory(&bindHosts, sizeof(bindHosts));
 
     bindHosts[0].buffer_type   = MYSQL_TYPE_STRING;
@@ -388,7 +388,7 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     newNameLength  = strlen(newName);
 
     //
-    // Prepare and bind users statement
+    // Prepare users statement and bind parameters
     //
 
     query = "UPDATE io_users SET name=?, updated=UNIX_TIMESTAMP() WHERE name=?";
@@ -399,7 +399,7 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
         return DbMapError(result);
     }
 
-    DB_CHECK_BINDS(bindUsers, stmtUsers);
+    DB_CHECK_PARAMS(bindUsers, stmtUsers);
     ZeroMemory(&bindUsers, sizeof(bindUsers));
 
     bindUsers[0].buffer_type   = MYSQL_TYPE_STRING;
@@ -417,7 +417,7 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     }
 
     //
-    // Prepare and bind admins statement
+    // Prepare admins statement and bind parameters
     //
 
     query = "UPDATE io_user_admins SET uname=? WHERE uname=?";
@@ -428,7 +428,7 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
         return DbMapError(result);
     }
 
-    DB_CHECK_BINDS(bindAdmins, stmtAdmins);
+    DB_CHECK_PARAMS(bindAdmins, stmtAdmins);
     ZeroMemory(&bindAdmins, sizeof(bindAdmins));
 
     bindAdmins[0].buffer_type   = MYSQL_TYPE_STRING;
@@ -446,7 +446,7 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     }
 
     //
-    // Prepare and bind groups statement
+    // Prepare groups statement and bind parameters
     //
 
     query = "UPDATE io_user_groups SET uname=? WHERE uname=?";
@@ -457,7 +457,7 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
         return DbMapError(result);
     }
 
-    DB_CHECK_BINDS(bindGroups, stmtGroups);
+    DB_CHECK_PARAMS(bindGroups, stmtGroups);
     ZeroMemory(&bindGroups, sizeof(bindGroups));
 
     bindGroups[0].buffer_type   = MYSQL_TYPE_STRING;
@@ -475,7 +475,7 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     }
 
     //
-    // Prepare and bind hosts statement
+    // Prepare hosts statement and bind parameters
     //
 
     query = "UPDATE io_user_hosts SET name=? WHERE name=?";
@@ -486,7 +486,7 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
         return DbMapError(result);
     }
 
-    DB_CHECK_BINDS(bindHosts, stmtHosts);
+    DB_CHECK_PARAMS(bindHosts, stmtHosts);
     ZeroMemory(&bindHosts, sizeof(bindHosts));
 
     bindHosts[0].buffer_type   = MYSQL_TYPE_STRING;
@@ -591,7 +591,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     userNameLength = strlen(userName);
 
     //
-    // Prepare and bind users statement
+    // Prepare users statement and bind parameters
     //
 
     query = "DELETE FROM io_users WHERE name=?";
@@ -602,7 +602,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
         return DbMapError(result);
     }
 
-    DB_CHECK_BINDS(bindUsers, stmtUsers);
+    DB_CHECK_PARAMS(bindUsers, stmtUsers);
     ZeroMemory(&bindUsers, sizeof(bindUsers));
 
     bindUsers[0].buffer_type   = MYSQL_TYPE_STRING;
@@ -616,7 +616,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     }
 
     //
-    // Prepare and bind admins statement
+    // Prepare admins statement and bind parameters
     //
 
     query = "DELETE FROM io_user_admins WHERE uname=?";
@@ -627,7 +627,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
         return DbMapError(result);
     }
 
-    DB_CHECK_BINDS(bindAdmins, stmtAdmins);
+    DB_CHECK_PARAMS(bindAdmins, stmtAdmins);
     ZeroMemory(&bindAdmins, sizeof(bindAdmins));
 
     bindAdmins[0].buffer_type   = MYSQL_TYPE_STRING;
@@ -641,7 +641,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     }
 
     //
-    // Prepare and bind groups statement
+    // Prepare groups statement and bind parameters
     //
 
     query = "DELETE FROM io_user_groups WHERE uname=?";
@@ -652,7 +652,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
         return DbMapError(result);
     }
 
-    DB_CHECK_BINDS(bindGroups, stmtGroups);
+    DB_CHECK_PARAMS(bindGroups, stmtGroups);
     ZeroMemory(&bindGroups, sizeof(bindGroups));
 
     bindGroups[0].buffer_type   = MYSQL_TYPE_STRING;
@@ -666,7 +666,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     }
 
     //
-    // Prepare and bind hosts statement
+    // Prepare hosts statement and bind parameters
     //
 
     query = "DELETE FROM io_user_hosts WHERE name=?";
@@ -677,7 +677,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
         return DbMapError(result);
     }
 
-    DB_CHECK_BINDS(bindHosts, stmtHosts);
+    DB_CHECK_PARAMS(bindHosts, stmtHosts);
     ZeroMemory(&bindHosts, sizeof(bindHosts));
 
     bindHosts[0].buffer_type   = MYSQL_TYPE_STRING;
@@ -768,7 +768,7 @@ DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     stmt = db->stmt[0];
 
     //
-    // Prepare and bind statement
+    // Prepare statement and bind parameters
     //
 
     query = "UPDATE io_users SET lockowner=?, locktime=UNIX_TIMESTAMP()"
@@ -781,7 +781,7 @@ DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
         return DbMapError(result);
     }
 
-    DB_CHECK_BINDS(bind, stmt);
+    DB_CHECK_PARAMS(bind, stmt);
     ZeroMemory(&bind, sizeof(bind));
 
     bind[0].buffer_type   = MYSQL_TYPE_STRING;
@@ -848,7 +848,7 @@ DWORD DbUserUnlock(DB_CONTEXT *db, CHAR *userName)
     stmt = db->stmt[0];
 
     //
-    // Prepare and bind statement
+    // Prepare statement and bind parameters
     //
 
     query = "UPDATE io_users SET lockowner=NULL, locktime=0"
@@ -860,7 +860,7 @@ DWORD DbUserUnlock(DB_CONTEXT *db, CHAR *userName)
         return DbMapError(result);
     }
 
-    DB_CHECK_BINDS(bind, stmt);
+    DB_CHECK_PARAMS(bind, stmt);
     ZeroMemory(&bind, sizeof(bind));
 
     bind[0].buffer_type   = MYSQL_TYPE_STRING;
@@ -950,7 +950,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     userNameLength = strlen(userName);
 
     //
-    // Prepare and bind users statement
+    // Prepare users statement and bind parameters
     //
 
     query = "UPDATE io_users SET description=?, flags=?, home=?, limits=?,"
@@ -965,7 +965,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
         return DbMapError(result);
     }
 
-    DB_CHECK_BINDS(bindUsers, stmtUsers);
+    DB_CHECK_PARAMS(bindUsers, stmtUsers);
     ZeroMemory(&bindUsers, sizeof(bindUsers));
 
     bindUsers[0].buffer_type   = MYSQL_TYPE_STRING;
@@ -1043,7 +1043,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     }
 
     //
-    // Prepare and bind admins statement
+    // Prepare admins statement and bind parameters
     //
 
     query = "REPLACE INTO io_user_admins(uname,gname) VALUES(?,?)";
@@ -1054,7 +1054,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
         return DbMapError(result);
     }
 
-    DB_CHECK_BINDS(bindAddAdmins, stmtAddAdmins);
+    DB_CHECK_PARAMS(bindAddAdmins, stmtAddAdmins);
     ZeroMemory(&bindAddAdmins, sizeof(bindAddAdmins));
 
     bindAddAdmins[0].buffer_type   = MYSQL_TYPE_STRING;
@@ -1072,7 +1072,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     }
 
     //
-    // Prepare and bind groups statement
+    // Prepare groups statement and bind parameters
     //
 
     query = "REPLACE INTO io_user_groups(uname,gname,idx) VALUES(?,?,?)";
@@ -1083,7 +1083,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
         return DbMapError(result);
     }
 
-    DB_CHECK_BINDS(bindAddGroups, stmtAddGroups);
+    DB_CHECK_PARAMS(bindAddGroups, stmtAddGroups);
     ZeroMemory(&bindAddGroups, sizeof(bindAddGroups));
 
     bindAddGroups[0].buffer_type   = MYSQL_TYPE_STRING;
@@ -1104,7 +1104,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     }
 
     //
-    // Prepare and bind hosts statement
+    // Prepare hosts statement and bind parameters
     //
 
     query = "REPLACE INTO io_user_hosts(name,host) VALUES(?,?)";
@@ -1115,7 +1115,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
         return DbMapError(result);
     }
 
-    DB_CHECK_BINDS(bindAddHosts, stmtAddHosts);
+    DB_CHECK_PARAMS(bindAddHosts, stmtAddHosts);
     ZeroMemory(&bindAddHosts, sizeof(bindAddHosts));
 
     bindAddHosts[0].buffer_type   = MYSQL_TYPE_STRING;
@@ -1144,7 +1144,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
         return DbMapError(result);
     }
 
-    DB_CHECK_BINDS(bindDelAdmins, stmtDelAdmins);
+    DB_CHECK_PARAMS(bindDelAdmins, stmtDelAdmins);
     ZeroMemory(&bindDelAdmins, sizeof(bindDelAdmins));
 
     bindDelAdmins[0].buffer_type   = MYSQL_TYPE_STRING;
@@ -1169,7 +1169,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
         return DbMapError(result);
     }
 
-    DB_CHECK_BINDS(bindDelGroups, stmtDelGroups);
+    DB_CHECK_PARAMS(bindDelGroups, stmtDelGroups);
     ZeroMemory(&bindDelGroups, sizeof(bindDelGroups));
 
     bindDelGroups[0].buffer_type   = MYSQL_TYPE_STRING;
@@ -1194,7 +1194,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
         return DbMapError(result);
     }
 
-    DB_CHECK_BINDS(bindDelHosts, stmtDelHosts);
+    DB_CHECK_PARAMS(bindDelHosts, stmtDelHosts);
     ZeroMemory(&bindDelHosts, sizeof(bindDelHosts));
 
     bindDelHosts[0].buffer_type   = MYSQL_TYPE_STRING;

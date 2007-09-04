@@ -68,14 +68,21 @@ typedef struct {
 
 #ifdef DEBUG
 
-#define DB_CHECK_BINDS(binds, stmt)                                             \
+#define DB_CHECK_PARAMS(binds, stmt)                                            \
 {                                                                               \
     ASSERT(ELEMENT_COUNT(binds) == mysql_stmt_param_count(stmt));               \
 }
 
+#define DB_CHECK_RESULTS(binds, metadata)                                       \
+{                                                                               \
+    ASSERT(ELEMENT_COUNT(binds) == mysql_num_fields(metadata));                 \
+}
+
 #else // DEBUG
 
-#define DB_CHECK_BINDS(binds, context)
+#define DB_CHECK_PARAMS(binds, stmt)
+
+#define DB_CHECK_RESULTS(binds, metadata)
 
 #endif // DEBUG
 
