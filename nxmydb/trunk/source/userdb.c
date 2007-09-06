@@ -243,7 +243,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     // Prepare hosts statement and bind parameters
     //
 
-    query = "REPLACE INTO io_user_hosts(name,host) VALUES(?,?)";
+    query = "REPLACE INTO io_user_hosts(uname,host) VALUES(?,?)";
 
     result = mysql_stmt_prepare(stmtHosts, query, strlen(query));
     if (result != 0) {
@@ -484,7 +484,7 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     // Prepare hosts statement and bind parameters
     //
 
-    query = "UPDATE io_user_hosts SET name=? WHERE name=?";
+    query = "UPDATE io_user_hosts SET uname=? WHERE uname=?";
 
     result = mysql_stmt_prepare(stmtHosts, query, strlen(query));
     if (result != 0) {
@@ -675,7 +675,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     // Prepare hosts statement and bind parameters
     //
 
-    query = "DELETE FROM io_user_hosts WHERE name=?";
+    query = "DELETE FROM io_user_hosts WHERE uname=?";
 
     result = mysql_stmt_prepare(stmtHosts, query, strlen(query));
     if (result != 0) {
@@ -1114,7 +1114,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     // Prepare hosts statement and bind parameters
     //
 
-    query = "REPLACE INTO io_user_hosts(name,host) VALUES(?,?)";
+    query = "REPLACE INTO io_user_hosts(uname,host) VALUES(?,?)";
 
     result = mysql_stmt_prepare(stmtAddHosts, query, strlen(query));
     if (result != 0) {
@@ -1193,7 +1193,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     // Prepare and bind hosts delete statement
     //
 
-    query = "DELETE FROM io_user_hosts WHERE name=?";
+    query = "DELETE FROM io_user_hosts WHERE uname=?";
 
     result = mysql_stmt_prepare(stmtDelHosts, query, strlen(query));
     if (result != 0) {
