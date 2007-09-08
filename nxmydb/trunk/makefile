@@ -27,7 +27,7 @@ CC          = cl.exe
 LD          = link.exe
 RC          = rc.exe
 CFLAGS      = /nologo /I ".\include" /I "$(IOFTPD_INC)" /I "$(MYSQL_DIR)\include" /W4
-LFLAGS      = /nologo /MACHINE:$(PLATFORM)
+LFLAGS      = /nologo /MACHINE:$(PLATFORM) /MAP
 RFLAGS      = /r
 
 # -------------------------------------------------------------------------
@@ -74,14 +74,17 @@ RFLAGS      = $(RFLAGS) "/DVERSION=$(VERSION)" "/DVERSION_RES=$(VERSION_RES)"
 
 default: all
 
-all: lib
+all: build
 
-clean:
-    @ECHO Deleting object files...
-    -@DEL /F *.cod *.dll *.ilk *.lib *.exp *.obj *.pdb *.res 2> nul
+build: lib
 
-release: all
-    -@DEL /F *.cod *.ilk *.lib *.exp *.obj *.pdb *.res 2> nul
+clean: distclean
+    -@DEL /F *.dll *.map *.pdb 2> nul
+
+distclean:
+    -@DEL /F *.ilk *.lib *.exp *.obj *.res vc*.pdb 2> nul
+
+release: build distclean
 
 lib: nxmydb.dll
     @COPY /Y "$(MYSQL_LIB)\libmysql.dll" . > nul
