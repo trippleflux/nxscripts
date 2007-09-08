@@ -23,7 +23,7 @@ static DWORD DbGroupRead(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
     CHAR        *query;
     INT         result;
     SIZE_T      groupNameLength;
-    ULONG       outputLength[4];
+    ULONG       outputLength;
     MYSQL_BIND  bindInput[1];
     MYSQL_BIND  bindOutput[4];
     MYSQL_RES   *metadata;
@@ -64,10 +64,6 @@ static DWORD DbGroupRead(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
         return DbMapErrorFromStmt(stmt);
     }
 
-    //
-    // Retrieve metadata
-    //
-
     metadata = mysql_stmt_result_metadata(stmt);
     if (metadata == NULL) {
         TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
@@ -85,22 +81,21 @@ static DWORD DbGroupRead(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
     }
 
     //
-    // Bind results
+    // Bind and fetch results
     //
 
     DB_CHECK_RESULTS(bindOutput, metadata);
     ZeroMemory(&bindOutput, sizeof(bindOutput));
-    ZeroMemory(&outputLength, sizeof(outputLength));
 
     bindOutput[0].buffer_type   = MYSQL_TYPE_STRING;
     bindOutput[0].buffer        = groupFile->szDescription;
     bindOutput[0].buffer_length = sizeof(groupFile->szDescription);
-    bindOutput[0].length        = &outputLength[0];
+    bindOutput[0].length        = &outputLength;
 
     bindOutput[1].buffer_type   = MYSQL_TYPE_BLOB;
     bindOutput[1].buffer        = groupFile->Slots;
     bindOutput[1].buffer_length = sizeof(groupFile->Slots);
-    bindOutput[1].length        = &outputLength[1];
+    bindOutput[1].length        = &outputLength;
 
     bindOutput[2].buffer_type   = MYSQL_TYPE_LONG;
     bindOutput[2].buffer        = &groupFile->Users;
@@ -108,17 +103,13 @@ static DWORD DbGroupRead(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
     bindOutput[3].buffer_type   = MYSQL_TYPE_STRING;
     bindOutput[3].buffer        = groupFile->szVfsFile;
     bindOutput[3].buffer_length = sizeof(groupFile->szVfsFile);
-    bindOutput[3].length        = &outputLength[3];
+    bindOutput[3].length        = &outputLength;
 
     result = mysql_stmt_bind_result(stmt, bindOutput);
     if (result != 0) {
         TRACE("Unable to bind results: %s\n", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
-
-    //
-    // Fetch results
-    //
 
     result = mysql_stmt_fetch(stmt);
     if (result != 0) {
