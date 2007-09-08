@@ -18,12 +18,13 @@ Abstract:
 #include <backends.h>
 #include <database.h>
 
-static DWORD DbGroupRead(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
+static DWORD DbGroupRead(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFilePtr)
 {
     CHAR        *query;
     INT         result;
     SIZE_T      groupNameLength;
     ULONG       outputLength;
+    GROUPFILE   groupFile;
     MYSQL_BIND  bindInput[1];
     MYSQL_BIND  bindOutput[4];
     MYSQL_RES   *metadata;
@@ -31,8 +32,13 @@ static DWORD DbGroupRead(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 
     ASSERT(db != NULL);
     ASSERT(groupName != NULL);
-    ASSERT(groupFile != NULL);
-    TRACE("db=%p groupName=%s groupFile=%p\n", db, groupName, groupFile);
+    ASSERT(groupFilePtr != NULL);
+    TRACE("db=%p groupName=%s groupFilePtr=%p\n", db, groupName, groupFilePtr);
+
+    // Update a local copy of the group-file instead of the actual
+    // group-file in case there is an error occurs before the update
+    // is completely finished.
+    ZeroMemory(&groupFile, sizeof(GROUPFILE));
 
     stmt = db->stmt[0];
 
@@ -88,21 +94,21 @@ static DWORD DbGroupRead(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
     ZeroMemory(&bindOutput, sizeof(bindOutput));
 
     bindOutput[0].buffer_type   = MYSQL_TYPE_STRING;
-    bindOutput[0].buffer        = groupFile->szDescription;
-    bindOutput[0].buffer_length = sizeof(groupFile->szDescription);
+    bindOutput[0].buffer        = groupFile.szDescription;
+    bindOutput[0].buffer_length = sizeof(groupFile.szDescription);
     bindOutput[0].length        = &outputLength;
 
     bindOutput[1].buffer_type   = MYSQL_TYPE_BLOB;
-    bindOutput[1].buffer        = groupFile->Slots;
-    bindOutput[1].buffer_length = sizeof(groupFile->Slots);
+    bindOutput[1].buffer        = groupFile.Slots;
+    bindOutput[1].buffer_length = sizeof(groupFile.Slots);
     bindOutput[1].length        = &outputLength;
 
     bindOutput[2].buffer_type   = MYSQL_TYPE_LONG;
-    bindOutput[2].buffer        = &groupFile->Users;
+    bindOutput[2].buffer        = &groupFile.Users;
 
     bindOutput[3].buffer_type   = MYSQL_TYPE_STRING;
-    bindOutput[3].buffer        = groupFile->szVfsFile;
-    bindOutput[3].buffer_length = sizeof(groupFile->szVfsFile);
+    bindOutput[3].buffer        = groupFile.szVfsFile;
+    bindOutput[3].buffer_length = sizeof(groupFile.szVfsFile);
     bindOutput[3].length        = &outputLength;
 
     result = mysql_stmt_bind_result(stmt, bindOutput);
@@ -118,6 +124,15 @@ static DWORD DbGroupRead(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
     }
 
     mysql_free_result(metadata);
+
+    //
+    // Initialize remaining values of the group-file structure and copy the
+    // local group-file to the output parameter. Copy all structure members up
+    // to lpInternal, the lpInternal and lpParent members must not be changed.
+    //
+    groupFile.Gid = groupFilePtr->Gid;
+
+    CopyMemory(groupFilePtr, &groupFile, offsetof(GROUPFILE, lpInternal));
 
     return ERROR_SUCCESS;
 }
