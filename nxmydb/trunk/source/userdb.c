@@ -311,6 +311,12 @@ static DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
         return DbMapErrorFromStmt(stmtUsers);
     }
 
+    mysql_stmt_store_result(stmtUsers);
+    if (result != 0) {
+        TRACE("Unable to buffer results: %s\n", mysql_stmt_error(stmtUsers));
+        return DbMapErrorFromStmt(stmtUsers);
+    }
+
     result = mysql_stmt_fetch(stmtUsers);
     if (result != 0) {
         TRACE("Unable to fetch results: %s\n", mysql_stmt_error(stmtUsers));
@@ -322,8 +328,6 @@ static DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
     //
     // Execute prepared admins statement and fetch results
     //
-
-    TRACE("admins\n");
 
     result = mysql_stmt_execute(stmtAdmins);
     if (result != 0) {
@@ -345,9 +349,16 @@ static DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
         return DbMapErrorFromStmt(stmtAdmins);
     }
 
+    mysql_stmt_store_result(stmtAdmins);
+    if (result != 0) {
+        TRACE("Unable to buffer results: %s\n", mysql_stmt_error(stmtAdmins));
+        return DbMapErrorFromStmt(stmtAdmins);
+    }
+
     index = 0;
     while (mysql_stmt_fetch(stmtAdmins) == 0 && index < MAX_GROUPS) {
 
+        // Resolve group names to IDs
         userFile.AdminGroups[index] = Io_Group2Gid(buffer);
         if (userFile.AdminGroups[index] == INVALID_GROUP) {
             TRACE("Unable to resolve group \"%s\".\n", buffer);
@@ -366,8 +377,6 @@ static DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
     //
     // Execute prepared groups statement and fetch results
     //
-
-    TRACE("groups\n");
 
     result = mysql_stmt_execute(stmtGroups);
     if (result != 0) {
@@ -389,9 +398,16 @@ static DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
         return DbMapErrorFromStmt(stmtGroups);
     }
 
+    mysql_stmt_store_result(stmtGroups);
+    if (result != 0) {
+        TRACE("Unable to buffer results: %s\n", mysql_stmt_error(stmtGroups));
+        return DbMapErrorFromStmt(stmtGroups);
+    }
+
     index = 0;
     while (mysql_stmt_fetch(stmtGroups) == 0 && index < MAX_GROUPS) {
 
+        // Resolve group names to IDs
         userFile.Groups[index] = Io_Group2Gid(buffer);
         if (userFile.Groups[index] == INVALID_GROUP) {
             TRACE("Unable to resolve group \"%s\".\n", buffer);
@@ -416,8 +432,6 @@ static DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
     // Execute prepared hosts statement and fetch results
     //
 
-    TRACE("hosts\n");
-
     result = mysql_stmt_execute(stmtHosts);
     if (result != 0) {
         TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtHosts));
@@ -438,9 +452,14 @@ static DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
         return DbMapErrorFromStmt(stmtHosts);
     }
 
+    mysql_stmt_store_result(stmtHosts);
+    if (result != 0) {
+        TRACE("Unable to buffer results: %s\n", mysql_stmt_error(stmtHosts));
+        return DbMapErrorFromStmt(stmtHosts);
+    }
+
     index = 0;
     while (mysql_stmt_fetch(stmtHosts) == 0 && index < MAX_IPS) {
-        TRACE("%d\n", ELEMENT_COUNT(userFile.Ip[0]));
         StringCchCopy(userFile.Ip[index], ELEMENT_COUNT(userFile.Ip[0]), buffer);
         index++;
     }
