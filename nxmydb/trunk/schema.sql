@@ -56,5 +56,5 @@ CREATE TABLE io_user_groups (
 CREATE TABLE io_user_hosts (
   uname       varchar(65) NOT NULL,
   host        varchar(96) NOT NULL,
-  PRIMARY KEY (name,host)
+  PRIMARY KEY (uname,host)
 );
