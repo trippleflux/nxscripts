@@ -467,16 +467,14 @@ static DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
     mysql_free_result(metadataHosts);
 
     //
-    // Initialize remaining values of the user-file structure before
-    // moving the local copy of the user-file to the output parameter.
+    // Initialize remaining values of the user-file structure and copy the
+    // local user-file to the output parameter. Copy all structure members up
+    // to lpInternal, the lpInternal and lpParent members must not be changed.
     //
+    userFile.Uid = userFilePtr->Uid;
+    userFile.Gid = userFile.Groups[0];
 
-    userFile.Uid        = userFilePtr->Uid;
-    userFile.Gid        = userFile.Groups[0];
-    userFile.lpInternal = userFilePtr->lpInternal;
-    userFile.lpParent   = userFilePtr->lpParent;
-
-    CopyMemory(userFilePtr, &userFile, sizeof(USERFILE));
+    CopyMemory(userFilePtr, &userFile, offsetof(USERFILE, lpInternal));
 
     return ERROR_SUCCESS;
 }
