@@ -356,6 +356,8 @@ DWORD DbGroupLock(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
         return ERROR_GROUP_LOCK_FAILED;
     }
 
+    ASSERT(affectedRows == 1);
+
     //
     // Update group data
     //

@@ -1258,6 +1258,8 @@ DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
         return ERROR_USER_LOCK_FAILED;
     }
 
+    ASSERT(affectedRows == 1);
+
     //
     // Update user data
     //
