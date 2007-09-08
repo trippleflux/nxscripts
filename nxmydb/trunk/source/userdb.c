@@ -1210,7 +1210,7 @@ DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
     query = "UPDATE io_users SET lockowner=?, locktime=UNIX_TIMESTAMP()"
             "  WHERE name=?"
-            "    AND lockowner IS NULL OR (UNIX_TIMESTAMP() - locktime) > ?";
+            "    AND (lockowner IS NULL OR (UNIX_TIMESTAMP() - locktime) > ?)";
 
     result = mysql_stmt_prepare(stmt, query, strlen(query));
     if (result != 0) {
