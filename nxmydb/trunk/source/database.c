@@ -23,25 +23,20 @@ Abstract:
 #include <rpc.h>
 
 //
-// Global configuration structures
+// Configuration variables
 //
 
-DB_CONFIG_LOCK   dbConfigLock;
-DB_CONFIG_POOL   dbConfigPool;
-DB_CONFIG_SERVER dbConfigServer;
+DB_CONFIG_LOCK    dbConfigLock;
+DB_CONFIG_SERVER  dbConfigServer;
 
-//
-// Local variables
-//
-
-static INT refresh;         // Refresh interval time
-static TIMER *timer = NULL; // Refresh timer
+static DB_CONFIG_POOL    dbConfigPool;
+static DB_CONFIG_REFRESH dbConfigRefresh;
 
 static POOL *pool;          // Database connection pool
-static INT refCount = 0;    // Reference count initialization calls
+static INT  refCount = 0;    // Reference count initialization calls
 
 //
-// Local function declarations
+// Function declarations
 //
 
 static POOL_CONSTRUCTOR_PROC ConnectionOpen;
@@ -286,9 +281,10 @@ Return Values:
 static VOID FCALL ConfigInit(VOID)
 {
     // Clear configuration structures
-    ZeroMemory(&dbConfigLock,   sizeof(DB_CONFIG_LOCK));
-    ZeroMemory(&dbConfigPool,   sizeof(DB_CONFIG_POOL));
-    ZeroMemory(&dbConfigServer, sizeof(DB_CONFIG_SERVER));
+    ZeroMemory(&dbConfigLock,    sizeof(DB_CONFIG_LOCK));
+    ZeroMemory(&dbConfigPool,    sizeof(DB_CONFIG_POOL));
+    ZeroMemory(&dbConfigRefresh, sizeof(DB_CONFIG_REFRESH));
+    ZeroMemory(&dbConfigServer,  sizeof(DB_CONFIG_SERVER));
 }
 
 
@@ -352,7 +348,7 @@ static BOOL FCALL ConfigLoad(VOID)
         Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Timeout' must be greater than zero.\r\n");
         return FALSE;
     }
-    dbConfigPool.timeoutMili *= 1000; // sec to msec
+    dbConfigPool.timeoutMili = dbConfigPool.timeout * 1000; // sec to msec
 
     dbConfigPool.expire = 3600;
     if (Io_ConfigGetInt("nxMyDB", "Pool_Expire", &dbConfigPool.expire) && dbConfigPool.expire <= 0) {
@@ -373,12 +369,12 @@ static BOOL FCALL ConfigLoad(VOID)
     // Read refesh timer
     //
 
-    refresh = 0;
-    if (Io_ConfigGetInt("nxMyDB", "Refresh", &refresh) && refresh < 0) {
+    dbConfigRefresh.interval = 0;
+    if (Io_ConfigGetInt("nxMyDB", "Refresh", &dbConfigRefresh.interval) && dbConfigRefresh.interval < 0) {
         Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Refresh' must be greater than or equal to zero.\r\n");
         return FALSE;
     }
-    refresh *= 1000; // sec to msec
+    dbConfigRefresh.intervalMili = dbConfigRefresh.interval * 1000; // sec to msec
 
     //
     // Read server options
@@ -447,9 +443,10 @@ static VOID FCALL ConfigFree(VOID)
     }
 
     // Clear configuration structures
-    ZeroMemory(&dbConfigLock,   sizeof(DB_CONFIG_LOCK));
-    ZeroMemory(&dbConfigPool,   sizeof(DB_CONFIG_POOL));
-    ZeroMemory(&dbConfigServer, sizeof(DB_CONFIG_SERVER));
+    ZeroMemory(&dbConfigLock,    sizeof(DB_CONFIG_LOCK));
+    ZeroMemory(&dbConfigPool,    sizeof(DB_CONFIG_POOL));
+    ZeroMemory(&dbConfigRefresh, sizeof(DB_CONFIG_REFRESH));
+    ZeroMemory(&dbConfigServer,  sizeof(DB_CONFIG_SERVER));
 }
 
 /*++
@@ -588,7 +585,7 @@ static DWORD RefreshTimer(VOID *notUsed, TIMER *currTimer)
     }
 
     // Execute the timer again
-    return refresh;
+    return dbConfigRefresh.intervalMili;
 }
 
 
@@ -624,14 +621,14 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
         return TRUE;
     }
 
+    // Initialize configuration structures
+    ConfigInit();
+
     // Initialize procedure table
     if (!ProcTableInit(getProc)) {
         TRACE("Unable to initialize procedure table.\n");
         return FALSE;
     }
-
-    // Initialize configuration structures
-    ConfigInit();
 
     // Load configuration options
     if (!ConfigLoad()) {
@@ -671,8 +668,8 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
     }
 
     // Start database refresh timer
-    if (refresh > 0) {
-        timer = Io_StartIoTimer(NULL, RefreshTimer, NULL, refresh);
+    if (dbConfigRefresh.intervalMili > 0) {
+        dbConfigRefresh.timer = Io_StartIoTimer(NULL, RefreshTimer, NULL, dbConfigRefresh.intervalMili);
     }
 
     Io_Putlog(LOG_ERROR, "nxMyDB: v%s loaded, using MySQL Client Library v%s.\r\n",
@@ -704,8 +701,8 @@ VOID FCALL DbFinalize(VOID)
     if (--refCount == 0) {
 
         // Stop refresh timer
-        if (timer != NULL) {
-            Io_StopIoTimer(timer, FALSE);
+        if (dbConfigRefresh.timer != NULL) {
+            Io_StopIoTimer(dbConfigRefresh.timer, FALSE);
         }
 
         // Destroy connection pool

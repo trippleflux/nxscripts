@@ -36,7 +36,6 @@ typedef struct {
 } DB_CONFIG_LOCK;
 
 typedef struct {
-
     INT     minimum;        // Minimum number of sustained connections
     INT     average;        // Average number of sustained connections
     INT     maximum;        // Maximum number of sustained connections
@@ -48,6 +47,12 @@ typedef struct {
     INT     expire;         // Seconds until a connection expires
     UINT64  expireNano;     // Same amount, but in 100 nanosecond intervals
 } DB_CONFIG_POOL;
+
+typedef struct {
+    INT     interval;       // Seconds between each database refresh
+    INT     intervalMili;   // Same amount, but in milliseconds
+    TIMER   *timer;         // Refresh timer
+} DB_CONFIG_REFRESH;
 
 typedef struct {
     CHAR    *serverHost;    // MySQL Server host
@@ -93,7 +98,6 @@ typedef struct {
 //
 
 extern DB_CONFIG_LOCK   dbConfigLock;
-extern DB_CONFIG_POOL   dbConfigPool;
 extern DB_CONFIG_SERVER dbConfigServer;
 
 //
