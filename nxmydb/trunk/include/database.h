@@ -51,6 +51,7 @@ typedef struct {
 typedef struct {
     INT     interval;       // Seconds between each database refresh
     INT     intervalMili;   // Same amount, but in milliseconds
+    ULONG   lastUpdate;     // Timestamp of the last update
     TIMER   *timer;         // Refresh timer
 } DB_CONFIG_REFRESH;
 

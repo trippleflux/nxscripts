@@ -311,7 +311,7 @@ static DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
         return DbMapErrorFromStmt(stmtUsers);
     }
 
-    mysql_stmt_store_result(stmtUsers);
+    result = mysql_stmt_store_result(stmtUsers);
     if (result != 0) {
         TRACE("Unable to buffer results: %s\n", mysql_stmt_error(stmtUsers));
         return DbMapErrorFromStmt(stmtUsers);
@@ -349,7 +349,7 @@ static DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
         return DbMapErrorFromStmt(stmtAdmins);
     }
 
-    mysql_stmt_store_result(stmtAdmins);
+    result = mysql_stmt_store_result(stmtAdmins);
     if (result != 0) {
         TRACE("Unable to buffer results: %s\n", mysql_stmt_error(stmtAdmins));
         return DbMapErrorFromStmt(stmtAdmins);
@@ -398,7 +398,7 @@ static DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
         return DbMapErrorFromStmt(stmtGroups);
     }
 
-    mysql_stmt_store_result(stmtGroups);
+    result = mysql_stmt_store_result(stmtGroups);
     if (result != 0) {
         TRACE("Unable to buffer results: %s\n", mysql_stmt_error(stmtGroups));
         return DbMapErrorFromStmt(stmtGroups);
@@ -452,7 +452,7 @@ static DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
         return DbMapErrorFromStmt(stmtHosts);
     }
 
-    mysql_stmt_store_result(stmtHosts);
+    result = mysql_stmt_store_result(stmtHosts);
     if (result != 0) {
         TRACE("Unable to buffer results: %s\n", mysql_stmt_error(stmtHosts));
         return DbMapErrorFromStmt(stmtHosts);
@@ -1770,10 +1770,11 @@ DWORD DbUserClose(USERFILE *userFile)
     return ERROR_SUCCESS;
 }
 
-DWORD DbUserRefresh(DB_CONTEXT *db)
+DWORD DbUserRefresh(DB_CONTEXT *db, ULONG lastUpdate)
 {
     ASSERT(db != NULL);
-    TRACE("db=%p\n", db);
+    ASSERT(lastUpdate > 0);
+    TRACE("db=%p lastUpdate=%lu\n", db, lastUpdate);
 
     // TODO
 

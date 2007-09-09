@@ -287,7 +287,6 @@ static VOID FCALL ConfigInit(VOID)
     ZeroMemory(&dbConfigServer,  sizeof(DB_CONFIG_SERVER));
 }
 
-
 /*++
 
 ConfigLoad
@@ -549,6 +548,89 @@ static BOOL FCALL ConfigUuid(VOID)
 
 /*++
 
+RefreshGetTime
+
+    Retrieves the current server time, as a UNIX timestamp.
+
+Arguments:
+    timePtr - Pointer to a variable to receive the server time.
+
+Return Values:
+    Windows error code.
+
+--*/
+static DWORD RefreshGetTime(DB_CONTEXT *db, ULONG *timePtr)
+{
+    CHAR        *query;
+    INT         result;
+    MYSQL_BIND  bind[1];
+    MYSQL_RES   *metadata;
+    MYSQL_STMT  *stmt;
+
+    ASSERT(db != NULL);
+    ASSERT(timePtr != NULL);
+
+    stmt = db->stmt[0];
+
+    //
+    // Prepare statement and bind parameters
+    //
+
+    query = "SELECT UNIX_TIMESTAMP()";
+
+    result = mysql_stmt_prepare(stmt, query, strlen(query));
+    if (result != 0) {
+        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    metadata = mysql_stmt_result_metadata(stmt);
+    if (metadata == NULL) {
+        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    result = mysql_stmt_execute(stmt);
+    if (result != 0) {
+        TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    //
+    // Bind and fetch results
+    //
+
+    DB_CHECK_RESULTS(bind, metadata);
+    ZeroMemory(&bind, sizeof(bind));
+
+    bind[0].buffer_type = MYSQL_TYPE_LONG;
+    bind[0].buffer      = timePtr;
+
+    result = mysql_stmt_bind_result(stmt, bind);
+    if (result != 0) {
+        TRACE("Unable to bind results: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    result = mysql_stmt_store_result(stmt);
+    if (result != 0) {
+        TRACE("Unable to buffer results: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    result = mysql_stmt_fetch(stmt);
+    if (result != 0) {
+        TRACE("Unable to fetch results: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    mysql_free_result(metadata);
+
+    return ERROR_SUCCESS;
+}
+
+/*++
+
 RefreshTimer
 
     Refreshes the local user and group cache.
@@ -564,7 +646,9 @@ Return Values:
 --*/
 static DWORD RefreshTimer(VOID *context, TIMER *timer)
 {
-    DB_CONTEXT *db;
+    DB_CONTEXT  *db;
+    DWORD       result;
+    ULONG       currentTime;
 
     UNREFERENCED_PARAMETER(context);
     UNREFERENCED_PARAMETER(timer);
@@ -572,12 +656,25 @@ static DWORD RefreshTimer(VOID *context, TIMER *timer)
     TRACE("context=%p timer=%p", context, timer);
 
     if (DbAcquire(&db)) {
-        //
-        // Groups must be updated first since
-        // user-files depend on group-files.
-        //
-        DbGroupRefresh(db);
-        DbUserRefresh(db);
+
+        // Retrieve the current server time
+        result = RefreshGetTime(db, &currentTime);
+        if (result != ERROR_SUCCESS) {
+            TRACE("Unable to retrieve server timestamp (error %lu).\n", result);
+
+        } else if (dbConfigRefresh.lastUpdate > 0) {
+            //
+            // The last-update time will always be zero on the first update,
+            // because we want to delay the first update to reduce load.
+            //
+
+            // Groups must be updated before users.
+            DbGroupRefresh(db, dbConfigRefresh.lastUpdate);
+            DbUserRefresh(db, dbConfigRefresh.lastUpdate);
+        }
+
+        // Set the last update time
+        dbConfigRefresh.lastUpdate = currentTime;
 
         DbRelease(db);
     } else {
@@ -604,9 +701,9 @@ Return Values:
     If the function fails, the return value is zero (false).
 
 Remarks:
-    This function must be called once by each module entry point. Synchronization is not
-    important at this point because ioFTPD performs all module loading and initialization
-    in a single thread at start-up.
+    This function must be called once by each module entry point. Synchronization
+    is not important at this point because ioFTPD performs all module loading and
+    initialization in a single thread at start-up.
 
 --*/
 BOOL FCALL DbInit(Io_GetProc *getProc)

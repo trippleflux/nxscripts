@@ -50,7 +50,7 @@ DWORD DbGroupOpen(DB_CONTEXT *dbContext, CHAR *groupName, GROUPFILE *groupFile);
 DWORD DbGroupWrite(DB_CONTEXT *dbContext, CHAR *groupName, GROUPFILE *groupFile);
 DWORD DbGroupClose(GROUPFILE *groupFile);
 
-DWORD DbGroupRefresh(DB_CONTEXT *dbContext);
+DWORD DbGroupRefresh(DB_CONTEXT *dbContext, ULONG lastUpdate);
 
 //
 // Group file backend
@@ -86,7 +86,7 @@ DWORD DbUserOpen(DB_CONTEXT *dbContext, CHAR *userName, USERFILE *userFile);
 DWORD DbUserWrite(DB_CONTEXT *dbContext, CHAR *userName, USERFILE *userFile);
 DWORD DbUserClose(USERFILE *userFile);
 
-DWORD DbUserRefresh(DB_CONTEXT *dbContext);
+DWORD DbUserRefresh(DB_CONTEXT *dbContext, ULONG lastUpdate);
 
 //
 // User file backend

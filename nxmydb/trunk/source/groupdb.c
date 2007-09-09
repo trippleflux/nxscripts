@@ -117,6 +117,12 @@ static DWORD DbGroupRead(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFilePt
         return DbMapErrorFromStmt(stmt);
     }
 
+    result = mysql_stmt_store_result(stmt);
+    if (result != 0) {
+        TRACE("Unable to buffer results: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
     result = mysql_stmt_fetch(stmt);
     if (result != 0) {
         TRACE("Unable to fetch results: %s\n", mysql_stmt_error(stmt));
@@ -521,10 +527,11 @@ DWORD DbGroupClose(GROUPFILE *groupFile)
     return ERROR_SUCCESS;
 }
 
-DWORD DbGroupRefresh(DB_CONTEXT *db)
+DWORD DbGroupRefresh(DB_CONTEXT *db, ULONG lastUpdate)
 {
     ASSERT(db != NULL);
-    TRACE("db=%p\n", db);
+    ASSERT(lastUpdate > 0);
+    TRACE("db=%p lastUpdate=%lu\n", db, lastUpdate);
 
     // TODO
 
