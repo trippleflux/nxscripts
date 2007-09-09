@@ -1769,14 +1769,3 @@ DWORD DbUserClose(USERFILE *userFile)
     UNREFERENCED_PARAMETER(userFile);
     return ERROR_SUCCESS;
 }
-
-DWORD DbUserRefresh(DB_CONTEXT *db, ULONG lastUpdate)
-{
-    ASSERT(db != NULL);
-    ASSERT(lastUpdate > 0);
-    TRACE("db=%p lastUpdate=%lu\n", db, lastUpdate);
-
-    // TODO
-
-    return ERROR_INTERNAL_ERROR;
-}

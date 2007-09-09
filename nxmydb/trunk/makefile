@@ -99,11 +99,13 @@ FILE_OBJS = \
     dllentry.obj\
     group.obj\
     groupdb.obj\
+    groupdbsync.obj\
     groupfile.obj\
     pool.obj\
     proctable.obj\
     user.obj\
     userdb.obj\
+    userdbsync.obj\
     userfile.obj
 
 {source\}.c{}.obj::
