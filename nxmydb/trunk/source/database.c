@@ -729,7 +729,7 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
 
     // Load configuration options
     if (!ConfigLoad()) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Configuraiton error.\r\n");
+        Io_Putlog(LOG_ERROR, "nxMyDB: Unable to load configuraiton.\r\n");
 
         DbFinalize();
         return FALSE;
