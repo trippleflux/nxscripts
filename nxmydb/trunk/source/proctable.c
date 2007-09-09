@@ -52,17 +52,23 @@ BOOL FCALL ProcTableInit(Io_GetProc *getProc)
     RESOLVE("Config_GetBool",  procTable.ConfigGetBool)
     RESOLVE("Config_GetInt",   procTable.ConfigGetInt)
     RESOLVE("Config_GetPath",  procTable.ConfigGetPath)
+
+    RESOLVE("GetGroups",       procTable.GetGroups)
     RESOLVE("Gid2Group",       procTable.Gid2Group)
     RESOLVE("Group2Gid",       procTable.Group2Gid)
     RESOLVE("Ascii2GroupFile", procTable.Ascii2GroupFile)
     RESOLVE("GroupFile2Ascii", procTable.GroupFile2Ascii)
+
+    RESOLVE("GetUsers",        procTable.GetUsers)
     RESOLVE("Uid2User",        procTable.Uid2User)
     RESOLVE("User2Uid",        procTable.User2Uid)
     RESOLVE("Ascii2UserFile",  procTable.Ascii2UserFile)
     RESOLVE("UserFile2Ascii",  procTable.UserFile2Ascii)
+
     RESOLVE("Allocate",        procTable.Allocate)
     RESOLVE("ReAllocate",      procTable.ReAllocate)
     RESOLVE("Free",            procTable.Free)
+
     RESOLVE("StartIoTimer",    procTable.StartIoTimer)
     RESOLVE("StopIoTimer",     procTable.StopIoTimer)
     RESOLVE("Putlog",          procTable.Putlog)
