@@ -107,8 +107,8 @@ extern DB_CONFIG_LOCK dbConfigLock;
 BOOL FCALL DbInit(Io_GetProc *getProc);
 VOID FCALL DbFinalize(VOID);
 
-BOOL FCALL DbAcquire(DB_CONTEXT **dbContext);
-VOID FCALL DbRelease(DB_CONTEXT *dbContext);
+BOOL FCALL DbAcquire(DB_CONTEXT **dbPtr);
+VOID FCALL DbRelease(DB_CONTEXT *db);
 
 DWORD FCALL DbMapError(UINT error);
 

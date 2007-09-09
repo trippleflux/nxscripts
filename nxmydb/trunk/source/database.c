@@ -58,7 +58,7 @@ ConnectionOpen
     Opens a server connection.
 
 Arguments:
-    opaque  - Opaque argument passed to PoolCreate().
+    context - Opaque context passed to <PoolCreate>.
 
     data    - Pointer to a pointer that receives the DB_CONTEXT structure.
 
@@ -68,34 +68,34 @@ Return Values:
     If the function fails, the return value is zero (false).
 
 --*/
-static BOOL FCALL ConnectionOpen(VOID *opaque, VOID **data)
+static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
 {
-    DB_CONTEXT      *context;
-    DWORD           error;
-    DWORD           i;
-    unsigned long   flags;
-    MYSQL           *connection;
+    DB_CONTEXT  *db;
+    DWORD       error;
+    DWORD       i;
+    MYSQL       *connection;
+    ULONG       flags;
 
-    UNREFERENCED_PARAMETER(opaque);
+    UNREFERENCED_PARAMETER(context);
     ASSERT(data != NULL);
-    TRACE("opaque=%p data=%p\n", opaque, data);
+    TRACE("context=%p data=%p\n", context, data);
 
-    context = Io_Allocate(sizeof(DB_CONTEXT));
-    if (context == NULL) {
+    db = Io_Allocate(sizeof(DB_CONTEXT));
+    if (db == NULL) {
         TRACE("Unable to allocate memory for database context.\n");
 
         error = ERROR_NOT_ENOUGH_MEMORY;
         goto failed;
     }
-    ZeroMemory(context, sizeof(DB_CONTEXT));
+    ZeroMemory(db, sizeof(DB_CONTEXT));
 
     //
     // Have the MySQL client library allocate the connection structure. This is
     // in case the MYSQL structure in the headers we're compiling against changes
     // in a future version of the client library.
     //
-    context->handle = mysql_init(NULL);
-    if (context->handle == NULL) {
+    db->handle = mysql_init(NULL);
+    if (db->handle == NULL) {
         TRACE("Unable to allocate memory for MySQL handle.\n");
 
         error = ERROR_NOT_ENOUGH_MEMORY;
@@ -112,7 +112,7 @@ static BOOL FCALL ConnectionOpen(VOID *opaque, VOID **data)
         // This function always returns 0. If SSL setup is incorrect,
         // mysql_real_connect() returns an error when you attempt to connect.
         //
-        mysql_ssl_set(context->handle,
+        mysql_ssl_set(db->handle,
             dbConfigServer.sslKeyFile,
             dbConfigServer.sslCertFile,
             dbConfigServer.sslCAFile,
@@ -121,7 +121,7 @@ static BOOL FCALL ConnectionOpen(VOID *opaque, VOID **data)
     }
 
     connection = mysql_real_connect(
-        context->handle,
+        db->handle,
         dbConfigServer.serverHost,
         dbConfigServer.serverUser,
         dbConfigServer.serverPass,
@@ -130,17 +130,17 @@ static BOOL FCALL ConnectionOpen(VOID *opaque, VOID **data)
         NULL, flags);
 
     if (connection == NULL) {
-        TRACE("Unable to connect to server: %s\n", mysql_error(context->handle));
-        Io_Putlog(LOG_ERROR, "nxMyDB: Unable to connect to server: %s\r\n", mysql_error(context->handle));
+        TRACE("Unable to connect to server: %s\n", mysql_error(db->handle));
+        Io_Putlog(LOG_ERROR, "nxMyDB: Unable to connect to server: %s\r\n", mysql_error(db->handle));
 
         error = ERROR_CONNECTION_REFUSED;
         goto failed;
     }
 
     // Allocate pre-compiled statement structure
-    for (i = 0; i < ELEMENT_COUNT(context->stmt); i++) {
-        context->stmt[i] = mysql_stmt_init(context->handle);
-        if (context->stmt[i] == NULL) {
+    for (i = 0; i < ELEMENT_COUNT(db->stmt); i++) {
+        db->stmt[i] = mysql_stmt_init(db->handle);
+        if (db->stmt[i] == NULL) {
             TRACE("Unable to allocate memory for statement structure.\n");
 
             error = ERROR_NOT_ENOUGH_MEMORY;
@@ -149,18 +149,18 @@ static BOOL FCALL ConnectionOpen(VOID *opaque, VOID **data)
     }
 
     // Update time stamps
-    GetSystemTimeAsFileTime((FILETIME *)&context->created);
-    context->used = context->created;
+    GetSystemTimeAsFileTime((FILETIME *)&db->created);
+    db->used = db->created;
 
     TRACE("Connected to %s, running MySQL Server v%s.\n",
-        mysql_get_host_info(context->handle), mysql_get_server_info(context->handle));
+        mysql_get_host_info(db->handle), mysql_get_server_info(db->handle));
 
-    *data = context;
+    *data = db;
     return TRUE;
 
 failed:
-    if (context != NULL) {
-        ConnectionClose(NULL, context);
+    if (db != NULL) {
+        ConnectionClose(NULL, db);
     }
     SetLastError(error);
     return FALSE;
@@ -173,7 +173,7 @@ ConnectionCheck
     Validates the server connection.
 
 Arguments:
-    opaque  - Opaque argument passed to PoolCreate().
+    context - Opaque context passed to <PoolCreate>.
 
     data    - Pointer to the DB_CONTEXT structure.
 
@@ -183,21 +183,20 @@ Return Values:
     If the connection is invalid, the return is zero (false).
 
 --*/
-static BOOL FCALL ConnectionCheck(VOID *opaque, VOID *data)
+static BOOL FCALL ConnectionCheck(VOID *context, VOID *data)
 {
-    DB_CONTEXT *context;
-    UINT64 timeCurrent;
-    UINT64 timeDelta;
+    DB_CONTEXT  *db = data;
+    UINT64      timeCurrent;
+    UINT64      timeDelta;
 
-    UNREFERENCED_PARAMETER(opaque);
+    UNREFERENCED_PARAMETER(context);
     ASSERT(data != NULL);
-    TRACE("opaque=%p data=%p\n", opaque, data);
+    TRACE("context=%p data=%p\n", context, data);
 
-    context = data;
     GetSystemTimeAsFileTime((FILETIME *)&timeCurrent);
 
     // Check if the context has exceeded the expiration time
-    timeDelta = timeCurrent - context->created;
+    timeDelta = timeCurrent - db->created;
     if (timeDelta > dbConfigPool.expireNano) {
         TRACE("Expiring server connection after %I64u seconds (%d second limit).\n",
             timeDelta/10000000, dbConfigPool.expire);
@@ -206,19 +205,19 @@ static BOOL FCALL ConnectionCheck(VOID *opaque, VOID *data)
     }
 
     // Check if the connection is still alive
-    timeDelta = timeCurrent - context->used;
+    timeDelta = timeCurrent - db->used;
     if (timeDelta > dbConfigPool.checkNano) {
         TRACE("Connection has not been used in %I64u seconds (%d second limit), pinging it.\n",
             timeDelta/10000000, dbConfigPool.check);
 
-        if (mysql_ping(context->handle) != 0) {
-            TRACE("Lost server connection: %s\n", mysql_error(context->handle));
+        if (mysql_ping(db->handle) != 0) {
+            TRACE("Lost server connection: %s\n", mysql_error(db->handle));
             SetLastError(ERROR_NOT_CONNECTED);
             return FALSE;
         }
 
         // Update last-use time stamp
-        GetSystemTimeAsFileTime((FILETIME *)&context->used);
+        GetSystemTimeAsFileTime((FILETIME *)&db->used);
     }
 
     return TRUE;
@@ -231,7 +230,7 @@ ConnectionClose
     Closes the server connection.
 
 Arguments:
-    opaque  - Opaque argument passed to PoolCreate().
+    context - Opaque context passed to <PoolCreate>.
 
     data    - Pointer to the DB_CONTEXT structure.
 
@@ -239,29 +238,27 @@ Return Values:
     None.
 
 --*/
-static VOID FCALL ConnectionClose(VOID *opaque, VOID *data)
+static VOID FCALL ConnectionClose(VOID *context, VOID *data)
 {
-    DB_CONTEXT *context;
-    DWORD      i;
+    DB_CONTEXT  *db = data;
+    DWORD       i;
 
-    UNREFERENCED_PARAMETER(opaque);
+    UNREFERENCED_PARAMETER(context);
     ASSERT(data != NULL);
-    TRACE("opaque=%p data=%p\n", opaque, data);
-
-    context = data;
+    TRACE("context=%p data=%p\n", context, data);
 
     // Free MySQL structures
-    for (i = 0; i < ELEMENT_COUNT(context->stmt); i++) {
-        if (context->stmt[i] != NULL) {
-            mysql_stmt_close(context->stmt[i]);
+    for (i = 0; i < ELEMENT_COUNT(db->stmt); i++) {
+        if (db->stmt[i] != NULL) {
+            mysql_stmt_close(db->stmt[i]);
         }
     }
-    if (context->handle != NULL) {
-        mysql_close(context->handle);
+    if (db->handle != NULL) {
+        mysql_close(db->handle);
     }
 
     // Free context structure
-    Io_Free(context);
+    Io_Free(db);
 }
 
 
@@ -878,7 +875,7 @@ DbAcquire
     Acquires a database context from the connection pool.
 
 Arguments:
-    dbContext   - Pointer to a pointer that receives the DB_CONTEXT structure.
+    dbPtr   - Pointer to a pointer that receives the DB_CONTEXT structure.
 
 Return Values:
     If the function succeeds, the return value is nonzero (true).
@@ -886,20 +883,17 @@ Return Values:
     If the function fails, the return value is zero (false).
 
 --*/
-BOOL FCALL DbAcquire(DB_CONTEXT **dbContext)
+BOOL FCALL DbAcquire(DB_CONTEXT **dbPtr)
 {
-    DB_CONTEXT *context;
-
-    ASSERT(dbContext != NULL);
-    TRACE("dbContext=%p\n", dbContext);
+    ASSERT(dbPtr != NULL);
+    TRACE("dbPtr=%p\n", dbPtr);
 
     // Acquire a database context
-    if (!PoolAcquire(pool, &context)) {
+    if (!PoolAcquire(pool, dbPtr)) {
         TRACE("Unable to acquire a database context (error %lu).\n", GetLastError());
         return FALSE;
     }
 
-    *dbContext = context;
     return TRUE;
 }
 
@@ -910,22 +904,22 @@ DbRelease
     Releases a database context back into the connection pool.
 
 Arguments:
-    dbContext   - Pointer to the DB_CONTEXT structure.
+    db  - Pointer to the DB_CONTEXT structure.
 
 Return Values:
     None.
 
 --*/
-VOID FCALL DbRelease(DB_CONTEXT *dbContext)
+VOID FCALL DbRelease(DB_CONTEXT *db)
 {
-    ASSERT(dbContext != NULL);
-    TRACE("dbContext=%p\n", dbContext);
+    ASSERT(db != NULL);
+    TRACE("db=%p\n", db);
 
     // Update last-use time stamp
-    GetSystemTimeAsFileTime((FILETIME *)&dbContext->used);
+    GetSystemTimeAsFileTime((FILETIME *)&db->used);
 
     // Release the database context
-    if (!PoolRelease(pool, dbContext)) {
+    if (!PoolRelease(pool, db)) {
         TRACE("Unable to release the database context (error %lu).\n", GetLastError());
     }
 }

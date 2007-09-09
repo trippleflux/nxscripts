@@ -27,7 +27,7 @@ POOL_CONSTRUCTOR_PROC
     Creates a resource.
 
 Arguments:
-    opaque  - Opaque argument passed to PoolCreate().
+    context - Opaque context passed to <PoolCreate>.
 
     data    - Opaque data set by this callback.
 
@@ -40,7 +40,7 @@ Remarks:
     The system error code must be set on failure.
 
 --*/
-typedef BOOL (FCALL POOL_CONSTRUCTOR_PROC)(VOID *opaque, VOID **data);
+typedef BOOL (FCALL POOL_CONSTRUCTOR_PROC)(VOID *context, VOID **data);
 
 /*++
 
@@ -49,7 +49,7 @@ POOL_VALIDATOR_PROC
     Validates a resource.
 
 Arguments:
-    opaque  - Opaque argument passed to PoolCreate().
+    context - Opaque context passed to <PoolCreate>.
 
     data    - Opaque data set by the constructor callback.
 
@@ -62,7 +62,7 @@ Remarks:
     The system error code must be set if invalid.
 
 --*/
-typedef BOOL (FCALL POOL_VALIDATOR_PROC)(VOID *opaque, VOID *data);
+typedef BOOL (FCALL POOL_VALIDATOR_PROC)(VOID *context, VOID *data);
 
 /*++
 
@@ -71,7 +71,7 @@ POOL_DESTRUCTOR_PROC
     Destroys a resource.
 
 Arguments:
-    opaque  - Opaque argument passed to PoolCreate().
+    context - Opaque context passed to <PoolCreate>.
 
     data    - Opaque data set by the constructor callback.
 
@@ -79,7 +79,7 @@ Return Values:
     None.
 
 --*/
-typedef VOID (FCALL POOL_DESTRUCTOR_PROC)(VOID *opaque, VOID *data);
+typedef VOID (FCALL POOL_DESTRUCTOR_PROC)(VOID *context, VOID *data);
 
 //
 // Pool resource
@@ -108,7 +108,7 @@ typedef struct {
     POOL_CONSTRUCTOR_PROC *constructor; // Procedure called when a resource is created
     POOL_VALIDATOR_PROC   *validator;   // Procedure called when a resource requires validation
     POOL_DESTRUCTOR_PROC  *destructor;  // Procedure called when a resource is destroyed
-    VOID                  *opaque;      // Opaque argument passed to the constructor and destructor
+    VOID                  *context;     // Opaque argument passed to the constructor and destructor
     POOL_TAIL_QUEUE       resQueue;     // Queue of resources
     POOL_TAIL_QUEUE       conQueue;     // Queue of containers
     CONDITION_VAR         condition;    // Condition signaled when a used resource becomes available
@@ -128,7 +128,7 @@ BOOL SCALL PoolCreate(
     POOL_CONSTRUCTOR_PROC *constructor,
     POOL_VALIDATOR_PROC *validator,
     POOL_DESTRUCTOR_PROC *destructor,
-    VOID *opaque
+    VOID *context
     );
 
 VOID FCALL PoolDestroy(POOL *pool);

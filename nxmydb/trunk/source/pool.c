@@ -133,7 +133,7 @@ static INLINE POOL_RESOURCE *ResourceCreate(POOL *pool)
     }
 
     // Populate the container
-    if (!pool->constructor(pool->opaque, &container->data)) {
+    if (!pool->constructor(pool->context, &container->data)) {
         ASSERT(GetLastError() != ERROR_SUCCESS);
 
         // Place container back in the container queue
@@ -171,7 +171,7 @@ static INLINE BOOL ResourceCheck(POOL *pool, VOID *resData)
     ASSERT(pool != NULL);
     ASSERT(resData != NULL);
 
-    if (!pool->validator(pool->opaque, resData)) {
+    if (!pool->validator(pool->context, resData)) {
         ASSERT(GetLastError() != ERROR_SUCCESS);
         return FALSE;
     }
@@ -201,7 +201,7 @@ static INLINE VOID ResourceDestroy(POOL *pool, VOID *resData)
     ASSERT(pool != NULL);
     ASSERT(resData != NULL);
 
-    pool->destructor(pool->opaque, resData);
+    pool->destructor(pool->context, resData);
     pool->total--;
 }
 
@@ -412,7 +412,7 @@ Arguments:
 
     destructor  - Procedure called when a resource is destroyed.
 
-    opaque      - Opaque argument passed to the callbacks. This argument can
+    context     - Opaque argument passed to the callbacks. This argument can
                   be null if not required.
 
 Return Values:
@@ -431,7 +431,7 @@ BOOL SCALL PoolCreate(
     POOL_CONSTRUCTOR_PROC *constructor,
     POOL_VALIDATOR_PROC *validator,
     POOL_DESTRUCTOR_PROC *destructor,
-    VOID *opaque
+    VOID *context
     )
 {
     ASSERT(pool != NULL);
@@ -451,7 +451,7 @@ BOOL SCALL PoolCreate(
     pool->constructor = constructor;
     pool->validator   = validator;
     pool->destructor  = destructor;
-    pool->opaque      = opaque;
+    pool->context     = context;
 
     TAILQ_INIT(&pool->resQueue);
     TAILQ_INIT(&pool->conQueue);
@@ -507,8 +507,9 @@ VOID FCALL PoolDestroy(POOL *pool)
     ASSERT(pool->idle == 0);
     ASSERT(pool->total == 0);
 
-    DeleteCriticalSection(&pool->lock);
     ConditionVariableDestroy(&pool->condition);
+    DeleteCriticalSection(&pool->lock);
+    ZeroMemory(pool, sizeof(POOL));
 }
 
 /*++
