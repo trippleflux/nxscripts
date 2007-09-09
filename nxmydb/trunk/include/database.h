@@ -36,15 +36,17 @@ typedef struct {
 } DB_CONFIG_LOCK;
 
 typedef struct {
+
     INT     minimum;        // Minimum number of sustained connections
     INT     average;        // Average number of sustained connections
     INT     maximum;        // Maximum number of sustained connections
-    INT     check;          // Seconds until an idle connection is checked
-    INT     checkMili;      //
-    INT     expire;         // Seconds until a connection expires
-    INT64   expireNano;     //
     INT     timeout;        // Seconds to wait for a connection to become available
-    INT64   timeoutNano;    //
+    DWORD   timeoutMili;    // Same amount, but in milliseconds
+
+    INT     check;          // Seconds until an idle connection is checked
+    UINT64  checkNano;      // Same amount, but in 100 nanosecond intervals
+    INT     expire;         // Seconds until a connection expires
+    UINT64  expireNano;     // Same amount, but in 100 nanosecond intervals
 } DB_CONFIG_POOL;
 
 typedef struct {

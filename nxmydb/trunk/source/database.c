@@ -31,6 +31,16 @@ DB_CONFIG_POOL   dbConfigPool;
 DB_CONFIG_SERVER dbConfigServer;
 
 //
+// Local variables
+//
+
+static INT refresh;         // Refresh interval time
+static TIMER *timer = NULL; // Refresh timer
+
+static POOL *pool;          // Database connection pool
+static INT refCount = 0;    // Reference count initialization calls
+
+//
 // Local function declarations
 //
 
@@ -38,23 +48,12 @@ static POOL_CONSTRUCTOR_PROC ConnectionOpen;
 static POOL_VALIDATOR_PROC   ConnectionCheck;
 static POOL_DESTRUCTOR_PROC  ConnectionClose;
 
-static VOID FCALL ConfigInit(VOID);
-static VOID FCALL ConfigFree(VOID);
+static VOID  FCALL ConfigInit(VOID);
+static BOOL  FCALL ConfigLoad(VOID);
+static VOID  FCALL ConfigFree(VOID);
+
 static CHAR *FCALL ConfigGet(CHAR *array, CHAR *variable);
-static BOOL FCALL ConfigUuid(VOID);
-
-//
-// Local variables
-//
-
-static UINT64 connCheck;    // Time to check connections at
-static UINT64 connExpire;   // Time to expire connections
-
-static INT refresh;         // Refresh interval time
-static TIMER *timer = NULL; // Refresh timer
-
-static POOL *pool;          // Database connection pool
-static INT refCount = 0;    // Reference count initialization calls
+static BOOL  FCALL ConfigUuid(VOID);
 
 
 /*++
@@ -204,18 +203,18 @@ static BOOL FCALL ConnectionCheck(VOID *opaque, VOID *data)
 
     // Check if the context has exceeded the expiration time
     timeDelta = timeCurrent - context->created;
-    if (timeDelta > connExpire) {
-        TRACE("Expiring server connection after %I64u seconds (%I64u second limit).\n",
-            timeDelta/10000000, connExpire/10000000);
+    if (timeDelta > dbConfigPool.expireNano) {
+        TRACE("Expiring server connection after %I64u seconds (%d second limit).\n",
+            timeDelta/10000000, dbConfigPool.expire);
         SetLastError(ERROR_CONTEXT_EXPIRED);
         return FALSE;
     }
 
     // Check if the connection is still alive
     timeDelta = timeCurrent - context->used;
-    if (timeDelta > connCheck) {
-        TRACE("Connection has not been used in %I64u seconds (%I64u second limit), pinging it.\n",
-            timeDelta/10000000, connCheck/10000000);
+    if (timeDelta > dbConfigPool.checkNano) {
+        TRACE("Connection has not been used in %I64u seconds (%d second limit), pinging it.\n",
+            timeDelta/10000000, dbConfigPool.check);
 
         if (mysql_ping(context->handle) != 0) {
             TRACE("Lost server connection: %s\n", mysql_error(context->handle));
@@ -290,6 +289,115 @@ static VOID FCALL ConfigInit(VOID)
     ZeroMemory(&dbConfigLock,   sizeof(DB_CONFIG_LOCK));
     ZeroMemory(&dbConfigPool,   sizeof(DB_CONFIG_POOL));
     ZeroMemory(&dbConfigServer, sizeof(DB_CONFIG_SERVER));
+}
+
+
+/*++
+
+ConfigLoad
+
+    Loads configuration options.
+
+Arguments:
+    None.
+
+Return Values:
+    If the function succeeds, the return value is a pointer to the configuration value.
+
+    If the function fails, the return value is null.
+
+--*/
+static BOOL FCALL ConfigLoad(VOID)
+{
+    //
+    // Read lock options
+    //
+
+    dbConfigLock.expire = 60;
+    if (Io_ConfigGetInt("nxMyDB", "Lock_Expire", &dbConfigLock.expire) && dbConfigLock.expire <= 0) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Lock_Expire' must be greater than zero.\r\n");
+        return FALSE;
+    }
+
+    dbConfigLock.timeout = 5;
+    if (Io_ConfigGetInt("nxMyDB", "Lock_Timeout", &dbConfigLock.timeout) && dbConfigLock.timeout <= 0) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Lock_Timeout' must be greater than zero.\r\n");
+        return FALSE;
+    }
+
+    //
+    // Read pool options
+    //
+
+    dbConfigPool.minimum = 1;
+    if (Io_ConfigGetInt("nxMyDB", "Pool_Minimum", &dbConfigPool.minimum) && dbConfigPool.minimum <= 0) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Minimum' must be greater than zero.\r\n");
+        return FALSE;
+    }
+
+    dbConfigPool.average = dbConfigPool.minimum + 1;
+    if (Io_ConfigGetInt("nxMyDB", "Pool_Average", &dbConfigPool.average) && dbConfigPool.average < dbConfigPool.minimum) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Average' must be greater than or equal to 'Pool_Minimum'.\r\n");
+        return FALSE;
+    }
+
+    dbConfigPool.maximum = dbConfigPool.average * 2;
+    if (Io_ConfigGetInt("nxMyDB", "Pool_Maximum", &dbConfigPool.maximum) && dbConfigPool.maximum < dbConfigPool.average) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Maximum' must be greater than or equal to 'Pool_Average'.\r\n");
+        return FALSE;
+    }
+
+    dbConfigPool.timeout = 5;
+    if (Io_ConfigGetInt("nxMyDB", "Pool_Timeout", &dbConfigPool.timeout) && dbConfigPool.timeout <= 0) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Timeout' must be greater than zero.\r\n");
+        return FALSE;
+    }
+    dbConfigPool.timeoutMili *= 1000; // sec to msec
+
+    dbConfigPool.expire = 3600;
+    if (Io_ConfigGetInt("nxMyDB", "Pool_Expire", &dbConfigPool.expire) && dbConfigPool.expire <= 0) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Expire' must be greater than zero.\r\n");
+        return FALSE;
+    }
+    dbConfigPool.expireNano = UInt32x32To64(dbConfigPool.expire, 10000000); // sec to 100nsec
+
+    dbConfigPool.check = 60;
+    if (Io_ConfigGetInt("nxMyDB", "Pool_Check", &dbConfigPool.check) &&
+            (dbConfigPool.check <= 0 || dbConfigPool.check >= dbConfigPool.expire)) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Check' must be greater than zero and less than 'Pool_Expire'.\r\n");
+        return FALSE;
+    }
+    dbConfigPool.checkNano = UInt32x32To64(dbConfigPool.check, 10000000); // sec to 100nsec
+
+    //
+    // Read refesh timer
+    //
+
+    refresh = 0;
+    if (Io_ConfigGetInt("nxMyDB", "Refresh", &refresh) && refresh < 0) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Refresh' must be greater than or equal to zero.\r\n");
+        return FALSE;
+    }
+    refresh *= 1000; // sec to msec
+
+    //
+    // Read server options
+    //
+
+    dbConfigServer.serverHost = ConfigGet("nxMyDB", "Host");
+    dbConfigServer.serverUser = ConfigGet("nxMyDB", "User");
+    dbConfigServer.serverPass = ConfigGet("nxMyDB", "Password");
+    dbConfigServer.serverDb   = ConfigGet("nxMyDB", "Database");
+    Io_ConfigGetInt("nxMyDB", "Port", &dbConfigServer.serverPort);
+    Io_ConfigGetBool("nxMyDB", "Compression", &dbConfigServer.compression);
+    Io_ConfigGetBool("nxMyDB", "SSL_Enable", &dbConfigServer.sslEnable);
+    dbConfigServer.sslCiphers  = ConfigGet("nxMyDB", "SSL_Ciphers");
+    dbConfigServer.sslCertFile = ConfigGet("nxMyDB", "SSL_Cert_File");
+    dbConfigServer.sslKeyFile  = ConfigGet("nxMyDB", "SSL_Key_File");
+    dbConfigServer.sslCAFile   = ConfigGet("nxMyDB", "SSL_CA_File");
+    dbConfigServer.sslCAPath   = ConfigGet("nxMyDB", "SSL_CA_Path");
+
+    return TRUE;
 }
 
 /*++
@@ -506,12 +614,7 @@ Remarks:
 --*/
 BOOL FCALL DbInit(Io_GetProc *getProc)
 {
-    INT poolMin;
-    INT poolAvg;
-    INT poolMax;
-    INT poolCheck;
-    INT poolExpire;
-    INT poolTimeout;
+    BOOL result;
 
     TRACE("refCount=%d\n", refCount);
 
@@ -530,92 +633,13 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
     // Initialize configuration structures
     ConfigInit();
 
-    //
-    // Read lock options
-    //
+    // Load configuration options
+    if (!ConfigLoad()) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Configuraiton error.\r\n");
 
-    dbConfigLock.expire = 60;
-    if (Io_ConfigGetInt("nxMyDB", "Lock_Expire", &dbConfigLock.expire) && dbConfigLock.expire <= 0) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Lock_Expire' must be greater than zero.\r\n");
+        DbFinalize();
         return FALSE;
     }
-
-    dbConfigLock.timeout = 5;
-    if (Io_ConfigGetInt("nxMyDB", "Lock_Timeout", &dbConfigLock.timeout) && dbConfigLock.timeout <= 0) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Lock_Timeout' must be greater than zero.\r\n");
-        return FALSE;
-    }
-
-    //
-    // Read pool options
-    //
-
-    poolMin = 1;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Minimum", &poolMin) && poolMin <= 0) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Minimum' must be greater than zero.\r\n");
-        return FALSE;
-    }
-
-    poolAvg = poolMin + 1;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Average", &poolAvg) && poolAvg < poolMin) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Average' must be greater than or equal to 'Pool_Minimum'.\r\n");
-        return FALSE;
-    }
-
-    poolMax = poolAvg * 2;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Maximum", &poolMax) && poolMax < poolAvg) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Maximum' must be greater than or equal to 'Pool_Average'.\r\n");
-        return FALSE;
-    }
-
-    poolTimeout = 5;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Timeout", &poolTimeout) && poolTimeout <= 0) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Timeout' must be greater than zero.\r\n");
-        return FALSE;
-    }
-    poolTimeout *= 1000; // sec to msec
-
-    poolExpire = 3600;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Expire", &poolExpire) && poolExpire <= 0) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Expire' must be greater than zero.\r\n");
-        return FALSE;
-    }
-    connExpire = UInt32x32To64(poolExpire, 10000000); // sec to 100nsec
-
-    poolCheck = 60;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Check", &poolCheck) && (poolCheck <= 0 || poolCheck >= poolExpire)) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Check' must be greater than zero and less than 'Pool_Expire'.\r\n");
-        return FALSE;
-    }
-    connCheck = UInt32x32To64(poolCheck, 10000000); // sec to 100nsec
-
-    //
-    // Read refesh timer
-    //
-
-    refresh = 0;
-    if (Io_ConfigGetInt("nxMyDB", "Refresh", &refresh) && refresh < 0) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Refresh' must be greater than or equal to zero.\r\n");
-        return FALSE;
-    }
-    refresh *= 1000; // sec to msec
-
-    //
-    // Read server options
-    //
-
-    dbConfigServer.serverHost = ConfigGet("nxMyDB", "Host");
-    dbConfigServer.serverUser = ConfigGet("nxMyDB", "User");
-    dbConfigServer.serverPass = ConfigGet("nxMyDB", "Password");
-    dbConfigServer.serverDb   = ConfigGet("nxMyDB", "Database");
-    Io_ConfigGetInt("nxMyDB", "Port", &dbConfigServer.serverPort);
-    Io_ConfigGetBool("nxMyDB", "Compression", &dbConfigServer.compression);
-    Io_ConfigGetBool("nxMyDB", "SSL_Enable", &dbConfigServer.sslEnable);
-    dbConfigServer.sslCiphers  = ConfigGet("nxMyDB", "SSL_Ciphers");
-    dbConfigServer.sslCertFile = ConfigGet("nxMyDB", "SSL_Cert_File");
-    dbConfigServer.sslKeyFile  = ConfigGet("nxMyDB", "SSL_Key_File");
-    dbConfigServer.sslCAFile   = ConfigGet("nxMyDB", "SSL_CA_File");
-    dbConfigServer.sslCAPath   = ConfigGet("nxMyDB", "SSL_CA_Path");
 
     // Generate a UUID for this server
     if (!ConfigUuid()) {
@@ -630,15 +654,19 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
     if (pool == NULL) {
         Io_Putlog(LOG_ERROR, "nxMyDB: Unable to allocate memory for connection pool.\r\n");
 
-        ConfigFree();
+        DbFinalize();
         return FALSE;
     }
-    if (!PoolCreate(pool, poolMin, poolAvg, poolMax, poolTimeout,
-            ConnectionOpen, ConnectionCheck, ConnectionClose, NULL)) {
+
+    result = PoolCreate(pool,
+        dbConfigPool.minimum, dbConfigPool.average,
+        dbConfigPool.maximum, dbConfigPool.timeoutMili,
+        ConnectionOpen, ConnectionCheck, ConnectionClose, NULL);
+
+    if (!result) {
         Io_Putlog(LOG_ERROR, "nxMyDB: Unable to initialize connection pool.\r\n");
 
-        Io_Free(pool);
-        ConfigFree();
+        DbFinalize();
         return FALSE;
     }
 
