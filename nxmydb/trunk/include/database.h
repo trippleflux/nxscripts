@@ -97,8 +97,7 @@ typedef struct {
 // Database globals
 //
 
-extern DB_CONFIG_LOCK   dbConfigLock;
-extern DB_CONFIG_SERVER dbConfigServer;
+extern DB_CONFIG_LOCK dbConfigLock;
 
 //
 // Database functions

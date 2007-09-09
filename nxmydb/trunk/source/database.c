@@ -26,14 +26,14 @@ Abstract:
 // Configuration variables
 //
 
-DB_CONFIG_LOCK    dbConfigLock;
-DB_CONFIG_SERVER  dbConfigServer;
+DB_CONFIG_LOCK dbConfigLock;
 
 static DB_CONFIG_POOL    dbConfigPool;
 static DB_CONFIG_REFRESH dbConfigRefresh;
+static DB_CONFIG_SERVER  dbConfigServer;
 
 static POOL *pool;          // Database connection pool
-static INT  refCount = 0;    // Reference count initialization calls
+static INT  refCount = 0;   // Reference count initialization calls
 
 //
 // Function declarations
@@ -554,32 +554,32 @@ RefreshTimer
     Refreshes the local user and group cache.
 
 Arguments:
-    notUsed     - Pointer to the timer context.
+    context - Pointer to the timer context.
 
-    currTimer   - Pointer to the current TIMER structure.
+    timer   - Pointer to the current TIMER structure.
 
 Return Values:
-    Number of milliseconds to execute this timer again.
+    Number of milliseconds in which to execute this timer again.
 
 --*/
-static DWORD RefreshTimer(VOID *notUsed, TIMER *currTimer)
+static DWORD RefreshTimer(VOID *context, TIMER *timer)
 {
-    DB_CONTEXT *context;
+    DB_CONTEXT *db;
 
-    UNREFERENCED_PARAMETER(notUsed);
-    UNREFERENCED_PARAMETER(currTimer);
+    UNREFERENCED_PARAMETER(context);
+    UNREFERENCED_PARAMETER(timer);
 
-    TRACE("currTimer=%p", currTimer);
+    TRACE("context=%p timer=%p", context, timer);
 
-    if (DbAcquire(&context)) {
+    if (DbAcquire(&db)) {
         //
-        // Groups must be updated first - since user
-        // files have dependencies on group files.
+        // Groups must be updated first since
+        // user-files depend on group-files.
         //
-        DbGroupRefresh(context);
-        DbUserRefresh(context);
+        DbGroupRefresh(db);
+        DbUserRefresh(db);
 
-        DbRelease(context);
+        DbRelease(db);
     } else {
         TRACE("Unable to acquire a database connection.\n");
     }
