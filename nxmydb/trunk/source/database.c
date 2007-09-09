@@ -137,6 +137,9 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
         goto failed;
     }
 
+    // Pointer values should be the same
+    ASSERT(connection == db->handle);
+
     // Allocate pre-compiled statement structure
     for (i = 0; i < ELEMENT_COUNT(db->stmt); i++) {
         db->stmt[i] = mysql_stmt_init(db->handle);

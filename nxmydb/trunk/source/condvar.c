@@ -59,7 +59,10 @@ VOID FCALL ConditionVariableDestroy(CONDITION_VAR *cond)
 {
     ASSERT(cond != NULL);
 
-    CloseHandle(cond->semaphore);
+    if (cond->semaphore != NULL) {
+        CloseHandle(cond->semaphore);
+    }
+    ZeroMemory(cond, sizeof(CONDITION_VAR));
 }
 
 /*++
