@@ -98,9 +98,8 @@ static INT32 GroupCreate(CHAR *groupName)
         }
 
         // Register group
-        groupId = groupModule->Register(groupModule, groupName, &groupFile);
-        if (groupId == -1) {
-            result = GetLastError();
+        result = GroupRegister(groupName, &groupFile, &groupId);
+        if (result != ERROR_SUCCESS) {
             TRACE("Unable to register group (error %lu).\n", result);
         } else {
 
@@ -119,7 +118,7 @@ static INT32 GroupCreate(CHAR *groupName)
 
             // If the file or database creation failed, clean-up the group file
             if (result != ERROR_SUCCESS) {
-                groupModule->Unregister(groupModule, groupName);
+                GroupUnregister(groupName);
                 FileGroupDelete(groupId);
                 FileGroupClose(&groupFile);
             }
@@ -156,13 +155,10 @@ static INT GroupRename(CHAR *groupName, INT32 groupId, CHAR *newName)
     result = DbGroupRename(db, groupName, newName);
     if (result != ERROR_SUCCESS) {
         TRACE("Unable to rename group database record (error %lu).\n", result);
-    } else {
 
+    } else {
         // Register group under the new name
-        if (groupModule->RegisterAs(groupModule, groupName, newName) != GM_SUCCESS) {
-            result = GetLastError();
-            TRACE("Unable to re-register group (error %lu).\n", result);
-        }
+        result = GroupRegisterAs(groupName, newName);
     }
 
     DbRelease(db);
@@ -192,13 +188,10 @@ static INT GroupDelete(CHAR *groupName, INT32 groupId)
     result = DbGroupDelete(db, groupName);
     if (result != ERROR_SUCCESS) {
         TRACE("Unable to delete group database record (error %lu).\n", result);
-    } else {
 
+    } else {
         // Unregister group
-        if (groupModule->Unregister(groupModule, groupName) != GM_SUCCESS) {
-            result = GetLastError();
-            TRACE("Unable to unregister group (error %lu).\n", result);
-        }
+        result = GroupUnregister(groupName);
     }
 
     DbRelease(db);
@@ -389,4 +382,143 @@ static INT GroupClose(GROUPFILE *groupFile)
     }
 
     return GM_SUCCESS;
+}
+
+
+DWORD GroupRegister(CHAR *groupName, GROUPFILE *groupFile, INT32 *groupIdPtr)
+{
+    DWORD   errorCode = ERROR_SUCCESS;
+    INT32   groupId;
+
+    ASSERT(groupName != NULL);
+    ASSERT(groupFile != NULL);
+    ASSERT(groupIdPtr != NULL);
+    TRACE("groupName=%s groupFile=%p groupIdPtr=%p\n", groupName, groupFile, groupIdPtr);
+
+    groupId = groupModule->Register(groupModule, groupName, groupFile);
+
+    //
+    // The "Register" function returns -1 on failure.
+    //
+    if (groupId == -1) {
+        errorCode = GetLastError();
+        ASSERT(errorCode != ERROR_SUCCESS);
+
+        TRACE("Unable to register group \"%s\" (error %lu).\n", groupName, errorCode);
+    }
+
+    *groupIdPtr = groupId;
+    return errorCode;
+}
+
+DWORD GroupRegisterAs(CHAR *groupName, CHAR *newName)
+{
+    BOOL    result;
+    DWORD   errorCode = ERROR_SUCCESS;
+
+    ASSERT(groupName != NULL);
+    ASSERT(newName != NULL);
+    TRACE("groupName=%s newName=%s\n", groupName, newName);
+
+    result = groupModule->RegisterAs(groupModule, groupName, newName);
+
+    //
+    // Unlike most boolean functions, the "RegisterAs"
+    // function returns a non-zero value on failure.
+    //
+    if (result) {
+        errorCode = GetLastError();
+        ASSERT(errorCode != ERROR_SUCCESS);
+
+        TRACE("Unable to re-register group \"%s\" as \"%s\" (error %lu).\n",
+            groupName, newName, errorCode);
+    }
+
+    return errorCode;
+}
+
+DWORD GroupUnregister(CHAR *groupName)
+{
+    BOOL    result;
+    DWORD   errorCode = ERROR_SUCCESS;
+
+    ASSERT(groupName != NULL);
+    TRACE("groupName=%s\n", groupName);
+
+    result = groupModule->Unregister(groupModule, groupName);
+
+    //
+    // Unlike most boolean functions, the "Unregister"
+    // function returns a non-zero value on failure.
+    //
+    if (result) {
+        errorCode = GetLastError();
+        ASSERT(errorCode != ERROR_SUCCESS);
+
+        TRACE("Unable to unregister group \"%s\" (error %lu).\n", groupName, errorCode);
+    }
+
+    return errorCode;
+}
+
+DWORD GroupUpdate(GROUPFILE *groupFile)
+{
+    BOOL    result;
+    DWORD   errorCode = ERROR_SUCCESS;
+
+    ASSERT(groupFile != NULL);
+    TRACE("groupFile=%p\n", groupFile);
+
+    result = groupModule->Update(groupFile);
+
+    //
+    // Unlike most boolean functions, the "Update"
+    // function returns a non-zero value on failure.
+    //
+    if (result) {
+        errorCode = GetLastError();
+        ASSERT(errorCode != ERROR_SUCCESS);
+
+        TRACE("Unable to update group ID %d (error %lu).\n", groupFile->Gid, errorCode);
+    }
+
+    return errorCode;
+}
+
+DWORD GroupUpdateByName(CHAR *groupName, GROUPFILE *groupFile)
+{
+    BOOL    result;
+    DWORD   errorCode = ERROR_SUCCESS;
+    INT32   groupId;
+
+    ASSERT(groupName != NULL);
+    ASSERT(groupFile != NULL);
+    TRACE("groupName=%s groupFile=%p\n", groupName, groupFile);
+
+    // Resolve the group name to its ID.
+    groupId = Io_Group2Gid(groupName);
+    if (groupId == -1) {
+        errorCode = GetLastError();
+        ASSERT(errorCode != ERROR_SUCCESS);
+
+        TRACE("Unable to resolve group \"%s\" (error %lu).\n", groupName, errorCode);
+    } else {
+        // Update the ID member before calling the "Update" function.
+        groupFile->Gid = groupId;
+
+        result = groupModule->Update(groupFile);
+
+        //
+        // Unlike most boolean functions, the "Update"
+        // function returns a non-zero value on failure.
+        //
+        if (result) {
+            errorCode = GetLastError();
+            ASSERT(errorCode != ERROR_SUCCESS);
+
+            TRACE("Unable to update group \"%s\" (error %lu).\n", groupName, errorCode);
+        }
+    }
+
+    return errorCode;
 }

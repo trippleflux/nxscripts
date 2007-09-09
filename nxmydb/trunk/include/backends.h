@@ -28,6 +28,16 @@ typedef struct {
 } MOD_CONTEXT;
 
 //
+// User module functions
+//
+
+DWORD GroupRegister(CHAR *groupName, GROUPFILE *groupFile, INT32 *groupIdPtr);
+DWORD GroupRegisterAs(CHAR *groupName, CHAR *newName);
+DWORD GroupUnregister(CHAR *groupName);
+DWORD GroupUpdate(GROUPFILE *groupFile);
+DWORD GroupUpdateByName(CHAR *groupName, GROUPFILE *groupFile);
+
+//
 // Group database backend
 //
 
@@ -52,6 +62,16 @@ DWORD FileGroupDelete(INT32 groupId);
 DWORD FileGroupOpen(INT32 groupId, GROUPFILE *groupFile);
 DWORD FileGroupWrite(GROUPFILE *groupFile);
 DWORD FileGroupClose(GROUPFILE *groupFile);
+
+//
+// User module functions
+//
+
+DWORD UserRegister(CHAR *userName, USERFILE *userFile, INT32 *userIdPtr);
+DWORD UserRegisterAs(CHAR *userName, CHAR *newName);
+DWORD UserUnregister(CHAR *userName);
+DWORD UserUpdate(USERFILE *userFile);
+DWORD UserUpdateByName(CHAR *userName, USERFILE *userFile);
 
 //
 // User database backend

@@ -101,9 +101,8 @@ static INT32 UserCreate(CHAR *userName)
         }
 
         // Register user
-        userId = userModule->Register(userModule, userName, &userFile);
-        if (userId == -1) {
-            result = GetLastError();
+        result = UserRegister(userName, &userFile, &userId);
+        if (result != ERROR_SUCCESS) {
             TRACE("Unable to register user (error %lu).\n", result);
         } else {
 
@@ -122,7 +121,7 @@ static INT32 UserCreate(CHAR *userName)
 
             // If the file or database creation failed, clean-up the user file
             if (result != ERROR_SUCCESS) {
-                userModule->Unregister(userModule, userName);
+                UserUnregister(userName);
                 FileUserDelete(userId);
                 FileUserClose(&userFile);
             }
@@ -159,13 +158,10 @@ static INT UserRename(CHAR *userName, INT32 userId, CHAR *newName)
     result = DbUserRename(db, userName, newName);
     if (result != ERROR_SUCCESS) {
         TRACE("Unable to rename user database record (error %lu).\n", result);
-    } else {
 
+    } else {
         // Register user under the new name
-        if (userModule->RegisterAs(userModule, userName, newName) != UM_SUCCESS) {
-            result = GetLastError();
-            TRACE("Unable to re-register user (error %lu).\n", result);
-        }
+        result = UserRegisterAs(userName, newName);
     }
 
     DbRelease(db);
@@ -195,13 +191,10 @@ static INT UserDelete(CHAR *userName, INT32 userId)
     result = DbUserDelete(db, userName);
     if (result != ERROR_SUCCESS) {
         TRACE("Unable to delete user database record (error %lu).\n", result);
-    } else {
 
+    } else {
         // Unregister user
-        if (userModule->Unregister(userModule, userName) != UM_SUCCESS) {
-            result = GetLastError();
-            TRACE("Unable to unregister user (error %lu).\n", result);
-        }
+        result = UserUnregister(userName);
     }
 
     DbRelease(db);
@@ -392,4 +385,143 @@ static INT UserClose(USERFILE *userFile)
     }
 
     return UM_SUCCESS;
+}
+
+
+DWORD UserRegister(CHAR *userName, USERFILE *userFile, INT32 *userIdPtr)
+{
+    DWORD   errorCode = ERROR_SUCCESS;
+    INT32   userId;
+
+    ASSERT(userName != NULL);
+    ASSERT(userFile != NULL);
+    ASSERT(userIdPtr != NULL);
+    TRACE("userName=%s userFile=%p userIdPtr=%p\n", userName, userFile, userIdPtr);
+
+    userId = userModule->Register(userModule, userName, userFile);
+
+    //
+    // The "Register" function returns -1 on failure.
+    //
+    if (userId == -1) {
+        errorCode = GetLastError();
+        ASSERT(errorCode != ERROR_SUCCESS);
+
+        TRACE("Unable to register user \"%s\" (error %lu).\n", userName, errorCode);
+    }
+
+    *userIdPtr = userId;
+    return errorCode;
+}
+
+DWORD UserRegisterAs(CHAR *userName, CHAR *newName)
+{
+    BOOL    result;
+    DWORD   errorCode = ERROR_SUCCESS;
+
+    ASSERT(userName != NULL);
+    ASSERT(newName != NULL);
+    TRACE("userName=%s newName=%s\n", userName, newName);
+
+    result = userModule->RegisterAs(userModule, userName, newName);
+
+    //
+    // Unlike most boolean functions, the "RegisterAs"
+    // function returns a non-zero value on failure.
+    //
+    if (result) {
+        errorCode = GetLastError();
+        ASSERT(errorCode != ERROR_SUCCESS);
+
+        TRACE("Unable to re-register user \"%s\" as \"%s\" (error %lu).\n",
+            userName, newName, errorCode);
+    }
+
+    return errorCode;
+}
+
+DWORD UserUnregister(CHAR *userName)
+{
+    BOOL    result;
+    DWORD   errorCode = ERROR_SUCCESS;
+
+    ASSERT(userName != NULL);
+    TRACE("userName=%s\n", userName);
+
+    result = userModule->Unregister(userModule, userName);
+
+    //
+    // Unlike most boolean functions, the "Unregister"
+    // function returns a non-zero value on failure.
+    //
+    if (result) {
+        errorCode = GetLastError();
+        ASSERT(errorCode != ERROR_SUCCESS);
+
+        TRACE("Unable to unregister user \"%s\" (error %lu).\n", userName, errorCode);
+    }
+
+    return errorCode;
+}
+
+DWORD UserUpdate(USERFILE *userFile)
+{
+    BOOL    result;
+    DWORD   errorCode = ERROR_SUCCESS;
+
+    ASSERT(userFile != NULL);
+    TRACE("userFile=%p\n", userFile);
+
+    result = userModule->Update(userFile);
+
+    //
+    // Unlike most boolean functions, the "Update"
+    // function returns a non-zero value on failure.
+    //
+    if (result) {
+        errorCode = GetLastError();
+        ASSERT(errorCode != ERROR_SUCCESS);
+
+        TRACE("Unable to update user ID %d (error %lu).\n", userFile->Uid, errorCode);
+    }
+
+    return errorCode;
+}
+
+DWORD UserUpdateByName(CHAR *userName, USERFILE *userFile)
+{
+    BOOL    result;
+    DWORD   errorCode = ERROR_SUCCESS;
+    INT32   userId;
+
+    ASSERT(userName != NULL);
+    ASSERT(userFile != NULL);
+    TRACE("userName=%s userFile=%p\n", userName, userFile);
+
+    // Resolve the user name to its ID.
+    userId = Io_User2Uid(userName);
+    if (userId == -1) {
+        errorCode = GetLastError();
+        ASSERT(errorCode != ERROR_SUCCESS);
+
+        TRACE("Unable to resolve user \"%s\" (error %lu).\n", userName, errorCode);
+    } else {
+        // Update the ID member before calling the "Update" function.
+        userFile->Uid = userId;
+
+        result = userModule->Update(userFile);
+
+        //
+        // Unlike most boolean functions, the "Update"
+        // function returns a non-zero value on failure.
+        //
+        if (result) {
+            errorCode = GetLastError();
+            ASSERT(errorCode != ERROR_SUCCESS);
+
+            TRACE("Unable to update user \"%s\" (error %lu).\n", userName, errorCode);
+        }
+    }
+
+    return errorCode;
 }
