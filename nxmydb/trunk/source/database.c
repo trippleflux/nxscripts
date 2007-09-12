@@ -656,25 +656,19 @@ static DWORD RefreshTimer(VOID *context, TIMER *timer)
     TRACE("context=%p timer=%p", context, timer);
 
     if (DbAcquire(&db)) {
-
         // Retrieve the current server time
         result = RefreshGetTime(db, &currentTime);
         if (result != ERROR_SUCCESS) {
             TRACE("Unable to retrieve server timestamp (error %lu).\n", result);
 
-        } else if (dbConfigRefresh.lastUpdate > 0) {
-            //
-            // The last-update time will always be zero on the first update,
-            // because we want to delay the first update to reduce load.
-            //
-
+        } else {
             // Groups must be updated before users.
             DbGroupRefresh(db, dbConfigRefresh.lastUpdate);
             DbUserRefresh(db, dbConfigRefresh.lastUpdate);
-        }
 
-        // Set the last update time
-        dbConfigRefresh.lastUpdate = currentTime;
+            // Set the last update time
+            dbConfigRefresh.lastUpdate = currentTime;
+        }
 
         DbRelease(db);
     } else {

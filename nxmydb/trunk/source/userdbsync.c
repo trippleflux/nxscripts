@@ -21,7 +21,6 @@ Abstract:
 DWORD DbUserRefresh(DB_CONTEXT *db, ULONG lastUpdate)
 {
     ASSERT(db != NULL);
-    ASSERT(lastUpdate > 0);
     TRACE("db=%p lastUpdate=%lu\n", db, lastUpdate);
 
     // TODO
