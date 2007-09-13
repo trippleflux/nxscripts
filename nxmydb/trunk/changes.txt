@@ -1,4 +1,5 @@
 nxMyDB v0.2.0 (not released):
+  CHG: Renamed user and group tables.
 
 nxMyDB v0.1.0 (Sep 8, 2007):
   CHG: Initial release.

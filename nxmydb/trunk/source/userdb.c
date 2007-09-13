@@ -91,7 +91,7 @@ static DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
 
     query = "SELECT description,flags,home,limits,password,vfsfile,credits,"
             "       ratio,alldn,allup,daydn,dayup,monthdn,monthup,wkdn,wkup"
-            "  FROM io_users"
+            "  FROM io_user"
             "  WHERE name=?";
 
     result = mysql_stmt_prepare(stmtUsers, query, strlen(query));
@@ -519,7 +519,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     // Prepare users statement and bind parameters
     //
 
-    query = "INSERT INTO io_users"
+    query = "INSERT INTO io_user"
             "("
             "name,description,flags,home,limits,password,vfsfile,credits,ratio,"
             "alldn,allup,daydn,dayup,monthdn,monthup,wkdn,wkup,updated"
@@ -828,7 +828,7 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     // Prepare users statement and bind parameters
     //
 
-    query = "UPDATE io_users SET name=?, updated=UNIX_TIMESTAMP() WHERE name=?";
+    query = "UPDATE io_user SET name=?, updated=UNIX_TIMESTAMP() WHERE name=?";
 
     result = mysql_stmt_prepare(stmtUsers, query, strlen(query));
     if (result != 0) {
@@ -1031,7 +1031,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     // Prepare users statement and bind parameters
     //
 
-    query = "DELETE FROM io_users WHERE name=?";
+    query = "DELETE FROM io_user WHERE name=?";
 
     result = mysql_stmt_prepare(stmtUsers, query, strlen(query));
     if (result != 0) {
@@ -1208,7 +1208,7 @@ DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     // Prepare statement and bind parameters
     //
 
-    query = "UPDATE io_users SET lockowner=?, locktime=UNIX_TIMESTAMP()"
+    query = "UPDATE io_user SET lockowner=?, locktime=UNIX_TIMESTAMP()"
             "  WHERE name=?"
             "    AND (lockowner IS NULL OR (UNIX_TIMESTAMP() - locktime) > ?)";
 
@@ -1290,7 +1290,7 @@ DWORD DbUserUnlock(DB_CONTEXT *db, CHAR *userName)
     // Prepare statement and bind parameters
     //
 
-    query = "UPDATE io_users SET lockowner=NULL, locktime=0"
+    query = "UPDATE io_user SET lockowner=NULL, locktime=0"
             "  WHERE name=? AND lockowner=?";
 
     result = mysql_stmt_prepare(stmt, query, strlen(query));
@@ -1393,7 +1393,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     // Prepare users statement and bind parameters
     //
 
-    query = "UPDATE io_users SET description=?, flags=?, home=?, limits=?,"
+    query = "UPDATE io_user SET description=?, flags=?, home=?, limits=?,"
             " password=?, vfsfile=?, credits=?, ratio=?, alldn=?, allup=?,"
             " daydn=?, dayup=?, monthdn=?, monthup=?, wkdn=?, wkup=?,"
             " updated=UNIX_TIMESTAMP()"

@@ -4,7 +4,7 @@
 -- Requires MySQL v5.0.3 or newer
 --
 
-CREATE TABLE io_groups (
+CREATE TABLE io_group (
   name        varchar(65)  NOT NULL,
   description varchar(128) NOT NULL,
   slots       tinyblob     NOT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE io_groups (
   PRIMARY KEY (name)
 );
 
-CREATE TABLE io_users (
+CREATE TABLE io_user (
   name        varchar(65)  NOT NULL,
   description varchar(128) NOT NULL,
   flags       varchar(32)  NOT NULL,

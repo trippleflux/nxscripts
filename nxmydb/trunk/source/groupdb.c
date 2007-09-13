@@ -49,7 +49,7 @@ static DWORD DbGroupRead(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFilePt
     //
 
     query = "SELECT description, slots, users, vfsfile"
-            "  FROM io_groups WHERE name=?";
+            "  FROM io_group WHERE name=?";
 
     result = mysql_stmt_prepare(stmt, query, strlen(query));
     if (result != 0) {
@@ -164,7 +164,7 @@ DWORD DbGroupCreate(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
     // Prepare statement and bind parameters
     //
 
-    query = "INSERT INTO io_groups"
+    query = "INSERT INTO io_group"
             " (name,description,slots,users,vfsfile,updated)"
             " VALUES(?,?,?,?,?,UNIX_TIMESTAMP())";
 
@@ -248,7 +248,7 @@ DWORD DbGroupDelete(DB_CONTEXT *db, CHAR *groupName)
     // Prepare statement and bind parameters
     //
 
-    query = "DELETE FROM io_groups WHERE name=?";
+    query = "DELETE FROM io_group WHERE name=?";
 
     result = mysql_stmt_prepare(stmt, query, strlen(query));
     if (result != 0) {
@@ -312,7 +312,7 @@ DWORD DbGroupLock(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
     // Prepare statement and bind parameters
     //
 
-    query = "UPDATE io_groups SET lockowner=?, locktime=UNIX_TIMESTAMP()"
+    query = "UPDATE io_group SET lockowner=?, locktime=UNIX_TIMESTAMP()"
             "  WHERE name=?"
             "    AND (lockowner IS NULL OR (UNIX_TIMESTAMP() - locktime) > ?)";
 
@@ -394,7 +394,7 @@ DWORD DbGroupUnlock(DB_CONTEXT *db, CHAR *groupName)
     // Prepare statement and bind parameters
     //
 
-    query = "UPDATE io_groups SET lockowner=NULL, locktime=0"
+    query = "UPDATE io_group SET lockowner=NULL, locktime=0"
             "  WHERE name=? AND lockowner=?";
 
     result = mysql_stmt_prepare(stmt, query, strlen(query));
@@ -470,7 +470,7 @@ DWORD DbGroupWrite(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
     // Prepare statement and bind parameters
     //
 
-    query = "UPDATE io_groups SET description=?, slots=?,"
+    query = "UPDATE io_group SET description=?, slots=?,"
             " users=?, vfsfile=?, updated=UNIX_TIMESTAMP()"
             "   WHERE name=?";
 
