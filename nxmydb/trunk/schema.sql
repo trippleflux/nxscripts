@@ -8,12 +8,19 @@ CREATE TABLE io_group (
   name        varchar(65)  NOT NULL,
   description varchar(128) NOT NULL,
   slots       tinyblob     NOT NULL,
-  users       int          NOT NULL default 0,
+  users       int          NOT NULL,
   vfsfile     varchar(260) NOT NULL,
-  updated     int unsigned NOT NULL default 0,
+  updated     int unsigned NOT NULL,
   lockowner   varchar(36)           default NULL,
   locktime    int unsigned NOT NULL default 0,
   PRIMARY KEY (name)
+);
+
+CREATE TABLE io_group_changes (
+  time        int unsigned NOT NULL,
+  type        tinyint      NOT NULL,
+  name        varchar(65)  NOT NULL,
+  info        varchar(255)          default NULL
 );
 
 CREATE TABLE io_user (
@@ -34,10 +41,17 @@ CREATE TABLE io_user (
   monthup     tinyblob     NOT NULL,
   wkdn        tinyblob     NOT NULL,
   wkup        tinyblob     NOT NULL,
-  updated     int unsigned NOT NULL default 0,
+  updated     int unsigned NOT NULL,
   lockowner   varchar(36)           default NULL,
   locktime    int unsigned NOT NULL default 0,
   PRIMARY KEY (name)
+);
+
+CREATE TABLE io_user_changes (
+  time        int unsigned NOT NULL,
+  type        tinyint      NOT NULL,
+  name        varchar(65)  NOT NULL,
+  info        varchar(255)          default NULL
 );
 
 CREATE TABLE io_user_admins (
