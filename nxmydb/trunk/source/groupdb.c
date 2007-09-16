@@ -145,74 +145,152 @@ static DWORD DbGroupRead(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFilePt
 
 DWORD DbGroupCreate(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 {
+    BYTE        changeType;
     CHAR        *query;
+    DWORD       error;
     INT         result;
     SIZE_T      groupNameLength;
-    MYSQL_BIND  bind[5];
-    MYSQL_STMT  *stmt;
+    MYSQL_BIND  bindChanges[2];
+    MYSQL_BIND  bindGroup[5];
+    MYSQL_STMT  *stmtChanges;
+    MYSQL_STMT  *stmtGroup;
 
     ASSERT(db != NULL);
     ASSERT(groupName != NULL);
     ASSERT(groupFile != NULL);
     TRACE("db=%p groupName=%s groupFile=%p\n", db, groupName, groupFile);
 
-    stmt = db->stmt[0];
+    stmtGroup   = db->stmt[0];
+    stmtChanges = db->stmt[1];
 
     groupNameLength = strlen(groupName);
 
     //
-    // Prepare statement and bind parameters
+    // Prepare group statement and bind parameters
     //
 
     query = "INSERT INTO io_group"
             " (name,description,slots,users,vfsfile,updated)"
             " VALUES(?,?,?,?,?,UNIX_TIMESTAMP())";
 
-    result = mysql_stmt_prepare(stmt, query, strlen(query));
+    result = mysql_stmt_prepare(stmtGroup, query, strlen(query));
     if (result != 0) {
-        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
-        return DbMapErrorFromStmt(stmt);
+        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtGroup));
+        return DbMapErrorFromStmt(stmtGroup);
     }
 
-    DB_CHECK_PARAMS(bind, stmt);
-    ZeroMemory(&bind, sizeof(bind));
+    DB_CHECK_PARAMS(bindGroup, stmtGroup);
+    ZeroMemory(&bindGroup, sizeof(bindGroup));
 
-    bind[0].buffer_type   = MYSQL_TYPE_STRING;
-    bind[0].buffer        = groupName;
-    bind[0].buffer_length = groupNameLength;
+    bindGroup[0].buffer_type   = MYSQL_TYPE_STRING;
+    bindGroup[0].buffer        = groupName;
+    bindGroup[0].buffer_length = groupNameLength;
 
-    bind[1].buffer_type   = MYSQL_TYPE_STRING;
-    bind[1].buffer        = groupFile->szDescription;
-    bind[1].buffer_length = sizeof(groupFile->szDescription) - 1;
+    bindGroup[1].buffer_type   = MYSQL_TYPE_STRING;
+    bindGroup[1].buffer        = groupFile->szDescription;
+    bindGroup[1].buffer_length = sizeof(groupFile->szDescription) - 1;
 
-    bind[2].buffer_type   = MYSQL_TYPE_BLOB;
-    bind[2].buffer        = groupFile->Slots;
-    bind[2].buffer_length = sizeof(groupFile->Slots);
+    bindGroup[2].buffer_type   = MYSQL_TYPE_BLOB;
+    bindGroup[2].buffer        = groupFile->Slots;
+    bindGroup[2].buffer_length = sizeof(groupFile->Slots);
 
-    bind[3].buffer_type   = MYSQL_TYPE_LONG;
-    bind[3].buffer        = &groupFile->Users;
+    bindGroup[3].buffer_type   = MYSQL_TYPE_LONG;
+    bindGroup[3].buffer        = &groupFile->Users;
 
-    bind[4].buffer_type   = MYSQL_TYPE_STRING;
-    bind[4].buffer        = groupFile->szVfsFile;
-    bind[4].buffer_length = sizeof(groupFile->szVfsFile) - 1;
+    bindGroup[4].buffer_type   = MYSQL_TYPE_STRING;
+    bindGroup[4].buffer        = groupFile->szVfsFile;
+    bindGroup[4].buffer_length = sizeof(groupFile->szVfsFile) - 1;
 
-    result = mysql_stmt_bind_param(stmt, bind);
+    result = mysql_stmt_bind_param(stmtGroup, bindGroup);
     if (result != 0) {
-        TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmt));
-        return DbMapErrorFromStmt(stmt);
+        TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmtGroup));
+        return DbMapErrorFromStmt(stmtGroup);
     }
 
     //
-    // Execute prepared statement
+    // Prepare changes statement and bind parameters
     //
 
-    result = mysql_stmt_execute(stmt);
+    query = "INSERT INTO io_group_changes"
+            " (time,type,name)"
+            " VALUES(UNIX_TIMESTAMP(),?,?)";
+
+    result = mysql_stmt_prepare(stmtChanges, query, strlen(query));
     if (result != 0) {
-        TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmt));
-        return DbMapErrorFromStmt(stmt);
+        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtChanges));
+        return DbMapErrorFromStmt(stmtChanges);
+    }
+
+    DB_CHECK_PARAMS(bindChanges, stmtChanges);
+    ZeroMemory(&bindChanges, sizeof(bindChanges));
+
+    // Change event used during incremental syncs.
+    changeType = CHANGE_TYPE_CREATE;
+
+    bindChanges[0].buffer_type   = MYSQL_TYPE_TINY;
+    bindChanges[0].buffer        = &changeType;
+
+    bindChanges[1].buffer_type   = MYSQL_TYPE_STRING;
+    bindChanges[1].buffer        = groupName;
+    bindChanges[1].buffer_length = groupNameLength;
+
+    result = mysql_stmt_bind_param(stmtChanges, bindChanges);
+    if (result != 0) {
+        TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmtChanges));
+        return DbMapErrorFromStmt(stmtChanges);
+    }
+
+    //
+    // Begin transaction
+    //
+
+    result = mysql_query(db->handle, "START TRANSACTION");
+    if (result != 0) {
+        TRACE("Unable to start transaction: %s\n", mysql_error(db->handle));
+        return DbMapErrorFromConn(db->handle);
+    }
+
+    //
+    // Execute prepared statements
+    //
+
+    result = mysql_stmt_execute(stmtGroup);
+    if (result != 0) {
+        TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtGroup));
+        error = DbMapErrorFromStmt(stmtGroup);
+        goto rollback;
+    }
+
+    result = mysql_stmt_execute(stmtChanges);
+    if (result != 0) {
+        TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtChanges));
+        error = DbMapErrorFromStmt(stmtChanges);
+        goto rollback;
+    }
+
+    //
+    // Commit transaction
+    //
+
+    result = mysql_query(db->handle, "COMMIT");
+    if (result != 0) {
+        TRACE("Unable to commit transaction: %s\n", mysql_error(db->handle));
+        return DbMapErrorFromConn(db->handle);
     }
 
     return ERROR_SUCCESS;
+
+rollback:
+    //
+    // Rollback transaction on error
+    //
+
+    if (mysql_query(db->handle, "ROLLBACK") != 0) {
+        TRACE("Unable to commit transaction: %s\n", mysql_error(db->handle));
+    }
+
+    ASSERT(error != ERROR_SUCCESS);
+    return error;
 }
 
 DWORD DbGroupRename(DB_CONTEXT *db, CHAR *groupName, CHAR *newName)
@@ -229,67 +307,149 @@ DWORD DbGroupRename(DB_CONTEXT *db, CHAR *groupName, CHAR *newName)
 
 DWORD DbGroupDelete(DB_CONTEXT *db, CHAR *groupName)
 {
+    BYTE        changeType;
     CHAR        *query;
+    DWORD       error;
     INT         result;
     INT64       affectedRows;
     SIZE_T      groupNameLength;
-    MYSQL_BIND  bind[1];
-    MYSQL_STMT  *stmt;
+    MYSQL_BIND  bindChanges[2];
+    MYSQL_BIND  bindGroup[1];
+    MYSQL_STMT  *stmtChanges;
+    MYSQL_STMT  *stmtGroup;
 
     ASSERT(db != NULL);
     ASSERT(groupName != NULL);
     TRACE("db=%p groupName=%s\n", db, groupName);
 
-    stmt = db->stmt[0];
+    stmtGroup   = db->stmt[0];
+    stmtChanges = db->stmt[1];
 
     groupNameLength = strlen(groupName);
 
     //
-    // Prepare statement and bind parameters
+    // Prepare group statement and bind parameters
     //
 
     query = "DELETE FROM io_group WHERE name=?";
 
-    result = mysql_stmt_prepare(stmt, query, strlen(query));
+    result = mysql_stmt_prepare(stmtGroup, query, strlen(query));
     if (result != 0) {
-        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
-        return DbMapErrorFromStmt(stmt);
+        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtGroup));
+        return DbMapErrorFromStmt(stmtGroup);
     }
 
-    DB_CHECK_PARAMS(bind, stmt);
-    ZeroMemory(&bind, sizeof(bind));
+    DB_CHECK_PARAMS(bindGroup, stmtGroup);
+    ZeroMemory(&bindGroup, sizeof(bindGroup));
 
-    bind[0].buffer_type   = MYSQL_TYPE_STRING;
-    bind[0].buffer        = groupName;
-    bind[0].buffer_length = groupNameLength;
+    bindGroup[0].buffer_type   = MYSQL_TYPE_STRING;
+    bindGroup[0].buffer        = groupName;
+    bindGroup[0].buffer_length = groupNameLength;
 
-    result = mysql_stmt_bind_param(stmt, bind);
+    result = mysql_stmt_bind_param(stmtGroup, bindGroup);
     if (result != 0) {
-        TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmt));
-        return DbMapErrorFromStmt(stmt);
+        TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmtGroup));
+        return DbMapErrorFromStmt(stmtGroup);
     }
 
     //
-    // Execute prepared statement
+    // Prepare changes statement and bind parameters
     //
 
-    result = mysql_stmt_execute(stmt);
+    query = "INSERT INTO io_group_changes"
+            " (time,type,name)"
+            " VALUES(UNIX_TIMESTAMP(),?,?)";
+
+    result = mysql_stmt_prepare(stmtChanges, query, strlen(query));
     if (result != 0) {
-        TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmt));
-        return DbMapErrorFromStmt(stmt);
+        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtChanges));
+        return DbMapErrorFromStmt(stmtChanges);
+    }
+
+    DB_CHECK_PARAMS(bindChanges, stmtChanges);
+    ZeroMemory(&bindChanges, sizeof(bindChanges));
+
+    // Change event used during incremental syncs.
+    changeType = CHANGE_TYPE_DELETE;
+
+    bindChanges[0].buffer_type   = MYSQL_TYPE_TINY;
+    bindChanges[0].buffer        = &changeType;
+
+    bindChanges[1].buffer_type   = MYSQL_TYPE_STRING;
+    bindChanges[1].buffer        = groupName;
+    bindChanges[1].buffer_length = groupNameLength;
+
+    result = mysql_stmt_bind_param(stmtChanges, bindChanges);
+    if (result != 0) {
+        TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmtChanges));
+        return DbMapErrorFromStmt(stmtChanges);
+    }
+
+    //
+    // Begin transaction
+    //
+
+    result = mysql_query(db->handle, "START TRANSACTION");
+    if (result != 0) {
+        TRACE("Unable to start transaction: %s\n", mysql_error(db->handle));
+        return DbMapErrorFromConn(db->handle);
+    }
+
+    //
+    // Execute prepared statements
+    //
+
+    result = mysql_stmt_execute(stmtGroup);
+    if (result != 0) {
+        TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtGroup));
+        error = DbMapErrorFromStmt(stmtGroup);
+        goto rollback;
+    }
+
+    affectedRows = mysql_stmt_affected_rows(stmtGroup);
+    if (affectedRows > 0) {
+
+        // Only insert a changes event if the group was deleted.
+        result = mysql_stmt_execute(stmtChanges);
+        if (result != 0) {
+            TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtChanges));
+            error = DbMapErrorFromStmt(stmtChanges);
+            goto rollback;
+        }
+    }
+
+    //
+    // Commit transaction
+    //
+
+    result = mysql_query(db->handle, "COMMIT");
+    if (result != 0) {
+        TRACE("Unable to commit transaction: %s\n", mysql_error(db->handle));
+        return DbMapErrorFromConn(db->handle);
     }
 
     //
     // Check for deleted rows
     //
 
-    affectedRows = mysql_stmt_affected_rows(stmt);
     if (affectedRows == 0) {
         TRACE("Unable to delete group (no affected rows).\n");
         return ERROR_GROUP_NOT_FOUND;
     }
 
     return ERROR_SUCCESS;
+
+rollback:
+    //
+    // Rollback transaction on error
+    //
+
+    if (mysql_query(db->handle, "ROLLBACK") != 0) {
+        TRACE("Unable to commit transaction: %s\n", mysql_error(db->handle));
+    }
+
+    ASSERT(error != ERROR_SUCCESS);
+    return error;
 }
 
 DWORD DbGroupLock(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)

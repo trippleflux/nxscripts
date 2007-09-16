@@ -50,8 +50,6 @@ DWORD DbGroupOpen(DB_CONTEXT *dbContext, CHAR *groupName, GROUPFILE *groupFile);
 DWORD DbGroupWrite(DB_CONTEXT *dbContext, CHAR *groupName, GROUPFILE *groupFile);
 DWORD DbGroupClose(GROUPFILE *groupFile);
 
-DWORD DbGroupRefresh(DB_CONTEXT *dbContext, ULONG lastUpdate);
-
 //
 // Group file backend
 //
@@ -86,8 +84,6 @@ DWORD DbUserOpen(DB_CONTEXT *dbContext, CHAR *userName, USERFILE *userFile);
 DWORD DbUserWrite(DB_CONTEXT *dbContext, CHAR *userName, USERFILE *userFile);
 DWORD DbUserClose(USERFILE *userFile);
 
-DWORD DbUserRefresh(DB_CONTEXT *dbContext, ULONG lastUpdate);
-
 //
 // User file backend
 //
@@ -98,5 +94,24 @@ DWORD FileUserDelete(INT32 userId);
 DWORD FileUserOpen(INT32 userId, USERFILE *userFile);
 DWORD FileUserWrite(USERFILE *userFile);
 DWORD FileUserClose(USERFILE *userFile);
+
+
+typedef enum {
+    CHANGE_TYPE_CREATE = 0,
+    CHANGE_TYPE_RENAME = 1,
+    CHANGE_TYPE_DELETE = 2,
+} CHANGE_TYPE;
+
+//
+// Group database sync
+//
+
+DWORD DbGroupRefresh(DB_CONTEXT *dbContext, ULONG lastUpdate);
+
+//
+// User database sync
+//
+
+DWORD DbUserRefresh(DB_CONTEXT *dbContext, ULONG lastUpdate);
 
 #endif // BACKENDS_H_INCLUDED

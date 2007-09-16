@@ -481,6 +481,7 @@ static DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
 
 DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 {
+    BYTE        changeType;
     CHAR        buffer[128];
     CHAR        *host;
     CHAR        *query;
@@ -490,10 +491,12 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     INT         result;
     SIZE_T      userNameLength;
     MYSQL_BIND  bindAdmins[2];
+    MYSQL_BIND  bindChanges[2];
     MYSQL_BIND  bindGroups[3];
     MYSQL_BIND  bindHosts[2];
     MYSQL_BIND  bindUsers[17];
     MYSQL_STMT  *stmtAdmins;
+    MYSQL_STMT  *stmtChanges;
     MYSQL_STMT  *stmtGroups;
     MYSQL_STMT  *stmtHosts;
     MYSQL_STMT  *stmtUsers;
@@ -508,10 +511,11 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     ASSERT(sizeof(buffer) > _MAX_NAME);
     ZeroMemory(buffer, sizeof(buffer));
 
-    stmtUsers  = db->stmt[0];
-    stmtAdmins = db->stmt[1];
-    stmtGroups = db->stmt[2];
-    stmtHosts  = db->stmt[3];
+    stmtUsers   = db->stmt[0];
+    stmtAdmins  = db->stmt[1];
+    stmtGroups  = db->stmt[2];
+    stmtHosts   = db->stmt[3];
+    stmtChanges = db->stmt[4];
 
     userNameLength = strlen(userName);
 
@@ -700,6 +704,39 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     }
 
     //
+    // Prepare changes statement and bind parameters
+    //
+
+    query = "INSERT INTO io_user_changes"
+            " (time,type,name)"
+            " VALUES(UNIX_TIMESTAMP(),?,?)";
+
+    result = mysql_stmt_prepare(stmtChanges, query, strlen(query));
+    if (result != 0) {
+        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtChanges));
+        return DbMapErrorFromStmt(stmtChanges);
+    }
+
+    DB_CHECK_PARAMS(bindChanges, stmtChanges);
+    ZeroMemory(&bindChanges, sizeof(bindChanges));
+
+    // Change event used during incremental syncs.
+    changeType = CHANGE_TYPE_CREATE;
+
+    bindChanges[0].buffer_type   = MYSQL_TYPE_TINY;
+    bindChanges[0].buffer        = &changeType;
+
+    bindChanges[1].buffer_type   = MYSQL_TYPE_STRING;
+    bindChanges[1].buffer        = userName;
+    bindChanges[1].buffer_length = userNameLength;
+
+    result = mysql_stmt_bind_param(stmtChanges, bindChanges);
+    if (result != 0) {
+        TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmtChanges));
+        return DbMapErrorFromStmt(stmtChanges);
+    }
+
+    //
     // Begin transaction
     //
 
@@ -797,16 +834,20 @@ rollback:
 
 DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
 {
+    BYTE        changeType;
     CHAR        *query;
+    DWORD       error;
     INT         result;
     INT64       affectedRows;
     SIZE_T      userNameLength;
     SIZE_T      newNameLength;
     MYSQL_BIND  bindAdmins[2];
+    MYSQL_BIND  bindChanges[2];
     MYSQL_BIND  bindGroups[2];
     MYSQL_BIND  bindHosts[2];
     MYSQL_BIND  bindUsers[2];
     MYSQL_STMT  *stmtAdmins;
+    MYSQL_STMT  *stmtChanges;
     MYSQL_STMT  *stmtGroups;
     MYSQL_STMT  *stmtHosts;
     MYSQL_STMT  *stmtUsers;
@@ -816,10 +857,11 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     ASSERT(newName != NULL);
     TRACE("db=%p userName=%s newName=%s\n", db, userName, newName);
 
-    stmtUsers  = db->stmt[0];
-    stmtAdmins = db->stmt[1];
-    stmtGroups = db->stmt[2];
-    stmtHosts  = db->stmt[3];
+    stmtUsers   = db->stmt[0];
+    stmtAdmins  = db->stmt[1];
+    stmtGroups  = db->stmt[2];
+    stmtHosts   = db->stmt[3];
+    stmtChanges = db->stmt[4];
 
     userNameLength = strlen(userName);
     newNameLength  = strlen(newName);
@@ -941,6 +983,39 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     }
 
     //
+    // Prepare changes statement and bind parameters
+    //
+
+    query = "INSERT INTO io_user_changes"
+            " (time,type,name)"
+            " VALUES(UNIX_TIMESTAMP(),?,?)";
+
+    result = mysql_stmt_prepare(stmtChanges, query, strlen(query));
+    if (result != 0) {
+        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtChanges));
+        return DbMapErrorFromStmt(stmtChanges);
+    }
+
+    DB_CHECK_PARAMS(bindChanges, stmtChanges);
+    ZeroMemory(&bindChanges, sizeof(bindChanges));
+
+    // Change event used during incremental syncs.
+    changeType = CHANGE_TYPE_RENAME;
+
+    bindChanges[0].buffer_type   = MYSQL_TYPE_TINY;
+    bindChanges[0].buffer        = &changeType;
+
+    bindChanges[1].buffer_type   = MYSQL_TYPE_STRING;
+    bindChanges[1].buffer        = userName;
+    bindChanges[1].buffer_length = userNameLength;
+
+    result = mysql_stmt_bind_param(stmtChanges, bindChanges);
+    if (result != 0) {
+        TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmtChanges));
+        return DbMapErrorFromStmt(stmtChanges);
+    }
+
+    //
     // Begin transaction
     //
 
@@ -957,21 +1032,41 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     result = mysql_stmt_execute(stmtUsers);
     if (result != 0) {
         TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtUsers));
+        error = DbMapErrorFromStmt(stmtUsers);
+        goto rollback;
     }
 
     result = mysql_stmt_execute(stmtAdmins);
     if (result != 0) {
         TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtAdmins));
+        error = DbMapErrorFromStmt(stmtAdmins);
+        goto rollback;
     }
 
     result = mysql_stmt_execute(stmtGroups);
     if (result != 0) {
         TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtGroups));
+        error = DbMapErrorFromStmt(stmtGroups);
+        goto rollback;
     }
 
     result = mysql_stmt_execute(stmtHosts);
     if (result != 0) {
         TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtHosts));
+        error = DbMapErrorFromStmt(stmtHosts);
+        goto rollback;
+    }
+
+    affectedRows = mysql_stmt_affected_rows(stmtUsers);
+    if (affectedRows > 0) {
+
+        // Only insert a changes event if the group was deleted.
+        result = mysql_stmt_execute(stmtChanges);
+        if (result != 0) {
+            TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtChanges));
+            error = DbMapErrorFromStmt(stmtChanges);
+            goto rollback;
+        }
     }
 
     //
@@ -988,30 +1083,41 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     // Check for modified rows
     //
 
-    affectedRows = mysql_stmt_affected_rows(stmtUsers);
-    affectedRows += mysql_stmt_affected_rows(stmtAdmins);
-    affectedRows += mysql_stmt_affected_rows(stmtGroups);
-    affectedRows += mysql_stmt_affected_rows(stmtHosts);
-
     if (affectedRows == 0) {
         TRACE("Unable to rename user (no affected rows).\n");
         return ERROR_USER_NOT_FOUND;
     }
 
     return ERROR_SUCCESS;
+
+rollback:
+    //
+    // Rollback transaction on error
+    //
+
+    if (mysql_query(db->handle, "ROLLBACK") != 0) {
+        TRACE("Unable to commit transaction: %s\n", mysql_error(db->handle));
+    }
+
+    ASSERT(error != ERROR_SUCCESS);
+    return error;
 }
 
 DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
 {
+    BYTE        changeType;
     CHAR        *query;
+    DWORD       error;
     INT         result;
     INT64       affectedRows;
     SIZE_T      userNameLength;
     MYSQL_BIND  bindAdmins[1];
+    MYSQL_BIND  bindChanges[2];
     MYSQL_BIND  bindGroups[1];
     MYSQL_BIND  bindHosts[1];
     MYSQL_BIND  bindUsers[1];
     MYSQL_STMT  *stmtAdmins;
+    MYSQL_STMT  *stmtChanges;
     MYSQL_STMT  *stmtGroups;
     MYSQL_STMT  *stmtHosts;
     MYSQL_STMT  *stmtUsers;
@@ -1020,10 +1126,11 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     ASSERT(userName != NULL);
     TRACE("db=%p userName=%s\n", db, userName);
 
-    stmtUsers  = db->stmt[0];
-    stmtAdmins = db->stmt[1];
-    stmtGroups = db->stmt[2];
-    stmtHosts  = db->stmt[3];
+    stmtUsers   = db->stmt[0];
+    stmtAdmins  = db->stmt[1];
+    stmtGroups  = db->stmt[2];
+    stmtHosts   = db->stmt[3];
+    stmtChanges = db->stmt[4];
 
     userNameLength = strlen(userName);
 
@@ -1128,6 +1235,39 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     }
 
     //
+    // Prepare changes statement and bind parameters
+    //
+
+    query = "INSERT INTO io_user_changes"
+            " (time,type,name)"
+            " VALUES(UNIX_TIMESTAMP(),?,?)";
+
+    result = mysql_stmt_prepare(stmtChanges, query, strlen(query));
+    if (result != 0) {
+        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtChanges));
+        return DbMapErrorFromStmt(stmtChanges);
+    }
+
+    DB_CHECK_PARAMS(bindChanges, stmtChanges);
+    ZeroMemory(&bindChanges, sizeof(bindChanges));
+
+    // Change event used during incremental syncs.
+    changeType = CHANGE_TYPE_DELETE;
+
+    bindChanges[0].buffer_type   = MYSQL_TYPE_TINY;
+    bindChanges[0].buffer        = &changeType;
+
+    bindChanges[1].buffer_type   = MYSQL_TYPE_STRING;
+    bindChanges[1].buffer        = userName;
+    bindChanges[1].buffer_length = userNameLength;
+
+    result = mysql_stmt_bind_param(stmtChanges, bindChanges);
+    if (result != 0) {
+        TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmtChanges));
+        return DbMapErrorFromStmt(stmtChanges);
+    }
+
+    //
     // Begin transaction
     //
 
@@ -1144,21 +1284,41 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     result = mysql_stmt_execute(stmtUsers);
     if (result != 0) {
         TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtUsers));
+        error = DbMapErrorFromStmt(stmtUsers);
+        goto rollback;
     }
 
     result = mysql_stmt_execute(stmtAdmins);
     if (result != 0) {
         TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtAdmins));
+        error = DbMapErrorFromStmt(stmtAdmins);
+        goto rollback;
     }
 
     result = mysql_stmt_execute(stmtGroups);
     if (result != 0) {
         TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtGroups));
+        error = DbMapErrorFromStmt(stmtGroups);
+        goto rollback;
     }
 
     result = mysql_stmt_execute(stmtHosts);
     if (result != 0) {
         TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtHosts));
+        error = DbMapErrorFromStmt(stmtHosts);
+        goto rollback;
+    }
+
+    affectedRows = mysql_stmt_affected_rows(stmtUsers);
+    if (affectedRows > 0) {
+
+        // Only insert a changes event if the group was deleted.
+        result = mysql_stmt_execute(stmtChanges);
+        if (result != 0) {
+            TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtChanges));
+            error = DbMapErrorFromStmt(stmtChanges);
+            goto rollback;
+        }
     }
 
     //
@@ -1175,17 +1335,24 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     // Check for deleted rows
     //
 
-    affectedRows = mysql_stmt_affected_rows(stmtUsers);
-    affectedRows += mysql_stmt_affected_rows(stmtAdmins);
-    affectedRows += mysql_stmt_affected_rows(stmtGroups);
-    affectedRows += mysql_stmt_affected_rows(stmtHosts);
-
     if (affectedRows == 0) {
         TRACE("Unable to delete user (no affected rows).\n");
         return ERROR_USER_NOT_FOUND;
     }
 
     return ERROR_SUCCESS;
+
+rollback:
+    //
+    // Rollback transaction on error
+    //
+
+    if (mysql_query(db->handle, "ROLLBACK") != 0) {
+        TRACE("Unable to commit transaction: %s\n", mysql_error(db->handle));
+    }
+
+    ASSERT(error != ERROR_SUCCESS);
+    return error;
 }
 
 DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)

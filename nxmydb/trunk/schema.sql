@@ -17,10 +17,12 @@ CREATE TABLE io_group (
 );
 
 CREATE TABLE io_group_changes (
-  time        int unsigned NOT NULL,
-  type        tinyint      NOT NULL,
-  name        varchar(65)  NOT NULL,
-  info        varchar(255)          default NULL
+  id          bigint unsigned  NOT NULL AUTO_INCREMENT,
+  time        int unsigned     NOT NULL,
+  type        tinyint unsigned NOT NULL,
+  name        varchar(65)      NOT NULL,
+  info        varchar(255)     default NULL,
+  PRIMARY KEY (id)
 );
 
 CREATE TABLE io_user (
@@ -48,10 +50,12 @@ CREATE TABLE io_user (
 );
 
 CREATE TABLE io_user_changes (
-  time        int unsigned NOT NULL,
-  type        tinyint      NOT NULL,
-  name        varchar(65)  NOT NULL,
-  info        varchar(255)          default NULL
+  id          bigint unsigned  NOT NULL AUTO_INCREMENT,
+  time        int unsigned     NOT NULL,
+  type        tinyint unsigned NOT NULL,
+  name        varchar(65)      NOT NULL,
+  info        varchar(255)          default NULL,
+  PRIMARY KEY (id)
 );
 
 CREATE TABLE io_user_admins (
