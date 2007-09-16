@@ -93,6 +93,7 @@ lib: nxmydb.dll
 
 FILE_OBJS = \
     mydb.res\
+    array.obj\
     condvar.obj\
     database.obj\
     debug.obj\
