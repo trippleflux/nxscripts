@@ -75,31 +75,23 @@ VOID FCALL ArraySort(VOID *Array, SIZE_T ElemCount, SIZE_T ElemSize, COMPARE_PRO
     qsort(Array, ElemCount, ElemSize, CompProc);
 }
 
-BOOL FCALL ArrayDelete(const VOID *Elem, VOID *Array, SIZE_T ElemCount, SIZE_T ElemSize, COMPARE_PROC *CompProc)
+VOID FCALL ArrayDelete(VOID *Elem, VOID *Array, SIZE_T ElemCount, SIZE_T ElemSize, COMPARE_PROC *CompProc)
 {
-    BYTE    *ending;
-    BYTE    *middle;
+    BYTE    *middle = Elem;
+    BYTE    *ending = (BYTE *)Array + (ElemCount * ElemSize);
     SIZE_T  length;
 
     ASSERT(Elem != NULL);
     ASSERT(Array != NULL);
     ASSERT(ElemSize > 0);
     ASSERT(CompProc != NULL);
+    ASSERT(Elem == ArraySearch(Elem, Array, ElemCount, ElemSize, CompProc));
 
-    middle = ArraySearch(Elem, Array, ElemCount, ElemSize, CompProc);
+    // Amount of data located after the element that needs to be copied.
+    length = ending - middle - ElemSize;
 
-    if (middle != NULL) {
-        // Amount of data located after the element that needs to be copied.
-        ending = (BYTE *)Array + (ElemCount * ElemSize);
-        length = ending - middle - ElemSize;
-
-        // Deletion is done by moving all data up by one position.
-        CopyMemory(middle, middle + ElemSize, length);
-
-        return TRUE;
-    }
-
-    return FALSE;
+    // Deletion is done by moving all data up by one position.
+    CopyMemory(middle, middle + ElemSize, length);
 }
 
 
@@ -180,22 +172,18 @@ VOID FCALL ArrayPtrSort(VOID *Array, SIZE_T ElemCount, COMPARE_PROC *CompProc)
     qsort(Array, ElemCount, sizeof(VOID *), CompProc);
 }
 
-BOOL FCALL ArrayPtrDelete(const VOID *Elem, VOID **Array, SIZE_T ElemCount, COMPARE_PROC *CompProc)
+VOID FCALL ArrayPtrDelete(VOID *Elem, VOID **Array, SIZE_T ElemCount, COMPARE_PROC *CompProc)
 {
-    VOID    **search;
+    VOID    **ptr = Elem;
     SIZE_T  length;
 
     ASSERT(Elem != NULL);
     ASSERT(Array != NULL);
     ASSERT(CompProc != NULL);
+    ASSERT(Elem == ArrayPtrSearch(Elem, Array, ElemCount, CompProc));
 
-    search = ArrayPtrSearch(Elem, Array, ElemCount, CompProc);
+    // Amount of data located after the pointer that needs to be copied.
+    length = &Array[ElemCount] - &ptr[1];
 
-    if (search != NULL) {
-        length = &Array[ElemCount] - &search[1];
-        CopyMemory(&search[0], &search[1], length * sizeof(VOID *));
-        return TRUE;
-    }
-
-    return FALSE;
+    CopyMemory(&ptr[0], &ptr[1], length * sizeof(VOID *));
 }

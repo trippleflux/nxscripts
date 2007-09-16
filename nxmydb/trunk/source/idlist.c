@@ -74,25 +74,30 @@ DWORD FCALL IdListDestroy(ID_LIST *list)
 
 BOOL FCALL IdListExists(ID_LIST *list, INT32 id)
 {
-    INT32 *search;
+    INT32 **vector;
 
     ASSERT(list != NULL);
 
-    search = ArraySearch(&id, list->array, list->count, sizeof(INT32), CompareId);
-    return (search == NULL) ? FALSE : TRUE;
+    vector = ArraySearch(&id, list->array, list->count, sizeof(INT32), CompareId);
+    return (vector == NULL) ? FALSE : TRUE;
 }
 
 BOOL FCALL IdListRemove(ID_LIST *list, INT32 id)
 {
-    BOOL result;
+    INT32 **vector;
 
     ASSERT(list != NULL);
 
-    result = ArrayDelete(&id, list->array, list->count, sizeof(INT32), CompareId);
-    if (result) {
+    vector = ArraySearch(&id, list->array, list->count, sizeof(INT32), CompareId);
+    if (vector != NULL) {
+        // Remove the element
+        ArrayDelete(vector, list->array, list->count, sizeof(INT32), CompareId);
+
         // Decrement the element count
         --list->count;
+
+        return TRUE;
     }
 
-    return result;
+    return FALSE;
 }
