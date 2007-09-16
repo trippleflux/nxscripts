@@ -103,6 +103,7 @@ FILE_OBJS = \
     groupdbsync.obj\
     groupfile.obj\
     idlist.obj\
+    namelist.obj\
     pool.obj\
     proctable.obj\
     user.obj\
