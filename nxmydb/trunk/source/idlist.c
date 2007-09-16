@@ -15,101 +15,13 @@ Abstract:
 */
 
 #include <base.h>
+#include <array.h>
 #include <idlist.h>
 
-
-typedef INT (COMPARE_PROC)(const VOID *Elem1, const VOID *Elem2);
-
-static INLINE VOID *ArraySearch(const VOID *Elem, VOID *Array, SIZE_T ElemCount, SIZE_T ElemSize, COMPARE_PROC *CompProc)
+static INT IdCompare(const VOID *elem1, const VOID *elem2)
 {
-    BYTE    *low  = (BYTE *)Array;
-    BYTE    *high = (BYTE *)Array + (ElemCount - 1) * ElemSize;
-    BYTE    *middle;
-    INT     result;
-    SIZE_T  half;
-
-    ASSERT(Elem != NULL);
-    ASSERT(Array != NULL);
-    ASSERT(ElemSize > 0);
-    ASSERT(CompProc != NULL);
-
-    while (low <= high) {
-        half = ElemCount / 2;
-        if (half != 0) {
-            middle = low + ((ElemCount & 1) ? half : half-1) * ElemSize;
-
-            result = CompProc(Elem, middle);
-            if (result == 0) {
-                return middle;
-
-            } else if (result < 0) {
-                // Look lower
-                high      = middle - ElemSize;
-                ElemCount = (ElemCount & 1) ? half : half-1;
-
-            } else {
-                // Look higher
-                low       = middle + ElemSize;
-                ElemCount = half;
-            }
-
-        } else if (ElemCount) {
-            // Only one element in the array to compare with.
-            if (CompProc(Elem, low) == 0) {
-                return low;
-            }
-            break;
-
-        } else {
-            // Nothing left, no match
-            break;
-        }
-    }
-
-    return NULL;
-}
-
-static INLINE VOID ArraySort(VOID *Array, SIZE_T ElemCount, SIZE_T ElemSize, COMPARE_PROC *CompProc)
-{
-    ASSERT(Array != NULL);
-    ASSERT(ElemSize > 0);
-    ASSERT(CompProc != NULL);
-
-    qsort(Array, ElemCount, ElemSize, CompProc);
-}
-
-static INLINE BOOL ArrayDelete(const VOID *Elem, VOID *Array, SIZE_T ElemCount, SIZE_T ElemSize, COMPARE_PROC *CompProc)
-{
-    BYTE    *ending;
-    BYTE    *middle;
-    SIZE_T  length;
-
-    ASSERT(Elem != NULL);
-    ASSERT(Array != NULL);
-    ASSERT(ElemSize > 0);
-    ASSERT(CompProc != NULL);
-
-    middle = ArraySearch(Elem, Array, ElemCount, ElemSize, CompProc);
-
-    if (middle != NULL) {
-        // Amount of data located after the element that needs to be copied.
-        ending = (BYTE *)Array + (ElemCount * ElemSize);
-        length = ending - middle - ElemSize;
-
-        // Deletion is done by moving all data up by one position.
-        CopyMemory(middle, middle + ElemSize, length);
-
-        return TRUE;
-    }
-
-    return FALSE;
-}
-
-
-static INT IdCompare(const VOID *Elem1, const VOID *Elem2)
-{
-    const INT32 *id1 = Elem1;
-    const INT32 *id2 = Elem2;
+    const INT32 *id1 = elem1;
+    const INT32 *id2 = elem2;
 
     return id1[0] - id2[0];
 }
