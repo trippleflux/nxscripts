@@ -17,24 +17,36 @@ Abstract:
 #include <base.h>
 #include <backends.h>
 #include <database.h>
+#include <idlist.h>
 
 static DWORD SyncFull(DB_CONTEXT *db)
 {
+    DWORD   result;
+    ID_LIST list;
+
     ASSERT(db != NULL);
 
+    result = IdListCreate(&list, ID_LIST_TYPE_GROUP);
+    if (result != ERROR_SUCCESS) {
+        TRACE("Unable to create group ID list (error %lu).\n", result);
+        return result;
+    }
+
     //
-    // build hash table of local groups
-    //  - use GetGroups for an array of IDs and resolve them
-    //  - consider using a faster method (RB tree)
+    // TODO
     //
     // process io_group table
-    //  - create group if not in the hash table
-    //  - update group if in the hash table
-    //  - remove each group from the hash table as processed
+    //  - select all data from the groups table
+    //  - resolve group name to ID
+    //  - look up group ID in the hash table and delete it
+    //    - if group exists, update group
+    //    - if group does not exist, register group
     //
     // process hash table
     //  - delete groups remaining in the hash table
     //
+
+    IdListDestroy(&list);
 
     return ERROR_NOT_SUPPORTED;
 }

@@ -101,6 +101,7 @@ FILE_OBJS = \
     groupdb.obj\
     groupdbsync.obj\
     groupfile.obj\
+    idlist.obj\
     pool.obj\
     proctable.obj\
     user.obj\
