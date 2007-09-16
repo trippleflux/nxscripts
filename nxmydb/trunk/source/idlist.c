@@ -18,7 +18,7 @@ Abstract:
 #include <array.h>
 #include <idlist.h>
 
-static INT IdCompare(const VOID *elem1, const VOID *elem2)
+static INT CompareId(const VOID *elem1, const VOID *elem2)
 {
     const INT32 *id1 = elem1;
     const INT32 *id2 = elem2;
@@ -56,7 +56,7 @@ DWORD FCALL IdListCreate(ID_LIST *list, ID_LIST_TYPE type)
     // any specific order. We must sort the IDs using a numerical sort.
     //
     list->total = list->count;
-    ArraySort(list->array, list->count, sizeof(INT32), IdCompare);
+    ArraySort(list->array, list->count, sizeof(INT32), CompareId);
 
     return ERROR_SUCCESS;
 }
@@ -78,7 +78,7 @@ BOOL FCALL IdListExists(ID_LIST *list, INT32 id)
 
     ASSERT(list != NULL);
 
-    search = ArraySearch(&id, list->array, list->count, sizeof(INT32), IdCompare);
+    search = ArraySearch(&id, list->array, list->count, sizeof(INT32), CompareId);
     return (search == NULL) ? FALSE : TRUE;
 }
 
@@ -88,7 +88,7 @@ BOOL FCALL IdListRemove(ID_LIST *list, INT32 id)
 
     ASSERT(list != NULL);
 
-    result = ArrayDelete(&id, list->array, list->count, sizeof(INT32), IdCompare);
+    result = ArrayDelete(&id, list->array, list->count, sizeof(INT32), CompareId);
     if (result) {
         // Decrement the element count
         --list->count;
