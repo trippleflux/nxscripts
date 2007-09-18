@@ -23,7 +23,8 @@ Abstract:
 // Module definitions
 //
 
-#define MODULE_NAME "NXMYDB"
+#define MODULE_NAME         "NXMYDB"
+#define MODULE_NAME_LENGTH  6
 
 typedef struct {
     HANDLE  file;   // Handle to the user/group file
