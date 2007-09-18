@@ -74,6 +74,20 @@ Abstract:
 #define ELEMENT_COUNT(array) (sizeof(array) / sizeof(array[0]))
 
 //
+// Macro: IS_EOL
+//
+// Determines if the character is an end-of-line marker.
+//
+#define IS_EOL(ch)          ((ch) == '\n' || (ch) == '\r')
+
+//
+// Macro: IS_SPACE
+//
+// Determines if the character is whitespace.
+//
+#define IS_SPACE(ch)        ((ch) == ' ' || (ch) == '\f' || (ch) == '\t' || (ch) == '\v')
+
+//
 // Macro: MAX
 //
 // Returns the maximum of two values.
