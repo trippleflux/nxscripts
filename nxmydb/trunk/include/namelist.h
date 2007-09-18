@@ -20,7 +20,6 @@ Abstract:
 typedef struct {
     INT32       id;
     CHAR        name[_MAX_NAME + 1];
-    CHAR        module[_MAX_NAME + 1];
 } NAME_ENTRY;
 
 typedef struct {
@@ -29,9 +28,9 @@ typedef struct {
     SIZE_T      total;
 } NAME_LIST;
 
-DWORD FCALL NameListCreate(NAME_LIST *list, const CHAR *module, const CHAR *path);
-DWORD FCALL NameListCreateGroups(NAME_LIST *list, const CHAR *module);
-DWORD FCALL NameListCreateUsers(NAME_LIST *list, const CHAR *module);
+DWORD FCALL NameListCreate(NAME_LIST *list, const CHAR *path);
+DWORD FCALL NameListCreateGroups(NAME_LIST *list);
+DWORD FCALL NameListCreateUsers(NAME_LIST *list);
 DWORD FCALL NameListDestroy(NAME_LIST *list);
 
 BOOL  FCALL NameListExists(NAME_LIST *list, const CHAR *name);

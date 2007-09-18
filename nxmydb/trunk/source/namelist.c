@@ -16,6 +16,7 @@ Abstract:
 
 #include <base.h>
 #include <array.h>
+#include <backends.h>
 #include <namelist.h>
 
 static INT CompareName(const VOID *elem1, const VOID *elem2)
@@ -26,17 +27,199 @@ static INT CompareName(const VOID *elem1, const VOID *elem2)
     return strcmp(entry1[0]->name, entry2[0]->name);
 }
 
-DWORD FCALL NameListCreate(NAME_LIST *list, const CHAR *module, const CHAR *path)
+static const CHAR *FindChar(CHAR ch, const CHAR *buffer, const CHAR *bufferEnd)
+{
+    ASSERT(buffer != NULL);
+    ASSERT(bufferEnd != NULL);
+
+    for (; buffer < bufferEnd; buffer++) {
+        if (*buffer == ch) {
+            return buffer;
+        }
+    }
+
+    return NULL;
+}
+
+static INLINE DWORD TableRead(const CHAR *path, CHAR **buffer, SIZE_T *bufferLength)
+{
+    CHAR    *data;
+    DWORD   dataLength;
+    DWORD   bytesRead;
+    DWORD   result;
+    HANDLE  handle;
+
+    ASSERT(path != NULL);
+    ASSERT(buffer != NULL);
+    ASSERT(bufferLength != NULL);
+
+    handle = CreateFileA(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+    if (handle == INVALID_HANDLE_VALUE) {
+        return GetLastError();
+    }
+
+    //  Get file size
+    dataLength = GetFileSize(handle, NULL);
+    if (dataLength == INVALID_FILE_SIZE) {
+        result = GetLastError();
+    } else {
+
+        //  Allocate read buffer
+        data = Io_Allocate(dataLength);
+        if (data == NULL) {
+            result = ERROR_NOT_ENOUGH_MEMORY;
+        } else {
+
+            //  Read from file
+            if (ReadFile(handle, data, dataLength, &bytesRead, NULL) && bytesRead > 0) {
+                *buffer       = data;
+                *bufferLength = dataLength;
+                result        = ERROR_SUCCESS;
+            } else {
+                result = GetLastError();
+                Io_Free(data);
+            }
+        }
+    }
+
+    CloseHandle(handle);
+    return result;
+}
+
+static INLINE DWORD TableParseInsert(NAME_LIST *list, const CHAR *name, SIZE_T nameLength, INT32 id)
 {
     ASSERT(list != NULL);
-    ASSERT(path != NULL);
+    ASSERT(name != NULL);
+    ASSERT(nameLength > 0);
 
     // TODO
 
     return ERROR_SUCCESS;
 }
 
-DWORD FCALL NameListCreateGroups(NAME_LIST *list, const CHAR *module)
+static INLINE DWORD TableParse(NAME_LIST *list, const CHAR *buffer, SIZE_T bufferLength)
+{
+    const CHAR  *bufferEnd;
+    const CHAR  *line;
+    const CHAR  *lineEnd;
+    const CHAR  *name;
+    const CHAR  *module;
+    CHAR        *stop;
+    DWORD       result;
+    INT32       id;
+    SIZE_T      delims;
+    SIZE_T      nameLength;
+    SIZE_T      moduleLength;
+
+    ASSERT(list != NULL);
+    ASSERT(buffer != NULL);
+
+    bufferEnd = &buffer[bufferLength];
+
+    for (; buffer < bufferEnd; buffer++) {
+        //
+        // Format: <name>:<id>:<module>
+        //
+        //  name   - Name of the user, must not exceed _MAX_NAME.
+        //  id     - Unique identifier of the user, a 32-bit signed integer.
+        //  module - Name of module, must not exceed _MAX_NAME.
+        //
+
+        // Ignore EOL characters and white-space
+        if (IS_EOL(*buffer) || IS_SPACE(*buffer)) {
+            continue;
+        }
+
+        // Find the end of the current line
+        line   = buffer;
+        delims = 0;
+        while (buffer < bufferEnd && !IS_EOL(*buffer)) {
+            if (*buffer++ == ':') {
+                delims++;
+            }
+        }
+        if (delims != 2) {
+            continue;
+        }
+        lineEnd = buffer;
+
+        // Parse the name
+        name       = line;
+        line       = FindChar(':', line, lineEnd);
+        nameLength = (line - name);
+        if (nameLength == 0 || nameLength > _MAX_NAME) {
+            continue;
+        }
+        line++;
+
+        // Parse the ID
+        id = strtoul(line, &stop, 10);
+        if (id == ULONG_MAX || *stop != ':') {
+            continue;
+        }
+        line = stop + 1;
+
+        // Parse the module
+        module       = line;
+        moduleLength = (lineEnd - line);
+#if 0
+        if (moduleLength == 0 || moduleLength > _MAX_NAME) {
+            continue;
+        }
+#else
+        ASSERT(MODULE_NAME_LENGTH == strlen(MODULE_NAME));
+        if (MODULE_NAME_LENGTH != moduleLength || memcmp(MODULE_NAME, module, moduleLength) != 0) {
+            continue;
+        }
+#endif
+
+        TRACE("IDTABLE: %.*s (%d)\n", nameLength, name, id);
+
+        result = TableParseInsert(list, name, nameLength, id);
+        if (result != ERROR_SUCCESS) {
+            return result;
+        }
+    }
+
+    return ERROR_SUCCESS;
+}
+
+
+DWORD FCALL NameListCreate(NAME_LIST *list, const CHAR *path)
+{
+    CHAR    *buffer;
+    DWORD   result;
+    SIZE_T  bufferLength;
+
+    ASSERT(list != NULL);
+    ASSERT(path != NULL);
+
+    // Initialize the NAME_LIST structure
+    list->count = 0;
+    list->total = 128;
+    list->array = Io_Allocate(list->total * sizeof(NAME_LIST *));
+    if (list->array == NULL) {
+        return ERROR_NOT_ENOUGH_MEMORY;
+    }
+
+    // Buffer the ID table file
+    result = TableRead(path, &buffer, &bufferLength);
+    if (result == ERROR_SUCCESS) {
+
+        // Parse the ID table file
+        result = TableParse(list, buffer, bufferLength);
+
+        Io_Free(buffer);
+    }
+
+    if (result != ERROR_SUCCESS) {
+        // Free all resources on failure
+        NameListDestroy(list);
+    }
+    return result;
+}
+
+DWORD FCALL NameListCreateGroups(NAME_LIST *list)
 {
     CHAR    *path;
     DWORD   result;
@@ -48,13 +231,13 @@ DWORD FCALL NameListCreateGroups(NAME_LIST *list, const CHAR *module)
         return ERROR_NOT_ENOUGH_MEMORY;
     }
 
-    result = NameListCreate(list, module, path);
+    result = NameListCreate(list, path);
 
     Io_Free(path);
     return result;
 }
 
-DWORD FCALL NameListCreateUsers(NAME_LIST *list, const CHAR *module)
+DWORD FCALL NameListCreateUsers(NAME_LIST *list)
 {
     CHAR    *path;
     DWORD   result;
@@ -66,7 +249,7 @@ DWORD FCALL NameListCreateUsers(NAME_LIST *list, const CHAR *module)
         return ERROR_NOT_ENOUGH_MEMORY;
     }
 
-    result = NameListCreate(list, module, path);
+    result = NameListCreate(list, path);
 
     Io_Free(path);
     return result;
@@ -84,7 +267,9 @@ DWORD FCALL NameListDestroy(NAME_LIST *list)
         Io_Free(list->array);
     }
 
+    // Clear the structure
     ZeroMemory(list, sizeof(NAME_LIST));
+
     return ERROR_SUCCESS;
 }
 
@@ -94,6 +279,7 @@ BOOL FCALL NameListExists(NAME_LIST *list, const CHAR *name)
     NAME_ENTRY  **vector;
 
     ASSERT(list != NULL);
+    ASSERT(list->array != NULL);
     ASSERT(name != NULL);
 
     // Move the "name" pointer by its offset in the NAME_ENTRY structure. This
@@ -112,6 +298,7 @@ BOOL FCALL NameListRemove(NAME_LIST *list, const CHAR *name)
     NAME_ENTRY  **vector;
 
     ASSERT(list != NULL);
+    ASSERT(list->array != NULL);
     ASSERT(name != NULL);
 
     // Move the "name" pointer by its offset in the NAME_ENTRY structure. This
