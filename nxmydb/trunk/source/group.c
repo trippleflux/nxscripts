@@ -34,7 +34,7 @@ static GROUP_MODULE *groupModule = NULL;
 INT GroupModuleInit(GROUP_MODULE *module)
 {
     // Initialize module structure
-    module->tszModuleName = "NXMYDB";
+    module->tszModuleName = MODULE_NAME;
     module->DeInitialize  = GroupFinalize;
     module->Create        = GroupCreate;
     module->Rename        = GroupRename;

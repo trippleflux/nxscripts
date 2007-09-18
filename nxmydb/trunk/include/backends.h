@@ -20,8 +20,10 @@ Abstract:
 #define BACKENDS_H_INCLUDED
 
 //
-// Module context structure
+// Module definitions
 //
+
+#define MODULE_NAME "NXMYDB"
 
 typedef struct {
     HANDLE  file;   // Handle to the user/group file

@@ -34,7 +34,7 @@ static USER_MODULE *userModule = NULL;
 INT UserModuleInit(USER_MODULE *module)
 {
     // Initialize module structure
-    module->tszModuleName = "NXMYDB";
+    module->tszModuleName = MODULE_NAME;
     module->DeInitialize  = UserFinalize;
     module->Create        = UserCreate;
     module->Rename        = UserRename;
