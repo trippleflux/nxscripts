@@ -85,7 +85,7 @@ VOID FCALL ArrayDelete(VOID *Elem, VOID *Array, SIZE_T ElemCount, SIZE_T ElemSiz
     ASSERT(Array != NULL);
     ASSERT(ElemSize > 0);
     ASSERT(CompProc != NULL);
-    ASSERT(Elem == ArraySearch(Elem, Array, ElemCount, ElemSize, CompProc));
+    //ASSERT(Elem == ArraySearch(Elem, Array, ElemCount, ElemSize, CompProc));
 
     // Amount of data located after the element that needs to be copied.
     length = ending - middle - ElemSize;
@@ -180,7 +180,7 @@ VOID FCALL ArrayPtrDelete(VOID *Elem, VOID **Array, SIZE_T ElemCount, COMPARE_PR
     ASSERT(Elem != NULL);
     ASSERT(Array != NULL);
     ASSERT(CompProc != NULL);
-    ASSERT(Elem == ArrayPtrSearch(Elem, Array, ElemCount, CompProc));
+    //ASSERT(Elem == ArrayPtrSearch(Elem, Array, ElemCount, CompProc));
 
     // Amount of data located after the pointer that needs to be copied.
     length = &Array[ElemCount] - &ptr[1];
