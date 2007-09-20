@@ -24,6 +24,8 @@ static INT CompareName(const VOID *elem1, const VOID *elem2)
     const NAME_ENTRY **entry1 = elem1;
     const NAME_ENTRY **entry2 = elem2;
 
+    TRACE("CMP(%s,%s)\n", entry1[0]->name, entry2[0]->name);
+
     return strcmp(entry1[0]->name, entry2[0]->name);
 }
 
@@ -88,11 +90,40 @@ static INLINE DWORD TableRead(const CHAR *path, CHAR **buffer, SIZE_T *bufferLen
 
 static INLINE DWORD TableParseInsert(NAME_LIST *list, const CHAR *name, SIZE_T nameLength, INT32 id)
 {
+    NAME_ENTRY  *entry;
+    VOID        *newMem;
+
     ASSERT(list != NULL);
     ASSERT(name != NULL);
     ASSERT(nameLength > 0);
 
-    // TODO
+    // Allocate and initialize entry structure
+    entry = Io_Allocate(sizeof(NAME_ENTRY));
+    if (entry == NULL) {
+        return ERROR_NOT_ENOUGH_MEMORY;
+    }
+    entry->id = id;
+    StringCchCopyNA(entry->name, ELEMENT_COUNT(entry->name), name, nameLength);
+
+    if (list->count >= list->total) {
+        // Increase the size of the array by 128 entries
+        newMem = Io_ReAllocate(list->array, (list->total + 128) * sizeof(NAME_ENTRY *));
+        if (newMem == NULL) {
+            Io_Free(entry);
+            return ERROR_NOT_ENOUGH_MEMORY;
+        }
+
+        list->array = newMem;
+        list->total += 128;
+    }
+
+    // Insert entry into the array
+    if (ArrayPtrInsert(entry, list->array, list->count, CompareName) == NULL) {
+        // Entry already exists
+        Io_Free(entry);
+    } else {
+        list->count++;
+    }
 
     return ERROR_SUCCESS;
 }
@@ -288,7 +319,7 @@ BOOL FCALL NameListExists(NAME_LIST *list, const CHAR *name)
     entry = (NAME_ENTRY *)((BYTE *)name - offsetof(NAME_ENTRY, name));
 
     // Search array for the entry
-    vector = ArrayPtrSearch(&entry, list->array, list->count, CompareName);
+    vector = ArrayPtrSearch(entry, list->array, list->count, CompareName);
     return (vector == NULL) ? FALSE : TRUE;
 }
 
@@ -307,15 +338,12 @@ BOOL FCALL NameListRemove(NAME_LIST *list, const CHAR *name)
     entry = (NAME_ENTRY *)((BYTE *)name - offsetof(NAME_ENTRY, name));
 
     // Search array for the entry
-    vector = ArrayPtrSearch(&entry, list->array, list->count, CompareName);
+    vector = ArrayPtrSearch(entry, list->array, list->count, CompareName);
 
     if (vector != NULL) {
-        // Dereference pointer to get the actual NAME_ENTRY structure
-        entry = vector[0];
-
         // Remove the entry from the array
-        ArrayPtrDelete(&entry, list->array, list->count, CompareName);
-        Io_Free(entry);
+        ArrayPtrDelete(vector, list->array, list->count, CompareName);
+        Io_Free(vector[0]);
 
         // Decrement the element count
         --list->count;
