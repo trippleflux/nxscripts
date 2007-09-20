@@ -24,8 +24,6 @@ static INT CompareName(const VOID *elem1, const VOID *elem2)
     const NAME_ENTRY **entry1 = elem1;
     const NAME_ENTRY **entry2 = elem2;
 
-    TRACE("CMP(%s,%s)\n", entry1[0]->name, entry2[0]->name);
-
     return strcmp(entry1[0]->name, entry2[0]->name);
 }
 
@@ -91,6 +89,7 @@ static INLINE DWORD TableRead(const CHAR *path, CHAR **buffer, SIZE_T *bufferLen
 static INLINE DWORD TableParseInsert(NAME_LIST *list, const CHAR *name, SIZE_T nameLength, INT32 id)
 {
     NAME_ENTRY  *entry;
+    NAME_ENTRY  **vector;
     VOID        *newMem;
 
     ASSERT(list != NULL);
@@ -118,11 +117,12 @@ static INLINE DWORD TableParseInsert(NAME_LIST *list, const CHAR *name, SIZE_T n
     }
 
     // Insert entry into the array
-    if (ArrayPtrInsert(entry, list->array, list->count, CompareName) == NULL) {
+    vector = ArrayPtrInsert(entry, list->array, list->count, CompareName);
+    if (vector != NULL) {
         // Entry already exists
         Io_Free(entry);
     } else {
-        list->count++;
+        ++list->count;
     }
 
     return ERROR_SUCCESS;
