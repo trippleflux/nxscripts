@@ -30,8 +30,9 @@ typedef struct {
     HANDLE  file;   // Handle to the user/group file
 } MOD_CONTEXT;
 
+
 //
-// User module functions
+// Group module functions
 //
 
 DWORD GroupRegister(CHAR *groupName, GROUPFILE *groupFile, INT32 *groupIdPtr);
@@ -64,6 +65,7 @@ DWORD FileGroupOpen(INT32 groupId, GROUPFILE *groupFile);
 DWORD FileGroupWrite(GROUPFILE *groupFile);
 DWORD FileGroupClose(GROUPFILE *groupFile);
 
+
 //
 // User module functions
 //
@@ -99,22 +101,28 @@ DWORD FileUserWrite(USERFILE *userFile);
 DWORD FileUserClose(USERFILE *userFile);
 
 
+//
+// Database syncronization
+//
+
 typedef enum {
-    CHANGE_TYPE_CREATE = 0,
-    CHANGE_TYPE_RENAME = 1,
-    CHANGE_TYPE_DELETE = 2,
-} CHANGE_TYPE;
+    SYNC_EVENT_CREATE = 0,
+    SYNC_EVENT_RENAME = 1,
+    SYNC_EVENT_DELETE = 2,
+} SYNC_EVENT;
 
-//
-// Group database sync
-//
+typedef struct {
+    VOID    *foobar;
+} SYNC_LOCAL;
 
-DWORD DbGroupRefresh(DB_CONTEXT *dbContext, ULONG lastUpdate);
+typedef struct {
+    ULONG       currUpdate; // Server time for the current update
+    ULONG       prevUpdate; // Server time of the last update
+    SYNC_LOCAL  group;      // Group syncronization context
+    SYNC_LOCAL  user;       // User syncronization context
+} SYNC_CONTEXT;
 
-//
-// User database sync
-//
-
-DWORD DbUserRefresh(DB_CONTEXT *dbContext, ULONG lastUpdate);
+DWORD DbGroupSync(DB_CONTEXT *db, SYNC_CONTEXT *sync);
+DWORD DbUserSync(DB_CONTEXT *db, SYNC_CONTEXT *sync);
 
 #endif // BACKENDS_H_INCLUDED

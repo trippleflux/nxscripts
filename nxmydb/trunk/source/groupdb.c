@@ -145,7 +145,7 @@ static DWORD DbGroupRead(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFilePt
 
 DWORD DbGroupCreate(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 {
-    BYTE        changeType;
+    BYTE        syncEvent;
     CHAR        *query;
     DWORD       error;
     INT         result;
@@ -225,10 +225,10 @@ DWORD DbGroupCreate(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
     ZeroMemory(&bindChanges, sizeof(bindChanges));
 
     // Change event used during incremental syncs.
-    changeType = CHANGE_TYPE_CREATE;
+    syncEvent = SYNC_EVENT_CREATE;
 
     bindChanges[0].buffer_type   = MYSQL_TYPE_TINY;
-    bindChanges[0].buffer        = &changeType;
+    bindChanges[0].buffer        = &syncEvent;
 
     bindChanges[1].buffer_type   = MYSQL_TYPE_STRING;
     bindChanges[1].buffer        = groupName;
@@ -307,7 +307,7 @@ DWORD DbGroupRename(DB_CONTEXT *db, CHAR *groupName, CHAR *newName)
 
 DWORD DbGroupDelete(DB_CONTEXT *db, CHAR *groupName)
 {
-    BYTE        changeType;
+    BYTE        syncEvent;
     CHAR        *query;
     DWORD       error;
     INT         result;
@@ -370,10 +370,10 @@ DWORD DbGroupDelete(DB_CONTEXT *db, CHAR *groupName)
     ZeroMemory(&bindChanges, sizeof(bindChanges));
 
     // Change event used during incremental syncs.
-    changeType = CHANGE_TYPE_DELETE;
+    syncEvent = SYNC_EVENT_DELETE;
 
     bindChanges[0].buffer_type   = MYSQL_TYPE_TINY;
-    bindChanges[0].buffer        = &changeType;
+    bindChanges[0].buffer        = &syncEvent;
 
     bindChanges[1].buffer_type   = MYSQL_TYPE_STRING;
     bindChanges[1].buffer        = groupName;

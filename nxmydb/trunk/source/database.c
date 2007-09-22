@@ -22,6 +22,45 @@ Abstract:
 #include <errmsg.h>
 #include <rpc.h>
 
+
+//
+// Configuration structures
+//
+
+typedef struct {
+    INT     minimum;        // Minimum number of sustained connections
+    INT     average;        // Average number of sustained connections
+    INT     maximum;        // Maximum number of sustained connections
+    INT     timeout;        // Seconds to wait for a connection to become available
+    DWORD   timeoutMili;    // Same amount, but in milliseconds
+
+    INT     check;          // Seconds until an idle connection is checked
+    UINT64  checkNano;      // Same amount, but in 100 nanosecond intervals
+    INT     expire;         // Seconds until a connection expires
+    UINT64  expireNano;     // Same amount, but in 100 nanosecond intervals
+} DB_CONFIG_POOL;
+
+typedef struct {
+    SYNC_CONTEXT sync;      // Syncronization context
+    INT          interval;  // Milliseconds between each database refresh
+    TIMER        *timer;    // Refresh timer
+} DB_CONFIG_REFRESH;
+
+typedef struct {
+    CHAR    *host;          // MySQL Server host
+    CHAR    *user;          // MySQL Server username
+    CHAR    *password;      // MySQL Server password
+    CHAR    *database;      // Database name
+    INT      port;          // MySQL Server port
+    BOOL     compression;   // Use compression for the server connection
+    BOOL     sslEnable;     // Use SSL encryption for the server connection
+    CHAR    *sslCiphers;    // List of allowable ciphers to use with SSL encryption
+    CHAR    *sslCertFile;   // Path to the certificate file
+    CHAR    *sslKeyFile;    // Path to the key file
+    CHAR    *sslCAFile;     // Path to the certificate authority file
+    CHAR    *sslCAPath;     // Path to the directory containing CA certificates
+} DB_CONFIG_SERVER;
+
 //
 // Configuration variables
 //
@@ -122,11 +161,11 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
 
     connection = mysql_real_connect(
         db->handle,
-        dbConfigServer.serverHost,
-        dbConfigServer.serverUser,
-        dbConfigServer.serverPass,
-        dbConfigServer.serverDb,
-        dbConfigServer.serverPort,
+        dbConfigServer.host,
+        dbConfigServer.user,
+        dbConfigServer.password,
+        dbConfigServer.database,
+        dbConfigServer.port,
         NULL, flags);
 
     if (connection == NULL) {
@@ -373,17 +412,17 @@ static BOOL FCALL ConfigLoad(VOID)
         Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Refresh' must be greater than or equal to zero.\r\n");
         return FALSE;
     }
-    dbConfigRefresh.intervalMili = dbConfigRefresh.interval * 1000; // sec to msec
+    dbConfigRefresh.interval = dbConfigRefresh.interval * 1000; // sec to msec
 
     //
     // Read server options
     //
 
-    dbConfigServer.serverHost = ConfigGet("nxMyDB", "Host");
-    dbConfigServer.serverUser = ConfigGet("nxMyDB", "User");
-    dbConfigServer.serverPass = ConfigGet("nxMyDB", "Password");
-    dbConfigServer.serverDb   = ConfigGet("nxMyDB", "Database");
-    Io_ConfigGetInt("nxMyDB", "Port", &dbConfigServer.serverPort);
+    dbConfigServer.host     = ConfigGet("nxMyDB", "Host");
+    dbConfigServer.user     = ConfigGet("nxMyDB", "User");
+    dbConfigServer.password = ConfigGet("nxMyDB", "Password");
+    dbConfigServer.database = ConfigGet("nxMyDB", "Database");
+    Io_ConfigGetInt("nxMyDB", "Port", &dbConfigServer.port);
     Io_ConfigGetBool("nxMyDB", "Compression", &dbConfigServer.compression);
     Io_ConfigGetBool("nxMyDB", "SSL_Enable", &dbConfigServer.sslEnable);
     dbConfigServer.sslCiphers  = ConfigGet("nxMyDB", "SSL_Ciphers");
@@ -411,17 +450,17 @@ Return Values:
 static VOID FCALL ConfigFree(VOID)
 {
     // Free server options
-    if (dbConfigServer.serverHost != NULL) {
-        Io_Free(dbConfigServer.serverHost);
+    if (dbConfigServer.host != NULL) {
+        Io_Free(dbConfigServer.host);
     }
-    if (dbConfigServer.serverUser != NULL) {
-        Io_Free(dbConfigServer.serverUser);
+    if (dbConfigServer.user != NULL) {
+        Io_Free(dbConfigServer.user);
     }
-    if (dbConfigServer.serverPass != NULL) {
-        Io_Free(dbConfigServer.serverPass);
+    if (dbConfigServer.password != NULL) {
+        Io_Free(dbConfigServer.password);
     }
-    if (dbConfigServer.serverDb != NULL) {
-        Io_Free(dbConfigServer.serverDb);
+    if (dbConfigServer.database != NULL) {
+        Io_Free(dbConfigServer.database);
     }
 
     // Free SSL options
@@ -662,12 +701,15 @@ static DWORD RefreshTimer(VOID *context, TIMER *timer)
             TRACE("Unable to retrieve server timestamp (error %lu).\n", result);
 
         } else {
-            // Groups must be updated before users.
-            DbGroupRefresh(db, dbConfigRefresh.lastUpdate);
-            DbUserRefresh(db, dbConfigRefresh.lastUpdate);
+            // Update the current time
+            dbConfigRefresh.sync.currUpdate = currentTime;
 
-            // Set the last update time
-            dbConfigRefresh.lastUpdate = currentTime;
+            // Groups must be updated before users
+            DbGroupSync(db, &dbConfigRefresh.sync);
+            DbUserSync(db, &dbConfigRefresh.sync);
+
+            // Update the previous time
+            dbConfigRefresh.sync.prevUpdate = currentTime;
         }
 
         DbRelease(db);
@@ -676,7 +718,7 @@ static DWORD RefreshTimer(VOID *context, TIMER *timer)
     }
 
     // Execute the timer again
-    return dbConfigRefresh.intervalMili;
+    return dbConfigRefresh.interval;
 }
 
 
@@ -759,8 +801,8 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
     }
 
     // Start database refresh timer
-    if (dbConfigRefresh.intervalMili > 0) {
-        dbConfigRefresh.timer = Io_StartIoTimer(NULL, RefreshTimer, NULL, dbConfigRefresh.intervalMili);
+    if (dbConfigRefresh.interval > 0) {
+        dbConfigRefresh.timer = Io_StartIoTimer(NULL, RefreshTimer, NULL, dbConfigRefresh.interval);
     }
 
     Io_Putlog(LOG_ERROR, "nxMyDB: v%s loaded, using MySQL Client Library v%s.\r\n",

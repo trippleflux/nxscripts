@@ -151,10 +151,10 @@ static DWORD SyncFull(DB_CONTEXT *db)
     return ERROR_NOT_SUPPORTED;
 }
 
-static DWORD SyncIncremental(DB_CONTEXT *db, ULONG lastUpdate)
+static DWORD SyncIncremental(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 {
     ASSERT(db != NULL);
-    ASSERT(lastUpdate > 0);
+    ASSERT(sync != NULL);
 
     //
     // process io_group_changes table
@@ -169,17 +169,21 @@ static DWORD SyncIncremental(DB_CONTEXT *db, ULONG lastUpdate)
     return ERROR_NOT_SUPPORTED;
 }
 
-DWORD DbGroupRefresh(DB_CONTEXT *db, ULONG lastUpdate)
+DWORD DbGroupSync(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 {
     DWORD result;
 
     ASSERT(db != NULL);
-    TRACE("db=%p lastUpdate=%lu\n", db, lastUpdate);
+    ASSERT(sync != NULL);
+    TRACE("db=%p sync=%p\n", db, sync);
 
-    if (lastUpdate) {
-        result = SyncIncremental(db, lastUpdate);
-    } else {
+    if (sync->prevUpdate == 0) {
+        // If there was no previous update time, we
+        // perform a full group syncronization.
         result = SyncFull(db);
+    } else {
+        ASSERT(sync->currUpdate != 0);
+        result = SyncIncremental(db, sync);
     }
 
     return result;

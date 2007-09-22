@@ -18,10 +18,11 @@ Abstract:
 #include <backends.h>
 #include <database.h>
 
-DWORD DbUserRefresh(DB_CONTEXT *db, ULONG lastUpdate)
+DWORD DbUserSync(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 {
     ASSERT(db != NULL);
-    TRACE("db=%p lastUpdate=%lu\n", db, lastUpdate);
+    ASSERT(sync != NULL);
+    TRACE("db=%p sync=%p\n", db, sync);
 
     // TODO
 

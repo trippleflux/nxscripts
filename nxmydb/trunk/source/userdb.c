@@ -481,7 +481,7 @@ static DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
 
 DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 {
-    BYTE        changeType;
+    BYTE        syncEvent;
     CHAR        buffer[128];
     CHAR        *host;
     CHAR        *query;
@@ -721,10 +721,10 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     ZeroMemory(&bindChanges, sizeof(bindChanges));
 
     // Change event used during incremental syncs.
-    changeType = CHANGE_TYPE_CREATE;
+    syncEvent = SYNC_EVENT_CREATE;
 
     bindChanges[0].buffer_type   = MYSQL_TYPE_TINY;
-    bindChanges[0].buffer        = &changeType;
+    bindChanges[0].buffer        = &syncEvent;
 
     bindChanges[1].buffer_type   = MYSQL_TYPE_STRING;
     bindChanges[1].buffer        = userName;
@@ -834,7 +834,7 @@ rollback:
 
 DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
 {
-    BYTE        changeType;
+    BYTE        syncEvent;
     CHAR        *query;
     DWORD       error;
     INT         result;
@@ -1000,10 +1000,10 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     ZeroMemory(&bindChanges, sizeof(bindChanges));
 
     // Change event used during incremental syncs.
-    changeType = CHANGE_TYPE_RENAME;
+    syncEvent = SYNC_EVENT_RENAME;
 
     bindChanges[0].buffer_type   = MYSQL_TYPE_TINY;
-    bindChanges[0].buffer        = &changeType;
+    bindChanges[0].buffer        = &syncEvent;
 
     bindChanges[1].buffer_type   = MYSQL_TYPE_STRING;
     bindChanges[1].buffer        = userName;
@@ -1105,7 +1105,7 @@ rollback:
 
 DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
 {
-    BYTE        changeType;
+    BYTE        syncEvent;
     CHAR        *query;
     DWORD       error;
     INT         result;
@@ -1252,10 +1252,10 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     ZeroMemory(&bindChanges, sizeof(bindChanges));
 
     // Change event used during incremental syncs.
-    changeType = CHANGE_TYPE_DELETE;
+    syncEvent = SYNC_EVENT_DELETE;
 
     bindChanges[0].buffer_type   = MYSQL_TYPE_TINY;
-    bindChanges[0].buffer        = &changeType;
+    bindChanges[0].buffer        = &syncEvent;
 
     bindChanges[1].buffer_type   = MYSQL_TYPE_STRING;
     bindChanges[1].buffer        = userName;
