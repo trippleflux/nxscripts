@@ -118,9 +118,9 @@ static INT32 GroupCreate(CHAR *groupName)
 
             // If the file or database creation failed, clean-up the group file
             if (result != ERROR_SUCCESS) {
-                GroupUnregister(groupName);
                 FileGroupDelete(groupId);
-                FileGroupClose(&groupFile);
+                GroupClose(&groupFile);
+                GroupUnregister(groupName);
             }
         }
 

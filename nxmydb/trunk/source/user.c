@@ -121,9 +121,9 @@ static INT32 UserCreate(CHAR *userName)
 
             // If the file or database creation failed, clean-up the user file
             if (result != ERROR_SUCCESS) {
-                UserUnregister(userName);
                 FileUserDelete(userId);
-                FileUserClose(&userFile);
+                UserClose(&userFile);
+                UserUnregister(userName);
             }
         }
 
