@@ -19,7 +19,7 @@ Abstract:
 #include <database.h>
 #include <namelist.h>
 
-static DWORD SyncFull(DB_CONTEXT *db)
+static DWORD GroupSyncFull(DB_CONTEXT *db)
 {
     CHAR        *query;
     CHAR        groupName[_MAX_NAME + 1];
@@ -148,10 +148,10 @@ static DWORD SyncFull(DB_CONTEXT *db)
 
     NameListDestroy(&list);
 
-    return ERROR_NOT_SUPPORTED;
+    return ERROR_SUCCESS;
 }
 
-static DWORD SyncIncremental(DB_CONTEXT *db, SYNC_CONTEXT *sync)
+static DWORD GroupSyncIncremental(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 {
     ASSERT(db != NULL);
     ASSERT(sync != NULL);
@@ -166,7 +166,7 @@ static DWORD SyncIncremental(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     //  - done incrementally
     //
 
-    return ERROR_NOT_SUPPORTED;
+    return ERROR_SUCCESS;
 }
 
 DWORD DbGroupSync(DB_CONTEXT *db, SYNC_CONTEXT *sync)
@@ -180,10 +180,10 @@ DWORD DbGroupSync(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     if (sync->prevUpdate == 0) {
         // If there was no previous update time, we
         // perform a full group syncronization.
-        result = SyncFull(db);
+        result = GroupSyncFull(db);
     } else {
         ASSERT(sync->currUpdate != 0);
-        result = SyncIncremental(db, sync);
+        result = GroupSyncIncremental(db, sync);
     }
 
     return result;

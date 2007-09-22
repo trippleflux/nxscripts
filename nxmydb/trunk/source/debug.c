@@ -61,19 +61,19 @@ Return Values:
     None.
 
 --*/
-VOID CCALL TraceFormat(const char *funct, const char *format, ...)
+VOID CCALL TraceFormat(const CHAR *funct, const CHAR *format, ...)
 {
-    char *end;
-    char output[1024];
-    DWORD error;
-    size_t remaining;
+    CHAR    *end;
+    CHAR    output[1024];
+    DWORD   error;
+    SIZE_T  remaining;
     va_list argList;
-
-    ASSERT(funct != NULL);
-    ASSERT(format != NULL);
 
     // Preserve system error code
     error = GetLastError();
+
+    ASSERT(funct != NULL);
+    ASSERT(format != NULL);
 
     StringCchPrintfExA(output, ELEMENT_COUNT(output), &end, &remaining, 0,
         "| %4d | %17s | ", GetCurrentThreadId(), funct);
