@@ -723,6 +723,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
     bindChanges[0].buffer_type   = MYSQL_TYPE_TINY;
     bindChanges[0].buffer        = &syncEvent;
+    bindChanges[0].is_unsigned   = TRUE;
 
     bindChanges[1].buffer_type   = MYSQL_TYPE_STRING;
     bindChanges[1].buffer        = userName;
@@ -1002,6 +1003,7 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
 
     bindChanges[0].buffer_type   = MYSQL_TYPE_TINY;
     bindChanges[0].buffer        = &syncEvent;
+    bindChanges[0].is_unsigned   = TRUE;
 
     bindChanges[1].buffer_type   = MYSQL_TYPE_STRING;
     bindChanges[1].buffer        = userName;
@@ -1254,6 +1256,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
 
     bindChanges[0].buffer_type   = MYSQL_TYPE_TINY;
     bindChanges[0].buffer        = &syncEvent;
+    bindChanges[0].is_unsigned   = TRUE;
 
     bindChanges[1].buffer_type   = MYSQL_TYPE_STRING;
     bindChanges[1].buffer        = userName;
@@ -1396,6 +1399,7 @@ DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
     bind[2].buffer_type   = MYSQL_TYPE_LONG;
     bind[2].buffer        = &dbConfigLock.expire;
+    bind[2].is_unsigned   = TRUE;
 
     result = mysql_stmt_bind_param(stmt, bind);
     if (result != 0) {

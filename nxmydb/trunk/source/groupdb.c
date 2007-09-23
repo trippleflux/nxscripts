@@ -229,6 +229,7 @@ DWORD DbGroupCreate(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 
     bindChanges[0].buffer_type   = MYSQL_TYPE_TINY;
     bindChanges[0].buffer        = &syncEvent;
+    bindChanges[0].is_unsigned   = TRUE;
 
     bindChanges[1].buffer_type   = MYSQL_TYPE_STRING;
     bindChanges[1].buffer        = groupName;
@@ -374,6 +375,7 @@ DWORD DbGroupDelete(DB_CONTEXT *db, CHAR *groupName)
 
     bindChanges[0].buffer_type   = MYSQL_TYPE_TINY;
     bindChanges[0].buffer        = &syncEvent;
+    bindChanges[0].is_unsigned   = TRUE;
 
     bindChanges[1].buffer_type   = MYSQL_TYPE_STRING;
     bindChanges[1].buffer        = groupName;
@@ -495,6 +497,7 @@ DWORD DbGroupLock(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 
     bind[2].buffer_type   = MYSQL_TYPE_LONG;
     bind[2].buffer        = &dbConfigLock.expire;
+    bind[2].is_unsigned   = TRUE;
 
     result = mysql_stmt_bind_param(stmt, bind);
     if (result != 0) {
