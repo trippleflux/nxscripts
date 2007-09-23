@@ -644,6 +644,7 @@ static DWORD RefreshGetTime(DB_CONTEXT *db, ULONG *timePtr)
 
     bind[0].buffer_type = MYSQL_TYPE_LONG;
     bind[0].buffer      = timePtr;
+    bind[0].is_unsigned = TRUE;
 
     result = mysql_stmt_bind_result(stmt, bind);
     if (result != 0) {
