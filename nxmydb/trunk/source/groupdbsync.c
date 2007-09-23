@@ -316,12 +316,6 @@ static DWORD SyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
         return DbMapErrorFromStmt(stmt);
     }
 
-    metadata = mysql_stmt_result_metadata(stmt);
-    if (metadata == NULL) {
-        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
-        return DbMapErrorFromStmt(stmt);
-    }
-
     //
     // Execute prepared statement
     //
@@ -443,12 +437,6 @@ static DWORD SyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     result = mysql_stmt_bind_param(stmt, bindInput);
     if (result != 0) {
         TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmt));
-        return DbMapErrorFromStmt(stmt);
-    }
-
-    metadata = mysql_stmt_result_metadata(stmt);
-    if (metadata == NULL) {
-        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 

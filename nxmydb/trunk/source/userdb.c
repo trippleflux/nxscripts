@@ -115,7 +115,7 @@ static DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
 
     metadataUsers = mysql_stmt_result_metadata(stmtUsers);
     if (metadataUsers == NULL) {
-        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtUsers));
+        TRACE("Unable to retrieve result metadata: %s\n", mysql_stmt_error(stmtUsers));
         return DbMapErrorFromStmt(stmtUsers);
     }
 
@@ -146,7 +146,7 @@ static DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
 
     metadataAdmins = mysql_stmt_result_metadata(stmtAdmins);
     if (metadataAdmins == NULL) {
-        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtAdmins));
+        TRACE("Unable to retrieve result metadata: %s\n", mysql_stmt_error(stmtAdmins));
         return DbMapErrorFromStmt(stmtAdmins);
     }
 
@@ -177,7 +177,7 @@ static DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
 
     metadataGroups = mysql_stmt_result_metadata(stmtGroups);
     if (metadataGroups == NULL) {
-        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtGroups));
+        TRACE("Unable to retrieve result metadata: %s\n", mysql_stmt_error(stmtGroups));
         return DbMapErrorFromStmt(stmtGroups);
     }
 
@@ -208,7 +208,7 @@ static DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
 
     metadataHosts = mysql_stmt_result_metadata(stmtHosts);
     if (metadataHosts == NULL) {
-        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtHosts));
+        TRACE("Unable to retrieve result metadata: %s\n", mysql_stmt_error(stmtHosts));
         return DbMapErrorFromStmt(stmtHosts);
     }
 

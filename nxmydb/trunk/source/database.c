@@ -625,7 +625,7 @@ static DWORD RefreshGetTime(DB_CONTEXT *db, ULONG *timePtr)
 
     metadata = mysql_stmt_result_metadata(stmt);
     if (metadata == NULL) {
-        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to retrieve result metadata: %s\n", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
