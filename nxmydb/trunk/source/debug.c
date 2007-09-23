@@ -66,7 +66,7 @@ VOID CCALL TraceFormat(const CHAR *funct, const CHAR *format, ...)
     CHAR    *end;
     CHAR    output[1024];
     DWORD   error;
-    SIZE_T  remaining;
+    size_t  remaining;
     va_list argList;
 
     // Preserve system error code
