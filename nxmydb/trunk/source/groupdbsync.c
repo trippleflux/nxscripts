@@ -50,7 +50,7 @@ static DWORD EventCreate(CHAR *groupName, GROUPFILE *groupFile)
             if (result != ERROR_SUCCESS) {
                 TRACE("Unable to create group file (error %lu).\n", result);
 
-                //Creation failed, clean-up the group file
+                // Creation failed, clean-up the group file
                 FileGroupDelete(groupId);
                 FileGroupClose(groupFile);
                 GroupUnregister(groupName);
@@ -206,6 +206,10 @@ static DWORD SyncFull(DB_CONTEXT *db)
         return DbMapErrorFromStmt(stmt);
     }
 
+    //
+    // Process result set
+    //
+
     for (;;) {
         ZeroMemory(&groupFile, sizeof(GROUPFILE));
         if (mysql_stmt_fetch(stmt) != 0) {
@@ -253,22 +257,275 @@ static DWORD SyncFull(DB_CONTEXT *db)
     return ERROR_SUCCESS;
 }
 
-static DWORD SyncIncremental(DB_CONTEXT *db, SYNC_CONTEXT *sync)
+static DWORD SyncIncrementalChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 {
+    CHAR        *query;
+    BYTE        syncEvent;
+    CHAR        syncInfo[255];
+    CHAR        groupName[_MAX_NAME + 1];
+    DWORD       error;
+    GROUPFILE   groupFile;
+    INT         result;
+    ULONG       outputLength;
+    MYSQL_BIND  bindInput[2];
+    MYSQL_BIND  bindOutput[3];
+    MYSQL_RES   *metadata;
+    MYSQL_STMT  *stmt;
+
     ASSERT(db != NULL);
     ASSERT(sync != NULL);
 
     //
-    // process io_group_changes table
-    //  - creates/renames/deletes
-    //  - done incrementally
-    //
-    // process io_group table
-    //  - groupfile changes
-    //  - done incrementally
+    // Prepare statement and bind parameters
     //
 
+    stmt = db->stmt[7];
+
+    query = "SELECT name, type, info FROM io_group_changes"
+            "  WHERE time BETWEEN ? AND ?"
+            "  ORDER BY id ASC";
+
+    result = mysql_stmt_prepare(stmt, query, strlen(query));
+    if (result != 0) {
+        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    DB_CHECK_PARAMS(bindInput, stmt);
+    ZeroMemory(&bindInput, sizeof(bindInput));
+
+    bindInput[0].buffer_type = MYSQL_TYPE_LONG;
+    bindInput[0].buffer      = &sync->prevUpdate;
+    bindInput[0].is_unsigned = TRUE;
+
+    bindInput[1].buffer_type = MYSQL_TYPE_LONG;
+    bindInput[1].buffer      = &sync->currUpdate;
+    bindInput[1].is_unsigned = TRUE;
+
+    result = mysql_stmt_bind_param(stmt, bindInput);
+    if (result != 0) {
+        TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    metadata = mysql_stmt_result_metadata(stmt);
+    if (metadata == NULL) {
+        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    metadata = mysql_stmt_result_metadata(stmt);
+    if (metadata == NULL) {
+        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    //
+    // Execute prepared statement
+    //
+
+    result = mysql_stmt_execute(stmt);
+    if (result != 0) {
+        TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    //
+    // Bind and fetch results
+    //
+
+    DB_CHECK_RESULTS(bindOutput, metadata);
+    ZeroMemory(&bindOutput, sizeof(bindOutput));
+
+    bindOutput[0].buffer_type   = MYSQL_TYPE_STRING;
+    bindOutput[0].buffer        = groupName;
+    bindOutput[0].buffer_length = sizeof(groupName);
+    bindOutput[0].length        = &outputLength;
+
+    bindOutput[1].buffer_type   = MYSQL_TYPE_TINY;
+    bindOutput[1].buffer        = &syncEvent;
+    bindOutput[1].is_unsigned   = TRUE;
+
+    bindOutput[2].buffer_type   = MYSQL_TYPE_STRING;
+    bindOutput[2].buffer        = syncInfo;
+    bindOutput[2].buffer_length = sizeof(syncInfo);
+    bindOutput[2].length        = &outputLength;
+
+    result = mysql_stmt_bind_result(stmt, bindOutput);
+    if (result != 0) {
+        TRACE("Unable to bind results: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    result = mysql_stmt_store_result(stmt);
+    if (result != 0) {
+        TRACE("Unable to buffer results: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    //
+    // Process result set
+    //
+
+    for (;;) {
+        if (mysql_stmt_fetch(stmt) != 0) {
+            break;
+        }
+
+        switch ((SYNC_EVENT)syncEvent) {
+            case SYNC_EVENT_CREATE:
+                TRACE("GroupSyncIncr: Create(%s)\n", groupName);
+                break;
+
+            case SYNC_EVENT_RENAME:
+                TRACE("GroupSyncIncr: Rename(%s,%s)\n", groupName, syncInfo);
+                break;
+
+            case SYNC_EVENT_DELETE:
+                TRACE("GroupSyncIncr: Delete(%s)\n", groupName);
+                break;
+
+            default:
+                TRACE("Unknown sync event %d.\n", syncEvent);
+                break;
+        }
+    }
+
+    mysql_free_result(metadata);
+
     return ERROR_SUCCESS;
+}
+
+static DWORD SyncIncrementalUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
+{
+    CHAR        *query;
+    CHAR        groupName[_MAX_NAME + 1];
+    DWORD       error;
+    GROUPFILE   groupFile;
+    INT         result;
+    ULONG       outputLength;
+    MYSQL_BIND  bindInput[2];
+    MYSQL_BIND  bindOutput[1];
+    MYSQL_RES   *metadata;
+    MYSQL_STMT  *stmt;
+
+    ASSERT(db != NULL);
+    ASSERT(sync != NULL);
+
+    //
+    // Prepare statement and bind parameters
+    //
+
+    stmt = db->stmt[7];
+
+    query = "SELECT name FROM io_group WHERE updated BETWEEN ? AND ?";
+
+    result = mysql_stmt_prepare(stmt, query, strlen(query));
+    if (result != 0) {
+        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    DB_CHECK_PARAMS(bindInput, stmt);
+    ZeroMemory(&bindInput, sizeof(bindInput));
+
+    bindInput[0].buffer_type = MYSQL_TYPE_LONG;
+    bindInput[0].buffer      = &sync->prevUpdate;
+    bindInput[0].is_unsigned = TRUE;
+
+    bindInput[1].buffer_type = MYSQL_TYPE_LONG;
+    bindInput[1].buffer      = &sync->currUpdate;
+    bindInput[1].is_unsigned = TRUE;
+
+    result = mysql_stmt_bind_param(stmt, bindInput);
+    if (result != 0) {
+        TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    metadata = mysql_stmt_result_metadata(stmt);
+    if (metadata == NULL) {
+        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    metadata = mysql_stmt_result_metadata(stmt);
+    if (metadata == NULL) {
+        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    //
+    // Execute prepared statement
+    //
+
+    result = mysql_stmt_execute(stmt);
+    if (result != 0) {
+        TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    //
+    // Bind and fetch results
+    //
+
+    DB_CHECK_RESULTS(bindOutput, metadata);
+    ZeroMemory(&bindOutput, sizeof(bindOutput));
+
+    bindOutput[0].buffer_type   = MYSQL_TYPE_STRING;
+    bindOutput[0].buffer        = groupName;
+    bindOutput[0].buffer_length = sizeof(groupName);
+    bindOutput[0].length        = &outputLength;
+
+    result = mysql_stmt_bind_result(stmt, bindOutput);
+    if (result != 0) {
+        TRACE("Unable to bind results: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    result = mysql_stmt_store_result(stmt);
+    if (result != 0) {
+        TRACE("Unable to buffer results: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    //
+    // Process result set
+    //
+
+    for (;;) {
+        if (mysql_stmt_fetch(stmt) != 0) {
+            break;
+        }
+
+        TRACE("GroupSyncIncr: Update(%s)\n", groupName);
+    }
+
+    mysql_free_result(metadata);
+
+    return ERROR_SUCCESS;
+}
+
+static DWORD SyncIncremental(DB_CONTEXT *db, SYNC_CONTEXT *sync)
+{
+    DWORD result;
+
+    ASSERT(db != NULL);
+    ASSERT(sync != NULL);
+
+    // Process events from the "io_group_changes" table
+    result = SyncIncrementalChanges(db, sync);
+    if (result != ERROR_SUCCESS) {
+        TRACE("Unable to sync incremental changes (error %lu).\n", result);
+    }
+
+    // Process updates from the "io_group" table
+    result = SyncIncrementalUpdates(db, sync);
+    if (result != ERROR_SUCCESS) {
+        TRACE("Unable to sync incremental updates (error %lu).\n", result);
+    }
+
+    return result;
 }
 
 
