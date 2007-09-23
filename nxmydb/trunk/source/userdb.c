@@ -524,11 +524,9 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     //
 
     query = "INSERT INTO io_user"
-            "("
-            "name,description,flags,home,limits,password,vfsfile,credits,ratio,"
-            "alldn,allup,daydn,dayup,monthdn,monthup,wkdn,wkup,updated"
-            ")"
-            " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,UNIX_TIMESTAMP())";
+            "(name,description,flags,home,limits,password,vfsfile,credits,"
+            "ratio,alldn,allup,daydn,dayup,monthdn,monthup,wkdn,wkup)"
+            " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
     result = mysql_stmt_prepare(stmtUsers, query, strlen(query));
     if (result != 0) {
@@ -870,7 +868,7 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     // Prepare users statement and bind parameters
     //
 
-    query = "UPDATE io_user SET name=?, updated=UNIX_TIMESTAMP() WHERE name=?";
+    query = "UPDATE io_user SET name=? WHERE name=?";
 
     result = mysql_stmt_prepare(stmtUsers, query, strlen(query));
     if (result != 0) {

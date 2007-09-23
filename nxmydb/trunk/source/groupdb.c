@@ -170,8 +170,8 @@ DWORD DbGroupCreate(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
     //
 
     query = "INSERT INTO io_group"
-            " (name,description,slots,users,vfsfile,updated)"
-            " VALUES(?,?,?,?,?,UNIX_TIMESTAMP())";
+            " (name,description,slots,users,vfsfile)"
+            " VALUES(?,?,?,?,?)";
 
     result = mysql_stmt_prepare(stmtGroup, query, strlen(query));
     if (result != 0) {

@@ -10,7 +10,7 @@ CREATE TABLE io_group (
   slots       tinyblob     NOT NULL,
   users       int          NOT NULL,
   vfsfile     varchar(260) NOT NULL,
-  updated     int unsigned NOT NULL,
+  updated     int unsigned NOT NULL default 0,
   lockowner   varchar(36)           default NULL,
   locktime    int unsigned NOT NULL default 0,
   PRIMARY KEY (name)
@@ -43,7 +43,7 @@ CREATE TABLE io_user (
   monthup     tinyblob     NOT NULL,
   wkdn        tinyblob     NOT NULL,
   wkup        tinyblob     NOT NULL,
-  updated     int unsigned NOT NULL,
+  updated     int unsigned NOT NULL default 0,
   lockowner   varchar(36)           default NULL,
   locktime    int unsigned NOT NULL default 0,
   PRIMARY KEY (name)
