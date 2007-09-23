@@ -79,7 +79,7 @@ static DWORD EventRename(CHAR *groupName, CHAR *newName)
     return result;
 }
 
-static DWORD EventDelete(CHAR *groupName, INT32 groupId)
+static DWORD EventDeleteEx(CHAR *groupName, INT32 groupId)
 {
     DWORD result;
 
@@ -93,6 +93,28 @@ static DWORD EventDelete(CHAR *groupName, INT32 groupId)
 
     // Unregister group
     result = GroupUnregister(groupName);
+
+    return result;
+}
+
+static DWORD EventDelete(CHAR *groupName)
+{
+    DWORD result;
+    INT32 groupId;
+
+    ASSERT(groupName != NULL);
+
+    // Resolve group name to ID
+    groupId = Io_Group2Gid(groupName);
+    if (groupId == -1) {
+        result = GetLastError();
+        ASSERT(result != ERROR_SUCCESS);
+
+        TRACE("Unable to resolve group \"%s\" (error %lu).\n", groupName, result);
+    } else {
+        // Delete group
+        result = EventDeleteEx(groupName, groupId);
+    }
 
     return result;
 }
@@ -247,7 +269,7 @@ static DWORD SyncFull(DB_CONTEXT *db)
         TRACE("GroupSyncFull: Delete(%s,%d)\n", entry->name, entry->id);
 
         // Group does not exist on database, delete it.
-        error = EventDelete(entry->name, entry->id);
+        error = EventDeleteEx(entry->name, entry->id);
         if (error != ERROR_SUCCESS) {
             TRACE("Unable to delete group \"%s\" (error %lu).\n", entry->name, error);
         }
@@ -371,14 +393,38 @@ static DWORD SyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
         switch ((SYNC_EVENT)syncEvent) {
             case SYNC_EVENT_CREATE:
                 TRACE("GroupSyncIncr: Create(%s)\n", groupName);
+
+                // Read group file from database
+                ZeroMemory(&groupFile, sizeof(GROUPFILE));
+                error = DbGroupOpen(db, groupName, &groupFile);
+                if (error != ERROR_SUCCESS) {
+                    TRACE("Unable to read group \"%s\" (error %lu).\n", groupName, error);
+                } else {
+
+                    // Create local user
+                    error = EventCreate(groupName, &groupFile);
+                    if (error != ERROR_SUCCESS) {
+                        TRACE("Unable to create group \"%s\" (error %lu).\n", groupName, error);
+                    }
+                }
                 break;
 
             case SYNC_EVENT_RENAME:
                 TRACE("GroupSyncIncr: Rename(%s,%s)\n", groupName, syncInfo);
+
+                error = EventRename(groupName, syncInfo);
+                if (error != ERROR_SUCCESS) {
+                    TRACE("Unable to rename group \"%s\" to \"%s\" (error %lu).\n", groupName, syncInfo, error);
+                }
                 break;
 
             case SYNC_EVENT_DELETE:
                 TRACE("GroupSyncIncr: Delete(%s)\n", groupName);
+
+                error = EventDelete(groupName);
+                if (error != ERROR_SUCCESS) {
+                    TRACE("Unable to delete group \"%s\" (error %lu).\n", groupName, error);
+                }
                 break;
 
             default:
@@ -401,7 +447,7 @@ static DWORD SyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     INT         result;
     ULONG       outputLength;
     MYSQL_BIND  bindInput[2];
-    MYSQL_BIND  bindOutput[1];
+    MYSQL_BIND  bindOutput[5];
     MYSQL_RES   *metadata;
     MYSQL_STMT  *stmt;
 
@@ -415,7 +461,8 @@ static DWORD SyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     stmt = db->stmt[7];
 
-    query = "SELECT name FROM io_group WHERE updated BETWEEN ? AND ?";
+    query = "SELECT name, description, slots, users, vfsfile FROM io_group"
+            "  WHERE updated BETWEEN ? AND ?";
 
     result = mysql_stmt_prepare(stmt, query, strlen(query));
     if (result != 0) {
@@ -468,6 +515,24 @@ static DWORD SyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     bindOutput[0].buffer_length = sizeof(groupName);
     bindOutput[0].length        = &outputLength;
 
+    bindOutput[1].buffer_type   = MYSQL_TYPE_STRING;
+    bindOutput[1].buffer        = groupFile.szDescription;
+    bindOutput[1].buffer_length = sizeof(groupFile.szDescription);
+    bindOutput[1].length        = &outputLength;
+
+    bindOutput[2].buffer_type   = MYSQL_TYPE_BLOB;
+    bindOutput[2].buffer        = groupFile.Slots;
+    bindOutput[2].buffer_length = sizeof(groupFile.Slots);
+    bindOutput[2].length        = &outputLength;
+
+    bindOutput[3].buffer_type   = MYSQL_TYPE_LONG;
+    bindOutput[3].buffer        = &groupFile.Users;
+
+    bindOutput[4].buffer_type   = MYSQL_TYPE_STRING;
+    bindOutput[4].buffer        = groupFile.szVfsFile;
+    bindOutput[4].buffer_length = sizeof(groupFile.szVfsFile);
+    bindOutput[4].length        = &outputLength;
+
     result = mysql_stmt_bind_result(stmt, bindOutput);
     if (result != 0) {
         TRACE("Unable to bind results: %s\n", mysql_stmt_error(stmt));
@@ -485,11 +550,16 @@ static DWORD SyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     //
 
     for (;;) {
+        ZeroMemory(&groupFile, sizeof(GROUPFILE));
         if (mysql_stmt_fetch(stmt) != 0) {
             break;
         }
-
         TRACE("GroupSyncIncr: Update(%s)\n", groupName);
+
+        error = EventUpdate(groupName, &groupFile);
+        if (error != ERROR_SUCCESS) {
+            TRACE("Unable to update group \"%s\" (error %lu).\n", groupName, error);
+        }
     }
 
     mysql_free_result(metadata);
