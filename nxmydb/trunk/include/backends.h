@@ -83,7 +83,8 @@ DWORD UserUpdateByName(CHAR *userName, USERFILE *userFile);
 // User database backend
 //
 
-DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr);
+DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile);
+DWORD DbUserReadExtra(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile);
 
 DWORD DbUserCreate(DB_CONTEXT *dbContext, CHAR *userName, USERFILE *userFile);
 DWORD DbUserRename(DB_CONTEXT *dbContext, CHAR *userName, CHAR *newName);

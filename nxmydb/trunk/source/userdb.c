@@ -37,7 +37,7 @@ static BOOL GroupIdResolve(INT groupId, CHAR *buffer, SIZE_T bufferLength)
     return TRUE;
 }
 
-DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
+DWORD DbUserReadExtra(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 {
     CHAR        buffer[128];
     CHAR        *query;
@@ -45,79 +45,34 @@ DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
     INT         result;
     SIZE_T      userNameLength;
     ULONG       bufferLength;
-    USERFILE    userFile;
     MYSQL_BIND  bindInputAdmins[1];
     MYSQL_BIND  bindInputGroups[1];
     MYSQL_BIND  bindInputHosts[1];
-    MYSQL_BIND  bindInputUsers[1];
     MYSQL_BIND  bindOutputAdmins[1];
     MYSQL_BIND  bindOutputGroups[1];
     MYSQL_BIND  bindOutputHosts[1];
-    MYSQL_BIND  bindOutputUsers[16];
     MYSQL_STMT  *stmtAdmins;
     MYSQL_STMT  *stmtGroups;
     MYSQL_STMT  *stmtHosts;
-    MYSQL_STMT  *stmtUsers;
     MYSQL_RES   *metadataAdmins;
     MYSQL_RES   *metadataGroups;
     MYSQL_RES   *metadataHosts;
-    MYSQL_RES   *metadataUsers;
 
     ASSERT(db != NULL);
     ASSERT(userName != NULL);
-    ASSERT(userFilePtr != NULL);
-    TRACE("db=%p userName=%s userFilePtr=%p\n", db, userName, userFilePtr);
+    ASSERT(userFile != NULL);
+    TRACE("db=%p userName=%s userFile=%p\n", db, userName, userFile);
 
     // Buffer must be large enough to hold a group-name or host-mask.
     ASSERT(sizeof(buffer) > _IP_LINE_LENGTH);
     ASSERT(sizeof(buffer) > _MAX_NAME);
     ZeroMemory(buffer, sizeof(buffer));
 
-    // Update a local copy of the user-file instead of the actual
-    // user-file in case there is an error occurs before the update
-    // is completely finished.
-    ZeroMemory(&userFile, sizeof(USERFILE));
-
-    stmtUsers  = db->stmt[0];
-    stmtAdmins = db->stmt[1];
-    stmtGroups = db->stmt[2];
-    stmtHosts  = db->stmt[3];
+    stmtAdmins = db->stmt[0];
+    stmtGroups = db->stmt[1];
+    stmtHosts  = db->stmt[2];
 
     userNameLength = strlen(userName);
-
-    //
-    // Prepare users statement and bind parameters
-    //
-
-    query = "SELECT description,flags,home,limits,password,vfsfile,credits,"
-            "       ratio,alldn,allup,daydn,dayup,monthdn,monthup,wkdn,wkup"
-            "  FROM io_user"
-            "  WHERE name=?";
-
-    result = mysql_stmt_prepare(stmtUsers, query, strlen(query));
-    if (result != 0) {
-        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmtUsers));
-        return DbMapErrorFromStmt(stmtUsers);
-    }
-
-    DB_CHECK_PARAMS(bindInputUsers, stmtUsers);
-    ZeroMemory(&bindInputUsers, sizeof(bindInputUsers));
-
-    bindInputUsers[0].buffer_type   = MYSQL_TYPE_STRING;
-    bindInputUsers[0].buffer        = userName;
-    bindInputUsers[0].buffer_length = userNameLength;
-
-    result = mysql_stmt_bind_param(stmtUsers, bindInputUsers);
-    if (result != 0) {
-        TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmtUsers));
-        return DbMapErrorFromStmt(stmtUsers);
-    }
-
-    metadataUsers = mysql_stmt_result_metadata(stmtUsers);
-    if (metadataUsers == NULL) {
-        TRACE("Unable to retrieve result metadata: %s\n", mysql_stmt_error(stmtUsers));
-        return DbMapErrorFromStmt(stmtUsers);
-    }
 
     //
     // Prepare admins statement and bind parameters
@@ -213,119 +168,6 @@ DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
     }
 
     //
-    // Execute prepared users statement and fetch results
-    //
-
-    result = mysql_stmt_execute(stmtUsers);
-    if (result != 0) {
-        TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtUsers));
-        return DbMapErrorFromStmt(stmtUsers);
-    }
-
-    DB_CHECK_RESULTS(bindOutputUsers, metadataUsers);
-    ZeroMemory(&bindOutputUsers, sizeof(bindOutputUsers));
-
-    bindOutputUsers[0].buffer_type   = MYSQL_TYPE_STRING;
-    bindOutputUsers[0].buffer        = userFile.Tagline;
-    bindOutputUsers[0].buffer_length = sizeof(userFile.Tagline);
-    bindOutputUsers[0].length        = &bufferLength;
-
-    bindOutputUsers[1].buffer_type   = MYSQL_TYPE_STRING;
-    bindOutputUsers[1].buffer        = userFile.Flags;
-    bindOutputUsers[1].buffer_length = sizeof(userFile.Flags);
-    bindOutputUsers[1].length        = &bufferLength;
-
-    bindOutputUsers[2].buffer_type   = MYSQL_TYPE_STRING;
-    bindOutputUsers[2].buffer        = userFile.Home;
-    bindOutputUsers[2].buffer_length = sizeof(userFile.Home);
-    bindOutputUsers[2].length        = &bufferLength;
-
-    bindOutputUsers[3].buffer_type   = MYSQL_TYPE_BLOB;
-    bindOutputUsers[3].buffer        = &userFile.Limits;
-    bindOutputUsers[3].buffer_length = sizeof(userFile.Limits);
-    bindOutputUsers[3].length        = &bufferLength;
-
-    bindOutputUsers[4].buffer_type   = MYSQL_TYPE_BLOB;
-    bindOutputUsers[4].buffer        = &userFile.Password;
-    bindOutputUsers[4].buffer_length = sizeof(userFile.Password);
-    bindOutputUsers[4].length        = &bufferLength;
-
-    bindOutputUsers[5].buffer_type   = MYSQL_TYPE_STRING;
-    bindOutputUsers[5].buffer        = userFile.MountFile;
-    bindOutputUsers[5].buffer_length = sizeof(userFile.MountFile);
-    bindOutputUsers[5].length        = &bufferLength;
-
-    bindOutputUsers[6].buffer_type   = MYSQL_TYPE_BLOB;
-    bindOutputUsers[6].buffer        = &userFile.Ratio;
-    bindOutputUsers[6].buffer_length = sizeof(userFile.Ratio);
-    bindOutputUsers[6].length        = &bufferLength;
-
-    bindOutputUsers[7].buffer_type   = MYSQL_TYPE_BLOB;
-    bindOutputUsers[7].buffer        = &userFile.Credits;
-    bindOutputUsers[7].buffer_length = sizeof(userFile.Credits);
-    bindOutputUsers[7].length        = &bufferLength;
-
-    bindOutputUsers[8].buffer_type   = MYSQL_TYPE_BLOB;
-    bindOutputUsers[8].buffer        = &userFile.DayUp;
-    bindOutputUsers[8].buffer_length = sizeof(userFile.DayUp);
-    bindOutputUsers[8].length        = &bufferLength;
-
-    bindOutputUsers[9].buffer_type   = MYSQL_TYPE_BLOB;
-    bindOutputUsers[9].buffer        = &userFile.DayDn;
-    bindOutputUsers[9].buffer_length = sizeof(userFile.DayDn);
-    bindOutputUsers[9].length        = &bufferLength;
-
-    bindOutputUsers[10].buffer_type   = MYSQL_TYPE_BLOB;
-    bindOutputUsers[10].buffer        = &userFile.WkUp;
-    bindOutputUsers[10].buffer_length = sizeof(userFile.WkUp);
-    bindOutputUsers[10].length        = &bufferLength;
-
-    bindOutputUsers[11].buffer_type   = MYSQL_TYPE_BLOB;
-    bindOutputUsers[11].buffer        = &userFile.WkDn;
-    bindOutputUsers[11].buffer_length = sizeof(userFile.WkDn);
-    bindOutputUsers[11].length        = &bufferLength;
-
-    bindOutputUsers[12].buffer_type   = MYSQL_TYPE_BLOB;
-    bindOutputUsers[12].buffer        = &userFile.MonthUp;
-    bindOutputUsers[12].buffer_length = sizeof(userFile.MonthUp);
-    bindOutputUsers[12].length        = &bufferLength;
-
-    bindOutputUsers[13].buffer_type   = MYSQL_TYPE_BLOB;
-    bindOutputUsers[13].buffer        = &userFile.MonthDn;
-    bindOutputUsers[13].buffer_length = sizeof(userFile.MonthDn);
-    bindOutputUsers[13].length        = &bufferLength;
-
-    bindOutputUsers[14].buffer_type   = MYSQL_TYPE_BLOB;
-    bindOutputUsers[14].buffer        = &userFile.AllUp;
-    bindOutputUsers[14].buffer_length = sizeof(userFile.AllUp);
-    bindOutputUsers[14].length        = &bufferLength;
-
-    bindOutputUsers[15].buffer_type   = MYSQL_TYPE_BLOB;
-    bindOutputUsers[15].buffer        = &userFile.AllDn;
-    bindOutputUsers[15].buffer_length = sizeof(userFile.AllDn);
-    bindOutputUsers[15].length        = &bufferLength;
-
-    result = mysql_stmt_bind_result(stmtUsers, bindOutputUsers);
-    if (result != 0) {
-        TRACE("Unable to bind results: %s\n", mysql_stmt_error(stmtUsers));
-        return DbMapErrorFromStmt(stmtUsers);
-    }
-
-    result = mysql_stmt_store_result(stmtUsers);
-    if (result != 0) {
-        TRACE("Unable to buffer results: %s\n", mysql_stmt_error(stmtUsers));
-        return DbMapErrorFromStmt(stmtUsers);
-    }
-
-    result = mysql_stmt_fetch(stmtUsers);
-    if (result != 0) {
-        TRACE("Unable to fetch results: %s\n", mysql_stmt_error(stmtUsers));
-        return DbMapErrorFromStmt(stmtUsers);
-    }
-
-    mysql_free_result(metadataUsers);
-
-    //
     // Execute prepared admins statement and fetch results
     //
 
@@ -359,8 +201,8 @@ DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
     while (mysql_stmt_fetch(stmtAdmins) == 0 && index < MAX_GROUPS) {
 
         // Resolve group names to IDs
-        userFile.AdminGroups[index] = Io_Group2Gid(buffer);
-        if (userFile.AdminGroups[index] == INVALID_GROUP) {
+        userFile->AdminGroups[index] = Io_Group2Gid(buffer);
+        if (userFile->AdminGroups[index] == INVALID_GROUP) {
             TRACE("Unable to resolve group \"%s\".\n", buffer);
         } else {
             index++;
@@ -369,7 +211,7 @@ DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
 
     if (index < MAX_GROUPS) {
         // Terminate the admin groups array.
-        userFile.AdminGroups[index] = INVALID_GROUP;
+        userFile->AdminGroups[index] = INVALID_GROUP;
     }
 
     mysql_free_result(metadataAdmins);
@@ -408,8 +250,8 @@ DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
     while (mysql_stmt_fetch(stmtGroups) == 0 && index < MAX_GROUPS) {
 
         // Resolve group names to IDs
-        userFile.Groups[index] = Io_Group2Gid(buffer);
-        if (userFile.Groups[index] == INVALID_GROUP) {
+        userFile->Groups[index] = Io_Group2Gid(buffer);
+        if (userFile->Groups[index] == INVALID_GROUP) {
             TRACE("Unable to resolve group \"%s\".\n", buffer);
         } else {
             index++;
@@ -418,12 +260,12 @@ DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
 
     if (index == 0) {
         // No groups, set to "NoGroup" and terminate the groups array.
-        userFile.Groups[0] = NOGROUP_ID;
-        userFile.Groups[1] = INVALID_GROUP;
+        userFile->Groups[0] = NOGROUP_ID;
+        userFile->Groups[1] = INVALID_GROUP;
 
     } else if (index < MAX_GROUPS) {
         // Terminate the groups array.
-        userFile.Groups[index] = INVALID_GROUP;
+        userFile->Groups[index] = INVALID_GROUP;
     }
 
     mysql_free_result(metadataGroups);
@@ -460,11 +302,198 @@ DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
 
     index = 0;
     while (mysql_stmt_fetch(stmtHosts) == 0 && index < MAX_IPS) {
-        StringCchCopy(userFile.Ip[index], ELEMENT_COUNT(userFile.Ip[0]), buffer);
+        StringCchCopy(userFile->Ip[index], ELEMENT_COUNT(userFile->Ip[0]), buffer);
         index++;
     }
 
     mysql_free_result(metadataHosts);
+
+    return ERROR_SUCCESS;
+}
+
+DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
+{
+    CHAR        *query;
+    DWORD       error;
+    INT         result;
+    SIZE_T      userNameLength;
+    ULONG       bufferLength;
+    USERFILE    userFile;
+    MYSQL_BIND  bindInput[1];
+    MYSQL_BIND  bindOutput[16];
+    MYSQL_STMT  *stmt;
+    MYSQL_RES   *metadata;
+
+    ASSERT(db != NULL);
+    ASSERT(userName != NULL);
+    ASSERT(userFilePtr != NULL);
+    TRACE("db=%p userName=%s userFilePtr=%p\n", db, userName, userFilePtr);
+
+    // Update a local copy of the user-file instead of the actual
+    // user-file in case there is an error occurs before the update
+    // is completely finished.
+    ZeroMemory(&userFile, sizeof(USERFILE));
+
+    stmt = db->stmt[0];
+
+    userNameLength = strlen(userName);
+
+    //
+    // Prepare statement and bind parameters
+    //
+
+    query = "SELECT description,flags,home,limits,password,vfsfile,credits,"
+            "       ratio,alldn,allup,daydn,dayup,monthdn,monthup,wkdn,wkup"
+            "  FROM io_user"
+            "  WHERE name=?";
+
+    result = mysql_stmt_prepare(stmt, query, strlen(query));
+    if (result != 0) {
+        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    DB_CHECK_PARAMS(bindInput, stmt);
+    ZeroMemory(&bindInput, sizeof(bindInput));
+
+    bindInput[0].buffer_type   = MYSQL_TYPE_STRING;
+    bindInput[0].buffer        = userName;
+    bindInput[0].buffer_length = userNameLength;
+
+    result = mysql_stmt_bind_param(stmt, bindInput);
+    if (result != 0) {
+        TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    metadata = mysql_stmt_result_metadata(stmt);
+    if (metadata == NULL) {
+        TRACE("Unable to retrieve result metadata: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    //
+    // Execute prepared statement and fetch results
+    //
+
+    result = mysql_stmt_execute(stmt);
+    if (result != 0) {
+        TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    DB_CHECK_RESULTS(bindOutput, metadata);
+    ZeroMemory(&bindOutput, sizeof(bindOutput));
+
+    bindOutput[0].buffer_type   = MYSQL_TYPE_STRING;
+    bindOutput[0].buffer        = userFile.Tagline;
+    bindOutput[0].buffer_length = sizeof(userFile.Tagline);
+    bindOutput[0].length        = &bufferLength;
+
+    bindOutput[1].buffer_type   = MYSQL_TYPE_STRING;
+    bindOutput[1].buffer        = userFile.Flags;
+    bindOutput[1].buffer_length = sizeof(userFile.Flags);
+    bindOutput[1].length        = &bufferLength;
+
+    bindOutput[2].buffer_type   = MYSQL_TYPE_STRING;
+    bindOutput[2].buffer        = userFile.Home;
+    bindOutput[2].buffer_length = sizeof(userFile.Home);
+    bindOutput[2].length        = &bufferLength;
+
+    bindOutput[3].buffer_type   = MYSQL_TYPE_BLOB;
+    bindOutput[3].buffer        = &userFile.Limits;
+    bindOutput[3].buffer_length = sizeof(userFile.Limits);
+    bindOutput[3].length        = &bufferLength;
+
+    bindOutput[4].buffer_type   = MYSQL_TYPE_BLOB;
+    bindOutput[4].buffer        = &userFile.Password;
+    bindOutput[4].buffer_length = sizeof(userFile.Password);
+    bindOutput[4].length        = &bufferLength;
+
+    bindOutput[5].buffer_type   = MYSQL_TYPE_STRING;
+    bindOutput[5].buffer        = userFile.MountFile;
+    bindOutput[5].buffer_length = sizeof(userFile.MountFile);
+    bindOutput[5].length        = &bufferLength;
+
+    bindOutput[6].buffer_type   = MYSQL_TYPE_BLOB;
+    bindOutput[6].buffer        = &userFile.Ratio;
+    bindOutput[6].buffer_length = sizeof(userFile.Ratio);
+    bindOutput[6].length        = &bufferLength;
+
+    bindOutput[7].buffer_type   = MYSQL_TYPE_BLOB;
+    bindOutput[7].buffer        = &userFile.Credits;
+    bindOutput[7].buffer_length = sizeof(userFile.Credits);
+    bindOutput[7].length        = &bufferLength;
+
+    bindOutput[8].buffer_type   = MYSQL_TYPE_BLOB;
+    bindOutput[8].buffer        = &userFile.DayUp;
+    bindOutput[8].buffer_length = sizeof(userFile.DayUp);
+    bindOutput[8].length        = &bufferLength;
+
+    bindOutput[9].buffer_type   = MYSQL_TYPE_BLOB;
+    bindOutput[9].buffer        = &userFile.DayDn;
+    bindOutput[9].buffer_length = sizeof(userFile.DayDn);
+    bindOutput[9].length        = &bufferLength;
+
+    bindOutput[10].buffer_type   = MYSQL_TYPE_BLOB;
+    bindOutput[10].buffer        = &userFile.WkUp;
+    bindOutput[10].buffer_length = sizeof(userFile.WkUp);
+    bindOutput[10].length        = &bufferLength;
+
+    bindOutput[11].buffer_type   = MYSQL_TYPE_BLOB;
+    bindOutput[11].buffer        = &userFile.WkDn;
+    bindOutput[11].buffer_length = sizeof(userFile.WkDn);
+    bindOutput[11].length        = &bufferLength;
+
+    bindOutput[12].buffer_type   = MYSQL_TYPE_BLOB;
+    bindOutput[12].buffer        = &userFile.MonthUp;
+    bindOutput[12].buffer_length = sizeof(userFile.MonthUp);
+    bindOutput[12].length        = &bufferLength;
+
+    bindOutput[13].buffer_type   = MYSQL_TYPE_BLOB;
+    bindOutput[13].buffer        = &userFile.MonthDn;
+    bindOutput[13].buffer_length = sizeof(userFile.MonthDn);
+    bindOutput[13].length        = &bufferLength;
+
+    bindOutput[14].buffer_type   = MYSQL_TYPE_BLOB;
+    bindOutput[14].buffer        = &userFile.AllUp;
+    bindOutput[14].buffer_length = sizeof(userFile.AllUp);
+    bindOutput[14].length        = &bufferLength;
+
+    bindOutput[15].buffer_type   = MYSQL_TYPE_BLOB;
+    bindOutput[15].buffer        = &userFile.AllDn;
+    bindOutput[15].buffer_length = sizeof(userFile.AllDn);
+    bindOutput[15].length        = &bufferLength;
+
+    result = mysql_stmt_bind_result(stmt, bindOutput);
+    if (result != 0) {
+        TRACE("Unable to bind results: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    result = mysql_stmt_store_result(stmt);
+    if (result != 0) {
+        TRACE("Unable to buffer results: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    result = mysql_stmt_fetch(stmt);
+    if (result != 0) {
+        TRACE("Unable to fetch results: %s\n", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    mysql_free_result(metadata);
+
+    //
+    // Read the user's admin-groups, groups, and hosts.
+    //
+
+    error = DbUserReadExtra(db, userName, &userFile);
+    if (error != ERROR_SUCCESS) {
+        TRACE("Unable to read additional user data (error %lu).\n", error);
+        return error;
+    }
 
     //
     // Initialize remaining values of the user-file structure and copy the
