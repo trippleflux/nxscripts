@@ -167,7 +167,8 @@ static DWORD SyncFull(DB_CONTEXT *db)
 
     stmt = db->stmt[7];
 
-    query = "SELECT name, description, slots, users, vfsfile FROM io_group";
+    query = "SELECT name, description, slots, users, vfsfile"
+            "  FROM io_group";
 
     result = mysql_stmt_prepare(stmt, query, strlen(query));
     if (result != 0) {
@@ -461,7 +462,8 @@ static DWORD SyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     stmt = db->stmt[7];
 
-    query = "SELECT name, description, slots, users, vfsfile FROM io_group"
+    query = "SELECT name, description, slots, users, vfsfile"
+            "  FROM io_group"
             "  WHERE updated BETWEEN ? AND ?";
 
     result = mysql_stmt_prepare(stmt, query, strlen(query));
