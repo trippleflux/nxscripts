@@ -37,7 +37,7 @@ static BOOL GroupIdResolve(INT groupId, CHAR *buffer, SIZE_T bufferLength)
     return TRUE;
 }
 
-static DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
+DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
 {
     CHAR        buffer[128];
     CHAR        *query;

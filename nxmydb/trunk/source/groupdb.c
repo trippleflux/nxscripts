@@ -18,7 +18,7 @@ Abstract:
 #include <backends.h>
 #include <database.h>
 
-static DWORD DbGroupRead(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFilePtr)
+DWORD DbGroupRead(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFilePtr)
 {
     CHAR        *query;
     INT         result;

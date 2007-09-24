@@ -45,6 +45,8 @@ DWORD GroupUpdateByName(CHAR *groupName, GROUPFILE *groupFile);
 // Group database backend
 //
 
+DWORD DbGroupRead(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile);
+
 DWORD DbGroupCreate(DB_CONTEXT *dbContext, CHAR *groupName, GROUPFILE *groupFile);
 DWORD DbGroupRename(DB_CONTEXT *dbContext, CHAR *groupName, CHAR *newName);
 DWORD DbGroupDelete(DB_CONTEXT *dbContext, CHAR *groupName);
@@ -59,6 +61,7 @@ DWORD DbGroupClose(GROUPFILE *groupFile);
 //
 
 DWORD FileGroupDefault(GROUPFILE *groupFile);
+
 DWORD FileGroupCreate(INT32 groupId, GROUPFILE *groupFile);
 DWORD FileGroupDelete(INT32 groupId);
 DWORD FileGroupOpen(INT32 groupId, GROUPFILE *groupFile);
@@ -80,6 +83,8 @@ DWORD UserUpdateByName(CHAR *userName, USERFILE *userFile);
 // User database backend
 //
 
+DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr);
+
 DWORD DbUserCreate(DB_CONTEXT *dbContext, CHAR *userName, USERFILE *userFile);
 DWORD DbUserRename(DB_CONTEXT *dbContext, CHAR *userName, CHAR *newName);
 DWORD DbUserDelete(DB_CONTEXT *dbContext, CHAR *userName);
@@ -94,6 +99,7 @@ DWORD DbUserClose(USERFILE *userFile);
 //
 
 DWORD FileUserDefault(USERFILE *userFile);
+
 DWORD FileUserCreate(INT32 userId, USERFILE *userFile);
 DWORD FileUserDelete(INT32 userId);
 DWORD FileUserOpen(INT32 userId, USERFILE *userFile);

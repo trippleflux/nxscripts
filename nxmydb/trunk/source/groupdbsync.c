@@ -396,7 +396,7 @@ static DWORD SyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
                 // Read group file from database
                 ZeroMemory(&groupFile, sizeof(GROUPFILE));
-                error = DbGroupOpen(db, groupName, &groupFile);
+                error = DbGroupRead(db, groupName, &groupFile);
                 if (error != ERROR_SUCCESS) {
                     TRACE("Unable to read group \"%s\" (error %lu).\n", groupName, error);
                 } else {
