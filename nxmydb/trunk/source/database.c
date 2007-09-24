@@ -71,7 +71,7 @@ static DB_CONFIG_POOL    dbConfigPool;
 static DB_CONFIG_REFRESH dbConfigRefresh;
 static DB_CONFIG_SERVER  dbConfigServer;
 
-static POOL *pool;          // Database connection pool
+static POOL pool;           // Database connection pool
 static INT  refCount = 0;   // Reference count initialization calls
 
 //
@@ -119,7 +119,7 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
     ASSERT(data != NULL);
     TRACE("context=%p data=%p\n", context, data);
 
-    db = Io_Allocate(sizeof(DB_CONTEXT));
+    db = MemAllocate(sizeof(DB_CONTEXT));
     if (db == NULL) {
         TRACE("Unable to allocate memory for database context.\n");
 
@@ -300,7 +300,7 @@ static VOID FCALL ConnectionClose(VOID *context, VOID *data)
     }
 
     // Free context structure
-    Io_Free(db);
+    MemFree(db);
 }
 
 
@@ -781,15 +781,7 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
     }
 
     // Create connection pool
-    pool = Io_Allocate(sizeof(POOL));
-    if (pool == NULL) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Unable to allocate memory for connection pool.\r\n");
-
-        DbFinalize();
-        return FALSE;
-    }
-
-    result = PoolCreate(pool,
+    result = PoolCreate(&pool,
         dbConfigPool.minimum, dbConfigPool.average,
         dbConfigPool.maximum, dbConfigPool.timeoutMili,
         ConnectionOpen, ConnectionCheck, ConnectionClose, NULL);
@@ -840,8 +832,7 @@ VOID FCALL DbFinalize(VOID)
         }
 
         // Destroy connection pool
-        PoolDestroy(pool);
-        Io_Free(pool);
+        PoolDestroy(&pool);
 
         // Notify user
         Io_Putlog(LOG_ERROR, "nxMyDB: v%s unloaded.\r\n", STRINGIFY(VERSION));
@@ -929,7 +920,7 @@ BOOL FCALL DbAcquire(DB_CONTEXT **dbPtr)
     TRACE("dbPtr=%p\n", dbPtr);
 
     // Acquire a database context
-    if (!PoolAcquire(pool, dbPtr)) {
+    if (!PoolAcquire(&pool, dbPtr)) {
         TRACE("Unable to acquire a database context (error %lu).\n", GetLastError());
         return FALSE;
     }
@@ -959,7 +950,7 @@ VOID FCALL DbRelease(DB_CONTEXT *db)
     GetSystemTimeAsFileTime((FILETIME *)&db->used);
 
     // Release the database context
-    if (!PoolRelease(pool, db)) {
+    if (!PoolRelease(&pool, db)) {
         TRACE("Unable to release the database context (error %lu).\n", GetLastError());
     }
 }

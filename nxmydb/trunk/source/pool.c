@@ -91,7 +91,7 @@ static INLINE POOL_RESOURCE *ContainerPop(POOL *pool)
         TAILQ_REMOVE(&pool->conQueue, container, link);
     } else {
         // Allocate a new container
-        container = Io_Allocate(sizeof(POOL_RESOURCE));
+        container = MemAllocate(sizeof(POOL_RESOURCE));
         if (container == NULL) {
             SetLastError(ERROR_NOT_ENOUGH_MEMORY);
         }
@@ -501,7 +501,7 @@ VOID FCALL PoolDestroy(POOL *pool)
 
         // Destroy resource and free the structure
         ResourceDestroy(pool, resource->data);
-        Io_Free(resource);
+        MemFree(resource);
     }
 
     ASSERT(pool->idle == 0);

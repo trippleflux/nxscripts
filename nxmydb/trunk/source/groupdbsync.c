@@ -29,7 +29,7 @@ static DWORD EventCreate(CHAR *groupName, GROUPFILE *groupFile)
     ASSERT(groupFile != NULL);
 
     // Module context is required for all file operations
-    mod = Io_Allocate(sizeof(MOD_CONTEXT));
+    mod = MemAllocate(sizeof(MOD_CONTEXT));
     if (mod == NULL) {
         result = ERROR_NOT_ENOUGH_MEMORY;
         TRACE("Unable to allocate module context.\n");
@@ -59,7 +59,7 @@ static DWORD EventCreate(CHAR *groupName, GROUPFILE *groupFile)
 
         if (result != ERROR_SUCCESS) {
             // Free module context after all file operations
-            Io_Free(mod);
+            MemFree(mod);
         }
     }
 

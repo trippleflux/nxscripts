@@ -65,7 +65,7 @@ static INLINE DWORD TableRead(const CHAR *path, CHAR **buffer, SIZE_T *bufferLen
     } else {
 
         //  Allocate read buffer
-        data = Io_Allocate(dataLength);
+        data = MemAllocate(dataLength);
         if (data == NULL) {
             result = ERROR_NOT_ENOUGH_MEMORY;
         } else {
@@ -77,7 +77,7 @@ static INLINE DWORD TableRead(const CHAR *path, CHAR **buffer, SIZE_T *bufferLen
                 result        = ERROR_SUCCESS;
             } else {
                 result = GetLastError();
-                Io_Free(data);
+                MemFree(data);
             }
         }
     }
@@ -97,7 +97,7 @@ static INLINE DWORD TableParseInsert(NAME_LIST *list, const CHAR *name, SIZE_T n
     ASSERT(nameLength > 0);
 
     // Allocate and initialize entry structure
-    entry = Io_Allocate(sizeof(NAME_ENTRY));
+    entry = MemAllocate(sizeof(NAME_ENTRY));
     if (entry == NULL) {
         return ERROR_NOT_ENOUGH_MEMORY;
     }
@@ -106,9 +106,9 @@ static INLINE DWORD TableParseInsert(NAME_LIST *list, const CHAR *name, SIZE_T n
 
     if (list->count >= list->total) {
         // Increase the size of the array by 128 entries
-        newMem = Io_ReAllocate(list->array, (list->total + 128) * sizeof(NAME_ENTRY *));
+        newMem = MemReallocate(list->array, (list->total + 128) * sizeof(NAME_ENTRY *));
         if (newMem == NULL) {
-            Io_Free(entry);
+            MemFree(entry);
             return ERROR_NOT_ENOUGH_MEMORY;
         }
 
@@ -120,7 +120,7 @@ static INLINE DWORD TableParseInsert(NAME_LIST *list, const CHAR *name, SIZE_T n
     vector = ArrayPtrInsert(entry, list->array, list->count, CompareName);
     if (vector != NULL) {
         // Entry already exists
-        Io_Free(entry);
+        MemFree(entry);
     } else {
         ++list->count;
     }
@@ -228,7 +228,7 @@ DWORD FCALL NameListCreate(NAME_LIST *list, const CHAR *path)
     // Initialize the NAME_LIST structure
     list->count = 0;
     list->total = 128;
-    list->array = Io_Allocate(list->total * sizeof(NAME_LIST *));
+    list->array = MemAllocate(list->total * sizeof(NAME_LIST *));
     if (list->array == NULL) {
         return ERROR_NOT_ENOUGH_MEMORY;
     }
@@ -240,7 +240,7 @@ DWORD FCALL NameListCreate(NAME_LIST *list, const CHAR *path)
         // Parse the ID table file
         result = TableParse(list, buffer, bufferLength);
 
-        Io_Free(buffer);
+        MemFree(buffer);
     }
 
     if (result != ERROR_SUCCESS) {
@@ -293,9 +293,9 @@ DWORD FCALL NameListDestroy(NAME_LIST *list)
     if (list->array != NULL) {
         // Free all array entries
         while (list->count--) {
-            Io_Free(list->array[list->count]);
+            MemFree(list->array[list->count]);
         }
-        Io_Free(list->array);
+        MemFree(list->array);
     }
 
     // Clear the structure
@@ -343,7 +343,7 @@ BOOL FCALL NameListRemove(NAME_LIST *list, const CHAR *name)
     if (vector != NULL) {
         // Remove the entry from the array
         ArrayPtrDelete(vector, list->array, list->count, CompareName);
-        Io_Free(vector[0]);
+        MemFree(vector[0]);
 
         // Decrement the element count
         --list->count;

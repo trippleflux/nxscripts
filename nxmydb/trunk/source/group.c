@@ -78,7 +78,7 @@ static INT32 GroupCreate(CHAR *groupName)
     }
 
     // Module context is required for all file operations
-    mod = Io_Allocate(sizeof(MOD_CONTEXT));
+    mod = MemAllocate(sizeof(MOD_CONTEXT));
     if (mod == NULL) {
         result = ERROR_NOT_ENOUGH_MEMORY;
         TRACE("Unable to allocate module context.\n");
@@ -126,7 +126,7 @@ static INT32 GroupCreate(CHAR *groupName)
 
         if (result != ERROR_SUCCESS) {
             // Free module context after all file operations
-            Io_Free(mod);
+            MemFree(mod);
 
             // Indicate an error occured by returning an invalid group ID
             groupId = -1;
@@ -274,7 +274,7 @@ static INT GroupOpen(CHAR *groupName, GROUPFILE *groupFile)
         return GM_ERROR;
     }
     // Module context is required for all file operations
-    mod = Io_Allocate(sizeof(MOD_CONTEXT));
+    mod = MemAllocate(sizeof(MOD_CONTEXT));
     if (mod == NULL) {
         result = ERROR_NOT_ENOUGH_MEMORY;
         TRACE("Unable to allocate module context.\n");
@@ -302,7 +302,7 @@ static INT GroupOpen(CHAR *groupName, GROUPFILE *groupFile)
 
         // Free module context if the file/database open failed
         if (result != ERROR_SUCCESS) {
-            Io_Free(mod);
+            MemFree(mod);
         }
     }
 
@@ -377,7 +377,7 @@ static INT GroupClose(GROUPFILE *groupFile)
         }
 
         // Free module context
-        Io_Free(mod);
+        MemFree(mod);
         groupFile->lpInternal = NULL;
     }
 

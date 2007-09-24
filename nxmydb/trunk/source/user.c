@@ -78,7 +78,7 @@ static INT32 UserCreate(CHAR *userName)
     }
 
     // Module context is required for all file operations
-    mod = Io_Allocate(sizeof(MOD_CONTEXT));
+    mod = MemAllocate(sizeof(MOD_CONTEXT));
     if (mod == NULL) {
         result = ERROR_NOT_ENOUGH_MEMORY;
         TRACE("Unable to allocate module context.\n");
@@ -129,7 +129,7 @@ static INT32 UserCreate(CHAR *userName)
 
         if (result != ERROR_SUCCESS) {
             // Free module context after all file operations
-            Io_Free(mod);
+            MemFree(mod);
 
             // Indicate an error occured by returning an invalid user ID
             userId = -1;
@@ -277,7 +277,7 @@ static INT UserOpen(CHAR *userName, USERFILE *userFile)
         return UM_ERROR;
     }
     // Module context is required for all file operations
-    mod = Io_Allocate(sizeof(MOD_CONTEXT));
+    mod = MemAllocate(sizeof(MOD_CONTEXT));
     if (mod == NULL) {
         result = ERROR_NOT_ENOUGH_MEMORY;
         TRACE("Unable to allocate module context.\n");
@@ -305,7 +305,7 @@ static INT UserOpen(CHAR *userName, USERFILE *userFile)
 
         // Free module context if the file/database open failed
         if (result != ERROR_SUCCESS) {
-            Io_Free(mod);
+            MemFree(mod);
         }
     }
 
@@ -380,7 +380,7 @@ static INT UserClose(USERFILE *userFile)
         }
 
         // Free module context
-        Io_Free(mod);
+        MemFree(mod);
         userFile->lpInternal = NULL;
     }
 
