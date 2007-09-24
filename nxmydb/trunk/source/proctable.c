@@ -48,30 +48,30 @@ Return Values:
 --*/
 BOOL FCALL ProcTableInit(Io_GetProc *getProc)
 {
-    RESOLVE("Config_Get",      procTable.ConfigGet)
-    RESOLVE("Config_GetBool",  procTable.ConfigGetBool)
-    RESOLVE("Config_GetInt",   procTable.ConfigGetInt)
-    RESOLVE("Config_GetPath",  procTable.ConfigGetPath)
+    RESOLVE("Config_Get",      procTable.pConfigGet)
+    RESOLVE("Config_GetBool",  procTable.pConfigGetBool)
+    RESOLVE("Config_GetInt",   procTable.pConfigGetInt)
+    RESOLVE("Config_GetPath",  procTable.pConfigGetPath)
 
-    RESOLVE("GetGroups",       procTable.GetGroups)
-    RESOLVE("Gid2Group",       procTable.Gid2Group)
-    RESOLVE("Group2Gid",       procTable.Group2Gid)
-    RESOLVE("Ascii2GroupFile", procTable.Ascii2GroupFile)
-    RESOLVE("GroupFile2Ascii", procTable.GroupFile2Ascii)
+    RESOLVE("GetGroups",       procTable.pGetGroups)
+    RESOLVE("Gid2Group",       procTable.pGid2Group)
+    RESOLVE("Group2Gid",       procTable.pGroup2Gid)
+    RESOLVE("Ascii2GroupFile", procTable.pAscii2GroupFile)
+    RESOLVE("GroupFile2Ascii", procTable.pGroupFile2Ascii)
 
-    RESOLVE("GetUsers",        procTable.GetUsers)
-    RESOLVE("Uid2User",        procTable.Uid2User)
-    RESOLVE("User2Uid",        procTable.User2Uid)
-    RESOLVE("Ascii2UserFile",  procTable.Ascii2UserFile)
-    RESOLVE("UserFile2Ascii",  procTable.UserFile2Ascii)
+    RESOLVE("GetUsers",        procTable.pGetUsers)
+    RESOLVE("Uid2User",        procTable.pUid2User)
+    RESOLVE("User2Uid",        procTable.pUser2Uid)
+    RESOLVE("Ascii2UserFile",  procTable.pAscii2UserFile)
+    RESOLVE("UserFile2Ascii",  procTable.pUserFile2Ascii)
 
-    RESOLVE("Allocate",        procTable.Allocate)
-    RESOLVE("ReAllocate",      procTable.ReAllocate)
-    RESOLVE("Free",            procTable.Free)
+    RESOLVE("Allocate",        procTable.pAllocate)
+    RESOLVE("ReAllocate",      procTable.pReAllocate)
+    RESOLVE("Free",            procTable.pFree)
 
-    RESOLVE("StartIoTimer",    procTable.StartIoTimer)
-    RESOLVE("StopIoTimer",     procTable.StopIoTimer)
-    RESOLVE("Putlog",          procTable.Putlog)
+    RESOLVE("StartIoTimer",    procTable.pStartIoTimer)
+    RESOLVE("StopIoTimer",     procTable.pStopIoTimer)
+    RESOLVE("Putlog",          procTable.pPutlog)
     return TRUE;
 
 failed:

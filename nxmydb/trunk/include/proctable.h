@@ -59,58 +59,58 @@ BOOL   Io_Putlog(DWORD dwLogCode, const CHAR *szFormatString, ...);
 //
 
 typedef struct {
-    CHAR  *(* ConfigGet)(CHAR *, CHAR *, CHAR *, INT *);
-    BOOL   (* ConfigGetBool)(CHAR *, CHAR *, BOOL *);
-    BOOL   (* ConfigGetInt)(CHAR *, CHAR *, INT *);
-    CHAR  *(* ConfigGetPath)(CHAR *, CHAR *, CHAR *, CHAR *);
+    CHAR  *(* pConfigGet)(CHAR *, CHAR *, CHAR *, INT *);
+    BOOL   (* pConfigGetBool)(CHAR *, CHAR *, BOOL *);
+    BOOL   (* pConfigGetInt)(CHAR *, CHAR *, INT *);
+    CHAR  *(* pConfigGetPath)(CHAR *, CHAR *, CHAR *, CHAR *);
 
-    INT32 *(* GetGroups)(DWORD *);
-    CHAR  *(* Gid2Group)(INT32);
-    INT32  (* Group2Gid)(CHAR *);
-    BOOL   (* Ascii2GroupFile)(CHAR *, DWORD, GROUPFILE *);
-    BOOL   (* GroupFile2Ascii)(BUFFER *, GROUPFILE *);
+    INT32 *(* pGetGroups)(DWORD *);
+    CHAR  *(* pGid2Group)(INT32);
+    INT32  (* pGroup2Gid)(CHAR *);
+    BOOL   (* pAscii2GroupFile)(CHAR *, DWORD, GROUPFILE *);
+    BOOL   (* pGroupFile2Ascii)(BUFFER *, GROUPFILE *);
 
-    INT32 *(* GetUsers)(DWORD *);
-    CHAR  *(* Uid2User)(INT32);
-    INT32  (* User2Uid)(CHAR *);
-    BOOL   (* Ascii2UserFile)(CHAR *, DWORD, USERFILE *);
-    BOOL   (* UserFile2Ascii)(BUFFER *, USERFILE *);
+    INT32 *(* pGetUsers)(DWORD *);
+    CHAR  *(* pUid2User)(INT32);
+    INT32  (* pUser2Uid)(CHAR *);
+    BOOL   (* pAscii2UserFile)(CHAR *, DWORD, USERFILE *);
+    BOOL   (* pUserFile2Ascii)(BUFFER *, USERFILE *);
 
-    VOID  *(* Allocate)(DWORD);
-    VOID  *(* ReAllocate)(VOID *, DWORD);
-    BOOL   (* Free)(VOID *);
+    VOID  *(* pAllocate)(DWORD);
+    VOID  *(* pReAllocate)(VOID *, DWORD);
+    BOOL   (* pFree)(VOID *);
 
-    TIMER *(* StartIoTimer)(TIMER *, Io_TimerProc *, VOID *, DWORD);
-    BOOL   (* StopIoTimer)(TIMER *, BOOL);
-    BOOL   (* Putlog)(DWORD, const CHAR *, ...);
+    TIMER *(* pStartIoTimer)(TIMER *, Io_TimerProc *, VOID *, DWORD);
+    BOOL   (* pStopIoTimer)(TIMER *, BOOL);
+    BOOL   (* pPutlog)(DWORD, const CHAR *, ...);
 } PROC_TABLE;
 
 extern PROC_TABLE procTable;
 
-#define Io_ConfigGet        procTable.ConfigGet
-#define Io_ConfigGetBool    procTable.ConfigGetBool
-#define Io_ConfigGetInt     procTable.ConfigGetInt
-#define Io_ConfigGetPath    procTable.ConfigGetPath
+#define Io_ConfigGet        procTable.pConfigGet
+#define Io_ConfigGetBool    procTable.pConfigGetBool
+#define Io_ConfigGetInt     procTable.pConfigGetInt
+#define Io_ConfigGetPath    procTable.pConfigGetPath
 
-#define Io_GetGroups        procTable.GetGroups
-#define Io_Gid2Group        procTable.Gid2Group
-#define Io_Group2Gid        procTable.Group2Gid
-#define Io_Ascii2GroupFile  procTable.Ascii2GroupFile
-#define Io_GroupFile2Ascii  procTable.GroupFile2Ascii
+#define Io_GetGroups        procTable.pGetGroups
+#define Io_Gid2Group        procTable.pGid2Group
+#define Io_Group2Gid        procTable.pGroup2Gid
+#define Io_Ascii2GroupFile  procTable.pAscii2GroupFile
+#define Io_GroupFile2Ascii  procTable.pGroupFile2Ascii
 
-#define Io_GetUsers         procTable.GetUsers
-#define Io_Uid2User         procTable.Uid2User
-#define Io_User2Uid         procTable.User2Uid
-#define Io_Ascii2UserFile   procTable.Ascii2UserFile
-#define Io_UserFile2Ascii   procTable.UserFile2Ascii
+#define Io_GetUsers         procTable.pGetUsers
+#define Io_Uid2User         procTable.pUid2User
+#define Io_User2Uid         procTable.pUser2Uid
+#define Io_Ascii2UserFile   procTable.pAscii2UserFile
+#define Io_UserFile2Ascii   procTable.pUserFile2Ascii
 
-#define Io_Allocate         procTable.Allocate
-#define Io_ReAllocate       procTable.ReAllocate
-#define Io_Free             procTable.Free
+#define Io_Allocate         procTable.pAllocate
+#define Io_ReAllocate       procTable.pReAllocate
+#define Io_Free             procTable.pFree
 
-#define Io_StartIoTimer     procTable.StartIoTimer
-#define Io_StopIoTimer      procTable.StopIoTimer
-#define Io_Putlog           procTable.Putlog
+#define Io_StartIoTimer     procTable.pStartIoTimer
+#define Io_StopIoTimer      procTable.pStopIoTimer
+#define Io_Putlog           procTable.pPutlog
 
 
 BOOL FCALL ProcTableInit(Io_GetProc *getProc);
