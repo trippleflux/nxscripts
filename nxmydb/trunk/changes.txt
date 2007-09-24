@@ -1,10 +1,10 @@
 nxMyDB v0.2.0 (not released):
   NEW: Full user and group synchronization during start-up.
-  NEW: Incremental user and group synchronization performed on user-defined intervals.
+  NEW: Incremental user and group synchronization performed on configurable intervals.
   NEW: Two new tables for keeping track of changes made to users and groups.
-  CHG: Renamed user and group tables.
+  CHG: Renamed io_users and io_group tables to io_user and io_group, respectively.
   CHG: The "updated" column will only be set on writes.
-  FIX: Correct a few possible memory leaks in failure scenarios.
+  FIX: Corrected a few possible memory leaks in failure scenarios.
 
 nxMyDB v0.1.0 (Sep 8, 2007):
   CHG: Initial release.
