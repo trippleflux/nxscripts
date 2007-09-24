@@ -172,22 +172,18 @@ VOID FCALL ArrayPtrSort(VOID *Array, SIZE_T ElemCount, COMPARE_PROC *CompProc)
     qsort(Array, ElemCount, sizeof(VOID *), CompProc);
 }
 
-BOOL FCALL ArrayPtrDelete(VOID *Elem, VOID **Array, SIZE_T ElemCount, COMPARE_PROC *CompProc)
+VOID FCALL ArrayPtrDelete(VOID *Elem, VOID **Array, SIZE_T ElemCount, COMPARE_PROC *CompProc)
 {
-    VOID    **vector;
+    VOID    **ptr = Elem;
     SIZE_T  length;
 
     ASSERT(Elem != NULL);
     ASSERT(Array != NULL);
     ASSERT(CompProc != NULL);
+    //ASSERT(Elem == ArrayPtrSearch(Elem, Array, ElemCount, CompProc));
 
-    vector = ArrayPtrSearch(Elem, Array, ElemCount, CompProc);
+    // Amount of data located after the pointer that needs to be copied.
+    length = &Array[ElemCount] - &ptr[1];
 
-    if (vector != NULL) {
-        length = &Array[ElemCount] - &vector[1];
-        CopyMemory(&vector[0], &vector[1], length * sizeof(VOID *));
-        return TRUE;
-    }
-
-    return FALSE;
+    CopyMemory(&ptr[0], &ptr[1], length * sizeof(VOID *));
 }

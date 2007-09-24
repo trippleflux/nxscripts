@@ -26,6 +26,6 @@ VOID  FCALL ArrayDelete(VOID *Elem, VOID *Array, SIZE_T ElemCount, SIZE_T ElemSi
 VOID *FCALL ArrayPtrInsert(const VOID *Elem, VOID **Array, SIZE_T ElemCount, COMPARE_PROC *CompProc);
 VOID *FCALL ArrayPtrSearch(const VOID *Elem, VOID **Array, SIZE_T ElemCount, COMPARE_PROC *CompProc);
 VOID  FCALL ArrayPtrSort(VOID *Array, SIZE_T ElemCount, COMPARE_PROC *CompProc);
-BOOL  FCALL ArrayPtrDelete(VOID *Elem, VOID **Array, SIZE_T ElemCount, COMPARE_PROC *CompProc);
+VOID  FCALL ArrayPtrDelete(VOID *Elem, VOID **Array, SIZE_T ElemCount, COMPARE_PROC *CompProc);
 
 #endif // ARRAY_H_INCLUDED

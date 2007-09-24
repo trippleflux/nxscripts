@@ -325,7 +325,6 @@ BOOL FCALL NameListRemove(NAME_LIST *list, const CHAR *name)
 {
     NAME_ENTRY  *entry;
     NAME_ENTRY  **vector;
-    SIZE_T      length;
 
     ASSERT(list != NULL);
     ASSERT(list->array != NULL);
@@ -336,39 +335,22 @@ BOOL FCALL NameListRemove(NAME_LIST *list, const CHAR *name)
     // copying the specified name into it.
     entry = (NAME_ENTRY *)((BYTE *)name - offsetof(NAME_ENTRY, name));
 
-    vector = ArrayPtrSearch(entry, list->array, list->count, CompareName);
-    if (vector == NULL) {
-        return FALSE;
-    }
-
-    // Deference pointer before overwriting it
-    entry = vector[0];
-
-    // Remove entry from the array
-    length = &list->array[list->count] - &vector[1];
-    CopyMemory(&vector[0], &vector[1], length * sizeof(VOID *));
-
-    // Decrement count and free entry
-    --list->count;
-    MemFree(entry);
-
-    return TRUE;
-
-#if 0
     // Search array for the entry
     vector = ArrayPtrSearch(entry, list->array, list->count, CompareName);
 
     if (vector != NULL) {
+        // Deference pointer its overwritten during deletion
+        entry = vector[0];
+
         // Remove entry from the array
         ArrayPtrDelete(vector, list->array, list->count, CompareName);
-        MemFree(vector[0]);
 
-        // Decrement the element count
+        // Decrement count and free entry
         --list->count;
+        MemFree(entry);
 
         return TRUE;
     }
 
     return FALSE;
-#endif
 }
