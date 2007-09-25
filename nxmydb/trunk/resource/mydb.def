@@ -1,3 +1,4 @@
 EXPORTS
+  EventInit
   UserModuleInit
   GroupModuleInit

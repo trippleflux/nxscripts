@@ -24,11 +24,16 @@ Abstract:
 #undef UNICODE
 #undef _UNICODE
 
+// Disabled warnings
+#pragma warning(disable : 4200) // nonstandard extension used : zero-sized array in struct/union
+#pragma warning(disable : 4201) // nonstandard extension used : nameless struct/union
+
 // System headers
 #define _WIN32_WINNT 0x0403
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <winsock2.h>
+#include <mswsock.h>
 
 #define STRSAFE_LIB
 #define STRSAFE_NO_CB_FUNCTIONS
@@ -45,10 +50,19 @@ Abstract:
 #include <Buffer.h>
 #include <Log.h>
 #include <Timer.h>
-#include <UserFile.h>
 #include <GroupFile.h>
-#include <User.h>
 #include <Group.h>
+#include <UserFile.h>
+#include <User.h>
+
+#include <LockObject.h>
+#include <VirtualPath.h>
+#include <IoOverlapped.h>
+#include <IoFile.h>
+#include <IoService.h>
+#include <IoSocket.h>
+#include <IoString.h>
+#include <Event.h>
 
 // MySQL headers
 #include <mysql.h>
