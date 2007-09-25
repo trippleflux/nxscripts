@@ -50,6 +50,7 @@ static DWORD FCALL EventHistory(EVENT_DATA *data, IO_STRING *arguments)
 {
     ASSERT(data != NULL);
     ASSERT(arguments != NULL);
+    TRACE("data=%p arguments=%p\n", data, arguments);
 
     // TODO
 
@@ -60,6 +61,7 @@ static DWORD FCALL EventStart(EVENT_DATA *data, IO_STRING *arguments)
 {
     ASSERT(data != NULL);
     ASSERT(arguments != NULL);
+    TRACE("data=%p arguments=%p\n", data, arguments);
 
     // TODO
 
@@ -70,6 +72,7 @@ static DWORD FCALL EventStop(EVENT_DATA *data, IO_STRING *arguments)
 {
     ASSERT(data != NULL);
     ASSERT(arguments != NULL);
+    TRACE("data=%p arguments=%p\n", data, arguments);
 
     // TODO
 
@@ -79,13 +82,38 @@ static DWORD FCALL EventStop(EVENT_DATA *data, IO_STRING *arguments)
 
 static INT EventHandler(EVENT_DATA *data, IO_STRING *arguments)
 {
+    CHAR    *name;
+    DWORD   i;
+    DWORD   result;
+
     ASSERT(data != NULL);
     ASSERT(arguments != NULL);
     TRACE("data=%p arguments=%p\n", data, arguments);
 
-    // TODO
+    if (GetStringItems(arguments) < 1) {
+        TRACE("No arguments passed to event handler.\n");
+        return 1;
+    }
 
-    return 0;
+    name = Io_GetStringIndexStatic(arguments, 0);
+
+    // Look up the event name
+    for (i = 0; i < ELEMENT_COUNT(eventTable); i++) {
+        if (_stricmp(name, eventTable[i].name) != 0) {
+            continue;
+        }
+
+        // Execute event procedure
+        result = eventTable[i].proc(data, arguments);
+        if (result != ERROR_SUCCESS) {
+            SetLastError(result);
+            return 1;
+        }
+        return 0;
+    }
+
+    TRACE("No event handler found for \"%s\".\n", name);
+    return 1;
 }
 
 INT EventInit(EVENT_MODULE *module)

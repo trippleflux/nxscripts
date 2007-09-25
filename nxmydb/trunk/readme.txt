@@ -45,8 +45,13 @@ servers. nxMyDB also includes features such as:
 4. Add the following options to your ioFTPD.ini file:
 
 [Modules]
+EventModule     = ..\modules\nxmydb.dll
 GroupModule     = ..\modules\nxmydb.dll
 UserModule      = ..\modules\nxmydb.dll
+
+[Events]
+OnServerStart   = NXMYDB start
+OnServerStop    = NXMYDB stop
 
 [nxMyDB]
 Host            = localhost     # MySQL Server host
