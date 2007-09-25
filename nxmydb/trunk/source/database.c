@@ -41,12 +41,6 @@ typedef struct {
 } DB_CONFIG_POOL;
 
 typedef struct {
-    SYNC_CONTEXT sync;      // Syncronization context
-    INT          interval;  // Milliseconds between each database refresh
-    TIMER        *timer;    // Refresh timer
-} DB_CONFIG_REFRESH;
-
-typedef struct {
     CHAR    *host;          // MySQL Server host
     CHAR    *user;          // MySQL Server username
     CHAR    *password;      // MySQL Server password
@@ -61,6 +55,14 @@ typedef struct {
     CHAR    *sslCAPath;     // Path to the directory containing CA certificates
 } DB_CONFIG_SERVER;
 
+typedef struct {
+    BOOL         enabled;   // Allow syncronization
+    INT          first;     // Milliseconds until the first syncronization
+    INT          interval;  // Milliseconds between each database refresh
+    SYNC_CONTEXT sync;      // Syncronization context
+    TIMER        *timer;    // Syncronization timer
+} DB_CONFIG_SYNC;
+
 //
 // Configuration variables
 //
@@ -68,8 +70,8 @@ typedef struct {
 DB_CONFIG_LOCK dbConfigLock;
 
 static DB_CONFIG_POOL    dbConfigPool;
-static DB_CONFIG_REFRESH dbConfigRefresh;
 static DB_CONFIG_SERVER  dbConfigServer;
+static DB_CONFIG_SYNC    dbConfigSync;
 
 static POOL pool;           // Database connection pool
 static INT  refCount = 0;   // Reference count initialization calls
@@ -320,10 +322,10 @@ Return Values:
 static VOID FCALL ConfigInit(VOID)
 {
     // Clear configuration structures
-    ZeroMemory(&dbConfigLock,    sizeof(DB_CONFIG_LOCK));
-    ZeroMemory(&dbConfigPool,    sizeof(DB_CONFIG_POOL));
-    ZeroMemory(&dbConfigRefresh, sizeof(DB_CONFIG_REFRESH));
-    ZeroMemory(&dbConfigServer,  sizeof(DB_CONFIG_SERVER));
+    ZeroMemory(&dbConfigLock,   sizeof(DB_CONFIG_LOCK));
+    ZeroMemory(&dbConfigPool,   sizeof(DB_CONFIG_POOL));
+    ZeroMemory(&dbConfigServer, sizeof(DB_CONFIG_SERVER));
+    ZeroMemory(&dbConfigSync,   sizeof(DB_CONFIG_SYNC));
 }
 
 /*++
@@ -404,15 +406,26 @@ static BOOL FCALL ConfigLoad(VOID)
     dbConfigPool.checkNano = UInt32x32To64(dbConfigPool.check, 10000000); // sec to 100nsec
 
     //
-    // Read refesh timer
+    // Read sync options
     //
 
-    dbConfigRefresh.interval = 0;
-    if (Io_ConfigGetInt("nxMyDB", "Refresh", &dbConfigRefresh.interval) && dbConfigRefresh.interval < 0) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Refresh' must be greater than or equal to zero.\r\n");
-        return FALSE;
+    Io_ConfigGetBool("nxMyDB", "Sync", &dbConfigSync.enabled);
+
+    if (dbConfigSync.enabled) {
+        dbConfigSync.first = 30;
+        if (Io_ConfigGetInt("nxMyDB", "SyncFirst", &dbConfigSync.first) && dbConfigSync.first <= 0) {
+            Io_Putlog(LOG_ERROR, "nxMyDB: Option 'SyncTimer' must be greater than zero.\r\n");
+            return FALSE;
+        }
+        dbConfigSync.first = dbConfigSync.first * 1000; // sec to msec
+
+        dbConfigSync.interval = 60;
+        if (Io_ConfigGetInt("nxMyDB", "SyncInterval", &dbConfigSync.interval) && dbConfigSync.interval <= 0) {
+            Io_Putlog(LOG_ERROR, "nxMyDB: Option 'SyncInterval' must be greater than zero.\r\n");
+            return FALSE;
+        }
+        dbConfigSync.interval = dbConfigSync.interval * 1000; // sec to msec
     }
-    dbConfigRefresh.interval = dbConfigRefresh.interval * 1000; // sec to msec
 
     //
     // Read server options
@@ -481,10 +494,10 @@ static VOID FCALL ConfigFree(VOID)
     }
 
     // Clear configuration structures
-    ZeroMemory(&dbConfigLock,    sizeof(DB_CONFIG_LOCK));
-    ZeroMemory(&dbConfigPool,    sizeof(DB_CONFIG_POOL));
-    ZeroMemory(&dbConfigRefresh, sizeof(DB_CONFIG_REFRESH));
-    ZeroMemory(&dbConfigServer,  sizeof(DB_CONFIG_SERVER));
+    ZeroMemory(&dbConfigLock,   sizeof(DB_CONFIG_LOCK));
+    ZeroMemory(&dbConfigPool,   sizeof(DB_CONFIG_POOL));
+    ZeroMemory(&dbConfigSync,   sizeof(DB_CONFIG_SYNC));
+    ZeroMemory(&dbConfigServer, sizeof(DB_CONFIG_SERVER));
 }
 
 /*++
@@ -587,7 +600,7 @@ static BOOL FCALL ConfigUuid(VOID)
 
 /*++
 
-RefreshGetTime
+SyncGetTime
 
     Retrieves the current server time, as a UNIX timestamp.
 
@@ -598,7 +611,7 @@ Return Values:
     Windows error code.
 
 --*/
-static DWORD RefreshGetTime(DB_CONTEXT *db, ULONG *timePtr)
+static DWORD SyncGetTime(DB_CONTEXT *db, ULONG *timePtr)
 {
     CHAR        *query;
     INT         result;
@@ -671,9 +684,9 @@ static DWORD RefreshGetTime(DB_CONTEXT *db, ULONG *timePtr)
 
 /*++
 
-RefreshTimer
+SyncTimer
 
-    Refreshes the local user and group cache.
+    Synchronizes the local user and group cache.
 
 Arguments:
     context - Pointer to the timer context.
@@ -684,7 +697,7 @@ Return Values:
     Number of milliseconds in which to execute this timer again.
 
 --*/
-static DWORD RefreshTimer(VOID *context, TIMER *timer)
+static DWORD SyncTimer(VOID *context, TIMER *timer)
 {
     DB_CONTEXT  *db;
     DWORD       result;
@@ -697,20 +710,20 @@ static DWORD RefreshTimer(VOID *context, TIMER *timer)
 
     if (DbAcquire(&db)) {
         // Retrieve the current server time
-        result = RefreshGetTime(db, &currentTime);
+        result = SyncGetTime(db, &currentTime);
         if (result != ERROR_SUCCESS) {
             TRACE("Unable to retrieve server timestamp (error %lu).\n", result);
 
         } else {
             // Update the current time
-            dbConfigRefresh.sync.currUpdate = currentTime;
+            dbConfigSync.sync.currUpdate = currentTime;
 
             // Groups must be updated before users
-            DbGroupSync(db, &dbConfigRefresh.sync);
-            DbUserSync(db, &dbConfigRefresh.sync);
+            DbGroupSync(db, &dbConfigSync.sync);
+            DbUserSync(db, &dbConfigSync.sync);
 
             // Update the previous time
-            dbConfigRefresh.sync.prevUpdate = currentTime;
+            dbConfigSync.sync.prevUpdate = currentTime;
         }
 
         DbRelease(db);
@@ -719,7 +732,7 @@ static DWORD RefreshTimer(VOID *context, TIMER *timer)
     }
 
     // Execute the timer again
-    return dbConfigRefresh.interval;
+    return dbConfigSync.interval;
 }
 
 
@@ -794,8 +807,8 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
     }
 
     // Start database refresh timer
-    if (dbConfigRefresh.interval > 0) {
-        dbConfigRefresh.timer = Io_StartIoTimer(NULL, RefreshTimer, NULL, dbConfigRefresh.interval);
+    if (dbConfigSync.enabled) {
+        dbConfigSync.timer = Io_StartIoTimer(NULL, SyncTimer, NULL, dbConfigSync.first);
     }
 
     Io_Putlog(LOG_ERROR, "nxMyDB: v%s loaded, using MySQL Client Library v%s.\r\n",
@@ -827,8 +840,8 @@ VOID FCALL DbFinalize(VOID)
     if (--refCount == 0) {
 
         // Stop refresh timer
-        if (dbConfigRefresh.timer != NULL) {
-            Io_StopIoTimer(dbConfigRefresh.timer, FALSE);
+        if (dbConfigSync.timer != NULL) {
+            Io_StopIoTimer(dbConfigSync.timer, FALSE);
         }
 
         // Destroy connection pool

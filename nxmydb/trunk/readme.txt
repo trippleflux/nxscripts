@@ -54,8 +54,10 @@ Port            = 3306          # MySQL Server port
 User            = user          # MySQL Server username
 Password        = pass          # MySQL Server password
 Database        = ioftpd        # Database name
-Refresh         = 60            # Seconds between each database refresh
 Compression     = True          # Use compression for the server connection
+Sync            = True          # Synchronization of users and groups
+SyncFirst       = 30            # Seconds until the first full synchronization
+SyncInterval    = 60            # Seconds between each incremental synchronization
 
 5. Adjust these options as required. There are several other options to enable
    SSL encryption and fine-tune the connection pool. For a list of available
@@ -106,10 +108,19 @@ supported by OpenSSL/yaSSL.
     - Database name
     - Default: MySQL's default database
 
-  Refresh
-    - Seconds between each database refresh (synchronizes users and groups)
-    - Set to zero if the database is not shared with more than one server
-    - Default: 0
+  Sync
+    - Synchronization of users and groups
+    - Set to "true" if the database is shared with more than one server
+    - Default: false
+
+  SyncFirst
+    - Seconds until the first full database synchronization
+    - Only performed after initialization
+    - Default: 30
+
+  SyncInterval
+    - Seconds between each incremental database synchronization
+    - Default: 60
 
   Compression
     - Use compression for the server connection
