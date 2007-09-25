@@ -49,6 +49,11 @@ VOID  *Io_Allocate(DWORD Size);
 VOID  *Io_ReAllocate(VOID *pMemory, DWORD Size);
 BOOL   Io_Free(VOID *pMemory);
 
+CHAR  *Io_GetStringIndex(IO_STRING *String, DWORD Index);
+CHAR  *Io_GetStringIndexStatic(IO_STRING *String, DWORD Index);
+CHAR  *Io_GetStringRange(IO_STRING *String, DWORD BeginIndex, DWORD EndIndex);
+VOID   Io_FreeString(IO_STRING *String);
+
 TIMER *Io_StartIoTimer(TIMER *hTimer, Io_TimerProc *pTimerProc, VOID *pTimerContext, DWORD dwTimeOut);
 BOOL   Io_StopIoTimer(TIMER *hTimer, BOOL bInTimerProc);
 BOOL   Io_Putlog(DWORD dwLogCode, const CHAR *szFormatString, ...);
@@ -80,6 +85,11 @@ typedef struct {
     VOID  *(* pReAllocate)(VOID *, DWORD);
     BOOL   (* pFree)(VOID *);
 
+    CHAR  *(* pGetStringIndex)(IO_STRING *, DWORD);
+    CHAR  *(* pGetStringIndexStatic)(IO_STRING *, DWORD);
+    CHAR  *(* pGetStringRange)(IO_STRING *, DWORD, DWORD);
+    VOID   (* pFreeString)(IO_STRING *);
+
     TIMER *(* pStartIoTimer)(TIMER *, Io_TimerProc *, VOID *, DWORD);
     BOOL   (* pStopIoTimer)(TIMER *, BOOL);
     BOOL   (* pPutlog)(DWORD, const CHAR *, ...);
@@ -87,30 +97,35 @@ typedef struct {
 
 extern PROC_TABLE procTable;
 
-#define Io_ConfigGet        procTable.pConfigGet
-#define Io_ConfigGetBool    procTable.pConfigGetBool
-#define Io_ConfigGetInt     procTable.pConfigGetInt
-#define Io_ConfigGetPath    procTable.pConfigGetPath
+#define Io_ConfigGet            procTable.pConfigGet
+#define Io_ConfigGetBool        procTable.pConfigGetBool
+#define Io_ConfigGetInt         procTable.pConfigGetInt
+#define Io_ConfigGetPath        procTable.pConfigGetPath
 
-#define Io_GetGroups        procTable.pGetGroups
-#define Io_Gid2Group        procTable.pGid2Group
-#define Io_Group2Gid        procTable.pGroup2Gid
-#define Io_Ascii2GroupFile  procTable.pAscii2GroupFile
-#define Io_GroupFile2Ascii  procTable.pGroupFile2Ascii
+#define Io_GetGroups            procTable.pGetGroups
+#define Io_Gid2Group            procTable.pGid2Group
+#define Io_Group2Gid            procTable.pGroup2Gid
+#define Io_Ascii2GroupFile      procTable.pAscii2GroupFile
+#define Io_GroupFile2Ascii      procTable.pGroupFile2Ascii
 
-#define Io_GetUsers         procTable.pGetUsers
-#define Io_Uid2User         procTable.pUid2User
-#define Io_User2Uid         procTable.pUser2Uid
-#define Io_Ascii2UserFile   procTable.pAscii2UserFile
-#define Io_UserFile2Ascii   procTable.pUserFile2Ascii
+#define Io_GetUsers             procTable.pGetUsers
+#define Io_Uid2User             procTable.pUid2User
+#define Io_User2Uid             procTable.pUser2Uid
+#define Io_Ascii2UserFile       procTable.pAscii2UserFile
+#define Io_UserFile2Ascii       procTable.pUserFile2Ascii
 
-#define Io_Allocate         procTable.pAllocate
-#define Io_ReAllocate       procTable.pReAllocate
-#define Io_Free             procTable.pFree
+#define Io_Allocate             procTable.pAllocate
+#define Io_ReAllocate           procTable.pReAllocate
+#define Io_Free                 procTable.pFree
 
-#define Io_StartIoTimer     procTable.pStartIoTimer
-#define Io_StopIoTimer      procTable.pStopIoTimer
-#define Io_Putlog           procTable.pPutlog
+#define Io_GetStringIndex       procTable.pGetStringIndex
+#define Io_GetStringIndexStatic procTable.pGetStringIndexStatic
+#define Io_GetStringRange       procTable.pGetStringRange
+#define Io_FreeString           procTable.pFreeString
+
+#define Io_StartIoTimer         procTable.pStartIoTimer
+#define Io_StopIoTimer          procTable.pStopIoTimer
+#define Io_Putlog               procTable.pPutlog
 
 
 BOOL FCALL ProcTableInit(Io_GetProc *getProc);
