@@ -21,42 +21,42 @@ Abstract:
 // Callback declarations
 //
 
-typedef VOID *(Io_GetProc)(CHAR *szName);
-typedef DWORD (Io_TimerProc)(VOID *pTimerContext, TIMER *hTimer);
+typedef VOID *(Io_GetProc)(CHAR *Name);
+typedef DWORD (Io_TimerProc)(VOID *TimerContext, TIMER *Timer);
 
 //
 // Function declarations
 //
 
-CHAR  *Io_ConfigGet(CHAR *szArray, CHAR *szVariable, CHAR *szBuffer, INT *pOffset);
-BOOL   Io_ConfigGetBool(CHAR *szArray, CHAR *szVariable, BOOL *pValue);
-BOOL   Io_ConfigGetInt(CHAR *szArray, CHAR *szVariable, INT *pValue);
-CHAR  *Io_ConfigGetPath(CHAR *szArray, CHAR *szVariable, CHAR *szSuffix, CHAR *szBuffer);
+CHAR  *Io_ConfigGet(CHAR *Array, CHAR *Variable, CHAR *Buffer, INT *Offset);
+BOOL   Io_ConfigGetBool(CHAR *Array, CHAR *Variable, BOOL *Value);
+BOOL   Io_ConfigGetInt(CHAR *Array, CHAR *Variable, INT *Value);
+CHAR  *Io_ConfigGetPath(CHAR *Array, CHAR *Variable, CHAR *Suffix, CHAR *Buffer);
 
-INT32 *Io_GetGroups(DWORD *plpGroupIdCount);
+INT32 *Io_GetGroups(DWORD *GroupIdCount);
 CHAR  *Io_Gid2Group(INT32 Gid);
-INT32  Io_Group2Gid(CHAR *szGroupName);
-BOOL   Io_Ascii2GroupFile(CHAR *pBuffer, DWORD dwBuffer, GROUPFILE *pGroupFile);
-BOOL   Io_GroupFile2Ascii(BUFFER *pBuffer, GROUPFILE *pGroupFile);
+INT32  Io_Group2Gid(CHAR *GroupName);
+BOOL   Io_Ascii2GroupFile(CHAR *Buffer, DWORD BufferSize, GROUPFILE *GroupFile);
+BOOL   Io_GroupFile2Ascii(BUFFER *Buffer, GROUPFILE *GroupFile);
 
-INT32 *Io_GetUsers(DWORD *pUserIdCount);
+INT32 *Io_GetUsers(DWORD *UserIdCount);
 CHAR  *Io_Uid2User(INT32 Uid);
-INT32  Io_User2Uid(CHAR *szUserName);
-BOOL   Io_Ascii2UserFile(CHAR *pBuffer, DWORD dwBuffer, USERFILE *pUserFile);
-BOOL   Io_UserFile2Ascii(BUFFER *pBuffer, USERFILE *pUserFile);
+INT32  Io_User2Uid(CHAR *UserName);
+BOOL   Io_Ascii2UserFile(CHAR *Buffer, DWORD BufferSize, USERFILE *UserFile);
+BOOL   Io_UserFile2Ascii(BUFFER *Buffer, USERFILE *UserFile);
 
 VOID  *Io_Allocate(DWORD Size);
-VOID  *Io_ReAllocate(VOID *pMemory, DWORD Size);
-BOOL   Io_Free(VOID *pMemory);
+VOID  *Io_ReAllocate(VOID *Memory, DWORD Size);
+BOOL   Io_Free(VOID *Memory);
 
 CHAR  *Io_GetStringIndex(IO_STRING *String, DWORD Index);
 CHAR  *Io_GetStringIndexStatic(IO_STRING *String, DWORD Index);
 CHAR  *Io_GetStringRange(IO_STRING *String, DWORD BeginIndex, DWORD EndIndex);
 VOID   Io_FreeString(IO_STRING *String);
 
-TIMER *Io_StartIoTimer(TIMER *hTimer, Io_TimerProc *pTimerProc, VOID *pTimerContext, DWORD dwTimeOut);
-BOOL   Io_StopIoTimer(TIMER *hTimer, BOOL bInTimerProc);
-BOOL   Io_Putlog(DWORD dwLogCode, const CHAR *szFormatString, ...);
+TIMER *Io_StartIoTimer(TIMER *Timer, Io_TimerProc *TimerProc, VOID *TimerContext, DWORD TimeOut);
+BOOL   Io_StopIoTimer(TIMER *Timer, BOOL InTimerProc);
+BOOL   Io_Putlog(DWORD LogCode, const CHAR *FormatString, ...);
 
 
 //
