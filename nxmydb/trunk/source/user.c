@@ -33,6 +33,9 @@ static USER_MODULE *userModule = NULL;
 
 INT UserModuleInit(USER_MODULE *module)
 {
+    ASSERT(module != NULL);
+    TRACE("module=%p\n", module);
+
     // Initialize module
     module->tszModuleName = MODULE_NAME;
     module->DeInitialize  = UserFinalize;
@@ -57,6 +60,7 @@ INT UserModuleInit(USER_MODULE *module)
 
 static INT UserFinalize(VOID)
 {
+    // Finalize database
     DbFinalize();
 
     userModule = NULL;

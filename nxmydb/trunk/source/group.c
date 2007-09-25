@@ -33,6 +33,9 @@ static GROUP_MODULE *groupModule = NULL;
 
 INT GroupModuleInit(GROUP_MODULE *module)
 {
+    ASSERT(module != NULL);
+    TRACE("module=%p\n", module);
+
     // Initialize module
     module->tszModuleName = MODULE_NAME;
     module->DeInitialize  = GroupFinalize;
@@ -57,6 +60,7 @@ INT GroupModuleInit(GROUP_MODULE *module)
 
 static INT GroupFinalize(VOID)
 {
+    // Finalize database
     DbFinalize();
 
     groupModule = NULL;

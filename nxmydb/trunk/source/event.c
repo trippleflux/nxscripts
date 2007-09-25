@@ -4,7 +4,7 @@ nxMyDB - MySQL Database for ioFTPD
 Copyright (c) 2006-2007 neoxed
 
 Module Name:
-    Events
+    Event
 
 Author:
     neoxed (neoxed@gmail.com) Sep 24, 2007
@@ -81,10 +81,9 @@ static INT EventHandler(EVENT_DATA *data, IO_STRING *arguments)
 {
     ASSERT(data != NULL);
     ASSERT(arguments != NULL);
+    TRACE("data=%p arguments=%p\n", data, arguments);
 
     // TODO
-
-    TRACE("Hello World!\n");
 
     return 0;
 }
@@ -92,6 +91,9 @@ static INT EventHandler(EVENT_DATA *data, IO_STRING *arguments)
 INT EventInit(EVENT_MODULE *module)
 {
     INT failed;
+
+    ASSERT(module != NULL);
+    TRACE("module=%p\n", module);
 
     // Initialize module
     module->szName = MODULE_NAME;
@@ -112,4 +114,13 @@ INT EventInit(EVENT_MODULE *module)
     }
 
     return 0;
+}
+
+VOID EventDeInit(EVENT_MODULE *module)
+{
+    UNREFERENCED_PARAMETER(module);
+    TRACE("module=%p\n", module);
+
+    // Finalize database
+    DbFinalize();
 }
