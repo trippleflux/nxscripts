@@ -98,7 +98,7 @@ FILE_OBJS = \
     database.obj\
     debug.obj\
     dllentry.obj\
-    event.obj\
+    events.obj\
     group.obj\
     groupdb.obj\
     groupdbsync.obj\

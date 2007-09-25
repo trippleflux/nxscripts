@@ -4,10 +4,10 @@ nxMyDB - MySQL Database for ioFTPD
 Copyright (c) 2006-2007 neoxed
 
 Module Name:
-    Group File Backend
+    Events
 
 Author:
-    neoxed (neoxed@gmail.com) Jun 5, 2006
+    neoxed (neoxed@gmail.com) Sep 24, 2007
 
 Abstract:
     Entry point and functions for the event module.
@@ -16,6 +16,7 @@ Abstract:
 
 #include <base.h>
 #include <database.h>
+#include <events.h>
 
 static BOOL EventHandler(EVENT_DATA *data, IO_STRING *arguments)
 {
