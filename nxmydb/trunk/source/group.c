@@ -33,7 +33,7 @@ static GROUP_MODULE *groupModule = NULL;
 
 INT GroupModuleInit(GROUP_MODULE *module)
 {
-    // Initialize module structure
+    // Initialize module
     module->tszModuleName = MODULE_NAME;
     module->DeInitialize  = GroupFinalize;
     module->Create        = GroupCreate;
@@ -45,7 +45,7 @@ INT GroupModuleInit(GROUP_MODULE *module)
     module->Write         = GroupWrite;
     module->Close         = GroupClose;
 
-    // Initialize module
+    // Initialize database
     if (!DbInit(module->GetProc)) {
         TRACE("Unable to initialize module.\n");
         return GM_ERROR;

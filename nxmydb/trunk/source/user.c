@@ -33,7 +33,7 @@ static USER_MODULE *userModule = NULL;
 
 INT UserModuleInit(USER_MODULE *module)
 {
-    // Initialize module structure
+    // Initialize module
     module->tszModuleName = MODULE_NAME;
     module->DeInitialize  = UserFinalize;
     module->Create        = UserCreate;
@@ -45,7 +45,7 @@ INT UserModuleInit(USER_MODULE *module)
     module->Write         = UserWrite;
     module->Close         = UserClose;
 
-    // Initialize module
+    // Initialize database
     if (!DbInit(module->GetProc)) {
         TRACE("Unable to initialize module.\n");
         return UM_ERROR;
