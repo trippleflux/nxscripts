@@ -133,7 +133,7 @@ static DWORD EventUpdate(CHAR *groupName, GROUPFILE *groupFile)
 }
 
 
-static DWORD SyncFull(DB_CONTEXT *db)
+static DWORD GroupSyncFull(DB_CONTEXT *db)
 {
     CHAR        *query;
     CHAR        groupName[_MAX_NAME + 1];
@@ -281,7 +281,7 @@ static DWORD SyncFull(DB_CONTEXT *db)
     return ERROR_SUCCESS;
 }
 
-static DWORD SyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
+static DWORD GroupSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 {
     CHAR        *query;
     BYTE        syncEvent;
@@ -298,7 +298,6 @@ static DWORD SyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     ASSERT(db != NULL);
     ASSERT(sync != NULL);
-    TRACE("db=%p sync=%p\n", db, sync);
 
     //
     // Prepare statement and bind parameters
@@ -439,7 +438,7 @@ static DWORD SyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     return ERROR_SUCCESS;
 }
 
-static DWORD SyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
+static DWORD GroupSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 {
     CHAR        *query;
     CHAR        groupName[_MAX_NAME + 1];
@@ -454,7 +453,6 @@ static DWORD SyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     ASSERT(db != NULL);
     ASSERT(sync != NULL);
-    TRACE("db=%p sync=%p\n", db, sync);
 
     //
     // Prepare statement and bind parameters
@@ -569,7 +567,7 @@ static DWORD SyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     return ERROR_SUCCESS;
 }
 
-static DWORD SyncIncr(DB_CONTEXT *db, SYNC_CONTEXT *sync)
+static DWORD GroupSyncIncr(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 {
     DWORD result;
 
@@ -578,13 +576,13 @@ static DWORD SyncIncr(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     TRACE("db=%p sync=%p\n", db, sync);
 
     // Process events from the "io_group_changes" table
-    result = SyncIncrChanges(db, sync);
+    result = GroupSyncIncrChanges(db, sync);
     if (result != ERROR_SUCCESS) {
         TRACE("Unable to sync incremental changes (error %lu).\n", result);
     }
 
     // Process updates from the "io_group" table
-    result = SyncIncrUpdates(db, sync);
+    result = GroupSyncIncrUpdates(db, sync);
     if (result != ERROR_SUCCESS) {
         TRACE("Unable to sync incremental updates (error %lu).\n", result);
     }
@@ -604,10 +602,10 @@ DWORD DbGroupSync(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     if (sync->prevUpdate == 0) {
         // If there was no previous update time, we
         // perform a full group syncronization.
-        result = SyncFull(db);
+        result = GroupSyncFull(db);
     } else {
         ASSERT(sync->currUpdate != 0);
-        result = SyncIncr(db, sync);
+        result = GroupSyncIncr(db, sync);
     }
 
     return result;

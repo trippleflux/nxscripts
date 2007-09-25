@@ -133,7 +133,7 @@ static DWORD EventUpdate(CHAR *userName, USERFILE *userFile)
 }
 
 
-static DWORD SyncFull(DB_CONTEXT *db)
+static DWORD UserSyncFull(DB_CONTEXT *db)
 {
     BOOL        removed;
     CHAR        *query;
@@ -355,7 +355,7 @@ static DWORD SyncFull(DB_CONTEXT *db)
     return ERROR_SUCCESS;
 }
 
-static DWORD SyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
+static DWORD UserSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 {
     CHAR        *query;
     BYTE        syncEvent;
@@ -372,7 +372,6 @@ static DWORD SyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     ASSERT(db != NULL);
     ASSERT(sync != NULL);
-    TRACE("db=%p sync=%p\n", db, sync);
 
     //
     // Prepare statement and bind parameters
@@ -513,7 +512,7 @@ static DWORD SyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     return ERROR_SUCCESS;
 }
 
-static DWORD SyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
+static DWORD UserSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 {
     CHAR        *query;
     CHAR        userName[_MAX_NAME + 1];
@@ -528,7 +527,6 @@ static DWORD SyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     ASSERT(db != NULL);
     ASSERT(sync != NULL);
-    TRACE("db=%p sync=%p\n", db, sync);
 
     //
     // Prepare statement and bind parameters
@@ -714,7 +712,7 @@ static DWORD SyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     return ERROR_SUCCESS;
 }
 
-static DWORD SyncIncr(DB_CONTEXT *db, SYNC_CONTEXT *sync)
+static DWORD UserSyncIncr(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 {
     DWORD result;
 
@@ -723,13 +721,13 @@ static DWORD SyncIncr(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     TRACE("db=%p sync=%p\n", db, sync);
 
     // Process events from the "io_user_changes" table
-    result = SyncIncrChanges(db, sync);
+    result = UserSyncIncrChanges(db, sync);
     if (result != ERROR_SUCCESS) {
         TRACE("Unable to sync incremental changes (error %lu).\n", result);
     }
 
     // Process updates from the "io_user" table
-    result = SyncIncrUpdates(db, sync);
+    result = UserSyncIncrUpdates(db, sync);
     if (result != ERROR_SUCCESS) {
         TRACE("Unable to sync incremental updates (error %lu).\n", result);
     }
@@ -749,10 +747,10 @@ DWORD DbUserSync(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     if (sync->prevUpdate == 0) {
         // If there was no previous update time, we
         // perform a full user syncronization.
-        result = SyncFull(db);
+        result = UserSyncFull(db);
     } else {
         ASSERT(sync->currUpdate != 0);
-        result = SyncIncr(db, sync);
+        result = UserSyncIncr(db, sync);
     }
 
     return result;
