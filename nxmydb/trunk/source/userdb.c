@@ -835,6 +835,13 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
         }
     }
 
+    result = mysql_stmt_execute(stmtChanges);
+    if (result != 0) {
+        TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmtChanges));
+        error = DbMapErrorFromStmt(stmtChanges);
+        goto rollback;
+    }
+
     //
     // Commit transaction
     //
