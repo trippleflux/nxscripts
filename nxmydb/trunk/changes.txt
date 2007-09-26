@@ -1,4 +1,4 @@
-nxMyDB v0.2.0 (not released):
+nxMyDB v0.2.0 (Sep 25, 2007):
   NEW: Event handler for catching server start and stop events.
   NEW: Full user and group synchronization during start-up.
   NEW: Incremental user and group synchronization performed on configurable intervals.
