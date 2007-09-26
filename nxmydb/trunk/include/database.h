@@ -72,6 +72,9 @@ extern DB_CONFIG_LOCK dbConfigLock;
 BOOL FCALL DbInit(Io_GetProc *getProc);
 VOID FCALL DbFinalize(VOID);
 
+VOID FCALL DbSyncStart(VOID);
+VOID FCALL DbSyncStop(VOID);
+
 BOOL FCALL DbAcquire(DB_CONTEXT **dbPtr);
 VOID FCALL DbRelease(DB_CONTEXT *db);
 

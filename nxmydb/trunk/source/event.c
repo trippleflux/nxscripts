@@ -59,22 +59,22 @@ static DWORD FCALL EventHistory(EVENT_DATA *data, IO_STRING *arguments)
 
 static DWORD FCALL EventStart(EVENT_DATA *data, IO_STRING *arguments)
 {
-    ASSERT(data != NULL);
-    ASSERT(arguments != NULL);
+    UNREFERENCED_PARAMETER(data);
+    UNREFERENCED_PARAMETER(arguments);
     TRACE("data=%p arguments=%p\n", data, arguments);
 
-    // TODO
+    DbSyncStart();
 
     return ERROR_SUCCESS;
 }
 
 static DWORD FCALL EventStop(EVENT_DATA *data, IO_STRING *arguments)
 {
-    ASSERT(data != NULL);
-    ASSERT(arguments != NULL);
+    UNREFERENCED_PARAMETER(data);
+    UNREFERENCED_PARAMETER(arguments);
     TRACE("data=%p arguments=%p\n", data, arguments);
 
-    // TODO
+    DbSyncStop();
 
     return ERROR_SUCCESS;
 }

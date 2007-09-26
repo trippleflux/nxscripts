@@ -806,11 +806,6 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
         return FALSE;
     }
 
-    // Start database refresh timer
-    if (dbConfigSync.enabled) {
-        dbConfigSync.timer = Io_StartIoTimer(NULL, SyncTimer, NULL, dbConfigSync.first);
-    }
-
     Io_Putlog(LOG_ERROR, "nxMyDB: v%s loaded, using MySQL Client Library v%s.\r\n",
         STRINGIFY(VERSION), mysql_get_client_info());
     return TRUE;
@@ -839,10 +834,8 @@ VOID FCALL DbFinalize(VOID)
     // Finalize once the reference count reaches zero
     if (--refCount == 0) {
 
-        // Stop refresh timer
-        if (dbConfigSync.timer != NULL) {
-            Io_StopIoTimer(dbConfigSync.timer, FALSE);
-        }
+        // Stop the sync timer
+        DbSyncStop();
 
         // Destroy connection pool
         PoolDestroy(&pool);
@@ -852,6 +845,48 @@ VOID FCALL DbFinalize(VOID)
 
         ConfigFree();
         ProcTableFinalize();
+    }
+}
+
+/*++
+
+DbSyncStart
+
+    Starts the database synchronization timer.
+
+Arguments:
+    None.
+
+Return Values:
+    None.
+
+--*/
+VOID FCALL DbSyncStart(VOID)
+{
+    if (dbConfigSync.enabled) {
+        ASSERT(dbConfigSync.timer == NULL);
+        dbConfigSync.timer = Io_StartIoTimer(NULL, SyncTimer, NULL, dbConfigSync.first);
+    }
+}
+
+/*++
+
+DbSyncStop
+
+    Stops the database synchronization timer.
+
+Arguments:
+    None.
+
+Return Values:
+    None.
+
+--*/
+VOID FCALL DbSyncStop(VOID)
+{
+    if (dbConfigSync.timer != NULL) {
+        Io_StopIoTimer(dbConfigSync.timer, FALSE);
+        dbConfigSync.timer = NULL;
     }
 }
 
