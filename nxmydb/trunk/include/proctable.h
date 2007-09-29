@@ -22,7 +22,8 @@ Abstract:
 //
 
 typedef VOID *(Io_GetProc)(CHAR *Name);
-typedef DWORD (Io_TimerProc)(VOID *TimerContext, TIMER *Timer);
+typedef VOID  (Io_JobProc)(VOID *Context);
+typedef DWORD (Io_TimerProc)(VOID *Context, TIMER *Timer);
 
 //
 // Function declarations
@@ -54,9 +55,10 @@ CHAR  *Io_GetStringIndexStatic(IO_STRING *String, DWORD Index);
 CHAR  *Io_GetStringRange(IO_STRING *String, DWORD BeginIndex, DWORD EndIndex);
 VOID   Io_FreeString(IO_STRING *String);
 
-TIMER *Io_StartIoTimer(TIMER *Timer, Io_TimerProc *TimerProc, VOID *TimerContext, DWORD TimeOut);
+BOOL   Io_QueueJob(Io_JobProc *Proc, VOID *Context, DWORD Priority);
+BOOL   Io_Putlog(DWORD LogCode, const CHAR *Format, ...);
+TIMER *Io_StartIoTimer(TIMER *Timer, Io_TimerProc *Proc, VOID *Context, DWORD Timeout);
 BOOL   Io_StopIoTimer(TIMER *Timer, BOOL InTimerProc);
-BOOL   Io_Putlog(DWORD LogCode, const CHAR *FormatString, ...);
 
 
 //
@@ -90,9 +92,10 @@ typedef struct {
     CHAR  *(* pGetStringRange)(IO_STRING *, DWORD, DWORD);
     VOID   (* pFreeString)(IO_STRING *);
 
+    BOOL   (* pPutlog)(DWORD, const CHAR *, ...);
+    BOOL   (* pQueueJob)(Io_JobProc *, VOID *, DWORD);
     TIMER *(* pStartIoTimer)(TIMER *, Io_TimerProc *, VOID *, DWORD);
     BOOL   (* pStopIoTimer)(TIMER *, BOOL);
-    BOOL   (* pPutlog)(DWORD, const CHAR *, ...);
 } PROC_TABLE;
 
 extern PROC_TABLE procTable;
@@ -123,9 +126,10 @@ extern PROC_TABLE procTable;
 #define Io_GetStringRange       procTable.pGetStringRange
 #define Io_FreeString           procTable.pFreeString
 
+#define Io_Putlog               procTable.pPutlog
+#define Io_QueueJob             procTable.pQueueJob
 #define Io_StartIoTimer         procTable.pStartIoTimer
 #define Io_StopIoTimer          procTable.pStopIoTimer
-#define Io_Putlog               procTable.pPutlog
 
 
 BOOL FCALL ProcTableInit(Io_GetProc *getProc);

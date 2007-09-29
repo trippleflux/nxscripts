@@ -74,9 +74,10 @@ BOOL FCALL ProcTableInit(Io_GetProc *getProc)
     RESOLVE("GetStringRange",       procTable.pGetStringRange);
     RESOLVE("FreeString",           procTable.pFreeString);
 
+    RESOLVE("Putlog",               procTable.pPutlog);
+    RESOLVE("QueueJob",             procTable.pQueueJob);
     RESOLVE("StartIoTimer",         procTable.pStartIoTimer);
     RESOLVE("StopIoTimer",          procTable.pStopIoTimer);
-    RESOLVE("Putlog",               procTable.pPutlog);
     return TRUE;
 
 failed:

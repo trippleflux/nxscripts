@@ -62,6 +62,7 @@ Abstract:
 #include <IoService.h>
 #include <IoSocket.h>
 #include <IoString.h>
+#include <Job.h>
 #include <Event.h>
 
 // MySQL headers
