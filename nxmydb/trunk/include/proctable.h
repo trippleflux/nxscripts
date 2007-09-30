@@ -21,9 +21,9 @@ Abstract:
 // Callback declarations
 //
 
-typedef VOID *(Io_GetProc)(CHAR *Name);
-typedef VOID  (Io_JobProc)(VOID *Context);
-typedef DWORD (Io_TimerProc)(VOID *Context, TIMER *Timer);
+typedef VOID *(CCALL Io_GetProc)(CHAR *Name);
+typedef VOID  (CCALL Io_JobProc)(VOID *Context);
+typedef DWORD (CCALL Io_TimerProc)(VOID *Context, TIMER *Timer);
 
 //
 // Function declarations
