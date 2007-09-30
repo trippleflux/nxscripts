@@ -32,7 +32,7 @@ static DWORD EventCreate(CHAR *userName, USERFILE *userFile)
     mod = MemAllocate(sizeof(MOD_CONTEXT));
     if (mod == NULL) {
         result = ERROR_NOT_ENOUGH_MEMORY;
-        TRACE("Unable to allocate module context.\n");
+        TRACE("Unable to allocate module context.");
 
     } else {
         // Initialize MOD_CONTEXT structure
@@ -42,13 +42,13 @@ static DWORD EventCreate(CHAR *userName, USERFILE *userFile)
         // Register user
         result = UserRegister(userName, userFile, &userId);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to register user (error %lu).\n", result);
+            TRACE("Unable to register user (error %lu).", result);
         } else {
 
             // Create user file
             result = FileUserCreate(userId, userFile);
             if (result != ERROR_SUCCESS) {
-                TRACE("Unable to create user file (error %lu).\n", result);
+                TRACE("Unable to create user file (error %lu).", result);
 
                 // Creation failed, clean-up the user file
                 FileUserDelete(userId);
@@ -88,7 +88,7 @@ static DWORD EventDeleteEx(CHAR *userName, INT32 userId)
     // Delete user file (success does not matter)
     result = FileUserDelete(userId);
     if (result != ERROR_SUCCESS) {
-        TRACE("Unable to delete user file (error %lu).\n", result);
+        TRACE("Unable to delete user file (error %lu).", result);
     }
 
     // Unregister user
@@ -110,7 +110,7 @@ static DWORD EventDelete(CHAR *userName)
         result = GetLastError();
         ASSERT(result != ERROR_SUCCESS);
 
-        TRACE("Unable to resolve user \"%s\" (error %lu).\n", userName, result);
+        TRACE("Unable to resolve user \"%s\" (error %lu).", userName, result);
     } else {
         // Delete user
         result = EventDeleteEx(userName, userId);
@@ -150,7 +150,7 @@ static DWORD UserSyncFull(DB_CONTEXT *db)
     MYSQL_STMT  *stmt;
 
     ASSERT(db != NULL);
-    TRACE("db=%p\n", db);
+    TRACE("db=%p", db);
 
     //
     // Build list of user IDs
@@ -158,7 +158,7 @@ static DWORD UserSyncFull(DB_CONTEXT *db)
 
     error = NameListCreateUsers(&list);
     if (error != ERROR_SUCCESS) {
-        TRACE("Unable to create user ID list (error %lu).\n", error);
+        LOG_ERROR("Unable to create user ID list (error %lu).", error);
         return error;
     }
 
@@ -174,19 +174,19 @@ static DWORD UserSyncFull(DB_CONTEXT *db)
 
     result = mysql_stmt_prepare(stmt, query, strlen(query));
     if (result != 0) {
-        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     metadata = mysql_stmt_result_metadata(stmt);
     if (metadata == NULL) {
-        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     result = mysql_stmt_execute(stmt);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -284,13 +284,13 @@ static DWORD UserSyncFull(DB_CONTEXT *db)
 
     result = mysql_stmt_bind_result(stmt, bind);
     if (result != 0) {
-        TRACE("Unable to bind results: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to bind results: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     result = mysql_stmt_store_result(stmt);
     if (result != 0) {
-        TRACE("Unable to buffer results: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to buffer results: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -310,25 +310,25 @@ static DWORD UserSyncFull(DB_CONTEXT *db)
         // Read the user's admin-groups, groups, and hosts
         error = DbUserReadExtra(db, userName, &userFile);
         if (error != ERROR_SUCCESS) {
-            TRACE("Unable to read user \"%s\" (error %lu).\n", userName, error);
+            LOG_WARN("Unable to read user \"%s\" (error %lu).", userName, error);
             continue;
         }
 
         if (!removed) {
-            TRACE("UserSyncFull: Create(%s)\n", userName);
+            TRACE("UserSyncFull: Create(%s)", userName);
 
             // User does not exist locally, create it.
             error = EventCreate(userName, &userFile);
             if (error != ERROR_SUCCESS) {
-                TRACE("Unable to create user \"%s\" (error %lu).\n", userName, error);
+                LOG_WARN("Unable to create user \"%s\" (error %lu).", userName, error);
             }
         } else {
-            TRACE("UserSyncFull: Update(%s)\n", userName);
+            TRACE("UserSyncFull: Update(%s)", userName);
 
             // User already exists locally, update it.
             error = EventUpdate(userName, &userFile);
             if (error != ERROR_SUCCESS) {
-                TRACE("Unable to update user \"%s\" (error %lu).\n", userName, error);
+                LOG_WARN("Unable to update user \"%s\" (error %lu).", userName, error);
             }
         }
     }
@@ -341,12 +341,12 @@ static DWORD UserSyncFull(DB_CONTEXT *db)
 
     for (i = 0; i < list.count; i++) {
         entry = list.array[i];
-        TRACE("UserSyncFull: Delete(%s,%d)\n", entry->name, entry->id);
+        TRACE("UserSyncFull: Delete(%s,%d)", entry->name, entry->id);
 
         // User does not exist on database, delete it.
         error = EventDeleteEx(entry->name, entry->id);
         if (error != ERROR_SUCCESS) {
-            TRACE("Unable to delete user \"%s\" (error %lu).\n", entry->name, error);
+            LOG_WARN("Unable to delete user \"%s\" (error %lu).", entry->name, error);
         }
     }
 
@@ -385,7 +385,7 @@ static DWORD UserSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     result = mysql_stmt_prepare(stmt, query, strlen(query));
     if (result != 0) {
-        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -402,13 +402,13 @@ static DWORD UserSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     result = mysql_stmt_bind_param(stmt, bindInput);
     if (result != 0) {
-        TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to bind parameters: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     metadata = mysql_stmt_result_metadata(stmt);
     if (metadata == NULL) {
-        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -418,7 +418,7 @@ static DWORD UserSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     result = mysql_stmt_execute(stmt);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -445,13 +445,13 @@ static DWORD UserSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     result = mysql_stmt_bind_result(stmt, bindOutput);
     if (result != 0) {
-        TRACE("Unable to bind results: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to bind results: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     result = mysql_stmt_store_result(stmt);
     if (result != 0) {
-        TRACE("Unable to buffer results: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to buffer results: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -466,43 +466,43 @@ static DWORD UserSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
         switch ((SYNC_EVENT)syncEvent) {
             case SYNC_EVENT_CREATE:
-                TRACE("UserSyncIncr: Create(%s)\n", userName);
+                TRACE("UserSyncIncr: Create(%s)", userName);
 
                 // Read user file from database
                 ZeroMemory(&userFile, sizeof(USERFILE));
                 error = DbUserRead(db, userName, &userFile);
                 if (error != ERROR_SUCCESS) {
-                    TRACE("Unable to read user \"%s\" (error %lu).\n", userName, error);
+                    LOG_WARN("Unable to read user \"%s\" (error %lu).", userName, error);
                 } else {
 
                     // Create local user
                     error = EventCreate(userName, &userFile);
                     if (error != ERROR_SUCCESS) {
-                        TRACE("Unable to create user \"%s\" (error %lu).\n", userName, error);
+                        LOG_WARN("Unable to create user \"%s\" (error %lu).", userName, error);
                     }
                 }
                 break;
 
             case SYNC_EVENT_RENAME:
-                TRACE("UserSyncIncr: Rename(%s,%s)\n", userName, syncInfo);
+                TRACE("UserSyncIncr: Rename(%s,%s)", userName, syncInfo);
 
                 error = EventRename(userName, syncInfo);
                 if (error != ERROR_SUCCESS) {
-                    TRACE("Unable to rename user \"%s\" to \"%s\" (error %lu).\n", userName, syncInfo, error);
+                    LOG_WARN("Unable to rename user \"%s\" to \"%s\" (error %lu).", userName, syncInfo, error);
                 }
                 break;
 
             case SYNC_EVENT_DELETE:
-                TRACE("UserSyncIncr: Delete(%s)\n", userName);
+                TRACE("UserSyncIncr: Delete(%s)", userName);
 
                 error = EventDelete(userName);
                 if (error != ERROR_SUCCESS) {
-                    TRACE("Unable to delete user \"%s\" (error %lu).\n", userName, error);
+                    LOG_WARN("Unable to delete user \"%s\" (error %lu).", userName, error);
                 }
                 break;
 
             default:
-                TRACE("Unknown sync event %d.\n", syncEvent);
+                LOG_ERROR("Unknown sync event %d.", syncEvent);
                 break;
         }
     }
@@ -541,7 +541,7 @@ static DWORD UserSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     result = mysql_stmt_prepare(stmt, query, strlen(query));
     if (result != 0) {
-        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -558,13 +558,13 @@ static DWORD UserSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     result = mysql_stmt_bind_param(stmt, bindInput);
     if (result != 0) {
-        TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to bind parameters: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     metadata = mysql_stmt_result_metadata(stmt);
     if (metadata == NULL) {
-        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -574,7 +574,7 @@ static DWORD UserSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     result = mysql_stmt_execute(stmt);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -672,13 +672,13 @@ static DWORD UserSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     result = mysql_stmt_bind_result(stmt, bindOutput);
     if (result != 0) {
-        TRACE("Unable to bind results: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to bind results: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     result = mysql_stmt_store_result(stmt);
     if (result != 0) {
-        TRACE("Unable to buffer results: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to buffer results: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -691,18 +691,18 @@ static DWORD UserSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
         if (mysql_stmt_fetch(stmt) != 0) {
             break;
         }
-        TRACE("UserSyncIncr: Update(%s)\n", userName);
+        TRACE("UserSyncIncr: Update(%s)", userName);
 
         // Read the user's admin-groups, groups, and hosts
         error = DbUserReadExtra(db, userName, &userFile);
         if (error != ERROR_SUCCESS) {
-            TRACE("Unable to read user \"%s\" (error %lu).\n", userName, error);
+            LOG_WARN("Unable to read user \"%s\" (error %lu).", userName, error);
         } else {
 
             // Update user file
             error = EventUpdate(userName, &userFile);
             if (error != ERROR_SUCCESS) {
-                TRACE("Unable to update user \"%s\" (error %lu).\n", userName, error);
+                LOG_WARN("Unable to update user \"%s\" (error %lu).", userName, error);
             }
         }
     }
@@ -718,18 +718,18 @@ static DWORD UserSyncIncr(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     ASSERT(db != NULL);
     ASSERT(sync != NULL);
-    TRACE("db=%p sync=%p\n", db, sync);
+    TRACE("db=%p sync=%p", db, sync);
 
     // Process events from the "io_user_changes" table
     result = UserSyncIncrChanges(db, sync);
     if (result != ERROR_SUCCESS) {
-        TRACE("Unable to sync incremental changes (error %lu).\n", result);
+        LOG_ERROR("Unable to sync incremental changes (error %lu).", result);
     }
 
     // Process updates from the "io_user" table
     result = UserSyncIncrUpdates(db, sync);
     if (result != ERROR_SUCCESS) {
-        TRACE("Unable to sync incremental updates (error %lu).\n", result);
+        LOG_ERROR("Unable to sync incremental updates (error %lu).", result);
     }
 
     return result;
@@ -742,7 +742,7 @@ DWORD DbUserSync(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     ASSERT(db != NULL);
     ASSERT(sync != NULL);
-    TRACE("db=%p sync=%p\n", db, sync);
+    TRACE("db=%p sync=%p", db, sync);
 
     if (sync->prevUpdate == 0) {
         // If there was no previous update time, we

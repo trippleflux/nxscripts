@@ -32,7 +32,7 @@ static DWORD EventCreate(CHAR *groupName, GROUPFILE *groupFile)
     mod = MemAllocate(sizeof(MOD_CONTEXT));
     if (mod == NULL) {
         result = ERROR_NOT_ENOUGH_MEMORY;
-        TRACE("Unable to allocate module context.\n");
+        TRACE("Unable to allocate module context.");
 
     } else {
         // Initialize MOD_CONTEXT structure
@@ -42,13 +42,13 @@ static DWORD EventCreate(CHAR *groupName, GROUPFILE *groupFile)
         // Register group
         result = GroupRegister(groupName, groupFile, &groupId);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to register group (error %lu).\n", result);
+            TRACE("Unable to register group (error %lu).", result);
         } else {
 
             // Create group file
             result = FileGroupCreate(groupId, groupFile);
             if (result != ERROR_SUCCESS) {
-                TRACE("Unable to create group file (error %lu).\n", result);
+                TRACE("Unable to create group file (error %lu).", result);
 
                 // Creation failed, clean-up the group file
                 FileGroupDelete(groupId);
@@ -88,7 +88,7 @@ static DWORD EventDeleteEx(CHAR *groupName, INT32 groupId)
     // Delete group file (success does not matter)
     result = FileGroupDelete(groupId);
     if (result != ERROR_SUCCESS) {
-        TRACE("Unable to delete group file (error %lu).\n", result);
+        TRACE("Unable to delete group file (error %lu).", result);
     }
 
     // Unregister group
@@ -110,7 +110,7 @@ static DWORD EventDelete(CHAR *groupName)
         result = GetLastError();
         ASSERT(result != ERROR_SUCCESS);
 
-        TRACE("Unable to resolve group \"%s\" (error %lu).\n", groupName, result);
+        TRACE("Unable to resolve group \"%s\" (error %lu).", groupName, result);
     } else {
         // Delete group
         result = EventDeleteEx(groupName, groupId);
@@ -149,7 +149,7 @@ static DWORD GroupSyncFull(DB_CONTEXT *db)
     MYSQL_STMT  *stmt;
 
     ASSERT(db != NULL);
-    TRACE("db=%p\n", db);
+    TRACE("db=%p", db);
 
     //
     // Build list of group IDs
@@ -157,7 +157,7 @@ static DWORD GroupSyncFull(DB_CONTEXT *db)
 
     error = NameListCreateGroups(&list);
     if (error != ERROR_SUCCESS) {
-        TRACE("Unable to create group ID list (error %lu).\n", error);
+        LOG_ERROR("Unable to create group ID list (error %lu).", error);
         return error;
     }
 
@@ -172,19 +172,19 @@ static DWORD GroupSyncFull(DB_CONTEXT *db)
 
     result = mysql_stmt_prepare(stmt, query, strlen(query));
     if (result != 0) {
-        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     metadata = mysql_stmt_result_metadata(stmt);
     if (metadata == NULL) {
-        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     result = mysql_stmt_execute(stmt);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -220,13 +220,13 @@ static DWORD GroupSyncFull(DB_CONTEXT *db)
 
     result = mysql_stmt_bind_result(stmt, bind);
     if (result != 0) {
-        TRACE("Unable to bind results: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to bind results: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     result = mysql_stmt_store_result(stmt);
     if (result != 0) {
-        TRACE("Unable to buffer results: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to buffer results: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -241,20 +241,20 @@ static DWORD GroupSyncFull(DB_CONTEXT *db)
         }
 
         if (!NameListRemove(&list, groupName)) {
-            TRACE("GroupSyncFull: Create(%s)\n", groupName);
+            TRACE("GroupSyncFull: Create(%s)", groupName);
 
             // Group does not exist locally, create it.
             error = EventCreate(groupName, &groupFile);
             if (error != ERROR_SUCCESS) {
-                TRACE("Unable to create group \"%s\" (error %lu).\n", groupName, error);
+                LOG_WARN("Unable to create group \"%s\" (error %lu).", groupName, error);
             }
         } else {
-            TRACE("GroupSyncFull: Update(%s)\n", groupName);
+            TRACE("GroupSyncFull: Update(%s)", groupName);
 
             // Group already exists locally, update it.
             error = EventUpdate(groupName, &groupFile);
             if (error != ERROR_SUCCESS) {
-                TRACE("Unable to update group \"%s\" (error %lu).\n", groupName, error);
+                LOG_WARN("Unable to update group \"%s\" (error %lu).", groupName, error);
             }
         }
     }
@@ -267,12 +267,12 @@ static DWORD GroupSyncFull(DB_CONTEXT *db)
 
     for (i = 0; i < list.count; i++) {
         entry = list.array[i];
-        TRACE("GroupSyncFull: Delete(%s,%d)\n", entry->name, entry->id);
+        TRACE("GroupSyncFull: Delete(%s,%d)", entry->name, entry->id);
 
         // Group does not exist on database, delete it.
         error = EventDeleteEx(entry->name, entry->id);
         if (error != ERROR_SUCCESS) {
-            TRACE("Unable to delete group \"%s\" (error %lu).\n", entry->name, error);
+            LOG_WARN("Unable to delete group \"%s\" (error %lu).", entry->name, error);
         }
     }
 
@@ -311,7 +311,7 @@ static DWORD GroupSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     result = mysql_stmt_prepare(stmt, query, strlen(query));
     if (result != 0) {
-        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -328,13 +328,13 @@ static DWORD GroupSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     result = mysql_stmt_bind_param(stmt, bindInput);
     if (result != 0) {
-        TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to bind parameters: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     metadata = mysql_stmt_result_metadata(stmt);
     if (metadata == NULL) {
-        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -344,7 +344,7 @@ static DWORD GroupSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     result = mysql_stmt_execute(stmt);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -371,13 +371,13 @@ static DWORD GroupSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     result = mysql_stmt_bind_result(stmt, bindOutput);
     if (result != 0) {
-        TRACE("Unable to bind results: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to bind results: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     result = mysql_stmt_store_result(stmt);
     if (result != 0) {
-        TRACE("Unable to buffer results: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to buffer results: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -392,43 +392,43 @@ static DWORD GroupSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
         switch ((SYNC_EVENT)syncEvent) {
             case SYNC_EVENT_CREATE:
-                TRACE("GroupSyncIncr: Create(%s)\n", groupName);
+                TRACE("GroupSyncIncr: Create(%s)", groupName);
 
                 // Read group file from database
                 ZeroMemory(&groupFile, sizeof(GROUPFILE));
                 error = DbGroupRead(db, groupName, &groupFile);
                 if (error != ERROR_SUCCESS) {
-                    TRACE("Unable to read group \"%s\" (error %lu).\n", groupName, error);
+                    LOG_WARN("Unable to read group \"%s\" (error %lu).", groupName, error);
                 } else {
 
                     // Create local user
                     error = EventCreate(groupName, &groupFile);
                     if (error != ERROR_SUCCESS) {
-                        TRACE("Unable to create group \"%s\" (error %lu).\n", groupName, error);
+                        LOG_WARN("Unable to create group \"%s\" (error %lu).", groupName, error);
                     }
                 }
                 break;
 
             case SYNC_EVENT_RENAME:
-                TRACE("GroupSyncIncr: Rename(%s,%s)\n", groupName, syncInfo);
+                TRACE("GroupSyncIncr: Rename(%s,%s)", groupName, syncInfo);
 
                 error = EventRename(groupName, syncInfo);
                 if (error != ERROR_SUCCESS) {
-                    TRACE("Unable to rename group \"%s\" to \"%s\" (error %lu).\n", groupName, syncInfo, error);
+                    LOG_WARN("Unable to rename group \"%s\" to \"%s\" (error %lu).", groupName, syncInfo, error);
                 }
                 break;
 
             case SYNC_EVENT_DELETE:
-                TRACE("GroupSyncIncr: Delete(%s)\n", groupName);
+                TRACE("GroupSyncIncr: Delete(%s)", groupName);
 
                 error = EventDelete(groupName);
                 if (error != ERROR_SUCCESS) {
-                    TRACE("Unable to delete group \"%s\" (error %lu).\n", groupName, error);
+                    LOG_WARN("Unable to delete group \"%s\" (error %lu).", groupName, error);
                 }
                 break;
 
             default:
-                TRACE("Unknown sync event %d.\n", syncEvent);
+                LOG_ERROR("Unknown sync event %d.", syncEvent);
                 break;
         }
     }
@@ -466,7 +466,7 @@ static DWORD GroupSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     result = mysql_stmt_prepare(stmt, query, strlen(query));
     if (result != 0) {
-        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -483,13 +483,13 @@ static DWORD GroupSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     result = mysql_stmt_bind_param(stmt, bindInput);
     if (result != 0) {
-        TRACE("Unable to bind parameters: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to bind parameters: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     metadata = mysql_stmt_result_metadata(stmt);
     if (metadata == NULL) {
-        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -499,7 +499,7 @@ static DWORD GroupSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     result = mysql_stmt_execute(stmt);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -535,13 +535,13 @@ static DWORD GroupSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     result = mysql_stmt_bind_result(stmt, bindOutput);
     if (result != 0) {
-        TRACE("Unable to bind results: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to bind results: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     result = mysql_stmt_store_result(stmt);
     if (result != 0) {
-        TRACE("Unable to buffer results: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to buffer results: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -554,11 +554,11 @@ static DWORD GroupSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
         if (mysql_stmt_fetch(stmt) != 0) {
             break;
         }
-        TRACE("GroupSyncIncr: Update(%s)\n", groupName);
+        TRACE("GroupSyncIncr: Update(%s)", groupName);
 
         error = EventUpdate(groupName, &groupFile);
         if (error != ERROR_SUCCESS) {
-            TRACE("Unable to update group \"%s\" (error %lu).\n", groupName, error);
+            LOG_WARN("Unable to update group \"%s\" (error %lu).", groupName, error);
         }
     }
 
@@ -573,18 +573,18 @@ static DWORD GroupSyncIncr(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     ASSERT(db != NULL);
     ASSERT(sync != NULL);
-    TRACE("db=%p sync=%p\n", db, sync);
+    TRACE("db=%p sync=%p", db, sync);
 
     // Process events from the "io_group_changes" table
     result = GroupSyncIncrChanges(db, sync);
     if (result != ERROR_SUCCESS) {
-        TRACE("Unable to sync incremental changes (error %lu).\n", result);
+        LOG_ERROR("Unable to sync incremental changes (error %lu).", result);
     }
 
     // Process updates from the "io_group" table
     result = GroupSyncIncrUpdates(db, sync);
     if (result != ERROR_SUCCESS) {
-        TRACE("Unable to sync incremental updates (error %lu).\n", result);
+        LOG_ERROR("Unable to sync incremental updates (error %lu).", result);
     }
 
     return result;
@@ -597,7 +597,7 @@ DWORD DbGroupSync(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     ASSERT(db != NULL);
     ASSERT(sync != NULL);
-    TRACE("db=%p sync=%p\n", db, sync);
+    TRACE("db=%p sync=%p", db, sync);
 
     if (sync->prevUpdate == 0) {
         // If there was no previous update time, we

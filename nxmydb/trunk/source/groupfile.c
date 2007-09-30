@@ -26,13 +26,13 @@ static DWORD FileGroupRead(HANDLE file, GROUPFILE *groupFile)
 
     ASSERT(file != INVALID_HANDLE_VALUE);
     ASSERT(groupFile != NULL);
-    TRACE("file=%p groupFile=%p\n", file, groupFile);
+    TRACE("file=%p groupFile=%p", file, groupFile);
 
     // Retrieve file size
     fileSize = GetFileSize(file, NULL);
     if (fileSize == INVALID_FILE_SIZE || fileSize < 5) {
         result = INVALID_FILE_SIZE;
-        TRACE("Unable to retrieve file size (error %lu).\n", result);
+        TRACE("Unable to retrieve file size (error %lu).", result);
         goto failed;
     }
 
@@ -40,7 +40,7 @@ static DWORD FileGroupRead(HANDLE file, GROUPFILE *groupFile)
     buffer = Io_Allocate(fileSize + 1);
     if (buffer == NULL) {
         result = ERROR_NOT_ENOUGH_MEMORY;
-        TRACE("Unable to allocate read buffer.\n");
+        TRACE("Unable to allocate read buffer.");
         goto failed;
     }
 
@@ -48,7 +48,7 @@ static DWORD FileGroupRead(HANDLE file, GROUPFILE *groupFile)
     SetFilePointer(file, 0, 0, FILE_BEGIN);
     if (!ReadFile(file, buffer, fileSize, &bytesRead, NULL) || bytesRead < 5) {
         result = GetLastError();
-        TRACE("Unable to read file (error %lu).\n", result);
+        TRACE("Unable to read file (error %lu).", result);
         goto failed;
     }
 
@@ -77,12 +77,12 @@ DWORD FileGroupDefault(GROUPFILE *groupFile)
     HANDLE  file;
 
     ASSERT(groupFile != NULL);
-    TRACE("groupFile=%p\n", groupFile);
+    TRACE("groupFile=%p", groupFile);
 
     // Retrieve "Default.Group" location
     path = Io_ConfigGetPath("Locations", "Group_Files", "Default.Group", NULL);
     if (path == NULL) {
-        TRACE("Unable to retrieve \"Default.Group\" file location.\n");
+        TRACE("Unable to retrieve \"Default.Group\" file location.");
         return ERROR_NOT_ENOUGH_MEMORY;
     }
 
@@ -94,13 +94,13 @@ DWORD FileGroupDefault(GROUPFILE *groupFile)
 
     if (file == INVALID_HANDLE_VALUE) {
         result = GetLastError();
-        TRACE("Unable to open file \"%s\" (error %lu).\n", path, result);
+        TRACE("Unable to open file \"%s\" (error %lu).", path, result);
     } else {
 
         // Read "Default.Group" file
         result = FileGroupRead(file, groupFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to read file \"%s\" (error %lu).\n", path, result);
+            TRACE("Unable to read file \"%s\" (error %lu).", path, result);
         }
 
         // Close "Default.Group" file
@@ -120,12 +120,12 @@ DWORD FileGroupCreate(INT32 groupId, GROUPFILE *groupFile)
 
     ASSERT(groupId != -1);
     ASSERT(groupFile != NULL);
-    TRACE("groupId=%d groupFile=%p\n", groupId, groupFile);
+    TRACE("groupId=%d groupFile=%p", groupId, groupFile);
 
     // Retrieve default location
     defaultPath = Io_ConfigGetPath("Locations", "Group_Files", "Default.Group", NULL);
     if (defaultPath == NULL) {
-        TRACE("Unable to retrieve default file location.\n");
+        TRACE("Unable to retrieve default file location.");
         return ERROR_NOT_ENOUGH_MEMORY;
     }
 
@@ -133,7 +133,7 @@ DWORD FileGroupCreate(INT32 groupId, GROUPFILE *groupFile)
     StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", groupId);
     targetPath = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
     if (targetPath == NULL) {
-        TRACE("Unable to retrieve group file location.\n");
+        TRACE("Unable to retrieve group file location.");
 
         Io_Free(defaultPath);
         return ERROR_NOT_ENOUGH_MEMORY;
@@ -142,14 +142,14 @@ DWORD FileGroupCreate(INT32 groupId, GROUPFILE *groupFile)
     // Copy default file to target file
     if (!CopyFileA(defaultPath, targetPath, FALSE)) {
         result = GetLastError();
-        TRACE("Unable to copy file \"%s\" to \"%s\" (error %lu).\n",
+        TRACE("Unable to copy file \"%s\" to \"%s\" (error %lu).",
             defaultPath, targetPath, result);
     } else {
 
         // Open new group file
         result = FileGroupOpen(groupId, groupFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to open group file (error %lu).\n", result);
+            TRACE("Unable to open group file (error %lu).", result);
         }
     }
 
@@ -166,13 +166,13 @@ DWORD FileGroupDelete(INT32 groupId)
     DWORD   result;
 
     ASSERT(groupId != -1);
-    TRACE("groupId=%d\n", groupId);
+    TRACE("groupId=%d", groupId);
 
     // Retrieve group file location
     StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", groupId);
     path = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
     if (path == NULL) {
-        TRACE("Unable to retrieve file location.\n");
+        TRACE("Unable to retrieve file location.");
         return ERROR_NOT_ENOUGH_MEMORY;
     }
 
@@ -181,7 +181,7 @@ DWORD FileGroupDelete(INT32 groupId)
         result = ERROR_SUCCESS;
     } else {
         result = GetLastError();
-        TRACE("Unable to delete file \"%s\" (error %lu).\n", path, result);
+        TRACE("Unable to delete file \"%s\" (error %lu).", path, result);
     }
 
     Io_Free(path);
@@ -197,7 +197,7 @@ DWORD FileGroupOpen(INT32 groupId, GROUPFILE *groupFile)
 
     ASSERT(groupId != -1);
     ASSERT(groupFile != NULL);
-    TRACE("groupId=%d groupFile=%p\n", groupId, groupFile);
+    TRACE("groupId=%d groupFile=%p", groupId, groupFile);
 
     mod = groupFile->lpInternal;
     ASSERT(mod->file == INVALID_HANDLE_VALUE);
@@ -206,7 +206,7 @@ DWORD FileGroupOpen(INT32 groupId, GROUPFILE *groupFile)
     StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", groupId);
     path = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
     if (path == NULL) {
-        TRACE("Unable to retrieve file location.\n");
+        TRACE("Unable to retrieve file location.");
         return ERROR_NOT_ENOUGH_MEMORY;
     }
 
@@ -220,7 +220,7 @@ DWORD FileGroupOpen(INT32 groupId, GROUPFILE *groupFile)
         result = ERROR_SUCCESS;
     } else {
         result = GetLastError();
-        TRACE("Unable to open file \"%s\" (error %lu).\n", path, result);
+        TRACE("Unable to open file \"%s\" (error %lu).", path, result);
     }
 
     Io_Free(path);
@@ -235,7 +235,7 @@ DWORD FileGroupWrite(GROUPFILE *groupFile)
     MOD_CONTEXT *mod;
 
     ASSERT(groupFile != NULL);
-    TRACE("groupFile=%p\n", groupFile);
+    TRACE("groupFile=%p", groupFile);
 
     mod = groupFile->lpInternal;
     ASSERT(mod->file != INVALID_HANDLE_VALUE);
@@ -247,7 +247,7 @@ DWORD FileGroupWrite(GROUPFILE *groupFile)
     buffer.buf    = Io_Allocate(buffer.size);
 
     if (buffer.buf == NULL) {
-        TRACE("Unable to allocate write buffer.\n");
+        TRACE("Unable to allocate write buffer.");
         return ERROR_NOT_ENOUGH_MEMORY;
     }
 
@@ -264,7 +264,7 @@ DWORD FileGroupWrite(GROUPFILE *groupFile)
         FlushFileBuffers(mod->file);
     } else {
         result = GetLastError();
-        TRACE("Unable to write file (error %lu).\n", result);
+        TRACE("Unable to write file (error %lu).", result);
     }
 
     Io_Free(buffer.buf);
@@ -276,7 +276,7 @@ DWORD FileGroupClose(GROUPFILE *groupFile)
     MOD_CONTEXT *mod;
 
     ASSERT(groupFile != NULL);
-    TRACE("groupFile=%p\n", groupFile);
+    TRACE("groupFile=%p", groupFile);
 
     mod = groupFile->lpInternal;
 

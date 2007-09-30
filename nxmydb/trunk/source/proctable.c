@@ -25,7 +25,7 @@ PROC_TABLE procTable;
 #define RESOLVE(name, func)                                                     \
 {                                                                               \
     if ((func = getProc(name)) == NULL) {                                       \
-        TRACE("Unable to resolve procedure \"%s\".\n", name);                   \
+        TRACE("Unable to resolve procedure \"%s\".", name);                     \
         goto failed;                                                            \
     }                                                                           \
 }

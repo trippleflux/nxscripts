@@ -26,13 +26,13 @@ static DWORD FileUserRead(HANDLE file, USERFILE *userFile)
 
     ASSERT(file != INVALID_HANDLE_VALUE);
     ASSERT(userFile != NULL);
-    TRACE("file=%p userFile=%p\n", file, userFile);
+    TRACE("file=%p userFile=%p", file, userFile);
 
     // Retrieve file size
     fileSize = GetFileSize(file, NULL);
     if (fileSize == INVALID_FILE_SIZE || fileSize < 5) {
         result = INVALID_FILE_SIZE;
-        TRACE("Unable to retrieve file size (error %lu).\n", result);
+        TRACE("Unable to retrieve file size (error %lu).", result);
         goto failed;
     }
 
@@ -40,7 +40,7 @@ static DWORD FileUserRead(HANDLE file, USERFILE *userFile)
     buffer = Io_Allocate(fileSize + 1);
     if (buffer == NULL) {
         result = ERROR_NOT_ENOUGH_MEMORY;
-        TRACE("Unable to allocate read buffer.\n");
+        TRACE("Unable to allocate read buffer.");
         goto failed;
     }
 
@@ -48,7 +48,7 @@ static DWORD FileUserRead(HANDLE file, USERFILE *userFile)
     SetFilePointer(file, 0, 0, FILE_BEGIN);
     if (!ReadFile(file, buffer, fileSize, &bytesRead, NULL) || bytesRead < 5) {
         result = GetLastError();
-        TRACE("Unable to read file (error %lu).\n", result);
+        TRACE("Unable to read file (error %lu).", result);
         goto failed;
     }
 
@@ -78,12 +78,12 @@ DWORD FileUserDefault(USERFILE *userFile)
     HANDLE  file;
 
     ASSERT(userFile != NULL);
-    TRACE("userFile=%p\n", userFile);
+    TRACE("userFile=%p", userFile);
 
     // Retrieve "Default.User" location
     path = Io_ConfigGetPath("Locations", "User_Files", "Default.User", NULL);
     if (path == NULL) {
-        TRACE("Unable to retrieve \"Default.User\" file location.\n");
+        TRACE("Unable to retrieve \"Default.User\" file location.");
         return ERROR_NOT_ENOUGH_MEMORY;
     }
 
@@ -95,13 +95,13 @@ DWORD FileUserDefault(USERFILE *userFile)
 
     if (file == INVALID_HANDLE_VALUE) {
         result = GetLastError();
-        TRACE("Unable to open file \"%s\" (error %lu).\n", path, result);
+        TRACE("Unable to open file \"%s\" (error %lu).", path, result);
     } else {
 
         // Read "Default.User" file
         result = FileUserRead(file, userFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to read file \"%s\" (error %lu).\n", path, result);
+            TRACE("Unable to read file \"%s\" (error %lu).", path, result);
         }
 
         // Close "Default.User" file
@@ -121,12 +121,12 @@ DWORD FileUserCreate(INT32 userId, USERFILE *userFile)
 
     ASSERT(userId != -1);
     ASSERT(userFile != NULL);
-    TRACE("userId=%d userFile=%p\n", userId, userFile);
+    TRACE("userId=%d userFile=%p", userId, userFile);
 
     // Retrieve default location
     defaultPath = Io_ConfigGetPath("Locations", "User_Files", "Default.User", NULL);
     if (defaultPath == NULL) {
-        TRACE("Unable to retrieve default file location.\n");
+        TRACE("Unable to retrieve default file location.");
         return ERROR_NOT_ENOUGH_MEMORY;
     }
 
@@ -134,7 +134,7 @@ DWORD FileUserCreate(INT32 userId, USERFILE *userFile)
     StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", userId);
     targetPath = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
     if (targetPath == NULL) {
-        TRACE("Unable to retrieve user file location.\n");
+        TRACE("Unable to retrieve user file location.");
 
         Io_Free(defaultPath);
         return ERROR_NOT_ENOUGH_MEMORY;
@@ -143,14 +143,14 @@ DWORD FileUserCreate(INT32 userId, USERFILE *userFile)
     // Copy default file to target file
     if (!CopyFileA(defaultPath, targetPath, FALSE)) {
         result = GetLastError();
-        TRACE("Unable to copy file \"%s\" to \"%s\" (error %lu).\n",
+        TRACE("Unable to copy file \"%s\" to \"%s\" (error %lu).",
             defaultPath, targetPath, result);
     } else {
 
         // Open new user file
         result = FileUserOpen(userId, userFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to open user file (error %lu).\n", result);
+            TRACE("Unable to open user file (error %lu).", result);
         }
     }
 
@@ -167,13 +167,13 @@ DWORD FileUserDelete(INT32 userId)
     DWORD   result;
 
     ASSERT(userId != -1);
-    TRACE("userId=%d\n", userId);
+    TRACE("userId=%d", userId);
 
     // Retrieve user file location
     StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", userId);
     path = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
     if (path == NULL) {
-        TRACE("Unable to retrieve file location.\n");
+        TRACE("Unable to retrieve file location.");
         return ERROR_NOT_ENOUGH_MEMORY;
     }
 
@@ -182,7 +182,7 @@ DWORD FileUserDelete(INT32 userId)
         result = ERROR_SUCCESS;
     } else {
         result = GetLastError();
-        TRACE("Unable to delete file \"%s\" (error %lu).\n", path, result);
+        TRACE("Unable to delete file \"%s\" (error %lu).", path, result);
     }
 
     Io_Free(path);
@@ -198,7 +198,7 @@ DWORD FileUserOpen(INT32 userId, USERFILE *userFile)
 
     ASSERT(userId != -1);
     ASSERT(userFile != NULL);
-    TRACE("userId=%d userFile=%p\n", userId, userFile);
+    TRACE("userId=%d userFile=%p", userId, userFile);
 
     mod = userFile->lpInternal;
     ASSERT(mod->file == INVALID_HANDLE_VALUE);
@@ -207,7 +207,7 @@ DWORD FileUserOpen(INT32 userId, USERFILE *userFile)
     StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", userId);
     path = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
     if (path == NULL) {
-        TRACE("Unable to retrieve file location.\n");
+        TRACE("Unable to retrieve file location.");
         return ERROR_NOT_ENOUGH_MEMORY;
     }
 
@@ -221,7 +221,7 @@ DWORD FileUserOpen(INT32 userId, USERFILE *userFile)
         result = ERROR_SUCCESS;
     } else {
         result = GetLastError();
-        TRACE("Unable to open file \"%s\" (error %lu).\n", path, result);
+        TRACE("Unable to open file \"%s\" (error %lu).", path, result);
     }
 
     Io_Free(path);
@@ -236,7 +236,7 @@ DWORD FileUserWrite(USERFILE *userFile)
     MOD_CONTEXT *mod;
 
     ASSERT(userFile != NULL);
-    TRACE("userFile=%p\n", userFile);
+    TRACE("userFile=%p", userFile);
 
     mod = userFile->lpInternal;
     ASSERT(mod->file != INVALID_HANDLE_VALUE);
@@ -248,7 +248,7 @@ DWORD FileUserWrite(USERFILE *userFile)
     buffer.buf    = Io_Allocate(buffer.size);
 
     if (buffer.buf == NULL) {
-        TRACE("Unable to allocate write buffer.\n");
+        TRACE("Unable to allocate write buffer.");
         return ERROR_NOT_ENOUGH_MEMORY;
     }
 
@@ -265,7 +265,7 @@ DWORD FileUserWrite(USERFILE *userFile)
         FlushFileBuffers(mod->file);
     } else {
         result = GetLastError();
-        TRACE("Unable to write file (error %lu).\n", result);
+        TRACE("Unable to write file (error %lu).", result);
     }
 
     Io_Free(buffer.buf);
@@ -277,7 +277,7 @@ DWORD FileUserClose(USERFILE *userFile)
     MOD_CONTEXT *mod;
 
     ASSERT(userFile != NULL);
-    TRACE("userFile=%p\n", userFile);
+    TRACE("userFile=%p", userFile);
 
     mod = userFile->lpInternal;
 
