@@ -557,7 +557,7 @@ proc ::nxTools::Pre::Release {argList} {
     ListAssign [GetCreditStatSections $destVirtualPath] creditSection statSection
 
     # Count disk sub-directories.
-    foreach entry [glob -nocomplain -types d -directory $realPath "*"] {
+    foreach entry [glob -nocomplain -types d -directory $realPath -- "*"] {
         if {[IsDiskPath $entry]} {incr diskCount}
     }
 
@@ -617,7 +617,7 @@ proc ::nxTools::Pre::Release {argList} {
 
     set isMP3 0
     set filePath [expr {!$diskCount ? "*.mp3" : "*/*.mp3"}]
-    set mp3Files [glob -nocomplain -types f -directory $destRealPath $filePath]
+    set mp3Files [glob -nocomplain -types f -directory $destRealPath -- $filePath]
 
     # Attempt to parse every MP3 file until successful.
     foreach filePath $mp3Files {

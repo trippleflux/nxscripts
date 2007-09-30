@@ -26,6 +26,9 @@ namespace eval ::nxTools::Close {
 
 proc ::nxTools::Close::ExcemptCheck {userName groupName flags} {
     global close
+    iputs flags=[MatchFlags $close(Flags) $flags]
+    iputs users=[lsearch -exact $close(UserNames) $userName]
+    iputs group=[lsearch -exact $close(GroupNames) $groupName]
     if {[MatchFlags $close(Flags) $flags] || \
         [lsearch -exact $close(UserNames) $userName] != -1 || \
         [lsearch -exact $close(GroupNames) $groupName] != -1} {return 1}
@@ -69,11 +72,16 @@ proc ::nxTools::Close::Main {argv} {
             iputs "'------------------------------------------------------------------------'"
         }
         LOGIN {
+            iputs LOGIN:check
+            iputs LOGIN:except=[ExcemptCheck $user $group $flags]
+            iputs LOGIN:exists=[::nx::key exists siteClosed]
+            catch {iputs LOGIN:get=[::nx::key get siteClosed]}
             if {![ExcemptCheck $user $group $flags] && ![catch {set closeInfo [::nx::key get siteClosed]}]} {
                 set duration [expr {[clock seconds] - [lindex $closeInfo 0]}]
                 iputs -nobuffer "530 Server Closed: [lindex $closeInfo 1] (since [FormatDuration $duration] ago)"
                 set result 1
             }
+            iputs LOGIN=$result
         }
         OPEN {
             iputs ".-\[Open\]-----------------------------------------------------------------."

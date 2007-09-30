@@ -12,7 +12,7 @@
 #   Implements a nuker and related statistical commands.
 #
 
-if {[IsTrue $misc(ReloadConfig)] && [catch {source "../scripts/init.itcl"} error]} {
+if {[catch {source "../scripts/init.itcl"} error]} {
     iputs "Unable to load script configuration, contact a siteop."
     return -code error $error
 }
@@ -27,7 +27,7 @@ namespace eval ::nxTools::Nuke {
 proc ::nxTools::Nuke::FindTags {realPath tagFormat} {
     regsub -all -- {%\(\w+\)} $tagFormat {*} tagFormat
     set tagFormat [string map {\[ \\\[ \] \\\] \{ \\\{ \} \\\}} $tagFormat]
-    return [glob -nocomplain -types d -directory $realPath $tagFormat]
+    return [glob -nocomplain -types d -directory $realPath -- $tagFormat]
 }
 
 proc ::nxTools::Nuke::GetName {virtualPath} {
@@ -218,7 +218,7 @@ proc ::nxTools::Nuke::Main {argv} {
             ListAssign [GetCreditStatSections $virtualPath] creditSection statSection
 
             # Count disk sub-directories.
-            foreach entry [glob -nocomplain -types d -directory $realPath "*"] {
+            foreach entry [glob -nocomplain -types d -directory $realPath -- "*"] {
                 if {[IsDiskPath $entry]} {incr diskCount}
             }
 
