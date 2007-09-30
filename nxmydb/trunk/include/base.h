@@ -49,7 +49,6 @@ Abstract:
 #include <IoError.h>
 #include <ServerLimits.h>
 #include <Buffer.h>
-#include <Log.h>
 #include <Timer.h>
 #include <GroupFile.h>
 #include <Group.h>

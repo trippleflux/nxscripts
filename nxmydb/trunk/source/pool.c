@@ -419,7 +419,7 @@ Return Values:
     A Windows API error code.
 
 --*/
-BOOL SCALL PoolCreate(
+DWORD SCALL PoolCreate(
     POOL *pool,
     DWORD minimum,
     DWORD average,
@@ -483,7 +483,7 @@ Return Values:
     A Windows API error code.
 
 --*/
-VOID FCALL PoolDestroy(POOL *pool)
+DWORD FCALL PoolDestroy(POOL *pool)
 {
     POOL_RESOURCE *resource;
 

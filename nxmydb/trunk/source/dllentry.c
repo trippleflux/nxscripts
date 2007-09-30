@@ -38,17 +38,8 @@ Return Values:
 BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 {
     UNREFERENCED_PARAMETER(instance);
+    UNREFERENCED_PARAMETER(reason);
     UNREFERENCED_PARAMETER(reserved);
-
-    switch (reason) {
-        case DLL_PROCESS_ATTACH:
-            TRACE_HEAD();
-            break;
-
-        case DLL_PROCESS_DETACH:
-            TRACE_FOOT();
-            break;
-    }
 
     return TRUE;
 }
