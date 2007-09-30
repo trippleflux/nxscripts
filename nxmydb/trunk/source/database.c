@@ -85,12 +85,12 @@ static POOL_CONSTRUCTOR_PROC ConnectionOpen;
 static POOL_VALIDATOR_PROC   ConnectionCheck;
 static POOL_DESTRUCTOR_PROC  ConnectionClose;
 
-static VOID  FCALL ConfigInit(VOID);
+static DWORD FCALL ConfigInit(VOID);
 static BOOL  FCALL ConfigLoad(VOID);
-static VOID  FCALL ConfigFree(VOID);
+static DWORD FCALL ConfigFree(VOID);
 
 static CHAR *FCALL ConfigGet(CHAR *array, CHAR *variable);
-static BOOL  FCALL ConfigUuid(VOID);
+static DWORD FCALL ConfigUuid(VOID);
 
 
 /*++
@@ -120,11 +120,11 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
 
     UNREFERENCED_PARAMETER(context);
     ASSERT(data != NULL);
-    TRACE("context=%p data=%p\n", context, data);
+    TRACE("context=%p data=%p", context, data);
 
     db = MemAllocate(sizeof(DB_CONTEXT));
     if (db == NULL) {
-        TRACE("Unable to allocate memory for database context.\n");
+        LOG_ERROR("Unable to allocate memory for database context.");
 
         error = ERROR_NOT_ENOUGH_MEMORY;
         goto failed;
@@ -138,7 +138,7 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
     //
     db->handle = mysql_init(NULL);
     if (db->handle == NULL) {
-        TRACE("Unable to allocate memory for MySQL handle.\n");
+        LOG_ERROR("Unable to allocate memory for MySQL handle.");
 
         error = ERROR_NOT_ENOUGH_MEMORY;
         goto failed;
@@ -172,8 +172,7 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
         NULL, flags);
 
     if (connection == NULL) {
-        TRACE("Unable to connect to server: %s\n", mysql_error(db->handle));
-        Io_Putlog(LOG_ERROR, "nxMyDB: Unable to connect to server: %s\r\n", mysql_error(db->handle));
+        LOG_ERROR("Unable to connect to server: %s", mysql_error(db->handle));
 
         error = ERROR_CONNECTION_REFUSED;
         goto failed;
@@ -186,7 +185,7 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
     for (i = 0; i < ELEMENT_COUNT(db->stmt); i++) {
         db->stmt[i] = mysql_stmt_init(db->handle);
         if (db->stmt[i] == NULL) {
-            TRACE("Unable to allocate memory for statement structure.\n");
+            LOG_ERROR("Unable to allocate memory for statement structure.");
 
             error = ERROR_NOT_ENOUGH_MEMORY;
             goto failed;
@@ -197,7 +196,7 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
     GetSystemTimeAsFileTime((FILETIME *)&db->created);
     db->used = db->created;
 
-    TRACE("Connected to %s, running MySQL Server v%s.\n",
+    LOG_INFO("Connected to %s, running MySQL Server v%s.",
         mysql_get_host_info(db->handle), mysql_get_server_info(db->handle));
 
     *data = db;
@@ -236,14 +235,14 @@ static BOOL FCALL ConnectionCheck(VOID *context, VOID *data)
 
     UNREFERENCED_PARAMETER(context);
     ASSERT(data != NULL);
-    TRACE("context=%p data=%p\n", context, data);
+    TRACE("context=%p data=%p", context, data);
 
     GetSystemTimeAsFileTime((FILETIME *)&timeCurrent);
 
     // Check if the context has exceeded the expiration time
     timeDelta = timeCurrent - db->created;
     if (timeDelta > dbConfigPool.expireNano) {
-        TRACE("Expiring server connection after %I64u seconds (%d second limit).\n",
+        LOG_INFO("Expiring server connection after %I64u seconds (%d second limit).",
             timeDelta/10000000, dbConfigPool.expire);
         SetLastError(ERROR_CONTEXT_EXPIRED);
         return FALSE;
@@ -252,11 +251,11 @@ static BOOL FCALL ConnectionCheck(VOID *context, VOID *data)
     // Check if the connection is still alive
     timeDelta = timeCurrent - db->used;
     if (timeDelta > dbConfigPool.checkNano) {
-        TRACE("Connection has not been used in %I64u seconds (%d second limit), pinging it.\n",
+        LOG_INFO("Connection has not been used in %I64u seconds (%d second limit), pinging it.",
             timeDelta/10000000, dbConfigPool.check);
 
         if (mysql_ping(db->handle) != 0) {
-            TRACE("Lost server connection: %s\n", mysql_error(db->handle));
+            LOG_WARN("Lost server connection: %s", mysql_error(db->handle));
             SetLastError(ERROR_NOT_CONNECTED);
             return FALSE;
         }
@@ -290,7 +289,7 @@ static VOID FCALL ConnectionClose(VOID *context, VOID *data)
 
     UNREFERENCED_PARAMETER(context);
     ASSERT(data != NULL);
-    TRACE("context=%p data=%p\n", context, data);
+    TRACE("context=%p data=%p", context, data);
 
     // Free MySQL structures
     for (i = 0; i < ELEMENT_COUNT(db->stmt); i++) {
@@ -317,16 +316,17 @@ Arguments:
     None.
 
 Return Values:
-    None.
+    A Windows API error code.
 
 --*/
-static VOID FCALL ConfigInit(VOID)
+static DWORD FCALL ConfigInit(VOID)
 {
     // Clear configuration structures
     ZeroMemory(&dbConfigLock,   sizeof(DB_CONFIG_LOCK));
     ZeroMemory(&dbConfigPool,   sizeof(DB_CONFIG_POOL));
     ZeroMemory(&dbConfigServer, sizeof(DB_CONFIG_SERVER));
     ZeroMemory(&dbConfigSync,   sizeof(DB_CONFIG_SYNC));
+    return ERROR_SUCCESS;
 }
 
 /*++
@@ -352,13 +352,13 @@ static BOOL FCALL ConfigLoad(VOID)
 
     dbConfigLock.expire = 60;
     if (Io_ConfigGetInt("nxMyDB", "Lock_Expire", &dbConfigLock.expire) && dbConfigLock.expire <= 0) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Lock_Expire' must be greater than zero.\r\n");
+        LOG_ERROR("Option 'Lock_Expire' must be greater than zero.");
         return FALSE;
     }
 
     dbConfigLock.timeout = 5;
     if (Io_ConfigGetInt("nxMyDB", "Lock_Timeout", &dbConfigLock.timeout) && dbConfigLock.timeout <= 0) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Lock_Timeout' must be greater than zero.\r\n");
+        LOG_ERROR("Option 'Lock_Timeout' must be greater than zero.");
         return FALSE;
     }
 
@@ -368,32 +368,32 @@ static BOOL FCALL ConfigLoad(VOID)
 
     dbConfigPool.minimum = 1;
     if (Io_ConfigGetInt("nxMyDB", "Pool_Minimum", &dbConfigPool.minimum) && dbConfigPool.minimum <= 0) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Minimum' must be greater than zero.\r\n");
+        LOG_ERROR("Option 'Pool_Minimum' must be greater than zero.");
         return FALSE;
     }
 
     dbConfigPool.average = dbConfigPool.minimum + 1;
     if (Io_ConfigGetInt("nxMyDB", "Pool_Average", &dbConfigPool.average) && dbConfigPool.average < dbConfigPool.minimum) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Average' must be greater than or equal to 'Pool_Minimum'.\r\n");
+        LOG_ERROR("Option 'Pool_Average' must be greater than or equal to 'Pool_Minimum'.");
         return FALSE;
     }
 
     dbConfigPool.maximum = dbConfigPool.average * 2;
     if (Io_ConfigGetInt("nxMyDB", "Pool_Maximum", &dbConfigPool.maximum) && dbConfigPool.maximum < dbConfigPool.average) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Maximum' must be greater than or equal to 'Pool_Average'.\r\n");
+        LOG_ERROR("Option 'Pool_Maximum' must be greater than or equal to 'Pool_Average'.");
         return FALSE;
     }
 
     dbConfigPool.timeout = 5;
     if (Io_ConfigGetInt("nxMyDB", "Pool_Timeout", &dbConfigPool.timeout) && dbConfigPool.timeout <= 0) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Timeout' must be greater than zero.\r\n");
+        LOG_ERROR("Option 'Pool_Timeout' must be greater than zero.");
         return FALSE;
     }
     dbConfigPool.timeoutMili = dbConfigPool.timeout * 1000; // sec to msec
 
     dbConfigPool.expire = 3600;
     if (Io_ConfigGetInt("nxMyDB", "Pool_Expire", &dbConfigPool.expire) && dbConfigPool.expire <= 0) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Expire' must be greater than zero.\r\n");
+        LOG_ERROR("Option 'Pool_Expire' must be greater than zero.");
         return FALSE;
     }
     dbConfigPool.expireNano = UInt32x32To64(dbConfigPool.expire, 10000000); // sec to 100nsec
@@ -401,7 +401,7 @@ static BOOL FCALL ConfigLoad(VOID)
     dbConfigPool.check = 60;
     if (Io_ConfigGetInt("nxMyDB", "Pool_Check", &dbConfigPool.check) &&
             (dbConfigPool.check <= 0 || dbConfigPool.check >= dbConfigPool.expire)) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Option 'Pool_Check' must be greater than zero and less than 'Pool_Expire'.\r\n");
+        LOG_ERROR("Option 'Pool_Check' must be greater than zero and less than 'Pool_Expire'.");
         return FALSE;
     }
     dbConfigPool.checkNano = UInt32x32To64(dbConfigPool.check, 10000000); // sec to 100nsec
@@ -415,14 +415,14 @@ static BOOL FCALL ConfigLoad(VOID)
     if (dbConfigSync.enabled) {
         dbConfigSync.first = 30;
         if (Io_ConfigGetInt("nxMyDB", "SyncFirst", &dbConfigSync.first) && dbConfigSync.first <= 0) {
-            Io_Putlog(LOG_ERROR, "nxMyDB: Option 'SyncTimer' must be greater than zero.\r\n");
+            LOG_ERROR("Option 'SyncTimer' must be greater than zero.");
             return FALSE;
         }
         dbConfigSync.first = dbConfigSync.first * 1000; // sec to msec
 
         dbConfigSync.interval = 60;
         if (Io_ConfigGetInt("nxMyDB", "SyncInterval", &dbConfigSync.interval) && dbConfigSync.interval <= 0) {
-            Io_Putlog(LOG_ERROR, "nxMyDB: Option 'SyncInterval' must be greater than zero.\r\n");
+            LOG_ERROR("Option 'SyncInterval' must be greater than zero.");
             return FALSE;
         }
         dbConfigSync.interval = dbConfigSync.interval * 1000; // sec to msec
@@ -458,10 +458,10 @@ Arguments:
     None.
 
 Return Values:
-    None.
+    A Windows API error code.
 
 --*/
-static VOID FCALL ConfigFree(VOID)
+static DWORD FCALL ConfigFree(VOID)
 {
     // Free server options
     if (dbConfigServer.host != NULL) {
@@ -499,6 +499,7 @@ static VOID FCALL ConfigFree(VOID)
     ZeroMemory(&dbConfigPool,   sizeof(DB_CONFIG_POOL));
     ZeroMemory(&dbConfigSync,   sizeof(DB_CONFIG_SYNC));
     ZeroMemory(&dbConfigServer, sizeof(DB_CONFIG_SERVER));
+    return ERROR_SUCCESS;
 }
 
 /*++
@@ -561,41 +562,41 @@ Arguments:
     If the function fails, the return value is zero (false).
 
 Return Values:
-    None.
+    A Windows API error code.
 
 --*/
-static BOOL FCALL ConfigUuid(VOID)
+static DWORD FCALL ConfigUuid(VOID)
 {
-    CHAR        *format;
-    RPC_STATUS  status;
-    UUID        uuid;
+    CHAR    *format;
+    DWORD   result;
+    UUID    uuid;
 
-    status = UuidCreate(&uuid);
-    switch (status) {
+    result = UuidCreate(&uuid);
+    switch (result) {
         case RPC_S_OK:
         case RPC_S_UUID_LOCAL_ONLY:
         case RPC_S_UUID_NO_ADDRESS:
             // These are acceptable failures.
             break;
         default:
-            TRACE("Unable to generate UUID (error %lu).\n", status);
+            LOG_ERROR("Unable to generate UUID (error %lu).", result);
             return FALSE;
     }
 
-    status = UuidToStringA(&uuid, (RPC_CSTR *)&format);
-    if (status != RPC_S_OK) {
-            TRACE("Unable to convert UUID (error %lu).\n", status);
-        return FALSE;
+    result = UuidToStringA(&uuid, (RPC_CSTR *)&format);
+    if (result != RPC_S_OK) {
+        LOG_ERROR("Unable to convert UUID (error %lu).", result);
+        return result;
     }
 
     // Copy formatted UUID
     StringCchCopyA(dbConfigLock.owner, ELEMENT_COUNT(dbConfigLock.owner), format);
     dbConfigLock.ownerLength = strlen(dbConfigLock.owner);
 
-    TRACE("UUID is %s\n", format);
+    LOG_INFO("Server lock UUID is \"%s\".", format);
 
     RpcStringFree((RPC_CSTR *)&format);
-    return TRUE;
+    return ERROR_SUCCESS;
 }
 
 
@@ -633,19 +634,19 @@ static DWORD SyncGetTime(DB_CONTEXT *db, ULONG *timePtr)
 
     result = mysql_stmt_prepare(stmt, query, strlen(query));
     if (result != 0) {
-        TRACE("Unable to prepare statement: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     metadata = mysql_stmt_result_metadata(stmt);
     if (metadata == NULL) {
-        TRACE("Unable to retrieve result metadata: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to retrieve result metadata: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     result = mysql_stmt_execute(stmt);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -662,19 +663,19 @@ static DWORD SyncGetTime(DB_CONTEXT *db, ULONG *timePtr)
 
     result = mysql_stmt_bind_result(stmt, bind);
     if (result != 0) {
-        TRACE("Unable to bind results: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to bind results: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     result = mysql_stmt_store_result(stmt);
     if (result != 0) {
-        TRACE("Unable to buffer results: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to buffer results: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     result = mysql_stmt_fetch(stmt);
     if (result != 0) {
-        TRACE("Unable to fetch results: %s\n", mysql_stmt_error(stmt));
+        TRACE("Unable to fetch results: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -713,7 +714,7 @@ static DWORD SyncTimer(VOID *context, TIMER *timer)
         // Retrieve the current server time
         result = SyncGetTime(db, &currentTime);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to retrieve server timestamp (error %lu).\n", result);
+            LOG_ERROR("Unable to retrieve server timestamp (error %lu).", result);
 
         } else {
             // Update the current time
@@ -728,8 +729,6 @@ static DWORD SyncTimer(VOID *context, TIMER *timer)
         }
 
         DbRelease(db);
-    } else {
-        TRACE("Unable to acquire a database connection.\n");
     }
 
     // Execute the timer again
@@ -761,11 +760,11 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
 {
     DWORD result;
 
-    TRACE("refCount=%d\n", refCount);
+    TRACE("refCount=%d", refCount);
 
     // Only initialize the database pool once
     if (refCount++) {
-        TRACE("Already initialized, returning.\n");
+        TRACE("Already initialized, returning.");
         return TRUE;
     }
 
@@ -773,22 +772,31 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
     ConfigInit();
 
     // Initialize procedure table
-    if (!ProcTableInit(getProc)) {
-        TRACE("Unable to initialize procedure table.\n");
+    result = ProcTableInit(getProc);
+    if (result != ERROR_SUCCESS) {
+        TRACE("Unable to initialize procedure table (error %lu).", result);
+        return FALSE;
+    }
+
+    // Initialize logging system
+    result = LogInit();
+    if (result != ERROR_SUCCESS) {
+        TRACE("Unable to initialize logging system (error %lu).", result);
         return FALSE;
     }
 
     // Load configuration options
     if (!ConfigLoad()) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Unable to load configuraiton.\r\n");
+        LOG_ERROR("Unable to load configuration.");
 
         DbFinalize();
         return FALSE;
     }
 
     // Generate a UUID for this server
-    if (!ConfigUuid()) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Unable to generate UUID.\r\n");
+    result = ConfigUuid();
+    if (result != ERROR_SUCCESS) {
+        LOG_ERROR("Unable to generate UUID (error %lu).", result);
 
         DbFinalize();
         return FALSE;
@@ -801,13 +809,13 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
         ConnectionOpen, ConnectionCheck, ConnectionClose, NULL);
 
     if (result != ERROR_SUCCESS) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Unable to initialize connection pool (error %lu).\r\n", error);
+        LOG_ERROR("Unable to initialize connection pool (error %lu).", result);
 
         DbFinalize();
         return FALSE;
     }
 
-    Io_Putlog(LOG_ERROR, "nxMyDB: v%s loaded, using MySQL Client Library v%s.\r\n",
+    LOG_INFO("nxMyDB v%s loaded, using MySQL Client Library v%s.",
         STRINGIFY(VERSION), mysql_get_client_info());
     return TRUE;
 }
@@ -830,7 +838,7 @@ Remarks:
 --*/
 VOID FCALL DbFinalize(VOID)
 {
-    TRACE("refCount=%d\n", refCount);
+    TRACE("refCount=%d", refCount);
 
     // Finalize once the reference count reaches zero
     if (--refCount == 0) {
@@ -841,10 +849,13 @@ VOID FCALL DbFinalize(VOID)
         // Destroy connection pool
         PoolDestroy(&pool);
 
-        // Notify user
-        Io_Putlog(LOG_ERROR, "nxMyDB: v%s unloaded.\r\n", STRINGIFY(VERSION));
-
+        // Free configuration options
         ConfigFree();
+
+        // Stop logging system
+        LOG_INFO("nxMyDB v%s unloaded.", STRINGIFY(VERSION));
+        LogFinalize();
+
         ProcTableFinalize();
     }
 }
@@ -941,7 +952,7 @@ DWORD FCALL DbMapError(UINT error)
             break;
 
         default:
-            TRACE("Unknown MySQL result error %lu.\n", error);
+            LOG_INFO("Unknown MySQL result error %lu.", error);
             result = ERROR_INVALID_FUNCTION;
     }
 
@@ -966,11 +977,11 @@ Return Values:
 BOOL FCALL DbAcquire(DB_CONTEXT **dbPtr)
 {
     ASSERT(dbPtr != NULL);
-    TRACE("dbPtr=%p\n", dbPtr);
+    TRACE("dbPtr=%p", dbPtr);
 
     // Acquire a database context
     if (!PoolAcquire(&pool, dbPtr)) {
-        TRACE("Unable to acquire a database context (error %lu).\n", GetLastError());
+        LOG_ERROR("Unable to acquire a database context (error %lu).", GetLastError());
         return FALSE;
     }
 
@@ -993,13 +1004,13 @@ Return Values:
 VOID FCALL DbRelease(DB_CONTEXT *db)
 {
     ASSERT(db != NULL);
-    TRACE("db=%p\n", db);
+    TRACE("db=%p", db);
 
     // Update last-use time stamp
     GetSystemTimeAsFileTime((FILETIME *)&db->used);
 
     // Release the database context
     if (!PoolRelease(&pool, db)) {
-        TRACE("Unable to release the database context (error %lu).\n", GetLastError());
+        LOG_ERROR("Unable to release the database context (error %lu).", GetLastError());
     }
 }

@@ -103,6 +103,7 @@ FILE_OBJS = \
     groupdb.obj\
     groupdbsync.obj\
     groupfile.obj\
+    log.obj\
     logdebug.obj\
     logfile.obj\
     namelist.obj\

@@ -50,7 +50,7 @@ static DWORD FCALL EventHistory(EVENT_DATA *data, IO_STRING *arguments)
 {
     ASSERT(data != NULL);
     ASSERT(arguments != NULL);
-    TRACE("data=%p arguments=%p\n", data, arguments);
+    TRACE("data=%p arguments=%p", data, arguments);
 
     // TODO
 
@@ -61,7 +61,7 @@ static DWORD FCALL EventStart(EVENT_DATA *data, IO_STRING *arguments)
 {
     UNREFERENCED_PARAMETER(data);
     UNREFERENCED_PARAMETER(arguments);
-    TRACE("data=%p arguments=%p\n", data, arguments);
+    TRACE("data=%p arguments=%p", data, arguments);
 
     DbSyncStart();
 
@@ -72,7 +72,7 @@ static DWORD FCALL EventStop(EVENT_DATA *data, IO_STRING *arguments)
 {
     UNREFERENCED_PARAMETER(data);
     UNREFERENCED_PARAMETER(arguments);
-    TRACE("data=%p arguments=%p\n", data, arguments);
+    TRACE("data=%p arguments=%p", data, arguments);
 
     DbSyncStop();
 
@@ -88,10 +88,10 @@ static INT EventHandler(EVENT_DATA *data, IO_STRING *arguments)
 
     ASSERT(data != NULL);
     ASSERT(arguments != NULL);
-    TRACE("data=%p arguments=%p\n", data, arguments);
+    TRACE("data=%p arguments=%p", data, arguments);
 
     if (GetStringItems(arguments) < 1) {
-        TRACE("No arguments passed to event handler.\n");
+        LOG_ERROR("No arguments passed to event handler.");
         return 1;
     }
 
@@ -112,7 +112,7 @@ static INT EventHandler(EVENT_DATA *data, IO_STRING *arguments)
         return 0;
     }
 
-    TRACE("No event handler found for \"%s\".\n", name);
+    LOG_ERROR("No event handler found for \"%s\".", name);
     return 1;
 }
 
@@ -121,21 +121,21 @@ INT EventInit(EVENT_MODULE *module)
     INT failed;
 
     ASSERT(module != NULL);
-    TRACE("module=%p\n", module);
+    TRACE("module=%p", module);
 
     // Initialize module
     module->szName = MODULE_NAME;
 
     // Initialize database
     if (!DbInit(module->lpGetProc)) {
-        TRACE("Unable to initialize module.\n");
+        TRACE("Unable to initialize module.");
         return 1;
     }
 
     // Register event handler
     failed = module->lpInstallEvent(MODULE_NAME, EventHandler);
     if (failed) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Unable to register event handler.\n");
+        LOG_ERROR("Unable to register event handler (error %lu).", GetLastError());
 
         DbFinalize();
         return 1;
@@ -147,7 +147,7 @@ INT EventInit(EVENT_MODULE *module)
 VOID EventDeInit(EVENT_MODULE *module)
 {
     UNREFERENCED_PARAMETER(module);
-    TRACE("module=%p\n", module);
+    TRACE("module=%p", module);
 
     // Finalize database
     DbFinalize();
