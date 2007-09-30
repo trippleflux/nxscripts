@@ -93,16 +93,18 @@ lib: nxmydb.dll
 
 FILE_OBJS = \
     mydb.res\
+    alloc.obj\
     array.obj\
     condvar.obj\
     database.obj\
-    debug.obj\
     dllentry.obj\
     event.obj\
     group.obj\
     groupdb.obj\
     groupdbsync.obj\
     groupfile.obj\
+    logdebug.obj\
+    logfile.obj\
     namelist.obj\
     pool.obj\
     proctable.obj\

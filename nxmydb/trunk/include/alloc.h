@@ -4,18 +4,18 @@ nxMyDB - MySQL Database for ioFTPD
 Copyright (c) 2006-2007 neoxed
 
 Module Name:
-    Utilities
+    Allocator
 
 Author:
     neoxed (neoxed@gmail.com) Jun 3, 2006
 
 Abstract:
-    Miscellaneous debugging utilities.
+    Memory allocator declartions.
 
 */
 
-#ifndef DEBUG_H_INCLUDED
-#define DEBUG_H_INCLUDED
+#ifndef ALLOC_H_INCLUDED
+#define ALLOC_H_INCLUDED
 
 //
 // Memory debugging
@@ -40,15 +40,4 @@ VOID  SCALL DebugCheck(VOID *Mem, const CHAR *SourceFile, const CHAR *SourceFunc
     #define MemCheck(mem)               ((VOID)0)
 #endif // DEBUG
 
-
-//
-// Message tracing
-//
-
-#ifdef DEBUG
-VOID FCALL TraceHeader(VOID);
-VOID CCALL TraceFormat(const char *funct, const char *format, ...);
-VOID FCALL TraceFooter(VOID);
-#endif // DEBUG
-
-#endif // DEBUG_H_INCLUDED
+#endif // ALLOC_H_INCLUDED
