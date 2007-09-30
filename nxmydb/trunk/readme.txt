@@ -113,6 +113,14 @@ supported by OpenSSL/yaSSL.
     - Database name
     - Default: MySQL's default database
 
+  Log_Level
+    - Log verbosity level
+    - Value 0 for off
+    - Value 1 for errors
+    - Value 2 for errors and warnings
+    - Value 3 for errors, warnings, and information
+    - Default: 1
+
   Sync
     - Synchronization of users and groups
     - Set to "true" if the database is shared with more than one server

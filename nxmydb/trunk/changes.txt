@@ -1,4 +1,6 @@
 nxMyDB v0.3.0 (not released):
+  NEW: Added configuration option "Log_Level" to control the log verbosity.
+  NEW: Logging system to log errors, warnings, and information.
   CHG: Renamed configuration option "SyncFirst" to "Sync_First".
   CHG: Renamed configuration option "SyncInterval" to "Sync_Interval".
 

@@ -27,6 +27,9 @@ Abstract:
 //
 // Configuration structures
 //
+typedef struct {
+    INT     logLevel;       // Level of log verbosity
+} DB_CONFIG_GLOBAL;
 
 typedef struct {
     INT     minimum;        // Minimum number of sustained connections
@@ -70,6 +73,7 @@ typedef struct {
 
 DB_CONFIG_LOCK dbConfigLock;
 
+static DB_CONFIG_GLOBAL  dbConfigGlobal;
 static DB_CONFIG_POOL    dbConfigPool;
 static DB_CONFIG_SERVER  dbConfigServer;
 static DB_CONFIG_SYNC    dbConfigSync;
@@ -322,6 +326,7 @@ Return Values:
 static DWORD FCALL ConfigInit(VOID)
 {
     // Clear configuration structures
+    ZeroMemory(&dbConfigGlobal, sizeof(DB_CONFIG_GLOBAL));
     ZeroMemory(&dbConfigLock,   sizeof(DB_CONFIG_LOCK));
     ZeroMemory(&dbConfigPool,   sizeof(DB_CONFIG_POOL));
     ZeroMemory(&dbConfigServer, sizeof(DB_CONFIG_SERVER));
@@ -346,6 +351,13 @@ Return Values:
 --*/
 static BOOL FCALL ConfigLoad(VOID)
 {
+    //
+    // Read global options
+    //
+
+    dbConfigGlobal.logLevel = (INT)LOG_LEVEL_ERROR;
+    Io_ConfigGetInt("nxMyDB", "Log_Level", &dbConfigGlobal.logLevel);
+
     //
     // Read lock options
     //
@@ -495,6 +507,7 @@ static DWORD FCALL ConfigFree(VOID)
     }
 
     // Clear configuration structures
+    ZeroMemory(&dbConfigGlobal, sizeof(DB_CONFIG_GLOBAL));
     ZeroMemory(&dbConfigLock,   sizeof(DB_CONFIG_LOCK));
     ZeroMemory(&dbConfigPool,   sizeof(DB_CONFIG_POOL));
     ZeroMemory(&dbConfigSync,   sizeof(DB_CONFIG_SYNC));
@@ -792,6 +805,9 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
         DbFinalize();
         return FALSE;
     }
+
+    // Set log verbosity level
+    LogSetLevel((LOG_LEVEL)dbConfigGlobal.logLevel);
 
     // Generate a UUID for this server
     result = ConfigUuid();

@@ -37,7 +37,7 @@ static LOG_LEVEL logLevel;
 DWORD SCALL LogInit(VOID)
 {
     // Default to the error log level
-    logLevel = 10;
+    logLevel = LOG_LEVEL_ERROR;
 
     return BACKEND_INIT();
 }
