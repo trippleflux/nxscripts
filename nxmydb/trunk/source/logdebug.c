@@ -4,7 +4,7 @@ nxMyDB - MySQL Database for ioFTPD
 Copyright (c) 2006-2007 neoxed
 
 Module Name:
-    Debug Logging
+    Debugger Logging
 
 Author:
     neoxed (neoxed@gmail.com) Sep 30, 2007
@@ -17,26 +17,26 @@ Abstract:
 #include <base.h>
 #include <logging.h>
 
-DWORD FCALL LogDebugInit(VOID)
+DWORD SCALL LogDebuggerInit(VOID)
 {
     return ERROR_SUCCESS;
 }
 
-DWORD FCALL LogDebugFinalize(VOID)
+DWORD SCALL LogDebuggerFinalize(VOID)
 {
     return ERROR_SUCCESS;
 }
 
-VOID SCALL LogDebugFormat(const CHAR *format, ...)
+VOID SCALL LogDebuggerFormat(const CHAR *format, ...)
 {
     va_list argList;
 
     va_start(argList, format);
-    LogDebugFormatV(format, argList);
+    LogDebuggerFormatV(format, argList);
     va_end(argList);
 }
 
-VOID SCALL LogDebugFormatV(const CHAR *format, va_list argList)
+VOID SCALL LogDebuggerFormatV(const CHAR *format, va_list argList)
 {
     CHAR    message[512];
     DWORD   errorCode;
@@ -53,16 +53,16 @@ VOID SCALL LogDebugFormatV(const CHAR *format, va_list argList)
     SetLastError(errorCode);
 }
 
-VOID SCALL LogDebugTrace(const CHAR *file, const CHAR *func, INT line, const CHAR *format, ...)
+VOID SCALL LogDebuggerTrace(const CHAR *file, const CHAR *func, INT line, const CHAR *format, ...)
 {
     va_list argList;
 
     va_start(argList, format);
-    LogDebugTraceV(file, func, line, format, argList);
+    LogDebuggerTraceV(file, func, line, format, argList);
     va_end(argList);
 }
 
-VOID SCALL LogDebugTraceV(const CHAR *file, const CHAR *func, INT line, const CHAR *format, va_list argList)
+VOID SCALL LogDebuggerTraceV(const CHAR *file, const CHAR *func, INT line, const CHAR *format, va_list argList)
 {
     CHAR    message[512];
     DWORD   errorCode;

@@ -73,7 +73,7 @@ static INLINE LOG_ENTRY *GetQueueEntry(VOID)
     return entry;
 }
 
-static VOID QueueWrite(VOID *context)
+static VOID CCALL QueueWrite(VOID *context)
 {
     CHAR        buffer[128];
     DWORD       written;
@@ -111,7 +111,7 @@ static VOID QueueWrite(VOID *context)
     }
 }
 
-static VOID QueueInsert(LOG_ENTRY *entry)
+static VOID FCALL QueueInsert(LOG_ENTRY *entry)
 {
     BOOL empty;
 
@@ -134,14 +134,15 @@ static VOID QueueInsert(LOG_ENTRY *entry)
 }
 
 
-DWORD FCALL LogFileInit(VOID)
+DWORD SCALL LogFileInit(VOID)
 {
     CHAR    *path;
     DWORD   result;
 
+    InterlockedExchange(&logStatus, LOG_STATUS_INACTIVE);
     STAILQ_INIT(&logQueue);
 
-    path = Io_ConfigGet("Locations", "Log_Files", "nxMyDB.log", NULL);
+    path = Io_ConfigGetPath("Locations", "Log_Files", "nxMyDB.log", NULL);
     if (path == NULL) {
         return ERROR_NOT_ENOUGH_MEMORY;
     }
@@ -172,7 +173,7 @@ DWORD FCALL LogFileInit(VOID)
     return result;
 }
 
-DWORD FCALL LogFileFinalize(VOID)
+DWORD SCALL LogFileFinalize(VOID)
 {
     // Write log footer
     LogFileFormat("'-----------------------------------------'\r\n");
