@@ -41,12 +41,10 @@ Arguments:
     getProc - Pointer to ioFTPD's GetProc function.
 
 Return Values:
-    If the function succeeds, the return value is nonzero (true).
-
-    If the function fails, the return value is zero (false).
+    A Windows API error code.
 
 --*/
-BOOL FCALL ProcTableInit(Io_GetProc *getProc)
+DWORD FCALL ProcTableInit(Io_GetProc *getProc)
 {
     RESOLVE("Config_Get",           procTable.pConfigGet);
     RESOLVE("Config_GetBool",       procTable.pConfigGetBool);
@@ -78,12 +76,12 @@ BOOL FCALL ProcTableInit(Io_GetProc *getProc)
     RESOLVE("QueueJob",             procTable.pQueueJob);
     RESOLVE("StartIoTimer",         procTable.pStartIoTimer);
     RESOLVE("StopIoTimer",          procTable.pStopIoTimer);
-    return TRUE;
+    return ERROR_SUCCESS;
 
 failed:
     // Unable to resolve a procedure
     ZeroMemory(&procTable, sizeof(PROC_TABLE));
-    return FALSE;
+    return ERROR_INVALID_FUNCTION;
 }
 
 /*++
@@ -96,10 +94,11 @@ Arguments:
     None.
 
 Return Values:
-    None.
+    A Windows API error code.
 
 --*/
-VOID FCALL ProcTableFinalize(VOID)
+DWORD FCALL ProcTableFinalize(VOID)
 {
     ZeroMemory(&procTable, sizeof(PROC_TABLE));
+    return ERROR_SUCCESS;
 }

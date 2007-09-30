@@ -132,7 +132,7 @@ extern PROC_TABLE procTable;
 #define Io_StopIoTimer          procTable.pStopIoTimer
 
 
-BOOL FCALL ProcTableInit(Io_GetProc *getProc);
-VOID FCALL ProcTableFinalize(VOID);
+DWORD FCALL ProcTableInit(Io_GetProc *getProc);
+DWORD FCALL ProcTableFinalize(VOID);
 
 #endif // PROCTABLE_H_INCLUDED
