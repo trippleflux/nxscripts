@@ -25,6 +25,7 @@ Abstract:
 #undef _UNICODE
 
 // Disabled warnings
+#pragma warning(disable : 4127) // conditional expression is constan
 #pragma warning(disable : 4200) // nonstandard extension used : zero-sized array in struct/union
 #pragma warning(disable : 4201) // nonstandard extension used : nameless struct/union
 
@@ -63,6 +64,7 @@ Abstract:
 #include <IoSocket.h>
 #include <IoString.h>
 #include <Job.h>
+#include <Threads.h>
 #include <Event.h>
 
 // MySQL headers
@@ -124,21 +126,6 @@ Abstract:
 #define STRINGIFY(s)        STRINGIFY_HELPER(s)
 #define STRINGIFY_HELPER(s)  #s
 
-//
-// TRACE_HEAD - Log debug header.
-// TRACE_FOOT - Log debug footer.
-// TRACE      - Log debug message.
-//
-#if defined(DEBUG) && !defined(NDEBUG)
-#   define TRACE_HEAD()         TraceHeader()
-#   define TRACE_FOOT()         TraceFooter()
-#   define TRACE(format, ...)   TraceFormat(__FUNCTION__, format, __VA_ARGS__)
-#else
-#   define TRACE_HEAD()         ((VOID)0)
-#   define TRACE_FOOT()         ((VOID)0)
-#   define TRACE(format, ...)   ((VOID)0)
-#endif
-
 
 //
 // Macro: CCALL
@@ -170,7 +157,8 @@ Abstract:
 
 
 // Project headers
-#include <debug.h>
 #include <proctable.h>
+#include <logging.h>
+#include <alloc.h>
 
 #endif // BASE_H_INCLUDED
