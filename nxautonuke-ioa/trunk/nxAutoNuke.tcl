@@ -113,7 +113,7 @@ proc ::nxAutoNuke::CheckDisks {diskMax diskCount} {
 }
 
 proc ::nxAutoNuke::CheckEmpty {realPath} {
-    foreach fileName [glob -nocomplain -types f -directory $realPath "*"] {
+    foreach fileName [glob -nocomplain -types f -directory $realPath -- "*"] {
         if {![string equal -nocase -length 7 ".ioFTPD" [file tail $fileName]]} {
             return 0
         }
@@ -124,14 +124,14 @@ proc ::nxAutoNuke::CheckEmpty {realPath} {
 proc ::nxAutoNuke::CheckInc {realPath} {
     global anuke
     # Check for incomplete tags.
-    foreach entry [glob -nocomplain -types d -directory $realPath "*"] {
+    foreach entry [glob -nocomplain -types d -directory $realPath -- "*"] {
         set dirName [file tail $entry]
         if {[string match -nocase $anuke(IncTag) $dirName]} {
             return 1
         }
     }
     # Check for .bad or .missing files.
-    foreach entry [glob -nocomplain -types f -directory $realPath "*"] {
+    foreach entry [glob -nocomplain -types f -directory $realPath -- "*"] {
         set fileName [file tail $entry]
         if {[string match -nocase $anuke(BadExt) $fileName] ||
                 [string match -nocase $anuke(MissingExt) $fileName]} {
@@ -326,7 +326,7 @@ proc ::nxAutoNuke::GetUserList {realPath} {
 
 proc ::nxAutoNuke::FindTags {realPath {tagTemplate "*"}} {
     set tagTemplate [string map {\[ \\\[ \] \\\] \{ \\\{ \} \\\}} $tagTemplate]
-    return [glob -nocomplain -types d -directory $realPath $tagTemplate]
+    return [glob -nocomplain -types d -directory $realPath -- $tagTemplate]
 }
 
 proc ::nxAutoNuke::SplitOptions {type options} {
@@ -524,7 +524,7 @@ proc ::nxAutoNuke::Main {} {
             lappend settingsList $type $options $multi $warnMins $nukeMins
         }
 
-        foreach release(RealPath) [glob -nocomplain -types d -directory $sectionRealPath "*"] {
+        foreach release(RealPath) [glob -nocomplain -types d -directory $sectionRealPath -- "*"] {
             set release(Name) [file tail $release(RealPath)]
 
             # Ignore exempted, approved, and old releases.
@@ -537,7 +537,7 @@ proc ::nxAutoNuke::Main {} {
 
             # Find all disk sub-directories.
             set release(PathList) [list]
-            foreach diskDir [glob -nocomplain -types d -directory $release(RealPath) "*"] {
+            foreach diskDir [glob -nocomplain -types d -directory $release(RealPath) -- "*"] {
                 if {![ListMatchI $anuke(Exempts) [file tail $diskDir]] && [IsDiskPath $diskDir]} {
                     lappend release(PathList) $diskDir
                 }
