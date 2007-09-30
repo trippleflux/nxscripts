@@ -17,6 +17,7 @@ Abstract:
 #include <base.h>
 #include <backends.h>
 #include <database.h>
+#include <logging.h>
 #include <pool.h>
 
 #include <errmsg.h>
@@ -758,7 +759,7 @@ Remarks:
 --*/
 BOOL FCALL DbInit(Io_GetProc *getProc)
 {
-    BOOL result;
+    DWORD result;
 
     TRACE("refCount=%d\n", refCount);
 
@@ -799,8 +800,8 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
         dbConfigPool.maximum, dbConfigPool.timeoutMili,
         ConnectionOpen, ConnectionCheck, ConnectionClose, NULL);
 
-    if (!result) {
-        Io_Putlog(LOG_ERROR, "nxMyDB: Unable to initialize connection pool.\r\n");
+    if (result != ERROR_SUCCESS) {
+        Io_Putlog(LOG_ERROR, "nxMyDB: Unable to initialize connection pool (error %lu).\r\n", error);
 
         DbFinalize();
         return FALSE;

@@ -416,10 +416,7 @@ Arguments:
                   be null if not required.
 
 Return Values:
-    If the function succeeds, the return value is nonzero (true).
-
-    If the function fails, the return value is zero (false). To get extended error
-    information, call GetLastError.
+    A Windows API error code.
 
 --*/
 BOOL SCALL PoolCreate(
@@ -434,11 +431,12 @@ BOOL SCALL PoolCreate(
     VOID *context
     )
 {
+    DWORD result;
+
     ASSERT(pool != NULL);
 
     if (minimum < 1 || average < minimum || maximum < average || !constructor || !validator || !destructor) {
-        SetLastError(ERROR_INVALID_PARAMETER);
-        return FALSE;
+        return ERROR_INVALID_PARAMETER;
     }
 
     // Initialize pool structure
@@ -457,21 +455,19 @@ BOOL SCALL PoolCreate(
     TAILQ_INIT(&pool->conQueue);
 
     if (!InitializeCriticalSectionAndSpinCount(&pool->lock, 250)) {
-        return FALSE;
+        return GetLastError();
     }
 
-    if (!ConditionVariableCreate(&pool->condition)) {
+    result = ConditionVariableCreate(&pool->condition);
+    if (result != ERROR_SUCCESS) {
         DeleteCriticalSection(&pool->lock);
-        return FALSE;
+        return result;
     }
 
     // Update resource queues
-    if (!ResourceUpdate(pool)) {
-        PoolDestroy(pool);
-        return FALSE;
-    }
+    ResourceUpdate(pool);
 
-    return TRUE;
+    return ERROR_SUCCESS;
 }
 
 /*++
@@ -484,7 +480,7 @@ Arguments:
     pool    - Pointer to the POOL structure to be destroyed.
 
 Return Values:
-    None.
+    A Windows API error code.
 
 --*/
 VOID FCALL PoolDestroy(POOL *pool)
@@ -510,6 +506,8 @@ VOID FCALL PoolDestroy(POOL *pool)
     ConditionVariableDestroy(&pool->condition);
     DeleteCriticalSection(&pool->lock);
     ZeroMemory(pool, sizeof(POOL));
+
+    return ERROR_SUCCESS;
 }
 
 /*++

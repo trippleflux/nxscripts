@@ -27,19 +27,20 @@ Arguments:
     cond    - Pointer to the CONDITION_VAR structure to be initialized.
 
 Return Values:
-    If the function succeeds, the return value is nonzero (true).
-
-    If the function fails, the return value is zero (false). To get extended
-    error information, call GetLastError.
+    A Windows API error code.
 
 --*/
-BOOL FCALL ConditionVariableCreate(CONDITION_VAR *cond)
+DWORD FCALL ConditionVariableCreate(CONDITION_VAR *cond)
 {
     ASSERT(cond != NULL);
 
     cond->waiting = 0;
     cond->semaphore = CreateSemaphore(NULL, 0, LONG_MAX, NULL);
-    return (cond->semaphore != NULL) ? TRUE : FALSE;
+    if (cond->semaphore == NULL) {
+        return GetLastError();
+    }
+
+    return ERROR_SUCCESS;
 }
 
 /*++
@@ -52,10 +53,10 @@ Arguments:
     cond    - Pointer to an initialized CONDITION_VAR structure.
 
 Return Values:
-    None.
+    A Windows API error code.
 
 --*/
-VOID FCALL ConditionVariableDestroy(CONDITION_VAR *cond)
+DWORD FCALL ConditionVariableDestroy(CONDITION_VAR *cond)
 {
     ASSERT(cond != NULL);
 
@@ -63,6 +64,8 @@ VOID FCALL ConditionVariableDestroy(CONDITION_VAR *cond)
         CloseHandle(cond->semaphore);
     }
     ZeroMemory(cond, sizeof(CONDITION_VAR));
+
+    return ERROR_SUCCESS;
 }
 
 /*++

@@ -119,7 +119,7 @@ typedef struct {
 // Pool functions
 //
 
-BOOL SCALL PoolCreate(
+DWORD SCALL PoolCreate(
     POOL *pool,
     DWORD minimum,
     DWORD average,
@@ -131,7 +131,7 @@ BOOL SCALL PoolCreate(
     VOID *context
     );
 
-VOID FCALL PoolDestroy(POOL *pool);
+DWORD FCALL PoolDestroy(POOL *pool);
 
 BOOL FCALL PoolAcquire(POOL *pool, VOID **data);
 BOOL FCALL PoolRelease(POOL *pool, VOID *data);
