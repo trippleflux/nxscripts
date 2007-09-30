@@ -101,7 +101,7 @@ static INT32 UserCreate(CHAR *userName)
         // Read "Default.User" file
         result = FileUserDefault(&userFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to read \"Default.User\" file (error %lu).", result);
+            LOG_WARN("Unable to read \"Default.User\" file (error %lu).", result);
         }
 
         // Register user
@@ -113,13 +113,13 @@ static INT32 UserCreate(CHAR *userName)
             // Create user file
             result = FileUserCreate(userId, &userFile);
             if (result != ERROR_SUCCESS) {
-                TRACE("Unable to create user file (error %lu).", result);
+                LOG_WARN("Unable to create user file (error %lu).", result);
             } else {
 
                 // Create database record
                 result = DbUserCreate(db, userName, &userFile);
                 if (result != ERROR_SUCCESS) {
-                    TRACE("Unable to create database record (error %lu).", result);
+                    LOG_WARN("Unable to create database record (error %lu).", result);
                 }
             }
 
@@ -161,7 +161,7 @@ static INT UserRename(CHAR *userName, INT32 userId, CHAR *newName)
     // Rename database record
     result = DbUserRename(db, userName, newName);
     if (result != ERROR_SUCCESS) {
-        TRACE("Unable to rename user database record (error %lu).", result);
+        LOG_WARN("Unable to rename user database record (error %lu).", result);
 
     } else {
         // Register user under the new name
@@ -188,13 +188,13 @@ static INT UserDelete(CHAR *userName, INT32 userId)
     // Delete user file (success does not matter)
     result = FileUserDelete(userId);
     if (result != ERROR_SUCCESS) {
-        TRACE("Unable to delete user file (error %lu).", result);
+        LOG_WARN("Unable to delete user file (error %lu).", result);
     }
 
     // Delete database record
     result = DbUserDelete(db, userName);
     if (result != ERROR_SUCCESS) {
-        TRACE("Unable to delete user database record (error %lu).", result);
+        LOG_WARN("Unable to delete user database record (error %lu).", result);
 
     } else {
         // Unregister user
@@ -228,7 +228,7 @@ static INT UserLock(USERFILE *userFile)
         // Lock user
         result = DbUserLock(db, userName, userFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to lock user (error %lu).", result);
+            LOG_WARN("Unable to lock user (error %lu).", result);
         }
     }
 
@@ -259,7 +259,7 @@ static INT UserUnlock(USERFILE *userFile)
         // Unlock user
         result = DbUserUnlock(db, userName);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to unlock user (error %lu).", result);
+            LOG_WARN("Unable to unlock user (error %lu).", result);
         }
     }
 
@@ -294,13 +294,13 @@ static INT UserOpen(CHAR *userName, USERFILE *userFile)
         // Open user file
         result = FileUserOpen(userFile->Uid, userFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to open user file (error %lu).", result);
+            LOG_WARN("Unable to open user file (error %lu).", result);
         } else {
 
             // Read database record
             result = DbUserOpen(db, userName, userFile);
             if (result != ERROR_SUCCESS) {
-                TRACE("Unable to open user database record (error %lu).", result);
+                LOG_WARN("Unable to open user database record (error %lu).", result);
 
                 // Clean-up user file
                 FileUserClose(userFile);
@@ -339,7 +339,7 @@ static INT UserWrite(USERFILE *userFile)
     // Update user file (success does not matter)
     result = FileUserWrite(userFile);
     if (result != ERROR_SUCCESS) {
-        TRACE("Unable to write user file (error %lu).", result);
+        LOG_WARN("Unable to write user file (error %lu).", result);
     }
 
     // Resolve user ID to user name
@@ -351,7 +351,7 @@ static INT UserWrite(USERFILE *userFile)
         // Update user database record
         result = DbUserWrite(db, userName, userFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to write user database record (error %lu).", result);
+            LOG_WARN("Unable to write user database record (error %lu).", result);
         }
     }
 
@@ -374,13 +374,13 @@ static INT UserClose(USERFILE *userFile)
         // Close user file (success does not matter)
         result = FileUserClose(userFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to close user file (error %lu).", result);
+            LOG_WARN("Unable to close user file (error %lu).", result);
         }
 
         // Close user database record (success does not matter)
         result = DbUserClose(userFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to close user database record (error %lu).", result);
+            LOG_WARN("Unable to close user database record (error %lu).", result);
         }
 
         // Free module context

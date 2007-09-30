@@ -203,7 +203,7 @@ DWORD DbUserReadExtra(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
         // Resolve group names to IDs
         userFile->AdminGroups[index] = Io_Group2Gid(buffer);
         if (userFile->AdminGroups[index] == INVALID_GROUP) {
-            TRACE("Unable to resolve group \"%s\".", buffer);
+            LOG_WARN("Unable to resolve group \"%s\".", buffer);
         } else {
             index++;
         }
@@ -252,7 +252,7 @@ DWORD DbUserReadExtra(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
         // Resolve group names to IDs
         userFile->Groups[index] = Io_Group2Gid(buffer);
         if (userFile->Groups[index] == INVALID_GROUP) {
-            TRACE("Unable to resolve group \"%s\".", buffer);
+            LOG_WARN("Unable to resolve group \"%s\".", buffer);
         } else {
             index++;
         }
@@ -1471,7 +1471,7 @@ DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
     error = DbUserRead(db, userName, userFile);
     if (error != ERROR_SUCCESS) {
-        TRACE("Unable to update user on lock (error %lu).", error);
+        LOG_WARN("Unable to update user on lock (error %lu).", error);
     }
 
     return error;

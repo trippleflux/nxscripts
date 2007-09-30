@@ -98,7 +98,7 @@ static INT32 GroupCreate(CHAR *groupName)
         // Read "Default.Group" file
         result = FileGroupDefault(&groupFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to read \"Default.Group\" file (error %lu).", result);
+            LOG_WARN("Unable to read \"Default.Group\" file (error %lu).", result);
         }
 
         // Register group
@@ -110,13 +110,13 @@ static INT32 GroupCreate(CHAR *groupName)
             // Create group file
             result = FileGroupCreate(groupId, &groupFile);
             if (result != ERROR_SUCCESS) {
-                TRACE("Unable to create group file (error %lu).", result);
+                LOG_WARN("Unable to create group file (error %lu).", result);
             } else {
 
                 // Create database record
                 result = DbGroupCreate(db, groupName, &groupFile);
                 if (result != ERROR_SUCCESS) {
-                    TRACE("Unable to create database record (error %lu).", result);
+                    LOG_WARN("Unable to create database record (error %lu).", result);
                 }
             }
 
@@ -158,7 +158,7 @@ static INT GroupRename(CHAR *groupName, INT32 groupId, CHAR *newName)
     // Rename database record
     result = DbGroupRename(db, groupName, newName);
     if (result != ERROR_SUCCESS) {
-        TRACE("Unable to rename group database record (error %lu).", result);
+        LOG_WARN("Unable to rename group database record (error %lu).", result);
 
     } else {
         // Register group under the new name
@@ -185,13 +185,13 @@ static INT GroupDelete(CHAR *groupName, INT32 groupId)
     // Delete group file (success does not matter)
     result = FileGroupDelete(groupId);
     if (result != ERROR_SUCCESS) {
-        TRACE("Unable to delete group file (error %lu).", result);
+        LOG_WARN("Unable to delete group file (error %lu).", result);
     }
 
     // Delete database record
     result = DbGroupDelete(db, groupName);
     if (result != ERROR_SUCCESS) {
-        TRACE("Unable to delete group database record (error %lu).", result);
+        LOG_WARN("Unable to delete group database record (error %lu).", result);
 
     } else {
         // Unregister group
@@ -225,7 +225,7 @@ static INT GroupLock(GROUPFILE *groupFile)
         // Lock group
         result = DbGroupLock(db, groupName, groupFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to lock group (error %lu).", result);
+            LOG_WARN("Unable to lock group (error %lu).", result);
         }
     }
 
@@ -256,7 +256,7 @@ static INT GroupUnlock(GROUPFILE *groupFile)
         // Unlock group
         result = DbGroupUnlock(db, groupName);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to unlock group (error %lu).", result);
+            LOG_WARN("Unable to unlock group (error %lu).", result);
         }
     }
 
@@ -291,13 +291,13 @@ static INT GroupOpen(CHAR *groupName, GROUPFILE *groupFile)
         // Open group file
         result = FileGroupOpen(groupFile->Gid, groupFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to open group file (error %lu).", result);
+            LOG_WARN("Unable to open group file (error %lu).", result);
         } else {
 
             // Read database record
             result = DbGroupOpen(db, groupName, groupFile);
             if (result != ERROR_SUCCESS) {
-                TRACE("Unable to open group database record (error %lu).", result);
+                LOG_WARN("Unable to open group database record (error %lu).", result);
 
                 // Clean-up group file
                 FileGroupClose(groupFile);
@@ -336,7 +336,7 @@ static INT GroupWrite(GROUPFILE *groupFile)
     // Update group file (success does not matter)
     result = FileGroupWrite(groupFile);
     if (result != ERROR_SUCCESS) {
-        TRACE("Unable to write group file (error %lu).", result);
+        LOG_WARN("Unable to write group file (error %lu).", result);
     }
 
     // Resolve group ID to group name
@@ -348,7 +348,7 @@ static INT GroupWrite(GROUPFILE *groupFile)
         // Update group database record
         result = DbGroupWrite(db, groupName, groupFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to write group database record (error %lu).", result);
+            LOG_WARN("Unable to write group database record (error %lu).", result);
         }
     }
 
@@ -371,13 +371,13 @@ static INT GroupClose(GROUPFILE *groupFile)
         // Close group file (success does not matter)
         result = FileGroupClose(groupFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to close group file (error %lu).", result);
+            LOG_WARN("Unable to close group file (error %lu).", result);
         }
 
         // Close group database record (success does not matter)
         result = DbGroupClose(groupFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to close group database record (error %lu).", result);
+            LOG_WARN("Unable to close group database record (error %lu).", result);
         }
 
         // Free module context

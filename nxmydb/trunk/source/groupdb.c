@@ -533,7 +533,7 @@ DWORD DbGroupLock(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 
     error = DbGroupRead(db, groupName, groupFile);
     if (error != ERROR_SUCCESS) {
-        TRACE("Unable to update group on lock (error %lu).", error);
+        LOG_WARN("Unable to update group on lock (error %lu).", error);
     }
 
     return error;
