@@ -414,15 +414,15 @@ static BOOL FCALL ConfigLoad(VOID)
 
     if (dbConfigSync.enabled) {
         dbConfigSync.first = 30;
-        if (Io_ConfigGetInt("nxMyDB", "SyncFirst", &dbConfigSync.first) && dbConfigSync.first <= 0) {
+        if (Io_ConfigGetInt("nxMyDB", "Sync_First", &dbConfigSync.first) && dbConfigSync.first <= 0) {
             LOG_ERROR("Option 'SyncTimer' must be greater than zero.");
             return FALSE;
         }
         dbConfigSync.first = dbConfigSync.first * 1000; // sec to msec
 
         dbConfigSync.interval = 60;
-        if (Io_ConfigGetInt("nxMyDB", "SyncInterval", &dbConfigSync.interval) && dbConfigSync.interval <= 0) {
-            LOG_ERROR("Option 'SyncInterval' must be greater than zero.");
+        if (Io_ConfigGetInt("nxMyDB", "Sync_Interval", &dbConfigSync.interval) && dbConfigSync.interval <= 0) {
+            LOG_ERROR("Option 'Sync_Interval' must be greater than zero.");
             return FALSE;
         }
         dbConfigSync.interval = dbConfigSync.interval * 1000; // sec to msec

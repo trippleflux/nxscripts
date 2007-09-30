@@ -61,8 +61,8 @@ Password        = pass          # MySQL Server password
 Database        = ioftpd        # Database name
 Compression     = True          # Use compression for the server connection
 Sync            = True          # Synchronization of users and groups
-SyncFirst       = 30            # Seconds until the first full synchronization
-SyncInterval    = 60            # Seconds between each incremental synchronization
+Sync_First      = 30            # Seconds until the first full synchronization
+Sync_Interval   = 60            # Seconds between each incremental synchronization
 
 5. Adjust these options as required. There are several other options to enable
    SSL encryption and fine-tune the connection pool. For a list of available
@@ -118,12 +118,12 @@ supported by OpenSSL/yaSSL.
     - Set to "true" if the database is shared with more than one server
     - Default: false
 
-  SyncFirst
+  Sync_First
     - Seconds until the first full database synchronization
     - Only performed after initialization
     - Default: 30
 
-  SyncInterval
+  Sync_Interval
     - Seconds between each incremental database synchronization
     - Default: 60
 
