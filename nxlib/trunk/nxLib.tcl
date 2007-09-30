@@ -159,7 +159,7 @@ proc ::nxLib::GetDirListRecurse {realPath ignoreList} {
 
     if {[file isdirectory $realPath]} {
         lappend data(DirList) $realPath
-        set listing [glob -nocomplain -directory $realPath "*"]
+        set listing [glob -nocomplain -directory $realPath -- "*"]
     } elseif {[file isfile $realPath]} {
         set listing [list $realPath]
     } else {return}
@@ -188,7 +188,7 @@ proc ::nxLib::GetDirStatsRecurse {realPath ignoreList} {
 
     if {[file isdirectory $realPath]} {
         incr stats(DirCount)
-        set listing [glob -nocomplain -directory $realPath "*"]
+        set listing [glob -nocomplain -directory $realPath -- "*"]
     } elseif {[file isfile $realPath]} {
         set listing [list $realPath]
     } else {return}
@@ -236,7 +236,7 @@ proc ::nxLib::RemoveParentLinks {realPath} {
     set realPathLen [string length $realPath]
 
     set searchPath [file dirname $realPath]
-    foreach symPath [glob -nocomplain -types d -directory $searchPath "*"] {
+    foreach symPath [glob -nocomplain -types d -directory $searchPath -- "*"] {
         if {[catch {vfs chattr $symPath 1} symTarget] || $symTarget eq ""} {continue}
         set symRealTarget [resolve pwd $symTarget]
 
