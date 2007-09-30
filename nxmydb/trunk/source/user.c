@@ -34,7 +34,7 @@ static USER_MODULE *userModule = NULL;
 INT UserModuleInit(USER_MODULE *module)
 {
     ASSERT(module != NULL);
-    TRACE("module=%p\n", module);
+    TRACE("module=%p", module);
 
     // Initialize module
     module->tszModuleName = MODULE_NAME;
@@ -50,7 +50,7 @@ INT UserModuleInit(USER_MODULE *module)
 
     // Initialize database
     if (!DbInit(module->GetProc)) {
-        TRACE("Unable to initialize module.\n");
+        TRACE("Unable to initialize module.");
         return UM_ERROR;
     }
 
@@ -75,7 +75,7 @@ static INT32 UserCreate(CHAR *userName)
     INT32       userId = -1;
     USERFILE    userFile;
 
-    TRACE("userName=%s\n", userName);
+    TRACE("userName=%s", userName);
 
     if (!DbAcquire(&db)) {
         return userId;
@@ -85,7 +85,7 @@ static INT32 UserCreate(CHAR *userName)
     mod = MemAllocate(sizeof(MOD_CONTEXT));
     if (mod == NULL) {
         result = ERROR_NOT_ENOUGH_MEMORY;
-        TRACE("Unable to allocate module context.\n");
+        TRACE("Unable to allocate module context.");
 
     } else {
         // Initialize MOD_CONTEXT structure
@@ -101,25 +101,25 @@ static INT32 UserCreate(CHAR *userName)
         // Read "Default.User" file
         result = FileUserDefault(&userFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to read \"Default.User\" file (error %lu).\n", result);
+            TRACE("Unable to read \"Default.User\" file (error %lu).", result);
         }
 
         // Register user
         result = UserRegister(userName, &userFile, &userId);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to register user (error %lu).\n", result);
+            TRACE("Unable to register user (error %lu).", result);
         } else {
 
             // Create user file
             result = FileUserCreate(userId, &userFile);
             if (result != ERROR_SUCCESS) {
-                TRACE("Unable to create user file (error %lu).\n", result);
+                TRACE("Unable to create user file (error %lu).", result);
             } else {
 
                 // Create database record
                 result = DbUserCreate(db, userName, &userFile);
                 if (result != ERROR_SUCCESS) {
-                    TRACE("Unable to create database record (error %lu).\n", result);
+                    TRACE("Unable to create database record (error %lu).", result);
                 }
             }
 
@@ -152,7 +152,7 @@ static INT UserRename(CHAR *userName, INT32 userId, CHAR *newName)
     DWORD       result;
 
     UNREFERENCED_PARAMETER(userId);
-    TRACE("userName=%s userId=%d newName=%s\n", userName, userId, newName);
+    TRACE("userName=%s userId=%d newName=%s", userName, userId, newName);
 
     if (!DbAcquire(&db)) {
         return UM_ERROR;
@@ -161,7 +161,7 @@ static INT UserRename(CHAR *userName, INT32 userId, CHAR *newName)
     // Rename database record
     result = DbUserRename(db, userName, newName);
     if (result != ERROR_SUCCESS) {
-        TRACE("Unable to rename user database record (error %lu).\n", result);
+        TRACE("Unable to rename user database record (error %lu).", result);
 
     } else {
         // Register user under the new name
@@ -179,7 +179,7 @@ static INT UserDelete(CHAR *userName, INT32 userId)
     DB_CONTEXT *db;
     DWORD       result;
 
-    TRACE("userName=%s userId=%d\n", userName, userId);
+    TRACE("userName=%s userId=%d", userName, userId);
 
     if (!DbAcquire(&db)) {
         return UM_ERROR;
@@ -188,13 +188,13 @@ static INT UserDelete(CHAR *userName, INT32 userId)
     // Delete user file (success does not matter)
     result = FileUserDelete(userId);
     if (result != ERROR_SUCCESS) {
-        TRACE("Unable to delete user file (error %lu).\n", result);
+        TRACE("Unable to delete user file (error %lu).", result);
     }
 
     // Delete database record
     result = DbUserDelete(db, userName);
     if (result != ERROR_SUCCESS) {
-        TRACE("Unable to delete user database record (error %lu).\n", result);
+        TRACE("Unable to delete user database record (error %lu).", result);
 
     } else {
         // Unregister user
@@ -213,7 +213,7 @@ static INT UserLock(USERFILE *userFile)
     DB_CONTEXT *db;
     DWORD       result;
 
-    TRACE("userFile=%p\n", userFile);
+    TRACE("userFile=%p", userFile);
 
     if (!DbAcquire(&db)) {
         return UM_ERROR;
@@ -228,7 +228,7 @@ static INT UserLock(USERFILE *userFile)
         // Lock user
         result = DbUserLock(db, userName, userFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to lock user (error %lu).\n", result);
+            TRACE("Unable to lock user (error %lu).", result);
         }
     }
 
@@ -244,7 +244,7 @@ static INT UserUnlock(USERFILE *userFile)
     DB_CONTEXT *db;
     DWORD       result;
 
-    TRACE("userFile=%p\n", userFile);
+    TRACE("userFile=%p", userFile);
 
     if (!DbAcquire(&db)) {
         return UM_ERROR;
@@ -259,7 +259,7 @@ static INT UserUnlock(USERFILE *userFile)
         // Unlock user
         result = DbUserUnlock(db, userName);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to unlock user (error %lu).\n", result);
+            TRACE("Unable to unlock user (error %lu).", result);
         }
     }
 
@@ -275,7 +275,7 @@ static INT UserOpen(CHAR *userName, USERFILE *userFile)
     DWORD       result;
     MOD_CONTEXT *mod;
 
-    TRACE("userName=%s userFile=%p\n", userName, userFile);
+    TRACE("userName=%s userFile=%p", userName, userFile);
 
     if (!DbAcquire(&db)) {
         return UM_ERROR;
@@ -284,7 +284,7 @@ static INT UserOpen(CHAR *userName, USERFILE *userFile)
     mod = MemAllocate(sizeof(MOD_CONTEXT));
     if (mod == NULL) {
         result = ERROR_NOT_ENOUGH_MEMORY;
-        TRACE("Unable to allocate module context.\n");
+        TRACE("Unable to allocate module context.");
 
     } else {
         // Initialize MOD_CONTEXT structure
@@ -294,13 +294,13 @@ static INT UserOpen(CHAR *userName, USERFILE *userFile)
         // Open user file
         result = FileUserOpen(userFile->Uid, userFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to open user file (error %lu).\n", result);
+            TRACE("Unable to open user file (error %lu).", result);
         } else {
 
             // Read database record
             result = DbUserOpen(db, userName, userFile);
             if (result != ERROR_SUCCESS) {
-                TRACE("Unable to open user database record (error %lu).\n", result);
+                TRACE("Unable to open user database record (error %lu).", result);
 
                 // Clean-up user file
                 FileUserClose(userFile);
@@ -330,7 +330,7 @@ static INT UserWrite(USERFILE *userFile)
     DB_CONTEXT *db;
     DWORD       result;
 
-    TRACE("userFile=%p\n", userFile);
+    TRACE("userFile=%p", userFile);
 
     if (!DbAcquire(&db)) {
         return UM_ERROR;
@@ -339,7 +339,7 @@ static INT UserWrite(USERFILE *userFile)
     // Update user file (success does not matter)
     result = FileUserWrite(userFile);
     if (result != ERROR_SUCCESS) {
-        TRACE("Unable to write user file (error %lu).\n", result);
+        TRACE("Unable to write user file (error %lu).", result);
     }
 
     // Resolve user ID to user name
@@ -351,7 +351,7 @@ static INT UserWrite(USERFILE *userFile)
         // Update user database record
         result = DbUserWrite(db, userName, userFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to write user database record (error %lu).\n", result);
+            TRACE("Unable to write user database record (error %lu).", result);
         }
     }
 
@@ -366,7 +366,7 @@ static INT UserClose(USERFILE *userFile)
     DWORD       result;
     MOD_CONTEXT *mod;
 
-    TRACE("userFile=%p\n", userFile);
+    TRACE("userFile=%p", userFile);
 
     mod = userFile->lpInternal;
 
@@ -374,13 +374,13 @@ static INT UserClose(USERFILE *userFile)
         // Close user file (success does not matter)
         result = FileUserClose(userFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to close user file (error %lu).\n", result);
+            TRACE("Unable to close user file (error %lu).", result);
         }
 
         // Close user database record (success does not matter)
         result = DbUserClose(userFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to close user database record (error %lu).\n", result);
+            TRACE("Unable to close user database record (error %lu).", result);
         }
 
         // Free module context
@@ -400,7 +400,7 @@ DWORD UserRegister(CHAR *userName, USERFILE *userFile, INT32 *userIdPtr)
     ASSERT(userName != NULL);
     ASSERT(userFile != NULL);
     ASSERT(userIdPtr != NULL);
-    TRACE("userName=%s userFile=%p userIdPtr=%p\n", userName, userFile, userIdPtr);
+    TRACE("userName=%s userFile=%p userIdPtr=%p", userName, userFile, userIdPtr);
 
     userId = userModule->Register(userModule, userName, userFile);
 
@@ -411,7 +411,7 @@ DWORD UserRegister(CHAR *userName, USERFILE *userFile, INT32 *userIdPtr)
         errorCode = GetLastError();
         ASSERT(errorCode != ERROR_SUCCESS);
 
-        TRACE("Unable to register user \"%s\" (error %lu).\n", userName, errorCode);
+        TRACE("Unable to register user \"%s\" (error %lu).", userName, errorCode);
     }
 
     *userIdPtr = userId;
@@ -425,7 +425,7 @@ DWORD UserRegisterAs(CHAR *userName, CHAR *newName)
 
     ASSERT(userName != NULL);
     ASSERT(newName != NULL);
-    TRACE("userName=%s newName=%s\n", userName, newName);
+    TRACE("userName=%s newName=%s", userName, newName);
 
     result = userModule->RegisterAs(userModule, userName, newName);
 
@@ -437,7 +437,7 @@ DWORD UserRegisterAs(CHAR *userName, CHAR *newName)
         errorCode = GetLastError();
         ASSERT(errorCode != ERROR_SUCCESS);
 
-        TRACE("Unable to re-register user \"%s\" as \"%s\" (error %lu).\n",
+        TRACE("Unable to re-register user \"%s\" as \"%s\" (error %lu).",
             userName, newName, errorCode);
     }
 
@@ -450,7 +450,7 @@ DWORD UserUnregister(CHAR *userName)
     DWORD   errorCode = ERROR_SUCCESS;
 
     ASSERT(userName != NULL);
-    TRACE("userName=%s\n", userName);
+    TRACE("userName=%s", userName);
 
     result = userModule->Unregister(userModule, userName);
 
@@ -462,7 +462,7 @@ DWORD UserUnregister(CHAR *userName)
         errorCode = GetLastError();
         ASSERT(errorCode != ERROR_SUCCESS);
 
-        TRACE("Unable to unregister user \"%s\" (error %lu).\n", userName, errorCode);
+        TRACE("Unable to unregister user \"%s\" (error %lu).", userName, errorCode);
     }
 
     return errorCode;
@@ -474,7 +474,7 @@ DWORD UserUpdate(USERFILE *userFile)
     DWORD   errorCode = ERROR_SUCCESS;
 
     ASSERT(userFile != NULL);
-    TRACE("userFile=%p\n", userFile);
+    TRACE("userFile=%p", userFile);
 
     result = userModule->Update(userFile);
 
@@ -486,7 +486,7 @@ DWORD UserUpdate(USERFILE *userFile)
         errorCode = GetLastError();
         ASSERT(errorCode != ERROR_SUCCESS);
 
-        TRACE("Unable to update user ID %d (error %lu).\n", userFile->Uid, errorCode);
+        TRACE("Unable to update user ID %d (error %lu).", userFile->Uid, errorCode);
     }
 
     return errorCode;
@@ -500,7 +500,7 @@ DWORD UserUpdateByName(CHAR *userName, USERFILE *userFile)
 
     ASSERT(userName != NULL);
     ASSERT(userFile != NULL);
-    TRACE("userName=%s userFile=%p\n", userName, userFile);
+    TRACE("userName=%s userFile=%p", userName, userFile);
 
     // Resolve the user name to its ID.
     userId = Io_User2Uid(userName);
@@ -508,7 +508,7 @@ DWORD UserUpdateByName(CHAR *userName, USERFILE *userFile)
         errorCode = GetLastError();
         ASSERT(errorCode != ERROR_SUCCESS);
 
-        TRACE("Unable to resolve user \"%s\" (error %lu).\n", userName, errorCode);
+        TRACE("Unable to resolve user \"%s\" (error %lu).", userName, errorCode);
     } else {
         // Update the ID member before calling the "Update" function.
         userFile->Uid = userId;
@@ -523,7 +523,7 @@ DWORD UserUpdateByName(CHAR *userName, USERFILE *userFile)
             errorCode = GetLastError();
             ASSERT(errorCode != ERROR_SUCCESS);
 
-            TRACE("Unable to update user \"%s\" (error %lu).\n", userName, errorCode);
+            TRACE("Unable to update user \"%s\" (error %lu).", userName, errorCode);
         }
     }
 

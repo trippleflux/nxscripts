@@ -34,7 +34,7 @@ static GROUP_MODULE *groupModule = NULL;
 INT GroupModuleInit(GROUP_MODULE *module)
 {
     ASSERT(module != NULL);
-    TRACE("module=%p\n", module);
+    TRACE("module=%p", module);
 
     // Initialize module
     module->tszModuleName = MODULE_NAME;
@@ -50,7 +50,7 @@ INT GroupModuleInit(GROUP_MODULE *module)
 
     // Initialize database
     if (!DbInit(module->GetProc)) {
-        TRACE("Unable to initialize module.\n");
+        TRACE("Unable to initialize module.");
         return GM_ERROR;
     }
 
@@ -75,7 +75,7 @@ static INT32 GroupCreate(CHAR *groupName)
     INT32       groupId = -1;
     GROUPFILE    groupFile;
 
-    TRACE("groupName=%s\n", groupName);
+    TRACE("groupName=%s", groupName);
 
     if (!DbAcquire(&db)) {
         return groupId;
@@ -85,7 +85,7 @@ static INT32 GroupCreate(CHAR *groupName)
     mod = MemAllocate(sizeof(MOD_CONTEXT));
     if (mod == NULL) {
         result = ERROR_NOT_ENOUGH_MEMORY;
-        TRACE("Unable to allocate module context.\n");
+        TRACE("Unable to allocate module context.");
 
     } else {
         // Initialize MOD_CONTEXT structure
@@ -98,25 +98,25 @@ static INT32 GroupCreate(CHAR *groupName)
         // Read "Default.Group" file
         result = FileGroupDefault(&groupFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to read \"Default.Group\" file (error %lu).\n", result);
+            TRACE("Unable to read \"Default.Group\" file (error %lu).", result);
         }
 
         // Register group
         result = GroupRegister(groupName, &groupFile, &groupId);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to register group (error %lu).\n", result);
+            TRACE("Unable to register group (error %lu).", result);
         } else {
 
             // Create group file
             result = FileGroupCreate(groupId, &groupFile);
             if (result != ERROR_SUCCESS) {
-                TRACE("Unable to create group file (error %lu).\n", result);
+                TRACE("Unable to create group file (error %lu).", result);
             } else {
 
                 // Create database record
                 result = DbGroupCreate(db, groupName, &groupFile);
                 if (result != ERROR_SUCCESS) {
-                    TRACE("Unable to create database record (error %lu).\n", result);
+                    TRACE("Unable to create database record (error %lu).", result);
                 }
             }
 
@@ -149,7 +149,7 @@ static INT GroupRename(CHAR *groupName, INT32 groupId, CHAR *newName)
     DWORD       result;
 
     UNREFERENCED_PARAMETER(groupId);
-    TRACE("groupName=%s groupId=%d newName=%s\n", groupName, groupId, newName);
+    TRACE("groupName=%s groupId=%d newName=%s", groupName, groupId, newName);
 
     if (!DbAcquire(&db)) {
         return GM_ERROR;
@@ -158,7 +158,7 @@ static INT GroupRename(CHAR *groupName, INT32 groupId, CHAR *newName)
     // Rename database record
     result = DbGroupRename(db, groupName, newName);
     if (result != ERROR_SUCCESS) {
-        TRACE("Unable to rename group database record (error %lu).\n", result);
+        TRACE("Unable to rename group database record (error %lu).", result);
 
     } else {
         // Register group under the new name
@@ -176,7 +176,7 @@ static INT GroupDelete(CHAR *groupName, INT32 groupId)
     DB_CONTEXT *db;
     DWORD       result;
 
-    TRACE("groupName=%s groupId=%d\n", groupName, groupId);
+    TRACE("groupName=%s groupId=%d", groupName, groupId);
 
     if (!DbAcquire(&db)) {
         return GM_ERROR;
@@ -185,13 +185,13 @@ static INT GroupDelete(CHAR *groupName, INT32 groupId)
     // Delete group file (success does not matter)
     result = FileGroupDelete(groupId);
     if (result != ERROR_SUCCESS) {
-        TRACE("Unable to delete group file (error %lu).\n", result);
+        TRACE("Unable to delete group file (error %lu).", result);
     }
 
     // Delete database record
     result = DbGroupDelete(db, groupName);
     if (result != ERROR_SUCCESS) {
-        TRACE("Unable to delete group database record (error %lu).\n", result);
+        TRACE("Unable to delete group database record (error %lu).", result);
 
     } else {
         // Unregister group
@@ -210,7 +210,7 @@ static INT GroupLock(GROUPFILE *groupFile)
     DB_CONTEXT *db;
     DWORD       result;
 
-    TRACE("groupFile=%p\n", groupFile);
+    TRACE("groupFile=%p", groupFile);
 
     if (!DbAcquire(&db)) {
         return GM_ERROR;
@@ -225,7 +225,7 @@ static INT GroupLock(GROUPFILE *groupFile)
         // Lock group
         result = DbGroupLock(db, groupName, groupFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to lock group (error %lu).\n", result);
+            TRACE("Unable to lock group (error %lu).", result);
         }
     }
 
@@ -241,7 +241,7 @@ static INT GroupUnlock(GROUPFILE *groupFile)
     DB_CONTEXT *db;
     DWORD       result;
 
-    TRACE("groupFile=%p\n", groupFile);
+    TRACE("groupFile=%p", groupFile);
 
     if (!DbAcquire(&db)) {
         return GM_ERROR;
@@ -256,7 +256,7 @@ static INT GroupUnlock(GROUPFILE *groupFile)
         // Unlock group
         result = DbGroupUnlock(db, groupName);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to unlock group (error %lu).\n", result);
+            TRACE("Unable to unlock group (error %lu).", result);
         }
     }
 
@@ -272,7 +272,7 @@ static INT GroupOpen(CHAR *groupName, GROUPFILE *groupFile)
     DWORD       result;
     MOD_CONTEXT *mod;
 
-    TRACE("groupName=%s groupFile=%p\n", groupName, groupFile);
+    TRACE("groupName=%s groupFile=%p", groupName, groupFile);
 
     if (!DbAcquire(&db)) {
         return GM_ERROR;
@@ -281,7 +281,7 @@ static INT GroupOpen(CHAR *groupName, GROUPFILE *groupFile)
     mod = MemAllocate(sizeof(MOD_CONTEXT));
     if (mod == NULL) {
         result = ERROR_NOT_ENOUGH_MEMORY;
-        TRACE("Unable to allocate module context.\n");
+        TRACE("Unable to allocate module context.");
 
     } else {
         // Initialize MOD_CONTEXT structure
@@ -291,13 +291,13 @@ static INT GroupOpen(CHAR *groupName, GROUPFILE *groupFile)
         // Open group file
         result = FileGroupOpen(groupFile->Gid, groupFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to open group file (error %lu).\n", result);
+            TRACE("Unable to open group file (error %lu).", result);
         } else {
 
             // Read database record
             result = DbGroupOpen(db, groupName, groupFile);
             if (result != ERROR_SUCCESS) {
-                TRACE("Unable to open group database record (error %lu).\n", result);
+                TRACE("Unable to open group database record (error %lu).", result);
 
                 // Clean-up group file
                 FileGroupClose(groupFile);
@@ -327,7 +327,7 @@ static INT GroupWrite(GROUPFILE *groupFile)
     DB_CONTEXT *db;
     DWORD       result;
 
-    TRACE("groupFile=%p\n", groupFile);
+    TRACE("groupFile=%p", groupFile);
 
     if (!DbAcquire(&db)) {
         return GM_ERROR;
@@ -336,7 +336,7 @@ static INT GroupWrite(GROUPFILE *groupFile)
     // Update group file (success does not matter)
     result = FileGroupWrite(groupFile);
     if (result != ERROR_SUCCESS) {
-        TRACE("Unable to write group file (error %lu).\n", result);
+        TRACE("Unable to write group file (error %lu).", result);
     }
 
     // Resolve group ID to group name
@@ -348,7 +348,7 @@ static INT GroupWrite(GROUPFILE *groupFile)
         // Update group database record
         result = DbGroupWrite(db, groupName, groupFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to write group database record (error %lu).\n", result);
+            TRACE("Unable to write group database record (error %lu).", result);
         }
     }
 
@@ -363,7 +363,7 @@ static INT GroupClose(GROUPFILE *groupFile)
     DWORD       result;
     MOD_CONTEXT *mod;
 
-    TRACE("groupFile=%p\n", groupFile);
+    TRACE("groupFile=%p", groupFile);
 
     mod = groupFile->lpInternal;
 
@@ -371,13 +371,13 @@ static INT GroupClose(GROUPFILE *groupFile)
         // Close group file (success does not matter)
         result = FileGroupClose(groupFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to close group file (error %lu).\n", result);
+            TRACE("Unable to close group file (error %lu).", result);
         }
 
         // Close group database record (success does not matter)
         result = DbGroupClose(groupFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to close group database record (error %lu).\n", result);
+            TRACE("Unable to close group database record (error %lu).", result);
         }
 
         // Free module context
@@ -397,7 +397,7 @@ DWORD GroupRegister(CHAR *groupName, GROUPFILE *groupFile, INT32 *groupIdPtr)
     ASSERT(groupName != NULL);
     ASSERT(groupFile != NULL);
     ASSERT(groupIdPtr != NULL);
-    TRACE("groupName=%s groupFile=%p groupIdPtr=%p\n", groupName, groupFile, groupIdPtr);
+    TRACE("groupName=%s groupFile=%p groupIdPtr=%p", groupName, groupFile, groupIdPtr);
 
     groupId = groupModule->Register(groupModule, groupName, groupFile);
 
@@ -408,7 +408,7 @@ DWORD GroupRegister(CHAR *groupName, GROUPFILE *groupFile, INT32 *groupIdPtr)
         errorCode = GetLastError();
         ASSERT(errorCode != ERROR_SUCCESS);
 
-        TRACE("Unable to register group \"%s\" (error %lu).\n", groupName, errorCode);
+        TRACE("Unable to register group \"%s\" (error %lu).", groupName, errorCode);
     }
 
     *groupIdPtr = groupId;
@@ -422,7 +422,7 @@ DWORD GroupRegisterAs(CHAR *groupName, CHAR *newName)
 
     ASSERT(groupName != NULL);
     ASSERT(newName != NULL);
-    TRACE("groupName=%s newName=%s\n", groupName, newName);
+    TRACE("groupName=%s newName=%s", groupName, newName);
 
     result = groupModule->RegisterAs(groupModule, groupName, newName);
 
@@ -434,7 +434,7 @@ DWORD GroupRegisterAs(CHAR *groupName, CHAR *newName)
         errorCode = GetLastError();
         ASSERT(errorCode != ERROR_SUCCESS);
 
-        TRACE("Unable to re-register group \"%s\" as \"%s\" (error %lu).\n",
+        TRACE("Unable to re-register group \"%s\" as \"%s\" (error %lu).",
             groupName, newName, errorCode);
     }
 
@@ -447,7 +447,7 @@ DWORD GroupUnregister(CHAR *groupName)
     DWORD   errorCode = ERROR_SUCCESS;
 
     ASSERT(groupName != NULL);
-    TRACE("groupName=%s\n", groupName);
+    TRACE("groupName=%s", groupName);
 
     result = groupModule->Unregister(groupModule, groupName);
 
@@ -459,7 +459,7 @@ DWORD GroupUnregister(CHAR *groupName)
         errorCode = GetLastError();
         ASSERT(errorCode != ERROR_SUCCESS);
 
-        TRACE("Unable to unregister group \"%s\" (error %lu).\n", groupName, errorCode);
+        TRACE("Unable to unregister group \"%s\" (error %lu).", groupName, errorCode);
     }
 
     return errorCode;
@@ -471,7 +471,7 @@ DWORD GroupUpdate(GROUPFILE *groupFile)
     DWORD   errorCode = ERROR_SUCCESS;
 
     ASSERT(groupFile != NULL);
-    TRACE("groupFile=%p\n", groupFile);
+    TRACE("groupFile=%p", groupFile);
 
     result = groupModule->Update(groupFile);
 
@@ -483,7 +483,7 @@ DWORD GroupUpdate(GROUPFILE *groupFile)
         errorCode = GetLastError();
         ASSERT(errorCode != ERROR_SUCCESS);
 
-        TRACE("Unable to update group ID %d (error %lu).\n", groupFile->Gid, errorCode);
+        TRACE("Unable to update group ID %d (error %lu).", groupFile->Gid, errorCode);
     }
 
     return errorCode;
@@ -497,7 +497,7 @@ DWORD GroupUpdateByName(CHAR *groupName, GROUPFILE *groupFile)
 
     ASSERT(groupName != NULL);
     ASSERT(groupFile != NULL);
-    TRACE("groupName=%s groupFile=%p\n", groupName, groupFile);
+    TRACE("groupName=%s groupFile=%p", groupName, groupFile);
 
     // Resolve the group name to its ID.
     groupId = Io_Group2Gid(groupName);
@@ -505,7 +505,7 @@ DWORD GroupUpdateByName(CHAR *groupName, GROUPFILE *groupFile)
         errorCode = GetLastError();
         ASSERT(errorCode != ERROR_SUCCESS);
 
-        TRACE("Unable to resolve group \"%s\" (error %lu).\n", groupName, errorCode);
+        TRACE("Unable to resolve group \"%s\" (error %lu).", groupName, errorCode);
     } else {
         // Update the ID member before calling the "Update" function.
         groupFile->Gid = groupId;
@@ -520,7 +520,7 @@ DWORD GroupUpdateByName(CHAR *groupName, GROUPFILE *groupFile)
             errorCode = GetLastError();
             ASSERT(errorCode != ERROR_SUCCESS);
 
-            TRACE("Unable to update group \"%s\" (error %lu).\n", groupName, errorCode);
+            TRACE("Unable to update group \"%s\" (error %lu).", groupName, errorCode);
         }
     }
 
