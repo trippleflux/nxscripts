@@ -860,7 +860,7 @@ rollback:
     //
 
     if (mysql_query(db->handle, "ROLLBACK") != 0) {
-        TRACE("Unable to commit transaction: %s", mysql_error(db->handle));
+        TRACE("Unable to rollback transaction: %s", mysql_error(db->handle));
     }
 
     ASSERT(error != ERROR_SUCCESS);
@@ -1132,7 +1132,7 @@ rollback:
     //
 
     if (mysql_query(db->handle, "ROLLBACK") != 0) {
-        TRACE("Unable to commit transaction: %s", mysql_error(db->handle));
+        TRACE("Unable to rollback transaction: %s", mysql_error(db->handle));
     }
 
     ASSERT(error != ERROR_SUCCESS);
@@ -1385,7 +1385,7 @@ rollback:
     //
 
     if (mysql_query(db->handle, "ROLLBACK") != 0) {
-        TRACE("Unable to commit transaction: %s", mysql_error(db->handle));
+        TRACE("Unable to rollback transaction: %s", mysql_error(db->handle));
     }
 
     ASSERT(error != ERROR_SUCCESS);
@@ -1962,7 +1962,7 @@ rollback:
     //
 
     if (mysql_query(db->handle, "ROLLBACK") != 0) {
-        TRACE("Unable to commit transaction: %s", mysql_error(db->handle));
+        TRACE("Unable to rollback transaction: %s", mysql_error(db->handle));
     }
 
     ASSERT(error != ERROR_SUCCESS);
