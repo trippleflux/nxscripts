@@ -115,7 +115,6 @@ static VOID FCALL QueueInsert(LOG_ENTRY *entry)
 {
     BOOL empty;
 
-    // TODO
     ASSERT(entry->length == strlen(entry->message));
 
     EnterCriticalSection(&logLock);
