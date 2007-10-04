@@ -185,6 +185,15 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
     // Pointer values should be the same
     ASSERT(connection == db->handle);
 
+    // Check server version
+    if (mysql_get_server_version(db->handle) < 50019) {
+        LOG_ERROR("Unsupported version of MySQL Server - you are running v%s, must be v5.0.19 or newer.",
+            mysql_get_server_info(db->handle));
+
+        error = ERROR_NOT_SUPPORTED;
+        goto failed;
+    }
+
     // Allocate pre-compiled statement structure
     for (i = 0; i < ELEMENT_COUNT(db->stmt); i++) {
         db->stmt[i] = mysql_stmt_init(db->handle);
