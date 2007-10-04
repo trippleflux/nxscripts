@@ -5,74 +5,74 @@
 --
 
 CREATE TABLE io_group (
-  name        varchar(65)  NOT NULL,
-  description varchar(128) NOT NULL,
-  slots       tinyblob     NOT NULL,
-  users       int          NOT NULL,
-  vfsfile     varchar(260) NOT NULL,
-  updated     int unsigned NOT NULL default 0,
-  lockowner   varchar(36)           default NULL,
-  locktime    int unsigned NOT NULL default 0,
+  name        VARCHAR(65)  NOT NULL,
+  description VARCHAR(128) NOT NULL,
+  slots       TINYBLOB     NOT NULL,
+  users       INT          NOT NULL,
+  vfsfile     VARCHAR(260) NOT NULL,
+  updated     INT UNSIGNED NOT NULL DEFAULT 0,
+  lockowner   VARCHAR(36)           DEFAULT NULL,
+  locktime    INT UNSIGNED NOT NULL DEFAULT 0,
   PRIMARY KEY (name)
 );
 
 CREATE TABLE io_group_changes (
-  id          bigint unsigned  NOT NULL AUTO_INCREMENT,
-  time        int unsigned     NOT NULL,
-  type        tinyint unsigned NOT NULL,
-  name        varchar(65)      NOT NULL,
-  info        varchar(255)     default NULL,
+  id          BIGINT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  time        INT UNSIGNED     NOT NULL,
+  type        TINYINT UNSIGNED NOT NULL,
+  name        VARCHAR(65)      NOT NULL,
+  info        VARCHAR(255)     DEFAULT NULL,
   PRIMARY KEY (id)
 );
 
 CREATE TABLE io_user (
-  name        varchar(65)  NOT NULL,
-  description varchar(128) NOT NULL,
-  flags       varchar(32)  NOT NULL,
-  home        varchar(260) NOT NULL,
-  limits      tinyblob     NOT NULL,
-  password    tinyblob     NOT NULL,
-  vfsfile     varchar(260) NOT NULL,
-  credits     tinyblob     NOT NULL,
-  ratio       tinyblob     NOT NULL,
-  alldn       tinyblob     NOT NULL,
-  allup       tinyblob     NOT NULL,
-  daydn       tinyblob     NOT NULL,
-  dayup       tinyblob     NOT NULL,
-  monthdn     tinyblob     NOT NULL,
-  monthup     tinyblob     NOT NULL,
-  wkdn        tinyblob     NOT NULL,
-  wkup        tinyblob     NOT NULL,
-  updated     int unsigned NOT NULL default 0,
-  lockowner   varchar(36)           default NULL,
-  locktime    int unsigned NOT NULL default 0,
+  name        VARCHAR(65)  NOT NULL,
+  description VARCHAR(128) NOT NULL,
+  flags       VARCHAR(32)  NOT NULL,
+  home        VARCHAR(260) NOT NULL,
+  limits      TINYBLOB     NOT NULL,
+  password    TINYBLOB     NOT NULL,
+  vfsfile     VARCHAR(260) NOT NULL,
+  credits     TINYBLOB     NOT NULL,
+  ratio       TINYBLOB     NOT NULL,
+  alldn       TINYBLOB     NOT NULL,
+  allup       TINYBLOB     NOT NULL,
+  daydn       TINYBLOB     NOT NULL,
+  dayup       TINYBLOB     NOT NULL,
+  monthdn     TINYBLOB     NOT NULL,
+  monthup     TINYBLOB     NOT NULL,
+  wkdn        TINYBLOB     NOT NULL,
+  wkup        TINYBLOB     NOT NULL,
+  updated     INT UNSIGNED NOT NULL DEFAULT 0,
+  lockowner   VARCHAR(36)           DEFAULT NULL,
+  locktime    INT UNSIGNED NOT NULL DEFAULT 0,
   PRIMARY KEY (name)
 );
 
 CREATE TABLE io_user_changes (
-  id          bigint unsigned  NOT NULL AUTO_INCREMENT,
-  time        int unsigned     NOT NULL,
-  type        tinyint unsigned NOT NULL,
-  name        varchar(65)      NOT NULL,
-  info        varchar(255)          default NULL,
+  id          BIGINT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  time        INT UNSIGNED     NOT NULL,
+  type        TINYINT UNSIGNED NOT NULL,
+  name        VARCHAR(65)      NOT NULL,
+  info        VARCHAR(255)     DEFAULT NULL,
   PRIMARY KEY (id)
 );
 
 CREATE TABLE io_user_admins (
-  uname       varchar(65) NOT NULL,
-  gname       varchar(65) NOT NULL,
+  uname       VARCHAR(65) NOT NULL,
+  gname       VARCHAR(65) NOT NULL,
   PRIMARY KEY (uname,gname)
 );
 
 CREATE TABLE io_user_groups (
-  uname       varchar(65) NOT NULL,
-  gname       varchar(65) NOT NULL,
-  idx         tinyint     NOT NULL default 0,
+  uname       VARCHAR(65) NOT NULL,
+  gname       VARCHAR(65) NOT NULL,
+  idx         TINYINT     NOT NULL DEFAULT 0,
   PRIMARY KEY (uname,gname)
 );
 
 CREATE TABLE io_user_hosts (
-  uname       varchar(65) NOT NULL,
-  host        varchar(96) NOT NULL,
+  uname       VARCHAR(65) NOT NULL,
+  host        VARCHAR(96) NOT NULL,
   PRIMARY KEY (uname,host)
 );
