@@ -1398,7 +1398,7 @@ DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     DWORD       error;
     INT         result;
     INT64       affectedRows;
-    MYSQL_BIND  bind[3];
+    MYSQL_BIND  bind[4];
     MYSQL_STMT  *stmt;
 
     ASSERT(db != NULL);
@@ -1412,9 +1412,8 @@ DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     // Prepare statement and bind parameters
     //
 
-    query = "UPDATE io_user SET lockowner=?, locktime=UNIX_TIMESTAMP()"
-            "  WHERE name=?"
-            "    AND (lockowner IS NULL OR (UNIX_TIMESTAMP() - locktime) > ?)";
+    // Parameters: user, expire, timeout, owner
+    query = "CALL io_user_lock(?,?,?,?)";
 
     result = mysql_stmt_prepare(stmt, query, strlen(query));
     if (result != 0) {
@@ -1426,16 +1425,20 @@ DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     ZeroMemory(&bind, sizeof(bind));
 
     bind[0].buffer_type   = MYSQL_TYPE_STRING;
-    bind[0].buffer        = dbConfigLock.owner;
-    bind[0].buffer_length = dbConfigLock.ownerLength;
+    bind[0].buffer        = userName;
+    bind[0].buffer_length = strlen(userName);
 
-    bind[1].buffer_type   = MYSQL_TYPE_STRING;
-    bind[1].buffer        = userName;
-    bind[1].buffer_length = strlen(userName);
+    bind[1].buffer_type   = MYSQL_TYPE_LONG;
+    bind[1].buffer        = &dbConfigLock.expire;
+    bind[1].is_unsigned   = TRUE;
 
     bind[2].buffer_type   = MYSQL_TYPE_LONG;
-    bind[2].buffer        = &dbConfigLock.expire;
+    bind[2].buffer        = &dbConfigLock.timeout;
     bind[2].is_unsigned   = TRUE;
+
+    bind[3].buffer_type   = MYSQL_TYPE_STRING;
+    bind[3].buffer        = dbConfigLock.owner;
+    bind[3].buffer_length = dbConfigLock.ownerLength;
 
     result = mysql_stmt_bind_param(stmt, bind);
     if (result != 0) {

@@ -1,8 +1,48 @@
 --
 -- nxMyDB - Table Schemas
 --
--- Requires MySQL v5.0.3 or newer
+-- Requires MySQL v5.0.19 or newer
 --
+
+CREATE PROCEDURE io_user_lock(IN pUser VARCHAR(65), IN pExpire INT, IN pTimeout INT, IN pOwner VARCHAR(36))
+BEGIN
+proc:BEGIN
+  DECLARE elapsed FLOAT UNSIGNED DEFAULT 0;
+  DECLARE sleep   FLOAT UNSIGNED DEFAULT 0.2;
+
+  WHILE elapsed < pTimeout DO
+    UPDATE io_user SET lockowner=pOwner, locktime=UNIX_TIMESTAMP()
+      WHERE name=pUser AND (lockowner IS NULL OR (UNIX_TIMESTAMP() - locktime) > pExpire);
+
+    IF ROW_COUNT() > 0 THEN
+      LEAVE proc;
+    END IF;
+
+    SET elapsed = elapsed + sleep;
+    DO SLEEP(sleep);
+  END WHILE;
+END;
+END;
+
+CREATE PROCEDURE io_group_lock(IN pGroup VARCHAR(65), IN pExpire INT, IN pTimeout INT, IN pOwner VARCHAR(36))
+BEGIN
+proc:BEGIN
+  DECLARE elapsed FLOAT UNSIGNED DEFAULT 0;
+  DECLARE sleep   FLOAT UNSIGNED DEFAULT 0.2;
+
+  WHILE elapsed < pTimeout DO
+    UPDATE io_group SET lockowner=pOwner, locktime=UNIX_TIMESTAMP()
+      WHERE name=pGroup AND (lockowner IS NULL OR (UNIX_TIMESTAMP() - locktime) > pExpire);
+
+    IF ROW_COUNT() > 0 THEN
+      LEAVE proc;
+    END IF;
+
+    SET elapsed = elapsed + sleep;
+    DO SLEEP(sleep);
+  END WHILE;
+END;
+END;
 
 CREATE TABLE io_group (
   name        VARCHAR(65)  NOT NULL,
