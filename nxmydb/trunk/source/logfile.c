@@ -103,9 +103,14 @@ static VOID CCALL QueueWrite(VOID *context)
         // Seek to the end of the log file
         SetFilePointer(logHandle, 0, 0, FILE_END);
 
-        if (!WriteFile(logHandle, buffer, ELEMENT_COUNT(buffer) - remaining, &written, NULL)) {
+        if (!WriteFile(logHandle, buffer, ELEMENT_COUNT(buffer) - remaining, &written, NULL) ||
+            !WriteFile(logHandle, entry->message, entry->length, &written, NULL)) {
+
+            TRACE("Unable to write log file (error %lu).", GetLastError());
         }
-        WriteFile(logHandle, entry->message, entry->length, &written, NULL);
+
+        // Flush cache and metadata to file
+        FlushFileBuffers(logHandle);
 
         MemFree(entry);
     }
