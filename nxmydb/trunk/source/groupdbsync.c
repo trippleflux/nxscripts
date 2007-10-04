@@ -19,7 +19,7 @@ Abstract:
 #include <database.h>
 #include <namelist.h>
 
-static DWORD EventCreate(CHAR *groupName, GROUPFILE *groupFile)
+static DWORD GroupEventCreate(CHAR *groupName, GROUPFILE *groupFile)
 {
     MOD_CONTEXT *mod;
     DWORD       result;
@@ -66,7 +66,7 @@ static DWORD EventCreate(CHAR *groupName, GROUPFILE *groupFile)
     return result;
 }
 
-static DWORD EventRename(CHAR *groupName, CHAR *newName)
+static DWORD GroupEventRename(CHAR *groupName, CHAR *newName)
 {
     DWORD result;
 
@@ -79,7 +79,7 @@ static DWORD EventRename(CHAR *groupName, CHAR *newName)
     return result;
 }
 
-static DWORD EventDeleteEx(CHAR *groupName, INT32 groupId)
+static DWORD GroupEventDeleteEx(CHAR *groupName, INT32 groupId)
 {
     DWORD result;
 
@@ -97,7 +97,7 @@ static DWORD EventDeleteEx(CHAR *groupName, INT32 groupId)
     return result;
 }
 
-static DWORD EventDelete(CHAR *groupName)
+static DWORD GroupEventDelete(CHAR *groupName)
 {
     DWORD result;
     INT32 groupId;
@@ -113,13 +113,13 @@ static DWORD EventDelete(CHAR *groupName)
         TRACE("Unable to resolve group \"%s\" (error %lu).", groupName, result);
     } else {
         // Delete group
-        result = EventDeleteEx(groupName, groupId);
+        result = GroupEventDeleteEx(groupName, groupId);
     }
 
     return result;
 }
 
-static DWORD EventUpdate(CHAR *groupName, GROUPFILE *groupFile)
+static DWORD GroupEventUpdate(CHAR *groupName, GROUPFILE *groupFile)
 {
     DWORD result;
 
@@ -244,7 +244,7 @@ static DWORD GroupSyncFull(DB_CONTEXT *db)
             TRACE("GroupSyncFull: Create(%s)", groupName);
 
             // Group does not exist locally, create it.
-            error = EventCreate(groupName, &groupFile);
+            error = GroupEventCreate(groupName, &groupFile);
             if (error != ERROR_SUCCESS) {
                 LOG_WARN("Unable to create group \"%s\" (error %lu).", groupName, error);
             }
@@ -252,7 +252,7 @@ static DWORD GroupSyncFull(DB_CONTEXT *db)
             TRACE("GroupSyncFull: Update(%s)", groupName);
 
             // Group already exists locally, update it.
-            error = EventUpdate(groupName, &groupFile);
+            error = GroupEventUpdate(groupName, &groupFile);
             if (error != ERROR_SUCCESS) {
                 LOG_WARN("Unable to update group \"%s\" (error %lu).", groupName, error);
             }
@@ -270,7 +270,7 @@ static DWORD GroupSyncFull(DB_CONTEXT *db)
         TRACE("GroupSyncFull: Delete(%s,%d)", entry->name, entry->id);
 
         // Group does not exist on database, delete it.
-        error = EventDeleteEx(entry->name, entry->id);
+        error = GroupEventDeleteEx(entry->name, entry->id);
         if (error != ERROR_SUCCESS) {
             LOG_WARN("Unable to delete group \"%s\" (error %lu).", entry->name, error);
         }
@@ -402,7 +402,7 @@ static DWORD GroupSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
                 } else {
 
                     // Create local user
-                    error = EventCreate(groupName, &groupFile);
+                    error = GroupEventCreate(groupName, &groupFile);
                     if (error != ERROR_SUCCESS) {
                         LOG_WARN("Unable to create group \"%s\" (error %lu).", groupName, error);
                     }
@@ -412,7 +412,7 @@ static DWORD GroupSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
             case SYNC_EVENT_RENAME:
                 TRACE("GroupSyncIncr: Rename(%s,%s)", groupName, syncInfo);
 
-                error = EventRename(groupName, syncInfo);
+                error = GroupEventRename(groupName, syncInfo);
                 if (error != ERROR_SUCCESS) {
                     LOG_WARN("Unable to rename group \"%s\" to \"%s\" (error %lu).", groupName, syncInfo, error);
                 }
@@ -421,7 +421,7 @@ static DWORD GroupSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
             case SYNC_EVENT_DELETE:
                 TRACE("GroupSyncIncr: Delete(%s)", groupName);
 
-                error = EventDelete(groupName);
+                error = GroupEventDelete(groupName);
                 if (error != ERROR_SUCCESS) {
                     LOG_WARN("Unable to delete group \"%s\" (error %lu).", groupName, error);
                 }
@@ -556,7 +556,7 @@ static DWORD GroupSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
         }
         TRACE("GroupSyncIncr: Update(%s)", groupName);
 
-        error = EventUpdate(groupName, &groupFile);
+        error = GroupEventUpdate(groupName, &groupFile);
         if (error != ERROR_SUCCESS) {
             LOG_WARN("Unable to update group \"%s\" (error %lu).", groupName, error);
         }

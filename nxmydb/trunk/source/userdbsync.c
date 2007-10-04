@@ -19,7 +19,7 @@ Abstract:
 #include <database.h>
 #include <namelist.h>
 
-static DWORD EventCreate(CHAR *userName, USERFILE *userFile)
+static DWORD UserEventCreate(CHAR *userName, USERFILE *userFile)
 {
     MOD_CONTEXT *mod;
     DWORD       result;
@@ -66,7 +66,7 @@ static DWORD EventCreate(CHAR *userName, USERFILE *userFile)
     return result;
 }
 
-static DWORD EventRename(CHAR *userName, CHAR *newName)
+static DWORD UserEventRename(CHAR *userName, CHAR *newName)
 {
     DWORD result;
 
@@ -79,7 +79,7 @@ static DWORD EventRename(CHAR *userName, CHAR *newName)
     return result;
 }
 
-static DWORD EventDeleteEx(CHAR *userName, INT32 userId)
+static DWORD UserEventDeleteEx(CHAR *userName, INT32 userId)
 {
     DWORD result;
 
@@ -97,7 +97,7 @@ static DWORD EventDeleteEx(CHAR *userName, INT32 userId)
     return result;
 }
 
-static DWORD EventDelete(CHAR *userName)
+static DWORD UserEventDelete(CHAR *userName)
 {
     DWORD result;
     INT32 userId;
@@ -113,13 +113,13 @@ static DWORD EventDelete(CHAR *userName)
         TRACE("Unable to resolve user \"%s\" (error %lu).", userName, result);
     } else {
         // Delete user
-        result = EventDeleteEx(userName, userId);
+        result = UserEventDeleteEx(userName, userId);
     }
 
     return result;
 }
 
-static DWORD EventUpdate(CHAR *userName, USERFILE *userFile)
+static DWORD UserEventUpdate(CHAR *userName, USERFILE *userFile)
 {
     DWORD result;
 
@@ -318,7 +318,7 @@ static DWORD UserSyncFull(DB_CONTEXT *db)
             TRACE("UserSyncFull: Create(%s)", userName);
 
             // User does not exist locally, create it.
-            error = EventCreate(userName, &userFile);
+            error = UserEventCreate(userName, &userFile);
             if (error != ERROR_SUCCESS) {
                 LOG_WARN("Unable to create user \"%s\" (error %lu).", userName, error);
             }
@@ -326,7 +326,7 @@ static DWORD UserSyncFull(DB_CONTEXT *db)
             TRACE("UserSyncFull: Update(%s)", userName);
 
             // User already exists locally, update it.
-            error = EventUpdate(userName, &userFile);
+            error = UserEventUpdate(userName, &userFile);
             if (error != ERROR_SUCCESS) {
                 LOG_WARN("Unable to update user \"%s\" (error %lu).", userName, error);
             }
@@ -344,7 +344,7 @@ static DWORD UserSyncFull(DB_CONTEXT *db)
         TRACE("UserSyncFull: Delete(%s,%d)", entry->name, entry->id);
 
         // User does not exist on database, delete it.
-        error = EventDeleteEx(entry->name, entry->id);
+        error = UserEventDeleteEx(entry->name, entry->id);
         if (error != ERROR_SUCCESS) {
             LOG_WARN("Unable to delete user \"%s\" (error %lu).", entry->name, error);
         }
@@ -476,7 +476,7 @@ static DWORD UserSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
                 } else {
 
                     // Create local user
-                    error = EventCreate(userName, &userFile);
+                    error = UserEventCreate(userName, &userFile);
                     if (error != ERROR_SUCCESS) {
                         LOG_WARN("Unable to create user \"%s\" (error %lu).", userName, error);
                     }
@@ -486,7 +486,7 @@ static DWORD UserSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
             case SYNC_EVENT_RENAME:
                 TRACE("UserSyncIncr: Rename(%s,%s)", userName, syncInfo);
 
-                error = EventRename(userName, syncInfo);
+                error = UserEventRename(userName, syncInfo);
                 if (error != ERROR_SUCCESS) {
                     LOG_WARN("Unable to rename user \"%s\" to \"%s\" (error %lu).", userName, syncInfo, error);
                 }
@@ -495,7 +495,7 @@ static DWORD UserSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
             case SYNC_EVENT_DELETE:
                 TRACE("UserSyncIncr: Delete(%s)", userName);
 
-                error = EventDelete(userName);
+                error = UserEventDelete(userName);
                 if (error != ERROR_SUCCESS) {
                     LOG_WARN("Unable to delete user \"%s\" (error %lu).", userName, error);
                 }
@@ -700,7 +700,7 @@ static DWORD UserSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
         } else {
 
             // Update user file
-            error = EventUpdate(userName, &userFile);
+            error = UserEventUpdate(userName, &userFile);
             if (error != ERROR_SUCCESS) {
                 LOG_WARN("Unable to update user \"%s\" (error %lu).", userName, error);
             }
