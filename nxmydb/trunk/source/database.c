@@ -659,7 +659,7 @@ static DWORD SyncGetTime(DB_CONTEXT *db, ULONG *timePtr)
 
     result = mysql_stmt_execute(stmt);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmt));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 

@@ -82,7 +82,7 @@ DWORD DbGroupRead(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFilePtr)
 
     result = mysql_stmt_execute(stmt);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmt));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -257,14 +257,14 @@ DWORD DbGroupCreate(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 
     result = mysql_stmt_execute(stmtGroup);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtGroup));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtGroup));
         error = DbMapErrorFromStmt(stmtGroup);
         goto rollback;
     }
 
     result = mysql_stmt_execute(stmtChanges);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtChanges));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtChanges));
         error = DbMapErrorFromStmt(stmtChanges);
         goto rollback;
     }
@@ -275,7 +275,7 @@ DWORD DbGroupCreate(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 
     result = mysql_query(db->handle, "COMMIT");
     if (result != 0) {
-        TRACE("Unable to commit transaction: %s", mysql_error(db->handle));
+        LOG_WARN("Unable to commit transaction: %s", mysql_error(db->handle));
         return DbMapErrorFromConn(db->handle);
     }
 
@@ -287,7 +287,7 @@ rollback:
     //
 
     if (mysql_query(db->handle, "ROLLBACK") != 0) {
-        TRACE("Unable to rollback transaction: %s", mysql_error(db->handle));
+        LOG_WARN("Unable to rollback transaction: %s", mysql_error(db->handle));
     }
 
     ASSERT(error != ERROR_SUCCESS);
@@ -403,7 +403,7 @@ DWORD DbGroupDelete(DB_CONTEXT *db, CHAR *groupName)
 
     result = mysql_stmt_execute(stmtGroup);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtGroup));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtGroup));
         error = DbMapErrorFromStmt(stmtGroup);
         goto rollback;
     }
@@ -414,7 +414,7 @@ DWORD DbGroupDelete(DB_CONTEXT *db, CHAR *groupName)
         // Only insert a changes event if the group was deleted.
         result = mysql_stmt_execute(stmtChanges);
         if (result != 0) {
-            TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtChanges));
+            LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtChanges));
             error = DbMapErrorFromStmt(stmtChanges);
             goto rollback;
         }
@@ -426,7 +426,7 @@ DWORD DbGroupDelete(DB_CONTEXT *db, CHAR *groupName)
 
     result = mysql_query(db->handle, "COMMIT");
     if (result != 0) {
-        TRACE("Unable to commit transaction: %s", mysql_error(db->handle));
+        LOG_WARN("Unable to commit transaction: %s", mysql_error(db->handle));
         return DbMapErrorFromConn(db->handle);
     }
 
@@ -447,7 +447,7 @@ rollback:
     //
 
     if (mysql_query(db->handle, "ROLLBACK") != 0) {
-        TRACE("Unable to rollback transaction: %s", mysql_error(db->handle));
+        LOG_WARN("Unable to rollback transaction: %s", mysql_error(db->handle));
     }
 
     ASSERT(error != ERROR_SUCCESS);
@@ -514,7 +514,7 @@ DWORD DbGroupLock(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 
     result = mysql_stmt_execute(stmt);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmt));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -592,7 +592,7 @@ DWORD DbGroupUnlock(DB_CONTEXT *db, CHAR *groupName)
 
     result = mysql_stmt_execute(stmt);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmt));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -680,7 +680,7 @@ DWORD DbGroupWrite(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 
     result = mysql_stmt_execute(stmt);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmt));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 

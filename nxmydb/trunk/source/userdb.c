@@ -173,7 +173,7 @@ DWORD DbUserReadExtra(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
     result = mysql_stmt_execute(stmtAdmins);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtAdmins));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtAdmins));
         return DbMapErrorFromStmt(stmtAdmins);
     }
 
@@ -222,7 +222,7 @@ DWORD DbUserReadExtra(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
     result = mysql_stmt_execute(stmtGroups);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtGroups));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtGroups));
         return DbMapErrorFromStmt(stmtGroups);
     }
 
@@ -276,7 +276,7 @@ DWORD DbUserReadExtra(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
     result = mysql_stmt_execute(stmtHosts);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtHosts));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtHosts));
         return DbMapErrorFromStmt(stmtHosts);
     }
 
@@ -378,7 +378,7 @@ DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
 
     result = mysql_stmt_execute(stmt);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmt));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -780,7 +780,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
     result = mysql_stmt_execute(stmtUsers);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtUsers));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtUsers));
         error = DbMapErrorFromStmt(stmtUsers);
         goto rollback;
     }
@@ -796,7 +796,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
         result = mysql_stmt_execute(stmtAdmins);
         if (result != 0) {
-            TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtAdmins));
+            LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtAdmins));
             error = DbMapErrorFromStmt(stmtAdmins);
             goto rollback;
         }
@@ -813,7 +813,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
         result = mysql_stmt_execute(stmtGroups);
         if (result != 0) {
-            TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtGroups));
+            LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtGroups));
             error = DbMapErrorFromStmt(stmtGroups);
             goto rollback;
         }
@@ -829,7 +829,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
         result = mysql_stmt_execute(stmtHosts);
         if (result != 0) {
-            TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtHosts));
+            LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtHosts));
             error = DbMapErrorFromStmt(stmtHosts);
             goto rollback;
         }
@@ -837,7 +837,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
     result = mysql_stmt_execute(stmtChanges);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtChanges));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtChanges));
         error = DbMapErrorFromStmt(stmtChanges);
         goto rollback;
     }
@@ -848,7 +848,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
     result = mysql_query(db->handle, "COMMIT");
     if (result != 0) {
-        TRACE("Unable to commit transaction: %s", mysql_error(db->handle));
+        LOG_WARN("Unable to commit transaction: %s", mysql_error(db->handle));
         return DbMapErrorFromConn(db->handle);
     }
 
@@ -860,7 +860,7 @@ rollback:
     //
 
     if (mysql_query(db->handle, "ROLLBACK") != 0) {
-        TRACE("Unable to rollback transaction: %s", mysql_error(db->handle));
+        LOG_WARN("Unable to rollback transaction: %s", mysql_error(db->handle));
     }
 
     ASSERT(error != ERROR_SUCCESS);
@@ -1067,28 +1067,28 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
 
     result = mysql_stmt_execute(stmtUsers);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtUsers));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtUsers));
         error = DbMapErrorFromStmt(stmtUsers);
         goto rollback;
     }
 
     result = mysql_stmt_execute(stmtAdmins);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtAdmins));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtAdmins));
         error = DbMapErrorFromStmt(stmtAdmins);
         goto rollback;
     }
 
     result = mysql_stmt_execute(stmtGroups);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtGroups));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtGroups));
         error = DbMapErrorFromStmt(stmtGroups);
         goto rollback;
     }
 
     result = mysql_stmt_execute(stmtHosts);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtHosts));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtHosts));
         error = DbMapErrorFromStmt(stmtHosts);
         goto rollback;
     }
@@ -1099,7 +1099,7 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
         // Only insert a changes event if the group was deleted.
         result = mysql_stmt_execute(stmtChanges);
         if (result != 0) {
-            TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtChanges));
+            LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtChanges));
             error = DbMapErrorFromStmt(stmtChanges);
             goto rollback;
         }
@@ -1111,7 +1111,7 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
 
     result = mysql_query(db->handle, "COMMIT");
     if (result != 0) {
-        TRACE("Unable to commit transaction: %s", mysql_error(db->handle));
+        LOG_WARN("Unable to commit transaction: %s", mysql_error(db->handle));
         return DbMapErrorFromConn(db->handle);
     }
 
@@ -1132,7 +1132,7 @@ rollback:
     //
 
     if (mysql_query(db->handle, "ROLLBACK") != 0) {
-        TRACE("Unable to rollback transaction: %s", mysql_error(db->handle));
+        LOG_WARN("Unable to rollback transaction: %s", mysql_error(db->handle));
     }
 
     ASSERT(error != ERROR_SUCCESS);
@@ -1320,28 +1320,28 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
 
     result = mysql_stmt_execute(stmtUsers);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtUsers));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtUsers));
         error = DbMapErrorFromStmt(stmtUsers);
         goto rollback;
     }
 
     result = mysql_stmt_execute(stmtAdmins);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtAdmins));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtAdmins));
         error = DbMapErrorFromStmt(stmtAdmins);
         goto rollback;
     }
 
     result = mysql_stmt_execute(stmtGroups);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtGroups));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtGroups));
         error = DbMapErrorFromStmt(stmtGroups);
         goto rollback;
     }
 
     result = mysql_stmt_execute(stmtHosts);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtHosts));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtHosts));
         error = DbMapErrorFromStmt(stmtHosts);
         goto rollback;
     }
@@ -1352,7 +1352,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
         // Only insert a changes event if the group was deleted.
         result = mysql_stmt_execute(stmtChanges);
         if (result != 0) {
-            TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtChanges));
+            LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtChanges));
             error = DbMapErrorFromStmt(stmtChanges);
             goto rollback;
         }
@@ -1364,7 +1364,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
 
     result = mysql_query(db->handle, "COMMIT");
     if (result != 0) {
-        TRACE("Unable to commit transaction: %s", mysql_error(db->handle));
+        LOG_WARN("Unable to commit transaction: %s", mysql_error(db->handle));
         return DbMapErrorFromConn(db->handle);
     }
 
@@ -1385,7 +1385,7 @@ rollback:
     //
 
     if (mysql_query(db->handle, "ROLLBACK") != 0) {
-        TRACE("Unable to rollback transaction: %s", mysql_error(db->handle));
+        LOG_WARN("Unable to rollback transaction: %s", mysql_error(db->handle));
     }
 
     ASSERT(error != ERROR_SUCCESS);
@@ -1452,7 +1452,7 @@ DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
     result = mysql_stmt_execute(stmt);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmt));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -1530,7 +1530,7 @@ DWORD DbUserUnlock(DB_CONTEXT *db, CHAR *userName)
 
     result = mysql_stmt_execute(stmt);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmt));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -1871,14 +1871,14 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
     result = mysql_stmt_execute(stmtUsers);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtUsers));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtUsers));
         error = DbMapErrorFromStmt(stmtUsers);
         goto rollback;
     }
 
     result = mysql_stmt_execute(stmtDelAdmins);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtDelAdmins));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtDelAdmins));
         error = DbMapErrorFromStmt(stmtDelAdmins);
         goto rollback;
     }
@@ -1894,7 +1894,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
         result = mysql_stmt_execute(stmtAddAdmins);
         if (result != 0) {
-            TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtAddAdmins));
+            LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtAddAdmins));
             error = DbMapErrorFromStmt(stmtAddAdmins);
             goto rollback;
         }
@@ -1902,7 +1902,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
     result = mysql_stmt_execute(stmtDelGroups);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtDelGroups));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtDelGroups));
         error = DbMapErrorFromStmt(stmtDelGroups);
         goto rollback;
     }
@@ -1918,7 +1918,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
         result = mysql_stmt_execute(stmtAddGroups);
         if (result != 0) {
-            TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtAddGroups));
+            LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtAddGroups));
             error = DbMapErrorFromStmt(stmtAddGroups);
             goto rollback;
         }
@@ -1926,7 +1926,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
     result = mysql_stmt_execute(stmtDelHosts);
     if (result != 0) {
-        TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtDelHosts));
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtDelHosts));
         error = DbMapErrorFromStmt(stmtDelHosts);
         goto rollback;
     }
@@ -1941,7 +1941,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
         result = mysql_stmt_execute(stmtAddHosts);
         if (result != 0) {
-            TRACE("Unable to execute statement: %s", mysql_stmt_error(stmtAddHosts));
+            LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtAddHosts));
             error = DbMapErrorFromStmt(stmtAddHosts);
             goto rollback;
         }
@@ -1953,7 +1953,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
     result = mysql_query(db->handle, "COMMIT");
     if (result != 0) {
-        TRACE("Unable to commit transaction: %s", mysql_error(db->handle));
+        LOG_WARN("Unable to commit transaction: %s", mysql_error(db->handle));
         return DbMapErrorFromConn(db->handle);
     }
 
@@ -1965,7 +1965,7 @@ rollback:
     //
 
     if (mysql_query(db->handle, "ROLLBACK") != 0) {
-        TRACE("Unable to rollback transaction: %s", mysql_error(db->handle));
+        LOG_WARN("Unable to rollback transaction: %s", mysql_error(db->handle));
     }
 
     ASSERT(error != ERROR_SUCCESS);
