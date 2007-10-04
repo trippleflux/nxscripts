@@ -53,6 +53,27 @@ DWORD SCALL LogSetLevel(LOG_LEVEL level)
     return ERROR_SUCCESS;
 }
 
+const CHAR *LogFileName(const CHAR *path)
+{
+    const CHAR *base;
+
+    // Find the end of the string
+    base = path;
+    while (*base++ != '\0');
+
+    // Find the last path separator
+    while (--base != path && *base != '\\' && *base != '/');
+
+    if (*base == '\\' || *base == '/') {
+        base++;
+    } else {
+        // No path separator found, the path must already be a base name
+        base = path;
+    }
+
+    return base;
+}
+
 VOID CCALL LogFormat(LOG_LEVEL level, const CHAR *format, ...)
 {
     va_list argList;

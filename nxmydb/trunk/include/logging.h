@@ -63,6 +63,7 @@ typedef enum {
 DWORD SCALL LogInit(VOID);
 DWORD SCALL LogFinalize(VOID);
 DWORD SCALL LogSetLevel(LOG_LEVEL level);
+const CHAR *LogFileName(const CHAR *path);
 
 VOID  CCALL LogFormat(LOG_LEVEL level, const CHAR *format, ...);
 VOID  SCALL LogFormatV(LOG_LEVEL level, const CHAR *format, va_list argList);
@@ -78,7 +79,7 @@ VOID  SCALL LogTraceV(const CHAR *file, const CHAR *func, INT line, LOG_LEVEL le
 #define CRLF "\r\n"
 
 #ifdef DEBUG
-#   define LOG_OPTION_BACKEND  LOG_BACKEND_DEBUG
+#   define LOG_OPTION_BACKEND  LOG_BACKEND_FILE
 #   define LOG_OPTION_TRACE    1
 #else
 #   define LOG_OPTION_BACKEND  LOG_BACKEND_FILE

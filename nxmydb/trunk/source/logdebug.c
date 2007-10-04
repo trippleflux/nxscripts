@@ -19,11 +19,19 @@ Abstract:
 
 DWORD SCALL LogDebuggerInit(VOID)
 {
+    // Output message header
+    OutputDebugStringA(".-----------------------------------------------------------------------------------------------------.\n");
+    OutputDebugStringA("|       Location       |       Function       |                        Message                        |\n");
+    OutputDebugStringA("|-----------------------------------------------------------------------------------------------------|\n");
+
     return ERROR_SUCCESS;
 }
 
 DWORD SCALL LogDebuggerFinalize(VOID)
 {
+    // Output message footer
+    OutputDebugStringA("`-----------------------------------------------------------------------------------------------------'\n");
+
     return ERROR_SUCCESS;
 }
 
@@ -64,10 +72,13 @@ VOID SCALL LogDebuggerTrace(const CHAR *file, const CHAR *func, INT line, const 
 
 VOID SCALL LogDebuggerTraceV(const CHAR *file, const CHAR *func, INT line, const CHAR *format, va_list argList)
 {
+    CHAR    location[MAX_PATH];
     CHAR    message[512];
+    CHAR    *messageEnd;
     DWORD   errorCode;
     DWORD   processId;
     DWORD   threadId;
+    size_t  remaining;
 
     // Preserve system error code
     errorCode = GetLastError();
@@ -89,7 +100,14 @@ VOID SCALL LogDebuggerTraceV(const CHAR *file, const CHAR *func, INT line, const
     // threadId  - Current thread ID
     //
 
-    StringCchVPrintfA(message, ELEMENT_COUNT(message), format, argList);
+    StringCchPrintfA(location, ELEMENT_COUNT(location), "%s:%d", LogFileName(file), line);
+
+    StringCchPrintfExA(message, ELEMENT_COUNT(message), &messageEnd,
+        &remaining, 0, "| %-20s | %-20s | ", location, func);
+
+    StringCchVPrintfA(messageEnd, remaining, format, argList);
+
+    // Output message to debugger
     OutputDebugStringA(message);
 
     // Restore system error code

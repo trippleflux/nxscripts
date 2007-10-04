@@ -164,7 +164,7 @@ DWORD SCALL LogFileInit(VOID)
         InterlockedExchange(&logStatus, LOG_STATUS_ACTIVE);
 
         // Write log header
-        LogFileFormat(".-----------------------------------------.\r\n");
+        LogFileFormat("------------------------------------------------------------\r\n");
     }
 
     Io_Free(path);
@@ -174,9 +174,6 @@ DWORD SCALL LogFileInit(VOID)
 
 DWORD SCALL LogFileFinalize(VOID)
 {
-    // Write log footer
-    LogFileFormat("'-----------------------------------------'\r\n");
-
     // Write all pending log entries
     InterlockedExchange(&logStatus, LOG_STATUS_SHUTDOWN);
     QueueWrite(NULL);
@@ -241,6 +238,10 @@ VOID SCALL LogFileTrace(const CHAR *file, const CHAR *func, INT line, const CHAR
 
 VOID SCALL LogFileTraceV(const CHAR *file, const CHAR *func, INT line, const CHAR *format, va_list argList)
 {
+#if 0
+    CHAR        location[MAX_PATH];
+#endif
+    CHAR        *messageEnd;
     DWORD       errorCode;
     DWORD       processId;
     DWORD       threadId;
@@ -271,8 +272,16 @@ VOID SCALL LogFileTraceV(const CHAR *file, const CHAR *func, INT line, const CHA
         //
         GetLocalTime(&entry->time);
 
-        StringCchVPrintfExA(entry->message, ELEMENT_COUNT(entry->message),
-            NULL, &remaining, 0, format, argList);
+#if 0
+        StringCchPrintfA(location, ELEMENT_COUNT(location), "%s:%d", LogFileName(file), line);
+
+        StringCchPrintfExA(entry->message, ELEMENT_COUNT(entry->message),
+            &messageEnd, &remaining, 0, "%-20s - %-20s - ", location, func);
+#else
+        StringCchPrintfExA(entry->message, ELEMENT_COUNT(entry->message),
+            &messageEnd, &remaining, 0, "%s - ", func);
+#endif
+        StringCchVPrintfExA(messageEnd, remaining, NULL, &remaining, 0, format, argList);
 
         entry->length = ELEMENT_COUNT(entry->message) - remaining;
 
