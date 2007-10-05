@@ -877,7 +877,7 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     SIZE_T      userNameLength;
     SIZE_T      newNameLength;
     MYSQL_BIND  bindAdmins[2];
-    MYSQL_BIND  bindChanges[2];
+    MYSQL_BIND  bindChanges[3];
     MYSQL_BIND  bindGroups[2];
     MYSQL_BIND  bindHosts[2];
     MYSQL_BIND  bindUsers[2];
@@ -1022,8 +1022,8 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     //
 
     query = "INSERT INTO io_user_changes"
-            " (time,type,name)"
-            " VALUES(UNIX_TIMESTAMP(),?,?)";
+            " (time,type,name,info)"
+            " VALUES(UNIX_TIMESTAMP(),?,?,?)";
 
     result = mysql_stmt_prepare(stmtChanges, query, strlen(query));
     if (result != 0) {
@@ -1044,6 +1044,10 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     bindChanges[1].buffer_type   = MYSQL_TYPE_STRING;
     bindChanges[1].buffer        = userName;
     bindChanges[1].buffer_length = userNameLength;
+
+    bindChanges[2].buffer_type   = MYSQL_TYPE_STRING;
+    bindChanges[2].buffer        = newName;
+    bindChanges[2].buffer_length = newNameLength;
 
     result = mysql_stmt_bind_param(stmtChanges, bindChanges);
     if (result != 0) {
@@ -1120,7 +1124,7 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     //
 
     if (affectedRows == 0) {
-        TRACE("Unable to rename user (no affected rows).");
+        TRACE("Unable to rename user \"%s\" to \"%s\" (no affected rows).", userName, newName);
         return ERROR_USER_NOT_FOUND;
     }
 
@@ -1373,7 +1377,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     //
 
     if (affectedRows == 0) {
-        TRACE("Unable to delete user (no affected rows).");
+        TRACE("Unable to delete user \"%s\" (no affected rows).", userName);
         return ERROR_USER_NOT_FOUND;
     }
 
