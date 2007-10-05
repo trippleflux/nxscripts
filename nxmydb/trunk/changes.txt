@@ -5,7 +5,7 @@ nxMyDB v0.3.0 (not released):
   CHG: Renamed configuration option "SyncFirst" to "Sync_First".
   CHG: Renamed configuration option "SyncInterval" to "Sync_Interval".
   CHG: Requires MySQL Server v5.0.19, or newer.
-  FIX: User rename operations failed during sync, as the new name was not present in the changes table.
+  FIX: User rename operations failed during sync, since the new name was not present in the changes table.
 
 nxMyDB v0.2.0 (Sep 25, 2007):
   NEW: Event handler for catching server start and stop events.
