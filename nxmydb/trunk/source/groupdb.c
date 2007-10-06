@@ -748,7 +748,7 @@ DWORD DbGroupLock(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 
     affectedRows = mysql_stmt_affected_rows(stmt);
     if (affectedRows == 0) {
-        TRACE("Unable to lock group (no affected rows).");
+        LOG_WARN("Unable to lock group \"%s\" (no affected rows).", groupName);
         return ERROR_GROUP_LOCK_FAILED;
     }
 
@@ -760,7 +760,7 @@ DWORD DbGroupLock(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 
     error = DbGroupRead(db, groupName, groupFile);
     if (error != ERROR_SUCCESS) {
-        LOG_WARN("Unable to update group on lock (error %lu).", error);
+        LOG_WARN("Unable to update group \"%s\" on lock (error %lu).", groupName, error);
     }
 
     return error;

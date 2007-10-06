@@ -1461,7 +1461,7 @@ DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
     affectedRows = mysql_stmt_affected_rows(stmt);
     if (affectedRows == 0) {
-        TRACE("Unable to lock user (no affected rows).");
+        LOG_WARN("Unable to lock user  \"%s\" (no affected rows).", userName);
         return ERROR_USER_LOCK_FAILED;
     }
 
@@ -1473,7 +1473,7 @@ DWORD DbUserLock(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
     error = DbUserRead(db, userName, userFile);
     if (error != ERROR_SUCCESS) {
-        LOG_WARN("Unable to update user on lock (error %lu).", error);
+        LOG_WARN("Unable to update user \"%s\" on lock (error %lu).", userName, error);
     }
 
     return error;
