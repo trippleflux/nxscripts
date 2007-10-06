@@ -564,7 +564,7 @@ static CHAR *FCALL ConfigGet(CHAR *array, CHAR *variable)
     length = p - value;
 
     // Strip trailing whitespace
-    while (length > 0 && isspace(value[length-1])) {
+    while (length > 0 && IS_SPACE(value[length-1])) {
         length--;
     }
 
