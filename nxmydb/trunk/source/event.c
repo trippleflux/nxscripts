@@ -40,12 +40,15 @@ static EVENT_HANDLER_PROC EventStart;
 static EVENT_HANDLER_PROC EventStop;
 
 static const EVENT_HANDLER_TABLE eventTable[] = {
+#if 0
     {"HISTORY", EventHistory},
+#endif
     {"START",   EventStart},
     {"STOP",    EventStop},
 };
 
 
+#if 0
 static DWORD FCALL EventHistory(EVENT_DATA *data, IO_STRING *arguments)
 {
     ASSERT(data != NULL);
@@ -56,6 +59,7 @@ static DWORD FCALL EventHistory(EVENT_DATA *data, IO_STRING *arguments)
 
     return ERROR_SUCCESS;
 }
+#endif
 
 static DWORD FCALL EventStart(EVENT_DATA *data, IO_STRING *arguments)
 {
