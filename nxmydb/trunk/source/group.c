@@ -275,8 +275,10 @@ static INT GroupOpen(CHAR *groupName, GROUPFILE *groupFile)
     TRACE("groupName=%s groupFile=%p", groupName, groupFile);
 
     if (!DbAcquire(&db)) {
-        return GM_ERROR;
+        // Return GM_DELETED instead of GM_ERROR to work around a bug in ioFTPD.
+        return GM_DELETED;
     }
+
     // Module context is required for all file operations
     mod = MemAllocate(sizeof(MOD_CONTEXT));
     if (mod == NULL) {

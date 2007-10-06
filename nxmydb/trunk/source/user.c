@@ -278,8 +278,10 @@ static INT UserOpen(CHAR *userName, USERFILE *userFile)
     TRACE("userName=%s userFile=%p", userName, userFile);
 
     if (!DbAcquire(&db)) {
-        return UM_ERROR;
+        // Return UM_DELETED instead of UM_ERROR to work around a bug in ioFTPD.
+        return UM_DELETED;
     }
+
     // Module context is required for all file operations
     mod = MemAllocate(sizeof(MOD_CONTEXT));
     if (mod == NULL) {
