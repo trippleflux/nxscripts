@@ -1,4 +1,4 @@
-nxMyDB v0.3.0 (not released):
+nxMyDB v0.3.0 (Oct 6, 2007):
   NEW: Added configuration option "Log_Level" to control the log verbosity.
   NEW: Group rename operations are now implemented.
   NEW: Logging system to log errors, warnings, and information to a dedicated log file.
