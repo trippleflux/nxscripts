@@ -394,6 +394,17 @@ static INT UserClose(USERFILE *userFile)
 }
 
 
+BOOL UserExists(CHAR *userName)
+{
+    INT32 userId;
+
+    ASSERT(userName != NULL);
+    TRACE("userName=%s", userName);
+
+    userId = Io_User2Uid(userName);
+    return (userId != -1);
+}
+
 DWORD UserRegister(CHAR *userName, USERFILE *userFile, INT32 *userIdPtr)
 {
     DWORD   errorCode = ERROR_SUCCESS;

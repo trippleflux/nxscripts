@@ -35,6 +35,7 @@ typedef struct {
 // Group module functions
 //
 
+BOOL  GroupExists(CHAR *groupName);
 DWORD GroupRegister(CHAR *groupName, GROUPFILE *groupFile, INT32 *groupIdPtr);
 DWORD GroupRegisterAs(CHAR *groupName, CHAR *newName);
 DWORD GroupUnregister(CHAR *groupName);
@@ -73,6 +74,7 @@ DWORD FileGroupClose(GROUPFILE *groupFile);
 // User module functions
 //
 
+BOOL  UserExists(CHAR *userName);
 DWORD UserRegister(CHAR *userName, USERFILE *userFile, INT32 *userIdPtr);
 DWORD UserRegisterAs(CHAR *userName, CHAR *newName);
 DWORD UserUnregister(CHAR *userName);

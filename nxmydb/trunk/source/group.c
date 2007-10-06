@@ -391,6 +391,17 @@ static INT GroupClose(GROUPFILE *groupFile)
 }
 
 
+BOOL GroupExists(CHAR *groupName)
+{
+    INT32 groupId;
+
+    ASSERT(groupName != NULL);
+    TRACE("groupName=%s", groupName);
+
+    groupId = Io_Group2Gid(groupName);
+    return (groupId != -1);
+}
+
 DWORD GroupRegister(CHAR *groupName, GROUPFILE *groupFile, INT32 *groupIdPtr)
 {
     DWORD   errorCode = ERROR_SUCCESS;
