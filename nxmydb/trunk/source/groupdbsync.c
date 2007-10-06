@@ -143,7 +143,6 @@ static DWORD GroupSyncFull(DB_CONTEXT *db)
     INT         result;
     NAME_ENTRY  *entry;
     NAME_LIST   list;
-    ULONG       outputLength;
     MYSQL_BIND  bind[5];
     MYSQL_RES   *metadata;
     MYSQL_STMT  *stmt;
@@ -198,17 +197,14 @@ static DWORD GroupSyncFull(DB_CONTEXT *db)
     bind[0].buffer_type   = MYSQL_TYPE_STRING;
     bind[0].buffer        = groupName;
     bind[0].buffer_length = sizeof(groupName);
-    bind[0].length        = &outputLength;
 
     bind[1].buffer_type   = MYSQL_TYPE_STRING;
     bind[1].buffer        = groupFile.szDescription;
     bind[1].buffer_length = sizeof(groupFile.szDescription);
-    bind[1].length        = &outputLength;
 
     bind[2].buffer_type   = MYSQL_TYPE_BLOB;
     bind[2].buffer        = groupFile.Slots;
     bind[2].buffer_length = sizeof(groupFile.Slots);
-    bind[2].length        = &outputLength;
 
     bind[3].buffer_type   = MYSQL_TYPE_LONG;
     bind[3].buffer        = &groupFile.Users;
@@ -216,7 +212,6 @@ static DWORD GroupSyncFull(DB_CONTEXT *db)
     bind[4].buffer_type   = MYSQL_TYPE_STRING;
     bind[4].buffer        = groupFile.szVfsFile;
     bind[4].buffer_length = sizeof(groupFile.szVfsFile);
-    bind[4].length        = &outputLength;
 
     result = mysql_stmt_bind_result(stmt, bind);
     if (result != 0) {
@@ -290,7 +285,6 @@ static DWORD GroupSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     DWORD       error;
     GROUPFILE   groupFile;
     INT         result;
-    ULONG       outputLength;
     MYSQL_BIND  bindInput[2];
     MYSQL_BIND  bindOutput[3];
     MYSQL_RES   *metadata;
@@ -358,7 +352,6 @@ static DWORD GroupSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     bindOutput[0].buffer_type   = MYSQL_TYPE_STRING;
     bindOutput[0].buffer        = groupName;
     bindOutput[0].buffer_length = sizeof(groupName);
-    bindOutput[0].length        = &outputLength;
 
     bindOutput[1].buffer_type   = MYSQL_TYPE_TINY;
     bindOutput[1].buffer        = &syncEvent;
@@ -367,7 +360,6 @@ static DWORD GroupSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     bindOutput[2].buffer_type   = MYSQL_TYPE_STRING;
     bindOutput[2].buffer        = syncInfo;
     bindOutput[2].buffer_length = sizeof(syncInfo);
-    bindOutput[2].length        = &outputLength;
 
     result = mysql_stmt_bind_result(stmt, bindOutput);
     if (result != 0) {
@@ -445,7 +437,6 @@ static DWORD GroupSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     DWORD       error;
     GROUPFILE   groupFile;
     INT         result;
-    ULONG       outputLength;
     MYSQL_BIND  bindInput[2];
     MYSQL_BIND  bindOutput[5];
     MYSQL_RES   *metadata;
@@ -513,17 +504,14 @@ static DWORD GroupSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     bindOutput[0].buffer_type   = MYSQL_TYPE_STRING;
     bindOutput[0].buffer        = groupName;
     bindOutput[0].buffer_length = sizeof(groupName);
-    bindOutput[0].length        = &outputLength;
 
     bindOutput[1].buffer_type   = MYSQL_TYPE_STRING;
     bindOutput[1].buffer        = groupFile.szDescription;
     bindOutput[1].buffer_length = sizeof(groupFile.szDescription);
-    bindOutput[1].length        = &outputLength;
 
     bindOutput[2].buffer_type   = MYSQL_TYPE_BLOB;
     bindOutput[2].buffer        = groupFile.Slots;
     bindOutput[2].buffer_length = sizeof(groupFile.Slots);
-    bindOutput[2].length        = &outputLength;
 
     bindOutput[3].buffer_type   = MYSQL_TYPE_LONG;
     bindOutput[3].buffer        = &groupFile.Users;
@@ -531,7 +519,6 @@ static DWORD GroupSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     bindOutput[4].buffer_type   = MYSQL_TYPE_STRING;
     bindOutput[4].buffer        = groupFile.szVfsFile;
     bindOutput[4].buffer_length = sizeof(groupFile.szVfsFile);
-    bindOutput[4].length        = &outputLength;
 
     result = mysql_stmt_bind_result(stmt, bindOutput);
     if (result != 0) {

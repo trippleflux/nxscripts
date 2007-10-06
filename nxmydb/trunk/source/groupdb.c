@@ -23,7 +23,6 @@ DWORD DbGroupRead(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFilePtr)
     CHAR        *query;
     INT         result;
     SIZE_T      groupNameLength;
-    ULONG       outputLength;
     GROUPFILE   groupFile;
     MYSQL_BIND  bindInput[1];
     MYSQL_BIND  bindOutput[4];
@@ -96,12 +95,10 @@ DWORD DbGroupRead(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFilePtr)
     bindOutput[0].buffer_type   = MYSQL_TYPE_STRING;
     bindOutput[0].buffer        = groupFile.szDescription;
     bindOutput[0].buffer_length = sizeof(groupFile.szDescription);
-    bindOutput[0].length        = &outputLength;
 
     bindOutput[1].buffer_type   = MYSQL_TYPE_BLOB;
     bindOutput[1].buffer        = groupFile.Slots;
     bindOutput[1].buffer_length = sizeof(groupFile.Slots);
-    bindOutput[1].length        = &outputLength;
 
     bindOutput[2].buffer_type   = MYSQL_TYPE_LONG;
     bindOutput[2].buffer        = &groupFile.Users;
@@ -109,7 +106,6 @@ DWORD DbGroupRead(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFilePtr)
     bindOutput[3].buffer_type   = MYSQL_TYPE_STRING;
     bindOutput[3].buffer        = groupFile.szVfsFile;
     bindOutput[3].buffer_length = sizeof(groupFile.szVfsFile);
-    bindOutput[3].length        = &outputLength;
 
     result = mysql_stmt_bind_result(stmt, bindOutput);
     if (result != 0) {
