@@ -22,6 +22,10 @@ static VOID CopyHost(CHAR *host, CHAR *buffer, SIZE_T inLength, SIZE_T *outLengt
 {
     size_t remaining;
 
+    ASSERT(host != NULL);
+    ASSERT(buffer != NULL);
+    ASSERT(outLength != NULL);
+
     StringCchCopyExA(buffer, inLength, host, NULL, &remaining, 0);
     *outLength = inLength - remaining;
 }
