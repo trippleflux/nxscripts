@@ -235,7 +235,12 @@ static DWORD GroupSyncFull(DB_CONTEXT *db)
             break;
         }
 
-        if (!NameListRemove(&list, groupName)) {
+        //
+        // If ioFTPD fails to open a group at start-up, the group will still
+        // have an entry in the GroupIdTable file but ioFTPD considers them
+        // gone. The call to GroupExists() is done to check for this.
+        //
+        if (!NameListRemove(&list, groupName) || !GroupExists(groupName)) {
             TRACE("GroupSyncFull: Create(%s)", groupName);
 
             // Group does not exist locally, create it.

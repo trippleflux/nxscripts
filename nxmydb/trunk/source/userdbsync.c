@@ -296,7 +296,12 @@ static DWORD UserSyncFull(DB_CONTEXT *db)
             continue;
         }
 
-        if (!removed) {
+        //
+        // If ioFTPD fails to open a user at start-up, the user will still
+        // have an entry in the UserIdTable file but ioFTPD considers them
+        // gone. The call to UserExists() is done to check for this.
+        //
+        if (!removed || !UserExists(userName)) {
             TRACE("UserSyncFull: Create(%s)", userName);
 
             // User does not exist locally, create it.

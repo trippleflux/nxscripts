@@ -7,6 +7,7 @@ nxMyDB v0.3.0 (not released):
   CHG: Renamed configuration option "SyncInterval" to "Sync_Interval".
   CHG: Requires MySQL Server v5.0.19, or newer.
   FIX: All user's admingroups, groups and hosts were inserted with null-padding to the database.
+  FIX: If ioFTPD fails to open a user at start-up it considers them deleted.
   FIX: User rename operations failed during sync, since the new name was not present in the changes table.
   FIX: Work around a bug in ioFTPD that leads to memory corruption if a module open call returns UM_ERROR/GM_ERROR.
 
