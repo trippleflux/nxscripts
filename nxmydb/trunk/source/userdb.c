@@ -18,9 +18,21 @@ Abstract:
 #include <backends.h>
 #include <database.h>
 
-static BOOL GroupIdResolve(INT groupId, CHAR *buffer, SIZE_T bufferLength)
+static VOID CopyHost(CHAR *host, CHAR *buffer, SIZE_T inLength, SIZE_T *outLength)
 {
-    CHAR *name;
+    size_t remaining;
+
+    StringCchCopyExA(buffer, inLength, host, NULL, &remaining, 0);
+    *outLength = inLength - remaining;
+}
+
+static BOOL CopyGroup(INT groupId, CHAR *buffer, SIZE_T inLength, SIZE_T *outLength)
+{
+    CHAR    *name;
+    size_t  remaining;
+
+    ASSERT(buffer != NULL);
+    ASSERT(outLength != NULL);
 
     // Ignore the "NoGroup" group
     if (groupId == NOGROUP_ID) {
@@ -33,7 +45,8 @@ static BOOL GroupIdResolve(INT groupId, CHAR *buffer, SIZE_T bufferLength)
         return FALSE;
     }
 
-    StringCchCopyA(buffer, bufferLength, name);
+    StringCchCopyExA(buffer, inLength, name, NULL, &remaining, 0);
+    *outLength = inLength - remaining;
     return TRUE;
 }
 
@@ -515,9 +528,10 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     CHAR        *host;
     CHAR        *query;
     DWORD       error;
+    INT         groupId;
     INT         i;
-    INT         id;
     INT         result;
+    SIZE_T      bufferLength;
     SIZE_T      userNameLength;
     MYSQL_BIND  bindAdmins[2];
     MYSQL_BIND  bindChanges[2];
@@ -572,15 +586,15 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
     bindUsers[1].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[1].buffer        = userFile->Tagline;
-    bindUsers[1].buffer_length = sizeof(userFile->Tagline) - 1;
+    bindUsers[1].buffer_length = strlen(userFile->Tagline);
 
     bindUsers[2].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[2].buffer        = userFile->Flags;
-    bindUsers[2].buffer_length = sizeof(userFile->Flags) - 1;
+    bindUsers[2].buffer_length = strlen(userFile->Flags);
 
     bindUsers[3].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[3].buffer        = userFile->Home;
-    bindUsers[3].buffer_length = sizeof(userFile->Home) - 1;
+    bindUsers[3].buffer_length = strlen(userFile->Home);
 
     bindUsers[4].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[4].buffer        = &userFile->Limits;
@@ -592,7 +606,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
     bindUsers[6].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[6].buffer        = userFile->MountFile;
-    bindUsers[6].buffer_length = sizeof(userFile->MountFile) - 1;
+    bindUsers[6].buffer_length = strlen(userFile->MountFile);
 
     bindUsers[7].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[7].buffer        = &userFile->Ratio;
@@ -662,6 +676,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     bindAdmins[1].buffer_type   = MYSQL_TYPE_STRING;
     bindAdmins[1].buffer        = &buffer;
     bindAdmins[1].buffer_length = _MAX_NAME;
+    bindAdmins[1].length        = &bufferLength;
 
     result = mysql_stmt_bind_param(stmtAdmins, bindAdmins);
     if (result != 0) {
@@ -691,6 +706,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     bindGroups[1].buffer_type   = MYSQL_TYPE_STRING;
     bindGroups[1].buffer        = &buffer;
     bindGroups[1].buffer_length = _MAX_NAME;
+    bindGroups[1].length        = &bufferLength;
 
     bindGroups[2].buffer_type   = MYSQL_TYPE_LONG;
     bindGroups[2].buffer        = &i;
@@ -723,6 +739,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     bindHosts[1].buffer_type   = MYSQL_TYPE_STRING;
     bindHosts[1].buffer        = &buffer;
     bindHosts[1].buffer_length = _IP_LINE_LENGTH;
+    bindHosts[1].length        = &bufferLength;
 
     result = mysql_stmt_bind_param(stmtHosts, bindHosts);
     if (result != 0) {
@@ -786,46 +803,41 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     }
 
     for (i = 0; i < MAX_GROUPS; i++) {
-        id = userFile->AdminGroups[i];
-        if (id == INVALID_GROUP) {
+        groupId = userFile->AdminGroups[i];
+        if (groupId == INVALID_GROUP) {
             break;
         }
-        if (!GroupIdResolve(id, buffer, ELEMENT_COUNT(buffer))) {
-            continue;
-        }
-
-        result = mysql_stmt_execute(stmtAdmins);
-        if (result != 0) {
-            LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtAdmins));
-            error = DbMapErrorFromStmt(stmtAdmins);
-            goto rollback;
+        if (CopyGroup(groupId, buffer, ELEMENT_COUNT(buffer), &bufferLength)) {
+            result = mysql_stmt_execute(stmtAdmins);
+            if (result != 0) {
+                LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtAdmins));
+                error = DbMapErrorFromStmt(stmtAdmins);
+                goto rollback;
+            }
         }
     }
 
     for (i = 0; i < MAX_GROUPS; i++) {
-        id = userFile->Groups[i];
-        if (id == INVALID_GROUP) {
+        groupId = userFile->Groups[i];
+        if (groupId == INVALID_GROUP) {
             break;
         }
-        if (!GroupIdResolve(id, buffer, ELEMENT_COUNT(buffer))) {
-            continue;
-        }
-
-        result = mysql_stmt_execute(stmtGroups);
-        if (result != 0) {
-            LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtGroups));
-            error = DbMapErrorFromStmt(stmtGroups);
-            goto rollback;
+        if (CopyGroup(groupId, buffer, ELEMENT_COUNT(buffer), &bufferLength)) {
+            result = mysql_stmt_execute(stmtGroups);
+            if (result != 0) {
+                LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtGroups));
+                error = DbMapErrorFromStmt(stmtGroups);
+                goto rollback;
+            }
         }
     }
 
     for (i = 0; i < MAX_IPS; i++) {
         host = userFile->Ip[i];
         if (host[0] == '\0') {
-            // The last IP is marked by a null
             break;
         }
-        StringCchCopyA(buffer, ELEMENT_COUNT(buffer), host);
+        CopyHost(host, buffer, ELEMENT_COUNT(buffer), &bufferLength);
 
         result = mysql_stmt_execute(stmtHosts);
         if (result != 0) {
@@ -1563,9 +1575,10 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     CHAR        *host;
     CHAR        *query;
     DWORD       error;
+    INT         groupId;
     INT         i;
-    INT         id;
     INT         result;
+    SIZE_T      bufferLength;
     SIZE_T      userNameLength;
     MYSQL_BIND  bindAddAdmins[2];
     MYSQL_BIND  bindAddGroups[3];
@@ -1622,15 +1635,15 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
     bindUsers[0].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[0].buffer        = userFile->Tagline;
-    bindUsers[0].buffer_length = sizeof(userFile->Tagline) - 1;
+    bindUsers[0].buffer_length = strlen(userFile->Tagline);
 
     bindUsers[1].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[1].buffer        = userFile->Flags;
-    bindUsers[1].buffer_length = sizeof(userFile->Flags) - 1;
+    bindUsers[1].buffer_length = strlen(userFile->Flags);
 
     bindUsers[2].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[2].buffer        = userFile->Home;
-    bindUsers[2].buffer_length = sizeof(userFile->Home) - 1;
+    bindUsers[2].buffer_length = strlen(userFile->Home);
 
     bindUsers[3].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[3].buffer        = &userFile->Limits;
@@ -1642,7 +1655,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
     bindUsers[5].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[5].buffer        = userFile->MountFile;
-    bindUsers[5].buffer_length = sizeof(userFile->MountFile) - 1;
+    bindUsers[5].buffer_length = strlen(userFile->MountFile);
 
     bindUsers[6].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[6].buffer        = &userFile->Ratio;
@@ -1716,6 +1729,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     bindAddAdmins[1].buffer_type   = MYSQL_TYPE_STRING;
     bindAddAdmins[1].buffer        = &buffer;
     bindAddAdmins[1].buffer_length = _MAX_NAME;
+    bindAddAdmins[1].length        = &bufferLength;
 
     result = mysql_stmt_bind_param(stmtAddAdmins, bindAddAdmins);
     if (result != 0) {
@@ -1745,6 +1759,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     bindAddGroups[1].buffer_type   = MYSQL_TYPE_STRING;
     bindAddGroups[1].buffer        = &buffer;
     bindAddGroups[1].buffer_length = _MAX_NAME;
+    bindAddGroups[1].length        = &bufferLength;
 
     bindAddGroups[2].buffer_type   = MYSQL_TYPE_LONG;
     bindAddGroups[2].buffer        = &i;
@@ -1777,6 +1792,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     bindAddHosts[1].buffer_type   = MYSQL_TYPE_STRING;
     bindAddHosts[1].buffer        = &buffer;
     bindAddHosts[1].buffer_length = _IP_LINE_LENGTH;
+    bindAddHosts[1].length        = &bufferLength;
 
     result = mysql_stmt_bind_param(stmtAddHosts, bindAddHosts);
     if (result != 0) {
@@ -1888,19 +1904,17 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     }
 
     for (i = 0; i < MAX_GROUPS; i++) {
-        id = userFile->AdminGroups[i];
-        if (id == INVALID_GROUP) {
+        groupId = userFile->AdminGroups[i];
+        if (groupId == INVALID_GROUP) {
             break;
         }
-        if (!GroupIdResolve(id, buffer, ELEMENT_COUNT(buffer))) {
-            continue;
-        }
-
-        result = mysql_stmt_execute(stmtAddAdmins);
-        if (result != 0) {
-            LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtAddAdmins));
-            error = DbMapErrorFromStmt(stmtAddAdmins);
-            goto rollback;
+        if (CopyGroup(groupId, buffer, ELEMENT_COUNT(buffer), &bufferLength)) {
+            result = mysql_stmt_execute(stmtAddAdmins);
+            if (result != 0) {
+                LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtAddAdmins));
+                error = DbMapErrorFromStmt(stmtAddAdmins);
+                goto rollback;
+            }
         }
     }
 
@@ -1912,19 +1926,17 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     }
 
     for (i = 0; i < MAX_GROUPS; i++) {
-        id = userFile->Groups[i];
-        if (id == INVALID_GROUP) {
+        groupId = userFile->Groups[i];
+        if (groupId == INVALID_GROUP) {
             break;
         }
-        if (!GroupIdResolve(id, buffer, ELEMENT_COUNT(buffer))) {
-            continue;
-        }
-
-        result = mysql_stmt_execute(stmtAddGroups);
-        if (result != 0) {
-            LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtAddGroups));
-            error = DbMapErrorFromStmt(stmtAddGroups);
-            goto rollback;
+        if (CopyGroup(groupId, buffer, ELEMENT_COUNT(buffer), &bufferLength)) {
+            result = mysql_stmt_execute(stmtAddGroups);
+            if (result != 0) {
+                LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmtAddGroups));
+                error = DbMapErrorFromStmt(stmtAddGroups);
+                goto rollback;
+            }
         }
     }
 
@@ -1938,10 +1950,9 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     for (i = 0; i < MAX_IPS; i++) {
         host = userFile->Ip[i];
         if (host[0] == '\0') {
-            // The last IP is marked by a null
             break;
         }
-        StringCchCopyA(buffer, ELEMENT_COUNT(buffer), host);
+        CopyHost(host, buffer, ELEMENT_COUNT(buffer), &bufferLength);
 
         result = mysql_stmt_execute(stmtAddHosts);
         if (result != 0) {

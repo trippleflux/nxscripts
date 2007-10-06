@@ -188,7 +188,7 @@ DWORD DbGroupCreate(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 
     bindGroup[1].buffer_type   = MYSQL_TYPE_STRING;
     bindGroup[1].buffer        = groupFile->szDescription;
-    bindGroup[1].buffer_length = sizeof(groupFile->szDescription) - 1;
+    bindGroup[1].buffer_length = strlen(groupFile->szDescription);
 
     bindGroup[2].buffer_type   = MYSQL_TYPE_BLOB;
     bindGroup[2].buffer        = groupFile->Slots;
@@ -199,7 +199,7 @@ DWORD DbGroupCreate(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 
     bindGroup[4].buffer_type   = MYSQL_TYPE_STRING;
     bindGroup[4].buffer        = groupFile->szVfsFile;
-    bindGroup[4].buffer_length = sizeof(groupFile->szVfsFile) - 1;
+    bindGroup[4].buffer_length = strlen(groupFile->szVfsFile);
 
     result = mysql_stmt_bind_param(stmtGroup, bindGroup);
     if (result != 0) {
@@ -470,6 +470,7 @@ DWORD DbGroupRename(DB_CONTEXT *db, CHAR *groupName, CHAR *newName)
         error = DbMapErrorFromStmt(stmtMain);
         goto rollback;
     }
+    LOG_ERROR("Affected rows from the main query: %I64d", mysql_stmt_affected_rows(stmtMain));
 
     result = mysql_stmt_execute(stmtAdmins);
     if (result != 0) {
@@ -477,6 +478,7 @@ DWORD DbGroupRename(DB_CONTEXT *db, CHAR *groupName, CHAR *newName)
         error = DbMapErrorFromStmt(stmtAdmins);
         goto rollback;
     }
+    LOG_ERROR("Affected rows from the admins query: %I64d", mysql_stmt_affected_rows(stmtAdmins));
 
     result = mysql_stmt_execute(stmtGroups);
     if (result != 0) {
@@ -484,6 +486,7 @@ DWORD DbGroupRename(DB_CONTEXT *db, CHAR *groupName, CHAR *newName)
         error = DbMapErrorFromStmt(stmtGroups);
         goto rollback;
     }
+    LOG_ERROR("Affected rows from the groups query: %I64d", mysql_stmt_affected_rows(stmtGroups));
 
     affectedRows = mysql_stmt_affected_rows(stmtMain);
     if (affectedRows > 0) {
@@ -876,7 +879,7 @@ DWORD DbGroupWrite(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 
     bind[0].buffer_type   = MYSQL_TYPE_STRING;
     bind[0].buffer        = groupFile->szDescription;
-    bind[0].buffer_length = sizeof(groupFile->szDescription) - 1;
+    bind[0].buffer_length = strlen(groupFile->szDescription);
 
     bind[1].buffer_type   = MYSQL_TYPE_BLOB;
     bind[1].buffer        = groupFile->Slots;
@@ -887,7 +890,7 @@ DWORD DbGroupWrite(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 
     bind[3].buffer_type   = MYSQL_TYPE_STRING;
     bind[3].buffer        = groupFile->szVfsFile;
-    bind[3].buffer_length = sizeof(groupFile->szVfsFile) - 1;
+    bind[3].buffer_length = strlen(groupFile->szVfsFile);
 
     bind[4].buffer_type   = MYSQL_TYPE_STRING;
     bind[4].buffer        = groupName;
