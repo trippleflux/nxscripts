@@ -387,13 +387,13 @@ DWORD DbGroupRename(DB_CONTEXT *db, CHAR *groupName, CHAR *newName)
     // Prepare groups statement and bind parameters
     //
 
+    query = "UPDATE io_user_groups SET gname=? WHERE gname=?";
+
     result = mysql_stmt_prepare(stmtGroups, query, strlen(query));
     if (result != 0) {
         TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmtGroups));
         return DbMapErrorFromStmt(stmtGroups);
     }
-
-    query = "UPDATE io_user_groups SET gname=? WHERE gname=?";
 
     DB_CHECK_PARAMS(bindGroups, stmtGroups);
     ZeroMemory(&bindGroups, sizeof(bindGroups));
