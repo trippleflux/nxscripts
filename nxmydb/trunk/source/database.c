@@ -945,10 +945,6 @@ DWORD FCALL DbMapError(UINT error)
     DWORD result;
 
     switch (error) {
-        case 0:
-            result = ERROR_SUCCESS;
-            break;
-
         case CR_COMMANDS_OUT_OF_SYNC:
         case CR_NOT_IMPLEMENTED:
             result = ERROR_INTERNAL_ERROR;
