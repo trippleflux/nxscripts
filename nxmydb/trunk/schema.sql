@@ -6,42 +6,42 @@
 
 CREATE PROCEDURE io_user_lock(IN pName VARCHAR(65), IN pExpire INT, IN pTimeout INT, IN pOwner VARCHAR(36))
 BEGIN
-proc:BEGIN
   DECLARE elapsed FLOAT UNSIGNED DEFAULT 0;
   DECLARE sleep   FLOAT UNSIGNED DEFAULT 0.2;
 
-  WHILE elapsed < pTimeout DO
-    UPDATE io_user SET lockowner=pOwner, locktime=UNIX_TIMESTAMP()
-      WHERE name=pName AND (lockowner IS NULL OR (UNIX_TIMESTAMP() - locktime) > pExpire);
+  SPIN:BEGIN
+    WHILE elapsed < pTimeout DO
+      UPDATE io_user SET lockowner=pOwner, locktime=UNIX_TIMESTAMP()
+        WHERE name=pName AND (lockowner IS NULL OR (UNIX_TIMESTAMP() - locktime) > pExpire);
 
-    IF ROW_COUNT() > 0 THEN
-      LEAVE proc;
-    END IF;
+      IF ROW_COUNT() > 0 THEN
+        LEAVE SPIN;
+      END IF;
 
-    SET elapsed = elapsed + sleep;
-    DO SLEEP(sleep);
-  END WHILE;
-END;
+      SET elapsed = elapsed + sleep;
+      DO SLEEP(sleep);
+    END WHILE;
+  END SPIN;
 END;
 
 CREATE PROCEDURE io_group_lock(IN pName VARCHAR(65), IN pExpire INT, IN pTimeout INT, IN pOwner VARCHAR(36))
 BEGIN
-proc:BEGIN
   DECLARE elapsed FLOAT UNSIGNED DEFAULT 0;
   DECLARE sleep   FLOAT UNSIGNED DEFAULT 0.2;
 
-  WHILE elapsed < pTimeout DO
-    UPDATE io_group SET lockowner=pOwner, locktime=UNIX_TIMESTAMP()
-      WHERE name=pName AND (lockowner IS NULL OR (UNIX_TIMESTAMP() - locktime) > pExpire);
+  SPIN:BEGIN
+    WHILE elapsed < pTimeout DO
+      UPDATE io_group SET lockowner=pOwner, locktime=UNIX_TIMESTAMP()
+        WHERE name=pName AND (lockowner IS NULL OR (UNIX_TIMESTAMP() - locktime) > pExpire);
 
-    IF ROW_COUNT() > 0 THEN
-      LEAVE proc;
-    END IF;
+      IF ROW_COUNT() > 0 THEN
+        LEAVE SPIN;
+      END IF;
 
-    SET elapsed = elapsed + sleep;
-    DO SLEEP(sleep);
-  END WHILE;
-END;
+      SET elapsed = elapsed + sleep;
+      DO SLEEP(sleep);
+    END WHILE;
+  END SPIN;
 END;
 
 CREATE TABLE io_group (
