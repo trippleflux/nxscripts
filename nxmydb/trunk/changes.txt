@@ -1,4 +1,5 @@
 nxMyDB v0.4.0 (not released):
+  FIX: Correct instructions for executing the "schema.sql" batch file.
 
 nxMyDB v0.3.0 (Oct 6, 2007):
   NEW: Added configuration option "Log_Level" to control the log verbosity.
