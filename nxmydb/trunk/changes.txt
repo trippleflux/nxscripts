@@ -1,4 +1,5 @@
 nxMyDB v0.4.0 (not released):
+  NEW: Compiled in release mode (earlier versions were not for debugging purposes).
   CHG: Make several attempts at opening the log file, in case of lock/sharing violations.
   CHG: Open the log file only when a message is available to be written.
   FIX: Corrected readme instructions for executing the "schema.sql" batch file.
