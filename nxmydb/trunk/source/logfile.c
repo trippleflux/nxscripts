@@ -41,7 +41,7 @@ typedef struct LOG_QUEUE LOG_QUEUE;
 //
 
 static CRITICAL_SECTION logLock;    // Lock to protect access to the handle and queue
-static HANDLE           logHandle;  // Handle to the log file
+static CHAR             *logPath;   // File name of the log file
 static LOG_QUEUE        logQueue;   // Queue of log entries to write
 static volatile LONG    logStatus = LOG_STATUS_INACTIVE;
 
@@ -62,21 +62,57 @@ static INLINE LOG_ENTRY *GetQueueEntry(VOID)
     EnterCriticalSection(&logLock);
 
     // Pop the first entry off the queue
-    if (!STAILQ_EMPTY(&logQueue)) {
+    if (STAILQ_EMPTY(&logQueue)) {
+        entry = NULL;
+    } else {
         entry = STAILQ_FIRST(&logQueue);
         STAILQ_REMOVE_HEAD(&logQueue, link);
-    } else {
-        entry = NULL;
     }
 
     LeaveCriticalSection(&logLock);
     return entry;
 }
 
+static INLINE HANDLE FileOpen(const CHAR *filePath, DWORD access, DWORD share, DWORD retryMax)
+{
+    DWORD   errorCode;
+    DWORD   retryCount = 0;
+    HANDLE  fileHandle = INVALID_HANDLE_VALUE;
+
+    ASSERT(filePath != NULL);
+
+    do {
+        // Attempt to the file
+        fileHandle = CreateFileA(filePath, access, share, NULL, OPEN_ALWAYS, 0, NULL);
+        if (fileHandle == INVALID_HANDLE_VALUE) {
+
+            errorCode = GetLastError();
+            TRACE("Unable to open file \"%s\" on attempt %d (error %lu).",
+                filePath, retryCount, errorCode);
+
+            if (errorCode == ERROR_LOCK_VIOLATION || errorCode == ERROR_SHARING_VIOLATION) {
+                // If the open request fails because of a lock
+                // or sharing violation, sleep and try again.
+                retryCount++;
+                SleepEx(50, FALSE);
+
+                continue;
+            }
+        }
+
+        // Open succeeded or an unhandled error occured.
+        break;
+
+    } while (retryCount < retryMax);
+
+    return fileHandle;
+}
+
 static VOID CCALL QueueWrite(VOID *context)
 {
     CHAR        buffer[128];
     DWORD       written;
+    HANDLE      file;
     LOG_ENTRY   *entry;
     size_t      remaining;
 
@@ -84,6 +120,11 @@ static VOID CCALL QueueWrite(VOID *context)
 
     // Log system must be inactive or shutting down (flush)
     if (logStatus != LOG_STATUS_ACTIVE && logStatus != LOG_STATUS_SHUTDOWN) {
+        return;
+    }
+
+    file = FileOpen(logPath, GENERIC_WRITE, FILE_SHARE_READ, 10);
+    if (file == INVALID_HANDLE_VALUE) {
         return;
     }
 
@@ -101,19 +142,19 @@ static VOID CCALL QueueWrite(VOID *context)
             entry->time.wHour, entry->time.wMinute, entry->time.wSecond);
 
         // Seek to the end of the log file
-        SetFilePointer(logHandle, 0, 0, FILE_END);
+        SetFilePointer(file, 0, 0, FILE_END);
 
-        if (!WriteFile(logHandle, buffer, ELEMENT_COUNT(buffer) - remaining, &written, NULL) ||
-            !WriteFile(logHandle, entry->message, entry->length, &written, NULL)) {
-
+        if (!WriteFile(file, buffer, ELEMENT_COUNT(buffer) - remaining, &written, NULL)) {
+            TRACE("Unable to write log file (error %lu).", GetLastError());
+        }
+        if (!WriteFile(file, entry->message, entry->length, &written, NULL)) {
             TRACE("Unable to write log file (error %lu).", GetLastError());
         }
 
-        // Flush cache and metadata to file
-        FlushFileBuffers(logHandle);
-
         MemFree(entry);
     }
+
+    CloseHandle(file);
 }
 
 static VOID FCALL QueueInsert(LOG_ENTRY *entry)
@@ -140,27 +181,19 @@ static VOID FCALL QueueInsert(LOG_ENTRY *entry)
 
 DWORD SCALL LogFileInit(VOID)
 {
-    CHAR    *path;
-    DWORD   result;
+    DWORD result;
 
     InterlockedExchange(&logStatus, LOG_STATUS_INACTIVE);
     STAILQ_INIT(&logQueue);
 
-    path = Io_ConfigGetPath("Locations", "Log_Files", "nxMyDB.log", NULL);
-    if (path == NULL) {
+    logPath = Io_ConfigGetPath("Locations", "Log_Files", "nxMyDB.log", NULL);
+    if (logPath == NULL) {
         return ERROR_NOT_ENOUGH_MEMORY;
     }
 
-    // Open log file for writing
-    logHandle = CreateFileA(path, GENERIC_WRITE,
-        FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, 0, NULL);
-
-    if (logHandle == INVALID_HANDLE_VALUE) {
+    if (!InitializeCriticalSectionAndSpinCount(&logLock, 50)) {
         result = GetLastError();
-
-    } else if (!InitializeCriticalSectionAndSpinCount(&logLock, 50)) {
-        result = GetLastError();
-        CloseHandle(logHandle);
+        Io_Free(logPath);
 
     } else {
         result = ERROR_SUCCESS;
@@ -172,8 +205,6 @@ DWORD SCALL LogFileInit(VOID)
         LogFileFormat("------------------------------------------------------------\r\n");
     }
 
-    Io_Free(path);
-
     return result;
 }
 
@@ -184,12 +215,11 @@ DWORD SCALL LogFileFinalize(VOID)
     QueueWrite(NULL);
     InterlockedExchange(&logStatus, LOG_STATUS_INACTIVE);
 
-    ASSERT(STAILQ_EMPTY(&logQueue));
-
-    CloseHandle(logHandle);
-    logHandle = INVALID_HANDLE_VALUE;
-
+    // Clean-up
     DeleteCriticalSection(&logLock);
+
+    ASSERT(logPath != NULL);
+    Io_Free(logPath);
 
     return ERROR_SUCCESS;
 }
