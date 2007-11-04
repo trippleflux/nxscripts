@@ -254,7 +254,6 @@ proc ::nxTools::Dupe::RebuildDb {} {
                 FileDb eval {INSERT INTO DupeFiles(TimeStamp,UserName,GroupName,FileName) VALUES($fstat(ctime),$userName,$groupName,$fileName)}
             }
         }
-
     }
 
     DirDb eval {COMMIT}

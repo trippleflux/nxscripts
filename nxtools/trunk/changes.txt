@@ -2,6 +2,10 @@
 #                             nxTools - Change Log                             #
 ################################################################################
 
+nxTools v1.0.7 (not released):
+  FIX: All parent symlinks would be removed on nuke and wipe.
+  FIX: Properly terminate switches to the glob function.
+
 nxTools v1.0.6 (Aug 20, 2007):
   NEW: Option to define the allowed sample extensions (e.g. JPG, MPG, VOB).
   NEW: Option to require the "-r" switch to recursively wipe a directory.
