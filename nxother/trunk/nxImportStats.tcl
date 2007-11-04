@@ -46,106 +46,106 @@
 #
 ################################################################################
 
-## Path to the old UserIdTable and user files(use foward slashes)
-set IU(UserIdTable)	"D:/ioFTPD/etc/UserIdTable"
-set IU(UserFiles)	"D:/ioFTPD/users"
+# Path to the old UserIdTable and user files(use foward slashes)
+set IU(UserIdTable) "D:/ioFTPD/etc/UserIdTable"
+set IU(UserFiles)   "D:/ioFTPD/users"
 
-## End of Settings
 ################################################################################
 
-set CurrUsers ""
-set UserList ""
+proc DebugLog {message} {
+    iputs -nobuffer $message
+    set now [clock format [clock seconds] -format "%m-%d-%Y %H:%M:%S"]
 
-## Log and output text
-proc DebugLog {LogText} {
-	iputs -nobuffer $LogText
-set LogTime [clock format [clock seconds] -format "%m-%d-%Y %H:%M:%S"]
-	if {![catch {open "../logs/nxImport.log" a} fp]} {
-		puts $fp "$LogTime - $LogText"
-		close $fp
-	} else {iputs -nobuffer "Error opening file \"../logs/nxImport.log\""}
+    if {![catch {set handle [open "../logs/nxImport.log" a]} error]} {
+        puts $handle "$now - $message"
+        close $handle
+    } else {iputs $error}
 }
+
+set CurrUsers [list]
+set UserList  [list]
+
 DebugLog "nxImportStats starting..."
 
-## Read users from the old UserIdTable
+# Read users from the old UserIdTable
 DebugLog "Reading users from \"$IU(UserIdTable)\""
 if {![catch {open $IU(UserIdTable) r} fp]} {
-	while {![eof $fp]} {
-		set Line [string trim [gets $fp]]
-		if {[string equal "" $Line]} {continue}
-		foreach {Name ID Type} [split $Line ":"] {break}
-		## Validate the user line
-		if {![string is digit -strict $ID] || [string equal "" $Name]} {
-			DebugLog "Invalid UserIdTable line \"$Line\""
-		} else {lappend UserList $ID $Name}
-	}
-	close $fp
+    while {![eof $fp]} {
+        set Line [string trim [gets $fp]]
+        if {[string equal "" $Line]} {continue}
+        foreach {Name ID Type} [split $Line ":"] {break}
+        # Validate the user line
+        if {![string is digit -strict $ID] || [string equal "" $Name]} {
+            DebugLog "Invalid UserIdTable line \"$Line\""
+        } else {lappend UserList $ID $Name}
+    }
+    close $fp
 } else {DebugLog "Unable to open \"$IU(UserIdTable)\" for reading."; return}
 
-## Create a list of current users and groups
+# Create a list of current users and groups
 foreach UID [user list] {lappend CurrUsers [resolve uid $UID]}
 
-## Add the old users
+# Add the old users
 foreach {OldUID UserName} $UserList {
-	## Check if the user already exists
-	if {[lsearch -exact $CurrUsers $UserName] == -1} {
-		## The user doesn't exist
-		DebugLog "The user \"$UserName\" does not exist, you'll have to manually create and update this user."
-		continue
-	}
-	## Create the stats array
-	set StatTypes "alldn allup monthdn monthup wkdn wkup daydn dayup"
-	set UStats(credits) "0 0 0 0 0 0 0 0 0 0"
-	foreach StatType $StatTypes {
-		set UStats($StatType) "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
-	}
-	## Read the old user file
-	set UFilePath [file join $IU(UserFiles) $OldUID]
-	if {![catch {open $UFilePath r} fp]} {
-		while {![eof $fp]} {
-			set ULine [string trim [gets $fp]]
-			if {[string equal "" $ULine]} {continue}
-			set ULineType [string tolower [lindex $ULine 0]]
-			## Save the users stats
-			if {[string equal "credits" $ULineType]} {
-				set UStats(credits) $ULine
-			} elseif {[lsearch -exact $StatTypes $ULineType] != -1} {
-				set UStats($ULineType) $ULine
-			}
-		}
-		close $fp
-		## Update the user file
-		set NewUFile ""
-		if {[userfile open $UserName] == 0} {
-			userfile lock
-			set UFileList [split [userfile bin2ascii] "\n"]
-			foreach ULine $UFileList {
-				set ULineType [string tolower [lindex $ULine 0]]
-				if {[string equal "credits" $ULineType]} {
-					## Update credits
-					for {set x 1} {$x < 11} {incr x} {
-						set Value [expr {wide([lindex $ULine $x]) + wide([lindex $UStats(credits) $x])}]
-						set ULine [lreplace $ULine $x $x $Value]
-					}
-				} elseif {[lsearch -exact $StatTypes $ULineType] != -1} {
-					## Update stats
-					for {set x 1} {$x < 31} {incr x} {
-						set Value [expr {wide([lindex $ULine $x]) + wide([lindex $UStats($ULineType) $x])}]
-						set ULine [lreplace $ULine $x $x $Value]
-					}
-				}
-				append NewUFile $ULine "\n"
-			}
-			userfile ascii2bin $NewUFile
-			userfile unlock
-			DebugLog "Updated the credits and stats for \"$UserName\" with the contents of \"$UFilePath\""
-		} else {DebugLog "Unable to update the credits and stats for \"$UserName\""}
+    # Check if the user already exists
+    if {[lsearch -exact $CurrUsers $UserName] == -1} {
+        # The user doesn't exist
+        DebugLog "The user \"$UserName\" does not exist, you'll have to manually create and update this user."
+        continue
+    }
+    # Create the stats array
+    set StatTypes "alldn allup monthdn monthup wkdn wkup daydn dayup"
+    set UStats(credits) "0 0 0 0 0 0 0 0 0 0"
+    foreach StatType $StatTypes {
+        set UStats($StatType) "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+    }
+    # Read the old user file
+    set UFilePath [file join $IU(UserFiles) $OldUID]
+    if {![catch {open $UFilePath r} fp]} {
+        while {![eof $fp]} {
+            set ULine [string trim [gets $fp]]
+            if {[string equal "" $ULine]} {continue}
+            set ULineType [string tolower [lindex $ULine 0]]
+            # Save the users stats
+            if {[string equal "credits" $ULineType]} {
+                set UStats(credits) $ULine
+            } elseif {[lsearch -exact $StatTypes $ULineType] != -1} {
+                set UStats($ULineType) $ULine
+            }
+        }
+        close $fp
+        # Update the user file
+        set NewUFile ""
+        if {[userfile open $UserName] == 0} {
+            userfile lock
+            set UFileList [split [userfile bin2ascii] "\n"]
+            foreach ULine $UFileList {
+                set ULineType [string tolower [lindex $ULine 0]]
+                if {[string equal "credits" $ULineType]} {
+                    # Update credits
+                    for {set x 1} {$x < 11} {incr x} {
+                        set Value [expr {wide([lindex $ULine $x]) + wide([lindex $UStats(credits) $x])}]
+                        set ULine [lreplace $ULine $x $x $Value]
+                    }
+                } elseif {[lsearch -exact $StatTypes $ULineType] != -1} {
+                    # Update stats
+                    for {set x 1} {$x < 31} {incr x} {
+                        set Value [expr {wide([lindex $ULine $x]) + wide([lindex $UStats($ULineType) $x])}]
+                        set ULine [lreplace $ULine $x $x $Value]
+                    }
+                }
+                append NewUFile $ULine "\n"
+            }
+            userfile ascii2bin $NewUFile
+            userfile unlock
+            DebugLog "Updated the credits and stats for \"$UserName\" with the contents of \"$UFilePath\""
+        } else {DebugLog "Unable to update the credits and stats for \"$UserName\""}
 
-	} else {
-		DebugLog "Unable to read the file \"$UFilePath\" for the user \"$UserName\""
-	}
+    } else {
+        DebugLog "Unable to read the file \"$UFilePath\" for the user \"$UserName\""
+    }
 }
 
 DebugLog "nxImportStats finished."
 
-## EOF
+# EOF
