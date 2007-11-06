@@ -492,7 +492,7 @@ proc ::nxTools::Utils::SiteGroupInfo {groupName section} {
     }
 
     # Find the group's description and slot count.
-    array set ginfo [list Slots "0 0" TagLine "No TagLine Set"]
+    array set ginfo [list Slots "0 0" TagLine "No Tagline Set"]
     if {[groupfile open $groupName] == 0} {
         set groupFile [groupfile bin2ascii]
 
