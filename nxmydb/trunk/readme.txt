@@ -284,6 +284,23 @@ supported by OpenSSL/yaSSL.
 Q: What does "nxMyDB: Unable to connect to server: SSL connection error" mean?
 A: SSL is configured incorrectly on either the client or server.
 
+Q: How do I enable debug logging?
+A: Set "Log_Level" to "3" in the ioFTPD.ini file and restart ioFTPD.
+
+Q: Multiple servers are not synchronizing with the database.
+A: If the servers are not synchronizing, it's usually due to a configuration error.
+   - Enable debug logging and check the debug log for clues.
+   - Check that "Sync" is set to "True" in the ioFTPD.ini file.
+   - Check that the start and stop events exist under [Events] in the ioFTPD.ini file.
+
+Q: What does "Group locking failed." or "User locking failed." mean?
+A: This error can be caused by a number of failures, try the following.
+   - Enable debug logging and check the debug log for clues.
+   - Check that the module is able to establish a connection with the MySQL server.
+   - Check that all tables and stored procedures exist.
+   - Check that the MySQL user account has execute privileges (required for stored procedures).
+   - Check that the MySQL server is the latest v5.0 version.
+
 ################################################################################
 # 5. Bugs and Comments                                                         #
 ################################################################################
