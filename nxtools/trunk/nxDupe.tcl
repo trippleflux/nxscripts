@@ -110,11 +110,12 @@ proc ::nxTools::Dupe::UpdateFiles {command virtualPath} {
         ErrorLog DupeUpdateFiles $error
         return 1
     }
+    set filePath [file dirname $virtualPath]
     set fileName [file tail $virtualPath]
 
     if {$command eq "UPLD" || $command eq "RNTO"} {
         set timeStamp [clock seconds]
-        FileDb eval {INSERT INTO DupeFiles(TimeStamp,UserName,GroupName,FileName) VALUES($timeStamp,$user,$group,$fileName)}
+        FileDb eval {INSERT INTO DupeFiles(TimeStamp,UserName,GroupName,FilePath,FileName) VALUES($timeStamp,$user,$group,$filePath,$fileName)}
     } elseif {$command eq "DELE" || $command eq "RNFR"} {
         FileDb eval {DELETE FROM DupeFiles WHERE StrCaseEq(FileName,$fileName)}
     }
@@ -534,8 +535,8 @@ proc ::nxTools::Dupe::SiteFileDupe {limit pattern} {
     FileDb eval "SELECT * FROM DupeFiles WHERE FileName LIKE '$pattern' ESCAPE '\\' ORDER BY TimeStamp DESC LIMIT $limit" values {
         incr count
         set valueList [clock format $values(TimeStamp) -format {{%S} {%M} {%H} {%d} {%m} {%y} {%Y}} -gmt [IsTrue $misc(UtcTime)]]
-        lappend valueList $count $values(UserName) $values(GroupName) $values(FileName)
-        OutputText [ParseCookies $template(Body) $valueList {sec min hour day month year2 year4 num user group file}]
+        lappend valueList $count $values(UserName) $values(GroupName) $values(FileName) [file join $values(FilePath) $values(FileName)]
+        OutputText [ParseCookies $template(Body) $valueList {sec min hour day month year2 year4 num user group file path}]
     }
 
     if {!$count} {OutputText $template(None)}

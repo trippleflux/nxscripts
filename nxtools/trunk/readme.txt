@@ -617,7 +617,7 @@ and their available cookies are:
 
   - Search File Database (SITE FDUPE)
       FileDupe.Header  : N/A
-      FileDupe.Body    : %(sec) %(min) %(hour) %(day) %(month) %(year2) %(year4) %(num) %(user) %(group) %(file)
+      FileDupe.Body    : %(sec) %(min) %(hour) %(day) %(month) %(year2) %(year4) %(num) %(user) %(group) %(file) %(path)
       FileDupe.None    : N/A
       FileDupe.Footer  : %(found) %(total)
 

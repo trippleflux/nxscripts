@@ -42,12 +42,13 @@ namespace eval ::nxTools::Db {
         DirName   TEXT default '')}
     }
 
-    set dbSchema(DupeFiles) 0
+    set dbSchema(DupeFiles) 1
     set dbTables(DupeFiles) {
         DupeFiles {CREATE TABLE DupeFiles(
         TimeStamp INTEGER default 0,
         UserName  TEXT default '',
         GroupName TEXT default '',
+        FilePath  TEXT default '',
         FileName  TEXT default '')}
     }
 

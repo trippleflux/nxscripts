@@ -2,6 +2,9 @@
 #                             nxTools - Change Log                             #
 ################################################################################
 
+nxTools v1.1.0 (not released):
+  NEW: The file database now includes the path for "SITE FDUPE".
+
 nxTools v1.0.7 (Jan 6, 2008):
   CHG: Updated ignore lists to include new common directories.
   CHG: Updated SQLite to v3.5.4.
