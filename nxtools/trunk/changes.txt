@@ -4,6 +4,7 @@
 
 nxTools v1.0.7 (Jan 6, 2008):
   CHG: Updated ignore lists to include new common directories.
+  CHG: Updated SQLite to v3.5.4.
   FIX: All parent symlinks would be removed on nuke and wipe.
   FIX: Force NFO/SFV/Sample was not working properly.
   FIX: Properly terminate switches to the glob function.
