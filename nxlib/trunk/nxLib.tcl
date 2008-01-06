@@ -1,6 +1,6 @@
 #
 # nxScripts - Scripts by neoxed.
-# Copyright (c) 2004-2007 neoxed
+# Copyright (c) 2004-2008 neoxed
 #
 # Module Name:
 #   Library
