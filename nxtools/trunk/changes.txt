@@ -4,6 +4,7 @@
 
 nxTools v1.0.7 (not released):
   FIX: All parent symlinks would be removed on nuke and wipe.
+  FIX: Force NFO/SFV/Sample was not working properly.
   FIX: Properly terminate switches to the glob function.
 
 nxTools v1.0.6 (Aug 20, 2007):

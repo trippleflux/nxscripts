@@ -286,7 +286,9 @@ proc ::nxTools::Dupe::ApproveRelease {virtualPath userName groupName} {
     set realPath [resolve pwd $virtualPath]
     if {[file isdirectory $realPath]} {
         putlog "APPROVE: \"$virtualPath\" \"$userName\" \"$groupName\""
-        set tagPath [file join $realPath [string map [list %(user) $userName %(group) $groupName] $approve(DirTag)]]
+
+        set tagName [string map [list %(user) $userName %(group) $groupName] $approve(DirTag)]
+        set tagPath [file join $realPath $tagName]
         CreateTag $tagPath [resolve user $userName] [resolve group $groupName] 555
     } else {
         ErrorLog ApproveRelease "invalid vpath \"$virtualPath\", \"$realPath\" doesn't exist."
@@ -310,10 +312,9 @@ proc ::nxTools::Dupe::ForceCheck {virtualPath} {
             set releasePath [resolve pwd $matchPath]
         }
         set checkFile [ListMatch $force(FilePaths) $matchPath]
-        set fileList [list]
 
         if {$checkFile && [IsTrue $force(NfoFirst)]} {
-            lappend fileList [glob -nocomplain -types f -directory $releasePath -- "*.nfo"]
+            set fileList [glob -nocomplain -types f -directory $releasePath -- "*.nfo"]
             if {![llength $fileList]} {
                 iputs -noprefix "553-.-\[ForceNFO\]------------------------------------."
                 iputs -noprefix "553-| You must upload the NFO first.                |"
@@ -323,7 +324,7 @@ proc ::nxTools::Dupe::ForceCheck {virtualPath} {
         }
         if {$checkFile && [IsTrue $force(SfvFirst)]} {
             set realPath [resolve pwd $matchPath]
-            lappend fileList [glob -nocomplain -types f -directory $realPath -- "*.sfv"]
+            set fileList [glob -nocomplain -types f -directory $realPath -- "*.sfv"]
             if {![llength $fileList]} {
                 iputs -noprefix "553-.-\[ForceSFV\]------------------------------------."
                 iputs -noprefix "553-| You must upload the SFV first.                |"
@@ -333,10 +334,12 @@ proc ::nxTools::Dupe::ForceCheck {virtualPath} {
         }
         if {[IsTrue $force(SampleFirst)] && [ListMatch $force(SamplePaths) $matchPath]} {
             set pattern "{"
-            append pattern [join $force(SampleExts) ","] "}"
+            append pattern [join $force(SampleExts) ","]
+            append pattern "}"
 
-            lappend fileList [glob -nocomplain -types f -directory $releasePath -- "sample/$pattern"]
-            lappend fileList [glob -nocomplain -types f -directory $releasePath -- "samples/$pattern"]
+            set fileList [list]
+            eval lappend fileList [glob -nocomplain -types f -directory $releasePath -- "sample/$pattern"]
+            eval lappend fileList [glob -nocomplain -types f -directory $releasePath -- "samples/$pattern"]
             if {![llength $fileList]} {
                 iputs -noprefix "553-.-\[ForceSample\]---------------------------------."
                 iputs -noprefix "553-| You must upload the sample first.             |"
