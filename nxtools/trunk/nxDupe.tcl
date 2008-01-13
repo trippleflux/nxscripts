@@ -160,7 +160,7 @@ proc ::nxTools::Dupe::CleanDb {} {
         set rowIds [list]
 
         set statusCount 0
-        set statusTime [clock seconds]
+        set statusTimer [clock seconds]
         set totalCount 0
         DirDb eval {SELECT DirPath,DirName,rowid FROM DupeDirs WHERE TimeStamp < $maxAge} values {
             incr totalCount
@@ -171,9 +171,9 @@ proc ::nxTools::Dupe::CleanDb {} {
 
             # Check if 60 seconds have elapsed since the last
             # status output every 50 entries processed.
-            if {[incr statusCount] >= 50 && ([clock seconds] - $statusTime) >= 60} {
+            if {[incr statusCount] >= 50 && ([clock seconds] - $statusTimer) >= 60} {
                 set statusCount 0
-                set statusTime [clock seconds]
+                set statusTimer [clock seconds]
                 LinePuts -nobuffer " - Processed $totalCount directories..."
             }
         }
@@ -190,6 +190,8 @@ proc ::nxTools::Dupe::CleanDb {} {
 
 proc ::nxTools::Dupe::RebuildDb {} {
     global dupe misc
+    variable rebuild
+
     iputs -nobuffer ".-\[Rebuild\]--------------------------------------------------------------."
     if {![llength $dupe(RebuildPaths)]} {
         ErrorReturn "There are no paths defined, check your configuration."
@@ -203,8 +205,17 @@ proc ::nxTools::Dupe::RebuildDb {} {
         DirDb close
         return 1
     }
+    LinePuts -nobuffer "Rebuilding from [llength $dupe(RebuildPaths)] paths."
+
     DirDb eval {BEGIN; DELETE FROM DupeDirs;}
     FileDb eval {BEGIN; DELETE FROM DupeFiles;}
+
+    # Constants used in all paths.
+    set rebuild(MaxAge)     [expr {$dupe(CleanFiles) * 86400}]
+    set rebuild(DirUser)    [resolve uid [lindex $misc(DirOwner) 0]]
+    set rebuild(DirGroup)   [resolve gid [lindex $misc(DirOwner) 1]]
+    set rebuild(FileUser)   [resolve uid [lindex $misc(FileOwner) 0]]
+    set rebuild(FileGroup)  [resolve gid [lindex $misc(FileOwner) 1]]
 
     foreach rebuildPath $dupe(RebuildPaths) {
         if {[llength $rebuildPath] != 4} {
@@ -212,49 +223,32 @@ proc ::nxTools::Dupe::RebuildDb {} {
         }
         foreach {virtualPath realPath updateDirs updateFiles} $rebuildPath {break}
         set realPath [file normalize $realPath]
-        set trimLength [string length $realPath]; incr trimLength
 
-        LinePuts -nobuffer "Updating from: $realPath"
-        GetDirList $realPath listing $dupe(RebuildIgnore)
+        # Path dependent constants.
+        set rebuild(RealPath)    [file split $realPath]
+        set rebuild(VirtualPath) [file split $virtualPath]
+        set rebuild(StripParts)  [expr [llength $rebuild(RealPath)] - 1]
 
-        # Process directory entries
+        # Counters and status timer.
+        set rebuild(DirCount)    0
+        set rebuild(FileCount)   0
+        set rebuild(StatusTimer) [clock seconds]
+
         if {[IsTrue $updateDirs]} {
-            set defaultUser [resolve uid [lindex $misc(DirOwner) 0]]
-            set defaultGroup [resolve gid [lindex $misc(DirOwner) 1]]
-
-            foreach entry $listing(DirList) {
-                if {[ListMatchI $dupe(IgnoreDirs) $entry]} {continue}
-                if {[catch {file stat $entry fstat}]}  {continue}
-
-                catch {vfs read $entry} owner
-                if {[set userName [resolve uid [lindex $owner 0]]] eq ""} {set userName $defaultUser}
-                if {[set groupName [resolve gid [lindex $owner 1]]] eq ""} {set groupName $defaultGroup}
-
-                set dirName [file tail $entry]
-                set dirPath [file join $virtualPath [string range [file dirname $entry] $trimLength end]]; append dirPath "/"
-                DirDb eval {INSERT INTO DupeDirs(TimeStamp,UserName,GroupName,DirPath,DirName) VALUES($fstat(ctime),$userName,$groupName,$dirPath,$dirName)}
-            }
+            set scriptDir [namespace current]::RebuildAddDir
+        } else {
+            set scriptDir ""
         }
-
-        # Process file entries
         if {[IsTrue $updateFiles]} {
-            set maxAge [expr {$dupe(CleanFiles) * 86400}]
-            set defaultUser [resolve uid [lindex $misc(FileOwner) 0]]
-            set defaultGroup [resolve gid [lindex $misc(FileOwner) 1]]
-
-            foreach entry $listing(FileList) {
-                if {[ListMatchI $dupe(IgnoreFiles) $entry]} {continue}
-                if {[catch {file stat $entry fstat}]}  {continue}
-                if {$maxAge > 0 && ([clock seconds] - $fstat(ctime)) > $maxAge} {continue}
-
-                catch {vfs read $entry} owner
-                if {[set userName [resolve uid [lindex $owner 0]]] eq ""} {set userName $defaultUser}
-                if {[set groupName [resolve gid [lindex $owner 1]]] eq ""} {set groupName $defaultGroup}
-
-                set fileName [file tail $entry]
-                FileDb eval {INSERT INTO DupeFiles(TimeStamp,UserName,GroupName,FileName) VALUES($fstat(ctime),$userName,$groupName,$fileName)}
-            }
+            set scriptFile [namespace current]::RebuildAddFile
+        } else {
+            set scriptFile ""
         }
+
+        LinePuts -nobuffer ""
+        LinePuts -nobuffer "Updating from: $realPath"
+        GetDirListEx $realPath $scriptDir $scriptFile $dupe(RebuildIgnore)
+        LinePuts -nobuffer " - Added $rebuild(DirCount) directories and $rebuild(FileCount) files."
     }
 
     DirDb eval {COMMIT}
@@ -263,6 +257,73 @@ proc ::nxTools::Dupe::RebuildDb {} {
     FileDb close
     iputs -nobuffer "'------------------------------------------------------------------------'"
     return 0
+}
+
+proc ::nxTools::Dupe::RebuildAddDir {name parent path} {
+    global dupe
+    variable rebuild
+
+    if {([clock seconds] - $rebuild(StatusTimer)) >= 60} {
+        set rebuild(StatusTimer) [clock seconds]
+        LinePuts -nobuffer " - Processed $rebuild(DirCount) directories and $rebuild(FileCount) files..."
+    }
+
+    if {![ListMatchI $dupe(IgnoreDirs) $path] && ![catch {file stat $path stat}]} {
+        # Resolve user and group names.
+        catch {vfs read $path} owner
+        set userName [resolve uid [lindex $owner 0]]
+        if {$userName eq ""} {
+            set userName $rebuild(DirUser)
+        }
+        set groupName [resolve gid [lindex $owner 1]]
+        if {$groupName eq ""} {
+            set groupName $rebuild(DirGroup)
+        }
+
+        # Resolve parent virtual path.
+        set parent [lreplace [file split $parent] 0 $rebuild(StripParts)]
+        set vpath [eval file join $rebuild(VirtualPath) $parent]
+
+        DirDb eval {INSERT INTO DupeDirs(TimeStamp,UserName,GroupName,DirPath,DirName) \
+            VALUES($stat(ctime),$userName,$groupName,$vpath,$name)}
+
+        incr rebuild(DirCount)
+    }
+}
+
+proc ::nxTools::Dupe::RebuildAddFile {name parent path} {
+    global dupe
+    variable rebuild
+
+    if {([clock seconds] - $rebuild(StatusTimer)) >= 60} {
+        set rebuild(StatusTimer) [clock seconds]
+        LinePuts -nobuffer " - Processed $rebuild(DirCount) directories and $rebuild(FileCount) files..."
+    }
+
+    if {![ListMatchI $dupe(IgnoreFiles) $path] && ![catch {file stat $path stat}]} {
+        # Check file creation time.
+        if {$rebuild(MaxAge) > 0 && ([clock seconds] - $stat(ctime)) > $rebuild(MaxAge)} {return}
+
+        # Resolve user and group names.
+        catch {vfs read $path} owner
+        set userName [resolve uid [lindex $owner 0]]
+        if {$userName eq ""} {
+            set userName $rebuild(FileUser)
+        }
+        set groupName [resolve gid [lindex $owner 1]]
+        if {$groupName eq ""} {
+            set groupName $rebuild(FileGroup)
+        }
+
+        # Resolve parent virtual path.
+        set parent [lreplace [file split $parent] 0 $rebuild(StripParts)]
+        set vpath [eval file join $rebuild(VirtualPath) $parent]
+
+        FileDb eval {INSERT INTO DupeFiles(TimeStamp,UserName,GroupName,FilePath,FileName) \
+            VALUES($stat(ctime),$userName,$groupName,$vpath,$name)}
+
+        incr rebuild(FileCount)
+    }
 }
 
 # Other Procedures

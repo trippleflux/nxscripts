@@ -4,8 +4,10 @@
 
 nxTools v1.1.0 (not released):
   NEW: Dupe database format has changed; read the upgrading instructions.
+  NEW: Rewrote the dupe database rebuild feature.
   NEW: The file database now includes the path for "SITE FDUPE".
-  CHG: Changed the default values for dupe database cleaning.
+  FIX: Dupe rebuilds in large directories fail because of ioFTPD's script timeout.
+  FIX: Dupe rebuilds may insert an incorrect directory path.
 
 nxTools v1.0.7 (Jan 6, 2008):
   CHG: Updated ignore lists to include new common directories.
