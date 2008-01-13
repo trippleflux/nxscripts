@@ -146,6 +146,35 @@ proc ::nxLib::RemoveTag {realPath} {
     }
 }
 
+proc ::nxLib::GetDirListEx {realPath scriptDir scriptFile {ignoreList ""}} {
+    if {[file isdirectory $realPath]} {
+        set listing [glob -nocomplain -directory $realPath -- "*"]
+    } elseif {[file isfile $realPath]} {
+        set listing [list $realPath]
+    } else {return}
+
+    foreach path $listing {
+        set name [file tail $path]
+        set parent [file dirname $path]
+
+        if {[file readable $path] && ![ListMatchI $ignoreList $name]} {
+            if {[file isdirectory $path]} {
+                # Execute directory callback procedure.
+                if {$scriptDir ne ""} {
+                    eval $scriptDir [list $name $parent $path]
+                }
+                # Recurse into the directory.
+                GetDirListEx $path $scriptDir $scriptFile $ignoreList
+
+            } elseif {$scriptFile ne ""} {
+                # Execute file callback procedure.
+                eval $scriptFile [list $name $parent $path]
+            }
+        }
+    }
+    return
+}
+
 proc ::nxLib::GetDirList {realPath varName {ignoreList ""}} {
     upvar $varName data
     array set data [list DirList [list] FileList [list]]
@@ -167,6 +196,7 @@ proc ::nxLib::GetDirListRecurse {realPath ignoreList} {
     foreach entry $listing {
         if {[file readable $entry] && ![ListMatchI $ignoreList [file tail $entry]]} {
             if {[file isdirectory $entry]} {
+                # Recurse into the directory.
                 GetDirListRecurse $entry $ignoreList
             } else {
                 lappend data(FileList) $entry
@@ -196,6 +226,7 @@ proc ::nxLib::GetDirStatsRecurse {realPath ignoreList} {
     foreach entry $listing {
         if {[file readable $entry] && ![ListMatchI $ignoreList [file tail $entry]]} {
             if {[file isdirectory $entry]} {
+                # Recurse into the directory.
                 GetDirStatsRecurse $entry $ignoreList
             } else {
                 incr stats(FileCount)
@@ -261,6 +292,7 @@ proc ::nxLib::ResolvePath {userName groupName realPath} {
             }
         }
     }
+
     # Use the group VFS file if the user VFS file does not exist.
     if {![file isfile $vfsFile] && [groupfile open $groupName] == 0} {
         set groupFile [groupfile bin2ascii]
@@ -270,10 +302,12 @@ proc ::nxLib::ResolvePath {userName groupName realPath} {
             }
         }
     }
+
     # Use the default VFS file if both the user and group VFS file do not exist.
     if {![file isfile $vfsFile]} {
         set vfsFile [config read "Locations" "Default_Vfs"]
     }
+
     if {![catch {set handle [open $vfsFile r]} error]} {
         while {![eof $handle]} {
             set line [string trim [gets $handle]]
