@@ -155,20 +155,19 @@ proc ::nxLib::GetDirListEx {realPath scriptDir scriptFile {ignoreList ""}} {
 
     foreach path $listing {
         set name [file tail $path]
-        set parent [file dirname $path]
 
         if {[file readable $path] && ![ListMatchI $ignoreList $name]} {
             if {[file isdirectory $path]} {
                 # Execute directory callback procedure.
                 if {$scriptDir ne ""} {
-                    eval $scriptDir [list $name $parent $path]
+                    eval $scriptDir [list $name $path]
                 }
                 # Recurse into the directory.
                 GetDirListEx $path $scriptDir $scriptFile $ignoreList
 
             } elseif {$scriptFile ne ""} {
                 # Execute file callback procedure.
-                eval $scriptFile [list $name $parent $path]
+                eval $scriptFile [list $name $path]
             }
         }
     }
