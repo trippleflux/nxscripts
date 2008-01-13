@@ -211,11 +211,15 @@ proc ::nxTools::Dupe::RebuildDb {} {
     FileDb eval {BEGIN; DELETE FROM DupeFiles;}
 
     # Constants used in all paths.
-    set rebuild(MaxAge)     [expr {$dupe(CleanFiles) * 86400}]
+    set rebuild(DirAge)     [expr {$dupe(CleanDirs) * 86400}]
     set rebuild(DirUser)    [resolve uid [lindex $misc(DirOwner) 0]]
     set rebuild(DirGroup)   [resolve gid [lindex $misc(DirOwner) 1]]
+    set rebuild(DirIgnore)  [concat $dupe(LoggingExempts) $dupe(IgnoreDirs)]
+
+    set rebuild(FileAge)    [expr {$dupe(CleanFiles) * 86400}]
     set rebuild(FileUser)   [resolve uid [lindex $misc(FileOwner) 0]]
     set rebuild(FileGroup)  [resolve gid [lindex $misc(FileOwner) 1]]
+    set rebuild(FileIgnore) [concat $dupe(LoggingExempts) $dupe(IgnoreFiles)]
 
     foreach rebuildPath $dupe(RebuildPaths) {
         if {[llength $rebuildPath] != 4} {
@@ -227,7 +231,7 @@ proc ::nxTools::Dupe::RebuildDb {} {
         # Path dependent constants.
         set rebuild(RealPath)    [file split $realPath]
         set rebuild(VirtualPath) [file split $virtualPath]
-        set rebuild(StripParts)  [expr [llength $rebuild(RealPath)] - 1]
+        set rebuild(StripParts)  [expr {[llength $rebuild(RealPath)] - 1}]
 
         # Counters and status timer.
         set rebuild(DirCount)    0
@@ -259,8 +263,7 @@ proc ::nxTools::Dupe::RebuildDb {} {
     return 0
 }
 
-proc ::nxTools::Dupe::RebuildAddDir {name parent path} {
-    global dupe
+proc ::nxTools::Dupe::RebuildAddDir {name path} {
     variable rebuild
 
     if {([clock seconds] - $rebuild(StatusTimer)) >= 60} {
@@ -268,31 +271,33 @@ proc ::nxTools::Dupe::RebuildAddDir {name parent path} {
         LinePuts -nobuffer " - Processed $rebuild(DirCount) directories and $rebuild(FileCount) files..."
     }
 
-    if {![ListMatchI $dupe(IgnoreDirs) $path] && ![catch {file stat $path stat}]} {
-        # Resolve user and group names.
-        catch {vfs read $path} owner
-        set userName [resolve uid [lindex $owner 0]]
-        if {$userName eq ""} {
-            set userName $rebuild(DirUser)
-        }
-        set groupName [resolve gid [lindex $owner 1]]
-        if {$groupName eq ""} {
-            set groupName $rebuild(DirGroup)
-        }
+    # Resolve virtual path and check ignore lists.
+    set vpath [lreplace [file split $path] 0 $rebuild(StripParts)]
+    set vpath [eval file join $rebuild(VirtualPath) $vpath]
 
-        # Resolve parent virtual path.
-        set parent [lreplace [file split $parent] 0 $rebuild(StripParts)]
-        set vpath [eval file join $rebuild(VirtualPath) $parent]
+    if {[ListMatchI $rebuild(DirIgnore) $vpath] || [catch {file stat $path stat}]} {return}
+    if {$rebuild(DirAge) > 0 && ([clock seconds] - $stat(ctime)) > $rebuild(DirAge)} {return}
 
-        DirDb eval {INSERT INTO DupeDirs(TimeStamp,UserName,GroupName,DirPath,DirName) \
-            VALUES($stat(ctime),$userName,$groupName,$vpath,$name)}
-
-        incr rebuild(DirCount)
+    # Resolve user and group names.
+    catch {vfs read $path} owner
+    set userName [resolve uid [lindex $owner 0]]
+    if {$userName eq ""} {
+        set userName $rebuild(DirUser)
     }
+    set groupName [resolve gid [lindex $owner 1]]
+    if {$groupName eq ""} {
+        set groupName $rebuild(DirGroup)
+    }
+
+    # Insert directory into database.
+    set vpath [file dirname $vpath]
+    DirDb eval {INSERT INTO DupeDirs(TimeStamp,UserName,GroupName,DirPath,DirName) \
+        VALUES($stat(ctime),$userName,$groupName,$vpath,$name)}
+
+    incr rebuild(DirCount)
 }
 
-proc ::nxTools::Dupe::RebuildAddFile {name parent path} {
-    global dupe
+proc ::nxTools::Dupe::RebuildAddFile {name path} {
     variable rebuild
 
     if {([clock seconds] - $rebuild(StatusTimer)) >= 60} {
@@ -300,30 +305,30 @@ proc ::nxTools::Dupe::RebuildAddFile {name parent path} {
         LinePuts -nobuffer " - Processed $rebuild(DirCount) directories and $rebuild(FileCount) files..."
     }
 
-    if {![ListMatchI $dupe(IgnoreFiles) $path] && ![catch {file stat $path stat}]} {
-        # Check file creation time.
-        if {$rebuild(MaxAge) > 0 && ([clock seconds] - $stat(ctime)) > $rebuild(MaxAge)} {return}
+    # Resolve virtual path and check ignore lists.
+    set vpath [lreplace [file split $path] 0 $rebuild(StripParts)]
+    set vpath [eval file join $rebuild(VirtualPath) $vpath]
 
-        # Resolve user and group names.
-        catch {vfs read $path} owner
-        set userName [resolve uid [lindex $owner 0]]
-        if {$userName eq ""} {
-            set userName $rebuild(FileUser)
-        }
-        set groupName [resolve gid [lindex $owner 1]]
-        if {$groupName eq ""} {
-            set groupName $rebuild(FileGroup)
-        }
+    if {[ListMatchI $rebuild(FileIgnore) $vpath] || [catch {file stat $path stat}]} {return}
+    if {$rebuild(FileAge) > 0 && ([clock seconds] - $stat(ctime)) > $rebuild(FileAge)} {return}
 
-        # Resolve parent virtual path.
-        set parent [lreplace [file split $parent] 0 $rebuild(StripParts)]
-        set vpath [eval file join $rebuild(VirtualPath) $parent]
-
-        FileDb eval {INSERT INTO DupeFiles(TimeStamp,UserName,GroupName,FilePath,FileName) \
-            VALUES($stat(ctime),$userName,$groupName,$vpath,$name)}
-
-        incr rebuild(FileCount)
+    # Resolve user and group names.
+    catch {vfs read $path} owner
+    set userName [resolve uid [lindex $owner 0]]
+    if {$userName eq ""} {
+        set userName $rebuild(FileUser)
     }
+    set groupName [resolve gid [lindex $owner 1]]
+    if {$groupName eq ""} {
+        set groupName $rebuild(FileGroup)
+    }
+
+    # Insert file into database.
+    set vpath [file dirname $vpath]
+    FileDb eval {INSERT INTO DupeFiles(TimeStamp,UserName,GroupName,FilePath,FileName) \
+        VALUES($stat(ctime),$userName,$groupName,$vpath,$name)}
+
+    incr rebuild(FileCount)
 }
 
 # Other Procedures
