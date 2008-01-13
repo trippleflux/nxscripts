@@ -5,6 +5,7 @@
 nxTools v1.1.0 (not released):
   NEW: Dupe database format has changed; read the upgrading instructions.
   NEW: The file database now includes the path for "SITE FDUPE".
+  CHG: Changed the default values for dupe database cleaning.
 
 nxTools v1.0.7 (Jan 6, 2008):
   CHG: Updated ignore lists to include new common directories.
