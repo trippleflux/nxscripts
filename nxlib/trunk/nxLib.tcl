@@ -156,7 +156,7 @@ proc ::nxLib::GetDirListEx {realPath scriptDir scriptFile {ignoreList ""}} {
     foreach path $listing {
         set name [file tail $path]
 
-        if {[file readable $path] && ![ListMatchI $ignoreList $name]} {
+        if {![ListMatchI $ignoreList $name]} {
             if {[file isdirectory $path]} {
                 # Execute directory callback procedure.
                 if {$scriptDir ne ""} {
@@ -193,7 +193,7 @@ proc ::nxLib::GetDirListRecurse {realPath ignoreList} {
     } else {return}
 
     foreach entry $listing {
-        if {[file readable $entry] && ![ListMatchI $ignoreList [file tail $entry]]} {
+        if {![ListMatchI $ignoreList [file tail $entry]]} {
             if {[file isdirectory $entry]} {
                 # Recurse into the directory.
                 GetDirListRecurse $entry $ignoreList
