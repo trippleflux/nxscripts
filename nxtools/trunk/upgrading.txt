@@ -2,6 +2,11 @@
 #                             nxTools - Upgrading                              #
 ################################################################################
 
+1.0.7 -> 1.1.0
+ - Upgrade the dupe databases using "SITE DB CREATE".
+ - Replace ioFTPD\scripts\nxLib.tcl with the included one.
+ - Replace all Tcl files in ioFTPD\scripts\nxTools\.
+
 1.0.6 -> 1.0.7
  - Copy (and replace) the lib\sqlite3\ and lib\nxHelper\ directories to ioFTPD\lib\.
  - Replace ioFTPD\scripts\nxLib.tcl with the included one.
