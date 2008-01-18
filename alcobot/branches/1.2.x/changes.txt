@@ -1,6 +1,6 @@
 AlcoBot v1.2.1 (not released):
+  FIX: Announces for the DELUSER and PURGE log events were ignored.
   FIX: Correctly match flag permissions for channel/private commands.
-  FIX: Invite module would disable other events.
 
 AlcoBot v1.2.0 (May 8, 2006):
   NEW: Command to display group pre statistics, !pregroup <name>.
