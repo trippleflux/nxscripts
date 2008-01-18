@@ -328,7 +328,10 @@ proc ::Bot::CmdChannelProc {command user host handle channel text} {
             LogError CmdChannel "Error evaluating \"$script\":\n$errorInfo"
         }
     }
-    return
+
+    # If a "pub" callback procedure returns a value of "1", Eggdrop
+    # logs the following message: (nick!user@host) !handle! command
+    return 0
 }
 
 ####
@@ -374,7 +377,10 @@ proc ::Bot::CmdPrivateProc {command user host handle text} {
             LogError CmdMessage "Error evaluating \"$script\":\n$errorInfo"
         }
     }
-    return
+
+    # If a "msg" callback procedure returns a value of "1", Eggdrop
+    # logs the following message: (nick!user@host) !handle! command
+    return 0
 }
 
 ################################################################################
