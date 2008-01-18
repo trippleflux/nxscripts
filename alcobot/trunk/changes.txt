@@ -3,6 +3,7 @@ AlcoBot v1.3.0 (not released):
   NEW: User-definable command aliases.
   CHG: Bouncers are checked every 3-15 minutes, depending how many are defined.
   CHG: FTP library waits until the complete server response was received.
+  CHG: Hide "pub" and "msg" triggered binds from the party-line.
   FIX: Announces for the DELUSER and PURGE log events were ignored.
   FIX: Correctly match flag permissions for channel/private commands.
   FIX: FTP library could process the event queue out of sequence when invoked
