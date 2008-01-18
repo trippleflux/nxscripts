@@ -15,6 +15,7 @@
 namespace eval ::Bot {
     variable cmdCount
     if {![info exists cmdCount]} {set cmdCount 0}
+    variable debugMode 0
     variable defaultSection "DEFAULT"
     variable ftpDaemon ""
     variable localTime 0
@@ -51,6 +52,7 @@ namespace eval ::Bot {
 #   cmdCount      - Counter incremented each time a command is created.
 #   configFile    - Fully qualified path to the configuration file.
 #   configHandle  - Handle to the configuration file, valid only during init.
+#   debugMode     - Boolean value to indicate if we're running in debug mode.
 #   ftpDaemon     - FTP daemon name.
 #   localTime     - Format time values in local time, otherwise UTC is used.
 #   modules       - Loaded modules.
@@ -81,7 +83,9 @@ proc ::Bot::LogInfo {message} {
 }
 
 proc ::Bot::LogDebug {function message} {
-    putlog "\[[b]AlcoBot[b]\] Debug :: $function - $message"
+    if {$::Bot::debugMode} {
+        putlog "\[[b]AlcoBot[b]\] Debug :: $function - $message"
+    }
 }
 
 proc ::Bot::LogError {function message} {
@@ -1473,11 +1477,13 @@ proc ::Bot::DccAdmin {handle idx text} {
         variable pathSections
         variable cmdNames
         variable configFile
+        variable debugMode
         variable modules
         variable scripts
 
         putdcc $idx "[b]General:[b]"
         putdcc $idx "Config File: $configFile"
+        putdcc $idx "Debug Mode: [expr {$debugMode ? {True} : {False}}]"
         putdcc $idx "FTP Daemon: [GetFtpDaemon]"
         putdcc $idx "Script Path: $scriptPath"
 
@@ -1559,8 +1565,9 @@ proc ::Bot::InitConfig {filePath} {
     foreach {name value} [Config::GetMulti $configHandle General cmdPrefix siteName siteTag] {
         variable $name $value
     }
-    array set option [Config::GetMulti $configHandle General localTime ftpDaemon]
+    array set option [Config::GetMulti $configHandle General debugMode localTime ftpDaemon]
     SetFtpDaemon $option(ftpDaemon)
+    variable debugMode [IsTrue $option(debugMode)]
     variable localTime [IsTrue $option(localTime)]
 
     # Read command options.
