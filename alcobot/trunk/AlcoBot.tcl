@@ -143,8 +143,8 @@ proc ::Bot::CmdCreate {type name script args} {
     set argDesc  ""
     set cmdDesc  ""
     set category ""
+    set commands [list $name]
     set prefixes [list]
-    set suffixes [list $name]
 
     foreach {option value} $args {
         switch -- $option {
@@ -155,12 +155,12 @@ proc ::Bot::CmdCreate {type name script args} {
         }
     }
 
-    # Look up user-defined command prefixes.
+    # Look up user-defined command aliases and prefixes.
     foreach {enabled option value} [CmdGetOptions $type $name] {
-        if {$option eq "prefix"} {
+        if {$option eq "alias"} {
+            lappend commands $value
+        } elseif {$option eq "prefix"} {
             lappend prefixes $value
-        } elseif {$option eq "suffix"} {
-            lappend suffixes $value
         }
     }
     if {![llength $prefixes]} {
@@ -168,11 +168,11 @@ proc ::Bot::CmdCreate {type name script args} {
         set prefixes [list $cmdPrefix]
     }
 
-    # Bind the command and its aliases.
+    # Bind the command and its commands.
     set binds [list]
     foreach prefix $prefixes {
-        foreach suffix $suffixes {
-            set command [string tolower "$prefix$suffix"]
+        foreach command $commands {
+            set command [string tolower "$prefix$command"]
 
             if {$type eq "channel"} {
                 bind pub -|- $command [list [namespace current]::CmdChannelProc $name]
