@@ -43,7 +43,12 @@ proc ::Bot::Mod::Help::Command {target user host channel argv} {
             switch -- $name {
                 all     {set result 1}
                 channel {set result [string equal -nocase $value $channel]}
-                flags   {set result [matchattr $handle $value]}
+                flags   {
+                    set handle [finduser $user]
+                    if {$handle ne "*"} {
+                        set result [matchattr $handle $value]
+                    }
+                }
                 host    {set result [string match -nocase $value $host]}
                 user    {set result [string equal -nocase $value $user]}
             }
