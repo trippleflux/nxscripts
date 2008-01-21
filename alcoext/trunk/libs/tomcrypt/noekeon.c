@@ -6,7 +6,7 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
+ * Tom St Denis, tomstdenis@gmail.com, http://libtom.org
  */
 /**
    @file noekeon.c
@@ -14,7 +14,7 @@
 */
 #include "tomcrypt.h"
 
-#ifdef NOEKEON
+#ifdef LTC_NOEKEON
 
 const struct ltc_cipher_descriptor noekeon_desc =
 {
@@ -27,7 +27,7 @@ const struct ltc_cipher_descriptor noekeon_desc =
     &noekeon_test,
     &noekeon_done,
     &noekeon_keysize,
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
 };
 
 static const ulong32 RC[] = {
@@ -242,10 +242,10 @@ int noekeon_test(void)
 
     noekeon_ecb_encrypt(tests[i].pt, tmp[0], &key);
     noekeon_ecb_decrypt(tmp[0], tmp[1], &key);
-    if (memcmp(tmp[0], tests[i].ct, 16) || memcmp(tmp[1], tests[i].pt, 16)) {
+    if (XMEMCMP(tmp[0], tests[i].ct, 16) || XMEMCMP(tmp[1], tests[i].pt, 16)) {
 #if 0
        printf("\n\nTest %d failed\n", i);
-       if (memcmp(tmp[0], tests[i].ct, 16)) {
+       if (XMEMCMP(tmp[0], tests[i].ct, 16)) {
           printf("CT: ");
           for (i = 0; i < 16; i++) {
              printf("%02x ", tmp[0][i]);

@@ -6,11 +6,11 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
+ * Tom St Denis, tomstdenis@gmail.com, http://libtom.org
  */
 /**
    @param sha224.c
-   SHA-224 new NIST standard based off of SHA-256 truncated to 224 bits (Tom St Denis)
+   LTC_SHA-224 new NIST standard based off of LTC_SHA-256 truncated to 224 bits (Tom St Denis)
 */
 
 const struct ltc_hash_descriptor sha224_desc =
@@ -111,7 +111,7 @@ int  sha224_test(void)
       sha224_init(&md);
       sha224_process(&md, (unsigned char*)tests[i].msg, (unsigned long)strlen(tests[i].msg));
       sha224_done(&md, tmp);
-      if (memcmp(tmp, tests[i].hash, 28) != 0) {
+      if (XMEMCMP(tmp, tests[i].hash, 28) != 0) {
          return CRYPT_FAIL_TESTVECTOR;
       }
   }

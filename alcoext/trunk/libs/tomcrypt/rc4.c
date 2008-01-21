@@ -6,16 +6,16 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
+ * Tom St Denis, tomstdenis@gmail.com, http://libtom.org
  */
 #include "tomcrypt.h"
 
 /**
   @file rc4.c
-  RC4 PRNG, Tom St Denis
+  LTC_RC4 PRNG, Tom St Denis
 */
 
-#ifdef RC4
+#ifdef LTC_RC4
 
 const struct ltc_prng_descriptor rc4_desc =
 {
@@ -93,7 +93,7 @@ int rc4_ready(prng_state *prng)
     XMEMCPY(key, s, 256);
     keylen = prng->rc4.x;
 
-    /* make RC4 perm and shuffle */
+    /* make LTC_RC4 perm and shuffle */
     for (x = 0; x < 256; x++) {
         s[x] = x;
     }
@@ -129,6 +129,10 @@ unsigned long rc4_read(unsigned char *out, unsigned long outlen, prng_state *prn
 
    LTC_ARGCHK(out != NULL);
    LTC_ARGCHK(prng != NULL);
+
+#ifdef LTC_VALGRIND
+   zeromem(out, outlen);
+#endif
 
    n = outlen;
    x = prng->rc4.x;
@@ -212,7 +216,7 @@ int rc4_import(const unsigned char *in, unsigned long inlen, prng_state *prng)
 */
 int rc4_test(void)
 {
-#ifndef LTC_TEST
+#if !defined(LTC_TEST) || defined(LTC_VALGRIND)
    return CRYPT_NOP;
 #else
    static const struct {
@@ -243,10 +247,10 @@ int rc4_test(void)
           return CRYPT_ERROR_READPRNG;
        }
        rc4_done(&prng);
-       if (memcmp(dst, tests[x].ct, 8)) {
+       if (XMEMCMP(dst, tests[x].ct, 8)) {
 #if 0
           int y;
-          printf("\n\nRC4 failed, I got:\n");
+          printf("\n\nLTC_RC4 failed, I got:\n");
           for (y = 0; y < 8; y++) printf("%02x ", dst[y]);
           printf("\n");
 #endif

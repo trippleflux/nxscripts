@@ -6,7 +6,7 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
+ * Tom St Denis, tomstdenis@gmail.com, http://libtom.org
  */
 
 #include "tomcrypt.h"
@@ -16,7 +16,7 @@
    Tiger hash function, Tom St Denis
 */
 
-#ifdef TIGER
+#ifdef LTC_TIGER
 
 const struct ltc_hash_descriptor tiger_desc =
 {
@@ -555,6 +555,10 @@ static const ulong64 table[4*256] = {
     CONST64(0xCD56D9430EA8280E) /* 1020 */, CONST64(0xC12591D7535F5065) /* 1021 */,
     CONST64(0xC83223F1720AEF96) /* 1022 */, CONST64(0xC3A0396F7363A51F) /* 1023 */};
 
+//
+// Modified by neoxed:
+// - Undefine INLINE first.
+//
 #undef INLINE
 #ifdef _MSC_VER
    #define INLINE __inline
@@ -776,7 +780,7 @@ int  tiger_test(void)
       tiger_init(&md);
       tiger_process(&md, (unsigned char *)tests[i].msg, (unsigned long)strlen(tests[i].msg));
       tiger_done(&md, tmp);
-      if (memcmp(tmp, tests[i].hash, 24) != 0) {
+      if (XMEMCMP(tmp, tests[i].hash, 24) != 0) {
           return CRYPT_FAIL_TESTVECTOR;
       }
   }

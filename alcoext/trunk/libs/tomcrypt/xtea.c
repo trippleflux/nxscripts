@@ -6,16 +6,16 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
+ * Tom St Denis, tomstdenis@gmail.com, http://libtom.org
  */
 
 /**
   @file xtea.c
-  Implementation of XTEA, Tom St Denis
+  Implementation of LTC_XTEA, Tom St Denis
 */
 #include "tomcrypt.h"
 
-#ifdef XTEA
+#ifdef LTC_XTEA
 
 const struct ltc_cipher_descriptor xtea_desc =
 {
@@ -28,7 +28,7 @@ const struct ltc_cipher_descriptor xtea_desc =
     &xtea_test,
     &xtea_done,
     &xtea_keysize,
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
 };
 
 int xtea_setup(const unsigned char *key, int keylen, int num_rounds, symmetric_key *skey)
@@ -67,7 +67,7 @@ int xtea_setup(const unsigned char *key, int keylen, int num_rounds, symmetric_k
 }
 
 /**
-  Encrypts a block of text with XTEA
+  Encrypts a block of text with LTC_XTEA
   @param pt The input plaintext (8 bytes)
   @param ct The output ciphertext (8 bytes)
   @param skey The key as scheduled
@@ -103,7 +103,7 @@ int xtea_ecb_encrypt(const unsigned char *pt, unsigned char *ct, symmetric_key *
 }
 
 /**
-  Decrypts a block of text with XTEA
+  Decrypts a block of text with LTC_XTEA
   @param ct The input ciphertext (8 bytes)
   @param pt The output plaintext (8 bytes)
   @param skey The key as scheduled
@@ -139,7 +139,7 @@ int xtea_ecb_decrypt(const unsigned char *ct, unsigned char *pt, symmetric_key *
 }
 
 /**
-  Performs a self-test of the XTEA block cipher
+  Performs a self-test of the LTC_XTEA block cipher
   @return CRYPT_OK if functional, CRYPT_NOP if self-test has been disabled
 */
 int xtea_test(void)
@@ -164,7 +164,7 @@ int xtea_test(void)
    xtea_ecb_encrypt(pt, tmp[0], &skey);
    xtea_ecb_decrypt(tmp[0], tmp[1], &skey);
 
-   if (memcmp(tmp[0], ct, 8) != 0 || memcmp(tmp[1], pt, 8) != 0) {
+   if (XMEMCMP(tmp[0], ct, 8) != 0 || XMEMCMP(tmp[1], pt, 8) != 0) {
       return CRYPT_FAIL_TESTVECTOR;
    }
 

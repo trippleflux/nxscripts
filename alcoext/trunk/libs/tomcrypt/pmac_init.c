@@ -6,7 +6,7 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
+ * Tom St Denis, tomstdenis@gmail.com, http://libtom.org
  */
 #include "tomcrypt.h"
 
@@ -15,7 +15,7 @@
    PMAC implementation, initialize state, by Tom St Denis
 */
 
-#ifdef PMAC
+#ifdef LTC_PMAC
 
 static const struct {
     int           len;

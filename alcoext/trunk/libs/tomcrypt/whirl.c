@@ -6,17 +6,17 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
+ * Tom St Denis, tomstdenis@gmail.com, http://libtom.org
  */
 
 /**
    @file whirl.c
-   WHIRLPOOL (using their new sbox) hash function by Tom St Denis
+   LTC_WHIRLPOOL (using their new sbox) hash function by Tom St Denis
 */
 
 #include "tomcrypt.h"
 
-#ifdef WHIRLPOOL
+#ifdef LTC_WHIRLPOOL
 
 const struct ltc_hash_descriptor whirlpool_desc =
 {
@@ -290,7 +290,7 @@ int  whirlpool_test(void)
       whirlpool_init(&md);
       whirlpool_process(&md, (unsigned char *)tests[i].msg, tests[i].len);
       whirlpool_done(&md, tmp);
-      if (memcmp(tmp, tests[i].hash, 64) != 0) {
+      if (XMEMCMP(tmp, tests[i].hash, 64) != 0) {
 #if 0
          printf("\nFailed test %d\n", i);
          for (i = 0; i < 64; ) {

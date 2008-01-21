@@ -6,7 +6,7 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
+ * Tom St Denis, tomstdenis@gmail.com, http://libtom.org
  */
 #include "tomcrypt.h"
 
@@ -15,12 +15,15 @@
    Pelican MAC, initialize state, by Tom St Denis
 */
 
-#ifdef PELICAN
+#ifdef LTC_PELICAN
 
 #define ENCRYPT_ONLY
 #define PELI_TAB
+//
+// Modified by neoxed:
+// - The source file is in the same directory.
+//
 #include "aes_tab.c"
-
 
 /**
    Initialize a Pelican state

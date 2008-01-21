@@ -1,4 +1,4 @@
-#ifdef HMAC
+#ifdef LTC_HMAC
 typedef struct Hmac_state {
      hash_state     md;
      int            hash;
@@ -23,7 +23,7 @@ int hmac_file(int hash, const char *fname, const unsigned char *key,
               unsigned char *dst, unsigned long *dstlen);
 #endif
 
-#ifdef OMAC
+#ifdef LTC_OMAC
 
 typedef struct {
    int             cipher_idx,
@@ -51,9 +51,9 @@ int omac_file(int cipher,
               const          char *filename,
                     unsigned char *out, unsigned long *outlen);
 int omac_test(void);
-#endif /* OMAC */
+#endif /* LTC_OMAC */
 
-#ifdef PMAC
+#ifdef LTC_PMAC
 
 typedef struct {
    unsigned char     Ls[32][MAXBLOCKSIZE],    /* L shifted by i bits to the left */
@@ -96,10 +96,10 @@ void pmac_shift_xor(pmac_state *pmac);
 
 #endif /* PMAC */
 
-#ifdef EAX_MODE
+#ifdef LTC_EAX_MODE
 
-#if !(defined(OMAC) && defined(LTC_CTR_MODE))
-   #error EAX_MODE requires OMAC and CTR
+#if !(defined(LTC_OMAC) && defined(LTC_CTR_MODE))
+   #error LTC_EAX_MODE requires LTC_OMAC and CTR
 #endif
 
 typedef struct {
@@ -137,7 +137,7 @@ int eax_decrypt_verify_memory(int cipher,
  int eax_test(void);
 #endif /* EAX MODE */
 
-#ifdef OCB_MODE
+#ifdef LTC_OCB_MODE
 typedef struct {
    unsigned char     L[MAXBLOCKSIZE],         /* L value */
                      Ls[32][MAXBLOCKSIZE],    /* L shifted by i bits to the left */
@@ -191,9 +191,9 @@ int ocb_ntz(unsigned long x);
 int s_ocb_done(ocb_state *ocb, const unsigned char *pt, unsigned long ptlen,
                unsigned char *ct, unsigned char *tag, unsigned long *taglen, int mode);
 
-#endif /* OCB_MODE */
+#endif /* LTC_OCB_MODE */
 
-#ifdef CCM_MODE
+#ifdef LTC_CCM_MODE
 
 #define CCM_ENCRYPT 0
 #define CCM_DECRYPT 1
@@ -210,26 +210,26 @@ int ccm_memory(int cipher,
 
 int ccm_test(void);
 
-#endif /* CCM_MODE */
+#endif /* LTC_CCM_MODE */
 
-#if defined(LRW_MODE) || defined(GCM_MODE)
+#if defined(LRW_MODE) || defined(LTC_GCM_MODE)
 void gcm_gf_mult(const unsigned char *a, const unsigned char *b, unsigned char *c);
 #endif
 
 
 /* table shared between GCM and LRW */
-#if defined(GCM_TABLES) || defined(LRW_TABLES) || ((defined(GCM_MODE) || defined(GCM_MODE)) && defined(LTC_FAST))
+#if defined(LTC_GCM_TABLES) || defined(LRW_TABLES) || ((defined(LTC_GCM_MODE) || defined(LTC_GCM_MODE)) && defined(LTC_FAST))
 extern const unsigned char gcm_shift_table[];
 #endif
 
-#ifdef GCM_MODE
+#ifdef LTC_GCM_MODE
 
 #define GCM_ENCRYPT 0
 #define GCM_DECRYPT 1
 
-#define GCM_MODE_IV    0
-#define GCM_MODE_AAD   1
-#define GCM_MODE_TEXT  2
+#define LTC_GCM_MODE_IV    0
+#define LTC_GCM_MODE_AAD   1
+#define LTC_GCM_MODE_TEXT  2
 
 typedef struct {
    symmetric_key       K;
@@ -247,9 +247,9 @@ typedef struct {
    ulong64             totlen,       /* 64-bit counter used for IV and AAD */
                        pttotlen;     /* 64-bit counter for the PT */
 
-#ifdef GCM_TABLES
+#ifdef LTC_GCM_TABLES
    unsigned char       PC[16][256][16]  /* 16 tables of 8x128 */
-#ifdef GCM_TABLES_SSE2
+#ifdef LTC_GCM_TABLES_SSE2
 __attribute__ ((aligned (16)))
 #endif
 ;
@@ -287,9 +287,9 @@ int gcm_memory(      int           cipher,
                                int direction);
 int gcm_test(void);
 
-#endif /* GCM_MODE */
+#endif /* LTC_GCM_MODE */
 
-#ifdef PELICAN
+#ifdef LTC_PELICAN
 
 typedef struct pelican_state
 {
@@ -307,5 +307,74 @@ int pelican_memory(int cipher,
                    const unsigned char *key, unsigned long keylen,
                    const unsigned char *in, unsigned long inlen,
                          unsigned char *out, unsigned long *outlen);
+
+#endif
+
+#ifdef LTC_XCBC
+
+/* add this to "keylen" to xcbc_init to use a pure three-key XCBC MAC */
+#define LTC_XCBC_PURE  0x8000UL
+
+typedef struct {
+   unsigned char K[3][MAXBLOCKSIZE],
+                 IV[MAXBLOCKSIZE];
+
+   symmetric_key key;
+
+             int cipher,
+                 buflen,
+                 blocksize;
+} xcbc_state;
+
+int xcbc_init(xcbc_state *xcbc, int cipher, const unsigned char *key, unsigned long keylen);
+int xcbc_process(xcbc_state *xcbc, const unsigned char *in, unsigned long inlen);
+int xcbc_done(xcbc_state *xcbc, unsigned char *out, unsigned long *outlen);
+int xcbc_memory(int cipher,
+               const unsigned char *key, unsigned long keylen,
+               const unsigned char *in,  unsigned long inlen,
+                     unsigned char *out, unsigned long *outlen);
+int xcbc_memory_multi(int cipher,
+                const unsigned char *key, unsigned long keylen,
+                      unsigned char *out, unsigned long *outlen,
+                const unsigned char *in,  unsigned long inlen, ...);
+int xcbc_file(int cipher,
+              const unsigned char *key, unsigned long keylen,
+              const          char *filename,
+                    unsigned char *out, unsigned long *outlen);
+int xcbc_test(void);
+
+#endif
+
+#ifdef LTC_F9_MODE
+
+typedef struct {
+   unsigned char akey[MAXBLOCKSIZE],
+                 ACC[MAXBLOCKSIZE],
+                 IV[MAXBLOCKSIZE];
+
+   symmetric_key key;
+
+             int cipher,
+                 buflen,
+                 keylen,
+                 blocksize;
+} f9_state;
+
+int f9_init(f9_state *f9, int cipher, const unsigned char *key, unsigned long keylen);
+int f9_process(f9_state *f9, const unsigned char *in, unsigned long inlen);
+int f9_done(f9_state *f9, unsigned char *out, unsigned long *outlen);
+int f9_memory(int cipher,
+               const unsigned char *key, unsigned long keylen,
+               const unsigned char *in,  unsigned long inlen,
+                     unsigned char *out, unsigned long *outlen);
+int f9_memory_multi(int cipher,
+                const unsigned char *key, unsigned long keylen,
+                      unsigned char *out, unsigned long *outlen,
+                const unsigned char *in,  unsigned long inlen, ...);
+int f9_file(int cipher,
+              const unsigned char *key, unsigned long keylen,
+              const          char *filename,
+                    unsigned char *out, unsigned long *outlen);
+int f9_test(void);
 
 #endif

@@ -6,7 +6,7 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
+ * Tom St Denis, tomstdenis@gmail.com, http://libtom.org
  */
 
 #include "tomcrypt.h"
@@ -18,6 +18,11 @@
 
 static const char *err_2_str[] =
 {
+   //
+   // Modified by neoxed:
+   // - All error messages are lower-case.
+   // - Added the "invalid salt length" message.
+   //
    "success",
    "generic error",
    "no-operation requested",
@@ -51,7 +56,8 @@ static const char *err_2_str[] =
    "key not found in keyring",
    "invalid sized parameter",
 
-   "invalid size for prime"
+   "invalid size for prime",
+   "invalid padding on input"
 };
 
 /**

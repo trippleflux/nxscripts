@@ -1,5 +1,5 @@
-/* ---- BASE64 Routines ---- */
-#ifdef BASE64
+/* ---- LTC_BASE64 Routines ---- */
+#ifdef LTC_BASE64
 int base64_encode(const unsigned char *in,  unsigned long len,
                         unsigned char *out, unsigned long *outlen);
 
@@ -14,3 +14,6 @@ void burn_stack(unsigned long len);
 const char *error_to_string(int err);
 
 extern const char *crypt_build_settings;
+
+/* ---- HMM ---- */
+int crypt_fsa(void *mp, ...);

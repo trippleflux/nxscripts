@@ -6,7 +6,7 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
+ * Tom St Denis, tomstdenis@gmail.com, http://libtom.org
  */
 
 #include "tomcrypt.h"
@@ -16,7 +16,7 @@
   CHC support. (Tom St Denis)
 */
 
-#ifdef CHC_HASH
+#ifdef LTC_CHC_HASH
 
 #define UNDEFED_HASH  -17
 
@@ -142,7 +142,7 @@ static int chc_compress(hash_state *md, unsigned char *buf)
       XFREE(key);
       return err;
    }
-   memcpy(T[1], buf, cipher_blocksize);
+   XMEMCPY(T[1], buf, cipher_blocksize);
    cipher_descriptor[cipher_idx].ecb_encrypt(buf, T[0], key);
    for (x = 0; x < cipher_blocksize; x++) {
        md->chc.state[x] ^= T[0][x] ^ T[1][x];
@@ -280,7 +280,7 @@ int chc_test(void)
        chc_init(&md);
        chc_process(&md, tests[x].msg, strlen((char *)tests[x].msg));
        chc_done(&md, out);
-       if (memcmp(out, tests[x].md, tests[x].len)) {
+       if (XMEMCMP(out, tests[x].md, tests[x].len)) {
           return CRYPT_FAIL_TESTVECTOR;
        }
    }

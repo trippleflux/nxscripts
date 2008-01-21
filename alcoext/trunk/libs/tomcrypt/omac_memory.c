@@ -6,24 +6,24 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
+ * Tom St Denis, tomstdenis@gmail.com, http://libtom.org
  */
 #include "tomcrypt.h"
 
 /**
   @file omac_memory.c
-  OMAC1 support, process a block of memory, Tom St Denis
+  LTC_OMAC1 support, process a block of memory, Tom St Denis
 */
 
-#ifdef OMAC
+#ifdef LTC_OMAC
 
 /**
-   OMAC a block of memory
+   LTC_OMAC a block of memory
    @param cipher    The index of the desired cipher
    @param key       The secret key
    @param keylen    The length of the secret key (octets)
-   @param in        The data to send through OMAC
-   @param inlen     The length of the data to send through OMAC (octets)
+   @param in        The data to send through LTC_OMAC
+   @param inlen     The length of the data to send through LTC_OMAC (octets)
    @param out       [out] The destination of the authentication tag
    @param outlen    [in/out]  The max size and resulting size of the authentication tag (octets)
    @return CRYPT_OK if successful
@@ -40,6 +40,16 @@ int omac_memory(int cipher,
    LTC_ARGCHK(in     != NULL);
    LTC_ARGCHK(out    != NULL);
    LTC_ARGCHK(outlen != NULL);
+
+   /* is the cipher valid? */
+   if ((err = cipher_is_valid(cipher)) != CRYPT_OK) {
+      return err;
+   }
+
+   /* Use accelerator if found */
+   if (cipher_descriptor[cipher].omac_memory != NULL) {
+      return cipher_descriptor[cipher].omac_memory(key, keylen, in, inlen, out, outlen);
+   }
 
    /* allocate ram for omac state */
    omac = XMALLOC(sizeof(omac_state));

@@ -6,16 +6,16 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
+ * Tom St Denis, tomstdenis@gmail.com, http://libtom.org
  */
 
  /**
    @file cast5.c
-   Implementation of CAST5 (RFC 2144) by Tom St Denis
+   Implementation of LTC_CAST5 (RFC 2144) by Tom St Denis
  */
 #include "tomcrypt.h"
 
-#ifdef CAST5
+#ifdef LTC_CAST5
 
 const struct ltc_cipher_descriptor cast5_desc = {
    "cast5",
@@ -27,7 +27,7 @@ const struct ltc_cipher_descriptor cast5_desc = {
    &cast5_test,
    &cast5_done,
    &cast5_keysize,
-   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
 };
 
 static const ulong32 S1[256] = {
@@ -398,7 +398,7 @@ static const ulong32 S8[256] = {
 #endif
 
  /**
-    Initialize the CAST5 block cipher
+    Initialize the LTC_CAST5 block cipher
     @param key The symmetric key you wish to pass
     @param keylen The key length in bytes
     @param num_rounds The number of rounds desired (0 for default)
@@ -499,6 +499,10 @@ int cast5_setup(const unsigned char *key, int keylen, int num_rounds, symmetric_
 }
 #endif
 
+//
+// Modified by neoxed:
+// - Undefine INLINE first.
+//
 #undef INLINE
 #ifdef _MSC_VER
    #define INLINE __inline
@@ -531,7 +535,7 @@ INLINE static ulong32 FIII(ulong32 R, ulong32 Km, ulong32 Kr)
 }
 
 /**
-  Encrypts a block of text with CAST5
+  Encrypts a block of text with LTC_CAST5
   @param pt The input plaintext (8 bytes)
   @param ct The output ciphertext (8 bytes)
   @param skey The key as scheduled
@@ -584,7 +588,7 @@ int cast5_ecb_encrypt(const unsigned char *pt, unsigned char *ct, symmetric_key 
 #endif
 
 /**
-  Decrypts a block of text with CAST5
+  Decrypts a block of text with LTC_CAST5
   @param ct The input ciphertext (8 bytes)
   @param pt The output plaintext (8 bytes)
   @param skey The key as scheduled
@@ -637,7 +641,7 @@ int cast5_ecb_decrypt(const unsigned char *ct, unsigned char *pt, symmetric_key 
 #endif
 
 /**
-  Performs a self-test of the CAST5 block cipher
+  Performs a self-test of the LTC_CAST5 block cipher
   @return CRYPT_OK if functional, CRYPT_NOP if self-test has been disabled
 */
 int cast5_test(void)
@@ -677,7 +681,7 @@ int cast5_test(void)
        }
        cast5_ecb_encrypt(tests[i].pt, tmp[0], &key);
        cast5_ecb_decrypt(tmp[0], tmp[1], &key);
-       if ((memcmp(tmp[0], tests[i].ct, 8) != 0) || (memcmp(tmp[1], tests[i].pt, 8) != 0)) {
+       if ((XMEMCMP(tmp[0], tests[i].ct, 8) != 0) || (XMEMCMP(tmp[1], tests[i].pt, 8) != 0)) {
           return CRYPT_FAIL_TESTVECTOR;
        }
       /* now see if we can encrypt all zero bytes 1000 times, decrypt and come back where we started */

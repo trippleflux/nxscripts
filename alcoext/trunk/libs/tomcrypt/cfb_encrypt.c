@@ -6,7 +6,7 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
+ * Tom St Denis, tomstdenis@gmail.com, http://libtom.org
  */
 #include "tomcrypt.h"
 
@@ -53,7 +53,7 @@ int cfb_encrypt(const unsigned char *pt, unsigned char *ct, unsigned long len, s
        cfb->pad[cfb->padlen] = (*ct = *pt ^ cfb->IV[cfb->padlen]);
        ++pt;
        ++ct;
-       ++cfb->padlen;
+       ++(cfb->padlen);
    }
    return CRYPT_OK;
 }

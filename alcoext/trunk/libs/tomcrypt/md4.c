@@ -6,7 +6,7 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
+ * Tom St Denis, tomstdenis@gmail.com, http://libtom.org
  */
 #include "tomcrypt.h"
 
@@ -15,7 +15,7 @@
    Submitted by Dobes Vandermeer  (dobes@smartt.com)
 */
 
-#ifdef MD4
+#ifdef LTC_MD4
 
 const struct ltc_hash_descriptor md4_desc =
 {
@@ -48,7 +48,7 @@ const struct ltc_hash_descriptor md4_desc =
 #define S33 11
 #define S34 15
 
-/* F, G and H are basic MD4 functions. */
+/* F, G and H are basic LTC_MD4 functions. */
 #define F(x, y, z) (z ^ (x & (y ^ z)))
 #define G(x, y, z) ((x & y) | (z & (x | y)))
 #define H(x, y, z) ((x) ^ (y) ^ (z))
@@ -289,7 +289,7 @@ int md4_test(void)
         md4_init(&md);
         md4_process(&md, (unsigned char *)cases[i].input, (unsigned long)strlen(cases[i].input));
         md4_done(&md, digest);
-        if (memcmp(digest, cases[i].digest, 16) != 0) {
+        if (XMEMCMP(digest, cases[i].digest, 16) != 0) {
            return CRYPT_FAIL_TESTVECTOR;
         }
 

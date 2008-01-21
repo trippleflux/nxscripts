@@ -6,17 +6,17 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://libtomcrypt.com
+ * Tom St Denis, tomstdenis@gmail.com, http://libtom.org
  */
 #include "tomcrypt.h"
 
 /**
   @file sha1.c
-  SHA1 code by Tom St Denis
+  LTC_SHA1 code by Tom St Denis
 */
 
 
-#ifdef SHA1
+#ifdef LTC_SHA1
 
 const struct ltc_hash_descriptor sha1_desc =
 {
@@ -271,7 +271,7 @@ int  sha1_test(void)
       sha1_init(&md);
       sha1_process(&md, (unsigned char*)tests[i].msg, (unsigned long)strlen(tests[i].msg));
       sha1_done(&md, tmp);
-      if (memcmp(tmp, tests[i].hash, 20) != 0) {
+      if (XMEMCMP(tmp, tests[i].hash, 20) != 0) {
          return CRYPT_FAIL_TESTVECTOR;
       }
   }

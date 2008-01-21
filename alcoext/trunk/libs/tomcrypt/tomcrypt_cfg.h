@@ -7,6 +7,11 @@
 #ifndef TOMCRYPT_CFG_H
 #define TOMCRYPT_CFG_H
 
+//
+// Modified by neoxed:
+// - All options are defined in "tomcrypt_custom.h".
+//
+
 /* Controls endianess and size of registers.  Leave uncommented to get platform neutral [slower] code
  *
  * Note: in order to use the optimized macros your platform must support unaligned 32 and 64 bit read/writes.
