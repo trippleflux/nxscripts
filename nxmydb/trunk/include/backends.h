@@ -121,14 +121,8 @@ typedef enum {
 } SYNC_EVENT;
 
 typedef struct {
-    VOID    *foobar;
-} SYNC_LOCAL;
-
-typedef struct {
     ULONG       currUpdate; // Server time for the current update
     ULONG       prevUpdate; // Server time of the last update
-    SYNC_LOCAL  group;      // Group syncronization context
-    SYNC_LOCAL  user;       // User syncronization context
 } SYNC_CONTEXT;
 
 DWORD DbGroupSync(DB_CONTEXT *db, SYNC_CONTEXT *sync);
