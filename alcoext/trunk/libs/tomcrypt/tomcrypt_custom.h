@@ -87,8 +87,8 @@
 #define LTC_MD5
 #define LTC_RIPEMD128
 #define LTC_RIPEMD160
-//#define LTC_RIPEMD256             /* TODO */
-//#define LTC_RIPEMD320             /* TODO */
+#define LTC_RIPEMD256
+#define LTC_RIPEMD320
 #define LTC_SHA1
 #define LTC_SHA224
 #define LTC_SHA256

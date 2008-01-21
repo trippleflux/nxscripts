@@ -47,9 +47,9 @@ TOMCRYPT_OBJS   = aes.o anubis.o base64_decode.o base64_encode.o blowfish.o\
                   omac_memory.o omac_process.o pelican.o pelican_memory.o pkcs_5_1.o\
                   pkcs_5_2.o pmac_done.o pmac_init.o pmac_memory.o pmac_ntz.o\
                   pmac_process.o pmac_shift_xor.o rc2.o rc4.o rc5.o rc6.o rmd128.o\
-                  rmd160.o rng_get_bytes.o safer.o safer_tab.o saferp.o sha1.o\
-                  sha256.o sha512.o skipjack.o sober128.o sprng.o tiger.o twofish.o\
-                  whirl.o xtea.o yarrow.o zeromem.o
+                  rmd160.o rmd256.o rmd320.o rng_get_bytes.o safer.o safer_tab.o\
+                  saferp.o sha1.o sha256.o sha512.o skipjack.o sober128.o sprng.o\
+                  tiger.o twofish.o whirl.o xtea.o yarrow.o zeromem.o
 
 ZLIB_OBJS       = adler32.o crc32.o deflate.o inffast.o inflate.o inftrees.o trees.o zutil.o
 

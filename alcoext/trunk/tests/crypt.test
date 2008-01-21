@@ -349,7 +349,7 @@ test crypt-4.4 {crypt hash: invalid switch} {
 
 test crypt-4.5 {crypt hash: invalid hash} {
     list [catch {crypt hash . a} msg] $msg
-} {1 {bad hash ".": must be md2, md4, md5, rmd128, rmd160, sha1, sha224, sha256, sha384, sha512, tiger, or whirlpool}}
+} {1 {bad hash ".": must be md2, md4, md5, rmd128, rmd160, rmd256, rmd320, sha1, sha224, sha256, sha384, sha512, tiger, or whirlpool}}
 
 test crypt-4.6 {crypt hash: invalid cipher, with -omac} {
     list [catch {crypt hash -omac a . b} msg] $msg
@@ -464,7 +464,7 @@ test crypt-5.4 {crypt start: invalid switch} {
 
 test crypt-5.5 {crypt start: invalid hash} {
     list [catch {crypt start .} msg] $msg
-} {1 {bad hash ".": must be md2, md4, md5, rmd128, rmd160, sha1, sha224, sha256, sha384, sha512, tiger, or whirlpool}}
+} {1 {bad hash ".": must be md2, md4, md5, rmd128, rmd160, rmd256, rmd320, sha1, sha224, sha256, sha384, sha512, tiger, or whirlpool}}
 
 test crypt-5.6 {crypt start: invalid cipher, with -omac} {
     list [catch {crypt start -omac a .} msg] $msg
@@ -751,7 +751,7 @@ test crypt-8.7 {crypt info: handles} {
 
 test crypt-8.8 {crypt info: hash count} {
     llength [crypt info hashes]
-} {12}
+} {14}
 
 test crypt-8.9 {crypt info: hashes must be in alphabetical order} {
     string equal [crypt info hashes] [lsort [crypt info hashes]]

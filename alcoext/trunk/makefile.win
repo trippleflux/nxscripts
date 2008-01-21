@@ -292,6 +292,8 @@ OBJECT_FILES=\
     $(PKG_INTDIR)\rc6.obj\
     $(PKG_INTDIR)\rmd128.obj\
     $(PKG_INTDIR)\rmd160.obj\
+    $(PKG_INTDIR)\rmd256.obj\
+    $(PKG_INTDIR)\rmd320.obj\
     $(PKG_INTDIR)\rng_get_bytes.obj\
     $(PKG_INTDIR)\safer.obj\
     $(PKG_INTDIR)\safer_tab.obj\

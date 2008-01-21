@@ -377,6 +377,8 @@ Initialise(
         register_hash(&md5_desc);
         register_hash(&rmd128_desc);
         register_hash(&rmd160_desc);
+        register_hash(&rmd256_desc);
+        register_hash(&rmd320_desc);
         register_hash(&sha1_desc);
         register_hash(&sha224_desc);
         register_hash(&sha256_desc);
