@@ -5,20 +5,32 @@
  *	This is used to fix limitations within nmake and the environment.
  *
  * Copyright (c) 2002 by David Gravereaux.
+ * Copyright (c) 2006 by Pat Thoyts
  *
- * See the file "license.terms" for information on usage and redistribution
- * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+ * See the file "license.terms" for information on usage and redistribution of
+ * this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  * ----------------------------------------------------------------------------
- * RCS: @(#) $Id: nmakehlp.c,v 1.9 2005/11/04 00:06:49 dkf Exp $
+ * RCS: @(#) $Id: nmakehlp.c,v 1.6 2007/05/11 09:47:56 patthoyts Exp $
  * ----------------------------------------------------------------------------
  */
 
+#define _CRT_SECURE_NO_DEPRECATE
 #include <windows.h>
 #pragma comment (lib, "user32.lib")
 #pragma comment (lib, "kernel32.lib")
 #include <stdio.h>
 #include <math.h>
+#if defined(_M_IA64) || defined(_M_AMD64)
+#pragma comment(lib, "bufferoverflowU")
+#endif
+
+/* ISO hack for dumb VC++ */
+#ifdef _MSC_VER
+#define   snprintf	_snprintf
+#endif
+
+
 
 /* protos */
 
@@ -26,6 +38,8 @@ int		CheckForCompilerFeature(const char *option);
 int		CheckForLinkerFeature(const char *option);
 int		IsIn(const char *string, const char *substring);
 int		GrepForDefine(const char *file, const char *string);
+int		SubstituteFile(const char *substs, const char *filename);
+const char *    GetVersionFromFile(const char *filename, const char *match);
 DWORD WINAPI	ReadFromPipe(LPVOID args);
 
 /* globals */
@@ -70,7 +84,8 @@ main(
 	switch (*(argv[1]+1)) {
 	case 'c':
 	    if (argc != 3) {
-		chars = wsprintf(msg, "usage: %s -c <compiler option>\n"
+		chars = snprintf(msg, sizeof(msg) - 1,
+		        "usage: %s -c <compiler option>\n"
 			"Tests for whether cl.exe supports an option\n"
 			"exitcodes: 0 == no, 1 == yes, 2 == error\n", argv[0]);
 		WriteFile(GetStdHandle(STD_ERROR_HANDLE), msg, chars,
@@ -80,7 +95,8 @@ main(
 	    return CheckForCompilerFeature(argv[2]);
 	case 'l':
 	    if (argc != 3) {
-		chars = wsprintf(msg, "usage: %s -l <linker option>\n"
+		chars = snprintf(msg, sizeof(msg) - 1,
+	       		"usage: %s -l <linker option>\n"
 			"Tests for whether link.exe supports an option\n"
 			"exitcodes: 0 == no, 1 == yes, 2 == error\n", argv[0]);
 		WriteFile(GetStdHandle(STD_ERROR_HANDLE), msg, chars,
@@ -90,7 +106,8 @@ main(
 	    return CheckForLinkerFeature(argv[2]);
 	case 'f':
 	    if (argc == 2) {
-		chars = wsprintf(msg, "usage: %s -f <string> <substring>\n"
+		chars = snprintf(msg, sizeof(msg) - 1,
+			"usage: %s -f <string> <substring>\n"
 			"Find a substring within another\n"
 			"exitcodes: 0 == no, 1 == yes, 2 == error\n", argv[0]);
 		WriteFile(GetStdHandle(STD_ERROR_HANDLE), msg, chars,
@@ -107,7 +124,8 @@ main(
 	    }
 	case 'g':
 	    if (argc == 2) {
-		chars = wsprintf(msg, "usage: %s -g <file> <string>\n"
+		chars = snprintf(msg, sizeof(msg) - 1,
+			"usage: %s -g <file> <string>\n"
 			"grep for a #define\n"
 			"exitcodes: integer of the found string (no decimals)\n",
 			argv[0]);
@@ -116,9 +134,35 @@ main(
 		return 2;
 	    }
 	    return GrepForDefine(argv[2], argv[3]);
+	case 's':
+	    if (argc == 2) {
+		chars = snprintf(msg, sizeof(msg) - 1,
+			"usage: %s -s <substitutions file> <file>\n"
+			"Perform a set of string map type substutitions on a file\n"
+			"exitcodes: 0\n",
+			argv[0]);
+		WriteFile(GetStdHandle(STD_ERROR_HANDLE), msg, chars,
+			&dwWritten, NULL);
+		return 2;
+	    }
+	    return SubstituteFile(argv[2], argv[3]);
+	case 'V':
+	    if (argc != 4) {
+		chars = snprintf(msg, sizeof(msg) - 1,
+		    "usage: %s -V filename matchstring\n"
+		    "Extract a version from a file:\n"
+		    "eg: pkgIndex.tcl \"package ifneeded http\"",
+		    argv[0]);
+		WriteFile(GetStdHandle(STD_ERROR_HANDLE), msg, chars,
+		    &dwWritten, NULL);
+		return 0;
+	    }
+	    printf("%s\n", GetVersionFromFile(argv[2], argv[3]));
+	    return 0;
 	}
     }
-    chars = wsprintf(msg, "usage: %s -c|-l|-f ...\n"
+    chars = snprintf(msg, sizeof(msg) - 1,
+	    "usage: %s -c|-l|-f|-g|-V ...\n"
 	    "This is a little helper app to equalize shell differences between WinNT and\n"
 	    "Win9x and get nmake.exe to accomplish its job.\n",
 	    argv[0]);
@@ -177,19 +221,19 @@ CheckForCompilerFeature(
      * Base command line.
      */
 
-    strcpy(cmdline, "cl.exe -nologo -c -TC -Zs -X ");
+    lstrcpy(cmdline, "cl.exe -nologo -c -TC -Zs -X -Fp.\\_junk.pch ");
 
     /*
      * Append our option for testing
      */
 
-    strcat(cmdline, option);
+    lstrcat(cmdline, option);
 
     /*
      * Filename to compile, which exists, but is nothing and empty.
      */
 
-    strcat(cmdline, " .\\nul");
+    lstrcat(cmdline, " .\\nul");
 
     ok = CreateProcess(
 	    NULL,	    /* Module name. */
@@ -205,13 +249,13 @@ CheckForCompilerFeature(
 
     if (!ok) {
 	DWORD err = GetLastError();
-	int chars = wsprintf(msg,
+	int chars = snprintf(msg, sizeof(msg) - 1,
 		"Tried to launch: \"%s\", but got error [%u]: ", cmdline, err);
 
 	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS|
 		FORMAT_MESSAGE_MAX_WIDTH_MASK, 0L, err, 0, (LPVOID)&msg[chars],
 		(300-chars), 0);
-	WriteFile(GetStdHandle(STD_ERROR_HANDLE), msg, strlen(msg), &err,NULL);
+	WriteFile(GetStdHandle(STD_ERROR_HANDLE), msg,lstrlen(msg), &err,NULL);
 	return 2;
     }
 
@@ -309,13 +353,13 @@ CheckForLinkerFeature(
      * Base command line.
      */
 
-    strcpy(cmdline, "link.exe -nologo ");
+    lstrcpy(cmdline, "link.exe -nologo ");
 
     /*
      * Append our option for testing.
      */
 
-    strcat(cmdline, option);
+    lstrcat(cmdline, option);
 
     ok = CreateProcess(
 	    NULL,	    /* Module name. */
@@ -331,13 +375,13 @@ CheckForLinkerFeature(
 
     if (!ok) {
 	DWORD err = GetLastError();
-	int chars = wsprintf(msg,
+	int chars = snprintf(msg, sizeof(msg) - 1,
 		"Tried to launch: \"%s\", but got error [%u]: ", cmdline, err);
 
 	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS|
 		FORMAT_MESSAGE_MAX_WIDTH_MASK, 0L, err, 0, (LPVOID)&msg[chars],
 		(300-chars), 0);
-	WriteFile(GetStdHandle(STD_ERROR_HANDLE), msg, strlen(msg), &err,NULL);
+	WriteFile(GetStdHandle(STD_ERROR_HANDLE), msg,lstrlen(msg), &err,NULL);
 	return 2;
     }
 
@@ -378,7 +422,9 @@ CheckForLinkerFeature(
      */
 
     return !(strstr(Out.buffer, "LNK1117") != NULL ||
-	    strstr(Err.buffer, "LNK1117") != NULL);
+	    strstr(Err.buffer, "LNK1117") != NULL ||
+	    strstr(Out.buffer, "LNK4044") != NULL ||
+	    strstr(Err.buffer, "LNK4044") != NULL);
 }
 
 DWORD WINAPI
@@ -393,7 +439,7 @@ ReadFromPipe(
   again:
     if (lastBuf - pi->buffer + CHUNK > STATICBUFFERSIZE) {
 	CloseHandle(pi->pipe);
-	return -1;
+	return (DWORD)-1;
     }
     ok = ReadFile(pi->pipe, lastBuf, CHUNK, &dwRead, 0L);
     if (!ok || dwRead == 0) {
@@ -425,18 +471,16 @@ GrepForDefine(
     const char *file,
     const char *string)
 {
-    FILE *f;
     char s1[51], s2[51], s3[51];
-    int r = 0;
-    double d1;
+    FILE *f = fopen(file, "rt");
 
-    f = fopen(file, "rt");
     if (f == NULL) {
 	return 0;
     }
 
     do {
-	r = fscanf(f, "%50s", s1);
+	int r = fscanf(f, "%50s", s1);
+
 	if (r == 1 && !strcmp(s1, "#define")) {
 	    /*
 	     * Get next two words.
@@ -452,6 +496,8 @@ GrepForDefine(
 	     */
 
 	    if (!strcmp(s2, string)) {
+		double d1;
+
 		fclose(f);
 
 		/*
@@ -470,3 +516,203 @@ GrepForDefine(
     fclose(f);
     return 0;
 }
+
+/*
+ * GetVersionFromFile --
+ * 	Looks for a match string in a file and then returns the version
+ * 	following the match where a version is anything acceptable to
+ * 	package provide or package ifneeded.
+ */
+
+const char *
+GetVersionFromFile(
+    const char *filename,
+    const char *match)
+{
+    size_t cbBuffer = 100;
+    static char szBuffer[100];
+    char *szResult = NULL;
+    FILE *fp = fopen(filename, "rt");
+
+    if (fp != NULL) {
+	/*
+	 * Read data until we see our match string.
+	 */
+
+	while (fgets(szBuffer, cbBuffer, fp) != NULL) {
+	    LPSTR p, q;
+
+	    p = strstr(szBuffer, match);
+	    if (p != NULL) {
+		/*
+		 * Skip to first digit.
+		 */
+
+		while (*p && !isdigit(*p)) {
+		    ++p;
+		}
+
+		/*
+		 * Find ending whitespace.
+		 */
+
+		q = p;
+		while (*q && (isalnum(*q) || *q == '.')) {
+		    ++q;
+		}
+
+		memcpy(szBuffer, p, q - p);
+		szBuffer[q-p] = 0;
+		szResult = szBuffer;
+		break;
+	    }
+	}
+	fclose(fp);
+    }
+    return szResult;
+}
+
+/*
+ * List helpers for the SubstituteFile function
+ */
+
+typedef struct list_item_t {
+    struct list_item_t *nextPtr;
+    char * key;
+    char * value;
+} list_item_t;
+
+/* insert a list item into the list (list may be null) */
+static list_item_t *
+list_insert(list_item_t **listPtrPtr, const char *key, const char *value)
+{
+    list_item_t *itemPtr = malloc(sizeof(list_item_t));
+    if (itemPtr) {
+	itemPtr->key = strdup(key);
+	itemPtr->value = strdup(value);
+	itemPtr->nextPtr = NULL;
+
+	while(*listPtrPtr) {
+	    listPtrPtr = &(*listPtrPtr)->nextPtr;
+	}
+	*listPtrPtr = itemPtr;
+    }
+    return itemPtr;
+}
+
+static void
+list_free(list_item_t **listPtrPtr)
+{
+    list_item_t *tmpPtr, *listPtr = *listPtrPtr;
+    while (listPtr) {
+	tmpPtr = listPtr;
+	listPtr = listPtr->nextPtr;
+	free(tmpPtr->key);
+	free(tmpPtr->value);
+	free(tmpPtr);
+    }
+}
+
+/*
+ * SubstituteFile --
+ *	As windows doesn't provide anything useful like sed and it's unreliable
+ *	to use the tclsh you are building against (consider x-platform builds -
+ *	eg compiling AMD64 target from IX86) we provide a simple substitution
+ *	option here to handle autoconf style substitutions.
+ *	The substitution file is whitespace and line delimited. The file should
+ *	consist of lines matching the regular expression:
+ *	  \s*\S+\s+\S*$
+ *
+ *	Usage is something like:
+ *	  nmakehlp -S << $** > $@
+ *        @PACKAGE_NAME@ $(PACKAGE_NAME)
+ *        @PACKAGE_VERSION@ $(PACKAGE_VERSION)
+ *        <<
+ */
+
+int
+SubstituteFile(
+    const char *substitutions,
+    const char *filename)
+{
+    size_t cbBuffer = 1024;
+    static char szBuffer[1024], szCopy[1024];
+    char *szResult = NULL;
+    list_item_t *substPtr = NULL;
+    FILE *fp, *sp;
+
+    fp = fopen(filename, "rt");
+    if (fp != NULL) {
+
+	/*
+	 * Build a list of substutitions from the first filename
+	 */
+
+	sp = fopen(substitutions, "rt");
+	if (sp != NULL) {
+	    while (fgets(szBuffer, cbBuffer, sp) != NULL) {
+		char *ks, *ke, *vs, *ve;
+		ks = szBuffer;
+		while (ks && *ks && isspace(*ks)) ++ks;
+		ke = ks;
+		while (ke && *ke && !isspace(*ke)) ++ke;
+		vs = ke;
+		while (vs && *vs && isspace(*vs)) ++vs;
+		ve = vs;
+		while (ve && *ve && !(*ve == '\r' || *ve == '\n')) ++ve;
+		*ke = 0, *ve = 0;
+		list_insert(&substPtr, ks, vs);
+	    }
+	    fclose(sp);
+	}
+
+	/* debug: dump the list */
+#ifdef _DEBUG
+	{
+	    int n = 0;
+	    list_item_t *p = NULL;
+	    for (p = substPtr; p != NULL; p = p->nextPtr, ++n) {
+		fprintf(stderr, "% 3d '%s' => '%s'\n", n, p->key, p->value);
+	    }
+	}
+#endif
+	
+	/*
+	 * Run the substitutions over each line of the input
+	 */
+	
+	while (fgets(szBuffer, cbBuffer, fp) != NULL) {
+	    list_item_t *p = NULL;
+	    for (p = substPtr; p != NULL; p = p->nextPtr) {
+		char *m = strstr(szBuffer, p->key);
+		if (m) {
+		    char *cp, *op, *sp;
+		    cp = szCopy;
+		    op = szBuffer;
+		    while (op != m) *cp++ = *op++;
+		    sp = p->value;
+		    while (sp && *sp) *cp++ = *sp++;
+		    op += strlen(p->key);
+		    while (*op) *cp++ = *op++;
+		    *cp = 0;
+		    memcpy(szBuffer, szCopy, sizeof(szCopy));
+		}
+	    }
+	    printf(szBuffer);
+	}
+	
+	list_free(&substPtr);
+    }
+    fclose(fp);
+    return 0;
+}
+
+/*
+ * Local variables:
+ *   mode: c
+ *   c-basic-offset: 4
+ *   fill-column: 78
+ *   indent-tabs-mode: t
+ *   tab-width: 8
+ * End:
+ */
