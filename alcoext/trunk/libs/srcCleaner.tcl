@@ -1,6 +1,6 @@
 #
 # AlcoExt - Alcoholicz Tcl extension.
-# Copyright (c) 2006 Alcoholicz Scripting Team
+# Copyright (c) 2006-2008 Alcoholicz Scripting Team
 #
 # Module Name:
 #   Source Cleaner
