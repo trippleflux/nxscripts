@@ -257,7 +257,7 @@ Arguments:
 
     rounds      - Number of rounds.
 
-    counterMode - The counter mode (CTR_COUNTER_LITTLE_ENDIAN or CTR_COUNTER_BIG_ENDIAN).
+    counterMode - The counter mode).
 
     iv          - The initial vector, must be the length of one block.
 
@@ -415,7 +415,7 @@ Arguments:
 
     rounds      - Number of rounds.
 
-    counterMode - The counter mode (CTR_COUNTER_LITTLE_ENDIAN or CTR_COUNTER_BIG_ENDIAN).
+    counterMode - The counter mode.
 
     iv          - The initial vector, must be the length of one block.
 
@@ -624,19 +624,24 @@ CryptProcessCmd(
                 static const char *counterModes[] = {
                     "littleEndian", "bigEndian", NULL
                 };
-
-                //
-                // Instead of switching through the index obtained by Tcl_GetIndexFromObj,
-                // we ordered the counter modes in accordance to their defined values.
-                //
-                assert(CTR_COUNTER_LITTLE_ENDIAN == 0);
-                assert(CTR_COUNTER_BIG_ENDIAN == 1);
-                assert(!strcmp(counterModes[CTR_COUNTER_LITTLE_ENDIAN], "littleEndian"));
-                assert(!strcmp(counterModes[CTR_COUNTER_BIG_ENDIAN],    "bigEndian"));
+                enum counterIndices {
+                    COUNTER_LITTLE = 0, COUNTER_BIG
+                };
 
                 if (Tcl_GetIndexFromObj(interp, objv[i], counterModes,
-                        "counter mode", TCL_EXACT, &counterMode) != TCL_OK) {
+                        "counter mode", TCL_EXACT, &index) != TCL_OK) {
                     return TCL_ERROR;
+                }
+
+                switch ((enum switchIndices) index) {
+                    case COUNTER_LITTLE: {
+                        counterMode = CTR_COUNTER_LITTLE_ENDIAN;
+                        break;
+                    }
+                    case COUNTER_BIG: {
+                        counterMode = CTR_COUNTER_BIG_ENDIAN;
+                        break;
+                    }
                 }
                 break;
             }
