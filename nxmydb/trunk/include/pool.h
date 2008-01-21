@@ -1,7 +1,7 @@
 /*
 
 nxMyDB - MySQL Database for ioFTPD
-Copyright (c) 2006-2007 neoxed
+Copyright (c) 2006-2008 neoxed
 
 Module Name:
     Pool
