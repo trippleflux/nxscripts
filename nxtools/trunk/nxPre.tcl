@@ -568,7 +568,7 @@ proc ::nxTools::Pre::Release {argList} {
     }
 
     # Count files and total size.
-    GetDirList $realPath dirlist ".ioFTPD*"
+    GetDirList $realPath dirlist $pre(IgnoreFiles)
     foreach entry $dirlist(FileList) {
         incr files; set fileSize [file size $entry]
         set fileSize [file size $entry]
