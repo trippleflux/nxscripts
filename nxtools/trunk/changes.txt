@@ -2,6 +2,9 @@
 #                             nxTools - Change Log                             #
 ################################################################################
 
+nxTools v1.1.1 (Not released):
+  NEW: Extended help information for "SITE EDITPRE HELP VIEW".
+
 nxTools v1.1.0 (Feb 10, 2008):
   NEW: Dupe database format has changed; read the upgrading instructions.
   NEW: Rewrote the dupe database rebuild feature.

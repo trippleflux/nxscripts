@@ -417,6 +417,12 @@ proc ::nxTools::Pre::Edit {argList} {
                     LinePuts "Syntax : SITE EDITPRE HIDEPATH \[group\]"
                     LinePuts "Example: SITE EDITPRE HIDEPATH NX"
                 }
+                view {
+                    LinePuts "Description:"
+                    LinePuts " - View area, group and path configuration."
+                    LinePuts "Syntax : SITE EDITPRE VIEW"
+                    LinePuts "Example: SITE EDITPRE VIEW"
+                }
                 default {
                     LinePuts "Description:"
                     LinePuts " - Used to edit pre areas, groups and paths."
