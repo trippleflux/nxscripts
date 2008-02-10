@@ -420,7 +420,7 @@ proc ::nxTools::Pre::Edit {argList} {
                 default {
                     LinePuts "Description:"
                     LinePuts " - Used to edit pre areas, groups and paths."
-                    LinePuts " - For more detailed help, try \"SITE EDITPRE HELP\" <option>"
+                    LinePuts " - For more detailed help, try \"SITE EDITPRE HELP <option>\"."
                     LinePuts "Syntax: SITE EDITPRE <option> <area> \[value\]"
                     LinePuts "Option: addarea delarea addgrp delgrp addpath delpath hidepath view"
                     DisplayAreas [array names preArea]
