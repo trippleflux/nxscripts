@@ -1,0 +1,154 @@
+################################################################################
+#                             nxTools - Upgrading                              #
+################################################################################
+
+1.0.7 -> 1.1.0
+ - Upgrade the dupe databases using "SITE DB CREATE".
+ - Replace ioFTPD\scripts\nxLib.tcl with the included one.
+ - Replace all Tcl files in ioFTPD\scripts\nxTools\.
+
+1.0.6 -> 1.0.7
+ - Copy (and replace) the lib\sqlite3\ and lib\nxHelper\ directories to ioFTPD\lib\.
+ - Replace ioFTPD\scripts\nxLib.tcl with the included one.
+ - Replace all Tcl files in ioFTPD\scripts\nxTools\.
+
+1.0.5a -> 1.0.6
+ - Copy (and replace) the lib\sqlite3\ and lib\nxHelper\ directories to ioFTPD\lib\.
+ - Replace ioFTPD\scripts\nxLib.tcl with the included one.
+ - Replace all Tcl files in ioFTPD\scripts\nxTools\.
+ - New config options: force(SampleExts) and wipe(RecurseSwitch).
+
+1.0.5 -> 1.0.5a
+ - Replace ioFTPD\scripts\nxLib.tcl with the included one.
+
+1.0.4 -> 1.0.5
+ - Copy (and replace) the lib\sqlite3\ and lib\nxHelper\ directories to ioFTPD\lib\.
+ - Replace ioFTPD\scripts\nxLib.tcl with the included one.
+ - Replace all Tcl files in ioFTPD\scripts\nxTools\.
+
+1.0.3 -> 1.0.4
+ - Copy the lib\sqlite3\ and lib\nxHelper\ directories to ioFTPD\lib\.
+ - Delete the nxHelper.dll and tclsqlite3.dll files in ioFTPD\system\.
+ - Replace ioFTPD\scripts\init.itcl with the included one.
+ - Replace ioFTPD\scripts\nxLib.tcl with the included one.
+ - Replace all Tcl files in ioFTPD\scripts\nxTools\.
+
+1.0.2 -> 1.0.3
+ - Repeat step 3 in the installation manual.
+ - Replace ioFTPD\scripts\nxLib.tcl and all Tcl files in ioFTPD\scripts\nxTools\.
+ - Replace the nxHelper.dll and tclsqlite3.dll files in ioFTPD\system\.
+ - Copy the Search.* template files to ioFTPD\scripts\nxTools\text\.
+
+1.0.1 -> 1.0.2
+ - Replace ioFTPD\scripts\nxLib.tcl and all Tcl files in ioFTPD\scripts\nxTools\.
+ - Replace the nxHelper.dll and tclsqlite3.dll files in ioFTPD\system\.
+ - Copy the Who.* template files to ioFTPD\scripts\nxTools\text\.
+ - Replace the Requests.Header template file in ioFTPD\scripts\nxTools\text\.
+ - New config option: misc(DefaultLimit).
+
+1.0.0 -> 1.0.1
+ - Move the nxTools.cfg file to ioFTPD\scripts\nxTools\.
+ - Repeat step 3 in the installation manual.
+ - Replace ioFTPD\scripts\init.itcl, ioFTPD\scripts\nxLib.tcl, and
+   all Tcl files in ioFTPD\scripts\nxTools\.
+
+0.9.13 -> 1.0.0
+ - Repeat steps 1 and 3 in the installation manual.
+ - Replace ioFTPD\scripts\nxLib.tcl and all Tcl files in ioFTPD\scripts\nxTools\.
+ - Replace the nxHelper.dll and tclsqlite3.dll files in ioFTPD\system\.
+ - Remove config options: misc(dZSbotLogging), mysql(DataBase), mysql(Host),
+   mysql(Password), mysql(Port), mysql(TableName), mysql(Username),
+   pretime(AddOnPre), pretime(CheckMkd), pretime(CheckPaths), and pretime(Ignores).
+
+0.9.12 -> 0.9.13
+ - Replace \scripts\nxLib.tcl and all Tcl files in ioFTPD\scripts\nxTools\.
+ - Remove config options: misc(SiteBot) and new(Exempts).
+
+0.9.11 -> 0.9.12
+ - Replace \scripts\nxLib.tcl and all Tcl files in ioFTPD\scripts\nxTools\.
+ - New config option: req(ReleaseNames).
+ - Remove config options: invite(ConfigFile) and invite(Default).
+
+0.9.10 -> 0.9.11
+ - Download an updated nxTools-Libraries package.
+ - Replace \scripts\nxLib.tcl and all Tcl files in ioFTPD\scripts\nxTools\.
+ - Update your events and scripts in ioFTPD.ini.
+ - New config option: req(Limits).
+ - Remove config options: req(TimeDays), req(TimeLimit), req(TotalLimit), and
+   req(UserLimit).
+
+0.9.8 -> 0.9.10
+ - Replace all Tcl files in ioFTPD\scripts\nxTools\.
+ - Download an updated nxTools-Libraries package.
+
+0.9.8 -> 0.9.9
+ - Replace all Tcl files in ioFTPD\scripts\nxTools\.
+ - Remove your nukes and requests database from \scripts\nxTools\data\
+   and recreate them using the "SITE DB CREATE" command.
+ - Changed config option: dupe(RebuildPaths), newdate(Default), and
+   pretime(CheckPaths).
+ - Renamed config options: misc(UTC_Time) to misc(UtcTime) and pre(ChownUID) to
+   pre(ChownUserId).
+ - Repeat step 3 in the installation manual.
+
+0.9.7 -> 0.9.8
+ - Replace all .itcl files located in \scripts\nxTools\.
+ - Download an updated nxTools-Libraries package.
+ - Remove config options: misc(DST_Correct), misc(TimeZone), and pre(HelperBin).
+
+0.9.6 -> 0.9.7
+ - Replace all .itcl files located in \scripts\nxTools\.
+ - Add the new site commands to your ioFTPD.ini, check install step #3.
+ - Install the two required Tcl libraries, check install step #7.
+ - New config options: approve(CheckMkd), approve(DirTag), approve(Flags),
+   dupe(AlphaNumChars), misc(DataPath), and req(TimeDays).
+ - Changed config option: req(TimeLimit).
+ - Remove config options: dupe(CleanBackUp), dupe(UpdupeRanges), log(DupeDirs),
+   log(DupeFiles), log(LatestLinks), log(Nukes), log(OneLines), log(Pres),
+   log(RebuildDirs), log(RebuildFiles), log(Requests), and pretime(AddOnMkd).
+
+0.9.5 -> 0.9.6
+ - Replace all .itcl files located in \scripts\nxTools\.
+ - New config option: misc(dZSbotLogging).
+
+0.9.1 -> 0.9.5
+ - These versions were not released, internal testing.
+
+0.8.1 -> 0.9.1
+ - Replace all .exe and .itcl files located in \scripts\nxTools\.
+ - New config options: nuke(GroupFlag), pre(ChownUID), and req(TimeLimit).
+ - Remove config options: pre(Chown).
+ - Delete your requests log file and redo the newdate configuration.
+ - Update the command parameters under [FTP_Custom_Commands].
+
+0.8.1 -> 0.9.0
+ - Replace all .exe and .itcl files located in \scripts\nxTools\.
+ - New config options: dupe(CheckExempts), dupe(LoggingExempts), dupe(RebuildIgnore),
+   dupe(RebuildPaths), latest(FullPath), pre(AddToDupe), and pre(HelperBin).
+ - Remove config options: log(ioFTPD) and pre(TouchBin).
+
+0.8.0 -> 0.8.1
+ - Replace all .itcl files located in \scripts\nxTools\.
+
+0.7.4 -> 0.8.0
+ - Replace all .itcl files located in \scripts\nxTools\.
+ - Remove [SECTIONS] config portion from the nxPre.cfg.
+ - Modify the [Sections] ioFTPD.ini to the proper format, refer to step #4.
+
+0.7.3 -> 0.7.4
+ - Replace all .itcl files located in \scripts\nxTools\.
+
+0.7.2 -> 0.7.3
+ - Replace all .itcl files located in \scripts\nxTools\.
+ - Add the new site commands to your ioFTPD.ini, check install step #3.
+ - Install and configure the sitebot.
+
+0.7.1 -> 0.7.2
+ - Replace all .itcl files located in \scripts\nxTools\.
+
+0.7.0 -> 0.7.1
+ - Replace the files: nxDupe.itcl, nxNuke.itcl, nxPre.itcl, and nxTools.itcl
+   located in \scripts\nxTools\.
+
+0.6.1 -> 0.7.0
+ - Replace and reconfigure everything, far too many changes to list.
