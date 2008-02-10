@@ -2,7 +2,7 @@
 #                             nxTools - Change Log                             #
 ################################################################################
 
-nxTools v1.1.0 (not released):
+nxTools v1.1.0 (Feb 10, 2008):
   NEW: Dupe database format has changed; read the upgrading instructions.
   NEW: Rewrote the dupe database rebuild feature.
   NEW: The file database now includes the path for "SITE FDUPE".
