@@ -4,7 +4,7 @@
 
 nxTools v1.1.1 (Not released):
   NEW: Extended help information for "SITE EDITPRE HELP VIEW".
-  NEW: Ignore files when calculating the file count and size of a pre.
+  NEW: Ignore defined file extensions when calculating the file count and size of a pre.
   CHG: Updated dupe file ignore patterns.
 
 nxTools v1.1.0 (Feb 10, 2008):
