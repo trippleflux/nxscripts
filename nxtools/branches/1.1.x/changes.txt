@@ -6,6 +6,7 @@ nxTools v1.1.1 (Not released):
   NEW: Extended help information for "SITE EDITPRE HELP VIEW".
   NEW: Ignore defined file extensions when calculating the file count and size of a pre.
   CHG: Updated dupe file ignore patterns.
+  FIX: Debug logging function would error when reading array variables.
 
 nxTools v1.1.0 (Feb 10, 2008):
   NEW: Dupe database format has changed; read the upgrading instructions.
