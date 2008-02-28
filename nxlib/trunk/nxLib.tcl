@@ -511,7 +511,7 @@ proc ::nxLib::DebugLog {type message} {
             puts $handle "$now -------------------------------------------------------------------"
             puts $handle "$now - [format %-12s Script] : $message"
             foreach varName {args user group groups flags path pwd} {
-                set message [expr {[info exists $varName] ? [set $varName] : ""}]
+                catch {set $varName} message
                 puts $handle "$now - [format %-12s $varName] : $message"
             }
         } else {
