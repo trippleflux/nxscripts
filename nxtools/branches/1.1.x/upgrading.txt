@@ -3,6 +3,7 @@
 ################################################################################
 
 1.1.0 -> 1.1.1
+ - Replace ioFTPD\scripts\nxLib.tcl with the included one.
  - Replace all Tcl files in ioFTPD\scripts\nxTools\.
  - New config option: pre(IgnoreFiles).
 
