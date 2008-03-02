@@ -89,19 +89,18 @@ proc ::nxTools::Dupe::UpdateDirs {command virtualPath} {
         return 1
     }
     set dirName [file tail $virtualPath]
-    set dirPath [file dirname $virtualPath]
-
-    # Append a slash to improve the accuracy of StrCaseEqN.
-    # For example, /Dir/Blah matches /Dir/Blah.Blah but /Dir/Blah/ does not.
-    append dirPath "/"
-    append virtualPath "/"
+    set dirPath [GetParentPath $virtualPath]
 
     if {$command eq "MKD"  || $command eq "RNTO"} {
         set timeStamp [clock seconds]
         DirDb eval {INSERT INTO DupeDirs(TimeStamp,UserName,GroupName,DirPath,DirName) VALUES($timeStamp,$user,$group,$dirPath,$dirName)}
     } elseif {[lsearch -sorted {RMD RNFR WIPE} $command] != -1} {
+        # Append a slash to improve the accuracy of StrCaseEqN.
+        # For example, /Dir/Blah matches /Dir/Blah.Blah but /Dir/Blah/ does not.
+        append virtualPath "/"
         DirDb eval {DELETE FROM DupeDirs WHERE StrCaseEqN(DirPath,$virtualPath,length($virtualPath)) OR (StrCaseEq(DirPath,$dirPath) AND StrCaseEq(DirName,$dirName))}
     }
+
     DirDb close
     return 0
 }
@@ -112,8 +111,8 @@ proc ::nxTools::Dupe::UpdateFiles {command virtualPath} {
         ErrorLog DupeUpdateFiles $error
         return 1
     }
-    set filePath [file dirname $virtualPath]
     set fileName [file tail $virtualPath]
+    set filePath [GetParentPath $virtualPath]
 
     if {$command eq "UPLD" || $command eq "RNTO"} {
         set timeStamp [clock seconds]
@@ -121,6 +120,7 @@ proc ::nxTools::Dupe::UpdateFiles {command virtualPath} {
     } elseif {$command eq "DELE" || $command eq "RNFR"} {
         FileDb eval {DELETE FROM DupeFiles WHERE StrCaseEq(FileName,$fileName)}
     }
+
     FileDb close
     return 0
 }
@@ -292,9 +292,9 @@ proc ::nxTools::Dupe::RebuildAddDir {name path} {
     }
 
     # Insert directory into database.
-    set vpath [file dirname $vpath]; append vpath "/"
+    set parentPath [GetParentPath $vpath]
     DirDb eval {INSERT INTO DupeDirs(TimeStamp,UserName,GroupName,DirPath,DirName) \
-        VALUES($stat(ctime),$userName,$groupName,$vpath,$name)}
+        VALUES($stat(ctime),$userName,$groupName,$parentPath,$name)}
 
     incr rebuild(DirCount)
 }
@@ -326,9 +326,9 @@ proc ::nxTools::Dupe::RebuildAddFile {name path} {
     }
 
     # Insert file into database.
-    set vpath [file dirname $vpath]; append vpath "/"
+    set parentPath [GetParentPath $vpath]
     FileDb eval {INSERT INTO DupeFiles(TimeStamp,UserName,GroupName,FilePath,FileName) \
-        VALUES($stat(ctime),$userName,$groupName,$vpath,$name)}
+        VALUES($stat(ctime),$userName,$groupName,$parentPath,$name)}
 
     incr rebuild(FileCount)
 }
