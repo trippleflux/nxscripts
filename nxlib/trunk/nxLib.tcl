@@ -254,6 +254,14 @@ proc ::nxLib::GetPath {path workingPath} {
     return "/[join $components /]"
 }
 
+proc ::nxLib::GetParentPath {path} {
+    set parent [file dirname $path]
+    if {[string index $parent end] ne "/"} {
+        append parent "/"
+    }
+    return $parent
+}
+
 proc ::nxLib::IsDiskPath {path} {
     set path [string tolower [file tail $path]]
     return [regexp -- {^(cd|dis[ck]|dvd)\d{1,2}$} $path]
