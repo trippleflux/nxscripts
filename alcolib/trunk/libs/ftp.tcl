@@ -438,8 +438,8 @@ proc ::Ftp::Handler {handle {direct 0}} {
         Shutdown $handle "server closed connection"
         return
     } elseif {!$direct} {
-        # No response from the server. Return if the handler was not
-        # invoked directly (i.e. not by a channel writable event).
+        # No response from the server. Return if the handler was invoked
+        # indirectly (i.e. by a channel writable event).
         return
     }
     Debug $ftp(debug) FtpHandler "Reply code \"$replyCode\" and message \"$message\"."
