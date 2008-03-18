@@ -370,7 +370,7 @@ proc ::Config::Unset {handle section {key ""}} {
 # Validate and acquire a configuration handle.
 #
 proc ::Config::Acquire {handle handleVar} {
-    if {![regexp -- {config\d+} $handle] || ![array exists ::Config::$handle]} {
+    if {![regexp -- {^config\d+$} $handle] || ![array exists ::Config::$handle]} {
         error "invalid config handle \"$handle\""
     }
     uplevel 1 [list upvar ::Config::$handle $handleVar]

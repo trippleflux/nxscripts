@@ -314,7 +314,7 @@ proc ::Db::QuoteString {handle args} {
 # Validate and acquire a database handle.
 #
 proc ::Db::Acquire {handle handleVar} {
-    if {![regexp -- {db\d+} $handle] || ![array exists ::Db::$handle]} {
+    if {![regexp -- {^db\d+$} $handle] || ![array exists ::Db::$handle]} {
         error "invalid database handle \"$handle\""
     }
     uplevel 1 [list upvar ::Db::$handle $handleVar]
