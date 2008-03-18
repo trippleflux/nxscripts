@@ -254,7 +254,7 @@ proc ::Ftp::Command {handle command {callback ""}} {
 
     # If the queue has only one event, invoke the handler directly.
     if {[llength $queue] == 1} {
-        Handler $handle 1
+        Handler $handle
     }
     return
 }
@@ -379,7 +379,7 @@ proc ::Ftp::Verify {handle} {
 
     # Set channel options and event handlers.
     fconfigure $ftp(sock) -buffering line -blocking 0 -translation {auto crlf}
-    fileevent $ftp(sock) readable [list ::Ftp::Handler $handle]
+    fileevent $ftp(sock) readable [list ::Ftp::Handler $handle 1]
 }
 
 ####
@@ -387,9 +387,9 @@ proc ::Ftp::Verify {handle} {
 #
 # FTP client event handler.
 #
-proc ::Ftp::Handler {handle {direct 0}} {
+proc ::Ftp::Handler {handle {isFileEvent 0}} {
     upvar ::Ftp::$handle ftp
-    if {![info exists ftp] || $ftp(sock) eq ""} {return}
+    if {![info exists ftp] || $ftp(sock) eq ""} {return 0}
 
     set replyCode 0
     set replyBase 0
@@ -436,11 +436,10 @@ proc ::Ftp::Handler {handle {direct 0}} {
     } elseif {[eof $ftp(sock)]} {
         # The remote server has closed the control connection.
         Shutdown $handle "server closed connection"
-        return
-    } elseif {!$direct} {
-        # No response from the server. Return if the handler was invoked
-        # indirectly (i.e. by a channel writable event).
-        return
+        return 0
+    } elseif {$isFileEvent} {
+        Debug $ftp(debug) FtpHandler "No response from server, returning."
+        return 0
     }
     Debug $ftp(debug) FtpHandler "Reply code \"$replyCode\" and message \"$message\"."
 
@@ -455,7 +454,7 @@ proc ::Ftp::Handler {handle {direct 0}} {
 
     if {![llength $ftp(queue)]} {
         Debug $ftp(debug) FtpHandler "Empty event queue, returning."
-        return
+        return 0
     }
     set nextEvent 0
 
@@ -476,7 +475,7 @@ proc ::Ftp::Handler {handle {direct 0}} {
                 set ftp(queue) [linsert $ftp(queue) 0 auth_sent]
             } else {
                 Shutdown $handle "unable to login - $message"
-                return
+                return 0
             }
         }
         auth_sent {
@@ -484,7 +483,7 @@ proc ::Ftp::Handler {handle {direct 0}} {
             if {$replyBase == 2} {
                 if {[catch {tls::import $ftp(sock) -ssl2 1 -ssl3 1 -tls1 1} message]} {
                     Shutdown $handle "SSL negotiation failed - $message"
-                    return
+                    return 0
                 }
                 # Set channel options again, in case the TLS module changes them.
                 fconfigure $ftp(sock) -buffering line -blocking 0 -translation {auto crlf}
@@ -493,7 +492,7 @@ proc ::Ftp::Handler {handle {direct 0}} {
                 set ftp(queue) [linsert $ftp(queue) 0 user]
             } else {
                 Shutdown $handle "unable to login - $message"
-                return
+                return 0
             }
         }
         user {
@@ -503,7 +502,7 @@ proc ::Ftp::Handler {handle {direct 0}} {
                 set ftp(queue) [linsert $ftp(queue) 0 user_sent]
             } else {
                 Shutdown $handle "unable to login - $message"
-                return
+                return 0
             }
         }
         user_sent {
@@ -513,7 +512,7 @@ proc ::Ftp::Handler {handle {direct 0}} {
                 set ftp(queue) [linsert $ftp(queue) 0 pass_sent]
             } else {
                 Shutdown $handle "unable to login - $message"
-                return
+                return 0
             }
         }
         pass_sent {
@@ -524,7 +523,7 @@ proc ::Ftp::Handler {handle {direct 0}} {
                 set nextEvent 1
             } else {
                 Shutdown $handle "unable to login - $message"
-                return
+                return 0
             }
         }
         quote {
@@ -543,9 +542,16 @@ proc ::Ftp::Handler {handle {direct 0}} {
     }
 
     if {$nextEvent} {
-        # Proceed to the next event (recursion).
-        Handler $handle
+        # Process the remaining events.
+        while {[llength $ftp(queue)]} {
+            if {[Handler $handle]} {
+                Debug $ftp(debug) FtpHandler "Successfully processed queued event."
+            } else {
+                Debug $ftp(debug) FtpHandler "Unable to process queued event."
+            }
+        }
     }
+    return 1
 }
 
 package provide alco::ftp 1.2.0
