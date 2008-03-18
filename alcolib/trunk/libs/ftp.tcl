@@ -269,7 +269,7 @@ proc ::Ftp::Command {handle command {callback ""}} {
 # Validate and acquire a FTP handle.
 #
 proc ::Ftp::Acquire {handle handleVar} {
-    if {![regexp -- {ftp\d+} $handle] || ![array exists ::Ftp::$handle]} {
+    if {![regexp -- {^ftp\d+$} $handle] || ![array exists ::Ftp::$handle]} {
         error "invalid ftp handle \"$handle\""
     }
     uplevel 1 [list upvar ::Ftp::$handle $handleVar]
