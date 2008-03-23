@@ -8,6 +8,7 @@ nxTools v1.1.1 (Not released):
   CHG: Updated dupe file ignore patterns.
   FIX: Debug logging function would error when reading array variables.
   FIX: Dupe rebuilds did not append a trailing slash to virtual paths.
+  FIX: Rewrote the open/close feature to workaround a bug in ioFTPD v6.x.
 
 nxTools v1.1.0 (Feb 10, 2008):
   NEW: Dupe database format has changed; read the upgrading instructions.

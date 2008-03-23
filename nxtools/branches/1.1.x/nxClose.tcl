@@ -24,7 +24,7 @@ namespace eval ::nxTools::Close {
 # Close Procedures
 ######################################################################
 
-proc ::nxTools::Close::ExcemptCheck {userName groupName flags} {
+proc ::nxTools::Close::IsExempt {userName groupName flags} {
     global close
     if {[MatchFlags $close(Flags) $flags] || \
         [lsearch -exact $close(UserNames) $userName] != -1 || \
@@ -32,60 +32,95 @@ proc ::nxTools::Close::ExcemptCheck {userName groupName flags} {
     return 0
 }
 
+proc ::nxTools::Close::OnLogin {} {
+    global close flags group user
+
+    # Check if the site is closed.
+    if {[catch {set closeInfo [::nx::key get siteClosed]} message]} {
+        return 0
+    }
+
+    # Site is closed, check if the user is exempt.
+    if {[IsExempt $user $group $flags]} {
+        return 0
+    }
+
+    # User is not exempt, deny the login attempt.
+    set duration [expr {[clock seconds] - [lindex $closeInfo 0]}]
+    iputs -nobuffer "530 Server Closed: [lindex $closeInfo 1] (since [FormatDuration $duration] ago)"
+    return 1
+}
+
+proc ::nxTools::Close::SiteClose {argList} {
+    global close group user
+    set result 0
+    iputs ".-\[Close\]-----------------------------------------------------------------."
+
+    if {[catch {set closeInfo [::nx::key get siteClosed]} message]} {
+        set reason [join $argList]
+        if {$reason eq ""} {set reason "no reason"}
+        ::nx::key set siteClosed [list [clock seconds] $reason]
+
+        LinePuts "Server is now closed for: $reason"
+        putlog "CLOSE: \"$user\" \"$group\" \"$reason\""
+
+        # Kick online users.
+        if {[IsTrue $close(KickOnClose)] && [client who init "CID" "UID"] == 0} {
+            while {[set whoData [client who fetch]] ne ""} {
+                set userName [resolve uid [lindex $whoData 1]]
+                GetUserInfo $userName groupName flags
+
+                if {![IsExempt $userName $groupName $flags]} {
+                    catch {client kill clientid [lindex $whoData 0]}
+                }
+            }
+        }
+    } else {
+        LinePuts "Server is currently closed, use \"SITE OPEN\" to open it."
+        set result 1
+    }
+
+    iputs "'------------------------------------------------------------------------'"
+    return $result
+}
+
+proc ::nxTools::Close::SiteOpen {} {
+    global group user
+    set result 0
+    iputs ".-\[Open\]-----------------------------------------------------------------."
+
+    if {[catch {set closeInfo [::nx::key get siteClosed]} message]} {
+        LinePuts "Server is already open, use \"SITE CLOSE \[reason\]\" to close it."
+        set result 1
+    } else {
+        set duration [expr {[clock seconds] - [lindex $closeInfo 0]}]
+        LinePuts "Server is now open, closed for [FormatDuration $duration]."
+        putlog "OPEN: \"$user\" \"$group\" \"$duration\" \"[lindex $closeInfo 1]\""
+        ::nx::key unset -nocomplain siteClosed
+    }
+
+    iputs "'------------------------------------------------------------------------'"
+    return $result
+}
+
 # Close Main
 ######################################################################
 
 proc ::nxTools::Close::Main {argv} {
-    global close misc flags group ioerror user
+    global ioerror
     set result 0
 
     set argList [ListParse $argv]
     set event [string toupper [lindex $argList 0]]
     switch -- $event {
         CLOSE {
-            iputs ".-\[Close\]-----------------------------------------------------------------."
-            if {[catch {set closeInfo [::nx::key get siteClosed]}]} {
-                set reason [join [lrange $argList 1 end]]
-                if {$reason eq ""} {set reason "No Reason"}
-                ::nx::key set siteClosed [list [clock seconds] $reason]
-
-                LinePuts "Server is now closed for: $reason."
-                putlog "CLOSE: \"$user\" \"$group\" \"$reason\""
-
-                # Kick online users.
-                if {[IsTrue $close(KickOnClose)] && [client who init "CID" "UID"] == 0} {
-                    while {[set whoData [client who fetch]] ne ""} {
-                        set userName [resolve uid [lindex $whoData 1]]
-                        GetUserInfo $userName groupName flags
-
-                        if {![ExcemptCheck $userName $groupName $flags]} {
-                            catch {client kill clientid [lindex $whoData 0]}
-                        }
-                    }
-                }
-            } else {
-                LinePuts "Server is currently closed, use \"SITE OPEN\" to open it."
-            }
-            iputs "'------------------------------------------------------------------------'"
+            set result [SiteClose [lrange $argList 1 end]]
         }
         LOGIN {
-            if {![ExcemptCheck $user $group $flags] && ![catch {set closeInfo [::nx::key get siteClosed]}]} {
-                set duration [expr {[clock seconds] - [lindex $closeInfo 0]}]
-                iputs -nobuffer "530 Server Closed: [lindex $closeInfo 1] (since [FormatDuration $duration] ago)"
-                set result 1
-            }
+            set result [OnLogin]
         }
         OPEN {
-            iputs ".-\[Open\]-----------------------------------------------------------------."
-            if {[catch {set closeInfo [::nx::key get siteClosed]}]} {
-                LinePuts "Server is currently open, use \"SITE CLOSE \[reason\]\" to close it."
-            } else {
-                set duration [expr {[clock seconds] - [lindex $closeInfo 0]}]
-                LinePuts "Server is now open, closed for [FormatDuration $duration]."
-                putlog "OPEN: \"$user\" \"$group\" \"$duration\" \"[lindex $closeInfo 1]\""
-                ::nx::key unset -nocomplain siteClosed
-            }
-            iputs "'------------------------------------------------------------------------'"
+            set result [SiteOpen]
         }
         default {
             ErrorLog InvalidArgs "unknown event \"[info script] $event\": check your ioFTPD.ini for errors"
