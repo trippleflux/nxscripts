@@ -2,6 +2,9 @@
 #                             nxTools - Change Log                             #
 ################################################################################
 
+nxTools v1.1.2 (Not released):
+  FIX: Dupe rebuilds ignored directories older than "dupe(CleanDirs)".
+
 nxTools v1.1.1 (Mar 22, 2008):
   NEW: Extended help information for "SITE EDITPRE HELP VIEW".
   NEW: Ignore defined file extensions when calculating the file count and size of a pre.
