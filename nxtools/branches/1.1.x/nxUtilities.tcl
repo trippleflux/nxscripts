@@ -115,8 +115,8 @@ proc ::nxTools::Utils::NewDate {findArea} {
 
         # Format cookies and directory paths.
         set areaTime [expr {$timeNow + ($dayOffset * 86400)}]
-        set virtualPath [clock format $areaTime -format $virtualPath -gmt [IsTrue $misc(UtcTime)]]
-        set realPath [clock format $areaTime -format $realPath -gmt [IsTrue $misc(UtcTime)]]
+        set realPath [DateCookies $realPath $areaTime]
+        set virtualPath [DateCookies $virtualPath $areaTime]
 
         if {[file isdirectory $realPath] || ![catch {file mkdir $realPath} error]} {
             LinePuts "Created directory: $realPath"
@@ -179,15 +179,15 @@ proc ::nxTools::Utils::RotateLogs {} {
     set timeNow [clock seconds]
     switch -- [string tolower $log(Frequency)] {
         month - monthly {
-            set dateFormat "%Y-%m"
-            if {[clock format $timeNow -format "%d"] eq "01"} {set doRotate 1}
+            set dateFormat "%Y-%M"
+            if {[clock format $timeNow -format "%e"] eq "1"} {set doRotate 1}
         }
         week - weekly {
-            set dateFormat "%Y-Week%V"
+            set dateFormat "%Y-Week%W"
             if {[clock format $timeNow -format "%w"] eq "0"} {set doRotate 1}
         }
         day - daily {
-            set dateFormat "%Y-%m-%d"
+            set dateFormat "%Y-%M-%D"
             set doRotate 1
         }
         default {ErrorLog RotateLogs "invalid log rotation frequency: must be montly, weekly, or daily"}

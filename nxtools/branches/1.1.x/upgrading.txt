@@ -2,8 +2,10 @@
 #                             nxTools - Upgrading                              #
 ################################################################################
 
-1.1.2 -> 1.1.2
+1.1.1 -> 1.1.2
+ - Replace ioFTPD\scripts\nxLib.tcl with the included one.
  - Replace all Tcl files in ioFTPD\scripts\nxTools\.
+ - Update date cookies in the pre paths and newdate paths.
 
 1.1.0 -> 1.1.1
  - Replace ioFTPD\scripts\nxLib.tcl with the included one.

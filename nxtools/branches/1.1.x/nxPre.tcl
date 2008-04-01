@@ -373,9 +373,10 @@ proc ::nxTools::Pre::Edit {argList} {
                     LinePuts " - Date cookies can be given for dated dirs."
                     LinePuts " - Some FTP clients may interpret cookies as commands (FlashFXP & %d)."
                     LinePuts "Date Cookies:"
-                    LinePuts " %d - Day     %y - Year (04)"
-                    LinePuts " %V - Week    %Y - Year (2004)"
-                    LinePuts " %m - Month   %% - Percent Sign"
+                    LinePuts " %d - Day   (1-31)   %D - Day w/padding   (01-31)"
+                    LinePuts " %w - Week  (1-53)   %W - Week w/padding  (01-53)"
+                    LinePuts " %m - Month (1-12)   %M - Month w/padding (01-12)"
+                    LinePuts " %y - Year  (04)     %Y - Year w/century  (2004)"
                     LinePuts "Syntax : SITE EDITPRE ADDAREA <area> <path> \[date cookie(s)\]"
                     LinePuts "Example: SITE EDITPRE ADDAREA 0DAY /0DAY/ %m%d"
                 }
@@ -546,7 +547,7 @@ proc ::nxTools::Pre::Release {argList} {
     # Find destination path.
     set destRealPath $preArea($area)
     set preTime [clock seconds]
-    set destRealPath [clock format $preTime -format $destRealPath -gmt [IsTrue $misc(UtcTime)]]
+    set destRealPath [DateCookies $destRealPath $preTime]
     if {![file isdirectory $destRealPath]} {
         LinePuts "The pre destination path for the \"$area\" area does not exist."
         LinePuts "Note: If the area uses dated dirs, check that today's date dir exists."
