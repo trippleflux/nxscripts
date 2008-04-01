@@ -4,6 +4,7 @@
 
 nxTools v1.1.2 (Not released):
   FIX: Dupe rebuilds ignored directories older than "dupe(CleanDirs)".
+  FIX: Use "%V" instead of "%W" for week date cookies.
 
 nxTools v1.1.1 (Mar 22, 2008):
   NEW: Extended help information for "SITE EDITPRE HELP VIEW".

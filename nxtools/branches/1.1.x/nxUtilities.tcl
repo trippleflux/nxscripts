@@ -183,7 +183,7 @@ proc ::nxTools::Utils::RotateLogs {} {
             if {[clock format $timeNow -format "%d"] eq "01"} {set doRotate 1}
         }
         week - weekly {
-            set dateFormat "%Y-Week%W"
+            set dateFormat "%Y-Week%V"
             if {[clock format $timeNow -format "%w"] eq "0"} {set doRotate 1}
         }
         day - daily {

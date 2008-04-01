@@ -374,7 +374,7 @@ proc ::nxTools::Pre::Edit {argList} {
                     LinePuts " - Some FTP clients may interpret cookies as commands (FlashFXP & %d)."
                     LinePuts "Date Cookies:"
                     LinePuts " %d - Day     %y - Year (04)"
-                    LinePuts " %W - Week    %Y - Year (2004)"
+                    LinePuts " %V - Week    %Y - Year (2004)"
                     LinePuts " %m - Month   %% - Percent Sign"
                     LinePuts "Syntax : SITE EDITPRE ADDAREA <area> <path> \[date cookie(s)\]"
                     LinePuts "Example: SITE EDITPRE ADDAREA 0DAY /0DAY/ %m%d"
