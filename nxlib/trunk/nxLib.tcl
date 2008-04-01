@@ -116,17 +116,20 @@ proc ::nxLib::DbToLike {pattern} {
 # File and Directory Procedures
 ######################################################################
 
-proc ::nxLib::ArchiveFile {filePath {formatStyle "%Y-%m-%d"}} {
+proc ::nxLib::ArchiveFile {filePath {dateFormat "%Y-%M-%D"}} {
     global log
     if {![file isdirectory $log(ArchivePath)]} {
         if {[catch {file mkdir $log(ArchivePath)} error]} {
-            ErrorLog ArchiveMkDir $error; return 0
+            ErrorLog ArchiveMkDir $error
+            return 0
         }
     }
-    set datePrefix [clock format [clock seconds] -format $formatStyle -gmt 0]
+
+    set datePrefix [DateCookies $dateFormat]
     set archivePath [file join $log(ArchivePath) "$datePrefix.[file tail $filePath]"]
     if {[catch {file rename -- $filePath $archivePath} error]} {
-        ErrorLog ArchiveFile $error; return 0
+        ErrorLog ArchiveFile $error
+        return 0
     }
     return 1
 }
@@ -671,6 +674,32 @@ proc ::nxLib::ReadFile {filePath} {
         close $handle
     } else {ErrorLog ReadFile $error}
     return $data
+}
+
+proc ::nxLib::DateCookies {input {clockVal ""}} {
+    global misc
+    if {![string is digit -strict $clockVal]} {
+        set clockVal [clock seconds]
+    }
+    set values [clock format $clockVal -format {{%d} {%W} {%m} {%y} {%Y}} -gmt [IsTrue $misc(UtcTime)]]
+    foreach {dayPadded weekPadded monthPadded yearShort yearLong} $values {break}
+
+    # Remove zero-padding
+    set day   [scan $dayPadded "%d"]
+    set week  [scan $weekPadded "%d"]
+    set month [scan $monthPadded "%d"]
+
+    # Correct week number
+    incr week
+    set weekPadded [format "%02d" $week]
+
+    # Create substituion mapping
+    set mapping [list "%%" "%"]
+    lappend mapping "%d" $day "%D" $dayPadded
+    lappend mapping "%w" $week "%W" $weekPadded
+    lappend mapping "%m" $month "%M" $monthPadded
+    lappend mapping "%y" $yearShort "%Y" $yearLong
+    return [string map $mapping $input]
 }
 
 proc ::nxLib::ParseCookies {input valueList cookieList} {
