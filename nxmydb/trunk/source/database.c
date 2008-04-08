@@ -656,13 +656,13 @@ static DWORD SyncGetTime(DB_CONTEXT *db, ULONG *timePtr)
 
     result = mysql_stmt_prepare(stmt, query, strlen(query));
     if (result != 0) {
-        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to prepare statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     metadata = mysql_stmt_result_metadata(stmt);
     if (metadata == NULL) {
-        TRACE("Unable to retrieve result metadata: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to retrieve result metadata: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -685,19 +685,19 @@ static DWORD SyncGetTime(DB_CONTEXT *db, ULONG *timePtr)
 
     result = mysql_stmt_bind_result(stmt, bind);
     if (result != 0) {
-        TRACE("Unable to bind results: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to bind results: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     result = mysql_stmt_store_result(stmt);
     if (result != 0) {
-        TRACE("Unable to buffer results: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to buffer results: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     result = mysql_stmt_fetch(stmt);
     if (result != 0) {
-        TRACE("Unable to fetch results: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to fetch results: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 

@@ -32,7 +32,7 @@ static DWORD UserEventCreate(CHAR *userName, USERFILE *userFile)
     mod = MemAllocate(sizeof(MOD_CONTEXT));
     if (mod == NULL) {
         result = ERROR_NOT_ENOUGH_MEMORY;
-        TRACE("Unable to allocate module context.");
+        LOG_ERROR("Unable to allocate memory for module context.");
 
     } else {
         // Initialize MOD_CONTEXT structure
@@ -88,7 +88,7 @@ static DWORD UserEventDeleteEx(CHAR *userName, INT32 userId)
     // Delete user file (success does not matter)
     result = FileUserDelete(userId);
     if (result != ERROR_SUCCESS) {
-        TRACE("Unable to delete user file (error %lu).", result);
+        TRACE("Unable to delete user file for \"%s\" (error %lu).", userName, result);
     }
 
     // Unregister user
@@ -173,13 +173,13 @@ static DWORD UserSyncFull(DB_CONTEXT *db)
 
     result = mysql_stmt_prepare(stmt, query, strlen(query));
     if (result != 0) {
-        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to prepare statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     metadata = mysql_stmt_result_metadata(stmt);
     if (metadata == NULL) {
-        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to retrieve result metadata: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -266,13 +266,13 @@ static DWORD UserSyncFull(DB_CONTEXT *db)
 
     result = mysql_stmt_bind_result(stmt, bind);
     if (result != 0) {
-        TRACE("Unable to bind results: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to bind results: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     result = mysql_stmt_store_result(stmt);
     if (result != 0) {
-        TRACE("Unable to buffer results: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to buffer results: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -371,7 +371,7 @@ static DWORD UserSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     result = mysql_stmt_prepare(stmt, query, strlen(query));
     if (result != 0) {
-        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to prepare statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -388,13 +388,13 @@ static DWORD UserSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     result = mysql_stmt_bind_param(stmt, bindInput);
     if (result != 0) {
-        TRACE("Unable to bind parameters: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to bind parameters: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     metadata = mysql_stmt_result_metadata(stmt);
     if (metadata == NULL) {
-        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to retrieve result metadata: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -429,13 +429,13 @@ static DWORD UserSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     result = mysql_stmt_bind_result(stmt, bindOutput);
     if (result != 0) {
-        TRACE("Unable to bind results: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to bind results: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     result = mysql_stmt_store_result(stmt);
     if (result != 0) {
-        TRACE("Unable to buffer results: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to buffer results: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -524,7 +524,7 @@ static DWORD UserSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     result = mysql_stmt_prepare(stmt, query, strlen(query));
     if (result != 0) {
-        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to prepare statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -541,13 +541,13 @@ static DWORD UserSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     result = mysql_stmt_bind_param(stmt, bindInput);
     if (result != 0) {
-        TRACE("Unable to bind parameters: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to bind parameters: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     metadata = mysql_stmt_result_metadata(stmt);
     if (metadata == NULL) {
-        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to retrieve result metadata: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -638,13 +638,13 @@ static DWORD UserSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 
     result = mysql_stmt_bind_result(stmt, bindOutput);
     if (result != 0) {
-        TRACE("Unable to bind results: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to bind results: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     result = mysql_stmt_store_result(stmt);
     if (result != 0) {
-        TRACE("Unable to buffer results: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to buffer results: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
