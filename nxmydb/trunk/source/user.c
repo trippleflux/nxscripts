@@ -161,7 +161,8 @@ static INT UserRename(CHAR *userName, INT32 userId, CHAR *newName)
     // Rename database record
     result = DbUserRename(db, userName, newName);
     if (result != ERROR_SUCCESS) {
-        LOG_WARN("Unable to rename user database record (error %lu).", result);
+        LOG_ERROR("Unable to rename user database record from \"%s\" to \"%s\" (error %lu).",
+            userName, newName, result);
 
     } else {
         // Register user under the new name
@@ -188,13 +189,13 @@ static INT UserDelete(CHAR *userName, INT32 userId)
     // Delete user file (success does not matter)
     result = FileUserDelete(userId);
     if (result != ERROR_SUCCESS) {
-        LOG_WARN("Unable to delete user file (error %lu).", result);
+        LOG_ERROR("Unable to delete user file for \"%s\" (error %lu).", userName, result);
     }
 
     // Delete database record
     result = DbUserDelete(db, userName);
     if (result != ERROR_SUCCESS) {
-        LOG_WARN("Unable to delete user database record (error %lu).", result);
+        LOG_ERROR("Unable to delete user database record for \"%s\" (error %lu).", userName, result);
 
     } else {
         // Unregister user
@@ -228,7 +229,7 @@ static INT UserLock(USERFILE *userFile)
         // Lock user
         result = DbUserLock(db, userName, userFile);
         if (result != ERROR_SUCCESS) {
-            LOG_WARN("Unable to lock user (error %lu).", result);
+            LOG_ERROR("Unable to lock user \"%s\" (error %lu).", userName, result);
         }
     }
 
@@ -259,7 +260,7 @@ static INT UserUnlock(USERFILE *userFile)
         // Unlock user
         result = DbUserUnlock(db, userName);
         if (result != ERROR_SUCCESS) {
-            LOG_WARN("Unable to unlock user (error %lu).", result);
+            LOG_ERROR("Unable to unlock user \"%s\" (error %lu).", userName, result);
         }
     }
 
@@ -296,13 +297,13 @@ static INT UserOpen(CHAR *userName, USERFILE *userFile)
         // Open user file
         result = FileUserOpen(userFile->Uid, userFile);
         if (result != ERROR_SUCCESS) {
-            LOG_WARN("Unable to open user file (error %lu).", result);
+            LOG_WARN("Unable to open user file for \"%s\" (error %lu).", userName, result);
         } else {
 
             // Read database record
             result = DbUserOpen(db, userName, userFile);
             if (result != ERROR_SUCCESS) {
-                LOG_WARN("Unable to open user database record (error %lu).", result);
+                LOG_WARN("Unable to open user database record for \"%s\" (error %lu).", userName, result);
 
                 // Clean-up user file
                 FileUserClose(userFile);
@@ -338,22 +339,22 @@ static INT UserWrite(USERFILE *userFile)
         return UM_ERROR;
     }
 
-    // Update user file (success does not matter)
-    result = FileUserWrite(userFile);
-    if (result != ERROR_SUCCESS) {
-        LOG_WARN("Unable to write user file (error %lu).", result);
-    }
-
     // Resolve user ID to user name
     userName = Io_Uid2User(userFile->Uid);
     if (userName == NULL) {
         result = ERROR_ID_NOT_FOUND;
 
     } else {
+        // Update user file (success does not matter)
+        result = FileUserWrite(userFile);
+        if (result != ERROR_SUCCESS) {
+            LOG_WARN("Unable to write user file for \"%s\" (error %lu).", userName, result);
+        }
+
         // Update user database record
         result = DbUserWrite(db, userName, userFile);
         if (result != ERROR_SUCCESS) {
-            LOG_WARN("Unable to write user database record (error %lu).", result);
+            LOG_WARN("Unable to write user database record for \"%s\" (error %lu).", userName, result);
         }
     }
 

@@ -52,7 +52,7 @@ DWORD DbGroupRead(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFilePtr)
 
     result = mysql_stmt_prepare(stmt, query, strlen(query));
     if (result != 0) {
-        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to prepare statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -65,13 +65,13 @@ DWORD DbGroupRead(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFilePtr)
 
     result = mysql_stmt_bind_param(stmt, bindInput);
     if (result != 0) {
-        TRACE("Unable to bind parameters: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to bind parameters: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     metadata = mysql_stmt_result_metadata(stmt);
     if (metadata == NULL) {
-        TRACE("Unable to retrieve result metadata: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to retrieve result metadata: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -109,19 +109,19 @@ DWORD DbGroupRead(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFilePtr)
 
     result = mysql_stmt_bind_result(stmt, bindOutput);
     if (result != 0) {
-        TRACE("Unable to bind results: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to bind results: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     result = mysql_stmt_store_result(stmt);
     if (result != 0) {
-        TRACE("Unable to buffer results: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to buffer results: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
     result = mysql_stmt_fetch(stmt);
     if (result != 0) {
-        TRACE("Unable to fetch results: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to fetch results: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -171,7 +171,7 @@ DWORD DbGroupCreate(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 
     result = mysql_stmt_prepare(stmtGroup, query, strlen(query));
     if (result != 0) {
-        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmtGroup));
+        LOG_WARN("Unable to prepare statement: %s", mysql_stmt_error(stmtGroup));
         return DbMapErrorFromStmt(stmtGroup);
     }
 
@@ -199,7 +199,7 @@ DWORD DbGroupCreate(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 
     result = mysql_stmt_bind_param(stmtGroup, bindGroup);
     if (result != 0) {
-        TRACE("Unable to bind parameters: %s", mysql_stmt_error(stmtGroup));
+        LOG_WARN("Unable to bind parameters: %s", mysql_stmt_error(stmtGroup));
         return DbMapErrorFromStmt(stmtGroup);
     }
 
@@ -213,7 +213,7 @@ DWORD DbGroupCreate(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 
     result = mysql_stmt_prepare(stmtChanges, query, strlen(query));
     if (result != 0) {
-        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmtChanges));
+        LOG_WARN("Unable to prepare statement: %s", mysql_stmt_error(stmtChanges));
         return DbMapErrorFromStmt(stmtChanges);
     }
 
@@ -233,7 +233,7 @@ DWORD DbGroupCreate(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 
     result = mysql_stmt_bind_param(stmtChanges, bindChanges);
     if (result != 0) {
-        TRACE("Unable to bind parameters: %s", mysql_stmt_error(stmtChanges));
+        LOG_WARN("Unable to bind parameters: %s", mysql_stmt_error(stmtChanges));
         return DbMapErrorFromStmt(stmtChanges);
     }
 
@@ -243,7 +243,7 @@ DWORD DbGroupCreate(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 
     result = mysql_query(db->handle, "START TRANSACTION");
     if (result != 0) {
-        TRACE("Unable to start transaction: %s", mysql_error(db->handle));
+        LOG_WARN("Unable to start transaction: %s", mysql_error(db->handle));
         return DbMapErrorFromConn(db->handle);
     }
 
@@ -329,7 +329,7 @@ DWORD DbGroupRename(DB_CONTEXT *db, CHAR *groupName, CHAR *newName)
 
     result = mysql_stmt_prepare(stmtMain, query, strlen(query));
     if (result != 0) {
-        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmtMain));
+        LOG_WARN("Unable to prepare statement: %s", mysql_stmt_error(stmtMain));
         return DbMapErrorFromStmt(stmtMain);
     }
 
@@ -346,7 +346,7 @@ DWORD DbGroupRename(DB_CONTEXT *db, CHAR *groupName, CHAR *newName)
 
     result = mysql_stmt_bind_param(stmtMain, bindMain);
     if (result != 0) {
-        TRACE("Unable to bind parameters: %s", mysql_stmt_error(stmtMain));
+        LOG_WARN("Unable to bind parameters: %s", mysql_stmt_error(stmtMain));
         return DbMapErrorFromStmt(stmtMain);
     }
 
@@ -358,7 +358,7 @@ DWORD DbGroupRename(DB_CONTEXT *db, CHAR *groupName, CHAR *newName)
 
     result = mysql_stmt_prepare(stmtAdmins, query, strlen(query));
     if (result != 0) {
-        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmtAdmins));
+        LOG_WARN("Unable to prepare statement: %s", mysql_stmt_error(stmtAdmins));
         return DbMapErrorFromStmt(stmtAdmins);
     }
 
@@ -375,7 +375,7 @@ DWORD DbGroupRename(DB_CONTEXT *db, CHAR *groupName, CHAR *newName)
 
     result = mysql_stmt_bind_param(stmtAdmins, bindAdmins);
     if (result != 0) {
-        TRACE("Unable to bind parameters: %s", mysql_stmt_error(stmtAdmins));
+        LOG_WARN("Unable to bind parameters: %s", mysql_stmt_error(stmtAdmins));
         return DbMapErrorFromStmt(stmtAdmins);
     }
 
@@ -387,7 +387,7 @@ DWORD DbGroupRename(DB_CONTEXT *db, CHAR *groupName, CHAR *newName)
 
     result = mysql_stmt_prepare(stmtGroups, query, strlen(query));
     if (result != 0) {
-        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmtGroups));
+        LOG_WARN("Unable to prepare statement: %s", mysql_stmt_error(stmtGroups));
         return DbMapErrorFromStmt(stmtGroups);
     }
 
@@ -404,7 +404,7 @@ DWORD DbGroupRename(DB_CONTEXT *db, CHAR *groupName, CHAR *newName)
 
     result = mysql_stmt_bind_param(stmtGroups, bindGroups);
     if (result != 0) {
-        TRACE("Unable to bind parameters: %s", mysql_stmt_error(stmtGroups));
+        LOG_WARN("Unable to bind parameters: %s", mysql_stmt_error(stmtGroups));
         return DbMapErrorFromStmt(stmtGroups);
     }
 
@@ -418,7 +418,7 @@ DWORD DbGroupRename(DB_CONTEXT *db, CHAR *groupName, CHAR *newName)
 
     result = mysql_stmt_prepare(stmtChanges, query, strlen(query));
     if (result != 0) {
-        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmtChanges));
+        LOG_WARN("Unable to prepare statement: %s", mysql_stmt_error(stmtChanges));
         return DbMapErrorFromStmt(stmtChanges);
     }
 
@@ -442,7 +442,7 @@ DWORD DbGroupRename(DB_CONTEXT *db, CHAR *groupName, CHAR *newName)
 
     result = mysql_stmt_bind_param(stmtChanges, bindChanges);
     if (result != 0) {
-        TRACE("Unable to bind parameters: %s", mysql_stmt_error(stmtChanges));
+        LOG_WARN("Unable to bind parameters: %s", mysql_stmt_error(stmtChanges));
         return DbMapErrorFromStmt(stmtChanges);
     }
 
@@ -452,7 +452,7 @@ DWORD DbGroupRename(DB_CONTEXT *db, CHAR *groupName, CHAR *newName)
 
     result = mysql_query(db->handle, "START TRANSACTION");
     if (result != 0) {
-        TRACE("Unable to start transaction: %s", mysql_error(db->handle));
+        LOG_WARN("Unable to start transaction: %s", mysql_error(db->handle));
         return DbMapErrorFromConn(db->handle);
     }
 
@@ -511,7 +511,7 @@ DWORD DbGroupRename(DB_CONTEXT *db, CHAR *groupName, CHAR *newName)
     //
 
     if (affectedRows == 0) {
-        TRACE("Unable to rename group \"%s\" to \"%s\" (no affected rows).", groupName, newName);
+        LOG_WARN("Unable to rename group: no affected rows");
         return ERROR_GROUP_NOT_FOUND;
     }
 
@@ -560,7 +560,7 @@ DWORD DbGroupDelete(DB_CONTEXT *db, CHAR *groupName)
 
     result = mysql_stmt_prepare(stmtGroup, query, strlen(query));
     if (result != 0) {
-        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmtGroup));
+        LOG_WARN("Unable to prepare statement: %s", mysql_stmt_error(stmtGroup));
         return DbMapErrorFromStmt(stmtGroup);
     }
 
@@ -573,7 +573,7 @@ DWORD DbGroupDelete(DB_CONTEXT *db, CHAR *groupName)
 
     result = mysql_stmt_bind_param(stmtGroup, bindGroup);
     if (result != 0) {
-        TRACE("Unable to bind parameters: %s", mysql_stmt_error(stmtGroup));
+        LOG_WARN("Unable to bind parameters: %s", mysql_stmt_error(stmtGroup));
         return DbMapErrorFromStmt(stmtGroup);
     }
 
@@ -587,7 +587,7 @@ DWORD DbGroupDelete(DB_CONTEXT *db, CHAR *groupName)
 
     result = mysql_stmt_prepare(stmtChanges, query, strlen(query));
     if (result != 0) {
-        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmtChanges));
+        LOG_WARN("Unable to prepare statement: %s", mysql_stmt_error(stmtChanges));
         return DbMapErrorFromStmt(stmtChanges);
     }
 
@@ -607,7 +607,7 @@ DWORD DbGroupDelete(DB_CONTEXT *db, CHAR *groupName)
 
     result = mysql_stmt_bind_param(stmtChanges, bindChanges);
     if (result != 0) {
-        TRACE("Unable to bind parameters: %s", mysql_stmt_error(stmtChanges));
+        LOG_WARN("Unable to bind parameters: %s", mysql_stmt_error(stmtChanges));
         return DbMapErrorFromStmt(stmtChanges);
     }
 
@@ -617,7 +617,7 @@ DWORD DbGroupDelete(DB_CONTEXT *db, CHAR *groupName)
 
     result = mysql_query(db->handle, "START TRANSACTION");
     if (result != 0) {
-        TRACE("Unable to start transaction: %s", mysql_error(db->handle));
+        LOG_WARN("Unable to start transaction: %s", mysql_error(db->handle));
         return DbMapErrorFromConn(db->handle);
     }
 
@@ -659,7 +659,7 @@ DWORD DbGroupDelete(DB_CONTEXT *db, CHAR *groupName)
     //
 
     if (affectedRows == 0) {
-        TRACE("Unable to delete group \"%s\" (no affected rows).", groupName);
+        LOG_WARN("Unable to delete group: no affected rows");
         return ERROR_GROUP_NOT_FOUND;
     }
 
@@ -703,7 +703,7 @@ DWORD DbGroupLock(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 
     result = mysql_stmt_prepare(stmt, query, strlen(query));
     if (result != 0) {
-        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to prepare statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -728,7 +728,7 @@ DWORD DbGroupLock(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 
     result = mysql_stmt_bind_param(stmt, bind);
     if (result != 0) {
-        TRACE("Unable to bind parameters: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to bind parameters: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -748,7 +748,7 @@ DWORD DbGroupLock(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 
     affectedRows = mysql_stmt_affected_rows(stmt);
     if (affectedRows == 0) {
-        LOG_WARN("Unable to lock group \"%s\" (no affected rows).", groupName);
+        LOG_WARN("Unable to lock group: no affected rows");
         return ERROR_GROUP_LOCK_FAILED;
     }
 
@@ -789,7 +789,7 @@ DWORD DbGroupUnlock(DB_CONTEXT *db, CHAR *groupName)
 
     result = mysql_stmt_prepare(stmt, query, strlen(query));
     if (result != 0) {
-        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to prepare statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -806,7 +806,7 @@ DWORD DbGroupUnlock(DB_CONTEXT *db, CHAR *groupName)
 
     result = mysql_stmt_bind_param(stmt, bind);
     if (result != 0) {
-        TRACE("Unable to bind parameters: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to bind parameters: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -823,7 +823,7 @@ DWORD DbGroupUnlock(DB_CONTEXT *db, CHAR *groupName)
     affectedRows = mysql_stmt_affected_rows(stmt);
     if (affectedRows == 0) {
         // Failure is acceptable
-        TRACE("Unable to unlock group (no affected rows).");
+        LOG_WARN("Unable to unlock group: no affected rows");
     }
 
     return ERROR_SUCCESS;
@@ -866,7 +866,7 @@ DWORD DbGroupWrite(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 
     result = mysql_stmt_prepare(stmt, query, strlen(query));
     if (result != 0) {
-        TRACE("Unable to prepare statement: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to prepare statement: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 
@@ -894,7 +894,7 @@ DWORD DbGroupWrite(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
 
     result = mysql_stmt_bind_param(stmt, bind);
     if (result != 0) {
-        TRACE("Unable to bind parameters: %s", mysql_stmt_error(stmt));
+        LOG_WARN("Unable to bind parameters: %s", mysql_stmt_error(stmt));
         return DbMapErrorFromStmt(stmt);
     }
 

@@ -158,7 +158,8 @@ static INT GroupRename(CHAR *groupName, INT32 groupId, CHAR *newName)
     // Rename database record
     result = DbGroupRename(db, groupName, newName);
     if (result != ERROR_SUCCESS) {
-        LOG_WARN("Unable to rename group database record (error %lu).", result);
+        LOG_ERROR("Unable to rename group database record from \"%s\" to \"%s\"  (error %lu).",
+            groupName, newName, result);
 
     } else {
         // Register group under the new name
@@ -185,13 +186,13 @@ static INT GroupDelete(CHAR *groupName, INT32 groupId)
     // Delete group file (success does not matter)
     result = FileGroupDelete(groupId);
     if (result != ERROR_SUCCESS) {
-        LOG_WARN("Unable to delete group file (error %lu).", result);
+        LOG_ERROR("Unable to delete group file for \"%s\" (error %lu).", groupName, result);
     }
 
     // Delete database record
     result = DbGroupDelete(db, groupName);
     if (result != ERROR_SUCCESS) {
-        LOG_WARN("Unable to delete group database record (error %lu).", result);
+        LOG_ERROR("Unable to delete group database record for \"%s\" (error %lu).", groupName, result);
 
     } else {
         // Unregister group
@@ -225,7 +226,7 @@ static INT GroupLock(GROUPFILE *groupFile)
         // Lock group
         result = DbGroupLock(db, groupName, groupFile);
         if (result != ERROR_SUCCESS) {
-            LOG_WARN("Unable to lock group (error %lu).", result);
+            LOG_ERROR("Unable to lock group \"%s\" (error %lu).", groupName, result);
         }
     }
 
@@ -256,7 +257,7 @@ static INT GroupUnlock(GROUPFILE *groupFile)
         // Unlock group
         result = DbGroupUnlock(db, groupName);
         if (result != ERROR_SUCCESS) {
-            LOG_WARN("Unable to unlock group (error %lu).", result);
+            LOG_ERROR("Unable to unlock group \"%s\" (error %lu).", groupName, result);
         }
     }
 
@@ -293,13 +294,13 @@ static INT GroupOpen(CHAR *groupName, GROUPFILE *groupFile)
         // Open group file
         result = FileGroupOpen(groupFile->Gid, groupFile);
         if (result != ERROR_SUCCESS) {
-            LOG_WARN("Unable to open group file (error %lu).", result);
+            LOG_WARN("Unable to open group file for \"%s\" (error %lu).", groupName, result);
         } else {
 
             // Read database record
             result = DbGroupOpen(db, groupName, groupFile);
             if (result != ERROR_SUCCESS) {
-                LOG_WARN("Unable to open group database record (error %lu).", result);
+                LOG_WARN("Unable to open group database record for \"%s\" (error %lu).", groupName, result);
 
                 // Clean-up group file
                 FileGroupClose(groupFile);
@@ -335,22 +336,22 @@ static INT GroupWrite(GROUPFILE *groupFile)
         return GM_ERROR;
     }
 
-    // Update group file (success does not matter)
-    result = FileGroupWrite(groupFile);
-    if (result != ERROR_SUCCESS) {
-        LOG_WARN("Unable to write group file (error %lu).", result);
-    }
-
     // Resolve group ID to group name
     groupName = Io_Gid2Group(groupFile->Gid);
     if (groupName == NULL) {
         result = ERROR_ID_NOT_FOUND;
 
     } else {
+        // Update group file (success does not matter)
+        result = FileGroupWrite(groupFile);
+        if (result != ERROR_SUCCESS) {
+            LOG_WARN("Unable to write group file for \"%s\" (error %lu).", groupName, result);
+        }
+
         // Update group database record
         result = DbGroupWrite(db, groupName, groupFile);
         if (result != ERROR_SUCCESS) {
-            LOG_WARN("Unable to write group database record (error %lu).", result);
+            LOG_WARN("Unable to write group database record for \"%s\" (error %lu).", groupName, result);
         }
     }
 
