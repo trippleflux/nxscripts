@@ -85,7 +85,7 @@ static INT32 GroupCreate(CHAR *groupName)
     mod = MemAllocate(sizeof(MOD_CONTEXT));
     if (mod == NULL) {
         result = ERROR_NOT_ENOUGH_MEMORY;
-        TRACE("Unable to allocate module context.");
+        LOG_ERROR("Unable to allocate memory for module context.");
 
     } else {
         // Initialize MOD_CONTEXT structure
@@ -284,7 +284,7 @@ static INT GroupOpen(CHAR *groupName, GROUPFILE *groupFile)
     mod = MemAllocate(sizeof(MOD_CONTEXT));
     if (mod == NULL) {
         result = ERROR_NOT_ENOUGH_MEMORY;
-        TRACE("Unable to allocate module context.");
+        LOG_ERROR("Unable to allocate memory for module context.");
 
     } else {
         // Initialize MOD_CONTEXT structure

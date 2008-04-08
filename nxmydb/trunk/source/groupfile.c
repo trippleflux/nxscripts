@@ -40,7 +40,7 @@ static DWORD FileGroupRead(HANDLE file, GROUPFILE *groupFile)
     buffer = Io_Allocate(fileSize + 1);
     if (buffer == NULL) {
         result = ERROR_NOT_ENOUGH_MEMORY;
-        TRACE("Unable to allocate read buffer.");
+        LOG_ERROR("Unable to allocate memory for read buffer.");
         goto failed;
     }
 
@@ -247,7 +247,7 @@ DWORD FileGroupWrite(GROUPFILE *groupFile)
     buffer.buf    = Io_Allocate(buffer.size);
 
     if (buffer.buf == NULL) {
-        TRACE("Unable to allocate write buffer.");
+        LOG_ERROR("Unable to allocate memory for write buffer.");
         return ERROR_NOT_ENOUGH_MEMORY;
     }
 

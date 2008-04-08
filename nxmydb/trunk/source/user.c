@@ -85,7 +85,7 @@ static INT32 UserCreate(CHAR *userName)
     mod = MemAllocate(sizeof(MOD_CONTEXT));
     if (mod == NULL) {
         result = ERROR_NOT_ENOUGH_MEMORY;
-        TRACE("Unable to allocate module context.");
+        LOG_ERROR("Unable to allocate memory for module context.");
 
     } else {
         // Initialize MOD_CONTEXT structure
@@ -287,7 +287,7 @@ static INT UserOpen(CHAR *userName, USERFILE *userFile)
     mod = MemAllocate(sizeof(MOD_CONTEXT));
     if (mod == NULL) {
         result = ERROR_NOT_ENOUGH_MEMORY;
-        TRACE("Unable to allocate module context.");
+        LOG_ERROR("Unable to allocate memory for module context.");
 
     } else {
         // Initialize MOD_CONTEXT structure
