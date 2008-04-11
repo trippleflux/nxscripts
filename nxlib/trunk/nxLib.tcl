@@ -92,8 +92,8 @@ proc ::nxLib::DbOpenFile {dbProc fileName} {
 }
 
 proc ::nxLib::DbBusyHandler {tries} {
-    # Give up after 50 attempts, although it should succeed after 1-5.
-    if {$tries > 50} {return 1}
+    # Give up after 100 attempts, although it should succeed after 1-5.
+    if {$tries > 100} {return 1}
     ::nx::sleep 250
     return 0
 }
