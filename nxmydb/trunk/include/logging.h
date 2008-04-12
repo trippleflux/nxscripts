@@ -54,10 +54,10 @@ VOID  SCALL LogFileTraceV(const CHAR *file, const CHAR *func, INT line, const CH
 //
 
 typedef enum {
-    LOG_LEVEL_OFF    = 0,
-    LOG_LEVEL_ERROR  = 1,
-    LOG_LEVEL_WARN   = 2,
-    LOG_LEVEL_INFO   = 3,
+    LOG_LEVEL_OFF   = 0,
+    LOG_LEVEL_ERROR = 1,
+    LOG_LEVEL_WARN  = 2,
+    LOG_LEVEL_INFO  = 3,
 } LOG_LEVEL;
 
 DWORD SCALL LogInit(VOID);
@@ -76,7 +76,9 @@ VOID  SCALL LogTraceV(const CHAR *file, const CHAR *func, INT line, LOG_LEVEL le
 // Logging macros
 //
 
-#define CRLF "\r\n"
+#ifndef CRLF
+#   define CRLF "\r\n"
+#endif
 
 #ifdef DEBUG
 #   define LOG_OPTION_BACKEND  LOG_BACKEND_FILE
@@ -101,7 +103,7 @@ VOID  SCALL LogTraceV(const CHAR *file, const CHAR *func, INT line, LOG_LEVEL le
 // Debug tracing
 //
 
-#ifdef DEBUG
+#if LOG_OPTION_TRACE
 #   define TRACE(format, ...)  LogDebuggerTrace(__FILE__, __FUNCTION__, __LINE__, format CRLF, __VA_ARGS__)
 #else
 #   define TRACE(format, ...)  ((VOID)0)
