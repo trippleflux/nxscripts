@@ -1,5 +1,6 @@
-nxMyDB v0.5.0 (not released):
-  NEW: Logging for a lot more error and warning messages.
+nxMyDB v0.5.0 (Apr 11, 2008):
+  NEW: Improved logging for several error and warning cases.
+  NEW: Updated MySQL Client Library (libmysql.dll) to v5.0.51a.
   CHG: Rearranged synchronization structure members to save a few bytes on alignment.
 
 nxMyDB v0.4.0 (Nov 14, 2007):
