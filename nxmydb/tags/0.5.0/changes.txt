@@ -1,0 +1,38 @@
+nxMyDB v0.5.0 (Apr 11, 2008):
+  NEW: Improved logging for several error and warning cases.
+  NEW: Updated MySQL Client Library (libmysql.dll) to v5.0.51a.
+  CHG: Rearranged synchronization structure members to save a few bytes on alignment.
+
+nxMyDB v0.4.0 (Nov 14, 2007):
+  NEW: Compiled as a release build (alpha releases were debug builds).
+  NEW: New topics in the FAQ section of the readme.
+  CHG: Only open the debug log only when a message is available to be written,
+       this allows you to download the log file through ioFTPD.
+  FIX: Corrected readme instructions for executing the "schema.sql" batch file.
+
+nxMyDB v0.3.0 (Oct 6, 2007):
+  NEW: Added configuration option "Log_Level" to control the log verbosity.
+  NEW: Group rename operations are now implemented.
+  NEW: Logging system to log errors, warnings, and information to a dedicated log file.
+  NEW: Spin-lock based locking implemented using stored procedures, reduces failed locks.
+  CHG: Renamed configuration option "SyncFirst" to "Sync_First".
+  CHG: Renamed configuration option "SyncInterval" to "Sync_Interval".
+  CHG: Requires MySQL Server v5.0.19, or newer.
+  FIX: All user's admingroups, groups and hosts were inserted with null-padding to the database.
+  FIX: If ioFTPD fails to open a user at start-up it considers them deleted.
+  FIX: User rename operations failed during sync, since the new name was not present in the changes table.
+  FIX: Work around a bug in ioFTPD that leads to memory corruption if a module open call returns UM_ERROR/GM_ERROR.
+
+nxMyDB v0.2.0 (Sep 25, 2007):
+  NEW: Event handler for catching server start and stop events.
+  NEW: Full user and group synchronization during start-up.
+  NEW: Incremental user and group synchronization performed on configurable intervals.
+  NEW: Three new configuration options: Sync, SyncFirst, and SyncInterval.
+  NEW: Two new tables for keeping track of changes made to users and groups.
+  CHG: Removed the "Refresh" configuration option, see the new sync options.
+  CHG: Renamed io_users and io_group tables to io_user and io_group, respectively.
+  CHG: The "updated" column will only be set on writes.
+  FIX: Corrected a few possible memory leaks in failure scenarios.
+
+nxMyDB v0.1.0 (Sep 8, 2007):
+  CHG: Initial release.
