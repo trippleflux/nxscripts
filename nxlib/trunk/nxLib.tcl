@@ -285,6 +285,7 @@ proc ::nxLib::RemoveParentLinks {realPath} {
             RemoveTag $symPath
         }
     }
+    catch {vfs flush $searchPath}
 }
 
 proc ::nxLib::ResolvePath {userName groupName realPath} {
