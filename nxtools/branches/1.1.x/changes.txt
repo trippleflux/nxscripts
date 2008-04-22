@@ -2,9 +2,11 @@
 #                             nxTools - Change Log                             #
 ################################################################################
 
-nxTools v1.1.2 (Not released):
-  NEW: New date cookie system for newdate and pre paths.
+nxTools v1.2.0 (Not released):
+  NEW: New date cookie system for newdate and pre paths (check your configs!).
+  CHG: Increased retry count for the SQLite busy handler.
   FIX: Dupe rebuilds ignored directories older than "dupe(CleanDirs)".
+  FIX: Flush the directory cache after a lot more file operations.
   FIX: The "%W" date cookie started at "00".
 
 nxTools v1.1.1 (Mar 22, 2008):
