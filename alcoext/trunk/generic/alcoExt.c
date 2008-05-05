@@ -78,9 +78,6 @@ DllMain(
     LPVOID reserved
     )
 {
-    if (reason == DLL_PROCESS_ATTACH) {
-        DisableThreadLibraryCalls(instance);
-    }
     return TRUE;
 }
 #endif // _WINDOWS
