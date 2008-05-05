@@ -46,11 +46,5 @@ DllMain(
     LPVOID reserved
     )
 {
-    // The static CRT requires thread notifications.
-#ifdef DYNAMIC_CRT
-    if (reason == DLL_PROCESS_ATTACH) {
-        DisableThreadLibraryCalls(instance);
-    }
-#endif
     return TRUE;
 }
