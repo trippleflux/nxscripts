@@ -15,10 +15,10 @@
  *     ::nx::time dst
  *       - Returns 1 if daylight savings time is currently in affect, and 0 if not.
  *
- *     ::nx::time local (no longer implemented)
+ *     ::nx::time local
  *       - Returns the current local time.
  *
- *     ::nx::time utc (no longer implemented)
+ *     ::nx::time utc
  *       - Returns the current time, expressed in UTC.
  *
  *     ::nx::time zone
