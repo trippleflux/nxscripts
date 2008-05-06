@@ -1,7 +1,7 @@
 /*++
 
 AlcoBot - Alcoholicz site bot.
-Copyright (c) 2005-2006 Alcoholicz Scripting Team
+Copyright (c) 2005-2008 Alcoholicz Scripting Team
 
 Module Name:
     constants.h
