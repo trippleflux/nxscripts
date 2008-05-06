@@ -1,6 +1,6 @@
 #
 # AlcoBot - Alcoholicz site bot.
-# Copyright (c) 2005-2006 Alcoholicz Scripting Team
+# Copyright (c) 2005-2008 Alcoholicz Scripting Team
 #
 # Module Name:
 #   Database Library
@@ -848,4 +848,4 @@ proc ::Db::SQLite::Func::String {args} {
     return [join $result ","]
 }
 
-package provide alco::db 1.2.0
+package provide alco::db 1.3.0

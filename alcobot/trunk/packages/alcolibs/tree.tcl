@@ -1,6 +1,6 @@
 #
 # AlcoBot - Alcoholicz site bot.
-# Copyright (c) 2005-2006 Alcoholicz Scripting Team
+# Copyright (c) 2005-2008 Alcoholicz Scripting Team
 #
 # Module Name:
 #   Tree Library
@@ -205,4 +205,4 @@ proc ::Tree::Unset {treeVar key args} {
     return $tree
 }
 
-package provide alco::tree 1.2.0
+package provide alco::tree 1.3.0

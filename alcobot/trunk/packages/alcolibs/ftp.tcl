@@ -1,6 +1,6 @@
 #
 # AlcoBot - Alcoholicz site bot.
-# Copyright (c) 2005-2006 Alcoholicz Scripting Team
+# Copyright (c) 2005-2008 Alcoholicz Scripting Team
 #
 # Module Name:
 #   FTP Client Library
@@ -554,4 +554,4 @@ proc ::Ftp::Handler {handle {isFileEvent 0}} {
     return 1
 }
 
-package provide alco::ftp 1.2.0
+package provide alco::ftp 1.3.0

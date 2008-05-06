@@ -1,6 +1,6 @@
 #
 # AlcoBot - Alcoholicz site bot.
-# Copyright (c) 2005-2006 Alcoholicz Scripting Team
+# Copyright (c) 2005-2008 Alcoholicz Scripting Team
 #
 # Module Name:
 #   URI Library
@@ -136,4 +136,4 @@ proc ::Uri::GetTuple {input separator nameVar valueVar} {
     return 0
 }
 
-package provide alco::uri 1.2.0
+package provide alco::uri 1.3.0

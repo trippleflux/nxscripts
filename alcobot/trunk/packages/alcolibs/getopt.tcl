@@ -1,6 +1,6 @@
 #
 # AlcoBot - Alcoholicz site bot.
-# Copyright (c) 2005-2006 Alcoholicz Scripting Team
+# Copyright (c) 2005-2008 Alcoholicz Scripting Team
 #
 # Module Name:
 #   Option Parsing Library
@@ -182,4 +182,4 @@ proc ::GetOpt::Parse {argList optList resultVar} {
     return $argList
 }
 
-package provide alco::getopt 1.2.0
+package provide alco::getopt 1.3.0
