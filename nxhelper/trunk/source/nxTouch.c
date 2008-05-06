@@ -1,6 +1,6 @@
 /*
  * nxHelper - Tcl extension for nxTools.
- * Copyright (c) 2004-2006 neoxed
+ * Copyright (c) 2004-2008 neoxed
  *
  * File Name:
  *   nxTouch.h

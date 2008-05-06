@@ -1,6 +1,6 @@
 /*
  * nxHelper - Tcl extension for nxTools.
- * Copyright (c) 2004-2006 neoxed
+ * Copyright (c) 2004-2008 neoxed
  *
  * File Name:
  *   nxHelper.h
@@ -48,7 +48,7 @@
 #include "nxUtil.h"
 
 /*
- * Object includes
+ * ObjCmd globals
  */
 Tcl_ObjCmdProc Base64ObjCmd;
 Tcl_ObjCmdProc KeyObjCmd;

@@ -1,7 +1,7 @@
 @ECHO OFF
 ::
 :: nxHelper - Tcl extension for nxTools.
-:: Copyright (c) 2004-2006 neoxed
+:: Copyright (c) 2004-2008 neoxed
 ::
 :: File Name:
 ::   clean.bat
@@ -13,7 +13,7 @@
 ::   Batch script to clean release and debug builds.
 ::
 
-SET TCL_DIR=C:\Tcl
+SET TCL_DIR=C:\Tools\Tcl
 CALL "C:\Program Files\Microsoft Visual Studio 8\Common7\Tools\vsvars32.bat"
 
 ECHO:========================================================================
