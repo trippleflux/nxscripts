@@ -2,7 +2,8 @@
 #                             nxTools - Upgrading                              #
 ################################################################################
 
-1.1.1 -> 1.1.2
+1.1.1 -> 1.2.0
+ - Copy (and replace) lib\sqlite3\ and lib\nxHelper\ directories to ioFTPD\lib\.
  - Replace ioFTPD\scripts\nxLib.tcl with the included one.
  - Replace all Tcl files in ioFTPD\scripts\nxTools\.
  - Update date cookies in the pre paths and newdate paths.
