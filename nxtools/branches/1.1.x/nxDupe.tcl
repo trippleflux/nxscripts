@@ -276,7 +276,7 @@ proc ::nxTools::Dupe::RebuildAddDir {name path} {
     set vpath [lreplace [file split $path] 0 $rebuild(StripParts)]
     set vpath [eval file join $rebuild(VirtualPath) $vpath]
 
-    if {[ListMatchI $rebuild(DirIgnore) $vpath]} {return}
+    if {[ListMatchI $rebuild(DirIgnore) $vpath] || [catch {file stat $path stat}]} {return}
 
     # Resolve user and group names.
     catch {vfs read $path} owner
