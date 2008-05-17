@@ -283,15 +283,15 @@ proc ::nxLib::PathGetComponents {path workingPath} {
     }
 
     # Resolve the "." and ".." path components
-    set components [list]
+    set componentList [list]
     foreach component [PathSplit $path] {
         if {$component eq ".."} {
-            set components [lreplace $components end end]
+            set componentList [lreplace $componentList end end]
         } elseif {$component ne "."} {
-            lappend components $component
+            lappend componentList $component
         }
     }
-    return $components
+    return $componentList
 }
 
 proc ::nxLib::PathIsDisk {path} {
@@ -299,8 +299,8 @@ proc ::nxLib::PathIsDisk {path} {
     return [regexp -- {^(cd|dis[ck]|dvd)\d{1,2}$} $path]
 }
 
-proc ::nxLib::PathJoin {components} {
-    return [append path "/" [join $components "/"] "/"]
+proc ::nxLib::PathJoin {componentList} {
+    return [append path "/" [join $componentList "/"] "/"]
 }
 
 proc ::nxLib::PathSplit {path} {
@@ -309,11 +309,11 @@ proc ::nxLib::PathSplit {path} {
 
 proc ::nxLib::PathResolveVirtual {path workingPath} {
     # Resolve absolute and relative virtual paths.
-    set components [PathGetComponents $path $workingPath]
+    set componentList [PathGetComponents $path $workingPath]
 
     # TODO: resolve symlinks
 
-    return [PathJoin $components]
+    return [PathJoin $componentList]
 }
 
 proc ::nxLib::PathResolveReal {userName groupName realPath} {
