@@ -511,7 +511,7 @@ proc ::nxTools::Pre::Release {argList} {
 
     # Check if group is allowed to pre to the area and from this path.
     set allowPath 0; set preGroup ""
-    set virtualPath [GetPath $target $pwd]
+    set virtualPath [PathResolveVirtual $target $pwd]
     foreach groupName $groups {
         if {[lsearch -exact $preGrps($area) $groupName] != -1} {
             set preGroup $groupName
@@ -560,12 +560,12 @@ proc ::nxTools::Pre::Release {argList} {
     }
 
     # Find the credit and stats section.
-    set destVirtualPath [ResolvePath $user $group $destRealPath]
+    set destVirtualPath [PathResolveReal $user $group $destRealPath]
     ListAssign [GetCreditStatSections $destVirtualPath] creditSection statSection
 
     # Count disk sub-directories.
     foreach entry [glob -nocomplain -types d -directory $realPath -- "*"] {
-        if {[IsDiskPath $entry]} {incr diskCount}
+        if {[PathIsDisk $entry]} {incr diskCount}
     }
 
     # Count files and total size.

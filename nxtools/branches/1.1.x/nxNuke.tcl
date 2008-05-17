@@ -32,7 +32,7 @@ proc ::nxTools::Nuke::FindTags {realPath tagFormat} {
 
 proc ::nxTools::Nuke::GetName {virtualPath} {
     set release [file tail [TrimTag $virtualPath]]
-    if {[IsDiskPath $release]} {
+    if {[PathIsDisk $release]} {
         set parentPath [file tail [file dirname $virtualPath]]
         if {[string length $parentPath]} {set release "$parentPath ($release)"}
     }
@@ -153,7 +153,7 @@ proc ::nxTools::Nuke::Main {argv} {
                 foreach {dummy target reason} $argList {break}
                 set isNuke 0
             }
-            set virtualPath [GetPath $target $pwd]
+            set virtualPath [PathResolveVirtual $target $pwd]
             set realPath [resolve pwd $virtualPath]
             if {![file isdirectory $realPath]} {
                 ErrorReturn "The specified directory does not exist."
@@ -219,7 +219,7 @@ proc ::nxTools::Nuke::Main {argv} {
 
             # Count disk sub-directories.
             foreach entry [glob -nocomplain -types d -directory $realPath -- "*"] {
-                if {[IsDiskPath $entry]} {incr diskCount}
+                if {[PathIsDisk $entry]} {incr diskCount}
             }
 
             # Count files and total size.

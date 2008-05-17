@@ -89,7 +89,7 @@ proc ::nxTools::Dupe::UpdateDirs {command virtualPath} {
         return 1
     }
     set dirName [file tail $virtualPath]
-    set dirPath [GetParentPath $virtualPath]
+    set dirPath [PathGetParent $virtualPath]
 
     if {$command eq "MKD"  || $command eq "RNTO"} {
         set timeStamp [clock seconds]
@@ -112,7 +112,7 @@ proc ::nxTools::Dupe::UpdateFiles {command virtualPath} {
         return 1
     }
     set fileName [file tail $virtualPath]
-    set filePath [GetParentPath $virtualPath]
+    set filePath [PathGetParent $virtualPath]
 
     if {$command eq "UPLD" || $command eq "RNTO"} {
         set timeStamp [clock seconds]
@@ -290,7 +290,7 @@ proc ::nxTools::Dupe::RebuildAddDir {name path} {
     }
 
     # Insert directory into database.
-    set parentPath [GetParentPath $vpath]
+    set parentPath [PathGetParent $vpath]
     DirDb eval {INSERT INTO DupeDirs(TimeStamp,UserName,GroupName,DirPath,DirName) \
         VALUES($stat(ctime),$userName,$groupName,$parentPath,$name)}
 
@@ -324,7 +324,7 @@ proc ::nxTools::Dupe::RebuildAddFile {name path} {
     }
 
     # Insert file into database.
-    set parentPath [GetParentPath $vpath]
+    set parentPath [PathGetParent $vpath]
     FileDb eval {INSERT INTO DupeFiles(TimeStamp,UserName,GroupName,FilePath,FileName) \
         VALUES($stat(ctime),$userName,$groupName,$parentPath,$name)}
 
@@ -373,7 +373,7 @@ proc ::nxTools::Dupe::ForceCheck {virtualPath} {
         ![string equal -nocase ".sfv" $fileExt] &&
         ![ListMatchI $force(Exempts) $matchPath]} {
 
-        if {[IsDiskPath $matchPath]} {
+        if {[PathIsDisk $matchPath]} {
             set releasePath [resolve pwd [file dirname $matchPath]]
         } else {
             set releasePath [resolve pwd $matchPath]
@@ -732,7 +732,7 @@ proc ::nxTools::Dupe::SiteWipe {argList} {
         set switchPresent 1
         set argList [lrange $argList 1 end]
     }
-    set virtualPath [GetPath [join $argList] $pwd]
+    set virtualPath [PathResolveVirtual [join $argList] $pwd]
 
     # Resolving a symlink returns its target path, which could have unwanted
     # results. To avoid such issues, we'll resolve the parent path instead.
@@ -790,13 +790,13 @@ proc ::nxTools::Dupe::Main {argv} {
     set event [string toupper [lindex $argList 0]]
     switch -- $event {
         DUPELOG {
-            set virtualPath [GetPath [join [lrange $argList 2 end]] $pwd]
+            set virtualPath [PathResolveVirtual [join [lrange $argList 2 end]] $pwd]
             if {[IsTrue $dupe(CheckDirs)] || [IsTrue $dupe(CheckFiles)]} {
                 set result [UpdateLog [lindex $argList 1] $virtualPath]
             }
         }
         POSTMKD {
-            set virtualPath [GetPath [join [lrange $argList 2 end]] $pwd]
+            set virtualPath [PathResolveVirtual [join [lrange $argList 2 end]] $pwd]
             if {[IsTrue $dupe(CheckDirs)]} {
                 set result [UpdateLog [lindex $argList 1] $virtualPath]
             }
@@ -806,7 +806,7 @@ proc ::nxTools::Dupe::Main {argv} {
             if {[IsTrue $approve(CheckMkd)]} {ApproveCheck $virtualPath 1}
         }
         PREMKD {
-            set virtualPath [GetPath [join [lrange $argList 2 end]] $pwd]
+            set virtualPath [PathResolveVirtual [join [lrange $argList 2 end]] $pwd]
             if {!([IsTrue $approve(CheckMkd)] && [ApproveCheck $virtualPath 0])} {
                 if {[IsTrue $dupe(CheckDirs)]} {
                     set result [CheckDirs $virtualPath]
@@ -814,7 +814,7 @@ proc ::nxTools::Dupe::Main {argv} {
             }
         }
         PRESTOR {
-            set virtualPath [GetPath [join [lrange $argList 2 end]] $pwd]
+            set virtualPath [PathResolveVirtual [join [lrange $argList 2 end]] $pwd]
             if {[IsTrue $force(NfoFirst)] || [IsTrue $force(SfvFirst)] || [IsTrue $force(SampleFirst)]} {
                 set result [ForceCheck $virtualPath]
             }
