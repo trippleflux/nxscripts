@@ -299,6 +299,10 @@ proc ::nxLib::PathIsDisk {path} {
     return [regexp -- {^(cd|dis[ck]|dvd)\d{1,2}$} $path]
 }
 
+proc ::nxLib::PathJoin {components} {
+    return [append path "/" [join $components "/"] "/"]
+}
+
 proc ::nxLib::PathSplit {path} {
     return [file split [PathClean $path]]
 }
@@ -309,7 +313,7 @@ proc ::nxLib::PathResolveVirtual {path workingPath} {
 
     # TODO: resolve symlinks
 
-    return "/[join $components /]"
+    return [PathJoin $components]
 }
 
 proc ::nxLib::PathResolveReal {userName groupName realPath} {
