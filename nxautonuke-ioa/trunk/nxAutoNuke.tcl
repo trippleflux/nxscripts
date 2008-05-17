@@ -29,7 +29,7 @@ namespace eval ::nxAutoNuke {
 
 proc ::nxAutoNuke::GetName {virtualPath} {
     set release [file tail $virtualPath]
-    if {[IsDiskPath $release]} {
+    if {[PathIsDisk $release]} {
         set parentPath [file tail [file dirname $virtualPath]]
         if {[string length $parentPath]} {set release "$parentPath ($release)"}
     }
@@ -393,7 +393,7 @@ proc ::nxAutoNuke::NukeCheck {realPath virtualPath dirAge} {
 
     if {$dirAge >= $nukeSecs && [NukeAllowed $realPath]} {
         # Nuke the entire release if anuke(SubDir) is false.
-        if {![IsTrue $anuke(SubDir)] && [IsDiskPath $virtualPath]} {
+        if {![IsTrue $anuke(SubDir)] && [PathIsDisk $virtualPath]} {
             set realPath [file dirname $realPath]
             set virtualPath [file dirname $virtualPath]
         }
@@ -538,7 +538,7 @@ proc ::nxAutoNuke::Main {} {
             # Find all disk sub-directories.
             set release(PathList) [list]
             foreach diskDir [glob -nocomplain -types d -directory $release(RealPath) -- "*"] {
-                if {![ListMatchI $anuke(Exempts) [file tail $diskDir]] && [IsDiskPath $diskDir]} {
+                if {![ListMatchI $anuke(Exempts) [file tail $diskDir]] && [PathIsDisk $diskDir]} {
                     lappend release(PathList) $diskDir
                 }
             }
@@ -563,7 +563,7 @@ proc ::nxAutoNuke::Main {} {
 
                     # Check each release sub-directory.
                     foreach disk(RealPath) $release(PathList) {
-                        if {[IsDiskPath $disk(RealPath)]} {
+                        if {[PathIsDisk $disk(RealPath)]} {
                             # Retrieve the sub-directory's age.
                             if {[catch {file stat $disk(RealPath) stat}]} {continue}
                             set disk(Age) [expr {[clock seconds] - $stat(ctime)}]
