@@ -238,40 +238,8 @@ proc ::nxLib::GetDirStatsRecurse {realPath ignoreList} {
     }
 }
 
-proc ::nxLib::GetPath {path workingPath} {
-    # Absolute path or relative path.
-    if {[string index $path 0] ne "/"} {
-        set path "$workingPath/$path"
-    }
-    set path [string trim $path "/\\"]
-
-    # Resolve the "." and ".." path components.
-    set components [list]
-    foreach component [SplitPath $path] {
-        if {$component eq ".."} {
-            set components [lreplace $components end end]
-        } elseif {$component ne "."} {
-            lappend components $component
-        }
-    }
-    return "/[join $components /]"
-}
-
-proc ::nxLib::GetParentPath {path} {
-    set parent [file dirname $path]
-    if {[string index $parent end] ne "/"} {
-        append parent "/"
-    }
-    return $parent
-}
-
-proc ::nxLib::IsDiskPath {path} {
-    set path [string tolower [file tail $path]]
-    return [regexp -- {^(cd|dis[ck]|dvd)\d{1,2}$} $path]
-}
-
 proc ::nxLib::RemoveParentLinks {realPath} {
-    if {[IsDiskPath $realPath]} {
+    if {[PathIsDisk $realPath]} {
         set realPath [file dirname $realPath]
     }
     set realPathLen [string length $realPath]
@@ -288,7 +256,63 @@ proc ::nxLib::RemoveParentLinks {realPath} {
     catch {vfs flush $searchPath}
 }
 
-proc ::nxLib::ResolvePath {userName groupName realPath} {
+# Path Procedures
+######################################################################
+
+proc ::nxLib::PathClean {path} {
+    regsub -all -- {[\\/]+} $path {/} path
+    return [string trim $path "/"]
+}
+
+proc ::nxLib::PathGetBase {path} {
+    return [file tail $path]
+}
+
+proc ::nxLib::PathGetParent {path} {
+    set parent [file dirname $path]
+    if {[string index $parent end] ne "/"} {
+        append parent "/"
+    }
+    return $parent
+}
+
+proc ::nxLib::PathGetComponents {path workingPath} {
+    # Absolute path or relative path
+    if {[string index $path 0] ne "/"} {
+        set path "$workingPath/$path"
+    }
+
+    # Resolve the "." and ".." path components
+    set components [list]
+    foreach component [PathSplit $path] {
+        if {$component eq ".."} {
+            set components [lreplace $components end end]
+        } elseif {$component ne "."} {
+            lappend components $component
+        }
+    }
+    return $components
+}
+
+proc ::nxLib::PathIsDisk {path} {
+    set path [string tolower [file tail $path]]
+    return [regexp -- {^(cd|dis[ck]|dvd)\d{1,2}$} $path]
+}
+
+proc ::nxLib::PathSplit {path} {
+    return [file split [PathClean $path]]
+}
+
+proc ::nxLib::PathResolveVirtual {path workingPath} {
+    # Resolve absolute and relative virtual paths.
+    set components [PathGetComponents $path $workingPath]
+
+    # TODO: resolve symlinks
+
+    return "/[join $components /]"
+}
+
+proc ::nxLib::PathResolveReal {userName groupName realPath} {
     set bestMatch 0
     set resolvePath "/"
     set vfsFile ""
@@ -344,14 +368,9 @@ proc ::nxLib::ResolvePath {userName groupName realPath} {
         }
         close $handle
     } else {
-        ErrorLog PreResolvePath $error
+        ErrorLog PathResolveReal $error
     }
     return $resolvePath
-}
-
-proc ::nxLib::SplitPath {path} {
-    regsub -all -- {[\\/]+} $path {/} path
-    return [file split [string trim $path "/"]]
 }
 
 # ioFTPD Related Procedures
