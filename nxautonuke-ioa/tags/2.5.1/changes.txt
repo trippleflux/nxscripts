@@ -1,0 +1,112 @@
+################################################################################
+#                         nxAutoNuke-ioA - Change Log                          #
+################################################################################
+
+nxAutoNuke-ioA v2.5.1 (May 18, 2008):
+  CHG: Updated nxLib to the latest version.
+  CHG: Updated to use the new path parsing functions.
+
+nxAutoNuke-ioA v2.5.0 (Aug 20, 2007):
+  NEW: Compatibility with ioFTPD v6.x.
+
+nxAutoNuke-ioA v2.4.1 (May 6, 2006):
+  CHG: Iterate through directories first and then through nuke-checks, this
+       significantly speeds up the script on sections with many directories.
+
+nxAutoNuke-ioA v2.4.0 (Apr 5, 2006):
+  NEW: Announce warning types for a release once, per execution and/or release.
+  CHG: Several options renamed, be sure to update your configuration file.
+
+nxAutoNuke-ioA v2.3.1 (Mar 6, 2006):
+  NEW: Check for incomplete directory tags.
+  CHG: The init.itcl script is no longer used for loading library files.
+
+nxAutoNuke-ioA v2.3.0 (Oct 29, 2005):
+  NEW: Example directory tag patterns in the readme (section 4).
+  NEW: Improved error logging when incorrect settings are detected.
+  NEW: Minimum and maximum bitrate for MP3 releases.
+  NEW: Minimum and maximum size enforcements for releases.
+  CHG: Minor clean-ups to the default configuration file.
+  CHG: Moved configuration to the nxAutoNuke-ioA directory.
+  CHG: New announce types (ANUKESIZE), be sure to update your sitebot.
+  CHG: Removed ioBanana.exe KICKNUKE functions (not present in ioBanana v2.0 rel-1).
+  CHG: Verify the parsed IMDB and MP3 values before comparing them.
+
+nxAutoNuke-ioA v2.2.0 (Oct 12, 2005):
+  NEW: Moved to the modified BSD license.
+  NEW: Included a custom init.itcl without the nxTools libraries.
+  FIX: The script failed if a section had the wrong number of options.
+
+nxAutoNuke-ioA v2.1.1 (Aug 13, 2005):
+  FIX: The virtual path passed to ioBanana used the wrong path delimiters.
+
+nxAutoNuke-ioA v2.1.0 (Aug 11, 2005):
+  NEW: Added 'kicknuke' support for ioBanana.
+  CHG: The ioA version is distributed separately now.
+
+nxAutoNuke-ioA v2.0.2 (Apr 03, 2005):
+  FIX: An incorrect cookie was used for the ANUKEKEYWORD bot skin.
+  FIX: Nuke times were shown in seconds instead of minutes for nxTools/dZSbot announces.
+
+nxAutoNuke-ioA v2.0.1 (Mar 28, 2005):
+  FIX: Fixed a few typos.
+  FIX: Forgot to remove some debug code (again).
+
+nxAutoNuke-ioA v2.0.0 (Mar 27, 2005):
+  NEW: Installation instructions for nxTools and dZSbot.
+  CHG: Nearly configuration options have changed.
+  CHG: Redesigned nxAutoNuke, much more efficient now.
+  CHG: Updated the nxTools-compatible nuker to reflect the changes made to nxNuke.
+
+nxAutoNuke-ioA v1.2.0 (Jan 24, 2005):
+  NEW: Added the nuke multiplier to warnings (%multi).
+  NEW: Added an option to ban keywords in release names. Similar to the "banned"
+       feature, but more accurate and efficient.
+  CHG: UTC conversions are now done properly with the -gmt switch.
+  FIX: IMDB year checking was broken.
+
+nxAutoNuke-ioA v1.1.2 (Jan 20, 2005):
+  FIX: Warnings were broken, small typo on my part.
+
+nxAutoNuke-ioA v1.1.1 (Jan 19, 2005):
+  FIX: Whoops! Left some debug code in that nuked any failing release.
+
+nxAutoNuke-ioA v1.1.0 (Jan 19, 2005):
+  NEW: Added specific ioBanana installation instructions.
+  NEW: Added uploader list to warnings, please update your sitebot skin and variables.
+  CHG: All violating disk directories (CD/DVD/Disc) are displayed.
+  CHG: Most configuration options have changed in some way.
+  CHG: The BadExt and MissingExt options are matched against the full file name.
+  CHG: The IMDB and MP3 tags are now matched using regular expressions (a lot easier).
+  CHG: Updated the internal nuker to reflect the changes made to nxNuke.
+
+nxAutoNuke-ioA v1.0.7 (Nov 20, 2004):
+  CHG: Minor changes to disk specific auto-nuke checks.
+  CHG: Warning and nuke times to trigger when the age is equal to or greater.
+  FIX: The default approve tag format was incorrect.
+
+nxAutoNuke-ioA v1.0.6 (Oct 20, 2004):
+  FIX: Auto-nuke section was incorrect.
+  FIX: Incomplete file (.missing) checking wasn't working correctly.
+
+nxAutoNuke-ioA v1.0.5 (Oct 10, 2004):
+  NEW: Added support for day offsets (for checking previous days etc.).
+  CHG: Changed the sections format to accommodate support for day offsets.
+  CHG: Updated the internal nuker to reflect the recent changes made to nxNuke.
+
+nxAutoNuke-ioA v1.0.4 (Oct 08, 2004):
+  CHG: Releases with .bad files are also considered incomplete, in addition to .missing files.
+
+nxAutoNuke-ioA v1.0.3 (Sep 25, 2004):
+  NEW: Added support for allowed groups (nuke groups which aren't allowed).
+
+nxAutoNuke-ioA v1.0.2 (Sep 23, 2004):
+  NEW: Added an option to exempt approved releases.
+  CHG: The ioA version no longer requires the nxTools configuration file.
+
+nxAutoNuke-ioA v1.0.1 (Sep 22, 2004):
+  NEW: Added support for ioA and dZSbot announces.
+  CHG: Updated installation instructions.
+
+nxAutoNuke-ioA v1.0.0 (Sep 21, 2004):
+  CHG: Initial release.
