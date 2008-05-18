@@ -728,7 +728,7 @@ proc ::nxLib::DateCookies {input {clockVal ""}} {
     incr week
     set weekPadded [format "%02d" $week]
 
-    # Create substituion mapping
+    # Create substitution mapping
     set mapping [list "%%" "%"]
     lappend mapping "%d" $day "%D" $dayPadded
     lappend mapping "%w" $week "%W" $weekPadded
