@@ -790,7 +790,7 @@ proc ::nxTools::Dupe::Main {argv} {
     set event [string toupper [lindex $argList 0]]
     switch -- $event {
         DUPELOG {
-            set virtualPath [PathNormalizeEx [join $user $group $pwd [lrange $argList 2 end]]]
+            set virtualPath [PathNormalizeEx $user $group $pwd [join [lrange $argList 2 end]]]
             if {[IsTrue $dupe(CheckDirs)] || [IsTrue $dupe(CheckFiles)]} {
                 set result [UpdateLog [lindex $argList 1] $virtualPath]
             }

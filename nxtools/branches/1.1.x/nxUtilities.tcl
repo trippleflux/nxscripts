@@ -778,7 +778,7 @@ proc ::nxTools::Utils::Main {argv} {
         }
         SIZE {
             if {$argLength > 1} {
-                set virtualPath [PathResolveVirtual [join [lrange $argList 1 end]] $pwd]
+                set virtualPath [PathNormalizeEx $user $group $pwd [join [lrange $argList 1 end]]]
                 set result [SiteSize $virtualPath]
             } else {
                 iputs "Syntax: SITE SIZE <file/directory>"
