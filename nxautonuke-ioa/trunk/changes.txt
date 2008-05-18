@@ -2,6 +2,10 @@
 #                         nxAutoNuke-ioA - Change Log                          #
 ################################################################################
 
+nxAutoNuke-ioA v2.5.1 (May 18, 2008):
+  CHG: Updated nxLib to the latest version.
+  CHG: Updated to use the new path parsing functions.
+
 nxAutoNuke-ioA v2.5.0 (Aug 20, 2007):
   NEW: Compatibility with ioFTPD v6.x.
 
