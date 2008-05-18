@@ -260,8 +260,9 @@ proc ::nxLib::RemoveParentLinks {realPath} {
 ######################################################################
 
 proc ::nxLib::PathClean {path} {
-    regsub -all -- {[\\/]+} $path {/} path
-    return [string trim $path "/"]
+    append cleanPath "/" $path "/"
+    regsub -all -- {[\\/]+} $cleanPath {/} cleanPath
+    return $cleanPath
 }
 
 proc ::nxLib::PathGetBase {path} {
@@ -269,14 +270,28 @@ proc ::nxLib::PathGetBase {path} {
 }
 
 proc ::nxLib::PathGetParent {path} {
-    set parent [file dirname $path]
-    if {[string index $parent end] ne "/"} {
-        append parent "/"
+    set parentPath [file dirname $path]
+    if {[string index $parentPath end] ne "/"} {
+        append parentPath "/"
     }
-    return $parent
+    return $parentPath
 }
 
-proc ::nxLib::PathGetComponents {path workingPath} {
+proc ::nxLib::PathIsDisk {path} {
+    set path [string tolower [file tail $path]]
+    return [regexp -- {^(cd|dis[ck]|dvd)\d{1,2}$} $path]
+}
+
+proc ::nxLib::PathJoin {componentList} {
+    return [append path "/" [join $componentList "/"] "/"]
+}
+
+proc ::nxLib::PathSplit {path} {
+    regsub -all -- {[\\/]+} $path {/} path
+    return [file split [string trim $path "/"]]
+}
+
+proc ::nxLib::PathNormalize {workingPath path} {
     # Absolute path or relative path
     if {[string index $path 0] ne "/"} {
         set path "$workingPath/$path"
@@ -291,38 +306,31 @@ proc ::nxLib::PathGetComponents {path workingPath} {
             lappend componentList $component
         }
     }
-    return $componentList
-}
-
-proc ::nxLib::PathIsDisk {path} {
-    set path [string tolower [file tail $path]]
-    return [regexp -- {^(cd|dis[ck]|dvd)\d{1,2}$} $path]
-}
-
-proc ::nxLib::PathJoin {componentList} {
-    return [append path "/" [join $componentList "/"] "/"]
-}
-
-proc ::nxLib::PathSplit {path} {
-    return [file split [PathClean $path]]
-}
-
-proc ::nxLib::PathResolveVirtual {path workingPath} {
-    # Resolve absolute and relative virtual paths.
-    set componentList [PathGetComponents $path $workingPath]
-
-    # TODO: resolve symlinks
-
     return [PathJoin $componentList]
+}
+
+proc ::nxLib::PathNormalizeEx {userName groupName workingPath virtualPath} {
+    # Resolve absolute and relative virtual paths.
+    set virtualPath [PathNormalize $workingPath $virtualPath]
+
+    # If there are any symlinks in the path, 'resolve pwd' will take care
+    # of them. Then resolve the physical path back to a virtual path.
+    set realPath [resolve pwd $virtualPath]
+    if {$realPath ne ""} {
+        set resolvePath [PathResolveReal $userName $groupName $realPath]
+        if {$resolvePath ne ""} {set virtualPath $resolvePath}
+    }
+
+    return $virtualPath
 }
 
 proc ::nxLib::PathResolveReal {userName groupName realPath} {
     set bestMatch 0
-    set resolvePath "/"
+    set resolvePath ""
     set vfsFile ""
     set realPath [string map {\\ /} $realPath]
 
-    # Find the user VFS file.
+    # Look up the user VFS file
     if {[userfile open $userName] == 0} {
         set userFile [userfile bin2ascii]
         foreach line [split $userFile "\r\n"] {
@@ -332,7 +340,7 @@ proc ::nxLib::PathResolveReal {userName groupName realPath} {
         }
     }
 
-    # Use the group VFS file if the user VFS file does not exist.
+    # If the user VFS file does not exist, look up the group VFS file
     if {![file isfile $vfsFile] && [groupfile open $groupName] == 0} {
         set groupFile [groupfile bin2ascii]
         foreach line [split $groupFile "\r\n"] {
@@ -342,7 +350,7 @@ proc ::nxLib::PathResolveReal {userName groupName realPath} {
         }
     }
 
-    # Use the default VFS file if both the user and group VFS file do not exist.
+    # If the user and group VFS files do not exist, look up the default VFS file
     if {![file isfile $vfsFile]} {
         set vfsFile [config read "Locations" "Default_Vfs"]
     }
