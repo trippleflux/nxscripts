@@ -137,6 +137,9 @@ proc ::nxTools::Utils::NewDate {findArea} {
             LinePuts "Unable to create directory: $realPath"
             ErrorLog NewDateDir $error
         }
+
+        # Flush parent path after directory creation.
+        catch {vfs flush [file dirname $realPath]}
     }
     iputs "'------------------------------------------------------------------------'"
     return 0

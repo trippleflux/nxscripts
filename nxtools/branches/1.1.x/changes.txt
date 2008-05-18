@@ -5,6 +5,7 @@
 nxTools v1.2.1 (not released):
   NEW: Dupe, nuke and pre functions are able to resolve symlinks in virtual paths.
   FIX: Dupe rebuilds did not insert creation times for directories.
+  FIX: Flush the directory cache after newdate operations.
 
 nxTools v1.2.0 (May 5, 2008):
   NEW: New date cookie system for newdate and pre paths (check your configs!).
@@ -12,7 +13,7 @@ nxTools v1.2.0 (May 5, 2008):
   CHG: Updated nxHelper to v2.4.0, minor changes.
   CHG: Updated SQLite to v3.5.8.
   FIX: Dupe rebuilds ignored directories older than "dupe(CleanDirs)".
-  FIX: Flush the directory cache after a lot more file operations.
+  FIX: Flush the directory cache after wipe operations.
   FIX: The "%W" date cookie started at "00".
 
 nxTools v1.1.1 (Mar 22, 2008):
