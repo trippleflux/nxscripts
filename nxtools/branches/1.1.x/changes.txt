@@ -4,6 +4,7 @@
 
 nxTools v1.2.1 (not released):
   NEW: Dupe, nuke and pre functions are able to resolve symlinks in virtual paths.
+  CHG: Updated SQLite to v3.5.9.
   FIX: Dupe rebuilds did not insert creation times for directories.
   FIX: Flush the directory cache after newdate operations.
 
