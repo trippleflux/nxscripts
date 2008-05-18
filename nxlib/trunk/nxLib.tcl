@@ -326,8 +326,8 @@ proc ::nxLib::PathNormalizeEx {userName groupName workingPath virtualPath} {
 
 proc ::nxLib::PathResolveReal {userName groupName realPath} {
     set bestMatch 0
-    set resolvePath ""
     set vfsFile ""
+    set resolvePath ""
     set realPath [string map {\\ /} $realPath]
 
     # Look up the user VFS file
@@ -355,9 +355,13 @@ proc ::nxLib::PathResolveReal {userName groupName realPath} {
         set vfsFile [config read "Locations" "Default_Vfs"]
     }
 
+    # Read the VFS file
     if {![catch {set handle [open $vfsFile r]} error]} {
-        while {![eof $handle]} {
-            set line [string trim [gets $handle]]
+        set vfsData [read -nonewline $handle]
+        close $handle
+
+        foreach line [split $vfsData "\r\n"] {
+            set line [string trim $line]
             set char [string index $line 0]
             if {$char eq "" || $char eq ";" || $char eq "#"} {continue}
 
@@ -378,7 +382,6 @@ proc ::nxLib::PathResolveReal {userName groupName realPath} {
                 }
             }
         }
-        close $handle
     } else {
         ErrorLog PathResolveReal $error
     }
