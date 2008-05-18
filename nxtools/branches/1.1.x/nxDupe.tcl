@@ -732,7 +732,7 @@ proc ::nxTools::Dupe::SiteWipe {argList} {
         set switchPresent 1
         set argList [lrange $argList 1 end]
     }
-    set virtualPath [PathResolveVirtual [join $argList] $pwd]
+    set virtualPath [PathNormalizeEx $user $group $pwd [join $argList]]
 
     # Resolving a symlink returns its target path, which could have unwanted
     # results. To avoid such issues, we'll resolve the parent path instead.
@@ -790,13 +790,13 @@ proc ::nxTools::Dupe::Main {argv} {
     set event [string toupper [lindex $argList 0]]
     switch -- $event {
         DUPELOG {
-            set virtualPath [PathResolveVirtual [join [lrange $argList 2 end]] $pwd]
+            set virtualPath [PathNormalizeEx [join $user $group $pwd [lrange $argList 2 end]]]
             if {[IsTrue $dupe(CheckDirs)] || [IsTrue $dupe(CheckFiles)]} {
                 set result [UpdateLog [lindex $argList 1] $virtualPath]
             }
         }
         POSTMKD {
-            set virtualPath [PathResolveVirtual [join [lrange $argList 2 end]] $pwd]
+            set virtualPath [PathNormalizeEx $user $group $pwd [join [lrange $argList 2 end]]]
             if {[IsTrue $dupe(CheckDirs)]} {
                 set result [UpdateLog [lindex $argList 1] $virtualPath]
             }
@@ -806,7 +806,7 @@ proc ::nxTools::Dupe::Main {argv} {
             if {[IsTrue $approve(CheckMkd)]} {ApproveCheck $virtualPath 1}
         }
         PREMKD {
-            set virtualPath [PathResolveVirtual [join [lrange $argList 2 end]] $pwd]
+            set virtualPath [PathNormalizeEx $user $group $pwd [join [lrange $argList 2 end]]]
             if {!([IsTrue $approve(CheckMkd)] && [ApproveCheck $virtualPath 0])} {
                 if {[IsTrue $dupe(CheckDirs)]} {
                     set result [CheckDirs $virtualPath]
@@ -814,7 +814,7 @@ proc ::nxTools::Dupe::Main {argv} {
             }
         }
         PRESTOR {
-            set virtualPath [PathResolveVirtual [join [lrange $argList 2 end]] $pwd]
+            set virtualPath [PathNormalizeEx $user $group $pwd [join [lrange $argList 2 end]]]
             if {[IsTrue $force(NfoFirst)] || [IsTrue $force(SfvFirst)] || [IsTrue $force(SampleFirst)]} {
                 set result [ForceCheck $virtualPath]
             }

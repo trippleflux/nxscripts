@@ -2,6 +2,10 @@
 #                             nxTools - Change Log                             #
 ################################################################################
 
+nxTools v1.2.1 (not released):
+  NEW: Dupe, nuke and pre functions are able to resolve symlinks in virtual paths.
+  FIX: Dupe rebuilds did not insert creation times for directories.
+
 nxTools v1.2.0 (May 5, 2008):
   NEW: New date cookie system for newdate and pre paths (check your configs!).
   CHG: Increased retry count for the SQLite busy handler.

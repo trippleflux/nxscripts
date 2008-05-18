@@ -153,7 +153,7 @@ proc ::nxTools::Nuke::Main {argv} {
                 foreach {dummy target reason} $argList {break}
                 set isNuke 0
             }
-            set virtualPath [PathResolveVirtual $target $pwd]
+            set virtualPath [PathNormalizeEx $user $group $pwd $target]
             set realPath [resolve pwd $virtualPath]
             if {![file isdirectory $realPath]} {
                 ErrorReturn "The specified directory does not exist."
