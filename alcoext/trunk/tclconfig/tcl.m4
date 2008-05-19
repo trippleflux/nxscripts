@@ -9,7 +9,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: tcl.m4,v 1.117 2007/11/18 07:14:28 das Exp $
+# RCS: @(#) $Id: tcl.m4,v 1.121 2008/03/27 13:45:07 das Exp $
 
 AC_PREREQ(2.57)
 
@@ -1290,8 +1290,10 @@ dnl AC_CHECK_TOOL(AR, ar)
 		PATHTYPE=-w
 		# For information on what debugtype is most useful, see:
 		# http://msdn.microsoft.com/library/en-us/dnvc60/html/gendepdebug.asp
+		# and also
+		# http://msdn2.microsoft.com/en-us/library/y0zzbyt4%28VS.80%29.aspx
 		# This essentially turns it all on.
-		LDFLAGS_DEBUG="-debug:full -debugtype:both -warn:2"
+		LDFLAGS_DEBUG="-debug -debugtype:cv"
 		LDFLAGS_OPTIMIZE="-release"
 		if test "$doWince" != "no" ; then
 		    LDFLAGS_CONSOLE="-link ${lflags}"
@@ -2082,7 +2084,7 @@ dnl AC_CHECK_TOOL(AR, ar)
 	    ], [
 		case $system in
 		    SunOS-5.[[1-9]][[0-9]]*)
-			SHLIB_LD='${CC} -G -z text';;
+			SHLIB_LD='${CC} -G -z text ${LDFLAGS}';;
 		    *)
 			SHLIB_LD='/usr/ccs/bin/ld -G -z text';;
 		esac
