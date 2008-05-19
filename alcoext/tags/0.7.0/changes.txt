@@ -1,0 +1,53 @@
+AlcoExt v0.7.0 (May 19, 2008):
+  NEW: Added hash algorithms RipeMD256 and RipeMD320.
+  CHG: Updated bzip2 to v1.0.5.
+  CHG: Updated LibTomCrypt to v1.17.
+  FIX: Connection ID and user ID kicking for the "ioftpd" command.
+  FIX: Tcl channel drivers require the "getHandleProc" method.
+
+AlcoExt v0.6.0 (Apr 12, 2006):
+  NEW: Command to retrieve and set VFS attributes for ioFTPD.
+  NEW: Paths are translated to the system's native representation.
+  CHG: Greatly improved the Windows build system.
+  CHG: Moved all commands out of the "::alcoholicz" namespace.
+  FIX: Decreasing the reference count of unshared objects in "volume info" and
+       "ioftpd info" caused a bizarre error in memory-debug builds (Tcl 8.5).
+  FIX: Delete registered commands when the extension is unloaded (Tcl 8.5).
+  FIX: Double-free when unloading the extension (Tcl 8.5).
+  FIX: Minor errors in the regression tests.
+  FIX: Unregister exit and interp-deletion callbacks before unloading (Tcl 8.5).
+
+AlcoExt v0.5.0 (Feb 23, 2006):
+  NEW: Commands to create/rename/delete users and groups on ioFTPD.
+  NEW: Completed the "ioftpd user/group set" commands for updating user/group files.
+  NEW: Support for running a 32bit version of glFTPD on 64bit systems.
+  CHG: Improve initialisation time when loading the extension in multiple threads.
+  CHG: Updated LibTomCrypt to v1.10.
+  CHG: Updated TEA autoconf scripts to v3.5.
+  FIX: Compression regression tests produced false positives on some systems.
+  FIX: glFTPD shared memory regression tests were skipped on FreeBSD.
+
+AlcoExt v0.4.0 (Jan 7, 2006):
+  NEW: Added the "service" field to "ioftpd who".
+  CHG: Reorganised third party libraries, easier for future updates.
+  CHG: Updated LibTomCrypt to v1.08.
+  CHG: Updated TEA autoconf scripts to v3.4.
+  FIX: The "status" field for "glftpd who" did not change until another FTP
+       command was issued after a file transfer.
+
+AlcoExt v0.3.0 (Oct 7, 2005):
+  NEW: External interface to ioFTPD, uses shared memory to communicate with ioFTPD.
+  CHG: Changed the values of the "status" field for the "glftpd who" command.
+  CHG: Updated TEA autoconf scripts to v3.3.
+  FIX: Build issues on BSD/Linux systems.
+  FIX: The template pkgIndex.tcl file had the wrong package name.
+
+AlcoExt v0.2.0 (Sep 19, 2005):
+  NEW: Rewrote the PRNG interface as a Tcl channel driver.
+  CHG: Moved to a less restrictive license (modified BSD).
+  CHG: The memory address of a handle's data structure is now used in the handle's
+       identifier. This ensures that handle identifiers are always unique.
+  FIX: Possible out-of-bounds error in BzipSetError().
+
+AlcoExt v0.1.0 (Aug 29, 2005):
+  CHG: Initial release.
