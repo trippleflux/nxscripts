@@ -1,3 +1,5 @@
+AlcoExt v0.8.0 (not released):
+
 AlcoExt v0.7.0 (May 19, 2008):
   NEW: Added hash algorithms RipeMD256 and RipeMD320.
   CHG: Updated bzip2 to v1.0.5.
