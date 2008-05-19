@@ -1,1 +1,1 @@
-| %02(month)%02(day) %-10.10(user) | %-52.52(message) |
+| %02(month)-%02(day) %-10.10(user) | %-51.51(message) |
