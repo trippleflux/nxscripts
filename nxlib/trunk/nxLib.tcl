@@ -260,9 +260,9 @@ proc ::nxLib::RemoveParentLinks {realPath} {
 ######################################################################
 
 proc ::nxLib::PathClean {path} {
-    append cleanPath "/" $path "/"
-    regsub -all -- {[\\/]+} $cleanPath {/} cleanPath
-    return $cleanPath
+    append clean "/" $path "/"
+    regsub -all -- {[\\/]+} $clean {/} clean
+    return $clean
 }
 
 proc ::nxLib::PathGetBase {path} {
@@ -270,16 +270,16 @@ proc ::nxLib::PathGetBase {path} {
 }
 
 proc ::nxLib::PathGetParent {path} {
-    set parentPath [file dirname $path]
-    if {[string index $parentPath end] ne "/"} {
-        append parentPath "/"
+    set parent [file dirname $path]
+    if {[string index $parent end] ne "/"} {
+        append parent "/"
     }
-    return $parentPath
+    return $parent
 }
 
 proc ::nxLib::PathIsDisk {path} {
-    set path [string tolower [file tail $path]]
-    return [regexp -- {^(cd|dis[ck]|dvd)\d{1,2}$} $path]
+    set base [string tolower [file tail $path]]
+    return [regexp -- {^(cd|dis[ck]|dvd)\d{1,2}$} $base]
 }
 
 proc ::nxLib::PathJoin {componentList} {
