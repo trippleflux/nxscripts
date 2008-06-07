@@ -366,13 +366,10 @@ proc ::nxTools::Dupe::ApproveRelease {virtualPath userName groupName} {
 
 proc ::nxTools::Dupe::ForceCheck {virtualPath} {
     global force
-    set fileExt [file extension $virtualPath]
+    set fileExt [string tolower [file extension $virtualPath]]
     set matchPath [file dirname $virtualPath]
 
-    if {![string equal -nocase ".nfo" $fileExt] &&
-        ![string equal -nocase ".sfv" $fileExt] &&
-        ![ListMatchI $force(Exempts) $matchPath]} {
-
+    if {$fileExt ne ".nfo" && $fileExt ne ".sfv" && ![ListMatchI $force(Exempts) $matchPath]} {
         if {[PathIsDisk $matchPath]} {
             set releasePath [resolve pwd [file dirname $matchPath]]
         } else {
