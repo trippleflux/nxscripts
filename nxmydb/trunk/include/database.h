@@ -1,7 +1,7 @@
 /*
 
 nxMyDB - MySQL Database for ioFTPD
-Copyright (c) 2006-2008 neoxed
+Copyright (c) 2006-2009 neoxed
 
 Module Name:
     Database Connection
