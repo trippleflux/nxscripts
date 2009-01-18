@@ -5,14 +5,15 @@
 
 Topics:
  1. Information
- 2. Installation
- 3. Configuration
+ 2. Requirements
+ 3. Installation
+ 4. Configuration
    a) Options
    b) yaSSL Cipher Suites
    c) OpenSSL Cipher Suites
- 4. FAQ
- 5. Bugs and Comments
- 6. License
+ 5. FAQ
+ 6. Bugs and Comments
+ 7. License
 
 ################################################################################
 # 1. Information                                                               #
@@ -30,7 +31,17 @@ servers. nxMyDB also includes features such as:
 - User files and group files are updated regularly
 
 ################################################################################
-# 2. Installation                                                              #
+# 2. Requirements                                                              #
+################################################################################
+
+- Windows operating system
+
+- ioFTPD v5.8.5 to v6.4 (binary compatibility)
+
+- MySQL Server v5.1 (latest available)
+
+################################################################################
+# 3. Installation                                                              #
 ################################################################################
 
 1. Create a MySQL database and import the schema.sql file.
@@ -72,7 +83,7 @@ Sync_Interval   = 60            # Seconds between each incremental synchronizati
    server, as well as generate/sign certificates for connecting clients. For more
    information on this, visit:
 
-   http://dev.mysql.com/doc/refman/5.0/en/secure-using-ssl.html
+   http://dev.mysql.com/doc/refman/5.1/en/secure-using-ssl.html
    http://www.navicat.com/ssl_tutorial.php
 
    I will NOT assist you with this; direct any questions about MySQL Server and SSL
@@ -81,7 +92,7 @@ Sync_Interval   = 60            # Seconds between each incremental synchronizati
 7. Restart ioFTPD for the changes to take effect.
 
 ################################################################################
-# 3. Configuration                                                             #
+# 4. Configuration                                                             #
 ################################################################################
 
     Explanation of options available to nxMyDB and a list of cipher suites
@@ -278,7 +289,7 @@ supported by OpenSSL/yaSSL.
   RC4-SHA                     | SSLv3 TLSv1 | RSA      | RSA  |  RC4 128   | SHA1
 
 ################################################################################
-# 4. FAQ                                                                       #
+# 5. FAQ                                                                       #
 ################################################################################
 
 Q: What does "nxMyDB: Unable to connect to server: SSL connection error" mean?
@@ -302,7 +313,7 @@ A: This error can be caused by a number of failures, try the following.
    - Check that the MySQL server is the latest v5.0 version.
 
 ################################################################################
-# 5. Bugs and Comments                                                         #
+# 6. Bugs and Comments                                                         #
 ################################################################################
 
    If you have ideas for improvements or are experiencing problems with this
@@ -320,7 +331,7 @@ E-mail:
 neoxed@gmail.com
 
 ################################################################################
-# 6. License                                                                   #
+# 7. License                                                                   #
 ################################################################################
 
    See the "license.txt" file for details.
