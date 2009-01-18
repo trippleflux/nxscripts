@@ -1,0 +1,24 @@
+                      Notes For Writing User/Group Modules
+                      ====================================
+
+- If a write fails, ioFTPD automatically sets timer for a retry attempt. Pending
+  locks are cancelled with error, and user/group file becomes read-only to
+  ioFTPD until write succeeds.
+
+- ioFTPD calls "Open" at the daemon initialization and "Close" on finalization.
+
+- Lock request is always exclusive.
+
+- Data within USERFILE structure is expected to be synchronized on "Lock".
+
+- Modules may call "Update" routine to update cached values.
+
+- Modules must not call any of the UserFile*/GroupFile* procedures, they may
+  cause a dead-lock.
+
+- UIDs and GIDs are unique to each site. On shared databases, handle resources
+   by user names and group names.
+
+- All requests may block for undetermined amount of time. However, consider
+  anything that takes longer than few hundred milliseconds to execute as an
+  invalid implementation.
