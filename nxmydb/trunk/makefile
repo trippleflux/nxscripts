@@ -20,7 +20,7 @@ IOFTPD_INC  = D:\ioFTPD\source\Include
 MYSQL_DIR   = C:\Program Files\MySQL\MySQL Server 5.1
 
 # Release version
-VERSION     = 1.0.0
+VERSION     = 2.0.0
 
 # Compiler options
 CC          = cl.exe

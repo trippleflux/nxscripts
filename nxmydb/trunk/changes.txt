@@ -1,3 +1,6 @@
+nxMyDB v2.0.0 (Not released):
+  NEW: Compatibility with ioFTPD v6.8 and newer.
+
 nxMyDB v1.0.0 (Jan 9, 2009):
   NEW: Updated MySQL Client Library (libmysql.dll) to v5.1.30.
   CHG: Final release for ioFTPD v5.8.5 to v6.4.
