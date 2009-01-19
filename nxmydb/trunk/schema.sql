@@ -113,6 +113,6 @@ CREATE TABLE io_user_groups (
 
 CREATE TABLE io_user_hosts (
   uname       VARCHAR(65) NOT NULL,
-  host        VARCHAR(96) NOT NULL,
+  host        VARCHAR(97) NOT NULL,
   PRIMARY KEY (uname,host)
 );
