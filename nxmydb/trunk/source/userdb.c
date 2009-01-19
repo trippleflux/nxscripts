@@ -368,6 +368,7 @@ DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
     DB_CHECK_PARAMS(bindInput, stmt);
     ZeroMemory(&bindInput, sizeof(bindInput));
 
+    // name=?
     bindInput[0].buffer_type   = MYSQL_TYPE_STRING;
     bindInput[0].buffer        = userName;
     bindInput[0].buffer_length = userNameLength;
@@ -397,69 +398,85 @@ DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
     DB_CHECK_RESULTS(bindOutput, metadata);
     ZeroMemory(&bindOutput, sizeof(bindOutput));
 
+    // description
     bindOutput[0].buffer_type   = MYSQL_TYPE_STRING;
     bindOutput[0].buffer        = userFile.Tagline;
     bindOutput[0].buffer_length = sizeof(userFile.Tagline);
 
+    // flags
     bindOutput[1].buffer_type   = MYSQL_TYPE_STRING;
     bindOutput[1].buffer        = userFile.Flags;
     bindOutput[1].buffer_length = sizeof(userFile.Flags);
 
+    // home
     bindOutput[2].buffer_type   = MYSQL_TYPE_STRING;
     bindOutput[2].buffer        = userFile.Home;
     bindOutput[2].buffer_length = sizeof(userFile.Home);
 
+    // limits
     bindOutput[3].buffer_type   = MYSQL_TYPE_BLOB;
     bindOutput[3].buffer        = &userFile.Limits;
     bindOutput[3].buffer_length = sizeof(userFile.Limits);
 
+    // password
     bindOutput[4].buffer_type   = MYSQL_TYPE_BLOB;
     bindOutput[4].buffer        = &userFile.Password;
     bindOutput[4].buffer_length = sizeof(userFile.Password);
 
+    // vfsfile
     bindOutput[5].buffer_type   = MYSQL_TYPE_STRING;
     bindOutput[5].buffer        = userFile.MountFile;
     bindOutput[5].buffer_length = sizeof(userFile.MountFile);
 
+    // credits
     bindOutput[6].buffer_type   = MYSQL_TYPE_BLOB;
-    bindOutput[6].buffer        = &userFile.Ratio;
-    bindOutput[6].buffer_length = sizeof(userFile.Ratio);
+    bindOutput[6].buffer        = &userFile.Credits;
+    bindOutput[6].buffer_length = sizeof(userFile.Credits);
 
+    // ratio
     bindOutput[7].buffer_type   = MYSQL_TYPE_BLOB;
-    bindOutput[7].buffer        = &userFile.Credits;
-    bindOutput[7].buffer_length = sizeof(userFile.Credits);
+    bindOutput[7].buffer        = &userFile.Ratio;
+    bindOutput[7].buffer_length = sizeof(userFile.Ratio);
 
+    // alldn
     bindOutput[8].buffer_type   = MYSQL_TYPE_BLOB;
-    bindOutput[8].buffer        = &userFile.DayUp;
-    bindOutput[8].buffer_length = sizeof(userFile.DayUp);
+    bindOutput[8].buffer        = &userFile.AllDn;
+    bindOutput[8].buffer_length = sizeof(userFile.AllDn);
 
+    // allup
     bindOutput[9].buffer_type   = MYSQL_TYPE_BLOB;
-    bindOutput[9].buffer        = &userFile.DayDn;
-    bindOutput[9].buffer_length = sizeof(userFile.DayDn);
+    bindOutput[9].buffer        = &userFile.AllUp;
+    bindOutput[9].buffer_length = sizeof(userFile.AllUp);
 
+    // daydn
     bindOutput[10].buffer_type   = MYSQL_TYPE_BLOB;
-    bindOutput[10].buffer        = &userFile.WkUp;
-    bindOutput[10].buffer_length = sizeof(userFile.WkUp);
+    bindOutput[10].buffer        = &userFile.DayDn;
+    bindOutput[10].buffer_length = sizeof(userFile.DayDn);
 
+    // dayup
     bindOutput[11].buffer_type   = MYSQL_TYPE_BLOB;
-    bindOutput[11].buffer        = &userFile.WkDn;
-    bindOutput[11].buffer_length = sizeof(userFile.WkDn);
+    bindOutput[11].buffer        = &userFile.DayUp;
+    bindOutput[11].buffer_length = sizeof(userFile.DayUp);
 
+    // monthdn
     bindOutput[12].buffer_type   = MYSQL_TYPE_BLOB;
-    bindOutput[12].buffer        = &userFile.MonthUp;
-    bindOutput[12].buffer_length = sizeof(userFile.MonthUp);
+    bindOutput[12].buffer        = &userFile.MonthDn;
+    bindOutput[12].buffer_length = sizeof(userFile.MonthDn);
 
+    // monthup
     bindOutput[13].buffer_type   = MYSQL_TYPE_BLOB;
-    bindOutput[13].buffer        = &userFile.MonthDn;
-    bindOutput[13].buffer_length = sizeof(userFile.MonthDn);
+    bindOutput[13].buffer        = &userFile.MonthUp;
+    bindOutput[13].buffer_length = sizeof(userFile.MonthUp);
 
+    // wkdn
     bindOutput[14].buffer_type   = MYSQL_TYPE_BLOB;
-    bindOutput[14].buffer        = &userFile.AllUp;
-    bindOutput[14].buffer_length = sizeof(userFile.AllUp);
+    bindOutput[14].buffer        = &userFile.WkDn;
+    bindOutput[14].buffer_length = sizeof(userFile.WkDn);
 
+    // wkup
     bindOutput[15].buffer_type   = MYSQL_TYPE_BLOB;
-    bindOutput[15].buffer        = &userFile.AllDn;
-    bindOutput[15].buffer_length = sizeof(userFile.AllDn);
+    bindOutput[15].buffer        = &userFile.WkUp;
+    bindOutput[15].buffer_length = sizeof(userFile.WkUp);
 
     result = mysql_stmt_bind_result(stmt, bindOutput);
     if (result != 0) {
@@ -1616,70 +1633,87 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     DB_CHECK_PARAMS(bindUsers, stmtUsers);
     ZeroMemory(&bindUsers, sizeof(bindUsers));
 
+    // description=?
     bindUsers[0].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[0].buffer        = userFile->Tagline;
     bindUsers[0].buffer_length = strlen(userFile->Tagline);
 
+    // flags=?
     bindUsers[1].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[1].buffer        = userFile->Flags;
     bindUsers[1].buffer_length = strlen(userFile->Flags);
 
+    // home=?
     bindUsers[2].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[2].buffer        = userFile->Home;
     bindUsers[2].buffer_length = strlen(userFile->Home);
 
+    // limits=?
     bindUsers[3].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[3].buffer        = &userFile->Limits;
     bindUsers[3].buffer_length = sizeof(userFile->Limits);
 
+    // password=?
     bindUsers[4].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[4].buffer        = &userFile->Password;
     bindUsers[4].buffer_length = sizeof(userFile->Password);
 
+    // vfsfile=?
     bindUsers[5].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[5].buffer        = userFile->MountFile;
     bindUsers[5].buffer_length = strlen(userFile->MountFile);
 
+    // credits=?
     bindUsers[6].buffer_type   = MYSQL_TYPE_BLOB;
-    bindUsers[6].buffer        = &userFile->Ratio;
-    bindUsers[6].buffer_length = sizeof(userFile->Ratio);
+    bindUsers[6].buffer        = &userFile->Credits;
+    bindUsers[6].buffer_length = sizeof(userFile->Credits);
 
+    // ratio=?
     bindUsers[7].buffer_type   = MYSQL_TYPE_BLOB;
-    bindUsers[7].buffer        = &userFile->Credits;
-    bindUsers[7].buffer_length = sizeof(userFile->Credits);
+    bindUsers[7].buffer        = &userFile->Ratio;
+    bindUsers[7].buffer_length = sizeof(userFile->Ratio);
 
+    // alldn=?
     bindUsers[8].buffer_type   = MYSQL_TYPE_BLOB;
-    bindUsers[8].buffer        = &userFile->DayUp;
-    bindUsers[8].buffer_length = sizeof(userFile->DayUp);
+    bindUsers[8].buffer        = &userFile->AllDn;
+    bindUsers[8].buffer_length = sizeof(userFile->AllDn);
 
+    // allup=?
     bindUsers[9].buffer_type   = MYSQL_TYPE_BLOB;
-    bindUsers[9].buffer        = &userFile->DayDn;
-    bindUsers[9].buffer_length = sizeof(userFile->DayDn);
+    bindUsers[9].buffer        = &userFile->AllUp;
+    bindUsers[9].buffer_length = sizeof(userFile->AllUp);
 
+    // daydn=?
     bindUsers[10].buffer_type   = MYSQL_TYPE_BLOB;
-    bindUsers[10].buffer        = &userFile->WkUp;
-    bindUsers[10].buffer_length = sizeof(userFile->WkUp);
+    bindUsers[10].buffer        = &userFile->DayDn;
+    bindUsers[10].buffer_length = sizeof(userFile->DayDn);
 
+    // dayup=?
     bindUsers[11].buffer_type   = MYSQL_TYPE_BLOB;
-    bindUsers[11].buffer        = &userFile->WkDn;
-    bindUsers[11].buffer_length = sizeof(userFile->WkDn);
+    bindUsers[11].buffer        = &userFile->DayUp;
+    bindUsers[11].buffer_length = sizeof(userFile->DayUp);
 
+    // monthdn=?
     bindUsers[12].buffer_type   = MYSQL_TYPE_BLOB;
-    bindUsers[12].buffer        = &userFile->MonthUp;
-    bindUsers[12].buffer_length = sizeof(userFile->MonthUp);
+    bindUsers[12].buffer        = &userFile->MonthDn;
+    bindUsers[12].buffer_length = sizeof(userFile->MonthDn);
 
+    // monthup=?
     bindUsers[13].buffer_type   = MYSQL_TYPE_BLOB;
-    bindUsers[13].buffer        = &userFile->MonthDn;
-    bindUsers[13].buffer_length = sizeof(userFile->MonthDn);
+    bindUsers[13].buffer        = &userFile->MonthUp;
+    bindUsers[13].buffer_length = sizeof(userFile->MonthUp);
 
+    // wkdn=?
     bindUsers[14].buffer_type   = MYSQL_TYPE_BLOB;
-    bindUsers[14].buffer        = &userFile->AllUp;
-    bindUsers[14].buffer_length = sizeof(userFile->AllUp);
+    bindUsers[14].buffer        = &userFile->WkDn;
+    bindUsers[14].buffer_length = sizeof(userFile->WkDn);
 
+    // wkup=?
     bindUsers[15].buffer_type   = MYSQL_TYPE_BLOB;
-    bindUsers[15].buffer        = &userFile->AllDn;
-    bindUsers[15].buffer_length = sizeof(userFile->AllDn);
+    bindUsers[15].buffer        = &userFile->WkUp;
+    bindUsers[15].buffer_length = sizeof(userFile->WkUp);
 
+    // name=?
     bindUsers[16].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[16].buffer        = userName;
     bindUsers[16].buffer_length = userNameLength;
