@@ -63,6 +63,7 @@ typedef struct {
     BOOL         enabled;   // Allow syncronization
     INT          first;     // Milliseconds until the first syncronization
     INT          interval;  // Milliseconds between each database refresh
+    INT          purge;     // Seconds to purge old changes entries
     SYNC_CONTEXT sync;      // Syncronization context
     TIMER        *timer;    // Syncronization timer
 } DB_CONFIG_SYNC;
@@ -447,6 +448,12 @@ static BOOL FCALL ConfigLoad(VOID)
             return FALSE;
         }
         dbConfigSync.interval = dbConfigSync.interval * 1000; // sec to msec
+
+        dbConfigSync.purge = dbConfigSync.interval * 100;
+        if (Io_ConfigGetInt("nxMyDB", "Sync_Purge", &dbConfigSync.purge) && dbConfigSync.purge <= dbConfigSync.interval) {
+            LOG_ERROR("Option 'Sync_Purge' must be greater than 'Sync_Interval'.");
+            return FALSE;
+        }
     }
 
     //
@@ -887,6 +894,34 @@ VOID FCALL DbFinalize(VOID)
 
 /*++
 
+DbSyncPurge
+
+    Purges old entries from the changes tables.
+
+Arguments:
+    None.
+
+Return Values:
+    None.
+
+--*/
+VOID FCALL DbSyncPurge(VOID)
+{
+    DB_CONTEXT *db;
+
+    TRACE("enabled=%d", dbConfigSync.enabled);
+
+    if (dbConfigSync.enabled && DbAcquire(&db)) {
+        // Purge changes tables
+        DbGroupPurge(db, dbConfigSync.purge);
+        DbUserPurge(db, dbConfigSync.purge);
+
+        DbRelease(db);
+    }
+}
+
+/*++
+
 DbSyncStart
 
     Starts the database synchronization timer.
@@ -900,6 +935,8 @@ Return Values:
 --*/
 VOID FCALL DbSyncStart(VOID)
 {
+    TRACE("enabled=%d", dbConfigSync.enabled);
+
     if (dbConfigSync.enabled) {
         ASSERT(dbConfigSync.timer == NULL);
         dbConfigSync.timer = Io_StartIoTimer(NULL, SyncTimer, NULL, dbConfigSync.first);
@@ -921,6 +958,8 @@ Return Values:
 --*/
 VOID FCALL DbSyncStop(VOID)
 {
+    TRACE("enabled=%d", dbConfigSync.enabled);
+
     if (dbConfigSync.timer != NULL) {
         Io_StopIoTimer(dbConfigSync.timer, FALSE);
         dbConfigSync.timer = NULL;

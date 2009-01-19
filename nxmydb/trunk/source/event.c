@@ -35,31 +35,27 @@ typedef struct {
 // Event functions and variables
 //
 
-static EVENT_HANDLER_PROC EventHistory;
+static EVENT_HANDLER_PROC EventPurge;
 static EVENT_HANDLER_PROC EventStart;
 static EVENT_HANDLER_PROC EventStop;
 
 static const EVENT_HANDLER_TABLE eventTable[] = {
-#if 0
-    {"HISTORY", EventHistory},
-#endif
-    {"START",   EventStart},
-    {"STOP",    EventStop},
+    {"PURGE", EventPurge},
+    {"START", EventStart},
+    {"STOP",  EventStop},
 };
 
 
-#if 0
-static DWORD FCALL EventHistory(EVENT_DATA *data, IO_STRING *arguments)
+static DWORD FCALL EventPurge(EVENT_DATA *data, IO_STRING *arguments)
 {
     ASSERT(data != NULL);
     ASSERT(arguments != NULL);
     TRACE("data=%p arguments=%p", data, arguments);
 
-    // TODO
+    DbSyncPurge();
 
     return ERROR_SUCCESS;
 }
-#endif
 
 static DWORD FCALL EventStart(EVENT_DATA *data, IO_STRING *arguments)
 {

@@ -868,6 +868,58 @@ static DWORD UserSyncIncr(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 }
 
 
+DWORD DbUserPurge(DB_CONTEXT *db, INT age)
+{
+    CHAR        *query;
+    INT         result;
+    MYSQL_BIND  bind[1];
+    MYSQL_STMT  *stmt;
+
+    ASSERT(db != NULL);
+    TRACE("db=%p age=%d", db, age);
+
+    stmt = db->stmt[0];
+
+    //
+    // Prepare statement and bind parameters
+    //
+
+    query = "DELETE FROM io_user_changes WHERE time < (UNIX_TIMESTAMP() - ?)";
+
+    result = mysql_stmt_prepare(stmt, query, strlen(query));
+    if (result != 0) {
+        LOG_WARN("Unable to prepare statement: %s", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    DB_CHECK_PARAMS(bind, stmt);
+    ZeroMemory(&bind, sizeof(bind));
+
+    // UNIX_TIMESTAMP() - ?
+    bind[0].buffer_type = MYSQL_TYPE_LONG;
+    bind[0].buffer      = &age;
+
+    result = mysql_stmt_bind_param(stmt, bind);
+    if (result != 0) {
+        LOG_WARN("Unable to bind parameters: %s", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    //
+    // Execute prepared statement
+    //
+
+    result = mysql_stmt_execute(stmt);
+    if (result != 0) {
+        LOG_ERROR("Unable to execute statement: %s", mysql_stmt_error(stmt));
+        return DbMapErrorFromStmt(stmt);
+    }
+
+    TRACE("Purged %I64u entries from the user changes table.", mysql_stmt_affected_rows(stmt));
+
+    return ERROR_SUCCESS;
+}
+
 DWORD DbUserSync(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 {
     DWORD result;

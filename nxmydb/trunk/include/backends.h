@@ -125,7 +125,10 @@ typedef struct {
     ULONG       prevUpdate; // Server time of the last update
 } SYNC_CONTEXT;
 
+DWORD DbGroupPurge(DB_CONTEXT *db, INT age);
 DWORD DbGroupSync(DB_CONTEXT *db, SYNC_CONTEXT *sync);
+
+DWORD DbUserPurge(DB_CONTEXT *db, INT age);
 DWORD DbUserSync(DB_CONTEXT *db, SYNC_CONTEXT *sync);
 
 #endif // BACKENDS_H_INCLUDED

@@ -55,6 +55,9 @@ servers. nxMyDB also includes features such as:
 
 4. Add the following options to your ioFTPD.ini file:
 
+[Scheduler]
+nxMyDBPurge     = 0 0 * * NXMYDB purge
+
 [Modules]
 EventModule     = ..\modules\nxmydb.dll
 GroupModule     = ..\modules\nxmydb.dll
@@ -145,6 +148,11 @@ supported by OpenSSL/yaSSL.
   Sync_Interval
     - Seconds between each incremental database synchronization
     - Default: 60
+
+  Sync_Purge
+    - Seconds after which to purge entries in the "changes" tables
+    - This should be substantially larger than the Sync_Interval
+    - Default: Sync_Interval x 100
 
   Compression
     - Use compression for the server connection
