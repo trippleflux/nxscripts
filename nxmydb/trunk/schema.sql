@@ -47,7 +47,7 @@ END;
 CREATE TABLE io_group (
   name        VARCHAR(65)  NOT NULL,
   description VARCHAR(128) NOT NULL,
-  slots       TINYBLOB     NOT NULL, -- 2 x INT = 8B
+  slots       TINYBLOB     NOT NULL, -- 2 x INT = 8 bytes
   users       INT          NOT NULL,
   vfsfile     VARCHAR(260) NOT NULL,
   updated     INT UNSIGNED NOT NULL DEFAULT 0,
@@ -70,12 +70,12 @@ CREATE TABLE io_user (
   description VARCHAR(128) NOT NULL,
   flags       VARCHAR(32)  NOT NULL,
   home        VARCHAR(260) NOT NULL,
-  limits      TINYBLOB     NOT NULL, --  5 x INT  = 20B
-  password    TINYBLOB     NOT NULL, -- 20 x CHAR = 20B
+  limits      TINYBLOB     NOT NULL, --  5 x INT  = 20 bytes
+  password    TINYBLOB     NOT NULL, -- 20 x CHAR = 20 bytes
   vfsfile     VARCHAR(260) NOT NULL,
-  credits     TINYBLOB     NOT NULL, -- 25 x INT64 = 200B
-  ratio       TINYBLOB     NOT NULL, -- 25 x INT   = 100B
-  alldn       BLOB         NOT NULL, -- 3 x 25 x INT64 = 600B
+  credits     TINYBLOB     NOT NULL, -- 25 x INT64 = 200 bytes
+  ratio       TINYBLOB     NOT NULL, -- 25 x INT   = 100 bytes
+  alldn       BLOB         NOT NULL, -- 3 x 25 x INT64 = 600 bytes
   allup       BLOB         NOT NULL,
   daydn       BLOB         NOT NULL,
   dayup       BLOB         NOT NULL,
