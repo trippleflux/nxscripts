@@ -48,6 +48,8 @@ Abstract:
 // ioFTPD headers
 #include <IoError.h>
 #include <ServerLimits.h>
+#include <LockObject.h>
+#include <IdDataBase.h>
 #include <Buffer.h>
 #include <Timer.h>
 #include <GroupFile.h>
@@ -55,7 +57,6 @@ Abstract:
 #include <UserFile.h>
 #include <User.h>
 
-#include <LockObject.h>
 #include <VirtualPath.h>
 #include <IoOverlapped.h>
 #include <IoFile.h>
