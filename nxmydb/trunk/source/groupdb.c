@@ -133,11 +133,16 @@ DWORD DbGroupRead(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFilePtr)
     mysql_free_result(metadata);
 
     //
-    // Initialize remaining values of the group-file structure and copy the
-    // local group-file to the output parameter. Copy all structure members up
-    // to lpInternal, the lpInternal and lpParent members must not be changed.
+    // Initialize remaining values of the group-file structure.
     //
+
     groupFile.Gid = groupFilePtr->Gid;
+
+    //
+    // Copy the local group-file to the output parameter. Only copy structure
+    // members up to lpInternal, as the lpInternal and lpParent members must
+    // not be changed.
+    //
 
     CopyMemory(groupFilePtr, &groupFile, offsetof(GROUPFILE, lpInternal));
 
