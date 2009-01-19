@@ -313,6 +313,9 @@ static DWORD UserSyncFull(DB_CONTEXT *db)
             continue;
         }
 
+        // Initialize remaining values of the user-file structure.
+        userFile.Gid        = userFile.Groups[0];
+
         //
         // If ioFTPD fails to open a user at start-up, the user will still
         // have an entry in the UserIdTable file but ioFTPD considers them
@@ -705,6 +708,8 @@ static DWORD UserSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
         if (error != ERROR_SUCCESS) {
             LOG_WARN("Unable to read user \"%s\" (error %lu).", userName, error);
         } else {
+            // Initialize remaining values of the user-file structure.
+            userFile.Gid        = userFile.Groups[0];
 
             // Update user file
             error = UserEventUpdate(userName, &userFile);
