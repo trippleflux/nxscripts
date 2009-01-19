@@ -194,21 +194,26 @@ static DWORD GroupSyncFull(DB_CONTEXT *db)
     DB_CHECK_RESULTS(bind, metadata);
     ZeroMemory(&bind, sizeof(bind));
 
+    // SELECT name
     bind[0].buffer_type   = MYSQL_TYPE_STRING;
     bind[0].buffer        = groupName;
     bind[0].buffer_length = sizeof(groupName);
 
+    // SELECT description
     bind[1].buffer_type   = MYSQL_TYPE_STRING;
     bind[1].buffer        = groupFile.szDescription;
     bind[1].buffer_length = sizeof(groupFile.szDescription);
 
+    // SELECT slots
     bind[2].buffer_type   = MYSQL_TYPE_BLOB;
     bind[2].buffer        = groupFile.Slots;
     bind[2].buffer_length = sizeof(groupFile.Slots);
 
+    // SELECT users
     bind[3].buffer_type   = MYSQL_TYPE_LONG;
     bind[3].buffer        = &groupFile.Users;
 
+    // SELECT vfsfile
     bind[4].buffer_type   = MYSQL_TYPE_STRING;
     bind[4].buffer        = groupFile.szVfsFile;
     bind[4].buffer_length = sizeof(groupFile.szVfsFile);
@@ -317,10 +322,12 @@ static DWORD GroupSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     DB_CHECK_PARAMS(bindInput, stmt);
     ZeroMemory(&bindInput, sizeof(bindInput));
 
+    // BETWEEN ?
     bindInput[0].buffer_type = MYSQL_TYPE_LONG;
     bindInput[0].buffer      = &sync->prevUpdate;
     bindInput[0].is_unsigned = TRUE;
 
+    // AND ?
     bindInput[1].buffer_type = MYSQL_TYPE_LONG;
     bindInput[1].buffer      = &sync->currUpdate;
     bindInput[1].is_unsigned = TRUE;
@@ -354,14 +361,17 @@ static DWORD GroupSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     DB_CHECK_RESULTS(bindOutput, metadata);
     ZeroMemory(&bindOutput, sizeof(bindOutput));
 
+    // SELECT name
     bindOutput[0].buffer_type   = MYSQL_TYPE_STRING;
     bindOutput[0].buffer        = groupName;
     bindOutput[0].buffer_length = sizeof(groupName);
 
+    // SELECT type
     bindOutput[1].buffer_type   = MYSQL_TYPE_TINY;
     bindOutput[1].buffer        = &syncEvent;
     bindOutput[1].is_unsigned   = TRUE;
 
+    // SELECT info
     bindOutput[2].buffer_type   = MYSQL_TYPE_STRING;
     bindOutput[2].buffer        = syncInfo;
     bindOutput[2].buffer_length = sizeof(syncInfo);
@@ -469,10 +479,12 @@ static DWORD GroupSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     DB_CHECK_PARAMS(bindInput, stmt);
     ZeroMemory(&bindInput, sizeof(bindInput));
 
+    // BETWEEN ?
     bindInput[0].buffer_type = MYSQL_TYPE_LONG;
     bindInput[0].buffer      = &sync->prevUpdate;
     bindInput[0].is_unsigned = TRUE;
 
+    // AND ?
     bindInput[1].buffer_type = MYSQL_TYPE_LONG;
     bindInput[1].buffer      = &sync->currUpdate;
     bindInput[1].is_unsigned = TRUE;
@@ -506,21 +518,26 @@ static DWORD GroupSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     DB_CHECK_RESULTS(bindOutput, metadata);
     ZeroMemory(&bindOutput, sizeof(bindOutput));
 
+    // SELECT name
     bindOutput[0].buffer_type   = MYSQL_TYPE_STRING;
     bindOutput[0].buffer        = groupName;
     bindOutput[0].buffer_length = sizeof(groupName);
 
+    // SELECT description
     bindOutput[1].buffer_type   = MYSQL_TYPE_STRING;
     bindOutput[1].buffer        = groupFile.szDescription;
     bindOutput[1].buffer_length = sizeof(groupFile.szDescription);
 
+    // SELECT slots
     bindOutput[2].buffer_type   = MYSQL_TYPE_BLOB;
     bindOutput[2].buffer        = groupFile.Slots;
     bindOutput[2].buffer_length = sizeof(groupFile.Slots);
 
+    // SELECT users
     bindOutput[3].buffer_type   = MYSQL_TYPE_LONG;
     bindOutput[3].buffer        = &groupFile.Users;
 
+    // SELECT vfsfile
     bindOutput[4].buffer_type   = MYSQL_TYPE_STRING;
     bindOutput[4].buffer        = groupFile.szVfsFile;
     bindOutput[4].buffer_length = sizeof(groupFile.szVfsFile);
