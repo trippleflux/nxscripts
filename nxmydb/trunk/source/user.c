@@ -19,7 +19,7 @@ Abstract:
 #include <database.h>
 
 static INT   UserFinalize(VOID);
-static INT32 UserCreate(CHAR *userName);
+static INT32 UserCreate(CHAR *userName, INT32 groupId);
 static INT   UserRename(CHAR *userName, INT32 userId, CHAR *newName);
 static INT   UserDelete(CHAR *userName, INT32 userId);
 static INT   UserLock(USERFILE *userFile);
@@ -67,7 +67,7 @@ static INT UserFinalize(VOID)
     return UM_SUCCESS;
 }
 
-static INT32 UserCreate(CHAR *userName)
+static INT32 UserCreate(CHAR *userName, INT32 groupId)
 {
     DB_CONTEXT  *db;
     MOD_CONTEXT *mod;
@@ -75,7 +75,7 @@ static INT32 UserCreate(CHAR *userName)
     INT32       userId = -1;
     USERFILE    userFile;
 
-    TRACE("userName=%s", userName);
+    TRACE("userName=%s groupId=%d", userName, groupId);
 
     if (!DbAcquire(&db)) {
         return userId;
@@ -96,7 +96,12 @@ static INT32 UserCreate(CHAR *userName)
         userFile.Groups[0]      = NOGROUP_ID;
         userFile.Groups[1]      = -1;
         userFile.AdminGroups[0] = -1;
+        userFile.CreatorUid     = -1;
+        userFile.MaxUploads     = -1;
+        userFile.MaxDownloads   = -1;
         userFile.lpInternal     = mod;
+
+        // TODO: Read "Default=Group" file
 
         // Read "Default.User" file
         result = FileUserDefault(&userFile);
