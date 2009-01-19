@@ -59,6 +59,7 @@ DWORD DbGroupRead(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFilePtr)
     DB_CHECK_PARAMS(bindInput, stmt);
     ZeroMemory(&bindInput, sizeof(bindInput));
 
+    // WHERE name=?
     bindInput[0].buffer_type   = MYSQL_TYPE_STRING;
     bindInput[0].buffer        = groupName;
     bindInput[0].buffer_length = groupNameLength;
@@ -92,17 +93,21 @@ DWORD DbGroupRead(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFilePtr)
     DB_CHECK_RESULTS(bindOutput, metadata);
     ZeroMemory(&bindOutput, sizeof(bindOutput));
 
+    // SELECT description
     bindOutput[0].buffer_type   = MYSQL_TYPE_STRING;
     bindOutput[0].buffer        = groupFile.szDescription;
     bindOutput[0].buffer_length = sizeof(groupFile.szDescription);
 
+    // SELECT slots
     bindOutput[1].buffer_type   = MYSQL_TYPE_BLOB;
     bindOutput[1].buffer        = groupFile.Slots;
     bindOutput[1].buffer_length = sizeof(groupFile.Slots);
 
+    // SELECT users
     bindOutput[2].buffer_type   = MYSQL_TYPE_LONG;
     bindOutput[2].buffer        = &groupFile.Users;
 
+    // SELECT vfsfile
     bindOutput[3].buffer_type   = MYSQL_TYPE_STRING;
     bindOutput[3].buffer        = groupFile.szVfsFile;
     bindOutput[3].buffer_length = sizeof(groupFile.szVfsFile);
@@ -178,21 +183,26 @@ DWORD DbGroupCreate(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
     DB_CHECK_PARAMS(bindGroup, stmtGroup);
     ZeroMemory(&bindGroup, sizeof(bindGroup));
 
+    // INSERT name
     bindGroup[0].buffer_type   = MYSQL_TYPE_STRING;
     bindGroup[0].buffer        = groupName;
     bindGroup[0].buffer_length = groupNameLength;
 
+    // INSERT description
     bindGroup[1].buffer_type   = MYSQL_TYPE_STRING;
     bindGroup[1].buffer        = groupFile->szDescription;
     bindGroup[1].buffer_length = strlen(groupFile->szDescription);
 
+    // INSERT slots
     bindGroup[2].buffer_type   = MYSQL_TYPE_BLOB;
     bindGroup[2].buffer        = groupFile->Slots;
     bindGroup[2].buffer_length = sizeof(groupFile->Slots);
 
+    // INSERT users
     bindGroup[3].buffer_type   = MYSQL_TYPE_LONG;
     bindGroup[3].buffer        = &groupFile->Users;
 
+    // INSERT vfsfile
     bindGroup[4].buffer_type   = MYSQL_TYPE_STRING;
     bindGroup[4].buffer        = groupFile->szVfsFile;
     bindGroup[4].buffer_length = strlen(groupFile->szVfsFile);
@@ -223,10 +233,12 @@ DWORD DbGroupCreate(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
     // Change event used during incremental syncs.
     syncEvent = SYNC_EVENT_CREATE;
 
+    // INSERT type
     bindChanges[0].buffer_type   = MYSQL_TYPE_TINY;
     bindChanges[0].buffer        = &syncEvent;
     bindChanges[0].is_unsigned   = TRUE;
 
+    // INSERT name
     bindChanges[1].buffer_type   = MYSQL_TYPE_STRING;
     bindChanges[1].buffer        = groupName;
     bindChanges[1].buffer_length = groupNameLength;
@@ -336,10 +348,12 @@ DWORD DbGroupRename(DB_CONTEXT *db, CHAR *groupName, CHAR *newName)
     DB_CHECK_PARAMS(bindMain, stmtMain);
     ZeroMemory(&bindMain, sizeof(bindMain));
 
+    // SET name=?
     bindMain[0].buffer_type   = MYSQL_TYPE_STRING;
     bindMain[0].buffer        = newName;
     bindMain[0].buffer_length = newNameLength;
 
+    // WHERE name=?
     bindMain[1].buffer_type   = MYSQL_TYPE_STRING;
     bindMain[1].buffer        = groupName;
     bindMain[1].buffer_length = groupNameLength;
@@ -365,10 +379,12 @@ DWORD DbGroupRename(DB_CONTEXT *db, CHAR *groupName, CHAR *newName)
     DB_CHECK_PARAMS(bindAdmins, stmtAdmins);
     ZeroMemory(&bindAdmins, sizeof(bindAdmins));
 
+    // SET gname=?
     bindAdmins[0].buffer_type   = MYSQL_TYPE_STRING;
     bindAdmins[0].buffer        = newName;
     bindAdmins[0].buffer_length = newNameLength;
 
+    // WHERE gname=?
     bindAdmins[1].buffer_type   = MYSQL_TYPE_STRING;
     bindAdmins[1].buffer        = groupName;
     bindAdmins[1].buffer_length = groupNameLength;
@@ -394,10 +410,12 @@ DWORD DbGroupRename(DB_CONTEXT *db, CHAR *groupName, CHAR *newName)
     DB_CHECK_PARAMS(bindGroups, stmtGroups);
     ZeroMemory(&bindGroups, sizeof(bindGroups));
 
+    // SET gname=?
     bindGroups[0].buffer_type   = MYSQL_TYPE_STRING;
     bindGroups[0].buffer        = newName;
     bindGroups[0].buffer_length = newNameLength;
 
+    // WHERE gname=?
     bindGroups[1].buffer_type   = MYSQL_TYPE_STRING;
     bindGroups[1].buffer        = groupName;
     bindGroups[1].buffer_length = groupNameLength;
@@ -428,14 +446,17 @@ DWORD DbGroupRename(DB_CONTEXT *db, CHAR *groupName, CHAR *newName)
     // Change event used during incremental syncs.
     syncEvent = SYNC_EVENT_RENAME;
 
+    // INSERT type
     bindChanges[0].buffer_type   = MYSQL_TYPE_TINY;
     bindChanges[0].buffer        = &syncEvent;
     bindChanges[0].is_unsigned   = TRUE;
 
+    // INSERT name
     bindChanges[1].buffer_type   = MYSQL_TYPE_STRING;
     bindChanges[1].buffer        = groupName;
     bindChanges[1].buffer_length = groupNameLength;
 
+    // INSERT info
     bindChanges[2].buffer_type   = MYSQL_TYPE_STRING;
     bindChanges[2].buffer        = newName;
     bindChanges[2].buffer_length = newNameLength;
@@ -567,6 +588,7 @@ DWORD DbGroupDelete(DB_CONTEXT *db, CHAR *groupName)
     DB_CHECK_PARAMS(bindGroup, stmtGroup);
     ZeroMemory(&bindGroup, sizeof(bindGroup));
 
+    // WHERE name=?
     bindGroup[0].buffer_type   = MYSQL_TYPE_STRING;
     bindGroup[0].buffer        = groupName;
     bindGroup[0].buffer_length = groupNameLength;
@@ -597,10 +619,12 @@ DWORD DbGroupDelete(DB_CONTEXT *db, CHAR *groupName)
     // Change event used during incremental syncs.
     syncEvent = SYNC_EVENT_DELETE;
 
+    // INSERT type
     bindChanges[0].buffer_type   = MYSQL_TYPE_TINY;
     bindChanges[0].buffer        = &syncEvent;
     bindChanges[0].is_unsigned   = TRUE;
 
+    // INSERT name
     bindChanges[1].buffer_type   = MYSQL_TYPE_STRING;
     bindChanges[1].buffer        = groupName;
     bindChanges[1].buffer_length = groupNameLength;
@@ -873,21 +897,26 @@ DWORD DbGroupWrite(DB_CONTEXT *db, CHAR *groupName, GROUPFILE *groupFile)
     DB_CHECK_PARAMS(bind, stmt);
     ZeroMemory(&bind, sizeof(bind));
 
+    // SET description
     bind[0].buffer_type   = MYSQL_TYPE_STRING;
     bind[0].buffer        = groupFile->szDescription;
     bind[0].buffer_length = strlen(groupFile->szDescription);
 
+    // SET slots
     bind[1].buffer_type   = MYSQL_TYPE_BLOB;
     bind[1].buffer        = groupFile->Slots;
     bind[1].buffer_length = sizeof(groupFile->Slots);
 
+    // SET users
     bind[2].buffer_type   = MYSQL_TYPE_LONG;
     bind[2].buffer        = &groupFile->Users;
 
+    // SET vfsfile
     bind[3].buffer_type   = MYSQL_TYPE_STRING;
     bind[3].buffer        = groupFile->szVfsFile;
     bind[3].buffer_length = strlen(groupFile->szVfsFile);
 
+    // WHERE name=?
     bind[4].buffer_type   = MYSQL_TYPE_STRING;
     bind[4].buffer        = groupName;
     bind[4].buffer_length = groupNameLength;

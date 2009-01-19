@@ -105,7 +105,7 @@ DWORD DbUserReadExtra(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     DB_CHECK_PARAMS(bindInputAdmins, stmtAdmins);
     ZeroMemory(&bindInputAdmins, sizeof(bindInputAdmins));
 
-    // uname=?
+    // WHERE uname=?
     bindInputAdmins[0].buffer_type   = MYSQL_TYPE_STRING;
     bindInputAdmins[0].buffer        = userName;
     bindInputAdmins[0].buffer_length = userNameLength;
@@ -137,7 +137,7 @@ DWORD DbUserReadExtra(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     DB_CHECK_PARAMS(bindInputGroups, stmtGroups);
     ZeroMemory(&bindInputGroups, sizeof(bindInputGroups));
 
-    // uname=?
+    // WHERE uname=?
     bindInputGroups[0].buffer_type   = MYSQL_TYPE_STRING;
     bindInputGroups[0].buffer        = userName;
     bindInputGroups[0].buffer_length = userNameLength;
@@ -169,7 +169,7 @@ DWORD DbUserReadExtra(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     DB_CHECK_PARAMS(bindInputHosts, stmtHosts);
     ZeroMemory(&bindInputHosts, sizeof(bindInputHosts));
 
-    // uname=?
+    // WHERE uname=?
     bindInputHosts[0].buffer_type   = MYSQL_TYPE_STRING;
     bindInputHosts[0].buffer        = userName;
     bindInputHosts[0].buffer_length = userNameLength;
@@ -199,7 +199,7 @@ DWORD DbUserReadExtra(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     DB_CHECK_RESULTS(bindOutputAdmins, metadataAdmins);
     ZeroMemory(&bindOutputAdmins, sizeof(bindOutputAdmins));
 
-    // gname
+    // SELECT gname
     bindOutputAdmins[0].buffer_type   = MYSQL_TYPE_STRING;
     bindOutputAdmins[0].buffer        = buffer;
     bindOutputAdmins[0].buffer_length = sizeof(buffer);
@@ -248,7 +248,7 @@ DWORD DbUserReadExtra(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     DB_CHECK_RESULTS(bindOutputGroups, metadataGroups);
     ZeroMemory(&bindOutputGroups, sizeof(bindOutputGroups));
 
-    // gname
+    // SELECT gname
     bindOutputGroups[0].buffer_type   = MYSQL_TYPE_STRING;
     bindOutputGroups[0].buffer        = buffer;
     bindOutputGroups[0].buffer_length = sizeof(buffer);
@@ -302,7 +302,7 @@ DWORD DbUserReadExtra(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     DB_CHECK_RESULTS(bindOutputHosts, metadataHosts);
     ZeroMemory(&bindOutputHosts, sizeof(bindOutputHosts));
 
-    // host
+    // SELECT host
     bindOutputHosts[0].buffer_type   = MYSQL_TYPE_STRING;
     bindOutputHosts[0].buffer        = buffer;
     bindOutputHosts[0].buffer_length = sizeof(buffer);
@@ -374,7 +374,7 @@ DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
     DB_CHECK_PARAMS(bindInput, stmt);
     ZeroMemory(&bindInput, sizeof(bindInput));
 
-    // name=?
+    // WHERE name=?
     bindInput[0].buffer_type   = MYSQL_TYPE_STRING;
     bindInput[0].buffer        = userName;
     bindInput[0].buffer_length = userNameLength;
@@ -404,82 +404,82 @@ DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
     DB_CHECK_RESULTS(bindOutput, metadata);
     ZeroMemory(&bindOutput, sizeof(bindOutput));
 
-    // description
+    // SELECT description
     bindOutput[0].buffer_type   = MYSQL_TYPE_STRING;
     bindOutput[0].buffer        = userFile.Tagline;
     bindOutput[0].buffer_length = sizeof(userFile.Tagline);
 
-    // flags
+    // SELECT flags
     bindOutput[1].buffer_type   = MYSQL_TYPE_STRING;
     bindOutput[1].buffer        = userFile.Flags;
     bindOutput[1].buffer_length = sizeof(userFile.Flags);
 
-    // home
+    // SELECT home
     bindOutput[2].buffer_type   = MYSQL_TYPE_STRING;
     bindOutput[2].buffer        = userFile.Home;
     bindOutput[2].buffer_length = sizeof(userFile.Home);
 
-    // limits
+    // SELECT limits
     bindOutput[3].buffer_type   = MYSQL_TYPE_BLOB;
     bindOutput[3].buffer        = &userFile.Limits;
     bindOutput[3].buffer_length = sizeof(userFile.Limits);
 
-    // password
+    // SELECT password
     bindOutput[4].buffer_type   = MYSQL_TYPE_BLOB;
     bindOutput[4].buffer        = &userFile.Password;
     bindOutput[4].buffer_length = sizeof(userFile.Password);
 
-    // vfsfile
+    // SELECT vfsfile
     bindOutput[5].buffer_type   = MYSQL_TYPE_STRING;
     bindOutput[5].buffer        = userFile.MountFile;
     bindOutput[5].buffer_length = sizeof(userFile.MountFile);
 
-    // credits
+    // SELECT credits
     bindOutput[6].buffer_type   = MYSQL_TYPE_BLOB;
     bindOutput[6].buffer        = &userFile.Credits;
     bindOutput[6].buffer_length = sizeof(userFile.Credits);
 
-    // ratio
+    // SELECT ratio
     bindOutput[7].buffer_type   = MYSQL_TYPE_BLOB;
     bindOutput[7].buffer        = &userFile.Ratio;
     bindOutput[7].buffer_length = sizeof(userFile.Ratio);
 
-    // alldn
+    // SELECT alldn
     bindOutput[8].buffer_type   = MYSQL_TYPE_BLOB;
     bindOutput[8].buffer        = &userFile.AllDn;
     bindOutput[8].buffer_length = sizeof(userFile.AllDn);
 
-    // allup
+    // SELECT allup
     bindOutput[9].buffer_type   = MYSQL_TYPE_BLOB;
     bindOutput[9].buffer        = &userFile.AllUp;
     bindOutput[9].buffer_length = sizeof(userFile.AllUp);
 
-    // daydn
+    // SELECT daydn
     bindOutput[10].buffer_type   = MYSQL_TYPE_BLOB;
     bindOutput[10].buffer        = &userFile.DayDn;
     bindOutput[10].buffer_length = sizeof(userFile.DayDn);
 
-    // dayup
+    // SELECT dayup
     bindOutput[11].buffer_type   = MYSQL_TYPE_BLOB;
     bindOutput[11].buffer        = &userFile.DayUp;
     bindOutput[11].buffer_length = sizeof(userFile.DayUp);
 
-    // monthdn
+    // SELECT monthdn
     bindOutput[12].buffer_type   = MYSQL_TYPE_BLOB;
     bindOutput[12].buffer        = &userFile.MonthDn;
     bindOutput[12].buffer_length = sizeof(userFile.MonthDn);
 
-    // monthup
+    // SELECT monthup
     bindOutput[13].buffer_type   = MYSQL_TYPE_BLOB;
     bindOutput[13].buffer        = &userFile.MonthUp;
     bindOutput[13].buffer_length = sizeof(userFile.MonthUp);
 
-    // wkdn
+    // SELECT wkdn
     bindOutput[14].buffer_type   = MYSQL_TYPE_BLOB;
     bindOutput[14].buffer        = &userFile.WkDn;
     bindOutput[14].buffer_length = sizeof(userFile.WkDn);
 
-    // wkup
+    // SELECT wkup
     bindOutput[15].buffer_type   = MYSQL_TYPE_BLOB;
     bindOutput[15].buffer        = &userFile.WkUp;
     bindOutput[15].buffer_length = sizeof(userFile.WkUp);
@@ -586,87 +586,87 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     DB_CHECK_PARAMS(bindUsers, stmtUsers);
     ZeroMemory(&bindUsers, sizeof(bindUsers));
 
-    // name
+    // INSERT name
     bindUsers[0].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[0].buffer        = userName;
     bindUsers[0].buffer_length = userNameLength;
 
-    // description
+    // INSERT description
     bindUsers[1].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[1].buffer        = userFile->Tagline;
     bindUsers[1].buffer_length = strlen(userFile->Tagline);
 
-    // flags
+    // INSERT flags
     bindUsers[2].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[2].buffer        = userFile->Flags;
     bindUsers[2].buffer_length = strlen(userFile->Flags);
 
-    // home
+    // INSERT home
     bindUsers[3].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[3].buffer        = userFile->Home;
     bindUsers[3].buffer_length = strlen(userFile->Home);
 
-    // limits
+    // INSERT limits
     bindUsers[4].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[4].buffer        = &userFile->Limits;
     bindUsers[4].buffer_length = sizeof(userFile->Limits);
 
-    // password
+    // INSERT password
     bindUsers[5].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[5].buffer        = &userFile->Password;
     bindUsers[5].buffer_length = sizeof(userFile->Password);
 
-    // vfsfile
+    // INSERT vfsfile
     bindUsers[6].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[6].buffer        = userFile->MountFile;
     bindUsers[6].buffer_length = strlen(userFile->MountFile);
 
-    // credits
+    // INSERT credits
     bindUsers[7].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[7].buffer        = &userFile->Credits;
     bindUsers[7].buffer_length = sizeof(userFile->Credits);
 
-    // ratio
+    // INSERT ratio
     bindUsers[8].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[8].buffer        = &userFile->Ratio;
     bindUsers[8].buffer_length = sizeof(userFile->Ratio);
 
-    // alldn=?
+    // INSERT alldn=?
     bindUsers[9].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[9].buffer        = &userFile->AllDn;
     bindUsers[9].buffer_length = sizeof(userFile->AllDn);
 
-    // allup=?
+    // INSERT allup=?
     bindUsers[10].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[10].buffer        = &userFile->AllUp;
     bindUsers[10].buffer_length = sizeof(userFile->AllUp);
 
-    // daydn=?
+    // INSERT daydn=?
     bindUsers[11].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[11].buffer        = &userFile->DayDn;
     bindUsers[11].buffer_length = sizeof(userFile->DayDn);
 
-    // dayup=?
+    // INSERT dayup=?
     bindUsers[12].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[12].buffer        = &userFile->DayUp;
     bindUsers[12].buffer_length = sizeof(userFile->DayUp);
 
-    // monthdn=?
+    // INSERT monthdn=?
     bindUsers[13].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[13].buffer        = &userFile->MonthDn;
     bindUsers[13].buffer_length = sizeof(userFile->MonthDn);
 
-    // monthup=?
+    // INSERT monthup=?
     bindUsers[14].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[14].buffer        = &userFile->MonthUp;
     bindUsers[14].buffer_length = sizeof(userFile->MonthUp);
 
-    // wkdn=?
+    // INSERT wkdn=?
     bindUsers[15].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[15].buffer        = &userFile->WkDn;
     bindUsers[15].buffer_length = sizeof(userFile->WkDn);
 
-    // wkup=?
+    // INSERT wkup=?
     bindUsers[16].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[16].buffer        = &userFile->WkUp;
     bindUsers[16].buffer_length = sizeof(userFile->WkUp);
@@ -692,10 +692,12 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     DB_CHECK_PARAMS(bindAdmins, stmtAdmins);
     ZeroMemory(&bindAdmins, sizeof(bindAdmins));
 
+    // REPLACE uname
     bindAdmins[0].buffer_type   = MYSQL_TYPE_STRING;
     bindAdmins[0].buffer        = userName;
     bindAdmins[0].buffer_length = userNameLength;
 
+    // REPLACE gname
     bindAdmins[1].buffer_type   = MYSQL_TYPE_STRING;
     bindAdmins[1].buffer        = &buffer;
     bindAdmins[1].buffer_length = _MAX_NAME;
@@ -722,15 +724,18 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     DB_CHECK_PARAMS(bindGroups, stmtGroups);
     ZeroMemory(&bindGroups, sizeof(bindGroups));
 
+    // REPLACE uname
     bindGroups[0].buffer_type   = MYSQL_TYPE_STRING;
     bindGroups[0].buffer        = userName;
     bindGroups[0].buffer_length = userNameLength;
 
+    // REPLACE gname
     bindGroups[1].buffer_type   = MYSQL_TYPE_STRING;
     bindGroups[1].buffer        = &buffer;
     bindGroups[1].buffer_length = _MAX_NAME;
     bindGroups[1].length        = &bufferLength;
 
+    // REPLACE idx
     bindGroups[2].buffer_type   = MYSQL_TYPE_LONG;
     bindGroups[2].buffer        = &i;
 
@@ -755,10 +760,12 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     DB_CHECK_PARAMS(bindHosts, stmtHosts);
     ZeroMemory(&bindHosts, sizeof(bindHosts));
 
+    // REPLACE uname
     bindHosts[0].buffer_type   = MYSQL_TYPE_STRING;
     bindHosts[0].buffer        = userName;
     bindHosts[0].buffer_length = userNameLength;
 
+    // REPLACE host
     bindHosts[1].buffer_type   = MYSQL_TYPE_STRING;
     bindHosts[1].buffer        = &buffer;
     bindHosts[1].buffer_length = _IP_LINE_LENGTH;
@@ -790,10 +797,12 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     // Change event used during incremental syncs.
     syncEvent = SYNC_EVENT_CREATE;
 
+    // INSERT type
     bindChanges[0].buffer_type   = MYSQL_TYPE_TINY;
     bindChanges[0].buffer        = &syncEvent;
     bindChanges[0].is_unsigned   = TRUE;
 
+    // INSERT name
     bindChanges[1].buffer_type   = MYSQL_TYPE_STRING;
     bindChanges[1].buffer        = userName;
     bindChanges[1].buffer_length = userNameLength;
@@ -951,10 +960,12 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     DB_CHECK_PARAMS(bindUsers, stmtUsers);
     ZeroMemory(&bindUsers, sizeof(bindUsers));
 
+    // SET name=?
     bindUsers[0].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[0].buffer        = newName;
     bindUsers[0].buffer_length = newNameLength;
 
+    // WHERE name=?
     bindUsers[1].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[1].buffer        = userName;
     bindUsers[1].buffer_length = userNameLength;
@@ -980,10 +991,12 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     DB_CHECK_PARAMS(bindAdmins, stmtAdmins);
     ZeroMemory(&bindAdmins, sizeof(bindAdmins));
 
+    // SET uname=?
     bindAdmins[0].buffer_type   = MYSQL_TYPE_STRING;
     bindAdmins[0].buffer        = newName;
     bindAdmins[0].buffer_length = newNameLength;
 
+    // WHERE uname=?
     bindAdmins[1].buffer_type   = MYSQL_TYPE_STRING;
     bindAdmins[1].buffer        = userName;
     bindAdmins[1].buffer_length = userNameLength;
@@ -1009,10 +1022,12 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     DB_CHECK_PARAMS(bindGroups, stmtGroups);
     ZeroMemory(&bindGroups, sizeof(bindGroups));
 
+    // SET uname=?
     bindGroups[0].buffer_type   = MYSQL_TYPE_STRING;
     bindGroups[0].buffer        = newName;
     bindGroups[0].buffer_length = newNameLength;
 
+    // WHERE uname=?
     bindGroups[1].buffer_type   = MYSQL_TYPE_STRING;
     bindGroups[1].buffer        = userName;
     bindGroups[1].buffer_length = userNameLength;
@@ -1038,10 +1053,12 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     DB_CHECK_PARAMS(bindHosts, stmtHosts);
     ZeroMemory(&bindHosts, sizeof(bindHosts));
 
+    // SET uname=?
     bindHosts[0].buffer_type   = MYSQL_TYPE_STRING;
     bindHosts[0].buffer        = newName;
     bindHosts[0].buffer_length = newNameLength;
 
+    // WHERE uname=?
     bindHosts[1].buffer_type   = MYSQL_TYPE_STRING;
     bindHosts[1].buffer        = userName;
     bindHosts[1].buffer_length = userNameLength;
@@ -1072,14 +1089,17 @@ DWORD DbUserRename(DB_CONTEXT *db, CHAR *userName, CHAR *newName)
     // Change event used during incremental syncs.
     syncEvent = SYNC_EVENT_RENAME;
 
+    // INSERT type
     bindChanges[0].buffer_type   = MYSQL_TYPE_TINY;
     bindChanges[0].buffer        = &syncEvent;
     bindChanges[0].is_unsigned   = TRUE;
 
+    // INSERT name
     bindChanges[1].buffer_type   = MYSQL_TYPE_STRING;
     bindChanges[1].buffer        = userName;
     bindChanges[1].buffer_length = userNameLength;
 
+    // INSERT info
     bindChanges[2].buffer_type   = MYSQL_TYPE_STRING;
     bindChanges[2].buffer        = newName;
     bindChanges[2].buffer_length = newNameLength;
@@ -1224,6 +1244,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     DB_CHECK_PARAMS(bindUsers, stmtUsers);
     ZeroMemory(&bindUsers, sizeof(bindUsers));
 
+    // WHERE name=?
     bindUsers[0].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[0].buffer        = userName;
     bindUsers[0].buffer_length = userNameLength;
@@ -1249,6 +1270,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     DB_CHECK_PARAMS(bindAdmins, stmtAdmins);
     ZeroMemory(&bindAdmins, sizeof(bindAdmins));
 
+    // WHERE uname=?
     bindAdmins[0].buffer_type   = MYSQL_TYPE_STRING;
     bindAdmins[0].buffer        = userName;
     bindAdmins[0].buffer_length = userNameLength;
@@ -1274,6 +1296,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     DB_CHECK_PARAMS(bindGroups, stmtGroups);
     ZeroMemory(&bindGroups, sizeof(bindGroups));
 
+    // WHERE uname=?
     bindGroups[0].buffer_type   = MYSQL_TYPE_STRING;
     bindGroups[0].buffer        = userName;
     bindGroups[0].buffer_length = userNameLength;
@@ -1299,6 +1322,7 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     DB_CHECK_PARAMS(bindHosts, stmtHosts);
     ZeroMemory(&bindHosts, sizeof(bindHosts));
 
+    // WHERE uname=?
     bindHosts[0].buffer_type   = MYSQL_TYPE_STRING;
     bindHosts[0].buffer        = userName;
     bindHosts[0].buffer_length = userNameLength;
@@ -1329,10 +1353,12 @@ DWORD DbUserDelete(DB_CONTEXT *db, CHAR *userName)
     // Change event used during incremental syncs.
     syncEvent = SYNC_EVENT_DELETE;
 
+    // INSERT type
     bindChanges[0].buffer_type   = MYSQL_TYPE_TINY;
     bindChanges[0].buffer        = &syncEvent;
     bindChanges[0].is_unsigned   = TRUE;
 
+    // INSERT name
     bindChanges[1].buffer_type   = MYSQL_TYPE_STRING;
     bindChanges[1].buffer        = userName;
     bindChanges[1].buffer_length = userNameLength;
@@ -1656,87 +1682,87 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     DB_CHECK_PARAMS(bindUsers, stmtUsers);
     ZeroMemory(&bindUsers, sizeof(bindUsers));
 
-    // description=?
+    // SET description=?
     bindUsers[0].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[0].buffer        = userFile->Tagline;
     bindUsers[0].buffer_length = strlen(userFile->Tagline);
 
-    // flags=?
+    // SET flags=?
     bindUsers[1].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[1].buffer        = userFile->Flags;
     bindUsers[1].buffer_length = strlen(userFile->Flags);
 
-    // home=?
+    // SET home=?
     bindUsers[2].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[2].buffer        = userFile->Home;
     bindUsers[2].buffer_length = strlen(userFile->Home);
 
-    // limits=?
+    // SET limits=?
     bindUsers[3].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[3].buffer        = &userFile->Limits;
     bindUsers[3].buffer_length = sizeof(userFile->Limits);
 
-    // password=?
+    // SET password=?
     bindUsers[4].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[4].buffer        = &userFile->Password;
     bindUsers[4].buffer_length = sizeof(userFile->Password);
 
-    // vfsfile=?
+    // SET vfsfile=?
     bindUsers[5].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[5].buffer        = userFile->MountFile;
     bindUsers[5].buffer_length = strlen(userFile->MountFile);
 
-    // credits=?
+    // SET credits=?
     bindUsers[6].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[6].buffer        = &userFile->Credits;
     bindUsers[6].buffer_length = sizeof(userFile->Credits);
 
-    // ratio=?
+    // SET ratio=?
     bindUsers[7].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[7].buffer        = &userFile->Ratio;
     bindUsers[7].buffer_length = sizeof(userFile->Ratio);
 
-    // alldn=?
+    // SET alldn=?
     bindUsers[8].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[8].buffer        = &userFile->AllDn;
     bindUsers[8].buffer_length = sizeof(userFile->AllDn);
 
-    // allup=?
+    // SET allup=?
     bindUsers[9].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[9].buffer        = &userFile->AllUp;
     bindUsers[9].buffer_length = sizeof(userFile->AllUp);
 
-    // daydn=?
+    // SET daydn=?
     bindUsers[10].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[10].buffer        = &userFile->DayDn;
     bindUsers[10].buffer_length = sizeof(userFile->DayDn);
 
-    // dayup=?
+    // SET dayup=?
     bindUsers[11].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[11].buffer        = &userFile->DayUp;
     bindUsers[11].buffer_length = sizeof(userFile->DayUp);
 
-    // monthdn=?
+    // SET monthdn=?
     bindUsers[12].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[12].buffer        = &userFile->MonthDn;
     bindUsers[12].buffer_length = sizeof(userFile->MonthDn);
 
-    // monthup=?
+    // SET monthup=?
     bindUsers[13].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[13].buffer        = &userFile->MonthUp;
     bindUsers[13].buffer_length = sizeof(userFile->MonthUp);
 
-    // wkdn=?
+    // SET wkdn=?
     bindUsers[14].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[14].buffer        = &userFile->WkDn;
     bindUsers[14].buffer_length = sizeof(userFile->WkDn);
 
-    // wkup=?
+    // SET wkup=?
     bindUsers[15].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[15].buffer        = &userFile->WkUp;
     bindUsers[15].buffer_length = sizeof(userFile->WkUp);
 
-    // name=?
+    // WHERE name=?
     bindUsers[16].buffer_type   = MYSQL_TYPE_STRING;
     bindUsers[16].buffer        = userName;
     bindUsers[16].buffer_length = userNameLength;
@@ -1762,10 +1788,12 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     DB_CHECK_PARAMS(bindAddAdmins, stmtAddAdmins);
     ZeroMemory(&bindAddAdmins, sizeof(bindAddAdmins));
 
+    // REPLACE uname
     bindAddAdmins[0].buffer_type   = MYSQL_TYPE_STRING;
     bindAddAdmins[0].buffer        = userName;
     bindAddAdmins[0].buffer_length = userNameLength;
 
+    // REPLACE gname
     bindAddAdmins[1].buffer_type   = MYSQL_TYPE_STRING;
     bindAddAdmins[1].buffer        = &buffer;
     bindAddAdmins[1].buffer_length = _MAX_NAME;
@@ -1792,15 +1820,18 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     DB_CHECK_PARAMS(bindAddGroups, stmtAddGroups);
     ZeroMemory(&bindAddGroups, sizeof(bindAddGroups));
 
+    // REPLACE uname
     bindAddGroups[0].buffer_type   = MYSQL_TYPE_STRING;
     bindAddGroups[0].buffer        = userName;
     bindAddGroups[0].buffer_length = userNameLength;
 
+    // REPLACE gname
     bindAddGroups[1].buffer_type   = MYSQL_TYPE_STRING;
     bindAddGroups[1].buffer        = &buffer;
     bindAddGroups[1].buffer_length = _MAX_NAME;
     bindAddGroups[1].length        = &bufferLength;
 
+    // REPLACE idx
     bindAddGroups[2].buffer_type   = MYSQL_TYPE_LONG;
     bindAddGroups[2].buffer        = &i;
 
@@ -1825,10 +1856,12 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     DB_CHECK_PARAMS(bindAddHosts, stmtAddHosts);
     ZeroMemory(&bindAddHosts, sizeof(bindAddHosts));
 
+    // REPLACE uname
     bindAddHosts[0].buffer_type   = MYSQL_TYPE_STRING;
     bindAddHosts[0].buffer        = userName;
     bindAddHosts[0].buffer_length = userNameLength;
 
+    // REPLACE host
     bindAddHosts[1].buffer_type   = MYSQL_TYPE_STRING;
     bindAddHosts[1].buffer        = &buffer;
     bindAddHosts[1].buffer_length = _IP_LINE_LENGTH;
@@ -1855,6 +1888,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     DB_CHECK_PARAMS(bindDelAdmins, stmtDelAdmins);
     ZeroMemory(&bindDelAdmins, sizeof(bindDelAdmins));
 
+    // WHERE uname=?
     bindDelAdmins[0].buffer_type   = MYSQL_TYPE_STRING;
     bindDelAdmins[0].buffer        = userName;
     bindDelAdmins[0].buffer_length = userNameLength;
@@ -1880,6 +1914,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     DB_CHECK_PARAMS(bindDelGroups, stmtDelGroups);
     ZeroMemory(&bindDelGroups, sizeof(bindDelGroups));
 
+    // WHERE uname=?
     bindDelGroups[0].buffer_type   = MYSQL_TYPE_STRING;
     bindDelGroups[0].buffer        = userName;
     bindDelGroups[0].buffer_length = userNameLength;
@@ -1905,6 +1940,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     DB_CHECK_PARAMS(bindDelHosts, stmtDelHosts);
     ZeroMemory(&bindDelHosts, sizeof(bindDelHosts));
 
+    // WHERE uname=?
     bindDelHosts[0].buffer_type   = MYSQL_TYPE_STRING;
     bindDelHosts[0].buffer        = userName;
     bindDelHosts[0].buffer_length = userNameLength;
