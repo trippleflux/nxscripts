@@ -137,6 +137,7 @@ static DWORD UserSyncFull(DB_CONTEXT *db)
 {
     BOOL        removed;
     CHAR        *query;
+    CHAR        deletedBy[_MAX_NAME + 1];
     CHAR        userName[_MAX_NAME + 1];
     DWORD       error;
     DWORD       i;
@@ -144,7 +145,7 @@ static DWORD UserSyncFull(DB_CONTEXT *db)
     INT         result;
     NAME_ENTRY  *entry;
     NAME_LIST   list;
-    MYSQL_BIND  bind[17];
+    MYSQL_BIND  bind[30];
     MYSQL_RES   *metadata;
     MYSQL_STMT  *stmt;
 
@@ -281,6 +282,63 @@ static DWORD UserSyncFull(DB_CONTEXT *db)
     bind[16].buffer        = &userFile.WkDn;
     bind[16].buffer_length = sizeof(userFile.WkDn);
 
+    // SELECT creator
+    bind[17].buffer_type   = MYSQL_TYPE_STRING;
+    bind[17].buffer        = &userFile.CreatorName;
+    bind[17].buffer_length = sizeof(userFile.CreatorName);
+
+    // SELECT createdon
+    bind[18].buffer_type   = MYSQL_TYPE_LONGLONG;
+    bind[18].buffer        = &userFile.CreatedOn;
+
+    // SELECT logoncount
+    bind[19].buffer_type   = MYSQL_TYPE_LONG;
+    bind[19].buffer        = &userFile.LogonCount;
+
+    // SELECT logonlast
+    bind[20].buffer_type   = MYSQL_TYPE_LONGLONG;
+    bind[20].buffer        = &userFile.LogonLast;
+
+    // SELECT logonhost
+    bind[21].buffer_type   = MYSQL_TYPE_STRING;
+    bind[21].buffer        = &userFile.LogonHost;
+    bind[21].buffer_length = sizeof(userFile.LogonHost);
+
+    // SELECT maxups
+    bind[22].buffer_type   = MYSQL_TYPE_LONG;
+    bind[22].buffer        = &userFile.MaxUploads;
+
+    // SELECT maxdowns
+    bind[23].buffer_type   = MYSQL_TYPE_LONG;
+    bind[23].buffer        = &userFile.MaxDownloads;
+
+    // SELECT maxlogins
+    bind[24].buffer_type   = MYSQL_TYPE_LONG;
+    bind[24].buffer        = &userFile.LimitPerIP;
+
+    // SELECT expiresat
+    bind[25].buffer_type   = MYSQL_TYPE_LONGLONG;
+    bind[25].buffer        = &userFile.ExpiresAt;
+
+    // SELECT deletedon
+    bind[26].buffer_type   = MYSQL_TYPE_LONGLONG;
+    bind[26].buffer        = &userFile.DeletedOn;
+
+    // SELECT deletedby
+    bind[27].buffer_type   = MYSQL_TYPE_STRING;
+    bind[27].buffer        = &deletedBy;
+    bind[27].buffer_length = sizeof(deletedBy);
+
+    // SELECT deletedmsg
+    bind[28].buffer_type   = MYSQL_TYPE_STRING;
+    bind[28].buffer        = &userFile.DeletedMsg;
+    bind[28].buffer_length = sizeof(userFile.DeletedMsg);
+
+    // SELECT opaque
+    bind[29].buffer_type   = MYSQL_TYPE_STRING;
+    bind[29].buffer        = &userFile.Opaque;
+    bind[29].buffer_length = sizeof(userFile.Opaque);
+
     result = mysql_stmt_bind_result(stmt, bind);
     if (result != 0) {
         LOG_WARN("Unable to bind results: %s", mysql_stmt_error(stmt));
@@ -315,6 +373,8 @@ static DWORD UserSyncFull(DB_CONTEXT *db)
 
         // Initialize remaining values of the user-file structure.
         userFile.Gid        = userFile.Groups[0];
+        userFile.CreatorUid = Io_User2Uid(userFile.CreatorName);
+        userFile.DeletedBy  = Io_User2Uid(deletedBy);
 
         //
         // If ioFTPD fails to open a user at start-up, the user will still
@@ -524,12 +584,13 @@ static DWORD UserSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 static DWORD UserSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
 {
     CHAR        *query;
+    CHAR        deletedBy[_MAX_NAME + 1];
     CHAR        userName[_MAX_NAME + 1];
     DWORD       error;
     INT         result;
     USERFILE    userFile;
     MYSQL_BIND  bindInput[2];
-    MYSQL_BIND  bindOutput[17];
+    MYSQL_BIND  bindOutput[30];
     MYSQL_RES   *metadata;
     MYSQL_STMT  *stmt;
 
@@ -680,6 +741,63 @@ static DWORD UserSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     bindOutput[16].buffer        = &userFile.WkDn;
     bindOutput[16].buffer_length = sizeof(userFile.WkDn);
 
+    // SELECT creator
+    bindOutput[17].buffer_type   = MYSQL_TYPE_STRING;
+    bindOutput[17].buffer        = &userFile.CreatorName;
+    bindOutput[17].buffer_length = sizeof(userFile.CreatorName);
+
+    // SELECT createdon
+    bindOutput[18].buffer_type   = MYSQL_TYPE_LONGLONG;
+    bindOutput[18].buffer        = &userFile.CreatedOn;
+
+    // SELECT logoncount
+    bindOutput[19].buffer_type   = MYSQL_TYPE_LONG;
+    bindOutput[19].buffer        = &userFile.LogonCount;
+
+    // SELECT logonlast
+    bindOutput[20].buffer_type   = MYSQL_TYPE_LONGLONG;
+    bindOutput[20].buffer        = &userFile.LogonLast;
+
+    // SELECT logonhost
+    bindOutput[21].buffer_type   = MYSQL_TYPE_STRING;
+    bindOutput[21].buffer        = &userFile.LogonHost;
+    bindOutput[21].buffer_length = sizeof(userFile.LogonHost);
+
+    // SELECT maxups
+    bindOutput[22].buffer_type   = MYSQL_TYPE_LONG;
+    bindOutput[22].buffer        = &userFile.MaxUploads;
+
+    // SELECT maxdowns
+    bindOutput[23].buffer_type   = MYSQL_TYPE_LONG;
+    bindOutput[23].buffer        = &userFile.MaxDownloads;
+
+    // SELECT maxlogins
+    bindOutput[24].buffer_type   = MYSQL_TYPE_LONG;
+    bindOutput[24].buffer        = &userFile.LimitPerIP;
+
+    // SELECT expiresat
+    bindOutput[25].buffer_type   = MYSQL_TYPE_LONGLONG;
+    bindOutput[25].buffer        = &userFile.ExpiresAt;
+
+    // SELECT deletedon
+    bindOutput[26].buffer_type   = MYSQL_TYPE_LONGLONG;
+    bindOutput[26].buffer        = &userFile.DeletedOn;
+
+    // SELECT deletedby
+    bindOutput[27].buffer_type   = MYSQL_TYPE_STRING;
+    bindOutput[27].buffer        = &deletedBy;
+    bindOutput[27].buffer_length = sizeof(deletedBy);
+
+    // SELECT deletedmsg
+    bindOutput[28].buffer_type   = MYSQL_TYPE_STRING;
+    bindOutput[28].buffer        = &userFile.DeletedMsg;
+    bindOutput[28].buffer_length = sizeof(userFile.DeletedMsg);
+
+    // SELECT opaque
+    bindOutput[29].buffer_type   = MYSQL_TYPE_STRING;
+    bindOutput[29].buffer        = &userFile.Opaque;
+    bindOutput[29].buffer_length = sizeof(userFile.Opaque);
+
     result = mysql_stmt_bind_result(stmt, bindOutput);
     if (result != 0) {
         LOG_WARN("Unable to bind results: %s", mysql_stmt_error(stmt));
@@ -710,6 +828,8 @@ static DWORD UserSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
         } else {
             // Initialize remaining values of the user-file structure.
             userFile.Gid        = userFile.Groups[0];
+            userFile.CreatorUid = Io_User2Uid(userFile.CreatorName);
+            userFile.DeletedBy  = Io_User2Uid(deletedBy);
 
             // Update user file
             error = UserEventUpdate(userName, &userFile);

@@ -332,13 +332,14 @@ DWORD DbUserReadExtra(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
 DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
 {
+    CHAR        deletedBy[_MAX_NAME + 1];
     CHAR        *query;
     DWORD       error;
     INT         result;
     SIZE_T      userNameLength;
     USERFILE    userFile;
     MYSQL_BIND  bindInput[1];
-    MYSQL_BIND  bindOutput[16];
+    MYSQL_BIND  bindOutput[29];
     MYSQL_STMT  *stmt;
     MYSQL_RES   *metadata;
 
@@ -361,7 +362,10 @@ DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
     //
 
     query = "SELECT description,flags,home,limits,password,vfsfile,credits,"
-            "       ratio,alldn,allup,daydn,dayup,monthdn,monthup,wkdn,wkup"
+            "       ratio,alldn,allup,daydn,dayup,monthdn,monthup,wkdn,wkup,"
+            "       creator,createdon,logoncount,logonlast,logonhost,maxups,"
+            "       maxdowns,maxlogins,expiresat,deletedon,deletedby,"
+            "       deletedmsg,opaque"
             "  FROM io_user"
             "  WHERE name=?";
 
@@ -484,6 +488,63 @@ DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
     bindOutput[15].buffer        = &userFile.WkUp;
     bindOutput[15].buffer_length = sizeof(userFile.WkUp);
 
+    // SELECT creator
+    bindOutput[16].buffer_type   = MYSQL_TYPE_STRING;
+    bindOutput[16].buffer        = &userFile.CreatorName;
+    bindOutput[16].buffer_length = sizeof(userFile.CreatorName);
+
+    // SELECT createdon
+    bindOutput[17].buffer_type   = MYSQL_TYPE_LONGLONG;
+    bindOutput[17].buffer        = &userFile.CreatedOn;
+
+    // SELECT logoncount
+    bindOutput[18].buffer_type   = MYSQL_TYPE_LONG;
+    bindOutput[18].buffer        = &userFile.LogonCount;
+
+    // SELECT logonlast
+    bindOutput[19].buffer_type   = MYSQL_TYPE_LONGLONG;
+    bindOutput[19].buffer        = &userFile.LogonLast;
+
+    // SELECT logonhost
+    bindOutput[20].buffer_type   = MYSQL_TYPE_STRING;
+    bindOutput[20].buffer        = &userFile.LogonHost;
+    bindOutput[20].buffer_length = sizeof(userFile.LogonHost);
+
+    // SELECT maxups
+    bindOutput[21].buffer_type   = MYSQL_TYPE_LONG;
+    bindOutput[21].buffer        = &userFile.MaxUploads;
+
+    // SELECT maxdowns
+    bindOutput[22].buffer_type   = MYSQL_TYPE_LONG;
+    bindOutput[22].buffer        = &userFile.MaxDownloads;
+
+    // SELECT maxlogins
+    bindOutput[23].buffer_type   = MYSQL_TYPE_LONG;
+    bindOutput[23].buffer        = &userFile.LimitPerIP;
+
+    // SELECT expiresat
+    bindOutput[24].buffer_type   = MYSQL_TYPE_LONGLONG;
+    bindOutput[24].buffer        = &userFile.ExpiresAt;
+
+    // SELECT deletedon
+    bindOutput[25].buffer_type   = MYSQL_TYPE_LONGLONG;
+    bindOutput[25].buffer        = &userFile.DeletedOn;
+
+    // SELECT deletedby
+    bindOutput[26].buffer_type   = MYSQL_TYPE_STRING;
+    bindOutput[26].buffer        = &deletedBy;
+    bindOutput[26].buffer_length = sizeof(deletedBy);
+
+    // SELECT deletedmsg
+    bindOutput[27].buffer_type   = MYSQL_TYPE_STRING;
+    bindOutput[27].buffer        = &userFile.DeletedMsg;
+    bindOutput[27].buffer_length = sizeof(userFile.DeletedMsg);
+
+    // SELECT opaque
+    bindOutput[28].buffer_type   = MYSQL_TYPE_STRING;
+    bindOutput[28].buffer        = &userFile.Opaque;
+    bindOutput[28].buffer_length = sizeof(userFile.Opaque);
+
     result = mysql_stmt_bind_result(stmt, bindOutput);
     if (result != 0) {
         LOG_WARN("Unable to bind results: %s", mysql_stmt_error(stmt));
@@ -515,12 +576,20 @@ DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
     }
 
     //
-    // Initialize remaining values of the user-file structure and copy the
-    // local user-file to the output parameter. Copy all structure members up
-    // to lpInternal, the lpInternal and lpParent members must not be changed.
+    // Initialize remaining values of the user-file structure.
     //
+
     userFile.Uid = userFilePtr->Uid;
     userFile.Gid = userFile.Groups[0];
+
+    userFile.CreatorUid = Io_User2Uid(userFile.CreatorName);
+    userFile.DeletedBy  = Io_User2Uid(deletedBy);
+
+    //
+    // Copy the local user-file to the output parameter. Only copy structure
+    // members up to lpInternal, as the lpInternal and lpParent members must
+    // not be changed.
+    //
 
     CopyMemory(userFilePtr, &userFile, offsetof(USERFILE, lpInternal));
 
@@ -531,6 +600,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 {
     BYTE        syncEvent;
     CHAR        buffer[128];
+    CHAR        *deletedBy;
     CHAR        *host;
     CHAR        *query;
     DWORD       error;
@@ -543,7 +613,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     MYSQL_BIND  bindChanges[2];
     MYSQL_BIND  bindGroups[3];
     MYSQL_BIND  bindHosts[2];
-    MYSQL_BIND  bindUsers[17];
+    MYSQL_BIND  bindUsers[30];
     MYSQL_STMT  *stmtAdmins;
     MYSQL_STMT  *stmtChanges;
     MYSQL_STMT  *stmtGroups;
@@ -574,8 +644,10 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
     query = "INSERT INTO io_user"
             "(name,description,flags,home,limits,password,vfsfile,credits,"
-            "ratio,alldn,allup,daydn,dayup,monthdn,monthup,wkdn,wkup)"
-            " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            "ratio,alldn,allup,daydn,dayup,monthdn,monthup,wkdn,wkup,"
+            "creator,createdon,logoncount,logonlast,logonhost,maxups,maxdowns,"
+            "maxlogins,expiresat,deletedon,deletedby,deletedmsg,opaque)"
+            " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
     result = mysql_stmt_prepare(stmtUsers, query, strlen(query));
     if (result != 0) {
@@ -631,45 +703,106 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     bindUsers[8].buffer        = &userFile->Ratio;
     bindUsers[8].buffer_length = sizeof(userFile->Ratio);
 
-    // INSERT alldn=?
+    // INSERT alldn
     bindUsers[9].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[9].buffer        = &userFile->AllDn;
     bindUsers[9].buffer_length = sizeof(userFile->AllDn);
 
-    // INSERT allup=?
+    // INSERT allup
     bindUsers[10].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[10].buffer        = &userFile->AllUp;
     bindUsers[10].buffer_length = sizeof(userFile->AllUp);
 
-    // INSERT daydn=?
+    // INSERT daydn
     bindUsers[11].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[11].buffer        = &userFile->DayDn;
     bindUsers[11].buffer_length = sizeof(userFile->DayDn);
 
-    // INSERT dayup=?
+    // INSERT dayup
     bindUsers[12].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[12].buffer        = &userFile->DayUp;
     bindUsers[12].buffer_length = sizeof(userFile->DayUp);
 
-    // INSERT monthdn=?
+    // INSERT monthdn
     bindUsers[13].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[13].buffer        = &userFile->MonthDn;
     bindUsers[13].buffer_length = sizeof(userFile->MonthDn);
 
-    // INSERT monthup=?
+    // INSERT monthup
     bindUsers[14].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[14].buffer        = &userFile->MonthUp;
     bindUsers[14].buffer_length = sizeof(userFile->MonthUp);
 
-    // INSERT wkdn=?
+    // INSERT wkdn
     bindUsers[15].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[15].buffer        = &userFile->WkDn;
     bindUsers[15].buffer_length = sizeof(userFile->WkDn);
 
-    // INSERT wkup=?
+    // INSERT wkup
     bindUsers[16].buffer_type   = MYSQL_TYPE_BLOB;
     bindUsers[16].buffer        = &userFile->WkUp;
     bindUsers[16].buffer_length = sizeof(userFile->WkUp);
+
+    // INSERT creator
+    bindUsers[17].buffer_type   = MYSQL_TYPE_STRING;
+    bindUsers[17].buffer        = userFile->CreatorName;
+    bindUsers[17].buffer_length = strlen(userFile->CreatorName);
+
+    // INSERT createdon
+    bindUsers[18].buffer_type   = MYSQL_TYPE_LONGLONG;
+    bindUsers[18].buffer        = &userFile->CreatedOn;
+
+    // INSERT logoncount
+    bindUsers[19].buffer_type   = MYSQL_TYPE_LONG;
+    bindUsers[19].buffer        = &userFile->LogonCount;
+
+    // INSERT logonlast
+    bindUsers[20].buffer_type   = MYSQL_TYPE_LONGLONG;
+    bindUsers[20].buffer        = &userFile->LogonLast;
+
+    // INSERT logonhost
+    bindUsers[21].buffer_type   = MYSQL_TYPE_STRING;
+    bindUsers[21].buffer        = userFile->LogonHost;
+    bindUsers[21].buffer_length = strlen(userFile->LogonHost);
+
+    // INSERT maxups
+    bindUsers[22].buffer_type   = MYSQL_TYPE_LONG;
+    bindUsers[22].buffer        = &userFile->MaxUploads;
+
+    // INSERT maxdowns
+    bindUsers[23].buffer_type   = MYSQL_TYPE_LONG;
+    bindUsers[23].buffer        = &userFile->MaxDownloads;
+
+    // INSERT maxlogins
+    bindUsers[24].buffer_type   = MYSQL_TYPE_LONG;
+    bindUsers[24].buffer        = &userFile->LimitPerIP;
+
+    // INSERT expiresat
+    bindUsers[25].buffer_type   = MYSQL_TYPE_LONGLONG;
+    bindUsers[25].buffer        = &userFile->ExpiresAt;
+
+    // INSERT deletedon
+    bindUsers[26].buffer_type   = MYSQL_TYPE_LONGLONG;
+    bindUsers[26].buffer        = &userFile->DeletedOn;
+
+    // INSERT deletedby
+    deletedBy = Io_Uid2User(userFile->DeletedBy);
+    if (deletedBy == NULL) {
+        deletedBy = "";
+    }
+    bindUsers[27].buffer_type   = MYSQL_TYPE_STRING;
+    bindUsers[27].buffer        = deletedBy;
+    bindUsers[27].buffer_length = strlen(deletedBy);
+
+    // INSERT deletedmsg
+    bindUsers[28].buffer_type   = MYSQL_TYPE_STRING;
+    bindUsers[28].buffer        = userFile->DeletedMsg;
+    bindUsers[28].buffer_length = strlen(userFile->DeletedMsg);
+
+    // INSERT opaque
+    bindUsers[29].buffer_type   = MYSQL_TYPE_STRING;
+    bindUsers[29].buffer        = userFile->Opaque;
+    bindUsers[29].buffer_length = strlen(userFile->Opaque);
 
     result = mysql_stmt_bind_param(stmtUsers, bindUsers);
     if (result != 0) {
@@ -1621,6 +1754,7 @@ DWORD DbUserOpen(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 {
     CHAR        buffer[128];
+    CHAR        *deletedBy;
     CHAR        *host;
     CHAR        *query;
     DWORD       error;
@@ -1635,7 +1769,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     MYSQL_BIND  bindDelAdmins[1];
     MYSQL_BIND  bindDelGroups[1];
     MYSQL_BIND  bindDelHosts[1];
-    MYSQL_BIND  bindUsers[17];
+    MYSQL_BIND  bindUsers[30];
     MYSQL_STMT  *stmtAddAdmins;
     MYSQL_STMT  *stmtAddGroups;
     MYSQL_STMT  *stmtAddHosts;
@@ -1670,6 +1804,9 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     query = "UPDATE io_user SET description=?, flags=?, home=?, limits=?,"
             " password=?, vfsfile=?, credits=?, ratio=?, alldn=?, allup=?,"
             " daydn=?, dayup=?, monthdn=?, monthup=?, wkdn=?, wkup=?,"
+            " creator=?, createdon=?, logoncount=?, logonlast=?, logonhost=?,"
+            " maxups=?, maxdowns=?, maxlogins=?, expiresat=?, deletedon=?,"
+            " deletedby=?, deletedmsg=?, opaque=?,"
             " updated=UNIX_TIMESTAMP()"
             "   WHERE name=?";
 
@@ -1762,10 +1899,71 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     bindUsers[15].buffer        = &userFile->WkUp;
     bindUsers[15].buffer_length = sizeof(userFile->WkUp);
 
-    // WHERE name=?
+    // SET creator=?
     bindUsers[16].buffer_type   = MYSQL_TYPE_STRING;
-    bindUsers[16].buffer        = userName;
-    bindUsers[16].buffer_length = userNameLength;
+    bindUsers[16].buffer        = userFile->CreatorName;
+    bindUsers[16].buffer_length = strlen(userFile->CreatorName);
+
+    // SET createdon=?
+    bindUsers[17].buffer_type   = MYSQL_TYPE_LONGLONG;
+    bindUsers[17].buffer        = &userFile->CreatedOn;
+
+    // SET logoncount=?
+    bindUsers[18].buffer_type   = MYSQL_TYPE_LONG;
+    bindUsers[18].buffer        = &userFile->LogonCount;
+
+    // SET logonlast=?
+    bindUsers[19].buffer_type   = MYSQL_TYPE_LONGLONG;
+    bindUsers[19].buffer        = &userFile->LogonLast;
+
+    // SET logonhost=?
+    bindUsers[20].buffer_type   = MYSQL_TYPE_STRING;
+    bindUsers[20].buffer        = userFile->LogonHost;
+    bindUsers[20].buffer_length = strlen(userFile->LogonHost);
+
+    // SET maxups=?
+    bindUsers[21].buffer_type   = MYSQL_TYPE_LONG;
+    bindUsers[21].buffer        = &userFile->MaxUploads;
+
+    // SET maxdowns=?
+    bindUsers[22].buffer_type   = MYSQL_TYPE_LONG;
+    bindUsers[22].buffer        = &userFile->MaxDownloads;
+
+    // SET maxlogins=?
+    bindUsers[23].buffer_type   = MYSQL_TYPE_LONG;
+    bindUsers[23].buffer        = &userFile->LimitPerIP;
+
+    // SET expiresat=?
+    bindUsers[24].buffer_type   = MYSQL_TYPE_LONGLONG;
+    bindUsers[24].buffer        = &userFile->ExpiresAt;
+
+    // SET deletedon=?
+    bindUsers[25].buffer_type   = MYSQL_TYPE_LONGLONG;
+    bindUsers[25].buffer        = &userFile->DeletedOn;
+
+    // SET deletedby=?
+    deletedBy = Io_Uid2User(userFile->DeletedBy);
+    if (deletedBy == NULL) {
+        deletedBy = "";
+    }
+    bindUsers[26].buffer_type   = MYSQL_TYPE_STRING;
+    bindUsers[26].buffer        = deletedBy;
+    bindUsers[26].buffer_length = strlen(deletedBy);
+
+    // SET deletedmsg=?
+    bindUsers[27].buffer_type   = MYSQL_TYPE_STRING;
+    bindUsers[27].buffer        = userFile->DeletedMsg;
+    bindUsers[27].buffer_length = strlen(userFile->DeletedMsg);
+
+    // SET opaque=?
+    bindUsers[28].buffer_type   = MYSQL_TYPE_STRING;
+    bindUsers[28].buffer        = userFile->Opaque;
+    bindUsers[28].buffer_length = strlen(userFile->Opaque);
+
+    // WHERE name=?
+    bindUsers[29].buffer_type   = MYSQL_TYPE_STRING;
+    bindUsers[29].buffer        = userName;
+    bindUsers[29].buffer_length = userNameLength;
 
     result = mysql_stmt_bind_param(stmtUsers, bindUsers);
     if (result != 0) {
