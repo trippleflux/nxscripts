@@ -48,8 +48,8 @@ static const EVENT_HANDLER_TABLE eventTable[] = {
 
 static DWORD FCALL EventPurge(EVENT_DATA *data, IO_STRING *arguments)
 {
-    ASSERT(data != NULL);
-    ASSERT(arguments != NULL);
+    UNREFERENCED_PARAMETER(data);
+    UNREFERENCED_PARAMETER(arguments);
     TRACE("data=%p arguments=%p", data, arguments);
 
     DbSyncPurge();
