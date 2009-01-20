@@ -71,44 +71,88 @@ failed:
     return result;
 }
 
-DWORD FileUserDefault(USERFILE *userFile)
+DWORD FileUserDefaultGet(INT groupId, CHAR **defaultPathPtr)
 {
+    CHAR    *groupName;
     CHAR    *path;
-    DWORD   result;
-    HANDLE  file;
+    CHAR    buffer[MAX_PATH];
+    DWORD   result = ERROR_SUCCESS;
 
-    ASSERT(userFile != NULL);
-    TRACE("userFile=%p", userFile);
+    ASSERT(defaultPathPtr != NULL);
+    TRACE("groupId=%d defaultPathPtr=%p", groupId, defaultPathPtr);
+
+    // Format "Default=Group" file
+    groupName = Io_Gid2Group(groupId);
+    if (groupName != NULL) {
+        StringCchCopyA(buffer, ELEMENT_COUNT(buffer), "Default=");
+        StringCchCatA(buffer, ELEMENT_COUNT(buffer), groupName);
+
+        // Retrieve "Default=Group" location
+        path = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
+        if (path == NULL) {
+            TRACE("Unable to retrieve \"%s\" file location.", buffer);
+            result = ERROR_NOT_ENOUGH_MEMORY;
+            goto end;
+        }
+
+        // Check if the "Default=Group" file exists
+        if (GetFileAttributesA(path) != INVALID_FILE_ATTRIBUTES) {
+            goto end;
+        }
+
+        // The "Default=Group" file does not exist
+        TRACE("File \"%s\" does not exist.", path);
+        Io_Free(path);
+    }
 
     // Retrieve "Default.User" location
     path = Io_ConfigGetPath("Locations", "User_Files", "Default.User", NULL);
     if (path == NULL) {
         TRACE("Unable to retrieve \"Default.User\" file location.");
-        return ERROR_NOT_ENOUGH_MEMORY;
+        result = ERROR_NOT_ENOUGH_MEMORY;
+        goto end;
     }
 
-    // Open "Default.User" file
-    file = CreateFileA(path,
+    //
+    // We don't test for the existence of "Default.User" as we
+    // assume it always exists (and so it should).
+    //
+
+end:
+    *defaultPathPtr = path;
+    return result;
+}
+
+DWORD FileUserDefaultRead(const CHAR *defaultPath, USERFILE *userFile)
+{
+    DWORD   result;
+    HANDLE  file;
+
+    ASSERT(defaultPath != NULL);
+    ASSERT(userFile != NULL);
+    TRACE("defaultPath=%p userFile=%p", defaultPath, userFile);
+
+    // Open defaults file
+    file = CreateFileA(defaultPath,
         GENERIC_READ|GENERIC_WRITE,
         FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
         NULL, OPEN_EXISTING, 0, NULL);
 
     if (file == INVALID_HANDLE_VALUE) {
         result = GetLastError();
-        TRACE("Unable to open file \"%s\" (error %lu).", path, result);
+        TRACE("Unable to open file \"%s\" (error %lu).", defaultPath, result);
     } else {
 
-        // Read "Default.User" file
+        // Read defaults file
         result = FileUserRead(file, userFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to read file \"%s\" (error %lu).", path, result);
+            TRACE("Unable to read file \"%s\" (error %lu).", defaultPath, result);
         }
 
-        // Close "Default.User" file
+        // Close defaults file
         CloseHandle(file);
     }
 
-    Io_Free(path);
     return result;
 }
 
