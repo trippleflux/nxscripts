@@ -199,8 +199,11 @@ DWORD FileGroupOpen(INT32 groupId, GROUPFILE *groupFile)
     ASSERT(groupFile != NULL);
     TRACE("groupId=%d groupFile=%p", groupId, groupFile);
 
+    // Check if ioFTPD wiped the module context pointer
+    ASSERT(groupFile->lpInternal != NULL);
     mod = groupFile->lpInternal;
-    ASSERT(mod != NULL);
+
+    // There must not be an existing file handle
     ASSERT(mod->file == INVALID_HANDLE_VALUE);
 
     // Retrieve group file location
@@ -238,8 +241,11 @@ DWORD FileGroupWrite(GROUPFILE *groupFile)
     ASSERT(groupFile != NULL);
     TRACE("groupFile=%p", groupFile);
 
+    // Check if ioFTPD wiped the module context pointer
+    ASSERT(groupFile->lpInternal != NULL);
     mod = groupFile->lpInternal;
-    ASSERT(mod != NULL);
+
+    // There must be an existing file handle
     ASSERT(mod->file != INVALID_HANDLE_VALUE);
 
     // Allocate write buffer

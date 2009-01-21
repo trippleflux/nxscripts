@@ -259,8 +259,11 @@ DWORD FileUserOpen(INT32 userId, USERFILE *userFile)
     ASSERT(userFile != NULL);
     TRACE("userId=%d userFile=%p", userId, userFile);
 
+    // Check if ioFTPD wiped the module context pointer
+    ASSERT(userFile->lpInternal != NULL);
     mod = userFile->lpInternal;
-    ASSERT(mod != NULL);
+
+    // There must not be an existing file handle
     ASSERT(mod->file == INVALID_HANDLE_VALUE);
 
     // Retrieve user file location
@@ -298,8 +301,11 @@ DWORD FileUserWrite(USERFILE *userFile)
     ASSERT(userFile != NULL);
     TRACE("userFile=%p", userFile);
 
+    // Check if ioFTPD wiped the module context pointer
+    ASSERT(userFile->lpInternal != NULL);
     mod = userFile->lpInternal;
-    ASSERT(mod != NULL);
+
+    // There must be an existing file handle
     ASSERT(mod->file != INVALID_HANDLE_VALUE);
 
     // Allocate write buffer

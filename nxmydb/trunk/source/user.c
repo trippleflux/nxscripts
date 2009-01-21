@@ -217,7 +217,11 @@ static INT UserLock(USERFILE *userFile)
     DB_CONTEXT *db;
     DWORD       result;
 
+    ASSERT(userFile != NULL);
     TRACE("userFile=%p", userFile);
+
+    // Check if ioFTPD wiped the module context pointer
+    ASSERT(userFile->lpInternal != NULL);
 
     if (!DbAcquire(&db)) {
         return UM_ERROR;
@@ -248,7 +252,11 @@ static INT UserUnlock(USERFILE *userFile)
     DB_CONTEXT *db;
     DWORD       result;
 
+    ASSERT(userFile != NULL);
     TRACE("userFile=%p", userFile);
+
+    // Check if ioFTPD wiped the module context pointer
+    ASSERT(userFile->lpInternal != NULL);
 
     if (!DbAcquire(&db)) {
         return UM_ERROR;
@@ -313,6 +321,8 @@ static INT UserOpen(CHAR *userName, USERFILE *userFile)
             }
         }
 
+        ASSERT(userFile->lpInternal != NULL);
+
         // Free module context if the file/database open failed
         if (result != ERROR_SUCCESS) {
             MemFree(mod);
@@ -336,7 +346,11 @@ static INT UserWrite(USERFILE *userFile)
     DB_CONTEXT *db;
     DWORD       result;
 
+    ASSERT(userFile != NULL);
     TRACE("userFile=%p", userFile);
+
+    // Check if ioFTPD wiped the module context pointer
+    ASSERT(userFile->lpInternal != NULL);
 
     if (!DbAcquire(&db)) {
         return UM_ERROR;

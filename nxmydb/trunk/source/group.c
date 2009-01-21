@@ -211,7 +211,11 @@ static INT GroupLock(GROUPFILE *groupFile)
     DB_CONTEXT *db;
     DWORD       result;
 
+    ASSERT(groupFile != NULL);
     TRACE("groupFile=%p", groupFile);
+
+    // Check if ioFTPD wiped the module context pointer
+    ASSERT(groupFile->lpInternal != NULL);
 
     if (!DbAcquire(&db)) {
         return GM_ERROR;
@@ -242,7 +246,11 @@ static INT GroupUnlock(GROUPFILE *groupFile)
     DB_CONTEXT *db;
     DWORD       result;
 
+    ASSERT(groupFile != NULL);
     TRACE("groupFile=%p", groupFile);
+
+    // Check if ioFTPD wiped the module context pointer
+    ASSERT(groupFile->lpInternal != NULL);
 
     if (!DbAcquire(&db)) {
         return GM_ERROR;
@@ -330,7 +338,11 @@ static INT GroupWrite(GROUPFILE *groupFile)
     DB_CONTEXT *db;
     DWORD       result;
 
+    ASSERT(groupFile != NULL);
     TRACE("groupFile=%p", groupFile);
+
+    // Check if ioFTPD wiped the module context pointer
+    ASSERT(groupFile->lpInternal != NULL);
 
     if (!DbAcquire(&db)) {
         return GM_ERROR;
