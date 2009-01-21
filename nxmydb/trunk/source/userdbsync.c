@@ -145,7 +145,7 @@ static DWORD UserSyncFull(DB_CONTEXT *db)
     INT         result;
     NAME_ENTRY  *entry;
     NAME_LIST   list;
-    MYSQL_BIND  bind[30];
+    MYSQL_BIND  bind[31];
     MYSQL_RES   *metadata;
     MYSQL_STMT  *stmt;
 
@@ -172,7 +172,7 @@ static DWORD UserSyncFull(DB_CONTEXT *db)
             "       ratio,alldn,allup,daydn,dayup,monthdn,monthup,wkdn,wkup,"
             "       creator,createdon,logoncount,logonlast,logonhost,maxups,"
             "       maxdowns,maxlogins,expiresat,deletedon,deletedby,"
-            "       deletedmsg,opaque"
+            "       deletedmsg,theme,opaque"
             "  FROM io_user";
 
     result = mysql_stmt_prepare(stmt, query, strlen(query));
@@ -337,10 +337,14 @@ static DWORD UserSyncFull(DB_CONTEXT *db)
     bind[28].buffer        = &userFile.DeletedMsg;
     bind[28].buffer_length = sizeof(userFile.DeletedMsg);
 
+    // SELECT theme
+    bind[29].buffer_type   = MYSQL_TYPE_LONG;
+    bind[29].buffer        = &userFile.Theme;
+
     // SELECT opaque
-    bind[29].buffer_type   = MYSQL_TYPE_STRING;
-    bind[29].buffer        = &userFile.Opaque;
-    bind[29].buffer_length = sizeof(userFile.Opaque);
+    bind[30].buffer_type   = MYSQL_TYPE_STRING;
+    bind[30].buffer        = &userFile.Opaque;
+    bind[30].buffer_length = sizeof(userFile.Opaque);
 
     result = mysql_stmt_bind_result(stmt, bind);
     if (result != 0) {
@@ -593,7 +597,7 @@ static DWORD UserSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     INT         result;
     USERFILE    userFile;
     MYSQL_BIND  bindInput[2];
-    MYSQL_BIND  bindOutput[30];
+    MYSQL_BIND  bindOutput[31];
     MYSQL_RES   *metadata;
     MYSQL_STMT  *stmt;
 
@@ -610,7 +614,7 @@ static DWORD UserSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
             "       ratio,alldn,allup,daydn,dayup,monthdn,monthup,wkdn,wkup,"
             "       creator,createdon,logoncount,logonlast,logonhost,maxups,"
             "       maxdowns,maxlogins,expiresat,deletedon,deletedby,"
-            "       deletedmsg,opaque"
+            "       deletedmsg,theme,opaque"
             "  FROM io_user"
             "  WHERE updated BETWEEN ? AND ?";
 
@@ -799,10 +803,14 @@ static DWORD UserSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     bindOutput[28].buffer        = &userFile.DeletedMsg;
     bindOutput[28].buffer_length = sizeof(userFile.DeletedMsg);
 
+    // SELECT theme
+    bindOutput[29].buffer_type   = MYSQL_TYPE_LONG;
+    bindOutput[29].buffer        = &userFile.Theme;
+
     // SELECT opaque
-    bindOutput[29].buffer_type   = MYSQL_TYPE_STRING;
-    bindOutput[29].buffer        = &userFile.Opaque;
-    bindOutput[29].buffer_length = sizeof(userFile.Opaque);
+    bindOutput[30].buffer_type   = MYSQL_TYPE_STRING;
+    bindOutput[30].buffer        = &userFile.Opaque;
+    bindOutput[30].buffer_length = sizeof(userFile.Opaque);
 
     result = mysql_stmt_bind_result(stmt, bindOutput);
     if (result != 0) {

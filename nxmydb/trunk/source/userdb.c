@@ -339,7 +339,7 @@ DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
     SIZE_T      userNameLength;
     USERFILE    userFile;
     MYSQL_BIND  bindInput[1];
-    MYSQL_BIND  bindOutput[29];
+    MYSQL_BIND  bindOutput[30];
     MYSQL_STMT  *stmt;
     MYSQL_RES   *metadata;
 
@@ -365,7 +365,7 @@ DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
             "       ratio,alldn,allup,daydn,dayup,monthdn,monthup,wkdn,wkup,"
             "       creator,createdon,logoncount,logonlast,logonhost,maxups,"
             "       maxdowns,maxlogins,expiresat,deletedon,deletedby,"
-            "       deletedmsg,opaque"
+            "       deletedmsg,theme,opaque"
             "  FROM io_user"
             "  WHERE name=?";
 
@@ -540,10 +540,14 @@ DWORD DbUserRead(DB_CONTEXT *db, CHAR *userName, USERFILE *userFilePtr)
     bindOutput[27].buffer        = &userFile.DeletedMsg;
     bindOutput[27].buffer_length = sizeof(userFile.DeletedMsg);
 
+    // SELECT theme
+    bindOutput[28].buffer_type   = MYSQL_TYPE_LONG;
+    bindOutput[28].buffer        = &userFile.Theme;
+
     // SELECT opaque
-    bindOutput[28].buffer_type   = MYSQL_TYPE_STRING;
-    bindOutput[28].buffer        = &userFile.Opaque;
-    bindOutput[28].buffer_length = sizeof(userFile.Opaque);
+    bindOutput[29].buffer_type   = MYSQL_TYPE_STRING;
+    bindOutput[29].buffer        = &userFile.Opaque;
+    bindOutput[29].buffer_length = sizeof(userFile.Opaque);
 
     result = mysql_stmt_bind_result(stmt, bindOutput);
     if (result != 0) {
@@ -613,7 +617,7 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     MYSQL_BIND  bindChanges[2];
     MYSQL_BIND  bindGroups[3];
     MYSQL_BIND  bindHosts[2];
-    MYSQL_BIND  bindUsers[30];
+    MYSQL_BIND  bindUsers[31];
     MYSQL_STMT  *stmtAdmins;
     MYSQL_STMT  *stmtChanges;
     MYSQL_STMT  *stmtGroups;
@@ -646,8 +650,8 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
             "(name,description,flags,home,limits,password,vfsfile,credits,"
             "ratio,alldn,allup,daydn,dayup,monthdn,monthup,wkdn,wkup,"
             "creator,createdon,logoncount,logonlast,logonhost,maxups,maxdowns,"
-            "maxlogins,expiresat,deletedon,deletedby,deletedmsg,opaque)"
-            " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            "maxlogins,expiresat,deletedon,deletedby,deletedmsg,theme,opaque)"
+            " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
     result = mysql_stmt_prepare(stmtUsers, query, strlen(query));
     if (result != 0) {
@@ -799,10 +803,14 @@ DWORD DbUserCreate(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     bindUsers[28].buffer        = userFile->DeletedMsg;
     bindUsers[28].buffer_length = strlen(userFile->DeletedMsg);
 
+    // INSERT theme
+    bindUsers[29].buffer_type   = MYSQL_TYPE_LONG;
+    bindUsers[29].buffer        = &userFile->Theme;
+
     // INSERT opaque
-    bindUsers[29].buffer_type   = MYSQL_TYPE_STRING;
-    bindUsers[29].buffer        = userFile->Opaque;
-    bindUsers[29].buffer_length = strlen(userFile->Opaque);
+    bindUsers[30].buffer_type   = MYSQL_TYPE_STRING;
+    bindUsers[30].buffer        = userFile->Opaque;
+    bindUsers[30].buffer_length = strlen(userFile->Opaque);
 
     result = mysql_stmt_bind_param(stmtUsers, bindUsers);
     if (result != 0) {
@@ -1769,7 +1777,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     MYSQL_BIND  bindDelAdmins[1];
     MYSQL_BIND  bindDelGroups[1];
     MYSQL_BIND  bindDelHosts[1];
-    MYSQL_BIND  bindUsers[30];
+    MYSQL_BIND  bindUsers[31];
     MYSQL_STMT  *stmtAddAdmins;
     MYSQL_STMT  *stmtAddGroups;
     MYSQL_STMT  *stmtAddHosts;
@@ -1806,7 +1814,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
             " daydn=?, dayup=?, monthdn=?, monthup=?, wkdn=?, wkup=?,"
             " creator=?, createdon=?, logoncount=?, logonlast=?, logonhost=?,"
             " maxups=?, maxdowns=?, maxlogins=?, expiresat=?, deletedon=?,"
-            " deletedby=?, deletedmsg=?, opaque=?,"
+            " deletedby=?, deletedmsg=?, theme=?, opaque=?,"
             " updated=UNIX_TIMESTAMP()"
             "   WHERE name=?";
 
@@ -1955,15 +1963,19 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
     bindUsers[27].buffer        = userFile->DeletedMsg;
     bindUsers[27].buffer_length = strlen(userFile->DeletedMsg);
 
+    // SET theme=?
+    bindUsers[28].buffer_type   = MYSQL_TYPE_LONG;
+    bindUsers[28].buffer        = userFile->Theme;
+
     // SET opaque=?
-    bindUsers[28].buffer_type   = MYSQL_TYPE_STRING;
-    bindUsers[28].buffer        = userFile->Opaque;
-    bindUsers[28].buffer_length = strlen(userFile->Opaque);
+    bindUsers[29].buffer_type   = MYSQL_TYPE_STRING;
+    bindUsers[29].buffer        = userFile->Opaque;
+    bindUsers[29].buffer_length = strlen(userFile->Opaque);
 
     // WHERE name=?
-    bindUsers[29].buffer_type   = MYSQL_TYPE_STRING;
-    bindUsers[29].buffer        = userName;
-    bindUsers[29].buffer_length = userNameLength;
+    bindUsers[30].buffer_type   = MYSQL_TYPE_STRING;
+    bindUsers[30].buffer        = userName;
+    bindUsers[30].buffer_length = userNameLength;
 
     result = mysql_stmt_bind_param(stmtUsers, bindUsers);
     if (result != 0) {

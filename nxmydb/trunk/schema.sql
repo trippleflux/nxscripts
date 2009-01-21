@@ -95,6 +95,7 @@ CREATE TABLE io_user (
   deletedon   BIGINT       NOT NULL,
   deletedby   VARCHAR(65)  NOT NULL,
   deletedmsg  VARCHAR(65)  NOT NULL,
+  theme       INT          NOT NULL,
   opaque      VARCHAR(257) NOT NULL,
   updated     INT UNSIGNED NOT NULL DEFAULT 0,
   lockowner   VARCHAR(36)           DEFAULT NULL,
