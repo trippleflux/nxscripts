@@ -200,6 +200,7 @@ DWORD FileGroupOpen(INT32 groupId, GROUPFILE *groupFile)
     TRACE("groupId=%d groupFile=%p", groupId, groupFile);
 
     mod = groupFile->lpInternal;
+    ASSERT(mod != NULL);
     ASSERT(mod->file == INVALID_HANDLE_VALUE);
 
     // Retrieve group file location
@@ -238,6 +239,7 @@ DWORD FileGroupWrite(GROUPFILE *groupFile)
     TRACE("groupFile=%p", groupFile);
 
     mod = groupFile->lpInternal;
+    ASSERT(mod != NULL);
     ASSERT(mod->file != INVALID_HANDLE_VALUE);
 
     // Allocate write buffer

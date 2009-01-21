@@ -260,6 +260,7 @@ DWORD FileUserOpen(INT32 userId, USERFILE *userFile)
     TRACE("userId=%d userFile=%p", userId, userFile);
 
     mod = userFile->lpInternal;
+    ASSERT(mod != NULL);
     ASSERT(mod->file == INVALID_HANDLE_VALUE);
 
     // Retrieve user file location
@@ -298,6 +299,7 @@ DWORD FileUserWrite(USERFILE *userFile)
     TRACE("userFile=%p", userFile);
 
     mod = userFile->lpInternal;
+    ASSERT(mod != NULL);
     ASSERT(mod->file != INVALID_HANDLE_VALUE);
 
     // Allocate write buffer
