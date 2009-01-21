@@ -69,7 +69,6 @@ static INT UserFinalize(VOID)
 
 static INT32 UserCreate(CHAR *userName, INT32 groupId)
 {
-    CHAR        *defaultPath;
     DB_CONTEXT  *db;
     MOD_CONTEXT *mod;
     DWORD       result;
@@ -102,20 +101,10 @@ static INT32 UserCreate(CHAR *userName, INT32 groupId)
         userFile.MaxDownloads   = -1;
         userFile.lpInternal     = mod;
 
-        // Locate defaults file
-        result = FileUserDefaultGet(groupId, &defaultPath);
+        // Read defaults file
+        result = FileUserDefault(groupId, &userFile);
         if (result != ERROR_SUCCESS) {
-            LOG_WARN("Unable to locate the user defaults from file (error %lu).", result);
-        } else {
-            ASSERT(defaultPath != NULL);
-
-            // Read default file
-            result = FileUserDefaultRead(defaultPath, &userFile);
-            if (result != ERROR_SUCCESS) {
-                LOG_WARN("Unable to read user defaults from file \"%s\" (error %lu).", defaultPath, result);
-            }
-
-            Io_Free(defaultPath);
+            LOG_WARN("Unable to read defaults file (error %lu).", result);
         }
 
         // Register user

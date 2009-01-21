@@ -71,15 +71,15 @@ failed:
     return result;
 }
 
-DWORD FileUserDefaultGet(INT groupId, CHAR **defaultPathPtr)
+static DWORD FileUserDefaultPath(INT groupId, CHAR **pathPtr)
 {
     CHAR    *groupName;
     CHAR    *path;
     CHAR    buffer[MAX_PATH];
     DWORD   result = ERROR_SUCCESS;
 
-    ASSERT(defaultPathPtr != NULL);
-    TRACE("groupId=%d defaultPathPtr=%p", groupId, defaultPathPtr);
+    ASSERT(pathPtr != NULL);
+    TRACE("groupId=%d pathPtr=%p", groupId, pathPtr);
 
     // Format "Default=Group" file
     groupName = Io_Gid2Group(groupId);
@@ -90,13 +90,14 @@ DWORD FileUserDefaultGet(INT groupId, CHAR **defaultPathPtr)
         // Retrieve "Default=Group" location
         path = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
         if (path == NULL) {
-            TRACE("Unable to retrieve \"%s\" file location.", buffer);
+            TRACE("Unable to retrieve file \"%s\" location.", buffer);
             result = ERROR_NOT_ENOUGH_MEMORY;
             goto end;
         }
 
         // Check if the "Default=Group" file exists
         if (GetFileAttributesA(path) != INVALID_FILE_ATTRIBUTES) {
+            // File exists, return now
             goto end;
         }
 
@@ -108,50 +109,64 @@ DWORD FileUserDefaultGet(INT groupId, CHAR **defaultPathPtr)
     // Retrieve "Default.User" location
     path = Io_ConfigGetPath("Locations", "User_Files", "Default.User", NULL);
     if (path == NULL) {
-        TRACE("Unable to retrieve \"Default.User\" file location.");
+        TRACE("Unable to retrieve file \"Default.User\" location.");
         result = ERROR_NOT_ENOUGH_MEMORY;
-        goto end;
     }
 
     //
-    // We don't test for the existence of "Default.User" as we
-    // assume it always exists (and so it should).
+    // We don't test for the existence of "Default.User" as we assume it
+    // always exists (and so it should). If not, the error is handled when
+    // attempting to read from the file.
     //
 
 end:
-    *defaultPathPtr = path;
+    *pathPtr = path;
     return result;
+
 }
 
-DWORD FileUserDefaultRead(const CHAR *defaultPath, USERFILE *userFile)
+DWORD FileUserDefault(INT groupId, USERFILE *userFile)
 {
+    CHAR    *path;
     DWORD   result;
     HANDLE  file;
 
-    ASSERT(defaultPath != NULL);
     ASSERT(userFile != NULL);
-    TRACE("defaultPath=%p userFile=%p", defaultPath, userFile);
+    TRACE("groupId=%d userFile=%p", groupId, userFile);
+
+    // Find the default file to use
+    result = FileUserDefaultPath(groupId, &path);
+    if (result != ERROR_SUCCESS) {
+        TRACE("Unable to find defaults file (error %lu).", result);
+        return result;
+    }
+
+    // Path should not be NULL if FileUserDefaultPath() succeeded
+    ASSERT(path != NULL);
 
     // Open defaults file
-    file = CreateFileA(defaultPath,
+    file = CreateFileA(path,
         GENERIC_READ|GENERIC_WRITE,
         FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
         NULL, OPEN_EXISTING, 0, NULL);
 
     if (file == INVALID_HANDLE_VALUE) {
         result = GetLastError();
-        TRACE("Unable to open file \"%s\" (error %lu).", defaultPath, result);
+        TRACE("Unable to open defaults file \"%s\" (error %lu).", path, result);
     } else {
 
         // Read defaults file
         result = FileUserRead(file, userFile);
         if (result != ERROR_SUCCESS) {
-            TRACE("Unable to read file \"%s\" (error %lu).", defaultPath, result);
+            TRACE("Unable to read defaults file \"%s\" (error %lu).", path, result);
         }
 
         // Close defaults file
         CloseHandle(file);
     }
+
+    // Free the string allocated by FileUserDefaultPath()
+    Io_Free(path);
 
     return result;
 }
@@ -170,7 +185,7 @@ DWORD FileUserCreate(INT32 userId, USERFILE *userFile)
     // Retrieve default location
     defaultPath = Io_ConfigGetPath("Locations", "User_Files", "Default.User", NULL);
     if (defaultPath == NULL) {
-        TRACE("Unable to retrieve default file location.");
+        TRACE("Unable to retrieve file \"Default.User\" location.");
         return ERROR_NOT_ENOUGH_MEMORY;
     }
 

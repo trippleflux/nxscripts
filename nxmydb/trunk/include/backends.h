@@ -101,8 +101,7 @@ DWORD DbUserClose(USERFILE *userFile);
 // User file backend
 //
 
-DWORD FileUserDefaultGet(INT groupId, CHAR **defaultPathPtr);
-DWORD FileUserDefaultRead(const CHAR *defaultPath, USERFILE *userFile);
+DWORD FileUserDefault(INT groupId, USERFILE *userFile);
 
 DWORD FileUserCreate(INT32 userId, USERFILE *userFile);
 DWORD FileUserDelete(INT32 userId);
