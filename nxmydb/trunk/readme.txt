@@ -318,7 +318,7 @@ A: This error can be caused by a number of failures, try the following.
    - Check that the module is able to establish a connection with the MySQL server.
    - Check that all tables and stored procedures exist.
    - Check that the MySQL user account has execute privileges (required for stored procedures).
-   - Check that the MySQL server is the latest v5.0 version.
+   - Check that the MySQL server is the latest v5.1 version.
 
 ################################################################################
 # 6. Bugs and Comments                                                         #
@@ -329,8 +329,8 @@ script, please do not hesitate to contact me. If your problem is a technical
 issue (i.e. a crash or operational defect), be sure to provide me with the steps
 necessary to reproduce it.
 
-IniCom Forum:
-http://www.inicom.net/forum/forumdisplay.php?f=68
+FlashFXP Forum:
+http://www.flashfxp.com/forum/forumdisplay.php?f=68
 
 IRC Network:
 neoxed in #ioFTPD at EFnet
