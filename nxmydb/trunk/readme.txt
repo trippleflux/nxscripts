@@ -36,7 +36,7 @@ servers. nxMyDB also includes features such as:
 
 - Windows operating system
 
-- ioFTPD v6.8 or newer (binary compatibility)
+- ioFTPD v6.9 or newer (binary compatibility)
 
 - MySQL Server v5.1 or newer
 
