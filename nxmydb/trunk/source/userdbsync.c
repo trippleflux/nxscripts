@@ -169,7 +169,10 @@ static DWORD UserSyncFull(DB_CONTEXT *db)
     stmt = db->stmt[7];
 
     query = "SELECT name,description,flags,home,limits,password,vfsfile,credits,"
-            "       ratio,alldn,allup,daydn,dayup,monthdn,monthup,wkdn,wkup"
+            "       ratio,alldn,allup,daydn,dayup,monthdn,monthup,wkdn,wkup,"
+            "       creator,createdon,logoncount,logonlast,logonhost,maxups,"
+            "       maxdowns,maxlogins,expiresat,deletedon,deletedby,"
+            "       deletedmsg,opaque"
             "  FROM io_user";
 
     result = mysql_stmt_prepare(stmt, query, strlen(query));
@@ -604,7 +607,10 @@ static DWORD UserSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     stmt = db->stmt[7];
 
     query = "SELECT name,description,flags,home,limits,password,vfsfile,credits,"
-            "       ratio,alldn,allup,daydn,dayup,monthdn,monthup,wkdn,wkup"
+            "       ratio,alldn,allup,daydn,dayup,monthdn,monthup,wkdn,wkup,"
+            "       creator,createdon,logoncount,logonlast,logonhost,maxups,"
+            "       maxdowns,maxlogins,expiresat,deletedon,deletedby,"
+            "       deletedmsg,opaque"
             "  FROM io_user"
             "  WHERE updated BETWEEN ? AND ?";
 
