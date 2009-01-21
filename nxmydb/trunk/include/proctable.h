@@ -39,12 +39,22 @@ CHAR  *Io_Gid2Group(INT32 Gid);
 INT32  Io_Group2Gid(CHAR *GroupName);
 BOOL   Io_Ascii2GroupFile(CHAR *Buffer, DWORD BufferSize, GROUPFILE *GroupFile);
 BOOL   Io_GroupFile2Ascii(BUFFER *Buffer, GROUPFILE *GroupFile);
+BOOL   Io_GroupFileOpen(CHAR *GroupName, GROUPFILE **GroupFile, DWORD OpenFlags);
+BOOL   Io_GroupFileOpenPrimitive(INT32 Gid, GROUPFILE **GroupFile, DWORD OpenFlags);
+BOOL   Io_GroupFileLock(GROUPFILE **GroupFile, DWORD Flags);
+BOOL   Io_GroupFileUnlock(GROUPFILE **GroupFile, DWORD Flags);
+BOOL   Io_GroupFileClose(GROUPFILE **GroupFile, DWORD CloseFlags);
 
 INT32 *Io_GetUsers(DWORD *UserIdCount);
 CHAR  *Io_Uid2User(INT32 Uid);
 INT32  Io_User2Uid(CHAR *UserName);
 BOOL   Io_Ascii2UserFile(CHAR *Buffer, DWORD BufferSize, USERFILE *UserFile);
-BOOL   Io_UserFile2Ascii(BUFFER *Buffer, USERFILE *UserFile);
+BOOL   Io_UserFile2Ascii(BUFFER *Buffer, USERFILE **UserFile);
+BOOL   Io_UserFileOpen(CHAR *UserName, USERFILE **UserFile, DWORD OpenFlags);
+BOOL   Io_UserFileOpenPrimitive(INT32 Uid, USERFILE **UserFile, DWORD OpenFlags);
+BOOL   Io_UserFileLock(USERFILE **UserFile, DWORD Flags);
+BOOL   Io_UserFileUnlock(USERFILE **UserFile, DWORD Flags);
+BOOL   Io_UserFileClose(USERFILE **UserFile, DWORD CloseFlags);
 
 VOID  *Io_Allocate(DWORD Size);
 VOID  *Io_ReAllocate(VOID *Memory, DWORD Size);
@@ -76,12 +86,22 @@ typedef struct {
     INT32  (* pGroup2Gid)(CHAR *);
     BOOL   (* pAscii2GroupFile)(CHAR *, DWORD, GROUPFILE *);
     BOOL   (* pGroupFile2Ascii)(BUFFER *, GROUPFILE *);
+    BOOL   (* pGroupFileOpen)(CHAR *, GROUPFILE **, DWORD);
+    BOOL   (* pGroupFileOpenPrimitive)(INT32, GROUPFILE **, DWORD);
+    BOOL   (* pGroupFileLock)(GROUPFILE **, DWORD);
+    BOOL   (* pGroupFileUnlock)(GROUPFILE **, DWORD);
+    BOOL   (* pGroupFileClose)(GROUPFILE **, DWORD);
 
     INT32 *(* pGetUsers)(DWORD *);
     CHAR  *(* pUid2User)(INT32);
     INT32  (* pUser2Uid)(CHAR *);
     BOOL   (* pAscii2UserFile)(CHAR *, DWORD, USERFILE *);
     BOOL   (* pUserFile2Ascii)(BUFFER *, USERFILE *);
+    BOOL   (* pUserFileOpen)(CHAR *, USERFILE **, DWORD);
+    BOOL   (* pUserFileOpenPrimitive)(INT32, USERFILE **, DWORD);
+    BOOL   (* pUserFileLock)(USERFILE **, DWORD);
+    BOOL   (* pUserFileUnlock)(USERFILE **, DWORD);
+    BOOL   (* pUserFileClose)(USERFILE **, DWORD);
 
     VOID  *(* pAllocate)(DWORD);
     VOID  *(* pReAllocate)(VOID *, DWORD);
@@ -100,36 +120,46 @@ typedef struct {
 
 extern PROC_TABLE procTable;
 
-#define Io_ConfigGet            procTable.pConfigGet
-#define Io_ConfigGetBool        procTable.pConfigGetBool
-#define Io_ConfigGetInt         procTable.pConfigGetInt
-#define Io_ConfigGetPath        procTable.pConfigGetPath
+#define Io_ConfigGet                procTable.pConfigGet
+#define Io_ConfigGetBool            procTable.pConfigGetBool
+#define Io_ConfigGetInt             procTable.pConfigGetInt
+#define Io_ConfigGetPath            procTable.pConfigGetPath
 
-#define Io_GetGroups            procTable.pGetGroups
-#define Io_Gid2Group            procTable.pGid2Group
-#define Io_Group2Gid            procTable.pGroup2Gid
-#define Io_Ascii2GroupFile      procTable.pAscii2GroupFile
-#define Io_GroupFile2Ascii      procTable.pGroupFile2Ascii
+#define Io_GetGroups                procTable.pGetGroups
+#define Io_Gid2Group                procTable.pGid2Group
+#define Io_Group2Gid                procTable.pGroup2Gid
+#define Io_Ascii2GroupFile          procTable.pAscii2GroupFile
+#define Io_GroupFile2Ascii          procTable.pGroupFile2Ascii
+#define Io_GroupFileOpen            procTable.pGroupFileOpen
+#define Io_GroupFileOpenPrimitive   procTable.pGroupFileOpenPrimitive
+#define Io_GroupFileLock            procTable.pGroupFileLock
+#define Io_GroupFileUnlock          procTable.pGroupFileUnlock
+#define Io_GroupFileClose           procTable.pGroupFileClose
 
-#define Io_GetUsers             procTable.pGetUsers
-#define Io_Uid2User             procTable.pUid2User
-#define Io_User2Uid             procTable.pUser2Uid
-#define Io_Ascii2UserFile       procTable.pAscii2UserFile
-#define Io_UserFile2Ascii       procTable.pUserFile2Ascii
+#define Io_GetUsers                 procTable.pGetUsers
+#define Io_Uid2User                 procTable.pUid2User
+#define Io_User2Uid                 procTable.pUser2Uid
+#define Io_Ascii2UserFile           procTable.pAscii2UserFile
+#define Io_UserFile2Ascii           procTable.pUserFile2Ascii
+#define Io_UserFileOpen             procTable.pUserFileOpen
+#define Io_UserFileOpenPrimitive    procTable.pUserFileOpenPrimitive
+#define Io_UserFileLock             procTable.pUserFileLock
+#define Io_UserFileUnlock           procTable.pUserFileUnlock
+#define Io_UserFileClose            procTable.pUserFileClose
 
-#define Io_Allocate             procTable.pAllocate
-#define Io_ReAllocate           procTable.pReAllocate
-#define Io_Free                 procTable.pFree
+#define Io_Allocate                 procTable.pAllocate
+#define Io_ReAllocate               procTable.pReAllocate
+#define Io_Free                     procTable.pFree
 
-#define Io_GetStringIndex       procTable.pGetStringIndex
-#define Io_GetStringIndexStatic procTable.pGetStringIndexStatic
-#define Io_GetStringRange       procTable.pGetStringRange
-#define Io_FreeString           procTable.pFreeString
+#define Io_GetStringIndex           procTable.pGetStringIndex
+#define Io_GetStringIndexStatic     procTable.pGetStringIndexStatic
+#define Io_GetStringRange           procTable.pGetStringRange
+#define Io_FreeString               procTable.pFreeString
 
-#define Io_Putlog               procTable.pPutlog
-#define Io_QueueJob             procTable.pQueueJob
-#define Io_StartIoTimer         procTable.pStartIoTimer
-#define Io_StopIoTimer          procTable.pStopIoTimer
+#define Io_Putlog                   procTable.pPutlog
+#define Io_QueueJob                 procTable.pQueueJob
+#define Io_StartIoTimer             procTable.pStartIoTimer
+#define Io_StopIoTimer              procTable.pStopIoTimer
 
 
 DWORD FCALL ProcTableInit(Io_GetProc *getProc);
