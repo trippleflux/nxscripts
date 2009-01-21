@@ -126,6 +126,9 @@ static INT32 UserCreate(CHAR *userName, INT32 groupId)
                 }
             }
 
+            // Make sure we haven't wiped out the module context pointer
+            ASSERT(userFile.lpInternal != NULL);
+
             // If the file or database creation failed, clean-up the user file
             if (result != ERROR_SUCCESS) {
                 FileUserDelete(userId);
@@ -220,7 +223,7 @@ static INT UserLock(USERFILE *userFile)
     ASSERT(userFile != NULL);
     TRACE("userFile=%p", userFile);
 
-    // Check if ioFTPD wiped the module context pointer
+    // Check if ioFTPD wiped out the module context pointer
     ASSERT(userFile->lpInternal != NULL);
 
     if (!DbAcquire(&db)) {
@@ -255,7 +258,7 @@ static INT UserUnlock(USERFILE *userFile)
     ASSERT(userFile != NULL);
     TRACE("userFile=%p", userFile);
 
-    // Check if ioFTPD wiped the module context pointer
+    // Check if ioFTPD wiped out the module context pointer
     ASSERT(userFile->lpInternal != NULL);
 
     if (!DbAcquire(&db)) {
@@ -313,15 +316,17 @@ static INT UserOpen(CHAR *userName, USERFILE *userFile)
 
             // Read database record
             result = DbUserOpen(db, userName, userFile);
-            if (result != ERROR_SUCCESS) {
+            if (result == ERROR_SUCCESS) {
+                // Make sure we haven't wiped out the module context pointer
+                ASSERT(userFile->lpInternal != NULL);
+
+            } else {
                 LOG_WARN("Unable to open user database record for \"%s\" (error %lu).", userName, result);
 
                 // Clean-up user file
                 FileUserClose(userFile);
             }
         }
-
-        ASSERT(userFile->lpInternal != NULL);
 
         // Free module context if the file/database open failed
         if (result != ERROR_SUCCESS) {
@@ -349,7 +354,7 @@ static INT UserWrite(USERFILE *userFile)
     ASSERT(userFile != NULL);
     TRACE("userFile=%p", userFile);
 
-    // Check if ioFTPD wiped the module context pointer
+    // Check if ioFTPD wiped out the module context pointer
     ASSERT(userFile->lpInternal != NULL);
 
     if (!DbAcquire(&db)) {

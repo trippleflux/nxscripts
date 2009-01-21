@@ -259,7 +259,7 @@ DWORD FileUserOpen(INT32 userId, USERFILE *userFile)
     ASSERT(userFile != NULL);
     TRACE("userId=%d userFile=%p", userId, userFile);
 
-    // Check if ioFTPD wiped the module context pointer
+    // Check if ioFTPD wiped out the module context pointer
     ASSERT(userFile->lpInternal != NULL);
     mod = userFile->lpInternal;
 
@@ -301,7 +301,7 @@ DWORD FileUserWrite(USERFILE *userFile)
     ASSERT(userFile != NULL);
     TRACE("userFile=%p", userFile);
 
-    // Check if ioFTPD wiped the module context pointer
+    // Check if ioFTPD wiped out the module context pointer
     ASSERT(userFile->lpInternal != NULL);
     mod = userFile->lpInternal;
 

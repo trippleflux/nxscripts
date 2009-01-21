@@ -120,6 +120,9 @@ static INT32 GroupCreate(CHAR *groupName)
                 }
             }
 
+            // Make sure we haven't wiped out the module context pointer
+            ASSERT(groupFile.lpInternal != NULL);
+
             // If the file or database creation failed, clean-up the group file
             if (result != ERROR_SUCCESS) {
                 FileGroupDelete(groupId);
@@ -214,7 +217,7 @@ static INT GroupLock(GROUPFILE *groupFile)
     ASSERT(groupFile != NULL);
     TRACE("groupFile=%p", groupFile);
 
-    // Check if ioFTPD wiped the module context pointer
+    // Check if ioFTPD wiped out the module context pointer
     ASSERT(groupFile->lpInternal != NULL);
 
     if (!DbAcquire(&db)) {
@@ -249,7 +252,7 @@ static INT GroupUnlock(GROUPFILE *groupFile)
     ASSERT(groupFile != NULL);
     TRACE("groupFile=%p", groupFile);
 
-    // Check if ioFTPD wiped the module context pointer
+    // Check if ioFTPD wiped out the module context pointer
     ASSERT(groupFile->lpInternal != NULL);
 
     if (!DbAcquire(&db)) {
@@ -307,7 +310,11 @@ static INT GroupOpen(CHAR *groupName, GROUPFILE *groupFile)
 
             // Read database record
             result = DbGroupOpen(db, groupName, groupFile);
-            if (result != ERROR_SUCCESS) {
+            if (result == ERROR_SUCCESS) {
+                // Make sure we haven't wiped out the module context pointer
+                ASSERT(groupFile->lpInternal != NULL);
+
+            } else {
                 LOG_WARN("Unable to open group database record for \"%s\" (error %lu).", groupName, result);
 
                 // Clean-up group file
@@ -341,7 +348,7 @@ static INT GroupWrite(GROUPFILE *groupFile)
     ASSERT(groupFile != NULL);
     TRACE("groupFile=%p", groupFile);
 
-    // Check if ioFTPD wiped the module context pointer
+    // Check if ioFTPD wiped out the module context pointer
     ASSERT(groupFile->lpInternal != NULL);
 
     if (!DbAcquire(&db)) {
