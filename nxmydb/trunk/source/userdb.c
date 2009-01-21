@@ -1965,7 +1965,7 @@ DWORD DbUserWrite(DB_CONTEXT *db, CHAR *userName, USERFILE *userFile)
 
     // SET theme=?
     bindUsers[28].buffer_type   = MYSQL_TYPE_LONG;
-    bindUsers[28].buffer        = userFile->Theme;
+    bindUsers[28].buffer        = &userFile->Theme;
 
     // SET opaque=?
     bindUsers[29].buffer_type   = MYSQL_TYPE_STRING;
