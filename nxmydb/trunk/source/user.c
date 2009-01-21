@@ -75,6 +75,7 @@ static INT32 UserCreate(CHAR *userName, INT32 groupId)
     INT32       userId = -1;
     USERFILE    userFile;
 
+    ASSERT(userName != NULL);
     TRACE("userName=%s groupId=%d", userName, groupId);
 
     if (!DbAcquire(&db)) {
@@ -157,6 +158,8 @@ static INT UserRename(CHAR *userName, INT32 userId, CHAR *newName)
     DB_CONTEXT *db;
     DWORD       result;
 
+    ASSERT(userName != NULL);
+    ASSERT(newName != NULL);
     UNREFERENCED_PARAMETER(userId);
     TRACE("userName=%s userId=%d newName=%s", userName, userId, newName);
 
@@ -186,6 +189,7 @@ static INT UserDelete(CHAR *userName, INT32 userId)
     DB_CONTEXT *db;
     DWORD       result;
 
+    ASSERT(userName != NULL);
     TRACE("userName=%s userId=%d", userName, userId);
 
     if (!DbAcquire(&db)) {
@@ -290,6 +294,8 @@ static INT UserOpen(CHAR *userName, USERFILE *userFile)
     DWORD       result;
     MOD_CONTEXT *mod;
 
+    ASSERT(userName != NULL);
+    ASSERT(userFile != NULL);
     TRACE("userName=%s userFile=%p", userName, userFile);
 
     if (!DbAcquire(&db)) {

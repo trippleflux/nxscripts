@@ -75,6 +75,7 @@ static INT32 GroupCreate(CHAR *groupName)
     INT32       groupId = -1;
     GROUPFILE    groupFile;
 
+    ASSERT(groupName != NULL);
     TRACE("groupName=%s", groupName);
 
     if (!DbAcquire(&db)) {
@@ -151,6 +152,8 @@ static INT GroupRename(CHAR *groupName, INT32 groupId, CHAR *newName)
     DB_CONTEXT *db;
     DWORD       result;
 
+    ASSERT(groupName != NULL);
+    ASSERT(newName != NULL);
     UNREFERENCED_PARAMETER(groupId);
     TRACE("groupName=%s groupId=%d newName=%s", groupName, groupId, newName);
 
@@ -180,6 +183,7 @@ static INT GroupDelete(CHAR *groupName, INT32 groupId)
     DB_CONTEXT *db;
     DWORD       result;
 
+    ASSERT(groupName != NULL);
     TRACE("groupName=%s groupId=%d", groupName, groupId);
 
     if (!DbAcquire(&db)) {
@@ -284,6 +288,8 @@ static INT GroupOpen(CHAR *groupName, GROUPFILE *groupFile)
     DWORD       result;
     MOD_CONTEXT *mod;
 
+    ASSERT(groupName != NULL);
+    ASSERT(groupFile != NULL);
     TRACE("groupName=%s groupFile=%p", groupName, groupFile);
 
     if (!DbAcquire(&db)) {
