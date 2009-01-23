@@ -7,13 +7,14 @@ Topics:
  1. Information
  2. Requirements
  3. Installation
- 4. Configuration
+ 4. Upgrading
+ 5. Configuration
    a) Options
    b) yaSSL Cipher Suites
    c) OpenSSL Cipher Suites
- 5. FAQ
- 6. Bugs and Comments
- 7. License
+ 6. FAQ
+ 7. Bugs and Comments
+ 8. License
 
 ################################################################################
 # 1. Information                                                               #
@@ -97,7 +98,16 @@ Sync_Interval   = 60            # Seconds between each incremental synchronizati
 8. Restart ioFTPD for the changes to take effect.
 
 ################################################################################
-# 4. Configuration                                                             #
+# 4. Upgrading                                                                 #
+################################################################################
+
+v1.0 -> v2.0
+ - Add scheduler entry to your ioFTPD configuration.
+ - Replace nxmydb.dll and libmysql.dll files.
+ - Upgrade database schema using v1.0-to-v2.0.sql (see file for instructions).
+
+################################################################################
+# 5. Configuration                                                             #
 ################################################################################
 
     Explanation of options available to nxMyDB and a list of cipher suites
@@ -299,7 +309,7 @@ supported by OpenSSL/yaSSL.
   RC4-SHA                     | SSLv3 TLSv1 | RSA      | RSA  |  RC4 128   | SHA1
 
 ################################################################################
-# 5. FAQ                                                                       #
+# 6. FAQ                                                                       #
 ################################################################################
 
 Q: What does "nxMyDB: Unable to connect to server: SSL connection error" mean?
@@ -323,7 +333,7 @@ A: This error can be caused by a number of failures, try the following.
    - Check that the MySQL server is the latest v5.1 version.
 
 ################################################################################
-# 6. Bugs and Comments                                                         #
+# 7. Bugs and Comments                                                         #
 ################################################################################
 
    If you have ideas for improvements or are experiencing problems with this
@@ -341,7 +351,7 @@ E-mail:
 neoxed@gmail.com
 
 ################################################################################
-# 7. License                                                                   #
+# 8. License                                                                   #
 ################################################################################
 
    See the "license.txt" file for details.
