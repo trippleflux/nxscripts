@@ -1,7 +1,19 @@
 --
 -- nxMyDB - Table Schemas
 --
--- Requires MySQL v5.0.19 or newer
+-- Instructions:
+--
+--  1. Create a new database:
+--     mysql -u root -p -h 192.168.1.1 -e "CREATE DATABASE ioftpd"
+--
+--  2. Create table schemas in the new database:
+--     mysql -u root -p -h 192.168.1.1 -D ioftpd --delimiter=$ < schema.sql
+--
+--  3. Create a MySQL user to access the "ioftpd" database.
+--
+
+--
+-- Procedures
 --
 
 CREATE PROCEDURE io_user_lock(IN pName VARCHAR(65), IN pExpire INT, IN pTimeout INT, IN pOwner VARCHAR(36))
@@ -44,6 +56,10 @@ BEGIN
   END SPIN;
 END;
 
+--
+-- Tables
+--
+
 CREATE TABLE io_group (
   name        VARCHAR(65)  NOT NULL,
   description VARCHAR(128) NOT NULL,
@@ -71,18 +87,18 @@ CREATE TABLE io_user (
   flags       VARCHAR(32)  NOT NULL,
   home        VARCHAR(260) NOT NULL,
   limits      TINYBLOB     NOT NULL, --  5 x INT  = 20 bytes
-  password    TINYBLOB     NOT NULL, -- 20 x CHAR = 20 bytes
+  password    TINYBLOB     NOT NULL, -- 20 x BYTE = 20 bytes
   vfsfile     VARCHAR(260) NOT NULL,
   credits     TINYBLOB     NOT NULL, -- 25 x INT64 = 200 bytes
   ratio       TINYBLOB     NOT NULL, -- 25 x INT   = 100 bytes
   alldn       BLOB         NOT NULL, -- 3 x 25 x INT64 = 600 bytes
-  allup       BLOB         NOT NULL,
-  daydn       BLOB         NOT NULL,
-  dayup       BLOB         NOT NULL,
-  monthdn     BLOB         NOT NULL,
-  monthup     BLOB         NOT NULL,
-  wkdn        BLOB         NOT NULL,
-  wkup        BLOB         NOT NULL,
+  allup       BLOB         NOT NULL, -- 3 x 25 x INT64 = 600 bytes
+  daydn       BLOB         NOT NULL, -- 3 x 25 x INT64 = 600 bytes
+  dayup       BLOB         NOT NULL, -- 3 x 25 x INT64 = 600 bytes
+  monthdn     BLOB         NOT NULL, -- 3 x 25 x INT64 = 600 bytes
+  monthup     BLOB         NOT NULL, -- 3 x 25 x INT64 = 600 bytes
+  wkdn        BLOB         NOT NULL, -- 3 x 25 x INT64 = 600 bytes
+  wkup        BLOB         NOT NULL, -- 3 x 25 x INT64 = 600 bytes
   creator     VARCHAR(65)  NOT NULL,
   createdon   BIGINT       NOT NULL,
   logoncount  INT          NOT NULL,

@@ -36,9 +36,9 @@ servers. nxMyDB also includes features such as:
 
 - Windows operating system
 
-- ioFTPD v6.9 or newer (binary compatibility)
+- ioFTPD v6.9
 
-- MySQL Server v5.1 or newer
+- MySQL Server v5.1
 
 ################################################################################
 # 3. Installation                                                              #
@@ -49,11 +49,13 @@ servers. nxMyDB also includes features such as:
    mysql -u root -p -h 192.168.1.1 -e "CREATE DATABASE ioftpd"
    mysql -u root -p -h 192.168.1.1 -D ioftpd --delimiter=$ < schema.sql
 
-2. Copy the nxmydb.dll file to ioFTPD\modules\.
+2. Create a MySQL user to access the "ioftpd" database.
 
-3. Copy the libmysql.dll file to ioFTPD\system\.
+3. Copy the nxmydb.dll file to ioFTPD\modules\.
 
-4. Add the following options to your ioFTPD.ini file:
+4. Copy the libmysql.dll file to ioFTPD\system\.
+
+5. Add the following options to your ioFTPD.ini file:
 
 [Scheduler]
 nxMyDBPurge     = 0 0 * * NXMYDB purge
@@ -78,11 +80,11 @@ Sync            = True          # Synchronization of users and groups
 Sync_First      = 30            # Seconds until the first full synchronization
 Sync_Interval   = 60            # Seconds between each incremental synchronization
 
-5. Adjust these options as required. There are several other options to enable
+6. Adjust these options as required. There are several other options to enable
    SSL encryption and fine-tune the connection pool. For a list of available
    options, see the "Configuration" section of this manual.
 
-6. When configuring SSL, you will have to setup the certificate authority on the
+7. When configuring SSL, you will have to setup the certificate authority on the
    server, as well as generate/sign certificates for connecting clients. For more
    information on this, visit:
 
@@ -92,7 +94,7 @@ Sync_Interval   = 60            # Seconds between each incremental synchronizati
    I will NOT assist you with this; direct any questions about MySQL Server and SSL
    to the appropriate places (e.g. MySQL's mailing list or a MySQL discussion board).
 
-7. Restart ioFTPD for the changes to take effect.
+8. Restart ioFTPD for the changes to take effect.
 
 ################################################################################
 # 4. Configuration                                                             #
