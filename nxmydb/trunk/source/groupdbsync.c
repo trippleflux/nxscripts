@@ -47,7 +47,15 @@ static DWORD GroupEventCreate(CHAR *groupName, GROUPFILE *groupFile)
 
             // Create group file
             result = FileGroupCreate(groupId, groupFile);
-            if (result != ERROR_SUCCESS) {
+            if (result == ERROR_SUCCESS) {
+                // When ioFTPD creates a new group, it calls the module's exported
+                // Create() function and then it calls Write(). When a module
+                // creates a new group, it's the module's responsibility to update
+                // the new group file.
+                //
+                // Success of FileGroupWrite() does not matter.
+                FileGroupWrite(groupFile);
+            } else {
                 TRACE("Unable to create group file (error %lu).", result);
 
                 // Creation failed, clean-up the group file
@@ -126,8 +134,16 @@ static DWORD GroupEventUpdate(CHAR *groupName, GROUPFILE *groupFile)
     ASSERT(groupName != NULL);
     ASSERT(groupFile != NULL);
 
-    // Update the group file
+    // Update ioFTPD's group file structure
     result = GroupUpdateByName(groupName, groupFile);
+
+    if (result == ERROR_SUCCESS) {
+        // ioFTPD sets the lpInternal field if the update was successful
+        ASSERT(groupFile->lpInternal != NULL);
+
+        // Update the group file
+        FileGroupWrite(groupFile);
+    }
 
     return result;
 }

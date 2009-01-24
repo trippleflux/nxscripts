@@ -47,7 +47,15 @@ static DWORD UserEventCreate(CHAR *userName, USERFILE *userFile)
 
             // Create user file
             result = FileUserCreate(userId, userFile);
-            if (result != ERROR_SUCCESS) {
+            if (result == ERROR_SUCCESS) {
+                // When ioFTPD creates a new user, it calls the module's exported
+                // Create() function and then it calls Write(). When a module
+                // creates a new user, it's the module's responsibility to update
+                // the new user file.
+                //
+                // Success of FileUserWrite() does not matter.
+                FileUserWrite(userFile);
+            } else {
                 TRACE("Unable to create user file (error %lu).", result);
 
                 // Creation failed, clean-up the user file
@@ -126,8 +134,16 @@ static DWORD UserEventUpdate(CHAR *userName, USERFILE *userFile)
     ASSERT(userName != NULL);
     ASSERT(userFile != NULL);
 
-    // Update the user file
+    // Update ioFTPD's user file structure
     result = UserUpdateByName(userName, userFile);
+
+    if (result == ERROR_SUCCESS) {
+        // ioFTPD sets the lpInternal field if the update was successful
+        ASSERT(userFile->lpInternal != NULL);
+
+        // Update the user file
+        FileUserWrite(userFile);
+    }
 
     return result;
 }
