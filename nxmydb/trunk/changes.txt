@@ -1,9 +1,9 @@
-nxMyDB v2.0.0 (Not released):
+nxMyDB v2.0.0 (Jan 24, 2009):
   NEW: Compatibility with ioFTPD v6.9 and newer.
   NEW: Configuration option "Sync_Purge" to control the purge age.
   NEW: Scheduler option to purge old entries from the changes tables.
   CHG: Database schema required changes for the increased stats sections and new fields.
-  FIX: Group and user files were not update during database synchronization.
+  FIX: Group and user files were not updated during database synchronization.
   FIX: Increase the "host" column by one character in table "io_user_hosts".
   FIX: User credits, ratio, and stats were read from the wrong columns.
 
