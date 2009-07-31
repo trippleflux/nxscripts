@@ -35,6 +35,7 @@ Abstract:
 #include <windows.h>
 #include <winsock2.h>
 #include <mswsock.h>
+#include <rpc.h>
 
 #define STRSAFE_LIB
 #define STRSAFE_NO_CB_FUNCTIONS
@@ -69,6 +70,7 @@ Abstract:
 
 // MySQL headers
 #include <mysql.h>
+#include <errmsg.h>
 
 
 //

@@ -16,11 +16,11 @@
 DEBUG       = 0
 MSVCRT      = 0
 PLATFORM    = X86
-IOFTPD_INC  = D:\ioFTPD\source\Include-v6.9
-MYSQL_DIR   = C:\Program Files\MySQL\MySQL Server 5.1
+IOFTPD_INC  = D:\ioFTPD\source\Source-v6.9.0\include
+MYSQL_DIR   = C:\Program Files (x86)\MySQL\MySQL Server 5.1
 
 # Release version
-VERSION     = 2.0.0
+VERSION     = 2.1.0
 
 # Compiler options
 CC          = cl.exe
@@ -96,6 +96,7 @@ FILE_OBJS = \
     alloc.obj\
     array.obj\
     condvar.obj\
+    config.obj\
     database.obj\
     dllentry.obj\
     event.obj\

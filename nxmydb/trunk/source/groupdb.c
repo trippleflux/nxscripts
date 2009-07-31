@@ -15,6 +15,7 @@ Abstract:
 */
 
 #include <base.h>
+#include <config.h>
 #include <backends.h>
 #include <database.h>
 

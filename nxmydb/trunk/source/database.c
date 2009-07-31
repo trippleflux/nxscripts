@@ -16,68 +16,14 @@ Abstract:
 
 #include <base.h>
 #include <backends.h>
+#include <config.h>
 #include <database.h>
 #include <logging.h>
 #include <pool.h>
 
-#include <errmsg.h>
-#include <rpc.h>
-
-
 //
-// Configuration structures
+// Database variables
 //
-typedef struct {
-    INT     logLevel;       // Level of log verbosity
-} DB_CONFIG_GLOBAL;
-
-typedef struct {
-    INT     minimum;        // Minimum number of sustained connections
-    INT     average;        // Average number of sustained connections
-    INT     maximum;        // Maximum number of sustained connections
-    INT     timeout;        // Seconds to wait for a connection to become available
-    DWORD   timeoutMili;    // Same amount, but in milliseconds
-
-    INT     check;          // Seconds until an idle connection is checked
-    UINT64  checkNano;      // Same amount, but in 100 nanosecond intervals
-    INT     expire;         // Seconds until a connection expires
-    UINT64  expireNano;     // Same amount, but in 100 nanosecond intervals
-} DB_CONFIG_POOL;
-
-typedef struct {
-    CHAR    *host;          // MySQL Server host
-    CHAR    *user;          // MySQL Server username
-    CHAR    *password;      // MySQL Server password
-    CHAR    *database;      // Database name
-    INT      port;          // MySQL Server port
-    BOOL     compression;   // Use compression for the server connection
-    BOOL     sslEnable;     // Use SSL encryption for the server connection
-    CHAR    *sslCiphers;    // List of allowable ciphers to use with SSL encryption
-    CHAR    *sslCertFile;   // Path to the certificate file
-    CHAR    *sslKeyFile;    // Path to the key file
-    CHAR    *sslCAFile;     // Path to the certificate authority file
-    CHAR    *sslCAPath;     // Path to the directory containing CA certificates
-} DB_CONFIG_SERVER;
-
-typedef struct {
-    BOOL         enabled;   // Allow syncronization
-    INT          first;     // Milliseconds until the first syncronization
-    INT          interval;  // Milliseconds between each database refresh
-    INT          purge;     // Seconds to purge old changes entries
-    SYNC_CONTEXT sync;      // Syncronization context
-    TIMER        *timer;    // Syncronization timer
-} DB_CONFIG_SYNC;
-
-//
-// Configuration variables
-//
-
-DB_CONFIG_LOCK dbConfigLock;
-
-static DB_CONFIG_GLOBAL  dbConfigGlobal;
-static DB_CONFIG_POOL    dbConfigPool;
-static DB_CONFIG_SERVER  dbConfigServer;
-static DB_CONFIG_SYNC    dbConfigSync;
 
 static POOL pool;           // Database connection pool
 static INT  refCount = 0;   // Reference count initialization calls
@@ -90,12 +36,7 @@ static POOL_CONSTRUCTOR_PROC ConnectionOpen;
 static POOL_VALIDATOR_PROC   ConnectionCheck;
 static POOL_DESTRUCTOR_PROC  ConnectionClose;
 
-static DWORD FCALL ConfigInit(VOID);
-static BOOL  FCALL ConfigLoad(VOID);
-static DWORD FCALL ConfigFree(VOID);
-
-static CHAR *FCALL ConfigGet(CHAR *array, CHAR *variable);
-static DWORD FCALL ConfigUuid(VOID);
+static Io_TimerProc SyncTimer;
 
 
 /*++
@@ -183,7 +124,7 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
         goto failed;
     }
 
-    // Pointer values should be the same
+    // Pointer values should be the same as from mysql_init()
     ASSERT(connection == db->handle);
 
     // Check server version
@@ -317,315 +258,6 @@ static VOID FCALL ConnectionClose(VOID *context, VOID *data)
 
     // Free context structure
     MemFree(db);
-}
-
-
-/*++
-
-ConfigInit
-
-    Initializes configuration structures.
-
-Arguments:
-    None.
-
-Return Values:
-    A Windows API error code.
-
---*/
-static DWORD FCALL ConfigInit(VOID)
-{
-    // Clear configuration structures
-    ZeroMemory(&dbConfigGlobal, sizeof(DB_CONFIG_GLOBAL));
-    ZeroMemory(&dbConfigLock,   sizeof(DB_CONFIG_LOCK));
-    ZeroMemory(&dbConfigPool,   sizeof(DB_CONFIG_POOL));
-    ZeroMemory(&dbConfigServer, sizeof(DB_CONFIG_SERVER));
-    ZeroMemory(&dbConfigSync,   sizeof(DB_CONFIG_SYNC));
-    return ERROR_SUCCESS;
-}
-
-/*++
-
-ConfigLoad
-
-    Loads configuration options.
-
-Arguments:
-    None.
-
-Return Values:
-    If the function succeeds, the return value is a pointer to the configuration value.
-
-    If the function fails, the return value is null.
-
---*/
-static BOOL FCALL ConfigLoad(VOID)
-{
-    //
-    // Read global options
-    //
-
-    dbConfigGlobal.logLevel = (INT)LOG_LEVEL_ERROR;
-    Io_ConfigGetInt("nxMyDB", "Log_Level", &dbConfigGlobal.logLevel);
-
-    //
-    // Read lock options
-    //
-
-    dbConfigLock.expire = 60;
-    if (Io_ConfigGetInt("nxMyDB", "Lock_Expire", &dbConfigLock.expire) && dbConfigLock.expire <= 0) {
-        LOG_ERROR("Option 'Lock_Expire' must be greater than zero.");
-        return FALSE;
-    }
-
-    dbConfigLock.timeout = 5;
-    if (Io_ConfigGetInt("nxMyDB", "Lock_Timeout", &dbConfigLock.timeout) && dbConfigLock.timeout <= 0) {
-        LOG_ERROR("Option 'Lock_Timeout' must be greater than zero.");
-        return FALSE;
-    }
-
-    //
-    // Read pool options
-    //
-
-    dbConfigPool.minimum = 1;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Minimum", &dbConfigPool.minimum) && dbConfigPool.minimum <= 0) {
-        LOG_ERROR("Option 'Pool_Minimum' must be greater than zero.");
-        return FALSE;
-    }
-
-    dbConfigPool.average = dbConfigPool.minimum + 1;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Average", &dbConfigPool.average) && dbConfigPool.average < dbConfigPool.minimum) {
-        LOG_ERROR("Option 'Pool_Average' must be greater than or equal to 'Pool_Minimum'.");
-        return FALSE;
-    }
-
-    dbConfigPool.maximum = dbConfigPool.average * 2;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Maximum", &dbConfigPool.maximum) && dbConfigPool.maximum < dbConfigPool.average) {
-        LOG_ERROR("Option 'Pool_Maximum' must be greater than or equal to 'Pool_Average'.");
-        return FALSE;
-    }
-
-    dbConfigPool.timeout = 5;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Timeout", &dbConfigPool.timeout) && dbConfigPool.timeout <= 0) {
-        LOG_ERROR("Option 'Pool_Timeout' must be greater than zero.");
-        return FALSE;
-    }
-    dbConfigPool.timeoutMili = dbConfigPool.timeout * 1000; // sec to msec
-
-    dbConfigPool.expire = 3600;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Expire", &dbConfigPool.expire) && dbConfigPool.expire <= 0) {
-        LOG_ERROR("Option 'Pool_Expire' must be greater than zero.");
-        return FALSE;
-    }
-    dbConfigPool.expireNano = UInt32x32To64(dbConfigPool.expire, 10000000); // sec to 100nsec
-
-    dbConfigPool.check = 60;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Check", &dbConfigPool.check) &&
-            (dbConfigPool.check <= 0 || dbConfigPool.check >= dbConfigPool.expire)) {
-        LOG_ERROR("Option 'Pool_Check' must be greater than zero and less than 'Pool_Expire'.");
-        return FALSE;
-    }
-    dbConfigPool.checkNano = UInt32x32To64(dbConfigPool.check, 10000000); // sec to 100nsec
-
-    //
-    // Read sync options
-    //
-
-    Io_ConfigGetBool("nxMyDB", "Sync", &dbConfigSync.enabled);
-
-    if (dbConfigSync.enabled) {
-        dbConfigSync.first = 30;
-        if (Io_ConfigGetInt("nxMyDB", "Sync_First", &dbConfigSync.first) && dbConfigSync.first <= 0) {
-            LOG_ERROR("Option 'SyncTimer' must be greater than zero.");
-            return FALSE;
-        }
-        dbConfigSync.first = dbConfigSync.first * 1000; // sec to msec
-
-        dbConfigSync.interval = 60;
-        if (Io_ConfigGetInt("nxMyDB", "Sync_Interval", &dbConfigSync.interval) && dbConfigSync.interval <= 0) {
-            LOG_ERROR("Option 'Sync_Interval' must be greater than zero.");
-            return FALSE;
-        }
-        dbConfigSync.interval = dbConfigSync.interval * 1000; // sec to msec
-
-        dbConfigSync.purge = dbConfigSync.interval * 100;
-        if (Io_ConfigGetInt("nxMyDB", "Sync_Purge", &dbConfigSync.purge) && dbConfigSync.purge <= dbConfigSync.interval) {
-            LOG_ERROR("Option 'Sync_Purge' must be greater than 'Sync_Interval'.");
-            return FALSE;
-        }
-    }
-
-    //
-    // Read server options
-    //
-
-    dbConfigServer.host     = ConfigGet("nxMyDB", "Host");
-    dbConfigServer.user     = ConfigGet("nxMyDB", "User");
-    dbConfigServer.password = ConfigGet("nxMyDB", "Password");
-    dbConfigServer.database = ConfigGet("nxMyDB", "Database");
-    Io_ConfigGetInt("nxMyDB", "Port", &dbConfigServer.port);
-    Io_ConfigGetBool("nxMyDB", "Compression", &dbConfigServer.compression);
-    Io_ConfigGetBool("nxMyDB", "SSL_Enable", &dbConfigServer.sslEnable);
-    dbConfigServer.sslCiphers  = ConfigGet("nxMyDB", "SSL_Ciphers");
-    dbConfigServer.sslCertFile = ConfigGet("nxMyDB", "SSL_Cert_File");
-    dbConfigServer.sslKeyFile  = ConfigGet("nxMyDB", "SSL_Key_File");
-    dbConfigServer.sslCAFile   = ConfigGet("nxMyDB", "SSL_CA_File");
-    dbConfigServer.sslCAPath   = ConfigGet("nxMyDB", "SSL_CA_Path");
-
-    return TRUE;
-}
-
-/*++
-
-ConfigFree
-
-    Frees memory allocated for configuration options.
-
-Arguments:
-    None.
-
-Return Values:
-    A Windows API error code.
-
---*/
-static DWORD FCALL ConfigFree(VOID)
-{
-    // Free server options
-    if (dbConfigServer.host != NULL) {
-        Io_Free(dbConfigServer.host);
-    }
-    if (dbConfigServer.user != NULL) {
-        Io_Free(dbConfigServer.user);
-    }
-    if (dbConfigServer.password != NULL) {
-        Io_Free(dbConfigServer.password);
-    }
-    if (dbConfigServer.database != NULL) {
-        Io_Free(dbConfigServer.database);
-    }
-
-    // Free SSL options
-    if (dbConfigServer.sslCiphers != NULL) {
-        Io_Free(dbConfigServer.sslCiphers);
-    }
-    if (dbConfigServer.sslCertFile != NULL) {
-        Io_Free(dbConfigServer.sslCertFile);
-    }
-    if (dbConfigServer.sslKeyFile != NULL) {
-        Io_Free(dbConfigServer.sslKeyFile);
-    }
-    if (dbConfigServer.sslCAFile != NULL) {
-        Io_Free(dbConfigServer.sslCAFile);
-    }
-    if (dbConfigServer.sslCAPath != NULL) {
-        Io_Free(dbConfigServer.sslCAPath);
-    }
-
-    // Clear configuration structures
-    ZeroMemory(&dbConfigGlobal, sizeof(DB_CONFIG_GLOBAL));
-    ZeroMemory(&dbConfigLock,   sizeof(DB_CONFIG_LOCK));
-    ZeroMemory(&dbConfigPool,   sizeof(DB_CONFIG_POOL));
-    ZeroMemory(&dbConfigSync,   sizeof(DB_CONFIG_SYNC));
-    ZeroMemory(&dbConfigServer, sizeof(DB_CONFIG_SERVER));
-    return ERROR_SUCCESS;
-}
-
-/*++
-
-ConfigGet
-
-    Retrieves configuration options, also removing comments and whitespace.
-
-Arguments:
-    array    - Option array name.
-
-    variable - Option variable name.
-
-Return Values:
-    If the function succeeds, the return value is a pointer to the configuration value.
-
-    If the function fails, the return value is null.
-
---*/
-static CHAR *FCALL ConfigGet(CHAR *array, CHAR *variable)
-{
-    CHAR *p;
-    CHAR *value;
-    SIZE_T length;
-
-    ASSERT(array != NULL);
-    ASSERT(variable != NULL);
-
-    // Retrieve value from ioFTPD
-    value = Io_ConfigGet(array, variable, NULL, NULL);
-    if (value == NULL) {
-        return NULL;
-    }
-
-    // Count characters before a "#" or ";"
-    p = value;
-    while (*p != '\0' && *p != '#' && *p != ';') {
-        p++;
-    }
-    length = p - value;
-
-    // Strip trailing whitespace
-    while (length > 0 && IS_SPACE(value[length-1])) {
-        length--;
-    }
-
-    value[length] = '\0';
-    return value;
-}
-
-/*++
-
-ConfigUuid
-
-    Generates a UUID used for identifying the server.
-
-Arguments:
-    If the function succeeds, the return value is nonzero (true).
-
-    If the function fails, the return value is zero (false).
-
-Return Values:
-    A Windows API error code.
-
---*/
-static DWORD FCALL ConfigUuid(VOID)
-{
-    CHAR    *format;
-    DWORD   result;
-    UUID    uuid;
-
-    result = UuidCreate(&uuid);
-    switch (result) {
-        case RPC_S_OK:
-        case RPC_S_UUID_LOCAL_ONLY:
-        case RPC_S_UUID_NO_ADDRESS:
-            // These are acceptable failures.
-            break;
-        default:
-            LOG_ERROR("Unable to generate UUID (error %lu).", result);
-            return FALSE;
-    }
-
-    result = UuidToStringA(&uuid, (RPC_CSTR *)&format);
-    if (result != RPC_S_OK) {
-        LOG_ERROR("Unable to convert UUID (error %lu).", result);
-        return result;
-    }
-
-    // Copy formatted UUID
-    StringCchCopyA(dbConfigLock.owner, ELEMENT_COUNT(dbConfigLock.owner), format);
-    dbConfigLock.ownerLength = strlen(dbConfigLock.owner);
-
-    LOG_INFO("Server lock UUID is \"%s\".", format);
-
-    RpcStringFree((RPC_CSTR *)&format);
-    return ERROR_SUCCESS;
 }
 
 
@@ -797,13 +429,17 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
         return TRUE;
     }
 
-    // Initialize configuration structures
-    ConfigInit();
-
     // Initialize procedure table
     result = ProcTableInit(getProc);
     if (result != ERROR_SUCCESS) {
         TRACE("Unable to initialize procedure table (error %lu).", result);
+        return FALSE;
+    }
+
+    // Initialize configuration structures
+    result = ConfigInit();
+    if (result != ERROR_SUCCESS) {
+        TRACE("Unable to initialize configuration system (error %lu).", result);
         return FALSE;
     }
 
@@ -814,6 +450,11 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
         return FALSE;
     }
 
+    //
+    // Now that the logging system has been initialized, the LOG_* macros are
+    // available for use. Prior to this point, the TRACE macro must be used.
+    //
+
     // Load configuration options
     if (!ConfigLoad()) {
         LOG_ERROR("Unable to load configuration.");
@@ -822,17 +463,22 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
         return FALSE;
     }
 
+
+// TODO move this <
+
     // Set log verbosity level
     LogSetLevel((LOG_LEVEL)dbConfigGlobal.logLevel);
 
     // Generate a UUID for this server
-    result = ConfigUuid();
+    result = ConfigSetUuid();
     if (result != ERROR_SUCCESS) {
         LOG_ERROR("Unable to generate UUID (error %lu).", result);
 
         DbFinalize();
         return FALSE;
     }
+
+// > TODO
 
     // Create connection pool
     result = PoolCreate(&pool,
@@ -882,7 +528,7 @@ VOID FCALL DbFinalize(VOID)
         PoolDestroy(&pool);
 
         // Free configuration options
-        ConfigFree();
+        ConfigFinalize();
 
         // Stop logging system
         LOG_INFO("nxMyDB v%s unloaded.", STRINGIFY(VERSION));
@@ -968,59 +614,6 @@ VOID FCALL DbSyncStop(VOID)
 
 /*++
 
-DbMapError
-
-    Maps a MySQL result code to the closest Windows error code.
-
-Arguments:
-    error   - MySQL client library error code.
-
-Return Values:
-    The closest Windows error code.
-
---*/
-DWORD FCALL DbMapError(UINT error)
-{
-    DWORD result;
-
-    switch (error) {
-        case CR_COMMANDS_OUT_OF_SYNC:
-        case CR_NOT_IMPLEMENTED:
-            result = ERROR_INTERNAL_ERROR;
-            break;
-
-        case CR_OUT_OF_MEMORY:
-            result = ERROR_NOT_ENOUGH_MEMORY;
-            break;
-
-        case CR_UNKNOWN_ERROR:
-            result = ERROR_INVALID_FUNCTION;
-            break;
-
-        case CR_SERVER_GONE_ERROR:
-        case CR_SERVER_LOST:
-        case CR_SERVER_LOST_EXTENDED:
-            result = ERROR_NOT_CONNECTED;
-            break;
-
-        case CR_PARAMS_NOT_BOUND:
-        case CR_NO_PARAMETERS_EXISTS:
-        case CR_INVALID_PARAMETER_NO:
-        case CR_INVALID_BUFFER_USE:
-        case CR_UNSUPPORTED_PARAM_TYPE:
-            result = ERROR_INVALID_PARAMETER;
-            break;
-
-        default:
-            LOG_INFO("Unknown MySQL result error %lu.", error);
-            result = ERROR_INVALID_FUNCTION;
-    }
-
-    return result;
-}
-
-/*++
-
 DbAcquire
 
     Acquires a database context from the connection pool.
@@ -1073,4 +666,57 @@ VOID FCALL DbRelease(DB_CONTEXT *db)
     if (!PoolRelease(&pool, db)) {
         LOG_ERROR("Unable to release the database context (error %lu).", GetLastError());
     }
+}
+
+/*++
+
+DbMapError
+
+    Maps a MySQL result code to the closest Windows error code.
+
+Arguments:
+    error   - MySQL client library error code.
+
+Return Values:
+    The closest Windows error code.
+
+--*/
+DWORD FCALL DbMapError(UINT error)
+{
+    DWORD result;
+
+    switch (error) {
+        case CR_COMMANDS_OUT_OF_SYNC:
+        case CR_NOT_IMPLEMENTED:
+            result = ERROR_INTERNAL_ERROR;
+            break;
+
+        case CR_OUT_OF_MEMORY:
+            result = ERROR_NOT_ENOUGH_MEMORY;
+            break;
+
+        case CR_UNKNOWN_ERROR:
+            result = ERROR_INVALID_FUNCTION;
+            break;
+
+        case CR_SERVER_GONE_ERROR:
+        case CR_SERVER_LOST:
+        case CR_SERVER_LOST_EXTENDED:
+            result = ERROR_NOT_CONNECTED;
+            break;
+
+        case CR_PARAMS_NOT_BOUND:
+        case CR_NO_PARAMETERS_EXISTS:
+        case CR_INVALID_PARAMETER_NO:
+        case CR_INVALID_BUFFER_USE:
+        case CR_UNSUPPORTED_PARAM_TYPE:
+            result = ERROR_INVALID_PARAMETER;
+            break;
+
+        default:
+            LOG_INFO("Unknown MySQL result error %lu.", error);
+            result = ERROR_INVALID_FUNCTION;
+    }
+
+    return result;
 }

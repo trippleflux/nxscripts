@@ -1,3 +1,7 @@
+nxMyDB v2.1.0 (Not released):
+  NEW: Support for multiple MySQL servers.
+  NEW: Updated MySQL Client Library (libmysql.dll) to v5.1.36.
+
 nxMyDB v2.0.0 (Jan 24, 2009):
   NEW: Compatibility with ioFTPD v6.9 and newer.
   NEW: Configuration option "Sync_Purge" to control the purge age.

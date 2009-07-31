@@ -16,6 +16,7 @@ Abstract:
 
 #include <base.h>
 #include <backends.h>
+#include <config.h>
 #include <database.h>
 
 static VOID CopyHost(CHAR *host, CHAR *buffer, SIZE_T inLength, SIZE_T *outLength)

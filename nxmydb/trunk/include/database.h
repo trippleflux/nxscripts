@@ -28,13 +28,6 @@ typedef struct {
     UINT64      used;       // Time this context was last used
 } DB_CONTEXT;
 
-typedef struct {
-    INT     expire;         // Seconds until a lock expires
-    INT     timeout;        // Seconds to wait for a lock to become available
-    CHAR    owner[64];      // Lock owner UUID
-    SIZE_T  ownerLength;    // Length of the owner UUID
-} DB_CONFIG_LOCK;
-
 //
 // Database macros
 //
@@ -58,12 +51,6 @@ typedef struct {
 #define DB_CHECK_RESULTS(binds, metadata)
 
 #endif // DEBUG
-
-//
-// Database globals
-//
-
-extern DB_CONFIG_LOCK dbConfigLock;
 
 //
 // Database functions

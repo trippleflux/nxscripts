@@ -9,9 +9,10 @@ Topics:
  3. Installation
  4. Upgrading
  5. Configuration
-   a) Options
-   b) yaSSL Cipher Suites
-   c) OpenSSL Cipher Suites
+   a) Global Options
+   b) Server Options
+   c) yaSSL Cipher Suites
+   d) OpenSSL Cipher Suites
  6. FAQ
  7. Bugs and Comments
  8. License
@@ -39,7 +40,7 @@ servers. nxMyDB also includes features such as:
 
 - ioFTPD v6.9
 
-- MySQL Server v5.1
+- MySQL Server v5.1 (latest available)
 
 ################################################################################
 # 3. Installation                                                              #
@@ -71,15 +72,17 @@ OnServerStart   = NXMYDB start
 OnServerStop    = NXMYDB stop
 
 [nxMyDB]
+Servers         = nxMyDB_Server # List of database servers
+Log_Level       = 1             # Log errors to nxMyDB.log
+Sync            = True          # Synchronization of users and groups
+
+[nxMyDB_Server]
 Host            = localhost     # MySQL Server host
 Port            = 3306          # MySQL Server port
 User            = user          # MySQL Server username
 Password        = pass          # MySQL Server password
 Database        = ioftpd        # Database name
 Compression     = True          # Use compression for the server connection
-Sync            = True          # Synchronization of users and groups
-Sync_First      = 30            # Seconds until the first full synchronization
-Sync_Interval   = 60            # Seconds between each incremental synchronization
 
 6. Adjust these options as required. There are several other options to enable
    SSL encryption and fine-tune the connection pool. For a list of available
@@ -101,7 +104,10 @@ Sync_Interval   = 60            # Seconds between each incremental synchronizati
 # 4. Upgrading                                                                 #
 ################################################################################
 
-v1.0 -> v2.0
+v2.0.0 -> v2.1.0
+ - Update server options in your ioFTPD configuration.
+
+v1.0.0 -> v2.0.0
  - Add scheduler entry to your ioFTPD configuration.
  - Replace nxmydb.dll and libmysql.dll files.
  - Upgrade database schema using v1.0-to-v2.0.sql (see file for instructions).
@@ -114,30 +120,10 @@ v1.0 -> v2.0
 supported by OpenSSL/yaSSL.
 
   ############################################################
-  # a) Options                                               #
+  # a) Global Options                                        #
   ############################################################
 
   If any option is left undefined, the default value is used.
-
-  Host
-    - MySQL Server host
-    - Default: localhost
-
-  Port
-    - MySQL Server port
-    - Default: 3306
-
-  User
-    - MySQL Server username
-    - Default: MySQL's default user
-
-  Password
-    - MySQL Server password
-    - Default: MySQL's default password
-
-  Database
-    - Database name
-    - Default: MySQL's default database
 
   Log_Level
     - Log verbosity level
@@ -146,54 +132,6 @@ supported by OpenSSL/yaSSL.
     - Value 2 for errors and warnings
     - Value 3 for errors, warnings, and information
     - Default: 1
-
-  Sync
-    - Synchronization of users and groups
-    - Set to "true" if the database is shared with more than one server
-    - Default: false
-
-  Sync_First
-    - Seconds until the first full database synchronization
-    - Only performed after initialization
-    - Default: 30
-
-  Sync_Interval
-    - Seconds between each incremental database synchronization
-    - Default: 60
-
-  Sync_Purge
-    - Seconds after which to purge entries in the "changes" tables
-    - This should be substantially larger than the Sync_Interval
-    - Default: Sync_Interval x 100
-
-  Compression
-    - Use compression for the server connection
-    - Default: false
-
-  SSL_Enable
-    - Use SSL encryption for the server connection
-    - Default: false
-
-  SSL_Ciphers
-    - List of allowable ciphers to use with SSL encryption
-    - I recommend using DHE-RSA-AES256-SHA
-    - Default: null
-
-  SSL_Cert_File
-    - Path to the certificate file
-    - Default: null
-
-  SSL_Key_File
-    - Path to the key file
-    - Default: null
-
-  SSL_CA_File
-    - Path to the certificate authority file
-    - Default: null
-
-  SSL_CA_Path
-    - Path to the directory containing CA certificates
-    - Default: null
 
   Lock_Expire
     - Seconds until a lock expires
@@ -229,8 +167,82 @@ supported by OpenSSL/yaSSL.
     - Seconds to wait for a connection to become available
     - Default: 5
 
+  Sync
+    - Synchronization of users and groups
+    - Set to "true" if the database is shared with more than one server
+    - Default: false
+
+  Sync_First
+    - Seconds until the first full database synchronization
+    - Only performed after initialization
+    - Default: 30
+
+  Sync_Interval
+    - Seconds between each incremental database synchronization
+    - Default: 60
+
+  Sync_Purge
+    - Seconds after which to purge entries in the "changes" tables
+    - This should be substantially larger than the Sync_Interval
+    - Default: Sync_Interval x 100
+
   ############################################################
-  # b) yaSSL Cipher Suites                                   #
+  # b) Server Options                                        #
+  ############################################################
+
+  If any option is left undefined, the default value is used.
+
+  Host
+    - MySQL Server host
+    - Default: localhost
+
+  Port
+    - MySQL Server port
+    - Default: 3306
+
+  User
+    - MySQL Server username
+    - Default: MySQL's default user
+
+  Password
+    - MySQL Server password
+    - Default: MySQL's default password
+
+  Database
+    - Database name
+    - Default: MySQL's default database
+
+  Compression
+    - Use compression for the server connection
+    - Default: false
+
+  SSL_Enable
+    - Use SSL encryption for the server connection
+    - Default: false
+
+  SSL_Ciphers
+    - List of allowable ciphers to use with SSL encryption
+    - I recommend using DHE-RSA-AES256-SHA
+    - Default: null
+
+  SSL_Cert_File
+    - Path to the certificate file
+    - Default: null
+
+  SSL_Key_File
+    - Path to the key file
+    - Default: null
+
+  SSL_CA_File
+    - Path to the certificate authority file
+    - Default: null
+
+  SSL_CA_Path
+    - Path to the directory containing CA certificates
+    - Default: null
+
+  ############################################################
+  # c) yaSSL Cipher Suites                                   #
   ############################################################
 
   MySQL's official Windows binaries are built using the yaSSL library.
@@ -263,7 +275,7 @@ supported by OpenSSL/yaSSL.
   RC4-SHA                     | SSLv3 TLSv1 | RSA      | RSA  |  RC4       | SHA1
 
   ############################################################
-  # c) OpenSSL Cipher Suites                                 #
+  # d) OpenSSL Cipher Suites                                 #
   ############################################################
 
   Cipher strings can be used instead of listing individual ciphers.
