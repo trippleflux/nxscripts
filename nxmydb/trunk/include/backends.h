@@ -111,7 +111,7 @@ DWORD FileUserClose(USERFILE *userFile);
 
 
 //
-// Database syncronization
+// Database synchronization
 //
 
 typedef enum {
@@ -120,15 +120,10 @@ typedef enum {
     SYNC_EVENT_DELETE = 2,
 } SYNC_EVENT;
 
-typedef struct {
-    ULONG       currUpdate; // Server time for the current update
-    ULONG       prevUpdate; // Server time of the last update
-} SYNC_CONTEXT;
-
 DWORD DbGroupPurge(DB_CONTEXT *db, INT age);
-DWORD DbGroupSync(DB_CONTEXT *db, SYNC_CONTEXT *sync);
+DWORD DbGroupSync(DB_CONTEXT *db, DB_SYNC *sync);
 
 DWORD DbUserPurge(DB_CONTEXT *db, INT age);
-DWORD DbUserSync(DB_CONTEXT *db, SYNC_CONTEXT *sync);
+DWORD DbUserSync(DB_CONTEXT *db, DB_SYNC *sync);
 
 #endif // BACKENDS_H_INCLUDED

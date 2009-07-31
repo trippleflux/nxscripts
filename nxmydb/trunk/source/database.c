@@ -25,8 +25,9 @@ Abstract:
 // Database variables
 //
 
-static POOL pool;           // Database connection pool
-static INT  refCount = 0;   // Reference count initialization calls
+static DB_SYNC  dbSync;         // Database synchronization
+static POOL     dbPool;         // Database connection pool
+static INT      refCount = 0;   // Reference count initialization calls
 
 //
 // Function declarations
@@ -379,14 +380,14 @@ static DWORD SyncTimer(VOID *context, TIMER *timer)
 
         } else {
             // Update the current time
-            dbConfigSync.sync.currUpdate = currentTime;
+            dbSync.currUpdate = currentTime;
 
             // Groups must be updated before users
-            DbGroupSync(db, &dbConfigSync.sync);
-            DbUserSync(db, &dbConfigSync.sync);
+            DbGroupSync(db, &dbSync);
+            DbUserSync(db, &dbSync);
 
             // Update the previous time
-            dbConfigSync.sync.prevUpdate = currentTime;
+            dbSync.prevUpdate = currentTime;
         }
 
         DbRelease(db);
@@ -481,7 +482,7 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
 // > TODO
 
     // Create connection pool
-    result = PoolCreate(&pool,
+    result = PoolCreate(&dbPool,
         dbConfigPool.minimum, dbConfigPool.average,
         dbConfigPool.maximum, dbConfigPool.timeoutMili,
         ConnectionOpen, ConnectionCheck, ConnectionClose, NULL);
@@ -525,7 +526,7 @@ VOID FCALL DbFinalize(VOID)
         DbSyncStop();
 
         // Destroy connection pool
-        PoolDestroy(&pool);
+        PoolDestroy(&dbPool);
 
         // Free configuration options
         ConfigFinalize();
@@ -584,8 +585,8 @@ VOID FCALL DbSyncStart(VOID)
     TRACE("enabled=%d", dbConfigSync.enabled);
 
     if (dbConfigSync.enabled) {
-        ASSERT(dbConfigSync.timer == NULL);
-        dbConfigSync.timer = Io_StartIoTimer(NULL, SyncTimer, NULL, dbConfigSync.first);
+        ZeroMemory(&dbSync, sizeof(DB_SYNC));
+        dbSync.timer = Io_StartIoTimer(NULL, SyncTimer, NULL, dbConfigSync.first);
     }
 }
 
@@ -606,9 +607,9 @@ VOID FCALL DbSyncStop(VOID)
 {
     TRACE("enabled=%d", dbConfigSync.enabled);
 
-    if (dbConfigSync.timer != NULL) {
-        Io_StopIoTimer(dbConfigSync.timer, FALSE);
-        dbConfigSync.timer = NULL;
+    if (dbSync.timer != NULL) {
+        Io_StopIoTimer(dbSync.timer, FALSE);
+        dbSync.timer = NULL;
     }
 }
 
@@ -633,7 +634,7 @@ BOOL FCALL DbAcquire(DB_CONTEXT **dbPtr)
     TRACE("dbPtr=%p", dbPtr);
 
     // Acquire a database context
-    if (!PoolAcquire(&pool, dbPtr)) {
+    if (!PoolAcquire(&dbPool, dbPtr)) {
         LOG_ERROR("Unable to acquire a database context (error %lu).", GetLastError());
         return FALSE;
     }
@@ -663,7 +664,7 @@ VOID FCALL DbRelease(DB_CONTEXT *db)
     GetSystemTimeAsFileTime((FILETIME *)&db->used);
 
     // Release the database context
-    if (!PoolRelease(&pool, db)) {
+    if (!PoolRelease(&dbPool, db)) {
         LOG_ERROR("Unable to release the database context (error %lu).", GetLastError());
     }
 }

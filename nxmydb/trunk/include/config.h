@@ -17,8 +17,6 @@ Abstract:
 #ifndef CONFIG_H_INCLUDED
 #define CONFIG_H_INCLUDED
 
-#include <backends.h>
-
 //
 // Configuration structures
 //
@@ -62,12 +60,10 @@ typedef struct {
 } DB_CONFIG_SERVER;
 
 typedef struct {
-    BOOL         enabled;   // Allow syncronization
-    INT          first;     // Milliseconds until the first syncronization
+    BOOL         enabled;   // Allow synchronization
+    INT          first;     // Milliseconds until the first synchronization
     INT          interval;  // Milliseconds between each database refresh
     INT          purge;     // Seconds to purge old changes entries
-    SYNC_CONTEXT sync;      // Syncronization context
-    TIMER        *timer;    // Syncronization timer
 } DB_CONFIG_SYNC;
 
 //

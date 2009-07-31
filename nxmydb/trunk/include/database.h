@@ -28,6 +28,12 @@ typedef struct {
     UINT64      used;       // Time this context was last used
 } DB_CONTEXT;
 
+typedef struct {
+    ULONG       currUpdate; // Server time for the current update
+    ULONG       prevUpdate; // Server time of the last update
+    TIMER       *timer;     // Synchronization timer
+} DB_SYNC;
+
 //
 // Database macros
 //

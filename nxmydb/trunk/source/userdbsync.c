@@ -445,7 +445,7 @@ static DWORD UserSyncFull(DB_CONTEXT *db)
     return ERROR_SUCCESS;
 }
 
-static DWORD UserSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
+static DWORD UserSyncIncrChanges(DB_CONTEXT *db, DB_SYNC *sync)
 {
     CHAR        *query;
     BYTE        syncEvent;
@@ -604,7 +604,7 @@ static DWORD UserSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     return ERROR_SUCCESS;
 }
 
-static DWORD UserSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
+static DWORD UserSyncIncrUpdates(DB_CONTEXT *db, DB_SYNC *sync)
 {
     CHAR        *query;
     CHAR        deletedBy[_MAX_NAME + 1];
@@ -874,7 +874,7 @@ static DWORD UserSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     return ERROR_SUCCESS;
 }
 
-static DWORD UserSyncIncr(DB_CONTEXT *db, SYNC_CONTEXT *sync)
+static DWORD UserSyncIncr(DB_CONTEXT *db, DB_SYNC *sync)
 {
     DWORD result;
 
@@ -950,7 +950,7 @@ DWORD DbUserPurge(DB_CONTEXT *db, INT age)
     return ERROR_SUCCESS;
 }
 
-DWORD DbUserSync(DB_CONTEXT *db, SYNC_CONTEXT *sync)
+DWORD DbUserSync(DB_CONTEXT *db, DB_SYNC *sync)
 {
     DWORD result;
 
@@ -959,8 +959,7 @@ DWORD DbUserSync(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     TRACE("db=%p sync=%p", db, sync);
 
     if (sync->prevUpdate == 0) {
-        // If there was no previous update time, we
-        // perform a full user syncronization.
+        // If there was no previous update time, we perform a full user synchronization.
         result = UserSyncFull(db);
     } else {
         ASSERT(sync->currUpdate != 0);

@@ -302,7 +302,7 @@ static DWORD GroupSyncFull(DB_CONTEXT *db)
     return ERROR_SUCCESS;
 }
 
-static DWORD GroupSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
+static DWORD GroupSyncIncrChanges(DB_CONTEXT *db, DB_SYNC *sync)
 {
     CHAR        *query;
     BYTE        syncEvent;
@@ -461,7 +461,7 @@ static DWORD GroupSyncIncrChanges(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     return ERROR_SUCCESS;
 }
 
-static DWORD GroupSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
+static DWORD GroupSyncIncrUpdates(DB_CONTEXT *db, DB_SYNC *sync)
 {
     CHAR        *query;
     CHAR        groupName[_MAX_NAME + 1];
@@ -592,7 +592,7 @@ static DWORD GroupSyncIncrUpdates(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     return ERROR_SUCCESS;
 }
 
-static DWORD GroupSyncIncr(DB_CONTEXT *db, SYNC_CONTEXT *sync)
+static DWORD GroupSyncIncr(DB_CONTEXT *db, DB_SYNC *sync)
 {
     DWORD result;
 
@@ -668,7 +668,7 @@ DWORD DbGroupPurge(DB_CONTEXT *db, INT age)
     return ERROR_SUCCESS;
 }
 
-DWORD DbGroupSync(DB_CONTEXT *db, SYNC_CONTEXT *sync)
+DWORD DbGroupSync(DB_CONTEXT *db, DB_SYNC *sync)
 {
     DWORD result;
 
@@ -677,8 +677,7 @@ DWORD DbGroupSync(DB_CONTEXT *db, SYNC_CONTEXT *sync)
     TRACE("db=%p sync=%p", db, sync);
 
     if (sync->prevUpdate == 0) {
-        // If there was no previous update time, we
-        // perform a full group syncronization.
+        // If there was no previous update time, we perform a full group synchronization.
         result = GroupSyncFull(db);
     } else {
         ASSERT(sync->currUpdate != 0);
