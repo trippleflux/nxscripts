@@ -179,7 +179,7 @@ static VOID FCALL QueueInsert(LOG_ENTRY *entry)
 }
 
 
-DWORD SCALL LogFileInit(VOID)
+DWORD FCALL LogFileInit(VOID)
 {
     DWORD result;
 
@@ -208,7 +208,7 @@ DWORD SCALL LogFileInit(VOID)
     return result;
 }
 
-DWORD SCALL LogFileFinalize(VOID)
+DWORD FCALL LogFileFinalize(VOID)
 {
     // Write all pending log entries
     InterlockedExchange(&logStatus, LOG_STATUS_SHUTDOWN);
@@ -224,7 +224,7 @@ DWORD SCALL LogFileFinalize(VOID)
     return ERROR_SUCCESS;
 }
 
-VOID SCALL LogFileFormat(const CHAR *format, ...)
+VOID CCALL LogFileFormat(const CHAR *format, ...)
 {
     va_list argList;
 
@@ -233,7 +233,7 @@ VOID SCALL LogFileFormat(const CHAR *format, ...)
     va_end(argList);
 }
 
-VOID SCALL LogFileFormatV(const CHAR *format, va_list argList)
+VOID FCALL LogFileFormatV(const CHAR *format, va_list argList)
 {
     DWORD       errorCode;
     LOG_ENTRY   *entry;
@@ -262,7 +262,7 @@ VOID SCALL LogFileFormatV(const CHAR *format, va_list argList)
     SetLastError(errorCode);
 }
 
-VOID SCALL LogFileTrace(const CHAR *file, const CHAR *func, INT line, const CHAR *format, ...)
+VOID FCALL LogFileTrace(const CHAR *file, const CHAR *func, INT line, const CHAR *format, ...)
 {
     va_list argList;
 
@@ -271,7 +271,7 @@ VOID SCALL LogFileTrace(const CHAR *file, const CHAR *func, INT line, const CHAR
     va_end(argList);
 }
 
-VOID SCALL LogFileTraceV(const CHAR *file, const CHAR *func, INT line, const CHAR *format, va_list argList)
+VOID FCALL LogFileTraceV(const CHAR *file, const CHAR *func, INT line, const CHAR *format, va_list argList)
 {
 #if 0
     CHAR        location[MAX_PATH];

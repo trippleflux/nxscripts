@@ -33,12 +33,12 @@ Abstract:
 #endif
 
 
-DWORD SCALL LogInit(VOID)
+DWORD FCALL LogInit(VOID)
 {
     return BACKEND_INIT();
 }
 
-DWORD SCALL LogFinalize(VOID)
+DWORD FCALL LogFinalize(VOID)
 {
     return BACKEND_FINAL();
 }
@@ -73,7 +73,7 @@ VOID CCALL LogFormat(LOG_LEVEL level, const CHAR *format, ...)
     va_end(argList);
 }
 
-VOID SCALL LogFormatV(LOG_LEVEL level, const CHAR *format, va_list argList)
+VOID FCALL LogFormatV(LOG_LEVEL level, const CHAR *format, va_list argList)
 {
     if (level <= dbConfigGlobal.logLevel) {
         BACKEND_FORMAT(format, argList);
@@ -89,7 +89,7 @@ VOID CCALL LogTrace(const CHAR *file, const CHAR *func, INT line, LOG_LEVEL leve
     va_end(argList);
 }
 
-VOID SCALL LogTraceV(const CHAR *file, const CHAR *func, INT line, LOG_LEVEL level, const CHAR *format, va_list argList)
+VOID FCALL LogTraceV(const CHAR *file, const CHAR *func, INT line, LOG_LEVEL level, const CHAR *format, va_list argList)
 {
     if (level <= dbConfigGlobal.logLevel) {
         BACKEND_TRACE(file, func, line, format, argList);

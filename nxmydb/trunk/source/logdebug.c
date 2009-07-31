@@ -17,7 +17,7 @@ Abstract:
 #include <base.h>
 #include <logging.h>
 
-DWORD SCALL LogDebuggerInit(VOID)
+DWORD FCALL LogDebuggerInit(VOID)
 {
     // Output message header
     OutputDebugStringA(".-----------------------------------------------------------------------------------------------------.\n");
@@ -27,7 +27,7 @@ DWORD SCALL LogDebuggerInit(VOID)
     return ERROR_SUCCESS;
 }
 
-DWORD SCALL LogDebuggerFinalize(VOID)
+DWORD FCALL LogDebuggerFinalize(VOID)
 {
     // Output message footer
     OutputDebugStringA("`-----------------------------------------------------------------------------------------------------'\n");
@@ -35,7 +35,7 @@ DWORD SCALL LogDebuggerFinalize(VOID)
     return ERROR_SUCCESS;
 }
 
-VOID SCALL LogDebuggerFormat(const CHAR *format, ...)
+VOID CCALL LogDebuggerFormat(const CHAR *format, ...)
 {
     va_list argList;
 
@@ -44,7 +44,7 @@ VOID SCALL LogDebuggerFormat(const CHAR *format, ...)
     va_end(argList);
 }
 
-VOID SCALL LogDebuggerFormatV(const CHAR *format, va_list argList)
+VOID FCALL LogDebuggerFormatV(const CHAR *format, va_list argList)
 {
     CHAR    message[512];
     DWORD   errorCode;
@@ -61,7 +61,7 @@ VOID SCALL LogDebuggerFormatV(const CHAR *format, va_list argList)
     SetLastError(errorCode);
 }
 
-VOID SCALL LogDebuggerTrace(const CHAR *file, const CHAR *func, INT line, const CHAR *format, ...)
+VOID CCALL LogDebuggerTrace(const CHAR *file, const CHAR *func, INT line, const CHAR *format, ...)
 {
     va_list argList;
 
@@ -70,7 +70,7 @@ VOID SCALL LogDebuggerTrace(const CHAR *file, const CHAR *func, INT line, const 
     va_end(argList);
 }
 
-VOID SCALL LogDebuggerTraceV(const CHAR *file, const CHAR *func, INT line, const CHAR *format, va_list argList)
+VOID FCALL LogDebuggerTraceV(const CHAR *file, const CHAR *func, INT line, const CHAR *format, va_list argList)
 {
     CHAR    location[MAX_PATH];
     CHAR    message[512];
