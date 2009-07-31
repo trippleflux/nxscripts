@@ -77,6 +77,8 @@ DWORD FCALL ProcTableInit(Io_GetProc *getProc)
     RESOLVE("ReAllocate",               procTable.pReAllocate);
     RESOLVE("Free",                     procTable.pFree);
 
+    RESOLVE("ConcatString",             procTable.pConcatString);
+    RESOLVE("SplitString",              procTable.pSplitString);
     RESOLVE("GetStringIndex",           procTable.pGetStringIndex);
     RESOLVE("GetStringIndexStatic",     procTable.pGetStringIndexStatic);
     RESOLVE("GetStringRange",           procTable.pGetStringRange);

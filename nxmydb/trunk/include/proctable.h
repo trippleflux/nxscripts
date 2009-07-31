@@ -60,6 +60,8 @@ VOID  *Io_Allocate(DWORD Size);
 VOID  *Io_ReAllocate(VOID *Memory, DWORD Size);
 BOOL   Io_Free(VOID *Memory);
 
+BOOL   Io_ConcatString(IO_STRING *StringDest, IO_STRING *StringSource);
+BOOL   Io_SplitString(CHAR *StringIn, IO_STRING *StringOut);
 CHAR  *Io_GetStringIndex(IO_STRING *String, DWORD Index);
 CHAR  *Io_GetStringIndexStatic(IO_STRING *String, DWORD Index);
 CHAR  *Io_GetStringRange(IO_STRING *String, DWORD BeginIndex, DWORD EndIndex);
@@ -107,6 +109,8 @@ typedef struct {
     VOID  *(* pReAllocate)(VOID *, DWORD);
     BOOL   (* pFree)(VOID *);
 
+    BOOL   (* pConcatString)(IO_STRING *, IO_STRING *);
+    BOOL   (* pSplitString)(CHAR *, IO_STRING *);
     CHAR  *(* pGetStringIndex)(IO_STRING *, DWORD);
     CHAR  *(* pGetStringIndexStatic)(IO_STRING *, DWORD);
     CHAR  *(* pGetStringRange)(IO_STRING *, DWORD, DWORD);
@@ -151,6 +155,8 @@ extern PROC_TABLE procTable;
 #define Io_ReAllocate               procTable.pReAllocate
 #define Io_Free                     procTable.pFree
 
+#define Io_ConcatString             procTable.pConcatString
+#define Io_SplitString              procTable.pSplitString
 #define Io_GetStringIndex           procTable.pGetStringIndex
 #define Io_GetStringIndexStatic     procTable.pGetStringIndexStatic
 #define Io_GetStringRange           procTable.pGetStringRange
