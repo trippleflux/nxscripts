@@ -62,7 +62,6 @@ typedef enum {
 
 DWORD SCALL LogInit(VOID);
 DWORD SCALL LogFinalize(VOID);
-DWORD SCALL LogSetLevel(LOG_LEVEL level);
 const CHAR *LogFileName(const CHAR *path);
 
 VOID  CCALL LogFormat(LOG_LEVEL level, const CHAR *format, ...);

@@ -15,6 +15,7 @@ Abstract:
 */
 
 #include <base.h>
+#include <config.h>
 #include <logging.h>
 
 #if (LOG_OPTION_BACKEND == LOG_BACKEND_DEBUG)
@@ -31,26 +32,15 @@ Abstract:
 #   error Unknown logging backend.
 #endif
 
-static LOG_LEVEL logLevel;
-
 
 DWORD SCALL LogInit(VOID)
 {
-    // Default to the error log level
-    logLevel = LOG_LEVEL_ERROR;
-
     return BACKEND_INIT();
 }
 
 DWORD SCALL LogFinalize(VOID)
 {
     return BACKEND_FINAL();
-}
-
-DWORD SCALL LogSetLevel(LOG_LEVEL level)
-{
-    logLevel = level;
-    return ERROR_SUCCESS;
 }
 
 const CHAR *LogFileName(const CHAR *path)
@@ -85,7 +75,7 @@ VOID CCALL LogFormat(LOG_LEVEL level, const CHAR *format, ...)
 
 VOID SCALL LogFormatV(LOG_LEVEL level, const CHAR *format, va_list argList)
 {
-    if (level <= logLevel) {
+    if (level <= dbConfigGlobal.logLevel) {
         BACKEND_FORMAT(format, argList);
     }
 }
@@ -101,7 +91,7 @@ VOID CCALL LogTrace(const CHAR *file, const CHAR *func, INT line, LOG_LEVEL leve
 
 VOID SCALL LogTraceV(const CHAR *file, const CHAR *func, INT line, LOG_LEVEL level, const CHAR *format, va_list argList)
 {
-    if (level <= logLevel) {
+    if (level <= dbConfigGlobal.logLevel) {
         BACKEND_TRACE(file, func, line, format, argList);
     }
 }

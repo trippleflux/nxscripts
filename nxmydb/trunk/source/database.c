@@ -465,10 +465,9 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
     }
 
 
-// TODO move this <
-
-    // Set log verbosity level
-    LogSetLevel((LOG_LEVEL)dbConfigGlobal.logLevel);
+//
+// TODO: move this code somewhere more fitting
+//
 
     // Generate a UUID for this server
     result = ConfigSetUuid();
@@ -479,7 +478,9 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
         return FALSE;
     }
 
-// > TODO
+//
+// end TODO
+//
 
     // Create connection pool
     result = PoolCreate(&dbPool,

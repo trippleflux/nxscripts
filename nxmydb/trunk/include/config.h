@@ -14,6 +14,8 @@ Abstract:
 
 */
 
+#include <logging.h>
+
 #ifndef CONFIG_H_INCLUDED
 #define CONFIG_H_INCLUDED
 
@@ -21,7 +23,7 @@ Abstract:
 // Configuration structures
 //
 typedef struct {
-    INT     logLevel;       // Level of log verbosity
+    LOG_LEVEL   logLevel;   // Level of log verbosity
 } DB_CONFIG_GLOBAL;
 
 typedef struct {

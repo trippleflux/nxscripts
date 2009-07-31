@@ -105,12 +105,15 @@ Return Values:
 --*/
 static BOOL FCALL LoadGlobal(VOID)
 {
+    INT value;
+
     //
-    // Read global options
+    // Read logging options
     //
 
-    dbConfigGlobal.logLevel = (INT)LOG_LEVEL_ERROR;
-    Io_ConfigGetInt("nxMyDB", "Log_Level", &dbConfigGlobal.logLevel);
+    value = (INT)LOG_LEVEL_ERROR;
+    Io_ConfigGetInt("nxMyDB", "Log_Level", &value);
+    dbConfigGlobal.logLevel = (LOG_LEVEL)value;
 
     //
     // Read lock options
