@@ -37,7 +37,7 @@ static DWORD FCALL SetUuid(VOID);
 static VOID  FCALL ZeroConfig(VOID);
 
 static DWORD FCALL LoadGlobal(VOID);
-static DWORD FCALL LoadServer(CHAR *array);
+static DWORD FCALL LoadServer(CHAR *array, DB_CONFIG_SERVER *server);
 static DWORD FCALL LoadServers(VOID);
 static DWORD FCALL FreeServer(DB_CONFIG_SERVER *server);
 static DWORD FCALL FreeServers(VOID);
@@ -288,29 +288,32 @@ LoadServer
 Arguments:
     array   - Option array name.
 
+    server  - Pointer to a DB_CONFIG_SERVER structure.
+
 Return Values:
     A Windows API error code.
 
 --*/
-static DWORD FCALL LoadServer(CHAR *array)
+static DWORD FCALL LoadServer(CHAR *array, DB_CONFIG_SERVER *server)
 {
     ASSERT(array != NULL);
+    ASSERT(server != NULL);
 
     // Host options
-    dbConfigServer.host     = GetString(array, "Host");
-    dbConfigServer.user     = GetString(array, "User");
-    dbConfigServer.password = GetString(array, "Password");
-    dbConfigServer.database = GetString(array, "Database");
-    Io_ConfigGetInt(array, "Port", &dbConfigServer.port);
+    server->host     = GetString(array, "Host");
+    server->user     = GetString(array, "User");
+    server->password = GetString(array, "Password");
+    server->database = GetString(array, "Database");
+    Io_ConfigGetInt(array, "Port", &server->port);
 
     // Connection options
-    Io_ConfigGetBool(array, "Compression", &dbConfigServer.compression);
-    Io_ConfigGetBool(array, "SSL_Enable", &dbConfigServer.sslEnable);
-    dbConfigServer.sslCiphers  = GetString(array, "SSL_Ciphers");
-    dbConfigServer.sslCertFile = GetString(array, "SSL_Cert_File");
-    dbConfigServer.sslKeyFile  = GetString(array, "SSL_Key_File");
-    dbConfigServer.sslCAFile   = GetString(array, "SSL_CA_File");
-    dbConfigServer.sslCAPath   = GetString(array, "SSL_CA_Path");
+    Io_ConfigGetBool(array, "Compression", &server->compression);
+    Io_ConfigGetBool(array, "SSL_Enable", &server->sslEnable);
+    server->sslCiphers  = GetString(array, "SSL_Ciphers");
+    server->sslCertFile = GetString(array, "SSL_Cert_File");
+    server->sslKeyFile  = GetString(array, "SSL_Key_File");
+    server->sslCAFile   = GetString(array, "SSL_CA_File");
+    server->sslCAPath   = GetString(array, "SSL_CA_Path");
 
     return ERROR_SUCCESS;
 }
@@ -333,7 +336,7 @@ static DWORD FCALL LoadServers(VOID)
     DWORD result;
 
     // TODO: multi server support
-    result = LoadServer("nxMyDB");
+    result = LoadServer("nxMyDB", &dbConfigServer);
 
     return result;
 }
