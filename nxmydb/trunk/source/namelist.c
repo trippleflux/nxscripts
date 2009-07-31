@@ -193,16 +193,12 @@ static INLINE DWORD TableParse(NAME_LIST *list, const CHAR *buffer, SIZE_T buffe
         // Parse the module
         module       = line;
         moduleLength = (lineEnd - line);
-#if 0
-        if (moduleLength == 0 || moduleLength > _MAX_NAME) {
-            continue;
-        }
-#else
+
         ASSERT(MODULE_NAME_LENGTH == strlen(MODULE_NAME));
+
         if (MODULE_NAME_LENGTH != moduleLength || memcmp(MODULE_NAME, module, moduleLength) != 0) {
             continue;
         }
-#endif
 
         result = TableParseInsert(list, name, nameLength, id);
         if (result != ERROR_SUCCESS) {
