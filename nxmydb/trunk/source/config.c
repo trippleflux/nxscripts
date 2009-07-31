@@ -36,9 +36,11 @@ static CHAR *FCALL GetString(CHAR *array, CHAR *variable);
 static DWORD FCALL SetUuid(VOID);
 static VOID  FCALL ZeroConfig(VOID);
 
-static BOOL  FCALL LoadGlobal(VOID);
-static BOOL  FCALL LoadServer(CHAR *array);
-static DWORD FCALL FreeServer(VOID);
+static DWORD FCALL LoadGlobal(VOID);
+static DWORD FCALL LoadServer(CHAR *array);
+static DWORD FCALL LoadServers(VOID);
+static DWORD FCALL FreeServer(DB_CONFIG_SERVER *server);
+static DWORD FCALL FreeServers(VOID);
 
 
 /*++
@@ -119,7 +121,7 @@ static DWORD FCALL SetUuid(VOID)
             break;
         default:
             LOG_ERROR("Unable to generate UUID (error %lu).", result);
-            return FALSE;
+            return result;
     }
 
     result = UuidToStringA(&uuid, (RPC_CSTR *)&format);
@@ -171,12 +173,10 @@ Arguments:
     None.
 
 Return Values:
-    If the function succeeds, the return value is nonzero (true).
-
-    If the function fails, the return value is zero (false).
+    A Windows API error code.
 
 --*/
-static BOOL FCALL LoadGlobal(VOID)
+static DWORD FCALL LoadGlobal(VOID)
 {
     INT value;
 
@@ -195,13 +195,13 @@ static BOOL FCALL LoadGlobal(VOID)
     dbConfigLock.expire = 60;
     if (Io_ConfigGetInt("nxMyDB", "Lock_Expire", &dbConfigLock.expire) && dbConfigLock.expire <= 0) {
         LOG_ERROR("Option 'Lock_Expire' must be greater than zero.");
-        return FALSE;
+        return ERROR_INVALID_PARAMETER;
     }
 
     dbConfigLock.timeout = 5;
     if (Io_ConfigGetInt("nxMyDB", "Lock_Timeout", &dbConfigLock.timeout) && dbConfigLock.timeout <= 0) {
         LOG_ERROR("Option 'Lock_Timeout' must be greater than zero.");
-        return FALSE;
+        return ERROR_INVALID_PARAMETER;
     }
 
     //
@@ -211,32 +211,32 @@ static BOOL FCALL LoadGlobal(VOID)
     dbConfigPool.minimum = 1;
     if (Io_ConfigGetInt("nxMyDB", "Pool_Minimum", &dbConfigPool.minimum) && dbConfigPool.minimum <= 0) {
         LOG_ERROR("Option 'Pool_Minimum' must be greater than zero.");
-        return FALSE;
+        return ERROR_INVALID_PARAMETER;
     }
 
     dbConfigPool.average = dbConfigPool.minimum + 1;
     if (Io_ConfigGetInt("nxMyDB", "Pool_Average", &dbConfigPool.average) && dbConfigPool.average < dbConfigPool.minimum) {
         LOG_ERROR("Option 'Pool_Average' must be greater than or equal to 'Pool_Minimum'.");
-        return FALSE;
+        return ERROR_INVALID_PARAMETER;
     }
 
     dbConfigPool.maximum = dbConfigPool.average * 2;
     if (Io_ConfigGetInt("nxMyDB", "Pool_Maximum", &dbConfigPool.maximum) && dbConfigPool.maximum < dbConfigPool.average) {
         LOG_ERROR("Option 'Pool_Maximum' must be greater than or equal to 'Pool_Average'.");
-        return FALSE;
+        return ERROR_INVALID_PARAMETER;
     }
 
     dbConfigPool.timeout = 5;
     if (Io_ConfigGetInt("nxMyDB", "Pool_Timeout", &dbConfigPool.timeout) && dbConfigPool.timeout <= 0) {
         LOG_ERROR("Option 'Pool_Timeout' must be greater than zero.");
-        return FALSE;
+        return ERROR_INVALID_PARAMETER;
     }
     dbConfigPool.timeoutMili = dbConfigPool.timeout * 1000; // sec to msec
 
     dbConfigPool.expire = 3600;
     if (Io_ConfigGetInt("nxMyDB", "Pool_Expire", &dbConfigPool.expire) && dbConfigPool.expire <= 0) {
         LOG_ERROR("Option 'Pool_Expire' must be greater than zero.");
-        return FALSE;
+        return ERROR_INVALID_PARAMETER;
     }
     dbConfigPool.expireNano = UInt32x32To64(dbConfigPool.expire, 10000000); // sec to 100nsec
 
@@ -244,7 +244,7 @@ static BOOL FCALL LoadGlobal(VOID)
     if (Io_ConfigGetInt("nxMyDB", "Pool_Check", &dbConfigPool.check) &&
             (dbConfigPool.check <= 0 || dbConfigPool.check >= dbConfigPool.expire)) {
         LOG_ERROR("Option 'Pool_Check' must be greater than zero and less than 'Pool_Expire'.");
-        return FALSE;
+        return ERROR_INVALID_PARAMETER;
     }
     dbConfigPool.checkNano = UInt32x32To64(dbConfigPool.check, 10000000); // sec to 100nsec
 
@@ -258,55 +258,52 @@ static BOOL FCALL LoadGlobal(VOID)
         dbConfigSync.first = 30;
         if (Io_ConfigGetInt("nxMyDB", "Sync_First", &dbConfigSync.first) && dbConfigSync.first <= 0) {
             LOG_ERROR("Option 'SyncTimer' must be greater than zero.");
-            return FALSE;
+            return ERROR_INVALID_PARAMETER;
         }
         dbConfigSync.first = dbConfigSync.first * 1000; // sec to msec
 
         dbConfigSync.interval = 60;
         if (Io_ConfigGetInt("nxMyDB", "Sync_Interval", &dbConfigSync.interval) && dbConfigSync.interval <= 0) {
             LOG_ERROR("Option 'Sync_Interval' must be greater than zero.");
-            return FALSE;
+            return ERROR_INVALID_PARAMETER;
         }
         dbConfigSync.interval = dbConfigSync.interval * 1000; // sec to msec
 
         dbConfigSync.purge = dbConfigSync.interval * 100;
         if (Io_ConfigGetInt("nxMyDB", "Sync_Purge", &dbConfigSync.purge) && dbConfigSync.purge <= dbConfigSync.interval) {
             LOG_ERROR("Option 'Sync_Purge' must be greater than 'Sync_Interval'.");
-            return FALSE;
+            return ERROR_INVALID_PARAMETER;
         }
     }
 
-    return TRUE;
+    return ERROR_SUCCESS;
 }
 
 /*++
 
 LoadServer
 
-    Loads server configuration options.
+    Load a server configuration.
 
 Arguments:
-    None.
+    array   - Option array name.
 
 Return Values:
-    If the function succeeds, the return value is nonzero (true).
-
-    If the function fails, the return value is zero (false).
+    A Windows API error code.
 
 --*/
-static BOOL FCALL LoadServer(CHAR *array)
+static DWORD FCALL LoadServer(CHAR *array)
 {
     ASSERT(array != NULL);
 
-    //
-    // Read server options
-    //
-
+    // Host options
     dbConfigServer.host     = GetString(array, "Host");
     dbConfigServer.user     = GetString(array, "User");
     dbConfigServer.password = GetString(array, "Password");
     dbConfigServer.database = GetString(array, "Database");
     Io_ConfigGetInt(array, "Port", &dbConfigServer.port);
+
+    // Connection options
     Io_ConfigGetBool(array, "Compression", &dbConfigServer.compression);
     Io_ConfigGetBool(array, "SSL_Enable", &dbConfigServer.sslEnable);
     dbConfigServer.sslCiphers  = GetString(array, "SSL_Ciphers");
@@ -315,14 +312,14 @@ static BOOL FCALL LoadServer(CHAR *array)
     dbConfigServer.sslCAFile   = GetString(array, "SSL_CA_File");
     dbConfigServer.sslCAPath   = GetString(array, "SSL_CA_Path");
 
-    return TRUE;
+    return ERROR_SUCCESS;
 }
 
 /*++
 
-FreeServer
+LoadServers
 
-    Frees memory allocated for configuration options.
+    Loads all server configurations.
 
 Arguments:
     None.
@@ -331,40 +328,91 @@ Return Values:
     A Windows API error code.
 
 --*/
-static DWORD FCALL FreeServer(VOID)
+static DWORD FCALL LoadServers(VOID)
 {
+    DWORD result;
+
+    // TODO: multi server support
+    result = LoadServer("nxMyDB");
+
+    return result;
+}
+
+/*++
+
+FreeServer
+
+    Frees memory allocated for a server configuration structure.
+
+Arguments:
+    server  - Pointer to a DB_CONFIG_SERVER structure.
+
+Return Values:
+    A Windows API error code.
+
+--*/
+static DWORD FCALL FreeServer(DB_CONFIG_SERVER *server)
+{
+    ASSERT(server != NULL);
+
     // Free server options
-    if (dbConfigServer.host != NULL) {
-        Io_Free(dbConfigServer.host);
+    if (server->host != NULL) {
+        Io_Free(server->host);
     }
-    if (dbConfigServer.user != NULL) {
-        Io_Free(dbConfigServer.user);
+    if (server->user != NULL) {
+        Io_Free(server->user);
     }
-    if (dbConfigServer.password != NULL) {
-        Io_Free(dbConfigServer.password);
+    if (server->password != NULL) {
+        Io_Free(server->password);
     }
-    if (dbConfigServer.database != NULL) {
-        Io_Free(dbConfigServer.database);
+    if (server->database != NULL) {
+        Io_Free(server->database);
     }
 
     // Free SSL options
-    if (dbConfigServer.sslCiphers != NULL) {
-        Io_Free(dbConfigServer.sslCiphers);
+    if (server->sslCiphers != NULL) {
+        Io_Free(server->sslCiphers);
     }
-    if (dbConfigServer.sslCertFile != NULL) {
-        Io_Free(dbConfigServer.sslCertFile);
+    if (server->sslCertFile != NULL) {
+        Io_Free(server->sslCertFile);
     }
-    if (dbConfigServer.sslKeyFile != NULL) {
-        Io_Free(dbConfigServer.sslKeyFile);
+    if (server->sslKeyFile != NULL) {
+        Io_Free(server->sslKeyFile);
     }
-    if (dbConfigServer.sslCAFile != NULL) {
-        Io_Free(dbConfigServer.sslCAFile);
+    if (server->sslCAFile != NULL) {
+        Io_Free(server->sslCAFile);
     }
-    if (dbConfigServer.sslCAPath != NULL) {
-        Io_Free(dbConfigServer.sslCAPath);
+    if (server->sslCAPath != NULL) {
+        Io_Free(server->sslCAPath);
     }
 
+    // Clear structure in case a pointer is mistakenly re-used
+    ZeroMemory(server, sizeof(DB_CONFIG_SERVER));
+
     return ERROR_SUCCESS;
+}
+
+/*++
+
+FreeServers
+
+    Frees all server configuration structures.
+
+Arguments:
+    None.
+
+Return Values:
+    A Windows API error code.
+
+--*/
+static DWORD FCALL FreeServers(VOID)
+{
+    DWORD result;
+
+    // TODO: multi server support
+    result = FreeServer(&dbConfigServer);
+
+    return result;
 }
 
 
@@ -406,9 +454,17 @@ DWORD FCALL ConfigLoad(VOID)
 {
     DWORD result;
 
-    // Load configuration options
-    LoadGlobal();
-    LoadServer("nxMyDB");
+    // Load global configuration options
+    result = LoadGlobal();
+    if (result != ERROR_SUCCESS) {
+        return result;
+    }
+
+    // Load server configurations
+    result = LoadServers();
+    if (result != ERROR_SUCCESS) {
+        return result;
+    }
 
     // Set the lock UUID for this server
     result = SetUuid();
@@ -435,8 +491,8 @@ Return Values:
 --*/
 DWORD FCALL ConfigFinalize(VOID)
 {
-    // Free server variables
-    FreeServer();
+    // Free all server configuration structures
+    FreeServers();
 
     // Clear configuration structures
     ZeroConfig();
