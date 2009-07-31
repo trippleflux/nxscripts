@@ -457,37 +457,19 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
     //
 
     // Load configuration options
-    if (!ConfigLoad()) {
-        LOG_ERROR("Unable to load configuration.");
-
-        DbFinalize();
-        return FALSE;
-    }
-
-
-//
-// TODO: move this code somewhere more fitting
-//
-
-    // Generate a UUID for this server
-    result = ConfigSetUuid();
+    result = ConfigLoad();
     if (result != ERROR_SUCCESS) {
-        LOG_ERROR("Unable to generate UUID (error %lu).", result);
+        LOG_ERROR("Unable to load configuration (error %lu).", result);
 
         DbFinalize();
         return FALSE;
     }
-
-//
-// end TODO
-//
 
     // Create connection pool
     result = PoolCreate(&dbPool,
         dbConfigPool.minimum, dbConfigPool.average,
         dbConfigPool.maximum, dbConfigPool.timeoutMili,
         ConnectionOpen, ConnectionCheck, ConnectionClose, NULL);
-
     if (result != ERROR_SUCCESS) {
         LOG_ERROR("Unable to initialize connection pool (error %lu).", result);
 
@@ -497,6 +479,7 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
 
     LOG_INFO("nxMyDB v%s loaded, using MySQL Client Library v%s.",
         STRINGIFY(VERSION), mysql_get_client_info());
+
     return TRUE;
 }
 

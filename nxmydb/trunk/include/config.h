@@ -84,7 +84,6 @@ extern DB_CONFIG_SYNC    dbConfigSync;
 
 DWORD FCALL ConfigInit(VOID);
 DWORD FCALL ConfigLoad(VOID);
-DWORD FCALL ConfigSetUuid(VOID);
 DWORD FCALL ConfigFinalize(VOID);
 
 #endif // CONFIG_H_INCLUDED

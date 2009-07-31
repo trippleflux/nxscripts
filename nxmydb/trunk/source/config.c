@@ -19,7 +19,7 @@ Abstract:
 #include <logging.h>
 
 //
-// Configuration variables
+// Global configuration variables
 //
 
 DB_CONFIG_GLOBAL  dbConfigGlobal;
@@ -33,6 +33,7 @@ DB_CONFIG_SYNC    dbConfigSync;
 //
 
 static CHAR *FCALL GetString(CHAR *array, CHAR *variable);
+static DWORD FCALL SetUuid(VOID);
 static VOID  FCALL ZeroConfig(VOID);
 
 static BOOL  FCALL LoadGlobal(VOID);
@@ -88,6 +89,78 @@ static CHAR *FCALL GetString(CHAR *array, CHAR *variable)
     return value;
 }
 
+/*++
+
+SetUuid
+
+    Generates a UUID used for identifying the server.
+
+Arguments:
+    If the function succeeds, the return value is nonzero (true).
+
+    If the function fails, the return value is zero (false).
+
+Return Values:
+    A Windows API error code.
+
+--*/
+static DWORD FCALL SetUuid(VOID)
+{
+    CHAR    *format;
+    DWORD   result;
+    UUID    uuid;
+
+    result = UuidCreate(&uuid);
+    switch (result) {
+        case RPC_S_OK:
+        case RPC_S_UUID_LOCAL_ONLY:
+        case RPC_S_UUID_NO_ADDRESS:
+            // These are acceptable failures.
+            break;
+        default:
+            LOG_ERROR("Unable to generate UUID (error %lu).", result);
+            return FALSE;
+    }
+
+    result = UuidToStringA(&uuid, (RPC_CSTR *)&format);
+    if (result != RPC_S_OK) {
+        LOG_ERROR("Unable to convert UUID (error %lu).", result);
+        return result;
+    }
+
+    // Copy formatted UUID
+    StringCchCopyA(dbConfigLock.owner, ELEMENT_COUNT(dbConfigLock.owner), format);
+    dbConfigLock.ownerLength = strlen(dbConfigLock.owner);
+
+    LOG_INFO("Server lock UUID is \"%s\".", format);
+
+    RpcStringFree((RPC_CSTR *)&format);
+    return ERROR_SUCCESS;
+}
+
+/*++
+
+ZeroConfig
+
+    Zeros all configuration structures.
+
+Arguments:
+    None.
+
+Return Values:
+    None.
+
+--*/
+static VOID FCALL ZeroConfig(VOID)
+{
+    ZeroMemory(&dbConfigGlobal, sizeof(DB_CONFIG_GLOBAL));
+    ZeroMemory(&dbConfigLock,   sizeof(DB_CONFIG_LOCK));
+    ZeroMemory(&dbConfigPool,   sizeof(DB_CONFIG_POOL));
+    ZeroMemory(&dbConfigServer, sizeof(DB_CONFIG_SERVER));
+    ZeroMemory(&dbConfigSync,   sizeof(DB_CONFIG_SYNC));
+}
+
+
 /*++
 
 LoadGlobal
@@ -294,28 +367,6 @@ static DWORD FCALL FreeServer(VOID)
     return ERROR_SUCCESS;
 }
 
-/*++
-
-ZeroConfig
-
-    Zeros all configuration structures.
-
-Arguments:
-    None.
-
-Return Values:
-    None.
-
---*/
-static VOID FCALL ZeroConfig(VOID)
-{
-    ZeroMemory(&dbConfigGlobal, sizeof(DB_CONFIG_GLOBAL));
-    ZeroMemory(&dbConfigLock,   sizeof(DB_CONFIG_LOCK));
-    ZeroMemory(&dbConfigPool,   sizeof(DB_CONFIG_POOL));
-    ZeroMemory(&dbConfigServer, sizeof(DB_CONFIG_SERVER));
-    ZeroMemory(&dbConfigSync,   sizeof(DB_CONFIG_SYNC));
-}
-
 
 /*++
 
@@ -353,59 +404,19 @@ Return Values:
 --*/
 DWORD FCALL ConfigLoad(VOID)
 {
-    LoadGlobal();
+    DWORD result;
 
+    // Load configuration options
+    LoadGlobal();
     LoadServer("nxMyDB");
 
-    return ERROR_SUCCESS;
-}
-
-/*++
-
-ConfigSetUuid
-
-    Generates a UUID used for identifying the server.
-
-Arguments:
-    If the function succeeds, the return value is nonzero (true).
-
-    If the function fails, the return value is zero (false).
-
-Return Values:
-    A Windows API error code.
-
---*/
-DWORD FCALL ConfigSetUuid(VOID)
-{
-    CHAR    *format;
-    DWORD   result;
-    UUID    uuid;
-
-    result = UuidCreate(&uuid);
-    switch (result) {
-        case RPC_S_OK:
-        case RPC_S_UUID_LOCAL_ONLY:
-        case RPC_S_UUID_NO_ADDRESS:
-            // These are acceptable failures.
-            break;
-        default:
-            LOG_ERROR("Unable to generate UUID (error %lu).", result);
-            return FALSE;
-    }
-
-    result = UuidToStringA(&uuid, (RPC_CSTR *)&format);
-    if (result != RPC_S_OK) {
-        LOG_ERROR("Unable to convert UUID (error %lu).", result);
+    // Set the lock UUID for this server
+    result = SetUuid();
+    if (result != ERROR_SUCCESS) {
+        LOG_ERROR("Unable to generate UUID (error %lu).", result);
         return result;
     }
 
-    // Copy formatted UUID
-    StringCchCopyA(dbConfigLock.owner, ELEMENT_COUNT(dbConfigLock.owner), format);
-    dbConfigLock.ownerLength = strlen(dbConfigLock.owner);
-
-    LOG_INFO("Server lock UUID is \"%s\".", format);
-
-    RpcStringFree((RPC_CSTR *)&format);
     return ERROR_SUCCESS;
 }
 
