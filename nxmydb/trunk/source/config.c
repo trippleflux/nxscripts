@@ -194,13 +194,13 @@ static DWORD FCALL LoadGlobal(VOID)
 
     dbConfigLock.expire = 60;
     if (Io_ConfigGetInt("nxMyDB", "Lock_Expire", &dbConfigLock.expire) && dbConfigLock.expire <= 0) {
-        LOG_ERROR("Option 'Lock_Expire' must be greater than zero.");
+        LOG_ERROR("Configuration option 'Lock_Expire' must be greater than zero.");
         return ERROR_INVALID_PARAMETER;
     }
 
     dbConfigLock.timeout = 5;
     if (Io_ConfigGetInt("nxMyDB", "Lock_Timeout", &dbConfigLock.timeout) && dbConfigLock.timeout <= 0) {
-        LOG_ERROR("Option 'Lock_Timeout' must be greater than zero.");
+        LOG_ERROR("Configuration option 'Lock_Timeout' must be greater than zero.");
         return ERROR_INVALID_PARAMETER;
     }
 
@@ -210,32 +210,32 @@ static DWORD FCALL LoadGlobal(VOID)
 
     dbConfigPool.minimum = 1;
     if (Io_ConfigGetInt("nxMyDB", "Pool_Minimum", &dbConfigPool.minimum) && dbConfigPool.minimum <= 0) {
-        LOG_ERROR("Option 'Pool_Minimum' must be greater than zero.");
+        LOG_ERROR("Configuration option 'Pool_Minimum' must be greater than zero.");
         return ERROR_INVALID_PARAMETER;
     }
 
     dbConfigPool.average = dbConfigPool.minimum + 1;
     if (Io_ConfigGetInt("nxMyDB", "Pool_Average", &dbConfigPool.average) && dbConfigPool.average < dbConfigPool.minimum) {
-        LOG_ERROR("Option 'Pool_Average' must be greater than or equal to 'Pool_Minimum'.");
+        LOG_ERROR("Configuration option 'Pool_Average' must be greater than or equal to 'Pool_Minimum'.");
         return ERROR_INVALID_PARAMETER;
     }
 
     dbConfigPool.maximum = dbConfigPool.average * 2;
     if (Io_ConfigGetInt("nxMyDB", "Pool_Maximum", &dbConfigPool.maximum) && dbConfigPool.maximum < dbConfigPool.average) {
-        LOG_ERROR("Option 'Pool_Maximum' must be greater than or equal to 'Pool_Average'.");
+        LOG_ERROR("Configuration option 'Pool_Maximum' must be greater than or equal to 'Pool_Average'.");
         return ERROR_INVALID_PARAMETER;
     }
 
     dbConfigPool.timeout = 5;
     if (Io_ConfigGetInt("nxMyDB", "Pool_Timeout", &dbConfigPool.timeout) && dbConfigPool.timeout <= 0) {
-        LOG_ERROR("Option 'Pool_Timeout' must be greater than zero.");
+        LOG_ERROR("Configuration option 'Pool_Timeout' must be greater than zero.");
         return ERROR_INVALID_PARAMETER;
     }
     dbConfigPool.timeoutMili = dbConfigPool.timeout * 1000; // sec to msec
 
     dbConfigPool.expire = 3600;
     if (Io_ConfigGetInt("nxMyDB", "Pool_Expire", &dbConfigPool.expire) && dbConfigPool.expire <= 0) {
-        LOG_ERROR("Option 'Pool_Expire' must be greater than zero.");
+        LOG_ERROR("Configuration option 'Pool_Expire' must be greater than zero.");
         return ERROR_INVALID_PARAMETER;
     }
     dbConfigPool.expireNano = UInt32x32To64(dbConfigPool.expire, 10000000); // sec to 100nsec
@@ -243,7 +243,7 @@ static DWORD FCALL LoadGlobal(VOID)
     dbConfigPool.check = 60;
     if (Io_ConfigGetInt("nxMyDB", "Pool_Check", &dbConfigPool.check) &&
             (dbConfigPool.check <= 0 || dbConfigPool.check >= dbConfigPool.expire)) {
-        LOG_ERROR("Option 'Pool_Check' must be greater than zero and less than 'Pool_Expire'.");
+        LOG_ERROR("Configuration option 'Pool_Check' must be greater than zero and less than 'Pool_Expire'.");
         return ERROR_INVALID_PARAMETER;
     }
     dbConfigPool.checkNano = UInt32x32To64(dbConfigPool.check, 10000000); // sec to 100nsec
@@ -257,21 +257,21 @@ static DWORD FCALL LoadGlobal(VOID)
     if (dbConfigSync.enabled) {
         dbConfigSync.first = 30;
         if (Io_ConfigGetInt("nxMyDB", "Sync_First", &dbConfigSync.first) && dbConfigSync.first <= 0) {
-            LOG_ERROR("Option 'SyncTimer' must be greater than zero.");
+            LOG_ERROR("Configuration option 'SyncTimer' must be greater than zero.");
             return ERROR_INVALID_PARAMETER;
         }
         dbConfigSync.first = dbConfigSync.first * 1000; // sec to msec
 
         dbConfigSync.interval = 60;
         if (Io_ConfigGetInt("nxMyDB", "Sync_Interval", &dbConfigSync.interval) && dbConfigSync.interval <= 0) {
-            LOG_ERROR("Option 'Sync_Interval' must be greater than zero.");
+            LOG_ERROR("Configuration option 'Sync_Interval' must be greater than zero.");
             return ERROR_INVALID_PARAMETER;
         }
         dbConfigSync.interval = dbConfigSync.interval * 1000; // sec to msec
 
         dbConfigSync.purge = dbConfigSync.interval * 100;
         if (Io_ConfigGetInt("nxMyDB", "Sync_Purge", &dbConfigSync.purge) && dbConfigSync.purge <= dbConfigSync.interval) {
-            LOG_ERROR("Option 'Sync_Purge' must be greater than 'Sync_Interval'.");
+            LOG_ERROR("Configuration option 'Sync_Purge' must be greater than 'Sync_Interval'.");
             return ERROR_INVALID_PARAMETER;
         }
     }
@@ -292,6 +292,9 @@ Arguments:
 
 Return Values:
     A Windows API error code.
+
+Remarks:
+    This function always succeeds.
 
 --*/
 static DWORD FCALL LoadServer(CHAR *array, DB_CONFIG_SERVER *server)
@@ -353,6 +356,9 @@ Arguments:
 Return Values:
     A Windows API error code.
 
+Remarks:
+    This function always succeeds.
+
 --*/
 static DWORD FCALL FreeServer(DB_CONFIG_SERVER *server)
 {
@@ -407,6 +413,9 @@ Arguments:
 Return Values:
     A Windows API error code.
 
+Remarks:
+    This function always succeeds.
+
 --*/
 static DWORD FCALL FreeServers(VOID)
 {
@@ -457,6 +466,11 @@ DWORD FCALL ConfigLoad(VOID)
 {
     DWORD result;
 
+    //
+    // Each of these following functions will log
+    // the appropriate message if they fail.
+    //
+
     // Load global configuration options
     result = LoadGlobal();
     if (result != ERROR_SUCCESS) {
@@ -472,7 +486,6 @@ DWORD FCALL ConfigLoad(VOID)
     // Set the lock UUID for this server
     result = SetUuid();
     if (result != ERROR_SUCCESS) {
-        LOG_ERROR("Unable to generate UUID (error %lu).", result);
         return result;
     }
 
