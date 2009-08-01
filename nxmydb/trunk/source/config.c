@@ -25,8 +25,10 @@ Abstract:
 DB_CONFIG_GLOBAL  dbConfigGlobal;
 DB_CONFIG_LOCK    dbConfigLock;
 DB_CONFIG_POOL    dbConfigPool;
-DB_CONFIG_SERVER  dbConfigServer;
 DB_CONFIG_SYNC    dbConfigSync;
+
+DB_CONFIG_SERVER  **dbConfigServers;
+DWORD             dbConfigServerCount;
 
 //
 // Function declarations
@@ -155,10 +157,12 @@ Return Values:
 --*/
 static VOID FCALL ZeroConfig(VOID)
 {
+    dbConfigServers     = NULL;
+    dbConfigServerCount = 0;
+
     ZeroMemory(&dbConfigGlobal, sizeof(DB_CONFIG_GLOBAL));
     ZeroMemory(&dbConfigLock,   sizeof(DB_CONFIG_LOCK));
     ZeroMemory(&dbConfigPool,   sizeof(DB_CONFIG_POOL));
-    ZeroMemory(&dbConfigServer, sizeof(DB_CONFIG_SERVER));
     ZeroMemory(&dbConfigSync,   sizeof(DB_CONFIG_SYNC));
 }
 
@@ -336,11 +340,57 @@ Return Values:
 --*/
 static DWORD FCALL LoadServers(VOID)
 {
-    DWORD result;
+    CHAR        *array;
+    CHAR        *servers;
+    DWORD       count;
+    DWORD       i;
+    DWORD       result;
+    IO_STRING   serverList;
 
-    // TODO: multi server support
-    result = LoadServer("nxMyDB", &dbConfigServer);
+    // Retrieve the list of server array names
+    servers = GetString("nxMyDB", "Servers");
+    if (servers == NULL) {
+        LOG_ERROR("Configuration option 'Servers' must be defined.");
+        return ERROR_INVALID_PARAMETER;
+    }
 
+    if (Io_SplitString(servers, &serverList) != 0) {
+        LOG_ERROR("Unable to allocate memory for server list.");
+        result = ERROR_NOT_ENOUGH_MEMORY;
+    } else {
+        // Retrieve the number of items in the server list
+        count = GetStringItems(&serverList);
+        if (count < 1) {
+            LOG_ERROR("Configuration option 'Servers' must contain at least one server.");
+            result = ERROR_INVALID_PARAMETER;
+
+        } else {
+            // Allocate an array of server structures
+            dbConfigServers = MemAllocate(sizeof(DB_CONFIG_SERVER) * count);
+            if (dbConfigServers == NULL) {
+                LOG_ERROR("Unable to allocate memory for server array.");
+                result = ERROR_NOT_ENOUGH_MEMORY;
+
+            } else {
+                // Load the server configuration for each array
+                for (i = 0; i < count; i++) {
+                    array = Io_GetStringIndexStatic(&serverList, i);
+
+                    // The success of LoadServer() does not matter
+                    LoadServer(array, dbConfigServers[i]);
+                }
+
+                // Update global count
+                dbConfigServerCount = count;
+
+                // Succesfully loaded at least one server configuration
+                result = ERROR_SUCCESS;
+            }
+        }
+        Io_FreeString(&serverList);
+    }
+
+    Io_Free(servers);
     return result;
 }
 
@@ -419,12 +469,23 @@ Remarks:
 --*/
 static DWORD FCALL FreeServers(VOID)
 {
-    DWORD result;
+    DWORD i;
 
-    // TODO: multi server support
-    result = FreeServer(&dbConfigServer);
+    if (dbConfigServers != NULL) {
+        // The count should be at least 1 if the array isn't NULL
+        ASSERT(dbConfigServerCount > 0);
 
-    return result;
+        // Free all server options and the server array
+        for (i = 0; i < dbConfigServerCount; i++) {
+            FreeServer(dbConfigServers[i]);
+        }
+        Io_Free(dbConfigServers);
+
+        dbConfigServers     = NULL;
+        dbConfigServerCount = 0;
+    }
+
+    return ERROR_SUCCESS;
 }
 
 

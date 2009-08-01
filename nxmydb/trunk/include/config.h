@@ -75,8 +75,10 @@ typedef struct {
 extern DB_CONFIG_GLOBAL  dbConfigGlobal;
 extern DB_CONFIG_LOCK    dbConfigLock;
 extern DB_CONFIG_POOL    dbConfigPool;
-extern DB_CONFIG_SERVER  dbConfigServer;
 extern DB_CONFIG_SYNC    dbConfigSync;
+
+extern DB_CONFIG_SERVER  **dbConfigServers;
+extern DWORD             dbConfigServerCount;
 
 //
 // Configuration functions

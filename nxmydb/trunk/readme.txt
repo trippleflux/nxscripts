@@ -72,7 +72,7 @@ OnServerStart   = NXMYDB start
 OnServerStop    = NXMYDB stop
 
 [nxMyDB]
-Servers         = nxMyDB_Server # List of database servers
+Servers         = nxMyDB_Server # List of server arrays
 Log_Level       = 1             # Log errors to nxMyDB.log
 Sync            = True          # Synchronization of users and groups
 
@@ -166,6 +166,11 @@ supported by OpenSSL/yaSSL.
   Pool_Timeout
     - Seconds to wait for a connection to become available
     - Default: 5
+
+  Servers
+    - List of arrays containing server configurations.
+    - There must be at least one array in the list. The servers are
+      cycled through in order if the primary host is unreachable.
 
   Sync
     - Synchronization of users and groups
