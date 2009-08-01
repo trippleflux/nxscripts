@@ -625,7 +625,7 @@ BOOL FCALL DbAcquire(DB_CONTEXT **dbPtr)
 
     // Acquire a database context
     if (!PoolAcquire(&dbPool, dbPtr)) {
-        LOG_ERROR("Unable to acquire a database context (error %lu).", GetLastError());
+        LOG_ERROR("Unable to acquire a database context from the connection pool (error %lu).", GetLastError());
         return FALSE;
     }
 
@@ -655,7 +655,7 @@ VOID FCALL DbRelease(DB_CONTEXT *db)
 
     // Release the database context
     if (!PoolRelease(&dbPool, db)) {
-        LOG_ERROR("Unable to release the database context (error %lu).", GetLastError());
+        LOG_ERROR("Unable to release a database context to the connection pool (error %lu).", GetLastError());
     }
 }
 
