@@ -55,11 +55,20 @@ static const EVENT_HANDLER_TABLE eventTable[] = {
 #ifdef DEBUG
 static DWORD FCALL EventDebug(EVENT_DATA *data, IO_STRING *arguments)
 {
+    CHAR    *name;
+
     UNREFERENCED_PARAMETER(data);
-    UNREFERENCED_PARAMETER(arguments);
     TRACE("data=%p arguments=%p", data, arguments);
 
-    // TODO
+    name = Io_GetStringIndexStatic(arguments, 1);
+
+    if (_stricmp(name, "CONFIG") == 0) {
+        // TODO
+    } else if (_stricmp(name, "POOL") == 0) {
+        // TODO
+    } else {
+        // TODO
+    }
 
     return ERROR_SUCCESS;
 }

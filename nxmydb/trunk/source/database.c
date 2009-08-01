@@ -428,6 +428,14 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
 {
     DWORD result;
 
+#if 0
+    // Wait for debugger to be attached before proceeding
+    while (!IsDebuggerPresent()) {
+        TRACE("Waiting for debugger to attach...");
+        Sleep(250);
+    }
+#endif
+
     TRACE("refCount=%d", refCount);
 
     // Only initialize the database pool once

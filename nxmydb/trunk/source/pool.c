@@ -55,6 +55,10 @@ static INLINE VOID ContainerPush(POOL *pool, POOL_RESOURCE *container)
     ASSERT(pool != NULL);
     ASSERT(container != NULL);
 
+    // Clear the data member since the pointer should
+    // be considered invalid (or lost) at this point.
+    container->data = NULL;
+
     // Insert container at the tail
     TAILQ_INSERT_TAIL(&pool->conQueue, container, link);
 }
@@ -136,7 +140,7 @@ static INLINE POOL_RESOURCE *ResourceCreate(POOL *pool)
     if (!pool->constructor(pool->context, &container->data)) {
         ASSERT(GetLastError() != ERROR_SUCCESS);
 
-        // Place container back in the container queue
+        // Place container back in the queue
         ContainerPush(pool, container);
         return NULL;
     }
@@ -299,6 +303,8 @@ static POOL_RESOURCE *ResourcePopCheck(POOL *pool)
 
         // Destroy invalid resource
         ResourceDestroy(pool, resource->data);
+
+        // Place container back in the queue
         ContainerPush(pool, resource);
     }
 
@@ -502,11 +508,13 @@ DWORD FCALL PoolDestroy(POOL *pool)
 
     ASSERT(pool->idle == 0);
     ASSERT(pool->total == 0);
+    ASSERT(TAILQ_EMPTY(&pool->conQueue));
+    ASSERT(TAILQ_EMPTY(&pool->resQueue));
 
     ConditionVariableDestroy(&pool->condition);
     DeleteCriticalSection(&pool->lock);
-    ZeroMemory(pool, sizeof(POOL));
 
+    ZeroMemory(pool, sizeof(POOL));
     return ERROR_SUCCESS;
 }
 
