@@ -27,7 +27,7 @@ DB_CONFIG_LOCK    dbConfigLock;
 DB_CONFIG_POOL    dbConfigPool;
 DB_CONFIG_SYNC    dbConfigSync;
 
-DB_CONFIG_SERVER  **dbConfigServers;
+DB_CONFIG_SERVER  *dbConfigServers;
 DWORD             dbConfigServerCount;
 
 //
@@ -340,7 +340,7 @@ Return Values:
 --*/
 static DWORD FCALL LoadServers(VOID)
 {
-    CHAR        *array;
+    CHAR        *name;
     CHAR        *servers;
     DWORD       count;
     DWORD       i;
@@ -374,10 +374,10 @@ static DWORD FCALL LoadServers(VOID)
             } else {
                 // Load the server configuration for each array
                 for (i = 0; i < count; i++) {
-                    array = Io_GetStringIndexStatic(&serverList, i);
+                    name = Io_GetStringIndexStatic(&serverList, i);
 
                     // The success of LoadServer() does not matter
-                    LoadServer(array, dbConfigServers[i]);
+                    LoadServer(name, &dbConfigServers[i]);
                 }
 
                 // Update global count
@@ -477,7 +477,7 @@ static DWORD FCALL FreeServers(VOID)
 
         // Free all server options and the server array
         for (i = 0; i < dbConfigServerCount; i++) {
-            FreeServer(dbConfigServers[i]);
+            FreeServer(&dbConfigServers[i]);
         }
         Io_Free(dbConfigServers);
 
