@@ -472,7 +472,7 @@ static DWORD FCALL FreeServers(VOID)
     DWORD i;
 
     if (dbConfigServers != NULL) {
-        // The count should be at least 1 if the array isn't NULL
+        // There should always be at least one server
         ASSERT(dbConfigServerCount > 0);
 
         // Free all server options and the server array
@@ -549,6 +549,10 @@ DWORD FCALL ConfigLoad(VOID)
     if (result != ERROR_SUCCESS) {
         return result;
     }
+
+    // There should always be at least one server
+    ASSERT(dbConfigServers != NULL);
+    ASSERT(dbConfigServerCount > 0);
 
     return ERROR_SUCCESS;
 }

@@ -69,6 +69,10 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
     ASSERT(data != NULL);
     TRACE("context=%p data=%p", context, data);
 
+    //
+    // TODO: support for multiple servers
+    //
+
     db = MemAllocate(sizeof(DB_CONTEXT));
     if (db == NULL) {
         LOG_ERROR("Unable to allocate memory for database context.");
@@ -93,29 +97,29 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
 
     // Set connection options
     flags = CLIENT_INTERACTIVE;
-    if (dbConfigServer.compression) {
+    if (dbConfigServers[0]->compression) {
         flags |= CLIENT_COMPRESS;
     }
-    if (dbConfigServer.sslEnable) {
+    if (dbConfigServers[0]->sslEnable) {
         //
         // This function always returns 0. If SSL setup is incorrect,
         // mysql_real_connect() returns an error when you attempt to connect.
         //
         mysql_ssl_set(db->handle,
-            dbConfigServer.sslKeyFile,
-            dbConfigServer.sslCertFile,
-            dbConfigServer.sslCAFile,
-            dbConfigServer.sslCAPath,
-            dbConfigServer.sslCiphers);
+            dbConfigServers[0]->sslKeyFile,
+            dbConfigServers[0]->sslCertFile,
+            dbConfigServers[0]->sslCAFile,
+            dbConfigServers[0]->sslCAPath,
+            dbConfigServers[0]->sslCiphers);
     }
 
     connection = mysql_real_connect(
         db->handle,
-        dbConfigServer.host,
-        dbConfigServer.user,
-        dbConfigServer.password,
-        dbConfigServer.database,
-        dbConfigServer.port,
+        dbConfigServers[0]->host,
+        dbConfigServers[0]->user,
+        dbConfigServers[0]->password,
+        dbConfigServers[0]->database,
+        dbConfigServers[0]->port,
         NULL, flags);
 
     if (connection == NULL) {
