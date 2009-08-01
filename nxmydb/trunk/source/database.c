@@ -247,12 +247,14 @@ static VOID FCALL ConnectionClose(VOID *context, VOID *data)
     ASSERT(data != NULL);
     TRACE("context=%p data=%p", context, data);
 
-    // Free MySQL structures
+    // Free pre-compiled statement structures
     for (i = 0; i < ELEMENT_COUNT(db->stmt); i++) {
         if (db->stmt[i] != NULL) {
             mysql_stmt_close(db->stmt[i]);
         }
     }
+
+    // Free handle structure
     if (db->handle != NULL) {
         mysql_close(db->handle);
     }
@@ -459,7 +461,7 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
     // Load configuration options
     result = ConfigLoad();
     if (result != ERROR_SUCCESS) {
-        LOG_ERROR("Unable to load configuration (error %lu).", result);
+        TRACE("Unable to load configuration (error %lu).", result);
 
         DbFinalize();
         return FALSE;

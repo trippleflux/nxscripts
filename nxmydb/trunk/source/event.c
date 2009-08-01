@@ -35,17 +35,36 @@ typedef struct {
 // Event functions and variables
 //
 
+#ifdef DEBUG
+static EVENT_HANDLER_PROC EventDebug;
+#endif // DEBUG
 static EVENT_HANDLER_PROC EventPurge;
 static EVENT_HANDLER_PROC EventStart;
 static EVENT_HANDLER_PROC EventStop;
 
 static const EVENT_HANDLER_TABLE eventTable[] = {
+#ifdef DEBUG
+    {"DEBUG", EventDebug},
+#endif // DEBUG
     {"PURGE", EventPurge},
     {"START", EventStart},
     {"STOP",  EventStop},
 };
 
 
+#ifdef DEBUG
+static DWORD FCALL EventDebug(EVENT_DATA *data, IO_STRING *arguments)
+{
+    UNREFERENCED_PARAMETER(data);
+    UNREFERENCED_PARAMETER(arguments);
+    TRACE("data=%p arguments=%p", data, arguments);
+
+    // TODO
+
+    return ERROR_SUCCESS;
+}
+#endif // DEBUG
+
 static DWORD FCALL EventPurge(EVENT_DATA *data, IO_STRING *arguments)
 {
     UNREFERENCED_PARAMETER(data);
