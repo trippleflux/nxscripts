@@ -22,10 +22,11 @@ Abstract:
 //
 // Configuration structures
 //
+
 typedef struct {
-    DWORD       connAttempts;   // Number of connection attempts to make
-    DWORD       connTimeout;    // Connection timeout in seconds
-    LOG_LEVEL   logLevel;       // Level of log verbosity
+    INT       connAttempts; // Number of connection attempts to make
+    INT       connTimeout;  // Connection timeout in seconds
+    LOG_LEVEL logLevel;     // Level of log verbosity
 } DB_CONFIG_GLOBAL;
 
 typedef struct {

@@ -61,10 +61,10 @@ Return Values:
 static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
 {
     DB_CONTEXT  *db;
-    DWORD       attempt;
-    DWORD       attemptMax;
     DWORD       error;
     DWORD       i;
+    INT         attempt;
+    INT         attemptMax;
     LONG        serverIndex;
     MYSQL       *connection;
     my_bool     optReconnect;
