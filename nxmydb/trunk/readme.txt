@@ -125,6 +125,16 @@ supported by OpenSSL/yaSSL.
 
   If any option is left undefined, the default value is used.
 
+  Connection_Attempts
+    - Number of connection attempts to make before failing
+    - If set to zero, the number of servers listed under 'Servers' is used
+    - Default: 0
+
+  Connection_Timeout
+    - Number of seconds before a connection attempt times out
+    - Must be greater than zero
+    - Default: 10
+
   Log_Level
     - Log verbosity level
     - Value 0 for off
@@ -168,9 +178,7 @@ supported by OpenSSL/yaSSL.
     - Default: 5
 
   Servers
-    - List of arrays containing server configurations.
-    - There must be at least one array in the list. The servers are
-      cycled through in order if the primary host is unreachable.
+    - List of arrays containing server configurations
 
   Sync
     - Synchronization of users and groups

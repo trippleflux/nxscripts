@@ -61,7 +61,8 @@ Return Values:
 static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
 {
     DB_CONTEXT  *db;
-    DWORD       attempts;
+    DWORD       attempt;
+    DWORD       attemptMax;
     DWORD       error;
     DWORD       i;
     LONG        serverIndex;
@@ -97,20 +98,26 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
     // Use the most recent successful server for the first connection attempt
     serverIndex = dbIndex;
 
-    // The number of connection attempts should not exceed the number of servers
-    for (attempts = 0; attempts < dbConfigServerCount; attempts++) {
+    // Number of connection attempts to make before failing
+    if (dbConfigGlobal.connAttempts > 0) {
+        attemptMax = dbConfigGlobal.connAttempts;
+    } else {
+        attemptMax = dbConfigServerCount;
+    }
+
+    for (attempt = 0; attempt < attemptMax; attempt++) {
         TRACE("Connecting to server #%d [%s] on attempt %lu/%lu.",
-            serverIndex, dbConfigServers[serverIndex].name, attempts+1, dbConfigServerCount);
+            serverIndex, dbConfigServers[serverIndex].name, attempt+1, attemptMax);
 
         // Set connection options
-        optTimeout = 10;
+        optTimeout = (UINT)dbConfigGlobal.connTimeout;
         if (mysql_options(db->handle, MYSQL_OPT_CONNECT_TIMEOUT, &optTimeout) != 0) {
             TRACE("Failed to set connection timeout option.");
         }
 
         optReconnect = FALSE;
         if (mysql_options(db->handle, MYSQL_OPT_RECONNECT, &optReconnect) != 0) {
-            TRACE("Failed to set reconnection timeout option.");
+            TRACE("Failed to set reconnection option.");
         }
 
         if (dbConfigServers[serverIndex].compression) {
@@ -167,8 +174,10 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
                 }
             }
 
-            // Set server index
+            // Successfully connected, update global server index
             InterlockedExchange(&dbIndex, serverIndex);
+
+            // Set server index
             db->index = serverIndex;
 
             // Set time stamps
@@ -184,11 +193,18 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
             return TRUE;
         }
 
-        // Unsuccessful connection, continue to the next server.
+        // Unsuccessful connection, continue to the next server
         serverIndex++;
         if (serverIndex >= (LONG)dbConfigServerCount) {
             serverIndex = 0;
         }
+
+        //
+        // If the connection attempts option is less than the number of servers,
+        // the global server index must be updated so we cycle through the full
+        // list of servers.
+        //
+        InterlockedExchange(&dbIndex, serverIndex);
     }
 
     // Unable to connect to any servers
