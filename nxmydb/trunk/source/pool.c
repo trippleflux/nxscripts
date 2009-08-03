@@ -128,7 +128,8 @@ Remarks:
 --*/
 static INLINE POOL_RESOURCE *ResourceCreate(POOL *pool)
 {
-    POOL_RESOURCE *container;
+    BOOL            result;
+    POOL_RESOURCE   *container;
 
     ASSERT(pool != NULL);
     CRITICAL_SECTION_IS_OWNER(&pool->lock);
@@ -139,16 +140,29 @@ static INLINE POOL_RESOURCE *ResourceCreate(POOL *pool)
         return NULL;
     }
 
-    // Populate the container
-    if (!pool->constructor(pool->context, &container->data)) {
+    //
+    // Increment the total number of resources now in case another
+    // thread gets takes ownership of the lock while we drop it to
+    // create a resource.
+    //
+    pool->total++;
+
+    // Populate the container (without blocking access to the pool)
+    LeaveCriticalSection(&pool->lock);
+    result = pool->constructor(pool->context, &container->data);
+    EnterCriticalSection(&pool->lock);
+
+    if (!result) {
         ASSERT(GetLastError() != ERROR_SUCCESS);
+
+        // Resource was not actually created, so decrease counter
+        pool->total--;
 
         // Place container back in the queue
         ContainerPush(pool, container);
         return NULL;
     }
 
-    pool->total++;
     return container;
 }
 
