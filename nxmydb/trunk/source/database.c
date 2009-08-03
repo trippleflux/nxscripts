@@ -61,19 +61,17 @@ Return Values:
 static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
 {
     DB_CONTEXT  *db;
+    DWORD       attempts;
     DWORD       error;
     DWORD       i;
-    LONG        index;
+    LONG        serverIndex;
     MYSQL       *connection;
-    ULONG       flags;
+    my_bool     optReconnect;
+    UINT        optTimeout;
 
     UNREFERENCED_PARAMETER(context);
     ASSERT(data != NULL);
     TRACE("context=%p data=%p", context, data);
-
-    //
-    // TODO: support for multiple servers
-    //
 
     db = MemAllocate(sizeof(DB_CONTEXT));
     if (db == NULL) {
@@ -96,78 +94,105 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
         goto failed;
     }
 
-    // Use current server index
-    index = dbIndex;
+    // Use the most recent successful server for the first connection attempt
+    serverIndex = dbIndex;
 
-    // Set connection options
-    flags = CLIENT_INTERACTIVE;
-    if (dbConfigServers[index].compression) {
-        flags |= CLIENT_COMPRESS;
-    }
-    if (dbConfigServers[index].sslEnable) {
-        //
-        // This function always returns 0. If SSL setup is incorrect,
-        // mysql_real_connect() returns an error when you attempt to connect.
-        //
-        mysql_ssl_set(db->handle,
-            dbConfigServers[index].sslKeyFile,
-            dbConfigServers[index].sslCertFile,
-            dbConfigServers[index].sslCAFile,
-            dbConfigServers[index].sslCAPath,
-            dbConfigServers[index].sslCiphers);
-    }
+    // The number of connection attempts should not exceed the number of servers
+    for (attempts = 0; attempts < dbConfigServerCount; attempts++) {
+        TRACE("Connecting to server #%d [%s] on attempt %lu/%lu.",
+            serverIndex, dbConfigServers[serverIndex].name, attempts+1, dbConfigServerCount);
 
-    connection = mysql_real_connect(
-        db->handle,
-        dbConfigServers[index].host,
-        dbConfigServers[index].user,
-        dbConfigServers[index].password,
-        dbConfigServers[index].database,
-        dbConfigServers[index].port,
-        NULL, CLIENT_INTERACTIVE);
+        // Set connection options
+        optTimeout = 10;
+        if (mysql_options(db->handle, MYSQL_OPT_CONNECT_TIMEOUT, &optTimeout) != 0) {
+            TRACE("Failed to set connection timeout option.");
+        }
 
-    if (connection == NULL) {
-        LOG_ERROR("Unable to connect to server: %s", mysql_error(db->handle));
+        optReconnect = FALSE;
+        if (mysql_options(db->handle, MYSQL_OPT_RECONNECT, &optReconnect) != 0) {
+            TRACE("Failed to set reconnection timeout option.");
+        }
 
-        error = ERROR_CONNECTION_REFUSED;
-        goto failed;
-    }
+        if (dbConfigServers[serverIndex].compression) {
+            if (mysql_options(db->handle, MYSQL_OPT_COMPRESS, 0) != 0) {
+                TRACE("Failed to set compression option.");
+            }
+        }
 
-    // Pointer values should be the same as from mysql_init()
-    ASSERT(connection == db->handle);
+        if (dbConfigServers[serverIndex].sslEnable) {
+            //
+            // This function always returns 0. If SSL setup is incorrect,
+            // mysql_real_connect() returns an error when you attempt to connect.
+            //
+            mysql_ssl_set(db->handle,
+                dbConfigServers[serverIndex].sslKeyFile,
+                dbConfigServers[serverIndex].sslCertFile,
+                dbConfigServers[serverIndex].sslCAFile,
+                dbConfigServers[serverIndex].sslCAPath,
+                dbConfigServers[serverIndex].sslCiphers);
+        }
 
-    // Check server version
-    if (mysql_get_server_version(db->handle) < 50019) {
-        LOG_ERROR("Unsupported version of MySQL Server - you are running v%s, must be v5.0.19 or newer.",
-            mysql_get_server_info(db->handle));
+        // Attempt connection with server
+        connection = mysql_real_connect(
+            db->handle,
+            dbConfigServers[serverIndex].host,
+            dbConfigServers[serverIndex].user,
+            dbConfigServers[serverIndex].password,
+            dbConfigServers[serverIndex].database,
+            dbConfigServers[serverIndex].port,
+            NULL, CLIENT_INTERACTIVE);
 
-        error = ERROR_NOT_SUPPORTED;
-        goto failed;
-    }
+        if (connection == NULL) {
+            LOG_ERROR("Unable to connect to server [%s]: %s",
+                dbConfigServers[serverIndex].name,
+                mysql_error(db->handle));
 
-    // Allocate pre-compiled statement structure
-    for (i = 0; i < ELEMENT_COUNT(db->stmt); i++) {
-        db->stmt[i] = mysql_stmt_init(db->handle);
-        if (db->stmt[i] == NULL) {
-            LOG_ERROR("Unable to allocate memory for statement structure.");
+        } else if (mysql_get_server_version(db->handle) < 50019) {
+            LOG_ERROR("Unsupported version of MySQL Server [%s]: running v%s, must be v5.0.19 or newer.",
+                dbConfigServers[serverIndex].name,
+                mysql_get_server_info(db->handle));
 
-            error = ERROR_NOT_ENOUGH_MEMORY;
-            goto failed;
+        } else {
+            // Pointer values should be the same as from mysql_init()
+            ASSERT(connection == db->handle);
+
+            // Allocate pre-compiled statement structure
+            for (i = 0; i < ELEMENT_COUNT(db->stmt); i++) {
+                db->stmt[i] = mysql_stmt_init(db->handle);
+                if (db->stmt[i] == NULL) {
+                    LOG_ERROR("Unable to allocate memory for statement structure.");
+
+                    error = ERROR_NOT_ENOUGH_MEMORY;
+                    goto failed;
+                }
+            }
+
+            // Set server index
+            InterlockedExchange(&dbIndex, serverIndex);
+            db->index = serverIndex;
+
+            // Set time stamps
+            GetSystemTimeAsFileTime((FILETIME *)&db->created);
+            db->used = db->created;
+
+            LOG_INFO("Connected to %s [%s], running MySQL Server v%s.",
+                mysql_get_host_info(db->handle),
+                dbConfigServers[serverIndex].name,
+                mysql_get_server_info(db->handle));
+
+            *data = db;
+            return TRUE;
+        }
+
+        // Unsuccessful connection, continue to the next server.
+        serverIndex++;
+        if (serverIndex >= (LONG)dbConfigServerCount) {
+            serverIndex = 0;
         }
     }
 
-    // Set server index
-    db->index = index;
-
-    // Set time stamps
-    GetSystemTimeAsFileTime((FILETIME *)&db->created);
-    db->used = db->created;
-
-    LOG_INFO("Connected to %s, running MySQL Server v%s.",
-        mysql_get_host_info(db->handle), mysql_get_server_info(db->handle));
-
-    *data = db;
-    return TRUE;
+    // Unable to connect to any servers
+    error = ERROR_CONNECTION_REFUSED;
 
 failed:
     if (db != NULL) {
