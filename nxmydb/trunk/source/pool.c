@@ -54,6 +54,7 @@ static INLINE VOID ContainerPush(POOL *pool, POOL_RESOURCE *container)
 {
     ASSERT(pool != NULL);
     ASSERT(container != NULL);
+    CRITICAL_SECTION_IS_OWNER(&pool->lock);
 
     // Clear the data member since the pointer should
     // be considered invalid (or lost) at this point.
@@ -88,6 +89,7 @@ static INLINE POOL_RESOURCE *ContainerPop(POOL *pool)
     POOL_RESOURCE *container;
 
     ASSERT(pool != NULL);
+    CRITICAL_SECTION_IS_OWNER(&pool->lock);
 
     if (!TAILQ_EMPTY(&pool->conQueue)) {
         // Retrieve an existing container
@@ -129,6 +131,7 @@ static INLINE POOL_RESOURCE *ResourceCreate(POOL *pool)
     POOL_RESOURCE *container;
 
     ASSERT(pool != NULL);
+    CRITICAL_SECTION_IS_OWNER(&pool->lock);
 
     // Retrieve a container for the resource
     container = ContainerPop(pool);
@@ -166,9 +169,6 @@ Return Values:
     If the resource is no longer valid, the return value is zero (false). To get
     extended error information, call GetLastError.
 
-Remarks:
-    This function assumes the pool is locked.
-
 --*/
 static INLINE BOOL ResourceCheck(POOL *pool, VOID *resData)
 {
@@ -204,6 +204,7 @@ static INLINE VOID ResourceDestroy(POOL *pool, VOID *resData)
 {
     ASSERT(pool != NULL);
     ASSERT(resData != NULL);
+    CRITICAL_SECTION_IS_OWNER(&pool->lock);
 
     pool->destructor(pool->context, resData);
     pool->total--;
@@ -231,6 +232,7 @@ static INLINE VOID ResourcePush(POOL *pool, POOL_RESOURCE *resource)
 {
     ASSERT(pool != NULL);
     ASSERT(resource != NULL);
+    CRITICAL_SECTION_IS_OWNER(&pool->lock);
 
     // Insert resource at the tail
     TAILQ_INSERT_TAIL(&pool->resQueue, resource, link);
@@ -258,6 +260,7 @@ static INLINE POOL_RESOURCE *ResourcePop(POOL *pool)
     POOL_RESOURCE *resource;
 
     ASSERT(pool != NULL);
+    CRITICAL_SECTION_IS_OWNER(&pool->lock);
 
     // Remove the first resource
     resource = TAILQ_FIRST(&pool->resQueue);
@@ -291,6 +294,7 @@ static POOL_RESOURCE *ResourcePopCheck(POOL *pool)
     POOL_RESOURCE *resource;
 
     ASSERT(pool != NULL);
+    CRITICAL_SECTION_IS_OWNER(&pool->lock);
 
     // Try to find a valid idle resource
     while (pool->idle > 0) {
@@ -391,6 +395,7 @@ static BOOL FCALL ResourceUpdate(POOL *pool)
     return TRUE;
 }
 
+
 /*++
 
 PoolCreate

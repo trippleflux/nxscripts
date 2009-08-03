@@ -147,6 +147,7 @@ BOOL FCALL ConditionVariableWait(CONDITION_VAR *cond, CRITICAL_SECTION *critSect
 
     ASSERT(cond != NULL);
     ASSERT(critSection != NULL);
+    CRITICAL_SECTION_IS_OWNER(critSection);
 
     InterlockedIncrement(&cond->waiting);
     LeaveCriticalSection(critSection);
