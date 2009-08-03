@@ -305,6 +305,9 @@ static DWORD FCALL LoadServer(CHAR *array, DB_CONFIG_SERVER *server)
     ASSERT(array != NULL);
     ASSERT(server != NULL);
 
+    // Copy array name
+    StringCchCopy(server->name, ELEMENT_COUNT(server->name), array);
+
     // Host options
     server->host     = GetString(array, "Host");
     server->user     = GetString(array, "User");

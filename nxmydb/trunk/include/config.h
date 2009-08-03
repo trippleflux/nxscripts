@@ -47,6 +47,7 @@ typedef struct {
 } DB_CONFIG_POOL;
 
 typedef struct {
+    CHAR    name[32];       // Configuration array name
     CHAR    *host;          // MySQL Server host
     CHAR    *user;          // MySQL Server username
     CHAR    *password;      // MySQL Server password
