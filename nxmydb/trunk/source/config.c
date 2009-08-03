@@ -187,7 +187,7 @@ static DWORD FCALL LoadGlobal(VOID)
     // Read global options
     //
 
-    dbConfigGlobal.connAttempts = 10;
+    dbConfigGlobal.connAttempts = 0;
     if (Io_ConfigGetInt("nxMyDB", "Connection_Attempts", &dbConfigGlobal.connAttempts) && dbConfigGlobal.connAttempts < 0) {
         LOG_ERROR("Configuration option 'Connection_Attempts' must be zero or greater.");
         return ERROR_INVALID_PARAMETER;

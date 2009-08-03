@@ -71,7 +71,7 @@ BOOL FCALL CriticalSectionIsOwner(CRITICAL_SECTION *critSection)
     ASSERT(critSection != NULL);
 
     //
-    // Members of CRITICAL_SECTION that concern us:
+    // Members of CRITICAL_SECTION that are of interest:
     //
     // LockCount - This is the most important field in a critical section. It
     // is initialized to a value of -1; a value of 0 or greater indicates that
