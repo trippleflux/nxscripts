@@ -28,7 +28,7 @@ Abstract:
 static DB_SYNC  dbSync; // Database synchronization
 static POOL     dbPool; // Database connection pool
 
-static LONG volatile dbServer = 0; // Server config index
+static LONG volatile dbIndex  = 0; // Server configuration index
 static LONG volatile refCount = 0; // Reference count initialization calls
 
 //
@@ -64,6 +64,7 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
     DB_CONTEXT  *db;
     DWORD       error;
     DWORD       i;
+    LONG        index;
     MYSQL       *connection;
     ULONG       flags;
 
@@ -84,6 +85,9 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
     }
     ZeroMemory(db, sizeof(DB_CONTEXT));
 
+    // Use current server index
+    index = dbIndex;
+
     //
     // Have the MySQL client library allocate the connection structure. This is
     // in case the MYSQL structure in the headers we're compiling against changes
@@ -99,30 +103,30 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
 
     // Set connection options
     flags = CLIENT_INTERACTIVE;
-    if (dbConfigServers[0].compression) {
+    if (dbConfigServers[index].compression) {
         flags |= CLIENT_COMPRESS;
     }
-    if (dbConfigServers[0].sslEnable) {
+    if (dbConfigServers[index].sslEnable) {
         //
         // This function always returns 0. If SSL setup is incorrect,
         // mysql_real_connect() returns an error when you attempt to connect.
         //
         mysql_ssl_set(db->handle,
-            dbConfigServers[0].sslKeyFile,
-            dbConfigServers[0].sslCertFile,
-            dbConfigServers[0].sslCAFile,
-            dbConfigServers[0].sslCAPath,
-            dbConfigServers[0].sslCiphers);
+            dbConfigServers[index].sslKeyFile,
+            dbConfigServers[index].sslCertFile,
+            dbConfigServers[index].sslCAFile,
+            dbConfigServers[index].sslCAPath,
+            dbConfigServers[index].sslCiphers);
     }
 
     connection = mysql_real_connect(
         db->handle,
-        dbConfigServers[0].host,
-        dbConfigServers[0].user,
-        dbConfigServers[0].password,
-        dbConfigServers[0].database,
-        dbConfigServers[0].port,
-        NULL, flags);
+        dbConfigServers[index].host,
+        dbConfigServers[index].user,
+        dbConfigServers[index].password,
+        dbConfigServers[index].database,
+        dbConfigServers[index].port,
+        NULL, CLIENT_INTERACTIVE);
 
     if (connection == NULL) {
         LOG_ERROR("Unable to connect to server: %s", mysql_error(db->handle));
@@ -154,7 +158,10 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
         }
     }
 
-    // Update time stamps
+    // Set server index
+    db->index = index;
+
+    // Set time stamps
     GetSystemTimeAsFileTime((FILETIME *)&db->created);
     db->used = db->created;
 
@@ -198,6 +205,13 @@ static BOOL FCALL ConnectionCheck(VOID *context, VOID *data)
     UNREFERENCED_PARAMETER(context);
     ASSERT(data != NULL);
     TRACE("context=%p data=%p", context, data);
+
+    // Check if server changed
+    if (db->index != dbIndex) {
+        LOG_INFO("Closing connection for server configuration change.");
+        SetLastError(ERROR_BAD_DEV_TYPE);
+        return FALSE;
+    }
 
     GetSystemTimeAsFileTime((FILETIME *)&timeCurrent);
 
@@ -662,12 +676,18 @@ VOID FCALL DbRelease(DB_CONTEXT *db)
     ASSERT(db != NULL);
     TRACE("db=%p", db);
 
-    // Update last-use time stamp
-    GetSystemTimeAsFileTime((FILETIME *)&db->used);
+    if (db->index != dbIndex) {
+        // Server changed, invalidate connection
+        PoolInvalidate(&dbPool, db);
 
-    // Release the database context
-    if (!PoolRelease(&dbPool, db)) {
-        LOG_ERROR("Unable to release a database context to the connection pool (error %lu).", GetLastError());
+    } else {
+        // Update last-use time stamp
+        GetSystemTimeAsFileTime((FILETIME *)&db->used);
+
+        // Release the database context
+        if (!PoolRelease(&dbPool, db)) {
+            LOG_ERROR("Unable to release a database context to the connection pool (error %lu).", GetLastError());
+        }
     }
 }
 

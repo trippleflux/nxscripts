@@ -24,6 +24,7 @@ Abstract:
 typedef struct {
     MYSQL      *handle;     // MySQL connection handle
     MYSQL_STMT *stmt[8];    // Pre-compiled SQL statements (eighth statement for refresh)
+    LONG        index;      // Index in the server configuration array
     UINT64      created;    // Time this context was created
     UINT64      used;       // Time this context was last used
 } DB_CONTEXT;
