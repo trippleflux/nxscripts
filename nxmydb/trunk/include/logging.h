@@ -30,7 +30,7 @@ VOID  CCALL LogDebuggerFormat(const CHAR *format, ...);
 VOID  FCALL LogDebuggerFormatV(const CHAR *format, va_list argList);
 
 VOID  CCALL LogDebuggerTrace(const CHAR *file, const CHAR *func, INT line, const CHAR *format, ...);
-VOID  FCALL LogDebuggerTraceV(const CHAR *file, const CHAR *func, INT line, const CHAR *format, va_list argList);
+VOID  SCALL LogDebuggerTraceV(const CHAR *file, const CHAR *func, INT line, const CHAR *format, va_list argList);
 
 
 //
@@ -46,7 +46,7 @@ VOID  CCALL LogFileFormat(const CHAR *format, ...);
 VOID  FCALL LogFileFormatV(const CHAR *format, va_list argList);
 
 VOID  CCALL LogFileTrace(const CHAR *file, const CHAR *func, INT line, const CHAR *format, ...);
-VOID  FCALL LogFileTraceV(const CHAR *file, const CHAR *func, INT line, const CHAR *format, va_list argList);
+VOID  SCALL LogFileTraceV(const CHAR *file, const CHAR *func, INT line, const CHAR *format, va_list argList);
 
 
 //
@@ -68,7 +68,7 @@ VOID  CCALL LogFormat(LOG_LEVEL level, const CHAR *format, ...);
 VOID  FCALL LogFormatV(LOG_LEVEL level, const CHAR *format, va_list argList);
 
 VOID  CCALL LogTrace(const CHAR *file, const CHAR *func, INT line, LOG_LEVEL level, const CHAR *format, ...);
-VOID  FCALL LogTraceV(const CHAR *file, const CHAR *func, INT line, LOG_LEVEL level, const CHAR *format, va_list argList);
+VOID  SCALL LogTraceV(const CHAR *file, const CHAR *func, INT line, LOG_LEVEL level, const CHAR *format, va_list argList);
 
 
 //

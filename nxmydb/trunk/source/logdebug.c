@@ -70,7 +70,7 @@ VOID CCALL LogDebuggerTrace(const CHAR *file, const CHAR *func, INT line, const 
     va_end(argList);
 }
 
-VOID FCALL LogDebuggerTraceV(const CHAR *file, const CHAR *func, INT line, const CHAR *format, va_list argList)
+VOID SCALL LogDebuggerTraceV(const CHAR *file, const CHAR *func, INT line, const CHAR *format, va_list argList)
 {
     CHAR    location[MAX_PATH];
     CHAR    message[512];

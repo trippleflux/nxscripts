@@ -37,7 +37,7 @@ Remarks:
     http://msdn.microsoft.com/en-us/magazine/cc164040.aspx
 
 --*/
-BOOL CriticalSectionIsOwned(CRITICAL_SECTION *critSection)
+BOOL FCALL CriticalSectionIsOwned(CRITICAL_SECTION *critSection)
 {
     ASSERT(critSection != NULL);
 
@@ -66,7 +66,7 @@ Remarks:
     http://msdn.microsoft.com/en-us/magazine/cc164040.aspx
 
 --*/
-BOOL CriticalSectionIsOwner(CRITICAL_SECTION *critSection)
+BOOL FCALL CriticalSectionIsOwner(CRITICAL_SECTION *critSection)
 {
     ASSERT(critSection != NULL);
 
@@ -104,7 +104,7 @@ Return Values:
     None.
 
 --*/
-VOID WaitForDebugger(VOID)
+VOID FCALL WaitForDebugger(VOID)
 {
     while (!IsDebuggerPresent()) {
         TRACE("Waiting for debugger to attach...");

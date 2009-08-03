@@ -271,7 +271,7 @@ VOID FCALL LogFileTrace(const CHAR *file, const CHAR *func, INT line, const CHAR
     va_end(argList);
 }
 
-VOID FCALL LogFileTraceV(const CHAR *file, const CHAR *func, INT line, const CHAR *format, va_list argList)
+VOID SCALL LogFileTraceV(const CHAR *file, const CHAR *func, INT line, const CHAR *format, va_list argList)
 {
 #if 0
     CHAR        location[MAX_PATH];

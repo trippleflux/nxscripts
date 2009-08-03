@@ -19,11 +19,11 @@ Abstract:
 
 #ifdef DEBUG
 
-BOOL CriticalSectionIsOwned(CRITICAL_SECTION *critSection);
-BOOL CriticalSectionIsOwner(CRITICAL_SECTION *critSection);
+BOOL FCALL CriticalSectionIsOwned(CRITICAL_SECTION *critSection);
+BOOL FCALL CriticalSectionIsOwner(CRITICAL_SECTION *critSection);
 #define CRITICAL_SECTION_IS_OWNER(x) (ASSERT(CriticalSectionIsOwner(x)))
 
-VOID WaitForDebugger(VOID);
+VOID FCALL WaitForDebugger(VOID);
 
 #else // DEBUG
 

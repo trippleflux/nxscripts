@@ -89,7 +89,7 @@ VOID CCALL LogTrace(const CHAR *file, const CHAR *func, INT line, LOG_LEVEL leve
     va_end(argList);
 }
 
-VOID FCALL LogTraceV(const CHAR *file, const CHAR *func, INT line, LOG_LEVEL level, const CHAR *format, va_list argList)
+VOID SCALL LogTraceV(const CHAR *file, const CHAR *func, INT line, LOG_LEVEL level, const CHAR *format, va_list argList)
 {
     if (level <= dbConfigGlobal.logLevel) {
         BACKEND_TRACE(file, func, line, format, argList);
