@@ -41,7 +41,7 @@ BOOL CriticalSectionIsOwned(CRITICAL_SECTION *critSection)
 {
     ASSERT(critSection != NULL);
 
-    if (critSection->LockCount >= 0) {
+    if (critSection->LockCount != -1) {
         return TRUE;
     }
 
@@ -84,7 +84,7 @@ BOOL CriticalSectionIsOwner(CRITICAL_SECTION *critSection)
     // it should be a DWORD instead of a HANDLE).
     //
 
-    if (critSection->LockCount >= 0 && GetCurrentThreadId() == (DWORD)critSection->OwningThread) {
+    if (critSection->LockCount != -1 && GetCurrentThreadId() == (DWORD)critSection->OwningThread) {
         return TRUE;
     }
 
