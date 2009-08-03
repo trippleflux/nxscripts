@@ -18,7 +18,6 @@ Abstract:
 #include <backends.h>
 #include <config.h>
 #include <database.h>
-#include <logging.h>
 #include <pool.h>
 
 //
@@ -85,13 +84,9 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
     }
     ZeroMemory(db, sizeof(DB_CONTEXT));
 
-    // Use current server index
-    index = dbIndex;
-
     //
-    // Have the MySQL client library allocate the connection structure. This is
-    // in case the MYSQL structure in the headers we're compiling against changes
-    // in a future version of the client library.
+    // Have the MySQL client library allocate the handle structure for us. This is
+    // in case the MYSQL structure changes in a future version of the client library.
     //
     db->handle = mysql_init(NULL);
     if (db->handle == NULL) {
@@ -100,6 +95,9 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
         error = ERROR_NOT_ENOUGH_MEMORY;
         goto failed;
     }
+
+    // Use current server index
+    index = dbIndex;
 
     // Set connection options
     flags = CLIENT_INTERACTIVE;
@@ -439,13 +437,8 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
 {
     DWORD result;
 
-#if 0
     // Wait for debugger to be attached before proceeding
-    while (!IsDebuggerPresent()) {
-        TRACE("Waiting for debugger to attach...");
-        Sleep(250);
-    }
-#endif
+    WaitForDebugger();
 
     TRACE("refCount=%d", refCount);
 

@@ -16,7 +16,6 @@ Abstract:
 
 #include <base.h>
 #include <config.h>
-#include <logging.h>
 
 //
 // Global configuration variables

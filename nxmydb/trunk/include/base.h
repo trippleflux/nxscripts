@@ -162,5 +162,7 @@ Abstract:
 #include <proctable.h>
 #include <logging.h>
 #include <alloc.h>
+#include <logging.h>
+#include <debug.h>
 
 #endif // BASE_H_INCLUDED

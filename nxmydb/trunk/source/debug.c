@@ -16,7 +16,6 @@ Abstract:
 
 #include <base.h>
 #include <debug.h>
-#include <logging.h>
 
 #ifdef DEBUG
 
@@ -34,12 +33,17 @@ Return Values:
 
     If the critical section is not owned, the return value is zero (false).
 
+Remarks:
+    http://msdn.microsoft.com/en-us/magazine/cc164040.aspx
+
 --*/
 BOOL CriticalSectionIsOwned(CRITICAL_SECTION *critSection)
 {
     ASSERT(critSection != NULL);
 
-    // TODO
+    if (critSection->LockCount >= 0) {
+        return TRUE;
+    }
 
     return FALSE;
 }
@@ -58,12 +62,31 @@ Return Values:
 
     If the current thread is not the owner, the return value is zero (false).
 
+Remarks:
+    http://msdn.microsoft.com/en-us/magazine/cc164040.aspx
+
 --*/
 BOOL CriticalSectionIsOwner(CRITICAL_SECTION *critSection)
 {
     ASSERT(critSection != NULL);
 
-    // TODO
+    //
+    // Members of CRITICAL_SECTION that concern us:
+    //
+    // LockCount - This is the most important field in a critical section. It
+    // is initialized to a value of -1; a value of 0 or greater indicates that
+    // the critical section is held or owned. When it's not equal to -1, the
+    // OwningThread field contains the thread ID that owns this critical section.
+    //
+    // OwningThread - This field contains the thread identifier for the thread
+    // that currently holds the critical section. This is same thread ID that APIs
+    // like GetCurrentThreadId return (this field is incorrectly defined in WINNT.H,
+    // it should be a DWORD instead of a HANDLE).
+    //
+
+    if (critSection->LockCount >= 0 && GetCurrentThreadId() == (DWORD)critSection->OwningThread) {
+        return TRUE;
+    }
 
     return FALSE;
 }
@@ -87,6 +110,7 @@ VOID WaitForDebugger(VOID)
         TRACE("Waiting for debugger to attach...");
         Sleep(250);
     }
+
     TRACE("Debugger attached, continuing execution.");
 }
 

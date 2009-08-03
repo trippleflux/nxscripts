@@ -21,15 +21,17 @@ Abstract:
 
 BOOL CriticalSectionIsOwned(CRITICAL_SECTION *critSection);
 BOOL CriticalSectionIsOwner(CRITICAL_SECTION *critSection);
+#define CRITICAL_SECTION_IS_OWNER(x) (ASSERT(CriticalSectionIsOwner(x)))
 
 VOID WaitForDebugger(VOID);
 
 #else // DEBUG
 
-#define CriticalSectionIsOwned(x)   ((VOID)0)
-#define CriticalSectionIsOwner(x)   ((VOID)0)
+#define CriticalSectionIsOwned(x)    ((VOID)0)
+#define CriticalSectionIsOwner(x)    ((VOID)0)
+#define CRITICAL_SECTION_IS_OWNER(x) ((VOID)0)
 
-#define WaitForDebugger()           ((VOID)0)
+#define WaitForDebugger()            ((VOID)0)
 
 #endif // DEBUG
 
