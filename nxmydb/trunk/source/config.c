@@ -199,8 +199,12 @@ static DWORD FCALL LoadGlobal(VOID)
         return ERROR_INVALID_PARAMETER;
     }
 
+    // Use an integer as a temporary value since enum's do not have a definite size
     value = (INT)LOG_LEVEL_ERROR;
-    Io_ConfigGetInt("nxMyDB", "Log_Level", &value);
+    if (Io_ConfigGetInt("nxMyDB", "Log_Level", &value) && value < 0) {
+        LOG_ERROR("Configuration option 'Log_Level' must be zero or greater.");
+        return ERROR_INVALID_PARAMETER;
+    }
     dbConfigGlobal.logLevel = (LOG_LEVEL)value;
 
     //
