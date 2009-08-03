@@ -98,6 +98,7 @@ FILE_OBJS = \
     condvar.obj\
     config.obj\
     database.obj\
+    debug.obj\
     dllentry.obj\
     event.obj\
     group.obj\
