@@ -28,6 +28,7 @@ servers. nxMyDB also includes features such as:
 - Central location for storing users and groups
 - Database connection pool; reduces time spent waiting during high user activity
 - Reading Default.User and Default.Group for newly created users and groups
+- Support for multiple MySQL Servers, in the event that a server goes offline
 - Support for compressing the server traffic
 - Support for encrypting the server traffic using SSL
 - User files and group files are updated regularly
@@ -179,6 +180,8 @@ supported by OpenSSL/yaSSL.
 
   Servers
     - List of arrays containing server configurations
+    - This allows you configure two or more MySQL Servers with replication
+    - Default: nothing
 
   Sync
     - Synchronization of users and groups
@@ -337,13 +340,20 @@ supported by OpenSSL/yaSSL.
 # 6. FAQ                                                                       #
 ################################################################################
 
-Q: What does "nxMyDB: Unable to connect to server: SSL connection error" mean?
-A: SSL is configured incorrectly on either the client or server.
-
 Q: How do I enable debug logging?
 A: Set "Log_Level" to "3" in the ioFTPD.ini file and restart ioFTPD.
 
-Q: Multiple servers are not synchronizing with the database.
+Q: What does "nxMyDB: Unable to connect to server: SSL connection error" mean?
+A: SSL is configured incorrectly on the client or server (or both).
+   - http://dev.mysql.com/doc/refman/5.1/en/secure-using-ssl.html
+
+Q: What is MySQL Server replication and why is it useful for nxMyDB?
+A: Replication allows a master server to be replicated to one or more slaves, so
+   each database server contains the same information. This provides a level of
+   fault tolerance to ioFTPD in case a database server goes offline.
+   - http://dev.mysql.com/doc/refman/5.1/en/replication.html
+
+Q: Multiple ioFTPD servers are not synchronizing with the database.
 A: If the servers are not synchronizing, it's usually due to a configuration error.
    - Enable debug logging and check the debug log for clues.
    - Check that "Sync" is set to "True" in the ioFTPD.ini file.
@@ -370,7 +380,7 @@ FlashFXP Forum:
 http://www.flashfxp.com/forum/forumdisplay.php?f=68
 
 IRC Network:
-neoxed in #ioFTPD at EFnet
+neoxed in #ioFTPD on EFnet
 
 E-mail:
 neoxed@gmail.com
