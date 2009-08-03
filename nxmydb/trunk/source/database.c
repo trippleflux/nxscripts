@@ -25,9 +25,11 @@ Abstract:
 // Database variables
 //
 
-static DB_SYNC  dbSync;         // Database synchronization
-static POOL     dbPool;         // Database connection pool
-static INT      refCount = 0;   // Reference count initialization calls
+static DB_SYNC  dbSync; // Database synchronization
+static POOL     dbPool; // Database connection pool
+
+static LONG volatile dbServer = 0; // Server config index
+static LONG volatile refCount = 0; // Reference count initialization calls
 
 //
 // Function declarations
@@ -418,11 +420,6 @@ Return Values:
 
     If the function fails, the return value is zero (false).
 
-Remarks:
-    This function must be called once by each module entry point. Synchronization
-    is not important at this point because ioFTPD performs all module loading and
-    initialization in a single thread at start-up.
-
 --*/
 BOOL FCALL DbInit(Io_GetProc *getProc)
 {
@@ -439,7 +436,7 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
     TRACE("refCount=%d", refCount);
 
     // Only initialize the database pool once
-    if (refCount++) {
+    if (InterlockedIncrement(&refCount) > 1) {
         TRACE("Already initialized, returning.");
         return TRUE;
     }
@@ -517,8 +514,15 @@ VOID FCALL DbFinalize(VOID)
 {
     TRACE("refCount=%d", refCount);
 
+    //
+    // If the reference counter is already zero, or less, the finalization
+    // function has been called more than the initialization function (very bad).
+    //
+    ASSERT(refCount >= 0);
+
     // Finalize once the reference count reaches zero
-    if (--refCount == 0) {
+    if (InterlockedDecrement(&refCount) == 0) {
+        TRACE("Finalizing subsystems for shut down.");
 
         // Stop the sync timer
         DbSyncStop();
