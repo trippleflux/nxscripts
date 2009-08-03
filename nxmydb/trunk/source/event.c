@@ -63,11 +63,11 @@ static DWORD FCALL EventDebug(EVENT_DATA *data, IO_STRING *arguments)
     name = Io_GetStringIndexStatic(arguments, 1);
 
     if (_stricmp(name, "CONFIG") == 0) {
-        // TODO
+        // TODO: dump config arrays
     } else if (_stricmp(name, "POOL") == 0) {
-        // TODO
+        // TODO: dump pool info
     } else {
-        // TODO
+        // TODO: show cmd usage
     }
 
     return ERROR_SUCCESS;

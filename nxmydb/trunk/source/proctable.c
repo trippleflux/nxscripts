@@ -17,10 +17,10 @@ Abstract:
 #include <base.h>
 #include <proctable.h>
 
+#pragma warning(disable : 4152) // C4152: nonstandard extension, function/data pointer conversion in expression
+
 // Global procedure table
 PROC_TABLE procTable;
-
-#pragma warning(disable : 4152) // C4152: nonstandard extension, function/data pointer conversion in expression
 
 #define RESOLVE(name, func)                                                     \
 {                                                                               \

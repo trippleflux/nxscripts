@@ -122,6 +122,11 @@ typedef struct {
     BOOL   (* pStopIoTimer)(TIMER *, BOOL);
 } PROC_TABLE;
 
+
+//
+// Map functions to table members
+//
+
 extern PROC_TABLE procTable;
 
 #define Io_ConfigGet                procTable.pConfigGet
