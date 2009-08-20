@@ -137,12 +137,13 @@ proc RenameTo {sourcePath destName} {
 proc IsMultiRar {fileName} {
     # Only process the first file of multi-volume RARs
     set fileName [string tolower $fileName]
-    if {([regexp -- {^.+\.part(\d{2,3})\.rar$} $fileName result volume] ||
-         [regexp -- {^.+\.(\d{2,3})$} $fileName result volume]) &&
-        ($volume ne "00" && $volume ne "000")} {
+    if {[regexp -- {^.+\.part(\d{2,3})\.rar$} $fileName result volume] && $volume ne "01" && $volume ne "001"} {
         return 1
     }
     if {[regexp -- {^.+\.[rs]\d{2}$} $fileName result]} {
+        return 1
+    }
+    if {[regexp -- {^.+\.(\d{3})$} $fileName result volume] && $volume ne "00" && $volume ne "000"} {
         return 1
     }
     return 0
