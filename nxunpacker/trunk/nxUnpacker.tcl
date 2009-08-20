@@ -25,9 +25,9 @@ if {![llength $dirList]} {
 # Common
 #
 
-proc ListMatch {patterns value} {
-    foreach pattern $patterns {
-        if {[string match -nocase $pattern $value]} {return 1}
+proc ListMatchRanked {patternRankList value} {
+    foreach {pattern rank} $patternRankList {
+        if {[string match -nocase $pattern $value]} {return $rank}
     }
     return 0
 }
@@ -45,40 +45,54 @@ proc GetGroupName {rlsName} {
 # Locating files
 #
 
-proc GetFileFromList {dirList patternList} {
-    set count 0
-    set result ""
+proc GetFileFromList {dirList patternRankList} {
+    set partialCount 0
+    set partialResult ""
+
 
     foreach entry $dirList {
-        if {[ListMatch $patternList [file tail $entry]]} {
-            set result $entry
-            incr count
+        set rank [ListMatchRanked $patternRankList [file tail $entry]]
+
+        #
+        # Rank result:
+        # 0 - No match
+        # 1 - Exact or reliable match
+        # 2 - Partial match
+        #
+        if {$rank == 1} {
+            return $entry
+
+        } elseif {$rank == 2} {
+            set partialResult $entry
+            incr partialCount
         }
     }
 
-    if {$count == 1} {
-        return $result
+    # If there was only one partial match, we can assume it's reliable.
+    if {$partialCount == 1} {
+        return $partialResult
     }
     return ""
 }
 
 proc GetKeygenFile {dirList} {
-    set patternList [list "keygen.exe" "keymaker.exe"]
-    return [GetFileFromList $dirList $patternList]
+    set patternRank [list "keygen.exe" 1 "keymaker.exe" 1]
+    return [GetFileFromList $dirList $patternRank]
 }
 
 proc GetNfoFile {dirList groupNfo} {
-    return [GetFileFromList $dirList [list $groupNfo]]
+    set patternRank [list $groupNfo 1 "*.nfo" 2]
+    return [GetFileFromList $dirList $patternRank]
 }
 
 proc GetPatchFile {dirList} {
-    set patternList [list "patch.exe" "patcher.exe"]
-    return [GetFileFromList $dirList $patternList]
+    set patternRank [list "patch.exe" 1 "patcher.exe" 1]
+    return [GetFileFromList $dirList $patternRank]
 }
 
 proc GetSetupFile {dirList} {
-    set patternList [list "*setup*.exe" "*install*.exe"]
-    return [GetFileFromList $dirList $patternList]
+    set patternRank [list "*setup*.exe" 1 "*install*.exe" 1 "*.exe" 2]
+    return [GetFileFromList $dirList $patternRank]
 }
 
 
