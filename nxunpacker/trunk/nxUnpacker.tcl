@@ -1,17 +1,18 @@
-puts ".- nxUnpacker v1.0.0"
+puts ".- nxUnpacker v1.1.0"
 
 ## Settings
-set unpack(clean)       1
-set unpack(source)      [pwd]
-set unpack(binUnzip)    "UnZIP.exe"
-set unpack(binUnrar)    "UnRAR.exe"
+set unpack(Clean)       1
+set unpack(Rename)      1
+set unpack(Source)      [pwd]
+set unpack(BinUnzip)    "UnZIP.exe"
+set unpack(BinUnrar)    "UnRAR.exe"
 
 puts -nonewline "|- Target Dir: "
 flush stdout
-gets stdin unpack(source)
+gets stdin unpack(Source)
 
 set curPath [pwd]
-set dirList [glob -directory $unpack(source) -types d -nocomplain "*"]
+set dirList [glob -directory $unpack(Source) -types d -nocomplain "*"]
 
 if {![llength $dirList]} {
     puts "|- No releases found."
@@ -19,7 +20,72 @@ if {![llength $dirList]} {
     return 1
 }
 
-## Move
+
+#
+# Common
+#
+
+proc ListMatch {patterns value} {
+    foreach pattern $patterns {
+        if {[string match -nocase $pattern $value]} {return 1}
+    }
+    return 0
+}
+
+proc GetGroupName {rlsName} {
+    set pos [string last "-" $rlsName]
+    if {$pos == -1} {
+        return ""
+    }
+    return [string range $rlsName [incr pos] end]
+}
+
+
+#
+# Locating files
+#
+
+proc GetFileFromList {dirList patternList} {
+    set count 0
+    set result ""
+
+    foreach entry $dirList {
+        if {[ListMatch $patternList [file tail $entry]]} {
+            set result $entry
+            incr count
+        }
+    }
+
+    if {$count == 1} {
+        return $result
+    }
+    return ""
+}
+
+proc GetKeygenFile {dirList} {
+    set patternList [list "keygen.exe" "keymaker.exe"]
+    return [GetFileFromList $dirList $patternList]
+}
+
+proc GetNfoFile {dirList groupNfo} {
+    return [GetFileFromList $dirList [list $groupNfo]]
+}
+
+proc GetPatchFile {dirList} {
+    set patternList [list "patch.exe" "patcher.exe"]
+    return [GetFileFromList $dirList $patternList]
+}
+
+proc GetSetupFile {dirList} {
+    set patternList [list "*setup*.exe" "*install*.exe"]
+    return [GetFileFromList $dirList $patternList]
+}
+
+
+#
+# Moving files
+#
+
 proc FileMoveDest {sourceFile destPath} {
     file rename -force -- $sourceFile $destPath
 }
@@ -37,32 +103,64 @@ proc FileMoveUnknown {sourceFile destPath} {
     FileMoveDest $sourceFile $destPath
 }
 
-## UnRAR/UnZIP
+proc RenameTo {sourcePath destName} {
+    set sourceName [file tail $sourcePath]
+
+    # Check if a rename is required
+    if {[string equal $sourceName $destName]} {
+        return
+    }
+
+    puts "|  |  |- Renaming \"$sourceName\" to \"$destName\""
+
+    # Check if a temp rename is required to work around Windows
+    if {[string equal -nocase $sourceName $destName]} {
+        if {[catch {file rename -force -- $sourcePath [append sourcePath _]} errorMsg]} {
+            puts "|  |  |- $errorMsg"
+        }
+    }
+
+    # Perform actual rename
+    set destPath [file join [file dirname $sourcePath] $destName]
+    if {[catch {file rename -force -- $sourcePath $destPath} errorMsg]} {
+        puts "|  |  |- $errorMsg"
+    }
+}
+
+
+#
+# Unpacking archives
+#
+
 proc FileUnRarDest {sourceFile destPath} {
     global unpack
     ## e   = Unrar files.
     ## -o- = Do not overwrite files.
-    exec -- $unpack(binUnrar) e -o- $sourceFile $destPath
+    exec -- $unpack(BinUnrar) e -o- $sourceFile $destPath
 }
 
 proc FileUnZipDest {sourceFile destPath} {
     global unpack
     ## -d = Destination directory.
     ## -n = Do not overwrite files.
-    exec -- $unpack(binUnzip) -n $sourceFile -d $destPath
+    exec -- $unpack(BinUnzip) -n $sourceFile -d $destPath
 }
 
+
 puts "|- Found [llength $dirList] release(s)."
 puts "|"
 
 foreach dirPath $dirList {
-    puts "|  .- Unpacking: [file tail $dirPath]"
+    set rlsName [file tail $dirPath]
+    puts "|  .- Unpacking: $rlsName"
+
     if {![file isdirectory $dirPath]} {
         puts "| `- Unable to change CD to path: $errorMsg"
         continue
     }
 
-    if {$unpack(clean)} {
+    # Remove all .ioFTPD files
+    if {$unpack(Clean)} {
         puts "|  |- Cleaning ioFTPD files."
 
         foreach filePath [glob -directory $dirPath -types f -nocomplain ".ioFTPD*"] {
@@ -170,6 +268,43 @@ foreach dirPath $dirList {
             }
         }
         puts "|  |  `- Finished moving zip files."
+    }
+
+    if {$unpack(Rename)} {
+        puts "|  |  .- Renaming files."
+        set fileList [glob -directory $dirPath -types f -nocomplain "*"]
+
+        # Get group name
+        set groupFile [GetGroupName $rlsName]
+        if {$groupFile ne ""} {
+            append groupFile ".nfo"
+
+            # Locate NFO file and rename
+            set filePath [GetNfoFile $fileList $groupFile]
+            if {$filePath ne ""} {
+                RenameTo $filePath $groupFile
+            }
+        }
+
+        # Locate keygen file and rename
+        set filePath [GetKeygenFile $fileList]
+        if {$filePath ne ""} {
+            RenameTo $filePath "Keygen.exe"
+        }
+
+        # Locate patch file and rename
+        set filePath [GetPatchFile $fileList]
+        if {$filePath ne ""} {
+            RenameTo $filePath "Patch.exe"
+        }
+
+        # Locate setup file and rename
+        set filePath [GetSetupFile $fileList]
+        if {$filePath ne ""} {
+            RenameTo $filePath "Setup.exe"
+        }
+
+        puts "|  |  `- Finished renaming files."
     }
 
     puts "|  |- Removing temporary directory."
