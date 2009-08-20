@@ -273,19 +273,18 @@ foreach dirPath $dirList {
             catch {FileUnRarDest $filePath $dirPath}
         }
         puts "|  |  `- Finished unraring files."
-
-    } elseif {[llength $zipFiles]} {
+    } else {
         puts "|  |- No RAR archives found."
+    }
 
-        puts "|  |  .- Moving zip files."
-        foreach filePath $rarFiles {
+    if {[llength $zipFiles]} {
+        puts "|  |  .- Unzipping files."
+        foreach filePath $zipFiles {
             set fileName [file tail $filePath]
-            puts "|  |  |- Moving zip: $fileName"
-            if {[catch {FileMoveDest $filePath $dirPath} errorMsg]} {
-                puts "|  |  |- Error moving zip: $errorMsg"
-            }
+            puts "|  |  |- Unzipping file: $fileName"
+            catch {FileUnZipDest $filePath $dirPath}
         }
-        puts "|  |  `- Finished moving zip files."
+        puts "|  |  `- Finished unzipping files."
     }
 
     if {$unpack(Rename)} {
