@@ -1,24 +1,12 @@
-puts ".- nxUnpacker v1.1.0"
+#
+# nxUnpacker - Unpack releases quickly.
+#
 
-## Settings
 set unpack(Clean)       1
 set unpack(Rename)      1
-set unpack(Source)      [pwd]
+set unpack(Source)      "."
 set unpack(BinUnzip)    "UnZIP.exe"
 set unpack(BinUnrar)    "UnRAR.exe"
-
-puts -nonewline "|- Target Dir: "
-flush stdout
-gets stdin unpack(Source)
-
-set curPath [pwd]
-set dirList [glob -directory $unpack(Source) -types d -nocomplain "*"]
-
-if {![llength $dirList]} {
-    puts "|- No releases found."
-    puts "`- Exiting."
-    return 1
-}
 
 
 #
@@ -160,7 +148,23 @@ proc FileUnZipDest {sourceFile destPath} {
     exec -- $unpack(BinUnzip) -n $sourceFile -d $destPath
 }
 
-
+puts ".- nxUnpacker v1.1.0"
+
+puts -nonewline "|- Target Dir \[$unpack(Source)\]: "
+flush stdout
+gets stdin inputPath
+set inputPath [string trim $inputPath]
+if {$inputPath ne "" } {
+    set unpack(Source) [file normalize $inputPath]
+}
+
+set dirList [glob -directory $unpack(Source) -types d -nocomplain "*"]
+if {![llength $dirList]} {
+    puts "|- No releases found."
+    puts "`- Exiting."
+    return 1
+}
+
 puts "|- Found [llength $dirList] release(s)."
 puts "|"
 
