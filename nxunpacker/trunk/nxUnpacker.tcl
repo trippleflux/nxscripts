@@ -134,17 +134,35 @@ proc RenameTo {sourcePath destName} {
 # Unpacking archives
 #
 
+proc IsMultiRar {fileName} {
+    # Only process the first file of multi-volume RARs
+    set fileName [string tolower $fileName]
+    if {([regexp -- {^.+\.part(\d{2,3})\.rar$} $fileName result volume] ||
+         [regexp -- {^.+\.(\d{2,3})$} $fileName result volume]) &&
+        ($volume ne "00" && $volume ne "000")} {
+        return 1
+    }
+    if {[regexp -- {^.+\.[rs]\d{2}$} $fileName result]} {
+        return 1
+    }
+    return 0
+}
+
 proc FileUnRarDest {sourceFile destPath} {
     global unpack
-    ## e   = Unrar files.
-    ## -o- = Do not overwrite files.
+
+    # Options:
+    # e   = Unrar files.
+    # -o- = Do not overwrite files.
     exec -- $unpack(BinUnrar) e -o- $sourceFile $destPath
 }
 
 proc FileUnZipDest {sourceFile destPath} {
     global unpack
-    ## -d = Destination directory.
-    ## -n = Do not overwrite files.
+
+    # Options:
+    # -d = Destination directory.
+    # -n = Do not overwrite files.
     exec -- $unpack(BinUnzip) -n $sourceFile -d $destPath
 }
 
@@ -269,8 +287,12 @@ foreach dirPath $dirList {
         puts "|  |  .- Unraring files."
         foreach filePath $rarFiles {
             set fileName [file tail $filePath]
-            puts "|  |  |- Unraring file: $fileName"
-            catch {FileUnRarDest $filePath $dirPath}
+            if {[IsMultiRar $fileName]} {
+                puts "|  |  |- Skipping file: $fileName"
+            } else {
+                puts "|  |  |- Unraring file: $fileName"
+                catch {FileUnRarDest $filePath $dirPath}
+            }
         }
         puts "|  |  `- Finished unraring files."
     } else {
