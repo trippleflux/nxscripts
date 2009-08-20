@@ -1,3 +1,3 @@
 @echo off
-tclkit.exe nxUnpacker.tcl
+tclsh nxUnpacker.tcl
 pause
