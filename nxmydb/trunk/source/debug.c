@@ -21,7 +21,7 @@ Abstract:
 
 /*++
 
-CriticalSectionIsOwned
+IsCriticalSectionOwned
 
     Determines if the critical section is owned.
 
@@ -37,7 +37,7 @@ Remarks:
     http://msdn.microsoft.com/en-us/magazine/cc164040.aspx
 
 --*/
-BOOL FCALL CriticalSectionIsOwned(CRITICAL_SECTION *critSection)
+BOOL FCALL IsCriticalSectionOwned(CRITICAL_SECTION *critSection)
 {
     ASSERT(critSection != NULL);
 
@@ -50,7 +50,7 @@ BOOL FCALL CriticalSectionIsOwned(CRITICAL_SECTION *critSection)
 
 /*++
 
-CriticalSectionIsOwner
+IsCriticalSectionCurrentOwner
 
     Determines if the current thread owns a critical section.
 
@@ -66,7 +66,7 @@ Remarks:
     http://msdn.microsoft.com/en-us/magazine/cc164040.aspx
 
 --*/
-BOOL FCALL CriticalSectionIsOwner(CRITICAL_SECTION *critSection)
+BOOL FCALL IsCriticalSectionCurrentOwner(CRITICAL_SECTION *critSection)
 {
     ASSERT(critSection != NULL);
 

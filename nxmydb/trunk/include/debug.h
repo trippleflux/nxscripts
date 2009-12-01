@@ -19,19 +19,21 @@ Abstract:
 
 #ifdef DEBUG
 
-BOOL FCALL CriticalSectionIsOwned(CRITICAL_SECTION *critSection);
-BOOL FCALL CriticalSectionIsOwner(CRITICAL_SECTION *critSection);
-#define CRITICAL_SECTION_IS_OWNER(x) (ASSERT(CriticalSectionIsOwner(x)))
+BOOL FCALL IsCriticalSectionOwned(CRITICAL_SECTION *critSection);
+BOOL FCALL IsCriticalSectionCurrentOwner(CRITICAL_SECTION *critSection);
+void FCALL WaitForDebugger(VOID);
 
-VOID FCALL WaitForDebugger(VOID);
+#define ASSERT_CS_IS_OWNED(x)         (ASSERT(IsCriticalSectionOwned(x)))
+#define ASSERT_CS_IS_CURRENT_OWNER(x) (ASSERT(IsCriticalSectionCurrentOwner(x)))
 
 #else // DEBUG
 
-#define CriticalSectionIsOwned(x)    ((VOID)0)
-#define CriticalSectionIsOwner(x)    ((VOID)0)
-#define CRITICAL_SECTION_IS_OWNER(x) ((VOID)0)
+#define IsCriticalSectionOwned(x)        ((VOID)0)
+#define IsCriticalSectionCurrentOwner(x) ((VOID)0)
+#define WaitForDebugger()                ((VOID)0)
 
-#define WaitForDebugger()            ((VOID)0)
+#define ASSERT_CS_IS_OWNED(x)            ((VOID)0)
+#define ASSERT_CS_IS_CURRENT_OWNER(x)    ((VOID)0)
 
 #endif // DEBUG
 
