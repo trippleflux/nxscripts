@@ -98,7 +98,7 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
     // Use the most recent successful server for the first connection attempt
     serverIndex = dbIndex;
 
-    // Number of connection attempts to make before failing
+    // If the maximum number of attempts were not specified, try all servers
     if (dbConfigGlobal.connAttempts > 0) {
         attemptMax = dbConfigGlobal.connAttempts;
     } else {
@@ -128,8 +128,8 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
 
         if (dbConfigServers[serverIndex].sslEnable) {
             //
-            // This function always returns 0. If SSL setup is incorrect,
-            // mysql_real_connect() returns an error when you attempt to connect.
+            // This function always returns 0. If the SSL setup is incorrect,
+            // the call to mysql_real_connect() will return an error.
             //
             mysql_ssl_set(db->handle,
                 dbConfigServers[serverIndex].sslKeyFile,
@@ -163,7 +163,7 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
             // Pointer values should be the same as from mysql_init()
             ASSERT(connection == db->handle);
 
-            // Allocate pre-compiled statement structure
+            // Allocate pre-compiled statement structures
             for (i = 0; i < ELEMENT_COUNT(db->stmt); i++) {
                 db->stmt[i] = mysql_stmt_init(db->handle);
                 if (db->stmt[i] == NULL) {
@@ -174,13 +174,11 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
                 }
             }
 
-            // Successfully connected, update global server index
+            // Successfully connected, set the global server index
             InterlockedExchange(&dbIndex, serverIndex);
 
-            // Set server index
+            // Update context's server index and time stamps
             db->index = serverIndex;
-
-            // Set time stamps
             GetSystemTimeAsFileTime((FILETIME *)&db->created);
             db->used = db->created;
 
@@ -319,6 +317,7 @@ static VOID FCALL ConnectionClose(VOID *context, VOID *data)
     }
 
     // Free context structure
+    ZeroMemory(db, sizeof(DB_CONTEXT));
     MemFree(db);
 }
 
@@ -478,8 +477,10 @@ BOOL FCALL DbInit(Io_GetProc *getProc)
 {
     DWORD result;
 
+#if 0
     // Wait for debugger to be attached before proceeding
     WaitForDebugger();
+#endif
 
     TRACE("refCount=%d", refCount);
 
@@ -609,7 +610,7 @@ VOID FCALL DbSyncPurge(VOID)
     TRACE("enabled=%d", dbConfigSync.enabled);
 
     if (dbConfigSync.enabled && DbAcquire(&db)) {
-        // Purge changes tables
+        // Purge changes tables for groups and users
         DbGroupPurge(db, dbConfigSync.purge);
         DbUserPurge(db, dbConfigSync.purge);
 
@@ -740,40 +741,30 @@ Return Values:
 --*/
 DWORD FCALL DbMapError(UINT error)
 {
-    DWORD result;
-
     switch (error) {
         case CR_COMMANDS_OUT_OF_SYNC:
         case CR_NOT_IMPLEMENTED:
-            result = ERROR_INTERNAL_ERROR;
-            break;
+            return ERROR_INTERNAL_ERROR;
 
         case CR_OUT_OF_MEMORY:
-            result = ERROR_NOT_ENOUGH_MEMORY;
-            break;
+            return ERROR_NOT_ENOUGH_MEMORY;
 
         case CR_UNKNOWN_ERROR:
-            result = ERROR_INVALID_FUNCTION;
-            break;
+            return ERROR_INVALID_FUNCTION;
 
         case CR_SERVER_GONE_ERROR:
         case CR_SERVER_LOST:
         case CR_SERVER_LOST_EXTENDED:
-            result = ERROR_NOT_CONNECTED;
-            break;
+            return ERROR_NOT_CONNECTED;
 
         case CR_PARAMS_NOT_BOUND:
         case CR_NO_PARAMETERS_EXISTS:
         case CR_INVALID_PARAMETER_NO:
         case CR_INVALID_BUFFER_USE:
         case CR_UNSUPPORTED_PARAM_TYPE:
-            result = ERROR_INVALID_PARAMETER;
-            break;
-
-        default:
-            LOG_INFO("Unknown MySQL result error %lu.", error);
-            result = ERROR_INVALID_FUNCTION;
+            return ERROR_INVALID_PARAMETER;
     }
 
-    return result;
+    LOG_INFO("Unmapped MySQL result error %lu.", error);
+    return ERROR_INVALID_FUNCTION;
 }
