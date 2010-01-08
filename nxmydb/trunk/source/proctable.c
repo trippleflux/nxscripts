@@ -56,22 +56,22 @@ DWORD FCALL ProcTableInit(Io_GetProc *getProc)
     RESOLVE("Group2Gid",                procTable.pGroup2Gid);
     RESOLVE("Ascii2GroupFile",          procTable.pAscii2GroupFile);
     RESOLVE("GroupFile2Ascii",          procTable.pGroupFile2Ascii);
-	RESOLVE("GroupFile_Open",           procTable.pGroupFileOpen);
-	RESOLVE("GroupFile_OpenPrimitive",  procTable.pGroupFileOpenPrimitive);
-	RESOLVE("GroupFile_Lock",           procTable.pGroupFileLock);
-	RESOLVE("GroupFile_Unlock",         procTable.pGroupFileUnlock);
-	RESOLVE("GroupFile_Close",          procTable.pGroupFileClose);
+    RESOLVE("GroupFile_Open",           procTable.pGroupFileOpen);
+    RESOLVE("GroupFile_OpenPrimitive",  procTable.pGroupFileOpenPrimitive);
+    RESOLVE("GroupFile_Lock",           procTable.pGroupFileLock);
+    RESOLVE("GroupFile_Unlock",         procTable.pGroupFileUnlock);
+    RESOLVE("GroupFile_Close",          procTable.pGroupFileClose);
 
     RESOLVE("GetUsers",                 procTable.pGetUsers);
     RESOLVE("Uid2User",                 procTable.pUid2User);
     RESOLVE("User2Uid",                 procTable.pUser2Uid);
     RESOLVE("Ascii2UserFile",           procTable.pAscii2UserFile);
     RESOLVE("UserFile2Ascii",           procTable.pUserFile2Ascii);
-	RESOLVE("UserFile_Open",            procTable.pUserFileOpen);
-	RESOLVE("UserFile_OpenPrimitive",   procTable.pUserFileOpenPrimitive);
-	RESOLVE("UserFile_Lock",            procTable.pUserFileLock);
-	RESOLVE("UserFile_Unlock",          procTable.pUserFileUnlock);
-	RESOLVE("UserFile_Close",           procTable.pUserFileClose);
+    RESOLVE("UserFile_Open",            procTable.pUserFileOpen);
+    RESOLVE("UserFile_OpenPrimitive",   procTable.pUserFileOpenPrimitive);
+    RESOLVE("UserFile_Lock",            procTable.pUserFileLock);
+    RESOLVE("UserFile_Unlock",          procTable.pUserFileUnlock);
+    RESOLVE("UserFile_Close",           procTable.pUserFileClose);
 
     RESOLVE("Allocate",                 procTable.pAllocate);
     RESOLVE("ReAllocate",               procTable.pReAllocate);
