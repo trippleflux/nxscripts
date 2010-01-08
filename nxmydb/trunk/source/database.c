@@ -60,15 +60,16 @@ Return Values:
 --*/
 static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
 {
-    DB_CONTEXT  *db;
-    DWORD       error;
-    DWORD       i;
-    INT         attempt;
-    INT         attemptMax;
-    LONG        serverIndex;
-    MYSQL       *connection;
-    my_bool     optReconnect;
-    UINT        optTimeout;
+    DB_CONTEXT          *db;
+    DB_CONFIG_SERVER    *server;
+    DWORD               error;
+    DWORD               i;
+    INT                 attempt;
+    INT                 attemptMax;
+    LONG                serverIndex;
+    MYSQL               *connection;
+    my_bool             optReconnect;
+    UINT                optTimeout;
 
     UNREFERENCED_PARAMETER(context);
     ASSERT(data != NULL);
@@ -95,8 +96,9 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
         goto failed;
     }
 
-    // Use the most recent successful server for the first connection attempt
+    // Use the most recent server for the connection attempt
     serverIndex = dbIndex;
+    server      = &dbConfigServers[serverIndex];
 
     // If the maximum number of attempts were not specified, try all servers
     if (dbConfigGlobal.connAttempts > 0) {
@@ -107,7 +109,7 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
 
     for (attempt = 0; attempt < attemptMax; attempt++) {
         TRACE("Connecting to server #%d [%s] on attempt %lu/%lu.",
-            serverIndex, dbConfigServers[serverIndex].name, attempt+1, attemptMax);
+            serverIndex, server->name, attempt+1, attemptMax);
 
         // Set connection options
         optTimeout = (UINT)dbConfigGlobal.connTimeout;
@@ -120,44 +122,33 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
             TRACE("Failed to set reconnection option.");
         }
 
-        if (dbConfigServers[serverIndex].compression) {
+        if (server->compression) {
             if (mysql_options(db->handle, MYSQL_OPT_COMPRESS, 0) != 0) {
                 TRACE("Failed to set compression option.");
             }
         }
 
-        if (dbConfigServers[serverIndex].sslEnable) {
+        if (server->sslEnable) {
             //
             // This function always returns 0. If the SSL setup is incorrect,
             // the call to mysql_real_connect() will return an error.
             //
-            mysql_ssl_set(db->handle,
-                dbConfigServers[serverIndex].sslKeyFile,
-                dbConfigServers[serverIndex].sslCertFile,
-                dbConfigServers[serverIndex].sslCAFile,
-                dbConfigServers[serverIndex].sslCAPath,
-                dbConfigServers[serverIndex].sslCiphers);
+            mysql_ssl_set(db->handle, server->sslKeyFile, server->sslCertFile,
+                server->sslCAFile, server->sslCAPath, server->sslCiphers);
         }
 
         // Attempt connection with server
-        connection = mysql_real_connect(
-            db->handle,
-            dbConfigServers[serverIndex].host,
-            dbConfigServers[serverIndex].user,
-            dbConfigServers[serverIndex].password,
-            dbConfigServers[serverIndex].database,
-            dbConfigServers[serverIndex].port,
-            NULL, CLIENT_INTERACTIVE);
+        connection = mysql_real_connect(db->handle,
+            server->host, server->user, server->password,
+            server->database, server->port, NULL, CLIENT_INTERACTIVE);
 
         if (connection == NULL) {
             LOG_ERROR("Unable to connect to server [%s]: %s",
-                dbConfigServers[serverIndex].name,
-                mysql_error(db->handle));
+                server->name, mysql_error(db->handle));
 
         } else if (mysql_get_server_version(db->handle) < 50019) {
             LOG_ERROR("Unsupported version of MySQL Server [%s]: running v%s, must be v5.0.19 or newer.",
-                dbConfigServers[serverIndex].name,
-                mysql_get_server_info(db->handle));
+                server->name, mysql_get_server_info(db->handle));
 
         } else {
             // Pointer values should be the same as from mysql_init()
@@ -183,8 +174,7 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
             db->used = db->created;
 
             LOG_INFO("Connected to %s [%s], running MySQL Server v%s.",
-                mysql_get_host_info(db->handle),
-                dbConfigServers[serverIndex].name,
+                mysql_get_host_info(db->handle), server->name,
                 mysql_get_server_info(db->handle));
 
             *data = db;
