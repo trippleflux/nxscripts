@@ -67,6 +67,7 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
     INT                 attempt;
     INT                 attemptMax;
     LONG                serverIndex;
+    LONG                serverNextIndex;
     MYSQL               *connection;
     my_bool             optReconnect;
     UINT                optTimeout;
@@ -96,10 +97,6 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
         goto failed;
     }
 
-    // Use the most recent server for the connection attempt
-    serverIndex = dbIndex;
-    server      = &dbConfigServers[serverIndex];
-
     // If the maximum number of attempts were not specified, try all servers
     if (dbConfigGlobal.connAttempts > 0) {
         attemptMax = dbConfigGlobal.connAttempts;
@@ -108,6 +105,10 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
     }
 
     for (attempt = 0; attempt < attemptMax; attempt++) {
+        // Use the most recent server for the connection attempt
+        serverIndex = dbIndex;
+        server      = &dbConfigServers[serverIndex];
+
         TRACE("Connecting to server #%d [%s] on attempt %lu/%lu.",
             serverIndex, server->name, attempt+1, attemptMax);
 
@@ -182,17 +183,16 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
         }
 
         // Unsuccessful connection, continue to the next server
-        serverIndex++;
-        if (serverIndex >= (LONG)dbConfigServerCount) {
-            serverIndex = 0;
+        serverNextIndex = serverIndex + 1;
+        if (serverNextIndex >= (LONG)dbConfigServerCount) {
+            serverNextIndex = 0;
         }
 
         //
-        // If the connection attempts option is less than the number of servers,
-        // the global server index must be updated so we cycle through the full
-        // list of servers.
+        // Compare the current server index before swapping values in the
+        // event that another thread has already changed the index.
         //
-        InterlockedExchange(&dbIndex, serverIndex);
+        InterlockedCompareExchange(&dbIndex, serverNextIndex, serverIndex);
     }
 
     // Unable to connect to any servers
