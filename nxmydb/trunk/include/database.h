@@ -21,12 +21,17 @@ Abstract:
 // Database structures
 //
 
+typedef union {
+    FILETIME    fileTime;   // FILETIME structure
+    UINT64      value;      // Unsigned 64bit value
+} DB_TIME;
+
 typedef struct {
     MYSQL      *handle;     // MySQL connection handle
     MYSQL_STMT *stmt[8];    // Pre-compiled SQL statements (eighth statement for refresh)
     LONG        index;      // Index in the server configuration array
-    UINT64      created;    // Time this context was created
-    UINT64      used;       // Time this context was last used
+    DB_TIME     created;    // Time this context was created
+    DB_TIME     used;       // Time this context was last used
 } DB_CONTEXT;
 
 typedef struct {

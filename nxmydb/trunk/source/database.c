@@ -171,8 +171,8 @@ static BOOL FCALL ConnectionOpen(VOID *context, VOID **data)
 
             // Update context's server index and time stamps
             db->index = serverIndex;
-            GetSystemTimeAsFileTime((FILETIME *)&db->created);
-            db->used = db->created;
+            GetSystemTimeAsFileTime(&db->created.fileTime);
+            db->used.value = db->created.value;
 
             LOG_INFO("Connected to %s [%s], running MySQL Server v%s.",
                 mysql_get_host_info(db->handle), server->name,
@@ -226,8 +226,8 @@ Return Values:
 static BOOL FCALL ConnectionCheck(VOID *context, VOID *data)
 {
     DB_CONTEXT  *db = data;
-    UINT64      timeCurrent;
-    UINT64      timeDelta;
+    DB_TIME     timeCurrent;
+    DB_TIME     timeDelta;
 
     UNREFERENCED_PARAMETER(context);
     ASSERT(data != NULL);
@@ -240,22 +240,22 @@ static BOOL FCALL ConnectionCheck(VOID *context, VOID *data)
         return FALSE;
     }
 
-    GetSystemTimeAsFileTime((FILETIME *)&timeCurrent);
+    GetSystemTimeAsFileTime(&timeCurrent.fileTime);
 
     // Check if the context has exceeded the expiration time
-    timeDelta = timeCurrent - db->created;
-    if (timeDelta > dbConfigPool.expireNano) {
+    timeDelta.value = timeCurrent.value - db->created.value;
+    if (timeDelta.value > dbConfigPool.expireNano) {
         LOG_INFO("Expiring server connection after %I64u seconds (%d second limit).",
-            timeDelta/10000000, dbConfigPool.expire);
+            timeDelta.value/10000000, dbConfigPool.expire);
         SetLastError(ERROR_CONTEXT_EXPIRED);
         return FALSE;
     }
 
     // Check if the connection is still alive
-    timeDelta = timeCurrent - db->used;
-    if (timeDelta > dbConfigPool.checkNano) {
+    timeDelta.value = timeCurrent.value - db->used.value;
+    if (timeDelta.value > dbConfigPool.checkNano) {
         LOG_INFO("Connection has not been used in %I64u seconds (%d second limit), pinging it.",
-            timeDelta/10000000, dbConfigPool.check);
+            timeDelta.value/10000000, dbConfigPool.check);
 
         if (mysql_ping(db->handle) != 0) {
             LOG_WARN("Lost server connection: %s", mysql_error(db->handle));
@@ -264,7 +264,7 @@ static BOOL FCALL ConnectionCheck(VOID *context, VOID *data)
         }
 
         // Update last-use time stamp
-        GetSystemTimeAsFileTime((FILETIME *)&db->used);
+        GetSystemTimeAsFileTime(&db->used.fileTime);
     }
 
     return TRUE;
@@ -707,7 +707,7 @@ VOID FCALL DbRelease(DB_CONTEXT *db)
 
     } else {
         // Update last-use time stamp
-        GetSystemTimeAsFileTime((FILETIME *)&db->used);
+        GetSystemTimeAsFileTime(&db->used.fileTime);
 
         // Release the database context
         if (!PoolRelease(&dbPool, db)) {
