@@ -3,9 +3,9 @@ nxMyDB v2.1.0 (Not released):
   NEW: Configuration option "Connection_Timeout" to set the server timeout.
   NEW: Configuration option "Servers" to list names of server arrays.
   NEW: Support for multiple MySQL Server configurations.
-  NEW: Updated MySQL Client Library (libmysql.dll) to v5.1.36.
-  CHG: Configurations have changed significantly, users must update.
-  FIX: Reduced locking during pool callbacks to improve efficiency.
+  NEW: Updated MySQL Client Library (libmysql.dll) to v5.1.42.
+  CHG: Configuration options have changed, users must update their INI file.
+  FIX: Reduced lock contention in connection pool callbacks
 
 nxMyDB v2.0.0 (Jan 24, 2009):
   NEW: Compatibility with ioFTPD v6.9 and newer.

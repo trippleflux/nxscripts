@@ -13,11 +13,11 @@
 #
 
 # Build options
-DEBUG       = 0
+DEBUG       = 1
 MSVCRT      = 0
 PLATFORM    = X86
 IOFTPD_INC  = D:\ioFTPD\source\Source-v6.9.0\include
-MYSQL_DIR   = C:\Program Files (x86)\MySQL\MySQL Server 5.1
+MYSQL_DIR   = D:\Projects\MySQL\5.1.42
 
 # Release version
 VERSION     = 2.1.0
