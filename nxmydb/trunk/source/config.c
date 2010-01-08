@@ -39,9 +39,10 @@ static VOID  FCALL ZeroConfig(VOID);
 
 static DWORD FCALL LoadGlobal(VOID);
 static DWORD FCALL LoadServer(CHAR *array, DB_CONFIG_SERVER *server);
-static DWORD FCALL LoadServers(VOID);
+static DWORD FCALL LoadAllServers(VOID);
+
 static DWORD FCALL FreeServer(DB_CONFIG_SERVER *server);
-static DWORD FCALL FreeServers(VOID);
+static DWORD FCALL FreeAllServers(VOID);
 
 
 /*++
@@ -345,7 +346,7 @@ static DWORD FCALL LoadServer(CHAR *array, DB_CONFIG_SERVER *server)
 
 /*++
 
-LoadServers
+LoadAllServers
 
     Loads all server configurations.
 
@@ -356,7 +357,7 @@ Return Values:
     A Windows API error code.
 
 --*/
-static DWORD FCALL LoadServers(VOID)
+static DWORD FCALL LoadAllServers(VOID)
 {
     CHAR        *name;
     CHAR        *servers;
@@ -471,7 +472,7 @@ static DWORD FCALL FreeServer(DB_CONFIG_SERVER *server)
 
 /*++
 
-FreeServers
+FreeAllServers
 
     Frees all server configuration structures.
 
@@ -485,7 +486,7 @@ Remarks:
     This function always succeeds.
 
 --*/
-static DWORD FCALL FreeServers(VOID)
+static DWORD FCALL FreeAllServers(VOID)
 {
     DWORD i;
 
@@ -557,7 +558,7 @@ DWORD FCALL ConfigLoad(VOID)
     }
 
     // Load server configurations
-    result = LoadServers();
+    result = LoadAllServers();
     if (result != ERROR_SUCCESS) {
         return result;
     }
@@ -591,7 +592,7 @@ Return Values:
 DWORD FCALL ConfigFinalize(VOID)
 {
     // Free all server configuration structures
-    FreeServers();
+    FreeAllServers();
 
     // Clear configuration structures
     ZeroConfig();
