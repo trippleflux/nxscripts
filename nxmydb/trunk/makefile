@@ -13,7 +13,7 @@
 #
 
 # Build options
-DEBUG       = 1
+DEBUG       = 0
 MSVCRT      = 0
 PLATFORM    = X86
 IOFTPD_INC  = D:\ioFTPD\source\Source-v6.9.0\include
