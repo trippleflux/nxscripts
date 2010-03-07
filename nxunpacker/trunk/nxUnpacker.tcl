@@ -79,7 +79,8 @@ proc GetPatchFile {dirList} {
 }
 
 proc GetSetupFile {dirList} {
-    set patternRank [list "*setup*.exe" 1 "*install*.exe" 1 "*.exe" 2]
+    #set patternRank [list "*setup*.exe" 1 "*install*.exe" 1 "*.exe" 2]
+    set patternRank [list "*setup*.exe" 1 "*install*.exe" 1]
     return [GetFileFromList $dirList $patternRank]
 }
 
@@ -210,7 +211,11 @@ foreach dirPath $dirList {
 
     set fileList [glob -directory $dirPath -types f -nocomplain "*"]
     set subDirList [glob -directory $dirPath -types d -nocomplain "*"]
-    puts "|  |- Found [llength $fileList] file(s)."
+    puts "|  |- Found [llength $fileList] file(s) and [llength $subDirList] dir(s)."
+    if {[lsearch -exact $subDirList {[Unpack]}] != -1} {
+        puts "| `- Found unpacked directory, skipping."
+        continue
+    }
 
     puts "|  |- Creating directories."
     set unpackPath [file join $dirPath {[Unpack]}]
