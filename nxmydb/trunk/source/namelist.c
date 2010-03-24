@@ -251,7 +251,7 @@ DWORD FCALL NameListCreateGroups(NAME_LIST *list)
 
     ASSERT(list != NULL);
 
-    path = Io_ConfigGet("Locations", "Group_Id_Table", NULL, NULL);
+    path = Io_ConfigGet(Io_ConfigGetIniFile(), "Locations", "Group_Id_Table", NULL, NULL);
     if (path == NULL) {
         return ERROR_NOT_ENOUGH_MEMORY;
     }
@@ -269,7 +269,7 @@ DWORD FCALL NameListCreateUsers(NAME_LIST *list)
 
     ASSERT(list != NULL);
 
-    path = Io_ConfigGet("Locations", "User_Id_Table", NULL, NULL);
+    path = Io_ConfigGet(Io_ConfigGetIniFile(), "Locations", "User_Id_Table", NULL, NULL);
     if (path == NULL) {
         return ERROR_NOT_ENOUGH_MEMORY;
     }

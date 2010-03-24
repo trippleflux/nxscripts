@@ -33,13 +33,13 @@ DWORD             dbConfigServerCount;
 // Function declarations
 //
 
-static CHAR *FCALL GetString(CHAR *array, CHAR *variable);
+static CHAR *FCALL GetString(CONFIG_FILE *configFile, CHAR *array, CHAR *variable);
 static DWORD FCALL SetUuid(VOID);
 static VOID  FCALL ZeroConfig(VOID);
 
-static DWORD FCALL LoadGlobal(VOID);
-static DWORD FCALL LoadServer(CHAR *array, DB_CONFIG_SERVER *server);
-static DWORD FCALL LoadAllServers(VOID);
+static DWORD FCALL LoadGlobal(CONFIG_FILE *configFile);
+static DWORD FCALL LoadServer(CONFIG_FILE *configFile, CHAR *array, DB_CONFIG_SERVER *server);
+static DWORD FCALL LoadAllServers(CONFIG_FILE *configFile);
 
 static DWORD FCALL FreeServer(DB_CONFIG_SERVER *server);
 static DWORD FCALL FreeAllServers(VOID);
@@ -52,9 +52,11 @@ GetString
     Retrieves configuration options, also removing comments and whitespace.
 
 Arguments:
-    array    - Option array name.
+    configFile - Pointer to a CONFIG_FILE structure.
 
-    variable - Option variable name.
+    array      - Option array name.
+
+    variable   - Option variable name.
 
 Return Values:
     If the function succeeds, the return value is a pointer to the configuration value.
@@ -62,17 +64,18 @@ Return Values:
     If the function fails, the return value is null.
 
 --*/
-static CHAR *FCALL GetString(CHAR *array, CHAR *variable)
+static CHAR *FCALL GetString(CONFIG_FILE *configFile, CHAR *array, CHAR *variable)
 {
     CHAR *p;
     CHAR *value;
     SIZE_T length;
 
+    ASSERT(configFile != NULL);
     ASSERT(array != NULL);
     ASSERT(variable != NULL);
 
     // Retrieve value from ioFTPD
-    value = Io_ConfigGet(array, variable, NULL, NULL);
+    value = Io_ConfigGet(configFile, array, variable, NULL, NULL);
     if (value == NULL) {
         return NULL;
     }
@@ -100,9 +103,7 @@ SetUuid
     Generates a UUID used for identifying the server.
 
 Arguments:
-    If the function succeeds, the return value is nonzero (true).
-
-    If the function fails, the return value is zero (false).
+    None.
 
 Return Values:
     A Windows API error code.
@@ -174,35 +175,38 @@ LoadGlobal
     Loads global configuration options.
 
 Arguments:
-    None.
+    configFile - Pointer to a CONFIG_FILE structure.
 
 Return Values:
     A Windows API error code.
 
 --*/
-static DWORD FCALL LoadGlobal(VOID)
+static DWORD FCALL LoadGlobal(CONFIG_FILE *configFile)
 {
     INT value;
+
+    ASSERT(configFile != NULL);
 
     //
     // Read global options
     //
 
     dbConfigGlobal.connAttempts = 0;
-    if (Io_ConfigGetInt("nxMyDB", "Connection_Attempts", &dbConfigGlobal.connAttempts) && dbConfigGlobal.connAttempts < 0) {
+    if (Io_ConfigGetInt(configFile, "nxMyDB", "Connection_Attempts", &dbConfigGlobal.connAttempts)
+            && dbConfigGlobal.connAttempts < 0) {
         LOG_ERROR("Configuration option 'Connection_Attempts' must be zero or greater.");
         return ERROR_INVALID_PARAMETER;
     }
 
     dbConfigGlobal.connTimeout = 10;
-    if (Io_ConfigGetInt("nxMyDB", "Connection_Timeout", &dbConfigGlobal.connTimeout) && dbConfigGlobal.connTimeout <= 0) {
+    if (Io_ConfigGetInt(configFile, "nxMyDB", "Connection_Timeout", &dbConfigGlobal.connTimeout) && dbConfigGlobal.connTimeout <= 0) {
         LOG_ERROR("Configuration option 'Connection_Timeout' must be greater than zero.");
         return ERROR_INVALID_PARAMETER;
     }
 
     // Use an integer as a temporary value since enum's do not have a definite size
     value = (INT)LOG_LEVEL_ERROR;
-    if (Io_ConfigGetInt("nxMyDB", "Log_Level", &value) && value < 0) {
+    if (Io_ConfigGetInt(configFile, "nxMyDB", "Log_Level", &value) && value < 0) {
         LOG_ERROR("Configuration option 'Log_Level' must be zero or greater.");
         return ERROR_INVALID_PARAMETER;
     }
@@ -213,13 +217,15 @@ static DWORD FCALL LoadGlobal(VOID)
     //
 
     dbConfigLock.expire = 60;
-    if (Io_ConfigGetInt("nxMyDB", "Lock_Expire", &dbConfigLock.expire) && dbConfigLock.expire <= 0) {
+    if (Io_ConfigGetInt(configFile, "nxMyDB", "Lock_Expire", &dbConfigLock.expire)
+            && dbConfigLock.expire <= 0) {
         LOG_ERROR("Configuration option 'Lock_Expire' must be greater than zero.");
         return ERROR_INVALID_PARAMETER;
     }
 
     dbConfigLock.timeout = 5;
-    if (Io_ConfigGetInt("nxMyDB", "Lock_Timeout", &dbConfigLock.timeout) && dbConfigLock.timeout <= 0) {
+    if (Io_ConfigGetInt(configFile, "nxMyDB", "Lock_Timeout", &dbConfigLock.timeout)
+            && dbConfigLock.timeout <= 0) {
         LOG_ERROR("Configuration option 'Lock_Timeout' must be greater than zero.");
         return ERROR_INVALID_PARAMETER;
     }
@@ -229,40 +235,45 @@ static DWORD FCALL LoadGlobal(VOID)
     //
 
     dbConfigPool.minimum = 1;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Minimum", &dbConfigPool.minimum) && dbConfigPool.minimum <= 0) {
+    if (Io_ConfigGetInt(configFile, "nxMyDB", "Pool_Minimum", &dbConfigPool.minimum)
+            && dbConfigPool.minimum <= 0) {
         LOG_ERROR("Configuration option 'Pool_Minimum' must be greater than zero.");
         return ERROR_INVALID_PARAMETER;
     }
 
     dbConfigPool.average = dbConfigPool.minimum + 1;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Average", &dbConfigPool.average) && dbConfigPool.average < dbConfigPool.minimum) {
+    if (Io_ConfigGetInt(configFile, "nxMyDB", "Pool_Average", &dbConfigPool.average)
+            && dbConfigPool.average < dbConfigPool.minimum) {
         LOG_ERROR("Configuration option 'Pool_Average' must be greater than or equal to 'Pool_Minimum'.");
         return ERROR_INVALID_PARAMETER;
     }
 
     dbConfigPool.maximum = dbConfigPool.average * 2;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Maximum", &dbConfigPool.maximum) && dbConfigPool.maximum < dbConfigPool.average) {
+    if (Io_ConfigGetInt(configFile, "nxMyDB", "Pool_Maximum", &dbConfigPool.maximum)
+            && dbConfigPool.maximum < dbConfigPool.average) {
         LOG_ERROR("Configuration option 'Pool_Maximum' must be greater than or equal to 'Pool_Average'.");
         return ERROR_INVALID_PARAMETER;
     }
 
     dbConfigPool.timeout = 5;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Timeout", &dbConfigPool.timeout) && dbConfigPool.timeout <= 0) {
+    if (Io_ConfigGetInt(configFile, "nxMyDB", "Pool_Timeout", &dbConfigPool.timeout)
+            && dbConfigPool.timeout <= 0) {
         LOG_ERROR("Configuration option 'Pool_Timeout' must be greater than zero.");
         return ERROR_INVALID_PARAMETER;
     }
     dbConfigPool.timeoutMili = dbConfigPool.timeout * 1000; // sec to msec
 
     dbConfigPool.expire = 3600;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Expire", &dbConfigPool.expire) && dbConfigPool.expire <= 0) {
+    if (Io_ConfigGetInt(configFile, "nxMyDB", "Pool_Expire", &dbConfigPool.expire)
+            && dbConfigPool.expire <= 0) {
         LOG_ERROR("Configuration option 'Pool_Expire' must be greater than zero.");
         return ERROR_INVALID_PARAMETER;
     }
     dbConfigPool.expireNano = UInt32x32To64(dbConfigPool.expire, 10000000); // sec to 100nsec
 
     dbConfigPool.check = 60;
-    if (Io_ConfigGetInt("nxMyDB", "Pool_Check", &dbConfigPool.check) &&
-            (dbConfigPool.check <= 0 || dbConfigPool.check >= dbConfigPool.expire)) {
+    if (Io_ConfigGetInt(configFile, "nxMyDB", "Pool_Check", &dbConfigPool.check)
+            && (dbConfigPool.check <= 0 || dbConfigPool.check >= dbConfigPool.expire)) {
         LOG_ERROR("Configuration option 'Pool_Check' must be greater than zero and less than 'Pool_Expire'.");
         return ERROR_INVALID_PARAMETER;
     }
@@ -272,25 +283,28 @@ static DWORD FCALL LoadGlobal(VOID)
     // Read sync options
     //
 
-    Io_ConfigGetBool("nxMyDB", "Sync", &dbConfigSync.enabled);
+    Io_ConfigGetBool(configFile, "nxMyDB", "Sync", &dbConfigSync.enabled);
 
     if (dbConfigSync.enabled) {
         dbConfigSync.first = 30;
-        if (Io_ConfigGetInt("nxMyDB", "Sync_First", &dbConfigSync.first) && dbConfigSync.first <= 0) {
+        if (Io_ConfigGetInt(configFile, "nxMyDB", "Sync_First", &dbConfigSync.first)
+                && dbConfigSync.first <= 0) {
             LOG_ERROR("Configuration option 'SyncTimer' must be greater than zero.");
             return ERROR_INVALID_PARAMETER;
         }
         dbConfigSync.first = dbConfigSync.first * 1000; // sec to msec
 
         dbConfigSync.interval = 60;
-        if (Io_ConfigGetInt("nxMyDB", "Sync_Interval", &dbConfigSync.interval) && dbConfigSync.interval <= 0) {
+        if (Io_ConfigGetInt(configFile, "nxMyDB", "Sync_Interval", &dbConfigSync.interval)
+                && dbConfigSync.interval <= 0) {
             LOG_ERROR("Configuration option 'Sync_Interval' must be greater than zero.");
             return ERROR_INVALID_PARAMETER;
         }
         dbConfigSync.interval = dbConfigSync.interval * 1000; // sec to msec
 
         dbConfigSync.purge = dbConfigSync.interval * 100;
-        if (Io_ConfigGetInt("nxMyDB", "Sync_Purge", &dbConfigSync.purge) && dbConfigSync.purge <= dbConfigSync.interval) {
+        if (Io_ConfigGetInt(configFile, "nxMyDB", "Sync_Purge", &dbConfigSync.purge)
+                && dbConfigSync.purge <= dbConfigSync.interval) {
             LOG_ERROR("Configuration option 'Sync_Purge' must be greater than 'Sync_Interval'.");
             return ERROR_INVALID_PARAMETER;
         }
@@ -306,9 +320,11 @@ LoadServer
     Load a server configuration.
 
 Arguments:
-    array   - Option array name.
+    configFile - Pointer to a CONFIG_FILE structure.
 
-    server  - Pointer to a DB_CONFIG_SERVER structure.
+    array      - Option array name.
+
+    server     - Pointer to a DB_CONFIG_SERVER structure.
 
 Return Values:
     A Windows API error code.
@@ -317,8 +333,9 @@ Remarks:
     This function always succeeds.
 
 --*/
-static DWORD FCALL LoadServer(CHAR *array, DB_CONFIG_SERVER *server)
+static DWORD FCALL LoadServer(CONFIG_FILE *configFile, CHAR *array, DB_CONFIG_SERVER *server)
 {
+    ASSERT(configFile != NULL);
     ASSERT(array != NULL);
     ASSERT(server != NULL);
 
@@ -326,20 +343,20 @@ static DWORD FCALL LoadServer(CHAR *array, DB_CONFIG_SERVER *server)
     StringCchCopy(server->name, ELEMENT_COUNT(server->name), array);
 
     // Host options
-    server->host     = GetString(array, "Host");
-    server->user     = GetString(array, "User");
-    server->password = GetString(array, "Password");
-    server->database = GetString(array, "Database");
-    Io_ConfigGetInt(array, "Port", &server->port);
+    server->host     = GetString(configFile, array, "Host");
+    server->user     = GetString(configFile, array, "User");
+    server->password = GetString(configFile, array, "Password");
+    server->database = GetString(configFile, array, "Database");
+    Io_ConfigGetInt(configFile, array, "Port", &server->port);
 
     // Connection options
-    Io_ConfigGetBool(array, "Compression", &server->compression);
-    Io_ConfigGetBool(array, "SSL_Enable", &server->sslEnable);
-    server->sslCiphers  = GetString(array, "SSL_Ciphers");
-    server->sslCertFile = GetString(array, "SSL_Cert_File");
-    server->sslKeyFile  = GetString(array, "SSL_Key_File");
-    server->sslCAFile   = GetString(array, "SSL_CA_File");
-    server->sslCAPath   = GetString(array, "SSL_CA_Path");
+    Io_ConfigGetBool(configFile, array, "Compression", &server->compression);
+    Io_ConfigGetBool(configFile, array, "SSL_Enable", &server->sslEnable);
+    server->sslCiphers  = GetString(configFile, array, "SSL_Ciphers");
+    server->sslCertFile = GetString(configFile, array, "SSL_Cert_File");
+    server->sslKeyFile  = GetString(configFile, array, "SSL_Key_File");
+    server->sslCAFile   = GetString(configFile, array, "SSL_CA_File");
+    server->sslCAPath   = GetString(configFile, array, "SSL_CA_Path");
 
     return ERROR_SUCCESS;
 }
@@ -351,13 +368,13 @@ LoadAllServers
     Loads all server configurations.
 
 Arguments:
-    None.
+    configFile - Pointer to a CONFIG_FILE structure.
 
 Return Values:
     A Windows API error code.
 
 --*/
-static DWORD FCALL LoadAllServers(VOID)
+static DWORD FCALL LoadAllServers(CONFIG_FILE *configFile)
 {
     CHAR        *name;
     CHAR        *servers;
@@ -366,8 +383,10 @@ static DWORD FCALL LoadAllServers(VOID)
     DWORD       result;
     IO_STRING   serverList;
 
+    ASSERT(configFile != NULL);
+
     // Retrieve the list of server array names
-    servers = GetString("nxMyDB", "Servers");
+    servers = GetString(configFile, "nxMyDB", "Servers");
     if (servers == NULL) {
         LOG_ERROR("Configuration option 'Servers' must be defined.");
         return ERROR_INVALID_PARAMETER;
@@ -396,7 +415,7 @@ static DWORD FCALL LoadAllServers(VOID)
                     name = Io_GetStringIndexStatic(&serverList, i);
 
                     // The success of LoadServer() does not matter
-                    LoadServer(name, &dbConfigServers[i]);
+                    LoadServer(configFile, name, &dbConfigServers[i]);
                 }
 
                 // Update global count
@@ -544,21 +563,28 @@ Return Values:
 --*/
 DWORD FCALL ConfigLoad(VOID)
 {
-    DWORD result;
+    CONFIG_FILE *configFile;
+    DWORD       result;
 
     //
     // Each of these following functions will log
     // the appropriate message if they fail.
     //
 
+    // Retrieve CONFIG_FILE structure for ioFTPD.ini
+    configFile = Io_ConfigGetIniFile();
+    if (configFile == NULL) {
+        return ERROR_INVALID_PARAMETER;
+    }
+
     // Load global configuration options
-    result = LoadGlobal();
+    result = LoadGlobal(configFile);
     if (result != ERROR_SUCCESS) {
         return result;
     }
 
     // Load server configurations
-    result = LoadAllServers();
+    result = LoadAllServers(configFile);
     if (result != ERROR_SUCCESS) {
         return result;
     }
@@ -568,10 +594,6 @@ DWORD FCALL ConfigLoad(VOID)
     if (result != ERROR_SUCCESS) {
         return result;
     }
-
-    // There should always be at least one server
-    ASSERT(dbConfigServers != NULL);
-    ASSERT(dbConfigServerCount > 0);
 
     return ERROR_SUCCESS;
 }

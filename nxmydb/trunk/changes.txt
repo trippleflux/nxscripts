@@ -1,4 +1,5 @@
 nxMyDB v2.1.0 (Not released):
+  NEW: Compatibility with ioFTPD v7.2 and newer.
   NEW: Configuration option "Connection_Attempts" to set the max number of attempts.
   NEW: Configuration option "Connection_Timeout" to set the server timeout.
   NEW: Configuration option "Servers" to list names of server arrays.

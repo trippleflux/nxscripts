@@ -88,7 +88,8 @@ static DWORD FileUserDefaultPath(INT groupId, CHAR **pathPtr)
         StringCchCatA(buffer, ELEMENT_COUNT(buffer), groupName);
 
         // Retrieve "Default=Group" location
-        path = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
+        path = Io_ConfigGetPath(Io_ConfigGetIniFile(), "Locations", "User_Files",
+             buffer, NULL);
         if (path == NULL) {
             TRACE("Unable to retrieve file \"%s\" location.", buffer);
             result = ERROR_NOT_ENOUGH_MEMORY;
@@ -107,7 +108,8 @@ static DWORD FileUserDefaultPath(INT groupId, CHAR **pathPtr)
     }
 
     // Retrieve "Default.User" location
-    path = Io_ConfigGetPath("Locations", "User_Files", "Default.User", NULL);
+    path = Io_ConfigGetPath(Io_ConfigGetIniFile(), "Locations", "User_Files",
+        "Default.User", NULL);
     if (path == NULL) {
         TRACE("Unable to retrieve file \"Default.User\" location.");
         result = ERROR_NOT_ENOUGH_MEMORY;
@@ -183,7 +185,8 @@ DWORD FileUserCreate(INT32 userId, USERFILE *userFile)
     TRACE("userId=%d userFile=%p", userId, userFile);
 
     // Retrieve default location
-    defaultPath = Io_ConfigGetPath("Locations", "User_Files", "Default.User", NULL);
+    defaultPath = Io_ConfigGetPath(Io_ConfigGetIniFile(), "Locations",
+        "User_Files", "Default.User", NULL);
     if (defaultPath == NULL) {
         TRACE("Unable to retrieve file \"Default.User\" location.");
         return ERROR_NOT_ENOUGH_MEMORY;
@@ -191,7 +194,8 @@ DWORD FileUserCreate(INT32 userId, USERFILE *userFile)
 
     // Retrieve target location
     StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", userId);
-    targetPath = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
+    targetPath = Io_ConfigGetPath(Io_ConfigGetIniFile(), "Locations",
+        "User_Files", buffer, NULL);
     if (targetPath == NULL) {
         TRACE("Unable to retrieve user file location.");
 
@@ -230,7 +234,8 @@ DWORD FileUserDelete(INT32 userId)
 
     // Retrieve user file location
     StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", userId);
-    path = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
+    path = Io_ConfigGetPath(Io_ConfigGetIniFile(), "Locations", "User_Files",
+        buffer, NULL);
     if (path == NULL) {
         TRACE("Unable to retrieve file location.");
         return ERROR_NOT_ENOUGH_MEMORY;
@@ -268,7 +273,8 @@ DWORD FileUserOpen(INT32 userId, USERFILE *userFile)
 
     // Retrieve user file location
     StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", userId);
-    path = Io_ConfigGetPath("Locations", "User_Files", buffer, NULL);
+    path = Io_ConfigGetPath(Io_ConfigGetIniFile(), "Locations", "User_Files",
+        buffer, NULL);
     if (path == NULL) {
         TRACE("Unable to retrieve file location.");
         return ERROR_NOT_ENOUGH_MEMORY;

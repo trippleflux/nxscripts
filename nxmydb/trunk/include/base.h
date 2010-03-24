@@ -58,15 +58,16 @@ Abstract:
 #include <UserFile.h>
 #include <User.h>
 
+#include <IoString.h>
 #include <VirtualPath.h>
 #include <IoOverlapped.h>
 #include <IoFile.h>
 #include <IoService.h>
 #include <IoSocket.h>
-#include <IoString.h>
 #include <Job.h>
 #include <Threads.h>
 #include <Event.h>
+#include <ConfigReader.h>
 
 // MySQL headers
 #include <mysql.h>

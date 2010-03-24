@@ -16,7 +16,7 @@
 DEBUG       = 0
 MSVCRT      = 0
 PLATFORM    = X86
-IOFTPD_INC  = D:\ioFTPD\source\Source-v6.9.0\include
+IOFTPD_INC  = D:\ioFTPD\source\Source-v7.2.0\include
 MYSQL_DIR   = D:\Projects\MySQL\5.1.42
 
 # Release version

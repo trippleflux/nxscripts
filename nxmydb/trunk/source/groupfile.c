@@ -80,7 +80,8 @@ DWORD FileGroupDefault(GROUPFILE *groupFile)
     TRACE("groupFile=%p", groupFile);
 
     // Retrieve "Default.Group" location
-    path = Io_ConfigGetPath("Locations", "Group_Files", "Default.Group", NULL);
+    path = Io_ConfigGetPath(Io_ConfigGetIniFile(), "Locations", "Group_Files",
+        "Default.Group", NULL);
     if (path == NULL) {
         TRACE("Unable to retrieve \"Default.Group\" file location.");
         return ERROR_NOT_ENOUGH_MEMORY;
@@ -123,7 +124,8 @@ DWORD FileGroupCreate(INT32 groupId, GROUPFILE *groupFile)
     TRACE("groupId=%d groupFile=%p", groupId, groupFile);
 
     // Retrieve default location
-    defaultPath = Io_ConfigGetPath("Locations", "Group_Files", "Default.Group", NULL);
+    defaultPath = Io_ConfigGetPath(Io_ConfigGetIniFile(), "Locations",
+        "Group_Files", "Default.Group", NULL);
     if (defaultPath == NULL) {
         TRACE("Unable to retrieve default file location.");
         return ERROR_NOT_ENOUGH_MEMORY;
@@ -131,7 +133,8 @@ DWORD FileGroupCreate(INT32 groupId, GROUPFILE *groupFile)
 
     // Retrieve target location
     StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", groupId);
-    targetPath = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
+    targetPath = Io_ConfigGetPath(Io_ConfigGetIniFile(), "Locations",
+        "Group_Files", buffer, NULL);
     if (targetPath == NULL) {
         TRACE("Unable to retrieve group file location.");
 
@@ -170,7 +173,8 @@ DWORD FileGroupDelete(INT32 groupId)
 
     // Retrieve group file location
     StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", groupId);
-    path = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
+    path = Io_ConfigGetPath(Io_ConfigGetIniFile(), "Locations", "Group_Files",
+        buffer, NULL);
     if (path == NULL) {
         TRACE("Unable to retrieve file location.");
         return ERROR_NOT_ENOUGH_MEMORY;
@@ -208,7 +212,8 @@ DWORD FileGroupOpen(INT32 groupId, GROUPFILE *groupFile)
 
     // Retrieve group file location
     StringCchPrintfA(buffer, ELEMENT_COUNT(buffer), "%i", groupId);
-    path = Io_ConfigGetPath("Locations", "Group_Files", buffer, NULL);
+    path = Io_ConfigGetPath(Io_ConfigGetIniFile(), "Locations", "Group_Files",
+        buffer, NULL);
     if (path == NULL) {
         TRACE("Unable to retrieve file location.");
         return ERROR_NOT_ENOUGH_MEMORY;

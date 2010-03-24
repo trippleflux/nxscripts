@@ -46,6 +46,7 @@ Return Values:
 --*/
 DWORD FCALL ProcTableInit(Io_GetProc *getProc)
 {
+    RESOLVE("Config_GetIniFile",        procTable.pConfigGetIniFile);
     RESOLVE("Config_Get",               procTable.pConfigGet);
     RESOLVE("Config_GetBool",           procTable.pConfigGetBool);
     RESOLVE("Config_GetInt",            procTable.pConfigGetInt);

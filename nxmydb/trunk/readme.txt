@@ -39,7 +39,7 @@ servers. nxMyDB also includes features such as:
 
 - Windows operating system
 
-- ioFTPD v6.9
+- ioFTPD v7.2
 
 - MySQL Server v5.1 (latest available)
 

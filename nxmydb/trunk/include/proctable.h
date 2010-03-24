@@ -29,10 +29,11 @@ typedef DWORD (CCALL Io_TimerProc)(VOID *Context, TIMER *Timer);
 // Function declarations
 //
 
-CHAR  *Io_ConfigGet(CHAR *Array, CHAR *Variable, CHAR *Buffer, INT *Offset);
-BOOL   Io_ConfigGetBool(CHAR *Array, CHAR *Variable, BOOL *Value);
-BOOL   Io_ConfigGetInt(CHAR *Array, CHAR *Variable, INT *Value);
-CHAR  *Io_ConfigGetPath(CHAR *Array, CHAR *Variable, CHAR *Suffix, CHAR *Buffer);
+CONFIG_FILE *Io_ConfigGetIniFile(VOID);
+CHAR  *Io_ConfigGet(CONFIG_FILE *ConfigFile, CHAR *Array, CHAR *Variable, CHAR *Buffer, INT *Offset);
+BOOL   Io_ConfigGetBool(CONFIG_FILE *ConfigFile, CHAR *Array, CHAR *Variable, BOOL *Value);
+BOOL   Io_ConfigGetInt(CONFIG_FILE *ConfigFile, CHAR *Array, CHAR *Variable, INT *Value);
+CHAR  *Io_ConfigGetPath(CONFIG_FILE *ConfigFile, CHAR *Array, CHAR *Variable, CHAR *Suffix, CHAR *Buffer);
 
 INT32 *Io_GetGroups(DWORD *GroupIdCount);
 CHAR  *Io_Gid2Group(INT32 Gid);
@@ -78,10 +79,11 @@ BOOL   Io_StopIoTimer(TIMER *Timer, BOOL InTimerProc);
 //
 
 typedef struct {
-    CHAR  *(* pConfigGet)(CHAR *, CHAR *, CHAR *, INT *);
-    BOOL   (* pConfigGetBool)(CHAR *, CHAR *, BOOL *);
-    BOOL   (* pConfigGetInt)(CHAR *, CHAR *, INT *);
-    CHAR  *(* pConfigGetPath)(CHAR *, CHAR *, CHAR *, CHAR *);
+    CONFIG_FILE *(* pConfigGetIniFile)(VOID);
+    CHAR  *(* pConfigGet)(CONFIG_FILE *, CHAR *, CHAR *, CHAR *, INT *);
+    BOOL   (* pConfigGetBool)(CONFIG_FILE *, CHAR *, CHAR *, BOOL *);
+    BOOL   (* pConfigGetInt)(CONFIG_FILE *, CHAR *, CHAR *, INT *);
+    CHAR  *(* pConfigGetPath)(CONFIG_FILE *, CHAR *, CHAR *, CHAR *, CHAR *);
 
     INT32 *(* pGetGroups)(DWORD *);
     CHAR  *(* pGid2Group)(INT32);
@@ -129,6 +131,7 @@ typedef struct {
 
 extern PROC_TABLE procTable;
 
+#define Io_ConfigGetIniFile         procTable.pConfigGetIniFile
 #define Io_ConfigGet                procTable.pConfigGet
 #define Io_ConfigGetBool            procTable.pConfigGetBool
 #define Io_ConfigGetInt             procTable.pConfigGetInt

@@ -186,7 +186,8 @@ DWORD FCALL LogFileInit(VOID)
     InterlockedExchange(&logStatus, LOG_STATUS_INACTIVE);
     STAILQ_INIT(&logQueue);
 
-    logPath = Io_ConfigGetPath("Locations", "Log_Files", "nxMyDB.log", NULL);
+    logPath = Io_ConfigGetPath(Io_ConfigGetIniFile(), "Locations", "Log_Files",
+        "nxMyDB.log", NULL);
     if (logPath == NULL) {
         return ERROR_NOT_ENOUGH_MEMORY;
     }
